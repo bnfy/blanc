@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+**Review status:** Revised for the owner's second plan review. PR A remains on hold until the owner explicitly approves this revised plan; neither this document nor green CI authorizes implementation, merge, or deployment.
+
 **Goal:** Ship desktop Spaces sync as a public feature release: a per-device switch that puts a device's Spaces into one end-to-end-encrypted library on the existing sync Worker, with groups, pins, names and order the same on every device that has it on, removals applied everywhere through a synced Recently closed, and the page in front of the person never changed under them.
 
 **Architecture:**
@@ -18,10 +20,12 @@
 ## Global Constraints
 
 - **Order of deployment:** the Worker (PR A) is deployed by the owner before any client that offers the switch ships (§9). A client meeting an older Worker shows "Spaces sync isn't available yet" in Settings; **Spaces sync is unavailable, and Favorites, settings, Tab Sync and Send to device continue exactly as today.** Until PR D removes it, the switch is reachable only in unpackaged builds (`!app.isPackaged`), so no public build can offer it before the acceptance evidence exists.
-- **Nothing is ever trimmed from a record another device wrote** (§5). Over budget refuses the sync of a change, never the change, always says so with accessible text, and **the last publishable state of the Space keeps syncing** (Task 7).
+- **Nothing is ever trimmed from a record another device wrote** (§5). Over budget refuses the sync of a change, never the change, always says so with accessible text, and a fitting payload containing all retained remote content may keep syncing; if no such payload fits, **no PUT is made** and all local work is preserved (Tasks 2 and 7).
 - **Tombstones are final** (§3.5): no code path writes `deleted: false` after `true`; reopen creates a fresh id. **Resurrection after expiry is possible**; no copy, test or UI text claims otherwise.
 - **The displayed baseline is the only thing autosave diffs against** (§4.3). Deferred remote changes never advance it.
 - **At most 10 GETs per device in any trailing 60 s** (§6.2), enforced by the request log; the scheduler's queue is the only thing that issues sync GETs for the Spaces stores, and the focus refresh never moves the next-class cursor.
+- **Requested work uses the same fair rotation as background work.** A caller may wait for its own result, but its requests never bypass the request window or class/item cursors; continuous named calls cannot starve reconciliation (Task 5).
+- **PR D has a merge gate:** validation candidates from the exact PR D head, with the packaged-build guard removed on that branch, must pass the affected-platform checks and receive written owner confirmation or a recorded waiver before PR D merges. PR E cannot retroactively satisfy this gate.
 - **Every existing `syncNow` contract survives** (Task 5): the credential/consent generation check, the drain-before-wipe barrier (`disable()` awaits `passSettled`, which now covers queued work), `sendTab`'s own-result reply, and the fixed stores' behaviour against an older Worker.
 - Only the Personal profile syncs. Private tabs, splits, `blanc://` and `file://` pages never enter a record.
 - Every new English string goes into all six languages in the same PR (`copy:build`, `copy:ack`); `browser-api/contract.json` and `bridges.json` change with any bridge member or payload field; boundary-file edits need `npm run audit-inventory:write`; a new `sync.json` or `settings` key follows `settings-schema/schema.json` and `settings:build`.
@@ -36,7 +40,7 @@
 4. **A long-stale replica's absent records never reach an upload, not even through its own pending set** (Task 2 test `recovery records cannot leak into the upload through the pending set`); they go to the recovery Space, which is idempotent and created even with 25 Spaces present (Task 9 tests, Task 11 scenario `kept on this device`).
 5. The scheduler never exceeds 10 GETs in any trailing 60 s across a simulated hour, including a restart and a backwards clock jump, and one-request passes with a focus event before each still serve I, S, F, R in turn (Task 5 tests `sliding window`, `one request per pass with focus events`).
 6. **Queued work obeys the generation and the drain barrier**: a Space write waiting for the window is cancelled, not run, when the account changes or `disable()` runs, and an account-wide DELETE never races a queued PUT (Task 5 tests `pending PUT then account-wide DELETE`, `account switch while a request waits`).
-7. The budget check measures `JSON.stringify(encrypt(...))`: a 400 KiB plaintext is refused and 320 KiB accepted, with the numbers computed by the test (Task 1 test `budget on the encrypted blob`); **over budget, the last publishable state keeps syncing and the unsynced change is retained and retried** (Task 7 tests).
+7. The budget check measures `JSON.stringify(encrypt(...))`: a 400 KiB plaintext is refused and 320 KiB accepted, with the numbers computed by the test (Task 1 test `budget on the encrypted blob`); **over budget, dependency-safe admission preserves remote content and local work; if no valid payload fits, no PUT occurs, and unsynced work is retained and retried** (Task 7 tests).
 8. Turning the switch off, editing, and turning it on again rejoins without duplicating the library and with the edits' own clocks (Task 11 scenario `rejoin after edits`).
 9. The two-Electron scenarios (Task 11) converge through the real Worker handler, not a simulation of it.
 
@@ -84,9 +88,11 @@
   3. **Exclude recovery records and their pending writes.** Every record in `recover`, and every entry of `pending` that writes a field of such a record (including the `nav`/`pos`/`name` writes that created it), is removed from what follows and returned in `recover`. Nothing in `recover` is in `upload` or `pendingAfter`.
   4. **Merge eligible local state**: `mergedBlob = mergeBlob(fetchedBlob, localBlob minus recover)`, field by field (§3.3).
   5. **Settle acknowledgements**: `pendingAfter = settlePending(pending minus recover, fetchedBlob)` by the full rule (§3.8); the surviving writes are replayed into `mergedBlob`.
-  6. **Construct and validate the upload**: `sanitizeBlob`, `expireTombstones`, the `mid` preconditions, the 500-live-tab limit, then **admission** (`admit`, below). A fitting blob is `upload` with `rev = revisionOf(blob)`; `reason` is `null`. When `mergedBlob` equals `fetchedBlob` after replay, `upload` is `null` (nothing to PUT).
+  6. **Construct and validate the upload**: `sanitizeBlob`, `expireTombstones`, the `mid` preconditions, then **admission** (`admit`, below), checking both the 500-live-tab limit and encrypted byte limit on the final payload. Admission returns only a complete, valid, fitting blob, or `null`. A fitting changed blob is `upload` with `rev = revisionOf(blob)`. If it equals `fetchedBlob`, `upload` is `null` with no work needed. If mandatory retained content cannot fit, `upload` is `null` with an explicit blocked reason: the caller sends no PUT, keeps all local state and unsynced work, and does not publish an index revision for a blob it did not write.
   7. **Index publication**: `indexEntry` is the `spaces` entry `{ id, name, rev, ... }` the caller writes **only after the blob PUT succeeds**; until the index PUT succeeds that entry stays in the pending set as an index write and is retried on later passes (§3.6). A blob PUT that fails leaves `pending` as it was before this pass (the caller discards `pendingAfter`).
-- `admit({ candidate, lastPublishable, changes, encryptFn })` → `{ blob, unsynced, reason }`: when `candidate` fits it is the blob; otherwise the device's **own** new writes are removed one change at a time, newest first, until the result fits or only `lastPublishable` plus every other device's content remains; the removed writes are `unsynced` (they stay in `pendingAfter`, marked so the row can show its dot) and `reason` names the cause (`full`, `tombstones` when expiring tombstones would make room, `tabs` for the 500 limit). Another device's content is never removed; a blob that arrives already over budget is merged and kept whole.
+- `admit({ candidate, lastPublishable, changes, encryptFn })` → `{ blob: Blob | null, unsynced, reason }`: admission operates on **dependency-safe units**, not arbitrary individual fields. Each change carries its before/after values and dependencies. Creating a tab or group admits all required fields (including its id-bound position) atomically. If a new tab depends on a newly created group, admit that group with the tab or hold the dependent tab too; never emit an incomplete record or introduce a missing group reference. Related changes from a single operation are held together whenever separating them would invalidate the result.
+- Start with the candidate, preserving every retained remote record and field. If it exceeds either limit, hold this device's eligible admission units newest first; holding an update restores its latest eligible base value, rather than deleting a required field. Preserve held units in `pendingAfter`/`unsynced`, in their original retry order. Revalidate record completeness, references, positions, live-tab count and encrypted size after selection.
+- `lastPublishable` supplies historical base values only; **never upload it wholesale in place of newer fetched content**. If retaining the remote content and the required dependency closure still exceeds a limit, return `blob: null` and a blocked reason (`remote-over-budget` or `required-state-over-budget`), send no PUT, and retain the full merged state and all unsynced local changes. No index revision is published for a refused blob. Other reasons are `full`, `tombstones` when expiry would make room, and `tabs` for the live-tab limit.
 - `settlePending(pending, fetchedBlob)` → pending minus acknowledged writes.
 
 - [ ] Write failing tests:
@@ -99,7 +105,10 @@
   - `the unrecoverable case stays lost` (a write cleared from pending then dropped upstream is not recovered; asserted so the claim stays honest);
   - `resurrection after expiry` (a replica that merged within the window but missed a tombstone brings the record back after 31 days; asserted);
   - `index entry follows the blob` (no `indexEntry` applied when the blob PUT is reported failed; the entry is retried from pending on the next plan; the `rev` matches the uploaded blob);
-  - `admission removes only this device's newest writes` (another device's over-budget content stays; the removed writes are `unsynced` and still pending; `reason` is `tombstones` when expiry would make room);
+  - `admission holds only this device's newest eligible units` (held writes remain unsynced and pending; tombstone expiry is identified when it would make room);
+  - `new tab admission is atomic` (all required fields and the valid tagged position appear together or none do); `new group and dependent tab admission` (no partial group or new dangling reference);
+  - `held update restores the base value` (no required field disappears); `newer remote fields survive admission` (lastPublishable cannot replace the fetched state);
+  - `mandatory remote content exceeds byte or live-tab limit` and `required dependency closure does not fit` (upload is null, no PUT or new index revision, full merged state and local pending work retained);
   - `nothing to upload when the merge equals the fetched blob`.
 - [ ] Implement. Add the `pipeline` vector group (a fixed fetched blob, local blob, pending set and stamp with the expected `upload`, `pendingAfter`, `recover` and `unsynced`). Run `npm run test:unit`. Expected: PASS. Commit.
 
@@ -124,16 +133,16 @@
   - `per-account GET limit counts space GETs` (31 GETs across space stores in one minute → 429);
   - `cleanup still lists by prefix and treats space blobs like any blob`.
 - [ ] Implement. Document the pattern and the three names in the README's API section, with the "deploy before any client that offers the switch" line and the degrade behaviour (§9).
-- [ ] **Recompute the storage cost bound** and record it in the README and as an addendum to the budget design's §7. The budget design assumed 4 stores × 512 KB = 2 MB per account. With 25 Spaces, the index, `closed`, `shared` and the existing 5 stores an account can hold **33 blobs, about 16.5 MiB** at the cap. Record, with the arithmetic shown:
-  - the worst case under the existing flood bound (100 new accounts a day × 17.3 MB ≈ 1.7 GB a day; 12-month peak ≈ 630 GB; ≈ $315 a month at the $0.50/GB-month rate the budget design cites, against its $36), and the same at `NEW_ACCOUNT_DAILY_LIMIT` 50 and 25;
-  - the expected case from the production listing the budget design reports (42 accounts) and the spec's §5 record sizes (a Space of 500 typical tabs is 150–220 KiB; most Spaces are far smaller), so that the owner sees both numbers;
-  - write volume: one PUT per changed Space per pass plus the index, inside the 1 million included writes at the current scale, and the DELETE's listing calls.
-  - **The owner decides before deploy** whether to lower `NEW_ACCOUNT_DAILY_LIMIT` (a `wrangler.toml` variable, no code) given the new worst case; the plan does not change the limit itself.
+- [ ] **Document storage-cost scenarios and the absence of a server-enforced per-account bound**, in the README and as an addendum to the budget design's §7. Do not call the client’s 25-live-Space limit a storage quota. The `space-<id>` route permits arbitrary valid ids, and retained deleted-Space or orphan blobs can accumulate even with compliant clients. The account can remain active, so inactive-account cleanup does not bound this growth.
+  - Show the **33-blobs-per-account scenario**, not a worst-case/flood bound: 25 current Spaces, the index, `closed`, `shared`, plus 5 existing stores total 33 capped blobs (16.5 MiB / about 17.3 decimal MB). Using the budget design's cited $0.50/GB-month rate and 100 new accounts/day retained for 365 days gives about 630 GB and $315/month. Show the same assumed occupancy at 50 and 25 new accounts/day, with units and assumptions. These figures exclude accumulated blobs and are not ceilings.
+  - Show an accumulation scenario with more than 25 historical Space ids per account. Explain that lowering `NEW_ACCOUNT_DAILY_LIMIT` reduces account creation only: it does not cap blobs or storage within existing accounts.
+  - Separate expected-use estimates from limits. Cite the dated production listing in the budget design (42 accounts), not a new measurement, and the spec's typical record sizes. Record write/list/delete assumptions as estimates rather than guarantees about included usage.
+  - **Owner decision before deployment:** either explicitly accept the unbounded per-account blob-growth exposure, or require a separately specified and reviewed enforceable quota/retention mechanism before deployment. If mitigation is required, keep deployment blocked until its storage accounting, orphan/deletion behavior, compatibility and tests are reviewed; do not invent or silently implement a destructive cleanup policy. An account-creation-limit decision is separate and is not acceptance of this exposure.
 - [ ] Run `npm run test:unit`. Expected: PASS. Commit.
 
 ### Gate A → B: Worker review and deploy (owner's action)
 
-- [ ] The owner reviews Task 3's tests, the README changes and the recomputed cost bound, and decides on `NEW_ACCOUNT_DAILY_LIMIT`.
+- [ ] The owner reviews Task 3's tests, README and cost scenarios, records the explicit storage-exposure decision (accept it, or require reviewed enforceable mitigation), and separately decides on `NEW_ACCOUNT_DAILY_LIMIT`. No deployment while required mitigation or owner acceptance is pending.
 - [ ] After PR A merges, the owner runs `wrangler deploy` from `cloudflare/sync-worker` and confirms `GET /v1/blob/<test account>/space-<32 hex>` answers 404 `not found` rather than `unknown store`, and `GET …/space-xyz` still answers `unknown store`.
 - [ ] Record the deploy (date, Worker version id) in the release's incident file when it is created.
 
@@ -162,7 +171,7 @@
 - `work` is `{ I: boolean, S: spaceId[], F: storeName[], R: spaceId[] }` built by `sync.js` from the merged index, pending sets and `rev` differences; 409 retries re-enter as class S items.
 - Persistence of `log` (wall-clock), `nextClass` and `cursors` in `shared-spaces.json`; on start, entries younger than 60 s or in the future count as live for 60 s of monotonic time.
 - **The request queue and what its callers can rely on.** Every sync request (fixed stores included) is a queued operation with a state `waiting → running → done | cancelled`:
-  - **Requested work runs ahead of the rotation.** A pass that names stores (`sendTab(['sends'])`, `refreshSession`, Sync Now, `enable`'s first pass, the heartbeats) enqueues those requests as *requested*; the rotation fills what the window has left. Requested work that finds the window exhausted **waits** for the window to free (the log says exactly when) rather than being refused, so an existing caller sees the same outcome it does today, later.
+  - **Requested work joins the same fair rotation.** A call naming stores (`sendTab` requesting `sends`, `refreshSession`, Sync Now, `enable`'s first pass, or heartbeats) marks those items due and attaches completion waiters. It never runs ahead of I/S/F/R, resets either cursor, bypasses the request window, or moves an item ahead of other due items in its class. Duplicate due items may coalesce only while preserving each caller's required operation/result. An in-flight fetch from before a caller's mutation cannot satisfy that caller without publishing its change. When the window is exhausted, the caller waits for its turn rather than receiving a false failure.
   - **Completion:** `syncNow(names)` resolves only when every request it enqueued is `done` or `cancelled`, and `passSettled` covers the whole queue, so `disable()`'s drain barrier keeps its meaning. `onOutcome(name, outcome, error)` fires once per request; a cancelled request reports `error = SyncError('cancelled:<reason>')`.
   - **Cancellation reasons**, each a test: `generation` (the account identity or a consent changed: `syncGen` is snapshotted at enqueue, a stale item is cancelled, never run), `suspended` (`disable()` is draining: waiting items are cancelled, running ones finish and are then checked against the generation as today), `disabled`, `consent-off` (the Spaces switch went off before a queued Spaces write ran: the write is cancelled and its pending set kept, dormant), `unavailable` (the Worker answered `404 unknown store` for a Spaces store: every queued Spaces request is cancelled and the Spaces classes leave the rotation until the optional-store retry (`OPTIONAL_MISSING_RETRY_MS`) finds the store).
   - **Status:** the queue exposes `{ waiting, running, windowFreesAt, backoff }` for the Settings status lines ("Sync is busy; retrying", "Checking for changes is slowed by rate limiting").
@@ -174,7 +183,8 @@
   - `round robin across requests`: with work in every class and one request allowed per pass, 1,000 passes serve I, S, F, R in turn, none starved;
   - `one request per pass with focus events`: a focus event before every pass only marks I as due; R still gets one in four;
   - `empty classes yield their turn`; `409 retry is a class S request`; `backoff lowers the window and recovers`; `class R completes a rotation within the stated bound at each rate`;
-  - `requested work runs ahead of the rotation and still counts in the window`.
+  - `continuous requested work cannot starve rotation` (sustained named fixed-store and Space requests, heartbeats and focus events, with all classes due and one request allowed per pass: every class and item gets its turn, the window holds, and each caller settles only on its own completed or cancelled operation);
+  - `requested work coalesces without losing caller completion` (including a caller mutation arriving during an in-flight fetch); `no cursor reset on named requests`.
 - [ ] Write failing tests (callers, with the fake `net.fetch` the existing sync tests use):
   - `Send to device with an exhausted window` (ten Spaces GETs in the last minute: the send waits until the window frees, then runs, and replies `sent`; `onOutcome` fired once);
   - `account switch while a request waits` (`enable` with a new passphrase while a Spaces PUT is queued: the PUT is cancelled with `generation`, nothing is PUT under the new account);
@@ -184,7 +194,7 @@
   - `older Worker` (a `404 unknown store` for `spaces`: Favorites, settings, Tab Sync and Send to device complete in the same pass; the Spaces classes leave the rotation; the status is "Spaces sync isn't available yet");
   - `generation checks preserved` (`syncGen` bumps mid-pass strand the running request as today, now also cancelling the queue);
   - `drain-before-wipe barrier preserved` (`sync-wipe-race.test.js`'s scenario with queued Spaces work added, unchanged assertions).
-- [ ] Implement; wire `syncNow` to enqueue requested work first and spend what the window allows on the rotation, stopping when the window is empty; the focus refresh calls `markIndexDue`. Every existing `test/unit/sync-*.test.js` passes unchanged.
+- [ ] Implement; wire `syncNow` to attach requested work to the fair rotation and spend only what the window allows, stopping when the window is empty; the focus refresh calls `markIndexDue`. Every existing `test/unit/sync-*.test.js` passes unchanged.
 - [ ] Run `npm run test:unit`. Expected: PASS. Commit.
 
 ### Task 6: Capture ↔ record translation and local state
@@ -204,14 +214,15 @@
 **Files:** `src/main/shared-spaces.js` (admission state per Space), `src/main/shared-spaces-adapter.js` (`unsyncedTabIds`), `src/main/main.js` (the status payload), `test/unit/shared-spaces-admission.test.js` (new)
 
 **Interfaces:**
-- Per Space the store keeps `lastPublishable` (the last blob that passed `admit`), `unsynced` (the pending writes `admit` removed, in order) and `reason`. Every pass re-runs `admit` on the current merge plus the unsynced writes **in their original order**, so a change that didn't fit is retried whenever capacity frees: a tombstone expiring, another device removing content, a navigation to a shorter URL, a local close whose tombstone is smaller than the record it replaces.
+- Per Space the store keeps `lastPublishable` (the last blob that passed `admit`, not a substitute for newer remote content), `unsynced` (the dependency-safe units held by `admit`, with their original writes in retry order) and `reason`. Every pass re-runs `admit` on the current merge plus the unsynced writes **in their original order**, so a change that didn't fit is retried whenever capacity frees: a tombstone expiring, another device removing content, a navigation to a shorter URL, a local close whose tombstone is smaller than the record it replaces.
 - `unsyncedTabIds(space)` → the tab ids whose writes are unsynced, for the row dot ("Not synced: this Space is full") and the Spaces menu line ("This Space is full for sync: {count} tabs stay on this device", with "Closed tabs free their room after 30 days" when `reason` is `tombstones`).
 - Admission never touches the window: the tab opens, navigates or closes as usual; only its sync is held.
 
 - [ ] Write failing tests:
-  - `long-URL navigation over budget` (a full Space; the active tab navigates to a 2,048-unit URL: the navigation shows, the `nav` write is unsynced, the tab carries the dot, the last publishable state is what the next pass PUTs);
+  - `long-URL navigation over budget` (a full Space; the active tab navigates to a 2,048-unit URL: the navigation shows, the `nav` write is unsynced, the tab carries the dot, the next PUT is a fitting payload preserving the fetched remote state and holding the local navigation; if mandatory content does not fit, no PUT occurs);
   - `position-key growth` (500 inserts into one gap at the budget's edge: the inserts that don't fit are unsynced in order, the earlier ones sync, and a later `mid` with the stored neighbours is still valid);
-  - `concurrent additions` (a blob arrives already over budget from another device: merged whole, shown in full, this device's next addition is unsynced, nothing of the other device's is removed);
+  - `concurrent additions` (mandatory remote content exceeds the local byte or live-tab limit: merged whole, shown in full, this device's next addition is unsynced, upload is null and the HTTP spy observes no PUT or new index revision; nothing of the other device's is removed);
+  - `dependency-safe retry` (a held new group and tab are admitted together when room appears); `no snapshot rollback` (newer remote fields remain after another local unit is held);
   - `tombstones hold room` (closing tabs frees nothing until expiry; the reason is `tombstones`; after the test clock passes 30 days the unsynced writes are admitted in order);
   - `500 live tabs` (the 501st tab opens, is unsynced with reason `tabs`, and syncs after a close's tombstone is counted as not live);
   - `transient 26 Spaces` (two devices create at once: both sync, the menu says "26 of 25 Spaces are shared", creation of a 27th is refused with the reason);
@@ -282,6 +293,8 @@ PR C merges with the switch **unpackaged-only**: `isSharedSpacesOffered()` retur
 
 ## PR D: acceptance, records, security review, the switch in packaged builds
 
+**Merge gate:** PR D is the shipping feature PR. Keep it open until the Gate D below is satisfied against its exact head. Removing the packaged-build guard on this branch enables private validation candidates; it does not authorize merging or publishing that branch.
+
 ### Task 11: Two-device scenarios, two complete clients, crashes
 
 **Files:** `spec/acceptance/shared-spaces.feature`, `test/desktop/steps/shared-spaces.steps.js`, `test/desktop/support/hooks.js` (`launchPeerApp`: a second Electron instance with its own userData, the same fixture endpoint and the same derived key; closed in `After`), `test/desktop/support/sync-fixture.js` (fault modes used from steps), `src/main/main.js` (remove the packaged-build guard from Task 9)
@@ -302,16 +315,22 @@ PR C merges with the switch **unpackaged-only**: `isSharedSpacesOffered()` retur
 - [ ] Update the records; run `npm run test:unit` (the ledger tests) and `npm run site:build`'s SEO checks if the privacy page changed. Expected: PASS. Commit.
 - [ ] Security review against `docs/security-assessment.md` R3/R5 (§12): what travels, consent, the bearer-locator statement, the non-atomic statement, the hostile-navigation path through the deferred queue and the navigation guards, the queue's cancellation reasons against a credential change. Record the sign-off in the assessment.
 
+### Gate D: affected-platform validation before PR D merges
+
+- [ ] On the PR D branch, remove the packaged-build guard for the candidate and record the exact head SHA. Finish the automated two-client, crash and security checks above before requesting owner confirmation.
+- [ ] Build private Windows and Linux candidates from that branch: `gh workflow run release-windows-linux.yml --ref <PR-D-branch> -f mode=validation -f platform=windows` and the same for `linux`. Verify each run's source SHA equals the candidate head; record run ids and artifact identities. Build the Mac candidate from the same head using the repository's private-validation procedure.
+- [ ] Install the private artifacts and check each affected desktop platform against a second device and the deployed Worker: chosen Spaces join; create/close/navigation work in both directions; active-page deferral works; off/on preserves edits without duplication; erase-server-copy removes the test account's Space blobs. Use a disposable test account for erasure. Installer launch proves packaged behavior, not an updater handoff.
+- [ ] Obtain written owner confirmation for each affected platform **before PR D merges, before tagging and before release**. A waiver must name the missing evidence and risk and carry explicit written owner approval. Store the source SHA, runs, observations and confirmations/waivers in a candidate evidence record, later linked from the release incident.
+- [ ] A change after validation invalidates the exact-head gate: update candidate artifacts and affected checks/confirmation, or obtain an explicit waiver for the changed evidence. Only then merge PR D. PR E must not be used to satisfy this gate retroactively.
+
 ---
 
-## PR E: release preparation, platform validation, release
+## PR E: release preparation and release
 
 ### Task 13: Release preparation (before `npm run release`)
 
 - [ ] **Prep PR** as for v1.43.1: bump `version` in `package.json` (and the `electron` devDependency if Chromium moved), create `docs/press/release-notes/vX.Y.0.md` from `docs/press/release-notes/unreleased.md` including only what the release commit contains, with the shared-Spaces bullets **bold-named** so `site:whats-new` can turn them into highlights; the next `MIGRATION_BASE_VERSION` and its unit-test assertion. This is upcoming material, labelled as such; nothing in it is published as shipped.
-- [ ] **By-hand two-device check against the deployed Worker**, from the merged build: switch on with two Spaces, open one on a second desktop, close a tab on each side, navigate the active tab on one side and watch the other defer, turn the switch off and on again, turn sync off with "erase server copy" and confirm the Space blobs are gone. Record the observations for the release's incident file.
-- [ ] **Windows and Linux candidate validation:** `gh workflow run release-windows-linux.yml --ref <candidate branch> -f mode=validation -f platform=windows` and the same for `linux`; install the private artifacts and repeat the two-device check on each (a Windows or Linux desktop paired with a Mac). Record the runs' ids. Installing proves packaged behaviour, not the updater handoff.
-- [ ] **Affected-machine confirmation:** the owner confirms, in writing, the by-hand check on every platform the release ships to before the shipping merge, tag or release. If a platform's check is waived, record the missing evidence and risk and the written approval, not a pass.
+- [ ] Confirm Gate D was completed before the shipping feature merged; link its exact-head candidate evidence and owner confirmations/waivers in the release incident. Reconcile the release source with that evidence: any subsequent behavior-affecting change needs fresh affected validation and confirmation or an explicit waiver before tagging/releasing. The checks in PR E do not replace the pre-merge gate.
 - [ ] **What's New page:** after the prep PR merges, `npm run site:whats-new -- --release X.Y` (reads the prepared `vX.Y.0.md`), captures from the merged build, owner sign-off on final text and media, the website-only PR, `npm run site:deploy`, and `https://blanc.day/whats-new/X.Y` answering 200 to a redirect-free HEAD. The page builds as the upcoming page (no date, `noindex`, out of the sitemap) until `releases.json` lists the release. `release.sh` refuses the feature release otherwise.
 
 ### Task 14: The feature release and its records
