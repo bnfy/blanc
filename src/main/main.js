@@ -6417,7 +6417,6 @@ function adblockWeekStats() {
 }
 
 let isQuitting = false;
-let sharedQuitReady = false;
 // Set once the last Windows/Linux window's close has saved the session with
 // that window's tabs. Its pages are torn down before window-all-closed starts
 // the quit, and a session write in between would save the window without the
@@ -6446,12 +6445,9 @@ app.on('will-quit', () => {
   blockingProviders?.stop();
   onePasswordBroker?.stop();
 });
-app.on('before-quit', (event) => {
-  if(!sharedQuitReady&&windowRuntimes.all().some(hasDeferredSharedChanges)) {
-    event.preventDefault();
-    Promise.all(windowRuntimes.all().map(runtime=>withWindowRuntime(runtime,()=>applySharedSpaceChanges(runtime,{force:true})))).finally(()=>{sharedQuitReady=true;app.quit();});
-    return;
-  }
+app.on('before-quit', () => {
+  // Shared targets were persisted before materialization. Leave them for
+  // restoration rather than starting or waiting on page loads during quit.
   glanceCards.flush(); // a card moved inside the save debounce keeps its place
   forEachWindowRuntime((runtime) => {
     if (!runtime.closing && !runtime.workspaceTransition && runtime.workspaceId) {
@@ -7730,19 +7726,12 @@ function captureSharedSpaceEdits(runtime) {
   sharedRuntimeSync.local(runtime);
 }
 function closeSharedSpaceWindow(runtime, event, closeNormally) {
-  if(!runtime.closing&&!isQuitting&&!runtime.sharedCloseReady&&hasDeferredSharedChanges(runtime)) {
-    event.preventDefault();
-    if(!runtime.sharedClosePending) {
-      runtime.sharedClosePending=true;
-      applySharedSpaceChanges(runtime,{force:true}).catch(error=>console.warn('[shared-spaces] close:',error.message)).finally(()=>{
-        runtime.sharedClosePending=false;runtime.sharedCloseReady=true;
-        if(runtime.window&&!runtime.window.isDestroyed())runtime.window.close();
-      });
-    }
-    return;
-  }
-  runtime.sharedCloseReady=false;return closeNormally(event);
+  // Do not force the async apply queue here: even a previously started load
+  // can remain pending indefinitely. The durable accepted set survives the
+  // ordinary close checkpoint and is replayed when the Space is restored.
+  return closeNormally(event);
 }
+
 function hasDeferredSharedChanges(runtime) {
   return !!sharedSpaceRuntimeContext(runtime)?.window?.accepted?.length;
 }

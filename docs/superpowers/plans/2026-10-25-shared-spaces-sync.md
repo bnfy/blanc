@@ -256,7 +256,7 @@ PR C merges with the switch **unpackaged-only**: `isSharedSpacesOffered()` retur
 **Interfaces:**
 - Protected tabs: the active tab of each window showing the Space and every visible split pane (§4.4), focus or not.
 - Apply rows of §4.3 through `createTab({ asleep: true, … })`, `closeTab(id)` with recording on (D5: the live view is parked), `navigateTabToAddress`, `syncTabLayout`; a Space tombstone leaves the Space as Delete does; applied tabs are marked for the pass so the broadcast yields no edit.
-- Deferred changes apply on tab switch, own close, window close, Space leave and cold start; superseded ones are dropped.
+- Deferred changes apply on tab switch, own close, Space leave and cold start; superseded ones are dropped. Window close and app quit retain the durable accepted set for restoration and never wait for page loads (PR C review correction).
 
 - [ ] Write failing tests: `remote new tab is created quiet at its position`, `remote tombstone closes into Recently closed with the view parked`, `active tab's change is deferred in an unfocused window too`, `deferred change applies on tab switch and advances the baseline`, `cold start applies the accepted set`, `applied change produces no echo edit`, `set-aside Space applies everything at once`.
 - [ ] Implement. Run `npm run test:unit`. Expected: PASS. Commit.

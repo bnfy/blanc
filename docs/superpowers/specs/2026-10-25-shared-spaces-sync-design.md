@@ -222,13 +222,14 @@ A set-aside Space has no protected tab; every change applies at once.
 
 ### 4.4 The protected active tab
 
-The tab the person is looking at is the active tab of **each window** showing the Space, whether or not the window has keyboard focus, and every visible pane of a split in it (D4). A tombstone or `nav` change for such a tab is **deferred** into the window's accepted set and applied when the tab stops being active (a tab switch, closing the tab themselves, the window closing or leaving the Space) or at the next cold start, whichever first. Applying it runs the §4.3 row for the change and only then advances the displayed baseline for that tab. The accepted set is per window, persisted in `shared-spaces.json` (so a cold start can apply it), and never synced.
+The tab the person is looking at is the active tab of **each window** showing the Space, whether or not the window has keyboard focus, and every visible pane of a split in it (D4). A tombstone or `nav` change for such a tab is **deferred** into the window's accepted set and applied when the tab stops being active (a tab switch, closing the tab themselves or leaving the Space) or at the next cold start, whichever first. Applying it runs the §4.3 row for the change and only then advances the displayed baseline for that tab. The accepted set is per window, persisted in `shared-spaces.json` (so a cold start can apply it), and never synced.
 
-Three things can happen to a deferred change before it applies:
+The following can happen to a deferred change before it applies:
 
 - **A newer remote value arrives** for the same field: the accepted set keeps only the newer one (the merge already did), and that is what applies.
 - **The person edits the same field locally** (they navigate the deferred tab themselves, or close it): §4.2 records a local edit with a newer clock, which wins over the accepted remote value under §3.3 everywhere (for a close, both sides agree the tab is deleted); the deferred change is dropped as superseded, and the local close records it in Recently closed once.
-- **The window leaves the Space or closes**: the change applies on the way out (the window's tabs are being put away anyway).
+- **The window leaves the Space**: the change applies on the way out (the window's tabs are being put away anyway).
+- **The window closes or the app quits**: retain the durable accepted set for the next restoration. Closing never starts a remote navigation or waits for the async apply queue; Shared Spaces never holds close or quit open for an already pending page load. The ordinary close/session checkpoint still saves the displayed tabs.
 
 A deferred navigation keeps the person's page; when applied, the tab loads the newer URL. A deferred close files the page in Recently closed with the live view parked as a local close would (D5). Both are visible when they happen because the person has just left the tab.
 

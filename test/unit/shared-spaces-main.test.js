@@ -26,7 +26,7 @@ function harness(override) {
       return true;
     },layout:()=>{},now:()=>400,
   });
-  return {controller,runtime,tabs,writes,actions,parked,get saved(){return saved;},get blob(){return blob;},remote:next=>{blob=model.mergeBlob(blob,next);},forgetRemote:id=>{delete blob.tabs[id];},changeAccount:()=>{accountId='b';saved={spaceId:sid,displayed:structuredClone(base),accepted:[]};}};
+  return {controller,runtime,tabs,writes,actions,parked,get saved(){return saved;},get blob(){return blob;},remote:next=>{blob=model.mergeBlob(blob,next);},forgetRemote:id=>{delete blob.tabs[id];},restoreReceipt:receipt=>{saved=structuredClone(receipt);},changeAccount:()=>{accountId='b';saved={spaceId:sid,displayed:structuredClone(base),accepted:[]};}};
 }
 test('a remote tab is created through the quiet-create action at its record position',async()=>{
   const h=harness(),next=structuredClone(h.blob);next.tabs[id(3)]=record(3,next.tabs[id(2)].pos.v);h.remote(next);
@@ -132,19 +132,41 @@ test('a completed native action from the old account cannot settle the new accou
   h.changeAccount();const expected=structuredClone(h.saved);release(true);await pending;
   assert.deepEqual(h.saved,expected);
 });
-test('a close with accepted targets completes them before handing off to the normal close lifecycle',async()=>{
+for (const exit of ['quit','window close']) for(const inFlight of [false,true]) test(`${exit} preserves navigation for cold start without waiting (${inFlight?'load already pending':'still deferred'})`,async()=>{
   const fs=require('node:fs'),vm=require('node:vm');
   const source=fs.readFileSync(require.resolve('../../src/main/main.js'),'utf8');
-  const code=source.match(/function closeSharedSpaceWindow\(runtime, event, closeNormally\) \{[\s\S]*?\n\}/)[0];
-  const events=[];let release;
-  const runtime={window:{isDestroyed:()=>false,close:()=>events.push('retry-close')}};
-  const sandbox={isQuitting:false,hasDeferredSharedChanges:()=>true,console,
-    applySharedSpaceChanges:()=>new Promise(resolve=>{events.push('apply');release=resolve;})};
-  vm.runInNewContext(code+'\nthis.close=closeSharedSpaceWindow;',sandbox);
-  const event={preventDefault:()=>events.push('prevent')},normal=()=>events.push('normal-close');
-  sandbox.close(runtime,event,normal);assert.deepEqual(events,['prevent','apply']);
-  release(true);await new Promise(resolve=>setImmediate(resolve));
-  sandbox.close(runtime,event,normal);assert.deepEqual(events,['prevent','apply','retry-close','normal-close']);
+  const h=harness(()=>new Promise(()=>{})),next=structuredClone(h.blob);
+  next.tabs[id(1)].nav=f({url:'https://never-finishes.test/',title:'Deferred'},500);h.remote(next);
+  await h.controller.apply(h.runtime);
+  if(inFlight){h.runtime.active=null;void h.controller.apply(h.runtime);await new Promise(resolve=>setImmediate(resolve));}
+  const receipt=structuredClone(h.saved),events=[];
+  const sandbox={isQuitting:false,sharedQuitReady:false,hasDeferredSharedChanges:()=>true,console,
+    applySharedSpaceChanges:()=>{events.push('load');return new Promise(()=>{});},
+    windowRuntimes:{all:()=>[h.runtime]},withWindowRuntime:(_r,fn)=>fn(),
+    forEachWindowRuntime:fn=>fn(h.runtime),glanceCards:{flush:()=>{}},
+    namedWorkspaces:{flushPending:()=>{}},forgetTabImportForRuntime:()=>{},
+    app:{on:(_name,fn)=>{sandbox.quit=fn;},quit:()=>events.push('retry-quit')}};
+  const event={preventDefault:()=>events.push('prevent')};
+  if(exit==='quit') {
+    const begin=source.indexOf("app.on('before-quit',");
+    const end=source.indexOf('\n});',begin)+4;
+    vm.runInNewContext(source.slice(begin,end),sandbox);sandbox.quit(event);
+    assert.equal(sandbox.isQuitting,true);
+  } else {
+    const code=source.match(/function closeSharedSpaceWindow\(runtime, event, closeNormally\) \{[\s\S]*?\n\}/)[0];
+    vm.runInNewContext(code+'\nthis.close=closeSharedSpaceWindow;',sandbox);
+    sandbox.close(h.runtime,event,()=>events.push('normal-close'));
+    assert.deepEqual(events,['normal-close']);
+  }
+  assert.equal(events.includes('load'),false);assert.equal(events.includes('prevent'),false);
+  assert.deepEqual(h.saved,receipt);
+  // A fresh controller has only the persisted receipt, not the old queue or
+  // native page. The cold-start force pass applies that accepted target.
+  const restored=harness();restored.restoreReceipt(receipt);
+  await restored.controller.apply(restored.runtime,{force:true});
+  assert.equal(restored.tabs.get(id(1)).nav.v.url,'https://never-finishes.test/');
+  assert.equal(restored.saved.accepted.length,0);
+  restored.controller.local(restored.runtime);assert.ok(restored.writes.every(edit=>!edit.tabs?.[id(1)]?.nav),'replayed navigation must not echo');
 });
 test('a Space tombstone leaves an open window unsaved and disposes a set-aside runtime',async()=>{
   const fs=require('node:fs'),vm=require('node:vm');
