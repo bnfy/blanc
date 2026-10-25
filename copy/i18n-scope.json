@@ -348,6 +348,14 @@
     "src/renderer/pages/settings-sync-pairing-model.js": {
       "state": "guarded",
       "allow": []
+    },
+    "src/renderer/pages/settings-shared-spaces.js": {
+      "state": "guarded",
+      "allow": []
+    },
+    "src/renderer/pages/newtab-shared-spaces.js": {
+      "state": "guarded",
+      "allow": []
     }
   }
 }

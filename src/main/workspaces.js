@@ -187,6 +187,38 @@ function createRepository({ store = new JsonStore('workspaces', model.EMPTY_FILE
     },
     /** Any subset of { name, color, symbol }; see model.updateWorkspace. */
     update(id, patch) { return mutate((data) => model.updateWorkspace(data, id, patch, clock())); },
+    setSharedLink(id, patch) {
+      return mutate(data=>{
+        const current=data.workspaces.find(workspace=>workspace.id===id);if(!current)return {error:'not-found'};
+        const workspace=model.normalizeWorkspace({...current,...patch,updatedAt:clock(),revision:current.revision+1});
+        if(!workspace)return {error:'not-found'};
+        return {file:{...data,workspaces:data.workspaces.map(row=>row.id===id?workspace:row)},workspace};
+      });
+    },
+    upsertShared({sharedId,recoveredFrom,name,color,symbol,capture}) {
+      return mutate(data=>{
+        if(!/^[0-9a-f]{32}$/.test(sharedId??recoveredFrom??''))return {error:'not-found'};
+        const current=data.workspaces.find(row=>sharedId?row.sharedId===sharedId:row.recoveredFrom===recoveredFrom);
+        const workspace=model.normalizeWorkspace({...current,...structuredClone(capture),id:current?.id??makeId(),profileId:activeLocalProfileId(),
+          name,color,symbol,createdAt:current?.createdAt??clock(),updatedAt:clock(),revision:(current?.revision??-1)+1,
+          ...(sharedId?{sharedId,sharedLink:'active'}:{recoveredFrom})});
+        if(!workspace)return {error:'not-found'};
+        return {workspace,file:{...data,workspaces:current?data.workspaces.map(row=>row.id===current.id?workspace:row):[...data.workspaces,workspace]}};
+      });
+    },
+    reorderShared(ids) {
+      return mutate(data=>{
+        const rank=new Map(ids.map((id,index)=>[id,index]));
+        const shared=data.workspaces.filter(row=>rank.has(row.sharedId)).sort((a,b)=>rank.get(a.sharedId)-rank.get(b.sharedId));let at=0;
+        return {file:{...data,workspaces:data.workspaces.map(row=>rank.has(row.sharedId)?shared[at++]:row)}};
+      });
+    },
+    clearSharedLinks() {
+      return mutate(data=>({file:{...data,workspaces:data.workspaces.map(row=>{
+        if(!row.sharedId)return row;
+        const workspace={...row,preservedLocal:true};delete workspace.sharedId;delete workspace.sharedLink;delete workspace.tabIds;return workspace;
+      })}}));
+    },
     remove(id) {
       const s = state();
       const result = mutate((data) => { const r = model.deleteWorkspace(data, id, clock()); return r.removed ? r : { error: 'not-found' }; });

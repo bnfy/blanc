@@ -16,10 +16,9 @@ final class PrivateTabsUITests: XCTestCase {
     let chip = app.buttons["pill.private"]
     XCTAssertTrue(chip.waitForExistence(timeout: 10))
     XCTAssertEqual(chip.label, "Leave private mode — closes this tab")
-    app.openIslandMenu()
-    XCTAssertTrue(app.buttons["New Private Tab"].waitForExistence(timeout: 5))
-    XCTAssertFalse(app.buttons["Save to Favorites"].exists, "a private page can't be a Favorite")
-    app.dismissIslandMenu()
+    // That a private page offers no Favorite is IslandMenuTests'
+    // testPrivatePageIsNeverAFavorite: closing a menu here would need a tap on
+    // the page, which crashes Blanc built with the iOS 26 SDK on CI.
     chip.tap()
     XCTAssertTrue(chip.waitForNonExistence(timeout: 5))
     app.openIslandMenu()

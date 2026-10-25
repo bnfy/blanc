@@ -1870,6 +1870,10 @@
     "message": "Move Group to New Window",
     "note": "Item in a tab group’s menu; moves every tab of the group, in order, into a new window."
   },
+  "groupMenu.moveToSpace": {
+    "message": "Move Group to Space",
+    "note": "Item in a tab group’s menu, shown once the profile has a space (Blanc Spaces); opens a menu of spaces, and choosing one moves every tab of the group, in order, into that space as the same group."
+  },
   "deviceMenu.rename": {
     "message": "Rename Device…",
     "note": "Only item in the right-click menu of a synced device's header in the ⌘L panel's Other devices drawer; opens the panel to rename that device on every synced device. Menu items use title case, like Rename Group…."
@@ -8153,6 +8157,130 @@
     "message": "Send this tab's page to another synced device",
     "note": "Reference description of /send <device> on blanc://shortcuts and in Help → Slash Commands."
   },
+  "sharedSpaces.switch": {
+    "message": "Keep Spaces and groups in sync on this device",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.title": {
+    "message": "Choose Spaces to sync",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.explanation": {
+    "message": "Share these Spaces across devices on this sync account. Open tabs, tab names, groups and pinned tabs will sync.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.cancel": {
+    "message": "Cancel",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.confirm": {
+    "message": "Turn on",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.count": {
+    "message": "{count} of {limit} shared Spaces",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.tabs": {
+    "message": "{count} tabs",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.rejoin": {
+    "message": "Rejoin",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.copy": {
+    "message": "Add as a copy",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.full": {
+    "message": "This Space is too large to sync. Split it into smaller Spaces first.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.unavailable": {
+    "message": "Spaces sync is unavailable. Favorites, settings, open-tab sharing and Send to device continue.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.recoveryName": {
+    "message": "{name} · kept on this device",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.shared": {
+    "message": "Shared",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.waiting": {
+    "message": "Waiting to upload",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.notSynced": {
+    "message": "Not synced since {time}",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.fullState": {
+    "message": "Full for sync",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.unavailableState": {
+    "message": "Spaces sync isn’t available",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.closedOn": {
+    "message": "Closed on {device}",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.split": {
+    "message": "Open to split…",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.splitHint": {
+    "message": "Move tabs to another Space, then try sharing again.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.accountLine": {
+    "message": "Every device that turns this on can change these Spaces.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.offLine": {
+    "message": "Turning this off keeps a local copy. Your other devices keep syncing.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.tombstones": {
+    "message": "Closed tabs still use sync space for 30 days.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.capacity": {
+    "message": "This Space is full for sync. Its local changes are kept.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.busy": {
+    "message": "Sync is busy; retrying.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.slowed": {
+    "message": "Checking for changes is slowed by rate limiting.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.unsyncedTab": {
+    "message": "Not synced",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.pairQuestion": {
+    "message": "{name} joined your sync. Turn on Spaces here?",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.pairDetail": {
+    "message": "Turning this on lets this device change shared Spaces across your sync account.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.notNow": {
+    "message": "Not now",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.recoveryNote": {
+    "message": "A local recovery Space preserves tabs missing from an old shared copy.",
+    "note": "Development-only Shared Spaces controls."
+  },
   "ios.settings.privacy": {
     "message": "Privacy",
     "note": "Native iOS Settings sheet: privacy."
@@ -8352,5 +8480,114 @@
   "tabs.closedToast": {
     "message": "Tab closed",
     "note": "iPhone: banner over the Island for five seconds after a tab closes, beside Undo (menu.undo)."
+  },
+  "tabMenu.newSpace": {
+    "message": "New Space…",
+    "note": "Last item of the tab menu Move to Space submenu; opens the new-space editor."
+  },
+  "ws.new.withTab": {
+    "message": "With this tab",
+    "note": "Fixed start label when creating a space from one tab."
+  },
+  "ws.error.savedNotMoved": {
+    "message": "Saved {name}, but the tab couldn’t move.",
+    "note": "Creation succeeded but moving the tab failed. {name} is the saved space name."
+  },
+  "ws.error.moveFailed": {
+    "message": "Couldn’t move the tab to {name}.",
+    "note": "A single-tab Move to Space action failed. {name} is the destination space name."
+  },
+  "contextMenu.openLinkInSpace": {
+    "message": "Open Link in Space",
+    "note": "Link context submenu for opening in another space.",
+    "maxLength": 48
+  },
+  "ws.announce.openedIn": {
+    "message": "Opened in {space}",
+    "note": "Screen-reader confirmation. {space} is a user-provided space name."
+  },
+  "ws.announce.groupMovedTo": {
+    "message": "Group moved to {space}",
+    "note": "Screen-reader confirmation after Move Group to Space. {space} is a user-provided space name."
+  },
+  "ws.new.withLink": {
+    "message": "With this link",
+    "note": "Fixed start line in the New Space editor opened from a link."
+  },
+  "ws.error.openLinkFailed": {
+    "message": "Couldn’t open the link in {name}.",
+    "note": "Spaces menu error. {name} is the destination space name."
+  },
+  "rail.state.selected": {
+    "message": "selected",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsSelection.count": {
+    "message": "{count, plural, one {# tab selected} other {# tabs selected}}",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsSelection.cleared": {
+    "message": "Selection cleared",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsSelection.failed": {
+    "message": "Couldn’t complete the action for these tabs.",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsSelection.quieted": {
+    "message": "Quieted {count} of {total} tabs.",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsSelection.reloaded": {
+    "message": "Reloaded {count} of {total} tabs.",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.header": {
+    "message": "{count, plural, one {# tab} other {# tabs}}",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.newWindow": {
+    "message": "Move Tabs to New Window",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.pin": {
+    "message": "Pin Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.unpin": {
+    "message": "Unpin Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.mute": {
+    "message": "Mute Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.unmute": {
+    "message": "Unmute Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.reload": {
+    "message": "Reload Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.quiet": {
+    "message": "Quiet Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.copy": {
+    "message": "Copy Links",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.close": {
+    "message": "Close Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "ws.new.withTabs": {
+    "message": "With these tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "ws.error.movedPartly": {
+    "message": "Moved {count} tabs to {name}. The other tabs stayed here.",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
   }
 }

@@ -53,6 +53,7 @@
   function railSignature(payload) {
     return JSON.stringify({
       activeTabId: payload.activeTabId,
+      selectedTabIds: payload.selectedTabIds ?? [],
       groups: (payload.groups || []).map(({ id, name, collapsed, color }) => ({ id, name, collapsed, color: color ?? null })),
       tabs: (payload.tabs || []).map((tab) => ({
         id: tab.id,
@@ -288,7 +289,8 @@
       (active ? ' active' : '') +
       (tab.private ? ' private' : '') +
       (tab.isLoading ? ' loading' : '') +
-      (tab.asleep ? ' quiet' : '');
+      (tab.asleep ? ' quiet' : '') +
+      ((lastPayload?.selectedTabIds ?? []).includes(tab.id) ? ' selected' : '');
     row.setAttribute('role', 'listitem');
     row.dataset.tabId = tab.id;
     row.dataset.bucket = bucketKey(tab);
@@ -305,6 +307,7 @@
     primary.tabIndex = -1;
     const states = [
       active && blancI18n.t('rail.state.active'),
+      (lastPayload?.selectedTabIds ?? []).includes(tab.id) && blancI18n.t('rail.state.selected'),
       tab.private && blancI18n.t('rail.state.private'),
       tab.pinned && blancI18n.t('rail.state.pinned'),
       tab.isLoading && blancI18n.t('rail.state.loading'),
@@ -450,9 +453,11 @@
       : blancI18n.t('split.rowLabel', { first: titles[0], second: titles[1] ?? '' });
     const row = document.createElement('div');
     row.className = 'vertical-tab-row vertical-split-row'
-      + (members.some((tab) => tab.id === activeTabId) ? ' active' : '');
+      + (members.some((tab) => tab.id === activeTabId) ? ' active' : '')
+      + ((lastPayload?.selectedTabIds ?? []).includes(focused?.id) ? ' selected' : '');
     row.setAttribute('role', 'listitem');
     row.dataset.splitId = splitId;
+    if ((lastPayload?.selectedTabIds ?? []).includes(focused?.id)) row.dataset.tabId = focused.id;
     row.setAttribute('aria-label', blancI18n.t('split.rowName', { titles: titles.join(' + ') }));
     row.dataset.i18nIgnore = 'aria-label';
     const primary = document.createElement('button');
@@ -461,7 +466,7 @@
     primary.dataset.tabId = focused?.id ?? '';
     primary.dataset.focusKey = `split:${splitId}`;
     primary.tabIndex = -1;
-    primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: label }));
+    primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: label }) + ((lastPayload?.selectedTabIds ?? []).includes(focused?.id) ? ', ' + blancI18n.t('rail.state.selected') : ''));
     primary.dataset.i18nIgnore = 'aria-label';
     const icons = document.createElement('span');
     icons.className = 'vertical-split-icons';
@@ -646,6 +651,11 @@
   }
 
   function renderNow(payload = {}) {
+    const previousSelection = lastPayload?.selectedTabIds ?? [];
+    if (JSON.stringify(previousSelection) !== JSON.stringify(payload.selectedTabIds ?? [])) {
+      const count = payload.selectedTabIds?.length ?? 0;
+      announce(blancI18n.t(count ? 'tabsSelection.count' : 'tabsSelection.cleared', { count }));
+    }
     lastPayload = payload;
     const layout = payload.tabLayout === 'vertical' ? 'vertical' : 'island';
     if (!applyWidthMetrics(payload)) {
@@ -753,7 +763,7 @@
     onDrop: railMove,
     announce,
     onActiveChange(active) {
-      if (active) return;
+      if (active) { api.selectTab(null, 'clear'); return; }
       const payload = deferredPayload;
       deferredPayload = null;
       if (payload) renderNow(payload);
@@ -845,8 +855,28 @@
     event.stopPropagation();
     commitWidth(nextWidth, (committed) => blancI18n.t('rail.widthAnnounce', { width: committed }));
   });
+  list.addEventListener('click', (event) => {
+    const primary = event.target.closest('.vertical-tab-primary');
+    if (!primary || (!event.shiftKey && !(navigator.platform.includes('Mac') ? event.metaKey : event.ctrlKey))) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    primary.focus();
+    api.selectTab(primary.dataset.tabId, event.shiftKey ? 'range' : 'toggle');
+  }, true);
+  list.addEventListener('keydown', (event) => {
+    if (!event.shiftKey || event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+    const primary = event.target.closest('.vertical-tab-primary');
+    if (!primary) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    primary.focus();
+    api.selectTab(primary.dataset.tabId, event.key === 'ArrowUp' ? 'extend-up' : 'extend-down').then(id => {
+      requestAnimationFrame(() => list.querySelector(`.vertical-tab-primary[data-tab-id="${CSS.escape(id ?? '')}"]`)?.focus());
+    });
+  }, true);
   rail.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape' || !rail.dataset.activeTabId) return;
+    if (lastPayload?.selectedTabIds?.length) {
+      event.preventDefault(); event.stopPropagation(); api.selectTab(null, 'clear'); return;
+    }
     event.preventDefault();
     event.stopPropagation();
     invokeLeavingRail(

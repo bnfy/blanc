@@ -171,7 +171,7 @@
     },
     {
       "file": "src/main/closed-tabs.js",
-      "sha256": "bd514ef6d5c2e0753b554cb83335b5e17a2084f7a3ad1f45397e4e98445ff120",
+      "sha256": "5c35b4c21cca7c07a6affa1fbc9ac25d52dae8f1a2a53bb0dc78af493e2cdc70",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "49da315fb09c68e9f82f13fb9d4f92513584d32bc010e0728d2ba35d74673526",
+      "sha256": "900657a8544d1915ecaed011f90d41ea2edac37515f0986a388079e6806b3f32",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -337,6 +337,9 @@
         "chrome:workspace-switcher",
         "chrome:workspaces-cancel",
         "chrome:workspaces-create-blank",
+        "chrome:workspaces-create-with-link",
+        "chrome:workspaces-create-with-tab",
+        "chrome:workspaces-create-with-tabs",
         "chrome:workspaces-forget",
         "chrome:workspaces-list",
         "chrome:workspaces-move-to",
@@ -364,6 +367,7 @@
         "groups:rename",
         "groups:reorder",
         "groups:set-color",
+        "groups:space-menu",
         "groups:ungroup",
         "input-event",
         "login",
@@ -410,6 +414,7 @@
         "tabs:forward",
         "tabs:get-all",
         "tabs:group-by-name",
+        "tabs:group-many-by-name",
         "tabs:move",
         "tabs:navigate",
         "tabs:open-glance-as-tab",
@@ -421,6 +426,7 @@
         "tabs:reopen-entry",
         "tabs:save-favorite",
         "tabs:search",
+        "tabs:select",
         "tabs:set-glance",
         "tabs:set-group",
         "tabs:stop",
@@ -490,7 +496,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "ef4cac4094ee260501b86c368a3eb5d6c56f399f4c3ebaef39654b4107034590",
+      "sha256": "1e0e4ed381a9e590f29c2127aabe799ef09365b0025ee466a23691648ab6c57b",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -553,6 +559,11 @@
         "pages:settings:open-onepassword-app",
         "pages:settings:open-trust-link",
         "pages:settings:set",
+        "pages:settings:shared-spaces-acknowledge",
+        "pages:settings:shared-spaces-apply",
+        "pages:settings:shared-spaces-open",
+        "pages:settings:shared-spaces-preview",
+        "pages:settings:shared-spaces-status",
         "pages:settings:supporter-activate",
         "pages:settings:sync-device-name-set",
         "pages:settings:sync-disable",
@@ -595,6 +606,8 @@
         "pages:start:set-wallpaper-follow-space",
         "pages:start:set-wallpaper-style",
         "pages:start:set-wallpaper-wash",
+        "pages:start:shared-question",
+        "pages:start:shared-question-answer",
         "pages:start:startup-continue",
         "pages:start:startup-retry",
         "pages:start:top-sites",
@@ -625,7 +638,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "70a5f02e134ae0d94efe0e9ee6575f09f5f6a46974cc1f6225ad4cdebd715034",
+      "sha256": "a6f1014a351985d08f480208ca4c4f1d1350d10d97ee4e916fc8ed43b6d1cbc6",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -703,6 +716,9 @@
         "chrome:workspace-switcher",
         "chrome:workspaces-cancel",
         "chrome:workspaces-create-blank",
+        "chrome:workspaces-create-with-link",
+        "chrome:workspaces-create-with-tab",
+        "chrome:workspaces-create-with-tabs",
         "chrome:workspaces-forget",
         "chrome:workspaces-list",
         "chrome:workspaces-move-to",
@@ -721,6 +737,7 @@
         "groups:rename",
         "groups:reorder",
         "groups:set-color",
+        "groups:space-menu",
         "groups:ungroup",
         "overlay:close",
         "overlay:drag-state",
@@ -748,6 +765,7 @@
         "tabs:forward",
         "tabs:get-all",
         "tabs:group-by-name",
+        "tabs:group-many-by-name",
         "tabs:move",
         "tabs:navigate",
         "tabs:open-glance-as-tab",
@@ -759,6 +777,7 @@
         "tabs:reopen-entry",
         "tabs:save-favorite",
         "tabs:search",
+        "tabs:select",
         "tabs:set-glance",
         "tabs:set-group",
         "tabs:stop",
@@ -860,7 +879,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "e526562507497d6aa7aaedc7fd1048b6934e7312b056a27e40f798dbf00c244b",
+      "sha256": "91db50538f7f3416c1c5a35dbc9357939934ce15d469dd564b542146ec931ddf",
       "literalChannels": [
         "before-quit"
       ],
@@ -874,7 +893,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "a0f92c375f551790fcbbe49a3a2d71881a9a29b9be6eee5742282bab2b7d6ad5",
+      "sha256": "c51ebcb4785ea2afe8d03176c884638559d47c377f4bcea40a63f20dfb266a6d",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -939,6 +958,11 @@
         "pages:settings:open-onepassword-app",
         "pages:settings:open-trust-link",
         "pages:settings:set",
+        "pages:settings:shared-spaces-acknowledge",
+        "pages:settings:shared-spaces-apply",
+        "pages:settings:shared-spaces-open",
+        "pages:settings:shared-spaces-preview",
+        "pages:settings:shared-spaces-status",
         "pages:settings:supporter-activate",
         "pages:settings:sync-device-name-set",
         "pages:settings:sync-disable",
@@ -983,6 +1007,8 @@
         "pages:start:set-wallpaper-follow-space",
         "pages:start:set-wallpaper-style",
         "pages:start:set-wallpaper-wash",
+        "pages:start:shared-question",
+        "pages:start:shared-question-answer",
         "pages:start:startup-continue",
         "pages:start:startup-retry",
         "pages:start:status",
@@ -1017,7 +1043,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "c239898f2878909566a745a1db4471e80af81b0addacfe6070860d0b138cf0dc",
+      "sha256": "713ba56ce4686801494e74d9e9b8c73ccd968beb1a4dabca9c4e1b6e9af133ff",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

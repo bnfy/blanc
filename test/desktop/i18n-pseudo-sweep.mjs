@@ -8,8 +8,10 @@ import { _electron } from 'playwright';
 import testHookCall from './support/test-hook-call.js';
 import poll from './support/poll.js';
 import sweep from './support/pseudo-sweep.js';
+import { inMainTurn } from './support/main-turn.js';
 import sessionFixture from '../support/chromium-session-fixture.js';
 import browserImport from '../../src/main/browser-data-import.js';
+import syncFixture from './support/sync-fixture.js';
 
 const { waitForValue } = poll;
 const { classifyTextEntries, COLLECT } = sweep;
@@ -69,7 +71,7 @@ const recordMenus = (app) => app.evaluate(({ Menu }) => {
   if (globalThis.__sweepMenus) return;
   globalThis.__sweepMenus = [];
   const entries = (menu) => menu.items.flatMap((item) => (item.type === 'separator' || !item.visible ? [] : [
-    { text: item.label, ignored: item.type === 'radio' || /^split-with-(tab|group|header)\b/.test(String(item.id ?? '')) },
+    { text: item.label, ignored: item.type === 'radio' || /^link-space:/.test(String(item.id ?? '')) || /^split-with-(tab|group|header)\b/.test(String(item.id ?? '')) },
     ...(item.submenu ? entries(item.submenu) : []),
   ]));
   Menu.prototype.popup = function popup(options) { globalThis.__sweepMenus.push(entries(this)); options?.callback?.(); };
@@ -260,6 +262,35 @@ const WORKSPACE_SURFACES = [
       return overlay;
     },
   },
+  {
+    name: 'Open Link in Space menu',
+    native: async ({ app }) => {
+      const id = (await activeTab(app)).webContentsId;
+      return rightClick(app, id, { linkURL: 'https://example.com/', linkText: 'zzz-link' });
+    },
+  },
+  {
+    name: 'workspace editor (new from link)',
+    open: async ({ app }) => {
+      const tab = await activeTab(app);
+      assert.equal(await callTestHook(app, 'runLinkSpaceMenuItem', [tab.id, 'https://example.com/', 'zzz-link', 'link-space-new']), true);
+      const overlay = await findPage(app, 'blanc-chrome://overlay/', 'link editor');
+      await overlay.locator('#workspaceEditor').waitFor({ state: 'visible' });
+      return overlay;
+    },
+  },
+  {
+    name: 'several-tabs context menu',
+    native: async ({ app, chrome }) => {
+      const { tabs, activeTabId } = await callTestHook(app, 'state');
+      const other = tabs.find(tab => tab.id !== activeTabId && !tab.private);
+      await callTestHook(app, 'selectTabRows', [other.id, 'toggle']);
+      await chrome.evaluate(id => { window.__blancCtxRowTabId = id; }, other.id);
+      const labels = await rightClick(app, 'blanc-chrome://index/', {});
+      await callTestHook(app, 'selectTabRows', [null, 'clear']);
+      return labels;
+    },
+  },
   { name: 'workspace editor (new)', open: switcherStep(['[data-focus-key="new"]', '#workspaceName']) },
   { name: 'workspace editor (edit)', open: switcherStep(editFirst) },
   { name: 'workspace colour picker', open: switcherStep(editFirst, ['[data-focus-key="color:custom"]', '.space-picker']) },
@@ -296,7 +327,7 @@ WORKSPACE_SURFACES.push({
 
 // The start page in each layout (with the Customize popover open last), a
 // private start page, and each step of the welcome tour.
-const START_FILES = ['src/renderer/pages/newtab.html', 'src/renderer/pages/newtab.js', 'src/renderer/pages/onboarding.js'];
+const START_FILES = ['src/renderer/pages/newtab.html', 'src/renderer/pages/newtab.js', 'src/renderer/pages/newtab-shared-spaces.js', 'src/renderer/pages/onboarding.js'];
 const startPage = async (app, url = 'blanc://newtab/') => {
   const page = await waitForValue(async () => (await app.windows()).find((p) => p.url() === url), Boolean, url);
   // A page can be found by URL before its body exists.
@@ -369,7 +400,7 @@ const ERROR_SURFACES = [
     open: async ({ app }) => {
       const query = new URLSearchParams({ kind: 'certificate', url: 'https://blanc-sweep.invalid/', continue: '1',
         subject: 'blanc-sweep.invalid', issuer: 'Sweep Fixture CA', validTo: String(Date.UTC(2030, 0, 1)) });
-      await app.evaluate(({ webContents }, url) => webContents.getAllWebContents()
+      await inMainTurn(app, ({ webContents }, url) => webContents.getAllWebContents()
         .find((wc) => wc.getURL().startsWith('blanc://error/')).loadURL(url), `blanc://error/?${query}`);
       const page = await findPage(app, 'blanc://error/?kind=certificate', 'certificate page');
       await page.locator('.advanced-toggle').click();
@@ -383,7 +414,7 @@ const ERROR_SURFACES = [
 // permissions) have rendered, then in states whose text only script writes.
 const SETTINGS_FILES = ['src/renderer/pages/settings.html', 'src/renderer/pages/settings.js',
   'src/renderer/pages/settings-language-model.js', 'src/renderer/pages/settings-sync-setup-model.js',
-  'src/renderer/pages/settings-verify-model.js'];
+  'src/renderer/pages/settings-verify-model.js', 'src/renderer/pages/settings-shared-spaces.js'];
 const openSettings = async ({ app, chrome }) => {
   await chrome.evaluate(() => window.browserAPI.createTab('blanc://settings/'));
   const page = await findPage(app, 'blanc://settings', 'settings sheet');
@@ -685,6 +716,26 @@ const SURFACES = [
   ...UTILITY_SURFACES,
   ...TAB_IMPORT_SURFACES,
   ...MAHJONG_SURFACES,
+  {
+    name:'Shared Spaces selection sheet',files:SETTINGS_FILES,
+    open:async context=>{
+      await callTestHook(context.app,'openTab',[permissionPageUrl]);
+      await callTestHook(context.app,'workspaceAction',['save','zzz-shared-space']);
+      await callTestHook(context.app,'sharedSpacesTest',['enable',{handle:'Pseudo shared spaces',passphrase:'correct horse battery staple pseudo test'}]);
+      await callTestHook(context.app,'closeUtilitySurface');
+      const page=await openSettings(context);await page.locator('[data-group="sync"]').click();
+      await page.locator('#sharedSpacesToggle').check();await page.locator('.shared-spaces-dialog').waitFor({state:'visible',timeout:120000});return page;
+    },
+    close:page=>page.evaluate(()=>document.querySelector('.shared-spaces-dialog button').click()),
+  },
+  {
+    name:'Shared Spaces pairing notice',files:START_FILES,
+    open:async context=>{
+      await callTestHook(context.app,'sharedSpacesTest',['pairingPeer']);
+      await context.chrome.evaluate(()=>window.browserAPI.createTab('blanc://newtab/'));
+      const page=await findPage(context.app,'blanc://newtab/','start page');await page.locator('.shared-spaces-notice').waitFor({state:'visible'});return page;
+    },
+  },
 ];
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-pseudo-sweep-'));
@@ -714,11 +765,12 @@ fs.writeFileSync(path.join(chromeRoot, 'Default', 'Sessions', 'Session_100'), se
   }],
 }));
 const { ELECTRON_RUN_AS_NODE: _ignored, ...env } = process.env;
+const sharedFixture=await syncFixture.createSyncFixture();
 let app;
 const failures = [];
 try {
   app = await _electron.launch({ chromiumSandbox: true, args: [path.resolve('.'), `--user-data-dir=${profile}`],
-    env: { ...env, BLANC_TEST: '1', BLANC_TEST_LOCALE_STATUS: 'en-XA=selectable', BLANC_TEST_BROWSER_HOME: browserHome, BLANC_TEST_UNCAUGHT_LOG: path.join(root, 'uncaught.log') } });
+    env: { ...env, BLANC_TEST_SYNC_ENDPOINT:sharedFixture.url, BLANC_TEST: '1', BLANC_TEST_LOCALE_STATUS: 'en-XA=selectable', BLANC_TEST_BROWSER_HOME: browserHome, BLANC_TEST_UNCAUGHT_LOG: path.join(root, 'uncaught.log') } });
   const chrome = await findPage(app, 'blanc-chrome://index/', 'chrome strip');
   // Startup opens the first tab, which would close a sheet opened before it.
   await waitForValue(() => app.evaluate(() => globalThis.__blanc?.startupReady?.() === true), Boolean, 'startup');
@@ -753,6 +805,8 @@ try {
   }
 } finally {
   server.close();
+  if(app)await callTestHook(app,'sharedSpacesTest',['disable']).catch(()=>{});
+  await sharedFixture.close();
   await app?.close().catch(() => {});
   fs.rmSync(root, { recursive: true, force: true });
 }

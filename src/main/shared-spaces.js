@@ -6,7 +6,7 @@ const model=require('./shared-spaces-model');
 const { canonical }=require('./tabsync-model');
 const copy=x=>structuredClone(x);
 const empty=()=>({accountId:'',enabled:false,index:{v:1,spaces:{}},knownIndex:{},blobs:{},pending:{},windows:{},
-  recoveries:{},sidecar:{devices:{}},requestLog:[],nextClass:'I',cursors:{}});
+  recoveries:{},recoveryDone:{},sidecar:{devices:{}},dormantIds:[],draftIds:[],draftPlans:{},askedDeviceIds:[],pairingBaseline:null,recoveryNoticeSeen:false,requestLog:[],nextClass:'I',cursors:{}});
 let store;
 const ensure=()=>store??=new JsonStore('shared-spaces',empty(),{scope:'profile'});
 const changed=new Set(),remoteChanged=new Set();
@@ -18,7 +18,7 @@ function rebind(accountId) {
   // invalid optional containers. Repair only those containers, preserving
   // unrelated records and any readable future version marker.
   const defaults=empty(),repairs={};
-  for(const name of ['index','knownIndex','blobs','pending','windows','recoveries','sidecar','cursors'])if(!container(s.data[name]))repairs[name]=defaults[name];
+  for(const name of ['index','knownIndex','blobs','pending','windows','recoveries','recoveryDone','sidecar','cursors','draftPlans'])if(!container(s.data[name]))repairs[name]=defaults[name];
   const index=repairs.index??s.data.index,sidecar=repairs.sidecar??s.data.sidecar;
   if(!container(index.spaces))repairs.index={...index,spaces:{}};
   if(index.v===1) {
@@ -26,12 +26,19 @@ function rebind(accountId) {
     if(canonical(clean)!==canonical(index))repairs.index=clean;
   }
   if(!container(sidecar.devices))repairs.sidecar={...sidecar,devices:{}};
+  for(const key of ['dormantIds','draftIds','askedDeviceIds'])if(!Array.isArray(s.data[key]))repairs[key]=[];
+  if(s.data.pairingBaseline!==null&&!Array.isArray(s.data.pairingBaseline))repairs.pairingBaseline=null;
   if(Object.keys(repairs).length)s.update(d=>Object.assign(d,repairs));
   return s;
 }
 const snapshot=ctx=>copy(rebind(ctx.accountId).data);
-function setEnabled(on,ctx) {rebind(ctx.accountId).update(d=>{d.enabled=!!on;});notify(changed);}
+function setEnabled(on,ctx) {const store=rebind(ctx.accountId),before=store.data.enabled;if(!store.updateAndFlush(d=>{d.enabled=!!on;})){store.update(d=>{d.enabled=before;});return false;}notify(changed);return true;}
 const isEnabled=ctx=>rebind(ctx.accountId).data.enabled===true;
+const isDraft=(id,ctx)=>(rebind(ctx.accountId).data.draftIds??[]).includes(id);
+const isDormant=(id,ctx)=>(rebind(ctx.accountId).data.dormantIds??[]).includes(id);
+function setDormant(ids,ctx) {
+  rebind(ctx.accountId).update(data=>{data.dormantIds=[...new Set(ids.filter(id=>/^[0-9a-f]{32}$/.test(id)))];});
+}
 function noteLocalSpace(id,blob,edits,ctx) {
   const clean=model.sanitizeBlob(blob);if(!clean || clean.spaceId!==id)throw new TypeError('Invalid local Space');
   const s=rebind(ctx.accountId),eligible=copy(edits??{});
@@ -51,7 +58,12 @@ function noteLocalSpace(id,blob,edits,ctx) {
     d.pending[id]=model.applyLocalEdits(d.pending[id],eligible);});notify(changed);
 }
 function setIndex(index,ctx) {const s=rebind(ctx.accountId);s.update(d=>{d.index=model.mergeIndex(d.index,index);});notify(changed);}
+// The fetched index as received, for the export that follows it in the same
+// pass (sync.js merges then exports with no await between). Consumed once, so
+// an export after a missing (404) index relays nothing stale.
+let indexRelay=null;
 function mergeIndex(index,ctx) {
+  indexRelay={accountId:ctx.accountId,index:model.relayIndex(index)};
   const s=rebind(ctx.accountId),before=canonical(s.data.index);
   s.update(d=>{d.index=model.mergeIndex(d.index,index);for(const id of Object.keys(index.spaces))d.knownIndex[id]=true;});
   if(before!==canonical(s.data.index))notify(remoteChanged);
@@ -61,15 +73,25 @@ function exportIndex(ctx) {
   if(!index)throw new TypeError('Invalid or unsupported Spaces index');
   for(const id of Object.keys(index.spaces)) {
     if(!d.knownIndex[id] && !d.blobs[id]?.lastPublishable){delete index.spaces[id];continue;}
-    if(d.pending[id]?.index)index.spaces[id].rev=d.pending[id].index.rev;
+    const receipt=d.pending[id]?.index,entry=index.spaces[id];
+    if(receipt&&entry.rev!==receipt.rev) {
+      // A newer hint must outrank every hint already published, even one
+      // from a device whose clock runs ahead.
+      entry.rev=receipt.rev;
+      entry.revAt=Math.max(receipt.at??0,(Number.isSafeInteger(entry.revAt)?entry.revAt:-1)+1);
+      entry.revBy=receipt.by??ctx.deviceId;
+    }
   }
-  return model.expireTombstones(index,Date.now());
+  const relay=indexRelay?.accountId===ctx.accountId?indexRelay.index:null;indexRelay=null;
+  return model.expireTombstones(model.relayInto(index,relay,Date.now()),Date.now());
 }
 function settleIndex(payload,ctx) {
   const s=ensure();if(s.data.accountId!==ctx.accountId)return;
   s.update(d=>{for(const [id,entry] of Object.entries(payload.spaces)) {
     d.knownIndex[id]=true;
-    if(d.index.spaces[id])d.index.spaces[id].rev=entry.rev;
+    if(d.index.spaces[id])for(const key of ['rev','revAt','revBy']) {
+      if(entry[key]!==undefined)d.index.spaces[id][key]=entry[key];else delete d.index.spaces[id][key];
+    }
     if(d.pending[id]?.index?.rev===entry.rev)delete d.pending[id].index;
   }});
 }
@@ -131,12 +153,14 @@ function settleSpace(id,plan,outcome,ctx) {
     d.blobs[id].retryOrder=(d.blobs[id].retryOrder??[]).filter(key=>{
       const [kind,rid]=key.split(':');return !!d.pending[id][kind]?.[rid] || d.blobs[id].unsynced.includes(rid);
     });
-    if(outcome.blobStored && plan.upload)d.blobs[id].lastPublishable=copy(plan.upload.blob);
+    // Keep the published timestamp for UI status and the actual uploaded
+    // revision so the next index hint does not refetch our own write.
+    if(outcome.blobStored && plan.upload){d.blobs[id].lastPublishable=copy(plan.upload.blob);d.blobs[id].lastPublishedAt=Date.now();d.blobs[id].rev=plan.upload.rev;}
   });return true;
 }
 function spaceIds(ctx) {
   const d=rebind(ctx.accountId).data,index=model.sanitizeIndex(d.index)?.spaces??{};
-  return [...new Set([...Object.keys(index),...Object.keys(d.blobs)])].filter(id=>index[id]?.deleted?.v!==true).sort();
+  return [...new Set([...Object.keys(index),...Object.keys(d.blobs)])].filter(id=>index[id]?.deleted?.v!==true&&!isDormant(id,ctx)&&!isDraft(id,ctx)).sort();
 }
 function sanitizeSidecar(payload) {
   const devices={};
@@ -158,6 +182,11 @@ function mergeSidecar(remote,ctx) {
   }
   s.update(d=>{d.sidecar=local;});notify(remoteChanged);
 }
+function setOwnSidecar(binding,ctx) {
+  const s=rebind(ctx.accountId),entry=sanitizeSidecar({devices:{[ctx.deviceId]:binding}}).devices[ctx.deviceId];
+  if(!entry||canonical(entry)===canonical(s.data.sidecar.devices[ctx.deviceId]))return;
+  s.update(data=>{data.sidecar.devices[ctx.deviceId]=entry;});notify(changed);
+}
 function exportSidecar(ctx) {
   const payload=sanitizeSidecar(rebind(ctx.accountId).data.sidecar);
   const fits=()=>Buffer.byteLength(canonical(payload),'utf8')<=65536;
@@ -168,8 +197,8 @@ function exportSidecar(ctx) {
 }
 const spaceCount=ctx=>Object.values(model.sanitizeIndex(rebind(ctx.accountId).data.index)?.spaces??{}).filter(record=>record.deleted.v!==true).length;
 const canAddSpace=ctx=>spaceCount(ctx)<model.LIMITS.spaces;
-module.exports={rebind,snapshot,setEnabled,isEnabled,noteLocalSpace,setIndex,mergeIndex,exportIndex,settleIndex,
-  mergeSpace,exportSpace:mergeSpace,settleSpace,spaceIds,spaceCount,canAddSpace,exportSidecar,mergeSidecar,
+module.exports={rebind,snapshot,setEnabled,isEnabled,setDormant,isDormant,isDraft,noteLocalSpace,setIndex,mergeIndex,exportIndex,settleIndex,
+  mergeSpace,exportSpace:mergeSpace,settleSpace,spaceIds,spaceCount,canAddSpace,exportSidecar,mergeSidecar,setOwnSidecar,
   equals:(a,b)=>canonical(a)===canonical(b),hasPublishableContent:payload=>Object.keys(payload?.spaces??{}).length>0,
   onChanged:fn=>changed.add(fn),onRemoteChanged:fn=>remoteChanged.add(fn),
   onSyncDisabled:()=>{rebind('');notify(remoteChanged);}};

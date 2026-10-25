@@ -106,12 +106,12 @@ test('appendTabToCapture starts the local-file column only when it is needed', (
 test('emptiedCapture drops the stand-in start page and everything tied to tab positions', () => {
   const base = {
     urls: ['blanc://newtab/'], groupIds: [null], pinned: [false], meta: [{}], groups: [], activeIndex: 0,
-    closedSlot: 1, closedIndex: 1, localFiles: [false], documentPolicy: 1, inheritsDocumentPolicy: [false], sectionOrder: true,
+    tabIds: ['a'.repeat(32)], closedSlot: 1, closedIndex: 1, localFiles: [false], documentPolicy: 1, inheritsDocumentPolicy: [false], sectionOrder: true,
   };
   const next = appendTabToCapture(emptiedCapture(base), entry);
   assert.deepEqual(next.urls, ['https://b.test/']);
   assert.deepEqual(next.inheritsDocumentPolicy, [false]);
-  for (const key of ['closedSlot', 'closedIndex', 'localFiles']) assert.equal(key in next, false, key);
+  for (const key of ['closedSlot', 'closedIndex', 'localFiles', 'tabIds']) assert.equal(key in next, false, key);
   assert.equal(next.documentPolicy, 1);
 });
 

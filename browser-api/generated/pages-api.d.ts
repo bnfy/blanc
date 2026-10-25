@@ -103,6 +103,10 @@ export interface NewtabPagesAPI {
     dismissSent: (id: string) => Promise<unknown>;
     /** Pages other devices sent here changed. IPC: event `pages:start:sent-items`. */
     onSentItems: (callback: (payload: unknown) => void) => void;
+    /** Development-only Shared Spaces pairing notice. IPC: invoke `pages:start:shared-question`. */
+    sharedQuestion: () => Promise<unknown>;
+    /** Development-only Shared Spaces pairing notice. IPC: invoke `pages:start:shared-question-answer`. */
+    sharedQuestionAnswer: (id: string, on: boolean) => Promise<unknown>;
   };
 }
 
@@ -309,6 +313,16 @@ export interface SettingsPagesAPI {
     trustReceipt: () => Promise<unknown>;
     /** Open a release, verification, SBOM or provenance link for this version. IPC: invoke `pages:settings:open-trust-link`. */
     openTrustLink: (kind: unknown) => Promise<unknown>;
+    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-preview`. */
+    sharedSpacesPreview: () => Promise<unknown>;
+    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-apply`. */
+    sharedSpacesApply: (payload: unknown) => Promise<unknown>;
+    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-status`. */
+    sharedSpacesStatus: () => Promise<unknown>;
+    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-open`. */
+    sharedSpacesOpen: (id: string) => Promise<unknown>;
+    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-acknowledge`. */
+    sharedSpacesAcknowledge: (id: string) => Promise<unknown>;
   };
   profiles: {
     /** Local profiles. IPC: invoke `pages:profiles:list`. */

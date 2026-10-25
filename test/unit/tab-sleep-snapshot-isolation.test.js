@@ -37,7 +37,7 @@ const EXPECTED_KEYS = [
   'bookmarked', 'blockedCount', 'private', 'pinned', 'muted', 'audible',
   'groupId', 'splitId', 'pageBg', 'themeColor', 'asleep', 'excepted', 'shield', 'connection',
   'capture', 'fillHint',
-  'siteInfo',
+  'siteInfo', 'syncNotSynced',
 ].sort();
 
 const record = (over = {}) => ({
@@ -86,4 +86,8 @@ test('a private tab still has its remote favicon nulled', () => {
 test('tab order drives the payload order, and unknown ids are skipped', () => {
   const rows = serialize([record({ id: 'a' }), record({ id: 'b' })]);
   assert.deepEqual(rows.map((row) => row.id), ['a', 'b']);
+});
+test('only the unsynced flag reaches chrome, never shared record identities',()=>{
+ const [row]=serialize([record({sharedUnsynced:true,sharedTabId:'secret-record',sharedSpaceId:'secret-space'})]);
+ assert.equal(row.syncNotSynced,true);assert.equal(row.sharedTabId,undefined);assert.equal(row.sharedSpaceId,undefined);
 });

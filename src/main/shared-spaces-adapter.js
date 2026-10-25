@@ -5,6 +5,7 @@ const crypto=require('node:crypto');
 const model=require('./shared-spaces-model');
 const { canonical }=require('./tabsync-model');
 const { normalizeTabName }=require('./tab-name');
+const { restoredMarker }=require('./document-policy');
 const { sanitizeGroupColor }=require('./group-color');
 const validId=v=>typeof v==='string'&&/^[0-9a-f]{32}$/.test(v);
 const copy=v=>structuredClone(v);
@@ -55,7 +56,7 @@ function diffWindow(displayedBaseline,windowState,now,deviceId,ids=defaultId) {
   positions('groups',groupOrder);
   const tabOrder=[],seenTabs=new Set();
   for(let n=0;n<(windowState.urls?.length??0);n++) {
-    if(!safeUrl(windowState.urls[n])||windowState.private?.[n]===true)continue;
+    if(!safeUrl(windowState.urls[n])||windowState.private?.[n]===true||restoredMarker(windowState,n))continue;
     let id=windowState.tabIds?.[n];
     if(!validId(id)||seenTabs.has(id)||baseline.tabs[id]?.deleted?.v===true)id=fresh();
     seenTabs.add(id);tabIds[n]=id;tabOrder.push(id);

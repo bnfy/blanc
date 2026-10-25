@@ -120,7 +120,7 @@ function install(refs) {
     getGlanceTabId,
     getFocusedPaneTabId,
     getGlanceCard,
-    openLinkInGlance,
+    openLinkInGlance, runLinkSpaceMenuItem,
     groupTabByName,
     renameTab,
     beginRenameTab,
@@ -205,10 +205,13 @@ function install(refs) {
     createSplitFromTabs,
     keepGlanceAsSplit,
     moveGroupToNewWindowForTest,
+    moveGroupToSpaceForTest,
+    beginNewSpaceForGroupForTest,
     straySplitIds,
     windowChildViewCount,
     menuContextActionsForTest,
     tabMenuItemsForTest,
+    selectTabRows, runTabsAction, getSelectedTabIds,
     closedEntrySummaries,
     splitLayoutForTest,
     splitCornerTabsForTest,
@@ -709,6 +712,9 @@ function install(refs) {
     pinnedHome(tabId) { return tabs.get(String(tabId))?.pinnedHomeUrl ?? null; },
     chooseSessionRecovery(choice) { return chooseSessionRecovery(String(choice)); },
     sessionRecoveryState() { return getSessionRecoveryState(); },
+    selectTabRows(id, mode) { return selectTabRows(id, mode); },
+    selectedTabIds() { return getSelectedTabIds(); },
+    runSelectedTabsAction(action, args = {}) { return runTabsAction(action, args); },
     state() {
       const list = [];
       for (const [id, t] of tabs) {
@@ -806,6 +812,15 @@ function install(refs) {
       return item ? { label: item.label, enabled: item.enabled !== false } : null;
     },
     moveGroupToNewWindow(groupId) { return !!moveGroupToNewWindowForTest(groupId); },
+    // Move Group to Space ▸ (D8): the menu's actions, by group name.
+    moveGroupToSpaceByName(name, workspaceId) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      return group ? moveGroupToSpaceForTest(group.id, workspaceId) : null;
+    },
+    beginNewSpaceForGroupByName(name) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      return group ? beginNewSpaceForGroupForTest(group.id) : false;
+    },
     straySplitIds() { return straySplitIds(); },
     windowChildViewCount() { return windowChildViewCount(); },
     attachedTabViewIds() { return attachedTabViewIds(); },
@@ -1495,6 +1510,7 @@ function install(refs) {
         spaceComplete: current.spaceMigrationCompleted === true,
       };
     },
+    sharedSpacesTest(action,payload) {return refs.sharedSpacesTest(action,payload);},
     syncEnabled() { return sync.status().enabled === true; },
     async readStartPageFontUsage() {
       const tab = tabs.get(getActiveTabId());
@@ -2531,6 +2547,7 @@ function install(refs) {
     // divider, and the overlay's picker when one is up.
     // The page context menu's Open Link in Glance, which Playwright cannot
     // click (a native menu): the same main-process action the item calls.
+    runLinkSpaceMenuItem(tabId, url, text, itemId) { return runLinkSpaceMenuItem(String(tabId), String(url), String(text ?? ""), itemId); },
     openLinkInGlance(tabId, url) { return openLinkInGlance(String(tabId), String(url)); },
     // The floating Glance card's computed motion, read in its own document.
     async glanceCardMotion() {

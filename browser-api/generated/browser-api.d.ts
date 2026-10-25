@@ -163,6 +163,7 @@ export interface TabEntry {
   siteInfo: SiteInfo;
   /** The Split View (F53) this tab belongs to, or null. */
   splitId: string | null;
+  syncNotSynced?: boolean;
 }
 
 /** A tab group: a name, and optionally one of the Spaces preset colors. */
@@ -206,6 +207,7 @@ export interface ClosedEntrySummary {
   title: string;
   favicon: string | null;
   tabCount: number;
+  fromName?: string;
 }
 
 /** Blocking provider controls, from shieldProviderModel() in shield-model.js. */
@@ -282,6 +284,7 @@ export interface GroupRenameResult {
 /** Result of getAllTabs, built by the tabs:get-all handler in main.js. */
 export interface TabsSnapshot {
   tabs: TabEntry[];
+  selectedTabIds: TabId[];
   activeTabId: TabId | null;
   glanceTabId: TabId | null;
   groups: TabGroup[];
@@ -301,6 +304,7 @@ export interface TabsSnapshot {
 /** The tabs:updated broadcast, built by currentTabsPayload() in main.js. */
 export interface TabsUpdatedPayload {
   tabs: TabEntry[];
+  selectedTabIds: TabId[];
   activeTabId: TabId | null;
   glanceTabId: TabId | null;
   groups: TabGroup[];
@@ -407,6 +411,8 @@ export interface WorkspacePatch {
   name?: string;
   color?: string;
   symbol?: string;
+  /** Dismiss the development-only recovery explanation on this device. */
+  ackRecovery?: boolean;
 }
 
 /** A space row's right-click choice, run by the open Spaces menu. */
@@ -419,6 +425,10 @@ export interface WorkspaceActionEvent {
 export interface SharedSpaceAdmission {
   unsyncedTabIds: string[];
   reason: 'full' | 'tombstones' | 'tabs' | 'remote-over-budget' | 'required-state-over-budget' | null;
+  state?: 'shared' | 'waiting' | 'notSynced' | 'full' | 'unavailable';
+  lastSyncedAt?: number;
+  failed?: boolean;
+  pending?: boolean;
 }
 
 /** Shared-library capacity. Concurrent remote additions are retained even above the local creation limit. */
@@ -426,6 +436,8 @@ export interface SharedSpaceLibraryStatus {
   count: number;
   limit: number;
   canAdd: boolean;
+  busy?: boolean;
+  slowed?: boolean;
 }
 
 /** A Named Workspace row. */
@@ -455,6 +467,7 @@ export interface WorkspacesPayload {
   windowTabCount: number;
   tint: SpaceTint;
   sharedSync?: SharedSpaceLibraryStatus | undefined;
+  recoveryNotice?: boolean | null;
 }
 
 /** The chrome's effective appearance; pending while a system theme is still resolving. */
@@ -530,7 +543,7 @@ export interface FindResult {
 }
 
 /** Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js. */
-export type WorkspaceErrorCode = 'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch';
+export type WorkspaceErrorCode = 'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch' | 'saved-not-moved';
 
 /** Why a window may not switch workspaces right now, from workspaceProtection() in main.js. */
 export type WorkspaceProtectionReason = 'permission-or-transition' | 'active-page';
@@ -540,6 +553,7 @@ export type WorkspaceAction = 'swap' | 'noop' | 'focus';
 
 /** Result of every Named Workspace action. Successes carry the refreshed workspace list; failures carry an error code and, for some codes, extra detail. */
 export interface WorkspaceActionResult {
+  movedCount?: number;
   ok: boolean;
   error?: WorkspaceErrorCode;
   /** Why a saved workspace could not be opened (with saved-not-opened). */
@@ -564,6 +578,7 @@ export interface WorkspaceActionResult {
   windowTabCount?: number;
   tint?: SpaceTint;
   sharedSync?: SharedSpaceLibraryStatus | undefined;
+  recoveryNotice?: boolean | null;
 }
 
 /** A search engine id. Must match the searchEngines ids in settings-schema/schema.json. */
@@ -918,6 +933,11 @@ export interface BlancBrowserAPI {
    */
   clearClosedEntries(): Promise<boolean>;
   /**
+   * Change the window-local tab selection and return the focused row id.
+   * IPC: invoke `tabs:select`.
+   */
+  selectTab(tabId: TabId | null, mode: 'toggle' | 'range' | 'extend-up' | 'extend-down' | 'clear'): Promise<TabId | null>;
+  /**
    * Activate a tab.
    * IPC: invoke `tabs:switch`.
    */
@@ -988,6 +1008,11 @@ export interface BlancBrowserAPI {
    * IPC: invoke `groups:move-to-new-window`.
    */
   moveGroupToNewWindow(groupId: GroupId): Promise<boolean>;
+  /**
+   * Move Group to Space: a native menu of the profile's spaces at an overlay point; choosing one moves every tab of the group, in order, into that space as the same group (or into its group of the same name), and New Space… opens the Spaces editor bound to the group. False when the window, the group or every space is gone.
+   * IPC: invoke `groups:space-menu`.
+   */
+  openGroupSpaceMenu(groupId: GroupId, point: Point): Promise<boolean>;
   /**
    * Make every tab in a group ungrouped; the empty group goes away.
    * IPC: invoke `groups:ungroup`.
@@ -1391,6 +1416,26 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:workspaces-list`.
    */
   listWorkspaces(): Promise<WorkspacesPayload>;
+  /**
+   * Create a saved space with the link held by the current new-space editor, without loading it.
+   * IPC: invoke `chrome:workspaces-create-with-link`.
+   */
+  createSpaceWithLink(name: string, identity: SpaceIdentityInput): Promise<WorkspaceActionResult>;
+  /**
+   * Create a space and move the selected whole rows after one checked write.
+   * IPC: invoke `chrome:workspaces-create-with-tabs`.
+   */
+  createSpaceWithTabs(name: string, identity: SpaceIdentityInput, tabIds: TabId[]): Promise<WorkspaceActionResult>;
+  /**
+   * Move the selected whole rows to a named group in one pass.
+   * IPC: invoke `tabs:group-many-by-name`.
+   */
+  groupTabsByName(tabIds: TabId[], name: string): Promise<boolean>;
+  /**
+   * Create a space containing this window’s tab, then move the live tab without switching spaces.
+   * IPC: invoke `chrome:workspaces-create-with-tab`.
+   */
+  createSpaceWithTab(name: string, identity: SpaceIdentityInput, tabId: TabId): Promise<WorkspaceActionResult>;
   /**
    * Save the current window as a Named Workspace.
    * IPC: invoke `chrome:workspaces-save-as`.

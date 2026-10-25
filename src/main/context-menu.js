@@ -26,6 +26,7 @@ function attachContextMenu(wc, actions, menuGate = null) {
     const linkItems = linkMenuItems(params, {
       openBackgroundTab: actions.openBackgroundTab,
       openInGlance: actions.openInGlance,
+      spaceItems: actions.spaceItems,
       copyLink: (url) => clipboard.writeText(url),
     }, t);
     if (linkItems.length) {

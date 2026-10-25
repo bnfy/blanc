@@ -4,6 +4,7 @@
 // tab-sleep.js). The clock is injected, never read.
 // See docs/superpowers/specs/2026-08-16-reopen-closed-tab-design.md.
 
+const { captureSplits } = require('./split-model');
 const { cloneEntryMarks } = require('./certificate-history');
 const { recordTitle } = require('./inert-local-file');
 const { normalizeTabName } = require('./tab-name');
@@ -86,6 +87,8 @@ function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
   const pinnedHomeUrl = closedPinnedHome(tab);
   const entry = {
     kind: 'tab',
+    ...(tab.sharedTabId ? {sharedTabId:tab.sharedTabId} : {}),
+    ...(tab.sharedRemoteClose ? {sharedRemoteClose:true} : {}),
     id: nextEntryId(),
     closedAt: now,
     url: tab.url,
@@ -134,6 +137,7 @@ function closedMembers(members) {
     .map((m) => {
       const pinnedHomeUrl = closedPinnedHome(m);
       return {
+        ...(m.sharedTabId ? { sharedTabId: m.sharedTabId } : {}),
         url: m.url,
         localFile: m.localFile === true,
         inheritsDocumentPolicy: m.inheritsDocumentPolicy === true,
@@ -196,9 +200,12 @@ function buildGroupEntry(group, members, now = 0) {
  *  one ⌘⇧T, no group created — each member rejoins its recorded group only if
  *  it still exists at restore time (resolved by the caller). Private members
  *  are dropped from the record, same as buildGroupEntry. */
-function buildBatchEntry(members, now = 0) {
+function buildBatchEntry(members, now = 0, splits = []) {
+  const kept = members.filter(member => !member.private);
+  const splitColumns = captureSplits(splits, kept.map(member => member.id));
   return {
     kind: 'batch',
+    ...(splitColumns.splits.length ? splitColumns : {}),
     id: nextEntryId(),
     closedAt: now,
     tabs: members
@@ -206,6 +213,7 @@ function buildBatchEntry(members, now = 0) {
       .map((m) => {
         const pinnedHomeUrl = closedPinnedHome(m);
         const member = {
+          ...(m.sharedTabId ? { sharedTabId: m.sharedTabId } : {}),
           url: m.url,
           localFile: m.localFile === true,
           inheritsDocumentPolicy: m.inheritsDocumentPolicy === true,

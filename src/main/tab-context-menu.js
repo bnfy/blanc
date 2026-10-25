@@ -5,7 +5,7 @@
 // Menu.popup, mirroring address-menu.js.
 
 const { Menu } = require('electron');
-const { buildTabContextMenu } = require('./tab-context-menu-model');
+const { buildTabContextMenu, buildTabsContextMenu } = require('./tab-context-menu-model');
 
 // Section headers are native on macOS 14 and later; elsewhere, and on older
 // macOS, a header is a disabled label.
@@ -14,7 +14,8 @@ const NATIVE_HEADERS = process.platform === 'darwin'
 
 const PILL_SELECTOR = '#islandPill';
 
-function runTabContextMenuItem(id, { tab, groupId, otherTabId, deviceId, workspaceId, cleanedUrl, actions }) {
+function runTabContextMenuItem(id, { tab, groupId, otherTabId, deviceId, workspaceId, cleanedUrl, selectedTabIds, actions }) {
+  if (id?.startsWith('batch-')) return actions.batch(id, { groupId, workspaceId }, selectedTabIds);
   switch (id) {
     case 'copy-link': return actions.copy(tab.url || '');
     // The model computed cleanedUrl when it decided to SHOW the item — copy
@@ -34,6 +35,7 @@ function runTabContextMenuItem(id, { tab, groupId, otherTabId, deviceId, workspa
     case 'group-move': return actions.setGroup(tab.id, groupId);
     case 'group-none': return actions.setGroup(tab.id, null);
     case 'group-new': return actions.beginNewGroup(tab.id);
+    case 'space-new': return actions.beginNewSpaceForTab(tab.id);
     case 'space-move': return actions.moveToSpace(tab.id, workspaceId);
     case 'glance': return actions.glance(tab.id);
     case 'close-glance': return actions.closeGlance();
@@ -54,7 +56,7 @@ function runTabContextMenuItem(id, { tab, groupId, otherTabId, deviceId, workspa
   }
 }
 
-function toElectronTemplate(modelItems, { tab, actions }) {
+function toElectronTemplate(modelItems, { tab, actions, selectedTabIds }) {
   return modelItems.map((item) => {
     if (item.type === 'separator') return { type: 'separator' };
     if (item.type === 'header') {
@@ -71,10 +73,10 @@ function toElectronTemplate(modelItems, { tab, actions }) {
     if (item.enabled === false) el.enabled = false;
     if (item.type === 'radio') { el.type = 'radio'; el.checked = !!item.checked; }
     if (item.submenu) {
-      el.submenu = toElectronTemplate(item.submenu, { tab, actions });
+      el.submenu = toElectronTemplate(item.submenu, { tab, actions, selectedTabIds });
     } else {
       el.click = () => runTabContextMenuItem(item.id,
-        { tab, groupId: item.groupId, otherTabId: item.tabId, deviceId: item.deviceId, workspaceId: item.workspaceId, cleanedUrl: item.cleanedUrl, actions });
+        { tab, groupId: item.groupId, otherTabId: item.tabId, deviceId: item.deviceId, workspaceId: item.workspaceId, cleanedUrl: item.cleanedUrl, selectedTabIds, actions });
     }
     return el;
   });
@@ -117,8 +119,8 @@ function attachChromeMenu(wc, deps) {
     if (rowId != null) {
       const ctx = deps.resolveTab(rowId);
       if (!ctx) return;
-      const template = buildTabContextMenu({ ...ctx, surface: 'row', t: deps.t });
-      const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions }));
+      const template = ctx.batch ? buildTabsContextMenu({ ...ctx.batch, t: deps.t }) : buildTabContextMenu({ ...ctx, surface: 'row', t: deps.t });
+      const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions, selectedTabIds: ctx.batch?.ids }));
       menu.on('menu-will-show', () => deps.suppressIslandHover?.());
       try {
         menu.popup({ window: deps.getWindow(), x: Math.round(params.x), y: Math.round(params.y), sourceType: params.menuSourceType });
@@ -131,7 +133,7 @@ function attachChromeMenu(wc, deps) {
     const ctx = deps.resolveActiveTab();
     if (!ctx) return;
     const template = buildTabContextMenu({ ...ctx, surface: 'pill', t: deps.t });
-    const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions }));
+    const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions, selectedTabIds: ctx.batch?.ids }));
     menu.on('menu-will-show', () => deps.suppressIslandHover?.());
     // A floating Island view's coordinates start at its own origin.
     const offset = deps.getOffset?.() ?? { x: 0, y: 0 };
@@ -155,8 +157,8 @@ function attachRowMenu(wc, deps) {
     if (!deps.isOverlayLive()) return;
     const ctx = deps.resolveTab(rawId);
     if (!ctx) return;
-    const template = buildTabContextMenu({ ...ctx, surface: 'row', t: deps.t });
-    const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions }));
+    const template = ctx.batch ? buildTabsContextMenu({ ...ctx.batch, t: deps.t }) : buildTabContextMenu({ ...ctx, surface: 'row', t: deps.t });
+    const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions, selectedTabIds: ctx.batch?.ids }));
     menu.on('menu-will-show', () => deps.suppressIslandHover?.());
     const bounds = deps.getOverlayBounds();
     const ticket = deps.acquireMenuGuard();

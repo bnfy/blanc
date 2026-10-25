@@ -35,7 +35,7 @@ test('persistSession is still liftable out of main.js', () => {
 
 function run(tabList, activeTabId, {
   sessionHeldForQuit = false, primaryWindow = {}, primaryTabs = null, others = [], groups = [], closedSlot = 0,
-  closedSlotIds = null,
+  closedSlotIds = null, sharedGroupPersistence = false, sharedGroupIds = [],
 } = {}) {
   const data = {};
   const runtime = {
@@ -43,6 +43,7 @@ function run(tabList, activeTabId, {
     window: primaryWindow,
     tabOrder: primaryTabs ?? tabList.map((t) => t.id),
     groups,
+    sharedGroupPersistence, sharedGroupIds,
     closedSlot,
     closedSlotIds: closedSlotIds ?? groups.map((group) => group.id),
     activeTabId,
@@ -216,4 +217,14 @@ test('a window entry marks its order as drawn and saves the band as an item inde
   const top = run(tabsList, 'w', { groups, closedSlot: 0, closedSlotIds: items }).windows[0];
   assert.equal('closedIndex' in top, false);
   assert.equal('closedSlot' in top, false);
+});
+
+test('shared receipts can durably represent a group before its first tab is materialized',()=>{
+ const result=run([tab({id:'anchor',url:'https://anchor.test/'})],'anchor',{groups:[{id:'empty',name:'Waiting',color:null,collapsed:false}],sharedGroupPersistence:true,sharedGroupIds:['empty']});
+ assert.equal(result.windows[0].groups[0].id,'empty');
+});
+
+test('unreferenced local groups do not gain the shared persistence exception',()=>{
+ const result=run([tab({id:'anchor'})],'anchor',{groups:[{id:'private-only',name:'Private'}],sharedGroupPersistence:true,sharedGroupIds:[]});
+ assert.equal(result.windows[0].groups.length,0);
 });

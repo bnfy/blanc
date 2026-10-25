@@ -6,6 +6,7 @@ import process from 'node:process';
 import { _electron } from 'playwright';
 import testHookCall from './support/test-hook-call.js';
 import poll from './support/poll.js';
+import { inMainTurn } from './support/main-turn.js';
 import windowState from '../../src/main/window-state-persistence.js';
 
 // Native integration proof for Electron's cross-platform persistence. It uses
@@ -167,7 +168,7 @@ try {
     'secondary runtime removal',
     10_000,
   );
-  const probe = await app.evaluate(({ BrowserWindow, screen }, name) => {
+  const probe = await inMainTurn(app, ({ BrowserWindow, screen }, name) => {
     const area = screen.getPrimaryDisplay().workArea;
     const requested = {
       x: area.x + 12,

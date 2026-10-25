@@ -39,11 +39,11 @@ function buildGroupSubmenu(tab, groups, t) {
 // checked (choosing it does nothing) and a space that can't receive a tab
 // right now (its window mid switch or closing) disabled. Space names are user
 // data; as radio rows the pseudo-locale sweep skips them, like group names.
-function buildSpaceSubmenu(spaces) {
-  return spaces.map((s) => ({
+function buildSpaceSubmenu(spaces, canCreateSpace, t) {
+  return [...spaces.map((s) => ({
     id: 'space-move', label: s.name, type: 'radio', checked: !!s.current, workspaceId: s.id,
     ...(s.enabled === false ? { enabled: false } : {}),
-  }));
+  })), { type: 'separator' }, { id: 'space-new', label: t('tabMenu.newSpace'), enabled: canCreateSpace }];
 }
 const spaceReachable = (s) => !s.current && s.enabled !== false;
 
@@ -96,7 +96,7 @@ function pinLabelKey(tab) {
   return tab?.pinned ? 'tabMenu.unpin' : 'tabMenu.pin';
 }
 
-function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canDuplicate = true, canGlance = true, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], sendTargets = null, spaces = [], canMoveToSpace = false, t }) {
+function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canDuplicate = true, canGlance = true, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], sendTargets = null, spaces = [], canMoveToSpace = false, canCreateSpace = false, t }) {
   const isActive = tab.id === activeTabId;
   const items = [];
 
@@ -159,11 +159,11 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
   }
   items.push({ id: 'group', label: t('tabMenu.moveToGroup'), submenu: buildGroupSubmenu(tab, groups, t) });
   // Shown once the profile has a space; a private tab never joins one. With
-  // no other space able to take it, or a tab main refuses to move, it is
-  // disabled.
+  // neither an existing destination nor room to create one, or a tab main
+  // refuses to move, it is disabled.
   if (!tab.private && spaces.length) {
-    items.push(canMoveToSpace && spaces.some(spaceReachable)
-      ? { id: 'space', label: t('tabMenu.moveToSpace'), submenu: buildSpaceSubmenu(spaces) }
+    items.push(canMoveToSpace && (spaces.some(spaceReachable) || canCreateSpace)
+      ? { id: 'space', label: t('tabMenu.moveToSpace'), submenu: buildSpaceSubmenu(spaces, canCreateSpace, t) }
       : { id: 'space', label: t('tabMenu.moveToSpace'), enabled: false });
   }
   // Split View (F53): a split tab can leave or close its split; any other tab
@@ -208,6 +208,28 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
   return items;
 }
 
+/** A selection has its own deliberately small menu; no single-tab actions. */
+function buildTabsContextMenu({ members, groups = [], spaces = [], canPlace = false, canCreateSpace = false, canMutate = true, t }) {
+  const count = members.length;
+  const items = [{ id: 'batch-header', type: 'header', label: t('tabsMenu.header', { count }) }];
+  const item = (id, key, enabled = true) => ({ id: `batch-${id}`, label: t(key), enabled });
+  if (spaces.length) items.push({ id: 'batch-space', label: t('tabMenu.moveToSpace'), enabled: canPlace,
+    submenu: [...spaces.map(space => ({ id: 'batch-space-move', label: space.name, type: 'radio', checked: space.current,
+      enabled: canPlace && !space.current && space.enabled !== false, workspaceId: space.id })), { type: 'separator' }, item('space-new', 'tabMenu.newSpace', canPlace && canCreateSpace)] });
+  items.push(item('new-window', 'tabsMenu.newWindow', canPlace));
+  items.push({ id: 'batch-group', label: t('tabMenu.moveToGroup'), enabled: canPlace, submenu: [
+    ...groups.map(group => ({ id: 'batch-group-move', type: 'radio', checked: members.every(tab => tab.groupId === group.id), label: group.name, groupId: group.id })),
+    ...(groups.length ? [{ type: 'separator' }] : []),
+    ...(members.some(tab => tab.groupId) ? [item('group-none', 'tabMenu.removeFromGroup')] : []), item('group-new', 'tabMenu.newGroup'),
+  ] });
+  items.push({ type: 'separator' }, item('pin', members.every(tab => tab.pinned) ? 'tabsMenu.unpin' : 'tabsMenu.pin', canMutate),
+    item('mute', members.every(tab => tab.muted) ? 'tabsMenu.unmute' : 'tabsMenu.mute', canMutate),
+    item('reload', 'tabsMenu.reload', members.some(tab => tab.canReload)),
+    item('quiet', 'tabsMenu.quiet', members.some(tab => tab.canQuiet)),
+    item('copy', 'tabsMenu.copy', members.some(isCopyable)), { type: 'separator' }, item('close', 'tabsMenu.close', canMutate));
+  return items;
+}
+
 function closableTabIds({ tabOrder, tabsById, keepId }) {
   return tabOrder.filter((id) => id !== keepId && tabsById.get(id) && !tabsById.get(id).pinned);
 }
@@ -230,4 +252,4 @@ function pickSurvivorTabId(tabOrder, movedId) {
   return tabOrder[i + 1] ?? tabOrder[i - 1] ?? null;
 }
 
-module.exports = { buildTabContextMenu, pinLabelKey, closableTabIds, closableBeside, pickSurvivorTabId, isCopyable };
+module.exports = { buildTabsContextMenu, buildTabContextMenu, pinLabelKey, closableTabIds, closableBeside, pickSurvivorTabId, isCopyable };

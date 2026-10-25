@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-145 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+151 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -13,6 +13,7 @@
 | `reopenClosedEntry` | tabs | invoke | `tabs:reopen-entry` | `(entryId: ClosedEntryId) => Promise<void>` | all |
 | `forgetClosedEntry` | tabs | invoke | `tabs:forget-closed-entry` | `(entryId: ClosedEntryId) => Promise<boolean>` | all |
 | `clearClosedEntries` | tabs | invoke | `tabs:clear-closed` | `() => Promise<boolean>` | all |
+| `selectTab` | tabs | invoke | `tabs:select` | `(tabId: TabId \| null, mode: 'toggle' \| 'range' \| 'extend-up' \| 'extend-down' \| 'clear') => Promise<TabId \| null>` | all |
 | `switchTab` | tabs | invoke | `tabs:switch` | `(id: TabId) => Promise<void>` | all |
 | `navigate` | navigation | invoke | `tabs:navigate` | `(id: TabId, url: string) => Promise<boolean \| undefined>` | all |
 | `search` | navigation | invoke | `tabs:search` | `(id: TabId, query: string, engine?: string) => Promise<boolean \| string \| undefined>` | all |
@@ -27,6 +28,7 @@
 | `setGroupColor` | groups | invoke | `groups:set-color` | `(groupId: GroupId, color: string \| null) => Promise<GroupColorResult>` | all |
 | `newTabInGroup` | groups | invoke | `groups:new-tab` | `(groupId: GroupId) => Promise<boolean>` | all |
 | `moveGroupToNewWindow` | groups | invoke | `groups:move-to-new-window` | `(groupId: GroupId) => Promise<boolean>` | all |
+| `openGroupSpaceMenu` | groups | invoke | `groups:space-menu` | `(groupId: GroupId, point: Point) => Promise<boolean>` | all |
 | `ungroupGroup` | groups | invoke | `groups:ungroup` | `(groupId: GroupId) => Promise<void>` | all |
 | `activateTabFromRail` | tabs | invoke | `tabs:activate-from-rail` | `(id: TabId) => Promise<boolean>` | all |
 | `setGlanceTab` | glance | invoke | `tabs:set-glance` | `(id: TabId) => Promise<boolean>` | all |
@@ -107,6 +109,10 @@
 | `dismissSentItem` | sync | invoke | `chrome:sent-dismiss` | `(id: string) => Promise<boolean>` | all |
 | `cancelWorkspaceAction` | workspaces | send | `chrome:workspaces-cancel` | `()` | all |
 | `listWorkspaces` | workspaces | invoke | `chrome:workspaces-list` | `() => Promise<WorkspacesPayload>` | all |
+| `createSpaceWithLink` | workspaces | invoke | `chrome:workspaces-create-with-link` | `(name: string, identity: SpaceIdentityInput) => Promise<WorkspaceActionResult>` | all |
+| `createSpaceWithTabs` | workspaces | invoke | `chrome:workspaces-create-with-tabs` | `(name: string, identity: SpaceIdentityInput, tabIds: TabId[]) => Promise<WorkspaceActionResult>` | all |
+| `groupTabsByName` | tabs | invoke | `tabs:group-many-by-name` | `(tabIds: TabId[], name: string) => Promise<boolean>` | all |
+| `createSpaceWithTab` | workspaces | invoke | `chrome:workspaces-create-with-tab` | `(name: string, identity: SpaceIdentityInput, tabId: TabId) => Promise<WorkspaceActionResult>` | all |
 | `saveWorkspaceAs` | workspaces | invoke | `chrome:workspaces-save-as` | `(name: string, identity?: SpaceIdentityInput) => Promise<WorkspaceActionResult>` | all |
 | `openWorkspace` | workspaces | invoke | `chrome:workspaces-open` | `(id: WorkspaceId, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
 | `createBlankWorkspace` | workspaces | invoke | `chrome:workspaces-create-blank` | `(name: string, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
@@ -367,6 +373,7 @@ One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only stat
 | `connection` | `ConnectionState \| null` |  |
 | `siteInfo` | `SiteInfo` |  |
 | `splitId` | `string \| null` | The Split View (F53) this tab belongs to, or null. |
+| `syncNotSynced?` | `boolean` |  |
 
 ### `TabGroup`
 
@@ -419,6 +426,7 @@ A closed entry as renderers see it, projected by projectEntries() in closed-tabs
 | `title` | `string` |  |
 | `favicon` | `string \| null` |  |
 | `tabCount` | `number` |  |
+| `fromName?` | `string` |  |
 
 ### `ShieldProviderControls`
 
@@ -521,6 +529,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | Field | Type | Notes |
 | --- | --- | --- |
 | `tabs` | `TabEntry[]` |  |
+| `selectedTabIds` | `TabId[]` |  |
 | `activeTabId` | `TabId \| null` |  |
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |
@@ -541,6 +550,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | Field | Type | Notes |
 | --- | --- | --- |
 | `tabs` | `TabEntry[]` |  |
+| `selectedTabIds` | `TabId[]` |  |
 | `activeTabId` | `TabId \| null` |  |
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |
@@ -668,6 +678,7 @@ An edit to one space: any subset of name, colour and symbol.
 | `name?` | `string` |  |
 | `color?` | `string` |  |
 | `symbol?` | `string` |  |
+| `ackRecovery?` | `boolean` | Dismiss the development-only recovery explanation on this device. |
 
 ### `WorkspaceActionEvent`
 
@@ -686,6 +697,10 @@ Local writes held from sync, without page contents; only present on a shared Spa
 | --- | --- | --- |
 | `unsyncedTabIds` | `string[]` |  |
 | `reason` | `'full' \| 'tombstones' \| 'tabs' \| 'remote-over-budget' \| 'required-state-over-budget' \| null` |  |
+| `state?` | `'shared' \| 'waiting' \| 'notSynced' \| 'full' \| 'unavailable'` |  |
+| `lastSyncedAt?` | `number` |  |
+| `failed?` | `boolean` |  |
+| `pending?` | `boolean` |  |
 
 ### `SharedSpaceLibraryStatus`
 
@@ -696,6 +711,8 @@ Shared-library capacity. Concurrent remote additions are retained even above the
 | `count` | `number` |  |
 | `limit` | `number` |  |
 | `canAdd` | `boolean` |  |
+| `busy?` | `boolean` |  |
+| `slowed?` | `boolean` |  |
 
 ### `WorkspaceListItem`
 
@@ -726,6 +743,7 @@ Named Workspaces projection, from workspacesProjection() in main.js.
 | `windowTabCount` | `number` | This window's ordinary tabs, for the new-space editor. |
 | `tint` | `SpaceTint` |  |
 | `sharedSync?` | `SharedSpaceLibraryStatus \| undefined` |  |
+| `recoveryNotice?` | `boolean \| null` |  |
 
 ### `ThemeAppearance`
 
@@ -830,7 +848,7 @@ Find-in-page counts for the active tab, sent from tab-view.js.
 
 Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js.
 
-`'activation-failed' \| 'busy' \| 'duplicate-name' \| 'future-format' \| 'invalid-name' \| 'invalid-color' \| 'invalid-symbol' \| 'invalid-index' \| 'invalid-record' \| 'limit' \| 'not-found' \| 'protected-pages' \| 'read-failed' \| 'repair-failed' \| 'saved-not-opened' \| 'storage-failed' \| 'unsaved-scratch'`
+`'activation-failed' \| 'busy' \| 'duplicate-name' \| 'future-format' \| 'invalid-name' \| 'invalid-color' \| 'invalid-symbol' \| 'invalid-index' \| 'invalid-record' \| 'limit' \| 'not-found' \| 'protected-pages' \| 'read-failed' \| 'repair-failed' \| 'saved-not-opened' \| 'storage-failed' \| 'unsaved-scratch' \| 'saved-not-moved'`
 
 ### `WorkspaceProtectionReason`
 
@@ -850,6 +868,7 @@ Result of every Named Workspace action. Successes carry the refreshed workspace 
 
 | Field | Type | Notes |
 | --- | --- | --- |
+| `movedCount?` | `number` |  |
 | `ok` | `boolean` |  |
 | `error?` | `WorkspaceErrorCode` |  |
 | `cause?` | `WorkspaceErrorCode` | Why a saved workspace could not be opened (with saved-not-opened). |
@@ -866,6 +885,7 @@ Result of every Named Workspace action. Successes carry the refreshed workspace 
 | `windowTabCount?` | `number` | This window's ordinary tabs, for the new-space editor. |
 | `tint?` | `SpaceTint` |  |
 | `sharedSync?` | `SharedSpaceLibraryStatus \| undefined` |  |
+| `recoveryNotice?` | `boolean \| null` |  |
 
 ### `SearchEngineId`
 

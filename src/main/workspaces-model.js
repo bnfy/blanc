@@ -72,6 +72,7 @@ function normalizeWorkspace(raw) {
   const meta = asArray(raw.meta);
   return {
     id: raw.id,
+    ...(raw.preservedLocal===true?{preservedLocal:true}:{}),
     name,
     profileId: raw.profileId,
     createdAt: Number.isFinite(raw.createdAt) ? raw.createdAt : 0,
@@ -130,7 +131,7 @@ function normalizeFile(raw) {
     seen.add(workspace.id);
     // A remote concurrent addition or a preservation copy must not disappear
     // on the next disk read. Ordinary local creation still uses the cap.
-    if(!workspace.sharedId&&!workspace.recoveredFrom) {
+    if(!workspace.sharedId&&!workspace.recoveredFrom&&!workspace.preservedLocal) {
       if(ordinaryCount>=MAX_WORKSPACES)continue;
       ordinaryCount++;
     }
