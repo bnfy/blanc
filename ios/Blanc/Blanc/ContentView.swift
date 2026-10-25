@@ -176,6 +176,10 @@ struct ContentView: View {
     @ViewBuilder
     private func menuEntry(_ item: IslandMenuItem, tab: TabModel?) -> some View {
         switch item {
+        case .customizeStartPage:
+            Button { manager.showSettings(.startPage) } label: {
+                Label(SyncCopy.text("newtab.customize.button"), systemImage: "slider.horizontal.3")
+            }
         case .blocking(let on):
             if let tab {
                 Toggle(isOn: Binding(get: { on }, set: { manager.setSiteProtection(tab, on: $0) })) {

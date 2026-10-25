@@ -16,10 +16,28 @@ import XCTest
                        [.blocking(on: true), .favorite(saved: false), .share, .find, .newPrivateTab])
     }
 
-    func testStartPageOffersOnlyAPrivateTab() {
+    func testStartPageOffersCustomizeAndAPrivateTab() {
         let m = manager()
         m.activeTab!.currentURL = TabsManager.newTabURL
-        XCTAssertEqual(IslandMenu.items(for: m.activeTab, manager: m), [.newPrivateTab])
+        XCTAssertEqual(IslandMenu.items(for: m.activeTab, manager: m), [.customizeStartPage, .newPrivateTab])
+    }
+
+    func testHoldingTheStartPageOpensItsSettings() {
+        let m = manager()
+        m.activeTab!.currentURL = TabsManager.newTabURL
+        m.startPageHeld(m.activeTab!)
+        XCTAssertEqual(m.settingsDestination, .startPage)
+    }
+
+    func testHoldingAWebPageDoesNothing() {
+        let m = manager()
+        m.activeTab!.currentURL = URL(string: "https://nintendo.com/")!
+        m.startPageHeld(m.activeTab!)
+        XCTAssertNil(m.settingsDestination)
+    }
+
+    func testStartPageSettingsLinkResolves() {
+        XCTAssertEqual(SettingsDestination.resolve(URL(string: "blanc://settings/#start-page")!), .startPage)
     }
 
     func testPrivatePageIsNeverAFavorite() {
