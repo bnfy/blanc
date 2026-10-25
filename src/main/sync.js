@@ -1145,6 +1145,7 @@ function init() {
 }
 
 module.exports = {
+  sharedContext: tabSyncContext,
   init,
   enable,
   preflight,
