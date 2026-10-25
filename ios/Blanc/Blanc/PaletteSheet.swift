@@ -20,86 +20,125 @@ struct PaletteSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Blanc").font(BrowserStyle.font(22, semibold: true, relativeTo: .title2))
-                    Text("Search, switch tabs, or run a command")
-                        .font(BrowserStyle.font(13, relativeTo: .caption))
-                        .foregroundStyle(style.secondary)
-                }
-                Spacer()
-                Button { dismiss() } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 13, weight: .semibold))
-                        .frame(width: 44, height: 44)
-                        .background(style.surface, in: Circle())
-                }
-                .accessibilityLabel("Close palette")
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 26)
-            .padding(.bottom, 18)
-
-            HStack(spacing: 10) {
-                Image(systemName: "magnifyingglass").foregroundStyle(style.secondary)
-                TextField("Search or enter address", text: $input)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .keyboardType(.webSearch)
-                    .submitLabel(.go)
-                    .focused($inputFocused)
-                    .onSubmit { handleSubmit() }
-                if !input.isEmpty {
-                    Button { input = "" } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(style.secondary)
-                            .frame(width: 44, height: 44)
-                    }
-                    .accessibilityLabel("Clear search")
-                }
-            }
-            .padding(.horizontal, 14)
-            .frame(minHeight: 52)
-            .background(style.surface, in: RoundedRectangle(cornerRadius: 14))
-            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(style.border, lineWidth: 0.5))
-            .padding(.horizontal, 20)
-
-            HStack {
-                Text(mode == .tabs ? "Open tabs" : mode == .slash ? "Commands" : "Matching tabs")
-                    .font(BrowserStyle.font(13, semibold: true, relativeTo: .caption))
-                Spacer()
-                if mode == .tabs {
-                    Text("\(manager.tabs.count)").font(.system(size: 12, weight: .medium, design: .monospaced))
-                    Button {
-                        manager.createTab()
-                        dismiss()
-                    } label: {
-                        Label("New tab", systemImage: "plus")
-                            .font(BrowserStyle.font(13, semibold: true))
-                            .frame(minHeight: 44)
-                    }
-                }
-            }
-            .foregroundStyle(style.secondary)
-            .padding(.horizontal, 24)
-            .padding(.top, 10)
-            .padding(.bottom, 2)
-
+            addressRow
+            Rectangle().fill(style.border).frame(height: 0.5).padding(.horizontal, 12)
             listContent
                 .listStyle(.plain)
+                .environment(\.defaultMinListRowHeight, 44)
+                .environment(\.defaultMinListHeaderHeight, 0)
+                .contentMargins(.top, 0, for: .scrollContent)
+                .listSectionSpacing(8)
                 .scrollContentBackground(.hidden)
+                .scrollDismissesKeyboard(.interactively)
+            footer
         }
-        .font(BrowserStyle.font(16))
-        .tracking(0.16)
+        .font(BrowserStyle.font(15))
+        .tracking(0.15)
         .foregroundStyle(style.text)
         .tint(style.text)
         .buttonStyle(.plain)
         .background(style.raised)
         .presentationBackground(style.raised)
-        .presentationCornerRadius(24)
-        .presentationDragIndicator(.visible)
-        .presentationDetents([.medium, .large])
+        .presentationCornerRadius(22)
+        .presentationDragIndicator(.hidden)
+        .presentationDetents([.height(420), .large])
         .onAppear { inputFocused = true }
+    }
+
+    private var addressRow: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 17, weight: .regular))
+                .foregroundStyle(style.secondary)
+                .frame(width: 24)
+            TextField("Search, enter address, or / command", text: $input)
+                .font(BrowserStyle.font(17))
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .keyboardType(.webSearch)
+                .submitLabel(.go)
+                .focused($inputFocused)
+                .onSubmit { handleSubmit() }
+                .accessibilityIdentifier("island.address")
+            if !input.isEmpty {
+                Button { input = "" } label: {
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(style.secondary)
+                        .frame(width: 44, height: 44)
+                }
+                .accessibilityLabel("Clear search")
+            }
+            Button { dismiss() } label: {
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 14, weight: .medium))
+                    .frame(width: 44, height: 44)
+            }
+            .accessibilityLabel("Collapse Island")
+        }
+        .padding(.leading, 16)
+        .padding(.trailing, 4)
+        .padding(.vertical, 8)
+    }
+
+    private var footer: some View {
+        VStack(spacing: 0) {
+            Rectangle().fill(style.border).frame(height: 0.5)
+            HStack(spacing: 2) {
+                Button {
+                    manager.createTab()
+                    dismiss()
+                } label: {
+                    Label("New tab", systemImage: "plus")
+                        .font(BrowserStyle.font(13, semibold: true))
+                        .padding(.horizontal, 14)
+                        .frame(height: 36)
+                        .foregroundStyle(style.raised)
+                        .background(style.text, in: Capsule())
+                        .frame(minHeight: 44)
+                }
+                Spacer(minLength: 4)
+                pageShortcut("Favorites", icon: "bookmark", page: "bookmarks")
+                pageShortcut("History", icon: "clock.arrow.circlepath", page: "history")
+                pageShortcut("Settings", icon: "slider.horizontal.3", page: "settings")
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+        }
+    }
+
+    private func pageShortcut(_ label: String, icon: String, page: String) -> some View {
+        Button {
+            manager.createTab(url: URL(string: "blanc://\(page)/")!)
+            dismiss()
+        } label: {
+            Image(systemName: icon).font(.system(size: 16)).frame(width: 44, height: 44)
+        }
+        .accessibilityLabel(label)
+    }
+
+    private func groupHeading(_ title: String, count: Int? = nil) -> some View {
+        HStack(spacing: 6) {
+            Text(title).font(BrowserStyle.font(11, semibold: true))
+            if let count { Text("\(count)").font(.system(size: 11)) }
+            Spacer()
+        }
+        .foregroundStyle(style.secondary)
+        .textCase(nil)
+        .padding(.top, 8)
+    }
+
+    private func row(icon: String, title: String, subtitle: String, selected: Bool = false) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon).font(.system(size: 16, weight: .regular))
+                .foregroundStyle(style.secondary).frame(width: 24)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(BrowserStyle.font(15)).lineLimit(1)
+                Text(subtitle).font(BrowserStyle.font(11)).foregroundStyle(style.secondary).lineLimit(1)
+            }
+            Spacer(minLength: 4)
+            if selected { Circle().fill(style.text).frame(width: 5, height: 5) }
+        }
+        .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+        .contentShape(Rectangle())
     }
 
     @ViewBuilder
@@ -122,11 +161,39 @@ struct PaletteSheet: View {
 
     private var tabList: some View {
         List {
-            // Send to device (M7b): pages other devices sent here come first.
-            // Tap opens one in a new tab; swipe left dismisses it. Either way
-            // it leaves this list on this phone only.
+            Section {
+                ForEach(manager.tabs) { tab in
+                    HStack(spacing: 0) {
+                        Button {
+                            manager.setActive(tab.id)
+                            dismiss()
+                        } label: {
+                            row(icon: tab.currentURL.scheme == "blanc" ? "sun.horizon" : "globe",
+                                title: tab.currentURL == TabsManager.newTabURL ? "Start Page" : tab.pageTitle.isEmpty ? tab.currentURL.host ?? "Tab" : tab.pageTitle,
+                                subtitle: tab.currentURL.scheme == "blanc" ? "Blanc" : tab.currentURL.host ?? tab.currentURL.absoluteString,
+                                selected: tab.id == manager.activeTabId)
+                        }
+                        .accessibilityAddTraits(tab.id == manager.activeTabId ? .isSelected : [])
+                        Button { manager.closeTab(tab.id) } label: {
+                            Image(systemName: "xmark").font(.system(size: 12)).foregroundStyle(style.secondary)
+                                .frame(width: 44, height: 48)
+                        }
+                        .accessibilityLabel("Close \(tab.pageTitle.isEmpty ? "tab" : tab.pageTitle)")
+                    }
+                    .padding(.leading, 10)
+                    .background(tab.id == manager.activeTabId ? style.selection : .clear, in: RoundedRectangle(cornerRadius: 10))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 2, leading: 12, bottom: 2, trailing: 12))
+                }
+                .onDelete { offsets in
+                    let ids = offsets.map { manager.tabs[$0].id }
+                    for id in ids { manager.closeTab(id) }
+                }
+            } header: { groupHeading("Open tabs", count: manager.tabs.count) }
+
             if !manager.syncEngine.inbox.isEmpty {
-                Section(SyncCopy.text("sends.section")) {
+                Section {
                     ForEach(manager.syncEngine.inbox) { item in
                         Button {
                             if let url = URL(string: item.url) {
@@ -135,82 +202,40 @@ struct PaletteSheet: View {
                                 dismiss()
                             }
                         } label: {
-                            VStack(alignment: .leading) {
-                                Text(item.title.isEmpty ? item.url : item.title).lineLimit(1)
-                                Text(SyncCopy.text("sends.from", [
+                            row(icon: "arrow.down.left", title: item.title.isEmpty ? item.url : item.title,
+                                subtitle: SyncCopy.text("sends.from", [
                                     "device": item.fromName,
-                                    "time": sentAgo.localizedString(
-                                        for: Date(timeIntervalSince1970: Double(item.sentAt) / 1000), relativeTo: Date()),
+                                    "time": sentAgo.localizedString(for: Date(timeIntervalSince1970: Double(item.sentAt) / 1000), relativeTo: Date()),
                                 ]))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                            }
                         }
                         .accessibilityIdentifier("sent.\(item.id)")
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 2, leading: 22, bottom: 2, trailing: 22))
                         .swipeActions(edge: .trailing) {
-                            Button(SyncCopy.text("sends.dismiss"), role: .destructive) {
-                                manager.syncEngine.dismiss(item.id)
-                            }
-                            .buttonStyle(.automatic)
+                            Button(SyncCopy.text("sends.dismiss"), role: .destructive) { manager.syncEngine.dismiss(item.id) }
+                                .buttonStyle(.automatic)
                         }
                     }
-                }
-            }
-            ForEach(manager.tabs) { tab in
-                Button {
-                    manager.setActive(tab.id)
-                    dismiss()
-                } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: tab.currentURL.scheme == "blanc" ? "sun.max" : "globe")
-                            .font(.system(size: 17))
-                            .frame(width: 38, height: 38)
-                            .background(style.surface, in: RoundedRectangle(cornerRadius: 10))
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(tab.pageTitle.isEmpty ? "Start Page" : tab.pageTitle)
-                                .lineLimit(1)
-                            Text(tab.currentURL.scheme == "blanc" ? "Blanc · \(tab.currentURL.host == "newtab" ? "Start Page" : tab.currentURL.host?.capitalized ?? "Page")" : tab.currentURL.absoluteString)
-                                .font(BrowserStyle.font(12, relativeTo: .caption))
-                                .foregroundStyle(style.secondary)
-                                .lineLimit(1)
-                        }
-                        Spacer()
-                        if tab.id == manager.activeTabId {
-                            Image(systemName: "checkmark")
-                                .foregroundStyle(.tint)
-                        }
-                    }
-                    .padding(.vertical, 7)
-                    .padding(.horizontal, 12)
-                    .background(tab.id == manager.activeTabId ? style.selection : .clear,
-                                in: RoundedRectangle(cornerRadius: 12))
-                }
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 3, leading: 16, bottom: 3, trailing: 16))
-            }
-            .onDelete { offsets in
-                let ids = offsets.map { manager.tabs[$0].id }
-                for id in ids { manager.closeTab(id) }
+                } header: { groupHeading(SyncCopy.text("sends.section"), count: manager.syncEngine.inbox.count) }
             }
             if !manager.syncEngine.remoteDevices.isEmpty {
-                Section(SyncCopy.text("footer.devices")) {
+                Section {
                     ForEach(manager.syncEngine.remoteDevices) { device in
                         DisclosureGroup("\(device.name) (\(device.tabs.count))") {
                             ForEach(Array(device.tabs.enumerated()), id: \.offset) { _, tab in
                                 Button {
                                     if let url = URL(string: tab.url) { manager.createTab(url: url); dismiss() }
                                 } label: {
-                                    VStack(alignment: .leading) {
-                                        Text(tab.title.isEmpty ? tab.url : tab.title).lineLimit(1)
-                                        Text(tab.url).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-                                    }
+                                    row(icon: "globe", title: tab.title.isEmpty ? tab.url : tab.title, subtitle: tab.url)
                                 }
                             }
                         }
+                        .font(BrowserStyle.font(13))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
                     }
-                }
+                } header: { groupHeading(SyncCopy.text("footer.devices")) }
             }
         }
     }
@@ -229,13 +254,7 @@ struct PaletteSheet: View {
                         cmd.execute(manager)
                         dismiss()
                     } label: {
-                        VStack(alignment: .leading) {
-                            Text(cmd.command)
-                                .font(BrowserStyle.font(16, semibold: true))
-                            Text(cmd.hint)
-                                .font(BrowserStyle.font(12, relativeTo: .caption))
-                                .foregroundStyle(style.secondary)
-                        }
+                        row(icon: "command", title: cmd.command, subtitle: cmd.hint)
                     }
                 }
             }
@@ -258,14 +277,7 @@ struct PaletteSheet: View {
                         open(result)
                         dismiss()
                     } label: {
-                        VStack(alignment: .leading) {
-                            Text(result.title)
-                                .lineLimit(1)
-                            Text(result.subtitle)
-                                .font(BrowserStyle.font(12, relativeTo: .caption))
-                                .foregroundStyle(style.secondary)
-                                .lineLimit(1)
-                        }
+                        row(icon: result.localTabID == nil ? "magnifyingglass" : "globe", title: result.title, subtitle: result.subtitle)
                     }
                 }
             }
