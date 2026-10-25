@@ -46,6 +46,18 @@ function sourceInputs(directory) {
         throw new Error('ubo-source-preparation-invalid');
       }
       sources.push({ path: preparation.script, sha256: hash(fs.readFileSync(path.join(directory, preparation.script))) });
+    } else if (member === 'sources/uAssets-1.75.0-main-preferred.tar.gz') {
+      const preparation = component.sourcePreparation;
+      if (component.name !== 'uAssets-1.75.0-main' || component.repository !== 'uBlockOrigin/uAssets'
+        || component.revision !== 'f9bd781375aeefae03196d07d079c772fa15e3e6'
+        || component.sha256 !== '9a82d98674423e99c6527c900820f1afb786a56cd75eddf7905afdd72ba8df17'
+        || preparation?.script !== 'prepare-uassets-source.py'
+        || preparation.upstreamSha256 !== '1e0b65e660123f6015d84485d5ec6ac8571eeee957a0cbc0b5ea083850afe7d7'
+        || preparation.omittedPath !== 'uAssets-f9bd781375aeefae03196d07d079c772fa15e3e6/tools/update-3rdparties.sh'
+        || preparation.omittedSha256 !== '3d7f5cc541a347155ec15a88c6172dda0100a415883127d9c60ed77aaec53f77') {
+        throw new Error('ubo-source-preparation-invalid');
+      }
+      sources.push({ path: preparation.script, sha256: hash(fs.readFileSync(path.join(directory, preparation.script))) });
     } else if (component.sourcePreparation !== undefined) {
       throw new Error('ubo-source-preparation-invalid');
     }

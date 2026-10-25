@@ -54,9 +54,9 @@
       "repository": "uBlockOrigin/uAssets",
       "revision": "f9bd781375aeefae03196d07d079c772fa15e3e6",
       "url": "https://codeload.github.com/uBlockOrigin/uAssets/tar.gz/f9bd781375aeefae03196d07d079c772fa15e3e6",
-      "sha256": "1e0b65e660123f6015d84485d5ec6ac8571eeee957a0cbc0b5ea083850afe7d7",
-      "file": "uAssets-1.75.0-main.tar.gz",
-      "sourcePath": "sources/uAssets-1.75.0-main.tar.gz",
+      "sha256": "9a82d98674423e99c6527c900820f1afb786a56cd75eddf7905afdd72ba8df17",
+      "file": "uAssets-1.75.0-main-preferred.tar.gz",
+      "sourcePath": "sources/uAssets-1.75.0-main-preferred.tar.gz",
       "role": "preferred filter sources and build scripts",
       "runtimePaths": [
         "assets/thirdparties/pgl.yoyo.org/as/README.md",
@@ -73,7 +73,14 @@
         "thirdparties/urlhaus-filter/urlhaus-filter-online.txt"
       ],
       "buildReproduced": false,
-      "evidence": "docs/evidence/2026-10-03-ubo-component-rebuilds/asset-inputs.json"
+      "evidence": "docs/evidence/2026-10-03-ubo-component-rebuilds/asset-inputs.json",
+      "sourcePreparation": {
+        "script": "prepare-uassets-source.py",
+        "upstreamSha256": "1e0b65e660123f6015d84485d5ec6ac8571eeee957a0cbc0b5ea083850afe7d7",
+        "omittedPath": "uAssets-f9bd781375aeefae03196d07d079c772fa15e3e6/tools/update-3rdparties.sh",
+        "omittedSha256": "3d7f5cc541a347155ec15a88c6172dda0100a415883127d9c60ed77aaec53f77",
+        "reason": "Unused upstream daily publisher helper that fetches newer remote lists. Pinned snapshots, preferred filter sources, templates, build/test tools and licenses are retained unchanged."
+      }
     },
     {
       "name": "uAssets-1.75.0-prod",

@@ -16,6 +16,8 @@ SPEC.loader.exec_module(PREPARE)
 
 
 class PreferredSource(unittest.TestCase):
+    prepare = staticmethod(PREPARE.prepare)
+
     def fixture(self):
         entries = [('root/LICENSE', b'license\n', 0o644),
                    ('root/build.sh', b'build source\n', 0o755),
@@ -33,8 +35,8 @@ class PreferredSource(unittest.TestCase):
 
     def test_only_selected_helper_is_omitted_and_all_build_material_is_unchanged(self):
         entries, data, upstream_sha, helper_sha = self.fixture()
-        output = PREPARE.prepare(data, upstream_sha, 'root/publisher.sh', helper_sha)
-        self.assertEqual(output, PREPARE.prepare(data, upstream_sha, 'root/publisher.sh', helper_sha))
+        output = self.prepare(data, upstream_sha, 'root/publisher.sh', helper_sha)
+        self.assertEqual(output, self.prepare(data, upstream_sha, 'root/publisher.sh', helper_sha))
         with tarfile.open(fileobj=io.BytesIO(output)) as archive:
             self.assertEqual(archive.getnames(), [entry[0] for entry in entries[:-1]])
             for name, content, mode in entries[:-1]:
@@ -44,11 +46,20 @@ class PreferredSource(unittest.TestCase):
     def test_wrong_upstream_or_helper_digest_and_missing_helper_are_rejected(self):
         _, data, upstream_sha, helper_sha = self.fixture()
         with self.assertRaisesRegex(ValueError, 'upstream source digest'):
-            PREPARE.prepare(data)
+            self.prepare(data)
         with self.assertRaisesRegex(ValueError, 'publisher helper digest'):
-            PREPARE.prepare(data, upstream_sha, 'root/publisher.sh', '0' * 64)
+            self.prepare(data, upstream_sha, 'root/publisher.sh', '0' * 64)
         with self.assertRaisesRegex(ValueError, 'unexpected source inventory'):
-            PREPARE.prepare(data, upstream_sha, 'missing', helper_sha)
+            self.prepare(data, upstream_sha, 'missing', helper_sha)
+
+
+UASSETS_SPEC = importlib.util.spec_from_file_location('prepare_uassets', ROOT / 'ublock/prepare-uassets-source.py')
+UASSETS_PREPARE = importlib.util.module_from_spec(UASSETS_SPEC)
+UASSETS_SPEC.loader.exec_module(UASSETS_PREPARE)
+
+
+class UAssetsPreferredSource(PreferredSource):
+    prepare = staticmethod(UASSETS_PREPARE.prepare)
 
 
 if __name__ == '__main__':

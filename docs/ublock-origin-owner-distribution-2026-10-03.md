@@ -108,10 +108,24 @@ prepared digests and the precise omission are recorded in
 
 This records the engineering source-scope review for that candidate, not a new
 owner waiver or outside legal sign-off. All 658 uBO runtime files, the existing
-host adaptation, uBO's matching source tag, both complete uAssets snapshots,
-other preferred library sources, GPL/LGPL texts and notices remain unchanged.
+host adaptation, uBO's matching source tag, the complete uAssets production
+snapshot, other preferred library sources, GPL/LGPL texts and notices remain unchanged.
 The prepared HSLuv archive returns 0/59, with Avast, AVG and Kaspersky explicitly
 Undetected; that is a sample result, not clearance of a final installer.
-Kaspersky's separate uAssets warning remains under investigation. No release
-was made and all release/acceptance requirements remain in force. See
+The separate Kaspersky warning was isolated to archived uAssets
+`tools/update-3rdparties.sh`: its one-member ZIP reproduces the exact label
+(1/63). It is referenced only by the upstream daily publisher workflow and
+fetches newer remote assets, rather than building the pinned release. The
+candidate main source selection omits only this live-update publisher helper.
+All other 101 entries / 85 files retain their bytes, permissions and types,
+including preferred filter sources, templates, pinned third-party snapshots,
+Makefile, build/validation scripts, tests, documentation and licenses. The
+original upstream revision/digest and helper digest are recorded; its bundled
+preparation script authenticates the original and verifies every retained
+member. The prepared source archive returns 0/60, including Avast, AVG and
+Kaspersky Undetected. Required build/install sources are not replaced by an
+upstream URL or written offer. This is the candidate engineering source-scope
+review, not a new owner waiver or an external legal opinion.
+
+No release was made and all release/acceptance requirements remain in force. See
 `docs/release-incidents/2026-10-25-antivirus-investigation.txt`.

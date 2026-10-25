@@ -1,5 +1,43 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+COMBINED SOURCE FIX PREPARED (18:00 EDT): The approved challenge completed,
+the uAssets source-selection archive was submitted and its scan completed
+0/60. Avast, AVG and Kaspersky explicitly report Undetected on SHA256
+9a82d98674423e99c6527c900820f1afb786a56cd75eddf7905afdd72ba8df17.
+https://www.virustotal.com/gui/file/9a82d98674423e99c6527c900820f1afb786a56cd75eddf7905afdd72ba8df17/detection
+The source fix now replaces only the main uAssets source archive with this
+preferred-source selection and bundles prepare-uassets-source.py. It pins the
+authenticated original, exact omitted helper, selected archive and preparation
+script. Reproduction with Python 3.13 produces the exact scanned digest. All
+101 retained entries / 85 files have original bytes, modes, types and sizes.
+The package gate rejects altered omission/provenance records or extra sources.
+The HSLuv selection previously completed 0/59. Required sources remain bundled;
+neither source selection substitutes an upstream URL for required build inputs.
+
+Validation passed: 34 focused Node tests (package, distribution and runtime
+pin), four source-preparation tests, lint, source inventory and adaptation
+verification. The 658 upstream runtime file records and 79 adaptation changes
+remain unchanged. The combined rebuilt diagnostic ASAR passes actual packaged
+source/license/host/adaptation verification. It is not signed, launched or
+distributed. ASAR SHA256
+b4b920d4afa61a2c60de9f000b83344a1a5bb73021616520ecdf5e0b45ec2a45.
+No final signed-installer clearance or release is claimed.
+
+An additional diagnostic ZIP combines all 658 unchanged public runtime files,
+the seven retained public source archives and both GPL/LGPL texts (667 files),
+SHA256 9565e943e7bc482671306450b248b76292ff39284e79a3e5c93903185d1596af.
+It contains no unpublished first-party host/preparation code. Submission was
+started; completion and verdict remain to be checked. It is not yet clearance.
+
+The owner supplied Kaspersky's request to resend the 37 KB diagnostic ZIP in an
+archive with password infected. The exact requested ZIP and the smaller exact
+helper reproducer were placed inside blanc-KL-3111306-samples.zip, encrypted
+with that password. Both were decrypted and compared with the original bytes.
+Outer SHA256 f25717effa8029114f31adca8f51b831ef4b00fae76fd06023299b2eb9a52af7.
+Sent from/reply-to support@blanc.day to newvirus@kaspersky.com under KL-3111306;
+Resend ID 01a17513-1e0c-7e91-908e-96997030f940, delivery confirmed. Only public
+source diagnostic samples were sent. No private files or customer data.
+
 EXACT KASPERSKY ARCHIVED MEMBER IDENTIFIED (17:14 EDT).
 A one-member ZIP of unchanged uAssets tools/update-3rdparties.sh completed
 1/63 and reproduces Kaspersky UDS:Trojan-PSW.Win32.Mimikatz. The original member

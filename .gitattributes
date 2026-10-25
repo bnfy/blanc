@@ -85,3 +85,4 @@ ublock/adaptation.patch -whitespace
 /site/public/bang-hosts.json text eol=lf
 
 ublock/prepare-hsluv-source.py text eol=lf
+ublock/prepare-uassets-source.py text eol=lf

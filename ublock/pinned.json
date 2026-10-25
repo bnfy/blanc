@@ -22,7 +22,7 @@
     },
     {
       "path": "preferred-sources.json",
-      "sha256": "4677beb9e3f92adf004cde8942d0a72ae1879ec1231ca5483805645e3ab606db"
+      "sha256": "c52c5c4a46bb3c539c0fe981ab805282c83588490fe616a99fc6605c2b64913a"
     },
     {
       "path": "sources/css-tree-2.2.1.tar.gz",
@@ -44,9 +44,13 @@
       "sha256": "013caa6074bc17d16678d46a8947769a740f43e15757f8fcd3de5e1774fa4570"
     },
     {
-      "path": "sources/uAssets-1.75.0-main.tar.gz",
+      "path": "prepare-uassets-source.py",
+      "sha256": "d0940080c7340e5cfd5f29a8008ed2eae09c9fba3e8dff31e22d525c7006b8b9"
+    },
+    {
+      "path": "sources/uAssets-1.75.0-main-preferred.tar.gz",
       "url": "https://codeload.github.com/uBlockOrigin/uAssets/tar.gz/f9bd781375aeefae03196d07d079c772fa15e3e6",
-      "sha256": "1e0b65e660123f6015d84485d5ec6ac8571eeee957a0cbc0b5ea083850afe7d7"
+      "sha256": "9a82d98674423e99c6527c900820f1afb786a56cd75eddf7905afdd72ba8df17"
     },
     {
       "path": "sources/uAssets-1.75.0-prod.tar.gz",
