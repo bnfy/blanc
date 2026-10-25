@@ -81,14 +81,57 @@ esac
 EOF
 chmod +x "$ROOT/build/files/bin/blanc"
 mapfile -t permissions < <(sed -n 's/^  - \(--[^ ]*\)$/\1/p' "$ROOT/original-manifest.yml")
-flatpak build-finish --command=blanc "${permissions[@]}" "$ROOT/build"
+extra_args=()
+if [[ ${BLANC_REAL_PACKAGE:-false} == true ]]; then
+  # /app/extra is populated by Flatpak during installation, as in FlatPark.
+  rm -rf "$ROOT/build/files/lib/blanc"
+  sed -i 's|/app/lib/blanc|/app/extra/blanc|g' "$ROOT/build/files/bin/blanc"
+  gh api 'repos/flatpark/flatpark/contents/registry/com.blancbrowser.Blanc/apply_extra.sh?ref=2a792fa6d84cf1574b93bee3eea1036339a74659' --jq .content | base64 -d > "$ROOT/apply_extra.original.sh"
+  python3 - "$ROOT" <<'PY'
+import pathlib,sys,difflib
+r=pathlib.Path(sys.argv[1]);old=(r/'apply_extra.original.sh').read_text()
+needle='[ -n "$name" ] || { echo "could not read the launcher name from the AppDir\'s AppRun" >&2; exit 1; }'
+assert old.count(needle)==1
+new=old.replace(needle,'''if [ -z "$name" ] && [ -x blanc/blanc-ecs-launcher ] && grep -Fq 'exec "$ECS_APPDIR/blanc-ecs-launcher" "$@"' blanc/AppRun; then
+    name=blanc-ecs-launcher
+fi
+'''+needle)
+(r/'build/files/bin/apply_extra').write_text(new)
+(r/'apply-extra.patch').write_text(''.join(difflib.unified_diff(old.splitlines(True),new.splitlines(True),fromfile='a/registry/com.blancbrowser.Blanc/apply_extra.sh',tofile='b/registry/com.blancbrowser.Blanc/apply_extra.sh')))
+PY
+  chmod +x "$ROOT/build/files/bin/apply_extra"
+  app_hash=$(sha256sum "$ROOT/Blanc-1.43.1.AppImage" | cut -d' ' -f1)
+  extra_args+=(--metadata=Extra\ Data=NoRuntime=false
+    "--extra-data=blanc.AppImage:$app_hash:158888732:500000000:https://github.com/bnfy/blanc/releases/download/v1.43.1/Blanc-1.43.1.AppImage"
+    "--extra-data=appimage-tools.tar.xz:01ff0b363031060c3d9877bc61b026a1a7422308fd9e5cfda53cc24971b12304:57220:1000000:https://github.com/flatpark/prebuilt/releases/download/appimage-tools-v2/appimage-tools-appimage-tools-v2-fd-26.08-x86_64.tar.xz")
+fi
+flatpak build-finish --command=blanc "${permissions[@]}" "${extra_args[@]}" "$ROOT/build"
 flatpak build-export "$ROOT/repo" "$ROOT/build"
 flatpak remote-add --user --no-gpg-verify blanc-test "$ROOT/repo"
 flatpak install --user -y --noninteractive blanc-test com.blancbrowser.Blanc
-flatpak run --command=sh com.blancbrowser.Blanc -c 'ls -la /app/lib/blanc/blanc /app/lib/blanc/blanc-ecs-launcher /app/lib/blanc/blanc-ecs-launcher-candidate; test -x /app/lib/blanc/blanc' > "$ROOT/installed-files.txt"
+if [[ ${BLANC_REAL_PACKAGE:-false} == true ]]; then
+  flatpak run --command=sh com.blancbrowser.Blanc -c 'ls -la /app/extra/blanc/blanc /app/extra/blanc/blanc-ecs-launcher; test -x /app/extra/blanc/blanc; cat /app/extra/launcher' > "$ROOT/installed-files.txt"
+  deployed=$(flatpak info --user --show-location com.blancbrowser.Blanc)
+  python3 - "$ROOT" "$deployed/files/extra/blanc" <<'PY'
+import pathlib,sys,hashlib,json
+r=pathlib.Path(sys.argv[1]);original=r/'squashfs-root';installed=pathlib.Path(sys.argv[2]);count=0
+for p in original.rglob('*'):
+ q=installed/p.relative_to(original)
+ if p.is_symlink(): assert q.is_symlink() and p.readlink()==q.readlink(),str(p)
+ elif p.is_file():
+  assert q.is_file() and hashlib.sha256(p.read_bytes()).digest()==hashlib.sha256(q.read_bytes()).digest(),str(p)
+  count+=1
+(r/'installed-integrity.json').write_text(json.dumps({'allOriginalFilesMatch':True,'regularFiles':count,'installed':str(installed)},indent=2))
+PY
+else
+  flatpak run --command=sh com.blancbrowser.Blanc -c 'ls -la /app/lib/blanc/blanc /app/lib/blanc/blanc-ecs-launcher /app/lib/blanc/blanc-ecs-launcher-candidate; test -x /app/lib/blanc/blanc' > "$ROOT/installed-files.txt"
+fi
 flatpak info --user --show-permissions com.blancbrowser.Blanc > "$ROOT/permissions.txt"
 flatpak info --user --show-metadata com.blancbrowser.Blanc > "$ROOT/metadata.txt"
 export DISPLAY=:99
+export XDG_RUNTIME_DIR
+XDG_RUNTIME_DIR=$(mktemp -d)
+chmod 700 "$XDG_RUNTIME_DIR"
 Xvfb :99 -screen 0 1280x900x24 -nolisten tcp > "$ROOT/xvfb.log" 2>&1 &
 sleep 2
 dbus-run-session -- node scripts/flatpak-investigation.mjs

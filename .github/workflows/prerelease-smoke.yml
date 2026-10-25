@@ -6,6 +6,11 @@ on:
         description: Comma-separated startup variants; blank runs the complete matrix
         required: false
         type: string
+      real_package:
+        description: Use FlatPark's install-time extra-data extraction and original application path
+        required: false
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -23,6 +28,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BLANC_FLATPAK_MODES: ${{ inputs.modes }}
+          BLANC_REAL_PACKAGE: ${{ inputs.real_package }}
         run: bash scripts/flatpak-investigation.sh
       - name: Preserve evidence
         if: always()

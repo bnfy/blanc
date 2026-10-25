@@ -4,7 +4,7 @@ for p in pathlib.Path('/proc').iterdir():
  if not p.name.isdigit(): continue
  try:
   exe=os.readlink(p/'exe')
-  if not exe.startswith('/app/lib/blanc/') or not exe.endswith('/blanc'): continue
+  if not (exe.startswith('/app/lib/blanc/') or exe.startswith('/app/extra/blanc/')) or not exe.endswith('/blanc'): continue
   cmd=(p/'cmdline').read_bytes().replace(b'\0',b' ').decode(errors='replace')
   status=dict(s.split(':',1) for s in (p/'status').read_text().splitlines() if ':' in s)
   env={}

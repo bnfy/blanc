@@ -5,7 +5,8 @@ import {spawn,spawnSync} from 'node:child_process';
 const root=path.resolve('flatpak-evidence');
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const run=args=>spawnSync('flatpak',args,{encoding:'utf8'});
-const server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/html');res.end('<title>Blanc Flatpak sandbox probe</title><h1 id="probe">blanc-flatpak-1431</h1>'+(req.url==='/restore'?'':'<script>localStorage.setItem("probe","persisted")</script>'));}).listen(8771,'127.0.0.1');
+let allowStorageWrite=true;
+const server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/html');res.end('<title>Blanc Flatpak sandbox probe</title><h1 id="probe">blanc-flatpak-1431</h1>'+(allowStorageWrite&&req.url!=='/restore'?'<script>localStorage.setItem("probe","persisted")</script>':''));}).listen(8771,'127.0.0.1');
 async function cdp(url){
  const socket=new WebSocket(url);
  await new Promise((res,rej)=>{socket.onopen=res;socket.onerror=rej;});let id=0;const pending=new Map();
@@ -17,6 +18,7 @@ const allowed=['baseline','profile','unset','profile-unset','original-launcher',
 const modes=process.env.BLANC_FLATPAK_MODES ? process.env.BLANC_FLATPAK_MODES.split(',') : allowed;
 if(modes.some(mode=>!allowed.includes(mode)))throw Error('Unknown startup variant');
 for(const mode of modes){
+ if(mode==='wrapper-restart')allowStorageWrite=false;
  run(['kill','com.blancbrowser.Blanc']); await delay(1000);
  const remove=['unset','profile-unset','original-launcher','integrated-launcher','wrapper-integration','wrapper-restart'].includes(mode);
  const ov=run(['override','--user',remove?'--unset-env=CHROME_DESKTOP':'--env=CHROME_DESKTOP=com.blancbrowser.Blanc.desktop','com.blancbrowser.Blanc']);
@@ -39,6 +41,8 @@ for(const mode of modes){
  }catch(e){result.browsingError=String(e);}}
  const inspection=spawnSync('sudo',['python3','scripts/flatpak-inspect.py'],{encoding:'utf8'});
  fs.writeFileSync(`${root}/${mode}.processes.json`,inspection.stdout);
+ const kernel=spawnSync('sudo',['dmesg'],{encoding:'utf8'});
+ fs.writeFileSync(`${root}/${mode}.kernel.txt`,kernel.stdout.split('\n').filter(line=>/blanc|trap|segfault/i.test(line)).join('\n'));
  try{result.processes=JSON.parse(inspection.stdout);}catch{result.inspectionError=inspection.stderr;}
  fs.writeFileSync(`${root}/${mode}.result.json`,JSON.stringify(result,null,2));outcomes.push(result);
  console.log(JSON.stringify({mode,ready,exitCode:result.exitCode,browsing:result.browsing,browsingError:result.browsingError}));
