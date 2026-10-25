@@ -11,9 +11,13 @@ URLhaus inside a one-file ZIP is also Undetected by Kaspersky; omitting it from
 the larger source group leaves the exact Mimikatz label. Do not blame or remove
 the protective list. A 37 KB tools/templates/docs-only control, SHA256
 3ac6d6d38a126e1585d38547e08e05828bc7162204439ccb284a47e0b3339035,
-is prepared but remains unsubmitted behind a new CAPTCHA. Approval for that
-current challenge has been requested. This control is not yet a positive
-result, and the exact Kaspersky inner-file trigger remains unknown. The prior
+was submitted after the approved CAPTCHA and completed 1/63, reproducing the
+exact Kaspersky Mimikatz label. It contains 34 unchanged source members. The
+exact Kaspersky inner-file trigger remains unknown. VirusTotal now requires a
+new CAPTCHA to open this reduced sample's Relations view; approval for that
+current read challenge has been requested. Three further tools-only,
+templates-only and root-docs-only controls are prepared locally, not submitted
+and not claimed as tested. The prior
 approved control CAPTCHAs completed successfully, including the multi-image
 challenge used to open the positive metadata sample's Relations view.
 
