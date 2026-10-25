@@ -1,5 +1,16 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+PRE-SIGNING GATE CORRECTIONS: Run 40241202298 was canceled while both native
+Mac jobs remained queued after independent PR checks exposed an unchanged VEX
+payload digest and a Windows-only test-fixture dependency on shasum. Re-reviewed
+the exact revised uBO source inputs against the existing node-forge execution
+boundary (recorded in its security review), retaining the exact-digest guard
+and advisory policy. The publication-boundary unit test now supplies a strict
+checksum fixture instead of requiring macOS's CLI on Windows. Eight focused
+tests and lint pass. The complete local unit gate then passed 4,790 tests with
+two skipped and zero failures (195 seconds). No signing or publication
+occurred in this queued run.
+
 FIRST HOSTED ATTEMPT: Run 40240699074 at source 849470959 stopped before signing
 on Intel because the shallow checkout omitted immutable v1.27.0, required by
 compatibility:check. The substrate checks preceding it, including the updated

@@ -1,5 +1,26 @@
 # node-forge companion-tooling reachability review
 
+## October 25 antivirus source-packaging re-review
+
+Codex re-reviewed the change from public v1.43.1 to the antivirus candidate.
+The only pin-manifest changes select two authenticated preferred-source
+archives, their metadata and two offline Python preparation tools. All 658
+runtime extension files and the host adaptation remain unchanged. The retained
+archives are byte-verified data; packaging and runtime do not execute their
+members. Each Python tool imports only standard-library gzip, hashlib, io,
+pathlib, sys and tarfile, authenticates input and the single omitted publisher
+helper, and copies/comparatively verifies retained members without executing
+them. Neither introduces Node dependencies, Android tooling or RSA verification.
+
+The desktop positive source allowlist and all dependency graphs are unchanged
+apart from the root package's own version. The existing tests independently
+retain the exact companion dependency chain, commands and exclusion from the
+desktop/site/Worker graphs. This preserves the existing reachability decision;
+it grants no broader exception or new license clearance. The canonical
+JSON-serialized uBO pin digest is now
+`0b6afba49afcbfa6824ddc9a14056c70a1fbd872636c56b4d3d3a9216111bcf1`.
+The exact-digest guard remains mandatory for subsequent payload changes.
+
 Reviewer: Codex (automated code review under the owner's instruction to resolve
 the PR's findings and complete its protected merge). Review date: October 2,
 2026. Reviewed source: PR #469 at `3a0f3b451e4c5f11c926dfc35f81c72d9291ee99`.
