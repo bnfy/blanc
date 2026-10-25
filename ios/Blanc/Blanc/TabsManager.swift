@@ -117,10 +117,11 @@ final class TabsManager {
             contentBlocker.attach(to: tab.webView)
         }
         // Re-persist whenever this tab settles on a new URL (navigation/redirect).
-        // The title arrives after the visit, so the visit starts untitled.
-        tab.navigationDelegate.onURLChange = { [weak self] url in
-            self?.historyStore.addVisit(url: url, title: "")
+        tab.navigationDelegate.onURLChange = { [weak self] _ in
             self?.persistSession()
+        }
+        tab.navigationDelegate.onVisit = { [weak self] url, title in
+            self?.historyStore.addVisit(url: url, title: title)
         }
         tab.navigationDelegate.onTitleChange = { [weak self, weak tab] in
             if let tab { self?.historyStore.updateTitle(url: tab.currentURL, title: tab.pageTitle) }
