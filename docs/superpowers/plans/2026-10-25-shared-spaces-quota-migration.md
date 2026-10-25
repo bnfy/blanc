@@ -1,6 +1,6 @@
 # Shared Spaces quota and legacy-inventory migration plan
 
-**Status:** Draft for owner review, October 25, 2026. Documentation only.
+**Status:** Revised after the three plan findings, October 25, 2026. Documentation only; initial policy/discovery review, not implementation or execution approval.
 **Code baseline:** [PR #1132 at 510f87add](https://github.com/bnfy/blanc/pull/1132), approved by the owner for code quality. That PR stays unmerged and unchanged by this plan.
 **Goal:** Charge every existing profile blob before activating the account quota, preserve existing data, and make subsequent accounting independent of stale KV listings.
 
@@ -17,10 +17,11 @@ remain on hold. No current production inventory has been taken for this plan.
 | Account store allowance | **256 blob stores** | Independent of the desktop's 25 live Spaces. Empty retained Space blobs still occupy slots. |
 | New-account budget | **10 per UTC day**, independently configured | Already selected by the owner. The existing KV counter is approximate under concurrency, not a strict admission counter. |
 | Legacy accounts above either allowance | Preserve every blob; record the full excess; refuse growth while permitting non-growing replacements and deletion | No truncation, eviction, automatic Space selection or unlimited grandfathered growth. Existing excess is migration debt, not evidence that every account is already under the new ceiling. |
-| Migration strategy | A verified mutation freeze, complete private inventory and explicit ledger import before activation | Temporary sync unavailability requires a separately approved maintenance window. Normal client browsing continues locally. |
+| Migration strategy | Feasibility discovery first; then a verified mutation freeze, complete private inventory and explicit ledger import | No migration implementation until a concrete inventory method passes Gate 0. Maintenance requires separate approval. |
 | Incomplete or ambiguous inventory | **Do not activate** | Stable scans and elapsed time alone cannot establish completeness. No fallback to an empty or partially populated ledger. |
 | Cleanup during migration | Propose pausing scheduled cleanup under explicit maintenance approval; leave it paused after activation until separately reviewed | No new expiry policy, marker backfill or cleanup deletion is part of this migration. |
-| Recovery artifacts | Encrypted, access-restricted inventory and ciphertext backup; proposed retention **14 days after successful activation** | Owner approves the access, retention and eventual purge separately. No raw locators, manifests or backup contents go into Git, PRs or public logs. |
+| Pre-activation abort | A **60-minute full API maintenance budget**, then the reviewed read-only abort mode | Existing ciphertext can be read without seeded ledgers; uploads, erasure and pairing remain unavailable. The owner must explicitly accept that uploads may remain paused until a later approved recovery. Otherwise do not start maintenance. |
+| Recovery artifacts | Temporary encrypted inventory only; **no retained ciphertext backup** | Stream ciphertext for exact byte/hash verification without retaining a recovery copy. Purge sensitive working artifacts on success, abort or cancellation, before public API traffic resumes, and no later than 60 minutes after their first creation. |
 
 The October 5 design rejected a Durable Object accountant at that time. The
 owner's October 25 requirement rejects unbounded per-account growth; this
@@ -78,7 +79,7 @@ For scale only, 3,650 accounts each charged the full 20 MiB represent at most
 76.546048 decimal GB of charged blob storage. At the currently documented paid
 KV storage price, that isolated occupancy scenario is approximately $37.77 per
 month after the included 1 GB. It excludes the base subscription, requests,
-Durable Object compute/rows/storage, migration/backup storage and other account
+Durable Object compute/rows/storage, temporary artifact storage and other account
 usage. It is **not a total bill or a flood bound**: daily admission is approximate
 and active accounts can persist across multiple yearly cohorts.
 [KV pricing](https://developers.cloudflare.com/kv/platform/pricing/).
@@ -100,13 +101,18 @@ It also refreshes marker lifetimes, which is outside this migration.
 After plan review and an explicit implementation go-ahead, prepare a separate
 reviewed implementation:
 
-- [ ] A durable, fail-closed migration gate with `frozen`, `seeding`, `ready`
-  and `active` states, a unique epoch, source/config identity and recorded
+- [ ] A durable, fail-closed migration gate with `frozen`, `seeding`, `ready`,
+  `read_only_abort` and `active` states, a unique epoch, source/config identity and recorded
   transition receipts. It must survive restarts without opening traffic.
+- [ ] A separately tested read-only abort implementation that needs no imported
+  ledger: allow genuine blob GETs using the existing locator/rate-limit rules,
+  but refuse all public mutations, pairing and Cron. Preserve data and partial
+  ledgers; make no synthetic successful write or erase response. It is degraded
+  service, not restored read/write Sync and not a quota-free writable rollback.
 - [ ] A maintenance response of `503` with `Retry-After` for public API
   requests while frozen. Never return synthetic `404`, empty data or a success
   for a mutation that was not performed. Successful blob GETs update activity
-  markers, so gate them too. Pairing stays unavailable during this short window.
+  markers, so gate them too. Pairing stays unavailable while frozen or aborted.
 - [ ] Gate every mutation source: public routes, scheduled cleanup, auxiliary
   Workers and operator scripts. Track/drain operations admitted before the
   freeze. A failed or abandoned in-flight operation blocks the drain until
@@ -143,14 +149,14 @@ seed. These are proposed activation requirements, **not capabilities asserted
 to exist in PR D today**. Their code needs its own tests and owner review;
 approval of `510f87add` does not approve new Worker changes automatically.
 
-## 3. Complete-inventory criterion
+## 3. Feasibility discovery and complete-inventory criterion
 
 Cloudflare documents KV reads as eventually consistent, including cached
 negative reads; visibility can take 60 seconds **or more**. Repeated scans and
 a ten-minute wait are useful diagnostics, not a documented proof of a complete
 snapshot. [KV consistency](https://developers.cloudflare.com/kv/concepts/how-kv-works/).
 
-Before booking maintenance, obtain a documented basis for complete enumeration
+Before implementing migration tools or booking maintenance, obtain a documented basis for complete enumeration
 and exact values at the frozen cut: for example, a provider-confirmed complete
 export with a cut identifier and coverage guarantee. Do not assume Cloudflare
 currently offers that export. A different method needs a written completeness
@@ -158,6 +164,31 @@ argument and review before use. An unrelated aggregate byte count or a union of
 two stale listings is insufficient. If no defensible method is available, stop
 at this gate and return a revised strategy for review; do not weaken the
 criterion or deploy lazy bootstrap as a substitute.
+
+### Gate 0 deliverable: selected, available inventory method
+
+The initial review approves policy/discovery scope only. Produce a separate
+feasibility record before asking for migration implementation authorization:
+
+1. Name the actual supported method and its authoritative documentation or
+   provider confirmation. Establish complete key enumeration and exact values
+   for a specific frozen cut, including stale/negative reads, expirations,
+   pagination, size limits and the drain of older writers. An example of an
+   export that might exist is not a passing deliverable.
+2. Describe the concrete interfaces, access required, expected duration/cost,
+   synthetic rehearsal and independently checkable evidence. Include artifact
+   deletion/key-destruction controls compatible with §5. A provider export
+   retained outside our control does not qualify merely because it is complete.
+3. Record remaining assumptions and a go/no-go conclusion. The owner must
+   accept this method and its evidence before Gate A implementation starts.
+   If no defensible method exists, mark discovery **blocked** and propose a
+   revised strategy. Do not build the control plane in anticipation of a
+   hypothetical completeness source.
+
+Discovery can inspect public documentation and prepare a provider question.
+It does not authorize sending that question, accessing a production account,
+exporting data, implementing tools or deploying anything. Those actions need
+their own explicit authorization.
 
 The reconciled manifest must cover **all** blob keys, including orphan Spaces,
 deleted Spaces, fixed stores, historical suffixes and unexpected keys. Use
@@ -176,14 +207,18 @@ decrypting it. No passphrase, key or plaintext is needed.
 
 ### Gate A: approve preparation and policy
 
+- [ ] Gate 0 has a selected, available inventory method, a feasibility record
+  and written owner acceptance. Stop here if any of those is missing.
 - [ ] Owner reviews the numerical limits, legacy-excess policy, completeness
   criterion, private artifact handling, proposed maintenance and recovery plan.
-- [ ] Obtain the implementation go-ahead, then implement and review the missing controls in §2, with the local tests in
+- [ ] Obtain a separate implementation go-ahead, then implement and review the missing controls in §2, with the local tests in
   §6. Record the exact Worker source SHA and pinned tool versions. Keep #1132
   unmerged; changes to its approved code require a fresh review.
-- [ ] Confirm a completeness source/method in §3 is available. Prepare an
-  inventory-cost estimate and a maintenance duration estimate from rehearsal.
-  Do not discover an unavailable export halfway through a production outage.
+- [ ] Rehearse the selected inventory method and the pre-seed abort with an
+  empty and a partially imported ledger. Confirm the rehearsal fits the
+  maintenance budget, including export purge and fallback transition. Prepare
+  the inventory-cost estimate; an oversized rehearsal requires redesign before
+  maintenance is booked, not a longer unreviewed outage.
 
 ### Gate B: separate approval for production preparation and freeze
 
@@ -194,6 +229,11 @@ decrypting it. No passphrase, key or plaintext is needed.
 - [ ] Obtain explicit owner approval for each production deployment and for
   the maintenance window, cleanup pause, read/export and ledger writes.
   Approval of this plan alone grants none of those actions.
+- [ ] Before freezing, have the reviewed abort ref already deployed and tested
+  locally, with a durable deadline and activation disabled. The same maintenance
+  approval must authorize the conditional read-only abort at the deadline and
+  cancellation/anomaly triggers. Owner and operator must be available; agree
+  the escalation channel and acknowledge the degraded-service tradeoff in §5.
 - [ ] Deploy the reviewed maintenance-capable Worker at 100% traffic under
   that approval. Fence all alternate writer paths and direct KV access;
   disallow old and new writers running side by side. Confirm no older invocation
@@ -217,7 +257,8 @@ deployment path supported by the pinned toolchain. [Cloudflare deployment guidan
   namespace identities, tool versions, timestamps, each exact key/value hash,
   value byte length, expiration/metadata, account/store grouping, computed
   charge and per-account/global counts. Sort deterministically and hash the
-  complete manifest. Preserve exact encrypted values in an encrypted backup.
+  complete manifest. Hash/count exact ciphertext in the export stream; do not
+  retain a ciphertext recovery copy. Keep customer blob values unchanged in KV.
 - [ ] Independently recompute charges from exported bytes; compare complete
   key sets and hashes against the completeness source. Classify outliers and
   missing/expired markers without deletion. Check that all account ledgers fit
@@ -226,7 +267,9 @@ deployment path supported by the pinned toolchain. [Cloudflare deployment guidan
 - [ ] Present only aggregate distributions, outlier counts, private artifact
   references/hashes and verification receipts in the review record. Owner
   approves the actual inventory and confirms or revises the quota values.
-  Stay frozen while resolving discrepancies; do not seed an unverified subset.
+  Do not seed an unverified subset. Resolve discrepancies only within the
+  approved time budget; otherwise take the pre-authorized abort, not an
+  indefinite full API outage while awaiting an owner response.
 
 ### Gate D: seed and verify, while still frozen
 
@@ -250,6 +293,9 @@ deployment path supported by the pinned toolchain. [Cloudflare deployment guidan
 - [ ] Present the complete evidence bundle and quota-aware rollback ref. Obtain
   explicit owner approval of the exact activation/deployment before opening
   public traffic. No destructive schema/class migration is included.
+- [ ] Verify disposal of all sensitive working exports and keys under §5,
+  retaining only the non-content evidence receipt. A snapshot/manifest hash
+  cannot substitute for a verified purge receipt.
 - [ ] Atomically mark the approved epoch active, then open traffic through the
   reviewed gate. Missing legacy checkpoints remain fail-closed. Confirm existing
   account operations use verified ledgers; ordinary new admission uses the
@@ -265,14 +311,106 @@ deployment path supported by the pinned toolchain. [Cloudflare deployment guidan
 
 ## 5. Failure and recovery
 
-Before activation, any discrepancy leaves the gate frozen. Import can resume
-from verified account receipts using the same manifest; changed source data
-requires a new cut. A return to previous service is an explicit owner decision
-using the reviewed recovery ref, not an automatic fail-open timer.
+### Pre-activation abort without seeded ledgers
+
+The reviewed maintenance Worker must contain a `read_only_abort` path before
+the freeze begins. It uses existing blob GET handling, locator authority and
+rate limits without consulting imported ledgers; normal bounded activity-marker
+refreshes may continue. PUT, DELETE, pairing and Cron return retryable
+unavailability. Existing values and genuine absence produce the normal GET
+results; no empty replacement data, successful upload or successful erasure is
+invented. It cannot create or replace a blob and therefore cannot reopen
+unbounded account growth.
+
+This restores access to the current server data, **not full read/write Sync**.
+Edits remain local and erasure attempts remain visibly unsuccessful/retryable.
+The owner must explicitly accept the possibility of a longer upload/erasure
+pause before Gate B. If full writable service must be restored on a deadline
+without verified ledgers, this strategy is unsuitable: stop at Gate A and
+redesign. Do not conceal that tradeoff as a guaranteed short outage.
+
+The maintenance authorization must cover this exact conditional abort procedure:
+
+1. Start the durable 60-minute budget at the first public maintenance response,
+   including deployment/drain time, not at the beginning of import. Record the
+   deadline and the operator/owner escalation channel before freezing.
+2. On a verification discrepancy or cancellation, stop export/import immediately
+   and abort. At minute 45, if activation is not already approved and ready,
+   notify the owner and begin disposal/fallback preparation. Do not extend the
+   window to wait for an approval, export or implementation fix.
+3. Dispose of sensitive working artifacts under the next subsection. Mark all
+   partial seeds inactive for public mutations, revoke the run's import authority
+   and invalidate its epoch. Preserve customer KV values and partial ledgers;
+   do not delete a namespace, reset accounting, replay backups or declare a
+   stuck operation drained just to finish the abort.
+4. By minute 60, enter the pre-authorized `read_only_abort` path using the same
+   already-reviewed Worker; no emergency deployment or complete seed is needed.
+   The durable gate/deadline must perform this safe transition if the operator
+   disconnects. It never changes to `active` on a timer. Test it with zero and
+   partial imported ledgers, process restart and interrupted import.
+5. Confirm representative reads work and all public mutations remain refused;
+   report the abort receipt and degraded-service status. Owner acknowledgement
+   is required before ending operator coverage; absent acknowledgement, escalate
+   over the pre-agreed channel. Only a new approved maintenance attempt, new cut
+   and verified seed can enable uploads. No stale run resumes automatically.
+
+The budget is an operational target, not permission to bypass a safety check.
+If the gate or verified artifact disposal fails, keep public traffic blocked,
+declare a maintenance/privacy incident and escalate immediately; never claim
+that the abort succeeded. Rehearsal must show the deadline path works without
+operator intervention. A known unresolved failure prevents booking maintenance.
+
+### Temporary artifacts, erasure and terminal outcomes
+
+The former 14-day-after-activation backup policy is removed. Migration writes
+accounting state, not customer blob contents, so recovery reconstructs a ledger
+from a newly verified inventory instead of restoring customer ciphertext from
+a backup. No retained ciphertext backup is authorized.
+
+Sensitive manifests, key lists, per-account hashes/lengths and transient export
+buffers are protected working data. Use an encrypted ephemeral workspace with
+no ordinary filesystem/cloud backup, indexing, log upload or retained provider
+export. Stream values where possible; any unavoidable provider working copy
+must be covered by the same disposal controls. Gate 0 must establish that the
+selected method supports this even when the operator disconnects; an artifact
+path with unrevocable retained keys/copies does not qualify. Destroy the working encryption keys and dispose
+of all working copies; deleting a filename alone is not secure-erasure proof.
+Keep a verifiable disposal receipt with only run identity, aggregate counts,
+timestamps and a non-content manifest digest, not account locators or values.
+
+| Run outcome | Disposal deadline and service consequence |
+| --- | --- |
+| Success / activation | Dispose before `active` opens public traffic, and within 60 minutes of first artifact creation. No export recovery copy survives activation. |
+| Abort / verification failure | Dispose during the abort, before read-only service resumes, and within the same creation-based 60-minute bound. Do not wait for a future successful run. |
+| Owner cancellation | Stop work immediately and use the same abort/disposal procedure and original deadline. Cancellation does not reset retention. |
+| Operator disconnect / stalled run | Durable expiry revokes access/import authority and triggers the rehearsed disposal/abort path against the original deadlines. No renewal by retry or restart. |
+| Disposal cannot be verified | Fail closed and escalate as an incident at the original deadline; no public reopening or claim of completed purge. Resolve and record the breach rather than silently extending retention. |
+
+While frozen or in read-only abort, DELETE returns failure; the client must
+retain its credentials and ability to retry, rather than claim that the server
+copy was erased. After activation, successful account erasure must remove the
+live blobs and associated account data; there is no migration recovery copy to
+outlive that success or restore later. Any retained non-content accounting
+checkpoint needs a documented field/retention rule and privacy review before
+activation; it must not retain an erasure-recoverable ciphertext snapshot.
+
+The current privacy policy says encrypted Sync blobs remain until a configured
+client erases the server copy and that the activity marker is erased with it
+(`site/src/pages/privacy.astro`, retention section). Before export authorization,
+review artifact disposal, checkpoint retention and client failure messaging
+against those statements. If they cannot comply, stop and obtain separate owner
+approval of a corrected approach/disclosure before export or activation; do not
+defer the conflict to PR E. No privacy page or PR E work is performed by this
+plan. Local tests must prove no acknowledged erasure can be followed by a
+restore from a migration artifact. Post-activation recovery excludes erased
+accounts and never recreates their data from old checkpoints.
+
+### Post-activation recovery
 
 After activation, first freeze traffic and drain before investigating. Preserve
 both KV data and ledgers. Repair/import only from a newly reconciled manifest
-under approval. Never replay an older backup over newer customer writes, and
+under new approval and the same temporary-artifact rules. Never replay an older
+export over newer customer writes or a completed erasure, and
 never restore KV and its ledger from different points in time.
 
 The recovery Worker must preserve the quota binding, namespace, checkpoints,
@@ -301,6 +439,15 @@ owner separately approves production operations.
 - [ ] Freeze covers GET marker refresh, PUT, DELETE, pairing and Cron; pre-freeze
   in-flight writes drain. Restart, abandoned requests, alternate routes and an
   uncooperative old writer cannot open the gate or produce a passing receipt.
+- [ ] Pre-seed abort with empty and partial ledgers reaches genuine read-only
+  service within the budget. Every public mutation, pairing and Cron remains
+  refused; client pending work and erasure-retry credentials survive. Minute-45
+  escalation, cancellation, disconnect, interrupted import, restart and minute-60
+  deadline take the rehearsed path without enabling uploads or resetting charges.
+- [ ] Sensitive working data is disposed of on success, abort, cancellation and
+  stalled-run expiry before service reopens. Retry/restart cannot extend the
+  creation-based deadline. A purge failure blocks reopening and produces an
+  incident receipt. No ciphertext backup survives activation or an abort.
 - [ ] Import authorization fails from public endpoints and ordinary account
   locators. Partial import, retries, interrupted batches, eviction, oversized
   ledgers and duplicate import preserve every verified charge.
@@ -310,6 +457,9 @@ owner separately approves production operations.
 - [ ] Account wipe/partial cleanup concurrent with a write, and stale listings
   after deletion, cannot reset a live ledger or drop charges for retained keys.
   A verified empty checkpoint survives restart and supports later rejoining.
+- [ ] A successful erasure cannot be undone by a migration artifact/checkpoint;
+  no raw locator or account content leaks into retained completion receipts.
+  Checkpoint fields/retention and artifact handling pass the current-policy review.
 - [ ] Local rollback rehearsal preserves enforcement and reconciles both stores;
   no schema deletion, blind backup replay or quota-free fallback occurs.
 
@@ -321,11 +471,13 @@ the implementation and rehearsal report before requesting Gate B approval.
 
 The finished operational record must identify: owner approvals by gate; exact
 Worker/tool/config refs; production version/binding identities; writer fence
-and drain evidence; complete-inventory provenance; private manifest and backup
-hashes; aggregate quota distributions/excess; import/readback receipts;
-maintenance and activation timestamps; aggregate health observations; recovery
-ref; remaining cleanup/migration limits; and the still-pending PR D platform
+and drain evidence; complete-inventory provenance; the non-content manifest
+digest; aggregate quota distributions/excess; import/readback and artifact
+disposal receipts; maintenance/deadline/abort/activation timestamps; the
+pre-authorized read-only recovery ref; escalation acknowledgement; aggregate
+health observations; remaining cleanup/migration limits; and the still-pending PR D platform
 gates. Leave unperformed items visibly pending rather than checking them off.
 
-**Now:** review the proposals in §1 and the preparation/completeness requirements
-in §§2–3. No production work is authorized or performed by this document.
+**Now:** review the policy proposals and Gate 0 discovery scope. A passing,
+owner-accepted feasibility record must precede any implementation authorization.
+No production work is authorized or performed by this document.
