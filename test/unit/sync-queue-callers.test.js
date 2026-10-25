@@ -79,3 +79,15 @@ test('wipe drains a wire PUT and cancels a second queued Space operation before 
   assert.equal(d.events.some(e=>e.method==='DELETE'),false);release();await Promise.all([first,second,wipe]);
   assert.equal(d.events.at(-1).method,'DELETE');assert.equal(d.events.some(e=>e.store==='space-'+id(2)),false);
 });
+test('an account cannot be adopted while a wipe is draining an old-account PUT',async t=>{
+  let release,started;const wire=new Promise(r=>{started=r;}),gate=new Promise(r=>{release=r;});
+  const d=setup(t,{fetch:async e=>{if(e.method==='PUT'&&e.store.startsWith('space-')){started();await gate;}return response(e.method==='GET'?404:200,{version:'v'});}});
+  const b=space(1);d.spaces.noteLocalSpace(id(1),b,{tabs:b.tabs},d.ctx);
+  const put=d.sync.syncNow(['space-'+id(1)]);await wire;
+  const wipe=d.sync.disable({wipeRemote:true});
+  const adopting=d.sync.enable({handle:'new-account',passphrase:'a strong new account passphrase'});
+  await tick();release();const [enable]=await Promise.all([adopting,put,wipe]);
+  assert.equal(enable.ok,false);
+  const deletes=d.events.filter(e=>e.method==='DELETE');assert.ok(deletes.length>0);
+  assert.equal(deletes[0].url.endsWith('/'+account),true,'the old wipe must never target the new account');
+});

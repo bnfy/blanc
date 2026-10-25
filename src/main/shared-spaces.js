@@ -45,6 +45,7 @@ function settleIndex(payload,ctx) {
   const s=ensure();if(s.data.accountId!==ctx.accountId)return;
   s.update(d=>{for(const [id,entry] of Object.entries(payload.spaces)) {
     d.knownIndex[id]=true;
+    if(d.index.spaces[id])d.index.spaces[id].rev=entry.rev;
     if(d.pending[id]?.index?.rev===entry.rev)delete d.pending[id].index;
   }});
 }

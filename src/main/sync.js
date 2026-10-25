@@ -32,7 +32,16 @@ const { bananifyServiceAllowed } = require('./bananify-services');
 // Blanc-hosted E2EE profile sync. This module holds the only network calls;
 // the Worker (cloudflare/sync-worker) stores AES-GCM ciphertext keyed by an
 // opaque accountId and can't read anything. See the design spec.
-const SYNC_ENDPOINT = 'https://blanc-sync.bnfy-441.workers.dev'; // wrangler dev -> http://127.0.0.1:8787
+const PRODUCTION_SYNC_ENDPOINT = 'https://blanc-sync.bnfy-441.workers.dev';
+const SYNC_ENDPOINT = (()=>{
+  if(!app.isPackaged && process.env.BLANC_TEST==='1' && process.env.BLANC_TEST_SYNC_ENDPOINT) {
+    try {
+      const url=new URL(process.env.BLANC_TEST_SYNC_ENDPOINT);
+      if(url.protocol==='http:' && ['127.0.0.1','[::1]','localhost'].includes(url.hostname) && !url.username && !url.password && !url.search && !url.hash && url.pathname==='/')return url.origin;
+    } catch { /* invalid acceptance configuration never redirects production traffic */ }
+  }
+  return PRODUCTION_SYNC_ENDPOINT;
+})();
 // A renamed build may not store data on Bananify's server (bananify-services.js).
 // disable() still lets it erase a copy that is already there.
 // Errors are codes (`error` in replies, `lastError` in the store); pages.js
@@ -310,7 +319,7 @@ async function enable({ handle, passphrase }) {
   if (!isDefaultLocalProfile()) {
     return withLocalProfile(DEFAULT_PROFILE_ID, () => enable({ handle, passphrase }));
   }
-  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE, status: status() };
+  if (!bananifyServiceAllowed(PRODUCTION_SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE, status: status() };
   const h = String(handle ?? '').trim();
   const p = String(passphrase ?? '');
   if (h.length < 2) return { ok: false, error: 'name-too-short', status: status() };
@@ -347,6 +356,7 @@ function protectKey(key) {
 }
 
 function adoptCredentials({ handle, accountId, key, protectedKey }) {
+  if(suspended)return {ok:false,error:'sync-off'};
   if (!protectedKey) {
     const protectedResult = protectKey(key);
     if (protectedResult.error) return { ok: false, error: protectedResult.error };
@@ -398,7 +408,7 @@ async function beginPairing() {
   if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, beginPairing);
   const d = ensureStore().data;
   if (!d.enabled || !d.accountId || !d.protectedKey) return { ok: false, error: keyProtectionError || 'sync-off' };
-  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE };
+  if (!bananifyServiceAllowed(PRODUCTION_SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE };
   // One live code at a time: a previous entry is retracted before another is parked.
   if (pairing) await cancelPairing();
   const gen = syncGen;
@@ -478,7 +488,7 @@ async function resolveCode(input) {
   } else {
     const code = pairingCodes.normalizeCode(input);
     if (!code) return { error: 'pair-invalid' };
-    if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { error: SERVICE_UNAVAILABLE };
+    if (!bananifyServiceAllowed(PRODUCTION_SYNC_ENDPOINT)) return { error: SERVICE_UNAVAILABLE };
     const { pairId, wrapKey } = pairingCodes.pairingMaterial(code);
     try {
       let res;
@@ -506,7 +516,7 @@ async function resolveCode(input) {
 
 async function joinWithCode(input) {
   if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, () => joinWithCode(input));
-  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE, status: status() };
+  if (!bananifyServiceAllowed(PRODUCTION_SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE, status: status() };
   if (ensureStore().data.enabled) return { ok: false, error: 'sync-on', status: status() };
   const resolved = await resolveCode(input);
   if (resolved.error) return { ok: false, error: resolved.error, status: status() };
@@ -526,7 +536,7 @@ async function joinWithCode(input) {
  * failed wipe keeps the old credentials exactly as disable() would. */
 async function switchWithCode(input, { wipeRemote = false } = {}) {
   if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, () => switchWithCode(input, { wipeRemote }));
-  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE, status: status() };
+  if (!bananifyServiceAllowed(PRODUCTION_SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE, status: status() };
   const resolved = await resolveCode(input);
   if (resolved.error) return { ok: false, error: resolved.error, status: status() };
   try {
@@ -589,7 +599,7 @@ async function preflight({ handle, passphrase }) {
   if (!isDefaultLocalProfile()) {
     return withLocalProfile(DEFAULT_PROFILE_ID, () => preflight({ handle, passphrase }));
   }
-  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, outcome: 'error', error: SERVICE_UNAVAILABLE };
+  if (!bananifyServiceAllowed(PRODUCTION_SYNC_ENDPOINT)) return { ok: false, outcome: 'error', error: SERVICE_UNAVAILABLE };
   const h = String(handle ?? '').trim();
   const p = String(passphrase ?? '');
   if (h.length < 2) return { ok: false, outcome: 'invalid', error: 'name-too-short' };
@@ -656,6 +666,7 @@ async function disable({ wipeRemote = false } = {}) {
       }
     } else if (d.enabled && d.accountId && d.protectedKey) {
       await retractSends(d).catch(() => {});
+      await retractSends(d,'closed',syncedClosed.retractedOwn).catch(() => {});
     }
     ensureStore().update((s) => {
       s.enabled = false; s.handle = ''; s.accountId = '';
@@ -780,7 +791,7 @@ async function syncNow(names = null, { onOutcome } = {}) {
   if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID,()=>syncNow(names,{onOutcome}));
   const d=ensureStore().data;
   if (suspended || !d.enabled || !d.accountId || !d.protectedKey) return {ok:false,error:keyProtectionError||'sync-off'};
-  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return {ok:false,error:SERVICE_UNAVAILABLE};
+  if (!bananifyServiceAllowed(PRODUCTION_SYNC_ENDPOINT)) return {ok:false,error:SERVICE_UNAVAILABLE};
   const ctx=tabSyncContext(),gen=syncGen,queue=getRequestQueue(),jobs=[];
   const consent=sharedSpaces.isEnabled(ctx),retryAvailability=spacesUnavailable && Date.now()>=spacesRetryAt;
   let skippedRequiredSelected=false;
@@ -986,31 +997,33 @@ function renameRemoteDevice(deviceId, name, devices = listRemoteDevices()) {
  * best effort and bounded, so the account's other devices stop offering it
  * as a target and drop its items. Never creates the store. Runs inside
  * disable()'s barrier, after the last pass has settled. */
-async function retractSends(d) {
-  let key;
-  try { key = unprotectSyncKey(safeStorage, d.protectedKey); } catch { return; }
-  const ownId = tabSyncContext().deviceId;
-  const url = `${SYNC_ENDPOINT}/v1/blob/${d.accountId}/sends`;
-  const signal = () => AbortSignal.timeout(5000);
-  try {
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      const getRes = await net.fetch(url, { signal: signal() });
-      if (getRes.status !== 200) return; // nothing published, or an older Worker
-      const body = await getRes.json();
-      const remote = JSON.parse(decrypt(key, body.blob));
-      if (!remote?.devices?.[ownId] || remote.devices[ownId].retracted) return;
-      const devices = { ...remote.devices, [ownId]: sends.retractedOwn() };
-      const putRes = await net.fetch(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ifVersion: body.version, blob: encrypt(key, JSON.stringify({ devices })) }),
-        signal: signal(),
-      });
-      if (putRes.status !== 409) return;
-    }
-  } finally {
-    key.fill(0);
-  }
+async function retractSends(d,storeName='sends',makeRetraction=sends.retractedOwn) {
+  const queue=getRequestQueue();
+  // Departure is already best effort (offline/old Workers may prevent it).
+  // Do not refill/bypass the request window, or leave a delayed GET behind
+  // after disable resolves. Erase-server-copy still uses the separate DELETE.
+  if(!requestScheduler.canRequest())return;
+  const accountId=d.accountId,protectedKey=d.protectedKey,gen=syncGen,ownId=tabSyncContext().deviceId;
+  const cancelled=()=>gen!==syncGen||ensureStore().data.accountId!==accountId?'generation':null;
+  const operation=queue.enqueue({class:'F',item:storeName,generation:'leave:'+storeName+':'+gen,cancelled,run:async({attempt})=>{
+    let key;
+    try {
+      try {key=unprotectSyncKey(safeStorage,protectedKey);}catch{return;}
+      const url=`${SYNC_ENDPOINT}/v1/blob/${accountId}/${storeName}`,signal=()=>AbortSignal.timeout(5000);
+      const getRes=await net.fetch(url,{signal:signal()});if(cancelled())return;
+      if(getRes.status===429)throw new SyncError('rate-limited');
+      if(getRes.status!==200)return;
+      const body=await getRes.json();if(cancelled())return;
+      const remote=JSON.parse(decrypt(key,body.blob));
+      if(!remote?.devices?.[ownId]||remote.devices[ownId].retracted)return;
+      const devices={...remote.devices,[ownId]:makeRetraction()};
+      if(cancelled())return;
+      const putRes=await net.fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ifVersion:body.version,blob:encrypt(key,JSON.stringify({devices}))}),signal:signal()});
+      if(putRes.status===409 && attempt<1 && requestScheduler.canRequest())return {retry:true};
+    } finally {key?.fill(0);}
+  }});
+  queueBarrier();await operation;
 }
 
 /** Every other device of this account a page can be sent to ([] when sync
@@ -1051,7 +1064,7 @@ function hideSentItem(id) {
 async function sendTab({ url, title, to } = {}) {
   if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, () => sendTab({ url, title, to }));
   const d = ensureStore().data;
-  if (!d.enabled || !d.accountId || !d.protectedKey || !bananifyServiceAllowed(SYNC_ENDPOINT)) return { status: 'failed' };
+  if (!d.enabled || !d.accountId || !d.protectedKey || !bananifyServiceAllowed(PRODUCTION_SYNC_ENDPOINT)) return { status: 'failed' };
   if (!listSendTargets().some((target) => target.id === to)) return { status: 'invalid' };
   // Wait out a pass already on the wire (and any pass it coalesced), so this
   // send runs its own pass and hears its own result.

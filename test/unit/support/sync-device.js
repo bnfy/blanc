@@ -6,16 +6,16 @@ const fs=require('node:fs');const os=require('node:os');const path=require('node
 const main=path.resolve(__dirname,'../../../src/main');
 function virtualClock(start=Date.now()) {
   let wall=start,mono=0,next=0;const timers=new Map();
-  return {now:()=>wall,monotonic:()=>mono,
+  return {now:()=>wall,monotonic:()=>mono,nextDelay:()=>timers.size?Math.max(0,Math.min(...[...timers.values()].map(x=>x.at))-mono):Infinity,
     setTimer:(fn,delay)=>{timers.set(++next,{fn,at:mono+delay});return next;},clearTimer:id=>timers.delete(id),
     advance:async amount=>{wall+=amount;mono+=amount;for(const [id,timer] of [...timers])if(timer.at<=mono){timers.delete(id);timer.fn();}await new Promise(r=>setImmediate(r));}};
 }
-function syncDevice({fetch,clock,files={},key=Buffer.alloc(32,9),record={}}={}) {
+function syncDevice({fetch,clock,files={},key=Buffer.alloc(32,9),record={},endpoint,packaged=false,testMode='1'}={}) {
   const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-sync-device-')),cache=new Map(),stores=[];
   const initial={enabled:true,accountId:'a'.repeat(64),handle:'test',deviceId:'desktop',syncTabs:false,
     protectedKey:Buffer.from(key.toString('base64')).toString('base64'),key:'',lastError:null,lastSyncedAt:0,...record};
   for(const [name,data] of Object.entries({'sync.json':initial,'settings.json':{onboardingVersion:1},...files}))fs.writeFileSync(path.join(tmp,name),JSON.stringify(data));
-  const electron={app:{getPath:()=>tmp,on:()=>{},isPackaged:false},nativeImage:{},net:{fetch},
+  const electron={app:{getPath:()=>tmp,on:()=>{},isPackaged:packaged},nativeImage:{},net:{fetch},
     safeStorage:{isEncryptionAvailable:()=>true,getSelectedStorageBackend:()=> 'test',encryptString:s=>Buffer.from(s),decryptString:b=>b.toString()}};
   function load(filename) {
     if(cache.has(filename))return cache.get(filename).exports;
@@ -36,7 +36,16 @@ function syncDevice({fetch,clock,files={},key=Buffer.alloc(32,9),record={}}={}) 
     }
     return mod.exports;
   }
-  return {sync:load(path.join(main,'sync.js')),spaces:load(path.join(main,'shared-spaces.js')),closed:load(path.join(main,'synced-closed.js')),sends:load(path.join(main,'sends.js')),record:initial,tmp,
+  const previous={mode:process.env.BLANC_TEST,endpoint:process.env.BLANC_TEST_SYNC_ENDPOINT};let sync;
+  try {
+    if(endpoint!==undefined){process.env.BLANC_TEST=testMode;process.env.BLANC_TEST_SYNC_ENDPOINT=endpoint;}
+    sync=load(path.join(main,'sync.js'));
+  } finally {
+    if(endpoint!==undefined)for(const [key,value] of [['BLANC_TEST',previous.mode],['BLANC_TEST_SYNC_ENDPOINT',previous.endpoint]]) {
+      if(value===undefined)delete process.env[key];else process.env[key]=value;
+    }
+  }
+  return {sync,spaces:load(path.join(main,'shared-spaces.js')),closed:load(path.join(main,'synced-closed.js')),sends:load(path.join(main,'sends.js')),record:initial,tmp,
     async dispose(){for(const store of stores)store.flushPending();for(const store of stores)await store.settled();fs.rmSync(tmp,{recursive:true,force:true});}};
 }
 module.exports={syncDevice,virtualClock};
