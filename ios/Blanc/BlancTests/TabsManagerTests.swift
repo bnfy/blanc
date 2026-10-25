@@ -28,6 +28,16 @@ final class TabsManagerTests: XCTestCase {
         XCTAssertFalse(m.isFavorite(tab))
     }
 
+    @MainActor func testVisitsRecordHistory() {
+        let m = makeManager()
+        let tab = m.activeTab!
+        tab.navigationDelegate.applyURL(URL(string: "https://example.com/page")!, to: tab)
+        XCTAssertEqual(m.historyStore.entries.map(\.url), ["https://example.com/page"])
+        tab.pageTitle = "Example page"
+        tab.navigationDelegate.onTitleChange?()
+        XCTAssertEqual(m.historyStore.entries.first?.title, "Example page")
+    }
+
     func testInitCreatesOneTab() {
         let m = makeManager()
         XCTAssertEqual(m.tabs.count, 1)

@@ -8,6 +8,7 @@ final class TabsManager {
     var activeTabId: UUID?
 
     let settingsStore: SettingsStore
+    let historyStore: HistoryStore
     private let syncDirectory: URL
     @ObservationIgnored private var applyingRemoteSettings = false
     @ObservationIgnored lazy var syncEngine: SyncEngine = {
@@ -50,6 +51,7 @@ final class TabsManager {
         let store = SettingsStore(directory: settingsDirectory)
         self.settingsStore = store
         self.sessionStore = SessionStore(directory: sessionDirectory)
+        self.historyStore = HistoryStore(directory: settingsDirectory)
         self.normalizer = AddressNormalizer(searchEngine: store.searchEngine)
 
         contentBlocker.enabled = store.adblockEnabled
@@ -115,10 +117,15 @@ final class TabsManager {
             contentBlocker.attach(to: tab.webView)
         }
         // Re-persist whenever this tab settles on a new URL (navigation/redirect).
-        tab.navigationDelegate.onURLChange = { [weak self] _ in
+        // The title arrives after the visit, so the visit starts untitled.
+        tab.navigationDelegate.onURLChange = { [weak self] url in
+            self?.historyStore.addVisit(url: url, title: "")
             self?.persistSession()
         }
-        tab.navigationDelegate.onTitleChange = { [weak self] in self?.syncEngine.tabsChanged() }
+        tab.navigationDelegate.onTitleChange = { [weak self, weak tab] in
+            if let tab { self?.historyStore.updateTitle(url: tab.currentURL, title: tab.pageTitle) }
+            self?.syncEngine.tabsChanged()
+        }
         tabs.append(tab)
         activeTabId = tab.id
         persistSession()
