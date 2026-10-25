@@ -2301,4 +2301,8 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ios_settings_disconnect_help">Déconnecter cet iPhone ? Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés.</string>
     <string name="ios_settings_switch_help">Cet iPhone quittera sa synchronisation actuelle. Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés.</string>
     <string name="ios_settings_time_of_day">Heure de la journée</string>
+    <string name="tab_menu_new_space">Nouveau Space…</string>
+    <string name="ws_new_with_tab">Avec cet onglet</string>
+    <string name="ws_error_saved_not_moved">%1$s a été enregistré, mais l’onglet n’a pas pu être déplacé.</string>
+    <string name="ws_error_move_failed">L’onglet n’a pas pu être déplacé vers %1$s.</string>
 </resources>

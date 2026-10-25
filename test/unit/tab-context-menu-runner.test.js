@@ -7,7 +7,7 @@ function spyActions() {
   const calls = [];
   const rec = (name) => (...args) => calls.push([name, ...args]);
   const names = ['copy', 'reload', 'duplicate', 'togglePin', 'toggleMute', 'toggleFavorite',
-    'setGroup', 'beginNewGroup', 'glance', 'quiet', 'newTab', 'newPrivateTab',
+    'setGroup', 'beginNewGroup', 'beginNewSpaceForTab', 'glance', 'quiet', 'newTab', 'newPrivateTab',
     'closeOthers', 'moveToNewWindow', 'reopenClosed', 'close', 'rename', 'resetTitle', 'closeGlance',
     'returnPinnedHome', 'setPinnedHome', 'toggleStartPagePin', 'moveToSpace', 'sendToDevice'];
   const actions = {};
@@ -90,4 +90,10 @@ test('space-move moves the tab to the chosen space', () => {
   const { actions, calls } = spyActions();
   runTabContextMenuItem('space-move', { tab, workspaceId: 'w2', actions });
   assert.deepEqual(calls, [['moveToSpace', 7, 'w2']]);
+});
+
+test('space-new opens the editor for the context tab', () => {
+  const { actions, calls } = spyActions();
+  runTabContextMenuItem('space-new', { tab: { id: 7 }, actions });
+  assert.deepEqual(calls, [['beginNewSpaceForTab', 7]]);
 });

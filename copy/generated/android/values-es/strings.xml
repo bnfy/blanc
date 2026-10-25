@@ -2301,4 +2301,8 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="ios_settings_disconnect_help">¿Desconectar este iPhone? Tus Favoritos y ajustes locales permanecerán aquí. Tus otros dispositivos no se verán afectados.</string>
     <string name="ios_settings_switch_help">Este iPhone saldrá de su sincronización actual. Tus Favoritos y ajustes locales permanecerán aquí. Tus otros dispositivos no se verán afectados.</string>
     <string name="ios_settings_time_of_day">Hora del día</string>
+    <string name="tab_menu_new_space">Nuevo Space…</string>
+    <string name="ws_new_with_tab">Con esta pestaña</string>
+    <string name="ws_error_saved_not_moved">Se guardó %1$s, pero no se pudo mover la pestaña.</string>
+    <string name="ws_error_move_failed">No se pudo mover la pestaña a %1$s.</string>
 </resources>

@@ -2959,7 +2959,12 @@
     } else if (next === 'spaces') {
       // The menu is the whole overlay here; data refreshes behind the first paint.
       refreshSwitcherData();
-      if (!reshow) openWorkspaceSwitcher();
+      if (purpose?.spaceMoveError) {
+        workspaceUI.showMoveError(purpose.spaceMoveError.name, purpose.spaceMoveError.error);
+      } else if (purpose?.newSpaceTabId != null) {
+        const tab = state.tabs.find((item) => item.id === purpose.newSpaceTabId);
+        workspaceUI.begin('new', null, { start: 'tab', tabId: purpose.newSpaceTabId, tabTitle: tab?.customTitle || tab?.title || tab?.url || '' });
+      } else if (!reshow) openWorkspaceSwitcher();
     } else if (next === 'shield') {
       renderShieldPop();
       (shieldChoosing ? shieldPopProvider.querySelector('input:checked:not(:disabled)') || shieldPopBack : shieldPopToggle.hidden ? shieldPopChangeProvider.disabled ? shieldPopSettings : shieldPopChangeProvider : shieldPopToggle).focus();

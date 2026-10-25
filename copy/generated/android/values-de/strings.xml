@@ -2232,4 +2232,8 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ios_settings_disconnect_help">Dieses iPhone trennen? Deine lokalen Favoriten und Einstellungen bleiben hier. Deine anderen Geräte sind nicht betroffen.</string>
     <string name="ios_settings_switch_help">Dieses iPhone verlässt seine aktuelle Synchronisierung. Deine lokalen Favoriten und Einstellungen bleiben hier. Deine anderen Geräte sind nicht betroffen.</string>
     <string name="ios_settings_time_of_day">Tageszeit</string>
+    <string name="tab_menu_new_space">Neuer Space…</string>
+    <string name="ws_new_with_tab">Mit diesem Tab</string>
+    <string name="ws_error_saved_not_moved">%1$s wurde gespeichert, aber der Tab konnte nicht verschoben werden.</string>
+    <string name="ws_error_move_failed">Der Tab konnte nicht nach %1$s verschoben werden.</string>
 </resources>

@@ -8348,5 +8348,21 @@
   "ios.settings.timeOfDay": {
     "message": "Time of day",
     "note": "Native iOS Settings sheet: time-of-day."
+  },
+  "tabMenu.newSpace": {
+    "message": "New Space…",
+    "note": "Last item of the tab menu Move to Space submenu; opens the new-space editor."
+  },
+  "ws.new.withTab": {
+    "message": "With this tab",
+    "note": "Fixed start label when creating a space from one tab."
+  },
+  "ws.error.savedNotMoved": {
+    "message": "Saved {name}, but the tab couldn’t move.",
+    "note": "Creation succeeded but moving the tab failed. {name} is the saved space name."
+  },
+  "ws.error.moveFailed": {
+    "message": "Couldn’t move the tab to {name}.",
+    "note": "A single-tab Move to Space action failed. {name} is the destination space name."
   }
 }

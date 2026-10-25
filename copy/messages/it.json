@@ -8064,5 +8064,21 @@
   "ios.settings.timeOfDay": {
     "message": "Ora del giorno",
     "source": "sha256:a63140cd67b709307ec00e3b47a43a3c21f83ae9f61fa0dc82d64b4046761936"
+  },
+  "tabMenu.newSpace": {
+    "message": "Nuovo Space…",
+    "source": "sha256:1afc59e02be570aebff976e6a50aa39d1b6b61896132a30d26c88ecdb8494647"
+  },
+  "ws.new.withTab": {
+    "message": "Con questa scheda",
+    "source": "sha256:b0cade9ae4de96eaf58b570c4c0f1ec2721a1a04a5ea55169f9cfba7f57a7d5c"
+  },
+  "ws.error.savedNotMoved": {
+    "message": "{name} è stato salvato, ma non è stato possibile spostare la scheda.",
+    "source": "sha256:e6c76be4a3ca5693c97c3b9ba79ad28921aaa548d35179a086d7ec9dfde994c5"
+  },
+  "ws.error.moveFailed": {
+    "message": "Non è stato possibile spostare la scheda in {name}.",
+    "source": "sha256:1c2b2eaf09d540d8114e1f3a804d61175257295fdbdfb668e09484be5a6716e0"
   }
 }
