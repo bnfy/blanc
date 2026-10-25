@@ -80,34 +80,41 @@ struct ContentView: View {
 
             Spacer(minLength: 0)
 
-            if let tab = manager.activeTab, !tab.isPrivate, TabsManager.canFavorite(tab.currentURL) {
-                let favorited = manager.isFavorite(tab)
-                Button { manager.toggleFavorite(tab) } label: {
-                    Image(systemName: favorited ? "heart.fill" : "heart")
+            // Icons sit in 32 pt targets with no extra gap, so the glyphs stay
+            // about as far apart as before.
+            HStack(spacing: 0) {
+                if let tab = manager.activeTab, !tab.isPrivate, TabsManager.canFavorite(tab.currentURL) {
+                    let favorited = manager.isFavorite(tab)
+                    Button { manager.toggleFavorite(tab) } label: {
+                        Image(systemName: favorited ? "heart.fill" : "heart")
+                            .modifier(PillIconTarget())
+                    }
+                    .accessibilityLabel(SyncCopy.text(favorited ? "tabMenu.removeFavorite" : "tabMenu.saveFavorite"))
+                    .accessibilityValue(favorited ? "on" : "off")
+                    .accessibilityIdentifier("pill.favorite")
                 }
-                .accessibilityLabel(SyncCopy.text(favorited ? "tabMenu.removeFavorite" : "tabMenu.saveFavorite"))
-                .accessibilityValue(favorited ? "on" : "off")
-                .accessibilityIdentifier("pill.favorite")
-            }
-            sendMenu
+                sendMenu
 
-            Button {
-                if manager.activeTab?.isLoading == true {
-                    manager.activeTab?.stop()
-                } else {
-                    manager.activeTab?.reload()
+                Button {
+                    if manager.activeTab?.isLoading == true {
+                        manager.activeTab?.stop()
+                    } else {
+                        manager.activeTab?.reload()
+                    }
+                } label: {
+                    Image(systemName:
+                        manager.activeTab?.isLoading == true ? "xmark" : "arrow.clockwise")
+                        .modifier(PillIconTarget())
                 }
-            } label: {
-                Image(systemName:
-                    manager.activeTab?.isLoading == true ? "xmark" : "arrow.clockwise")
-            }
 
-            Button { manager.createTab() } label: {
-                Image(systemName: "plus")
+                Button { manager.createTab() } label: {
+                    Image(systemName: "plus")
+                        .modifier(PillIconTarget())
+                }
             }
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.vertical, 4)
         .modifier(PillStyle(theme: theme))
         // The private theme is dark whatever the appearance setting.
         .environment(\.colorScheme, isPrivate ? .dark : colorScheme)
@@ -130,6 +137,7 @@ struct ContentView: View {
                 }
             } label: {
                 Image(systemName: "paperplane")
+                    .modifier(PillIconTarget())
             }
             .accessibilityLabel(SyncCopy.text("tabMenu.sendToDevice"))
             .accessibilityIdentifier("pill.send")
@@ -177,6 +185,14 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
             }
         }
+    }
+}
+
+/// A pill icon's tap target. On iOS 26 a button about 20 pt across (the bare
+/// symbol) doesn't register taps at all; 32 pt does.
+private struct PillIconTarget: ViewModifier {
+    func body(content: Content) -> some View {
+        content.frame(width: 32, height: 32).contentShape(Rectangle())
     }
 }
 
