@@ -50,6 +50,7 @@ function createReaderMode(hooks) {
     ['purify.js', path.join(path.dirname(require.resolve('dompurify')), 'purify.js')],
     ['instrument.woff2', path.join(__dirname, '../renderer/pages/instrument-sans-latin-wdth-normal.woff2')],
     ['inter.woff2', path.join(__dirname, '../renderer/pages/inter-latin.woff2')],
+    ['mono.woff2', path.join(__dirname, '../renderer/pages/jetbrains-mono-latin.woff2')],
     ['serif.woff2', path.join(__dirname, '../renderer/pages/source-serif-4-regular.woff2')],
     ['i18n.js', path.join(__dirname, '../renderer/pages/i18n.js')],
   ]);

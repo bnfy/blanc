@@ -20,7 +20,9 @@
     "Spaces",
     "Space",
     "Arc",
-    "StorableSidebar.json"
+    "StorableSidebar.json",
+    "Inter",
+    "JetBrains Mono"
   ],
   "fixedPatterns": [
     "(?<![\\w/:])/[a-z][a-z0-9-]*",

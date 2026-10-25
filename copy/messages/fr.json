@@ -8380,5 +8380,15 @@
   "slash.reader.hint": {
     "message": "Lire cet article avec un texte réglable et moins de distractions",
     "source": "sha256:5e2fedf7089e63484671150bcc34c91ab91dee23e6b1ad1d64254bf82443e2ed"
+  },
+  "reader.inter": {
+    "message": "Inter",
+    "note": "Reader Mode font family name; keep the font name unchanged.",
+    "source": "sha256:511a20e6408a8c87b4a90feac9487cd0b08054d8c2aaf9e5e6384757d0a7a7c0"
+  },
+  "reader.mono": {
+    "message": "JetBrains Mono",
+    "note": "Reader Mode font family name; keep the font name unchanged.",
+    "source": "sha256:3c0883b4aaec8dc4b7089202a5de987c2590516927f130dcd0dc686532968e13"
   }
 }

@@ -9,7 +9,7 @@ const MAX_ARTICLE_ELEMENTS = 50000;
 function normalizeAppearance(value) {
   return {
     theme: ['system', 'light', 'dark', 'sepia'].includes(value?.theme) ? value.theme : 'system',
-    font: ['serif', 'sans'].includes(value?.font) ? value.font : 'serif',
+    font: ['serif', 'sans', 'inter', 'mono'].includes(value?.font) ? value.font : 'serif',
     size: Number.isInteger(value?.size) && value.size >= 16 && value.size <= 28 && value.size % 2 === 0 ? value.size : 20,
     width: ['narrow', 'comfortable', 'wide'].includes(value?.width) ? value.width : 'comfortable',
   };

@@ -2388,4 +2388,6 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="reader_hint">Lee este artículo con texto ajustable y menos distracciones</string>
     <string name="reader_unavailable">El modo de lectura no encontró ningún artículo en esta página.</string>
     <string name="slash_reader_hint">Lee este artículo con texto ajustable y menos distracciones</string>
+    <string name="reader_inter">Inter</string>
+    <string name="reader_mono">JetBrains Mono</string>
 </resources>

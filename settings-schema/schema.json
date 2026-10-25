@@ -130,7 +130,9 @@
     ],
     "fonts": [
       "serif",
-      "sans"
+      "sans",
+      "inter",
+      "mono"
     ],
     "sizes": [
       16,

@@ -1697,7 +1697,8 @@ palette (iOS); the active reader has Exit Reader Mode and appearance controls.
 
 - Extract the already-loaded main-frame article locally, retaining its source
   view for return without reloading. No pre-load transformation or speed claim.
-- Shared serif/sans fonts, System/Light/Dark/Sepia, 16–28px text, and three widths;
+- Shared Source Serif 4, Instrument Sans, Inter, and JetBrains Mono fonts;
+  System/Light/Dark/Sepia, 16–28px text, and three widths;
   remember appearance locally, with private changes confined to memory.
 - Retain headings, available metadata, links, figures/captions, tables, and code;
   sanitize untrusted markup and preserve language/direction. Failure retains

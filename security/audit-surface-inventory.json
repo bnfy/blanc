@@ -828,7 +828,7 @@
     },
     {
       "file": "src/main/reader-mode.js",
-      "sha256": "27dc4bd4613c777063853c3cac77ed263069ba1797f0ffe43cae52193ee7d086",
+      "sha256": "375eb8d0408da9711a599a0e71c8b9e4b236836293ef8f239ed82b7d71ad5e0a",
       "literalChannels": [
         "destroyed",
         "focus",

@@ -2388,4 +2388,6 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="reader_hint">Leggi questo articolo con testo regolabile e meno distrazioni</string>
     <string name="reader_unavailable">La modalità lettura non ha trovato un articolo in questa pagina.</string>
     <string name="slash_reader_hint">Leggi questo articolo con testo regolabile e meno distrazioni</string>
+    <string name="reader_inter">Inter</string>
+    <string name="reader_mono">JetBrains Mono</string>
 </resources>

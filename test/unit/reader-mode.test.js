@@ -11,6 +11,7 @@ const { createReaderImageBroker, fetchPublicRaster, rasterDimensions } = require
 test('reader appearance admits only supported finite choices and sizes', () => {
   assert.deepEqual(normalizeAppearance({ theme: 'sepia', font: 'sans', size: 28, width: 'wide' }),
     { theme: 'sepia', font: 'sans', size: 28, width: 'wide' });
+  for (const font of ['serif', 'sans', 'inter', 'mono']) assert.equal(normalizeAppearance({ font }).font, font);
   for (const size of [true, '20', 17, 30, Infinity, NaN, null]) assert.equal(normalizeAppearance({ size }).size, 20);
   assert.deepEqual(normalizeAppearance({ theme: 'url(x)', font: 'remote', width: '100vw' }), normalizeAppearance(null));
 });

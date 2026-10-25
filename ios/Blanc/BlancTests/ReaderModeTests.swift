@@ -15,6 +15,12 @@ final class ReaderModeTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: directory.appendingPathComponent("reader-appearance.json").path))
         preferences.set(selected, isPrivate: false)
         XCTAssertEqual(ReaderPreferences(directory: directory).value(isPrivate: false), selected)
+        for font in ["serif", "sans", "inter", "mono"] {
+            let value = ReaderAppearance(["font": font])
+            preferences.set(value, isPrivate: false)
+            XCTAssertEqual(ReaderPreferences(directory: directory).value(isPrivate: false).font, font)
+        }
+        preferences.set(selected, isPrivate: false)
         preferences.clearPrivate()
         XCTAssertEqual(preferences.value(isPrivate: true), selected)
         XCTAssertEqual(ReaderAppearance(["size": true, "theme": "remote", "font": "url(x)", "width": "huge"]), ReaderAppearance())
@@ -59,6 +65,19 @@ final class ReaderModeTests: XCTestCase {
             try await Task.sleep(for: .milliseconds(100))
         }
         XCTAssertTrue(text.contains("Reader fixture"))
+        for (font, family) in [("inter", "Inter"), ("mono", "JetBrains Mono")] {
+            let result = try await reader.webView.callAsyncJavaScript("""
+            const control = document.getElementById('font');
+            control.value = font;
+            control.dispatchEvent(new Event('change'));
+            await document.fonts.load('20px "' + family + '"');
+            return { family: getComputedStyle(document.getElementById('reading')).fontFamily,
+                     loaded: document.fonts.check('20px "' + family + '"') };
+            """, arguments: ["font": font, "family": family], in: nil, contentWorld: .page)
+            let rendered = try XCTUnwrap(result as? [String: Any])
+            XCTAssertTrue((rendered["family"] as? String)?.contains(family) == true)
+            XCTAssertEqual(rendered["loaded"] as? Bool, true)
+        }
         let bridge = try await reader.webView.evaluateJavaScript("typeof window.bowserPages")
         XCTAssertEqual(bridge as? String, "undefined")
     }

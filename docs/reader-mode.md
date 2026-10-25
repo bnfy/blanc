@@ -12,7 +12,7 @@ source page stays alive and can continue executing scripts and loading resources
 
 Desktop and iOS use Mozilla Readability 0.6.0, DOMPurify 3.4.17, the same HTML
 allowlist, and the same bundled reader document. Controls select System, Light,
-Dark, or Sepia; Source Serif 4 or Instrument Sans; 16–28px text in 2px steps;
+Dark, or Sepia; Source Serif 4, Instrument Sans, Inter, or JetBrains Mono; 16–28px text in 2px steps;
 and 560/720/880px maximum widths. Defaults are System, Serif, 20px, Comfortable.
 Controls use Instrument Sans at width 98 with +0.01em spacing; numeric output
 uses Inter. Unsupported scripts use system font fallbacks.

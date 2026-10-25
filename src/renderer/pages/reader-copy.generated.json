@@ -18,7 +18,9 @@
     "reader.comfortable": "Comfortable",
     "reader.wide": "Wide",
     "reader.hint": "Read this article with adjustable text and fewer distractions",
-    "reader.unavailable": "Reader Mode couldn’t find an article on this page."
+    "reader.unavailable": "Reader Mode couldn’t find an article on this page.",
+    "reader.inter": "Inter",
+    "reader.mono": "JetBrains Mono"
   },
   "de": {
     "reader.title": "Lesemodus",
@@ -39,7 +41,9 @@
     "reader.comfortable": "Angenehm",
     "reader.wide": "Breit",
     "reader.hint": "Diesen Artikel mit anpassbarem Text und weniger Ablenkungen lesen",
-    "reader.unavailable": "Der Lesemodus konnte auf dieser Seite keinen Artikel finden."
+    "reader.unavailable": "Der Lesemodus konnte auf dieser Seite keinen Artikel finden.",
+    "reader.inter": "Inter",
+    "reader.mono": "JetBrains Mono"
   },
   "es": {
     "reader.title": "Modo de lectura",
@@ -60,7 +64,9 @@
     "reader.comfortable": "Cómodo",
     "reader.wide": "Ancho",
     "reader.hint": "Lee este artículo con texto ajustable y menos distracciones",
-    "reader.unavailable": "El modo de lectura no encontró ningún artículo en esta página."
+    "reader.unavailable": "El modo de lectura no encontró ningún artículo en esta página.",
+    "reader.inter": "Inter",
+    "reader.mono": "JetBrains Mono"
   },
   "fr": {
     "reader.title": "Mode lecture",
@@ -81,7 +87,9 @@
     "reader.comfortable": "Confortable",
     "reader.wide": "Large",
     "reader.hint": "Lire cet article avec un texte réglable et moins de distractions",
-    "reader.unavailable": "Le mode lecture n’a trouvé aucun article sur cette page."
+    "reader.unavailable": "Le mode lecture n’a trouvé aucun article sur cette page.",
+    "reader.inter": "Inter",
+    "reader.mono": "JetBrains Mono"
   },
   "it": {
     "reader.title": "Modalità lettura",
@@ -102,7 +110,9 @@
     "reader.comfortable": "Comoda",
     "reader.wide": "Ampia",
     "reader.hint": "Leggi questo articolo con testo regolabile e meno distrazioni",
-    "reader.unavailable": "La modalità lettura non ha trovato un articolo in questa pagina."
+    "reader.unavailable": "La modalità lettura non ha trovato un articolo in questa pagina.",
+    "reader.inter": "Inter",
+    "reader.mono": "JetBrains Mono"
   },
   "pt-BR": {
     "reader.title": "Modo de leitura",
@@ -123,6 +133,8 @@
     "reader.comfortable": "Confortável",
     "reader.wide": "Larga",
     "reader.hint": "Leia este artigo com texto ajustável e menos distrações",
-    "reader.unavailable": "O modo de leitura não encontrou um artigo nesta página."
+    "reader.unavailable": "O modo de leitura não encontrou um artigo nesta página.",
+    "reader.inter": "Inter",
+    "reader.mono": "JetBrains Mono"
   }
 }

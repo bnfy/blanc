@@ -2388,4 +2388,6 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="reader_hint">Lire cet article avec un texte réglable et moins de distractions</string>
     <string name="reader_unavailable">Le mode lecture n’a trouvé aucun article sur cette page.</string>
     <string name="slash_reader_hint">Lire cet article avec un texte réglable et moins de distractions</string>
+    <string name="reader_inter">Inter</string>
+    <string name="reader_mono">JetBrains Mono</string>
 </resources>

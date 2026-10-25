@@ -85,6 +85,8 @@ Copyright (c) 2024 1Password. Full licence text in
   Roboto Flex declares no Reserved Font Name. Full license text:
   [src/renderer/pages/roboto-flex-OFL.txt](src/renderer/pages/roboto-flex-OFL.txt).
 
+Reader Mode also offers the already bundled Inter and JetBrains Mono files above.
+
 All five font files remain under the SIL Open Font License, Version 1.1; Blanc's
 MIT grant does not supersede those terms. The font files and their full licence texts
 ship together inside packaged builds.

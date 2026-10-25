@@ -2317,4 +2317,6 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="reader_hint">Diesen Artikel mit anpassbarem Text und weniger Ablenkungen lesen</string>
     <string name="reader_unavailable">Der Lesemodus konnte auf dieser Seite keinen Artikel finden.</string>
     <string name="slash_reader_hint">Diesen Artikel mit anpassbarem Text und weniger Ablenkungen lesen</string>
+    <string name="reader_inter">Inter</string>
+    <string name="reader_mono">JetBrains Mono</string>
 </resources>

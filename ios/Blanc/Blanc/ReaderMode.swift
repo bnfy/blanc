@@ -25,7 +25,7 @@ struct ReaderAppearance: Codable, Equatable {
 
     init(_ value: [String: Any] = [:]) {
         if let v = value["theme"] as? String, ["system", "light", "dark", "sepia"].contains(v) { theme = v }
-        if let v = value["font"] as? String, ["serif", "sans"].contains(v) { font = v }
+        if let v = value["font"] as? String, ["serif", "sans", "inter", "mono"].contains(v) { font = v }
         if let v = value["size"] as? NSNumber, CFGetTypeID(v) != CFBooleanGetTypeID(),
            v.doubleValue == Double(v.intValue), (16...28).contains(v.intValue), v.intValue % 2 == 0 { size = v.intValue }
         if let v = value["width"] as? String, ["narrow", "comfortable", "wide"].contains(v) { width = v }
@@ -165,7 +165,7 @@ final class ReaderController: NSObject, WKURLSchemeHandler, WKScriptMessageHandl
         let files = ["reader.html": "reader.html", "reader.js": "reader.js", "reader.css": "reader.css",
                      "reader-content.js": "reader-content.js", "purify.js": "reader-purify.generated.js",
                      "instrument.woff2": "instrument-sans-latin-wdth-normal.woff2", "serif.woff2": "source-serif-4-regular.woff2",
-                     "inter.woff2": "inter-latin.woff2",
+                     "inter.woff2": "inter-latin.woff2", "mono.woff2": "jetbrains-mono-latin.woff2",
                      "i18n.js": "i18n.js"]
         var data: Data?
         var mime = "application/octet-stream"

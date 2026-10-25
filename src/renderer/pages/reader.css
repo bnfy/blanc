@@ -1,4 +1,5 @@
 @font-face { font-family: Instrument Sans; src: url('instrument.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: JetBrains Mono; src: url('mono.woff2') format('woff2'); font-weight: 400 800; font-display: swap; }
 @font-face { font-family: Inter; src: url('inter.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
 @font-face { font-family: Source Serif 4; src: url('serif.woff2') format('woff2'); font-weight: 400; font-display: swap; }
 :root { color-scheme: light; --paper: #faf9f6; --ink: #262420; --muted: #6c665e; --border: #d8d3ca; --accent: #72501c; --size: 20px; --width: 720px; --font: 'Source Serif 4', Georgia, serif; }
@@ -6,6 +7,8 @@
 :root[data-theme='dark'] { color-scheme: dark; --paper: #20201f; --ink: #eae7df; --muted: #b2ada2; --border: #504c45; --accent: #e7c180; }
 :root[data-theme='sepia'] { --paper: #f2e5cb; --ink: #382c1e; --muted: #6e5c43; --border: #cbbb9b; --accent: #694409; }
 :root[data-font='sans'] { --font: 'Instrument Sans', system-ui, sans-serif; }
+:root[data-font='inter'] { --font: Inter, system-ui, sans-serif; }
+:root[data-font='mono'] { --font: 'JetBrains Mono', ui-monospace, monospace; }
 :root[data-width='narrow'] { --width: 560px; }
 :root[data-width='wide'] { --width: 880px; }
 * { box-sizing: border-box; }

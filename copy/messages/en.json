@@ -8665,5 +8665,13 @@
   "slash.reader.hint": {
     "message": "Read this article with adjustable text and fewer distractions",
     "note": "Reader Mode controls and article availability."
+  },
+  "reader.inter": {
+    "message": "Inter",
+    "note": "Reader Mode font family name; keep the font name unchanged."
+  },
+  "reader.mono": {
+    "message": "JetBrains Mono",
+    "note": "Reader Mode font family name; keep the font name unchanged."
   }
 }
