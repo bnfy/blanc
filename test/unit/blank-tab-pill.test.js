@@ -202,8 +202,13 @@ test('a pill notice overrides the label briefly and the label returns when it en
   assert.equal(sandbox.pillDomain.textContent, '[pill.placeholder]');
   assert.equal(sandbox.pillDomain.classList.contains('notice'), false);
   assert.equal(sandbox.pillSlash.hidden, false);
+  // Copy Clean Link has its own wording.
+  sandbox.notice('clean-link-copied');
+  assert.equal(sandbox.pillDomain.textContent, '[pill.notice.cleanLinkCopied]');
+  timers.at(-1).fn();
   // Unknown kinds are ignored.
+  const timersBefore = timers.length;
   sandbox.notice('something-else');
   assert.equal(sandbox.pillDomain.textContent, '[pill.placeholder]');
-  assert.equal(timers.length, 1);
+  assert.equal(timers.length, timersBefore);
 });

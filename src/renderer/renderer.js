@@ -602,7 +602,10 @@
   // whatever mode the tab is in. It outlives the ~10/s tabs:updated renders
   // through this flag rather than a DOM state, and the timer re-renders the
   // real label when it ends.
-  const PILL_NOTICE_KEYS = { 'link-copied': 'pill.notice.linkCopied' };
+  const PILL_NOTICE_KEYS = {
+    'link-copied': 'pill.notice.linkCopied',
+    'clean-link-copied': 'pill.notice.cleanLinkCopied',
+  };
   const PILL_NOTICE_MS = 1600;
   let pillNoticeKey = null;
   let lastActiveTab = null;

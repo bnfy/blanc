@@ -2437,6 +2437,48 @@
         }
       }
     },
+    "pill.notice.cleanLinkCopied": {
+      "comment": "Brief confirmation shown in the pill's label slot after Copy Clean Link (⌥⇧⌘C on macOS) puts the page address, without tracking parameters, on the clipboard.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clean link copied"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereinigter Link kopiert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enlace limpio copiado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lien épuré copié"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link pulito copiato"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link limpo copiado"
+          }
+        }
+      }
+    },
     "pill.notice.linkCopied": {
       "comment": "Brief confirmation shown in the pill's label slot after Copy Link (⇧⌘C / Ctrl+Shift+C) puts the page address on the clipboard.",
       "extractionState": "manual",
@@ -18734,7 +18776,7 @@
       }
     },
     "menu.copyCleanLink": {
-      "comment": "Context menu command (address bar, tab) that copies the link with tracking parameters removed.",
+      "comment": "Command in the address bar and tab context menus, and in the Edit menu (⌥⇧⌘C on macOS), that copies the link with tracking parameters removed.",
       "extractionState": "manual",
       "localizations": {
         "en": {

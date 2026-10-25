@@ -164,6 +164,19 @@ try {
   assert.equal(await call(app, 'readClipboardText'), copyUrl, 'a blank tab copies nothing');
   await press('close-tab', 'W', ['control'], 'overlay');
   await wait(state, value => value.tabOrder.length === count, 'Copy Link blank tab closed');
+  // Edit → Copy Clean Link (⌥⇧⌘C on macOS; menu only on Windows and Linux,
+  // where Ctrl+Alt is AltGr) copies the address without its tracking parameters.
+  await call(app, 'activateTab', [copyTab.id]);
+  await call(app, 'navigateTab', [copyTab.id, `${origin}/one?utm_source=news&keep=1`]);
+  await wait(state, value => value.tabs.some(tab => tab.id === copyTab.id && tab.url === `${origin}/one?utm_source=news&keep=1` && !tab.isLoading), 'tracking fixture loaded');
+  await app.evaluate(({ Menu, BrowserWindow }) => {
+    const window = BrowserWindow.getAllWindows().find(win => win.webContents.getURL() === 'blanc-chrome://index/');
+    const item = Menu.getApplicationMenu().getMenuItemById('copy-clean-link');
+    if (!item) throw new Error('Missing Edit → Copy Clean Link');
+    item.click(item, window);
+  });
+  await wait(() => call(app, 'readClipboardText'), value => value === `${origin}/one?keep=1`, 'clean address copied');
+  steps++;
   await press('find', 'F', ['control']);
   await wait(() => call(app, 'overlayMode'), value => value === 'find', 'Find');
   await press('settings', ',', ['control'], 'overlay');
