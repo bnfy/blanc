@@ -63,15 +63,18 @@ case "$mode" in
  profile|profile-unset) exec zypak-wrapper /app/lib/blanc/blanc --user-data-dir="$profile" "$@" ;;
  original-launcher) exec zypak-wrapper /app/lib/blanc/blanc-ecs-launcher --user-data-dir="$profile" "$@" ;;
  integrated-launcher) exec /app/lib/blanc/blanc-ecs-launcher-candidate --user-data-dir="$profile" "$@" ;;
- wrapper-integration)
+ wrapper-integration|wrapper-restart)
    # Keep the published native launcher as the sole CDM selector. Its query
    # uses the production default profile and verifies that profile's safety.
    profile="$XDG_CONFIG_HOME/Blanc"
+   if [ ! -d "$profile" ]; then (umask 077; mkdir -p "$profile"); fi
    cdm=$(/app/lib/blanc/blanc-ecs-launcher --ecs-query-cdm)
    export BLANC_ECS_FULL_PROFILE="$profile"
-   export BLANC_ECS_CDM_PRELOAD_PATH="$cdm"
-   export BLANC_ECS_CDM_EXECUTABLE=/app/lib/blanc/blanc
-   export ZYPAK_LD_PRELOAD=/app/lib/blanc/blanc-cdm-preload.so
+   # The AppImage CDM helper relies on launcher environment which zypak does
+   # not forward to its portal-spawned child. Do not claim a CDM was preloaded.
+   # Ordinary browsing retains zypak; protected playback remains unavailable.
+   if [ -n "$cdm" ]; then printf '%s\n' 'Flatpak: cached CDM retained; protected playback unavailable with this wrapper' >&2; fi
+   unset LD_PRELOAD ZYPAK_LD_PRELOAD BLANC_ECS_CDM_PRELOAD_PATH BLANC_ECS_CDM_EXECUTABLE
    exec zypak-wrapper /app/lib/blanc/blanc --user-data-dir="$profile" "$@" ;;
  *) exit 64 ;;
 esac
