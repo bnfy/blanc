@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-144 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+145 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -71,6 +71,7 @@
 | `resetSplit` | split | invoke | `chrome:reset-split` | `(splitId: string) => Promise<boolean>` | all |
 | `onSplitLayout` | split | event | `chrome:split-layout` | `(payload: SplitLayout \| null) => void` | all |
 | `onGlanceStatus` | glance | event | `chrome:glance-status` | `(payload: string) => void` | all |
+| `onPillNotice` | island | event | `chrome:pill-notice` | `(payload: PillNotice) => void` | all |
 | `openIsland` | island | send | `chrome:open-island` | `()` | all |
 | `openIslandCommands` | island | send | `chrome:open-island-commands` | `()` | all |
 | `openIslandTyping` | island | send | `chrome:open-island-typing` | `(char: string)` | all |
@@ -746,6 +747,12 @@ Download activity for the strip, from downloadsActivity() in downloads.js.
 Overlay modes; every showOverlay() call in main.js passes one of these literals.
 
 `'panel' \| 'palette' \| 'find' \| 'shield' \| 'capture' \| 'glance' \| 'display-share' \| 'spaces'`
+
+### `PillNotice`
+
+Fixed ids of the pill's brief confirmations; the strip owns their text.
+
+`'link-copied'`
 
 ### `ShieldTrigger`
 

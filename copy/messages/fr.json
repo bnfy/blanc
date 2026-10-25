@@ -237,6 +237,10 @@
     "message": "Rechercher ou saisir une URL",
     "source": "sha256:cfb8ca4be5f793f910258121250c991cd9bc736ccfd07285de5dacff603913cc"
   },
+  "pill.notice.linkCopied": {
+    "message": "Lien copié",
+    "source": "sha256:da3f613d76760b8fce41b8708d0815baed0ebf3477d27dd561ed32ee01445658"
+  },
   "pill.commands": {
     "message": "Commandes (/)",
     "source": "sha256:3298d0be254b7df3b28b6175fff28a11cde367811c884377bb9cad9e81a7964f"
@@ -1748,7 +1752,7 @@
   },
   "tabMenu.copyLink": {
     "message": "Copier le lien",
-    "source": "sha256:559b4bdbe948e7fac2972c4d3d60828a82f29119fa3ccc3b71fefba825b7d2f9"
+    "source": "sha256:19411316ff29fc0e1a9f67c4e66ef2b8c691b397728f5d238874964da15cd0de"
   },
   "tabMenu.duplicate": {
     "message": "Dupliquer l’onglet",

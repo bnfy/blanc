@@ -59,6 +59,7 @@
     <string name="pill_insecure_open">%1$s. Ouvrir les contrôles du site.</string>
     <string name="pill_domain_default">nouvel onglet</string>
     <string name="pill_placeholder">Rechercher ou saisir une URL</string>
+    <string name="pill_notice_link_copied">Lien copié</string>
     <string name="pill_commands">Commandes (/)</string>
     <string name="pill_private_chip">Privé</string>
     <string name="pill_private_title">Quitter la navigation privée — ferme cet onglet</string>

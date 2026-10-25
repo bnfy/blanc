@@ -59,6 +59,7 @@
     <string name="pill_insecure_open">%1$s. Apri i controlli del sito.</string>
     <string name="pill_domain_default">nuova scheda</string>
     <string name="pill_placeholder">Cerca o digita un URL</string>
+    <string name="pill_notice_link_copied">Link copiato</string>
     <string name="pill_commands">Comandi (/)</string>
     <string name="pill_private_chip">Privata</string>
     <string name="pill_private_title">Esci dalla modalità privata — chiude questa scheda</string>

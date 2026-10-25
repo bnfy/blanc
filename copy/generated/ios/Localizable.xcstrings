@@ -2437,6 +2437,48 @@
         }
       }
     },
+    "pill.notice.linkCopied": {
+      "comment": "Brief confirmation shown in the pill's label slot after Copy Link (⇧⌘C / Ctrl+Shift+C) puts the page address on the clipboard.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link copied"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link kopiert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enlace copiado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lien copié"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link copiato"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link copiado"
+          }
+        }
+      }
+    },
     "pill.commands": {
       "comment": "Tooltip and accessible name of the pill's slash button that opens commands.",
       "extractionState": "manual",
@@ -19616,7 +19658,7 @@
       }
     },
     "tabMenu.copyLink": {
-      "comment": "Tab context menu command that copies the tab’s address.",
+      "comment": "Tab context menu command, and the Edit menu command (⇧⌘C / Ctrl+Shift+C), that copies the tab’s address.",
       "extractionState": "manual",
       "localizations": {
         "en": {

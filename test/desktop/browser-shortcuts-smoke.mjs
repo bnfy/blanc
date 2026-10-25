@@ -37,7 +37,7 @@ fs.mkdirSync(crashDumps);
 const press = async (command, key, modifiers, surface = 'active') => {
   const commandState = await call(app, 'browserCommandState');
   const before = commandState.deliveries.length;
-  assert.ok(before < 100, 'Command regression exceeded the bounded diagnostic inventory');
+  assert.ok(before < 200, 'Command regression exceeded the bounded diagnostic inventory');
   lastCommandDiagnostics = { requested: { command, key, modifiers, surface }, state: commandState };
   // Deliver the command from its own event-loop turn. Inspector evaluation can
   // interrupt Node's timer dispatch, and a command that clears the timer being
@@ -145,6 +145,25 @@ try {
   await call(app, 'closeUtilitySurface');
   await press('reload', 'F5', []);
   await press('hard-reload', 'R', ['control', 'shift']);
+  // Copy Link puts the active page's exact address on the clipboard; a blank
+  // tab has nothing to copy and leaves the clipboard alone.
+  await call(app, 'setClipboardText', ['sentinel']);
+  // The survivor rule may have left the initial blank tab active; copy from a
+  // fixture page.
+  const copyTab = (await state()).tabs.find(tab => tab.url === `${origin}/one`);
+  assert.ok(copyTab, 'Copy Link fixture page is open');
+  const copyUrl = copyTab.url;
+  await call(app, 'activateTab', [copyTab.id]);
+  await wait(state, value => value.activeTabId === copyTab.id, 'Copy Link fixture active');
+  await press('copy-link', 'C', ['control', 'shift']);
+  await wait(() => call(app, 'readClipboardText'), value => value === copyUrl, 'active page address copied');
+  await press('new-tab', 'T', ['control']);
+  await wait(state, value => value.tabOrder.length === count + 1, 'blank tab for Copy Link');
+  await wait(() => call(app, 'overlayMode'), value => value === 'panel', 'blank tab panel');
+  await press('copy-link', 'C', ['control', 'shift'], 'overlay');
+  assert.equal(await call(app, 'readClipboardText'), copyUrl, 'a blank tab copies nothing');
+  await press('close-tab', 'W', ['control'], 'overlay');
+  await wait(state, value => value.tabOrder.length === count, 'Copy Link blank tab closed');
   await press('find', 'F', ['control']);
   await wait(() => call(app, 'overlayMode'), value => value === 'find', 'Find');
   await press('settings', ',', ['control'], 'overlay');

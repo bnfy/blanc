@@ -460,11 +460,20 @@ From the desktop `DEFAULTS`:
   and **Paste and Go** (clipboard text through the full typed-address pipeline —
   OS hand-off, search-vs-URL heuristic, utility-sheet routing — then the island
   closes).
+- **Copy Link shortcut (desktop only — D7):** ⇧⌘C (Ctrl+Shift+C on
+  Windows and Linux) and Edit → **Copy Link** copy the current page's exact
+  address without opening the command bar, for web and `file:` pages (nothing
+  for a blank or internal page, as in the tab menu); the pill says **Link
+  copied** for a moment. Chrome gives this chord to DevTools' element picker,
+  so no page expects it.
 - **Acceptance:** Long-press/right-click a link → "open in background tab" opens it
   without switching away, ungrouped even when the opener is in a group.
 - **Acceptance (desktop):** Copy Clean Link on a URL with `utm_*`/click-id
   params yields the URL without them, other params intact; Paste and Go with a
   URL on the clipboard navigates the active tab and closes the island.
+- **Acceptance (desktop):** Copy Link on a web page puts its address on the
+  clipboard; on a blank tab the clipboard is unchanged
+  (`test/desktop/browser-shortcuts-smoke.mjs`).
 
 ## F20 — HTTP authentication policy
 
