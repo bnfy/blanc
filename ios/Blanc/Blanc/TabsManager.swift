@@ -190,6 +190,10 @@ final class TabsManager {
             UITestSeed.seedSends(into: syncDirectory)
             savedURLs = [UITestSeed.pageURL]
         }
+        if UITestSeed.twoTabs {
+            UITestSeed.seedFavorites(into: syncDirectory)
+            savedURLs = [UITestSeed.pageURL, URL(string: "https://example.org/")!]
+        }
         if UITestSeed.startPage {
             UITestSeed.seedFavorites(into: syncDirectory)
             savedURLs = [TabsManager.newTabURL]
@@ -199,6 +203,7 @@ final class TabsManager {
             savedURLs = [UITestSeed.pageURL]
         }
         defer { if UITestSeed.privateTab { createTab(url: UITestSeed.pageURL, isPrivate: true) } }
+        defer { if UITestSeed.twoTabs { activeTabId = tabs.first?.id } }
         #endif
         if savedURLs.isEmpty {
             createTab()

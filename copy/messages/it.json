@@ -8064,5 +8064,9 @@
   "ios.settings.timeOfDay": {
     "message": "Ora del giorno",
     "source": "sha256:a63140cd67b709307ec00e3b47a43a3c21f83ae9f61fa0dc82d64b4046761936"
+  },
+  "tabs.closedToast": {
+    "message": "Scheda chiusa",
+    "source": "sha256:830144e66230b8d0ce0c20b18183750232adea66ec19652e1315c3a7287cf08d"
   }
 }

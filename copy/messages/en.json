@@ -8348,5 +8348,9 @@
   "ios.settings.timeOfDay": {
     "message": "Time of day",
     "note": "Native iOS Settings sheet: time-of-day."
+  },
+  "tabs.closedToast": {
+    "message": "Tab closed",
+    "note": "iPhone: banner over the Island for five seconds after a tab closes, beside Undo (menu.undo)."
   }
 }

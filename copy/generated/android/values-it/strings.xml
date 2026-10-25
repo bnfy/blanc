@@ -2301,4 +2301,5 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ios_settings_disconnect_help">Disconnettere questo iPhone? I preferiti e le impostazioni locali restano qui. Gli altri dispositivi non sono interessati.</string>
     <string name="ios_settings_switch_help">Questo iPhone lascerà la sincronizzazione attuale. I preferiti e le impostazioni locali restano qui. Gli altri dispositivi non sono interessati.</string>
     <string name="ios_settings_time_of_day">Ora del giorno</string>
+    <string name="tabs_closed_toast">Scheda chiusa</string>
 </resources>

@@ -65,6 +65,21 @@ struct ContentView: View {
                     .accessibilityAddTraits(.updatesFrequently)
                     .accessibilityIdentifier("send.banner")
             }
+            if manager.lastClosed != nil {
+                // M11: a closed tab can come back for five seconds.
+                HStack(spacing: 14) {
+                    Text(SyncCopy.text("tabs.closedToast")).font(BrowserStyle.font(13))
+                    Button(SyncCopy.text("menu.undo")) { withAnimation { manager.undoClose() } }
+                        .font(BrowserStyle.font(13, semibold: true))
+                        .frame(minHeight: 32)
+                        .contentShape(Rectangle())
+                        .accessibilityIdentifier("banner.undo")
+                }
+                .padding(.horizontal, 16).padding(.vertical, 4)
+                .background(style.raised, in: Capsule())
+                .overlay(Capsule().strokeBorder(style.border, lineWidth: 0.5))
+                .transition(.opacity)
+            }
             addressPill
                 .simultaneousGesture(DragGesture(minimumDistance: 24).onEnded { value in
                     if value.translation.height < -40 && abs(value.translation.height) > abs(value.translation.width) {

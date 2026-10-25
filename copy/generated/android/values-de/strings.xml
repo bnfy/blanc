@@ -2232,4 +2232,5 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ios_settings_disconnect_help">Dieses iPhone trennen? Deine lokalen Favoriten und Einstellungen bleiben hier. Deine anderen Geräte sind nicht betroffen.</string>
     <string name="ios_settings_switch_help">Dieses iPhone verlässt seine aktuelle Synchronisierung. Deine lokalen Favoriten und Einstellungen bleiben hier. Deine anderen Geräte sind nicht betroffen.</string>
     <string name="ios_settings_time_of_day">Tageszeit</string>
+    <string name="tabs_closed_toast">Tab geschlossen</string>
 </resources>

@@ -2232,4 +2232,5 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_settings_disconnect_help">Disconnect this phone? Your local Favorites and settings stay here. Your other devices are not affected.</string>
     <string name="ios_settings_switch_help">This phone will leave its current sync. Your local Favorites and settings stay here. Your other devices are not affected.</string>
     <string name="ios_settings_time_of_day">Time of day</string>
+    <string name="tabs_closed_toast">Tab closed</string>
 </resources>
