@@ -1,0 +1,18 @@
+{
+  "source_base": "9de11523c26d3cd1fb415262b894790840141057",
+  "native_framework_sha256": "be3d827588d4fdaaf1983db40b29ed7f23891d0116a65ab283b24bfefe6b615b",
+  "signed_source": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "signed_launcher_sha256": "352358d8639aee6418f712c164641979650c47fa7d75639f3f8914772e24805b",
+  "signed_framework_sha256": "55b691337c96efbd1b31027d87426c4011c12e2aa31991b1a7c8bc9fb9f22035",
+  "build": {
+    "planned_actions": 1,
+    "steps": 6,
+    "seconds": 31.74,
+    "guard": 0
+  },
+  "upstream_inventory": {
+    "files": 73,
+    "hunks": 180,
+    "basis": "copied Blanc trace source only; prior existing upstream patches unchanged"
+  }
+}

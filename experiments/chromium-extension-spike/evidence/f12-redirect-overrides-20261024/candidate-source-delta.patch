@@ -1,0 +1,80 @@
+diff --git a/experiments/chromium-extension-spike/native/blocker/blocker_proxy.cc b/experiments/chromium-extension-spike/native/blocker/blocker_proxy.cc
+index 91433c16..7bab033a 100644
+--- a/experiments/chromium-extension-spike/native/blocker/blocker_proxy.cc
++++ b/experiments/chromium-extension-spike/native/blocker/blocker_proxy.cc
+@@ -27,6 +27,7 @@
+ #include "base/task/thread_pool.h"
+ #include "base/timer/timer.h"
+ #include "base/unguessable_token.h"
++#include "base/trace_event/trace_event.h"
+ #include "chrome/services/blanc_blocker/blocker.mojom.h"
+ #include "chrome/services/blanc_blocker/bundle_hash.h"
+ #include "content/public/browser/browser_context.h"
+@@ -584,6 +585,18 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
+   }
+   ~Request() override = default;
+   void FollowRedirect(network::HttpRequestHeadersUpdateParams headers, const std::optional<GURL>& url) override {
++    const perfetto::DynamicCategory category("disabled-by-default-blanc.attribution");
++    bool tracing = false;
++    TRACE_EVENT_CATEGORY_GROUP_ENABLED(category, &tracing);
++    if (tracing && request_.devtools_request_id) {
++      const auto digest = crypto::hash::Sha256(*request_.devtools_request_id);
++      TRACE_EVENT_INSTANT(category, "Blanc.RedirectFollow",
++                          "request_digest", base::HexEncode(digest),
++                          "replacement_url", url.has_value(),
++                          "removed_headers", static_cast<int>(headers.removed_headers.size()),
++                          "modified_headers", static_cast<int>(headers.modified_headers.GetHeaderVector().size()),
++                          "forwarded", redirect_pending_ && !url);
++    }
+     // Forward all validation to the real loader. A caller-supplied replacement
+     // URL is not yet supported: refuse rather than evaluate a different hop.
+     if (!redirect_pending_ || url) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }
+@@ -650,7 +663,40 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
+     Engine::Get().Decide(request_.url.spec(), Type(request_), request_.referrer.spec(),
+       base::BindOnce(&Request::Decided, weak_.GetWeakPtr(), std::move(allowed)));
+   }
++  void TraceDecision(int result, bool timed_out = false) {
++    const perfetto::DynamicCategory decision_category("disabled-by-default-blanc.attribution");
++    bool tracing = false;
++    TRACE_EVENT_CATEGORY_GROUP_ENABLED(decision_category, &tracing);
++    if (tracing && request_.devtools_request_id) {
++      // Preserve the DevTools ID; expose only a one-way join key, not URLs or
++      // caller-controlled ID text. Redirect hops retain the same request ID.
++      const auto digest = crypto::hash::Sha256(*request_.devtools_request_id);
++      TRACE_EVENT_INSTANT(decision_category, "Blanc.RequestDecision",
++                          "request_digest", base::HexEncode(digest),
++                          "method", request_.method,
++                          "redirect_index", redirect_index_,
++                          "private", context_.private_profile,
++                          "result", result);
++    }
++    constexpr std::string_view prefix = "blanc-trace-update/";
++    if (request_.devtools_request_id &&
++        request_.devtools_request_id->size() == prefix.size() + 32 &&
++        base::StartsWith(*request_.devtools_request_id, prefix) &&
++        base::ContainsOnlyChars(request_.devtools_request_id->substr(prefix.size()),
++                                "0123456789ABCDEF")) {
++      const perfetto::DynamicCategory category("disabled-by-default-blanc.attribution");
++      TRACE_EVENT_INSTANT(category,
++                          "Blanc.BlockerDecision",
++                          "request_token", *request_.devtools_request_id,
++                          "result", result);
++      if (timed_out) {
++        TRACE_EVENT_INSTANT(category, "Blanc.BlockerTimeout",
++                            "request_token", *request_.devtools_request_id);
++      }
++    }
++  }
+   void TimedOut() {
++    TraceDecision(-1, true);
+     Log(-1); Complete(net::ERR_BLOCKED_BY_CLIENT); Engine::Get().Fail();
+   }
+   void Log(int result) {
+@@ -689,6 +735,7 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
+     if (completed_) return;
+     if (!context_.browser_context) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }
+     timeout_.Stop();
++    TraceDecision(result);
+     // Measure through application of the decision, not just receipt of the Mojo
+     // reply. Capture time before optional context/logging work adds overhead.
+     if (result != 0) Complete(net::ERR_BLOCKED_BY_CLIENT);
