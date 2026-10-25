@@ -173,6 +173,12 @@ final class TabsManager {
         return tab.id
     }
 
+    /// A Favorite, History or other-device page picked in the Quick Switcher;
+    /// picked from a private tab, it opens privately.
+    func openFromSwitcher(_ url: URL) {
+        createTab(url: url, isPrivate: activeTab?.isPrivate ?? false)
+    }
+
     func closeTab(_ id: UUID) {
         guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
         let wasActive = id == activeTabId
@@ -214,11 +220,10 @@ final class TabsManager {
     /// don't overwrite the saved session mid-rebuild.
     func persistSession() {
         guard !isRestoringSession else { return }
-        // Private tabs are never saved. With only private tabs open, the last
-        // ordinary session stays on disk.
+        // Private tabs are never saved. With only private tabs open, the saved
+        // session is one blank tab, so tabs the person closed stay closed.
         let saved = tabs.filter { !$0.isPrivate }
-        guard !saved.isEmpty else { return }
-        let urls = saved.map { $0.currentURL.absoluteString }
+        let urls = saved.isEmpty ? [Self.newTabURL.absoluteString] : saved.map { $0.currentURL.absoluteString }
         let activeIdx = saved.firstIndex(where: { $0.id == activeTabId }) ?? 0
         sessionStore.save(urls: urls, activeIndex: activeIdx)
         syncEngine.tabsChanged()

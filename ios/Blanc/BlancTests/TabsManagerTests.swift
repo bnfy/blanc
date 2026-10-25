@@ -90,7 +90,7 @@ final class TabsManagerTests: XCTestCase {
         m.closeTab(m.tabs[0].id)
         XCTAssertEqual(m.tabs.map(\.id), [privateId], "only the private tab is left")
         m.flushSession()
-        XCTAssertEqual(SessionStore(directory: sessionDir).urls, ["https://ordinary.example/"], "a private-only window keeps the last ordinary session")
+        XCTAssertEqual(SessionStore(directory: sessionDir).urls, [TabsManager.newTabURL.absoluteString], "closed tabs stay closed; a relaunch opens one blank tab")
     }
 
     @MainActor func testPrivateTabRecordsNoHistory() {
@@ -142,6 +142,17 @@ final class TabsManagerTests: XCTestCase {
         XCTAssertEqual(m.tabs.count, 2)
         XCTAssertFalse(m.tabs.last!.isPrivate)
         XCTAssertTrue(m.tabs.last!.webView.configuration.websiteDataStore.isPersistent)
+    }
+
+    @MainActor func testSwitcherPickFromAPrivateTabStaysPrivate() {
+        let m = makeManager()
+        _ = openPrivate(m)
+        m.openFromSwitcher(URL(string: "https://bank.example/")!)
+        XCTAssertEqual(m.activeTab?.isPrivate, true)
+        XCTAssertFalse(m.syncedTabs.contains { $0.url == "https://bank.example/" })
+        m.setActive(m.tabs[0].id)
+        m.openFromSwitcher(URL(string: "https://news.example/")!)
+        XCTAssertEqual(m.activeTab?.isPrivate, false)
     }
 
     @MainActor func testClosingTheLastTabOpensAnOrdinaryOne() {
