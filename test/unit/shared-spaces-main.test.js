@@ -87,8 +87,10 @@ test('main routes remote creation and close through the ordinary quiet/parking p
     closeTab:(id,options)=>calls.push(['close',id,options]),markPinned:tab=>{tab.pinned=true;},
     sleepSnapshots:new Map(),navigateTabToAddress:()=>{},persistableUrl:x=>x,groupRecord:x=>x};
   vm.runInNewContext(match[0]+'\nthis.apply=applySharedSpaceRow;',sandbox);
-  sandbox.apply(runtime,{op:'create',kind:'tabs',id:id(3),record:record(3)});
+  const pinned=record(3);pinned.pinned=f(true);
+  sandbox.apply(runtime,{op:'create',kind:'tabs',id:id(3),record:pinned});
   assert.equal(calls[0][2].asleep,true);assert.equal(tabs.get('new').sharedTabId,id(3));
+  assert.equal(calls[0][2].pinnedHomeUrl,pinned.nav.v.url);
   sandbox.apply(runtime,{op:'close',kind:'tabs',id:id(3)});
   assert.deepEqual(JSON.parse(JSON.stringify(calls[1])),['close','new',{record:true,selectReplacement:false}]);
 });

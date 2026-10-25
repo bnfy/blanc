@@ -7601,7 +7601,7 @@ function applySharedSpaceRow(runtime, row) {
     let tab=runtime.tabOrder.map(id=>tabs.get(id)).find(item=>item?.sharedTabId===row.id);
     if(row.op==='create') {
       if(!tab) {
-        const id=createTab(row.record.nav.v.url,{asleep:true,groupId:row.record.groupId.v,pinned:row.record.pinned.v,customTitle:row.record.name.v,title:row.record.nav.v.title});
+        const id=createTab(row.record.nav.v.url,{asleep:true,groupId:row.record.groupId.v,pinned:row.record.pinned.v,pinnedHomeUrl:row.record.pinned.v?row.record.nav.v.url:null,customTitle:row.record.name.v,title:row.record.nav.v.title});
         tab=tabs.get(id);tab.sharedTabId=row.id;
         return true;
       }
