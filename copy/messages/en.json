@@ -8197,6 +8197,10 @@
     "message": "This Space is too large to sync. Split it into smaller Spaces first.",
     "note": "Development-only Shared Spaces controls."
   },
+  "sharedSpaces.accountFull": {
+    "message": "Spaces sync storage is full. Stop sharing or delete a Space, then try again.",
+    "note": "Explains the account-wide encrypted storage quota and a recovery action."
+  },
   "sharedSpaces.unavailable": {
     "message": "Spaces sync is unavailable. Favorites, settings, open-tab sharing and Send to device continue.",
     "note": "Development-only Shared Spaces controls."

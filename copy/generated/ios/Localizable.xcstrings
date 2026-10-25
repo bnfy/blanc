@@ -89533,6 +89533,48 @@
         }
       }
     },
+    "sharedSpaces.accountFull": {
+      "comment": "Explains the account-wide encrypted storage quota and a recovery action.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spaces sync storage is full. Stop sharing or delete a Space, then try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Speicher für die Spaces-Synchronisierung ist voll. Beende die Freigabe oder lösche einen Space und versuche es erneut."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El almacenamiento de sincronización de Spaces está lleno. Deja de compartir o elimina un Space e inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’espace de stockage de synchronisation des Spaces est plein. Arrêtez de partager ou supprimez un Space, puis réessayez."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo spazio di archiviazione per la sincronizzazione degli Spaces è pieno. Interrompi la condivisione o elimina uno Space, quindi riprova."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O armazenamento da sincronização de Spaces está cheio. Pare de compartilhar ou exclua um Space e tente novamente."
+          }
+        }
+      }
+    },
     "sharedSpaces.unavailable": {
       "comment": "Development-only Shared Spaces controls.",
       "extractionState": "manual",

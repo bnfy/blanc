@@ -34,7 +34,9 @@ Design: `docs/superpowers/specs/2026-10-05-sync-storage-budget-design.md`.
   blobs on first use, includes a fixed per-key allowance, serializes concurrent
   reservations, and rolls a reservation back if the KV write fails. A full
   account wipe clears both KV and its quota ledger. Quota exhaustion returns
-  `413 {"error":"account quota exceeded"}` without storing the candidate blob.
+  `507 {"error":"account-quota"}` without storing the candidate blob. A
+  per-Space DELETE releases its value and quota reservation after the retained
+  deletion window; fixed stores remain removable only by the account wipe.
 - A daily Cron Trigger (04:17 UTC) deletes blobs of accounts with no marker,
   at most `CLEANUP_MAX_DELETES` per run. It does nothing unless
   `CLEANUP_ENABLED = "true"`.
@@ -53,6 +55,8 @@ Never set `CLEANUP_ENABLED` until every account has a marker:
 - `GET /v1/blob/:accountId/:store` → `{ version, blob }` | 404 | 429
 - `PUT /v1/blob/:accountId/:store` `{ ifVersion, blob }` → `{ version }` | 409 | 400 | 413
 - `DELETE /v1/blob/:accountId` → 204 (account wipe)
+- `DELETE /v1/blob/:accountId/space-<id>` → 204 (one retired Space blob and
+  its quota charge; fixed stores reject this method)
 - `POST /v1/pair/:pairId` `{ blob }` → 201 | 409 `{"error":"exists"}` | 400 | 413 (4 KiB cap).
   Device pairing (design 2026-10-16): the sender parks its wrapped sync secret
   under an id derived from an eight-character code; stored with a 600 s TTL.

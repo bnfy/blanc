@@ -160,7 +160,7 @@ async function handlePut(env, accountId, store, body) {
   if (env.ACCOUNT_QUOTA) {
     const quota = env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId));
     const response = await quota.fetch('https://quota.invalid/reserve', { method: 'POST', body: JSON.stringify({ accountId, store, bytes: new TextEncoder().encode(stored).byteLength }) });
-    if (response.status === 413) return json({ error: 'account quota exceeded' }, 413);
+    if (response.status === 507) return json({ error: 'account-quota' }, 507);
     if (!response.ok) return json({ error: 'quota unavailable' }, 503);
     reservation = { quota, ...(await response.json()) };
   }
@@ -188,6 +188,15 @@ async function handleDelete(env, accountId) {
   return new Response(null, { status: 204 });
 }
 
+async function handleStoreDelete(env, accountId, store) {
+  await env.SYNC.delete(blobKey(accountId, store));
+  if (env.ACCOUNT_QUOTA) {
+    const response = await env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId)).fetch('https://quota.invalid/release', { method: 'POST', body: JSON.stringify({ accountId, store }) });
+    if (!response.ok) return json({ error: 'quota unavailable' }, 503);
+  }
+  return new Response(null, { status: 204 });
+}
+
 const DEFAULT_ACCOUNT_QUOTA_BYTES = 20 * 1024 * 1024;
 const DEFAULT_ACCOUNT_QUOTA_STORES = 256;
 const QUOTA_KEY_OVERHEAD_BYTES = 256;
@@ -211,15 +220,20 @@ export class AccountQuota {
     return ledger;
   }
   async fetch(request) {
-    if (request.method === 'DELETE') { await this.state.storage.deleteAll(); this.initializing = null; return new Response(null, { status: 204 }); }
+    if (request.method === 'DELETE') { if (this.initializing) await this.initializing.catch(()=>{}); await this.state.storage.deleteAll(); this.initializing = null; return new Response(null, { status: 204 }); }
     if (request.method !== 'POST') return new Response('method not allowed', { status: 405 });
     const body = await request.json();
+    if (new URL(request.url).pathname === '/release') {
+      const ledger = await this.state.storage.get('ledger');
+      if (ledger?.accountId !== body.accountId) return json({}, 200);
+      delete ledger.stores[body.store];await this.state.storage.put('ledger',ledger);this.initializing=Promise.resolve(ledger);return json({},200);
+    }
     if (new URL(request.url).pathname === '/rollback') {
       const ledger = await this.state.storage.get('ledger');
       if (!ledger) return json({}, 200);
       if (ledger.stores[body.store]?.token !== body.token) return json({}, 200);
       if (body.previous === null) delete ledger.stores[body.store]; else ledger.stores[body.store] = { bytes: body.previous, token: null };
-      await this.state.storage.put('ledger', ledger); return json({}, 200);
+      await this.state.storage.put('ledger', ledger); this.initializing=Promise.resolve(ledger); return json({}, 200);
     }
     if (!body || !/^[0-9a-f]{64}$/.test(body.accountId) || typeof body.store !== 'string' || !Number.isSafeInteger(body.bytes) || body.bytes < 0) return json({ error: 'bad quota request' }, 400);
     this.initializing ??= this.bootstrap(body.accountId);
@@ -231,7 +245,7 @@ export class AccountQuota {
       - (previous === null ? 0 : previous + QUOTA_KEY_OVERHEAD_BYTES) + body.bytes + QUOTA_KEY_OVERHEAD_BYTES;
     const byteLimit = limitFrom(this.env.ACCOUNT_STORAGE_QUOTA_BYTES, DEFAULT_ACCOUNT_QUOTA_BYTES);
     const storeLimit = limitFrom(this.env.ACCOUNT_STORAGE_MAX_STORES, DEFAULT_ACCOUNT_QUOTA_STORES);
-    if (nextBytes > byteLimit || nextStores > storeLimit) return json({ error: 'account quota exceeded' }, 413);
+    if (nextBytes > byteLimit || nextStores > storeLimit) return json({ error: 'account-quota' }, 507);
     const token = crypto.randomUUID();
     ledger.stores[body.store] = { bytes: body.bytes, token };
     await this.state.storage.put('ledger', ledger);
@@ -314,8 +328,9 @@ export default {
       return json({ error: 'rate-limited' }, 429);
     }
 
-    if (request.method === 'DELETE') return handleDelete(env, accountId);
+    if (request.method === 'DELETE' && !store) return handleDelete(env, accountId);
     if (store && !STORES.has(store) && !/^space-[0-9a-f]{32}$/.test(store)) return new Response('unknown store', { status: 404 });
+    if (request.method === 'DELETE') return /^space-[0-9a-f]{32}$/.test(store) ? handleStoreDelete(env, accountId, store) : new Response('method not allowed', { status: 405 });
     // GET/PUT address one store; only DELETE is account-wide. Requiring the
     // segment stops a storeless PUT from writing an unwipeable orphan key.
     if ((request.method === 'GET' || request.method === 'PUT') && !store) {

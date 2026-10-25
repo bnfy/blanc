@@ -319,7 +319,7 @@ function passphraseStrong(p) {
 function errorCode(err) {
   const code = err instanceof SyncError ? err.message : '';
   if(code==='payload-too-large')return 'rejected:413';
-  if (['bad-passphrase', 'rate-limited', 'conflict', 'server', 'pair-not-found', 'pair-unavailable', 'pair-invalid'].includes(code)) return code;
+  if (['bad-passphrase', 'rate-limited', 'conflict', 'server', 'account-quota', 'pair-not-found', 'pair-unavailable', 'pair-invalid'].includes(code)) return code;
   if (/^http-4/.test(code)) return `rejected:${code.slice(5)}`;
   if (/^http-5/.test(code)) return 'server-error';
   return 'offline';
@@ -717,6 +717,15 @@ async function responseText(res) {
  * before it merges, exports, or writes anything. */
 async function syncOne(accountId, key, desc, run, attempt = 0) {
   const url = `${ACTIVE_SYNC_ENDPOINT}/v1/blob/${accountId}/${desc.name}`;
+  async function cleanupRetiredSpaces(payload) {
+    if(desc.name!=='spaces')return;
+    for(const id of sharedSpaces.retiredSpaceIds(run.ctx))if(!payload.spaces?.[id]) {
+      const removed=await net.fetch(`${ACTIVE_SYNC_ENDPOINT}/v1/blob/${accountId}/space-${id}`,{method:'DELETE'});
+      if(run.stale())throw new SyncError('stale');
+      if(!removed.ok)throw new SyncError(`http-${removed.status}`);
+      sharedSpaces.forgetRetiredSpace(id,run.ctx);
+    }
+  }
   const getRes = await net.fetch(url);
   if (run.stale()) throw new SyncError('stale');
   let version = null, remote = null, missing = false;
@@ -752,7 +761,7 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
       payload = desc.export(run.ctx);
       if(desc.name==='shared'&&payload===null)return {blocked:true};
       if (missing && desc.optional && desc.hasPublishableContent && !desc.hasPublishableContent(payload, run.ctx)) return { missing: true };
-      if (remote && desc.equals?.(payload, remote)) { desc.stored?.(payload,run.ctx); return; }
+      if (remote && desc.equals?.(payload, remote)) { desc.stored?.(payload,run.ctx);await cleanupRetiredSpaces(payload);return; }
     }
     const blob = encrypt(key, JSON.stringify(payload));
     if (Buffer.byteLength(JSON.stringify(blob),'utf8') > 524288-4096) throw new SyncError('payload-too-large');
@@ -764,10 +773,12 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     if (run.stale()) throw new SyncError('stale');
     if (putRes.status === 409 && attempt < 3) return { retry: true };
     if (putRes.status === 409) throw new SyncError('conflict');
+    if (putRes.status === 507) throw new SyncError('account-quota');
     if (desc.optional && putRes.status === 404) return { unavailable: true };
     if (!putRes.ok) throw new SyncError(`http-${putRes.status}`);
     stored = true;
     desc.stored?.(payload,run.ctx);
+    await cleanupRetiredSpaces(payload);
     return desc.spaceId ? { spaceStored: true } : null;
   } finally {
     if (plan) sharedSpaces.settleSpace(desc.spaceId,plan,{blobStored:stored},run.ctx);

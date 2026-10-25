@@ -17,14 +17,30 @@ const put=(h,store,blob={ct:'x'})=>h.worker.fetch(new Request(`https://sync.test
 
 test('per-account quota counts fixed and dynamic stores and refuses growth without storing it',async()=>{
  const h=await environment();assert.equal((await put(h,'spaces')).status,200);assert.equal((await put(h,sid(1))).status,200);
- const refused=await put(h,sid(2));assert.equal(refused.status,413);assert.deepEqual(await refused.json(),{error:'account quota exceeded'});
+ const refused=await put(h,sid(2));assert.equal(refused.status,507);assert.deepEqual(await refused.json(),{error:'account-quota'});
  assert.equal(h.records.has(`blob:${account}:${sid(2)}`),false);
 });
 test('quota bootstraps legacy blobs and an account wipe resets its ledger',async()=>{
  const h=await environment({ACCOUNT_STORAGE_MAX_STORES:'1'});h.records.set(`blob:${account}:spaces`,JSON.stringify({version:'old',blob:{ct:'legacy'}}));
- assert.equal((await put(h,sid(1))).status,413);
+ assert.equal((await put(h,sid(1))).status,507);
  assert.equal((await h.worker.fetch(new Request(`https://sync.test/v1/blob/${account}`,{method:'DELETE'}),h.env)).status,204);
  assert.equal((await put(h,sid(1))).status,200);
+});
+test('deleting individual Space stores frees quota across repeated churn',async()=>{
+ const h=await environment({ACCOUNT_STORAGE_MAX_STORES:'2'});
+ assert.equal((await put(h,'spaces')).status,200);
+ for(let n=1;n<=10;n++){
+  assert.equal((await put(h,sid(n))).status,200);
+  const removed=await h.worker.fetch(new Request(`https://sync.test/v1/blob/${account}/${sid(n)}`,{method:'DELETE'}),h.env);
+  assert.equal(removed.status,204);assert.equal(h.records.has(`blob:${account}:${sid(n)}`),false);
+ }
+ assert.equal((await put(h,sid(11))).status,200);
+});
+test('failed KV writes roll quota back for the next reservation',async()=>{
+ const h=await environment({ACCOUNT_STORAGE_MAX_STORES:'1'}),putValue=h.env.SYNC.put;let fail=true;
+ h.env.SYNC.put=async(k,v)=>{if(fail&&k.startsWith('blob:')){fail=false;throw new Error('write failed');}return putValue(k,v);};
+ await assert.rejects(put(h,sid(1)),/write failed/);
+ assert.equal((await put(h,sid(2))).status,200);
 });
 test('daily account creation default is ten and is independent of storage quota',async()=>{
  const h=await environment({NEW_ACCOUNT_DAILY_LIMIT:undefined,ACCOUNT_STORAGE_QUOTA_BYTES:'10000',ACCOUNT_STORAGE_MAX_STORES:'10'});

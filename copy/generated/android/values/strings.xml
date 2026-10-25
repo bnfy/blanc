@@ -2194,6 +2194,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="shared_spaces_rejoin">Rejoin</string>
     <string name="shared_spaces_copy">Add as a copy</string>
     <string name="shared_spaces_full">This Space is too large to sync. Split it into smaller Spaces first.</string>
+    <string name="shared_spaces_account_full">Spaces sync storage is full. Stop sharing or delete a Space, then try again.</string>
     <string name="shared_spaces_unavailable">Spaces sync is unavailable. Favorites, settings, open-tab sharing and Send to device continue.</string>
     <string name="shared_spaces_recovery_name">%1$s · kept on this device</string>
     <string name="shared_spaces_shared">Shared</string>
