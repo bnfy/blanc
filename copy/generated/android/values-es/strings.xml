@@ -2368,4 +2368,24 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="tabs_menu_close">Cerrar pestañas</string>
     <string name="ws_new_with_tabs">Con estas pestañas</string>
     <string name="ws_error_moved_partly">Se movieron %1$s pestañas a %2$s. Las demás siguen aquí.</string>
+    <string name="reader_title">Modo de lectura</string>
+    <string name="reader_enter">Entrar en modo de lectura</string>
+    <string name="reader_exit">Salir del modo de lectura</string>
+    <string name="reader_appearance">Apariencia</string>
+    <string name="reader_theme">Tema</string>
+    <string name="reader_system">Sistema</string>
+    <string name="reader_light">Claro</string>
+    <string name="reader_dark">Oscuro</string>
+    <string name="reader_sepia">Sepia</string>
+    <string name="reader_font">Fuente</string>
+    <string name="reader_serif">Con serifa</string>
+    <string name="reader_sans">Sin serifa</string>
+    <string name="reader_size">Tamaño del texto</string>
+    <string name="reader_width">Ancho de lectura</string>
+    <string name="reader_narrow">Estrecho</string>
+    <string name="reader_comfortable">Cómodo</string>
+    <string name="reader_wide">Ancho</string>
+    <string name="reader_hint">Lee este artículo con texto ajustable y menos distracciones</string>
+    <string name="reader_unavailable">El modo de lectura no encontró ningún artículo en esta página.</string>
+    <string name="slash_reader_hint">Lee este artículo con texto ajustable y menos distracciones</string>
 </resources>

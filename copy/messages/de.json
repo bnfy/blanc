@@ -8300,5 +8300,85 @@
   "ws.error.movedPartly": {
     "message": "{count} Tabs nach {name} verschoben. Die anderen Tabs bleiben hier.",
     "source": "sha256:85a9da370663e1476aa1b2bce59cfe9d40a4719ecbf6eb636f487d31da2c415b"
+  },
+  "reader.title": {
+    "message": "Lesemodus",
+    "source": "sha256:b13787c87b6607b274f6cff82b603f73b2ad445a4783ae5d8206a264a813c558"
+  },
+  "reader.enter": {
+    "message": "Lesemodus öffnen",
+    "source": "sha256:4938a97e9b96a1757ac309218c48d9181384a9fe838b3aa4c23e78b76b4a18d8"
+  },
+  "reader.exit": {
+    "message": "Lesemodus verlassen",
+    "source": "sha256:44badce47e412ee8d6c84a7ec26ebfcaed9cb8fe67bd2c3e65b10e23ef4b45af"
+  },
+  "reader.appearance": {
+    "message": "Darstellung",
+    "source": "sha256:588b0883e72a40238532f8ad41ea570e0a6391ae0a27573aa2558fe264788e53"
+  },
+  "reader.theme": {
+    "message": "Design",
+    "source": "sha256:72a18f375a37f668a5a84d468713b7a8a18d9cc1e6a277bb48701ec5a8fc34df"
+  },
+  "reader.system": {
+    "message": "System",
+    "source": "sha256:654627b7fc85a4bcef5d5fa08684cf2b8ec7889a2d67446f5a20963d031812f4"
+  },
+  "reader.light": {
+    "message": "Hell",
+    "source": "sha256:eaf240b8c784c625e29c3b4766b270ed5bc0dc4695fc37089682e9dcf3decf03"
+  },
+  "reader.dark": {
+    "message": "Dunkel",
+    "source": "sha256:cb02eff42bf08ad7f833b9aecfcfcec0d931bdd95af025bbdc2bd5109e3b3230"
+  },
+  "reader.sepia": {
+    "message": "Sepia",
+    "source": "sha256:f1c6602adb25c9e3750ad1dbad1094d0dea92bddf03d0aeeea3b36d949efa98b"
+  },
+  "reader.font": {
+    "message": "Schrift",
+    "source": "sha256:85adbd67ea6c98638589db70cc24d2d045697ebbc658788bcf37113b0418f4ee"
+  },
+  "reader.serif": {
+    "message": "Serifenschrift",
+    "source": "sha256:445f44062ed4714a5e739a7c917e039a3749e6f12e5ed7e41e98becccecbac39"
+  },
+  "reader.sans": {
+    "message": "Serifenlose Schrift",
+    "source": "sha256:4f09a34de8f0111297fa5398714bc17afa3c737e15016b7f22528cf3c3999bba"
+  },
+  "reader.size": {
+    "message": "Textgröße",
+    "source": "sha256:6b4d4ea35c86b040c1db27a012c86cf9718e4155ea63469baea4570e8d32a2c3"
+  },
+  "reader.width": {
+    "message": "Lesebreite",
+    "source": "sha256:bc928740344b10362081f8181f489a96a1194aa31b0d6584a211a932f58c8961"
+  },
+  "reader.narrow": {
+    "message": "Schmal",
+    "source": "sha256:cd694ec6574ed8ef591a28b7b680116da69e7bb53ddf62a29996278d83d7f896"
+  },
+  "reader.comfortable": {
+    "message": "Angenehm",
+    "source": "sha256:1c413b1548d44e5ffc47694e3245c078c6166103e6628261a526ba619863055b"
+  },
+  "reader.wide": {
+    "message": "Breit",
+    "source": "sha256:e6223eda1dea77164c2c72db357cd3ca4085014094d84d930f12d522a99c807f"
+  },
+  "reader.hint": {
+    "message": "Diesen Artikel mit anpassbarem Text und weniger Ablenkungen lesen",
+    "source": "sha256:5e2fedf7089e63484671150bcc34c91ab91dee23e6b1ad1d64254bf82443e2ed"
+  },
+  "reader.unavailable": {
+    "message": "Der Lesemodus konnte auf dieser Seite keinen Artikel finden.",
+    "source": "sha256:b200701936114f9e44000e07b9e7deca75243b99888a669bb60498e293808a59"
+  },
+  "slash.reader.hint": {
+    "message": "Diesen Artikel mit anpassbarem Text und weniger Ablenkungen lesen",
+    "source": "sha256:5e2fedf7089e63484671150bcc34c91ab91dee23e6b1ad1d64254bf82443e2ed"
   }
 }

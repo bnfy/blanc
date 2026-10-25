@@ -16,6 +16,12 @@ final class TabModel: Identifiable {
     /// memory (`TabsManager.privateDataStore`).
     let isPrivate: Bool
     var thumbnail: UIImage?
+    var reader: ReaderController?
+    var readerAvailable = false
+    var readerGeneration = 0
+    var readerAllowed = true
+    var readerBusy = false
+    @ObservationIgnored private var readerURLObservation: NSKeyValueObservation?
 
     let nativeClock = NativeClockOverlay()
     let webView: WKWebView
@@ -33,6 +39,15 @@ final class TabModel: Identifiable {
         navigationDelegate.tab = self
         webView.navigationDelegate = navigationDelegate
         webView.uiDelegate = uiDelegate
+        // pushState/replaceState and fragment changes do not consistently
+        // produce a finished navigation. Invalidate stale reader snapshots
+        // from WebKit's actual document URL as well as delegate callbacks.
+        readerURLObservation = webView.observe(\.url, options: [.new]) { [weak self] webView, _ in
+            Task { @MainActor [weak self, weak webView] in
+                guard let self, let url = webView?.url else { return }
+                self.navigationDelegate.applyURL(url, to: self)
+            }
+        }
         if load { navigationDelegate.load(url, in: webView) }
     }
 
@@ -45,6 +60,7 @@ final class TabModel: Identifiable {
     }
 
     func submitAddress(using normalizer: AddressNormalizer) {
+        exitReader()
         if OSHandoff.isHandoff(addressText) {
             OSHandoff.open(addressText)
             return

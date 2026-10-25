@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title data-i18n="reader.title">Reader Mode</title>
+  <link rel="stylesheet" href="reader.css">
+  <script src="strings.js"></script>
+  <script src="i18n.js"></script>
+  <script src="purify.js" defer></script>
+  <script src="reader-content.js" defer></script>
+  <script src="reader.js" defer></script>
+</head>
+<body>
+  <header class="toolbar">
+    <button id="exit" type="button" data-i18n="reader.exit">Exit Reader Mode</button>
+    <span data-i18n="reader.title">Reader Mode</span>
+    <button id="appearanceToggle" type="button" aria-expanded="false" aria-controls="appearance" data-i18n="reader.appearance">Appearance</button>
+    <div id="appearance" hidden>
+      <label><span data-i18n="reader.theme">Theme</span><select id="theme">
+        <option value="system" data-i18n="reader.system">System</option><option value="light" data-i18n="reader.light">Light</option>
+        <option value="dark" data-i18n="reader.dark">Dark</option><option value="sepia" data-i18n="reader.sepia">Sepia</option>
+      </select></label>
+      <label><span data-i18n="reader.font">Font</span><select id="font"><option value="serif" data-i18n="reader.serif">Serif</option><option value="sans" data-i18n="reader.sans">Sans-serif</option></select></label>
+      <label><span data-i18n="reader.size">Text size</span><input id="size" type="range" min="16" max="28" step="2" value="20"><output id="sizeValue" for="size">20</output></label>
+      <label><span data-i18n="reader.width">Reading width</span><select id="width"><option value="narrow" data-i18n="reader.narrow">Narrow</option><option value="comfortable" data-i18n="reader.comfortable">Comfortable</option><option value="wide" data-i18n="reader.wide">Wide</option></select></label>
+    </div>
+  </header>
+  <main id="reading" tabindex="-1">
+    <p class="source"><a id="source"></a></p>
+    <h1 id="title"></h1>
+    <p id="metadata" class="metadata" hidden></p>
+    <article id="article"></article>
+  </main>
+</body>
+</html>

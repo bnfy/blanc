@@ -41,6 +41,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   search: (id, query, engine) => ipcRenderer.invoke('tabs:search', id, query, engine),
   goBack: (id) => ipcRenderer.invoke('tabs:back', id),
   goForward: (id) => ipcRenderer.invoke('tabs:forward', id),
+  toggleReaderMode: (id) => ipcRenderer.invoke('tabs:reader-toggle', id),
   reload: (id) => ipcRenderer.invoke('tabs:reload', id),
   stop: (id) => ipcRenderer.invoke('tabs:stop', id),
   moveTab: (id, target) => ipcRenderer.invoke('tabs:move', id, target),

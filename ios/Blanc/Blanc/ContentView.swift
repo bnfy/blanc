@@ -20,7 +20,11 @@ struct ContentView: View {
             if let tab = manager.activeTab {
                 WebView(tab: tab)
                     .id(tab.id)
+                    .opacity(tab.reader == nil ? 1 : 0)
+                    .allowsHitTesting(tab.reader == nil)
+                    .accessibilityHidden(tab.reader != nil)
                     .ignoresSafeArea(edges: isStartPage ? .all : [])
+                if let reader = tab.reader { ReaderWebView(reader: reader).id(ObjectIdentifier(reader)) }
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -31,6 +35,9 @@ struct ContentView: View {
         .overlay(alignment: .bottom) {
             if isStartPage { islandContainer }
         }
+        .alert(ReaderCopy.text("reader.title"), isPresented: Binding(get: { manager.readerError }, set: { manager.readerError = $0 })) {
+            Button("OK", role: .cancel) {}
+        } message: { Text(ReaderCopy.text("reader.unavailable")) }
         .onChange(of: showSiteProtection) { _, visible in
             if !visible { manager.presentPendingSettings() }
         }

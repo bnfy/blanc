@@ -1,0 +1,11 @@
+{
+  "readability": "0.6.0",
+  "dompurify": "3.4.17",
+  "sha256": {
+    "src/renderer/pages/source-serif-4-regular.woff2": "6b053e98f0838afe81f3e784727be4583a7c13bb42f198dc5202ecffee0aaee0",
+    "src/renderer/pages/source-serif-4-OFL.txt": "c21d7293d87b6d7ab1d0229a2f55b77f33a7613a6a4e66f6693d68d7d8d09464",
+    "node_modules/@mozilla/readability/Readability.js": "34dcab3d0832d0019f02990eed6b6124e029e8c32b9f0c6f2550544ff8dff174",
+    "node_modules/@mozilla/readability/Readability-readerable.js": "a98d28805804c1986ceed470678a3f409f150ee7f1d227f8c8239c005d21de65",
+    "node_modules/dompurify/dist/purify.js": "a7b6dc750251c79c95592d6abf8908bcecb51319b0b5c4194b82222566ed29b9"
+  }
+}

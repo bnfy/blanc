@@ -36,7 +36,7 @@ const EXPECTED_KEYS = [
   'id', 'title', 'pageTitle', 'url', 'isLoading', 'canGoBack', 'canGoForward', 'favicon',
   'bookmarked', 'blockedCount', 'private', 'pinned', 'muted', 'audible',
   'groupId', 'splitId', 'pageBg', 'themeColor', 'asleep', 'excepted', 'shield', 'connection',
-  'capture', 'fillHint',
+  'capture', 'fillHint', 'readerAvailable', 'readerActive',
   'siteInfo', 'syncNotSynced',
 ].sort();
 

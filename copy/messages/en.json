@@ -8585,5 +8585,85 @@
   "ws.error.movedPartly": {
     "message": "Moved {count} tabs to {name}. The other tabs stayed here.",
     "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "reader.title": {
+    "message": "Reader Mode",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.enter": {
+    "message": "Enter Reader Mode",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.exit": {
+    "message": "Exit Reader Mode",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.appearance": {
+    "message": "Appearance",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.theme": {
+    "message": "Theme",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.system": {
+    "message": "System",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.light": {
+    "message": "Light",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.dark": {
+    "message": "Dark",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.sepia": {
+    "message": "Sepia",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.font": {
+    "message": "Font",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.serif": {
+    "message": "Serif",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.sans": {
+    "message": "Sans-serif",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.size": {
+    "message": "Text size",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.width": {
+    "message": "Reading width",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.narrow": {
+    "message": "Narrow",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.comfortable": {
+    "message": "Comfortable",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.wide": {
+    "message": "Wide",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.hint": {
+    "message": "Read this article with adjustable text and fewer distractions",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.unavailable": {
+    "message": "Reader Mode couldn’t find an article on this page.",
+    "note": "Reader Mode controls and article availability."
+  },
+  "slash.reader.hint": {
+    "message": "Read this article with adjustable text and fewer distractions",
+    "note": "Reader Mode controls and article availability."
   }
 }

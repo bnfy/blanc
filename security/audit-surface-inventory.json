@@ -3,7 +3,7 @@
   "reviewedAt": "2026-10-02",
   "publicDesktopBaseline": "ff55d5948f5c71e802ba2ac464659ef96e055ca9",
   "implementationCommit": "90cdccebbf0ca2bd0d12c7d312c1be506183a527",
-  "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered. Help/Settings and page-tint boundary entries updated on the codex/blanc-trust-app source preview; implementationCommit remains the original inventory baseline, not a claim that this branch has completed an independent audit. The Linux sandbox refusal entries (linux-sandbox-launch.js and its main.js call site) were updated for setup-guide dialog buttons; no IPC channels changed. The feat/drag-reorder-tabs-groups branch updated only the drag-reorder channel deltas for main.js and preload.js (removed tabs:reorder and tabs:reorder-within-bucket; added tabs:move, groups:reorder and overlay:drag-state); their sha256 values and a broader reconciliation of older unlisted channels remain pending. Since October 7, 2026 every boundary entry's sha256 and literalChannels follow the current file, and scripts/audit-surface-inventory.mjs (npm run audit-inventory:check, also run by the unit suite) fails on drift; that script documents the extraction rule. A matching hash records which source an entry describes, not that it was reviewed: reviewedAt and implementationCommit still name the original review. The same change added the uBO bridge and popup preloads, the Dark websites preload and the three scoped capture wrappers that sessions actually register to preloads, plus scoped-session-preload.js, the main-process helper that verifies a wrapper against its pinned capture preload before registration; none of these new entries has been through the original review.",
+  "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered. Help/Settings and page-tint boundary entries updated on the codex/blanc-trust-app source preview; implementationCommit remains the original inventory baseline, not a claim that this branch has completed an independent audit. The Linux sandbox refusal entries (linux-sandbox-launch.js and its main.js call site) were updated for setup-guide dialog buttons; no IPC channels changed. The feat/drag-reorder-tabs-groups branch updated only the drag-reorder channel deltas for main.js and preload.js (removed tabs:reorder and tabs:reorder-within-bucket; added tabs:move, groups:reorder and overlay:drag-state); their sha256 values and a broader reconciliation of older unlisted channels remain pending. Since October 7, 2026 every boundary entry's sha256 and literalChannels follow the current file, and scripts/audit-surface-inventory.mjs (npm run audit-inventory:check, also run by the unit suite) fails on drift; that script documents the extraction rule. A matching hash records which source an entry describes, not that it was reviewed: reviewedAt and implementationCommit still name the original review. The same change added the uBO bridge and popup preloads, the Dark websites preload and the three scoped capture wrappers that sessions actually register to preloads, plus scoped-session-preload.js, the main-process helper that verifies a wrapper against its pinned capture preload before registration; none of these new entries has been through the original review. Reader Mode adds a dedicated sandbox and sender-bound reader IPC plus a bounded image broker; its inventory records implementation inputs, not independent security review or platform release acceptance.",
   "preloads": [
     "src/main/badge-api-preload.js",
     "src/main/capture-preload-linux.js",
@@ -14,6 +14,7 @@
     "src/main/display-capture-helper-preload.js",
     "src/main/fill-status-preload.js",
     "src/main/preload.js",
+    "src/main/reader-preload.js",
     "src/main/scoped-capture-preload-linux.js",
     "src/main/scoped-capture-preload-playout.js",
     "src/main/scoped-capture-preload.js",
@@ -250,7 +251,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "900657a8544d1915ecaed011f90d41ea2edac37515f0986a388079e6806b3f32",
+      "sha256": "29e27df2c3445ad3ceb2a79b482e71ba1952c2f976256df3a727099b1d24ce38",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -281,6 +282,7 @@
         "chrome:downloads",
         "chrome:downloads-ack",
         "chrome:favorites-list",
+        "chrome:find-result",
         "chrome:float-frame",
         "chrome:float-shown",
         "chrome:glance-card-move",
@@ -420,6 +422,7 @@
         "tabs:open-glance-as-tab",
         "tabs:open-glance-picker",
         "tabs:open-page",
+        "tabs:reader-toggle",
         "tabs:reload",
         "tabs:rename",
         "tabs:reopen-closed",
@@ -496,7 +499,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "1e0e4ed381a9e590f29c2127aabe799ef09365b0025ee466a23691648ab6c57b",
+      "sha256": "a42b429ccded3aea3ba3878c6ab4929d6136bd73bd6028ece2a1e7e110582b77",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -638,7 +641,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "a6f1014a351985d08f480208ca4c4f1d1350d10d97ee4e916fc8ed43b6d1cbc6",
+      "sha256": "32120a30d381e42faabaab326c7912ba667061cfdf6c7426235d7780c8a1cd7b",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -771,6 +774,7 @@
         "tabs:open-glance-as-tab",
         "tabs:open-glance-picker",
         "tabs:open-page",
+        "tabs:reader-toggle",
         "tabs:reload",
         "tabs:rename",
         "tabs:reopen-closed",
@@ -804,6 +808,53 @@
       "sha256": "b46db2edbea6509ed4ddafecb8d4e348b00273c425a54b04f259d26d5b4a0099",
       "literalChannels": [],
       "role": "privileged implementation or service"
+    },
+    {
+      "file": "src/main/reader-extract.js",
+      "sha256": "4757267eac68731110f190341c13c993aaa1928ec6a80bcf0195fd69bbf09418",
+      "literalChannels": [],
+      "role": "privileged implementation or service"
+    },
+    {
+      "file": "src/main/reader-images.js",
+      "sha256": "7e428fdd0e79b11a7c0e2fef9786040966fff9ebb9a02d2c7463695af493911f",
+      "literalChannels": [
+        "aborted",
+        "data",
+        "end",
+        "error"
+      ],
+      "role": "privileged implementation or service"
+    },
+    {
+      "file": "src/main/reader-mode.js",
+      "sha256": "27dc4bd4613c777063853c3cac77ed263069ba1797f0ffe43cae52193ee7d086",
+      "literalChannels": [
+        "destroyed",
+        "focus",
+        "found-in-page",
+        "reader:appearance",
+        "reader:exit",
+        "reader:initialize",
+        "reader:open-link",
+        "render-process-gone",
+        "will-attach-webview",
+        "will-download",
+        "will-navigate",
+        "will-redirect"
+      ],
+      "role": "privileged implementation or service"
+    },
+    {
+      "file": "src/main/reader-preload.js",
+      "sha256": "fc953cd368e8373363b1c392d56dbdebf8b4b1d18358836b2ec5d37479702e05",
+      "literalChannels": [
+        "reader:appearance",
+        "reader:exit",
+        "reader:initialize",
+        "reader:open-link"
+      ],
+      "role": "preload"
     },
     {
       "file": "src/main/scoped-capture-preload-linux.js",
@@ -1043,7 +1094,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "713ba56ce4686801494e74d9e9b8c73ccd968beb1a4dabca9c4e1b6e9af133ff",
+      "sha256": "14485e56efeaff248cf580aea54cb8b6749c045e84d975a1515c2fa18d4c4130",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

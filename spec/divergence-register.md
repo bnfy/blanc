@@ -741,3 +741,18 @@ differ.
 `docs/superpowers/specs/2026-10-21-ios-iphone-duo-design.md`. Nothing has
 shipped on iOS.
 
+
+---
+
+## D31 — Reader Mode images in Electron and WebKit
+
+**Feature:** F58. **Status:** Implemented candidate, acceptance/release pending.
+
+Electron can ask the source tab's active blocker about an image before a bounded,
+cookie-free fetch. WKContentRuleList has no equivalent per-request decision API.
+iOS Reader Mode therefore reuses only images the source WKWebView already loaded
+and can copy through an origin-clean canvas. It makes no extra image requests;
+unloaded and cross-origin images without canvas permission are omitted, keeping
+alt text and captions. Both platforms share extraction, sanitization, fonts,
+appearance defaults, manual activation, and original-page return. Broader iOS
+image coverage requires a reviewed blocker-equivalent path first.

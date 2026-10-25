@@ -87,6 +87,9 @@
       }
     },
     {
+      "command": "/reader"
+    },
+    {
       "command": "/find"
     },
     {

@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-151 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+152 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -157,6 +157,7 @@
 | `onFloatFrame` | island | event | `chrome:float-frame` | `(payload: FloatFrame) => void` | all |
 | `onFloatShown` | island | event | `chrome:float-shown` | `(payload: boolean) => void` | all |
 | `onFindResult` | find | event | `chrome:find-result` | `(payload: FindResult) => void` | all |
+| `toggleReaderMode` | navigation | invoke | `tabs:reader-toggle` | `(id: TabId) => Promise<boolean>` | all |
 
 ## Types
 
@@ -374,6 +375,8 @@ One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only stat
 | `siteInfo` | `SiteInfo` |  |
 | `splitId` | `string \| null` | The Split View (F53) this tab belongs to, or null. |
 | `syncNotSynced?` | `boolean` |  |
+| `readerAvailable` | `boolean` | Article suitability hint; extraction may still fail. |
+| `readerActive` | `boolean` | The tab is displaying its transient Reader Mode view. |
 
 ### `TabGroup`
 

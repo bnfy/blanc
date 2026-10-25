@@ -164,6 +164,10 @@ export interface TabEntry {
   /** The Split View (F53) this tab belongs to, or null. */
   splitId: string | null;
   syncNotSynced?: boolean;
+  /** Article suitability hint; extraction may still fail. */
+  readerAvailable: boolean;
+  /** The tab is displaying its transient Reader Mode view. */
+  readerActive: boolean;
 }
 
 /** A tab group: a name, and optionally one of the Spaces preset colors. */
@@ -1657,6 +1661,11 @@ export interface BlancBrowserAPI {
    * IPC: event `chrome:find-result`.
    */
   onFindResult(callback: (payload: FindResult) => void): () => void;
+  /**
+   * Enter or exit Reader Mode for an owned visible tab; false when extraction is unavailable.
+   * IPC: invoke `tabs:reader-toggle`.
+   */
+  toggleReaderMode(id: TabId): Promise<boolean>;
 }
 
 declare global {

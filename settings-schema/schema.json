@@ -110,5 +110,41 @@
     { "key": "tabSleep", "type": "enum", "enum": "tabSleepDelays", "default": "1h", "note": "device-local; not synced; 'off' stops future quieting and never wakes an already-quiet tab" },
     { "key": "supporter", "type": "opaque", "default": null, "note": "written only by the Polar activation flow (setSupporter), never generic setSettings" },
     { "key": "patron", "type": "opaque", "default": null, "note": "canonical entitlement record; written only by the Polar activation flow (setPatron), never generic setSettings; supersedes supporter for entitlement" }
-  ]
+  ],
+  "$readerAppearance": {
+    "store": "reader-appearance.json",
+    "scope": "profile",
+    "sync": false,
+    "private": "memory-only overrides",
+    "defaults": {
+      "theme": "system",
+      "font": "serif",
+      "size": 20,
+      "width": "comfortable"
+    },
+    "themes": [
+      "system",
+      "light",
+      "dark",
+      "sepia"
+    ],
+    "fonts": [
+      "serif",
+      "sans"
+    ],
+    "sizes": [
+      16,
+      18,
+      20,
+      22,
+      24,
+      26,
+      28
+    ],
+    "widths": [
+      "narrow",
+      "comfortable",
+      "wide"
+    ]
+  }
 }
