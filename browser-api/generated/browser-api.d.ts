@@ -541,7 +541,7 @@ export interface FindResult {
 }
 
 /** Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js. */
-export type WorkspaceErrorCode = 'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch';
+export type WorkspaceErrorCode = 'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch' | 'saved-not-moved';
 
 /** Why a window may not switch workspaces right now, from workspaceProtection() in main.js. */
 export type WorkspaceProtectionReason = 'permission-or-transition' | 'active-page';
@@ -1403,6 +1403,11 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:workspaces-list`.
    */
   listWorkspaces(): Promise<WorkspacesPayload>;
+  /**
+   * Create a space containing this window’s tab, then move the live tab without switching spaces.
+   * IPC: invoke `chrome:workspaces-create-with-tab`.
+   */
+  createSpaceWithTab(name: string, identity: SpaceIdentityInput, tabId: TabId): Promise<WorkspaceActionResult>;
   /**
    * Save the current window as a Named Workspace.
    * IPC: invoke `chrome:workspaces-save-as`.

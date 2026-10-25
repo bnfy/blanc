@@ -2332,4 +2332,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="ios_settings_disconnect_help">Desconectar este iPhone? Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados.</string>
     <string name="ios_settings_switch_help">Este iPhone sairá da sincronização atual. Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados.</string>
     <string name="ios_settings_time_of_day">Hora do dia</string>
+    <string name="tab_menu_new_space">Novo Space…</string>
+    <string name="ws_new_with_tab">Com esta aba</string>
+    <string name="ws_error_saved_not_moved">%1$s foi salvo, mas não foi possível mover a aba.</string>
+    <string name="ws_error_move_failed">Não foi possível mover a aba para %1$s.</string>
 </resources>

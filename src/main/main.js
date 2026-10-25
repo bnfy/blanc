@@ -9083,6 +9083,7 @@ function setActiveTab(id, {
   focusContent = true,
   focusAddress = false,
   dismissUtilitySheet = true,
+  keepSpacesEditor = false,
 } = {}) {
   const next = tabs.get(id);
   if (!next || next.sleeping || windowRuntimes.runtimeForTab(id) !== rt()) return;
@@ -9128,7 +9129,8 @@ function setActiveTab(id, {
   // Find state is per-tab; a stale capsule over a different page misleads.
   // The shield popover describes one tab's site — same rule. The Spaces menu
   // describes this window, but a switch away from it is a fresh context too.
-  if (['find', 'shield', 'capture', 'spaces', 'group-menu'].includes(rt().overlayMode)) {
+  if (['find', 'shield', 'capture', 'spaces', 'group-menu'].includes(rt().overlayMode)
+    && !(keepSpacesEditor && rt().overlayMode === 'spaces')) {
     hideOverlay({ refocusContent: false });
   }
 
@@ -11322,6 +11324,7 @@ function registerIpcHandlers() {
   // workspaces.json.
   chromeOn('chrome:workspaces-cancel', () => workspaceController.cancel(rt()));
   chromeHandle('chrome:workspaces-list', () => workspacesProjection());
+  chromeHandle('chrome:workspaces-create-with-tab', (_e, name, identity, id) => createSpaceWithTab(name, identity, id));
   chromeHandle('chrome:workspaces-save-as', (_e, name, identity) => {
     const result = saveCurrentWindowAsWorkspace(rt(), name, {
       color: typeof identity?.color === 'string' ? identity.color : undefined,
@@ -12107,6 +12110,7 @@ function tabContextData(tab, owner) {
     // Move to Space ▸ (the model hides it for a private tab).
     spaces: spaceMoveTargets(owner),
     canMoveToSpace: canMoveTabToSpace(tab, owner),
+    canCreateSpace: namedWorkspaces.list().length < MAX_WORKSPACES,
   };
 }
 
@@ -12168,6 +12172,7 @@ function menuContextActions(owner) {
     toggleStartPagePin: b((id) => toggleStartPagePinForTab(id)),
     setGroup: b((id, gid) => setTabGroup(id, gid)),
     beginNewGroup: b((id) => beginNewGroup(id)),
+    beginNewSpaceForTab: b((id) => beginNewSpaceForTab(id)),
     rename: b((id) => beginRenameTab(id)),
     resetTitle: b((id) => renameTab(id, null)),
     // A split pane first becomes an ordinary tab; dismiss the panel only once
@@ -12190,7 +12195,13 @@ function menuContextActions(owner) {
     newTabBelow: b((id) => newTabBelow(id)),
     toggleSiteMute: b((id) => toggleSiteMute(id)),
     moveToNewWindow: b((id) => moveTabToNewWindow(id)),
-    moveToSpace: b((id, workspaceId) => moveTabToSpace(id, workspaceId)),
+    moveToSpace: b((id, workspaceId) => {
+      const result = moveTabToSpace(id, workspaceId);
+      if (!result.ok) showOverlay('spaces', { purpose: { spaceMoveError: {
+        name: namedWorkspaces.get(workspaceId)?.name ?? '', error: result.error,
+      } } });
+      return result;
+    }),
     reopenClosed: b(() => reopenClosedTab()),
     close: b((id) => closeTab(id)),
   };
@@ -12677,7 +12688,7 @@ function rehomeTab(tab, runtime) {
  * permission prompts, hand off Glance and the selection, drop it from the
  * order and ungroup it (a group spanning two windows isn't modeled). Shared
  * by Move Tab and Move Group to New Window. */
-function detachTabForMove(source, id) {
+function detachTabForMove(source, id, { keepSpacesEditor = false } = {}) {
   const tab = tabs.get(id);
   // Detach from the source window. A pending permission prompt belongs to
   // this window's runtime and would float over unrelated content (and its
@@ -12703,7 +12714,7 @@ function detachTabForMove(source, id) {
       const mruId = referenceId ?? previousSurvivor(rt().activationHistory,
         (tid) => tid !== id && tabs.has(tid) && windowRuntimes.runtimeForTab(tid) === rt());
       const survivor = mruId ?? pickSurvivorTabId(source.tabOrder, id);
-      if (survivor != null) setActiveTab(survivor, { focusContent: false });
+      if (survivor != null) setActiveTab(survivor, { focusContent: false, keepSpacesEditor });
     }
     source.tabOrder = source.tabOrder.filter((tid) => tid !== id);
     source.activationHistory = (source.activationHistory ?? []).filter((tid) => tid !== id);
@@ -12785,28 +12796,31 @@ function spaceMoveTargets(owner) {
  * first, already holding the tab, and checked; only then does the tab move.
  * A failed write moves nothing. Returns { ok: true } only when the write and
  * the live transfer both succeed, otherwise { ok: false, error, moved }. */
-function moveTabToSpace(id, workspaceId) {
+function moveTabToSpace(id, workspaceId, creation = null) {
   const tab = tabs.get(id);
   const source = windowRuntimes.runtimeForTab(id);
   if (!tab || !source) return { ok: false, error: 'refused', moved: false };
   return withWindowRuntime(source, () => {
-    const workspace = namedWorkspaces.get(workspaceId);
+    let workspace = creation ? null : namedWorkspaces.get(workspaceId);
     let target = null;
     let materialized = false;
     let floorId = null;
     let origin = null;
     let settledInTarget = false;
-    return runSpaceMove({
+    const result = runSpaceMove({
       check() {
-        if (!canMoveTabToSpace(tab, source) || source.workspaceId === workspaceId) return { ok: false, error: 'refused' };
-        if (!workspace) return { ok: false, error: 'not-found' };
-        if (!spaceCanReceive(source, workspaceId)) return { ok: false, error: 'busy' };
+        if (!canMoveTabToSpace(tab, source) || (!creation && source.workspaceId === workspaceId)) return { ok: false, error: 'refused' };
+        if (creation) {
+          const valid = namedWorkspaces.validateCreate(creation.name);
+          if (!valid.ok) return valid;
+        } else if (!workspace) return { ok: false, error: 'not-found' };
+        if (!creation && !spaceCanReceive(source, workspaceId)) return { ok: false, error: 'busy' };
         // Enough to put the tab back whole if the transfer fails: its place,
         // its group's record (detaching prunes a group it emptied) and whether
         // it was the current tab.
         const group = source.groups.find((g) => g.id === tab.groupId) ?? null;
         origin = { index: source.tabOrder.indexOf(id), group: group ? groupRecord(group) : null, wasActive: source.activeTabId === id };
-        target = workspaceOwner(source, workspaceId);
+        target = creation ? null : workspaceOwner(source, workspaceId);
         return { ok: true };
       },
       prepare() {
@@ -12818,17 +12832,17 @@ function moveTabToSpace(id, workspaceId) {
           const priorSuspended = sessionPersistenceSuspended;
           sessionPersistenceSuspended = true;
           try {
-            withWindowRuntime(target, () => applyWorkspaceToWindow(target, workspace));
+            if (!creation) withWindowRuntime(target, () => applyWorkspaceToWindow(target, workspace));
           } finally {
             sessionPersistenceSuspended = priorSuspended;
           }
-          target.workspaceId = workspace.id;
+          target.workspaceId = workspace?.id ?? null;
           // A space saved empty comes back as one blank start page (the floor
           // applyWorkspaceToWindow lays); the moved tab replaces it.
           const [only] = target.tabOrder;
           if (target.tabOrder.length === 1 && tabs.get(only)?.url === NEW_TAB_URL) floorId = only;
         }
-        const base = workspaceCapture(target, { previousActiveIndex: workspace.activeIndex });
+        const base = workspaceCapture(target, { previousActiveIndex: workspace?.activeIndex ?? 0 });
         const next = appendTabToCapture(floorId != null ? emptiedCapture(base) : base, {
           url: persistableUrl(tab.url),
           pinned: !!tab.pinned,
@@ -12846,11 +12860,17 @@ function moveTabToSpace(id, workspaceId) {
       write(next) {
         const fault = takeSpaceMoveFault('write');
         if (fault) return { ok: false, error: fault };
-        return namedWorkspaces.saveCapture(workspace.id, next);
+        if (!creation) return namedWorkspaces.saveCapture(workspace.id, next);
+        const saved = namedWorkspaces.create({ ...creation, capture: next });
+        if (saved.ok) {
+          workspace = saved.workspace;
+          target.workspaceId = workspace.id;
+        }
+        return saved;
       },
       transfer() {
         if (tab.splitId) removeTabFromSplit(id);
-        detachTabForMove(source, id);
+        detachTabForMove(source, id, { keepSpacesEditor: !!creation });
         if (takeSpaceMoveFault('transfer')) throw new Error('injected: transfer failed after detaching');
         withWindowRuntime(target, () => {
           target.tabOrder = [...target.tabOrder, id];
@@ -12883,7 +12903,7 @@ function moveTabToSpace(id, workspaceId) {
           if (!source.groups.some((g) => g.id === origin.group.id)) source.groups = [...source.groups, groupRecord(origin.group)];
           tab.groupId = origin.group.id;
         }
-        if (origin.wasActive) setActiveTab(id, { focusContent: false });
+        if (origin.wasActive) setActiveTab(id, { focusContent: false, keepSpacesEditor: !!creation });
         broadcastTabs();
         return false;
       },
@@ -12905,7 +12925,34 @@ function moveTabToSpace(id, workspaceId) {
         if (target.resident) scheduleMakeRoomForSpaces(source.profileId, 'a move');
       },
     });
+    if (creation && workspace) {
+      noteSpaceCreated();
+      return { ...result, ...(result.ok ? {} : { error: 'saved-not-moved' }), workspaceId: workspace.id };
+    }
+    return result;
   });
+}
+
+/** The editor remembers the context-menu tab, not whichever tab is active later. */
+function beginNewSpaceForTab(id) {
+  const tab = tabs.get(id);
+  if (!canMoveTabToSpace(tab, rt()) || windowRuntimes.runtimeForTab(id) !== rt()
+    || namedWorkspaces.list().length >= MAX_WORKSPACES) return false;
+  showOverlay('spaces', { purpose: { newSpaceTabId: id } });
+  return true;
+}
+
+function createSpaceWithTab(name, identity, id) {
+  if (windowRuntimes.runtimeForTab(id) !== rt()) return { ok: false, error: 'not-found' };
+  const result = moveTabToSpace(id, null, {
+    name, color: typeof identity?.color === 'string' ? identity.color : undefined,
+    symbol: typeof identity?.symbol === 'string' ? identity.symbol : undefined,
+  });
+  // Internal move details stay in main; the bridge uses workspace errors.
+  const error = { refused: 'busy', 'prepare-failed': 'activation-failed' }[result.error] ?? result.error;
+  broadcastWorkspacesUpdated();
+  return { ok: result.ok, ...(error ? { error } : {}),
+    ...(result.workspaceId ? { workspaceId: result.workspaceId } : {}), ...workspacesProjection() };
 }
 
 // Acceptance-only faults for Move to Space (space-move.js's steps): each armed

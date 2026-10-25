@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-145 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+146 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -107,6 +107,7 @@
 | `dismissSentItem` | sync | invoke | `chrome:sent-dismiss` | `(id: string) => Promise<boolean>` | all |
 | `cancelWorkspaceAction` | workspaces | send | `chrome:workspaces-cancel` | `()` | all |
 | `listWorkspaces` | workspaces | invoke | `chrome:workspaces-list` | `() => Promise<WorkspacesPayload>` | all |
+| `createSpaceWithTab` | workspaces | invoke | `chrome:workspaces-create-with-tab` | `(name: string, identity: SpaceIdentityInput, tabId: TabId) => Promise<WorkspaceActionResult>` | all |
 | `saveWorkspaceAs` | workspaces | invoke | `chrome:workspaces-save-as` | `(name: string, identity?: SpaceIdentityInput) => Promise<WorkspaceActionResult>` | all |
 | `openWorkspace` | workspaces | invoke | `chrome:workspaces-open` | `(id: WorkspaceId, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
 | `createBlankWorkspace` | workspaces | invoke | `chrome:workspaces-create-blank` | `(name: string, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
@@ -840,7 +841,7 @@ Find-in-page counts for the active tab, sent from tab-view.js.
 
 Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js.
 
-`'activation-failed' \| 'busy' \| 'duplicate-name' \| 'future-format' \| 'invalid-name' \| 'invalid-color' \| 'invalid-symbol' \| 'invalid-index' \| 'invalid-record' \| 'limit' \| 'not-found' \| 'protected-pages' \| 'read-failed' \| 'repair-failed' \| 'saved-not-opened' \| 'storage-failed' \| 'unsaved-scratch'`
+`'activation-failed' \| 'busy' \| 'duplicate-name' \| 'future-format' \| 'invalid-name' \| 'invalid-color' \| 'invalid-symbol' \| 'invalid-index' \| 'invalid-record' \| 'limit' \| 'not-found' \| 'protected-pages' \| 'read-failed' \| 'repair-failed' \| 'saved-not-opened' \| 'storage-failed' \| 'unsaved-scratch' \| 'saved-not-moved'`
 
 ### `WorkspaceProtectionReason`
 

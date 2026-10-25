@@ -2332,4 +2332,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ios_settings_disconnect_help">Disconnettere questo iPhone? I preferiti e le impostazioni locali restano qui. Gli altri dispositivi non sono interessati.</string>
     <string name="ios_settings_switch_help">Questo iPhone lascerà la sincronizzazione attuale. I preferiti e le impostazioni locali restano qui. Gli altri dispositivi non sono interessati.</string>
     <string name="ios_settings_time_of_day">Ora del giorno</string>
+    <string name="tab_menu_new_space">Nuovo Space…</string>
+    <string name="ws_new_with_tab">Con questa scheda</string>
+    <string name="ws_error_saved_not_moved">%1$s è stato salvato, ma non è stato possibile spostare la scheda.</string>
+    <string name="ws_error_move_failed">Non è stato possibile spostare la scheda in %1$s.</string>
 </resources>

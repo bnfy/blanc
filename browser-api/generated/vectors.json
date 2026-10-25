@@ -4069,6 +4069,114 @@
         }
       ]
     },
+    "createSpaceWithTab": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:workspaces-create-with-tab",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example",
+            {},
+            "tab-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:workspaces-create-with-tab",
+              "args": [
+                "example",
+                {},
+                "tab-id-1"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "identity = {\"color\":\"space-identity-input-1\",\"symbo",
+          "args": [
+            "example",
+            {
+              "color": "space-identity-input-1",
+              "symbol": "space-identity-input-1"
+            },
+            "tab-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:workspaces-create-with-tab",
+              "args": [
+                "example",
+                {
+                  "color": "space-identity-input-1",
+                  "symbol": "space-identity-input-1"
+                },
+                "tab-id-1"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        },
+        {
+          "ok": true,
+          "error": "activation-failed",
+          "cause": "activation-failed",
+          "reason": "permission-or-transition",
+          "tabCount": 1,
+          "privateCount": 1,
+          "decision": "workspace-action-result-1",
+          "action": "swap",
+          "windowId": "workspace-action-result-1",
+          "workspaceId": "workspace-id-1",
+          "status": "saved",
+          "deleted": [
+            {
+              "id": "workspace-id-1",
+              "name": "deleted-workspace-1",
+              "deletedAt": 1,
+              "color": "deleted-workspace-1",
+              "symbol": "deleted-workspace-1"
+            }
+          ],
+          "items": [
+            {
+              "id": "workspace-id-1",
+              "name": "workspace-list-item-1",
+              "active": true,
+              "openElsewhere": true,
+              "resident": true,
+              "revision": 1,
+              "tabCount": 1,
+              "color": "workspace-list-item-1",
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full"
+              }
+            }
+          ],
+          "windowTabCount": 1,
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
+        }
+      ]
+    },
     "saveWorkspaceAs": {
       "kind": "invoke",
       "platforms": [

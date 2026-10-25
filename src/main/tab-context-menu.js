@@ -34,6 +34,7 @@ function runTabContextMenuItem(id, { tab, groupId, otherTabId, deviceId, workspa
     case 'group-move': return actions.setGroup(tab.id, groupId);
     case 'group-none': return actions.setGroup(tab.id, null);
     case 'group-new': return actions.beginNewGroup(tab.id);
+    case 'space-new': return actions.beginNewSpaceForTab(tab.id);
     case 'space-move': return actions.moveToSpace(tab.id, workspaceId);
     case 'glance': return actions.glance(tab.id);
     case 'close-glance': return actions.closeGlance();

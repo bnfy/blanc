@@ -189,11 +189,11 @@
 
     // ---- editing state ----
     /** New: { kind, draft, start, original? } · Edit: { kind, id, draft }. */
-    function beginNew({ name = '', start = null, original = null } = {}) {
+    function beginNew({ name = '', start = null, original = null, tabId = null, tabTitle = '' } = {}) {
       if (state.pending) return;
       generation += 1;
       const identity = Identity.defaultsFor(data.items);
-      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original, original, error: '', touched: false, picker: false };
+      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original || start === 'tab', tabId, tabTitle, original, error: '', touched: false, picker: false };
       open();
     }
     function beginEdit(workspace) {
@@ -273,7 +273,8 @@
     function cancel() {
       if (state.pending) return true;
       if (state.kind === 'decision') api.cancelWorkspaceAction?.();
-      if (state.original) { state = state.original; render(); }
+      if (state.start === 'tab') { state = { kind: 'list' }; close({ force: true }); }
+      else if (state.original) { state = state.original; render(); }
       else if (state.kind === 'edit') { finishEdit(); }
       else if (state.kind !== 'list') { toList(); }
       else if (opened) { state.error = ''; close(); }
@@ -295,11 +296,13 @@
       state.pending = false;
       if (result?.items) data = { ...data, ...result };
       if (!result?.ok) {
-        if (result?.error === 'saved-not-opened') {
+        if (['saved-not-opened', 'saved-not-moved'].includes(result?.error)) {
           // Creation already committed. Leave the user on the list containing
           // that saved row; keeping the editor alive would turn a retry into a
           // misleading duplicate-name failure.
-          state = { kind: 'list', error: errors[result.error] };
+          state = { kind: 'list', error: result.error === 'saved-not-moved'
+            ? t('ws.error.savedNotMoved', { name: data.items.find((item) => item.id === result.workspaceId)?.name ?? '' })
+            : errors[result.error] };
           render();
         } else if (['unsaved-scratch', 'protected-pages'].includes(result?.error) && action) {
           state = { kind: 'decision', action, result, error: '' }; open();
@@ -329,6 +332,13 @@
       if (problem) { state.error = errors[problem]; renderEditorError(); popup.querySelector('#workspaceName')?.focus(); return; }
       const name = state.draft.name.trim().replace(/\s+/g, ' ');
       const identity = { color: state.draft.color, symbol: state.draft.symbol };
+      if (state.start === 'tab') {
+        const tabId = state.tabId;
+        run(() => api.createSpaceWithTab(name, identity, tabId), () => {
+          state = { kind: 'list' }; close({ force: true }); api.closeOverlay();
+        });
+        return;
+      }
       if (state.start === 'empty' && !state.fixedStart) { openAction({ kind: 'create', name, identity }); return; }
       const original = state.original;
       run(() => api.saveWorkspaceAs(name, identity), () => {
@@ -530,6 +540,9 @@
       }
       form.append(head, ident, status, colorLabel, swatches, pickerSlot, symbolLabel, symbols);
 
+      if (isNew && state.start === 'tab') {
+        form.append(el('p', 'ws-label', t('ws.new.withTab')), dataEl('p', 'ws-help', state.tabTitle));
+      }
       if (isNew && !state.fixedStart) {
         const seg = el('div', 'ws-segmented'); seg.setAttribute('role', 'radiogroup'); seg.setAttribute('aria-label', t('ws.editor.startWith'));
         for (const [value, text] of [['window', t('ws.editor.thisWindow', { count: data.windowTabCount ?? 0 })], ['empty', t('ws.editor.empty')]]) {
@@ -681,6 +694,10 @@
         if (!same && !state.pending && !['new', 'edit'].includes(state.kind)) render();
       },
       open, close, cancel, render, layout,
+      showMoveError(name, error) {
+        state = { kind: 'list', error: `${t('ws.error.moveFailed', { name })} ${errors[error] || t('ws.error.generic')}` };
+        open();
+      },
       /** 'new' (optionally { name, start }), 'edit' a workspace, or 'delete' one at once. */
       begin(kind, workspace = null, options = {}) {
         if (kind === 'new') beginNew(options);
