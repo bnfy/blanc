@@ -1,5 +1,34 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+LATEST KASPERSKY UPDATE: TOOLS-ONLY CONTROL REPRODUCES, 1/64.
+All three owner-approved CAPTCHAs completed and their samples were submitted.
+The 11-file uassets-tools-only.zip, SHA256
+d14a279d673019914fc096d46b0b272d64cfacd2cb2eabed86cb2c642d7aff1b,
+completed 1/64 with Kaspersky UDS:Trojan-PSW.Win32.Mimikatz at 17:07:07 EDT.
+Templates-only completed 0/63, SHA256
+351033b2325387d2b4877901fe9ce6d5197924d5bebd893aae312b186f0a7165.
+Root-documents-only completed 0/64, SHA256
+95f2e8d0275889e212f56ddeafb425ffaf388f2a26ca994c38a9a8f96f0a2f52.
+Kaspersky explicitly reports Undetected for both negative controls. The exact
+individual tool remains unknown; no required source has been removed.
+
+The owner supplied a screenshot of Kaspersky analyst correspondence under case
+KL-3111306 saying they could not reproduce and requesting filename/verdict
+screenshots. This does not clear the observed VirusTotal result. An authorized
+follow-up was sent to newvirus@kaspersky.com from support@blanc.day, with the
+positive 37 KB public diagnostic ZIP and a filename/verdict screenshot attached,
+its exact hash and timestamp, plus the new 11-tool result and negative controls.
+It asks the lab to check its VirusTotal/cloud UDS backend specifically. Resend
+message ID 01a174e4-4bab-7ab3-b1c8-cde19fedab91. This report does not claim a
+reproduction in an installed Kaspersky endpoint product.
+
+Two further byte-preserving partitions of those 11 tools are prepared: shell
+tools SHA256 7483af12aec01d1b53eaef8cc021dd5569ea249fa87ffef52a231e3fda777fbc
+(six files) and JavaScript tools SHA256
+c85e3cc1c8e2c07212a2b26656f08e90ecffdaebf5f450cd609c835d650fc0fd
+(five files). New displayed CAPTCHAs block submission; action-time approval was
+requested for both. No verdict is claimed for these partitions.
+
 CURRENT UPDATE: EXACT HSLUV MEMBER IDENTIFIED; NARROW SOURCE FIX PREPARED.
 The verified HSLuv source-selection fix is committed as 85ed9cf75.
 The latest Kaspersky controls explicitly report Undetected for the uAssets
