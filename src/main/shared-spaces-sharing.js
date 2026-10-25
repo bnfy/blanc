@@ -64,13 +64,29 @@ function reconcileCapture(previous,blob) {
     activeIndex:active<0?Math.max(0,rows.findIndex(row=>row.id===projected.tabIds[projected.activeIndex])):active};
 }
 function recoveryCapture(previous,blob) {
+  const {restoredMarker,DOCUMENT_POLICY_VERSION}=require('./document-policy');
   const added=projectSpace(blob),old=previous??{urls:[],tabIds:[],meta:[],pinned:[],groupIds:[],groups:[],activeIndex:0};
   const result=copy(old),seen=new Set(old.tabIds??[]);
-  for(const field of ['urls','tabIds','meta','pinned','groupIds','groups'])result[field]??=[];
+  result.groups??=[];
+  for(const [field,fallback] of Object.entries({tabIds:null,meta:{},pinned:false,groupIds:null}))result[field]=old.urls.map((_,i)=>copy(old[field]?.[i]??fallback));
+  result.documentPolicy=DOCUMENT_POLICY_VERSION;
+  result.inheritsDocumentPolicy=old.urls.map((_,i)=>restoredMarker(old,i));
+  result.localFiles=old.urls.map((_,i)=>old.localFiles?.[i]===true);
+  if(old.splitIds)result.splitIds=old.urls.map((_,i)=>old.splitIds[i]??null);
   for(let i=0;i<added.tabIds.length;i++)if(!seen.has(added.tabIds[i])) {
     seen.add(added.tabIds[i]);for(const field of ['urls','tabIds','meta','pinned','groupIds'])result[field].push(added[field][i]);
+    result.inheritsDocumentPolicy.push(false);result.localFiles.push(false);
+    if(result.splitIds)result.splitIds.push(null);
   }
   const groups=new Map(result.groups.map(group=>[group.id,group]));for(const group of added.groups)if(!groups.has(group.id))groups.set(group.id,group);
   result.groups=[...groups.values()];return result;
 }
-module.exports={planSharing,projectSpace,recoveryCapture,reconcileCapture};
+// A recovered record can replace this exact quiet projection, but never a
+// visited page, retained snapshot, or locally edited recovery copy.
+function isRecoveryPlaceholder(tab,record,hasSnapshot) {
+  return !!(tab&&record&&tab.asleep&&!tab.sleeping&&!tab.waking&&!tab.isLoading&&!tab.view&&!hasSnapshot&&!tab.inheritsDocumentPolicy&&!tab.splitId&&!tab.muted&&
+    tab.url===record.nav?.v.url&&(tab.title??'')===record.nav?.v.title&&
+    (tab.customTitle??null)===record.name?.v&&!!tab.pinned===record.pinned?.v&&
+    (tab.groupId??null)===record.groupId?.v&&(!tab.pinnedHomeUrl||tab.pinnedHomeUrl===record.nav?.v.url));
+}
+module.exports={planSharing,projectSpace,recoveryCapture,reconcileCapture,isRecoveryPlaceholder};

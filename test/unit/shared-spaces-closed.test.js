@@ -49,3 +49,34 @@ test('a local close does not reappear through a peer after its native entry expi
  d.closed.mergeFromSync({devices:{peer:{name:'B',platform:'linux',updatedAt:now,items:[item]}}},ctx);assert.equal(d.closed.inbox(ctx).length,0);
  d.closed.clear(ctx);d.closed.mergeFromSync({devices:{peer2:{name:'C',platform:'linux',updatedAt:now+1,items:[item]}}},ctx);assert.equal(d.closed.inbox(ctx).length,0);
 });
+
+test('composite closes publish eligible members with their shared identities, never page state',()=>{
+ const {buildGroupEntry,buildSplitEntry,buildBatchEntry}=require('../../src/main/closed-tabs');
+ const members=[{sharedTabId:'b'.repeat(32),url:'https://one.test/',title:'One',snapshot:{secret:true}},
+  {url:'https://two.test/',title:'Two'}, {url:'https://private.test/',private:true},
+  {url:'https://policy.test/',inheritsDocumentPolicy:true}, {url:'file:///tmp/local.html'}];
+ for(const entry of [buildGroupEntry({id:'g',name:'G'},members,100),buildSplitEntry({},members,100),buildBatchEntry(members,100)]) {
+  const {own}=push(entry);assert.equal(own.length,2,entry.kind);assert.equal(own[0].id,'b'.repeat(32));
+  assert.equal(own[0].closedAt,100);assert.deepEqual(Object.keys(own[0]).sort(),['closedAt','id','spaceId','title','url']);
+  assert.equal(entry.tabs.length,4,'native composite undo remains intact');assert.equal(entry.tabs[0].syncedId,own[0].id);
+ }
+});
+test('a composite undo row hides every synced member in the combined band and on Forget',()=>{
+ const entry={id:'group',kind:'group',closedAt:1,tabs:[{syncedId:'one'},{sharedTabId:'two'}]};
+ const runtime={profileId:'default',closedEntries:[entry]},hidden=[];
+ const sandbox={isSharedSpacesOffered:()=>true,DEFAULT_PROFILE_ID:'default',projectEntries:()=>[{id:'group',tabCount:2}],
+  sync:{sharedStatus:()=>({enabled:true}),sharedContext:()=>({})},syncedClosed:{inbox:()=>[{id:'one'},{id:'two'}],hide:(_ctx,id)=>hidden.push(id)},
+  sharedSpaceState:{snapshot:()=>({blobs:{}})},rt:()=>runtime,disposeClosedEntry:()=>{},hasLiveWindow:()=>false};
+ const band=source.slice(source.indexOf('function sharedClosedBand('),source.indexOf('function reopenSharedClosedEntry('));
+ const forget=source.slice(source.indexOf('function forgetClosedEntry('),source.indexOf('function clearClosedEntries('));
+ vm.runInNewContext(band+forget+'\nthis.band=sharedClosedBand;this.forget=forgetClosedEntry;',sandbox);
+ assert.equal(sandbox.band(runtime).length,1);sandbox.forget('group');assert.deepEqual(hidden,['one','two']);
+});
+
+test('native composite member capture carries the shared id through the close builders',()=>{
+ const tab={id:'native',sharedTabId:'c'.repeat(32),url:'https://one.test/',title:'One'},sandbox={tabs:new Map([['native',tab]]),sleepSnapshots:new Map(),liveContents:()=>null,
+  sanitizeSnapshot:value=>value,recordTitle:(_tab,title)=>title};
+ const code=source.slice(source.indexOf('function closedMemberRecord('),source.indexOf('function closeGroup('));
+ vm.runInNewContext(code+'\nthis.capture=closedMemberRecord;',sandbox);
+ assert.equal(sandbox.capture('native').sharedTabId,tab.sharedTabId);
+});

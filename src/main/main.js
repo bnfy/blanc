@@ -6759,7 +6759,7 @@ function activeShieldPopover(serialized = serializeTabs()) {
 function sharedClosedBand(runtime) {
   const local=projectEntries(runtime.closedEntries??[]).map((row,index)=>({...row,closedAt:runtime.closedEntries[index].closedAt}));
   if(!isSharedSpacesOffered()||runtime.profileId!==DEFAULT_PROFILE_ID||!sync.sharedStatus().enabled)return local;
-  const ctx=sync.sharedContext(),entries=runtime.closedEntries??[],seen=new Set(entries.map(row=>row.syncedId??row.sharedTabId).filter(Boolean));
+  const ctx=sync.sharedContext(),entries=runtime.closedEntries??[],seen=new Set(entries.flatMap(row=>[row,...(row.tabs??[])].map(item=>item.syncedId??item.sharedTabId)).filter(Boolean));
   const inbox=syncedClosed.inbox(ctx);
   for(let i=0;i<local.length;i++)if(entries[i].sharedFrom)local[i].fromName=inbox.find(row=>row.id===entries[i].sharedTabId)?.fromName??entries[i].sharedFrom;
   const unique=new Map(),state=sharedSpaceState.snapshot(ctx);
@@ -7553,6 +7553,7 @@ function closedMemberRecord(id) {
   snapshot = sanitizeSnapshot(snapshot, { restorableCommit: tab.restorableCommit === true });
   return {
     url: tab.url, title: recordTitle(tab, tab.title), favicon: tab.favicon ?? null,
+    ...(tab.sharedTabId?{sharedTabId:tab.sharedTabId}:{}),
     customTitle: tab.customTitle ?? null,
     pinnedHomeUrl: tab.pinnedHomeUrl ?? null,
     localFile: tab.localFile === true,
@@ -7658,6 +7659,7 @@ function applySharedSpaceRow(runtime, row) {
 
 const syncedClosed=require('./synced-closed');
 const { createSharingService } = require('./shared-spaces-service');
+const { isRecoveryPlaceholder } = require('./shared-spaces-sharing');
 function isSharedSpacesOffered() { return !app.isPackaged; }
 function sharedSidecarSpace(tab,runtime) {
   if(!isSharedSpacesOffered()||runtime.profileId!==DEFAULT_PROFILE_ID)return null;
@@ -7784,20 +7786,32 @@ const sharedSharing=createSharingService({
   recoverNative:(sid,recovery,records)=>{
     for(const source of [...windowRuntimes.all()]) {
       if(source.profileId!==DEFAULT_PROFILE_ID||namedWorkspaces.get(source.workspaceId)?.sharedId!==sid)continue;
-      const moving=source.tabOrder.filter(id=>records.tabs?.[tabs.get(id)?.sharedTabId]);if(!moving.length)continue;
+      const moving=source.tabOrder.filter(id=>records.tabs?.[tabs.get(id)?.sharedTabId]);if(!moving.length&&!source.sharedRecoveryPending)continue;
       let target=windowRuntimes.all().find(runtime=>runtime.profileId===DEFAULT_PROFILE_ID&&runtime.workspaceId===recovery.id);
       if(!target){target=makeResidentRuntime(DEFAULT_PROFILE_ID);target.workspaceId=recovery.id;withWindowRuntime(target,()=>applyWorkspaceToWindow(target,recovery));}
-      for(const id of moving) {
-        const tab=tabs.get(id),groupId=tab.groupId;
-        // The durable recovery capture may already have a quiet placeholder.
-        // Replace only that duplicate; the real native page is transferred.
-        const duplicate=target.tabOrder.find(other=>tabs.get(other)?.sharedTabId===tab.sharedTabId);
-        if(duplicate)withWindowRuntime(target,()=>closeTab(duplicate,{record:false,selectReplacement:false}));
-        detachTabForMove(source,id);rehomeTab(tab,target);target.tabOrder.push(id);tab.groupId=groupId;
-      }
-      if(!source.tabOrder.length)withWindowRuntime(source,()=>{const id=createTab(NEW_TAB_URL,{asleep:true});source.activeTabId=id;});
-      withWindowRuntime(target,()=>{if(!target.tabOrder.includes(target.activeTabId))target.activeTabId=target.tabOrder[0];namedWorkspaces.saveCapture(recovery.id,workspaceCapture(target));});
-      namedWorkspaces.flushPending();
+      source.sharedRecoveryPending=true;
+      const wasTransition=source.workspaceTransition,wasSuspended=sessionPersistenceSuspended;
+      source.workspaceTransition=true;sessionPersistenceSuspended=true;
+      try {
+        for(const id of moving) {
+          const tab=tabs.get(id),groupId=tab.groupId;
+          // A previously opened recovery copy may contain edits or page state:
+          // retain it, and preserve the incoming native page as an extra local
+          // tab without the retired shared identity.
+          const duplicate=target.tabOrder.find(other=>tabs.get(other)?.sharedTabId===tab.sharedTabId);
+          const replace=duplicate&&isRecoveryPlaceholder(tabs.get(duplicate),records.tabs[tab.sharedTabId],sleepSnapshots.has(duplicate));
+          if(replace)withWindowRuntime(target,()=>closeTab(duplicate,{record:false,selectReplacement:false}));
+          detachTabForMove(source,id);
+          if(duplicate&&!replace)delete tab.sharedTabId;
+          rehomeTab(tab,target);target.tabOrder.push(id);tab.groupId=groupId;
+        }
+        if(!source.tabOrder.length)withWindowRuntime(source,()=>{const id=createTab(NEW_TAB_URL,{asleep:true});source.activeTabId=id;});
+        withWindowRuntime(target,()=>{if(!target.tabOrder.includes(target.activeTabId))target.activeTabId=target.tabOrder[0];});
+      } finally {source.workspaceTransition=wasTransition;sessionPersistenceSuspended=wasSuspended;}
+      if(!namedWorkspaces.saveCapture(recovery.id,workspaceCapture(target)).ok||
+        !namedWorkspaces.saveCapture(source.workspaceId,workspaceCapture(source)).ok||
+        !namedWorkspaces.flushPending().ok||!flushWorkspaceSession().ok)throw new Error('save-failed');
+      source.sharedRecoveryPending=false;
     }
   },
   changed:()=>broadcastWorkspacesUpdated(),
@@ -9460,12 +9474,16 @@ function pushClosedEntry(entry) {
     for (const existing of list) if (existing.view) downgradeHeldEntry(existing);
   }
   list.push(entry);
-  if(isSharedSpacesOffered()&&owner.profileId===DEFAULT_PROFILE_ID&&sync.sharedStatus().enabled&&entry.kind==='tab'&&!entry.inheritsDocumentPolicy&&!documentPolicy.restoredEntryMarker(entry)&&/^https?:/.test(entry.url)) {
-    const context=sharedSpaceRuntimeContext(owner),ctx=sync.sharedContext(),deleted=context?.blob.tabs[entry.sharedTabId]?.deleted;
-    entry.syncedId=entry.sharedTabId??require('node:crypto').randomUUID();
-    entry.sharedRemote=entry.sharedRemoteClose===true&&deleted?.v===true&&deleted.by!==context?.deviceId;
-    entry.sharedFrom=entry.sharedRemote?(require('./tabsync').getDeviceEntries(ctx)[deleted.by]?.name??syncedClosed.rebind(ctx.accountId).data.devices[deleted.by]?.name??deleted.by):null;
-    syncedClosed.addOwnItem(ctx,{id:entry.syncedId,url:entry.url,title:entry.title,closedAt:entry.closedAt,spaceId:context?.spaceId??null});
+  if(isSharedSpacesOffered()&&owner.profileId===DEFAULT_PROFILE_ID&&sync.sharedStatus().enabled) {
+    const context=sharedSpaceRuntimeContext(owner),ctx=sync.sharedContext();
+    for(const item of entry.kind==='tab'?[entry]:(entry.tabs??[])) {
+      if(item.private||item.inheritsDocumentPolicy||documentPolicy.restoredEntryMarker(item)||!/^https?:/.test(item.url))continue;
+      const deleted=context?.blob.tabs[item.sharedTabId]?.deleted;
+      item.syncedId=item.syncedId??item.sharedTabId??require('node:crypto').randomUUID();
+      item.sharedRemote=item.sharedRemoteClose===true&&deleted?.v===true&&deleted.by!==context?.deviceId;
+      item.sharedFrom=item.sharedRemote?(require('./tabsync').getDeviceEntries(ctx)[deleted.by]?.name??syncedClosed.rebind(ctx.accountId).data.devices[deleted.by]?.name??deleted.by):null;
+      syncedClosed.addOwnItem(ctx,{id:item.syncedId,url:item.url,title:item.title,closedAt:entry.closedAt,spaceId:context?.spaceId??null});
+    }
   }
   entry.expiryTimer = setTimeout(bindWindowRuntime(owner, () => {
     const due = new Set(expireEntries(owner.closedEntries ?? [], { now: Date.now() }));
@@ -9497,7 +9515,7 @@ function forgetClosedEntry(entryId, { broadcast = true } = {}) {
   const at = list.findIndex((entry) => entry.id === String(entryId));
   if (at === -1) return false;
   const [entry] = list.splice(at, 1);
-  if(entry.syncedId||entry.sharedTabId)syncedClosed.hide(sync.sharedContext(),entry.syncedId??entry.sharedTabId);
+  for(const item of [entry,...(entry.tabs??[])])if(item.syncedId||item.sharedTabId)syncedClosed.hide(sync.sharedContext(),item.syncedId??item.sharedTabId);
   disposeClosedEntry(entry);
   if (hasLiveWindow()) {
     scheduleMenuRebuild();

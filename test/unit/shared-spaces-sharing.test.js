@@ -74,3 +74,23 @@ test('closed-space reconciliation preserves local-only columns and remaps split 
  const old={...workspace(),urls:['file:///tmp/local.html','https://one.test/'],tabIds:[null,Object.keys(tab.blob.tabs)[0]],localFiles:[true,false],meta:[{title:'Local'},{title:'One'}],pinned:[false,false],groupIds:[null,null],documentPolicy:1,inheritsDocumentPolicy:[true,false],splitIds:['pair','pair'],splits:[{id:'pair',layout:null,focusedIndex:0}]};
  const result=sharing.reconcileCapture(old,tab.blob);assert.equal(result.urls.includes('file:///tmp/local.html'),true);const at=result.urls.indexOf('file:///tmp/local.html');assert.equal(result.localFiles[at],true);assert.equal(result.inheritsDocumentPolicy[at],true);assert.equal(result.splitIds[at],'pair');
 });
+
+test('later recovery batches keep every capture column aligned and preserve policy and local metadata',()=>{
+ const {restoredMarker}=require('../../src/main/document-policy');
+ const remote=sharing.planSharing({v:1,spaces:{}},[workspace()],[{id:'local',mode:'copy'}],options()).items[0].blob;
+ const old={urls:['file:///tmp/local.html','https://restricted.test/'],tabIds:[null,null],meta:[{title:'Local'},{title:'Restricted'}],pinned:[false,true],groupIds:[null,null],groups:[],activeIndex:1,
+  localFiles:[true,false],documentPolicy:1,inheritsDocumentPolicy:[false,true],splitIds:['pair','pair'],splits:[{id:'pair',layout:null,focusedIndex:0}]};
+ const result=sharing.recoveryCapture(old,remote);
+ for(const field of ['tabIds','meta','pinned','groupIds','localFiles','inheritsDocumentPolicy','splitIds'])assert.equal(result[field].length,result.urls.length,field);
+ assert.deepEqual(result.localFiles,[true,false,false]);assert.deepEqual(result.inheritsDocumentPolicy,[false,true,false]);
+ assert.deepEqual(result.splitIds,['pair','pair',null]);assert.deepEqual(result.splits,old.splits);assert.equal(result.activeIndex,1);
+ assert.equal(restoredMarker(result,2),false);assert.deepEqual(sharing.recoveryCapture(result,remote),result);
+ assert.deepEqual(old.urls,['file:///tmp/local.html','https://restricted.test/']);
+});
+
+test('recovery normalizes missing legacy columns without shifting appended tab identities',()=>{
+ const remote=sharing.planSharing({v:1,spaces:{}},[workspace()],[{id:'local',mode:'copy'}],options()).items[0].blob;
+ const result=sharing.recoveryCapture({urls:['https://local.test/'],groups:[]},remote);
+ assert.deepEqual(result.tabIds,[null,Object.keys(remote.tabs)[0]]);
+ assert.deepEqual(result.inheritsDocumentPolicy,[false,false]);assert.equal(result.meta.length,2);
+});

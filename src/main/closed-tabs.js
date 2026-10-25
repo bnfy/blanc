@@ -136,6 +136,7 @@ function closedMembers(members) {
     .map((m) => {
       const pinnedHomeUrl = closedPinnedHome(m);
       return {
+        ...(m.sharedTabId ? { sharedTabId: m.sharedTabId } : {}),
         url: m.url,
         localFile: m.localFile === true,
         inheritsDocumentPolicy: m.inheritsDocumentPolicy === true,
@@ -208,6 +209,7 @@ function buildBatchEntry(members, now = 0) {
       .map((m) => {
         const pinnedHomeUrl = closedPinnedHome(m);
         const member = {
+          ...(m.sharedTabId ? { sharedTabId: m.sharedTabId } : {}),
           url: m.url,
           localFile: m.localFile === true,
           inheritsDocumentPolicy: m.inheritsDocumentPolicy === true,

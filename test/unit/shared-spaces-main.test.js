@@ -176,8 +176,8 @@ test('a projection checkpoint precedes every advanced baseline and blocks local 
  const sid=id(88),tab=record(1),blob={v:1,spaceId:sid,groups:{},tabs:{[id(1)]:tab}},runtime={};let saved={spaceId:sid,displayed:{v:1,spaceId:sid,groups:{},tabs:{}},accepted:[]},materialized=false;
  const order=[],controller=createRuntimeSync({read:()=>({spaceId:sid,accountId:'a',deviceId:'d',blob,window:saved,protectedIds:[]}),
   checkpoint:()=>{order.push('projection');return !materialized;},saveWindow:(_r,state)=>{order.push('baseline');saved=structuredClone(state);return true;},
-  applyRow:()=>{materialized=true;return true;},capture:()=>({urls:[],groups:[]}),writeLocal:()=>{throw new Error('echo');},layout:()=>{}});
- await controller.apply(runtime);assert.deepEqual(order.slice(0,2),['projection','baseline']);assert.equal(saved.displayed.tabs[id(1)],undefined);assert.equal(controller.local(runtime),null);
+  applyRow:()=>{materialized=true;return true;},capture:()=>({urls:materialized?[tab.nav.v.url]:[],meta:[{title:tab.nav.v.title}],tabIds:[id(1)],groups:[]}),writeLocal:()=>{throw new Error('echo');},layout:()=>{}});
+ await controller.apply(runtime);assert.deepEqual(order.slice(0,2),['projection','baseline']);assert.equal(saved.displayed.tabs[id(1)],undefined);assert.deepEqual(controller.local(runtime).edits,{});
 });
 test('position materialization runs before its advanced receipt checkpoint',async()=>{
  const h=harness();h.runtime.active=null;const remote=structuredClone(h.blob);remote.tabs[id(2)].pos=f(model.keyFor('',remote.tabs[id(1)].pos.v,id(2)),200);h.remote(remote);
@@ -185,4 +185,27 @@ test('position materialization runs before its advanced receipt checkpoint',asyn
  const c=createRuntimeSync({read:()=>({spaceId:sid,accountId:'a',deviceId:'d',blob:remote,window:saved,protectedIds:[]}),
   applyRow:()=>true,layout:()=>events.push('layout'),checkpoint:(_r,next)=>{if(next.displayed.tabs[id(2)].pos.c===200)assert.equal(events.at(-1),'layout');return true;},saveWindow:(_r,next)=>{saved=structuredClone(next);return true;}});
  await c.apply(runtime);assert.ok(events.length);
+});
+
+test('checkpoint retries preserve intervening local edits without echoing applied remote fields',async()=>{
+ for(const failure of ['projection','receipt'])for(const captureEvent of [true,false]) {
+  const runtime={},base={v:1,spaceId:sid,groups:{},tabs:{[id(1)]:record(1)}},writes=[];
+  let blob=structuredClone(base),saved={spaceId:sid,displayed:structuredClone(base),accepted:[]};
+  let physical=structuredClone(base.tabs[id(1)]),failed=false,breakSave=false,actions=0;
+  blob.tabs[id(1)].nav=f({url:'https://remote.test/',title:'Remote'},500);
+  const controller=createRuntimeSync({read:()=>({accountId:'a',spaceId:sid,deviceId:'desktop',blob,window:saved,protectedIds:[]}),
+   checkpoint:()=>!(breakSave&&failure==='projection'),saveWindow:(_r,state)=>{if(breakSave&&failure==='receipt')return false;saved=structuredClone(state);return true;},
+   capture:()=>({urls:[physical.nav.v.url],meta:[{title:physical.nav.v.title}],tabIds:[id(1)],pinned:[physical.pinned.v],groups:[],activeIndex:-1}),
+   writeLocal:(_r,next,edits)=>{writes.push(edits);blob=model.mergeBlob(blob,next);},
+   applyRow:(_r,row)=>{actions++;physical[row.field]=structuredClone(row.value);if(!failed){failed=true;breakSave=true;}return true;},layout:()=>{},now:()=>600});
+  assert.equal(await controller.apply(runtime),false);
+  controller.local(runtime);assert.equal(writes.length,0,'applied remote navigation must not echo');
+  physical.nav.v={url:'https://local.test/',title:'My edit'};physical.pinned.v=true;
+  controller.supersede(runtime,id(1),'nav');if(captureEvent)controller.local(runtime);
+  breakSave=false;assert.equal(await controller.apply(runtime),true);
+  assert.equal(writes.length,1);assert.equal(writes[0].tabs[id(1)].nav.v.url,'https://local.test/');
+  assert.ok(writes[0].tabs[id(1)].nav.c>500);assert.equal(writes[0].tabs[id(1)].pinned.v,true);
+  assert.equal(physical.nav.v.url,'https://local.test/');assert.equal(actions,1);
+  controller.local(runtime);assert.equal(writes.length,1);
+ }
 });
