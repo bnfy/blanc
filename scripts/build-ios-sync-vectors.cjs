@@ -190,6 +190,9 @@ try {
   vectors.spacesSettlements=[entry('failed upload cannot restore expired pending records',
     {plan:normalizedExpired,originalPending:expiredInput.pending,outcome:{blobStored:false}},
     spaces.settleUpload(expiredResult,expiredInput.pending,{blobStored:false}))];
+  const selectionInput={...pipeInput,fetchedBlob:pipeInput.localBlob,localBlob:{...pipeInput.localBlob,active:{v:pipeId,c:2000,by:'a'}},pending:{active:{v:pipeId,c:2000,by:'a'}}};
+  const selectionResult=spaces.pushPlan({...selectionInput,encryptFn:t=>crypt.encrypt(Buffer.alloc(32),t)});
+  vectors.spacesPipeline.push(entry('selection-only pending write is replayed',selectionInput,{...selectionResult,recover:[...selectionResult.recover],unsynced:[...selectionResult.unsynced]}));
   const selectionTab=n=>({...pipeTab,pos:pipeField(spaces.keyFor('','',sid(n)))});
   const selectionState=(target,clock,deleted)=>({v:1,spaceId:pipeSpace,groups:{},
     tabs:Object.fromEntries([1,2,3].map(n=>[sid(n),{...selectionTab(n),...(n===deleted?{deleted:spaces.field(true,400,'b')}:{})}])),
