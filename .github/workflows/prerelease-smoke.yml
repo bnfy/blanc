@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: 22
       - name: Install native test tools
-        run: sudo apt-get update && sudo apt-get install -y flatpak flatpak-builder libarchive-tools jq appstream xvfb xdotool squashfs-tools g++ python3
+        run: sudo apt-get update && sudo apt-get install -y flatpak flatpak-builder libarchive-tools jq appstream appstream-util xvfb xdotool squashfs-tools g++ python3
       - name: Compare startup paths and inspect renderer sandbox
         if: inputs.flatpark_sha == ''
         env:

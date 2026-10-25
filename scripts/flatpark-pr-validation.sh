@@ -8,7 +8,7 @@ exec > >(tee "$ROOT/setup.log") 2>&1
 repo="$HOME/flatpark-pr-validation"
 git init "$repo"
 git -C "$repo" remote add origin https://github.com/bnfy/flatpark.git
-git -C "$repo" fetch --depth=1 origin "$FLATPARK_PR_SHA"
+git -C "$repo" fetch origin "$FLATPARK_PR_SHA"
 git -C "$repo" checkout --detach FETCH_HEAD
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install --user -y --noninteractive flathub org.freedesktop.Platform//26.08 org.freedesktop.Sdk//26.08 org.electronjs.Electron2.BaseApp//26.08
