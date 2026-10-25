@@ -19,10 +19,13 @@ release assets are changed here.
 
 ## Deployment and merge gates
 
-The owner must approve the quota implementation and values, the legacy
-inventory migration and Worker deployment. A first-use eventually consistent
-KV listing cannot prove every old blob was inventoried; migration evidence
-must establish the complete legacy charge before activation.
+The quota follow-up implements the owner's approved conservative reservation
+plan in [#1134 at a303b55f6](https://github.com/bnfy/blanc/pull/1134), replacing
+the prior inventory migration gate. Its separate code review is recorded in
+[the implementation record](2026-10-25-sync-conservative-quota-implementation.md).
+It needs no KV inventory/export or maintenance freeze. Rechecking legacy
+route/writer scope, reviewing exact implementation/config/recovery references
+and obtaining separate Worker deployment approval remain mandatory.
 
 Real-device testing against the deployed Worker, server-copy erasure on a
 disposable account and written confirmations for Mac, Windows and Linux are

@@ -104,7 +104,7 @@ Then('device B still sees its last shareable web page',{timeout:180000},async fu
 });
 When('the account storage is full and I delete Work',{timeout:180000},async function(){
  const state=await this.call('sharedSpacesTest','state');this.sid=Object.keys(state.shared.blobs)[0];
- const usage=[...this.sharedFixture.env.records].filter(([k])=>k.startsWith(`blob:${this.sharedKey.accountId}:`)).reduce((sum,[,v])=>sum+Buffer.byteLength(v)+256,0);
+ const usage=(await this.sharedFixture.quotaUsage(this.sharedKey.accountId)).bytes;
  this.sharedFixture.env.ACCOUNT_STORAGE_QUOTA_BYTES=String(usage);
  this.quotaProbe=()=>fetch(`${this.sharedFixture.url}/v1/blob/${this.sharedKey.accountId}/space-${'d'.repeat(32)}`,{method:'PUT',body:JSON.stringify({ifVersion:null,blob:encrypt(this.sharedKey.key,JSON.stringify({probe:'x'.repeat(100)}))})});
  const refused=await this.quotaProbe();assert.equal(refused.status,507);assert.deepEqual(await refused.json(),{error:'account-quota'});

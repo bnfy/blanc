@@ -68,7 +68,7 @@ test('expired deletion frees its server slot despite an old pending index receip
 });
 test('optional Space quota failure reaches the account status and clears after successful retry',async t=>{
   const e=await environment(t),a=e.device('A');createSpace(a);await e.drive(a.sync.syncNow([store]));
-  e.fixture.env.ACCOUNT_STORAGE_QUOTA_BYTES='1';
+  e.fixture.env.ACCOUNT_STORAGE_QUOTA_BYTES=String((await e.fixture.quotaUsage(account)).bytes);
   const local=blob();local.tabs[id(1)].name=field('A longer local name',200,'A');a.spaces.noteLocalSpace(sid,local,{tabs:{[id(1)]:{name:local.tabs[id(1)].name}}},a.ctx);
   const failed=await e.drive(a.sync.syncNow([store]));assert.equal(failed.ok,false);assert.equal(failed.error,'account-quota');assert.equal(a.sync.sharedStatus().accountFull,true);
   e.fixture.env.ACCOUNT_STORAGE_QUOTA_BYTES=String(20*1024*1024);
@@ -78,9 +78,9 @@ test('deleting a Space compacts its encrypted blob immediately and frees a full 
   const e=await environment(t),a=e.device('A');createSpace(a);
   await e.drive(a.sync.syncNow([store]));
   const before=e.fixture.env.records.get(`blob:${account}:${store}`);
-  const used=[...e.fixture.env.records].filter(([k])=>k.startsWith(`blob:${account}:`)).reduce((sum,[,v])=>sum+Buffer.byteLength(v)+256,0);
+  const used=(await e.fixture.quotaUsage(account)).bytes;
   e.fixture.env.ACCOUNT_STORAGE_QUOTA_BYTES=String(used);
-  const write=()=>fetch(`${e.fixture.url}/v1/blob/${account}/bookmarks`,{method:'PUT',body:JSON.stringify({ifVersion:null,blob:{ct:'x'.repeat(100)}})});
+  const write=()=>fetch(`${e.fixture.url}/v1/blob/${account}/space-${'d'.repeat(32)}`,{method:'PUT',body:JSON.stringify({ifVersion:null,blob:{ct:'x'.repeat(100)}})});
   assert.equal((await write()).status,507);
   const deleted=index();deleted.spaces[sid].deleted=field(true,Date.now()+1,'A');a.spaces.setIndex(deleted,a.ctx);
   await e.drive(a.sync.syncNow([store]));

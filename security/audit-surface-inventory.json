@@ -79,7 +79,7 @@
     },
     {
       "file": "cloudflare/sync-worker/src/index.js",
-      "sha256": "5d32e2e64b2ebbd2fa4c4154cbb5903812319861ccde4d4303c846e9aeda1b49",
+      "sha256": "12694edf5b2ea1b2e104b41627336bba1965363b7652bb854dc57b55f04e16fb",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },

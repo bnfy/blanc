@@ -14,10 +14,13 @@ protocol PR does not authorize a production deployment. Before deployment,
 record the storage-exposure decision below and verify the approved client and
 Worker order. Never enable or change cleanup as part of this protocol update.
 
-1. `cd cloudflare/sync-worker`
-2. `wrangler kv namespace create SYNC` → paste the id into `wrangler.toml`.
-3. `wrangler deploy`
-4. Confirm the URL matches `SYNC_ENDPOINT` in `src/main/sync.js`.
+The approved reservation plan is [#1134 at a303b55f6](https://github.com/bnfy/blanc/pull/1134).
+Its implementation is a separate review; approval of that plan is not deployment
+approval. Keep the existing production KV namespace and use one 100% cutover,
+not a traffic split. Before requesting deployment, recheck version/writer scope,
+confirm no out-of-schema operator writes/imports are known, review the exact
+code/configuration and recovery references, and ensure an old cleanup invocation
+is not still running. Do not create or substitute an empty namespace.
 
 ## Storage budget
 
@@ -30,10 +33,17 @@ Design: `docs/superpowers/specs/2026-10-05-sync-storage-budget-design.md`.
   accounts are never refused.
 - An account-scoped Durable Object reserves every blob write against
   `ACCOUNT_STORAGE_QUOTA_BYTES` (20 MiB by default) and
-  `ACCOUNT_STORAGE_MAX_STORES` (256 by default). It inventories existing KV
-  blobs on first use, includes a fixed per-key allowance, serializes each
-  reservation together with its KV write, and rolls a reservation back if the KV write fails. A full
-  account wipe clears both KV and its quota ledger. Quota exhaustion returns
+  `ACCOUNT_STORAGE_MAX_STORES` (256 by default). Schema 1 reserves eight fixed
+  slots permanently, without reading or listing KV. The four historically
+  character-limited stores each reserve `3 * 524288 + 58 + 256` bytes; the other
+  four reserve `524288 + 58 + 256`. The total is **8,391,120 bytes**, including
+  wrappers and per-key headroom, even when the keys are absent or overwritten
+  with smaller values. This covers the verified legacy Unicode bound and late
+  fixed-only writes. No placeholder blobs, inventory import or backup is made.
+  Dynamic keys reserve stored-value bytes plus 256 bytes and a slot durably
+  before KV I/O. Requests are serialized per account. A successful replacement
+  settles its charge; an uncertain PUT retains its high-water charge and key
+  across eviction. Quota exhaustion returns
   `507 {"error":"account-quota"}` without storing the candidate blob. A
   per-Space DELETE releases its value and quota reservation after the retained
   deletion window; fixed stores remain removable only by the account wipe.
@@ -47,16 +57,27 @@ Design: `docs/superpowers/specs/2026-10-05-sync-storage-budget-design.md`.
   blob still uses one store slot until the final DELETE. Turning sharing off
   on one device makes its link dormant and frees no server storage. Closed-tab
   tombstones also remain until expiry, so removing tabs is not an immediate
-  storage-recovery action. Shrinking an existing blob is allowed even if legacy
-  usage or a subsequently lowered quota leaves the account above its allowance.
-  Legacy inventory is eventually consistent: production activation requires a
-  reviewed migration with writes quiesced and a verified complete inventory.
-  This code has not performed that migration and must not be deployed until
-  the owner approves its evidence. A normal first-use listing alone does not
-  establish a complete charge for all pre-existing data.
+  storage-recovery action. Shrinking an existing blob is allowed even if a
+  subsequently lowered quota leaves the account above its allowance. Fixed
+  writes remain available when dynamic capacity is exhausted. Reserved headroom
+  is not occupied KV data: 507 does not prove 20 MiB of actual ciphertext exists.
+  The remaining dynamic allowance is 12,580,400 bytes and 248 slots: 23 full-cap
+  Space blobs fit; 25 blobs at the measured 320-KiB plaintext guide charge
+  19,323,470 bytes (18.4283 MiB), within the allowance.
+  An uncertain PUT returns 503 and blocks mutation of that key and account
+  erasure, rather than forgetting a write that could still land. There is no
+  automatic outcome reconciliation or privileged reset in this candidate;
+  merely retrying or reading a missing value cannot clear that intent. Other
+  keys remain available. This availability limitation requires review.
+  Failed DELETEs retain their charge and can be retried. A partial account wipe
+  retains the entire key map, blocks writes and returns failure until retry
+  succeeds; the client must retain its erasure credentials.
 - A daily Cron Trigger (04:17 UTC) deletes blobs of accounts with no marker,
   at most `CLEANUP_MAX_DELETES` per run. It does nothing unless
-  `CLEANUP_ENABLED = "true"`.
+  `CLEANUP_ENABLED = "true"` on the legacy Worker. With the quota binding,
+  cleanup always skips: a stale listing must never reset a live ledger. The
+  checked-in rollout configuration sets cleanup to false; a ledger-aware
+  replacement and enablement need separate review.
 
 Never set `CLEANUP_ENABLED` until every account has a marker:
 `node scripts/backfill-seen-markers.mjs`, then
@@ -70,8 +91,8 @@ Never set `CLEANUP_ENABLED` until every account has a marker:
 ## API
 
 - `GET /v1/blob/:accountId/:store` → `{ version, blob }` | 404 | 429
-- `PUT /v1/blob/:accountId/:store` `{ ifVersion, blob }` → `{ version }` | 409 | 400 | 413
-- `DELETE /v1/blob/:accountId` → 204 (account wipe)
+- `PUT /v1/blob/:accountId/:store` `{ ifVersion, blob }` → `{ version }` | 409 | 400 | 413 | 429 | 503 | 507
+- `DELETE /v1/blob/:accountId` → 204 (completed account wipe) | 503
 - `DELETE /v1/blob/:accountId/space-<id>` → 204 (one retired Space blob and
   its quota charge; fixed stores reject this method)
 - `POST /v1/pair/:pairId` `{ blob }` → 201 | 409 `{"error":"exists"}` | 400 | 413 (4 KiB cap).
@@ -97,11 +118,14 @@ available yet. The M16 protocol additionally serves `spaces` (the library index)
 `space-<32 lowercase hex>` (one immutable Space id per blob). Malformed or
 unknown store names return `404 unknown store`. Account DELETE directly deletes
 every known fixed-store key and adds the `blob:<accountId>:` keys returned across
-all listing pages, including orphan Space blobs. It removes the activity marker
+all listing pages, including orphan Space blobs. With the quota binding it
+directly deletes every ledger-known dynamic key as well, even if listing
+fails or omits them all. It removes the activity marker
 only after those deletions succeed; it does not depend on the index. Direct
-fixed-store deletion does not depend on listing freshness. KV may still omit a
-dynamic Space key from a stale listing, and concurrent writes can recreate keys;
-the v1 protocol does not provide an atomic, immediately complete account wipe.
+fixed-store and ledger-known dynamic deletion do not depend on listing freshness.
+Only a successful wipe clears the ledger; reinitialization recreates all eight
+reserves. Later writes can recreate keys; the v1 protocol does not provide an
+atomic, immediately complete global account wipe.
 
 Deploy these routes before a client release offers the Spaces switch. A client
 meeting an older Worker reports "Spaces sync isn't available yet"; Favorites,
@@ -169,6 +193,13 @@ fixed keys can therefore add up to eight delete calls; retries add requests.
 The owner rejected unbounded per-account growth and required an enforceable
 quota, separately selecting a daily new-account limit of 10. This candidate
 proposes the 20 MiB / 256-store values above; implementation, limits and legacy
-migration require review before deployment. The former four-store/$36 scenario is
+reservation verification require review before deployment. The former four-store/$36 scenario is
 historical and does not bound M16 storage. The full deployment gate remains in
 the approved M16 plan; merging this code does not authorize deployment.
+
+For a future approved recovery, preserve this exact ledger schema and binding.
+Setting the limits to 8,391,120 bytes and eight slots refuses new dynamic keys
+and dynamic growth while fixed writes and successful shrinking replacements
+remain available. Never roll back to unmetered dynamic routes or clear the
+ledger. This configuration was rehearsed locally; applying it in production
+still requires operator approval.

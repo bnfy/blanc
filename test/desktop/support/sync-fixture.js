@@ -35,9 +35,9 @@ async function createSyncFixture({pageSize=2,now=()=>Date.now()}={}) {
       return {keys:all.slice(start,end).map(name=>({name})),list_complete:end>=all.length,...(end<all.length?{cursor:String(end)}:{})};
     },
   }};
-  const quotaObjects=new Map();
+  const quotaObjects=new Map(),quotaStates=new Map();
   env.ACCOUNT_QUOTA={idFromName:name=>name,get:id=>({fetch:(url,init)=>{
-    let object=quotaObjects.get(id);if(!object){object=new workerModule.AccountQuota(quotaState(),env);quotaObjects.set(id,object);}
+    let object=quotaObjects.get(id);if(!object){const state=quotaState();quotaStates.set(id,state);object=new workerModule.AccountQuota(state,env);quotaObjects.set(id,object);}
     return object.fetch(new Request(url,init));
   }})};
   function inject(input) {
@@ -80,6 +80,7 @@ async function createSyncFixture({pageSize=2,now=()=>Date.now()}={}) {
   await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});
   url='http://127.0.0.1:'+server.address().port;
   return {url,env,requests,inject,dispatch,
+    quotaUsage:async accountId=>{const ledger=await quotaStates.get(accountId)?.storage.get('ledger');return {bytes:workerModule.AccountQuota.fixedReservationBytes+Object.values(ledger?.stores??{}).reduce((sum,row)=>sum+row.bytes+256,0),stores:8+Object.keys(ledger?.stores??{}).length};},
     clientEndpoint:async name=>{const server=http.createServer(handler);await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});clientServers.push(server);const origin='http://127.0.0.1:'+server.address().port;clients.set(origin,name);return origin;},
     beforeNextPut:(store,before)=>inject({type:'hook',store,before}),
     raceNextPuts:({accountId,store,count=2})=>{

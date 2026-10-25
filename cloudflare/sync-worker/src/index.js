@@ -91,23 +91,18 @@ async function listNames(env, prefix) {
 }
 
 async function cleanupInactive(env) {
+  // The quota rollout deliberately does not enable legacy listing-based
+  // cleanup. A future ledger-aware cleanup needs its own reviewed rollout.
+  if (env.ACCOUNT_QUOTA) return { skipped: true, deleted: 0 };
   if (env.CLEANUP_ENABLED !== 'true') return { skipped: true, deleted: 0 };
   const max = limitFrom(env.CLEANUP_MAX_DELETES, DEFAULT_CLEANUP_MAX_DELETES);
   const live = new Set((await listNames(env, 'seen:')).map((name) => name.slice('seen:'.length)));
   let deleted = 0;
-  const touchedAccounts = new Set();
   for (const name of await listNames(env, 'blob:')) {
     if (deleted >= max) break;
     if (live.has(name.split(':')[1])) continue;
-    const accountId = name.split(':')[1];
     await env.SYNC.delete(name);
-    touchedAccounts.add(accountId);
     deleted += 1;
-  }
-  if (env.ACCOUNT_QUOTA) for (const accountId of touchedAccounts) {
-    if ((await listNames(env, `blob:${accountId}:`)).length === 0) {
-      await env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId)).fetch('https://quota.invalid/', { method: 'DELETE' });
-    }
   }
   console.log(JSON.stringify({ event: 'sync-cleanup', deleted, live: live.size }));
   return { skipped: false, deleted };
@@ -178,7 +173,6 @@ async function handleDelete(env, accountId) {
   for (const key of await listNames(env, `blob:${accountId}:`)) keys.add(key);
   await Promise.all([...keys].map((key) => env.SYNC.delete(key)));
   await env.SYNC.delete(seenKey(accountId));
-  if (env.ACCOUNT_QUOTA) await env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId)).fetch('https://quota.invalid/', { method: 'DELETE' });
   return new Response(null, { status: 204 });
 }
 
@@ -193,87 +187,109 @@ async function handleStoreDelete(env, accountId, store) {
 const DEFAULT_ACCOUNT_QUOTA_BYTES = 20 * 1024 * 1024;
 const DEFAULT_ACCOUNT_QUOTA_STORES = 256;
 const QUOTA_KEY_OVERHEAD_BYTES = 256;
+const STORED_WRAPPER_BYTES = 58;
+const MAX_STORED_BYTES = MAX_BLOB_BYTES + STORED_WRAPPER_BYTES;
+const OLD_CHARACTER_STORES = new Set(['bookmarks', 'settings', 'session', 'icons']);
+const FIXED_RESERVATION_BYTES = [...STORES].reduce((sum, store) =>
+  sum + (OLD_CHARACTER_STORES.has(store) ? 3 : 1) * MAX_BLOB_BYTES + STORED_WRAPPER_BYTES + QUOTA_KEY_OVERHEAD_BYTES, 0);
+const dynamicStore = store => /^space-[0-9a-f]{32}$/.test(store);
+const unavailable = error => json({ error }, 503);
 
-// One instance per opaque account locator serializes reservations. KV's own
-// read-then-write version check remains non-atomic, but concurrent requests
-// cannot both spend the same quota. The first request inventories legacy KV
-// values so deployment cannot reset an existing account's usage to zero.
+// Eight permanent reservations cover the verified fixed-only legacy universe,
+// including the older UTF-16 size cap. No KV read/list decides quota usage.
+// Dynamic intents are durable before external I/O. An interrupted PUT is not
+// evidence of absence: retain its high-water charge until its outcome is known.
 export class AccountQuota {
+  static get fixedReservationBytes() { return FIXED_RESERVATION_BYTES; }
   constructor(state, env) { this.state = state; this.env = env; this.initializing = null; this.tail = Promise.resolve(); }
   async bootstrap(accountId) {
     let ledger = await this.state.storage.get('ledger');
-    if (ledger) return ledger;
-    const stores = {};
-    for (const name of await listNames(this.env, `blob:${accountId}:`)) {
-      const value = await this.env.SYNC.get(name);
-      if (value !== null) stores[name.slice(`blob:${accountId}:`.length)] = { bytes: new TextEncoder().encode(value).byteLength, token: null };
+    if (ledger !== undefined && ledger !== null) {
+      if (ledger.schema !== 1 || ledger.accountId !== accountId || typeof ledger.erasing !== 'boolean' ||
+          !ledger.stores || typeof ledger.stores !== 'object' || Array.isArray(ledger.stores) ||
+          Object.entries(ledger.stores).some(([store, row]) => !dynamicStore(store) || !row ||
+            !Number.isSafeInteger(row.bytes) || row.bytes < 0 || row.bytes > MAX_STORED_BYTES ||
+            ![null, 'put', 'delete'].includes(row.intent))) throw new Error('incompatible quota ledger');
+      return ledger;
     }
-    ledger = { accountId, stores };
-    await this.state.storage.put('ledger', ledger);
+    ledger = { schema: 1, accountId, stores: {}, erasing: false };
+    await this.save(ledger);
     return ledger;
   }
+  async save(ledger) {
+    await this.state.storage.put('ledger', ledger);
+    this.initializing = Promise.resolve(ledger);
+  }
   fetch(request) {
-    // KV I/O yields outside Durable Object storage input gates. Serialize the
-    // full reservation + KV operation so a late larger write cannot land
-    // after a smaller reservation has already released its storage budget.
-    const result=this.tail.then(()=>this.handle(request)).catch(error=>{
-      // Bootstrap may have rejected, or a failed storage write may have
-      // mutated the cached ledger. Retry from durable state next time.
-      this.initializing=null;throw error;
-    });this.tail=result.catch(()=>{});return result;
+    const result = this.tail.then(() => this.handle(request)).catch(() => {
+      // Reload durable state after a failed persistence operation. Never
+      // publish a partially mutated in-memory ledger as the next request's base.
+      this.initializing = null;
+      return unavailable('quota unavailable');
+    });
+    this.tail = result.then(() => {}, () => {});
+    return result;
   }
   async handle(request) {
-    if (request.method === 'DELETE') { if (this.initializing) await this.initializing.catch(()=>{}); await this.state.storage.deleteAll(); this.initializing = null; return new Response(null, { status: 204 }); }
     if (request.method !== 'POST') return new Response('method not allowed', { status: 405 });
-    const body = await request.json();
-    const path=new URL(request.url).pathname;
-    const post=(path,body)=>this.handle(new Request('https://quota.invalid/'+path,{method:'POST',body:JSON.stringify(body)}));
-    if(path==='/write') {
-      const reserved=await post('reserve',{accountId:body.accountId,store:body.store,bytes:new TextEncoder().encode(body.stored).byteLength});
-      if(!reserved.ok)return reserved;
-      const receipt=await reserved.json();
-      try{await this.env.SYNC.put(blobKey(body.accountId,body.store),body.stored);}
-      catch(error){await post('rollback',{store:body.store,...receipt});throw error;}
-      return json({},200);
-    }
-    if(path==='/delete-store') {
-      await this.env.SYNC.delete(blobKey(body.accountId,body.store));
-      return post('release',body);
-    }
-    if(path==='/delete-account') {
-      const removed=await handleDelete({...this.env,ACCOUNT_QUOTA:null},body.accountId);
-      await this.state.storage.deleteAll();this.initializing=null;return removed;
-    }
-    if (new URL(request.url).pathname === '/release') {
-      if (this.initializing) await this.initializing;
-      const ledger = await this.state.storage.get('ledger');
-      if (ledger?.accountId !== body.accountId) return json({}, 200);
-      delete ledger.stores[body.store];await this.state.storage.put('ledger',ledger);this.initializing=Promise.resolve(ledger);return json({},200);
-    }
-    if (new URL(request.url).pathname === '/rollback') {
-      const ledger = await this.state.storage.get('ledger');
-      if (!ledger) return json({}, 200);
-      if (ledger.stores[body.store]?.token !== body.token) return json({}, 200);
-      if (body.previous === null) delete ledger.stores[body.store]; else ledger.stores[body.store] = { bytes: body.previous, token: null };
-      await this.state.storage.put('ledger', ledger); this.initializing=Promise.resolve(ledger); return json({}, 200);
-    }
-    if (!body || !/^[0-9a-f]{64}$/.test(body.accountId) || typeof body.store !== 'string' || !Number.isSafeInteger(body.bytes) || body.bytes < 0) return json({ error: 'bad quota request' }, 400);
+    const path = new URL(request.url).pathname;
+    if (!['/write', '/delete-store', '/delete-account'].includes(path)) return new Response('method not allowed', { status: 405 });
+    let body;
+    try { body = await request.json(); } catch { return json({ error: 'bad quota request' }, 400); }
+    if (!body || !/^[0-9a-f]{64}$/.test(body.accountId)) return json({ error: 'bad quota request' }, 400);
+    const byteLimit = limitFrom(this.env.ACCOUNT_STORAGE_QUOTA_BYTES, DEFAULT_ACCOUNT_QUOTA_BYTES);
+    const storeLimit = limitFrom(this.env.ACCOUNT_STORAGE_MAX_STORES, DEFAULT_ACCOUNT_QUOTA_STORES);
+    if (byteLimit < FIXED_RESERVATION_BYTES || storeLimit < STORES.size) return unavailable('invalid quota configuration');
     this.initializing ??= this.bootstrap(body.accountId);
     const ledger = await this.initializing;
     if (ledger.accountId !== body.accountId) return json({ error: 'wrong account' }, 400);
-    const previous = ledger.stores[body.store]?.bytes ?? null;
-    const nextStores = previous === null ? Object.keys(ledger.stores).length + 1 : Object.keys(ledger.stores).length;
-    const nextBytes = Object.values(ledger.stores).reduce((sum, row) => sum + row.bytes + QUOTA_KEY_OVERHEAD_BYTES, 0)
-      - (previous === null ? 0 : previous + QUOTA_KEY_OVERHEAD_BYTES) + body.bytes + QUOTA_KEY_OVERHEAD_BYTES;
-    const byteLimit = limitFrom(this.env.ACCOUNT_STORAGE_QUOTA_BYTES, DEFAULT_ACCOUNT_QUOTA_BYTES);
-    const storeLimit = limitFrom(this.env.ACCOUNT_STORAGE_MAX_STORES, DEFAULT_ACCOUNT_QUOTA_STORES);
-    // Shrinking an existing value must remain possible after a lowered limit
-    // or legacy bootstrap discovers an account already above its allowance.
-    if ((nextBytes > byteLimit || nextStores > storeLimit) && !(previous !== null && body.bytes <= previous)) return json({ error: 'account-quota' }, 507);
-    const token = crypto.randomUUID();
-    ledger.stores[body.store] = { bytes: body.bytes, token };
-    await this.state.storage.put('ledger', ledger);
-    return json({ previous, token }, 200);
+    if (path === '/delete-account') {
+      if (Object.values(ledger.stores).some(row => row.intent === 'put')) return unavailable('quota outcome uncertain');
+      const next = structuredClone(ledger); next.erasing = true; await this.save(next);
+      // No listing can omit these keys. Keep the full map on partial failure;
+      // erasing also blocks fixed writes until a retried wipe has completed.
+      const prefix = `blob:${body.accountId}:`;
+      const keys = new Set([...STORES, ...Object.keys(next.stores)].map(store => blobKey(body.accountId, store)));
+      // Supplement known keys for defense in depth, but never let a stale or
+      // unavailable listing omit ledger-known keys or decide their charges.
+      try { for (const key of await listNames(this.env, prefix)) if (key.startsWith(prefix)) keys.add(key); }
+      catch { /* Fixed reservations + durable dynamic keys remain authoritative. */ }
+      for (const key of keys) await this.env.SYNC.delete(key);
+      await this.env.SYNC.delete(seenKey(body.accountId));
+      await this.state.storage.deleteAll(); this.initializing = null;
+      return new Response(null, { status: 204 });
+    }
+    if (ledger.erasing) return unavailable('quota erasure pending');
+    if (path === '/delete-store') {
+      if (!dynamicStore(body.store)) return new Response('method not allowed', { status: 405 });
+      const before = ledger.stores[body.store];
+      if (before?.intent === 'put') return unavailable('quota outcome uncertain');
+      const next = structuredClone(ledger);
+      if (before) { next.stores[body.store].intent = 'delete'; await this.save(next); }
+      await this.env.SYNC.delete(blobKey(body.accountId, body.store));
+      if (before) { delete next.stores[body.store]; await this.save(next); }
+      return json({}, 200);
+    }
+    if (typeof body.store !== 'string' || (!STORES.has(body.store) && !dynamicStore(body.store)) || typeof body.stored !== 'string') return json({ error: 'bad quota request' }, 400);
+    const bytes = new TextEncoder().encode(body.stored).byteLength;
+    if (bytes > MAX_STORED_BYTES) return json({ error: 'too large' }, 413);
+    if (STORES.has(body.store)) {
+      await this.env.SYNC.put(blobKey(body.accountId, body.store), body.stored);
+      return json({}, 200); // The permanent reserve never changes.
+    }
+    const before = ledger.stores[body.store];
+    if (before?.intent) return unavailable('quota outcome uncertain');
+    const nextBytes = FIXED_RESERVATION_BYTES + Object.values(ledger.stores).reduce((sum, row) => sum + row.bytes + QUOTA_KEY_OVERHEAD_BYTES, 0)
+      + (before ? Math.max(0, bytes - before.bytes) : bytes + QUOTA_KEY_OVERHEAD_BYTES);
+    const nextSlots = STORES.size + Object.keys(ledger.stores).length + (before ? 0 : 1);
+    if ((nextBytes > byteLimit || nextSlots > storeLimit) && !(before && bytes <= before.bytes)) return json({ error: 'account-quota' }, 507);
+    const reserved = structuredClone(ledger);
+    reserved.stores[body.store] = { bytes: Math.max(bytes, before?.bytes ?? 0), intent: 'put' };
+    await this.save(reserved);
+    await this.env.SYNC.put(blobKey(body.accountId, body.store), body.stored);
+    const settled = structuredClone(reserved); settled.stores[body.store] = { bytes, intent: null };
+    await this.save(settled);
+    return json({}, 200);
   }
 }
 

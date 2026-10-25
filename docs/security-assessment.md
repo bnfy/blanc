@@ -104,16 +104,21 @@ not release evidence or a decision to close R3/R5.
 | Credential changes | `sync.js` captures account, generation, consent and protected key for each operation. The queue rechecks cancellation before dispatch and after awaits; disable, account changes, suspension, consent changes and unavailable stores cancel queued work. `sync-queue-callers.test.js` covers these boundaries, including an in-flight PUT and account replacement. Linux `basic_text` remains refused by `sync-key-storage.js`. |
 | Untrusted navigation | Model sanitization accepts only HTTP(S), not `javascript:`, `data:`, internal or local schemes. `shared-spaces-runtime.js` persists accepted targets before applying them, protects active tabs and visible panes, and does not publish remote application as a local edit. `applySharedSpaceRow` uses ordinary quiet-tab creation or `navigateTabToAddress`; normal URL, document-policy, blocker and session rules remain in force. |
 | Renderer authority | Settings controls use `textContent` and DOM construction for peer names and choices. `pages.js`, `tab-preload.js` and `browser-api/bridges.json` restrict sharing actions to the owned Settings main frame; arbitrary web pages get no sharing or credential API. The Worker receives only encrypted payloads and an opaque locator. |
-| Quota and deletion | One account Durable Object serializes reservation plus KV write, rollback, single-store deletion and account deletion. This closes a discovered reservation/write-order race; a stalled-write regression verifies it. Deleting a Space compacts encrypted content immediately, retaining the index tombstone and store slot for 30 days; individual DELETE then releases the slot. Oversized blobs (413), account quota (507), and rate limit (429) remain distinct. |
+| Quota and deletion | One account Durable Object serializes durable reservation plus KV write, single-store deletion and account deletion. Eight permanent fixed reservations cover the verified historical Unicode bounds without KV inventory. Dynamic intents and high-water charges survive uncertain PUTs; such a key and account erasure remain blocked pending outcome review. Partial erasure retains its key map and blocks writes until successful retry. Direct deletion covers all eight fixed and every ledger-known dynamic key, independent of listing freshness. Deleting a Space compacts encrypted content immediately, retaining the index tombstone and store slot for 30 days; successful individual DELETE then releases the slot. Oversized blobs (413), account quota (507), and rate limit (429) remain distinct. |
 | Open R3/R5 | The locator remains a bearer capability: an account member can read, replace or erase ciphertext. KV reads/version checks remain non-atomic: same-version PUTs can both succeed, and a lost acknowledged write may be unrecoverable. Stale replicas can resurrect expired tombstones; long-stale absent records are preserved in a local recovery Space. Tests assert these limits rather than claiming an authenticated or atomic protocol. |
 
-The quota's first-use inventory reads eventually consistent KV. Before any
-production activation, the owner must verify a complete legacy inventory during
-a controlled migration and review its accounting; a stale listing must not be
-represented as proof that every existing blob was charged. This operational
-migration gate, the Durable Object binding/migration and chosen quota values
-are deployment review inputs. Quota code does not authorize a destructive
-legacy cleanup. See the [Worker README](../cloudflare/sync-worker/README.md).
+The owner approved the conservative reservation plan in
+[#1134 at a303b55f6](https://github.com/bnfy/blanc/pull/1134), replacing the
+freeze/export/inventory proposal. The follow-up candidate reserves 8,391,120
+bytes and eight slots permanently; no customer ciphertext inventory or backup
+is required. Production history/writer scope must be rechecked before any
+deployment request; out-of-schema imports or writers invalidate the proof.
+Cleanup is disabled and cannot reset a quota ledger even if accidentally
+enabled. The [implementation review record](security-reviews/2026-10-25-sync-conservative-quota-implementation.md)
+covers schema validation, crash/unknown-outcome handling, conservative capacity
+and the availability cost of an unresolved PUT. Deployment, real-device
+validation, #1132 merge and PR E remain held. See the
+[Worker README](../cloudflare/sync-worker/README.md).
 
 Review reference: Cloudflare's [Durable Object concurrency rules](https://developers.cloudflare.com/durable-objects/best-practices/rules-of-durable-objects/)
 explain that external KV I/O can interleave requests, and
