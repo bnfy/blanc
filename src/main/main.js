@@ -6288,6 +6288,7 @@ function serializeTabs() {
       // cross this boundary merely because they were added to a tab record.
       const rest = {
         id: tab.id,
+        syncNotSynced:tab.sharedUnsynced===true,
         // F46: the label to draw — the person's name when renamed, else the
         // page's title. pageTitle carries the page's own title only while the
         // tab is renamed (tooltips, Quick Switcher). Inline on purpose: tests
@@ -6755,12 +6756,35 @@ function activeShieldPopover(serialized = serializeTabs()) {
   return model ? { ...model, controls, darkSite: darkWebsites.siteState(tab) } : null;
 }
 
+function sharedClosedBand(runtime) {
+  const local=projectEntries(runtime.closedEntries??[]);
+  if(!isSharedSpacesOffered()||runtime.profileId!==DEFAULT_PROFILE_ID||!sync.sharedStatus().enabled)return local;
+  const ctx=sync.sharedContext(),entries=runtime.closedEntries??[],seen=new Set(entries.map(row=>row.syncedId??row.sharedTabId).filter(Boolean));
+  const inbox=syncedClosed.inbox(ctx);
+  for(let i=0;i<local.length;i++)if(entries[i].sharedFrom)local[i].fromName=inbox.find(row=>row.id===entries[i].sharedTabId)?.fromName??entries[i].sharedFrom;
+  const unique=new Map(),state=sharedSpaceState.snapshot(ctx);
+  for(const row of inbox){const previous=unique.get(row.id),origin=state.blobs[row.spaceId]?.blob.tabs[row.id]?.deleted?.by;if(!previous||row.fromId===origin||(previous.fromId!==origin&&row.closedAt<previous.closedAt))unique.set(row.id,row);}
+  const remote=[...unique.values()].filter(row=>!seen.has(row.id)).map(row=>({id:'shared:'+row.id,title:row.title,fromName:row.fromName,favicon:null,tabCount:1}));
+  return [...remote.reverse(),...local];
+}
+function reopenSharedClosedEntry(id) {
+  if(!isSharedSpacesOffered()||rt().profileId!==DEFAULT_PROFILE_ID||!String(id).startsWith('shared:'))return false;
+  const row=syncedClosed.hide(sync.sharedContext(),String(id).slice(7));if(!row)return false;
+  const tabId=createTab(row.url,{title:row.title});if(tabId)setActiveTab(tabId);return true;
+}
+function clearSharedClosedEntries() {
+  if(isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID&&sync.sharedStatus().enabled)syncedClosed.clear(sync.sharedContext());
+  return clearClosedEntries();
+}
 function currentTabsPayload() {
   const widthMetrics = verticalTabsMetrics();
   // Serialize once and hand the same list to the popover, so connection is
   // derived a single time per broadcast.
-  const serialized = serializeTabs();
   const runtime = rt();
+  const shared=sharedSpaceRuntimeContext(runtime);
+  const unsynced=new Set(shared&&isSharedSpacesOffered()&&sharedSpaceState.isEnabled(shared.ctx)?sync.spaceStatus(shared.spaceId).unsyncedTabIds:[]);
+  for(const id of runtime.tabOrder){const tab=tabs.get(id);if(tab)tab.sharedUnsynced=unsynced.has(tab.sharedTabId);}
+  const serialized = serializeTabs();
   syncTabLayout(runtime);
   return {
     tabs: serialized,
@@ -6771,7 +6795,7 @@ function currentTabsPayload() {
     closedSlot: runtime.closedSlot,
     // Closed entries cross only as the five-field projection (spec §4.1);
     // snapshots, seeds, slot metadata, and view references stay in main.
-    closed: projectEntries(runtime.closedEntries ?? []),
+    closed: sharedClosedBand(runtime),
     tabLayout,
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
@@ -7611,7 +7635,7 @@ function applySharedSpaceRow(runtime, row) {
       return true;
     }
     if(!tab)return true;
-    if(row.op==='close'){closeTab(tab.id,{record:true,selectReplacement:false});return true;}
+    if(row.op==='close'){tab.sharedRemoteClose=true;closeTab(tab.id,{record:true,selectReplacement:false});return true;}
     if(row.field==='nav') {
       if(tab.asleep) {
         tab.url=row.value.v.url;tab.title=row.value.v.title;tab.sharedPendingNav=row.value.v.url;
@@ -7632,7 +7656,16 @@ function applySharedSpaceRow(runtime, row) {
   });
 }
 
+const syncedClosed=require('./synced-closed');
+const { createSharingService } = require('./shared-spaces-service');
 function isSharedSpacesOffered() { return !app.isPackaged; }
+function sharedSidecarSpace(tab,runtime) {
+  if(!isSharedSpacesOffered()||runtime.profileId!==DEFAULT_PROFILE_ID)return null;
+  const workspace=namedWorkspaces.get(runtime.workspaceId),ctx=sync.sharedContext();
+  if(!workspace?.sharedId||!sharedSpaceState.isEnabled(ctx)||sharedSpaceState.isDormant(workspace.sharedId,ctx))return null;
+  const record=sharedSpaceState.rebind(ctx.accountId).data.blobs[workspace.sharedId]?.lastPublishable?.tabs[tab.sharedTabId];
+  return require('./shared-spaces-surfaces').publishedOccurrence(tab,record)?workspace.sharedId:null;
+}
 function sharedSpaceRuntimeContext(runtime) {
   if(!isSharedSpacesOffered()||runtime.profileId!==DEFAULT_PROFILE_ID||!runtime.workspaceId)return null;
   const workspace=namedWorkspaces.get(runtime.workspaceId);
@@ -7699,7 +7732,7 @@ function hasDeferredSharedChanges(runtime) {
 }
 function applySharedSpaceChanges(runtime, options={}) {
   const context=sharedSpaceRuntimeContext(runtime);
-  if(!context||runtime.workspaceTransition||(!options.force&&!sharedSpaceState.isEnabled(context.ctx)))return Promise.resolve(false);
+  if(!context||runtime.workspaceTransition||sharedSpaceState.isDormant(context.spaceId,context.ctx)||(!options.force&&!sharedSpaceState.isEnabled(context.ctx)))return Promise.resolve(false);
   if(context.store.data.index.spaces[context.spaceId]?.deleted?.v===true) {
     const removed=namedWorkspaces.remove(context.workspace.id);
     if(!removed.ok)return Promise.resolve(false);
@@ -7712,7 +7745,64 @@ function applySharedSpaceChanges(runtime, options={}) {
     return result;
   });
 }
+const sharedSharing=createSharingService({
+  sync,spaces:sharedSpaceState,workspaces:namedWorkspaces,offered:()=>isSharedSpacesOffered()&&require('./local-profile-context').isDefaultLocalProfile(),
+  devices:()=>sync.pairingDevices(),
+  ids:()=>require('node:crypto').randomUUID().replace(/-/g,''),
+  captureLocal:()=>{
+    for(const runtime of windowRuntimes.all())if(runtime.profileId===DEFAULT_PROFILE_ID&&runtime.workspaceId)withWindowRuntime(runtime,()=>{
+      captureSharedSpaceEdits(runtime);
+      namedWorkspaces.saveCapture(runtime.workspaceId,workspaceCapture(runtime));
+    });
+    return namedWorkspaces.flushPending();
+  },
+  isOpen:id=>windowRuntimes.all().some(runtime=>runtime.profileId===DEFAULT_PROFILE_ID&&runtime.workspaceId===id),
+  bind:item=>{
+    if(!item.blob)return;
+    const runtime=windowRuntimes.all().find(runtime=>runtime.profileId===DEFAULT_PROFILE_ID&&runtime.workspaceId===item.workspaceId);
+    if(!runtime)return;
+    const ids=item.tabIds;
+    const entries=persistableEntries(runtime.tabOrder.map(id=>tabs.get(id)));
+    for(let i=0;i<entries.length;i++)tabs.get(entries[i].id).sharedTabId=ids[i];
+    for(const group of runtime.groups)if(item.groupBindings[group.id]){const oldId=group.id;group.id=item.groupBindings[oldId];for(const id of runtime.tabOrder){const tab=tabs.get(id);if(tab?.groupId===oldId)tab.groupId=group.id;}}
+    // The window already displays this exact snapshot: seed its receipt
+    // without replaying creates into the existing native views.
+    const ctx=sync.sharedContext(),store=sharedSpaceState.rebind(ctx.accountId);
+    store.update(data=>{data.windows[`${runtime.id}:${item.spaceId}`]={spaceId:item.spaceId,displayed:item.blob,accepted:[],groupBindings:{}};});
+    if(!store.flush())throw new Error('save-failed');
+    withWindowRuntime(runtime,()=>captureSharedSpaceEdits(runtime));
+  },
+  recoveryName:name=>mainI18n.t('sharedSpaces.recoveryName',{name}),
+  recoverNative:(sid,recovery,records)=>{
+    for(const source of [...windowRuntimes.all()]) {
+      if(source.profileId!==DEFAULT_PROFILE_ID||namedWorkspaces.get(source.workspaceId)?.sharedId!==sid)continue;
+      const moving=source.tabOrder.filter(id=>records.tabs?.[tabs.get(id)?.sharedTabId]);if(!moving.length)continue;
+      let target=windowRuntimes.all().find(runtime=>runtime.profileId===DEFAULT_PROFILE_ID&&runtime.workspaceId===recovery.id);
+      if(!target){target=makeResidentRuntime(DEFAULT_PROFILE_ID);target.workspaceId=recovery.id;withWindowRuntime(target,()=>applyWorkspaceToWindow(target,recovery));}
+      for(const id of moving) {
+        const tab=tabs.get(id),groupId=tab.groupId;
+        // The durable recovery capture may already have a quiet placeholder.
+        // Replace only that duplicate; the real native page is transferred.
+        const duplicate=target.tabOrder.find(other=>tabs.get(other)?.sharedTabId===tab.sharedTabId);
+        if(duplicate)withWindowRuntime(target,()=>closeTab(duplicate,{record:false,selectReplacement:false}));
+        detachTabForMove(source,id);rehomeTab(tab,target);target.tabOrder.push(id);tab.groupId=groupId;
+      }
+      if(!source.tabOrder.length)withWindowRuntime(source,()=>{const id=createTab(NEW_TAB_URL,{asleep:true});source.activeTabId=id;});
+      withWindowRuntime(target,()=>{if(!target.tabOrder.includes(target.activeTabId))target.activeTabId=target.tabOrder[0];namedWorkspaces.saveCapture(recovery.id,workspaceCapture(target));});
+      namedWorkspaces.flushPending();
+    }
+  },
+  changed:()=>broadcastWorkspacesUpdated(),
+});
+sync.onPairingShown(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>sharedSharing.armPairing()));
+sync.setSharedVisibilityProvider(()=>isSharedSpacesOffered()?namedWorkspaces.list().filter(workspace=>workspace.sharedId&&workspace.sharedLink==='active').map(workspace=>workspace.sharedId):[]);
+sync.onAccountChanged(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>{
+  namedWorkspaces.clearSharedLinks();
+  for(const runtime of windowRuntimes.all())if(runtime.profileId===DEFAULT_PROFILE_ID)for(const id of runtime.tabOrder){const tab=tabs.get(id);if(tab)delete tab.sharedTabId;}
+}));
+syncedClosed.onChanged(()=>{forEachWindowRuntime(runtime=>{if(runtime.profileId===DEFAULT_PROFILE_ID)scheduleBroadcastTabs();});});
 sharedSpaceState.onRemoteChanged(()=>{
+  withLocalProfile(DEFAULT_PROFILE_ID,()=>{sharedSharing.reconcile().catch(error=>console.warn('[shared-spaces] reconcile:',error.message));});
   for(const runtime of windowRuntimes.all())withWindowRuntime(runtime,()=>{
     applySharedSpaceChanges(runtime).catch(error=>console.warn('[shared-spaces] apply:',error.message));
   });
@@ -8279,8 +8369,10 @@ function removeNamedWorkspace(id) {
     const shown = switchWindowToWorkspace(rt(), id, { newWindow: true });
     if (!shown.ok) return shown;
   }
+  const removedWorkspace=namedWorkspaces.get(id);
   const result = namedWorkspaces.remove(id);
   if (result.ok) {
+    sharedSharing.metadata(removedWorkspace,{deleted:true});
     const unbound = [];
     for (const runtime of windowRuntimes.all()) {
       if (runtime.profileId === rt().profileId && runtime.workspaceId === id) {
@@ -8302,6 +8394,7 @@ function undoRemoveNamedWorkspace(id) {
   const key = `${rt().profileId}:${id}`;
   const result = namedWorkspaces.restore(id);
   if (!result.ok) return result;
+  if(!sharedSharing.restored(id))return {ok:false,error:'storage-failed'};
   const runtimeIds = removedWorkspaceBindings.get(key) ?? [];
   removedWorkspaceBindings.delete(key);
   const peers = windowRuntimes.all().filter((r) => r.profileId === rt().profileId);
@@ -9359,6 +9452,13 @@ function pushClosedEntry(entry) {
     for (const existing of list) if (existing.view) downgradeHeldEntry(existing);
   }
   list.push(entry);
+  if(isSharedSpacesOffered()&&owner.profileId===DEFAULT_PROFILE_ID&&sync.sharedStatus().enabled&&entry.kind==='tab'&&/^https?:/.test(entry.url)) {
+    const context=sharedSpaceRuntimeContext(owner),ctx=sync.sharedContext(),deleted=context?.blob.tabs[entry.sharedTabId]?.deleted;
+    entry.syncedId=entry.sharedTabId??require('node:crypto').randomUUID();
+    entry.sharedRemote=entry.sharedRemoteClose===true&&deleted?.v===true&&deleted.by!==context?.deviceId;
+    entry.sharedFrom=entry.sharedRemote?(require('./tabsync').getDeviceEntries(ctx)[deleted.by]?.name??deleted.by):null;
+    syncedClosed.addOwnItem(ctx,{id:entry.syncedId,url:entry.url,title:entry.title,closedAt:entry.closedAt,spaceId:context?.spaceId??null});
+  }
   entry.expiryTimer = setTimeout(bindWindowRuntime(owner, () => {
     const due = new Set(expireEntries(owner.closedEntries ?? [], { now: Date.now() }));
     if (due.has(entry.id)) forgetClosedEntry(entry.id);
@@ -9384,10 +9484,12 @@ function disposeClosedEntry(entry) {
 /** Remove one entry without reopening it. Renderer ids are proposals; main
  * re-resolves them against the focused window's own list. */
 function forgetClosedEntry(entryId, { broadcast = true } = {}) {
+  if(String(entryId).startsWith('shared:')) {const row=syncedClosed.hide(sync.sharedContext(),String(entryId).slice(7));if(row&&broadcast)broadcastTabs();return !!row;}
   const list = rt().closedEntries ?? [];
   const at = list.findIndex((entry) => entry.id === String(entryId));
   if (at === -1) return false;
   const [entry] = list.splice(at, 1);
+  if(entry.syncedId||entry.sharedTabId)syncedClosed.hide(sync.sharedContext(),entry.syncedId??entry.sharedTabId);
   disposeClosedEntry(entry);
   if (hasLiveWindow()) {
     scheduleMenuRebuild();
@@ -10486,7 +10588,7 @@ const spaceTint = !app.isPackaged && ['island', 'frame'].includes(process.env.BL
 // Workspace IPC contains presentation metadata only. Ownership is derived
 // within the requesting profile; page snapshots, URLs and views stay in main.
 function workspacesProjection() {
-  const shared=rt().profileId===DEFAULT_PROFILE_ID?sync.sharedStatus():null;
+  const shared=isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID?sync.sharedStatus():null;
   return {
     status: namedWorkspaces.status(),
     // Recently Deleted shows each space as it was, so its tile keeps its colour and symbol.
@@ -10501,9 +10603,10 @@ function workspacesProjection() {
       tabCount: workspace.urls.length,
       color: workspace.color,
       symbol: workspace.symbol,
-      ...(shared&&workspace.sharedId?{sharedSync:sync.spaceStatus(workspace.sharedId)}:{}),
+      ...(shared?.enabled&&workspace.sharedId&&workspace.sharedLink!=='dormant'?{sharedSync:{...sync.spaceStatus(workspace.sharedId),state:require('./shared-spaces-surfaces').markState(shared,sync.spaceStatus(workspace.sharedId))}}:{}),
     })),
-    sharedSync:shared?.enabled?{count:shared.spaces,limit:shared.spaceLimit,canAdd:shared.canAdd}:undefined,
+    recoveryNotice:shared&&namedWorkspaces.list().some(workspace=>workspace.recoveredFrom)&&!sharedSpaceState.snapshot(sync.sharedContext()).recoveryNoticeSeen,
+    sharedSync:shared?.enabled?{count:shared.spaces,limit:shared.spaceLimit,canAdd:shared.canAdd,busy:!!(shared.waiting||shared.running),slowed:shared.backoff}:undefined,
     // "This window · N tabs" in the new-space editor: what save-as would keep.
     windowTabCount: rt().tabOrder.filter((tabId) => tabs.get(tabId) && !tabs.get(tabId).private).length,
     tint: spaceTint,
@@ -10798,6 +10901,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:close', (_e, id) => closeTab(id));
   chromeHandle('tabs:reopen-closed', () => reopenClosedTab());
   chromeHandle('tabs:reopen-entry', (_e, entryId) => {
+    if(reopenSharedClosedEntry(entryId))return;
     // Renderer input is a proposal: main re-resolves the id against its own
     // list; a stale or forged id is a no-op (the moveTabTo rule).
     const list = rt().closedEntries ?? [];
@@ -10807,7 +10911,7 @@ function registerIpcHandlers() {
     reopenEntry(entry);
   });
   chromeHandle('tabs:forget-closed-entry', (_e, entryId) => forgetClosedEntry(entryId));
-  chromeHandle('tabs:clear-closed', () => clearClosedEntries());
+  chromeHandle('tabs:clear-closed', () => clearSharedClosedEntries());
   chromeHandle('tabs:switch', (_e, id) => setActiveTab(id));
   chromeHandle('tabs:activate-from-rail', (_e, id) => activateTabFromRail(id));
   chromeHandle('tabs:set-glance', (_e, id) => setGlanceTab(id));
@@ -10921,7 +11025,7 @@ function registerIpcHandlers() {
     groups: rt().groups,
     splits: projectSplits(rt()),
     closedSlot: rt().closedSlot,
-    closed: projectEntries(rt().closedEntries ?? []),
+    closed: sharedClosedBand(rt()),
     tabLayout,
     ...verticalTabsMetrics(),
   }));
@@ -11231,12 +11335,14 @@ function registerIpcHandlers() {
     return { ok: true, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-update', (_e, id, patch) => {
+    if(patch?.ackRecovery===true&&isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID){const store=sharedSpaceState.rebind(sync.sharedContext().accountId);store.update(data=>{data.recoveryNoticeSeen=true;});if(!store.flush())return {ok:false,error:'storage-failed'};broadcastWorkspacesUpdated();return {ok:true,...workspacesProjection()};}
     const result = namedWorkspaces.update(id, {
       ...(typeof patch?.name === 'string' ? { name: patch.name } : {}),
       ...(typeof patch?.color === 'string' ? { color: patch.color } : {}),
       ...(typeof patch?.symbol === 'string' ? { symbol: patch.symbol } : {}),
     });
     if (!result.ok) return result; // not-found | invalid-name | duplicate-name | invalid-color | invalid-symbol
+    if(!sharedSharing.metadata(result.workspace??namedWorkspaces.get(id),patch??{}))return {ok:false,error:'storage-failed'};
     broadcastWorkspacesUpdated();
     return { ok: true, ...workspacesProjection() };
   });
@@ -11248,7 +11354,7 @@ function registerIpcHandlers() {
   });
 
   for (const [channel, operation] of [
-    ['chrome:workspaces-restore', (id) => namedWorkspaces.restore(id)],
+    ['chrome:workspaces-restore', (id) => {const result=namedWorkspaces.restore(id);return result.ok&&!sharedSharing.restored(id)?{ok:false,error:'storage-failed'}:result;}],
     ['chrome:workspaces-forget', (id) => namedWorkspaces.forget(id)],
     // The model refuses a negative or non-integer index (invalid-index).
     ['chrome:workspaces-move-to', (id, index) => namedWorkspaces.moveTo(id, index)],
@@ -11256,6 +11362,7 @@ function registerIpcHandlers() {
     chromeHandle(channel, (_event, ...args) => {
       const result = operation(...args);
       if (!result.ok) return result;
+      if(channel==='chrome:workspaces-move-to'&&!sharedSharing.reorder())return {ok:false,error:'storage-failed'};
       broadcastWorkspacesUpdated();
       return { ok: true, ...workspacesProjection() };
     });
@@ -14008,6 +14115,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
+    sharedSpaces: { acknowledge:id=>sharedSharing.acknowledge(id), open:id=>{if(!isSharedSpacesOffered()||rt().profileId!==DEFAULT_PROFILE_ID)return {ok:false};return switchWindowToWorkspace(rt(),String(id));}, status:()=>{const openSheet=!!rt().sharedShowSheet;rt().sharedShowSheet=false;return {offered:isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID,...sync.sharedStatus(),question:sharedSharing.question(),openSheet};}, preview:()=>sharedSharing.preview(), apply:payload=>sharedSharing.apply(payload) },
     drm: require('./drm-controls').createDrmControls({ support: drmSupport, restart: restartApp }),
     stringsScript: () => mainI18n.stringsScript(),
     i18n: mainI18n,
@@ -14159,6 +14267,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       sentItemsFor: (wc) => (tabs.get(tabIdByWebContentsId.get(wc.id))?.private ? [] : knownSentItems()),
       openSent: (id) => openSentItem(id),
       dismissSent: (id) => dismissSentItem(id),
+      sharedQuestionFor:wc=>startPageSenderIsPrivate(wc)?null:sharedSharing.question(),
+      sharedQuestionAnswer:(wc,id,on)=>{if(startPageSenderIsPrivate(wc))return false;const accepted=sharedSharing.acknowledge(id);if(accepted&&on){rt().sharedShowSheet=true;openSettingsSection('sync');}return accepted;},
       status: startPageStatus,
       visibleFor: (wc) => startPageViewVisible(tabs.get(tabIdByWebContentsId.get(wc.id))),
       // The Settings sheet is no tab, so it gets the ordinary (non-private) state.
@@ -14322,6 +14432,16 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // BLANC_TEST=0/false stays off.
   if (acceptanceTestMode) {
     require('./test-hook').install({
+      sharedSpacesTest:async(action,payload)=>{
+        if(action==='enable')return sync.enable(payload);
+        if(action==='pairingPeer'){sharedSharing.armPairing();require('./tabsync').mergeFromSync({devices:{'pseudo-peer':{name:'zzz-peer',platform:'linux',updatedAt:Date.now(),tabs:[],groups:[]}}},sync.sharedContext());return true;}
+        if(action==='disable')return sync.disable({wipeRemote:false});
+        if(action==='apply')return sharedSharing.apply(payload);
+        if(action==='pull')return sync.syncNow(payload);
+        if(action==='capture'){captureSharedSpaceEdits(rt());return true;}
+        if(action==='state')return {shared:sharedSpaceState.snapshot(sync.sharedContext()),context:sync.sharedContext(),closed:sharedClosedBand(rt()),parked:(rt().closedEntries??[]).map(entry=>({id:entry.id,sharedTabId:entry.sharedTabId,held:!!entry.view})),workspaces:workspacesProjection()};
+        return null;
+      },
       prepareDisplayCaptureHelper: () => displayCaptureLazy.prepare(),
       i18nState: () => mainI18n.state(),
       t: mainI18n.t,
@@ -15013,7 +15133,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // sync.js/tabicons.js pull these providers from their own timers/session
     // flows — bind them rather than trust every caller to already be bound.
     tabsync.setSnapshotProvider(bindWindowRuntime(primaryRuntime, () => ({
-      tabList: rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean),
+      tabList: rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean).map(tab=>({...tab,sharedSpaceId:sharedSidecarSpace(tab,rt())})),
       groups: rt().groups,
     })));
     tabicons.setSnapshotProvider(bindWindowRuntime(primaryRuntime, () => ({

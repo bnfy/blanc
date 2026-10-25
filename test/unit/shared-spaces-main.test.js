@@ -153,7 +153,7 @@ test('a Space tombstone leaves an open window unsaved and disposes a set-aside r
   for(const resident of [false,true]) {
     const events=[],runtime={workspaceId:'local',resident};
     const sandbox={sharedSpaceRuntimeContext:()=>({spaceId:sid,workspace:{id:'local'},store:{data:{index:{spaces:{[sid]:{deleted:{v:true}}}}}}}),
-      sharedSpaceState:{isEnabled:()=>true},namedWorkspaces:{remove:id=>{events.push('remove:'+id);return {ok:true};}},
+      sharedSpaceState:{isEnabled:()=>true,isDormant:()=>false},namedWorkspaces:{remove:id=>{events.push('remove:'+id);return {ok:true};}},
       disposeResident:()=>events.push('dispose'),broadcastWorkspacesUpdated:()=>events.push('broadcast'),
       sharedRuntimeSync:{apply:()=>{events.push('tabs-mutated');return Promise.resolve(true);}},
       windowRuntimes:{all:()=>[runtime]},withWindowRuntime:(_r,fn)=>fn(),scheduleBroadcastTabs:()=>{},Promise};

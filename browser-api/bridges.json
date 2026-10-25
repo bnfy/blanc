@@ -441,7 +441,7 @@
           }
         ],
         "returns": "unknown",
-        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0–100)."
+        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0\u2013100)."
       },
       {
         "name": "start.setWallpaperStyle",
@@ -1380,7 +1380,7 @@
           }
         ],
         "returns": "unknown",
-        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0–100)."
+        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0\u2013100)."
       },
       {
         "name": "settings.setWallpaperStyle",
@@ -1493,7 +1493,9 @@
         "name": "settings.drmStatus",
         "kind": "invoke",
         "channel": "pages:settings:drm-status",
-        "hosts": ["settings"],
+        "hosts": [
+          "settings"
+        ],
         "params": [],
         "returns": "unknown",
         "doc": "Read sanitized ECS protected-media readiness."
@@ -1502,7 +1504,9 @@
         "name": "settings.drmRestart",
         "kind": "invoke",
         "channel": "pages:settings:drm-restart",
-        "hosts": ["settings"],
+        "hosts": [
+          "settings"
+        ],
         "params": [],
         "returns": "boolean",
         "doc": "Restart through the unsaved-work guard only when protected media requires it."
@@ -1985,6 +1989,107 @@
         "params": [],
         "returns": "unknown",
         "doc": "Clear local diagnostics."
+      },
+      {
+        "name": "settings.sharedSpacesPreview",
+        "kind": "invoke",
+        "channel": "pages:settings:shared-spaces-preview",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Development-only Shared Spaces consent and selection."
+      },
+      {
+        "name": "settings.sharedSpacesApply",
+        "kind": "invoke",
+        "channel": "pages:settings:shared-spaces-apply",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "payload",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Development-only Shared Spaces consent and selection."
+      },
+      {
+        "name": "settings.sharedSpacesStatus",
+        "kind": "invoke",
+        "channel": "pages:settings:shared-spaces-status",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Development-only Shared Spaces consent and selection."
+      },
+      {
+        "name": "settings.sharedSpacesOpen",
+        "kind": "invoke",
+        "channel": "pages:settings:shared-spaces-open",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "string"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Development-only Shared Spaces consent and selection."
+      },
+      {
+        "name": "settings.sharedSpacesAcknowledge",
+        "kind": "invoke",
+        "channel": "pages:settings:shared-spaces-acknowledge",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "string"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Development-only Shared Spaces consent and selection."
+      },
+      {
+        "name": "start.sharedQuestion",
+        "kind": "invoke",
+        "channel": "pages:start:shared-question",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Development-only Shared Spaces pairing notice."
+      },
+      {
+        "name": "start.sharedQuestionAnswer",
+        "kind": "invoke",
+        "channel": "pages:start:shared-question-answer",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "string"
+          },
+          {
+            "name": "on",
+            "type": "boolean"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Development-only Shared Spaces pairing notice."
       }
     ]
   },

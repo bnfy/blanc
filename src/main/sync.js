@@ -130,6 +130,10 @@ const STORES = [
   },
   {
     name: 'session',
+    stored:(payload,ctx)=>{
+      if(!sharedSpaces.isEnabled(ctx))return;
+      const binding=tabsync.publishedSidecar(payload);if(binding)sharedSpaces.setOwnSidecar(binding,ctx);
+    },
     // ctx is the run-scoped context syncNow snapshotted — NOT re-resolved
     // here, so a credential change during the network round-trip can't leak
     // one account's devices into another (PR #41 review, P1).
@@ -398,6 +402,7 @@ function adoptCredentials({ handle, accountId, key, protectedKey }) {
 // lives in memory here and nowhere else — never the store, logs or IPC
 // beyond the Settings page that displays it.
 const PAIR_ATTEMPTS = 3;
+const pairingShownListeners=new Set();
 let pairing = null; // { code, pairId, expiresAt }
 
 const pairUrl = (pairId) => `${ACTIVE_SYNC_ENDPOINT}/v1/pair/${pairId}`;
@@ -456,6 +461,7 @@ async function beginPairing() {
       }
       const expiresAt = Date.now() + pairingCodes.PAIR_TTL_MS;
       pairing = { code, pairId, expiresAt };
+      for(const listener of pairingShownListeners)listener();
       return { ok: true, code, expiresAt };
     }
     return { ok: false, error: 'server' };
@@ -776,7 +782,7 @@ function cancelledRequest(gen,ctx,desc) {
   if (gen!==syncGen) return 'generation';
   if (!ensureStore().data.enabled) return 'disabled';
   if (desc.spaces && !sharedSpaces.isEnabled(ctx)) return 'consent-off';
-  if(desc.spaceId&&sharedSpaces.isDormant(desc.spaceId,ctx))return 'consent-off';
+  if(desc.spaceId&&(sharedSpaces.isDormant(desc.spaceId,ctx)||sharedSpaces.isDraft(desc.spaceId,ctx)))return 'consent-off';
   if (desc.spaces && spacesUnavailable && !desc.retryAvailability) return 'unavailable';
   return null;
 }
@@ -791,14 +797,17 @@ function spaceStatus(id) {
   if(!isDefaultLocalProfile())return {unsyncedTabIds:[],reason:null};
   const entry=sharedSpaces.rebind(ensureStore().data.accountId).data.blobs[id];
   const reason=['full','tombstones','tabs','remote-over-budget','required-state-over-budget'].includes(entry?.reason)?entry.reason:null;
-  return {unsyncedTabIds:unsyncedTabIds(entry),reason};
+  const pending=sharedSpaces.rebind(ensureStore().data.accountId).data.pending[id];
+  return {unsyncedTabIds:unsyncedTabIds(entry),reason,lastSyncedAt:entry?.lastPublishedAt??entry?.failedAt??0,failed:!!entry?.failedAt,pending:!!pending&&Object.values(pending).some(value=>value&&Object.keys(value).length)};
 }
 function setSyncSpaces(on) {
   if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID,()=>setSyncSpaces(on));
-  sharedSpaces.setEnabled(on,tabSyncContext());
+  if(!sharedSpaces.setEnabled(on,tabSyncContext()))return {...sharedStatus(),error:'save-failed'};
+  invalidateGeneration('consent-off');
   ensureStore().update(data=>{data.syncSpaces=!!on;});
   if (!on) requestQueue?.cancelWhere(op=>op.spaces,'consent-off');
-  else {spacesUnavailable=false;spacesRetryAt=0;if(ensureStore().data.enabled)schedule(1000);}
+  else {spacesUnavailable=false;spacesRetryAt=0;}
+  if(ensureStore().data.enabled)schedule(1000);
   return sharedStatus();
 }
 async function sharedIndexPreview() {
@@ -858,6 +867,7 @@ async function syncNow(names = null, { onOutcome } = {}) {
         } finally {key?.fill(0);}
       },
       onOutcome:(outcome,error)=>{
+        if(ensureStore().data.accountId===ctx.accountId&&desc.spaceId&&sharedSpaces.rebind(ctx.accountId).data.blobs[desc.spaceId])sharedSpaces.rebind(ctx.accountId).update(data=>{if(error)data.blobs[desc.spaceId].failedAt=Date.now();else delete data.blobs[desc.spaceId].failedAt;});
         if(desc.spaces && outcome?.unavailable) {
           spacesUnavailable=true;spacesRetryAt=Date.now()+OPTIONAL_MISSING_RETRY_MS;
           queue.cancelWhere(op=>op.spaces,'unavailable');scheduleOptionalMissingRetry(ctx.accountId,'spaces');
@@ -1022,13 +1032,16 @@ function refreshTabIcons() {
 /** Other devices' tabs for the UI ([] whenever sync is off). The sidecar is
  * joined only for the trusted renderer projection; the session wire format
  * remains unchanged. */
+let sharedVisibility=()=>[];
 function listRemoteDevices() {
   if (!isDefaultLocalProfile()) return [];
   const d = ensureStore().data;
   if (!d.enabled) return [];
   const ctx = tabSyncContext();
   const names = settings.getDeviceNames();
-  return tabicons.attachToRemoteDevices(tabsync.getRemoteDevices(ctx), ctx)
+  const devices=tabicons.attachToRemoteDevices(tabsync.getRemoteDevices(ctx), ctx);
+  const state=sharedSpaces.snapshot(ctx),visible=new Set(sharedSpaces.isEnabled(ctx)?sharedVisibility().filter(id=>state.blobs[id]?.blob&&state.index.spaces[id]&&!state.index.spaces[id].deleted.v&&!sharedSpaces.isDormant(id,ctx)&&!sharedSpaces.isDraft(id,ctx)):[]);
+  return require('./shared-spaces-surfaces').hideOccurrences(devices,state.sidecar,visible)
     .map((device) => ({ ...device, name: resolveDeviceName(names, device.deviceId, device.name) }));
 }
 
@@ -1205,6 +1218,9 @@ module.exports = {
   setSyncTabs,
   setTabStateReady,
   refreshSession,
+  onPairingShown:listener=>pairingShownListeners.add(listener),
+  pairingDevices:()=>listSendTargets().map(({id,name})=>({deviceId:id,name})),
+  setSharedVisibilityProvider:provider=>{sharedVisibility=provider;},
   listRemoteDevices,
   renameRemoteDevice,
   setThisDeviceName,

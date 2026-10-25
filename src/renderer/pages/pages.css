@@ -5112,3 +5112,6 @@ body:not([data-layout="billboard"]) .customize-clock-section { display: none; }
     .clock-popover:popover-open { transform: none; }
   }
 }
+
+.shared-spaces-notice { position: fixed; inset: auto 24px 24px auto; max-width: 28rem; padding: 1rem; border-radius: 16px; background: var(--surface, #fff); color: var(--text, #222); box-shadow: 0 8px 32px #0003; z-index: 100; }
+.shared-spaces-notice button { margin-inline-end: .5rem; }

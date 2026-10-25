@@ -367,6 +367,7 @@ One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only stat
 | `connection` | `ConnectionState \| null` |  |
 | `siteInfo` | `SiteInfo` |  |
 | `splitId` | `string \| null` | The Split View (F53) this tab belongs to, or null. |
+| `syncNotSynced?` | `boolean` |  |
 
 ### `TabGroup`
 
@@ -419,6 +420,7 @@ A closed entry as renderers see it, projected by projectEntries() in closed-tabs
 | `title` | `string` |  |
 | `favicon` | `string \| null` |  |
 | `tabCount` | `number` |  |
+| `fromName?` | `string` |  |
 
 ### `ShieldProviderControls`
 
@@ -668,6 +670,7 @@ An edit to one space: any subset of name, colour and symbol.
 | `name?` | `string` |  |
 | `color?` | `string` |  |
 | `symbol?` | `string` |  |
+| `ackRecovery?` | `boolean` | Dismiss the development-only recovery explanation on this device. |
 
 ### `WorkspaceActionEvent`
 
@@ -686,6 +689,10 @@ Local writes held from sync, without page contents; only present on a shared Spa
 | --- | --- | --- |
 | `unsyncedTabIds` | `string[]` |  |
 | `reason` | `'full' \| 'tombstones' \| 'tabs' \| 'remote-over-budget' \| 'required-state-over-budget' \| null` |  |
+| `state?` | `'shared' \| 'waiting' \| 'notSynced' \| 'full' \| 'unavailable'` |  |
+| `lastSyncedAt?` | `number` |  |
+| `failed?` | `boolean` |  |
+| `pending?` | `boolean` |  |
 
 ### `SharedSpaceLibraryStatus`
 
@@ -696,6 +703,8 @@ Shared-library capacity. Concurrent remote additions are retained even above the
 | `count` | `number` |  |
 | `limit` | `number` |  |
 | `canAdd` | `boolean` |  |
+| `busy?` | `boolean` |  |
+| `slowed?` | `boolean` |  |
 
 ### `WorkspaceListItem`
 
@@ -726,6 +735,7 @@ Named Workspaces projection, from workspacesProjection() in main.js.
 | `windowTabCount` | `number` | This window's ordinary tabs, for the new-space editor. |
 | `tint` | `SpaceTint` |  |
 | `sharedSync?` | `SharedSpaceLibraryStatus \| undefined` |  |
+| `recoveryNotice?` | `boolean \| null` |  |
 
 ### `ThemeAppearance`
 
@@ -866,6 +876,7 @@ Result of every Named Workspace action. Successes carry the refreshed workspace 
 | `windowTabCount?` | `number` | This window's ordinary tabs, for the new-space editor. |
 | `tint?` | `SpaceTint` |  |
 | `sharedSync?` | `SharedSpaceLibraryStatus \| undefined` |  |
+| `recoveryNotice?` | `boolean \| null` |  |
 
 ### `SearchEngineId`
 

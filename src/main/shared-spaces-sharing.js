@@ -17,7 +17,7 @@ function planSharing(index,workspaces,selections,{now,deviceId,ids,encryptFn}) {
   const byId=new Map(workspaces.map(w=>[w.id,w])),seen=new Set(),items=[];
   const live=Object.values(current.spaces).filter(record=>!record.deleted.v).length;
   const copies=selections.filter(choice=>choice.mode!=='rejoin').length;
-  if(live+copies>model.LIMITS.spaces)return {ok:false,error:'limit',items:[]};
+  if(copies>0&&live+copies>model.LIMITS.spaces)return {ok:false,error:'limit',items:[]};
   let left=model.orderOf(current.spaces).map(id=>current.spaces[id]).filter(record=>!record.deleted.v).at(-1)?.pos.v??'';
   for(const choice of selections) {
     const workspace=byId.get(choice.id);if(!workspace||seen.has(choice.id))return {ok:false,error:'not-found',items:[]};seen.add(choice.id);
@@ -35,7 +35,8 @@ function planSharing(index,workspaces,selections,{now,deviceId,ids,encryptFn}) {
     if(model.liveTabCount(blob)>model.LIMITS.tabsPerSpace)return {ok:false,error:'tabs',items:[]};
     if(!model.blobFits(blob,encryptFn))return {ok:false,error:'full',items:[]};
     const field=value=>model.field(value,now,deviceId),pos=model.keyFor(left,'',spaceId);left=pos;
-    items.push({workspaceId:workspace.id,spaceId,mode:'copy',blob,edits:result.edits,
+    items.push({workspaceId:workspace.id,spaceId,mode:'copy',blob,edits:result.edits,tabIds:result.tabIds,
+      groupBindings:Object.fromEntries([...mapping].map(([oldId,localId])=>[oldId,result.groupBindings[localId]])),
       index:{name:field(workspace.name),color:field(workspace.color),symbol:field(workspace.symbol),pos:field(pos),deleted:field(false),createdAt:now,createdBy:deviceId}});
   }
   return {ok:true,items};

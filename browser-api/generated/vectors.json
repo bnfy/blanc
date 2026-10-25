@@ -1520,7 +1520,8 @@
                 ],
                 "error": "site-info-1"
               },
-              "splitId": "tab-entry-1"
+              "splitId": "tab-entry-1",
+              "syncNotSynced": true
             }
           ],
           "activeTabId": "tab-id-1",
@@ -1538,7 +1539,8 @@
               "id": "closed-entry-id-1",
               "title": "closed-entry-summary-1",
               "favicon": "closed-entry-summary-1",
-              "tabCount": 1
+              "tabCount": 1,
+              "fromName": "closed-entry-summary-1"
             }
           ],
           "closedSlot": 1,
@@ -4046,7 +4048,11 @@
                 "unsyncedTabIds": [
                   "shared-space-admission-1"
                 ],
-                "reason": "full"
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
               }
             }
           ],
@@ -4055,8 +4061,11 @@
           "sharedSync": {
             "count": 1,
             "limit": 1,
-            "canAdd": true
-          }
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -4168,7 +4177,11 @@
                 "unsyncedTabIds": [
                   "shared-space-admission-1"
                 ],
-                "reason": "full"
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
               }
             }
           ],
@@ -4177,8 +4190,11 @@
           "sharedSync": {
             "count": 1,
             "limit": 1,
-            "canAdd": true
-          }
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -4294,7 +4310,11 @@
                 "unsyncedTabIds": [
                   "shared-space-admission-1"
                 ],
-                "reason": "full"
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
               }
             }
           ],
@@ -4303,8 +4323,11 @@
           "sharedSync": {
             "count": 1,
             "limit": 1,
-            "canAdd": true
-          }
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -4420,7 +4443,11 @@
                 "unsyncedTabIds": [
                   "shared-space-admission-1"
                 ],
-                "reason": "full"
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
               }
             }
           ],
@@ -4429,8 +4456,11 @@
           "sharedSync": {
             "count": 1,
             "limit": 1,
-            "canAdd": true
-          }
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -4499,7 +4529,11 @@
                 "unsyncedTabIds": [
                   "shared-space-admission-1"
                 ],
-                "reason": "full"
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
               }
             }
           ],
@@ -4508,8 +4542,11 @@
           "sharedSync": {
             "count": 1,
             "limit": 1,
-            "canAdd": true
-          }
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -4578,7 +4615,11 @@
                 "unsyncedTabIds": [
                   "shared-space-admission-1"
                 ],
-                "reason": "full"
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
               }
             }
           ],
@@ -4587,8 +4628,11 @@
           "sharedSync": {
             "count": 1,
             "limit": 1,
-            "canAdd": true
-          }
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -4657,7 +4701,11 @@
                 "unsyncedTabIds": [
                   "shared-space-admission-1"
                 ],
-                "reason": "full"
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
               }
             }
           ],
@@ -4666,8 +4714,11 @@
           "sharedSync": {
             "count": 1,
             "limit": 1,
-            "canAdd": true
-          }
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -4704,7 +4755,8 @@
             {
               "name": "workspace-patch-1",
               "color": "workspace-patch-1",
-              "symbol": "workspace-patch-1"
+              "symbol": "workspace-patch-1",
+              "ackRecovery": true
             }
           ],
           "sends": [
@@ -4716,7 +4768,8 @@
                 {
                   "name": "workspace-patch-1",
                   "color": "workspace-patch-1",
-                  "symbol": "workspace-patch-1"
+                  "symbol": "workspace-patch-1",
+                  "ackRecovery": true
                 }
               ]
             }
@@ -4763,7 +4816,11 @@
                 "unsyncedTabIds": [
                   "shared-space-admission-1"
                 ],
-                "reason": "full"
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
               }
             }
           ],
@@ -4772,8 +4829,11 @@
           "sharedSync": {
             "count": 1,
             "limit": 1,
-            "canAdd": true
-          }
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -4844,7 +4904,11 @@
                 "unsyncedTabIds": [
                   "shared-space-admission-1"
                 ],
-                "reason": "full"
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
               }
             }
           ],
@@ -4853,8 +4917,11 @@
           "sharedSync": {
             "count": 1,
             "limit": 1,
-            "canAdd": true
-          }
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -4923,7 +4990,11 @@
                 "unsyncedTabIds": [
                   "shared-space-admission-1"
                 ],
-                "reason": "full"
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
               }
             }
           ],
@@ -4932,8 +5003,11 @@
           "sharedSync": {
             "count": 1,
             "limit": 1,
-            "canAdd": true
-          }
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
@@ -5344,7 +5418,11 @@
                     "unsyncedTabIds": [
                       "shared-space-admission-1"
                     ],
-                    "reason": "full"
+                    "reason": "full",
+                    "state": "shared",
+                    "lastSyncedAt": 1,
+                    "failed": true,
+                    "pending": true
                   }
                 }
               ],
@@ -5353,8 +5431,11 @@
               "sharedSync": {
                 "count": 1,
                 "limit": 1,
-                "canAdd": true
-              }
+                "canAdd": true,
+                "busy": true,
+                "slowed": true
+              },
+              "recoveryNotice": true
             }
           ],
           "callbacks": [
@@ -5385,7 +5466,11 @@
                       "unsyncedTabIds": [
                         "shared-space-admission-1"
                       ],
-                      "reason": "full"
+                      "reason": "full",
+                      "state": "shared",
+                      "lastSyncedAt": 1,
+                      "failed": true,
+                      "pending": true
                     }
                   }
                 ],
@@ -5394,8 +5479,11 @@
                 "sharedSync": {
                   "count": 1,
                   "limit": 1,
-                  "canAdd": true
-                }
+                  "canAdd": true,
+                  "busy": true,
+                  "slowed": true
+                },
+                "recoveryNotice": true
               }
             ]
           ]
@@ -6017,7 +6105,8 @@
                     ],
                     "error": "site-info-1"
                   },
-                  "splitId": "tab-entry-1"
+                  "splitId": "tab-entry-1",
+                  "syncNotSynced": true
                 }
               ],
               "activeTabId": "tab-id-1",
@@ -6035,7 +6124,8 @@
                   "id": "closed-entry-id-1",
                   "title": "closed-entry-summary-1",
                   "favicon": "closed-entry-summary-1",
-                  "tabCount": 1
+                  "tabCount": 1,
+                  "fromName": "closed-entry-summary-1"
                 }
               ],
               "closedSlot": 1,
@@ -6170,7 +6260,8 @@
                       ],
                       "error": "site-info-1"
                     },
-                    "splitId": "tab-entry-1"
+                    "splitId": "tab-entry-1",
+                    "syncNotSynced": true
                   }
                 ],
                 "activeTabId": "tab-id-1",
@@ -6188,7 +6279,8 @@
                     "id": "closed-entry-id-1",
                     "title": "closed-entry-summary-1",
                     "favicon": "closed-entry-summary-1",
-                    "tabCount": 1
+                    "tabCount": 1,
+                    "fromName": "closed-entry-summary-1"
                   }
                 ],
                 "closedSlot": 1,

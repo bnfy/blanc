@@ -60,3 +60,9 @@ test('a dormant Space stays out of the network queue while other shared Spaces s
   await d.sync.syncNow(['space-'+id(1)]);assert.equal(requests.length,0);
   assert.equal(d.spaces.isDormant(id(1),ctx),true);
 });
+test('a transient 26-Space library can be rejoined without adding another Space',()=>{
+ const spaces=Object.fromEntries(Array.from({length:26},(_,n)=>[id(n+1),{...indexEntry(),pos:f(model.keyFor('','',id(n+1)))}]));
+ const w={...workspace(),sharedId:id(1)};
+ assert.equal(sharing.planSharing({v:1,spaces},[w],[{id:'local',mode:'rejoin'}],options()).ok,true);
+ assert.equal(sharing.planSharing({v:1,spaces},[w],[{id:'local',mode:'copy'}],options()).error,'limit');
+});

@@ -86,6 +86,8 @@ function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
   const pinnedHomeUrl = closedPinnedHome(tab);
   const entry = {
     kind: 'tab',
+    ...(tab.sharedTabId ? {sharedTabId:tab.sharedTabId} : {}),
+    ...(tab.sharedRemoteClose ? {sharedRemoteClose:true} : {}),
     id: nextEntryId(),
     closedAt: now,
     url: tab.url,

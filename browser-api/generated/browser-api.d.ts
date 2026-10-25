@@ -163,6 +163,7 @@ export interface TabEntry {
   siteInfo: SiteInfo;
   /** The Split View (F53) this tab belongs to, or null. */
   splitId: string | null;
+  syncNotSynced?: boolean;
 }
 
 /** A tab group: a name, and optionally one of the Spaces preset colors. */
@@ -206,6 +207,7 @@ export interface ClosedEntrySummary {
   title: string;
   favicon: string | null;
   tabCount: number;
+  fromName?: string;
 }
 
 /** Blocking provider controls, from shieldProviderModel() in shield-model.js. */
@@ -407,6 +409,8 @@ export interface WorkspacePatch {
   name?: string;
   color?: string;
   symbol?: string;
+  /** Dismiss the development-only recovery explanation on this device. */
+  ackRecovery?: boolean;
 }
 
 /** A space row's right-click choice, run by the open Spaces menu. */
@@ -419,6 +423,10 @@ export interface WorkspaceActionEvent {
 export interface SharedSpaceAdmission {
   unsyncedTabIds: string[];
   reason: 'full' | 'tombstones' | 'tabs' | 'remote-over-budget' | 'required-state-over-budget' | null;
+  state?: 'shared' | 'waiting' | 'notSynced' | 'full' | 'unavailable';
+  lastSyncedAt?: number;
+  failed?: boolean;
+  pending?: boolean;
 }
 
 /** Shared-library capacity. Concurrent remote additions are retained even above the local creation limit. */
@@ -426,6 +434,8 @@ export interface SharedSpaceLibraryStatus {
   count: number;
   limit: number;
   canAdd: boolean;
+  busy?: boolean;
+  slowed?: boolean;
 }
 
 /** A Named Workspace row. */
@@ -455,6 +465,7 @@ export interface WorkspacesPayload {
   windowTabCount: number;
   tint: SpaceTint;
   sharedSync?: SharedSpaceLibraryStatus | undefined;
+  recoveryNotice?: boolean | null;
 }
 
 /** The chrome's effective appearance; pending while a system theme is still resolving. */
@@ -564,6 +575,7 @@ export interface WorkspaceActionResult {
   windowTabCount?: number;
   tint?: SpaceTint;
   sharedSync?: SharedSpaceLibraryStatus | undefined;
+  recoveryNotice?: boolean | null;
 }
 
 /** A search engine id. Must match the searchEngines ids in settings-schema/schema.json. */

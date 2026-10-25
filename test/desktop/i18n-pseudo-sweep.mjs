@@ -10,6 +10,7 @@ import poll from './support/poll.js';
 import sweep from './support/pseudo-sweep.js';
 import sessionFixture from '../support/chromium-session-fixture.js';
 import browserImport from '../../src/main/browser-data-import.js';
+import syncFixture from './support/sync-fixture.js';
 
 const { waitForValue } = poll;
 const { classifyTextEntries, COLLECT } = sweep;
@@ -296,7 +297,7 @@ WORKSPACE_SURFACES.push({
 
 // The start page in each layout (with the Customize popover open last), a
 // private start page, and each step of the welcome tour.
-const START_FILES = ['src/renderer/pages/newtab.html', 'src/renderer/pages/newtab.js', 'src/renderer/pages/onboarding.js'];
+const START_FILES = ['src/renderer/pages/newtab.html', 'src/renderer/pages/newtab.js', 'src/renderer/pages/newtab-shared-spaces.js', 'src/renderer/pages/onboarding.js'];
 const startPage = async (app, url = 'blanc://newtab/') => {
   const page = await waitForValue(async () => (await app.windows()).find((p) => p.url() === url), Boolean, url);
   // A page can be found by URL before its body exists.
@@ -383,7 +384,7 @@ const ERROR_SURFACES = [
 // permissions) have rendered, then in states whose text only script writes.
 const SETTINGS_FILES = ['src/renderer/pages/settings.html', 'src/renderer/pages/settings.js',
   'src/renderer/pages/settings-language-model.js', 'src/renderer/pages/settings-sync-setup-model.js',
-  'src/renderer/pages/settings-verify-model.js'];
+  'src/renderer/pages/settings-verify-model.js', 'src/renderer/pages/settings-shared-spaces.js'];
 const openSettings = async ({ app, chrome }) => {
   await chrome.evaluate(() => window.browserAPI.createTab('blanc://settings/'));
   const page = await findPage(app, 'blanc://settings', 'settings sheet');
@@ -685,6 +686,26 @@ const SURFACES = [
   ...UTILITY_SURFACES,
   ...TAB_IMPORT_SURFACES,
   ...MAHJONG_SURFACES,
+  {
+    name:'Shared Spaces selection sheet',files:SETTINGS_FILES,
+    open:async context=>{
+      await callTestHook(context.app,'openTab',[permissionPageUrl]);
+      await callTestHook(context.app,'workspaceAction',['save','zzz-shared-space']);
+      await callTestHook(context.app,'sharedSpacesTest',['enable',{handle:'Pseudo shared spaces',passphrase:'correct horse battery staple pseudo test'}]);
+      await callTestHook(context.app,'closeUtilitySurface');
+      const page=await openSettings(context);await page.locator('[data-group="sync"]').click();
+      await page.locator('#sharedSpacesToggle').check();await page.locator('.shared-spaces-dialog').waitFor({state:'visible',timeout:120000});return page;
+    },
+    close:page=>page.evaluate(()=>document.querySelector('.shared-spaces-dialog button').click()),
+  },
+  {
+    name:'Shared Spaces pairing notice',files:START_FILES,
+    open:async context=>{
+      await callTestHook(context.app,'sharedSpacesTest',['pairingPeer']);
+      await context.chrome.evaluate(()=>window.browserAPI.createTab('blanc://newtab/'));
+      const page=await findPage(context.app,'blanc://newtab/','start page');await page.locator('.shared-spaces-notice').waitFor({state:'visible'});return page;
+    },
+  },
 ];
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-pseudo-sweep-'));
@@ -714,11 +735,12 @@ fs.writeFileSync(path.join(chromeRoot, 'Default', 'Sessions', 'Session_100'), se
   }],
 }));
 const { ELECTRON_RUN_AS_NODE: _ignored, ...env } = process.env;
+const sharedFixture=await syncFixture.createSyncFixture();
 let app;
 const failures = [];
 try {
   app = await _electron.launch({ chromiumSandbox: true, args: [path.resolve('.'), `--user-data-dir=${profile}`],
-    env: { ...env, BLANC_TEST: '1', BLANC_TEST_LOCALE_STATUS: 'en-XA=selectable', BLANC_TEST_BROWSER_HOME: browserHome, BLANC_TEST_UNCAUGHT_LOG: path.join(root, 'uncaught.log') } });
+    env: { ...env, BLANC_TEST_SYNC_ENDPOINT:sharedFixture.url, BLANC_TEST: '1', BLANC_TEST_LOCALE_STATUS: 'en-XA=selectable', BLANC_TEST_BROWSER_HOME: browserHome, BLANC_TEST_UNCAUGHT_LOG: path.join(root, 'uncaught.log') } });
   const chrome = await findPage(app, 'blanc-chrome://index/', 'chrome strip');
   // Startup opens the first tab, which would close a sheet opened before it.
   await waitForValue(() => app.evaluate(() => globalThis.__blanc?.startupReady?.() === true), Boolean, 'startup');
@@ -753,6 +775,8 @@ try {
   }
 } finally {
   server.close();
+  if(app)await callTestHook(app,'sharedSpacesTest',['disable']).catch(()=>{});
+  await sharedFixture.close();
   await app?.close().catch(() => {});
   fs.rmSync(root, { recursive: true, force: true });
 }

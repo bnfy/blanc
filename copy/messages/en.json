@@ -8152,5 +8152,129 @@
   "slash.send.doc": {
     "message": "Send this tab's page to another synced device",
     "note": "Reference description of /send <device> on blanc://shortcuts and in Help → Slash Commands."
+  },
+  "sharedSpaces.switch": {
+    "message": "Keep Spaces and groups in sync on this device",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.title": {
+    "message": "Choose Spaces to sync",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.explanation": {
+    "message": "Share these Spaces across devices on this sync account. Open tabs, tab names, groups and pinned tabs will sync.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.cancel": {
+    "message": "Cancel",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.confirm": {
+    "message": "Turn on",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.count": {
+    "message": "{count} of {limit} shared Spaces",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.tabs": {
+    "message": "{count} tabs",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.rejoin": {
+    "message": "Rejoin",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.copy": {
+    "message": "Add as a copy",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.full": {
+    "message": "This Space is too large to sync. Split it into smaller Spaces first.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.unavailable": {
+    "message": "Spaces sync is unavailable. Favorites, settings, open-tab sharing and Send to device continue.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.recoveryName": {
+    "message": "{name} · kept on this device",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.shared": {
+    "message": "Shared",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.waiting": {
+    "message": "Waiting to upload",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.notSynced": {
+    "message": "Not synced since {time}",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.fullState": {
+    "message": "Full for sync",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.unavailableState": {
+    "message": "Spaces sync isn’t available",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.closedOn": {
+    "message": "Closed on {device}",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.split": {
+    "message": "Open to split…",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.splitHint": {
+    "message": "Move tabs to another Space, then try sharing again.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.accountLine": {
+    "message": "Every device that turns this on can change these Spaces.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.offLine": {
+    "message": "Turning this off keeps a local copy. Your other devices keep syncing.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.tombstones": {
+    "message": "Closed tabs still use sync space for 30 days.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.capacity": {
+    "message": "This Space is full for sync. Its local changes are kept.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.busy": {
+    "message": "Sync is busy; retrying.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.slowed": {
+    "message": "Checking for changes is slowed by rate limiting.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.unsyncedTab": {
+    "message": "Not synced",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.pairQuestion": {
+    "message": "{name} joined your sync. Turn on Spaces here?",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.pairDetail": {
+    "message": "Turning this on lets this device change shared Spaces across your sync account.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.notNow": {
+    "message": "Not now",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.recoveryNote": {
+    "message": "A local recovery Space preserves tabs missing from an old shared copy.",
+    "note": "Development-only Shared Spaces controls."
   }
 }
