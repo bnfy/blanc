@@ -4,6 +4,7 @@ import UIKit
 
 final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     weak var tab: TabModel?
+    var onSettingsNavigation: ((URL) -> Bool)?
     private var lastRequested: URL?
     var onTitleChange: (() -> Void)?
     var onURLChange: ((URL) -> Void)?
@@ -58,6 +59,13 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
             return
         }
         if navigationAction.targetFrame?.isMainFrame != false, let url = navigationAction.request.url {
+            // Existing/restored Settings tabs may reload or traverse their history.
+            // New links into Settings open the native sheet instead.
+            if (navigationAction.navigationType == .linkActivated || tab?.currentURL.host != "settings"),
+               onSettingsNavigation?(url) == true {
+                decisionHandler(.cancel)
+                return
+            }
             onWillLoadMainFrame?(url)
         }
         decisionHandler(.allow)

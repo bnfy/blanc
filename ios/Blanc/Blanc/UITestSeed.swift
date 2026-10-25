@@ -34,3 +34,63 @@ enum UITestSeed {
   }
 }
 #endif
+
+#if DEBUG
+import CryptoKit
+
+extension UITestSeed {
+    static var settings: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestSettings") }
+    static var settingsDirectory: URL {
+        FileManager.default.temporaryDirectory.appendingPathComponent("BlancSettingsUITests", isDirectory: true)
+    }
+    static func prepareSettings() {
+        if ProcessInfo.processInfo.arguments.contains("-BlancUITestSettingsReset") {
+            try? FileManager.default.removeItem(at: settingsDirectory)
+        }
+    }
+}
+
+/// Test-only service: real encrypted payloads, no production network or Keychain.
+actor SettingsUITestTransport: SyncTransport {
+    private var blobs: [String: (Int, SyncEnvelope)] = [:]
+    private var cachedKeys: SyncKeys?
+    func send(method: String, path: String, body: Data?) async throws -> (status: Int, body: Data) {
+        if ProcessInfo.processInfo.arguments.contains("-BlancUITestSettingsOffline") { throw SyncError.offline }
+        if cachedKeys == nil { cachedKeys = try SyncCrypto.deriveKeys(handle: "Settings Test", passphrase: "a sufficiently long testing passphrase") }
+        let keys = cachedKeys!
+        let settingsPath = "v1/blob/\(keys.accountId)/settings"
+        if blobs[settingsPath] == nil {
+            blobs[settingsPath] = (1, try SyncCrypto.seal(Data("{\"values\":{},\"clocks\":{}}".utf8), key: keys.contentKey))
+        }
+        if method == "GET", path.hasPrefix("v1/pair/") {
+            let material = try SyncPairing.material(code: "K7MR4PX2")
+            let payload = PairPayload(v: 1, handle: "Settings Test", accountId: keys.accountId,
+                key: keys.contentKey.withUnsafeBytes { Data($0).base64EncodedString() })
+            let blob = try SyncPairing.wrap(payload, wrapKey: material.wrapKey)
+            struct Response: Encodable { let blob: SyncEnvelope }
+            return (200, try JSONEncoder().encode(Response(blob: blob)))
+        }
+        if method == "GET", let (version, blob) = blobs[path] {
+            struct Response: Encodable { let version: String; let blob: SyncEnvelope }
+            return (200, try JSONEncoder().encode(Response(version: String(version), blob: blob)))
+        }
+        if method == "PUT", let body {
+            struct Put: Decodable { let blob: SyncEnvelope }
+            let blob = try JSONDecoder().decode(Put.self, from: body).blob
+            let version = (blobs[path]?.0 ?? 0) + 1
+            blobs[path] = (version, blob)
+            return (200, Data("{\"version\":\"\(version)\"}".utf8))
+        }
+        if method == "POST" { return (201, Data("{}".utf8)) }
+        if method == "DELETE" { return (200, Data("{}".utf8)) }
+        return (404, Data("{}".utf8))
+    }
+}
+
+@MainActor final class SettingsUITestSecrets: SyncSecretStore {
+    private var key: SymmetricKey?
+    func readKey() throws -> SymmetricKey? { key }
+    func writeKey(_ key: SymmetricKey) throws { self.key = key }
+    func deleteKey() throws { key = nil }
+}
+#endif
