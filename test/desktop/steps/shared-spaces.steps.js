@@ -76,7 +76,8 @@ Then('the active tab keeps its displayed address without republishing it',async 
 });
 When('the Worker does not support Spaces',async function(){this.sharedFixture.inject({type:'unknown-store',spacesOnly:true,times:100});});
 Then('the sheet reports Spaces unavailable and Favorites still sync',{timeout:180000},async function(){
- this.sharedPage=await settingsPage(this);await this.sharedPage.locator('#sharedSpacesToggle').check();
+ this.sharedPage=await settingsPage(this);await this.sharedPage.locator('#sharedSpacesToggle').click();
  await waitForValue(()=>this.sharedPage.locator('#sharedSpacesControl').textContent(),text=>text.includes('Spaces sync is unavailable'),'unavailable notice',120000);
+ assert.equal(await this.sharedPage.locator('#sharedSpacesToggle').isChecked(),false);
  const result=await this.call('sharedSpacesTest','pull',['bookmarks']);assert.equal(result.ok,true);assert.ok(this.sharedFixture.requests.some(r=>r.store==='bookmarks'&&r.status===200));
 });
