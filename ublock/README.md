@@ -69,30 +69,6 @@ Running `check-ublock-package.cjs --write` preserves and verifies this inventory
 Availability of these preferred sources does not establish exact build
 reproduction or close the remaining distribution assessment.
 
-The complete HSLuv and uAssets main sources are carried in
-`sources/hsluv-0.1.0-source.zip` and `sources/uAssets-1.75.0-main-source.zip`
-instead of their upstream gzip/TAR containers. This candidate changes the
-containers only: all 186 entries (151 files), original paths, file bytes,
-permissions, licenses, build scripts, tests and snapshots are retained. All 658
-uBO runtime files remain byte-identical to upstream; the existing adaptation is
-unchanged. `preferred-sources.json` records both the original gzip digests and
-the shipped ZIP digests, with immutable upstream revisions and download URLs.
-The bundled, hash-checked `repack-preferred-sources.py` reproduces the conversions
-offline:
-
-```
-python3 ublock/repack-preferred-sources.py /path/to/hsluv-0.1.0.tar.gz /tmp/hsluv-source.zip
-python3 ublock/repack-preferred-sources.py /path/to/uAssets-1.75.0-main.tar.gz /tmp/uassets-source.zip
-```
-
-The converter authenticates each upstream archive before reading it and verifies
-every resulting entry against it. It never executes archived scripts. This
-preserves the complete sources alongside the application; no network-only source
-offer replaces the bundled files. Scanner validation is still required before
-shipping this candidate: HSLuv independently reproduces Avast/AVG's PUP label;
-a diagnostic ZIP containing only the original uAssets main archive reproduces
-Kaspersky's Mimikatz label. Omitting HSLuv alone does not clear Kaspersky.
-
 
 The same inventory now pins uAssets main and production snapshots used by the
 1.75.0 release. All thirteen separately copied assets match those immutable

@@ -24,39 +24,16 @@ function sourceInputs(directory) {
     { path: 'LICENSE.txt', sha256: hash(fs.readFileSync(path.join(directory, 'LICENSE.txt'))) },
     { path: 'licenses/LGPL-3.0.txt', url: 'https://www.gnu.org/licenses/lgpl-3.0.txt', sha256: 'e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118' },
     { path: recordPath, sha256: hash(recordBytes) },
-    { path: 'repack-preferred-sources.py', sha256: hash(fs.readFileSync(path.join(directory, 'repack-preferred-sources.py'))) },
   ];
   const seen = new Set(sources.map(source => source.path));
   for (const component of record.components) {
     const member = component.sourcePath;
-    if (typeof member !== 'string' || !/^sources\/[a-zA-Z0-9_.+-]+\.(?:tar\.gz|zip)$/.test(member)
+    if (typeof member !== 'string' || !/^sources\/[a-zA-Z0-9_.+-]+\.tar\.gz$/.test(member)
       || seen.has(member) || !/^[a-f0-9]{40}$/.test(component.revision)
       || !/^[a-f0-9]{64}$/.test(component.sha256)
       || !/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(component.repository)
       || component.url !== `https://codeload.github.com/${component.repository}/tar.gz/${component.revision}`
       || hash(fs.readFileSync(path.join(directory, member))) !== component.sha256) throw new Error('ubo-preferred-source-integrity');
-    // Only this reviewed conversion may differ from the upstream container.
-    // Every upstream source file and permission is retained; no hash-only repack.
-    const conversions = {
-      'sources/hsluv-0.1.0-source.zip': {
-        name: 'hsluv-0.1.0', repository: 'hsluv/hsluv', revision: '9cd8574fad8874828b3a8119843527d62d79887a',
-        upstreamSha256: '1691357d86b2bbeead0ad2e31f0c4eeb40497e50bcf0faa8e97e91df50b7f9ee',
-        sha256: '00479f218504d20cc463ea169966c0c28b01c6492da77c43317fa794ab49678f',
-      },
-      'sources/uAssets-1.75.0-main-source.zip': {
-        name: 'uAssets-1.75.0-main', repository: 'uBlockOrigin/uAssets', revision: 'f9bd781375aeefae03196d07d079c772fa15e3e6',
-        upstreamSha256: '1e0b65e660123f6015d84485d5ec6ac8571eeee957a0cbc0b5ea083850afe7d7',
-        sha256: 'a064e149e27bfdae081cd6bde41eaa31d5d7dcb1cacb297de5f24e4259b83d38',
-      },
-    };
-    const conversion = conversions[member];
-    if (conversion ? Object.entries(conversion).some(([key, value]) => component[key] !== value)
-      || component.sourceFormat !== 'lossless-tar-gz-to-zip'
-      || component.repackScript !== 'repack-preferred-sources.py'
-      : member.endsWith('.zip') || component.sourceFormat !== undefined
-        || component.upstreamSha256 !== undefined || component.repackScript !== undefined) {
-      throw new Error('ubo-preferred-source-conversion');
-    }
     seen.add(member);
     sources.push({ path: member, url: component.url, sha256: component.sha256 });
   }

@@ -1,5 +1,28 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+UPDATE: CANDIDATE REJECTED AFTER SCANNER VALIDATION.
+The approved CAPTCHA completed and the HSLuv source-file control was submitted.
+The complete 65-file ZIP returned 5/65, including the original Avast/AVG labels.
+The exact committed HSLuv replacement ZIP independently returned 5/64 with the
+same labels. Thus gzip/TAR-to-ZIP conversion does NOT eliminate this warning.
+The experimental replacements and converter were removed in a follow-up commit;
+all original source archives and their pins were restored. Only the guards
+rejecting unlisted source archives remain as a packaging improvement. The
+candidate details and earlier validation below are historical, not clearance
+or the current source-container layout. No release was made.
+
+https://www.virustotal.com/gui/file/e96991a8afdf32836ff85c633c7bcd5d135eafe23e7fdf69307828da9da9db7e/detection
+https://www.virustotal.com/gui/file/00479f218504d20cc463ea169966c0c28b01c6492da77c43317fa794ab49678f/detection
+
+Member isolation continues. Two visible CAPTCHAs now block the five Maxima math
+files and twelve public encrypted deployment artifacts. A fresh unauthenticated
+download from the immutable upstream codeload URL matched the original source
+digest and every byte of those twelve artifacts. This establishes that the
+partition contains already-public upstream files, not local credentials or
+customer data. Automatic approval review initially stopped that partition until
+its public provenance was established; upload preparation was allowed after the
+fresh-download comparison. Action-time CAPTCHA approval is separately pending.
+
 Published installer: Blanc-1.43.1-arm64.dmg
 SHA-256: 137821c40fd25771d1041fcb609af9993100ef9d8c363749774eeab4042777fb
 Release commit: 154d1db84a7d54d83b6dd40ef91ea7042636446f
