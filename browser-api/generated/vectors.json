@@ -1677,7 +1677,9 @@
                 "error": "site-info-1"
               },
               "splitId": "tab-entry-1",
-              "syncNotSynced": true
+              "syncNotSynced": true,
+              "readerAvailable": true,
+              "readerActive": true
             }
           ],
           "selectedTabIds": [
@@ -6696,7 +6698,9 @@
                     "error": "site-info-1"
                   },
                   "splitId": "tab-entry-1",
-                  "syncNotSynced": true
+                  "syncNotSynced": true,
+                  "readerAvailable": true,
+                  "readerActive": true
                 }
               ],
               "selectedTabIds": [
@@ -6854,7 +6858,9 @@
                       "error": "site-info-1"
                     },
                     "splitId": "tab-entry-1",
-                    "syncNotSynced": true
+                    "syncNotSynced": true,
+                    "readerAvailable": true,
+                    "readerActive": true
                   }
                 ],
                 "selectedTabIds": [
@@ -7332,6 +7338,36 @@
             ]
           ]
         }
+      ]
+    },
+    "toggleReaderMode": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "tabs:reader-toggle",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "tab-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:reader-toggle",
+              "args": [
+                "tab-id-1"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
       ]
     }
   }

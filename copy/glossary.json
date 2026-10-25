@@ -20,7 +20,9 @@
     "Spaces",
     "Space",
     "Arc",
-    "StorableSidebar.json"
+    "StorableSidebar.json",
+    "Inter",
+    "JetBrains Mono"
   ],
   "fixedPatterns": [
     "(?<![\\w/:])/[a-z][a-z0-9-]*",
@@ -230,7 +232,9 @@
       "ios.settings.support",
       "ios.settings.site",
       "ios.settings.status",
-      "ios.settings.passphrase"
+      "ios.settings.passphrase",
+      "reader.system",
+      "reader.sepia"
     ],
     "es": [
       "about.chromium",
@@ -279,7 +283,8 @@
       "newtab.clock.font.flex",
       "settings.general.surfaceStyle.sunrise",
       "ios.settings.blocker",
-      "ios.settings.site"
+      "ios.settings.site",
+      "reader.sepia"
     ],
     "fr": [
       "about.chromium",

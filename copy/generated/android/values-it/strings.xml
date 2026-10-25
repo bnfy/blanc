@@ -2368,4 +2368,26 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="tabs_menu_close">Chiudi schede</string>
     <string name="ws_new_with_tabs">Con queste schede</string>
     <string name="ws_error_moved_partly">%1$s schede spostate in %2$s. Le altre sono rimaste qui.</string>
+    <string name="reader_title">Modalità lettura</string>
+    <string name="reader_enter">Attiva modalità lettura</string>
+    <string name="reader_exit">Esci dalla modalità lettura</string>
+    <string name="reader_appearance">Aspetto</string>
+    <string name="reader_theme">Tema</string>
+    <string name="reader_system">Sistema</string>
+    <string name="reader_light">Chiaro</string>
+    <string name="reader_dark">Scuro</string>
+    <string name="reader_sepia">Seppia</string>
+    <string name="reader_font">Carattere</string>
+    <string name="reader_serif">Con grazie</string>
+    <string name="reader_sans">Senza grazie</string>
+    <string name="reader_size">Dimensione del testo</string>
+    <string name="reader_width">Larghezza di lettura</string>
+    <string name="reader_narrow">Stretta</string>
+    <string name="reader_comfortable">Comoda</string>
+    <string name="reader_wide">Ampia</string>
+    <string name="reader_hint">Leggi questo articolo con testo regolabile e meno distrazioni</string>
+    <string name="reader_unavailable">La modalità lettura non ha trovato un articolo in questa pagina.</string>
+    <string name="slash_reader_hint">Leggi questo articolo con testo regolabile e meno distrazioni</string>
+    <string name="reader_inter">Inter</string>
+    <string name="reader_mono">JetBrains Mono</string>
 </resources>

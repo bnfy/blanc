@@ -2297,4 +2297,26 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="tabs_menu_close">Tabs schließen</string>
     <string name="ws_new_with_tabs">Mit diesen Tabs</string>
     <string name="ws_error_moved_partly">%1$s Tabs nach %2$s verschoben. Die anderen Tabs bleiben hier.</string>
+    <string name="reader_title">Lesemodus</string>
+    <string name="reader_enter">Lesemodus öffnen</string>
+    <string name="reader_exit">Lesemodus verlassen</string>
+    <string name="reader_appearance">Darstellung</string>
+    <string name="reader_theme">Design</string>
+    <string name="reader_system">System</string>
+    <string name="reader_light">Hell</string>
+    <string name="reader_dark">Dunkel</string>
+    <string name="reader_sepia">Sepia</string>
+    <string name="reader_font">Schrift</string>
+    <string name="reader_serif">Serifenschrift</string>
+    <string name="reader_sans">Serifenlose Schrift</string>
+    <string name="reader_size">Textgröße</string>
+    <string name="reader_width">Lesebreite</string>
+    <string name="reader_narrow">Schmal</string>
+    <string name="reader_comfortable">Angenehm</string>
+    <string name="reader_wide">Breit</string>
+    <string name="reader_hint">Diesen Artikel mit anpassbarem Text und weniger Ablenkungen lesen</string>
+    <string name="reader_unavailable">Der Lesemodus konnte auf dieser Seite keinen Artikel finden.</string>
+    <string name="slash_reader_hint">Diesen Artikel mit anpassbarem Text und weniger Ablenkungen lesen</string>
+    <string name="reader_inter">Inter</string>
+    <string name="reader_mono">JetBrains Mono</string>
 </resources>

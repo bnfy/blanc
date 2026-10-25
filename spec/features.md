@@ -1687,3 +1687,27 @@ Two gestures Arc's iPhone users rely on, asked for on r/ArcBrowser
   `/close`; Reduce Motion replaces the slide with a cross-fade.
 - **Desktop.** Not applicable: trackpad and keyboard tab switching already
   exist, and the Island has no bottom bar.
+
+## F58 — Reader Mode (desktop and iOS candidate)
+
+Free, manually activated article reading, implemented on the candidate branch;
+not shipped in public v1.43.1. `/reader` always permits a manual attempt. A
+suitability hint offers Enter Reader Mode in the expanded Island (desktop) or
+palette (iOS); the active reader has Exit Reader Mode and appearance controls.
+
+- Extract the already-loaded main-frame article locally, retaining its source
+  view for return without reloading. No pre-load transformation or speed claim.
+- Shared Source Serif 4, Instrument Sans, Inter, and JetBrains Mono fonts;
+  System/Light/Dark/Sepia, 16–28px text, and three widths;
+  remember appearance locally, with private changes confined to memory.
+- Retain headings, available metadata, links, figures/captions, tables, and code;
+  sanitize untrusted markup and preserve language/direction. Failure retains
+  the source and explains that no article was found.
+- Keep source identity for history, Favorites, sharing, and restore. Never save
+  or sync reader article content or reader-active state.
+- Desktop uses a sandboxed companion, blocker-checked cookie-free image broker,
+  and reader-aware Find/Print/zoom/focus/Glance/Split View. iOS uses a separate
+  nonpersistent WKWebView and already-loaded, canvas-readable images (D31).
+- See `docs/reader-mode.md`, `browser-api/reader.json`, and F58 acceptance tests.
+  Automatic activation, speech, AI, annotations, offline saving, and pre-load
+  simplification are outside this version.

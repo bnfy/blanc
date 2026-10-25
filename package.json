@@ -101,7 +101,7 @@
     "bench:memory": "node bench/memory/run.js",
     "security:dependencies": "node scripts/audit-dependencies.mjs",
     "release:security": "npm audit --omit=dev --audit-level=high",
-    "release:verify:press": "npm run substrate:check && npm run icons:windows:check && npm run test:unit && npm run test:acceptance:dry && npm run test:acceptance:desktop && npm run test:favorites-picker:desktop && npm run test:wallpaper:desktop && npm run test:cold-launch && npm run test:browser-shortcuts:desktop && npm run test:web-store && npm run test:oauth:desktop && npm run test:modified-links:desktop && npm run test:dns-smoke && npm run release:security && npm run site:build",
+    "release:verify:press": "npm run substrate:check && npm run icons:windows:check && npm run test:unit && npm run test:acceptance:dry && npm run test:acceptance:desktop && npm run test:favorites-picker:desktop && npm run test:wallpaper:desktop && npm run test:cold-launch && npm run test:browser-shortcuts:desktop && npm run test:reader:desktop && npm run test:web-store && npm run test:oauth:desktop && npm run test:modified-links:desktop && npm run test:dns-smoke && npm run release:security && npm run site:build",
     "icons:windows:build": "node scripts/build-windows-icons.js",
     "icons:windows:check": "node scripts/build-windows-icons.js --check",
     "brand:build": "node scripts/build-brand-assets.js",
@@ -122,7 +122,7 @@
     "copy:ack": "node copy/build.mjs --ack",
     "browser-api:build": "node browser-api/build.mjs",
     "browser-api:check": "node browser-api/build.mjs --check",
-    "substrate:check": "npm run brand:check && npm run tokens:check && npm run settings:check && npm run copy:check && npm run browser-api:check && npm run adblock:check && npm run darkreader:check && npm run ublock:check && npm run compliance:check && npm run compatibility:check && npm run audit-inventory:check && npm run bangs:check",
+    "substrate:check": "npm run brand:check && npm run tokens:check && npm run settings:check && npm run copy:check && npm run browser-api:check && npm run adblock:check && npm run darkreader:check && npm run ublock:check && npm run compliance:check && npm run compatibility:check && npm run audit-inventory:check && npm run bangs:check && npm run reader:check",
     "lint": "eslint \"src/**/*.js\" \"cloudflare/**/src/**/*.js\" --max-warnings 0",
     "test:ublock-dashboard:desktop": "node test/desktop/ublock-dashboard.mjs",
     "runtime:check": "node scripts/preflight-electron-runtime.js",
@@ -177,7 +177,10 @@
     "pretest:trust-receipt": "npm run runtime:check",
     "test:pages": "node --test test/pages/*.test.mjs",
     "ios:sync-vectors:build": "node scripts/build-ios-sync-vectors.cjs --write",
-    "ios:sync-vectors:check": "node scripts/build-ios-sync-vectors.cjs --check"
+    "ios:sync-vectors:check": "node scripts/build-ios-sync-vectors.cjs --check",
+    "reader:build": "node scripts/build-reader.cjs",
+    "reader:check": "node scripts/build-reader.cjs --check",
+    "test:reader:desktop": "node test/desktop/reader-mode-smoke.mjs"
   },
   "author": {
     "name": "Bananify Creative",
@@ -200,6 +203,8 @@
   "dependencies": {
     "@1password/sdk": "0.5.0",
     "@ghostery/adblocker-electron": "^2.20.1",
+    "@mozilla/readability": "0.6.0",
+    "dompurify": "3.4.17",
     "electron-updater": "^6.8.9"
   },
   "build": {
@@ -271,7 +276,7 @@
         "CFBundleDisplayName": "Blanc Browser",
         "NSMicrophoneUsageDescription": "Blanc allows websites you approve to use your microphone.",
         "NSCameraUsageDescription": "Blanc allows websites you approve to use your camera.",
-        "NSAudioCaptureUsageDescription": "Blanc lets you share this Mac’s screen and system audio with a website after you choose a source.",
+        "NSAudioCaptureUsageDescription": "Blanc lets you share this Mac\u2019s screen and system audio with a website after you choose a source.",
         "CFBundleDocumentTypes": [
           {
             "CFBundleTypeRole": "Viewer",

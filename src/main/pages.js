@@ -65,6 +65,7 @@ function registerPagesScheme() {
     ...(require('../../package.json').blancRuntime === 'ecs'
       ? [require('./local-html-preview').LOCAL_HTML_SCHEME] : []),
     { scheme: 'blanc', privileges: { standard: true, secure: true } },
+    { scheme: 'blanc-reader', privileges: { standard: true, secure: true } },
     // The privileged strip + overlay cannot remain on file:// when the
     // GrantFileProtocolExtraPrivileges fuse is disabled. Their handler is a
     // separate, exact allowlist in chrome-protocol.js.

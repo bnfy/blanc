@@ -2368,4 +2368,26 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="tabs_menu_close">Fermer les onglets</string>
     <string name="ws_new_with_tabs">Avec ces onglets</string>
     <string name="ws_error_moved_partly">%1$s onglets déplacés vers %2$s. Les autres sont restés ici.</string>
+    <string name="reader_title">Mode lecture</string>
+    <string name="reader_enter">Activer le mode lecture</string>
+    <string name="reader_exit">Quitter le mode lecture</string>
+    <string name="reader_appearance">Apparence</string>
+    <string name="reader_theme">Thème</string>
+    <string name="reader_system">Système</string>
+    <string name="reader_light">Clair</string>
+    <string name="reader_dark">Sombre</string>
+    <string name="reader_sepia">Sépia</string>
+    <string name="reader_font">Police</string>
+    <string name="reader_serif">Avec empattements</string>
+    <string name="reader_sans">Sans empattement</string>
+    <string name="reader_size">Taille du texte</string>
+    <string name="reader_width">Largeur de lecture</string>
+    <string name="reader_narrow">Étroite</string>
+    <string name="reader_comfortable">Confortable</string>
+    <string name="reader_wide">Large</string>
+    <string name="reader_hint">Lire cet article avec un texte réglable et moins de distractions</string>
+    <string name="reader_unavailable">Le mode lecture n’a trouvé aucun article sur cette page.</string>
+    <string name="slash_reader_hint">Lire cet article avec un texte réglable et moins de distractions</string>
+    <string name="reader_inter">Inter</string>
+    <string name="reader_mono">JetBrains Mono</string>
 </resources>
