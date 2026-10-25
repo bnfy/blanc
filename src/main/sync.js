@@ -1056,7 +1056,9 @@ async function sendTab({ url, title, to } = {}) {
     onOutcome: (name, outcome, error) => { if (name === 'sends') result = { outcome, error }; },
   });
   if (result && !result.error && !result.outcome?.unavailable && !result.outcome?.missing) return { status: 'sent' };
-  sends.removeOwnItem(ctx, added.item.id);
+  // The queue can be cancelled by adopting another account. Rebinding the
+  // old send here would erase the new account's cache during rollback.
+  if(ensureStore().data.accountId===ctx.accountId)sends.removeOwnItem(ctx, added.item.id);
   return { status: result?.outcome?.unavailable ? 'unavailable' : 'failed' };
 }
 

@@ -50,6 +50,17 @@ test('adopting a new account cancels old queued Space writes before the new acco
   await d.clock.advance(60000);assert.equal((await enable).ok,true);
   assert.equal(d.events.some(e=>e.store==='space-'+id(1)),false);
 });
+test('cancelled send cleanup cannot rebind or erase the newly adopted account cache',async t=>{
+  const d=setup(t,{full:true});
+  const pending=d.sync.sendTab({url:'https://example.test/',title:'Old send',to:'phone'});await tick();
+  const credentials={handle:'new-account',passphrase:'a strong new account passphrase'};
+  const {accountId:newId,key}=require('../../src/main/sync-crypto').deriveKeys(credentials.handle,credentials.passphrase);key.fill(0);
+  const enable=d.sync.enable(credentials),newCtx={...d.ctx,accountId:newId};
+  d.sends.mergeFromSync({devices:{'new-peer':{name:'New phone',platform:'ios',updatedAt:Date.now(),items:[]}}},newCtx);
+  assert.equal((await pending).status,'failed');
+  assert.deepEqual(d.sends.targets(newCtx,{},{}).map(x=>x.id),['new-peer']);
+  await d.clock.advance(60000);await enable;
+});
 test('unknown Spaces stores cancel Space classes while fixed stores still complete',async t=>{
   const d=setup(t,{fetch:e=>response(e.method==='GET'?404:200,e.store==='spaces'?'unknown store':{version:'v'})});
   const b=space(1);d.spaces.noteLocalSpace(id(1),b,{tabs:b.tabs},d.ctx);

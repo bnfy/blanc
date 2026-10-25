@@ -36,7 +36,7 @@ function syncDevice({fetch,clock,files={},key=Buffer.alloc(32,9),record={}}={}) 
     }
     return mod.exports;
   }
-  return {sync:load(path.join(main,'sync.js')),spaces:load(path.join(main,'shared-spaces.js')),closed:load(path.join(main,'synced-closed.js')),record:initial,tmp,
+  return {sync:load(path.join(main,'sync.js')),spaces:load(path.join(main,'shared-spaces.js')),closed:load(path.join(main,'synced-closed.js')),sends:load(path.join(main,'sends.js')),record:initial,tmp,
     async dispose(){for(const store of stores)store.flushPending();for(const store of stores)await store.settled();fs.rmSync(tmp,{recursive:true,force:true});}};
 }
 module.exports={syncDevice,virtualClock};
