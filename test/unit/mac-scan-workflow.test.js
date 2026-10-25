@@ -26,6 +26,7 @@ test('Mac signing stays protected, read-only, native on both architectures and t
   assert.deepEqual(job.strategy.matrix.include.map(x => x.arch), ['arm64', 'x64']);
   const checkout = job.steps.find(x => x.uses?.startsWith('actions/checkout@'));
   assert.equal(checkout.with.ref, '${{ inputs.source_sha }}');
+  assert.equal(checkout.with['fetch-depth'], 0, 'press compatibility checks require immutable release tags');
   assert.equal(checkout.with['persist-credentials'], false);
   const binding = job.steps.find(x => x.name === 'Bind workflow and source to the approved commit').run;
   assert(binding.includes('test "$GITHUB_SHA" = "$APPROVED_SOURCE_SHA"'));

@@ -1,5 +1,14 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+FIRST HOSTED ATTEMPT: Run 40240699074 at source 849470959 stopped before signing
+on Intel because the shallow checkout omitted immutable v1.27.0, required by
+compatibility:check. The substrate checks preceding it, including the updated
+SBOMs and uBO/source integrity, passed. Canceled the obsolete run while arm64
+was queued; no installers or credentials were uploaded as artifacts. The Mac
+checkout now fetches full history/tags, guarded by the workflow test. All three
+focused Mac workflow tests pass. Signing, final installer scans and release
+clearance remain pending; no tag, release or updater feed was changed.
+
 PROTECTED MAC SIGNING PROVISIONED: The owner explicitly approved adding only
 codex/antivirus-source-packaging to the existing ecs-signing branch allowlist
 and storing the pinned Apple signing identity and existing notarization
