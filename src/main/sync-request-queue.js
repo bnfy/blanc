@@ -50,11 +50,12 @@ function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setT
       else if(outcome?.retry){op.attempt++;op.state='waiting';waiting.push(op);}
       else complete(op,outcome,null);
     } catch(error) {
+      let failure=error;
       if(['rate-limited','http-429'].includes(error.message)) {
         scheduler.onRateLimited();
-        try {persist(scheduler.snapshot());}catch(persistError){error=persistError;}
+        try {persist(scheduler.snapshot());}catch(persistError){failure=persistError;}
       }
-      const reason=op.cancelled?.();complete(op,null,reason?makeError('cancelled:'+reason):error);
+      const reason=op.cancelled?.();complete(op,null,reason?makeError('cancelled:'+reason):failure);
     } finally {running=null;settleDrain();wake();}
   }
   function enqueue({onOutcome,...request}) {
