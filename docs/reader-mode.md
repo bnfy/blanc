@@ -107,3 +107,24 @@ screen readers, and representative live publishers under both blocker providers.
 Keep the existing protected merge, affected-machine confirmation, CodeQL,
 packaging/compliance, What's New, and release gates. Passing source tests or an
 iOS Simulator run does not waive those gates.
+
+## Local verification evidence (October 25, 2026)
+
+- Full desktop unit suite: **4,793 passed, 2 skipped, 0 failed** (4,795 total).
+- Related Cucumber run (`@reader-mode or @glance or @split-view`): **104 scenarios,
+  773 steps passed**, using the harness's configured one retry (two initial
+  attempts retried). The three new reader scenarios also passed alone.
+- Native `BlancTests`: **289 tests passed**; **58 reader/navigation/session tests**
+  passed after same-document URL invalidation was added; the final reader-only
+  replay passed all three tests after the last native/resource edits.
+- Desktop smoke passed article safety, source return, Find, appearance/private
+  state, Split View, Glance, and cross-window transfer. Light, Sepia, Dark, and
+  390px layouts were rendered and inspected locally.
+- Lint, substrate, bridge contracts, generated reader/pin checks, compliance,
+  acceptance dry-run, and website/SEO build passed. Site validation used the
+  bundled Node 24.19.0 runtime to meet the site's Node >=22.19 requirement.
+- Production dependency audit: **zero vulnerabilities**. Reader smoke now runs
+  in the existing Windows/macOS/Linux browser-shortcuts CI matrix and in the
+  release press gate; native CI includes the new reader tests automatically.
+
+These are source and Simulator results, not installed-platform release evidence.
