@@ -6,6 +6,7 @@ import path from 'node:path';
 import { _electron } from 'playwright';
 import poll from './support/poll.js';
 import testHookCall from './support/test-hook-call.js';
+import { inMainTurn } from './support/main-turn.js';
 
 // Closing Blanc's last window with its own close button, on Windows and Linux.
 //
@@ -80,7 +81,7 @@ const describeWindows = (app) => app.evaluate(({ BrowserWindow }) =>
   })));
 
 // Exactly what Blanc's close button does (`window:close` → window.close()).
-const closeWindows = (app, ids) => app.evaluate(({ BrowserWindow }, targets) => {
+const closeWindows = (app, ids) => inMainTurn(app, ({ BrowserWindow }, targets) => {
   for (const id of targets) BrowserWindow.fromId(id)?.close();
 }, ids);
 

@@ -5,6 +5,7 @@ import path from 'node:path';
 import { _electron } from 'playwright';
 import testHookCall from './support/test-hook-call.js';
 import poll from './support/poll.js';
+import { inMainTurn } from './support/main-turn.js';
 
 const { callTestHook } = testHookCall;
 const { waitForValue } = poll;
@@ -27,7 +28,7 @@ try {
   if (process.argv.includes('--reopened-window')) {
     assert.equal(process.platform, 'darwin', 'Dock reopen regression runs on macOS');
     await waitForValue(async () => (await app.windows()).some((p) => p.url() === 'blanc://newtab/'), Boolean, 'initial recovery window');
-    const closedId = await app.evaluate(({ BrowserWindow }) => {
+    const closedId = await inMainTurn(app, ({ BrowserWindow }) => {
       const window = BrowserWindow.getAllWindows()[0];
       const id = window.id;
       window.close();
