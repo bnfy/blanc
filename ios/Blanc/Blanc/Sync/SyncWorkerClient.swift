@@ -36,7 +36,7 @@ private nonisolated final class NoSyncRedirects: NSObject, URLSessionTaskDelegat
 }
 
 nonisolated enum SyncStore: String, CaseIterable, Sendable {
-  case bookmarks, settings, session, icons
+  case bookmarks, settings, session, icons, sends
 }
 nonisolated enum SyncError: Error, Equatable {
   case notFound
@@ -45,6 +45,8 @@ nonisolated enum SyncError: Error, Equatable {
   case pairNotFound, pairUnavailable, pairInvalid, offline
   case server(Int)
   case stale, storage, syncOn, syncOff, createOnComputer, wipeUnsupported, accountGone
+  /// An older Worker that doesn't serve this store (M7b's `sends`).
+  case unknownStore
   var code: String {
     switch self {
     case .notFound: "not-found"
@@ -65,6 +67,7 @@ nonisolated enum SyncError: Error, Equatable {
     case .createOnComputer: "create-on-computer"
     case .wipeUnsupported: "wipe-unsupported"
     case .accountGone: "account-gone"
+    case .unknownStore: "unknown-store"
     }
   }
 }
@@ -101,7 +104,10 @@ nonisolated struct SyncWorkerClient: Sendable {
     version: String, blob: SyncEnvelope
   )? {
     let (status, body) = try await request("GET", "v1/blob/\(locator(accountId))/\(store.rawValue)")
-    if status == 404 { return nil }
+    if status == 404 {
+      if String(decoding: body, as: UTF8.self) == "unknown store" { throw SyncError.unknownStore }
+      return nil
+    }
     struct Response: Decodable {
       let version: String
       let blob: SyncEnvelope
@@ -131,6 +137,9 @@ nonisolated struct SyncWorkerClient: Sendable {
     let (status, data) = try await request(
       "PUT", "v1/blob/\(locator(accountId))/\(store.rawValue)",
       JSONEncoder().encode(Body(ifVersion: ifVersion, blob: blob)))
+    if status == 404, String(decoding: data, as: UTF8.self) == "unknown store" {
+      throw SyncError.unknownStore
+    }
     guard status != 404,
       let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
       let version = object["version"] as? String

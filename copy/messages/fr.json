@@ -237,6 +237,10 @@
     "message": "Rechercher ou saisir une URL",
     "source": "sha256:cfb8ca4be5f793f910258121250c991cd9bc736ccfd07285de5dacff603913cc"
   },
+  "pill.notice.cleanLinkCopied": {
+    "message": "Lien épuré copié",
+    "source": "sha256:a4fc9d603af1275456e5c9948f7796ccfa7e957f9581802f38574e5979db35e8"
+  },
   "pill.notice.linkCopied": {
     "message": "Lien copié",
     "source": "sha256:da3f613d76760b8fce41b8708d0815baed0ebf3477d27dd561ed32ee01445658"
@@ -1664,7 +1668,7 @@
   },
   "menu.copyCleanLink": {
     "message": "Copier le lien épuré",
-    "source": "sha256:4381fb192ca5aae8fdeeb5dc24d88c14bdaa3cdd967058127169c8f686507fa5"
+    "source": "sha256:a50439dad5a9ca708f65c22094ec13c2e735207371d668229efa26a4b210a100"
   },
   "menu.undo": {
     "message": "Annuler",

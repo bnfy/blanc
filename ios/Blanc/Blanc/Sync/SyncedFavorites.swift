@@ -107,6 +107,119 @@ nonisolated enum SyncedFavorites {
     }
     return .object([("items", .array(result)), ("tombstones", .array(retained))])
   }
+  // Local edits, matching bookmarks.js and bookmark-data.js: each returns the
+  // store unchanged when nothing changes, and stamps updatedAt on what it touches.
+  static func isFavorite(_ store: JSONValue, url: String) -> Bool {
+    (store["items"]?.array ?? []).contains { $0["url"]?.string == url }
+  }
+  static func toggle(
+    _ store: JSONValue, url: String, title: String, favicon: String?, now: Double,
+    makeId: () -> String
+  ) -> (store: JSONValue, favorited: Bool) {
+    var next = store
+    let items = store["items"]?.array ?? []
+    var tombstones = store["tombstones"]?.array ?? []
+    if isFavorite(store, url: url) {
+      next["items"] = .array(items.filter { $0["url"]?.string != url })
+      tombstones.append(.object([("url", .string(url)), ("deletedAt", .number(now))]))
+      next["tombstones"] = .array(tombstones)
+      return (next, false)
+    }
+    let item: JSONValue = .object([
+      ("id", .string(makeId())), ("url", .string(url)),
+      ("title", .string(title.isEmpty ? url : title)),
+      ("favicon", SyncedIcons.valid(favicon).map(JSONValue.string) ?? .null),
+      ("addedAt", .number(now)), ("updatedAt", .number(now)), ("folder", .null),
+    ])
+    next["items"] = .array(items + [item])
+    next["tombstones"] = .array(tombstones.filter { $0["url"]?.string != url })
+    return (next, true)
+  }
+  static func remove(_ store: JSONValue, id: String, now: Double) -> JSONValue {
+    let items = store["items"]?.array ?? []
+    guard let item = items.first(where: { $0["id"]?.string == id }),
+      let url = item["url"]?.string
+    else { return store }
+    var next = store
+    next["items"] = .array(items.filter { $0["id"]?.string != id })
+    next["tombstones"] = .array(
+      (store["tombstones"]?.array ?? [])
+        + [.object([("url", .string(url)), ("deletedAt", .number(now))])])
+    return next
+  }
+  static func setFolder(_ store: JSONValue, id: String, folder: String?, now: Double) -> JSONValue
+  {
+    var items = store["items"]?.array ?? []
+    guard let index = items.firstIndex(where: { $0["id"]?.string == id }) else { return store }
+    var target: String?
+    if let folder {
+      // An invalid name is refused, never treated as ungrouping.
+      guard let valid = validFolder(folder) else { return store }
+      target = canonicalFolders(items)[folderKey(valid)] ?? valid
+    }
+    guard items[index]["folder"]?.string != target else { return store }
+    items[index]["folder"] = target.map(JSONValue.string) ?? .null
+    items[index]["updatedAt"] = .number(now)
+    var next = store
+    next["items"] = .array(items)
+    return next
+  }
+  static func renameFolder(_ store: JSONValue, from: String, to: String, now: Double) -> JSONValue {
+    guard let valid = validFolder(to) else { return store }
+    let items = store["items"]?.array ?? []
+    let oldKey = folderKey(from)
+    // A case-only rename takes the new spelling; otherwise join an existing folder.
+    let target =
+      folderKey(to) == oldKey ? valid : (canonicalFolders(items)[folderKey(valid)] ?? valid)
+    return restamp(store, now: now) { folder in
+      folderKey(folder) == oldKey && folder != target ? .string(target) : nil
+    }
+  }
+  static func removeFolder(_ store: JSONValue, name: String, now: Double) -> JSONValue {
+    let key = folderKey(name)
+    return restamp(store, now: now) { folderKey($0) == key ? .null : nil }
+  }
+  private static func restamp(
+    _ store: JSONValue, now: Double, _ change: (String) -> JSONValue?
+  ) -> JSONValue {
+    var changed = false
+    let items = (store["items"]?.array ?? []).map { item -> JSONValue in
+      guard let folder = item["folder"]?.string, let value = change(folder) else { return item }
+      changed = true
+      var next = item
+      next["folder"] = value
+      next["updatedAt"] = .number(now)
+      return next
+    }
+    guard changed else { return store }
+    var next = store
+    next["items"] = .array(items)
+    return next
+  }
+  private static func validFolder(_ name: String) -> String? {
+    let trimmed = SyncCrypto.trim(name)
+    return (1...100).contains(trimmed.utf16.count) ? trimmed : nil
+  }
+  private static func folderKey(_ name: String) -> String {
+    SyncCrypto.lowercaseLikeJavaScript(SyncCrypto.trim(name))
+  }
+  /// Each folder's spelling, taken from its oldest item (ties: the smaller id).
+  private static func canonicalFolders(_ items: [JSONValue]) -> [String: String] {
+    var best: [String: (folder: String, addedAt: Double, id: String)] = [:]
+    for item in items {
+      guard let folder = item["folder"]?.string else { continue }
+      let key = folderKey(folder)
+      let addedAt = item["addedAt"]?.number ?? 0
+      let id = item["id"]?.string ?? ""
+      if let cur = best[key],
+        !(addedAt < cur.addedAt || (addedAt == cur.addedAt && utf16Less(id, cur.id)))
+      {
+        continue
+      }
+      best[key] = (folder, addedAt, id)
+    }
+    return best.mapValues(\.folder)
+  }
   static func list(_ store: JSONValue) -> [Favorite] {
     (store["items"]?.array ?? []).compactMap { i in
       guard let id = i["id"]?.string, let url = i["url"]?.string else { return nil }

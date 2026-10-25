@@ -56,8 +56,48 @@ struct PaletteSheet: View {
         }
     }
 
+    private var sentAgo: RelativeDateTimeFormatter {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter
+    }
+
     private var tabList: some View {
         List {
+            // Send to device (M7b): pages other devices sent here come first.
+            // Tap opens one in a new tab; swipe left dismisses it. Either way
+            // it leaves this list on this phone only.
+            if !manager.syncEngine.inbox.isEmpty {
+                Section(SyncCopy.text("sends.section")) {
+                    ForEach(manager.syncEngine.inbox) { item in
+                        Button {
+                            if let url = URL(string: item.url) {
+                                manager.createTab(url: url)
+                                manager.syncEngine.dismiss(item.id)
+                                dismiss()
+                            }
+                        } label: {
+                            VStack(alignment: .leading) {
+                                Text(item.title.isEmpty ? item.url : item.title).lineLimit(1)
+                                Text(SyncCopy.text("sends.from", [
+                                    "device": item.fromName,
+                                    "time": sentAgo.localizedString(
+                                        for: Date(timeIntervalSince1970: Double(item.sentAt) / 1000), relativeTo: Date()),
+                                ]))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                            }
+                        }
+                        .accessibilityIdentifier("sent.\(item.id)")
+                        .swipeActions(edge: .trailing) {
+                            Button(SyncCopy.text("sends.dismiss"), role: .destructive) {
+                                manager.syncEngine.dismiss(item.id)
+                            }
+                        }
+                    }
+                }
+            }
             ForEach(manager.tabs) { tab in
                 Button {
                     manager.setActive(tab.id)
@@ -135,7 +175,8 @@ struct PaletteSheet: View {
     private var switcherList: some View {
         let results = QuickSwitcher.search(
             query: input.trimmingCharacters(in: .whitespacesAndNewlines),
-            tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites
+            tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites,
+            history: manager.historyStore.entries
         )
         return List {
             if results.isEmpty {
@@ -180,8 +221,8 @@ struct PaletteSheet: View {
             return
         }
 
-        let results = QuickSwitcher.search(query: trimmed, tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites)
-        if let top = results.first, top.strength >= QuickSwitcher.strongMatchScore {
+        let results = QuickSwitcher.search(query: trimmed, tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites, history: manager.historyStore.entries)
+        if let top = QuickSwitcher.goTarget(query: trimmed, results: results) {
             open(top)
             dismiss()
             return

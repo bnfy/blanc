@@ -8,6 +8,7 @@ final class TabsManager {
     var activeTabId: UUID?
 
     let settingsStore: SettingsStore
+    let historyStore: HistoryStore
     private let syncDirectory: URL
     @ObservationIgnored private var applyingRemoteSettings = false
     @ObservationIgnored lazy var syncEngine: SyncEngine = {
@@ -50,6 +51,7 @@ final class TabsManager {
         let store = SettingsStore(directory: settingsDirectory)
         self.settingsStore = store
         self.sessionStore = SessionStore(directory: sessionDirectory)
+        self.historyStore = HistoryStore(directory: settingsDirectory)
         self.normalizer = AddressNormalizer(searchEngine: store.searchEngine)
 
         contentBlocker.enabled = store.adblockEnabled
@@ -61,7 +63,17 @@ final class TabsManager {
             contentBlocker.prepare(version: loaded.version, jsonProvider: loaded.loadJSON)
         }
 
-        let savedURLs = sessionStore.urls.compactMap { URL(string: $0) }
+        var savedURLs = sessionStore.urls.compactMap { URL(string: $0) }
+        #if DEBUG
+        if UITestSeed.sends {
+            UITestSeed.seedSends(into: syncDirectory)
+            savedURLs = [UITestSeed.pageURL]
+        }
+        if UITestSeed.favorites {
+            UITestSeed.seedFavorites(into: syncDirectory)
+            savedURLs = [UITestSeed.pageURL]
+        }
+        #endif
         if savedURLs.isEmpty {
             createTab()
         } else {
@@ -75,6 +87,26 @@ final class TabsManager {
             activeTabId = tabs[clampedIndex].id
             isRestoringSession = false
             persistSession()
+        }
+    }
+
+    /// Only web pages can be Favorites; Blanc's own pages can't.
+    static func canFavorite(_ url: URL) -> Bool {
+        ["http", "https"].contains(url.scheme?.lowercased() ?? "")
+    }
+
+    func isFavorite(_ tab: TabModel) -> Bool {
+        syncEngine.isFavorite(url: tab.currentURL.absoluteString)
+    }
+
+    func toggleFavorite(_ tab: TabModel) {
+        guard Self.canFavorite(tab.currentURL) else { return }
+        let url = tab.currentURL.absoluteString, title = tab.pageTitle
+        syncEngine.editFavorites {
+            SyncedFavorites.toggle(
+                $0, url: url, title: title, favicon: nil, now: Date().timeIntervalSince1970 * 1000,
+                makeId: { UUID().uuidString.lowercased() }
+            ).store
         }
     }
 
@@ -92,7 +124,13 @@ final class TabsManager {
         tab.navigationDelegate.onURLChange = { [weak self] _ in
             self?.persistSession()
         }
-        tab.navigationDelegate.onTitleChange = { [weak self] in self?.syncEngine.tabsChanged() }
+        tab.navigationDelegate.onVisit = { [weak self] url, title in
+            self?.historyStore.addVisit(url: url, title: title)
+        }
+        tab.navigationDelegate.onTitleChange = { [weak self, weak tab] in
+            if let tab { self?.historyStore.updateTitle(url: tab.currentURL, title: tab.pageTitle) }
+            self?.syncEngine.tabsChanged()
+        }
         tabs.append(tab)
         activeTabId = tab.id
         persistSession()

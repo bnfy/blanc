@@ -2780,6 +2780,16 @@
               "link-copied"
             ]
           ]
+        },
+        {
+          "emit": [
+            "clean-link-copied"
+          ],
+          "callbacks": [
+            [
+              "clean-link-copied"
+            ]
+          ]
         }
       ]
     },

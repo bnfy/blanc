@@ -1392,9 +1392,9 @@ body > .tab-drag-ghost[aria-hidden="true"] {
   text-overflow: ellipsis;
 }
 #pillDomain.dim { color: var(--text-dim); }
-/* A confirmation in the label's place (Link copied): plain ink, no ellipsis
-   games, since the string is short and chosen to fit. */
-#pillDomain.notice { color: var(--text); text-overflow: clip; }
+/* A confirmation in the label's place (Link copied): plain ink. It keeps the
+   label's ellipsis so a long translation in a narrow window still reads. */
+#pillDomain.notice { color: var(--text); }
 
 /* A blank tab's pill is a typing affordance, not a label. Dim ink is what
    separates a placeholder from real content — a prompt and a domain in the

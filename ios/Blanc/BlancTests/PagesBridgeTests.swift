@@ -44,14 +44,65 @@ final class PagesBridgeTests: XCTestCase {
         XCTAssertEqual(value("start", "focusGroup"), .null)
     }
 
-    func testBookmarksCapabilitiesReadOnlyAndEditsReject() {
-        XCTAssertEqual(value("bookmarks", "capabilities"), .object([("editable", .bool(false))]))
-        for method in ["remove", "setFolder", "renameFolder", "removeFolder", "import", "importBrowser"] {
-            guard case .reject = PagesBridge.response(group: "bookmarks", method: method, appVersion: "test") else {
-                XCTFail("read-only Favorites accepted \(method)")
+    func testFavoritesAreEditableOnThePhone() {
+        XCTAssertEqual(value("bookmarks", "capabilities"), .object([("editable", .bool(true)), ("import", .bool(false)), ("pins", .bool(false))]))
+    }
+
+    func testImportStillRejects() {
+        for method in ["import", "importBrowser", "browserSources"] {
+            guard case .reject(let message) = PagesBridge.response(group: "bookmarks", method: method, appVersion: "test") else {
+                XCTFail("the phone accepted \(method)")
                 continue
             }
+            XCTAssertEqual(message, SyncCopy.text("favorites.editOnComputer"))
         }
+    }
+
+    @MainActor private func managerWithHistory() -> TabsManager {
+        let manager = TabsManager(
+            settingsDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString),
+            sessionDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        manager.historyStore.addVisit(url: URL(string: "https://old.example/")!, title: "Old")
+        manager.historyStore.addVisit(url: URL(string: "https://new.example/")!, title: "New")
+        return manager
+    }
+
+    @MainActor func testHistoryListReturnsEntriesNewestFirst() {
+        let manager = managerWithHistory()
+        let bridge = PagesBridge(manager: manager)
+        guard case .value(let list) = bridge.liveResponse(group: "history", method: "list", args: [["query": "", "limit": 500]]) else {
+            return XCTFail("history.list rejected")
+        }
+        XCTAssertEqual(list.array.map { $0["url"]?.string }, ["https://new.example/", "https://old.example/"])
+        XCTAssertEqual(list.array.first?["title"], .string("New"))
+        XCTAssertEqual(list.array.first?["favicon"], .null)
+        XCTAssertNotNil(list.array.first?["visitedAt"]?.number)
+        guard case .value(let filtered) = bridge.liveResponse(group: "history", method: "list", args: [["query": "old"]]) else {
+            return XCTFail("history.list rejected")
+        }
+        XCTAssertEqual(filtered.array.map { $0["url"]?.string }, ["https://old.example/"])
+        let visitedAt = manager.historyStore.entries[1].visitedAt
+        XCTAssertEqual(bridge.liveResponse(group: "history", method: "remove", args: ["https://old.example/", NSNumber(value: visitedAt)]), .value(.null))
+        XCTAssertEqual(manager.historyStore.entries.map(\.url), ["https://new.example/"])
+    }
+
+    @MainActor func testHistoryClearEmptiesTheStore() {
+        let manager = managerWithHistory()
+        XCTAssertEqual(PagesBridge(manager: manager).liveResponse(group: "history", method: "clear", args: []), .value(.null))
+        XCTAssertTrue(manager.historyStore.entries.isEmpty)
+    }
+
+    @MainActor func testRemoveFavoriteReachesTheEngine() {
+        let manager = TabsManager(
+            settingsDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString),
+            sessionDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        manager.syncEngine.editFavorites {
+            SyncedFavorites.toggle($0, url: "https://fav.example/", title: "Fav", favicon: nil, now: 1, makeId: { "fav-1" }).store
+        }
+        XCTAssertEqual(manager.syncEngine.favorites.map(\.id), ["fav-1"])
+        let bridge = PagesBridge(manager: manager)
+        XCTAssertEqual(bridge.liveResponse(group: "bookmarks", method: "remove", args: ["fav-1"]), .value(.null))
+        XCTAssertTrue(manager.syncEngine.favorites.isEmpty)
     }
 
     // Structured sync/supporter/default-browser shapes match what settings.js reads.
@@ -162,6 +213,20 @@ final class PagesBridgeTests: XCTestCase {
         XCTAssertEqual(PagesBridge.members(fromBridgesJSON: Data(json.utf8)),
                        [PagesBridge.Member(name: "start.data", kind: "invoke", hosts: ["newtab"])])
         XCTAssertEqual(PagesBridge.members(fromBridgesJSON: Data("nope".utf8)), [])
+    }
+    // Send to device (M7b): the start page's sent-page members exist on iOS,
+    // and the native strings come from the same catalog.
+    func testSendToDeviceMembersAndCopy() {
+        let names = Set(PagesBridge.bundledMembers.map(\.name))
+        for name in ["start.openSent", "start.dismissSent", "start.onSentItems"] {
+            XCTAssertTrue(names.contains(name), "missing \(name)")
+        }
+        for key in ["sends.section", "sends.dismiss", "tabMenu.sendToDevice", "sends.unavailable", "sends.failed"] {
+            XCTAssertNotEqual(SyncCopy.text(key), key, key)
+        }
+        XCTAssertEqual(SyncCopy.text("sends.sent", ["device": "Mac"]), "Sent to Mac.")
+        XCTAssertEqual(SyncCopy.sendResult(.unavailable, device: "Mac"), SyncCopy.text("sends.unavailable"))
+        XCTAssertFalse(SyncCopy.text("sends.from", ["device": "Mac", "time": "5m ago"]).contains("{"))
     }
     func testNativeCopyReadsBundledCatalog() {
         XCTAssertNotEqual(SyncCopy.text("footer.devices"), "footer.devices")

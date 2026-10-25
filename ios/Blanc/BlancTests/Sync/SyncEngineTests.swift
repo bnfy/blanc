@@ -19,7 +19,14 @@ actor MemorySyncTransport: SyncTransport {
     private var heldPath: String?
     private var heldMethod: String?
     private var held: CheckedContinuation<Void, Never>?
+    private var retired: Set<String> = []
     func records() -> [Request] { requests }
+    /// An older Worker that doesn't serve `store` at all (M7b's `sends`).
+    func retire(_ store: SyncStore) { retired.insert(store.rawValue) }
+    func value(_ account: String, _ store: SyncStore, key: SymmetricKey) throws -> JSONValue? {
+        guard let (_, blob) = blobs["v1/blob/\(account)/\(store.rawValue)"] else { return nil }
+        return try JSONValue(data: SyncCrypto.open(blob, key: key))
+    }
     func install(_ account: String, _ store: SyncStore, _ value: JSONValue, key: SymmetricKey) throws {
         blobs["v1/blob/\(account)/\(store.rawValue)"] = (1, try SyncCrypto.seal(Data(value.jsStringify().utf8), key: key))
     }
@@ -33,7 +40,9 @@ actor MemorySyncTransport: SyncTransport {
         let response: (status: Int, body: Data)
         let exactKey = method + " " + path
         let failureKey = failures[exactKey] != nil ? exactKey : (failures.keys.first { $0.hasSuffix("/") && exactKey.hasPrefix($0) } ?? exactKey)
-        if var pending = failures[failureKey], !pending.isEmpty {
+        if let store = path.split(separator: "/").last.map(String.init), retired.contains(store), path.hasPrefix("v1/blob/") {
+            response = (404, Data("unknown store".utf8))
+        } else if var pending = failures[failureKey], !pending.isEmpty {
             let status = pending.removeFirst(); failures[failureKey] = pending
             response = (status, Data("{\"version\":\"1\"}".utf8))
         } else if method == "GET", let (version, blob) = blobs[path] {
@@ -101,6 +110,81 @@ actor MemorySyncTransport: SyncTransport {
     }
     private func putCount(_ transport: MemorySyncTransport, suffix: String? = nil) async -> Int {
         await transport.records().filter { $0.method == "PUT" && (suffix == nil || $0.path.hasSuffix(suffix!)) }.count
+    }
+    private func favoriteURLs(_ store: JSONValue?) -> [String] {
+        (store?["items"]?.array ?? []).compactMap { $0["url"]?.string }
+    }
+    private func addFavorite(_ engine: SyncEngine, _ url: String) {
+        engine.editFavorites { SyncedFavorites.toggle($0, url: url, title: "Fav", favicon: nil, now: Double(self.now), makeId: { UUID().uuidString }).store }
+    }
+    func testFavoriteAddedOnPhoneIsUploaded() async throws {
+        let f = try await make()
+        addFavorite(f.engine, "https://fav.example/")
+        XCTAssertTrue(f.engine.isFavorite(url: "https://fav.example/"))
+        await f.engine.syncNow()
+        let uploaded = try await f.transport.value(accountA, .bookmarks, key: f.key)
+        XCTAssertEqual(favoriteURLs(uploaded), ["https://fav.example/"])
+    }
+    func testLocalFavoriteEditSurvivesOlderRemoteTombstone() async throws {
+        let f = try await make()
+        try await f.transport.install(accountA, .bookmarks, .object([("items", .array([])), ("tombstones", .array([.object([("url", .string("https://fav.example/")), ("deletedAt", .number(Double(now - 1)))])]))]), key: f.key)
+        addFavorite(f.engine, "https://fav.example/")
+        await f.engine.syncNow()
+        XCTAssertEqual(favoriteURLs(f.state.load(.bookmarks)), ["https://fav.example/"])
+        let uploaded = try await f.transport.value(accountA, .bookmarks, key: f.key)
+        XCTAssertEqual(favoriteURLs(uploaded), ["https://fav.example/"])
+        XCTAssertEqual(uploaded?["tombstones"]?.array.count, 0)
+    }
+    func testFavoriteEditDuringPullIsNotLost() async throws {
+        let f = try await make()
+        await f.transport.suspendNext("GET", "v1/blob/\(accountA)/bookmarks")
+        let pass = Task { await f.engine.syncNow() }
+        try await waitSuspended(f.transport)
+        addFavorite(f.engine, "https://during.example/")
+        await f.transport.release()
+        await pass.value
+        let uploaded = try await f.transport.value(accountA, .bookmarks, key: f.key)
+        XCTAssertEqual(favoriteURLs(uploaded), ["https://during.example/"])
+        XCTAssertEqual(f.engine.favorites.map(\.url), ["https://during.example/"])
+    }
+    func testFavoriteEditDuringSessionUploadIsNotLost() async throws {
+        let f = try await make(sharing: true)
+        addFavorite(f.engine, "https://first.example/")
+        await f.transport.suspendNext("PUT", "v1/blob/\(accountA)/session")
+        let pass = Task { await f.engine.syncNow() }
+        try await waitSuspended(f.transport)
+        addFavorite(f.engine, "https://second.example/")
+        await f.transport.release()
+        await pass.value
+        XCTAssertEqual(Set(favoriteURLs(f.state.load(.bookmarks))), ["https://first.example/", "https://second.example/"])
+        XCTAssertEqual(Set(f.engine.favorites.map(\.url)), ["https://first.example/", "https://second.example/"])
+    }
+    func testDisableKeepsFavorites() async throws {
+        let f = try await make()
+        addFavorite(f.engine, "https://keep.example/")
+        _ = await f.engine.disable()
+        XCTAssertFalse(f.state.state.enabled)
+        XCTAssertEqual(f.engine.favorites.map(\.url), ["https://keep.example/"])
+        XCTAssertTrue(FileManager.default.fileExists(atPath: f.directory.appendingPathComponent("sync-favorites.json").path))
+    }
+    func testJoinMergesLocalFavoritesIntoAccount() async throws {
+        let f = try await make()
+        addFavorite(f.engine, "https://local.example/")
+        let keyB = SymmetricKey(data: Data(repeating: 7, count: 32))
+        try await f.transport.install(accountB, .settings, settings("dark"), key: keyB)
+        try await f.transport.install(accountB, .bookmarks, .object([("items", .array([.object([("id", .string("b1")), ("url", .string("https://b.example/")), ("title", .string("B")), ("favicon", .null), ("addedAt", .number(50)), ("updatedAt", .number(50)), ("folder", .null)])])), ("tombstones", .array([]))]), key: keyB)
+        _ = await f.engine.switchWithCode(try code(accountB, key: keyB))
+        XCTAssertEqual(f.state.state.accountId, accountB)
+        let uploaded = try await f.transport.value(accountB, .bookmarks, key: keyB)
+        XCTAssertEqual(Set(favoriteURLs(uploaded)), ["https://local.example/", "https://b.example/"])
+    }
+    func testEditWithSyncOffStaysLocal() async throws {
+        let f = try await make(enabled: false)
+        addFavorite(f.engine, "https://off.example/")
+        XCTAssertEqual(f.engine.favorites.map(\.url), ["https://off.example/"])
+        try await Task.sleep(for: .milliseconds(400))
+        let requests = await f.transport.records()
+        XCTAssertTrue(requests.isEmpty)
     }
     func testUnclockedRemoteSettingsSurviveFirstPull() async throws {
         let f = try await make()
@@ -378,6 +462,127 @@ actor MemorySyncTransport: SyncTransport {
         let second = await f.transport.records().count
         XCTAssertEqual(first, second)
         XCTAssertGreaterThan(first, 0)
+    }
+
+
+    // MARK: Send to device (M7b)
+
+    private func sendsStore(_ entries: [(String, JSONValue)]) -> JSONValue {
+        .object([("devices", .object(entries))])
+    }
+    private func macEntry(items: [JSONValue] = [], at: Int64? = nil) -> JSONValue {
+        .object([("name", .string("Mac")), ("platform", .string("darwin")), ("updatedAt", .number(Double(at ?? now - 1000))), ("items", .array(items))])
+    }
+    private func sentItem(_ id: String, to: String) -> JSONValue {
+        .object([("id", .string(id)), ("to", .string(to)), ("url", .string("https://sent.example/\(id)")), ("title", .string("Sent \(id)")), ("sentAt", .number(Double(now - 60_000)))])
+    }
+    private func requestCount(_ t: MemorySyncTransport, _ method: String, suffix: String? = nil) async -> Int {
+        await t.records().filter { $0.method == method && (suffix == nil || $0.path.hasSuffix(suffix!)) }.count
+    }
+
+    func testPassIsFiveGetsAndPresenceAloneNeverCreatesTheStore() async throws {
+        let f = try await make()
+        await f.engine.syncNow()
+        let gets = await requestCount(f.transport, "GET")
+        XCTAssertEqual(gets, 5)
+        let sendsPuts = await requestCount(f.transport, "PUT", suffix: "/sends")
+        XCTAssertEqual(sendsPuts, 0)
+        let stored = try await f.transport.value(accountA, .sends, key: f.key)
+        XCTAssertNil(stored)
+    }
+    func testPresencePublishedOncePerDay() async throws {
+        let f = try await make()
+        try await f.transport.install(accountA, .sends, sendsStore([("mac", macEntry())]), key: f.key)
+        await f.engine.syncNow()
+        let own = try await f.transport.value(accountA, .sends, key: f.key)?["devices"]?[f.state.state.deviceId]
+        XCTAssertEqual(own?["name"], .string("iPhone"))
+        XCTAssertEqual(own?["platform"], .string("ios"))
+        await f.engine.syncNow()
+        let puts = await requestCount(f.transport, "PUT", suffix: "/sends")
+        XCTAssertEqual(puts, 1, "an unchanged presence entry is not republished within a day")
+    }
+    func testSendPutsImmediatelyToAPresenceOnlyTarget() async throws {
+        let f = try await make()
+        try await f.transport.install(accountA, .sends, sendsStore([("mac", macEntry())]), key: f.key)
+        await f.engine.syncNow()
+        XCTAssertEqual(f.engine.sendTargets.map(\.id), ["mac"], "a device that shares no tabs is still a target")
+        let result = await f.engine.send(url: "https://example.org/a", title: "A", to: "mac")
+        XCTAssertEqual(result, .sent)
+        let items = try await f.transport.value(accountA, .sends, key: f.key)?["devices"]?[f.state.state.deviceId]?["items"]?.array ?? []
+        XCTAssertEqual(items.map { $0["to"]?.string }, ["mac"])
+        XCTAssertEqual(items.first?["url"], .string("https://example.org/a"))
+    }
+    func testSendRetries409KeepingOtherEntries() async throws {
+        let f = try await make()
+        try await f.transport.install(accountA, .sends, sendsStore([("mac", macEntry())]), key: f.key)
+        await f.engine.syncNow()
+        await f.transport.fail("PUT", "v1/blob/\(accountA)/sends", statuses: [409])
+        let result = await f.engine.send(url: "https://example.org/b", title: "B", to: "mac")
+        XCTAssertEqual(result, .sent)
+        let devices = try await f.transport.value(accountA, .sends, key: f.key)?["devices"]
+        XCTAssertNotNil(devices?["mac"])
+        XCTAssertEqual(devices?[f.state.state.deviceId]?["items"]?.array.count, 1)
+    }
+    func testSendOnOldWorkerReportsUnavailable() async throws {
+        let f = try await make()
+        try await f.transport.install(accountA, .session, session("desktop-a"), key: f.key)
+        await f.transport.retire(.sends)
+        await f.engine.syncNow()
+        XCTAssertNil(f.state.state.lastError, "an older Worker never makes the pass fail")
+        XCTAssertEqual(f.state.state.lastSyncedAt, now)
+        XCTAssertEqual(f.engine.sendTargets.map(\.id), ["desktop-a"])
+        let result = await f.engine.send(url: "https://example.org/c", title: "C", to: "desktop-a")
+        XCTAssertEqual(result, .unavailable)
+        let puts = await requestCount(f.transport, "PUT", suffix: "/sends")
+        XCTAssertEqual(puts, 0)
+        XCTAssertNil(f.state.load(.sends)?["devices"]?[f.state.state.deviceId]?["items"]?.array.first)
+    }
+    func testSendRefusesThisDeviceAndUnknownDevices() async throws {
+        let f = try await make()
+        try await f.transport.install(accountA, .sends, sendsStore([("mac", macEntry())]), key: f.key)
+        await f.engine.syncNow()
+        let toSelf = await f.engine.send(url: "https://example.org/", title: "", to: f.state.state.deviceId)
+        XCTAssertEqual(toSelf, .invalid)
+        let toNobody = await f.engine.send(url: "https://example.org/", title: "", to: "nobody")
+        XCTAssertEqual(toNobody, .invalid)
+        let notHttp = await f.engine.send(url: "file:///etc/hosts", title: "", to: "mac")
+        XCTAssertEqual(notHttp, .invalid)
+    }
+    func testDismissSurvivesRepullAndRelaunch() async throws {
+        let f = try await make()
+        let own = f.state.state.deviceId
+        try await f.transport.install(accountA, .sends, sendsStore([("mac", macEntry(items: [sentItem("p1", to: own), sentItem("p2", to: "pc")]))]), key: f.key)
+        await f.engine.syncNow()
+        XCTAssertEqual(f.engine.inbox.map(\.id), ["p1"])
+        XCTAssertEqual(f.engine.inbox.first?.fromName, "Mac")
+        f.engine.dismiss("p1")
+        XCTAssertTrue(f.engine.inbox.isEmpty)
+        await f.engine.syncNow()
+        XCTAssertTrue(f.engine.inbox.isEmpty, "a re-pull does not bring it back")
+        let relaunched = SyncEngine(state: SyncStateStore(directory: f.directory), secrets: f.secrets, client: SyncWorkerClient(transport: f.transport), clock: { self.now }, settingsSink: { _ in }, tabsSource: { [] })
+        XCTAssertTrue(relaunched.inbox.isEmpty)
+    }
+    func testSwitchAccountClearsInbox() async throws {
+        let f = try await make()
+        try await f.transport.install(accountA, .sends, sendsStore([("mac", macEntry(items: [sentItem("p1", to: f.state.state.deviceId)]))]), key: f.key)
+        await f.engine.syncNow()
+        XCTAssertEqual(f.engine.inbox.count, 1)
+        try await f.transport.install(accountB, .settings, settings("dark"), key: f.key)
+        _ = await f.engine.switchWithCode(try code(accountB, key: f.key))
+        XCTAssertTrue(f.engine.inbox.isEmpty)
+        XCTAssertTrue(f.engine.sendTargets.isEmpty)
+    }
+    func testDisablePublishesSendsRetraction() async throws {
+        let f = try await make()
+        let own = f.state.state.deviceId
+        try await f.transport.install(accountA, .sends, sendsStore([("mac", macEntry())]), key: f.key)
+        await f.engine.syncNow()
+        _ = await f.engine.disable()
+        let devices = try await f.transport.value(accountA, .sends, key: f.key)?["devices"]
+        XCTAssertEqual(devices?[own]?["retracted"], .bool(true))
+        XCTAssertNotNil(devices?["mac"])
+        XCTAssertTrue(f.engine.inbox.isEmpty)
+        XCTAssertNil(f.state.load(.sends))
     }
 
 }
