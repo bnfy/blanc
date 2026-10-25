@@ -30,12 +30,23 @@ for(const mode of modes){
  for(let i=0;i<45;i++){await delay(1000);try{pages=await(await fetch('http://127.0.0.1:9222/json/list',{signal:AbortSignal.timeout(1000)})).json();if(pages.some(p=>p.type==='page'&&!p.url.startsWith('devtools:'))){ready=true;break;}}catch{}if(child.exitCode!==null)break;}
  const result={mode,removeDesktop:remove,exitCode:child.exitCode,pages,ready};
  if(ready){try{
-  const target=pages.find(p=>p.type==='page'&&!p.url.startsWith('blanc-chrome:')&&!p.url.startsWith('devtools:'));
+  // Use the application's normal navigation path. DevTools Page.navigate can
+  // race or bypass the tab coordinator and legitimately hit its fail-closed guard.
+  await delay(3500);
+  for(const args of [['key','--clearmodifiers','ctrl+l'],['type','--clearmodifiers','--delay','1','http://127.0.0.1:8771/probe'],['key','Return']]){
+   const input=spawnSync('xdotool',args,{encoding:'utf8'});if(input.status)throw Error(input.stderr);
+  }
+  for(let i=0;i<25;i++){
+   await delay(1000);pages=await(await fetch('http://127.0.0.1:9222/json/list')).json();
+   if(pages.some(p=>p.url==='http://127.0.0.1:8771/probe'))break;
+  }
+  result.afterInputPages=pages;
+  const target=pages.find(p=>p.type==='page'&&p.url==='http://127.0.0.1:8771/probe');
   if(!target)throw Error('No real content page');
   const client=await cdp(target.webSocketDebuggerUrl);
-  await client.send('Page.enable');await client.send('Page.navigate',{url:'http://127.0.0.1:8771/probe'});await delay(2500);
+  await client.send('Page.enable');await delay(1500);
   result.browsing=await client.send('Runtime.evaluate',{expression:'({title:document.title,probe:document.querySelector("#probe")?.textContent,nodeExposed:typeof require!=="undefined",storage:localStorage.getItem("probe")})',returnByValue:true});
-  await client.send('Page.reload');await delay(1500);
+  spawnSync('xdotool',['key','--clearmodifiers','ctrl+r']);await delay(2000);
   result.reload=await client.send('Runtime.evaluate',{expression:'({title:document.title,storage:localStorage.getItem("probe")})',returnByValue:true});
   const shot=await client.send('Page.captureScreenshot');fs.writeFileSync(`${root}/${mode}.png`,Buffer.from(shot.data,'base64'));client.close();
  }catch(e){result.browsingError=String(e);}}
