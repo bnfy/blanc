@@ -86,7 +86,6 @@ final class TabsManager {
         }
     }
 
-    @discardableResult
     /// Only web pages can be Favorites; Blanc's own pages can't.
     static func canFavorite(_ url: URL) -> Bool {
         ["http", "https"].contains(url.scheme?.lowercased() ?? "")
@@ -107,6 +106,7 @@ final class TabsManager {
         }
     }
 
+    @discardableResult
     func createTab(url: URL = TabsManager.newTabURL) -> UUID {
         let config = WebViewConfiguration.make(schemeHandler: schemeHandler, bridge: bridge)
         if contentBlocker.enabled, let ruleList = contentBlocker.compiledRuleList {
