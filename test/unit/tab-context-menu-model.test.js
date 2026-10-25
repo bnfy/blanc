@@ -294,6 +294,16 @@ test('menu: a split tab offers Remove from Split and Close Split instead', () =>
   assert.equal(order.indexOf('remove-from-split'), order.indexOf('group') + 1);
 });
 
+test('isCopyable is shared with the Copy Link browser command', () => {
+  const { isCopyable } = require('../../src/main/tab-context-menu-model');
+  for (const url of ['https://example.com/a?b=1', 'http://127.0.0.1:8080/', 'file:///Users/me/page.html']) {
+    assert.equal(isCopyable({ url }), true, url);
+  }
+  for (const url of ['blanc://newtab/', 'blanc://settings/', 'about:blank', '', undefined]) {
+    assert.equal(isCopyable({ url }), false, String(url));
+  }
+});
+
 test('Move to Space lists every space, the current one checked, after Move to Group', () => {
   const spaces = [{ id: 'w1', name: 'Work', current: true }, { id: 'w2', name: 'Reading', current: false }];
   const m = build({ spaces });

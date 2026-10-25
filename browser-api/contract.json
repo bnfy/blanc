@@ -963,6 +963,10 @@
       "ts": "'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces'",
       "doc": "Overlay modes; every showOverlay() call in main.js passes one of these literals."
     },
+    "PillNotice": {
+      "ts": "'link-copied'",
+      "doc": "Fixed ids of the pill's brief confirmations; the strip owns their text."
+    },
     "ShieldTrigger": {
       "ts": "'shield' | 'insecure'",
       "doc": "Which strip control opened the shield popover."
@@ -2580,6 +2584,14 @@
       "channel": "chrome:glance-status",
       "payload": "string",
       "doc": "A Glance status message for the chrome to show."
+    },
+    {
+      "name": "onPillNotice",
+      "group": "island",
+      "kind": "event",
+      "channel": "chrome:pill-notice",
+      "payload": "PillNotice",
+      "doc": "Show a brief confirmation in the pill's label slot (Link copied)."
     },
     {
       "name": "openIsland",

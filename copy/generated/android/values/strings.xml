@@ -59,6 +59,7 @@
     <string name="pill_insecure_open">%1$s. Open site controls.</string>
     <string name="pill_domain_default">new tab</string>
     <string name="pill_placeholder">Search or type a URL</string>
+    <string name="pill_notice_link_copied">Link copied</string>
     <string name="pill_commands">Commands (/)</string>
     <string name="pill_private_chip">Private</string>
     <string name="pill_private_title">Leave private mode — closes this tab</string>

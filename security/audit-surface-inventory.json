@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "aab533efff320a1e6ca1a24d6080b03313047a0c03b1ec319ad6549628815cde",
+      "sha256": "dfcd07d438b36c003fb7cb7fe96786bbac375c18959b48d7d766385ac5bb8ef2",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -307,6 +307,7 @@
         "chrome:open-shield",
         "chrome:open-spaces",
         "chrome:page-tint",
+        "chrome:pill-notice",
         "chrome:preview-vertical-tabs-width",
         "chrome:remote-tabs-list",
         "chrome:remote-tabs-updated",
@@ -615,7 +616,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "9deb34d249d9e73c8580cc856540325f65493ae8d2361d9403e0e361ded6ddc8",
+      "sha256": "6984517c072fb0cad326328cc3e188d668480818641c491f7d4a6db7317b14bb",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -663,6 +664,7 @@
         "chrome:open-shield",
         "chrome:open-spaces",
         "chrome:page-tint",
+        "chrome:pill-notice",
         "chrome:preview-vertical-tabs-width",
         "chrome:remote-tabs-list",
         "chrome:remote-tabs-updated",

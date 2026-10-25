@@ -192,7 +192,7 @@ const { installDockMenu } = require('./dock-menu');
 const { createDockReopenLifecycle } = require('./dock-reopen');
 /** Handle from installDockMenu ({ update }); null until app-ready (macOS). */
 let dockMenuHandle = null;
-const { buildTabContextMenu, pinLabelKey, closableTabIds, closableBeside, pickSurvivorTabId } = require('./tab-context-menu-model');
+const { buildTabContextMenu, pinLabelKey, closableTabIds, closableBeside, pickSurvivorTabId, isCopyable } = require('./tab-context-menu-model');
 const { attachChromeMenu, attachRowMenu, toElectronTemplate: tabMenuTemplate } = require('./tab-context-menu');
 const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
 const settings = require('./settings');
@@ -7027,6 +7027,18 @@ function reloadBrowserCommandTab(runtime, bypassCache = false, sender = null) {
   });
 }
 
+/** ⇧⌘C and Edit → Copy Link: the pane's address to the clipboard, with a
+ * moment's "Link copied" in the pill, since the clipboard itself shows
+ * nothing. Same eligibility as the tab menu's Copy Link (web and file pages;
+ * nothing for a blank or internal page). */
+function copyBrowserCommandLink(runtime, sender = null) {
+  const tab = browserCommandTab(runtime, sender);
+  if (!tab || !isCopyable(tab)) return false;
+  clipboard.writeText(tab.url);
+  stripSurfaces(runtime).send('chrome:pill-notice', 'link-copied');
+  return true;
+}
+
 const executeBrowserCommand = createBrowserCommandExecutor({
   'new-window': runtime => openNewWindow({ profileId: runtime.profileId }),
   'new-tab': () => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true }),
@@ -7035,6 +7047,7 @@ const executeBrowserCommand = createBrowserCommandExecutor({
   'reopen-tab': reopenClosedTab,
   'next-tab': () => cycleTab(1),
   'previous-tab': () => cycleTab(-1),
+  'copy-link': copyBrowserCommandLink,
   address: toggleIsland,
   find: (runtime, sender) => openFindBar(browserCommandTab(runtime, sender)?.id),
   reload: (runtime, sender) => reloadBrowserCommandTab(runtime, false, sender),
@@ -7057,7 +7070,7 @@ const browserCommandDeliveries = [];
 function observeBrowserCommand(delivery) {
   if (!acceptanceTestMode) return;
   browserCommandDeliveries.push(delivery);
-  if (browserCommandDeliveries.length > 100) browserCommandDeliveries.shift();
+  if (browserCommandDeliveries.length > 200) browserCommandDeliveries.shift();
 }
 
 function ownsBrowserShortcutSurface(runtime, wc) {
@@ -11331,6 +11344,7 @@ const COMMON_KEYSTROKES = [
   ['menu.reopenClosedTab', 'CmdOrCtrl+Shift+T'],
   ['menu.searchCommands', 'CmdOrCtrl+L'],
   ['menu.findInPage', 'CmdOrCtrl+F'],
+  ['tabMenu.copyLink', 'CmdOrCtrl+Shift+C'],
   ...(ONE_PASSWORD_ACCELERATOR
     ? [['menu.fillOnePassword', ONE_PASSWORD_ACCELERATOR]]
     : []),
@@ -11452,6 +11466,7 @@ function buildMenuForRuntime(runtime) {
         { type: 'separator' },
         { role: 'cut', label: t('menu.cut') },
         { role: 'copy', label: t('menu.copy') },
+        command('copy-link'),
         { role: 'paste', label: t('menu.paste') },
         ...(isMac ? [
           { role: 'pasteAndMatchStyle', label: t('menu.pasteAndMatchStyle') },
