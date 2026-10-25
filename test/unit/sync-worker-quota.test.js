@@ -68,3 +68,17 @@ test('daily account creation default is ten and is independent of storage quota'
  const other='b'.repeat(64);const response=await h.worker.fetch(new Request(`https://sync.test/v1/blob/${other}/spaces`,{method:'PUT',body:JSON.stringify({ifVersion:null,blob:{}}),duplex:'half'}),h.env);
  assert.equal(response.status,503);
 });
+test('a slow ciphertext write cannot land after a smaller replacement has released its quota',async()=>{
+ const h=await environment({ACCOUNT_STORAGE_QUOTA_BYTES:'2000',ACCOUNT_STORAGE_MAX_STORES:'3'});
+ const first=await put(h,sid(1));const version=(await first.json()).version;
+ let release,started;const ready=new Promise(r=>{started=r;}),gate=new Promise(r=>{release=r;}),original=h.env.SYNC.put;
+ h.env.SYNC.put=async(k,v)=>{if(k===`blob:${account}:${sid(1)}`&&JSON.parse(v).blob.ct.length===900){started();await gate;}return original(k,v);};
+ const replace=ct=>h.worker.fetch(new Request(`https://sync.test/v1/blob/${account}/${sid(1)}`,{method:'PUT',body:JSON.stringify({ifVersion:version,blob:{ct}})}),h.env);
+ const larger=replace('x'.repeat(900));await ready;
+ let smallerFinished=false;const smaller=replace('x').then(r=>{smallerFinished=true;return r;});
+ await new Promise(r=>setImmediate(r));assert.equal(smallerFinished,false);
+ release();assert.equal((await larger).status,200);assert.equal((await smaller).status,200);
+ assert.equal(JSON.parse(h.records.get(`blob:${account}:${sid(1)}`)).blob.ct,'x');
+ assert.equal((await put(h,sid(2),{ct:'x'.repeat(900)})).status,200);
+ const bytes=[...h.records].filter(([k])=>k.startsWith(`blob:${account}:`)).reduce((sum,[,v])=>sum+Buffer.byteLength(v)+256,0);assert.ok(bytes<=2000);
+});

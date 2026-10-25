@@ -91,6 +91,35 @@ transitions rather than trusting data because it originated inside the app.
 
 ## Assessment evidence and review triggers
 
+### Shared Spaces PR D source review — 2026-10-25
+
+Source review completed by Codex for the PR D candidate. The checks below
+cover source and local fixtures; production deployment, real-device candidate
+validation and the owner's platform confirmations remain blocked. This is
+not release evidence or a decision to close R3/R5.
+
+| Boundary | Reviewed control and evidence |
+| --- | --- |
+| Data and consent | `shared-spaces-adapter.js` and `shared-spaces-model.js` admit bounded HTTP(S) metadata only; private/internal/local/document-policy content is excluded. A bound tab on an excluded page retains its last shareable record. `shared-spaces-service.js` records consent on each device/account, stages drafts before local binding, and preserves dormant links without publishing them. |
+| Credential changes | `sync.js` captures account, generation, consent and protected key for each operation. The queue rechecks cancellation before dispatch and after awaits; disable, account changes, suspension, consent changes and unavailable stores cancel queued work. `sync-queue-callers.test.js` covers these boundaries, including an in-flight PUT and account replacement. Linux `basic_text` remains refused by `sync-key-storage.js`. |
+| Untrusted navigation | Model sanitization accepts only HTTP(S), not `javascript:`, `data:`, internal or local schemes. `shared-spaces-runtime.js` persists accepted targets before applying them, protects active tabs and visible panes, and does not publish remote application as a local edit. `applySharedSpaceRow` uses ordinary quiet-tab creation or `navigateTabToAddress`; normal URL, document-policy, blocker and session rules remain in force. |
+| Renderer authority | Settings controls use `textContent` and DOM construction for peer names and choices. `pages.js`, `tab-preload.js` and `browser-api/bridges.json` restrict sharing actions to the owned Settings main frame; arbitrary web pages get no sharing or credential API. The Worker receives only encrypted payloads and an opaque locator. |
+| Quota and deletion | One account Durable Object serializes reservation plus KV write, rollback, single-store deletion and account deletion. This closes a discovered reservation/write-order race; a stalled-write regression verifies it. Deleting a Space compacts encrypted content immediately, retaining the index tombstone and store slot for 30 days; individual DELETE then releases the slot. Oversized blobs (413), account quota (507), and rate limit (429) remain distinct. |
+| Open R3/R5 | The locator remains a bearer capability: an account member can read, replace or erase ciphertext. KV reads/version checks remain non-atomic: same-version PUTs can both succeed, and a lost acknowledged write may be unrecoverable. Stale replicas can resurrect expired tombstones; long-stale absent records are preserved in a local recovery Space. Tests assert these limits rather than claiming an authenticated or atomic protocol. |
+
+The quota's first-use inventory reads eventually consistent KV. Before any
+production activation, the owner must verify a complete legacy inventory during
+a controlled migration and review its accounting; a stale listing must not be
+represented as proof that every existing blob was charged. This operational
+migration gate, the Durable Object binding/migration and chosen quota values
+are deployment review inputs. Quota code does not authorize a destructive
+legacy cleanup. See the [Worker README](../cloudflare/sync-worker/README.md).
+
+Review reference: Cloudflare's [Durable Object concurrency rules](https://developers.cloudflare.com/durable-objects/best-practices/rules-of-durable-objects/)
+explain that external KV I/O can interleave requests, and
+[KV consistency](https://developers.cloudflare.com/kv/concepts/how-kv-works/)
+requires distinguishing serialized writes from eventually consistent reads.
+
 The detailed [August 12 audit](../security_privacy_audit_2026-08-12.md) records
 17 findings, their remediation, validation, and remaining limits. The
 [v1.25.0 release record](release-incidents/2026-10-01-v1.25.0.md) preserves

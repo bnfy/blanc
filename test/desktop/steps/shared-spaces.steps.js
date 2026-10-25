@@ -6,8 +6,9 @@ const {deriveKeys,encrypt,decrypt}=require('../../../src/main/sync-crypto');
 const model=require('../../../src/main/shared-spaces-model');
 const ctx=require('../support/context');
 const {waitForValue}=require('../support/poll');
+const {callTestHook}=require('../support/test-hook-call');
 const handle='Shared Spaces acceptance',passphrase='correct horse battery staple Shared Spaces';
-Before({tags:'@F57',timeout:180000},async function(){
+Before({tags:'@F57 and not @peer-driver',timeout:180000},async function(){
  this.sharedFixture=await createSyncFixture();await ctx.relaunch({BLANC_TEST_SYNC_ENDPOINT:this.sharedFixture.url});
  if(process.platform==='linux'){
   const storage=await ctx.app.evaluate(({safeStorage})=>({available:safeStorage.isEncryptionAvailable(),backend:safeStorage.getSelectedStorageBackend()}));
@@ -17,9 +18,9 @@ Before({tags:'@F57',timeout:180000},async function(){
  await this.call('reset');
  this.sharedKey=deriveKeys(handle,passphrase);
 });
-After({tags:'@F57',timeout:180000},async function(scenario){
+After({tags:'@F57 and not @peer-driver',timeout:180000},async function(scenario){
  if(scenario.result?.message)process.stderr.write(scenario.result.message+'\n');
- try{await this.call('sharedSpacesTest','disable');await ctx.relaunch();}finally{await this.sharedFixture?.close();this.sharedKey?.key.fill(0);}
+ try{if(this.sharedPeer){await callTestHook(this.sharedPeer,'sharedSpacesTest',['disable']);await ctx.closePeerApp(this.sharedPeer);}await this.call('sharedSpacesTest','disable');await ctx.relaunch();}finally{await this.sharedFixture?.close();this.sharedKey?.key.fill(0);}
 });
 async function setup(world,shared){
  world.firstTab=await world.call('openTab',world.fixtureUrl('shared-first'));
@@ -91,7 +92,8 @@ When('the shared tab navigates to an internal page',{timeout:180000},async funct
  const state=await this.call('sharedSpacesTest','state'),sid=Object.keys(state.shared.blobs)[0];this.sid=sid;
  const blob=state.shared.blobs[sid].blob;this.retainedRecord=Object.keys(blob.tabs).find(id=>blob.tabs[id].nav.v.url===this.fixtureUrl('shared-second'));
  assert.ok(this.retainedRecord);this.retainedNav=blob.tabs[this.retainedRecord].nav.v;
- await this.call('navigateTab',this.secondTab,'blanc://settings/');
+ await this.call('navigateTab',this.secondTab,'blanc://mahjong/');
+ await this.waitForState(s=>s.tabs.some(t=>t.id===this.secondTab&&t.url.startsWith('blanc://mahjong/')));
  await this.call('sharedSpacesTest','capture');
 });
 Then('device B still sees its last shareable web page',{timeout:180000},async function(){
@@ -115,4 +117,87 @@ Then('the next encrypted write succeeds without waiting for retention expiry',{t
  const compact=JSON.parse(decrypt(this.sharedKey.key,JSON.parse(saved).blob));assert.deepEqual(compact.tabs,{});assert.deepEqual(compact.groups,{});
  assert.equal((await this.quotaProbe()).status,200);
  const state=await this.call('sharedSpacesTest','state');assert.equal(state.shared.index.spaces[this.sid].deleted.v,true);
+});
+Given('a second complete desktop client sharing Work',{timeout:300000},async function(){
+ this.sharedPeer=await ctx.launchPeerApp({BLANC_TEST_SYNC_ENDPOINT:this.sharedFixture.url});
+ this.peerCall=(method,...args)=>callTestHook(this.sharedPeer,method,args);
+ await this.peerCall('reset');assert.equal((await this.peerCall('sharedSpacesTest','enable',{handle,passphrase})).ok,true);
+ assert.equal((await this.peerCall('sharedSpacesTest','apply',{enabled:true,selections:[]})).ok,true);
+ await this.peerCall('sharedSpacesTest','pull');
+ const state=await waitForValue(()=>this.peerCall('sharedSpacesTest','state'),s=>s.workspaces.items.some(w=>w.name==='Work'),'peer Work import',15000);
+ const work=state.workspaces.items.find(w=>w.name==='Work');assert.equal((await this.peerCall('workspaceAction','open',work.id)).ok,true);
+ this.sid=Object.keys(state.shared.blobs)[0];
+});
+async function exchange(world,from,to){await from('sharedSpacesTest','capture');await from('sharedSpacesTest','pull',['space-'+world.sid]);await to('sharedSpacesTest','pull',['space-'+world.sid]);}
+Then('both complete clients exchange quiet tabs in both directions',{timeout:600000},async function(){
+ const a=this.call.bind(this),b=this.peerCall;
+ this.fromA=this.fixtureUrl('two-client-a');this.fromB=this.fixtureUrl('two-client-b');
+ this.newA=await a('openTab',this.fromA);await exchange(this,a,b);
+ let state=await waitForValue(()=>b('state'),s=>s.tabs.some(t=>t.url===this.fromA),'A tab on B',15000);assert.equal(state.tabs.find(t=>t.url===this.fromA).asleep,true);
+ this.newB=await b('openTab',this.fromB);await exchange(this,b,a);
+ state=await this.waitForState(s=>s.tabs.some(t=>t.url===this.fromB));assert.equal(state.tabs.find(t=>t.url===this.fromB).asleep,true);
+});
+Then('a complete client defers active navigation until its tab changes',{timeout:600000},async function(){
+ const a=this.call.bind(this),b=this.peerCall,state=await b('state');this.peerActive=state.activeTabId;
+ const active=state.tabs.find(t=>t.id===this.peerActive);assert.equal(active.url,this.fromB);
+ const local=(await a('state')).tabs.find(t=>t.url===this.fromB);this.peerNavigated=this.fixtureUrl('two-client-nav');
+ await a('activateTab',local.id);
+ await this.waitForState(s=>s.tabs.some(t=>t.id===local.id&&!t.asleep&&!t.isLoading));
+ await a('navigateTab',local.id,this.peerNavigated);
+ await this.waitForState(s=>s.tabs.some(t=>t.id===local.id&&t.url===this.peerNavigated&&!t.isLoading));
+ await exchange(this,a,b);
+ assert.equal((await b('state')).tabs.find(t=>t.id===this.peerActive).url,this.fromB);
+ await b('openTab',this.fixtureUrl('two-client-unprotect'));
+ await waitForValue(()=>b('state'),s=>s.tabs.some(t=>t.id===this.peerActive&&t.url===this.peerNavigated),'deferred navigation applied',15000);
+});
+Then('a complete client receives one remote close entry',{timeout:600000},async function(){
+ const a=this.call.bind(this),b=this.peerCall;
+ await b('openTab',this.fixtureUrl('two-client-close-unprotect'));
+ await a('closeTab',this.newA);await a('sharedSpacesTest','capture');await a('sharedSpacesTest','pull',['closed','space-'+this.sid]);await b('sharedSpacesTest','pull',['closed','space-'+this.sid]);
+ await waitForValue(()=>b('state'),s=>!s.tabs.some(t=>t.url===this.fromA),'remote close applied',15000);
+ const state=await b('sharedSpacesTest','state');assert.equal(state.closed.filter(row=>row.url===this.fromA).length,1);
+});
+Then('both complete clients rejoin dormant edits without duplicate tabs',{timeout:600000},async function(){
+ const a=this.call.bind(this),b=this.peerCall;
+ for(const call of [a,b])assert.equal((await call('sharedSpacesTest','apply',{enabled:false})).ok,true);
+ const urls=[this.fixtureUrl('dormant-a'),this.fixtureUrl('dormant-b')];await a('openTab',urls[0]);await b('openTab',urls[1]);
+ for(const call of [a,b]){const state=await call('sharedSpacesTest','state'),work=state.workspaces.items.find(w=>w.name==='Work');assert.equal((await call('sharedSpacesTest','apply',{enabled:true,selections:[{id:work.id,mode:'rejoin'}]})).ok,true);}
+ await exchange(this,a,b);await exchange(this,b,a);
+ for(const call of [a,b]){const state=await call('state');for(const url of urls)assert.equal(state.tabs.filter(t=>t.url===url).length,1);}
+});
+Then('the complete clients stay within their request budgets',{timeout:60000},async function(){
+ for(const call of [this.call.bind(this),this.peerCall]){const state=await call('sharedSpacesTest','state'),times=state.shared.requestLog;for(const at of times)assert.ok(times.filter(time=>time>at-60000&&time<=at).length<=10);}
+ assert.equal(this.sharedFixture.requests.some(r=>r.status===429),false);
+});
+Then('the Shared Spaces peer driver verifies {string}',{timeout:180000},async function(name){
+ await require('../support/shared-spaces-peer-cases').runPeerCase(name);
+});
+When('device B closes the active Work tab',{timeout:180000},async function(){
+ this.closedActiveUrl=this.fixtureUrl('shared-second');
+ await editPeer(this,blob=>{const id=Object.keys(blob.tabs).find(id=>blob.tabs[id].nav.v.url===this.closedActiveUrl);assert.ok(id);blob.tabs[id].deleted=model.field(true,Date.now()+1,'device-b');});
+ const state=await this.call('sharedSpacesTest','state');assert.ok(Object.values(state.shared.windows).some(w=>w.accepted.some(row=>row.op==='close')),'remote close must be durably deferred before crashing');
+});
+When('the Shared Spaces client crashes and restores',{timeout:180000},async function(){await ctx.crashAndRelaunch();});
+Then('cold restore applies the deferred close and resumes persistence',async function(){
+ const state=await this.state();assert.equal(state.tabs.some(t=>t.url===this.closedActiveUrl),false);
+ assert.equal(await this.call('startupReady'),true);
+ const shared=await this.call('sharedSpacesTest','state');assert.equal(Object.values(shared.shared.windows).some(w=>w.accepted.some(row=>row.op==='close')),false);
+});
+Then('the merged remote tab survives the crash without a duplicate',async function(){
+ const state=await this.state();assert.equal(state.tabs.filter(t=>t.url===this.remoteUrl).length,1);
+ assert.equal(await this.call('startupReady'),true);
+});
+When('an index write fails after the new Space blob succeeds',{timeout:180000},async function(){
+ this.sharedFixture.inject({type:'network',method:'PUT',store:'spaces'});
+ const state=await this.call('sharedSpacesTest','state'),row=state.workspaces.items.find(w=>w.name==='Work');
+ assert.equal((await this.call('sharedSpacesTest','apply',{enabled:true,selections:[{id:row.id,mode:'copy'}]})).ok,true);
+ this.sid=Object.keys((await this.call('sharedSpacesTest','state')).shared.blobs)[0];
+ assert.ok(this.sharedFixture.env.records.has(`blob:${this.sharedKey.accountId}:space-${this.sid}`));
+ assert.equal(this.sharedFixture.env.records.has(`blob:${this.sharedKey.accountId}:spaces`),false);
+});
+Then('the restored client retries the missing index entry',{timeout:300000},async function(){
+ await this.call('sharedSpacesTest','pull',['space-'+this.sid,'spaces']);
+ const raw=this.sharedFixture.env.records.get(`blob:${this.sharedKey.accountId}:spaces`);assert.ok(raw);
+ const index=JSON.parse(decrypt(this.sharedKey.key,JSON.parse(raw).blob));assert.ok(index.spaces[this.sid]);
+ assert.ok(this.sharedFixture.env.records.has(`blob:${this.sharedKey.accountId}:space-${this.sid}`));
 });

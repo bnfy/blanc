@@ -30,6 +30,7 @@
     yes.addEventListener('click',async()=>{await dismiss();toggle.click();});no.addEventListener('click',dismiss);prompt.append(text,detail,yes,no);row.append(prompt);
   }
   showQuestion(status.question);
+  if(status.accountFull)note.textContent=t('sharedSpaces.accountFull');
   let choices=[];
   const reset=()=>{toggle.checked=!!status.enabled;};
   cancel.addEventListener('click',()=>{dialog.close();reset();});
@@ -64,7 +65,7 @@
   });
   if(status.openSheet&&!status.enabled)toggle.click();
   const timer=setInterval(async()=>{
-    try {const next=await api.sharedSpacesStatus();Object.assign(status,next);showQuestion(next.question);if(!dialog.open&&!toggle.disabled)toggle.checked=!!next.enabled;if(next.openSheet&&!next.enabled)toggle.click();}catch{/* retry on the next local status refresh */}
+    try {const next=await api.sharedSpacesStatus();const wasFull=status.accountFull;Object.assign(status,next);showQuestion(next.question);if(!dialog.open&&!toggle.disabled){toggle.checked=!!next.enabled;if(next.accountFull)note.textContent=t('sharedSpaces.accountFull');else if(wasFull)note.textContent='';}if(next.openSheet&&!next.enabled)toggle.click();}catch{/* retry on the next local status refresh */}
   },2000);
   window.addEventListener('beforeunload',()=>clearInterval(timer),{once:true});
 })();

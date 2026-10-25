@@ -79,7 +79,7 @@
     },
     {
       "file": "cloudflare/sync-worker/src/index.js",
-      "sha256": "6db5c10788750a32733f952ce3b52f243bc01f91cde3e491d0fb1a5cc2c9665e",
+      "sha256": "6889a91db79b3c10f00e36c1ee691e94407239580babb1e4185c69d2d1c3d23e",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -879,7 +879,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "52271c841a66b0e0258412b05ef3c27baf06a82ec4c829c1608d2a923b9efc50",
+      "sha256": "9bc9f88ba6fb245eb9941aee850e8c18a979dc72ff9b6702399a16dad8c1763a",
       "literalChannels": [
         "before-quit"
       ],

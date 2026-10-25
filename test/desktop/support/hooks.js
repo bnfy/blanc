@@ -24,6 +24,8 @@ let secureSpkiHash = null;
 let browserHomeDir;
 let savedClipboard = null;
 let uncaughtLogPath;
+let relaunchEnv = {};
+const peerApps = new Map();
 
 function mainProcessExceptionsSinceLaunch(electronApp) {
   if (!uncaughtLogPath || !fs.existsSync(uncaughtLogPath)) return '';
@@ -50,7 +52,7 @@ async function closeApp(electronApp) {
   assertNoMainProcessExceptions(electronApp);
 }
 
-async function launchApp(extraEnv = {}, { recoveryChoice = null } = {}) {
+async function launchApp(extraEnv = {}, { recoveryChoice = null, profileDir = userDataDir } = {}) {
   // Cursor/VS Code agent shells inherit ELECTRON_RUN_AS_NODE=1 so their own
   // Electron host can spawn Node helpers. That makes the app binary reject
   // Playwright's --remote-debugging-port as a "bad option" and exit before
@@ -65,7 +67,7 @@ async function launchApp(extraEnv = {}, { recoveryChoice = null } = {}) {
     // 127.0.0.1 (i.e. 'local', never 'http').
     args: [
       REPO_ROOT,
-      `--user-data-dir=${userDataDir}`,
+      `--user-data-dir=${profileDir}`,
       // Both names map to loopback at the resolver, so scheme-classified
       // pages load offline: the connection model reads HOSTNAMES, and every
       // plain fixtures-server URL is 127.0.0.1 (i.e. 'local', never 'http').
@@ -354,7 +356,17 @@ BeforeAll({ timeout: 120_000 }, async () => {
   // rather than a renderer reload or an in-memory persistence proxy.
   ctx.relaunch = async (extraEnv = {}) => {
     if (ctx.app) await closeApp(ctx.app);
+    relaunchEnv = extraEnv;
     ctx.app = await launchApp(extraEnv);
+  };
+  ctx.launchPeerApp = async (extraEnv = {}) => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-shared-peer-'));
+    try { const peer = await launchApp(extraEnv, { profileDir: directory }); peerApps.set(peer,directory); return peer; }
+    catch(error) { fs.rmSync(directory,{recursive:true,force:true});throw error; }
+  };
+  ctx.closePeerApp = async peer => {
+    const directory=peerApps.get(peer);if(!directory)return;
+    await closeApp(peer);peerApps.delete(peer);fs.rmSync(directory,{recursive:true,force:true});
   };
   // A crash, not a quit: the process is killed, so nothing gets a chance to
   // flush on the way out, and the next launch sees only what was on disk.
@@ -373,7 +385,7 @@ BeforeAll({ timeout: 120_000 }, async () => {
       }
       await exited;
     }
-    ctx.app = await launchApp({}, { recoveryChoice: 'restore' });
+    ctx.app = await launchApp(relaunchEnv, { recoveryChoice: 'restore' });
   };
 
   // The F19 scenarios write the REAL system clipboard — save the developer's
@@ -416,6 +428,7 @@ Before({ tags: '@F39-2 or @F39-3 or @F39-4 or @F39-5 or @F39-6 or @F39-7' }, asy
 });
 
 AfterAll(async () => {
+  for(const peer of [...peerApps.keys()])await ctx.closePeerApp(peer);
   let closeFailure = null;
   if (ctx.app && savedClipboard !== null) {
     await callTestHook(ctx.app, 'setClipboardText', [savedClipboard])

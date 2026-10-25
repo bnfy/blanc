@@ -809,6 +809,7 @@ function sharedStatus() {
   if(!isDefaultLocalProfile())return {enabled:false,available:false,spaces:0,spaceLimit:25,canAdd:false,waiting:0,running:0,windowFreesAt:0,backoff:false};
   const ctx={accountId:ensureStore().data.accountId};
   return {enabled:sharedSpaces.isEnabled(ctx),available:!spacesUnavailable,
+    accountFull:ensureStore().data.lastError==='account-quota',
     spaces:sharedSpaces.spaceCount(ctx),spaceLimit:25,canAdd:sharedSpaces.canAddSpace(ctx),
     ...(requestQueue?.status()??{waiting:0,running:0,windowFreesAt:0,backoff:false})};
 }
@@ -936,10 +937,11 @@ async function syncNow(names = null, { onOutcome } = {}) {
   if(!ensureStore().data.enabled)return {ok:false,error:'sync-off'};
   if(keyProtectionError)return {ok:false,error:keyProtectionError};
   const required=results.filter(x=>!x.desc.optional);
-  const firstError=required.find(x=>x.error && !x.error.message.startsWith('cancelled:'))?.error;
-  if(required.length)ensureStore().update(state=>{
+  const quotaError=results.find(x=>x.error?.message==='account-quota')?.error;
+  const firstError=required.find(x=>x.error && !x.error.message.startsWith('cancelled:'))?.error??quotaError;
+  if(required.length||quotaError||ensureStore().data.lastError==='account-quota')ensureStore().update(state=>{
     if(firstError)state.lastError=errorCode(firstError);
-    else if(!skippedRequiredSelected){state.lastError=null;state.lastSyncedAt=Date.now();}
+    else if(!skippedRequiredSelected){state.lastError=null;if(required.length)state.lastSyncedAt=Date.now();}
   });
   return firstError?{ok:false,error:keyProtectionError||errorCode(firstError)}:{ok:true};
 }

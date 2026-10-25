@@ -156,26 +156,19 @@ async function handlePut(env, accountId, store, body) {
   if ((body.ifVersion ?? null) !== (cur?.version ?? null)) return json({ version: cur?.version ?? null, error: 'conflict' }, 409);
   const version = crypto.randomUUID();
   const stored = JSON.stringify({ version, blob: body.blob });
-  let reservation = null;
   if (env.ACCOUNT_QUOTA) {
     const quota = env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId));
-    const response = await quota.fetch('https://quota.invalid/reserve', { method: 'POST', body: JSON.stringify({ accountId, store, bytes: new TextEncoder().encode(stored).byteLength }) });
+    const response = await quota.fetch('https://quota.invalid/write', { method: 'POST', body: JSON.stringify({ accountId, store, stored }) });
     if (response.status === 507) return json({ error: 'account-quota' }, 507);
     if (!response.ok) return json({ error: 'quota unavailable' }, 503);
-    reservation = { quota, ...(await response.json()) };
-  }
-  try {
-    await env.SYNC.put(blobKey(accountId, store), stored);
-  } catch (error) {
-    if (reservation) await reservation.quota.fetch('https://quota.invalid/rollback', { method: 'POST', body: JSON.stringify({ store, previous: reservation.previous, token: reservation.token }) });
-    throw error;
-  }
+  } else await env.SYNC.put(blobKey(accountId, store), stored);
   if (!marker) await countNewAccount(env);
   await touchAccount(env, accountId, marker);
   return json({ version });
 }
 
 async function handleDelete(env, accountId) {
+  if(env.ACCOUNT_QUOTA)return env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId)).fetch('https://quota.invalid/delete-account',{method:'POST',body:JSON.stringify({accountId})});
   // List before deleting: cursors may be offset-based in local fixtures and
   // Space blobs can outlive their index entries. Never rely on the live index.
   // KV listings can omit recently written keys. Preserve the direct deletion
@@ -189,11 +182,10 @@ async function handleDelete(env, accountId) {
 }
 
 async function handleStoreDelete(env, accountId, store) {
-  await env.SYNC.delete(blobKey(accountId, store));
   if (env.ACCOUNT_QUOTA) {
-    const response = await env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId)).fetch('https://quota.invalid/release', { method: 'POST', body: JSON.stringify({ accountId, store }) });
+    const response = await env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId)).fetch('https://quota.invalid/delete-store', { method: 'POST', body: JSON.stringify({ accountId, store }) });
     if (!response.ok) return json({ error: 'quota unavailable' }, 503);
-  }
+  } else await env.SYNC.delete(blobKey(accountId, store));
   return new Response(null, { status: 204 });
 }
 
@@ -206,7 +198,7 @@ const QUOTA_KEY_OVERHEAD_BYTES = 256;
 // cannot both spend the same quota. The first request inventories legacy KV
 // values so deployment cannot reset an existing account's usage to zero.
 export class AccountQuota {
-  constructor(state, env) { this.state = state; this.env = env; this.initializing = null; }
+  constructor(state, env) { this.state = state; this.env = env; this.initializing = null; this.tail = Promise.resolve(); }
   async bootstrap(accountId) {
     let ledger = await this.state.storage.get('ledger');
     if (ledger) return ledger;
@@ -219,10 +211,34 @@ export class AccountQuota {
     await this.state.storage.put('ledger', ledger);
     return ledger;
   }
-  async fetch(request) {
+  fetch(request) {
+    // KV I/O yields outside Durable Object storage input gates. Serialize the
+    // full reservation + KV operation so a late larger write cannot land
+    // after a smaller reservation has already released its storage budget.
+    const result=this.tail.then(()=>this.handle(request));this.tail=result.catch(()=>{});return result;
+  }
+  async handle(request) {
     if (request.method === 'DELETE') { if (this.initializing) await this.initializing.catch(()=>{}); await this.state.storage.deleteAll(); this.initializing = null; return new Response(null, { status: 204 }); }
     if (request.method !== 'POST') return new Response('method not allowed', { status: 405 });
     const body = await request.json();
+    const path=new URL(request.url).pathname;
+    const post=(path,body)=>this.handle(new Request('https://quota.invalid/'+path,{method:'POST',body:JSON.stringify(body)}));
+    if(path==='/write') {
+      const reserved=await post('reserve',{accountId:body.accountId,store:body.store,bytes:new TextEncoder().encode(body.stored).byteLength});
+      if(!reserved.ok)return reserved;
+      const receipt=await reserved.json();
+      try{await this.env.SYNC.put(blobKey(body.accountId,body.store),body.stored);}
+      catch(error){await post('rollback',{store:body.store,...receipt});throw error;}
+      return json({},200);
+    }
+    if(path==='/delete-store') {
+      await this.env.SYNC.delete(blobKey(body.accountId,body.store));
+      return post('release',body);
+    }
+    if(path==='/delete-account') {
+      const removed=await handleDelete({...this.env,ACCOUNT_QUOTA:null},body.accountId);
+      await this.state.storage.deleteAll();this.initializing=null;return removed;
+    }
     if (new URL(request.url).pathname === '/release') {
       if (this.initializing) await this.initializing;
       const ledger = await this.state.storage.get('ledger');

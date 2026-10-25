@@ -31,8 +31,8 @@ Design: `docs/superpowers/specs/2026-10-05-sync-storage-budget-design.md`.
 - An account-scoped Durable Object reserves every blob write against
   `ACCOUNT_STORAGE_QUOTA_BYTES` (20 MiB by default) and
   `ACCOUNT_STORAGE_MAX_STORES` (256 by default). It inventories existing KV
-  blobs on first use, includes a fixed per-key allowance, serializes concurrent
-  reservations, and rolls a reservation back if the KV write fails. A full
+  blobs on first use, includes a fixed per-key allowance, serializes each
+  reservation together with its KV write, and rolls a reservation back if the KV write fails. A full
   account wipe clears both KV and its quota ledger. Quota exhaustion returns
   `507 {"error":"account-quota"}` without storing the candidate blob. A
   per-Space DELETE releases its value and quota reservation after the retained
@@ -45,6 +45,11 @@ Design: `docs/superpowers/specs/2026-10-05-sync-storage-budget-design.md`.
   tombstones also remain until expiry, so removing tabs is not an immediate
   storage-recovery action. Shrinking an existing blob is allowed even if legacy
   usage or a subsequently lowered quota leaves the account above its allowance.
+  Legacy inventory is eventually consistent: production activation requires a
+  reviewed migration with writes quiesced and a verified complete inventory.
+  This code has not performed that migration and must not be deployed until
+  the owner approves its evidence. A normal first-use listing alone does not
+  establish a complete charge for all pre-existing data.
 - A daily Cron Trigger (04:17 UTC) deletes blobs of accounts with no marker,
   at most `CLEANUP_MAX_DELETES` per run. It does nothing unless
   `CLEANUP_ENABLED = "true"`.

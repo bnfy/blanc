@@ -6,6 +6,14 @@ const id=n=>n.toString(16).padStart(32,'0'),f=(v,c=10)=>({v,c,by:'old'});
 const workspace=(key='local')=>({id:key,name:'Work',color:'#426c4c',symbol:'briefcase',urls:['https://one.test/'],meta:[{title:'One'}],pinned:[false],groupIds:[null],groups:[],activeIndex:0});
 const options=()=>{let n=100;return {now:1000,deviceId:'desktop',ids:()=>id(n++),encryptFn:()=>({ct:'fits'})};};
 const indexEntry=()=>({name:f('Work'),color:f('#426c4c'),symbol:f('briefcase'),pos:f(model.keyFor('','',id(1))),deleted:f(false)});
+test('a first imported Space explicitly marks every projected tab as an ordinary web page',()=>{
+  const plan=sharing.planSharing({v:1,spaces:{}},[workspace()],[{id:'local',mode:'copy'}],options());
+  const capture=sharing.projectSpace(plan.items[0].blob),policy=require('../../src/main/document-policy');
+  assert.equal(capture.documentPolicy,policy.DOCUMENT_POLICY_VERSION);
+  assert.deepEqual(capture.inheritsDocumentPolicy,[false]);assert.deepEqual(capture.localFiles,[false]);
+  const normalized=require('../../src/main/session-workspace').entryFrom(capture);
+  assert.equal(policy.restoredMarker(normalized,0),false);
+});
 test('first sharing creates fresh Space and tab ids with current field clocks',()=>{
   assert.equal(typeof sharing.planSharing,'function');const w=workspace();w.tabIds=[id(1)];
   const result=sharing.planSharing({v:1,spaces:{}},[w],[{id:w.id,mode:'copy'}],options());

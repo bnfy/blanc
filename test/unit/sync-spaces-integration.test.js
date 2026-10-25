@@ -35,6 +35,14 @@ async function environment(t) {
   return {fixture,device,drive,read:store=>{const raw=fixture.env.records.get(`blob:${account}:${store}`);return raw?JSON.parse(decrypt(key,JSON.parse(raw).blob)):null;}};
 }
 function createSpace(d) {const local=blob();d.spaces.noteLocalSpace(sid,local,{tabs:local.tabs},d.ctx);d.spaces.setIndex(index(),d.ctx);}
+test('optional Space quota failure reaches the account status and clears after successful retry',async t=>{
+  const e=await environment(t),a=e.device('A');createSpace(a);await e.drive(a.sync.syncNow([store]));
+  e.fixture.env.ACCOUNT_STORAGE_QUOTA_BYTES='1';
+  const local=blob();local.tabs[id(1)].name=field('A longer local name',200,'A');a.spaces.noteLocalSpace(sid,local,{tabs:{[id(1)]:{name:local.tabs[id(1)].name}}},a.ctx);
+  const failed=await e.drive(a.sync.syncNow([store]));assert.equal(failed.ok,false);assert.equal(failed.error,'account-quota');assert.equal(a.sync.sharedStatus().accountFull,true);
+  e.fixture.env.ACCOUNT_STORAGE_QUOTA_BYTES=String(20*1024*1024);
+  assert.equal((await e.drive(a.sync.syncNow([store]))).ok,true);assert.equal(a.sync.sharedStatus().accountFull,false);
+});
 test('deleting a Space compacts its encrypted blob immediately and frees a full account for the next write',async t=>{
   const e=await environment(t),a=e.device('A');createSpace(a);
   await e.drive(a.sync.syncNow([store]));
