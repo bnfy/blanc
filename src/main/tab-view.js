@@ -761,6 +761,7 @@ function wireTabView(tab, view, { owner, adopted }) {
       const role = foregroundOpenRole(getOwner(), tab.id);
       showOpenedTab(createTab(targetUrl, { private: tab.private }), role);
     }),
+    spaceItems: boundToTab((url, text) => deps.linkSpaceMenuItems?.(tab, url, text) ?? []),
     // Open Link in Glance: main owns the guards and the role change.
     openInGlance: boundToTab((targetUrl) => deps.openLinkInGlance?.(tab, targetUrl)),
   }, () => {

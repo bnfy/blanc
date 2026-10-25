@@ -375,3 +375,66 @@ Feature: Named workspace preservation and recovery
     When I create the tab's new space named "Reading"
     Then the Spaces list shows the saved space "Reading" and the move error
     And this window still has that page, live and selected
+
+  @F41-51 @link-space
+  Scenario: A link sent to a visible space loads in its other window
+    Given a space named "Reading" saved from another window
+    And a counted link to open in another space
+    When I open the counted link in space "Reading"
+    Then the link loads in the other window without changing either selection
+
+  @F41-52 @link-space
+  Scenario: A link sent to a set-aside space stays quiet until selected
+    Given spaces named "One" and "Reading", with this window in "One"
+    When I switch this window to "Reading"
+    And I switch this window to "One"
+    Given a counted link to open in another space
+    When I open the counted link in space "Reading"
+    Then space "Reading" has the counted link quiet and unrequested
+    And opening space "Reading" still does not request the link until I select it
+
+  @F41-53 @link-space
+  Scenario: A link sent to a closed space is saved without loading
+    Given spaces named "One" and "Reading", with this window in "One"
+    And a counted link to open in another space
+    When I open the counted link in space "Reading"
+    Then space "Reading" has the counted link saved without a runtime or request
+    When Blanc crashes and starts again
+    Then space "Reading" has the counted link saved without a runtime or request
+    And opening space "Reading" still does not request the link until I select it
+
+  @F41-54 @link-space
+  Scenario: A failed link write adds nothing and shows the Spaces error
+    Given spaces named "One" and "Reading", with this window in "One"
+    And a counted link to open in another space
+    And the move's save will fail once
+    When I open the counted link in space "Reading"
+    Then the link failure appears in Spaces and space "Reading" has no counted link
+
+  @F41-55 @link-space
+  Scenario: New Space from a link works when only the current space exists
+    Given a space named "One" in this window, colored "#426c4c" with the symbol "briefcase"
+    And a counted link to open in another space
+    When I choose New Space for the counted link
+    And I create the link space named "Reading"
+    Then space "Reading" has the counted link saved without a runtime or request
+
+  @F41-56 @link-space
+  Scenario: A failed New Space write retains the chosen link and editor draft
+    Given a space named "One" in this window, colored "#426c4c" with the symbol "briefcase"
+    And a counted link to open in another space
+    When I choose New Space for the counted link
+    And I submit the link space named "Reading" with a failed save
+    Then the link editor stays open with its error and name "Reading"
+    When I create the link space named "Reading"
+    Then space "Reading" has the counted link saved without a runtime or request
+
+  @F41-57 @link-space
+  Scenario: A failed quiet-tab creation rolls back the saved link
+    Given spaces named "One" and "Reading", with this window in "One"
+    When I switch this window to "Reading"
+    And I switch this window to "One"
+    Given a counted link to open in another space
+    And the new space's transfer will fail once
+    When I open the counted link in space "Reading"
+    Then the link failure appears in Spaces and space "Reading" has no counted link

@@ -176,6 +176,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   dismissSentItem: (id) => ipcRenderer.invoke('chrome:sent-dismiss', id),
   cancelWorkspaceAction: () => ipcRenderer.send('chrome:workspaces-cancel'),
   listWorkspaces: () => ipcRenderer.invoke('chrome:workspaces-list'),
+  createSpaceWithLink: (name, identity) => ipcRenderer.invoke('chrome:workspaces-create-with-link', name, identity),
   createSpaceWithTab: (name, identity, tabId) => ipcRenderer.invoke('chrome:workspaces-create-with-tab', name, identity, tabId),
   saveWorkspaceAs: (name, identity) => ipcRenderer.invoke('chrome:workspaces-save-as', name, identity),
   // opts: { decision?: string, newWindow?: true } — `decision` echoes the token

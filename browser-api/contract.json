@@ -3103,6 +3103,24 @@
       "doc": "List Named Workspaces."
     },
     {
+      "name": "createSpaceWithLink",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-create-with-link",
+      "params": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "identity",
+          "type": "SpaceIdentityInput"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Create a saved space with the link held by the current new-space editor, without loading it."
+    },
+    {
       "name": "createSpaceWithTab",
       "group": "workspaces",
       "kind": "invoke",

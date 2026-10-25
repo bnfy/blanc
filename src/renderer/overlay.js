@@ -2961,6 +2961,10 @@
       refreshSwitcherData();
       if (purpose?.spaceMoveError) {
         workspaceUI.showMoveError(purpose.spaceMoveError.name, purpose.spaceMoveError.error);
+      } else if (purpose?.spaceLinkError) {
+        workspaceUI.showLinkError(purpose.spaceLinkError.name, purpose.spaceLinkError.error);
+      } else if (purpose?.newSpaceLinkTitle != null) {
+        workspaceUI.begin('new', null, { start: 'link', tabTitle: purpose.newSpaceLinkTitle });
       } else if (purpose?.newSpaceTabId != null) {
         const tab = state.tabs.find((item) => item.id === purpose.newSpaceTabId);
         workspaceUI.begin('new', null, { start: 'tab', tabId: purpose.newSpaceTabId, tabTitle: tab?.customTitle || tab?.title || tab?.url || '' });
