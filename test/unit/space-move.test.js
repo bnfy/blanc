@@ -155,9 +155,19 @@ test('a fresh process recovers the saved tab after transfer and reconciliation b
         finish() {},
       });
       if (result.ok || result.recorded) process.exit(2);
+      process.on('exit', () => fs.writeFileSync(file + '.graceful-exit', 'unexpected'));
+      process.stdout.write('crash-ready\\n');
       process.kill(process.pid, 'SIGKILL');
     `, require.resolve('../../src/main/space-move'), file], { encoding: 'utf8' });
-    assert.equal(run.signal, 'SIGKILL', run.stderr);
+    assert.equal(run.error, undefined, run.stderr);
+    assert.equal(run.stdout, 'crash-ready\n', run.stderr);
+    if (process.platform === 'win32') {
+      // TerminateProcess has no POSIX signal status in Node's Windows result.
+      assert.notEqual(run.status, 0, run.stderr);
+    } else {
+      assert.equal(run.signal, 'SIGKILL', run.stderr);
+    }
+    assert.equal(fs.existsSync(file + '.graceful-exit'), false, 'the exit handler must not run');
     // A separate process reads only durable bytes, with no module cache or
     // in-memory tab state from the failed transfer.
     const restarted = spawnSync(process.execPath, ['-e',
