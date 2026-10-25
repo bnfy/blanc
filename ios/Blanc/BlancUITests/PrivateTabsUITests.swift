@@ -16,9 +16,13 @@ final class PrivateTabsUITests: XCTestCase {
     let chip = app.buttons["pill.private"]
     XCTAssertTrue(chip.waitForExistence(timeout: 10))
     XCTAssertEqual(chip.label, "Leave private mode — closes this tab")
-    XCTAssertFalse(app.buttons["pill.favorite"].exists, "a private page can't be a Favorite")
+    app.openIslandMenu()
+    XCTAssertTrue(app.buttons["New Private Tab"].waitForExistence(timeout: 5))
+    XCTAssertFalse(app.buttons["Save to Favorites"].exists, "a private page can't be a Favorite")
+    app.dismissIslandMenu()
     chip.tap()
-    XCTAssertTrue(app.buttons["pill.favorite"].waitForExistence(timeout: 5), "the ordinary tab is current again")
-    XCTAssertFalse(app.buttons["pill.private"].exists)
+    XCTAssertTrue(chip.waitForNonExistence(timeout: 5))
+    app.openIslandMenu()
+    XCTAssertTrue(app.buttons["Save to Favorites"].waitForExistence(timeout: 5), "the ordinary tab is current again")
   }
 }

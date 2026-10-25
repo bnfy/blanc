@@ -12,19 +12,16 @@ final class FavoritesUITests: XCTestCase {
     app.launch()
   }
 
-  private func waitForValue(_ element: XCUIElement, _ value: String) {
-    let expectation = XCTNSPredicateExpectation(
-      predicate: NSPredicate(format: "value == %@", value), object: element)
-    XCTAssertEqual(XCTWaiter().wait(for: [expectation], timeout: 5), .completed, "expected \(value)")
-  }
-
-  func testHeartTogglesTheFavorite() {
-    let heart = app.buttons["pill.favorite"]
-    XCTAssertTrue(heart.waitForExistence(timeout: 10))
-    waitForValue(heart, "off")
-    heart.tap()
-    waitForValue(heart, "on")
-    heart.tap()
-    waitForValue(heart, "off")
+  func testSunriseMenuTogglesTheFavorite() {
+    app.openIslandMenu()
+    let save = app.buttons["Save to Favorites"]
+    XCTAssertTrue(save.waitForExistence(timeout: 5))
+    save.tap()
+    app.openIslandMenu()
+    let remove = app.buttons["Remove from Favorites"]
+    XCTAssertTrue(remove.waitForExistence(timeout: 5), "the menu says the page is saved")
+    remove.tap()
+    app.openIslandMenu()
+    XCTAssertTrue(app.buttons["Save to Favorites"].waitForExistence(timeout: 5))
   }
 }
