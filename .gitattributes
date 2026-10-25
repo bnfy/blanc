@@ -6,6 +6,9 @@
 /src/main/reader-*.js text eol=lf
 /src/renderer/pages/reader* text eol=lf
 /src/renderer/pages/reader-*.generated.js linguist-generated=true
+# Preserve upstream license whitespace verbatim.
+/src/renderer/pages/reader-*-LICENSE.txt -whitespace
+/src/renderer/pages/reader-dompurify-MPL.txt -whitespace
 /src/renderer/pages/source-serif-4-OFL.txt text eol=lf
 /src/renderer/pages/source-serif-4-regular.woff2 -text
 /adblock/sources/pinned.json text eol=lf
