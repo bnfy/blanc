@@ -6,6 +6,16 @@ nonisolated func utf16Less(_ a: String, _ b: String) -> Bool {
 
 /// JSON objects retain wire order, including when unknown future settings pass through iOS.
 nonisolated indirect enum JSONValue: Equatable, Sendable, Codable {
+    static func from(_ value: Any) -> JSONValue {
+        if let value = value as? String { return .string(value) }
+        if let value = value as? NSNumber {
+            return CFGetTypeID(value) == CFBooleanGetTypeID() ? .bool(value.boolValue) : .number(value.doubleValue)
+        }
+        if let value = value as? [String: Any] { return .object(value.keys.sorted().map { ($0, .from(value[$0]!)) }) }
+        if let value = value as? [Any] { return .array(value.map { .from($0) }) }
+        return .null
+    }
+
   case string(String)
   case utf16String([UInt16])
   case number(Double)

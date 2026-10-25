@@ -1,10 +1,15 @@
 import Observation
 import Foundation
 import WebKit
+import UIKit
 
 @Observable
 final class TabsManager {
     private(set) var tabs: [TabModel] = []
+    var isWallpaperPickerPresented = false
+    var wallpaperSelectionCompletion: ((UIImage?) -> Void)?
+    let startAppearance: StartAppearanceStore
+    var isPalettePresented = false
     var activeTabId: UUID?
 
     let settingsStore: SettingsStore
@@ -29,7 +34,7 @@ final class TabsManager {
     }()
     var normalizer: AddressNormalizer
 
-    @ObservationIgnored private let schemeHandler = BlancSchemeHandler()
+    @ObservationIgnored private let schemeHandler: BlancSchemeHandler
     @ObservationIgnored private lazy var bridge = PagesBridge(manager: self)
     @ObservationIgnored private let contentBlocker = ContentBlocker()
     @ObservationIgnored private let sessionStore: SessionStore
@@ -48,6 +53,11 @@ final class TabsManager {
 
     init(settingsDirectory: URL? = nil, sessionDirectory: URL? = nil) {
         syncDirectory = settingsDirectory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        let appearance = StartAppearanceStore(directory: settingsDirectory)
+        self.startAppearance = appearance
+        self.schemeHandler = BlancSchemeHandler(wallpaperURL: appearance.imageURL, wallpaperVersion: { [weak appearance] in
+            appearance?.values["imageVersion"] as? String
+        })
         let store = SettingsStore(directory: settingsDirectory)
         self.settingsStore = store
         self.sessionStore = SessionStore(directory: sessionDirectory)
@@ -112,12 +122,14 @@ final class TabsManager {
 
     @discardableResult
     func createTab(url: URL = TabsManager.newTabURL) -> UUID {
+        activeTab?.captureThumbnail()
         let config = WebViewConfiguration.make(schemeHandler: schemeHandler, bridge: bridge)
-        if contentBlocker.enabled, let ruleList = contentBlocker.compiledRuleList {
+        if contentBlocker.enabled, !AdblockExceptions.isExcepted(url, in: settingsStore.adblockExceptions),
+           let ruleList = contentBlocker.compiledRuleList {
             config.userContentController.add(ruleList)
         }
         let tab = TabModel(url: url, configuration: config)
-        if contentBlocker.enabled && !contentBlocker.isReady {
+        if contentBlocker.enabled && !contentBlocker.isReady && !AdblockExceptions.isExcepted(url, in: settingsStore.adblockExceptions) {
             contentBlocker.attach(to: tab.webView)
         }
         // Re-persist whenever this tab settles on a new URL (navigation/redirect).
@@ -130,6 +142,9 @@ final class TabsManager {
         tab.navigationDelegate.onTitleChange = { [weak self, weak tab] in
             if let tab { self?.historyStore.updateTitle(url: tab.currentURL, title: tab.pageTitle) }
             self?.syncEngine.tabsChanged()
+        }
+        tab.navigationDelegate.onWillLoadMainFrame = { [weak self, weak tab] url in
+            if let self, let tab { self.applyBlocking(to: tab, for: url) }
         }
         tabs.append(tab)
         activeTabId = tab.id
@@ -158,6 +173,7 @@ final class TabsManager {
     }
 
     func setActive(_ id: UUID) {
+        if id != activeTabId { activeTab?.captureThumbnail() }
         guard tabs.contains(where: { $0.id == id }) else { return }
         activeTabId = id
         persistSession()
@@ -233,16 +249,14 @@ final class TabsManager {
         if enabled {
             if contentBlocker.isReady {
                 for tab in tabs {
-                    if let ruleList = contentBlocker.compiledRuleList {
-                        tab.webView.configuration.userContentController.add(ruleList)
-                        tab.webView.reload()
-                    }
+                    applyBlocking(to: tab, for: tab.currentURL)
+                    tab.webView.reload()
                 }
             } else {
                 // Cold-compile still in flight: queue each tab; drainPending attaches
                 // once the list is ready (setEnabled(true) re-opened attachment).
                 for tab in tabs {
-                    contentBlocker.attach(to: tab.webView)
+                    applyBlocking(to: tab, for: tab.currentURL)
                 }
             }
         } else {
@@ -250,6 +264,41 @@ final class TabsManager {
                 tab.webView.configuration.userContentController.removeAllContentRuleLists()
                 tab.webView.reload()
             }
+        }
+    }
+
+    // MARK: Blanc Blocker, per site
+
+    /// Whether Blanc Blocker protects the page `tab` shows: blocking is on and
+    /// the person hasn't switched it off for this site.
+    func isSiteProtected(_ tab: TabModel) -> Bool {
+        settingsStore.adblockEnabled && !AdblockExceptions.isExcepted(tab.currentURL, in: settingsStore.adblockExceptions)
+    }
+
+    /// Turns Blanc Blocker on or off for the site `tab` shows, then reloads it.
+    func setSiteProtection(_ tab: TabModel, on: Bool) {
+        guard let host = AdblockExceptions.host(for: tab.currentURL) else { return }
+        var list = settingsStore.adblockExceptions.filter { $0 != host }
+        if !on { list.append(host) }
+        settingsStore.update(adblockExceptions: list)
+        for affected in tabs where AdblockExceptions.host(for: affected.currentURL) == host {
+            applyBlocking(to: affected, for: affected.currentURL)
+            affected.webView.reload()
+        }
+    }
+
+    /// Puts the tab's blocking rules on or off for the site it is about to show.
+    /// WebKit can't exempt a site through a second rule list, so an allowed
+    /// site's tab simply runs without the list until it navigates elsewhere.
+    private func applyBlocking(to tab: TabModel, for url: URL) {
+        let controller = tab.webView.configuration.userContentController
+        contentBlocker.cancelPending(for: tab.webView)
+        controller.removeAllContentRuleLists()
+        guard contentBlocker.enabled, !AdblockExceptions.isExcepted(url, in: settingsStore.adblockExceptions) else { return }
+        if let ruleList = contentBlocker.compiledRuleList {
+            controller.add(ruleList)
+        } else if !contentBlocker.isReady {
+            contentBlocker.attach(to: tab.webView)
         }
     }
 }
