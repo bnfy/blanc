@@ -1,5 +1,26 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+GITHUB MAC SCAN ROUTE PREPARED: Owner asked whether the Mac installer can be
+built/signed in Actions using the existing EVS credentials, then scanned
+without publication. Added manual mac-scan mode to the existing native workflow
+with native arm64 and Intel runners, exact workflow/source SHA binding,
+contents:read permission, the press gate, production ECS signing order and
+Apple profile/identity preflight. It verifies packaged sources/fuses/signature,
+stapled notarization and Gatekeeper, then runs packaged first-run smoke after
+EVS credential cleanup. Only installers, blockmaps, digests and candidate
+metadata become three-day Actions artifacts; no tags/releases/updater metadata
+are written. Other platform jobs exclude this mode. Twenty-six focused
+workflow/release tests pass, including input rejection and publication-boundary
+checks. No run has been dispatched.
+
+The existing ecs-signing environment has EVS_CONFIG_JSON and EVS_CACHE_JSON,
+requires bnfy review, and currently permits only main and
+codex/ecs-production-integration. It has no Apple signing/notarization secrets.
+Running the prepared Mac job therefore needs explicit authorization to allow
+codex/antivirus-source-packaging and add the exact pinned Developer ID P12/key,
+its password, and existing Apple notarization account credentials as protected
+Mac secrets. No credential export, upload or branch-policy change has occurred.
+
 SIGNED-INSTALLER PREPARATION: Owner authorized building and scanning the final
 signed installer before release. Prepared version 1.43.2 / Mac build 1432, with
 both arm64 and x64 selected. Added explicit BLANC_RELEASE_BUILD_ONLY=1 to the

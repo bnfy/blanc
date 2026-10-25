@@ -1,5 +1,5 @@
 name: Release Windows & Linux
-run-name: ${{ inputs.mode == 'validation' && 'Validate' || 'Release' }} ${{ inputs.mode == 'validation' && github.ref_name || inputs.tag }} (${{ inputs.platform }})
+run-name: ${{ inputs.mode == 'mac-scan' && 'Mac scan only' || inputs.mode == 'validation' && 'Validate' || 'Release' }} ${{ inputs.mode != 'release' && github.ref_name || inputs.tag }} (${{ inputs.platform }})
 
 # electron-builder's Windows (NSIS) and Linux (AppImage) targets are built
 # here rather than locally, since `scripts/release.sh` runs on a macOS dev
@@ -11,13 +11,14 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "Release to GitHub, or build private validation artifacts"
+        description: "Release, private Windows/Linux validation, or nonpublishing Mac scan installers"
         required: true
         default: release
         type: choice
         options:
           - release
           - validation
+          - mac-scan
       tag:
         description: "Release tag to build and upload to (required in release mode)"
         required: false
@@ -114,7 +115,15 @@ jobs:
             echo "Windows ECS lifecycle requires the isolated candidate branch and exclusive Windows validation" >&2
             exit 1
           fi
-          case "$RELEASE_MODE" in release|validation) ;; *) exit 1 ;; esac
+          case "$RELEASE_MODE" in release|validation|mac-scan) ;; *) exit 1 ;; esac
+          if [ "$RELEASE_MODE" = mac-scan ] && [ "$RELEASE_RUNTIME" != ecs ]; then
+            echo "Mac scan builds require the pinned production ECS runtime" >&2
+            exit 1
+          fi
+          if [ "$RELEASE_MODE" = mac-scan ] && [ "$RELEASE_PLATFORM" != all ]; then
+            echo "Mac scan mode builds both Mac architectures and requires platform=all" >&2
+            exit 1
+          fi
           case "$RELEASE_PLATFORM" in all|windows|linux) ;; *) exit 1 ;; esac
           if [ "$RELEASE_MODE" = release ]; then
             [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?$ ]] || {
@@ -134,7 +143,7 @@ jobs:
 
   windows:
     needs: validate-inputs
-    if: ${{ !inputs.ecs_candidate && !inputs.ecs_production && (inputs.platform == 'all' || inputs.platform == 'windows') }}
+    if: ${{ (inputs.mode == 'release' || inputs.mode == 'validation') && !inputs.ecs_candidate && !inputs.ecs_production && (inputs.platform == 'all' || inputs.platform == 'windows') }}
     runs-on: windows-latest
     # The ECS build needs the protected EVS account for VMP signing. That
     # environment's required reviewer approves each run; official runs
@@ -1302,5 +1311,123 @@ jobs:
         with:
           name: ecs-native-evidence-${{ matrix.os }}-${{ github.run_id }}
           path: output/ecs-native/*.json
+          if-no-files-found: error
+          retention-days: 3
+
+  mac-scan:
+    needs: validate-inputs
+    if: ${{ inputs.mode == 'mac-scan' && inputs.runtime == 'ecs' }}
+    environment: ecs-signing
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+            app_dir: mac-arm64
+          - runner: macos-15-intel
+            arch: x64
+            app_dir: mac
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    env:
+      APPROVED_SOURCE_SHA: ${{ inputs.source_sha }}
+      TARGET_ARCH: ${{ matrix.arch }}
+      APP_DIR: dist/${{ matrix.app_dir }}/Blanc.app
+      BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+      - name: Bind workflow and source to the approved commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$APPROVED_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$GITHUB_SHA" = "$APPROVED_SOURCE_SHA"
+          test "$(git rev-parse HEAD)" = "$APPROVED_SOURCE_SHA"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm ci --prefix site
+      - name: Run the release press gate before signing
+        run: npm run release:verify:press
+      - name: Install pinned EVS client
+        run: |
+          python3 -m venv "$RUNNER_TEMP/evs-venv"
+          "$RUNNER_TEMP/evs-venv/bin/python" -m pip install castlabs-evs==1.3.2
+      - name: Materialize existing protected EVS credentials
+        env:
+          EVS_CONFIG_JSON: ${{ secrets.EVS_CONFIG_JSON }}
+          EVS_CACHE_JSON: ${{ secrets.EVS_CACHE_JSON }}
+        run: node scripts/prepare-evs-ci.cjs
+      - name: Build production-config signed and notarized installers without publishing
+        env:
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: XYGUCY4498
+          BLANC_ECS_RELEASE_PIPELINE: '1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          for key in CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD; do
+            test -n "${!key}" || { echo "Missing protected Mac signing credential: $key" >&2; exit 1; }
+          done
+          node scripts/preflight-mac-signing.mjs
+          node scripts/build-ecs-production.cjs --release --mac "--$TARGET_ARCH"
+      - name: Verify final signed package and stapled notarization
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/verify-ecs-production-package.cjs --release "$APP_DIR"
+          node scripts/verify-electron-fuses.mjs --ecs "$APP_DIR/Contents/MacOS/Blanc"
+          node scripts/verify-packaged-ublock.js "$APP_DIR/Contents/Resources/app.asar"
+          node scripts/verify-packaged-adblock.js "$APP_DIR/Contents/Resources/app.asar"
+          codesign --verify --deep --strict --verbose=2 "$APP_DIR"
+          xcrun stapler validate "$APP_DIR"
+          spctl --assess --type execute --verbose=2 "$APP_DIR"
+      - name: Remove EVS credentials before browser tests
+        if: always()
+        run: node scripts/prepare-evs-ci.cjs --clean
+      - name: Smoke-test the signed packaged first-run experience
+        env:
+          BLANC_PACKAGED_EXECUTABLE: ${{ github.workspace }}/dist/${{ matrix.app_dir }}/Blanc.app/Contents/MacOS/Blanc
+        run: npm run test:packaged:first-run
+      - name: Record immutable installer digests and candidate source
+        id: verified
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          assets=(dist/Blanc-*.dmg dist/Blanc-*.zip dist/Blanc-*.blockmap)
+          test "${#assets[@]}" -eq 4
+          shasum -a 256 "${assets[@]}" > "dist/SHA256SUMS-mac-$TARGET_ARCH"
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const pkg = require('./package.json');
+          fs.writeFileSync(`dist/mac-candidate-${process.env.TARGET_ARCH}.json`, JSON.stringify({
+            sourceSha: process.env.APPROVED_SOURCE_SHA, version: pkg.version,
+            bundleVersion: pkg.build.mac.bundleVersion, arch: process.env.TARGET_ARCH,
+            runtime: require('./build/ecs-runtime.json').version,
+            signedAndNotarized: true, published: false,
+          }, null, 2) + '\n');
+          NODE
+      - name: Upload only installers and verification records for scanning
+        if: success() && steps.verified.outcome == 'success'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mac-scan-${{ matrix.arch }}-${{ github.run_id }}
+          path: |
+            dist/Blanc-*.dmg
+            dist/Blanc-*.zip
+            dist/Blanc-*.blockmap
+            dist/SHA256SUMS-mac-*
+            dist/mac-candidate-*.json
           if-no-files-found: error
           retention-days: 3
