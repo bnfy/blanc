@@ -96,4 +96,29 @@ final class QuickSwitcherTests: XCTestCase {
         XCTAssertEqual(results.map(\.id).map { $0.split(separator: ":").first! }, ["local", "favorite", "remote"])
     }
 
+    func testHistoryRanksBelowRemoteTabs() {
+        let remote = RemoteDevice(id: "laptop", name: "Laptop", platform: "darwin", updatedAt: 1, tabs: [RemoteTab(url: "https://remote.example/", title: "Recipes", groupId: nil, pinned: false)])
+        let history = [HistoryEntry(url: "https://visited.example/", title: "Recipes", visitedAt: 1)]
+        let results = QuickSwitcher.search(query: "recipes", tabs: [], remote: [remote], favorites: [], history: history)
+        XCTAssertEqual(results.map(\.id), ["remote:laptop:0", "history:https://visited.example/"])
+        XCTAssertEqual(results.last?.url?.absoluteString, "https://visited.example/")
+        XCTAssertEqual(results.last?.strength, QuickSwitcher.strongMatchScore)
+    }
+    func testHistoryIsDeduplicatedAgainstOpenTabs() {
+        let local = makeTab(title: "Recipes", url: "https://recipes.example/")
+        let favorite = Favorite(id: "saved", url: "https://saved.example/", title: "Recipes", favicon: nil, folder: nil)
+        let history = [
+            HistoryEntry(url: local.currentURL.absoluteString, title: "Recipes", visitedAt: 3),
+            HistoryEntry(url: "https://saved.example/", title: "Recipes", visitedAt: 2),
+            HistoryEntry(url: "https://other.example/", title: "Recipes", visitedAt: 1),
+            HistoryEntry(url: "https://other.example/", title: "Recipes", visitedAt: 0),
+        ]
+        let results = QuickSwitcher.search(query: "recipes", tabs: [local], remote: [], favorites: [favorite], history: history)
+        XCTAssertEqual(results.map { $0.id.split(separator: ":").first! }, ["local", "favorite", "history"])
+        XCTAssertEqual(results.last?.id, "history:https://other.example/")
+    }
+    func testHistoryKeepsTheListAtTwelve() {
+        let history = (0..<20).map { HistoryEntry(url: "https://site.example/\($0)", title: "Match", visitedAt: Int64($0)) }
+        XCTAssertEqual(QuickSwitcher.search(query: "match", tabs: [], remote: [], favorites: [], history: history).count, 12)
+    }
 }

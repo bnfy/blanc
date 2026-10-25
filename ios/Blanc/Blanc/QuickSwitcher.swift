@@ -69,7 +69,9 @@ struct SyncedSwitcherResult: Identifiable {
 }
 
 extension QuickSwitcher {
-    static func search(query: String, tabs: [TabModel], remote: [RemoteDevice], favorites: [Favorite]) -> [SyncedSwitcherResult] {
+    /// Open tabs, then Favorites, then other devices' tabs, then History, each
+    /// address shown once.
+    static func search(query: String, tabs: [TabModel], remote: [RemoteDevice], favorites: [Favorite], history: [HistoryEntry] = []) -> [SyncedSwitcherResult] {
         let local = search(query: query, tabs: tabs).map { result in
             SyncedSwitcherResult(id: "local:" + result.tab.id.uuidString, title: result.title, subtitle: result.subtitle,
                                  score: result.score + 4, strength: matchScore(query: query.lowercased(), text: matchableText(title: result.tab.pageTitle, url: result.tab.currentURL)), localTabID: result.tab.id, url: nil)
@@ -95,6 +97,14 @@ extension QuickSwitcher {
                 others.append(SyncedSwitcherResult(id: "remote:" + device.id + ":" + String(index), title: item.title, subtitle: device.name + " · " + item.url, score: score, strength: score, localTabID: nil, url: url))
             }
         }
-        return Array((local + saved.sorted { $0.score > $1.score } + others.sorted { $0.score > $1.score }).prefix(12))
+        var visited: [SyncedSwitcherResult] = []
+        for entry in history {
+            guard let url = URL(string: entry.url), ["http", "https"].contains(url.scheme?.lowercased() ?? ""), !seen.contains(entry.url) else { continue }
+            let score = matchScore(query: q, text: entry.title + " " + entry.url)
+            guard score > 0 else { continue }
+            seen.insert(entry.url)
+            visited.append(SyncedSwitcherResult(id: "history:" + entry.url, title: entry.title, subtitle: entry.url, score: score, strength: score, localTabID: nil, url: url))
+        }
+        return Array((local + saved.sorted { $0.score > $1.score } + others.sorted { $0.score > $1.score } + visited.sorted { $0.score > $1.score }).prefix(12))
     }
 }

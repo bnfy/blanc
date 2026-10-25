@@ -58,6 +58,40 @@ final class PagesBridgeTests: XCTestCase {
         }
     }
 
+    @MainActor private func managerWithHistory() -> TabsManager {
+        let manager = TabsManager(
+            settingsDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString),
+            sessionDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        manager.historyStore.addVisit(url: URL(string: "https://old.example/")!, title: "Old")
+        manager.historyStore.addVisit(url: URL(string: "https://new.example/")!, title: "New")
+        return manager
+    }
+
+    @MainActor func testHistoryListReturnsEntriesNewestFirst() {
+        let manager = managerWithHistory()
+        let bridge = PagesBridge(manager: manager)
+        guard case .value(let list) = bridge.liveResponse(group: "history", method: "list", args: [["query": "", "limit": 500]]) else {
+            return XCTFail("history.list rejected")
+        }
+        XCTAssertEqual(list.array.map { $0["url"]?.string }, ["https://new.example/", "https://old.example/"])
+        XCTAssertEqual(list.array.first?["title"], .string("New"))
+        XCTAssertEqual(list.array.first?["favicon"], .null)
+        XCTAssertNotNil(list.array.first?["visitedAt"]?.number)
+        guard case .value(let filtered) = bridge.liveResponse(group: "history", method: "list", args: [["query": "old"]]) else {
+            return XCTFail("history.list rejected")
+        }
+        XCTAssertEqual(filtered.array.map { $0["url"]?.string }, ["https://old.example/"])
+        let visitedAt = manager.historyStore.entries[1].visitedAt
+        XCTAssertEqual(bridge.liveResponse(group: "history", method: "remove", args: ["https://old.example/", NSNumber(value: visitedAt)]), .value(.null))
+        XCTAssertEqual(manager.historyStore.entries.map(\.url), ["https://new.example/"])
+    }
+
+    @MainActor func testHistoryClearEmptiesTheStore() {
+        let manager = managerWithHistory()
+        XCTAssertEqual(PagesBridge(manager: manager).liveResponse(group: "history", method: "clear", args: []), .value(.null))
+        XCTAssertTrue(manager.historyStore.entries.isEmpty)
+    }
+
     @MainActor func testRemoveFavoriteReachesTheEngine() {
         let manager = TabsManager(
             settingsDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString),

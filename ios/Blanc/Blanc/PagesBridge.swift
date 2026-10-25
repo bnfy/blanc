@@ -289,6 +289,18 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         case ("bookmarks", "list"): return .value(favoritesPayload())
         case ("start", "data"):
             return .value(.object([("groups", .array([])), ("blockedThisWeek", .number(0)), ("remoteDevices", remoteDevicesPayload()), ("bookmarks", favoritesPayload())]))
+        case ("history", "list"):
+            let options = args.first as? [String: Any] ?? [:]
+            let entries = manager?.historyStore.list(
+                query: options["query"] as? String ?? "", limit: (options["limit"] as? NSNumber)?.intValue ?? 500) ?? []
+            return .value(.array(entries.map {
+                .object([("url", .string($0.url)), ("title", .string($0.title)), ("visitedAt", .number(Double($0.visitedAt))), ("favicon", .null)])
+            }))
+        case ("history", "remove"):
+            guard let url = text(0), args.count > 1, let visitedAt = args[1] as? NSNumber else { return .value(.null) }
+            manager?.historyStore.remove(url: url, visitedAt: visitedAt.int64Value)
+        case ("history", "clear"):
+            manager?.historyStore.clear()
         case ("bookmarks", "remove"):
             guard let id = text(0) else { return .value(.null) }
             editFavorites { SyncedFavorites.remove($0, id: id, now: now) }

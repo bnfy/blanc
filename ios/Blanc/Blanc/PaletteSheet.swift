@@ -135,7 +135,8 @@ struct PaletteSheet: View {
     private var switcherList: some View {
         let results = QuickSwitcher.search(
             query: input.trimmingCharacters(in: .whitespacesAndNewlines),
-            tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites
+            tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites,
+            history: manager.historyStore.entries
         )
         return List {
             if results.isEmpty {
@@ -180,7 +181,7 @@ struct PaletteSheet: View {
             return
         }
 
-        let results = QuickSwitcher.search(query: trimmed, tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites)
+        let results = QuickSwitcher.search(query: trimmed, tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites, history: manager.historyStore.entries)
         if let top = results.first, top.strength >= QuickSwitcher.strongMatchScore {
             open(top)
             dismiss()
