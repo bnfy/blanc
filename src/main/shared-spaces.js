@@ -6,7 +6,7 @@ const model=require('./shared-spaces-model');
 const { canonical }=require('./tabsync-model');
 const copy=x=>structuredClone(x);
 const empty=()=>({accountId:'',enabled:false,index:{v:1,spaces:{}},knownIndex:{},blobs:{},pending:{},windows:{},
-  recoveries:{},sidecar:{devices:{}},dormantIds:[],draftIds:[],draftPlans:{},askedDeviceIds:[],pairingBaseline:null,recoveryNoticeSeen:false,requestLog:[],nextClass:'I',cursors:{}});
+  recoveries:{},recoveryDone:{},sidecar:{devices:{}},dormantIds:[],draftIds:[],draftPlans:{},askedDeviceIds:[],pairingBaseline:null,recoveryNoticeSeen:false,requestLog:[],nextClass:'I',cursors:{}});
 let store;
 const ensure=()=>store??=new JsonStore('shared-spaces',empty(),{scope:'profile'});
 const changed=new Set(),remoteChanged=new Set();
@@ -18,7 +18,7 @@ function rebind(accountId) {
   // invalid optional containers. Repair only those containers, preserving
   // unrelated records and any readable future version marker.
   const defaults=empty(),repairs={};
-  for(const name of ['index','knownIndex','blobs','pending','windows','recoveries','sidecar','cursors','draftPlans'])if(!container(s.data[name]))repairs[name]=defaults[name];
+  for(const name of ['index','knownIndex','blobs','pending','windows','recoveries','recoveryDone','sidecar','cursors','draftPlans'])if(!container(s.data[name]))repairs[name]=defaults[name];
   const index=repairs.index??s.data.index,sidecar=repairs.sidecar??s.data.sidecar;
   if(!container(index.spaces))repairs.index={...index,spaces:{}};
   if(index.v===1) {

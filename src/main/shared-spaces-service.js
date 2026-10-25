@@ -1,6 +1,6 @@
 'use strict';
 const model=require('./shared-spaces-model');
-const {planSharing,projectSpace,recoveryCapture}=require('./shared-spaces-sharing');
+const {planSharing,reconcileCapture,recoveryCapture}=require('./shared-spaces-sharing');
 function createSharingService({sync,spaces,workspaces,offered,now=Date.now,ids,isOpen=()=>false,bind=()=>{},changed=()=>{},recoverNative=()=>{},recoveryName=name=>name+' · kept on this device',captureLocal=()=>{},devices=()=>[]}) {
   const context=()=>sync.sharedContext();
   const persist=ctx=>{if(!spaces.rebind(ctx.accountId).flush())throw new Error('save-failed');};
@@ -74,17 +74,21 @@ function createSharingService({sync,spaces,workspaces,offered,now=Date.now,ids,i
       if(context().accountId!==ctx.accountId)return;
       const original=workspaces.list().find(row=>row.sharedId===sid);
       const previous=workspaces.list().find(row=>row.recoveredFrom===sid);
-      const blob={v:1,spaceId:sid,tabs:records.tabs??{},groups:records.groups??{}};
+      const done=new Set(state.recoveryDone?.[sid]??[]),fresh=Object.fromEntries(Object.entries(records.tabs??{}).filter(([id])=>!done.has(id)));
+      if(!Object.keys(fresh).length){if(previous)await recoverNative(sid,previous,records);continue;}
+      const blob={v:1,spaceId:sid,tabs:fresh,groups:records.groups??{}};
       const saved=workspaces.upsertShared({recoveredFrom:sid,name:recoveryName(original?.name??state.index.spaces[sid]?.name.v??'Space'),capture:recoveryCapture(previous,blob)});
-      if(saved.ok)await recoverNative(sid,saved.workspace,records);
+      if(saved.ok){const store=spaces.rebind(ctx.accountId);store.update(data=>{data.recoveryDone??={};data.recoveryDone[sid]=[...new Set([...(data.recoveryDone[sid]??[]),...Object.keys(fresh)])];});persist(ctx);await recoverNative(sid,saved.workspace,records);}
     }
     for(const [sid,record] of Object.entries(state.index.spaces)) {
       if(context().accountId!==ctx.accountId)return;
-      if(record.deleted.v||spaces.isDormant(sid,ctx)||spaces.isDraft(sid,ctx)||!state.blobs[sid])continue;
       const existing=workspaces.list().find(row=>row.sharedId===sid);
+      if(record.deleted.v){if(existing&&!isOpen(existing.id))workspaces.remove(existing.id);continue;}
+      if(spaces.isDormant(sid,ctx)||spaces.isDraft(sid,ctx)||!state.blobs[sid])continue;
       workspaces.upsertShared({sharedId:sid,name:record.name.v,color:record.color.v,symbol:record.symbol.v,
-        capture:existing&&isOpen(existing.id)?existing:projectSpace(state.blobs[sid].blob)});
+        capture:existing&&isOpen(existing.id)?existing:reconcileCapture(existing,state.blobs[sid].blob)});
     }
+    workspaces.reorderShared?.(model.orderOf(state.index.spaces).filter(id=>!state.index.spaces[id].deleted.v));
     changed();
   }
   function metadata(workspace,patch) {

@@ -41,6 +41,28 @@ function planSharing(index,workspaces,selections,{now,deviceId,ids,encryptFn}) {
   }
   return {ok:true,items};
 }
+function reconcileCapture(previous,blob) {
+  if(!previous)return projectSpace(blob);
+  const {restoredMarker,DOCUMENT_POLICY_VERSION}=require('./document-policy');
+  const projected=projectSpace(blob),oldIds=previous.tabIds??[],rows=[];
+  const previousAt=new Map(oldIds.map((id,index)=>[id,index]).filter(([id])=>id));
+  for(let i=0;i<projected.urls.length;i++) {
+    const old=previousAt.get(projected.tabIds[i]);
+    if(old!==undefined&&restoredMarker(previous,old))continue;
+    rows.push({url:projected.urls[i],id:projected.tabIds[i],meta:{...(old!==undefined&&previous.urls[old]===projected.urls[i]?previous.meta?.[old]:{}),...projected.meta[i]},pinned:projected.pinned[i],group:projected.groupIds[i],old});
+  }
+  for(let i=0;i<previous.urls.length;i++)if(!oldIds[i]||restoredMarker(previous,i)||!/^https?:/.test(previous.urls[i])) {
+    rows.splice(Math.min(i,rows.length),0,{url:previous.urls[i],id:null,meta:previous.meta?.[i]??{},pinned:!!previous.pinned?.[i],group:previous.groupIds?.[i]??null,old:i,local:true});
+  }
+  const active=rows.findIndex(row=>row.old===previous.activeIndex);
+  const groups=new Map(projected.groups.map(group=>[group.id,group]));
+  for(const group of previous.groups??[])if(rows.some(row=>row.local&&row.group===group.id))groups.set(group.id,group);
+  return {...previous,urls:rows.map(row=>row.url),tabIds:rows.map(row=>row.id),meta:rows.map(row=>row.meta),pinned:rows.map(row=>row.pinned),groupIds:rows.map(row=>row.group),groups:[...groups.values()],
+    localFiles:rows.map(row=>row.local&&previous.localFiles?.[row.old]===true),documentPolicy:DOCUMENT_POLICY_VERSION,
+    inheritsDocumentPolicy:rows.map(row=>row.local&&restoredMarker(previous,row.old)),
+    ...(previous.splitIds?.length===previous.urls.length?{splitIds:rows.map(row=>row.old===undefined?null:previous.splitIds[row.old])}:{}),
+    activeIndex:active<0?Math.max(0,rows.findIndex(row=>row.id===projected.tabIds[projected.activeIndex])):active};
+}
 function recoveryCapture(previous,blob) {
   const added=projectSpace(blob),old=previous??{urls:[],tabIds:[],meta:[],pinned:[],groupIds:[],groups:[],activeIndex:0};
   const result=copy(old),seen=new Set(old.tabIds??[]);
@@ -51,4 +73,4 @@ function recoveryCapture(previous,blob) {
   const groups=new Map(result.groups.map(group=>[group.id,group]));for(const group of added.groups)if(!groups.has(group.id))groups.set(group.id,group);
   result.groups=[...groups.values()];return result;
 }
-module.exports={planSharing,projectSpace,recoveryCapture};
+module.exports={planSharing,projectSpace,recoveryCapture,reconcileCapture};

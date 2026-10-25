@@ -103,3 +103,13 @@ test('account rebinding clears staged plans, pairing decisions and recovery noti
  const next=h.d.spaces.rebind('b'.repeat(64)).data;
  assert.deepEqual(next.draftPlans,{});assert.deepEqual(next.draftIds,[]);assert.deepEqual(next.askedDeviceIds,[]);assert.equal(next.pairingBaseline,null);assert.equal(next.recoveryNoticeSeen,false);
 });
+test('completed recovery is not replayed after the user removes its tabs or Space',async t=>{
+ const h=setup(t);await h.service.apply({enabled:true,selections:[{id:'local',mode:'copy'}]});const sid=h.rows[0].sharedId,blob=h.d.spaces.snapshot(h.sync.sharedContext()).blobs[sid].blob;
+ h.d.spaces.rebind(h.sync.sharedContext().accountId).update(d=>{d.recoveries[sid]={tabs:blob.tabs,groups:{}};});await h.service.reconcile();
+ const recovered=h.rows.find(row=>row.recoveredFrom===sid);for(const k of ['urls','tabIds','meta','pinned','groupIds'])recovered[k]=[];await h.service.reconcile();assert.equal(recovered.urls.length,0);
+ h.setRows(h.rows.filter(row=>row!==recovered));await h.service.reconcile();assert.equal(h.rows.some(row=>row.recoveredFrom===sid),false);
+});
+test('a tombstoned Space without a runtime moves out of the local library',async t=>{
+ const h=setup(t);h.repo.remove=id=>{h.setRows(h.rows.filter(row=>row.id!==id));return {ok:true};};
+ await h.service.apply({enabled:true,selections:[{id:'local',mode:'copy'}]});h.service.metadata(h.rows[0],{deleted:true});await h.service.reconcile();assert.equal(h.rows.length,0);
+});

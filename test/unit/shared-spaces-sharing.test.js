@@ -66,3 +66,11 @@ test('a transient 26-Space library can be rejoined without adding another Space'
  assert.equal(sharing.planSharing({v:1,spaces},[w],[{id:'local',mode:'rejoin'}],options()).ok,true);
  assert.equal(sharing.planSharing({v:1,spaces},[w],[{id:'local',mode:'copy'}],options()).error,'limit');
 });
+test('inherited and malformed policy rows never enter a new shared blob',()=>{
+ for(const marker of [true,null,undefined]){const w={...workspace(),documentPolicy:1,inheritsDocumentPolicy:[marker]};const result=sharing.planSharing({v:1,spaces:{}},[w],[{id:'local',mode:'copy'}],options());assert.equal(Object.keys(result.items[0].blob.tabs).length,0);}
+});
+test('closed-space reconciliation preserves local-only columns and remaps split membership',()=>{
+ const tab=Object.values(sharing.planSharing({v:1,spaces:{}},[workspace()],[{id:'local',mode:'copy'}],options()).items)[0];
+ const old={...workspace(),urls:['file:///tmp/local.html','https://one.test/'],tabIds:[null,Object.keys(tab.blob.tabs)[0]],localFiles:[true,false],meta:[{title:'Local'},{title:'One'}],pinned:[false,false],groupIds:[null,null],documentPolicy:1,inheritsDocumentPolicy:[true,false],splitIds:['pair','pair'],splits:[{id:'pair',layout:null,focusedIndex:0}]};
+ const result=sharing.reconcileCapture(old,tab.blob);assert.equal(result.urls.includes('file:///tmp/local.html'),true);const at=result.urls.indexOf('file:///tmp/local.html');assert.equal(result.localFiles[at],true);assert.equal(result.inheritsDocumentPolicy[at],true);assert.equal(result.splitIds[at],'pair');
+});

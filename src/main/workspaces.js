@@ -206,10 +206,17 @@ function createRepository({ store = new JsonStore('workspaces', model.EMPTY_FILE
         return {workspace,file:{...data,workspaces:current?data.workspaces.map(row=>row.id===current.id?workspace:row):[...data.workspaces,workspace]}};
       });
     },
+    reorderShared(ids) {
+      return mutate(data=>{
+        const rank=new Map(ids.map((id,index)=>[id,index]));
+        const shared=data.workspaces.filter(row=>rank.has(row.sharedId)).sort((a,b)=>rank.get(a.sharedId)-rank.get(b.sharedId));let at=0;
+        return {file:{...data,workspaces:data.workspaces.map(row=>rank.has(row.sharedId)?shared[at++]:row)}};
+      });
+    },
     clearSharedLinks() {
       return mutate(data=>({file:{...data,workspaces:data.workspaces.map(row=>{
         if(!row.sharedId)return row;
-        const workspace={...row};delete workspace.sharedId;delete workspace.sharedLink;delete workspace.tabIds;return workspace;
+        const workspace={...row,preservedLocal:true};delete workspace.sharedId;delete workspace.sharedLink;delete workspace.tabIds;return workspace;
       })}}));
     },
     remove(id) {

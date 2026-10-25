@@ -479,3 +479,18 @@ test('dormant links keep tab ids, while account unlinking removes only shared bi
     assert.equal(workspaces.get(created.workspace.id).urls[0],'https://a.test/');
   });
 });
+test('unlinking shared copies above the creation cap preserves every Space across reload and mutation',()=>{
+ withLocalProfile('unlink_over_cap',()=>{
+  for(let n=0;n<25;n++)assert.equal(workspaces.create({name:'Local '+n,capture:CAPTURE()}).ok,true);
+  workspaces.upsertShared({sharedId:'c'.repeat(32),name:'Remote',capture:CAPTURE()});assert.equal(workspaces.clearSharedLinks().ok,true);
+  const reopened=workspaces.createRepository();assert.equal(reopened.list().length,26);assert.equal(reopened.update(reopened.list()[0].id,{name:'Changed'}).ok,true);assert.equal(reopened.list().length,26);
+ });
+});
+test('remote shared ordering preserves the slots and order of local-only Spaces',()=>{
+ withLocalProfile('shared_order',()=>{
+  workspaces.create({name:'Local A',capture:CAPTURE()});workspaces.upsertShared({sharedId:'d'.repeat(32),name:'Shared A',capture:CAPTURE()});
+  workspaces.create({name:'Local B',capture:CAPTURE()});workspaces.upsertShared({sharedId:'e'.repeat(32),name:'Shared B',capture:CAPTURE()});
+  assert.equal(workspaces.reorderShared(['e'.repeat(32),'d'.repeat(32)]).ok,true);
+  assert.deepEqual(workspaces.list().map(row=>row.name),['Local A','Shared B','Local B','Shared A']);
+ });
+});

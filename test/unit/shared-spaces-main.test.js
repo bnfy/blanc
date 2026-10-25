@@ -161,3 +161,28 @@ test('a Space tombstone leaves an open window unsaved and disposes a set-aside r
     assert.equal(runtime.workspaceId,null);assert.equal(events.includes('tabs-mutated'),false);assert.equal(events.includes('dispose'),resident);
   }
 });
+test('a newly active tab stays deferred after an earlier navigation awaited',async()=>{
+ let release,started;const gate=new Promise(r=>{release=r;}),ready=new Promise(r=>{started=r;});
+ const h=harness(async(row,tabs)=>{if(row.id===id(1)){started();await gate;}tabs.get(row.id)[row.field]=structuredClone(row.value);return true;});h.runtime.active=null;
+ const remote=structuredClone(h.blob);for(const n of [1,2])remote.tabs[id(n)].nav=f({url:'https://new.test/'+n,title:'New'},200);h.remote(remote);
+ const applying=h.controller.apply(h.runtime);await ready;h.runtime.active=id(2);release();await applying;
+ assert.equal(h.tabs.get(id(2)).nav.v.url,'https://example.test/2');assert.ok(h.saved.accepted.some(row=>row.id===id(2)));
+});
+test('same-value remote clocks advance the displayed receipt before a later local edit',async()=>{
+ const h=harness(),remote=structuredClone(h.blob);remote.tabs[id(2)].nav.c=1000;h.remote(remote);await h.controller.apply(h.runtime);
+ assert.equal(h.saved.displayed.tabs[id(2)].nav.c,1000);h.tabs.get(id(2)).nav.v.url='https://local.test/';h.controller.local(h.runtime);assert.ok(h.writes.at(-1).tabs[id(2)].nav.c>1000);
+});
+test('a projection checkpoint precedes every advanced baseline and blocks local echo on failure',async()=>{
+ const sid=id(88),tab=record(1),blob={v:1,spaceId:sid,groups:{},tabs:{[id(1)]:tab}},runtime={};let saved={spaceId:sid,displayed:{v:1,spaceId:sid,groups:{},tabs:{}},accepted:[]},materialized=false;
+ const order=[],controller=createRuntimeSync({read:()=>({spaceId:sid,accountId:'a',deviceId:'d',blob,window:saved,protectedIds:[]}),
+  checkpoint:()=>{order.push('projection');return !materialized;},saveWindow:(_r,state)=>{order.push('baseline');saved=structuredClone(state);return true;},
+  applyRow:()=>{materialized=true;return true;},capture:()=>({urls:[],groups:[]}),writeLocal:()=>{throw new Error('echo');},layout:()=>{}});
+ await controller.apply(runtime);assert.deepEqual(order.slice(0,2),['projection','baseline']);assert.equal(saved.displayed.tabs[id(1)],undefined);assert.equal(controller.local(runtime),null);
+});
+test('position materialization runs before its advanced receipt checkpoint',async()=>{
+ const h=harness();h.runtime.active=null;const remote=structuredClone(h.blob);remote.tabs[id(2)].pos=f(model.keyFor('',remote.tabs[id(1)].pos.v,id(2)),200);h.remote(remote);
+ const events=[],runtime={},base={spaceId:sid,displayed:structuredClone(h.saved.displayed),accepted:[]};let saved=base;
+ const c=createRuntimeSync({read:()=>({spaceId:sid,accountId:'a',deviceId:'d',blob:remote,window:saved,protectedIds:[]}),
+  applyRow:()=>true,layout:()=>events.push('layout'),checkpoint:(_r,next)=>{if(next.displayed.tabs[id(2)].pos.c===200)assert.equal(events.at(-1),'layout');return true;},saveWindow:(_r,next)=>{saved=structuredClone(next);return true;}});
+ await c.apply(runtime);assert.ok(events.length);
+});
