@@ -246,7 +246,7 @@ on a phone and gets `N/A`. "Exists" means the prototype already has it.
 | F11 | Downloads | after | D3: needs the Files integration and a downloads list; not what the companion is for. The Downloads page stays hidden. |
 | F12 | Blocking | **1.0** as is | Exists: one `WKContentRuleList` from the shared lists, on by default. 1.0 adds the shield chip with the binary state (D13), per-site allow and re-block (D2: recompile and reattach), and the global switch. The full pipeline, cosmetic filtering and `WKWebExtension` DNR are M15, after. |
 | F13 | Permissions | after | WebKit's own camera/microphone/location prompts serve 1.0; Blanc's own policy and remembered decisions come later. |
-| F14 | Settings | **1.0** | Exists as the shared page. Every shared key with desktop's defaults and validation; the two new per-device sync switches (§3 step 3). |
+| F14 | Settings | **1.0** | Native sheet for supported iOS browsing, appearance, blocking, and Sync controls; existing web Settings tabs remain compatible. See [native Settings](../../ios/native-settings.md). The two proposed per-device sync switches (§3 step 3) remain separate work. |
 | F15 | Theming | **1.0** | Exists. |
 | F16 | Internal pages | **1.0** | newtab, favorites, history, settings, shortcuts, error, mahjong served from the bundle; downloads hidden. Each checked at phone width in all six languages. |
 | F17 | Patron & app icons | after | No purchase in 1.0. Alternate icons are cheap on iOS (`setAlternateIconName`) and may ship when the Settings page offers them; Patron stays out. |

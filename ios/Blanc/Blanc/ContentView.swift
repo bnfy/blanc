@@ -31,10 +31,18 @@ struct ContentView: View {
         .overlay(alignment: .bottom) {
             if isStartPage { islandContainer }
         }
+        .onChange(of: showSiteProtection) { _, visible in
+            if !visible { manager.presentPendingSettings() }
+        }
         .fullScreenCover(isPresented: $showTabGrid) {
             TabGridView(manager: manager)
         }
-        .sheet(isPresented: Binding(get: { manager.isPalettePresented }, set: { manager.isPalettePresented = $0 })) {
+        .sheet(item: Binding(get: { manager.settingsDestination }, set: { manager.settingsDestination = $0 })) { destination in
+            SettingsSheet(manager: manager, destination: destination)
+        }
+        .sheet(isPresented: Binding(get: { manager.isPalettePresented }, set: { manager.isPalettePresented = $0 }), onDismiss: {
+            manager.presentPendingSettings()
+        }) {
             PaletteSheet(manager: manager)
         }
         .sheet(isPresented: Binding(get: { manager.isWallpaperPickerPresented }, set: { manager.isWallpaperPickerPresented = $0 }), onDismiss: {
@@ -295,7 +303,7 @@ private struct SiteProtectionView: View {
                     .font(BrowserStyle.font(15))
                 Button("Blocking settings") {
                     dismiss()
-                    if let url = URL(string: "blanc://settings/") { manager.createTab(url: url) }
+                    manager.pendingSettingsDestination = .privacy
                 }
                 .font(BrowserStyle.font(15, semibold: true))
             }

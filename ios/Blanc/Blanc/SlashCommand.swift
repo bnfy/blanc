@@ -11,6 +11,8 @@ struct SlashCommand: Identifiable {
     }
 
     static let available: [SlashCommand] = [
+        SlashCommand(command: "/settings", hintKey: "slash_settings") { $0.showSettings() },
+        SlashCommand(command: "/sync", hintKey: "slash_sync") { $0.showSettings(.sync) },
         SlashCommand(command: "/new", hintKey: "slash_new") { manager in
             manager.createTab()
         },

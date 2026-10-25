@@ -8,8 +8,8 @@ final class SlashCommandTests: XCTestCase {
         XCTAssertTrue(names.contains("/close"))
     }
 
-    func testAvailableCountIsThree() {
-        XCTAssertEqual(SlashCommand.available.map(\.command), ["/new", "/private", "/close"])
+    func testAvailableIncludesPrivate() {
+        XCTAssertTrue(SlashCommand.available.map(\.command).contains("/private"))
     }
 
     @MainActor func testPrivateCommandOpensAPrivateTab() {
@@ -22,6 +22,11 @@ final class SlashCommandTests: XCTestCase {
         XCTAssertEqual(manager.tabs.count, 2)
         XCTAssertEqual(manager.activeTab?.isPrivate, true)
         XCTAssertEqual(manager.activeTab?.currentURL, TabsManager.privateNewTabURL)
+    }
+
+    func testAvailableIncludesNativeSettingsRoutes() {
+        XCTAssertTrue(SlashCommand.available.map(\.command).contains("/settings"))
+        XCTAssertTrue(SlashCommand.available.map(\.command).contains("/sync"))
     }
 
     func testFilterEmptyReturnsAll() {

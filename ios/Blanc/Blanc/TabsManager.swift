@@ -10,6 +10,80 @@ final class TabsManager {
     var wallpaperSelectionCompletion: ((UIImage?) -> Void)?
     let startAppearance: StartAppearanceStore
     var isPalettePresented = false
+    private final class WeakPreview {
+        weak var tab: TabModel?
+        let layout: BlancStartPageLayout?
+        init(_ tab: TabModel, layout: BlancStartPageLayout?) { self.tab = tab; self.layout = layout }
+    }
+    @ObservationIgnored private var previews: [WeakPreview] = []
+    var startPreviews: [TabModel] { previews.compactMap(\.tab) }
+
+    func previewLayout(for webView: WKWebView) -> BlancStartPageLayout? {
+        previews.first { $0.tab?.webView === webView }?.layout
+    }
+
+    func makeStartPreview(layout: BlancStartPageLayout? = nil) -> TabModel {
+        let configuration = WebViewConfiguration.make(schemeHandler: schemeHandler, bridge: bridge)
+        configuration.userContentController.addUserScript(WKUserScript(source: """
+            document.getElementById('customizeButton')?.style.setProperty('display', 'none', 'important');
+            """, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+        let tab = TabModel(url: Self.newTabURL, configuration: configuration)
+        previews.removeAll { $0.tab == nil }
+        previews.append(WeakPreview(tab, layout: layout))
+        return tab
+    }
+
+    var settingsDestination: SettingsDestination?
+    var pendingSettingsDestination: SettingsDestination?
+
+    func showSettings(_ destination: SettingsDestination = .root) {
+        if isPalettePresented {
+            pendingSettingsDestination = destination
+            isPalettePresented = false
+        } else {
+            settingsDestination = destination
+        }
+    }
+
+    func presentPendingSettings() {
+        if let destination = pendingSettingsDestination {
+            pendingSettingsDestination = nil
+            settingsDestination = destination
+        }
+    }
+
+    @discardableResult
+    func routeSettings(_ url: URL) -> Bool {
+        guard let destination = SettingsDestination.resolve(url) else { return false }
+        showSettings(destination)
+        return true
+    }
+
+    func setStartLayout(_ layout: BlancStartPageLayout) {
+        settingsStore.update(newtabLayout: layout)
+        bridge.emit("start.onStatus", payload: .object([("layout", .string(layout.rawValue))]), host: "newtab")
+    }
+
+    @discardableResult
+    func changeStartAppearance(_ method: String, value: Any?) throws -> [String: Any] {
+        let payload = try startAppearance.change(method, value: value)
+        bridge.broadcastAppearance()
+        return payload
+    }
+
+    func importWallpaper(_ image: UIImage) throws {
+        try startAppearance.importImage(image)
+        bridge.broadcastAppearance()
+    }
+
+    func setAdblockExceptions(_ exceptions: [String]) {
+        let old = settingsStore.adblockExceptions
+        settingsStore.update(adblockExceptions: exceptions)
+        for tab in tabs where AdblockExceptions.isExcepted(tab.currentURL, in: old) != AdblockExceptions.isExcepted(tab.currentURL, in: settingsStore.adblockExceptions) {
+            applyBlocking(to: tab, for: tab.currentURL)
+            tab.webView.reload()
+        }
+    }
     var activeTabId: UUID?
 
     let settingsStore: SettingsStore
@@ -17,7 +91,15 @@ final class TabsManager {
     private let syncDirectory: URL
     @ObservationIgnored private var applyingRemoteSettings = false
     @ObservationIgnored lazy var syncEngine: SyncEngine = {
-        let engine = SyncEngine(state: SyncStateStore(directory: syncDirectory), secrets: KeychainSyncSecretStore(), client: SyncWorkerClient(),
+        var client = SyncWorkerClient()
+        var secrets: any SyncSecretStore = KeychainSyncSecretStore()
+        #if DEBUG
+        if UITestSeed.settings {
+            client = SyncWorkerClient(transport: SettingsUITestTransport())
+            secrets = SettingsUITestSecrets()
+        }
+        #endif
+        let engine = SyncEngine(state: SyncStateStore(directory: syncDirectory), secrets: secrets, client: client,
             settingsSink: { [weak self] settings in
                 guard let self else { return }
                 self.applyingRemoteSettings = true
@@ -68,6 +150,11 @@ final class TabsManager {
     }
 
     init(settingsDirectory: URL? = nil, sessionDirectory: URL? = nil) {
+        #if DEBUG
+        if UITestSeed.settings { UITestSeed.prepareSettings() }
+        let settingsDirectory = UITestSeed.settings ? UITestSeed.settingsDirectory : settingsDirectory
+        let sessionDirectory = UITestSeed.settings ? UITestSeed.settingsDirectory : sessionDirectory
+        #endif
         syncDirectory = settingsDirectory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         let appearance = StartAppearanceStore(directory: settingsDirectory)
         self.startAppearance = appearance
@@ -140,6 +227,7 @@ final class TabsManager {
     @discardableResult
     func createTab(url: URL? = nil, isPrivate: Bool = false) -> UUID {
         let url = url ?? (isPrivate ? Self.privateNewTabURL : Self.newTabURL)
+        if !isRestoringSession, activeTabId != nil, routeSettings(url) { return activeTabId! }
         let config = WebViewConfiguration.make(
             schemeHandler: schemeHandler, bridge: bridge,
             dataStore: isPrivate ? privateDataStore : .default())
@@ -173,6 +261,7 @@ final class TabsManager {
             && !AdblockExceptions.isExcepted(tab.currentURL, in: settingsStore.adblockExceptions) {
             contentBlocker.attach(to: tab.webView)
         }
+        tab.navigationDelegate.onSettingsNavigation = { [weak self] url in self?.routeSettings(url) ?? false }
         // Re-persist whenever this tab settles on a new URL (navigation/redirect).
         tab.navigationDelegate.onURLChange = { [weak self] _ in
             self?.persistSession()
@@ -234,6 +323,10 @@ final class TabsManager {
     }
 
     func submitActiveTabAddress() {
+        if let tab = activeTab, routeSettings(normalizer.normalize(tab.addressText)) {
+            tab.addressText = tab.currentURL.absoluteString
+            return
+        }
         activeTab?.submitAddress(using: normalizer)
         // submitAddress moves currentURL to the destination synchronously, so the
         // later navigation's onURLChange sees no change and won't fire. Persist the
@@ -293,6 +386,10 @@ final class TabsManager {
         let oldEngine = settingsStore.searchEngine
         let oldBlocking = settingsStore.adblockEnabled
         settingsStore.update(theme: themeUpdate, searchEngine: engineUpdate, adblockEnabled: adblockUpdate)
+        if oldTheme != settingsStore.theme || oldEngine != settingsStore.searchEngine || oldBlocking != settingsStore.adblockEnabled {
+            bridge.emitSettingsChanges()
+            bridge.emit("start.onStatus", payload: .object([("mobileAdblockEnabled", .bool(settingsStore.adblockEnabled))]), host: "newtab")
+        }
         if !applyingRemoteSettings {
             if let themeUpdate, themeUpdate != oldTheme { syncEngine.localSettingChanged(key: "theme", value: .string(themeUpdate.rawValue)) }
             if let engineUpdate, engineUpdate != oldEngine { syncEngine.localSettingChanged(key: "searchEngine", value: .string(engineUpdate.rawValue)) }
@@ -336,11 +433,7 @@ final class TabsManager {
         guard let host = AdblockExceptions.host(for: tab.currentURL) else { return }
         var list = settingsStore.adblockExceptions.filter { $0 != host }
         if !on { list.append(host) }
-        settingsStore.update(adblockExceptions: list)
-        for affected in tabs where AdblockExceptions.host(for: affected.currentURL) == host {
-            applyBlocking(to: affected, for: affected.currentURL)
-            affected.webView.reload()
-        }
+        setAdblockExceptions(list)
     }
 
     /// Puts the tab's blocking rules on or off for the site it is about to show.

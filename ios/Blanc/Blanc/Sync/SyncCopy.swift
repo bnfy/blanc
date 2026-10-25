@@ -2,7 +2,7 @@ import Foundation
 
 /// Read the very same generated catalog used by the bundled pages.
 enum SyncCopy {
-  private static var messages: [String: String] {
+  private static let messages: [String: String] = {
     let locale = BlancPageResolver.resolvedLocale(preferred: Locale.preferredLanguages)
     guard
       let url = Bundle.main.url(
@@ -17,7 +17,7 @@ enum SyncCopy {
       let result = catalog["messages"] as? [String: String]
     else { return [:] }
     return result
-  }
+  }()
   static func text(_ key: String) -> String { messages[key] ?? key }
   /// A catalog message with its `{name}` placeholders filled (the simple
   /// arguments the sends.* strings use).
