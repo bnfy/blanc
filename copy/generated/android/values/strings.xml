@@ -2190,6 +2190,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="sends_no_match">No device named “%1$s”.</string>
     <string name="slash_send_hint">Type a space, then a device name — e.g. \"iPhone\"</string>
     <string name="slash_send_doc">Send this tab\'s page to another synced device</string>
+    <string name="slash_copy_hint">Copy this page\'s link — add \"clean\" to drop tracking parameters</string>
+    <string name="slash_copy_doc">Copy this page\'s link; with clean, without tracking parameters</string>
     <string name="shared_spaces_switch">Keep Spaces and groups in sync on this device</string>
     <string name="shared_spaces_title">Choose Spaces to sync</string>
     <string name="shared_spaces_explanation">Share these Spaces across devices on this sync account. Open tabs, tab names, groups and pinned tabs will sync.</string>
