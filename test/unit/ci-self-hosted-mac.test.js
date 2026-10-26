@@ -49,6 +49,7 @@ test('the VM runners keep the direct runner\'s labels and keep the host credenti
   assert.doesNotMatch(vm, /gh auth token|GH_TOKEN|registration-token/);
   // Apple allows two macOS VMs per Mac.
   assert.match(vm, /SLOTS >= 1 && SLOTS <= 2/);
+});
 
 test('the parity macOS legs stay nightly even with the self-hosted Mac', () => {
   // On every pull request they queued three more jobs per PR for the Mac's two
