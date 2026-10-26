@@ -470,6 +470,7 @@ Then('the six-control Mahjong rail fits its table at every desktop breakpoint', 
   assert.ok(original, 'window content bounds should be available');
   // Blanc's 68px Island strip leaves the game viewport at window height - 68.
   const sizes = [678, 679, 727, 728, 788, 789, 800].map((height) => ({ width: 1280, height }));
+  const chromeHeight = (await this.call('islandAutoHideState')).chromeHeight;
   const seenTiers = new Set();
   try {
     for (const size of sizes) {
@@ -481,7 +482,8 @@ Then('the six-control Mahjong rail fits its table at every desktop breakpoint', 
       );
       const game = await waitForValue(
         () => this.call('readMahjongDom'),
-        (value) => value?.viewportWidth === size.width && value.dockButtonCount === 6,
+        (value) => value?.viewportWidth === size.width
+          && value.viewportHeight === size.height - chromeHeight && value.dockButtonCount === 6,
         `six-control Mahjong dock at ${size.width}x${size.height}`
       );
       const tier = expectedRailTier(game.viewportHeight);

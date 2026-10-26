@@ -1,5 +1,13 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+MAHJONG VIEWPORT RACE: The final native run's live Intel log exposed a retry
+in the rail-tier assertion. Its resize loop keeps width constant but had waited
+only for width, allowing the prior viewport height to be sampled and a tier to
+be missed. The driver now also waits for the expected height below the current
+chrome band. The same full Mahjong scenario passes locally (14 steps), retaining
+all three tier, size and containment assertions. This changes only acceptance
+code/documentation; packaged application inputs remain those of 2e59e6b71.
+
 COMPLETE LOCAL ACCEPTANCE PASSED: At 85342c1c5 the full local gate passed all
 541 scenarios / 4,731 steps (including diagnostic After hooks); two scenarios
 recovered under the existing retry policy. All originally reported failures
