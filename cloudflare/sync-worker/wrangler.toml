@@ -1,6 +1,11 @@
 name = "blanc-sync"
 main = "src/index.js"
 compatibility_date = "2026-07-01"
+# Reviewed cutover configuration only; do not deploy without owner approval.
+# Keep the production endpoint while preventing old Version URLs from writing
+# around the account's SQLite quota/erasure path.
+workers_dev = true
+preview_urls = false
 
 # Create with: wrangler kv namespace create SYNC  → paste the id below.
 [[kv_namespaces]]
@@ -23,7 +28,9 @@ tag = "v1-account-quota"
 new_sqlite_classes = ["AccountQuota"]
 
 [triggers]
-crons = ["17 4 * * *"]
+# Inactivity cleanup is paused. Re-enabling it requires a reviewed quota-aware
+# implementation; disabling its flag alone does not drain old invocations.
+crons = []
 
 # Keep the Worker's own console lines (the daily cleanup summary logs only
 # counts) but not per-request invocation logs: request URLs carry the account
