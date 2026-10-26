@@ -1818,6 +1818,11 @@ When('I watch the Glance card while I point at the top edge of the window', asyn
 });
 
 Then('the Glance card never moved while the Island slid in', async function () {
-  assert.equal(this.glanceIslandSlid, true, `the Island slid in while the card was watched: ${JSON.stringify(this.glanceIslandFinal)}`);
+  const final = this.glanceIslandFinal;
+  assert.equal(final.revealed, true, 'the Island was revealed');
+  // macOS runners can enable Reduce Motion: the reveal then has no slide.
+  if (!final.reducedMotion) {
+    assert.equal(this.glanceIslandSlid, true, `the Island slid in while the card was watched: ${JSON.stringify(final)}`);
+  }
   assert.deepEqual([...this.glanceCardSeen].map((value) => JSON.parse(value)), [JSON.parse([...this.glanceCardSeen][0])]);
 });
