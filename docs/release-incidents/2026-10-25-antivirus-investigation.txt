@@ -1,5 +1,20 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+NATIVE ACCEPTANCE PASSED; ICON HOST FIX (Oct 26): At f825f599a, Apple Silicon
+passed all 541 scenarios / 4,731 steps and the complete press gate. Packaging
+then failed explicitly (exit 1) in actool: Xcode 26.3's asset agent encountered
+missing CoreMedia/MediaToolbox symbols on the macOS 15 host. No signed output
+was produced. The replacement mac-scan matrix uses native macOS 26 runners,
+retaining pinned Xcode 26.3, and compiles the actual production Icon.icon with
+electron-builder's own compiler before running the full press gate. This
+preflight catches host/runtime incompatibility before the long acceptance run.
+The old Intel job was canceled after the ARM failure; its gate was still running.
+Current main's /copy change (9e66fee2a) is reconciled for the replacement run.
+Test-only follow-ups now wait for Mahjong's real animation-frame Undo message
+(the complete 14-step scenario passes without retry) and supply inert inputs
+to the mocked Windows builder regression (the hosted Windows suite passed).
+No application signing or source-distribution safeguard has been relaxed.
+
 CURRENT-MAIN RECONCILIATION: The first corrected-toolchain run 40369380490 was
 canceled while both Mac jobs were still queued. Main had advanced to
 3fde552b0 (the merged Linux MRU tab-switching change), making PR 1135 conflict

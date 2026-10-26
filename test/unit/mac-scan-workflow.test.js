@@ -25,6 +25,9 @@ test('Mac signing stays protected, read-only, native on both architectures and t
   assert.equal(job.env.DEVELOPER_DIR, '/Applications/Xcode_26.3.app/Contents/Developer');
   assert.deepEqual(job.permissions, { contents: 'read' });
   assert.deepEqual(job.strategy.matrix.include.map(x => x.arch), ['arm64', 'x64']);
+  assert.deepEqual(job.strategy.matrix.include.map(x => x.runner), ['macos-26', 'macos-26-intel']);
+  const icon = job.steps.findIndex(x => x.run?.includes('node scripts/preflight-mac-icon.cjs'));
+  assert(icon >= 0 && icon < job.steps.findIndex(x => x.run === 'npm run release:verify:press'));
   const checkout = job.steps.find(x => x.uses?.startsWith('actions/checkout@'));
   assert.equal(checkout.with.ref, '${{ inputs.source_sha }}');
   assert.equal(checkout.with['fetch-depth'], 0, 'press compatibility checks require immutable release tags');

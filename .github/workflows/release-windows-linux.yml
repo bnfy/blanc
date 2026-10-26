@@ -1324,10 +1324,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: macos-15
+          - runner: macos-26
             arch: arm64
             app_dir: mac-arm64
-          - runner: macos-15-intel
+          - runner: macos-26-intel
             arch: x64
             app_dir: mac
     runs-on: ${{ matrix.runner }}
@@ -1359,6 +1359,7 @@ jobs:
         run: |
           xcodebuild -version
           xcrun actool --version
+          node scripts/preflight-mac-icon.cjs
       - name: Use the tallest display mode for desktop acceptance
         run: swift scripts/ci-macos-tall-display.swift
       - name: Run the release press gate before signing
