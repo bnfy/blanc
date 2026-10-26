@@ -1161,6 +1161,7 @@ function install(refs) {
 
     // ---- settings ----
     setAdblock(on) { settings.setSettings({ adblockEnabled: !!on }); },
+    setTabSwitchOrder(order) { settings.setSettings({ tabSwitchOrder: order }); return settings.getSettings().tabSwitchOrder; },
     async probeOnePasswordUtilityProcess() {
       const result = await probeOnePasswordPackage();
       return {

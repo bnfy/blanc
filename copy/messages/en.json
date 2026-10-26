@@ -1749,11 +1749,19 @@
   },
   "menu.nextTab": {
     "message": "Next Tab",
-    "note": "App menu command that switches to the next tab."
+    "note": "App menu command (Ctrl+Tab) that switches to the next tab, in the order chosen in Settings → General → Switch tabs with Ctrl+Tab (most recently used, or the tab list)."
   },
   "menu.previousTab": {
     "message": "Previous Tab",
     "note": "App menu command that switches to the previous tab."
+  },
+  "menu.nextTabInOrder": {
+    "message": "Next Tab in List Order",
+    "note": "App menu command (Ctrl+PageDown) that switches to the next tab in the tab list, whatever order Ctrl+Tab uses."
+  },
+  "menu.previousTabInOrder": {
+    "message": "Previous Tab in List Order",
+    "note": "App menu command (Ctrl+PageUp) that switches to the previous tab in the tab list, whatever order Ctrl+Tab uses."
   },
   "menu.reload": {
     "message": "Reload",
@@ -3694,6 +3702,22 @@
     "message": "After 6 hours",
     "note": "Settings → General: choice in a dropdown.",
     "maxLength": 19
+  },
+  "settings.general.tabSwitchOrder.label": {
+    "message": "Switch tabs with Ctrl+Tab",
+    "note": "Settings → General: setting name. Chooses the order Ctrl+Tab goes through tabs."
+  },
+  "settings.general.tabSwitchOrder.hint": {
+    "message": "Hold Ctrl and press Tab to go back through the tabs you used last, then let go of Ctrl to switch. Esc stays where you are.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.tabSwitchOrder.recent": {
+    "message": "In the order you used them",
+    "note": "Settings → General → Switch tabs with Ctrl+Tab: option (most recently used first; the default)."
+  },
+  "settings.general.tabSwitchOrder.list": {
+    "message": "In the order of the tab list",
+    "note": "Settings → General → Switch tabs with Ctrl+Tab: option (the order tabs appear in the list)."
   },
   "settings.general.tabArchive.label": {
     "message": "Archive inactive tabs",

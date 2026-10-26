@@ -471,6 +471,8 @@
     <string name="menu_settings">Settings</string>
     <string name="menu_next_tab">Next Tab</string>
     <string name="menu_previous_tab">Previous Tab</string>
+    <string name="menu_next_tab_in_order">Next Tab in List Order</string>
+    <string name="menu_previous_tab_in_order">Previous Tab in List Order</string>
     <string name="menu_reload">Reload</string>
     <string name="menu_copy_clean_link">Copy Clean Link</string>
     <string name="menu_undo">Undo</string>
@@ -1002,6 +1004,10 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_tab_sleep_30m">After 30 minutes</string>
     <string name="settings_general_tab_sleep_1h">After 1 hour</string>
     <string name="settings_general_tab_sleep_6h">After 6 hours</string>
+    <string name="settings_general_tab_switch_order_label">Switch tabs with Ctrl+Tab</string>
+    <string name="settings_general_tab_switch_order_hint">Hold Ctrl and press Tab to go back through the tabs you used last, then let go of Ctrl to switch. Esc stays where you are.</string>
+    <string name="settings_general_tab_switch_order_recent">In the order you used them</string>
+    <string name="settings_general_tab_switch_order_list">In the order of the tab list</string>
     <string name="settings_general_tab_archive_label">Archive inactive tabs</string>
     <string name="settings_general_tab_archive_hint">Blanc closes loose tabs you haven\'t opened in a while and keeps them in your Archive for 30 days. Pinned tabs and tab groups are never archived.</string>
     <string name="settings_general_tab_archive_off">Off</string>
