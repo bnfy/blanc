@@ -96,6 +96,13 @@ struct PaletteSheet: View {
                         .frame(minHeight: 44)
                 }
                 Spacer(minLength: 4)
+                if manager.activeTab?.readerAvailable == true || manager.activeTab?.reader != nil {
+                    Button { dismiss(); manager.toggleReaderMode() } label: {
+                        Image(systemName: "doc.text").frame(width: 44, height: 44)
+                    }
+                    .accessibilityLabel(ReaderCopy.text(manager.activeTab?.reader != nil ? "reader.exit" : "reader.enter"))
+                    .accessibilityIdentifier("palette.reader")
+                }
                 pageShortcut("Favorites", icon: "bookmark", page: "bookmarks")
                 pageShortcut("History", icon: "clock.arrow.circlepath", page: "history")
                 pageShortcut("Settings", icon: "slider.horizontal.3", page: "settings")

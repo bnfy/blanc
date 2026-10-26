@@ -370,6 +370,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Real X11 keys for most-recent Ctrl+Tab: synthetic events can't prove
+      # the Control release arrives (docs/superpowers/specs/2026-10-24-mru-tab-switcher-design.md §8).
+      - name: Install xdotool (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -q && sudo apt-get install -y -q xdotool
       - name: Browser commands and Settings (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -401,6 +406,12 @@ jobs:
       - name: PDFs render with each blocker (Windows/macOS)
         if: ${{ !cancelled() && runner.os != 'Linux' }}
         run: npm run test:pdf-viewer:desktop
+      - name: Reader Mode lifecycle and pane routing (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: xvfb-run -a npm run test:reader:desktop
+      - name: Reader Mode lifecycle and pane routing (Windows/macOS)
+        if: ${{ !cancelled() && runner.os != 'Linux' }}
+        run: npm run test:reader:desktop
       - name: Retain private native command failure diagnostics
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

@@ -48,9 +48,9 @@ test('every strip broadcast also reaches the card', () => {
 
 test('the main page keeps the whole page area; the Glance page sits inside the card', () => {
   const resize = between(main, 'function resizeActiveView() {', 'syncSplitCornerTabs(split, place);');
-  assert.match(resize, /tab\.view\.setBounds\(place\(layout\.pageBounds\)\)/);
+  assert.match(resize, /presentationView\(tab\)\.setBounds\(place\(layout\.pageBounds\)\)/);
   // The card is fixed to the window: only the main page slides with the Island.
-  assert.match(resize, /glanceTab\.view\.setBounds\(card\.page\)/);
+  assert.match(resize, /presentationView\(glanceTab\)\.setBounds\(card\.page\)/);
   assert.match(resize, /cardView\.setBounds\(card\.chrome\)/);
 });
 
@@ -58,7 +58,7 @@ test('the card sits just above the main page and below the Glance page', () => {
   const restack = between(main, 'function restackAboveTabViews() {', '\n}\n');
   assert.match(restack, /restackGlanceCard\(\);[\s\S]*addChildView\(sheet\.view\)/);
   const card = between(main, 'function restackGlanceCard(', '\n}\n');
-  assert.match(card, /addChildView\(cardView\);\s+rt\(\)\.window\.contentView\.addChildView\(glanceTab\.view\);/);
+  assert.match(card, /addChildView\(cardView\);\s+rt\(\)\.window\.contentView\.addChildView\(presentationView\(glanceTab\)\);/);
 });
 
 test('the layout payload carries the card, the focused pane and the card generation', () => {

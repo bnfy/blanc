@@ -164,6 +164,10 @@ export interface TabEntry {
   /** The Split View (F53) this tab belongs to, or null. */
   splitId: string | null;
   syncNotSynced?: boolean;
+  /** Article suitability hint; extraction may still fail. */
+  readerAvailable: boolean;
+  /** The tab is displaying its transient Reader Mode view. */
+  readerActive: boolean;
 }
 
 /** A tab group: a name, and optionally one of the Spaces preset colors. */
@@ -292,6 +296,7 @@ export interface TabsSnapshot {
   /** How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
   closedSlot: number;
   tabLayout: TabLayout;
+  verticalTabsTextSize: string;
   verticalTabsWidth: number;
   verticalTabsPreferredWidth: number;
   verticalTabsMinWidth: number;
@@ -312,6 +317,7 @@ export interface TabsUpdatedPayload {
   /** How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
   closedSlot: number;
   tabLayout: TabLayout;
+  verticalTabsTextSize: string;
   adblockEnabled: boolean;
   shieldPopover: ShieldPopover | null;
   captureChip: CaptureChip;
@@ -498,7 +504,7 @@ export interface DownloadsActivity {
 }
 
 /** Overlay modes; every showOverlay() call in main.js passes one of these literals. */
-export type OverlayMode = 'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces';
+export type OverlayMode = 'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces' | 'switcher';
 
 /** Fixed ids of the pill's brief confirmations; the strip owns their text. */
 export type PillNotice = 'link-copied' | 'clean-link-copied';
@@ -1302,6 +1308,16 @@ export interface BlancBrowserAPI {
    */
   captureFocus(surfaceId: CaptureSurfaceId): void;
   /**
+   * Land on a Ctrl+Tab card entry the user clicked; main ignores it unless the card is showing and offered that tab.
+   * IPC: send `chrome:switcher-pick`.
+   */
+  switcherPick(tabId: TabId): void;
+  /**
+   * Copy the current tab's address (/copy), or its tracking-free form when clean is true (/copy clean).
+   * IPC: send `chrome:copy-link`.
+   */
+  copyActiveLink(clean: boolean): void;
+  /**
    * Stop a screen share.
    * IPC: send `display-capture:stop`.
    */
@@ -1657,6 +1673,11 @@ export interface BlancBrowserAPI {
    * IPC: event `chrome:find-result`.
    */
   onFindResult(callback: (payload: FindResult) => void): () => void;
+  /**
+   * Enter or exit Reader Mode for an owned visible tab; false when extraction is unavailable.
+   * IPC: invoke `tabs:reader-toggle`.
+   */
+  toggleReaderMode(id: TabId): Promise<boolean>;
 }
 
 declare global {

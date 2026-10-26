@@ -269,6 +269,7 @@ function loadDetachTabView({ focused = true, dead = false, owned = true, current
   const { liveContents } = loadLiveContents();
   const sandbox = {
     liveContents,
+    presentationView: target => target?.view,
     tabs: new Map(current ? [[tab.id, tab]] : []),
     windowRuntimes: { runtimeForTab: () => owned ? runtime : {} },
     rt: () => runtime,

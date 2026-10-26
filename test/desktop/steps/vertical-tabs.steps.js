@@ -1635,3 +1635,105 @@ Then('focus returns to the active tab content', function () {
   // considers the child view focused despite DOM focus being in chrome.
   assert.equal(this.escapeActivationAfter, this.escapeActivationBefore + 1);
 });
+
+When('I choose {string} vertical tab text in Settings', async function (size) {
+  await this.call('openSettings');
+  const settingsPage = await waitForValue(
+    () => ctx.app.windows().find((page) => !page.isClosed() && page.url().startsWith('blanc://settings/')),
+    Boolean, 'Settings page'
+  );
+  // The Settings bridge initializes asynchronously; the HTML's default option
+  // exists before its change listener is installed. Wait for the saved layout.
+  await settingsPage.waitForFunction(() => document.getElementById('tabLayout')?.value === 'vertical');
+  await settingsPage.locator('#verticalTabsTextSize').selectOption(size);
+  await settingsPage.waitForFunction(async (expected) =>
+    (await window.bowserPages.settings.get()).settings.verticalTabsTextSize === expected, size);
+});
+
+Then('vertical tab titles use {float} pixel text without clipping', async function (size) {
+  const page = await chromePage();
+  try {
+    await page.waitForFunction((expected) => {
+      const title = document.querySelector('.vertical-tab-title');
+      return title && parseFloat(getComputedStyle(title).fontSize) === expected;
+    }, size);
+  } catch (error) {
+    error.message += JSON.stringify(await page.evaluate(() => ({
+      size: document.getElementById('verticalTabsRail').dataset.textSize,
+      titles: [...document.querySelectorAll('.vertical-tab-title')].map((el) => getComputedStyle(el).fontSize),
+    })));
+    throw error;
+  }
+  const metrics = await page.locator('.vertical-tab-title').first().evaluate((title) => {
+    const row = title.closest('.vertical-tab-primary').getBoundingClientRect();
+    const rect = title.getBoundingClientRect();
+    return { top: rect.top - row.top, bottom: row.bottom - rect.bottom, height: rect.height, lineHeight: parseFloat(getComputedStyle(title).lineHeight) };
+  });
+  assert.ok(metrics.top >= 0 && metrics.bottom >= 0 && metrics.height >= metrics.lineHeight - 1, JSON.stringify(metrics));
+  for (const header of await page.locator('.vertical-tabs-group-header').all()) {
+    assert.equal(await header.evaluate((el) => parseFloat(getComputedStyle(el).fontSize)), size - 2);
+  }
+  if (process.env.BLANC_TAB_TEXT_CAPTURES) {
+    const fs = require('node:fs');
+    const path = require('node:path');
+    fs.mkdirSync(process.env.BLANC_TAB_TEXT_CAPTURES, { recursive: true });
+    await page.locator('#verticalTabsRail').screenshot({
+      path: path.join(process.env.BLANC_TAB_TEXT_CAPTURES, `vertical-tabs-${size}.png`),
+    });
+  }
+
+});
+
+Then('Profile Sync excludes the vertical tab text size', async function () {
+  assert.equal(Object.hasOwn(await this.call('settingsSyncValues'), 'verticalTabsTextSize'), false);
+});
+
+When('I open another window for the vertical tab text check', async function () {
+  this.textSizeSecondWindow = await this.call('openNewWindow');
+  await waitForValue(() => ctx.app.windows().filter((page) => !page.isClosed() && page.url() === 'blanc-chrome://index/').length,
+    (count) => count === 2, 'second browser window');
+});
+
+Then('both windows use {float} pixel vertical tab text', async function (size) {
+  const pages = ctx.app.windows().filter((page) => !page.isClosed() && page.url() === 'blanc-chrome://index/');
+  assert.equal(pages.length, 2);
+  for (const page of pages) {
+    await page.waitForFunction((expected) => {
+      const title = document.querySelector('.vertical-tab-title');
+      return title && parseFloat(getComputedStyle(title).fontSize) === expected;
+    }, size);
+  }
+  await this.call('closeWindowRuntime', this.textSizeSecondWindow);
+});
+
+Then('vertical tab drag previews keep their text size and height', async function () {
+  await this.call('closeUtilitySurface');
+  const page = await chromePage();
+  // Restored fixture tabs can still publish their loading state after restart.
+  // Wait for those broadcasts before measuring and grabbing a rail row.
+  await this.waitForState((state) => state.tabs.every((tab) => !tab.loading));
+  await page.waitForFunction(() => !document.querySelector('#verticalTabsRail .vertical-tab-row.loading'));
+  for (const [sourceSelector, textSelector] of [
+    ['.vertical-tab-row', '.vertical-tab-title'],
+    ['.vertical-tabs-group-header', '.vertical-tabs-group-name'],
+  ]) {
+    const source = page.locator(`#verticalTabsRail ${sourceSelector}`).first();
+    await source.scrollIntoViewIfNeeded();
+    const read = (el, selector) => ({
+      fontSize: getComputedStyle(el.querySelector(selector)).fontSize,
+      height: el.getBoundingClientRect().height,
+    });
+    const expected = await source.evaluate(read, textSelector);
+    const box = await source.boundingBox();
+    try {
+      await pointerDrag(this, page, source, { y: box.y + box.height / 2 + 10 }, { hold: true });
+      const preview = page.locator('body > .tab-drag-ghost');
+      await preview.waitFor({ state: 'visible' });
+      assert.deepEqual(await preview.evaluate(read, textSelector), expected, sourceSelector);
+    } finally {
+      await page.keyboard.press('Escape');
+      await page.mouse.up();
+    }
+    await page.locator('body > .tab-drag-ghost').waitFor({ state: 'detached' });
+  }
+});

@@ -29,12 +29,16 @@ struct ContentView: View {
             if let tab = manager.activeTab {
                 WebView(tab: tab)
                     .id(tab.id)
+                    .opacity(tab.reader == nil ? 1 : 0)
+                    .allowsHitTesting(tab.reader == nil)
+                    .accessibilityHidden(tab.reader != nil)
                     .ignoresSafeArea(edges: isStartPage ? .all : [])
                     .offset(x: swipeOffset)
                 if swipeOffset != 0, let neighbor = manager.neighbor(of: tab.id, offset: swipeOffset < 0 ? 1 : -1) {
                     neighborPage(neighbor)
                         .offset(x: swipeOffset + (swipeOffset < 0 ? pageWidth : -pageWidth))
                 }
+                if let reader = tab.reader { ReaderWebView(reader: reader).id(ObjectIdentifier(reader)).offset(x: swipeOffset) }
             }
         }
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pageWidth = $0 }
@@ -46,6 +50,9 @@ struct ContentView: View {
         .overlay(alignment: .bottom) {
             if isStartPage { islandContainer }
         }
+        .alert(ReaderCopy.text("reader.title"), isPresented: Binding(get: { manager.readerError }, set: { manager.readerError = $0 })) {
+            Button("OK", role: .cancel) {}
+        } message: { Text(ReaderCopy.text("reader.unavailable")) }
         .fullScreenCover(isPresented: $showTabGrid) {
             TabGridView(manager: manager)
         }
@@ -297,7 +304,7 @@ struct ContentView: View {
             case .find:
                 guard let tab else { return nil }
                 return action("menu.findInPage", "magnifyingglass") {
-                    tab.webView.findInteraction?.presentFindNavigator(showingReplace: false)
+                    (tab.reader?.webView ?? tab.webView).findInteraction?.presentFindNavigator(showingReplace: false)
                 }
             case .newPrivateTab:
                 return UIMenu(options: .displayInline, children: [

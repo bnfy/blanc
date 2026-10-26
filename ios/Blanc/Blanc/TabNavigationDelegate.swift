@@ -23,6 +23,8 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
 
     func webView(_ webView: WKWebView,
                  didStartProvisionalNavigation navigation: WKNavigation!) {
+        tab?.exitReader()
+        tab?.readerAvailable = false
         tab?.nativeClock.hide()
         tab?.isLoading = true
     }
@@ -30,6 +32,7 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     func webView(_ webView: WKWebView,
                  didFinish navigation: WKNavigation!) {
         sync(webView, finished: true)
+        tab?.probeReader()
         Task { @MainActor [weak tab] in
             await Task.yield()
             tab?.captureThumbnail()
@@ -107,6 +110,9 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         tab.currentURL = newURL
         tab.addressText = newURL.absoluteString
         if changed {
+            tab.exitReader()
+            tab.readerAvailable = false
+            tab.probeReader()
             onURLChange?(newURL)
         }
     }

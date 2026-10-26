@@ -91,6 +91,8 @@ final class TabsManager {
             tab.webView.reload()
         }
     }
+    let readerPreferences: ReaderPreferences
+    var readerError = false
     var activeTabId: UUID?
 
     let settingsStore: SettingsStore
@@ -148,6 +150,49 @@ final class TabsManager {
         tabs.filter { !$0.isPrivate }.map { ($0.currentURL.absoluteString, $0.pageTitle) }
     }
 
+    func toggleReaderMode() {
+        guard let tab = activeTab else { return }
+        if tab.reader != nil { tab.exitReader(); return }
+        if tab.readerBusy { return }
+        guard tab.readerAllowed, !tab.isLoading,
+              tab.webView.url == tab.currentURL,
+              ReaderController.isWebURL(tab.currentURL),
+              let script = ReaderController.script("reader-extract.generated") else { readerError = true; return }
+        tab.readerBusy = true
+        let generation = tab.readerGeneration
+        let url = tab.currentURL
+        Task { @MainActor [weak self, weak tab] in
+            guard let self, let tab else { return }
+            defer { tab.readerBusy = false }
+            let result = try? await tab.webView.evaluateJavaScript(script, in: nil, contentWorld: .world(name: "blanc-reader-extraction"))
+            guard tab.readerGeneration == generation, tab.currentURL == url,
+                  tab.webView.url == url,
+                  tabs.contains(where: { $0 === tab }), activeTabId == tab.id else { return }
+            guard let article = result as? [String: Any], let content = article["content"] as? String,
+                  content.utf8.count <= 5 * 1024 * 1024,
+                  let text = article["textContent"] as? String, text.trimmingCharacters(in: .whitespacesAndNewlines).count >= 200 else {
+                readerError = true; return
+            }
+            tab.reader = ReaderController(article: article, sourceURL: url,
+                appearance: readerPreferences.value(isPrivate: tab.isPrivate),
+                saveAppearance: { [weak self, weak tab] value in
+                    guard let tab else { return }
+                    self?.readerPreferences.set(value, isPrivate: tab.isPrivate)
+                }, onExit: { [weak tab] in tab?.exitReader() },
+                openLink: { [weak self, weak tab] link, disposition in
+                    guard let self, let tab else { return }
+                    if disposition != "current-tab" {
+                        let active = activeTabId
+                        createTab(url: link, isPrivate: tab.isPrivate)
+                        if disposition == "background-tab" { activeTabId = active }
+                    } else {
+                        tab.exitReader()
+                        tab.navigationDelegate.load(link, in: tab.webView)
+                    }
+                })
+        }
+    }
+
     var activeTab: TabModel? {
         guard let activeTabId else { return nil }
         return tabs.first { $0.id == activeTabId }
@@ -172,6 +217,7 @@ final class TabsManager {
         let sessionDirectory = UITestSeed.settings ? UITestSeed.settingsDirectory : sessionDirectory
         #endif
         syncDirectory = settingsDirectory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        self.readerPreferences = ReaderPreferences(directory: settingsDirectory)
         let appearance = StartAppearanceStore(directory: settingsDirectory)
         self.startAppearance = appearance
         self.schemeHandler = BlancSchemeHandler(wallpaperURL: appearance.imageURL, wallpaperVersion: { [weak appearance] in
@@ -271,6 +317,7 @@ final class TabsManager {
         let tab = TabModel(
             url: url ?? URL(string: "about:blank")!, configuration: configuration,
             isPrivate: opener.isPrivate, load: false)
+        tab.readerAllowed = false // A page-opened child may inherit sandbox policy.
         add(tab)
         return tab.webView
     }
@@ -368,6 +415,7 @@ final class TabsManager {
     }
 
     func closeTab(_ id: UUID) {
+        tabs.first { $0.id == id }?.exitReader()
         guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
         let wasActive = id == activeTabId
         let closing = tabs[index]
@@ -375,7 +423,7 @@ final class TabsManager {
         // isn't reloaded after it's gone (and isn't kept alive by the pending queue).
         contentBlocker.cancelPending(for: tabs[index].webView)
         tabs.remove(at: index)
-        if !tabs.contains(where: \.isPrivate) { privateStore = nil }
+        if !tabs.contains(where: \.isPrivate) { privateStore = nil; readerPreferences.clearPrivate() }
         // Only the newest close is undoable. A private tab's close is final, as
         // on desktop: no Undo, never in the reopen list.
         expireUndo()
@@ -406,6 +454,7 @@ final class TabsManager {
         if id != activeTabId { activeTab?.captureThumbnail() }
         guard tabs.contains(where: { $0.id == id }) else { return }
         activeTabId = id
+        activeTab?.probeReader()
         persistSession()
     }
 

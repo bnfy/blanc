@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-151 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+154 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -86,6 +86,8 @@
 | `openGroupMenu` | groups | send | `chrome:open-group-menu` | `(groupId: GroupId, anchor: GroupMenuAnchor)` | all |
 | `captureStop` | capture | send | `chrome:capture-stop` | `(surfaceId: CaptureSurfaceId)` | all |
 | `captureFocus` | capture | send | `chrome:capture-focus` | `(surfaceId: CaptureSurfaceId)` | all |
+| `switcherPick` | tabs | send | `chrome:switcher-pick` | `(tabId: TabId)` | all |
+| `copyActiveLink` | tabs | send | `chrome:copy-link` | `(clean: boolean)` | all |
 | `stopDisplayShare` | capture | send | `display-capture:stop` | `(shareId: DisplayShareId)` | all |
 | `resolveDisplayPicker` | capture | send | `display-capture:picker-resolve` | `(choice: DisplayPickerChoice)` | all |
 | `openMainMenu` | window | invoke | `chrome:open-main-menu` | `(point: Point) => Promise<boolean>` | all |
@@ -157,6 +159,7 @@
 | `onFloatFrame` | island | event | `chrome:float-frame` | `(payload: FloatFrame) => void` | all |
 | `onFloatShown` | island | event | `chrome:float-shown` | `(payload: boolean) => void` | all |
 | `onFindResult` | find | event | `chrome:find-result` | `(payload: FindResult) => void` | all |
+| `toggleReaderMode` | navigation | invoke | `tabs:reader-toggle` | `(id: TabId) => Promise<boolean>` | all |
 
 ## Types
 
@@ -374,6 +377,8 @@ One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only stat
 | `siteInfo` | `SiteInfo` |  |
 | `splitId` | `string \| null` | The Split View (F53) this tab belongs to, or null. |
 | `syncNotSynced?` | `boolean` |  |
+| `readerAvailable` | `boolean` | Article suitability hint; extraction may still fail. |
+| `readerActive` | `boolean` | The tab is displaying its transient Reader Mode view. |
 
 ### `TabGroup`
 
@@ -536,6 +541,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | `closed` | `ClosedEntrySummary[]` |  |
 | `closedSlot` | `number` | How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
+| `verticalTabsTextSize` | `string` |  |
 | `verticalTabsWidth` | `number` |  |
 | `verticalTabsPreferredWidth` | `number` |  |
 | `verticalTabsMinWidth` | `number` |  |
@@ -557,6 +563,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | `closed` | `ClosedEntrySummary[]` |  |
 | `closedSlot` | `number` | How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
+| `verticalTabsTextSize` | `string` |  |
 | `adblockEnabled` | `boolean` |  |
 | `shieldPopover` | `ShieldPopover \| null` |  |
 | `captureChip` | `CaptureChip` |  |
@@ -785,7 +792,7 @@ Download activity for the strip, from downloadsActivity() in downloads.js.
 
 Overlay modes; every showOverlay() call in main.js passes one of these literals.
 
-`'panel' \| 'palette' \| 'find' \| 'shield' \| 'capture' \| 'glance' \| 'display-share' \| 'spaces'`
+`'panel' \| 'palette' \| 'find' \| 'shield' \| 'capture' \| 'glance' \| 'display-share' \| 'spaces' \| 'switcher'`
 
 ### `PillNotice`
 

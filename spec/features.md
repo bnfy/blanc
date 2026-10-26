@@ -351,6 +351,7 @@ From the desktop `DEFAULTS`:
 | `theme` | `system` | system/light/dark |
 | `tabLayout` | `island` | desktop-only `island`/`vertical`; device-local, never synced (F28/D19) |
 | `verticalTabsWidth` | `248` | desktop-only preferred rail width, clamped to 200–360px; device-local, never synced (F28/D19) |
+| `verticalTabsTextSize` | `default` | desktop-only `default`/`large`/`extra-large`; device-local, never synced (F28/D19) |
 | `appIcon` | `sunrise` | one of `sunrise`/`sunrise-dark`/`paper`/`ink`; device-local |
 | `adblockExceptions` | `[]` | lowercased hostnames, no scheme/path/`www.` |
 | `darkWebsites` | `false` | desktop-only boolean; device-local, never synced (F42) |
@@ -669,6 +670,10 @@ From the desktop `DEFAULTS`:
   vertical tabs off. The top bar and group labels use spacing instead of
   divider rules. `⌘⌥V` on macOS / `Ctrl+Alt+V` elsewhere toggles the layout
   from anywhere.
+- Settings → General → Island offers **Vertical tab text size**: Default
+  (12.5px), Large (15px), and Extra large (18px). Tab titles and group labels
+  grow together, with taller rows to fit. The device-local choice applies to
+  all open windows immediately and survives restart; it never syncs.
 - The rail renders local tabs from the canonical tab order: ungrouped pins,
   then named groups (group pins first) and runs of ungrouped tabs in tab order,
   followed by the new-tab action. As in the island, each group is a tinted
@@ -1687,3 +1692,56 @@ Two gestures Arc's iPhone users rely on, asked for on r/ArcBrowser
   `/close`; Reduce Motion replaces the slide with a cross-fade.
 - **Desktop.** Not applicable: trackpad and keyboard tab switching already
   exist, and the Island has no bottom bar.
+
+## F58 — Reader Mode (desktop and iOS candidate)
+
+Free, manually activated article reading, implemented on the candidate branch;
+not shipped in public v1.43.1. `/reader` always permits a manual attempt. A
+suitability hint offers Enter Reader Mode in the expanded Island (desktop) or
+palette (iOS); the active reader has Exit Reader Mode and appearance controls.
+
+- Extract the already-loaded main-frame article locally, retaining its source
+  view for return without reloading. No pre-load transformation or speed claim.
+- Shared Source Serif 4, Instrument Sans, Inter, and JetBrains Mono fonts;
+  System/Light/Dark/Sepia, 16–28px text, and three widths;
+  remember appearance locally, with private changes confined to memory.
+- Retain headings, available metadata, links, figures/captions, tables, and code;
+  sanitize untrusted markup and preserve language/direction. Failure retains
+  the source and explains that no article was found.
+- Keep source identity for history, Favorites, sharing, and restore. Never save
+  or sync reader article content or reader-active state.
+- Desktop uses a sandboxed companion, blocker-checked cookie-free image broker,
+  and reader-aware Find/Print/zoom/focus/Glance/Split View. iOS uses a separate
+  nonpersistent WKWebView and already-loaded, canvas-readable images (D31).
+- See `docs/reader-mode.md`, `browser-api/reader.json`, and F58 acceptance tests.
+  Automatic activation, speech, AI, annotations, offline saving, and pre-load
+  simplification are outside this version.
+
+## F59 — Switch tabs in the order you used them (desktop)
+
+Ctrl+Tab goes back through the window's tabs in the order they were last used,
+as Firefox and Arc do (asked for on r/ArcBrowser, 2026-10-24). Design:
+`docs/superpowers/specs/2026-10-24-mru-tab-switcher-design.md`. Implemented on
+the candidate branch; not shipped in public v1.43.1.
+
+- **Keys.** A tap of Ctrl+Tab goes to the previous tab, and a second tap comes
+  back. Holding Ctrl and pressing Tab again steps further back; letting go of
+  Ctrl switches to the pick. Ctrl+Shift+Tab steps the other way. Esc, a click,
+  any other key or the window losing focus cancels and stays put. Nothing
+  changes until Ctrl is released: stepping never moves focus or wakes a quiet
+  tab.
+- **Order.** The current tab, then the window's tabs newest-first by
+  activation, then tabs never activated in list order. A split is one entry.
+- **Setting.** Settings → General → Switch tabs with Ctrl+Tab: in the order
+  you used them (default) or in the order of the tab list. Device-local, never
+  synced. Ctrl+PageDown / Ctrl+PageUp always go by list position.
+- **Platforms.** Recent order needs Blanc to see the Ctrl release; it ships
+  only where that has been proven (Linux so far). Elsewhere Ctrl+Tab keeps
+  going by position and the setting is hidden.
+- **Card.** From the second step (or 150 ms into a held Ctrl), a row of
+  favicon tiles under the Island shows the pick raised, with its title and
+  host. It never takes focus; a click on a tile switches at once; Ctrl+W closes
+  the picked tab and the pick moves one step older. Screen readers hear
+  "Switch tabs, {title}, {n} of {count}" and each step. With another Island
+  surface open the switch works without the card.
+- **Mobile.** Not applicable: phones have no Ctrl key.

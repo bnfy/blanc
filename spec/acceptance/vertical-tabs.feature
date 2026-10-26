@@ -212,3 +212,25 @@ Feature: Desktop vertical tabs
     Then the close action has a visible focus indicator and an accessible label
     When I press Escape from the rail
     Then focus returns to the active tab content
+
+  @F28-18 @F28 @desktop @D19
+  Scenario: Larger vertical tab text applies immediately and survives relaunch
+    Given a 1000 by 700 desktop window with the vertical tab layout
+    And the local tab model contains ungrouped pins, named groups, and loose tabs
+    Then vertical tab titles use 12.5 pixel text without clipping
+    And vertical tab drag previews keep their text size and height
+    When I choose "large" vertical tab text in Settings
+    Then vertical tab titles use 15 pixel text without clipping
+    And vertical tab drag previews keep their text size and height
+    When I open another window for the vertical tab text check
+    And I choose "extra-large" vertical tab text in Settings
+    Then vertical tab titles use 18 pixel text without clipping
+    And vertical tab drag previews keep their text size and height
+    And both windows use 18 pixel vertical tab text
+    And Profile Sync excludes the vertical tab text size
+    When I relaunch Blanc
+    Then vertical tab titles use 18 pixel text without clipping
+    And vertical tab drag previews keep their text size and height
+    When I choose "default" vertical tab text in Settings
+    Then vertical tab titles use 12.5 pixel text without clipping
+    And vertical tab drag previews keep their text size and height
