@@ -1,5 +1,24 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+OCTOBER 26 REPORTER FOLLOW-UP: The owner supplied the original reporter's
+email screenshot stating they rescanned the same published 1.43.1 arm64 DMG
+and Kaspersky now reports Undetected; Avast and AVG retain their original
+label. This corroborates rollout of the lab's promised correction, as reported
+by the customer. No independent new VirusTotal scan was performed this turn.
+The screenshot and structured evidence are saved under outputs/antivirus-1431
+in the original workspace. Do not describe Avast/AVG as vendor-cleared.
+
+FINAL INSTALLER SCANS STILL PENDING: Hosted run 40243141471 at exact source
+274f9efe162fe29832d8caedc69f8ea5340b8300 failed desktop acceptance before
+signing on both architectures. Intel passed 525/530 scenarios; five failed.
+ARM passed 505/530; 25 failed, including content-bound checks requesting
+1000x700 but observing 1000x684 on the hosted display. Other failures include
+Island timing, Space/tab archive fixtures and tab-import quit-safety fixtures.
+These failures are not waived or classified as harmless. Signing, notarization
+and installer artifact upload were skipped. No signed installer exists from
+this run; no final-DMG antivirus clearance or release-readiness claim is made.
+No release, tag or updater feed was changed.
+
 KASPERSKY FALSE POSITIVE ACKNOWLEDGED: The owner supplied the lab's October 25
 18:46 reply in case KL-3111306 to the exact single-file reproducer. It explicitly
 states this was a false detection and says the next update will fix it. This
