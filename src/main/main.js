@@ -7362,7 +7362,8 @@ function installChromeShortcuts(webContents, owner = rt()) {
     // A consumed Ctrl+Tab press takes the Control release with it (spec §3.4).
     consumes: (id) => !(recentTabOrder() && (id === 'next-tab' || id === 'previous-tab')),
   });
-  installTabSwitchRelease(webContents, getRuntime);
+  // Only where most-recent order can run; elsewhere no surface carries these.
+  if (RECENT_TAB_ORDER_AVAILABLE) installTabSwitchRelease(webContents, getRuntime);
   installVerticalTabsShortcut(webContents, owner);
   installIslandAutoHideShortcut(webContents, owner);
   installGlanceShortcut(webContents, owner);
