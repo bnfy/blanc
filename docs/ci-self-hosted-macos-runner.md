@@ -10,9 +10,12 @@ GitHub cost, and brings the uBO macOS leg back to every pull request.
 
 `unit (macos-15)` went back to GitHub-hosted macOS on October 26, 2026. On
 the Mac's first afternoon it waited a median 24 minutes for one of the two VM
-slots (up to 72) and ran in about 5.3 minutes, against about 3 minutes on a
-hosted runner with almost no wait. It is the only macOS job left on every pull
-request, so it no longer competes for the hosted cap.
+slots (up to 72), against a few seconds for a hosted runner. Once running it
+was no slower: `npm run test:unit` took 3:41 on a VM and 4:15 on hosted macOS
+on nearly the same code, though the VM spent about 25 s longer restoring the
+npm cache and installing, and each VM boots for 30–60 s before its job. It is
+the only macOS job left on every pull request, so it no longer competes for
+the hosted cap.
 
 ## What changes when it's on
 

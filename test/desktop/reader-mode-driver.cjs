@@ -11,6 +11,21 @@ async function waitFor(read, label, ms = 20000) {
   }
   throw Error(`Timed out: ${label}`);
 }
+// The screenshots are for people to look at, not assertions. capturePage throws
+// UnknownVizError while a view has no presented frame yet, which a busy CI Mac
+// can hit right after the Reader view opens, so wait for frames and retry that.
+async function capture(contents, file) {
+  for (let attempt = 1; ; attempt += 1) {
+    await contents.executeJavaScript('new Promise(r => { requestAnimationFrame(() => requestAnimationFrame(r)); setTimeout(r, 500); })');
+    try {
+      fs.writeFileSync(file, (await contents.capturePage()).toPNG());
+      return;
+    } catch (caught) {
+      if (attempt >= 5 || !String(caught?.message).includes('UnknownVizError')) throw caught;
+      await sleep(250);
+    }
+  }
+}
 app.whenReady().then(async () => {
   const checks = [];
   let error;
@@ -44,7 +59,7 @@ app.whenReady().then(async () => {
     assert.equal(sanitized.text.includes('HIDDEN_SECRET'), false); assert.equal(sanitized.source, '127.0.0.1');
     assert.equal(sanitized.tables, 1); assert.equal(sanitized.linksSafe, true);
     checks.push('sanitized article with tables, no hidden content or privileged bridge');
-    fs.writeFileSync(process.env.READER_SMOKE_SCREENSHOT, (await reader.capturePage()).toPNG());
+    await capture(reader, process.env.READER_SMOKE_SCREENSHOT);
     await reader.executeJavaScript(`document.getElementById('appearanceToggle').click(); document.getElementById('fontToggle').click();`);
     const preview = await reader.executeJavaScript(`Promise.all([...document.querySelectorAll('.font-option .font-preview')].map(async label => {
       await document.fonts.load('14px ' + getComputedStyle(label).fontFamily.split(',')[0]);
@@ -65,7 +80,7 @@ app.whenReady().then(async () => {
     await waitFor(() => reader.executeJavaScript('document.getElementById("fontOptions").hidden && document.activeElement.id === "fontToggle"'), 'Escape restores font button focus');
     assert.equal(await reader.executeJavaScript('document.getElementById("appearance").hidden'), false);
     await reader.executeJavaScript(`document.getElementById('fontToggle').click(); window.scrollTo(0,0);`);
-    fs.writeFileSync(process.env.READER_SMOKE_SCREENSHOT.replace('.png', '-fonts.png'), (await reader.capturePage()).toPNG());
+    await capture(reader, process.env.READER_SMOKE_SCREENSHOT.replace('.png', '-fonts.png'));
     const pickerWindow = BrowserWindow.getAllWindows().find(win => win.contentView.children.some(view => view.webContents === reader));
     const pickerView = pickerWindow.contentView.children.find(view => view.webContents === reader);
     const pickerBounds = pickerView.getBounds();
@@ -152,11 +167,11 @@ app.whenReady().then(async () => {
     })()`);
     await waitFor(() => reader.executeJavaScript("getComputedStyle(document.body).backgroundColor === 'rgb(242, 229, 203)'"), 'sepia paint');
     await sleep(100);
-    fs.writeFileSync(process.env.READER_SMOKE_SCREENSHOT.replace('.png', '-sepia.png'), (await reader.capturePage()).toPNG());
+    await capture(reader, process.env.READER_SMOKE_SCREENSHOT.replace('.png', '-sepia.png'));
     await reader.executeJavaScript(`(() => { const control = document.getElementById('theme'); control.value = 'dark'; control.dispatchEvent(new Event('change')); })()`);
     await waitFor(() => reader.executeJavaScript("getComputedStyle(document.body).backgroundColor === 'rgb(32, 32, 31)'"), 'dark paint');
     await sleep(100);
-    fs.writeFileSync(process.env.READER_SMOKE_SCREENSHOT.replace('.png', '-dark.png'), (await reader.capturePage()).toPNG());
+    await capture(reader, process.env.READER_SMOKE_SCREENSHOT.replace('.png', '-dark.png'));
 
     const captureWindow = BrowserWindow.getAllWindows().find(item => item.contentView.children.some(view => view.webContents === reader));
     const captureView = captureWindow.contentView.children.find(view => view.webContents === reader);
@@ -164,7 +179,7 @@ app.whenReady().then(async () => {
     captureView.setBounds({ ...originalBounds, width: 390, height: 844 });
     await waitFor(() => reader.executeJavaScript('window.innerWidth === 390'), 'narrow reader layout');
     await sleep(100);
-    fs.writeFileSync(process.env.READER_SMOKE_SCREENSHOT.replace('.png', '-narrow.png'), (await reader.capturePage()).toPNG());
+    await capture(reader, process.env.READER_SMOKE_SCREENSHOT.replace('.png', '-narrow.png'));
     captureView.setBounds(originalBounds);
     assert.ok(Number.isInteger(await call('findInPage', id, 'Reader fixture')));
     const prefs = { theme: 'sepia', font: 'sans', size: 28, width: 'wide' };

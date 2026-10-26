@@ -28,8 +28,8 @@ jobs:
       matrix:
         os: [windows-latest, macos-15]
     # GitHub-hosted, even with the self-hosted Mac set up: there it waited a
-    # median 24 minutes (up to 72) behind the uBO desktop leg and ran twice as
-    # long (October 26, 2026). docs/ci-self-hosted-macos-runner.md
+    # median 24 minutes (up to 72) for one of its two VM slots (October 26,
+    # 2026). docs/ci-self-hosted-macos-runner.md
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     env:
