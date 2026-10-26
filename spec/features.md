@@ -1716,3 +1716,28 @@ palette (iOS); the active reader has Exit Reader Mode and appearance controls.
 - See `docs/reader-mode.md`, `browser-api/reader.json`, and F58 acceptance tests.
   Automatic activation, speech, AI, annotations, offline saving, and pre-load
   simplification are outside this version.
+
+## F59 — Switch tabs in the order you used them (desktop)
+
+Ctrl+Tab goes back through the window's tabs in the order they were last used,
+as Firefox and Arc do (asked for on r/ArcBrowser, 2026-10-24). Design:
+`docs/superpowers/specs/2026-10-24-mru-tab-switcher-design.md`. Implemented on
+the candidate branch; not shipped in public v1.43.1.
+
+- **Keys.** A tap of Ctrl+Tab goes to the previous tab, and a second tap comes
+  back. Holding Ctrl and pressing Tab again steps further back; letting go of
+  Ctrl switches to the pick. Ctrl+Shift+Tab steps the other way. Esc, a click,
+  any other key or the window losing focus cancels and stays put. Nothing
+  changes until Ctrl is released: stepping never moves focus or wakes a quiet
+  tab.
+- **Order.** The current tab, then the window's tabs newest-first by
+  activation, then tabs never activated in list order. A split is one entry.
+- **Setting.** Settings → General → Switch tabs with Ctrl+Tab: in the order
+  you used them (default) or in the order of the tab list. Device-local, never
+  synced. Ctrl+PageDown / Ctrl+PageUp always go by list position.
+- **Platforms.** Recent order needs Blanc to see the Ctrl release; it ships
+  only where that has been proven (Linux so far). Elsewhere Ctrl+Tab keeps
+  going by position and the setting is hidden.
+- **Card.** Not in the first version: a held multi-step works blind until the
+  favicon-strip card follows.
+- **Mobile.** Not applicable: phones have no Ctrl key.

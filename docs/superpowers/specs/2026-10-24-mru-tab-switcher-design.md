@@ -140,6 +140,8 @@ Nothing new leaves main: the card's payload is the same `{id, title, favicon, pr
 
    **Windows and macOS: pending.** `assets/2026-10-24-mru-tab-switcher/ctrl-tab-probe.mjs` is a manual version for a real keyboard: run from a checkout, it makes a throwaway worktree of `origin/main`, applies the two variants behind environment flags, and walks the tester through four scenarios per variant. It reproduces the Linux table with `--auto`.
 2. **PR 1:** the setting, `tab-switcher.js`, the state machine, landing on release, Esc, PageDown/PageUp split from Tab, the Shortcuts page rows, copy in six languages, the smoke scenario. No card yet: a tap and a held multi-step both work blind.
+
+   **Implemented 2026-10-26, Linux only (D5).** On Windows and macOS `recentOrderAvailable()` is false: Ctrl+Tab keeps going by position, the press is still consumed and the setting row is hidden. The Shortcuts page lists the new **Next/Previous Tab in List Order** items (Ctrl+PageDown/PageUp) from the live menu. `browser-shortcuts-smoke.mjs` drives the recent order with real X11 keys from `xdotool` on the Linux CI job (tap, second tap, held double step, Esc); with the press consumed again it fails, as the spike predicts.
 3. **PR 2:** the card in the overlay, click-to-land, Ctrl+W while open, announcements.
 4. Website and What's New only after the release that carries both PRs (`docs/marketing-claims.md`).
 
@@ -159,6 +161,6 @@ Nothing new leaves main: the card's payload is the same `{id, title, favicon, pr
 
 ## 13. Obligations elsewhere
 
-- `spec/features.md`: a new feature (F55, "Switch tabs in the order you used them") and the parity matrix row; mobile is N/A (no Ctrl key) and is a D-register entry.
+- `spec/features.md`: a new feature (F59, "Switch tabs in the order you used them"; F55 was taken meanwhile) and the parity matrix row; mobile is N/A (no Ctrl key) and is a D-register entry.
 - `CLAUDE.md`: the browser-shortcuts paragraph and the Quiet Tabs rule that stepping never wakes.
 - `docs/press/release-notes/vX.Y.0.md` and the What's New page for the release that ships it; the website's keyboard page after that release.

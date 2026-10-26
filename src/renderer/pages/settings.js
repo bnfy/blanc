@@ -6,6 +6,7 @@
     appInfo,
     capabilities,
     onePasswordAvailable,
+    recentTabOrderAvailable,
     languages,
   } =
     await window.bowserPages.settings.get();
@@ -667,6 +668,19 @@
       languageSetting.hidden = false;
       syncRelaunch();
     }
+  }
+
+  // Ctrl+Tab by most recent use is offered only where main says the Ctrl
+  // release reaches Blanc (tab-switcher.js); elsewhere Ctrl+Tab stays by position.
+  if (recentTabOrderAvailable === true && supports('tabSwitchOrder')) {
+    const tabSwitchOrder = document.getElementById('tabSwitchOrder');
+    tabSwitchOrder.value = settings.tabSwitchOrder === 'list' ? 'list' : 'recent';
+    tabSwitchOrder.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ tabSwitchOrder: tabSwitchOrder.value });
+      tabSwitchOrder.value = saved.tabSwitchOrder === 'list' ? 'list' : 'recent';
+    });
+  } else {
+    document.getElementById('tabSwitchOrderSetting')?.remove();
   }
 
   if (supports('tabSleep')) {

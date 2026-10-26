@@ -265,6 +265,17 @@
 
           <div class="settings-card settings-card--mixed">
             <h3 class="card-title" data-i18n="settings.general.cards.browsing">Browsing</h3>
+            <div class="setting" id="tabSwitchOrderSetting">
+              <div class="label">
+                <span data-i18n="settings.general.tabSwitchOrder.label">Switch tabs with Ctrl+Tab</span>
+                <span class="hint" id="tabSwitchOrderHint" data-i18n="settings.general.tabSwitchOrder.hint">Hold Ctrl and press Tab to go back through the tabs you used last, then let go of Ctrl to switch. Esc stays where you are.</span>
+              </div>
+              <select id="tabSwitchOrder" aria-label="Switch tabs with Ctrl+Tab" aria-describedby="tabSwitchOrderHint" data-i18n-aria-label="settings.general.tabSwitchOrder.label">
+                <option value="recent" data-i18n="settings.general.tabSwitchOrder.recent">In the order you used them</option>
+                <option value="list" data-i18n="settings.general.tabSwitchOrder.list">In the order of the tab list</option>
+              </select>
+            </div>
+
             <div class="setting" id="tabSleepSetting">
               <div class="label">
                 <span data-i18n="settings.general.tabSleep.label">Quiet inactive tabs</span>
