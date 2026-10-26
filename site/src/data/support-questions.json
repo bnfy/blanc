@@ -42,6 +42,14 @@
     ]
   },
   {
+    "id": "sync-retention",
+    "q": "What happens when I turn off Sync or erase the server copy?",
+    "a": [
+      "Turning off Sync without erasing leaves the encrypted server copy in place. Choose the erase option to remove the active copy. Cached encrypted values in Cloudflare KV may remain readable while deletion propagates across its network. This is separate from provider recovery history and backups. If erasure fails, retry from the configured device. Devices that still have Sync enabled can upload data again.",
+      "Automatic deletion of inactive Sync accounts is paused. Cloudflare provides SQLite recovery history covering the preceding 30 days, so deleting the active copy does not establish immediate deletion from provider history or backups. Bananify does not restore production Sync data from that history. See the Privacy Policy for the retention limits we have and have not established."
+    ]
+  },
+  {
     "id": "open-source",
     "q": "Is Blanc open source?",
     "a": [
