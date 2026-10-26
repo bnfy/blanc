@@ -215,6 +215,10 @@ Given('the window has no global pointer position, as on native Wayland', async f
 });
 
 async function pageMove(world, y) {
+  // Focusing a WebContents does not activate its native window. Edge reveal
+  // intentionally ignores inactive windows, so establish the real pointer's
+  // focused-window precondition before injecting the page event.
+  await waitForValue(() => world.call('focusWindow'), Boolean, 'the page window to receive the pointer');
   const state = await world.call('state');
   assert.equal(await world.call('sendMouseInput', state.activeTabId, { type: 'mouseMove', x: 400, y }), true);
 }

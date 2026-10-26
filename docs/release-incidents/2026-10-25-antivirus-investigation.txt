@@ -1,5 +1,16 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+FULL LOCAL ACCEPTANCE FOLLOW-UP: The reconciled source completed 541 scenarios
+with 540 passing; all originally reported failures passed. The remaining
+F1-24 pointer-fallback scenario injected a page move without first activating
+its native window, although production edge reveal intentionally requires a
+focused window. Its driver now waits for native focus before sending the page
+event, matching the other pointer scenarios. The app's inactive-window guard
+is unchanged. Nine focused scenarios / 121 steps pass after that correction,
+including both native motion modes. Added immediate failed-scenario reporting
+for subsequent long runs without changing assertions, retries or exit status.
+The complete local suite is being repeated; hosted validation remains pending.
+
 UPSTREAM ACCEPTANCE RECONCILIATION: Integrated origin/main f67ec4ecd after
 discovering overlapping fixture fixes had landed in e53b98975 (PR #1141).
 Retained those upstream renderer/load waits and the candidate's explicit
