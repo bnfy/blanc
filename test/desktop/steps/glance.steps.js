@@ -1,12 +1,21 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const { Given, When, Then, After } = require('@cucumber/cucumber');
+const { Given, When, Then, Before, After } = require('@cucumber/cucumber');
 const ctx = require('../support/context');
 const { overlayPage } = require('../support/overlay');
 const { waitForValue } = require('../support/poll');
 const { frontChromeWindow } = require('../support/tab-drag');
 const { inMainTurn } = require('../support/main-turn');
+
+// This scenario measures frames during a native push animation, so its input
+// preference must be explicit instead of inherited from the runner's desktop.
+Before({ tags: '@F34-19' }, async function () {
+  assert.equal(await this.call('setNativeReducedMotion', false), true);
+});
+After({ tags: '@F34-19' }, async function () {
+  await this.call('setNativeReducedMotion', null);
+});
 
 async function mainChromePage() {
   for (let attempt = 0; attempt < 40; attempt += 1) {

@@ -238,14 +238,20 @@ Feature: Island chrome, command palette, and slash commands
     Then the Island is revealed while the page stays at the top of the window
 
   @F1-30 @F1 @desktop @island-autohide
-  Scenario: The revealed Island floats over a page that stays still
+  Scenario Outline: The revealed Island floats over a page that stays still
     Given a tab open on "autohide-page"
+    And native Reduce Motion is <motion>
     And the Island auto-hides and floats
     Then the floating pill waits above the window edge
     When I point at the top edge of the window
     Then the floating pill slides in over a page that stays still
     When I move the pointer well below the Island
     Then the floating pill slides away and stays attached
+
+    Examples:
+      | motion |
+      | off    |
+      | on     |
 
   @F1-43 @F1 @desktop @island-autohide
   Scenario: Resting just below the top edge does not reveal a floating Island
@@ -317,8 +323,9 @@ Feature: Island chrome, command palette, and slash commands
     Then the floating pill shows the private theme
 
   @F1-36 @F1 @desktop @island-autohide @test-platform-linux
-  Scenario: Window buttons come and go with the floating pill on Windows and Linux
+  Scenario Outline: Window buttons come and go with the floating pill on Windows and Linux
     Given a tab open on "autohide-page"
+    And native Reduce Motion is <motion>
     And the Island auto-hides and floats
     Then the strip reports where its window buttons are
     And the floating window controls wait above the window edge
@@ -334,6 +341,11 @@ Feature: Island chrome, command palette, and slash commands
     Then the window is minimised
     When I click the floating menu button
     Then the main menu opens from the floating menu button
+
+    Examples:
+      | motion |
+      | off    |
+      | on     |
 
   @F1-37 @F1 @desktop @island-autohide
   Scenario: Switching to push while the pill slides in leaves nothing behind

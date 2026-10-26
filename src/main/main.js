@@ -3253,6 +3253,7 @@ let testSearchNavigationCapture = false;
 let testSearchSubmission = null;
 let testCursorPoint = null;
 let testCursorSamplingUnavailable = false;
+let testReducedMotion = null;
 
 function setTestSearchSuggestionFixture(suggestions) {
   if (!acceptanceTestMode) return;
@@ -3640,6 +3641,7 @@ function stopIslandSlide(runtime) {
 }
 
 function prefersReducedMotion() {
+  if (acceptanceTestMode && testReducedMotion !== null) return testReducedMotion;
   try {
     return systemPreferences.getAnimationSettings?.().prefersReducedMotion === true;
   } catch {
@@ -15283,6 +15285,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       setTestCursorSamplingUnavailable: (on) => {
         if (!acceptanceTestMode) return false;
         testCursorSamplingUnavailable = on === true;
+        return true;
+      },
+      setTestReducedMotion: (on) => {
+        if (!acceptanceTestMode || (on !== null && typeof on !== 'boolean')) return false;
+        testReducedMotion = on;
         return true;
       },
       setTestCursorPoint: (point) => {

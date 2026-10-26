@@ -19,6 +19,22 @@ const ROOT = path.join(__dirname, '..', '..');
 const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
 const window = { chromeHeight: 68, width: 1280, height: 800 };
 
+test('native motion fixtures cannot override the system outside acceptance mode', () => {
+  const source = main.slice(main.indexOf('function prefersReducedMotion()'), main.indexOf('\n/** The first reveal', main.indexOf('function prefersReducedMotion()')));
+  const { runInNewContext } = require('node:vm');
+  for (const [acceptanceTestMode, testReducedMotion, system, expected] of [
+    [false, false, true, true], [false, true, false, false],
+    [true, false, true, false], [true, true, false, true],
+    [true, null, true, true], [true, null, false, false],
+  ]) {
+    const result = runInNewContext(source + '\nprefersReducedMotion()', {
+      acceptanceTestMode, testReducedMotion,
+      systemPreferences: { getAnimationSettings: () => ({ prefersReducedMotion: system }) },
+    });
+    assert.equal(result, expected);
+  }
+});
+
 test('only the top edge reveals a hidden Island', () => {
   const hidden = { ...window, revealed: false };
   assert.equal(pointHoldsIsland({ x: 600, y: 0 }, hidden), true);

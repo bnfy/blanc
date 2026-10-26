@@ -74,6 +74,11 @@ Given('the Island auto-hides', async function () {
   await prepare(this, 'island');
 });
 
+Given('native Reduce Motion is {word}', async function (value) {
+  assert.ok(value === 'on' || value === 'off');
+  assert.equal(await this.call('setNativeReducedMotion', value === 'on'), true);
+});
+
 Given('the Island auto-hides with vertical tabs', async function () {
   await prepare(this, 'vertical');
 });
@@ -257,6 +262,7 @@ When('the palette closes with the pointer well below the Island', async function
 });
 
 After({ tags: '@island-autohide' }, async function () {
+  await this.call('setNativeReducedMotion', null).catch(() => {});
   if (this.floatOriginalSize) {
     await this.call('setWindowContentSize', this.floatOriginalSize.width, this.floatOriginalSize.height).catch(() => {});
     this.floatOriginalSize = null;
@@ -358,7 +364,9 @@ Then('the floating pill slides away and stays attached', async function () {
   const state = await waitForValue(() => floatState(this), (value) => value?.shown === false && value.visible === false,
     'the pill view to hide after its slide');
   assert.equal(state.attached, true, 'the view stays window-owned (never removed and re-added)');
-  const bottom = await pillBottomInView(this);
+  const bottom = await waitForValue(() => pillBottomInView(this),
+    (value) => typeof value === 'number' && value + FLOAT_SHADOW_PX <= 0,
+    'the hidden pill renderer to finish moving above the window edge');
   assert.ok(bottom + FLOAT_SHADOW_PX <= 0, `the hidden pill peeks below the edge: ${bottom}`);
   await assertPageAtCoveredTop(this);
 });
@@ -578,7 +586,9 @@ Then('the floating window controls slide in with three working buttons', async f
 Then('the floating menu button waits above the window edge', async function () {
   await waitForValue(() => floatState(this, 'menu'), (value) => value?.attached === true && value.shown === false && value.visible === false,
     'the hidden menu button view');
-  const state = await floatControls(this);
+  const state = await waitForValue(() => floatControls(this),
+    (value) => value?.menu && value.menu.viewY + value.menu.height + 8 <= 0,
+    'the hidden menu renderer to finish moving above the window edge');
   // Its shadow reaches 8px (FLOAT_CHROME_PAD_PX) below it.
   assert.ok(state.menu && state.menu.viewY + state.menu.height + 8 <= 0, `the hidden menu button peeks below the edge: ${JSON.stringify(state.menu)}`);
 });

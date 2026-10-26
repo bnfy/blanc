@@ -429,6 +429,10 @@ function install(refs) {
     }
     activeTabImportFixtureName = name;
     if (dom.step === 'source') {
+      await waitForTabImportDom(
+        (value) => value?.step === 'source' && value.sourceRows.some((row) => row.label === fixture.sourceLabel && !row.disabled),
+        `${fixture.sourceLabel} source button to become enabled`, fixture.timeout,
+      );
       await clickTabImportSelector('.tab-import-source-btn', fixture.sourceLabel);
       dom = await waitForTabImportDom(
         (value) => value?.step === 'tabs' && value.preview.length === fixture.candidateCount,
@@ -473,6 +477,10 @@ function install(refs) {
     }
     activeTabImportFixtureName = name;
     if (dom.recoveryHidden) {
+      await waitForTabImportDom(
+        (value) => value?.step === 'source' && value.sourceRows.some((row) => row.label === fixture.sourceLabel && !row.disabled),
+        `${fixture.sourceLabel} source button to become enabled`, fixture.timeout,
+      );
       await clickTabImportSelector('.tab-import-source-btn', fixture.sourceLabel);
       dom = await waitForTabImportDom(
         (value) => value?.step === 'source' && value.recoveryHidden === false,
@@ -663,6 +671,7 @@ function install(refs) {
     },
     /** Auto-hide state plus where the page view starts (0 = strip hidden). */
     islandAutoHideState() { return getIslandAutoHideState(); },
+    setNativeReducedMotion(on) { return refs.setTestReducedMotion(on); },
     overlayShowCount() { return getOverlayShowCount(); },
     resetOverlayShowCount() { resetOverlayShowCount(); },
     setTestCursorPoint(point) { return setTestCursorPoint(point); },

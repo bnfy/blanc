@@ -226,6 +226,9 @@ Given('a loose background tab not viewed for 13 hours in a Space I then set asid
   const saved = await this.call('workspaceAction', 'save', 'Archive home');
   assert.equal(saved.ok, true, JSON.stringify(saved));
   this.archiveSpaceId = saved.workspace.id;
+  // Saving a Space can leave its start page finishing a navigation. The real
+  // switch guard protects every loading page, including that active page.
+  await this.waitForState((state) => state.tabs.every((tab) => !tab.isLoading));
   const away = await this.call('workspaceAction', 'create', 'Archive away');
   assert.equal(away.ok, true, JSON.stringify(away));
   // Set aside, the tab lives on in a resident runtime with its old clock.

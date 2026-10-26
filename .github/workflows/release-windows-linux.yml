@@ -1354,6 +1354,8 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm ci --prefix site
+      - name: Use the tallest display mode for desktop acceptance
+        run: swift scripts/ci-macos-tall-display.swift
       - name: Run the release press gate before signing
         run: npm run release:verify:press
       - name: Install pinned EVS client

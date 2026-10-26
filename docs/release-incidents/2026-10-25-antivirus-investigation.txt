@@ -1,5 +1,19 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+OCTOBER 26 ACCEPTANCE REPAIR: Wired the existing tallest-display helper into
+mac-scan before its press gate, preserving the exact requested window sizes.
+The Glance motion scenario now selects normal native motion explicitly through
+an unpackaged-acceptance-only hook and restores the system preference afterward.
+A behavioral unit test checks that normal launches always use the real system
+preference. Floating-view assertions wait for renderer geometry to settle, not
+just the native view's visibility. Their scenarios now cover native reduced
+motion both on and off. The archive fixture waits for page loading to finish
+before switching Spaces; tab-import fixtures wait for their actual source
+button to become enabled before clicking. No protection or assertion is removed.
+Validation: eight focused desktop scenarios / 101 steps pass; 47 related unit
+tests, lint, and the 532-scenario / 4,106-step dry wiring check pass. Full desktop
+and hosted native validation are still required before claiming gate recovery.
+
 OCTOBER 26 REPORTER FOLLOW-UP: The owner supplied the original reporter's
 email screenshot stating they rescanned the same published 1.43.1 arm64 DMG
 and Kaspersky now reports Undetected; Avast and AVG retain their original

@@ -28,6 +28,9 @@ test('Mac signing stays protected, read-only, native on both architectures and t
   assert.equal(checkout.with.ref, '${{ inputs.source_sha }}');
   assert.equal(checkout.with['fetch-depth'], 0, 'press compatibility checks require immutable release tags');
   assert.equal(checkout.with['persist-credentials'], false);
+  const display = job.steps.findIndex(x => x.run === 'swift scripts/ci-macos-tall-display.swift');
+  const press = job.steps.findIndex(x => x.run === 'npm run release:verify:press');
+  assert(display >= 0 && display < press, 'native geometry acceptance needs the existing tall-display setup');
   const binding = job.steps.find(x => x.name === 'Bind workflow and source to the approved commit').run;
   assert(binding.includes('test "$GITHUB_SHA" = "$APPROVED_SOURCE_SHA"'));
   assert(binding.includes('test "$(git rev-parse HEAD)" = "$APPROVED_SOURCE_SHA"'));
