@@ -1,3 +1,5 @@
+> October 26 A1 review: [technical design review complete](evidence/a1-design-review-20261026/README.md). All 75 upstream patch digests match the recorded 184-hunk inventory; the complete path ledger and per-domain dispositions replace the stale 49-path list. Fourteen selected owned-source copies match. Keep network ordering, session durability, identity and native hit-testing hooks explicit; modular extraction and transactional apply/native inventory CI remain future implementation. The six Decision 2 inputs are reconciled with existing parity/visual/VoiceOver evidence. No runtime test, build, patch reduction or new launch-gate approval. Reviewed documentation headfb2ca62 has24pass/three Electron failures/two skips, with CodeQL no new alerts; the additional Intel original-uBO-popup timeout is recorded and remains paused. Google separate, latency deferred.
+
 > October 26 completed CI: [reviewed head `732b34f`](evidence/decision2-operations-20261026/README.md) has 25 passing checks, two known Electron sandbox-duplication failures and two skips; no checks remain pending. CodeQL explicitly reports no new alerts, and substrate/dependency audit, macOS/Intel macOS and Windows desktop/unit checks pass. No Chromium-relevant failure remains in this result. L11 stays open under its all-green requirement; Electron stays paused. The next unblocked Decision 2 input now has a concrete existing-infrastructure operating proposal and verified public-standard-runner cost policy; owner attention and remaining cost allocations remain unmeasured. No new gate credit, native build, repeated runtime tests or Google baseline changes. Latency deferred.
 
 > October 26: [Signed DevTools repair evidence](evidence/f12-devtools-signed-20261026/README.md) records 42 passing affected checks in regular and private profiles on source `1523375`. The replacement is Developer ID signed and Apple notarization was accepted (`cf57f6ef`); stapling, ticket validation, strict signature and Gatekeeper checks pass. The tested executable, UI asset and compliance bytes are unchanged after notarization; archive SHA-256 begins `e57f5cdb989d`. The audit verifies 17 ARM64 executables, 10 Preview identities and eight certificate-blocklist keys. No full F12, Decision 2 or additional launch-gate approval is implied. No native build or repeated owner walkthrough; Electron paused, Google baseline separate, latency deferred.
@@ -13,7 +15,7 @@
 | Input | Current disposition | Remaining action |
 | --- | --- | --- |
 | Task0 measured rebase | Historical cold build2h39m47.120s and broken-anchor/API notes retained | Human attention was not recorded; current larger patch set has no measured major-version rebase. Real Google upgrade remains independently required. |
-| A1 integration design/current count | Design and75/184inventory available; owner permits recorded budget increases and later consolidation | Review proposed layout and minimal upstream hook strategy. No consolidation/cost reduction has been proved. |
+| A1 integration design/current count | [Technical review complete](evidence/a1-design-review-20261026/README.md);75/184exact source binding, full ledger and hook/layering decisions available | Owner/Decision2 acceptance, modular extraction and automated apply/native CI remain separate. No consolidation/cost reduction has been proved. |
 | Feature parity table | Bounded implemented features and explicit exclusions recorded in primary plan | Do not claim full three-platform shipping parity, production migration or complete Glance parity. |
 | Matched visual comparison | Scoped owner acceptance recorded underL5 and mapped through unchanged controls | Complete for its accepted scope; no repeat session requested. |
 | Mac VoiceOver | Owner physical input/VoiceOver/theme/permission/popup acceptance recorded underL5 | Complete for its accepted scope; no repeat session requested. |
@@ -22,6 +24,8 @@
 ### Proposed decision boundary — not an approval
 
 The evaluation artifact currently ships Blanc Blocker; uBO experiments are compiled out. A reviewable proposal is to keep that bounded engine/scope for the side-by-side Mac preview and defer the full-uBO research path. This does **not** accept SpikeA or SpikeB, qualify outstanding paths, change a kill criterion, or authorizePhase3/migration/release. The owner must decide the engine and acceptable residual scope after the evidence prerequisites are resolved.
+
+[Current six-input disposition](decision2-input-disposition-20261026.md) credits the completed A1 technical review and bounded parity/visual/VoiceOver evidence. It replaces stale repeat-work items with explicit remaining limits.
 
 ### Finite unresolved list
 

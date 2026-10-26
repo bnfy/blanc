@@ -1,0 +1,36 @@
+# Decision 2 — current input disposition
+
+October 26, 2026. Governing minimum: [primary plan §2](../../docs/chromium-migration-implementation-plan-2026-10-16.md). This is a source/evidence review, not a new runtime result or Decision2 approval. [A1 technical review](evidence/a1-design-review-20261026/README.md) completes the next requested deliverable.
+
+## Six required package items
+
+| Required input | Reviewable deliverable now | Exact remaining limit / action |
+| --- | --- | --- |
+| Task0 measured rebase | [Recorded rebase ledger](rebase-ledger.md), retained cold-build/repair observations and [cost sheet](decision2-cost-sheet-20261022.md) | Active owner attention was not measured and the larger75/184patch set has no measured major-version rebase. Record active attention on the next necessary update; do not run another rebase just to fill the sheet. Task0 promotion also needs the separate authentic Google extension upgrade. |
+| A1 patch-budget design with current count | [Reviewed design and full75-path ledger](a1-patch-budget-design.md), exact source/diff bindings and per-domain disposition | **Technical review complete.** Zero patch reduction claimed. Modular extraction, transactional manifest/apply tooling and trusted native inventory CI remain implementation work. Owner/Decision2 acceptance is separate; no layout migration is performed. |
+| Updated feature parity | Primary plan §3 retains historical approach/size estimates; its current execution table and the bounded surface mapping below credit later implementation | The deliverable is a bounded Mac-preview parity disposition. Full shipping/three-platform parity, migration, native-host/vendor fill, complete Glance and broader product surfaces remain unqualified. |
+| Matched visual comparison | [Signed L5 owner acceptance](evidence/l5-owner-acceptance-20261023/README.md), with subsequent [unchanged UI hash mapping](evidence/f12-devtools-signed-20261026/unchanged-ui-assets.json) | Accepted for named controls/artifacts. Reuse unchanged controls; the mapping is not a fresh full visual comparison or broader geometry guarantee. No repeat owner walkthrough requested. |
+| Mac VoiceOver | Same owner record covers Island/Split input, theme Apply/Remove, native permission Cancel/retry and popup focus | Spoken results are owner-confirmed. Preserve their scope; no new hand check or full extension compatibility claim. |
+| One-page staffing/CI cost | [Updated cost sheet](decision2-cost-sheet-20261022.md), [bounded operating proposal](decision2-operating-proposal-20261026.md), [actual public-standard CI workload](evidence/decision2-operations-20261026/README.md) | Existing-Mac/no-new-paid-service option is prepared. Public standard compute eligibility is verified; account-wide storage/cache/other cash allocations and active owner hours remain unknown. Cost/capacity acceptance is an informed owner disposition, not a request to guess a monthly budget. |
+
+## Bounded feature-parity mapping
+
+These are credited existing records; nothing below is rerun or promoted to blanket current-artifact acceptance.
+
+| Feature family | Existing result credited | Remaining divergence / limitation |
+| --- | --- | --- |
+| Island, tabs, commands, Find, rail | [L5 physical/visual/VoiceOver](evidence/l5-owner-acceptance-20261023/README.md), [L10 navigation/Find/zoom/rail smoke](evidence/l10-functional-smoke-20261023/README.md) | Complete command catalogue, every native/context menu and all reference chrome surfaces are not accepted. |
+| Private, groups, independent windows, sessions, Spaces, Split/Recently Closed | [Signed recovery](evidence/l6-restore-scheduling-20261023/README.md) and current primary-plan execution rows | Chromium off-the-record profiles/windows differ from mixed private tabs; complete Glance, whole-split cross-window drag, migration and arbitrary power-loss coverage remain excluded/unqualified. |
+| Themes, Start Page, Store extensions, native prompts/popups | L5/L10 plus [signed repair UI hash mapping](evidence/f12-devtools-signed-20261026/unchanged-ui-assets.json) | Four one-row wallpaper choices/Theme, readability overlays and named theme install/Undo/remove/restart checks are existing scoped evidence. Bitwarden/selected themes do not prove the whole Store catalog or an actual Google version upgrade. |
+| Favorites/history, downloads/media, HTML import, local passwords | L10's actual native model/HTTP/download/WAV/HTML-import/local-password records | No DRM breadth, account/vault/native-host compatibility, full profile import or Sync acceptance. |
+| Blocking and attribution | [F12 aggregate](f12-acceptance-status.md); [native/signed DevTools replacement repair](evidence/f12-devtools-signed-20261026/README.md) | Scoped enforcement and attribution evidence, not full provider/cosmetic/cross-runtime parity. Conditional pre-prefetch, main-frame digest and other named observer limits remain explicit. |
+| Distribution and operation | [L8 owner/distribution acceptance](evidence/l8-prerender-distribution-20261024/README.md), [manual update/retreat record](evidence/signed-update-rollback-20261023/README.md) | The newer repaired archive has local signing/notarization and affected checks, not an invented new full L8 owner acceptance. No public release or shipping-updater migration. |
+
+## Finite remaining decision agenda
+
+1. **A1:** review the modular design recommendation and retained boundaries. Technical preparation is done; do not treat deferred implementation or hypothetical savings as measured capacity.
+2. **Cost/capacity and Task0:** review the existing-infrastructure option and retain unknown active attention. The next necessary update supplies prospective measurements; no generic budget question or extra cold build is generated.
+3. **F12/engine:** the concrete proposal remains Blanc Blocker for the bounded Mac preview, with uBO research excluded from its distributed configuration. This is an unapproved proposal, not a new engine selection, acceptance of either spike, waiver of parity/rate/latency criteria, or authorization to change features. Preserve conditional disabled-route/future-enablement limits, source/binary scopes, production cosmetic/provider-recovery limits, paused Electron comparison and the unqualified main-frame digest adjunct. Qualified latency remains deferred and absent. Choose additional work only for a written unmet criterion or a real new defect, not an unlimited stress matrix.
+4. **Google/L11/L12:** separate monitor owns the authentic Google upgrade fixture; do not reinstall to manufacture a version increase. The reviewed CI code head732b34f has25pass/two paused Electron failures/two skips, so shared all-green L11 remains open. The later documentation headfb2ca62 completes24pass/three Electron failures/two skips; the additional Intel original-uBO-popup timeout is recorded in the A1 review and remains paused. L12/merge/release remain unapproved.
+
+The existing sole-maintainer/suspend-when-unavailable policy remains accepted, and the two-owner-day/one-calendar-week rebase stop rules are unchanged. No affordability or current support guarantee is inferred from the historical cold-build/Beta records. Readiness remains9/12, delta0. Electron paused, Google baseline separate, latency deferred.
