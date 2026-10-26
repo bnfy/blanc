@@ -471,6 +471,8 @@
     <string name="menu_settings">Impostazioni</string>
     <string name="menu_next_tab">Scheda successiva</string>
     <string name="menu_previous_tab">Scheda precedente</string>
+    <string name="menu_next_tab_in_order">Scheda successiva nell’ordine dell’elenco</string>
+    <string name="menu_previous_tab_in_order">Scheda precedente nell’ordine dell’elenco</string>
     <string name="menu_reload">Ricarica</string>
     <string name="menu_copy_clean_link">Copia link pulito</string>
     <string name="menu_undo">Annulla</string>
@@ -1016,6 +1018,10 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_tab_sleep_30m">Dopo 30 minuti</string>
     <string name="settings_general_tab_sleep_1h">Dopo 1 ora</string>
     <string name="settings_general_tab_sleep_6h">Dopo 6 ore</string>
+    <string name="settings_general_tab_switch_order_label">Cambia scheda con Ctrl+Tab</string>
+    <string name="settings_general_tab_switch_order_hint">Tieni premuto Ctrl e premi Tab per tornare alle schede usate più di recente, poi rilascia Ctrl per passarci. Esc ti lascia dove sei.</string>
+    <string name="settings_general_tab_switch_order_recent">Nell’ordine in cui le hai usate</string>
+    <string name="settings_general_tab_switch_order_list">Nell’ordine dell’elenco delle schede</string>
     <string name="settings_general_tab_archive_label">Archivia le schede inattive</string>
     <string name="settings_general_tab_archive_hint">Blanc chiude le schede sparse che non apri da un po’ e le conserva nel tuo Archivio per 30 giorni. Le schede fissate e i gruppi di schede non vengono mai archiviati.</string>
     <string name="settings_general_tab_archive_off">Disattivato</string>

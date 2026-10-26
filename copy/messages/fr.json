@@ -1656,11 +1656,19 @@
   },
   "menu.nextTab": {
     "message": "Onglet suivant",
-    "source": "sha256:12ca40176db7453b154628a13c40288eb1b4ca366f30e6aa973011e104b44441"
+    "source": "sha256:7c0223dd3c091d292ae82a106172645f32fb368fea60ad26646b02d027e803d6"
   },
   "menu.previousTab": {
     "message": "Onglet précédent",
     "source": "sha256:17a53effd3df2242fbf3526f8a7296c65780d0f38eaa60684204f7c68df4be05"
+  },
+  "menu.nextTabInOrder": {
+    "message": "Onglet suivant dans l’ordre de la liste",
+    "source": "sha256:40e1b7243bd95c969cdf1c8c43e75e3a5c69fdbc5ba40c2f0d90e93e6299cb12"
+  },
+  "menu.previousTabInOrder": {
+    "message": "Onglet précédent dans l’ordre de la liste",
+    "source": "sha256:59d0988b21d1f252b3a9d75e30527d6519e5092347249b4a6b1762f3f2a69846"
   },
   "menu.reload": {
     "message": "Actualiser",
@@ -3580,6 +3588,22 @@
   "settings.general.tabSleep.6h": {
     "message": "Après 6 heures",
     "source": "sha256:e369a2475ed758f1ff998ad2cdb0344051f06ffe8e4b10fd39688cfc3b564edb"
+  },
+  "settings.general.tabSwitchOrder.label": {
+    "message": "Changer d’onglet avec Ctrl+Tab",
+    "source": "sha256:b4eea66cf23fea0dd823e0eca62cb9bc2bf9a3b26e963fef4a6e55da47422cf2"
+  },
+  "settings.general.tabSwitchOrder.hint": {
+    "message": "Maintenez Ctrl et appuyez sur Tab pour revenir aux onglets utilisés en dernier, puis relâchez Ctrl pour changer. Échap vous laisse où vous êtes.",
+    "source": "sha256:a1bc7a2aaa5992538e4b286c9711a02136ac03f7e0b81a2febded17a22892803"
+  },
+  "settings.general.tabSwitchOrder.recent": {
+    "message": "Dans l’ordre où vous les avez utilisés",
+    "source": "sha256:a55a18693b898163b09b865118594e02e3ed5451128acbe81ba66b8938a956a4"
+  },
+  "settings.general.tabSwitchOrder.list": {
+    "message": "Dans l’ordre de la liste des onglets",
+    "source": "sha256:0e315b305f59dff6c13aa32616734cb834b59612a4cf99ad2e6a7d41b7a57e64"
   },
   "settings.general.tabArchive.label": {
     "message": "Archiver les onglets inactifs",

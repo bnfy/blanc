@@ -1,7 +1,7 @@
 # Ctrl-Tab by most recent use
 
 **Date:** 2026-10-24
-**Status:** draft for the owner's review. Not yet implemented. Revised 2026-10-25 with the Linux spike (§10): the release can't be detected the way the first draft assumed, and §3.4 now describes the approach that works on Linux. Windows and macOS are still to be measured. The owner decided D1–D6 on 2026-10-26 (§11), taking every recommendation.
+**Status:** decided; PR 1 (no card) implemented on Linux on 2026-10-26 (§10), PR 2 to follow. Revised 2026-10-25 with the Linux spike (§10): the release can't be detected the way the first draft assumed, and §3.4 now describes the approach that works on Linux. Windows and macOS are still to be measured. The owner decided D1–D6 on 2026-10-26 (§11), taking every recommendation.
 **Builds on:** the per-window activation history (`src/main/tab-activation.js`, which already powers ⌥⌘Z and the close-tab survivor rule), the overlay view (`src/renderer/overlay.js`), the shared browser-command table (`src/main/browser-shortcuts.js`) and the Windows/Linux shortcut router (`installBrowserShortcuts`).
 **Reference:** Arc, Firefox (*Ctrl+Tab cycles through tabs in recently used order*, on by default since Firefox 61) and every desktop window switcher (⌘-Tab, Alt-Tab). Chrome and Safari switch by position. The request came from r/ArcBrowser on 2026-10-24 (*"Ctrl-Tab for Most Recently Used tab switcher. This is probably the most irritating. Remembering the exact location of the last used tab is such a bad UX."*), asked of people who left Arc for Chrome.
 
@@ -140,6 +140,8 @@ Nothing new leaves main: the card's payload is the same `{id, title, favicon, pr
 
    **Windows and macOS: pending.** `assets/2026-10-24-mru-tab-switcher/ctrl-tab-probe.mjs` is a manual version for a real keyboard: run from a checkout, it makes a throwaway worktree of `origin/main`, applies the two variants behind environment flags, and walks the tester through four scenarios per variant. It reproduces the Linux table with `--auto`.
 2. **PR 1:** the setting, `tab-switcher.js`, the state machine, landing on release, Esc, PageDown/PageUp split from Tab, the Shortcuts page rows, copy in six languages, the smoke scenario. No card yet: a tap and a held multi-step both work blind.
+
+   **Implemented 2026-10-26, Linux only (D5).** On Windows and macOS `recentOrderAvailable()` is false: Ctrl+Tab keeps going by position, the press is still consumed and the setting row is hidden. The Shortcuts page lists the new **Next/Previous Tab in List Order** items (Ctrl+PageDown/PageUp) from the live menu. `browser-shortcuts-smoke.mjs` drives the recent order with real X11 keys from `xdotool` on the Linux CI job (tap, second tap, held double step, Esc); with the press consumed again it fails, as the spike predicts.
 3. **PR 2:** the card in the overlay, click-to-land, Ctrl+W while open, announcements.
 4. Website and What's New only after the release that carries both PRs (`docs/marketing-claims.md`).
 
@@ -161,6 +163,6 @@ The owner took the recommendation on all six.
 
 ## 13. Obligations elsewhere
 
-- `spec/features.md`: a new feature (F55, "Switch tabs in the order you used them") and the parity matrix row; mobile is N/A (no Ctrl key) and is a D-register entry.
+- `spec/features.md`: a new feature (F59, "Switch tabs in the order you used them"; F55 was taken meanwhile) and the parity matrix row; mobile is N/A (no Ctrl key) and is a D-register entry.
 - `CLAUDE.md`: the browser-shortcuts paragraph and the Quiet Tabs rule that stepping never wakes.
 - `docs/press/release-notes/vX.Y.0.md` and the What's New page for the release that ships it; the website's keyboard page after that release.
