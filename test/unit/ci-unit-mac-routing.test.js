@@ -6,7 +6,10 @@ const path = require('node:path');
 
 const workflow = fs.readFileSync(path.join(__dirname, '../../.github/workflows/unit-tests.yml'), 'utf8');
 
-test('unit runner routing uses the dedicated Mac only for trusted macOS jobs', () => {
+// unit (macos-15) went back to GitHub-hosted macOS in #1163 (the Mac's VM
+// slots held up merges), so no event, fork or MAC_RUNNER_LABELS value may
+// route the unit suite to the self-hosted Mac.
+test('unit runner routing stays on GitHub-hosted runners for every event', () => {
   const expression = workflow.match(/^\s*runs-on: \$\{\{ (.+) \}\}$/m)?.[1];
   assert.ok(expression, 'unit job has an explicit runner expression');
   // Evaluate the small Actions expression against trusted and fork contexts.
@@ -19,9 +22,7 @@ test('unit runner routing uses the dedicated Mac only for trusted macOS jobs', (
           const github = {event_name: event, repository: 'bnfy/blanc', event: {
             pull_request: {head: {repo: {full_name: sameRepository ? 'bnfy/blanc' : 'someone/fork'}}}
           }};
-          const expected = os === 'macos-15' && labels && (event !== 'pull_request' || sameRepository)
-            ? JSON.parse(configured) : os;
-          assert.deepEqual(route({os}, {MAC_RUNNER_LABELS: labels}, github, JSON.parse), expected,
+          assert.deepEqual(route({os}, {MAC_RUNNER_LABELS: labels}, github, JSON.parse), os,
             `${os}, ${event}, sameRepository=${sameRepository}, configured=${!!labels}`);
         }
       }
