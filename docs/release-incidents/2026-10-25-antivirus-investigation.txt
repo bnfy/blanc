@@ -1,5 +1,17 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+ISOLATED VM DISPLAY PREFLIGHT (Oct 26): Run 40409609581 at 630011048
+passed native architecture/GUI ownership and dependency setup on both hosts.
+The ARM VM reports only 1024x768 as its largest native mode. The run was
+stopped before signing because that cannot satisfy the existing 1440x840
+window scenarios. A CI-only CoreGraphics virtual-display helper now supplies
+a process-lifetime 1920x1200 primary screen inside the disposable VM, with
+actual primary-ID/size readiness checks and always-run process cleanup. It
+changes neither the host nor the base VM image and does not lower acceptance
+sizes. The helper compiles and links locally without being executed there;
+11 focused runner/focus tests pass. The next exact-source run must prove the
+VM can create the screen before executing the complete acceptance gates.
+
 NATIVE FOCUS AND VISIBILITY FIXES (Oct 26 continuation): The matched crash
 stack is a Chromium focus-emulation teardown during frame replacement.
 Acceptance now disables Playwright's focus emulation through public CDP while

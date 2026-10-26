@@ -1358,6 +1358,21 @@ jobs:
           mkdir -m 700 "$APP_BUILDER_TMP_DIR"
           printf 'APP_BUILDER_TMP_DIR=%s\n' "$APP_BUILDER_TMP_DIR" >> "$GITHUB_ENV"
           sw_vers
+      - name: Provide a temporary large desktop inside the isolated ARM VM
+        if: matrix.arch == 'arm64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun clang -fobjc-arc -framework Foundation -framework CoreGraphics scripts/ci-macos-virtual-display.m -o "$RUNNER_TEMP/blanc-ci-display"
+          "$RUNNER_TEMP/blanc-ci-display" "$RUNNER_TEMP/blanc-ci-display.ready" > "$RUNNER_TEMP/blanc-ci-display.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/blanc-ci-display.pid"
+          for attempt in {1..200}; do
+            test -f "$RUNNER_TEMP/blanc-ci-display.ready" && break
+            kill -0 "$(cat "$RUNNER_TEMP/blanc-ci-display.pid")" 2>/dev/null || { cat "$RUNNER_TEMP/blanc-ci-display.log"; exit 1; }
+            sleep 0.2
+          done
+          test -f "$RUNNER_TEMP/blanc-ci-display.ready" || { cat "$RUNNER_TEMP/blanc-ci-display.log"; exit 1; }
+          cat "$RUNNER_TEMP/blanc-ci-display.ready"
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
@@ -1369,6 +1384,17 @@ jobs:
         env:
           BLANC_TEST_APP_OUTPUT: '1'
         run: npm run release:verify:press
+
+      - name: Remove the temporary VM display
+        if: always() && matrix.arch == 'arm64'
+        shell: bash
+        run: |
+          if test -f "$RUNNER_TEMP/blanc-ci-display.pid"; then
+            display_pid="$(cat "$RUNNER_TEMP/blanc-ci-display.pid")"
+            if kill -0 "$display_pid" 2>/dev/null; then
+              kill "$display_pid"
+            fi
+          fi
 
   mac-scan:
     needs: [validate-inputs, mac-scan-acceptance]

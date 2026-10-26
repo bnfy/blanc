@@ -86,3 +86,11 @@ lives in a run-specific temporary directory and is removed before packaged
 browser tests, including failure cleanup. The workflow never publishes a
 release or updater feed. The `mac_runner_probe` option checks the signing
 host's toolchain/GUI readiness without a signing environment or credentials.
+
+The acceptance VM's default 1024×768 screen is too small for the unchanged
+1440×840 window scenarios. `ci-macos-virtual-display.m` creates a temporary
+1920×1200 primary display using the CoreGraphics test API also used by
+Chromium. It runs only inside the disposable ARM VM and verifies the actual
+primary display dimensions before acceptance. The process is stopped in an
+always-run cleanup; the host and base image are unchanged. A creation or
+geometry failure stops the gate instead of reducing assertion sizes.

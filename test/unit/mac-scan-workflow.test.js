@@ -105,3 +105,15 @@ test('native Mac acceptance is a secret-free prerequisite on isolated desktops',
   assert.equal(acceptance.steps.filter(x => x.run === 'npm run release:verify:press').length, 1);
   assert(!job.steps.some(x => x.run === 'npm run release:verify:press'));
 });
+
+test('the disposable ARM VM gets a temporary native screen before acceptance', () => {
+  const screen = acceptance.steps.findIndex(x => x.name === 'Provide a temporary large desktop inside the isolated ARM VM');
+  const press = acceptance.steps.findIndex(x => x.run === 'npm run release:verify:press');
+  assert(screen >= 0 && screen < press);
+  assert.equal(acceptance.steps[screen].if, "matrix.arch == 'arm64'");
+  assert.match(acceptance.steps[screen].run, /ci-macos-virtual-display\.m/);
+  assert.match(acceptance.steps[screen].run, /blanc-ci-display\.ready/);
+  const cleanup = acceptance.steps.find(x => x.name === 'Remove the temporary VM display');
+  assert.equal(cleanup.if, "always() && matrix.arch == 'arm64'");
+  assert.match(cleanup.run, /kill/);
+});
