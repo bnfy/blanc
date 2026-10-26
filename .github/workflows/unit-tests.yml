@@ -27,9 +27,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-15]
-    # A self-hosted Mac takes the macOS leg when vars.MAC_RUNNER_LABELS is set
-    # (never for forks); docs/ci-self-hosted-macos-runner.md
-    runs-on: ${{ (matrix.os == 'macos-15' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
+    # GitHub-hosted, even with the self-hosted Mac set up: there it waited a
+    # median 24 minutes (up to 72) behind the uBO desktop leg and ran twice as
+    # long (October 26, 2026). docs/ci-self-hosted-macos-runner.md
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     env:
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"

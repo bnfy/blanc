@@ -6,7 +6,13 @@ shared by every workflow ([Actions limits](https://docs.github.com/en/actions/re
 Larger runners share that cap. Pull requests waited 28–41 minutes for a macOS
 slot (October 26, 2026), so #1151 moved most macOS legs to a nightly
 schedule. A Mac we own adds Apple Silicon capacity outside that cap, at no
-GitHub cost, and brings the macOS legs back to every pull request.
+GitHub cost, and brings the uBO macOS leg back to every pull request.
+
+`unit (macos-15)` went back to GitHub-hosted macOS on October 26, 2026. On
+the Mac's first afternoon it waited a median 24 minutes for one of the two VM
+slots (up to 72) and ran in about 5.3 minutes, against about 3 minutes on a
+hosted runner with almost no wait. It is the only macOS job left on every pull
+request, so it no longer competes for the hosted cap.
 
 ## What changes when it's on
 
@@ -14,12 +20,12 @@ One repository variable, `MAC_RUNNER_LABELS`, switches it on:
 
 | Job | Variable unset (default) | Variable set |
 |---|---|---|
-| `unit (macos-15)` (unit-tests.yml) | GitHub-hosted, every PR | self-hosted, every PR |
+| `unit (macos-15)` (unit-tests.yml) | GitHub-hosted, every PR | **unchanged: GitHub-hosted, every PR** |
 | `workspace-regressions`, `favorites-import`, `browser-shortcuts` macOS legs (parity-guards.yml) | GitHub-hosted, nightly and manual runs only | self-hosted, nightly and manual runs only. On every pull request they'd queue three more jobs per PR for the Mac's two slots |
 | `desktop (macos-15)` (ublock-origin.yml) | GitHub-hosted, nightly and manual runs only | self-hosted, matching PRs, plus nightly |
 | `desktop (macos-15-intel)`, iOS `xctest`, nightly desktop acceptance, release and prerelease workflows | GitHub-hosted | **unchanged: GitHub-hosted** |
 
-- Check names stay the same (`unit (macos-15)` …), so required checks keep matching.
+- Check names stay the same (`desktop (macos-15)` …), so required checks keep matching.
 - **Fork pull requests never reach the Mac.** Every `runs-on` that can pick it falls back to the GitHub-hosted runner unless the pull request's head repository is `bnfy/blanc`. `test/unit/ci-self-hosted-mac.test.js` fails if any such line loses that guard, or if Intel, iOS or a release workflow starts using the variable.
 - **Turning it off:** delete the variable. Every job goes back to the default column on the next run.
 
@@ -60,7 +66,7 @@ Day to day: `status` shows the loop, the VMs and the runners GitHub sees. `rebui
 1. **Confirm the runner is ready.** In GitHub → Settings → Actions → Runners, it should show as *Idle*, labelled `self-hosted, macOS, ARM64, blanc-ci`.
 2. **Approve fork workflows.** In Settings → Actions → General → *Fork pull request workflows from outside collaborators*, choose **Require approval for all outside collaborators**. The workflows already keep forks off the Mac; this stops an unknown contributor's workflow changes from running at all until you've looked.
 3. **Add the variable.** In Settings → Secrets and variables → Actions → *Variables* → **New repository variable**, set the name to `MAC_RUNNER_LABELS` and the value to `["self-hosted","macOS","ARM64","blanc-ci"]`. It must be valid JSON; the workflows read it with `fromJSON`.
-4. **Check a pull request.** Push one. `unit (macos-15)` should start within seconds, and its log's *Set up job* should name your runner.
+4. **Check a pull request.** Push one that changes a path `ublock-origin.yml` filters on. `desktop (macos-15)` should start within seconds, and its log's *Set up job* should name your runner.
 5. **Measure the queue.** After a day, `npm run ci:queue -- --since=<the day you switched>` shows queue times per runner label. Compare `macos-15` / `macos-latest` with `self-hosted,macOS,ARM64,blanc-ci`.
 
 ## If something goes wrong
