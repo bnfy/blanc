@@ -83,6 +83,17 @@ Feature: Named workspace preservation and recovery
     When I try switching workspaces during fixture sign-in
     Then the switch is refused and the sign-in callback still reaches its opener
 
+  @F41-80
+  Scenario: A tab whose opener has closed does not block a space switch
+    Given a named workspace with an active sign-in tab opener family
+    When the page that opened the sign-in tab closes
+    Then switching workspaces is accepted
+
+  @F41-81
+  Scenario: A frame that keeps loading does not block a space switch
+    Given a named workspace whose page keeps loading a frame
+    Then switching workspaces is accepted
+
   @F41-15
   Scenario: Anyone can save a window as a space
     Given there is no active supporter license

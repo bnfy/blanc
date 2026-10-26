@@ -47,6 +47,13 @@ test('protected pages cannot be overridden but the target can open elsewhere', (
   assert.equal(h.controller.open(h.runtime, 'a', { force: true }).error, 'protected-pages');
   assert.equal(h.controller.open(h.runtime, 'a', { newWindow: true }).ok, true); assert.deepEqual(h.calls, ['new-window']);
 });
+test('a refused switch names the pages that block it (#1140)', () => {
+  const pages = [{ id: 't1', title: 'Sign in', reason: 'opener' }];
+  const h = harness({ protection: () => ({ blocked: true, reason: 'active-page', pages }) });
+  assert.deepEqual(h.controller.open(h.runtime, 'a'), { ok: false, error: 'protected-pages', reason: 'active-page', blockingTabs: pages });
+  const bare = harness({ protection: () => ({ blocked: true, reason: 'permission-or-transition' }) });
+  assert.deepEqual(bare.controller.open(bare.runtime, 'a'), { ok: false, error: 'protected-pages', reason: 'permission-or-transition' });
+});
 test('failed outgoing durable save never stages or closes a page', () => {
   const h = harness({ checkpoint: () => ({ ok: false, error: 'storage-failed' }) });
   assert.equal(h.controller.open(h.runtime, 'a').error, 'storage-failed'); assert.deepEqual(h.calls, []);
