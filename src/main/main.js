@@ -5036,6 +5036,17 @@ function overlayBounds() {
     const { width, height } = rt().window.getContentBounds();
     return { x: 0, y: 0, width, height };
   }
+  if (rt().overlayMode === 'switcher') {
+    // Hangs just under the Island; the view's top margin is the card's shadow.
+    const island = rt().islandRect;
+    const below = island ? island.y + island.height : rt().chromeHeight;
+    return tabSwitcherModule.switcherBounds({
+      pageX: layout.pageBounds.x,
+      pageWidth: layout.pageBounds.width,
+      windowHeight: rt().window.getContentBounds().height,
+      top: below + 8 - tabSwitcherModule.SWITCHER_SHADOW,
+    });
+  }
   if (rt().overlayMode === 'spaces') {
     return calculateSpacesBounds({
       windowWidth: rt().window.getContentBounds().width,
@@ -5565,8 +5576,11 @@ function showOverlay(mode, { prefill, purpose } = {}) {
   if (mode !== 'panel' && mode !== 'palette') cancelAddressBarFocusReclaim();
   bumpSurfaceGeneration();
   // One floating layer at a time: summoning the island dismisses the sheet
-  // (the overlay takes focus itself — no tab refocus in between).
-  hideUtilitySheet({ refocusContent: false });
+  // (the overlay takes focus itself — no tab refocus in between). The Ctrl+Tab
+  // card is the exception: it draws over the sheet and takes no focus, since
+  // the Control release must keep arriving where the keys are (spec §3.3).
+  if (mode !== 'switcher') hideUtilitySheet({ refocusContent: false });
+  else if (rt().overlayMode !== 'switcher') switcherCardShows += 1;
   // Opening the panel is a freshness signal: pull other devices' tabs
   // (throttled to 1/min inside refreshSession — tab-sync spec §6).
   if (mode === 'panel' || mode === 'palette') {
@@ -5626,7 +5640,7 @@ function showOverlay(mode, { prefill, purpose } = {}) {
     },
   });
   syncShieldAnchor();
-  rt().overlayView.webContents.focus();
+  if (mode !== 'switcher') rt().overlayView.webContents.focus();
   stripSurfaces(rt()).send('chrome:island-state', { mode, trigger: mode === 'shield' ? rt().shieldTrigger : null });
 }
 
@@ -7266,7 +7280,62 @@ const tabSwitcher = tabSwitcherModule.createTabSwitcher({
     setActiveTab(id);
   })(),
   isLive: (runtime, id) => tabs.has(id) && windowRuntimes.runtimeForTab(id) === runtime,
+  onChange: (runtime) => bindWindowRuntime(runtime, updateSwitcherCard)(),
 });
+
+/** The card waits this long for Ctrl to still be held, so a tap never
+ * flashes it; a second Tab shows it at once (spec §3.3). */
+const SWITCHER_CARD_DELAY_MS = 150;
+/** Times the card has opened (test hook: a tap must never show it). */
+let switcherCardShows = 0;
+
+function switcherCardPurpose(session) {
+  return { switcher: { tabIds: [...session.order], pick: session.pick } };
+}
+
+/** Shows, updates or hides the card for the current runtime's switch. It is
+ * drawn only over a bare page: with another Island surface open (the ⌘L
+ * panel, Find, a popover) the switch works blind and lands as usual. */
+function updateSwitcherCard() {
+  const runtime = rt();
+  const session = tabSwitcher.session(runtime);
+  if (!session) {
+    if (runtime.switcherCardTimer) clearTimeout(runtime.switcherCardTimer);
+    runtime.switcherCardTimer = null;
+    if (runtime.overlayMode === 'switcher') hideOverlay({ refocusContent: false });
+    return;
+  }
+  if (runtime.overlayMode === 'switcher') {
+    runtime.overlayPurpose = switcherCardPurpose(session);
+    runtime.overlayView?.webContents.send('overlay:show', {
+      mode: 'switcher', prefill: null, purpose: runtime.overlayPurpose,
+      searchPriorityResults: settings.getSettings().searchPriorityResults === true,
+    });
+    return;
+  }
+  if (runtime.overlayMode) return;
+  if (session.steps >= 2) {
+    if (runtime.switcherCardTimer) clearTimeout(runtime.switcherCardTimer);
+    runtime.switcherCardTimer = null;
+    showOverlay('switcher', { purpose: switcherCardPurpose(session) });
+    return;
+  }
+  if (runtime.switcherCardTimer) return;
+  runtime.switcherCardTimer = setTimeout(bindWindowRuntime(runtime, () => {
+    rt().switcherCardTimer = null;
+    const current = tabSwitcher.session(rt());
+    if (current && !rt().overlayMode && hasLiveWindow()) showOverlay('switcher', { purpose: switcherCardPurpose(current) });
+  }), SWITCHER_CARD_DELAY_MS);
+}
+
+/** Ctrl+W while switching closes the picked tab, not the current one, and
+ * the pick moves one step older (D4). */
+function closeSwitcherPick(runtime) {
+  const id = tabSwitcher.pick(runtime);
+  if (id == null || id === runtime.activeTabId || !tabs.has(id)) return;
+  closeTab(id);
+  tabSwitcher.removed(runtime, id);
+}
 
 function stepTabSwitch(runtime, direction, sender) {
   if (!recentTabOrder()) return cycleTab(direction);
@@ -7279,7 +7348,11 @@ const executeBrowserCommand = createBrowserCommandExecutor({
   'new-window': runtime => openNewWindow({ profileId: runtime.profileId }),
   'new-tab': () => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true }),
   'new-private-tab': () => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true }),
-  'close-tab': (runtime, sender) => { const tab = browserCommandTab(runtime, sender); if (tab) closeTab(tab.id); },
+  'close-tab': (runtime, sender) => {
+    if (tabSwitcher.isSwitching(runtime)) return closeSwitcherPick(runtime);
+    const tab = browserCommandTab(runtime, sender);
+    if (tab) closeTab(tab.id);
+  },
   'reopen-tab': reopenClosedTab,
   'next-tab': (runtime, sender) => stepTabSwitch(runtime, 1, sender),
   'previous-tab': (runtime, sender) => stepTabSwitch(runtime, -1, sender),
@@ -7341,13 +7414,18 @@ function installTabSwitchRelease(webContents, getRuntime) {
       return;
     }
     if (input.type !== 'keyDown' || ['Tab', 'Control', 'Shift'].includes(input.key)) return;
+    // Ctrl+W closes the pick and keeps the switch going (the close-tab command).
+    if (matchBrowserShortcut(input) === 'close-tab') return;
     tabSwitcher.cancel(runtime);
     if (input.key === 'Escape') event.preventDefault();
   });
   webContents.on('before-mouse-event', (_event, mouse) => {
     if (mouse.type !== 'mouseDown') return;
     const runtime = getRuntime();
-    if (runtime) tabSwitcher.cancel(runtime);
+    if (!runtime) return;
+    // A press on the card is a choice (chrome:switcher-pick), not a cancel.
+    if (runtime.overlayMode === 'switcher' && webContents === runtime.overlayView?.webContents) return;
+    tabSwitcher.cancel(runtime);
   });
 }
 
@@ -7361,6 +7439,9 @@ function installChromeShortcuts(webContents, owner = rt()) {
     observe: observeBrowserCommand,
     // A consumed Ctrl+Tab press takes the Control release with it (spec §3.4).
     consumes: (id) => !(recentTabOrder() && (id === 'next-tab' || id === 'previous-tab')),
+    // Likewise Ctrl+W while switching: the Tab menu's accelerator closes the
+    // pick (the close-tab command), and the release still lands (D4).
+    defers: (id, runtime) => id === 'close-tab' && tabSwitcher.isSwitching(runtime),
   });
   // Only where most-recent order can run; elsewhere no surface carries these.
   if (RECENT_TAB_ORDER_AVAILABLE) installTabSwitchRelease(webContents, getRuntime);
@@ -11484,6 +11565,13 @@ function registerIpcHandlers() {
     showOverlay('capture');
   });
   chromeOn('chrome:capture-stop', (_e, surfaceId) => stopCaptureSurface(surfaceId));
+  // A click on a Ctrl+Tab card entry: only the overlay showing the card, and
+  // only an id the card offered (tab-switcher.js `choose`).
+  chromeOn('chrome:switcher-pick', (event, rawId) => {
+    if (rt().overlayMode !== 'switcher' || event.sender !== rt().overlayView?.webContents) return;
+    const id = tabs.has(rawId) ? rawId : null;
+    if (id != null) tabSwitcher.choose(rt(), id);
+  });
   // /copy and /copy clean: the current tab's address, as ⌘⇧C and Copy Clean Link.
   chromeOn('chrome:copy-link', (_e, clean) => {
     if (clean === true) copyCleanBrowserCommandLink(rt());
@@ -15318,6 +15406,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         activeViewVisible: liveContents(tabs.get(rt().activeTabId)) ? tabs.get(rt().activeTabId).view.getVisible() : false,
         addressFocusGeneration: rt().addressFocusGeneration,
         tabSwitchPick: tabSwitcher.pick(rt()),
+        tabSwitchOrder: tabSwitcher.session(rt())?.order ?? null,
+        switcherCardShows,
+        overlayBounds: rt().overlayMode ? rt().overlayView?.getBounds() ?? null : null,
       }),
       navigateTabToAddress, liveContents, tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getSplits: () => rt().splits ?? [], getActiveTabId: () => rt().activeTabId, getIslandRect: () => rt().islandRect, getIslandHoverRect: () => rt().islandHoverRect, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
