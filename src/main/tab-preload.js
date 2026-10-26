@@ -116,6 +116,8 @@ if (window.location.protocol === 'blanc:') {
         continueWithoutBlocking: () => invoke('pages:start:startup-continue'),
         recoverSession: (choice) => invoke('pages:start:recover-session', choice),
         completePrivacy: (choices) => invoke('pages:start:privacy-complete', choices),
+        sharedQuestion: () => invoke('pages:start:shared-question'),
+        sharedQuestionAnswer: (id, on) => invoke('pages:start:shared-question-answer', id, on),
         openSettings: (section) => invoke('pages:start:open-settings', section),
         dismissMigrationChecklist: () => invoke('pages:start:migration-checklist-dismiss'),
         dismissPatronCallout: () => invoke('pages:start:patron-callout-dismiss'),
@@ -134,6 +136,11 @@ if (window.location.protocol === 'blanc:') {
         },
         onRemoteTabs: (callback) => {
           ipcRenderer.on('pages:start:remote-tabs', (_event, devices) => callback(devices));
+        },
+        openSent: (id) => invoke('pages:start:open-sent', id),
+        dismissSent: (id) => invoke('pages:start:dismiss-sent', id),
+        onSentItems: (callback) => {
+          ipcRenderer.on('pages:start:sent-items', (_event, items) => callback(items));
         },
       },
     };
@@ -160,6 +167,7 @@ if (window.location.protocol === 'blanc:') {
     api = {
       surface,
       bookmarks: {
+        capabilities: () => invoke('pages:bookmarks:capabilities'),
         list: () => invoke('pages:bookmarks:list'),
         remove: (id) => invoke('pages:bookmarks:remove', id),
         clearFavicon: (url) => invoke('pages:bookmarks:clear-favicon', url),
@@ -240,6 +248,8 @@ if (window.location.protocol === 'blanc:') {
           ipcRenderer.on('pages:blocking:status', (_event, status) => callback(status));
         },
         checkForUpdates: () => invoke('pages:settings:check-for-updates'),
+        drmStatus: () => invoke('pages:settings:drm-status'),
+        drmRestart: () => invoke('pages:settings:drm-restart'),
         set: (partial) => invoke('pages:settings:set', partial),
         wallpaper: () => invoke('pages:start:wallpaper'),
         setWallpaper: (source) => invoke('pages:start:set-wallpaper', source),
@@ -252,6 +262,11 @@ if (window.location.protocol === 'blanc:') {
           ipcRenderer.on('pages:settings:appearance', (_event, status) => callback(status));
         },
         activateSupporter: (key) => invoke('pages:settings:supporter-activate', key),
+        sharedSpacesAcknowledge: (id) => invoke('pages:settings:shared-spaces-acknowledge', id),
+        sharedSpacesOpen: (id) => invoke('pages:settings:shared-spaces-open', id),
+        sharedSpacesStatus: () => invoke('pages:settings:shared-spaces-status'),
+        sharedSpacesPreview: () => invoke('pages:settings:shared-spaces-preview'),
+        sharedSpacesApply: (payload) => invoke('pages:settings:shared-spaces-apply', payload),
         syncGet: () => invoke('pages:settings:sync-get'),
         syncEnable: (payload) => invoke('pages:settings:sync-enable', payload),
         syncPreflight: (payload) => invoke('pages:settings:sync-preflight', payload),

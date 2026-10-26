@@ -5,7 +5,7 @@
 // This does not establish platform logging/metadata retention. See the design
 // spec in the main repo (docs/superpowers/specs/2026-07-07-profile-sync-design.md).
 
-const STORES = new Set(['bookmarks', 'settings', 'session', 'icons']); // history may follow later
+const STORES = new Set(['bookmarks', 'settings', 'session', 'icons', 'sends', 'spaces', 'closed', 'shared']); // history may follow later
 const MAX_BLOB_BYTES = 512 * 1024;                 // favorites+settings are tiny; raise for history
 const MAX_REQUEST_BYTES = 513 * 1024;              // blob plus v1 JSON envelope
 const RATE_LIMIT = 30;                             // GETs per accountId per minute — anti-hammering of one account
@@ -154,10 +154,14 @@ async function handlePut(env, accountId, store, body) {
 }
 
 async function handleDelete(env, accountId) {
-  await Promise.all([
-    ...[...STORES].map((s) => env.SYNC.delete(blobKey(accountId, s))),
-    env.SYNC.delete(seenKey(accountId)),
-  ]);
+  // List before deleting: cursors may be offset-based in local fixtures and
+  // Space blobs can outlive their index entries. Never rely on the live index.
+  // KV listings can omit recently written keys. Preserve the direct deletion
+  // of every known fixed store; enumeration supplements it for dynamic ids.
+  const keys = new Set([...STORES].map((store) => blobKey(accountId, store)));
+  for (const key of await listNames(env, `blob:${accountId}:`)) keys.add(key);
+  await Promise.all([...keys].map((key) => env.SYNC.delete(key)));
+  await env.SYNC.delete(seenKey(accountId));
   return new Response(null, { status: 204 });
 }
 
@@ -226,7 +230,7 @@ export default {
       }
       return new Response('method not allowed', { status: 405 });
     }
-    const m = url.pathname.match(/^\/v1\/blob\/([0-9a-f]{64})(?:\/([a-z]+))?$/);
+    const m = url.pathname.match(/^\/v1\/blob\/([0-9a-f]{64})(?:\/([^/]+))?$/);
     if (!m) return new Response('not found', { status: 404 });
     const [, accountId, store] = m;
 
@@ -237,7 +241,7 @@ export default {
     }
 
     if (request.method === 'DELETE') return handleDelete(env, accountId);
-    if (store && !STORES.has(store)) return new Response('unknown store', { status: 404 });
+    if (store && !STORES.has(store) && !/^space-[0-9a-f]{32}$/.test(store)) return new Response('unknown store', { status: 404 });
     // GET/PUT address one store; only DELETE is account-wide. Requiring the
     // segment stops a storeless PUT from writing an unwipeable orphan key.
     if ((request.method === 'GET' || request.method === 'PUT') && !store) {

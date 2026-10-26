@@ -52,6 +52,11 @@ object BlancTokens {
         BlancTheme.DARK -> "rgba(245, 245, 245, 0.12)"
         BlancTheme.PRIVATE -> "rgba(245, 245, 245, 0.12)"
     }
+    fun rowSelected(theme: BlancTheme): String = when (theme) {
+        BlancTheme.LIGHT -> "#728ca6"
+        BlancTheme.DARK -> "#536f8b"
+        BlancTheme.PRIVATE -> "#596c83"
+    }
     fun sunriseBg(theme: BlancTheme): String = when (theme) {
         BlancTheme.LIGHT -> "#f8f2e8"
         BlancTheme.DARK -> "#17130f"

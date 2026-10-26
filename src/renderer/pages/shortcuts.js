@@ -24,6 +24,8 @@ const SLASH_COMMANDS = [
   ['/group <name>', 'slash.group.doc'],
   ['/ungroup', 'slash.ungroup.hint'],
   ['/close-group', 'slash.closeGroup.hint'],
+  ['/send <device>', 'slash.send.doc'],
+  ['/reader', 'slash.reader.hint'],
   ['/find', 'slash.find.hint'],
   ['/block-ads', 'slash.blockAds.hint'],
   ['/allow-ads', 'slash.allowAds.hint'],

@@ -90,8 +90,10 @@ wallpaper/Linux waivers and earlier updater confirmations remain in their
 original reports:
 
 - **Optional uBlock Origin:** Public v1.39.0 offers full uBO 1.75.0 on
-  Apple Silicon, native Intel Mac, Windows x64 and Linux x64, on official
-  Electron 44.8.0, unchanged since v1.35.0. The move from 44.5.1 passed the real blocking and tools
+  Apple Silicon, native Intel Mac, Windows x64 and Linux x64. Since v1.43.0 it
+  runs on castLabs' Electron for Content Security 44.9.3 (Chromium
+  152.0.7977.167, as on official Electron 44.8.0 from v1.35.0 to v1.42.1), where it
+  passed signed-package uBO acceptance on all four. The move from 44.5.1 passed the real blocking and tools
   suite on all four in hosted CI; the installed-candidate acceptance dates
   from v1.27.0 on 44.5.1. Click the Island shield to choose a blocker and restart
   Blanc to apply it. Blanc Blocker stays the default and protects private
@@ -429,6 +431,28 @@ original reports:
   It reorders results only; suggestions still follow the Search suggestions
   setting. Hand-checked on Mac and Windows; the Linux check was waived by the
   owner, not passed.
+- **Protected video playback:** Since v1.43.0 Blanc runs on castLabs' Electron
+  for Content Security and plays Widevine-protected media on macOS (Apple
+  Silicon and Intel), Windows and Linux. The Widevine component downloads from
+  Google's update service after the update; Settings → Help → Protected media
+  shows when it is ready, and Linux asks for one restart. Netflix and Spotify
+  were tried on an Apple Silicon Mac only. Whether a given site plays depends
+  on that site; never promise a named service, resolution or HDR. The v1.43.0
+  AppImage didn't start on glibc older than 2.38; v1.43.1 needs glibc 2.28, and
+  on October 24, 2026 the public 1.43.1 AppImage played the castLabs VMP Lab
+  test stream on hosted x64 Ubuntu 22.04 and 24.04 (headless, no audio device).
+  Windows needs an x64 PC: Blanc ships no arm64 Windows build, and on Windows
+  on Arm the x64 build runs under emulation, where VMP answers
+  PLATFORM_TAMPERED and Netflix refuses with E100 (1044), observed the same
+  day in a Windows 11 on Arm VM. Say so where Windows streaming is described;
+  never call it a bug.
+- **Sunrise Spectrum and Sunrise Amber:** Since v1.43.0, two more macOS app
+  icons in Settings → General → App icon. macOS only.
+- **Neutral surface style:** Since v1.43.0 an opt-in Surface style setting in
+  Settings → General swaps the Start Page's and utility pages' cream and gold
+  for ink and gray. Sunrise stays the default.
+- **Pinned splits:** Since v1.43.0 a Split View is pinned or unpinned as a
+  whole, and pinned tabs can join a split.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,

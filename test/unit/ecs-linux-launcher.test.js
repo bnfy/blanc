@@ -14,7 +14,7 @@ test('self-contained Linux launcher selects owned components and fails closed wi
   const launcher = path.join(app, 'blanc-ecs-launcher');
   execFileSync('c++', ['-std=c++17', '-Wall', '-Wextra', '-Werror', path.resolve('scripts/ecs-linux-launcher.cc'), '-o', launcher]);
   fs.writeFileSync(path.join(app, 'blanc-cdm-preload.so'), 'not loaded by the fixture');
-  fs.writeFileSync(path.join(app, 'blanc-ecs-full-candidate'), '#!/bin/sh\nprintf "%s\\n" "$BLANC_ECS_FULL_PROFILE" "$BLANC_ECS_CDM_PRELOAD_PATH" "$LD_PRELOAD" "$@"\n', { mode: 0o755 });
+  fs.writeFileSync(path.join(app, 'blanc-ecs-full-candidate'), '#!/bin/sh\nprintf "%s\\n" "$BLANC_ECS_FULL_PROFILE" "$BLANC_ECS_CDM_PRELOAD_PATH" "$LD_PRELOAD" "$@"\nprintf "CHROME_BIN=%s CHROME_DESKTOP=%s CHROME_DEVEL_SANDBOX=%s DISPLAY=%s\\n" "${CHROME_BIN-absent}" "${CHROME_DESKTOP-absent}" "${CHROME_DEVEL_SANDBOX-absent}" "$DISPLAY"\n', { mode: 0o755 });
   const marker = path.join(profile, 'ecs-candidate-profile.json');
   const run = (args = [], extra = {}) => spawnSync(launcher, args, { encoding: 'utf8', env: { ...process.env, BLANC_ECS_FULL_PROFILE: profile, ...extra } });
   assert.equal(run().status, 126);
@@ -23,6 +23,10 @@ test('self-contained Linux launcher selects owned components and fails closed wi
   assert.equal(good.stdout.split('\n')[2], path.join(app, 'blanc-cdm-preload.so'), 'preload is retained only for native startup');
   assert.ok(!good.stdout.includes('--zygote-cmd-prefix='), 'vendor-incompatible prefix is never added');
   assert.ok(good.stdout.includes(`--user-data-dir=${profile}`));
+  const inheritedChrome = run([], { CHROME_BIN: '/retired/blanc', CHROME_DESKTOP: 'old.desktop',
+    CHROME_DEVEL_SANDBOX: '/retired/chrome-sandbox', DISPLAY: ':77' });
+  assert.equal(inheritedChrome.status, 0);
+  assert.match(inheritedChrome.stdout, /CHROME_BIN=absent CHROME_DESKTOP=absent CHROME_DEVEL_SANDBOX=absent DISPLAY=:77/);
   assert.equal(run(['--user-data-dir=/somewhere-else']).status, 126);
   assert.equal(run(['--user-data-dir', profile]).status, 0);
   for (const flag of ['--no-sandbox', '--no-zygote-sandbox', '--disable-setuid-sandbox', '--disable-seccomp-filter-sandbox']) assert.equal(run([flag]).status, 126);
@@ -109,4 +113,30 @@ test('AppImage entrypoint uses its own launcher, never an inherited mount or san
   const builder = fs.readFileSync(path.resolve('scripts/build-full-ecs-candidate.cjs'), 'utf8');
   assert.match(builder, /if \(nativeSecurityPatch\) \{/);
   assert.match(builder, /ecs-linux-launcher\.cc/);
+});
+
+test('production launcher uses normal profile paths without creating them before migration', { skip: process.platform !== 'linux' }, t => {
+  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'ecs-production-launcher-')));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const app = path.join(root, 'app'); fs.mkdirSync(app);
+  const launcher = path.join(app, 'blanc-ecs-launcher');
+  execFileSync('c++', ['-std=c++17', '-DBLANC_ECS_PRODUCTION', '-Wall', '-Wextra', '-Werror', path.resolve('scripts/ecs-linux-launcher.cc'), '-o', launcher]);
+  fs.writeFileSync(path.join(app, 'blanc-cdm-preload.so'), 'fixture');
+  fs.writeFileSync(path.join(app, 'blanc'), '#!/bin/sh\nprintf "%s\\n" "$BLANC_ECS_FULL_PROFILE" "$@"\n', { mode: 0o755 });
+  const config = path.join(root, 'config'); fs.mkdirSync(config);
+  const run = (args = [], env = {}) => spawnSync(launcher, args, { encoding: 'utf8', env: { ...process.env, XDG_CONFIG_HOME: config, BLANC_ECS_FULL_PROFILE: '/ignored-candidate-profile', ...env } });
+  const result = run();
+  assert.equal(result.status, 0);
+  assert.equal(result.stdout.split('\n')[0], path.join(config, 'Blanc'));
+  assert.equal(fs.existsSync(path.join(config, 'Blanc')), false, 'legacy migration owns profile creation');
+  const explicit = path.join(root, 'custom profile'); fs.mkdirSync(explicit, { mode: 0o700 });
+  assert.equal(run([`--user-data-dir=${explicit}`]).stdout.split('\n')[0], explicit);
+  assert.equal(run(['--user-data-dir', explicit]).status, 0);
+  assert.equal(run(['--user-data-dir=relative']).status, 126);
+  assert.equal(run([`--user-data-dir=${explicit}`, '--user-data-dir=/another']).status, 126);
+  const alias = path.join(root, 'config-link'); fs.symlinkSync(config, alias);
+  assert.equal(run([], { XDG_CONFIG_HOME: alias }).stdout.split('\n')[0], path.join(config, 'Blanc'));
+  fs.chmodSync(explicit, 0o777);
+  assert.equal(run([`--user-data-dir=${explicit}`]).status, 126, 'shared writable profile rejected');
+  for (const flag of ['--no-sandbox', '--no-zygote-sandbox', '--disable-setuid-sandbox', '--disable-seccomp-filter-sandbox']) assert.equal(run([flag]).status, 126);
 });

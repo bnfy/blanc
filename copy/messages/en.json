@@ -1,4 +1,32 @@
 {
+  "drm.title": {
+    "message": "Protected media",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.preparing": {
+    "message": "Preparing the component needed to play protected audio and video. You can keep browsing.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.ready": {
+    "message": "The protected-media component is ready. Playback availability depends on the website.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.restartRequired": {
+    "message": "Restart Blanc to finish preparing protected audio and video. Your tabs will be restored; unsaved pages may ask before closing.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.disabled": {
+    "message": "Protected-media component updates are disabled. Restarting alone may not resolve this.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.failed": {
+    "message": "The protected-media component could not be prepared. Check your connection, then restart Blanc to try again.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.restartButton": {
+    "message": "Restart Blanc",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
   "$note": "Source of every Blanc-authored interface string. Edit here, translate in the same PR, run copy:ack for the keys you translated, then copy:build.",
   "slash.favorites.hint": {
     "message": "Open favorites",
@@ -210,6 +238,16 @@
     "message": "Search or type a URL",
     "note": "Pill label on a blank new tab, inviting the user to open the command bar.",
     "maxLength": 28
+  },
+  "pill.notice.cleanLinkCopied": {
+    "message": "Clean link copied",
+    "note": "Brief confirmation shown in the pill's label slot after Copy Clean Link (⌥⇧⌘C on macOS) puts the page address, without tracking parameters, on the clipboard.",
+    "maxLength": 24
+  },
+  "pill.notice.linkCopied": {
+    "message": "Link copied",
+    "note": "Brief confirmation shown in the pill's label slot after Copy Link (⇧⌘C / Ctrl+Shift+C) puts the page address on the clipboard.",
+    "maxLength": 16
   },
   "pill.commands": {
     "message": "Commands (/)",
@@ -1690,7 +1728,7 @@
   },
   "menu.copyCleanLink": {
     "message": "Copy Clean Link",
-    "note": "Context menu command (address bar, tab) that copies the link with tracking parameters removed."
+    "note": "Command in the address bar and tab context menus, and in the Edit menu (⌥⇧⌘C on macOS), that copies the link with tracking parameters removed."
   },
   "menu.undo": {
     "message": "Undo",
@@ -1778,7 +1816,7 @@
   },
   "tabMenu.copyLink": {
     "message": "Copy Link",
-    "note": "Tab context menu command that copies the tab’s address."
+    "note": "Tab context menu command, and the Edit menu command (⇧⌘C / Ctrl+Shift+C), that copies the tab’s address."
   },
   "tabMenu.duplicate": {
     "message": "Duplicate Tab",
@@ -1831,6 +1869,10 @@
   "groupMenu.moveToNewWindow": {
     "message": "Move Group to New Window",
     "note": "Item in a tab group’s menu; moves every tab of the group, in order, into a new window."
+  },
+  "groupMenu.moveToSpace": {
+    "message": "Move Group to Space",
+    "note": "Item in a tab group’s menu, shown once the profile has a space (Blanc Spaces); opens a menu of spaces, and choosing one moves every tab of the group, in order, into that space as the same group."
   },
   "deviceMenu.rename": {
     "message": "Rename Device…",
@@ -1911,6 +1953,10 @@
   "tabMenu.moveToGroup": {
     "message": "Move to Group",
     "note": "Tab context menu submenu listing tab groups."
+  },
+  "tabMenu.moveToSpace": {
+    "message": "Move to Space",
+    "note": "Tab context menu submenu listing this profile's spaces (Blanc Spaces); choosing one moves the tab out of this window into that space."
   },
   "tabMenu.splitWith": {
     "message": "Split with",
@@ -2563,6 +2609,10 @@
     "message": "Sync is off.",
     "note": "Profile Sync status when syncing is requested while it is off."
   },
+  "sync.error.accountGone": {
+    "message": "This sync no longer exists. Turn sync off here, then add this phone again from your computer.",
+    "note": "Profile Sync error on iPhone when the sync's data is gone from the server (deleted from desktop); the phone stops instead of recreating it."
+  },
   "settings.sync.recovery.dialogMessage": {
     "message": "Copy your sync recovery code?",
     "note": "Settings → Sync → Copy recovery code: native dialog title."
@@ -2959,6 +3009,14 @@
   "error.reloadFailed": {
     "message": "The page could not be reloaded",
     "note": "Description on the error page when reloading a page failed."
+  },
+  "error.localFile.title": {
+    "message": "This local file can’t open in this version of Blanc",
+    "note": "Error page title for a local HTML tab kept as a record on a DRM build, which never loads local files."
+  },
+  "error.localFile.detail": {
+    "message": "This version of Blanc plays protected video and keeps local files out of tabs. Blanc kept this tab, and the file itself is unchanged. Open the file in another app, or close this tab.",
+    "note": "Error page explanation for a local HTML tab kept as a record on a DRM build; the tab and the file are preserved and nothing is loaded."
   },
   "arcImport.entry.title": {
     "message": "Arc",
@@ -3425,6 +3483,24 @@
   "settings.general.theme.dark": {
     "message": "Dark",
     "note": "Settings → General: choice in a dropdown.",
+    "maxLength": 12
+  },
+  "settings.general.surfaceStyle.label": {
+    "message": "Surface style",
+    "note": "Settings → General: label of the dropdown choosing the palette of Blanc's own pages."
+  },
+  "settings.general.surfaceStyle.hint": {
+    "message": "The look of Blanc’s own pages. Neutral swaps the cream and gold for plain ink and gray.",
+    "note": "Settings → General: hint under the Surface style dropdown."
+  },
+  "settings.general.surfaceStyle.sunrise": {
+    "message": "Sunrise",
+    "note": "Settings → General: choice in the Surface style dropdown; Sunrise is Blanc's warm cream and gold palette.",
+    "maxLength": 12
+  },
+  "settings.general.surfaceStyle.neutral": {
+    "message": "Neutral",
+    "note": "Settings → General: choice in the Surface style dropdown; plain ink and gray, no gold.",
     "maxLength": 12
   },
   "settings.general.islandSiteColors.label": {
@@ -5826,6 +5902,24 @@
     "message": "{description} (reason: {reason})",
     "note": "Error page: detail after a crash; {description} is a sentence such as “The page crashed”, {reason} a technical code."
   },
+  "error.inert.title": {
+    "message": "This tab can’t be reopened",
+    "note": "Explanation page for a tab a page opened, which Blanc can’t load again with the restrictions it was opened under: heading."
+  },
+  "error.inert.detail": {
+    "message": "A page opened this tab, and Blanc can’t reopen it with the restrictions that page set. To visit it again, copy the link and open it in a new tab.",
+    "note": "Same page: explanation under the heading."
+  },
+  "error.inert.copy": {
+    "message": "Copy link",
+    "note": "Same page: button that copies the tab’s address.",
+    "maxLength": 16
+  },
+  "error.inert.copied": {
+    "message": "Link copied",
+    "note": "Same page: the button’s label after copying.",
+    "maxLength": 16
+  },
   "error.certificate.title": {
     "message": "Your connection isn’t private",
     "note": "Error page for an untrusted certificate: heading."
@@ -7998,5 +8092,586 @@
     "message": "Try again",
     "note": "Space editor: button that sends an edit again after it failed to save.",
     "maxLength": 16
+  },
+  "favorites.readOnlyNote": {
+    "message": "Favorites sync from your computer. Edit them there for now.",
+    "note": "iOS M7a capability guidance in the shared Favorites or Sync page."
+  },
+  "favorites.editOnComputer": {
+    "message": "Edit Favorites on your computer for now.",
+    "note": "iOS M7a capability guidance in the shared Favorites or Sync page."
+  },
+  "settings.sync.createOnComputer": {
+    "message": "Start your sync on your computer, then add this phone with a code.",
+    "note": "iOS M7a capability guidance in the shared Favorites or Sync page."
+  },
+  "settings.sync.enterSyncName": {
+    "message": "Enter your sync name",
+    "note": "Settings → Sync: field label when joining an existing sync; asks for the credential already used on another device, not a new one."
+  },
+  "settings.sync.enterPassphrase": {
+    "message": "Enter your passphrase",
+    "note": "Settings → Sync: field label when joining an existing sync; asks for the credential already used on another device, not a new one."
+  },
+  "tabMenu.sendToDevice": {
+    "message": "Send to Device",
+    "note": "Tab context menu submenu listing the account's other synced devices; sends this tab's page to the chosen one (M7b)."
+  },
+  "sends.none": {
+    "message": "No other devices",
+    "note": "Disabled item in Send to Device ▸, and the /send result, when the sync account has no other device."
+  },
+  "sends.sent": {
+    "message": "Sent to {device}.",
+    "note": "Confirmation after sending a page to another device. {device} is that device's name. Say sent, never delivered: Blanc can't know the other device saw it."
+  },
+  "sends.unavailable": {
+    "message": "Sending isn't available yet.",
+    "note": "Result of sending a page when Blanc's sync server doesn't support sending yet."
+  },
+  "sends.failed": {
+    "message": "Couldn't send. Check your connection and try again.",
+    "note": "Result of sending a page that didn't go: offline, rate limited or a server error."
+  },
+  "sends.section": {
+    "message": "Sent to this device",
+    "note": "Heading of the list of pages other synced devices sent here, in the ⌘L Other devices drawer and on the Start Page."
+  },
+  "sends.from": {
+    "message": "From {device} · {time}",
+    "note": "Second line of a page sent here. {device} is the sending device's name; {time} is a short relative time such as \"5m ago\"."
+  },
+  "sends.dismiss": {
+    "message": "Dismiss",
+    "note": "Accessible name and tooltip of the × that hides a page sent here without opening it."
+  },
+  "sends.noMatch": {
+    "message": "No device named “{name}”.",
+    "note": "/send result when no other synced device has the typed name. {name} is what was typed."
+  },
+  "slash.send.hint": {
+    "message": "Type a space, then a device name — e.g. \"iPhone\"",
+    "note": "Slash command hint shown in the ⌘L palette for /send."
+  },
+  "slash.send.doc": {
+    "message": "Send this tab's page to another synced device",
+    "note": "Reference description of /send <device> on blanc://shortcuts and in Help → Slash Commands."
+  },
+  "sharedSpaces.switch": {
+    "message": "Keep Spaces and groups in sync on this device",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.title": {
+    "message": "Choose Spaces to sync",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.explanation": {
+    "message": "Share these Spaces across devices on this sync account. Open tabs, tab names, groups and pinned tabs will sync.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.cancel": {
+    "message": "Cancel",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.confirm": {
+    "message": "Turn on",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.count": {
+    "message": "{count} of {limit} shared Spaces",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.tabs": {
+    "message": "{count} tabs",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.rejoin": {
+    "message": "Rejoin",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.copy": {
+    "message": "Add as a copy",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.full": {
+    "message": "This Space is too large to sync. Split it into smaller Spaces first.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.unavailable": {
+    "message": "Spaces sync is unavailable. Favorites, settings, open-tab sharing and Send to device continue.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.recoveryName": {
+    "message": "{name} · kept on this device",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.shared": {
+    "message": "Shared",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.waiting": {
+    "message": "Waiting to upload",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.notSynced": {
+    "message": "Not synced since {time}",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.fullState": {
+    "message": "Full for sync",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.unavailableState": {
+    "message": "Spaces sync isn’t available",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.closedOn": {
+    "message": "Closed on {device}",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.split": {
+    "message": "Open to split…",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.splitHint": {
+    "message": "Move tabs to another Space, then try sharing again.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.accountLine": {
+    "message": "Every device that turns this on can change these Spaces.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.offLine": {
+    "message": "Turning this off keeps a local copy. Your other devices keep syncing.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.tombstones": {
+    "message": "Closed tabs still use sync space for 30 days.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.capacity": {
+    "message": "This Space is full for sync. Its local changes are kept.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.busy": {
+    "message": "Sync is busy; retrying.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.slowed": {
+    "message": "Checking for changes is slowed by rate limiting.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.unsyncedTab": {
+    "message": "Not synced",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.pairQuestion": {
+    "message": "{name} joined your sync. Turn on Spaces here?",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.pairDetail": {
+    "message": "Turning this on lets this device change shared Spaces across your sync account.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.notNow": {
+    "message": "Not now",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.recoveryNote": {
+    "message": "A local recovery Space preserves tabs missing from an old shared copy.",
+    "note": "Development-only Shared Spaces controls."
+  },
+  "ios.settings.privacy": {
+    "message": "Privacy",
+    "note": "Native iOS Settings sheet: privacy."
+  },
+  "ios.settings.blocker": {
+    "message": "Blanc Blocker",
+    "note": "Native iOS Settings sheet: blocker."
+  },
+  "ios.settings.connected": {
+    "message": "Connected",
+    "note": "Native iOS Settings sheet: connected."
+  },
+  "ios.settings.notConnected": {
+    "message": "Not connected",
+    "note": "Native iOS Settings sheet: notConnected."
+  },
+  "ios.settings.about": {
+    "message": "About",
+    "note": "Native iOS Settings sheet: about."
+  },
+  "ios.settings.version": {
+    "message": "Version",
+    "note": "Native iOS Settings sheet: version."
+  },
+  "ios.settings.website": {
+    "message": "Website",
+    "note": "Native iOS Settings sheet: website."
+  },
+  "ios.settings.privacyPolicy": {
+    "message": "Privacy policy",
+    "note": "Native iOS Settings sheet: privacyPolicy."
+  },
+  "ios.settings.support": {
+    "message": "Support",
+    "note": "Native iOS Settings sheet: support."
+  },
+  "ios.settings.removeSite": {
+    "message": "Remove site",
+    "note": "Native iOS Settings sheet: removeSite."
+  },
+  "ios.settings.site": {
+    "message": "example.com",
+    "note": "Native iOS Settings sheet: site."
+  },
+  "ios.settings.addSite": {
+    "message": "Add site",
+    "note": "Native iOS Settings sheet: addSite."
+  },
+  "ios.settings.exceptions": {
+    "message": "Allowed sites",
+    "note": "Native iOS Settings sheet: exceptions."
+  },
+  "ios.settings.invalidSite": {
+    "message": "Enter a valid website address.",
+    "note": "Native iOS Settings sheet: invalidSite."
+  },
+  "ios.settings.duplicateSite": {
+    "message": "This site is already allowed.",
+    "note": "Native iOS Settings sheet: duplicateSite."
+  },
+  "ios.settings.preview": {
+    "message": "Start Page preview",
+    "note": "Native iOS Settings sheet: preview."
+  },
+  "ios.settings.source": {
+    "message": "Source",
+    "note": "Native iOS Settings sheet: source."
+  },
+  "ios.settings.custom": {
+    "message": "Photo",
+    "note": "Native iOS Settings sheet: custom."
+  },
+  "ios.settings.choosePhoto": {
+    "message": "Choose photo",
+    "note": "Native iOS Settings sheet: choosePhoto."
+  },
+  "ios.settings.removePhoto": {
+    "message": "Remove photo",
+    "note": "Native iOS Settings sheet: removePhoto."
+  },
+  "ios.settings.treatment": {
+    "message": "Treatment",
+    "note": "Native iOS Settings sheet: treatment."
+  },
+  "ios.settings.saved": {
+    "message": "Saved",
+    "note": "Native iOS Settings sheet: saved."
+  },
+  "ios.settings.status": {
+    "message": "Status",
+    "note": "Native iOS Settings sheet: status."
+  },
+  "ios.settings.account": {
+    "message": "Account",
+    "note": "Native iOS Settings sheet: account."
+  },
+  "ios.settings.lastSynced": {
+    "message": "Last synced",
+    "note": "Native iOS Settings sheet: lastSynced."
+  },
+  "ios.settings.pairingCode": {
+    "message": "Pairing or recovery code",
+    "note": "Native iOS Settings sheet: pairingCode."
+  },
+  "ios.settings.switchAccount": {
+    "message": "Switch account",
+    "note": "Native iOS Settings sheet: switchAccount."
+  },
+  "ios.settings.passphrase": {
+    "message": "Passphrase",
+    "note": "Native iOS Settings sheet: passphrase."
+  },
+  "ios.settings.signIn": {
+    "message": "Sign in",
+    "note": "Native iOS Settings sheet: signIn."
+  },
+  "ios.settings.existingAccount": {
+    "message": "Use name and passphrase",
+    "note": "Native iOS Settings sheet: existingAccount."
+  },
+  "ios.settings.deviceName": {
+    "message": "Device name",
+    "note": "Native iOS Settings sheet: deviceName."
+  },
+  "ios.settings.saveName": {
+    "message": "Save name",
+    "note": "Native iOS Settings sheet: saveName."
+  },
+  "ios.settings.shareTabs": {
+    "message": "Share open tabs",
+    "note": "Native iOS Settings sheet: shareTabs."
+  },
+  "ios.settings.disconnect": {
+    "message": "Disconnect",
+    "note": "Native iOS Settings sheet: disconnect."
+  },
+  "ios.settings.working": {
+    "message": "Working",
+    "note": "Native iOS Settings sheet: working."
+  },
+  "ios.settings.expires": {
+    "message": "Time remaining",
+    "note": "Native iOS Settings sheet: expires."
+  },
+  "ios.settings.newCode": {
+    "message": "New code",
+    "note": "Native iOS Settings sheet: newCode."
+  },
+  "ios.settings.blockerHelp": {
+    "message": "Block ads and trackers on websites. Turning this off disables protection on all tabs and reloads web pages.",
+    "note": "Native iOS Settings sheet: blockerHelp."
+  },
+  "ios.settings.exceptionsHelp": {
+    "message": "Blanc Blocker is off on these sites. Adding or removing a site reloads its open pages.",
+    "note": "Native iOS Settings sheet: exceptionsHelp."
+  },
+  "ios.settings.clockHelp": {
+    "message": "Clock choices apply to the Billboard layout. Your choices are saved when you use another layout.",
+    "note": "Native iOS Settings sheet: clockHelp."
+  },
+  "ios.settings.photoHelp": {
+    "message": "Only the photo you choose is shared with Blanc. It stays on this device.",
+    "note": "Native iOS Settings sheet: photoHelp."
+  },
+  "ios.settings.saveFailed": {
+    "message": "Could not save this change. Try again.",
+    "note": "Native iOS Settings sheet: saveFailed."
+  },
+  "ios.settings.glassHelp": {
+    "message": "Glass uses the native effect on iOS 26 and later. Earlier versions and Reduce Transparency use the web fallback.",
+    "note": "Native iOS Settings sheet: glassHelp."
+  },
+  "ios.settings.syncHelp": {
+    "message": "Sync Favorites and supported settings with end-to-end encryption. History, private tabs, and wallpaper photos stay on this device.",
+    "note": "Native iOS Settings sheet: syncHelp."
+  },
+  "ios.settings.pairingHelp": {
+    "message": "On a device that already syncs, open Settings → Sync → Add another device. Enter its code here, or paste your recovery code.",
+    "note": "Native iOS Settings sheet: pairingHelp."
+  },
+  "ios.settings.shareTabsHelp": {
+    "message": "Share this phone’s regular open tabs with your other devices. Private tabs are never shared.",
+    "note": "Native iOS Settings sheet: shareTabsHelp."
+  },
+  "ios.settings.disconnectHelp": {
+    "message": "Disconnect this phone? Your local Favorites and settings stay here. Your other devices are not affected.",
+    "note": "Native iOS Settings sheet: disconnectHelp."
+  },
+  "ios.settings.switchHelp": {
+    "message": "This phone will leave its current sync. Your local Favorites and settings stay here. Your other devices are not affected.",
+    "note": "Native iOS Settings sheet: switchHelp."
+  },
+  "ios.settings.timeOfDay": {
+    "message": "Time of day",
+    "note": "Native iOS Settings sheet: time-of-day."
+  },
+  "tabMenu.newSpace": {
+    "message": "New Space…",
+    "note": "Last item of the tab menu Move to Space submenu; opens the new-space editor."
+  },
+  "ws.new.withTab": {
+    "message": "With this tab",
+    "note": "Fixed start label when creating a space from one tab."
+  },
+  "ws.error.savedNotMoved": {
+    "message": "Saved {name}, but the tab couldn’t move.",
+    "note": "Creation succeeded but moving the tab failed. {name} is the saved space name."
+  },
+  "ws.error.moveFailed": {
+    "message": "Couldn’t move the tab to {name}.",
+    "note": "A single-tab Move to Space action failed. {name} is the destination space name."
+  },
+  "contextMenu.openLinkInSpace": {
+    "message": "Open Link in Space",
+    "note": "Link context submenu for opening in another space.",
+    "maxLength": 48
+  },
+  "ws.announce.openedIn": {
+    "message": "Opened in {space}",
+    "note": "Screen-reader confirmation. {space} is a user-provided space name."
+  },
+  "ws.announce.groupMovedTo": {
+    "message": "Group moved to {space}",
+    "note": "Screen-reader confirmation after Move Group to Space. {space} is a user-provided space name."
+  },
+  "ws.new.withLink": {
+    "message": "With this link",
+    "note": "Fixed start line in the New Space editor opened from a link."
+  },
+  "ws.error.openLinkFailed": {
+    "message": "Couldn’t open the link in {name}.",
+    "note": "Spaces menu error. {name} is the destination space name."
+  },
+  "rail.state.selected": {
+    "message": "selected",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsSelection.count": {
+    "message": "{count, plural, one {# tab selected} other {# tabs selected}}",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsSelection.cleared": {
+    "message": "Selection cleared",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsSelection.failed": {
+    "message": "Couldn’t complete the action for these tabs.",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsSelection.quieted": {
+    "message": "Quieted {count} of {total} tabs.",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsSelection.reloaded": {
+    "message": "Reloaded {count} of {total} tabs.",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.header": {
+    "message": "{count, plural, one {# tab} other {# tabs}}",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.newWindow": {
+    "message": "Move Tabs to New Window",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.pin": {
+    "message": "Pin Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.unpin": {
+    "message": "Unpin Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.mute": {
+    "message": "Mute Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.unmute": {
+    "message": "Unmute Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.reload": {
+    "message": "Reload Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.quiet": {
+    "message": "Quiet Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.copy": {
+    "message": "Copy Links",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.close": {
+    "message": "Close Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "ws.new.withTabs": {
+    "message": "With these tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "ws.error.movedPartly": {
+    "message": "Moved {count} tabs to {name}. The other tabs stayed here.",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "reader.title": {
+    "message": "Reader Mode",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.enter": {
+    "message": "Enter Reader Mode",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.exit": {
+    "message": "Exit Reader Mode",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.appearance": {
+    "message": "Appearance",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.theme": {
+    "message": "Theme",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.system": {
+    "message": "System",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.light": {
+    "message": "Light",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.dark": {
+    "message": "Dark",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.sepia": {
+    "message": "Sepia",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.font": {
+    "message": "Font",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.serif": {
+    "message": "Serif",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.sans": {
+    "message": "Sans-serif",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.size": {
+    "message": "Text size",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.width": {
+    "message": "Reading width",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.narrow": {
+    "message": "Narrow",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.comfortable": {
+    "message": "Comfortable",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.wide": {
+    "message": "Wide",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.hint": {
+    "message": "Read this article with adjustable text and fewer distractions",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.unavailable": {
+    "message": "Reader Mode couldn’t find an article on this page.",
+    "note": "Reader Mode controls and article availability."
+  },
+  "slash.reader.hint": {
+    "message": "Read this article with adjustable text and fewer distractions",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.inter": {
+    "message": "Inter",
+    "note": "Reader Mode font family name; keep the font name unchanged."
+  },
+  "reader.mono": {
+    "message": "JetBrains Mono",
+    "note": "Reader Mode font family name; keep the font name unchanged."
   }
 }

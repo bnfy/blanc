@@ -460,11 +460,23 @@ From the desktop `DEFAULTS`:
   and **Paste and Go** (clipboard text through the full typed-address pipeline —
   OS hand-off, search-vs-URL heuristic, utility-sheet routing — then the island
   closes).
+- **Copy Link shortcut (desktop only — D7):** ⇧⌘C (Ctrl+Shift+C on
+  Windows and Linux) and Edit → **Copy Link** copy the current page's exact
+  address without opening the command bar, for web and `file:` pages (nothing
+  for a blank or internal page, as in the tab menu); the pill says **Link
+  copied** for a moment. Chrome gives this chord to DevTools' element picker,
+  so no page expects it. Edit → **Copy Clean Link** (⌥⇧⌘C on macOS) copies
+  it without tracking parameters (the exact address when there is nothing to
+  strip); the pill says **Clean link copied**. Windows and Linux get the menu
+  item without a chord, because Ctrl+Alt is AltGr on international layouts.
 - **Acceptance:** Long-press/right-click a link → "open in background tab" opens it
   without switching away, ungrouped even when the opener is in a group.
 - **Acceptance (desktop):** Copy Clean Link on a URL with `utm_*`/click-id
   params yields the URL without them, other params intact; Paste and Go with a
   URL on the clipboard navigates the active tab and closes the island.
+- **Acceptance (desktop):** Copy Link on a web page puts its address on the
+  clipboard; on a blank tab the clipboard is unchanged
+  (`test/desktop/browser-shortcuts-smoke.mjs`).
 
 ## F20 — HTTP authentication policy
 
@@ -1198,6 +1210,28 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   switching back keeps their pages as they were.
 - Deleted spaces stay in Recently deleted for 7 days, where they can be
   restored or forgotten.
+- A tab's menu has **Move to Space ▸** once the profile has a space, listing
+  every space with the window's own checked. Choosing another moves that one
+  tab, live, to the end of the space, ungrouped; the window stays where it
+  is. A space open nowhere is set aside to receive it. Private tabs never get
+  the item; it is disabled for a window's only tab, a page using the camera
+  or microphone, playing sound or sharing its screen, one with a popup open,
+  or one being quieted, and a space whose window is closing or mid switch is
+  a disabled row (#1060). The space's record is written, with the tab, and
+  checked before the tab leaves its window; a failed write moves nothing.
+  **New Space…** at the end of the submenu opens the name, colour and symbol
+  editor with a fixed **With this tab** start. Creation saves the tab in the
+  new space before moving it live, without switching this window. It remains
+  available when the current space is the only one; creation is disabled at
+  25 spaces. Cancel creates nothing, and a failed save keeps the editor open.
+- A tab group's menu has **Move Group to Space ▸** once the profile has a
+  space: the same spaces and New Space… in a native menu. Every member moves,
+  live and in order, to the end of the space as the same group, with its name
+  and colour; if the space already has a group of that name (in any case),
+  the tabs join it instead, keeping that group's name and colour. It is
+  disabled when any member couldn't move on its own; moving a window's every
+  tab leaves a blank start page. The same write-first rule applies (D8 of
+  `docs/superpowers/specs/2026-10-24-move-to-space-follow-ups-design.md`).
 - Entry points: the ⌘L panel footer's Spaces button, `/space` (alias
   `/workspace`), Bring Your Tabs (F40) and the Arc Spaces import (F45).
 - Spaces are device-local and profile-scoped; they never sync.
@@ -1208,9 +1242,15 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
 - **Acceptance:**
   [`acceptance/F41-named-workspaces.feature`](./acceptance/F41-named-workspaces.feature)
   (`@workspace`, bound in `test/desktop/steps/named-workspaces.steps.js`,
-  `test/desktop/steps/workspace-lifecycle.steps.js` and
-  `test/desktop/steps/spaces-redesign.steps.js`);
+  `test/desktop/steps/workspace-lifecycle.steps.js`,
+  `test/desktop/steps/spaces-redesign.steps.js` and
+  `test/desktop/steps/move-to-space.steps.js` and
+  `test/desktop/steps/group-space.steps.js`);
   `test/unit/workspace*.test.js`, `test/unit/space*.test.js`.
+
+- **Open Link in Space:** the page link menu offers other spaces and New Space… for normal web links. A space shown in another window loads a background tab there; a set-aside space receives a quiet tab; a closed space receives only a saved record. Deferred writes are checked before adding a tab. New Space fixes its start to “With this link” and saves without loading. Private tabs and non-web links do not offer it. Failures open the existing Spaces error surface; success is announced to screen readers. F41-51–57 cover destinations, restart, write failures and quiet-tab rollback.
+
+- **Several-tab selection (desktop):** ⌘/Ctrl-click toggles rows, Shift-click selects a visible range, and Shift-arrow extends from a focused row in the panel or side list. Splits are selected whole. The current row joins a new selection; plain activation, Escape and a space switch clear it. Selection is owned by main and never saved or synced. The separate menu moves, groups, pins, mutes, reloads, quiets, copies or closes selected tabs. Space moves write the full capture first and retain unmoved tabs after partial failure; other placement edits apply in one pass. Close Tabs records one batch, including split layouts. A drag still moves only its starting row.
 
 ## F42 — Dark websites
 
@@ -1599,3 +1639,75 @@ made.
 - **Acceptance:** `test/desktop/billboard-clock-smoke.mjs`,
   `test/unit/start-clock-style.test.js`, `test/unit/clock-art.test.js` and
   `test/unit/clock-font.test.js`.
+
+## F55 — Send to device
+
+A person sends the page they're on to one of their other synced Blanc devices,
+where it waits in a short **Sent to this device** list until they open or
+dismiss it; nothing opens by itself
+(`docs/superpowers/specs/2026-10-24-ios-m7b-send-to-device-design.md`).
+
+- **Sending.** Desktop: the tab menu's **Send to Device ▸** and
+  `/send <device>` (device names match without regard to case). iPhone: a
+  **Send** menu on the pill. Private tabs, internal pages and inert
+  page-opened tabs can't be sent, and the controls don't appear for them.
+- **Targets.** Every other device of the sync account that publishes
+  presence in the `sends` store or a tab list, named as the Other devices
+  drawer names it. With none, the menu item says **No other devices**.
+- **Result.** "Sent to {device}." — never "delivered" — or "Sending isn't
+  available yet." when the sync Worker doesn't serve the store, or
+  "Couldn't send. Check your connection and try again." A page that didn't go
+  is taken back.
+- **Receiving.** At most 20 pages per sender, each kept 7 days. Desktop shows
+  them first in the ⌘L Other devices drawer (whose button then counts them)
+  and above Other devices on the Ledger start page; the phone at the top of
+  the palette. Opening one opens a new ordinary tab; opening or dismissing it
+  hides it on that device only.
+- **Sync.** A new optional store, `sends`, end-to-end encrypted like the
+  others; each device writes only its own entry. Presence alone never creates
+  it, and leaving a sync publishes a retraction. Pulled with the focus refresh
+  (no new timer).
+- **Portability.** `src/main/sends-model.js` (no Electron dependency) holds
+  every rule; the iOS port is checked against vectors generated from it.
+
+## F56 — Tab gestures (iPhone)
+
+Two gestures Arc's iPhone users rely on, asked for on r/ArcBrowser
+(2026-10-24; `docs/superpowers/specs/2026-10-23-ios-user-feedback-plan.md` §7).
+
+- **Switch tabs from the pill.** A sideways swipe on the resting pill moves to
+  the previous or next tab in the order the pill's dots show (the active tab's
+  group or run of ungrouped tabs), the page following the finger; the pill
+  resists at either end. A tap still opens the palette. Back and forward stay
+  the page-edge gestures (D7).
+- **Flick up to close.** The palette's resting switcher is a horizontal strip
+  of page cards, groups as labeled runs; a card closes when flicked up, like
+  the iOS app switcher, and reopens like a tab closed with `/close`.
+- **Equivalents.** VoiceOver actions (Next tab, Previous tab, Close) and
+  `/close`; Reduce Motion replaces the slide with a cross-fade.
+- **Desktop.** Not applicable: trackpad and keyboard tab switching already
+  exist, and the Island has no bottom bar.
+
+## F58 — Reader Mode (desktop and iOS candidate)
+
+Free, manually activated article reading, implemented on the candidate branch;
+not shipped in public v1.43.1. `/reader` always permits a manual attempt. A
+suitability hint offers Enter Reader Mode in the expanded Island (desktop) or
+palette (iOS); the active reader has Exit Reader Mode and appearance controls.
+
+- Extract the already-loaded main-frame article locally, retaining its source
+  view for return without reloading. No pre-load transformation or speed claim.
+- Shared Source Serif 4, Instrument Sans, Inter, and JetBrains Mono fonts;
+  System/Light/Dark/Sepia, 16–28px text, and three widths;
+  remember appearance locally, with private changes confined to memory.
+- Retain headings, available metadata, links, figures/captions, tables, and code;
+  sanitize untrusted markup and preserve language/direction. Failure retains
+  the source and explains that no article was found.
+- Keep source identity for history, Favorites, sharing, and restore. Never save
+  or sync reader article content or reader-active state.
+- Desktop uses a sandboxed companion, blocker-checked cookie-free image broker,
+  and reader-aware Find/Print/zoom/focus/Glance/Split View. iOS uses a separate
+  nonpersistent WKWebView and already-loaded, canvas-readable images (D31).
+- See `docs/reader-mode.md`, `browser-api/reader.json`, and F58 acceptance tests.
+  Automatic activation, speech, AI, annotations, offline saving, and pre-load
+  simplification are outside this version.

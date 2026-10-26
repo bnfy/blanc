@@ -20,6 +20,7 @@ const { app, BrowserWindow, Menu, clipboard, nativeImage, powerMonitor, webConte
 const TEST_BANG_ICON_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
 const { buildAddressMenu } = require('./address-menu-model');
 const { sameGroupName } = require('./group-name-case');
+const { terminateRenderer } = require('./renderer-discard');
 const { resolveDeviceName } = require('./device-names');
 const { blockableHostname } = require('./adblock-exceptions');
 const { syncSnapshot } = require('./session-snapshot');
@@ -119,7 +120,7 @@ function install(refs) {
     getGlanceTabId,
     getFocusedPaneTabId,
     getGlanceCard,
-    openLinkInGlance,
+    openLinkInGlance, runLinkSpaceMenuItem,
     groupTabByName,
     renameTab,
     beginRenameTab,
@@ -204,10 +205,13 @@ function install(refs) {
     createSplitFromTabs,
     keepGlanceAsSplit,
     moveGroupToNewWindowForTest,
+    moveGroupToSpaceForTest,
+    beginNewSpaceForGroupForTest,
     straySplitIds,
     windowChildViewCount,
     menuContextActionsForTest,
     tabMenuItemsForTest,
+    selectTabRows, runTabsAction, getSelectedTabIds,
     closedEntrySummaries,
     splitLayoutForTest,
     splitCornerTabsForTest,
@@ -227,6 +231,7 @@ function install(refs) {
     readFillStatusDom,
     setSleepThresholdOverride,
     setRemoteDevicesSource,
+    setSendsSource,
     getSleepSnapshots,
     getClosedEntries,
     clearClosedEntries,
@@ -308,6 +313,29 @@ function install(refs) {
         tab.view?.webContents?.send('pages:start:remote-tabs', shown);
       }
     }
+  }
+
+  // Send to device (M7b): an in-memory stand-in for sync's sends store. The
+  // targets and inbox are what a scenario injects; sends are recorded and
+  // answered with the scenario's chosen status.
+  let injectedSends = null;
+  function injectSends({ targets = [], inbox = [], sendStatus = 'sent' } = {}) {
+    injectedSends = { targets: structuredClone(targets), inbox: structuredClone(inbox), hidden: new Set(), sent: [], sendStatus };
+    const state = injectedSends;
+    const source = {
+      targets: () => structuredClone(state.targets),
+      inbox: () => state.inbox.filter((item) => !state.hidden.has(item.id)).map((item) => ({ ...item })),
+      hide: (id) => {
+        const item = state.inbox.find((row) => row.id === id && !state.hidden.has(id));
+        if (!item) return null;
+        state.hidden.add(id);
+        // sync's store notifies the surfaces when a page is hidden; so does this.
+        queueMicrotask(() => { if (injectedSends === state) setSendsSource(source); });
+        return { id: item.id, url: item.url };
+      },
+      send: async (request) => { state.sent.push({ ...request }); return { status: state.sendStatus }; },
+    };
+    setSendsSource(source);
   }
 
   async function readTabImportDom() {
@@ -684,6 +712,9 @@ function install(refs) {
     pinnedHome(tabId) { return tabs.get(String(tabId))?.pinnedHomeUrl ?? null; },
     chooseSessionRecovery(choice) { return chooseSessionRecovery(String(choice)); },
     sessionRecoveryState() { return getSessionRecoveryState(); },
+    selectTabRows(id, mode) { return selectTabRows(id, mode); },
+    selectedTabIds() { return getSelectedTabIds(); },
+    runSelectedTabsAction(action, args = {}) { return runTabsAction(action, args); },
     state() {
       const list = [];
       for (const [id, t] of tabs) {
@@ -781,6 +812,15 @@ function install(refs) {
       return item ? { label: item.label, enabled: item.enabled !== false } : null;
     },
     moveGroupToNewWindow(groupId) { return !!moveGroupToNewWindowForTest(groupId); },
+    // Move Group to Space ▸ (D8): the menu's actions, by group name.
+    moveGroupToSpaceByName(name, workspaceId) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      return group ? moveGroupToSpaceForTest(group.id, workspaceId) : null;
+    },
+    beginNewSpaceForGroupByName(name) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      return group ? beginNewSpaceForGroupForTest(group.id) : false;
+    },
     straySplitIds() { return straySplitIds(); },
     windowChildViewCount() { return windowChildViewCount(); },
     attachedTabViewIds() { return attachedTabViewIds(); },
@@ -1470,6 +1510,7 @@ function install(refs) {
         spaceComplete: current.spaceMigrationCompleted === true,
       };
     },
+    sharedSpacesTest(action,payload) {return refs.sharedSpacesTest(action,payload);},
     syncEnabled() { return sync.status().enabled === true; },
     async readStartPageFontUsage() {
       const tab = tabs.get(getActiveTabId());
@@ -2506,6 +2547,7 @@ function install(refs) {
     // divider, and the overlay's picker when one is up.
     // The page context menu's Open Link in Glance, which Playwright cannot
     // click (a native menu): the same main-process action the item calls.
+    runLinkSpaceMenuItem(tabId, url, text, itemId) { return runLinkSpaceMenuItem(String(tabId), String(url), String(text ?? ""), itemId); },
     openLinkInGlance(tabId, url) { return openLinkInGlance(String(tabId), String(url)); },
     // The floating Glance card's computed motion, read in its own document.
     async glanceCardMotion() {
@@ -3367,6 +3409,40 @@ function install(refs) {
       return structuredClone(devices);
     },
     clearRemoteDevices() { pushRemoteDevices([]); },
+    /** Send to device: `{targets, inbox, sendStatus}` replace sync's sends. */
+    injectSends(options) { injectSends(options); return true; },
+    clearSends() { injectedSends = null; setSendsSource(null); return true; },
+    sentRequests() { return structuredClone(injectedSends?.sent ?? []); },
+    setSendStatus(status) { if (injectedSends) injectedSends.sendStatus = status; return true; },
+    /** The Ledger's Sent to this device rows on every open start page. */
+    async sentStartPageRows() {
+      const rows = [];
+      for (const tab of tabs.values()) {
+        if (!urlOf(tab).startsWith('blanc://newtab')) continue;
+        try {
+          rows.push(...await tab.view.webContents.executeJavaScript(`[...document.querySelectorAll('#sentList .sent-item')].map((item) => ({
+            title: item.querySelector('.name')?.textContent ?? '',
+            from: item.querySelector('.host')?.textContent ?? '',
+            visible: !document.getElementById('sentSection').hidden,
+          }))`));
+        } catch { /* a start page mid-navigation has nothing to read */ }
+      }
+      return rows;
+    },
+    async clickSentStartPageRow(title, part) {
+      for (const tab of tabs.values()) {
+        if (!urlOf(tab).startsWith('blanc://newtab')) continue;
+        const clicked = await tab.view.webContents.executeJavaScript(`(() => {
+          const item = [...document.querySelectorAll('#sentList .sent-item')].find((el) => el.querySelector('.name')?.textContent === ${JSON.stringify(title)});
+          const target = item?.querySelector(${JSON.stringify(part === 'dismiss' ? '.sent-dismiss' : 'a.fav')});
+          if (!target) return false;
+          target.click();
+          return true;
+        })()`).catch(() => false);
+        if (clicked) return true;
+      }
+      return false;
+    },
     // Mirrors addressResultRows' favicon reporting so the start page and the
     // Quick Switcher are guarded to the same standard: the tile letter is
     // replaced by the icon only once the bytes actually decode.
@@ -3807,6 +3883,14 @@ function install(refs) {
     },
     /** With an id: that tab's redacted state. Without: every tab in tab order.
      * NEVER returns entries: snapshots can contain POST bodies and form data. */
+    /** Kill a tab's renderer exactly as Blanc's renderer discard does: a
+     *  SIGKILL of the verified own renderer on Linux, where Electron's crash
+     *  request is only a request, and forcefullyCrashRenderer() elsewhere. */
+    crashTabRenderer(id) {
+      const wc = tabs.get(id)?.view?.webContents;
+      if (!wc || wc.isDestroyed()) return null;
+      return terminateRenderer(wc);
+    },
     sleepState(id) {
       const snapshots = getSleepSnapshots();
       const one = (tabId, tab) => ({
@@ -3876,6 +3960,8 @@ function install(refs) {
     async reset() {
       refs.workspaceTestAction('reset');
       clearFocusObservation();
+      injectedSends = null;
+      setSendsSource(null);
       activeTabImportFixtureName = null;
       // Keep the current deletion lifecycle authoritative: it settles native
       // visibility and closes profile windows before clearing their sessions.
@@ -3950,6 +4036,7 @@ function install(refs) {
         islandHoverOpen: false,
         islandAutoHide: false,
         islandAutoHideStyle: 'float',
+        surfaceStyle: 'sunrise',
         // The launch-time auto-complete records false; F36-2 seeds true and
         // relies on Skip to overwrite it — a failure before Skip must not
         // leak that seed into later scenarios.

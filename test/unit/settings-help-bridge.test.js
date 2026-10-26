@@ -6,7 +6,7 @@ const vm = require('node:vm');
 const { isTrustedPagesEvent } = require('../../src/main/pages-ipc-trust');
 const { KNOWN_PAGES, UTILITY_PAGES } = require('../../src/main/utility-pages');
 
-function harness() {
+function harness(extraHooks = {}) {
   const handlers = new Map();
   const session = { protocol: { handle() {} } };
   let runtime;
@@ -40,6 +40,7 @@ function harness() {
     pageSurfaces: { owns: (host, wc) => host === 'settings' && wc.owned === true },
     runInPageRuntime: (event, work) => { runtime = event.sender.runtime; return work(); },
     checkForUpdates: () => { checks.push(runtime); return 'existing-updater'; },
+    ...extraHooks,
   });
   const event = (url = 'blanc://settings/', owned = true, window = 'background') => {
     const senderFrame = { url };
@@ -80,4 +81,20 @@ test('websites, other internal hosts, unowned surfaces and subframes cannot chec
     assert.throws(() => check(event), /denied/);
   }
   assert.deepEqual(h.checks, []);
+});
+
+test('DRM status and restart are available only to an owned settings main frame', async () => {
+  let restarts = 0;
+  const h = harness({ drm: { status: async () => ({ enabled: true, state: 'restart-required' }),
+    restart: async () => { restarts++; return true; } } });
+  const status = h.handlers.get('pages:settings:drm-status');
+  const restart = h.handlers.get('pages:settings:drm-restart');
+  assert.equal((await status(h.event())).state, 'restart-required');
+  assert.equal(await restart(h.event()), true);
+  const child = h.event(); child.senderFrame = { url: 'blanc://settings/' };
+  for (const event of [h.event('https://example.com/'), h.event('blanc://newtab/'), h.event('blanc://settings/', false), child]) {
+    assert.throws(() => status(event), /denied/);
+    assert.throws(() => restart(event), /denied/);
+  }
+  assert.equal(restarts, 1);
 });

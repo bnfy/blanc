@@ -4,7 +4,9 @@
 // tab-sleep.js). The clock is injected, never read.
 // See docs/superpowers/specs/2026-08-16-reopen-closed-tab-design.md.
 
+const { captureSplits } = require('./split-model');
 const { cloneEntryMarks } = require('./certificate-history');
+const { recordTitle } = require('./inert-local-file');
 const { normalizeTabName } = require('./tab-name');
 const { pinnedHomeFor } = require('./pinned-home');
 
@@ -85,12 +87,14 @@ function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
   const pinnedHomeUrl = closedPinnedHome(tab);
   const entry = {
     kind: 'tab',
+    ...(tab.sharedTabId ? {sharedTabId:tab.sharedTabId} : {}),
+    ...(tab.sharedRemoteClose ? {sharedRemoteClose:true} : {}),
     id: nextEntryId(),
     closedAt: now,
     url: tab.url,
     localFile: tab.localFile === true,
-    openerSandboxFlags: tab.openerSandboxFlags ?? 0,
-    title: typeof tab.title === 'string' && tab.title ? tab.title : tab.url,
+    inheritsDocumentPolicy: tab.inheritsDocumentPolicy === true,
+    title: recordTitle(tab, typeof tab.title === 'string' && tab.title ? tab.title : tab.url),
     customTitle: normalizeTabName(tab.customTitle),
     ...(pinnedHomeUrl ? { pinnedHomeUrl } : {}),
     favicon: typeof tab.favicon === 'string' ? tab.favicon : null,
@@ -133,9 +137,10 @@ function closedMembers(members) {
     .map((m) => {
       const pinnedHomeUrl = closedPinnedHome(m);
       return {
+        ...(m.sharedTabId ? { sharedTabId: m.sharedTabId } : {}),
         url: m.url,
         localFile: m.localFile === true,
-        openerSandboxFlags: m.openerSandboxFlags ?? 0,
+        inheritsDocumentPolicy: m.inheritsDocumentPolicy === true,
         title: typeof m.title === 'string' && m.title ? m.title : m.url,
         customTitle: normalizeTabName(m.customTitle),
         ...(pinnedHomeUrl ? { pinnedHomeUrl } : {}),
@@ -195,9 +200,12 @@ function buildGroupEntry(group, members, now = 0) {
  *  one ⌘⇧T, no group created — each member rejoins its recorded group only if
  *  it still exists at restore time (resolved by the caller). Private members
  *  are dropped from the record, same as buildGroupEntry. */
-function buildBatchEntry(members, now = 0) {
+function buildBatchEntry(members, now = 0, splits = []) {
+  const kept = members.filter(member => !member.private);
+  const splitColumns = captureSplits(splits, kept.map(member => member.id));
   return {
     kind: 'batch',
+    ...(splitColumns.splits.length ? splitColumns : {}),
     id: nextEntryId(),
     closedAt: now,
     tabs: members
@@ -205,9 +213,10 @@ function buildBatchEntry(members, now = 0) {
       .map((m) => {
         const pinnedHomeUrl = closedPinnedHome(m);
         const member = {
+          ...(m.sharedTabId ? { sharedTabId: m.sharedTabId } : {}),
           url: m.url,
           localFile: m.localFile === true,
-          openerSandboxFlags: m.openerSandboxFlags ?? 0,
+          inheritsDocumentPolicy: m.inheritsDocumentPolicy === true,
           title: typeof m.title === 'string' && m.title ? m.title : m.url,
           customTitle: normalizeTabName(m.customTitle),
           ...(pinnedHomeUrl ? { pinnedHomeUrl } : {}),

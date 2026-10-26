@@ -10,6 +10,13 @@ on:
     branches: [main]
   pull_request:
 
+# A new push to a pull request cancels that PR's older run. Pushes to main,
+# schedules and manual dispatches each get their own group (run_id), so
+# none is ever cancelled or queued behind another.
+concurrency:
+  group: parity-guards-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
@@ -234,7 +241,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -250,6 +257,17 @@ jobs:
       - name: Workspace preservation and opener families (Windows/macOS)
         if: runner.os != 'Linux'
         run: npm run test:workspaces:desktop
+      - name: Shared Spaces window and consent acceptance (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnome-keyring dbus-x11 libsecret-1-0
+          bash scripts/ci-enable-linux-sandbox.sh
+          dbus-run-session -- bash -c '
+            set -euo pipefail
+            printf "%s\n" "blanc-ci-fixture" | gnome-keyring-daemon --unlock --components=secrets
+            BLANC_TEST_SECURE_STORAGE=1 XDG_CURRENT_DESKTOP=GNOME xvfb-run -a npx cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags @F57
+          '
       # Linux runs the same smoke in the tab-handoff job.
       - name: Closing the last window quits Blanc and keeps its tabs (Windows)
         if: ${{ !cancelled() && runner.os == 'Windows' }}
@@ -383,6 +401,12 @@ jobs:
       - name: PDFs render with each blocker (Windows/macOS)
         if: ${{ !cancelled() && runner.os != 'Linux' }}
         run: npm run test:pdf-viewer:desktop
+      - name: Reader Mode lifecycle and pane routing (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: xvfb-run -a npm run test:reader:desktop
+      - name: Reader Mode lifecycle and pane routing (Windows/macOS)
+        if: ${{ !cancelled() && runner.os != 'Linux' }}
+        run: npm run test:reader:desktop
       - name: Retain private native command failure diagnostics
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

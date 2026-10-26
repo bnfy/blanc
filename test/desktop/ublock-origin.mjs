@@ -11,6 +11,7 @@ import { _electron } from 'playwright';
 import poll from './support/poll.js';
 import popupFocusTrace from './support/popup-focus-trace.js';
 import testCalls from './support/test-hook-call.js';
+import { inMainTurn } from './support/main-turn.js';
 const { waitForValue, expectPageClose } = poll;
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-ubo-desktop-'));
 fs.mkdirSync(dir + '-Dev', { recursive: true });
@@ -169,23 +170,23 @@ try {
   await slowPage.waitForFunction(() => window.slowDocumentStarted === true);
   const slowWC = (await call('state')).tabs.find(tab => tab.id === slowTab).webContentsId;
   const slowStableId = (await call('blockingMapping')).find(item => item.webContentsId === slowWC).tabId;
-  await electron.evaluate(async ({ webContents }) => {
+  await inMainTurn(electron, async ({ webContents }) => {
     const cssHost = webContents.getAllWebContents().find(wc => wc.getURL().endsWith('/bridge.html'));
     await cssHost.executeJavaScript(`self.fixtureNativeCSS = chrome.scripting.executeScript.bind(chrome.scripting); chrome.scripting.executeScript = async options => { self.fixtureCSSStarted = true; await new Promise(resolve => setTimeout(resolve, 2500)); return self.fixtureNativeCSS(options); }; true`);
   });
-  const delayedCSS = electron.evaluate(async ({ webContents }, id) => {
+  const delayedCSS = inMainTurn(electron, async ({ webContents }, id) => {
     const background = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
     await background.executeJavaScript(`chrome.tabs.insertCSS(${id}, {code:'#slow-marker { display: none !important; }',cssOrigin:'user'})`);
   }, slowStableId);
-  await waitForValue(() => electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getURL().endsWith('/bridge.html')).executeJavaScript('self.fixtureCSSStarted === true')), Boolean, 'delayed CSS operation started');
+  await waitForValue(() => inMainTurn(electron, async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getURL().endsWith('/bridge.html')).executeJavaScript('self.fixtureCSSStarted === true')), Boolean, 'delayed CSS operation started');
   await slowPage.evaluate(() => fetch('/allowed-control.js?during-css').then(response => response.text()));
   assert(hits.includes('/allowed-control.js?during-css'), 'network filtering remains usable during slow non-network work');
   await delayedCSS;
-  await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getURL().endsWith('/bridge.html')).executeJavaScript('chrome.scripting.executeScript = self.fixtureNativeCSS; true'));
+  await inMainTurn(electron, async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getURL().endsWith('/bridge.html')).executeJavaScript('chrome.scripting.executeScript = self.fixtureNativeCSS; true'));
 
   await slowPage.waitForFunction(() => getComputedStyle(document.querySelector('#slow-marker')).display === 'none');
   assert.equal(await slowPage.evaluate(() => document.readyState), 'loading', 'CSS must apply before parsing completes');
-  const idleResults = await electron.evaluate(async ({ webContents }, id) => {
+  const idleResults = await inMainTurn(electron, async ({ webContents }, id) => {
     const background = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
     return background.executeJavaScript(`chrome.tabs.executeScript(${id}, {code:'window.slowIdleInjection=true',runAt:'document_idle'})`);
   }, slowStableId);
@@ -194,7 +195,7 @@ try {
   await call('closeTab', slowTab);
   await call('activateTab', regular);
   stage = 'web-accessible resource guard';
-  const resourceIdentity = await electron.evaluate(async ({ webContents }) => {
+  const resourceIdentity = await inMainTurn(electron, async ({ webContents }) => {
     const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
     return bg.executeJavaScript('({id:chrome.runtime.id, secret:vAPI.warSecret.short()})');
   });
@@ -235,7 +236,7 @@ try {
   // contexts to Personal. Native incognito execution is disabled; additionally
   // our host refuses unmapped/private contents. Assert actual page behavior.
   assert(extensions.every(item => typeof item.id === 'string'));
-  const privateContent = await electron.evaluate(async ({ webContents }, id) => {
+  const privateContent = await inMainTurn(electron, async ({ webContents }, id) => {
     const wc = webContents.fromId(id);
     return { persistent: wc.session.isPersistent(), display: await wc.executeJavaScript('getComputedStyle(document.querySelector("#ad")).display'), sessionPath: wc.session.getStoragePath() };
   }, privateTab.webContentsId);
@@ -319,7 +320,7 @@ try {
   await call('blockingOpen', 'logger');
   const logger = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/logger-ui.html')), Boolean, 'original logger');
   await logger.locator('#netInspector').waitFor();
-  await waitForValue(() => electron.evaluate(async ({ webContents }) => {
+  await waitForValue(() => inMainTurn(electron, async ({ webContents }) => {
     const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
     return bg.executeJavaScript("import('/js/logger.js').then(module => module.default.enabled)");
   }), Boolean, 'logger registered with background', 10000);
@@ -344,7 +345,7 @@ try {
   // Record uBO's injections into the fixture tab for this first inspector
   // open, so an intermittent CI timeout shows whether injection was ever
   // requested and how it ended. Restored before the reconnect step wraps it.
-  const injectionLog = (expression) => electron.evaluate(async ({ webContents }, code) => {
+  const injectionLog = (expression) => inMainTurn(electron, async ({ webContents }, code) => {
     const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
     return bg.executeJavaScript(code);
   }, expression);
@@ -362,9 +363,23 @@ try {
       return result;
     };
     self.uboFixtureRestoreFirstInjections = () => { vAPI.tabs.executeScript = original; };
+    // The scriptlet asks the host for a one-use tool capability before it
+    // builds its iframe; record each request and how long its answer took.
+    self.uboFixtureToolRequests ??= [];
+    if (!self.uboFixtureToolListener) {
+      self.uboFixtureToolListener = (message) => {
+        if (message?.blancTool === 1) self.uboFixtureToolRequests.push({ action: message.action, tool: message.tool, at: Date.now() });
+      };
+      chrome.runtime.onMessage.addListener(self.uboFixtureToolListener);
+    }
   })()`);
   await logger.locator('#showdom').dispatchEvent('click');
   const findInspector = () => page.frames().find(frame => frame.url().includes('/dom-inspector.html'));
+  // How far uBO's inspector scriptlet got in the fixture tab, read from uBO's
+  // own content world, and the capability requests the host has seen.
+  const inspectorProgress = () => injectionLog(`new Promise(resolve => vAPI.tabs.executeScript(${Number(inspectorTab)}, {
+    code: 'JSON.stringify({ inspectorFrame: !!self.vAPI?.inspectorFrame, domFilterer: self.vAPI?.domFilterer instanceof Object, sessionId: typeof self.vAPI?.sessionId, iframes: document.documentElement.querySelectorAll(":scope > iframe").length })',
+  }).then(result => resolve({ tab: result?.[0] ?? null, toolRequests: self.uboFixtureToolRequests ?? null }), error => resolve({ error: String(error?.message || error), toolRequests: self.uboFixtureToolRequests ?? null })))`).catch(String);
   const inspectorClickedAt = Date.now();
   let inspector;
   try {
@@ -383,6 +398,7 @@ try {
       lateArrivalMs: late,
       clickedAt: inspectorClickedAt,
       injections,
+      progress: await inspectorProgress(),
       expectedTab: inspectorTab,
       selectedTab: await logger.locator('#pageSelector').inputValue().catch(String),
       showdomActive: await logger.locator('#showdom').evaluate(el => el.classList.contains('active')).catch(String),
@@ -402,7 +418,7 @@ try {
   // Deterministically cover a slow native cosmetic-parameter reply. Upstream
   // awaits its procedural helper before replying; DOMContentLoaded may already
   // have triggered the logger's inspector injection during that await.
-  await electron.evaluate(async ({ webContents }, tabId) => {
+  await inMainTurn(electron, async ({ webContents }, tabId) => {
     const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
     await bg.executeJavaScript(`(() => {
       const original = vAPI.tabs.executeScript;
@@ -435,7 +451,7 @@ try {
   // the reload, and whether the page holds an unloaded inspector iframe.
   await waitForValue(async () => page.frames().find(frame => frame.url().includes('/dom-inspector.html')), Boolean, 'DOM inspector after navigation')
     .catch(async error => {
-      const injections = await electron.evaluate(async ({ webContents }) => {
+      const injections = await inMainTurn(electron, async ({ webContents }) => {
         const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
         return bg.executeJavaScript('JSON.stringify(self.uboFixtureInjections ?? null)');
       }).catch(failure => String(failure));
@@ -454,12 +470,12 @@ try {
       })).catch(failure => String(failure));
       const tab = (await call('state').catch(() => null))?.tabs?.find(item => item.url.startsWith(fixture));
       console.error('DOM inspector reconnect diagnostics:', JSON.stringify({
-        sinceReloadMs: Date.now() - reconnectStarted, reconnectStarted, injections: injections, logger: loggerState, page: pageState,
+        sinceReloadMs: Date.now() - reconnectStarted, reconnectStarted, injections: injections, progress: await inspectorProgress(), logger: loggerState, page: pageState,
         frames: page.frames().map(frame => frame.url()), tab: tab && { url: tab.url, isLoading: tab.isLoading },
       }));
       throw error;
     });
-  const delayedBootstraps = await electron.evaluate(async ({ webContents }) => {
+  const delayedBootstraps = await inMainTurn(electron, async ({ webContents }) => {
     const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
     return bg.executeJavaScript('uboFixtureRestoreInjection(); uboFixtureDelayedBootstraps');
   });
@@ -493,9 +509,9 @@ try {
   // has already read the old list selection. An Apply landing inside it is
   // never loaded or fetched. Let the updater and its reload settle before
   // importing, the same barrier the update-clock stage uses below.
-  await waitForValue(() => electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
+  await waitForValue(() => inMainTurn(electron, async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
     .executeJavaScript("import('./js/assets.js').then(({ default: io }) => !io.isUpdating())")), Boolean, 'startup updater cycle complete', 30000);
-  await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
+  await inMainTurn(electron, async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
     .executeJavaScript('µBlock.loadFilterLists().then(() => true)'));
   await dashboard.locator('[data-pane="3p-filters.html"]').dispatchEvent('click');
   const lists = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/3p-filters.html')), Boolean, 'filter lists');
@@ -504,7 +520,7 @@ try {
   await lists.locator('[data-role="import"] .listExpander').dispatchEvent('click');
   await lists.locator('[data-role="import"] textarea').fill(fixture + 'fixture-list.txt');
   stage = 'subscription data';
-  await electron.evaluate(async ({ webContents }, url) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(`(async () => {
+  await inMainTurn(electron, async ({ webContents }, url) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(`(async () => {
     const io = (await import('./js/assets.js')).default;
     self.fixtureListEvents = [];
     self.fixtureUpdateTrace = [];
@@ -557,7 +573,7 @@ try {
   })()`), fixture + 'fixture-list.txt');
   await lists.locator('#buttonApply').dispatchEvent('click');
   await waitForValue(() => hits.some(url => new URL(url, fixture).pathname === '/fixture-list.txt'), Boolean, 'user subscription fetched', 10000);
-  await waitForValue(() => electron.evaluate(async ({ webContents }, url) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
+  await waitForValue(() => inMainTurn(electron, async ({ webContents }, url) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
     .executeJavaScript(`µBlock.availableFilterLists[${JSON.stringify(url)}]?.entryCount || 0`), fixture + 'fixture-list.txt'), value => value > 0, 'subscription compiled');
   await call('openTab', fixture + 'subscription-fixture');
   const subscriptionPage = await waitForValue(async () => (await electron.windows()).find(item => item.url() === fixture + 'subscription-fixture'), Boolean, 'subscription fixture');
@@ -578,9 +594,9 @@ try {
   // barrier. An in-flight fetch can survive it and install a two-minute timer
   // after the cycle state resets, delaying the subsequent manual update. Let
   // the original dashboard-started cycle finish before exercising its clock.
-  await waitForValue(() => electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
+  await waitForValue(() => inMainTurn(electron, async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
     .executeJavaScript("import('./js/assets.js').then(({ default: io }) => !io.isUpdating())")), Boolean, 'native updater cycle complete', 30000);
-  await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
+  await inMainTurn(electron, async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
     .executeJavaScript('µBlock.loadFilterLists().then(() => true)'));
   subscriptionRevision = 2;
   const listRequests = hits.filter(url => new URL(url, fixture).pathname === '/fixture-list.txt').length;
@@ -589,9 +605,9 @@ try {
   if (!(await customGroup.evaluate(item => item.classList.contains('expanded')))) await customGroup.locator(':scope > .detailbar .listExpander').dispatchEvent('click');
   await subscriptionRow.locator('.cache').dispatchEvent('click', { shiftKey: true });
   await waitForValue(() => hits.filter(url => new URL(url, fixture).pathname === '/fixture-list.txt').length, count => count > listRequests, 'original list update fetched', 30000);
-  await waitForValue(() => electron.evaluate(async ({ webContents }, url) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
+  await waitForValue(() => inMainTurn(electron, async ({ webContents }, url) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
     .executeJavaScript(`µBlock.availableFilterLists[${JSON.stringify(url)}]?.entryCount || 0`), fixture + 'fixture-list.txt'), count => count > 1, 'updated subscription compiled', 30000);
-  if (process.env.BLANC_UBLOCK_UPDATE_TRACE) console.log('Subscription update trace:', await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript('self.fixtureUpdateTrace')));
+  if (process.env.BLANC_UBLOCK_UPDATE_TRACE) console.log('Subscription update trace:', await inMainTurn(electron, async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript('self.fixtureUpdateTrace')));
   const beforeUpdated = hits.filter(url => url === '/subscription-new.js').length;
   await subscriptionPage.evaluate(() => new Promise(resolve => { const script = document.createElement('script'); script.src = '/subscription-new.js'; script.onload = script.onerror = resolve; document.body.append(script); }));
   assert.equal(hits.filter(url => url === '/subscription-new.js').length, beforeUpdated);
@@ -634,7 +650,7 @@ try {
   assert(!hits.includes('/blocked-ubo.js?nested'));
   const nestedWC = (await call('state')).tabs.find(tab => tab.id === nestedId).webContentsId;
   const nestedStableId = (await call('blockingMapping')).find(item => item.webContentsId === nestedWC).tabId;
-  const frames = await electron.evaluate(async ({ webContents }, id) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
+  const frames = await inMainTurn(electron, async ({ webContents }, id) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
     .executeJavaScript(`chrome.webNavigation.getAllFrames({tabId:${id}})`), nestedStableId);
   assert.equal(frames.length, 3);
   const firstFrame = frames.find(frame => frame.url.endsWith('/frame-one'));
@@ -648,7 +664,7 @@ try {
   await postPage.waitForURL(fixture + 'post-result');
   const postWC = (await call('state')).tabs.find(tab => tab.url === fixture + 'post-result').webContentsId;
   const postStableId = (await call('blockingMapping')).find(item => item.webContentsId === postWC).tabId;
-  assert.equal(await electron.evaluate(async ({ webContents }, id) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
+  assert.equal(await inMainTurn(electron, async ({ webContents }, id) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
     .executeJavaScript(`chrome.tabs.reload(${id}).then(()=>false,()=>true)`), postStableId), true);
   assert.equal(methods.filter(item => item.url === '/post-result').length, 1);
   assert.equal(methods.find(item => item.url === '/post-result').method, 'POST');
@@ -712,7 +728,7 @@ try {
     await page.reload();
     await page.waitForFunction(() => getComputedStyle(document.querySelector('#ad')).display === 'none');
     assert(!hits.includes('/forbidden-resource.js'));
-    assert.equal(await electron.evaluate(async ({ webContents }) => {
+    assert.equal(await inMainTurn(electron, async ({ webContents }) => {
       const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
       return bg.executeJavaScript('µBlock.hiddenSettings.userResourcesLocation');
     }), 'unset');
@@ -780,7 +796,7 @@ try {
   const namedPage = await waitForValue(async () => (await electron.windows()).find(item => item.url() === namedUrl), Boolean, 'named fixture');
   await namedPage.waitForFunction(() => window.fixtureAllowed === true);
   assert.equal(await namedPage.locator('#ad').evaluate(item => getComputedStyle(item).display), 'block');
-  const deletionPrincipal = await electron.evaluate(async ({ webContents }, url) => {
+  const deletionPrincipal = await inMainTurn(electron, async ({ webContents }, url) => {
     const page = webContents.getAllWebContents().find(wc => wc.getURL() === url);
     const background = webContents.getAllWebContents().find(wc => wc.session === page.session && wc.getType() === 'backgroundPage');
     await background.executeJavaScript("chrome.storage.local.set({blancDeletionFixture:'must-be-erased'})");
@@ -818,7 +834,7 @@ try {
     folder: fs.existsSync(path.join(dir + '-Dev', 'managed-ublock', named.profile.id)),
     backgrounds: await electron.evaluate(({ webContents }) => webContents.getAllWebContents().filter(wc => wc.getType() === 'backgroundPage').length),
   }), state => !state.folder && state.backgrounds === 1, `named profile data erased (deletion: ${JSON.stringify(deletion)})`, 15000);
-  const erased = await electron.evaluate(async ({ session, app, webContents }, { profileId, expectedId }) => {
+  const erased = await inMainTurn(electron, async ({ session, app, webContents }, { profileId, expectedId }) => {
     const fs = process.getBuiltinModule('node:fs'), path = process.getBuiltinModule('node:path');
     const require = process.getBuiltinModule('node:module').createRequire(path.join(app.getAppPath(), 'package.json'));
     const packageApi = require(path.join(app.getAppPath(), 'src/main/ublock-package'));
@@ -853,10 +869,10 @@ try {
   // shows whether it was the popup or another page.
   assert.equal(hits.filter(url => url === '/blocked-ubo.js').length, blockedBeforeChild,
     `blocked script reached the server from: ${JSON.stringify(methods.slice(requestsBeforeChild).filter(item => item.url === '/blocked-ubo.js').map(item => item.referer))}`);
-  await electron.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(win => win.webContents.getURL().endsWith('/oauth-child')).close());
+  await inMainTurn(electron, ({ BrowserWindow }) => BrowserWindow.getAllWindows().find(win => win.webContents.getURL().endsWith('/oauth-child')).close());
   stage = 'bounded request capacity';
   await call('activateTab', regular);
-  await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(
+  await inMainTurn(electron, async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(
     "chrome.webRequest.onBeforeRequest.addListener(details => details.url.includes('/capacity-allowed.js') ? new Promise(resolve => setTimeout(() => resolve({}), 750)) : {}, {urls:['<all_urls>']}, ['blocking']); true"));
   const burst = await awake.evaluate(async () => Promise.all(Array.from({ length: 300 }, (_, index) => fetch('/capacity-allowed.js?request=' + index).then(() => true, () => false))));
   assert(burst.some(value => value === false), 'excess decisions must be cancelled rather than bypass filtering');
@@ -879,7 +895,7 @@ try {
   // An earlier stage already POSTed this form once; count from here.
   const postsBefore = methods.filter(item => item.method === 'POST' && item.url.startsWith('/post-result')).length;
   // Hang uBO (as before), then cause one GET and one POST main-frame load.
-  await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(
+  await inMainTurn(electron, async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(
     "chrome.webRequest.onBeforeRequest.addListener(() => new Promise(() => {}), {urls:['<all_urls>']}, ['blocking']); true"));
   const deadlineStarted = Date.now();
   const deadlineId = await call('openTab', fixture + 'deadline-gated');
@@ -926,7 +942,7 @@ try {
   // Manual path: with the budget spent, a failure shows manual recovery.
   await call('blockingExhaustRecovery');
   await waitForValue(() => call('blockingDecisionDeadline'), value => value === 2000, 'decision warm-up window closed again', 20000);
-  await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(
+  await inMainTurn(electron, async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(
     "chrome.webRequest.onBeforeRequest.addListener(() => new Promise(() => {}), {urls:['<all_urls>']}, ['blocking']); true"));
   await call('openTab', fixture + 'deadline-gated?manual');
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'failed', 'manual recovery after the budget', 6000);
@@ -950,7 +966,7 @@ try {
   await awake.waitForFunction(() => getComputedStyle(document.querySelector('#ad')).display === 'none');
   // A native background loss must cancel requests instead of substituting a
   // different provider or releasing website traffic.
-  await electron.evaluate(({ app, webContents }) => {
+  await inMainTurn(electron, ({ app, webContents }) => {
     const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
     if (process.platform !== 'linux') { bg.forcefullyCrashRenderer(); return; }
     // Electron's Linux crash-injection API did not emit renderer loss in CI.
@@ -1001,7 +1017,7 @@ try {
     const duplicate = await waitForValue(async () => (await call('state')).tabs.find(tab => tab.url.includes(pathname) && tab.id !== toolTab.id), Boolean, tool + ' duplicated');
     assert.notEqual(duplicate.webContentsId, toolTab.webContentsId);
     await call('activateTab', duplicate.id);
-    await waitForValue(async () => electron.evaluate(async ({ webContents }, id) => {
+    await waitForValue(async () => inMainTurn(electron, async ({ webContents }, id) => {
       const wc = webContents.fromId(id);
       return wc?.executeJavaScript('Boolean(document.body && document.body.innerText.length > 0)').catch(() => false);
     }, duplicate.webContentsId), Boolean, tool + ' duplicate document');
@@ -1015,7 +1031,7 @@ try {
     // the driver object retained from our earlier deliberate renderer crash.
     await waitForValue(async () => {
       const current = (await call('state')).tabs.find(tab => tab.url.includes(pathname));
-      return electron.evaluate(async ({ webContents }, id) => {
+      return inMainTurn(electron, async ({ webContents }, id) => {
         const wc = webContents.getAllWebContents().find(item => item.id === id);
         if (!wc || wc.isDestroyed() || wc.isCrashed()) return false;
         return wc.executeJavaScript('Boolean(document.body && document.body.getBoundingClientRect().height > 0 && document.body.innerText.length > 0)').catch(() => false);
@@ -1073,13 +1089,13 @@ try {
 } catch (error) {
   if (fs.existsSync(uncaughtLog)) console.error(fs.readFileSync(uncaughtLog, 'utf8'));
   console.error('uBO test failure:', { stage, processExitCode: electronProcess?.exitCode, processSignal: electronProcess?.signalCode }, error);
-  if (electron) console.error('Dashboard state:', await electron.evaluate(async ({ webContents }) => {
+  if (electron) console.error('Dashboard state:', await inMainTurn(electron, async ({ webContents }) => {
     const wc = webContents.getAllWebContents().find(item => item.getURL().includes('/dashboard.html'));
     return wc?.executeJavaScript(`({ hash: location.hash, ready: !document.body.classList.contains('notReady'), selected: document.querySelector('.tabButton.selected')?.dataset.pane, frame: document.querySelector('#iframe')?.contentWindow.location.pathname, unsavedPrompt: document.querySelector('#unsavedWarning')?.classList.contains('on'), unsaved: document.querySelector('#iframe')?.contentWindow.hasUnsavedData?.() })`);
   }).catch(() => null));
   if (electron) console.error('Popup focus events:', await popupFocusTrace.read(electron).catch(() => []));
   console.error('Subscription response revisions:', subscriptionResponses);
-  if (electron && stage === 'subscription data') console.error('Subscription state:', await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')?.executeJavaScript(`(async () => {
+  if (electron && stage === 'subscription data') console.error('Subscription state:', await inMainTurn(electron, async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')?.executeJavaScript(`(async () => {
     const io = (await import('./js/assets.js')).default;
     const url = µBlock.selectedFilterLists.find(value => {
       try {
@@ -1092,7 +1108,7 @@ try {
   if (electron) console.error('Provider state:', await testCalls.callTestHook(electron, 'blockingStatus', []).catch(() => null));
   console.error(errors);
   if (electron) console.log(await electron.evaluate(({ app, BrowserWindow }) => ({ ready: app.isReady(), userData: app.getPath('userData'), hook: typeof __blanc, windows: BrowserWindow.getAllWindows().length })).catch(() => ({ processClosed: true })));
-  if (electron) console.log(JSON.stringify(await electron.evaluate(async ({webContents}) => ({
+  if (electron) console.log(JSON.stringify(await inMainTurn(electron, async ({webContents}) => ({
     log: globalThis.uboDesktopLog,
     contents: await Promise.all(webContents.getAllWebContents().filter(wc=>wc.getURL().startsWith('chrome-extension://')).map(async wc=>({
       type:wc.getType(),url:wc.getURL(),

@@ -14,6 +14,7 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `pins.pin` | invoke | `pages:pins:pin` | newtab, bookmarks | Pin an http(s) page to the Start Page; refused from private start pages and past the cap. |
 | `pins.unpin` | invoke | `pages:pins:unpin` | newtab, bookmarks | Unpin a page from the Start Page; refused from private start pages. |
 | `pins.onChanged` | event | `pages:pins:changed` | newtab, bookmarks | The Start Page pins changed; read them again. |
+| `bookmarks.capabilities` | invoke | `pages:bookmarks:capabilities` | bookmarks | Whether this host permits editing Favorites. |
 | `bookmarks.list` | invoke | `pages:bookmarks:list` | newtab, bookmarks | List Favorites (internal name: bookmarks). |
 | `bookmarks.clearFavicon` | invoke | `pages:bookmarks:clear-favicon` | newtab, bookmarks | Drop a Favorite's cached favicon after it failed to load. |
 | `bookmarks.browserSources` | invoke | `pages:bookmarks:browser-sources` | newtab, bookmarks | List installed browsers Favorites can be imported from. |
@@ -57,6 +58,9 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `start.onStatus` | event | `pages:start:status` | newtab | Startup and blocker status changed. |
 | `start.onVisibility` | event | `pages:start:visibility` | newtab | The Start Page became visible or hidden. |
 | `start.onRemoteTabs` | event | `pages:start:remote-tabs` | newtab | Open tabs from other synced devices changed. |
+| `start.openSent` | invoke | `pages:start:open-sent` | newtab | Open a page another device sent here in a new ordinary tab, and hide it on this device. |
+| `start.dismissSent` | invoke | `pages:start:dismiss-sent` | newtab | Hide a page another device sent here without opening it. |
+| `start.onSentItems` | event | `pages:start:sent-items` | newtab | Pages other devices sent here changed. |
 | `mahjong.played` | invoke | `pages:mahjong:played` | mahjong | Record the once-per-session mahjong_play event after the first real move (subject to telemetry consent). |
 | `errorPage.continueUnsafe` | invoke | `pages:error:continue-unsafe` | error | Continue past this tab's certificate warning for the session. Takes no arguments: main reads the tab's own recorded failure and re-checks eligibility. |
 | `tabHandoff.get` | invoke | `pages:tab-handoff:get` | tab-handoff | The pending tab handoff to review. |
@@ -102,6 +106,8 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `settings.blockingRetry` | invoke | `pages:blocking:retry` | settings | Retry a blocking provider that failed to start. |
 | `settings.blockingOpen` | invoke | `pages:blocking:open` | settings | Open a managed uBlock Origin tool view. |
 | `settings.onBlockingStatus` | event | `pages:blocking:status` | settings | Blocking provider status changed. |
+| `settings.drmStatus` | invoke | `pages:settings:drm-status` | settings | Read sanitized ECS protected-media readiness. |
+| `settings.drmRestart` | invoke | `pages:settings:drm-restart` | settings | Restart through the unsaved-work guard only when protected media requires it. |
 | `settings.checkForUpdates` | invoke | `pages:settings:check-for-updates` | settings | Check for an app update now. |
 | `settings.onAppearance` | event | `pages:settings:appearance` | settings | Appearance changed outside the page (for example /theme). |
 | `settings.activateSupporter` | invoke | `pages:settings:supporter-activate` | settings | Activate a Patron key. The key stays in main. |
@@ -138,6 +144,13 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `diagnostics.status` | invoke | `pages:diagnostics:status` | settings | Local diagnostics status. |
 | `diagnostics.export` | invoke | `pages:diagnostics:export` | settings | Export local diagnostics through a native save dialog. |
 | `diagnostics.clear` | invoke | `pages:diagnostics:clear` | settings | Clear local diagnostics. |
+| `settings.sharedSpacesPreview` | invoke | `pages:settings:shared-spaces-preview` | settings | Development-only Shared Spaces consent and selection. |
+| `settings.sharedSpacesApply` | invoke | `pages:settings:shared-spaces-apply` | settings | Development-only Shared Spaces consent and selection. |
+| `settings.sharedSpacesStatus` | invoke | `pages:settings:shared-spaces-status` | settings | Development-only Shared Spaces consent and selection. |
+| `settings.sharedSpacesOpen` | invoke | `pages:settings:shared-spaces-open` | settings | Development-only Shared Spaces consent and selection. |
+| `settings.sharedSpacesAcknowledge` | invoke | `pages:settings:shared-spaces-acknowledge` | settings | Development-only Shared Spaces consent and selection. |
+| `start.sharedQuestion` | invoke | `pages:start:shared-question` | newtab | Development-only Shared Spaces pairing notice. |
+| `start.sharedQuestionAnswer` | invoke | `pages:start:shared-question-answer` | newtab | Development-only Shared Spaces pairing notice. |
 
 ## Signals
 

@@ -43,6 +43,7 @@
   --text: #0e0e0e;
   --text-dim: #6b6b6b;
   --accent: #111111;
+  --row-selected: #728ca6;
   --accent-dim: rgba(17, 17, 17, 0.08);
   --danger: #ff3b30;
   --on-danger: #ffffff;
@@ -87,6 +88,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    --row-selected: #536f8b;
     --bg: #0e0e0e;
     --surface: #171717;
     --surface-raised: #1f1f1f;
@@ -113,6 +115,7 @@
    that depth and a "private" chip, not a color cast. Applied by pages
    loaded in a private tab (keep in sync with styles.css). */
 :root[data-theme="private"] {
+  --row-selected: #596c83;
   --bg: #0a0a0a;
   --surface: #131313;
   --surface-raised: #191919;
@@ -4553,7 +4556,10 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
   font-variant-numeric: tabular-nums;
   font-size: 18px;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
+  text-transform: none;
+}
+@media (max-width: 600px) {
+  #group-sync input { font-size: 16px; }
 }
 .sync-devices { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
 .sync-pairing, .sync-switch { margin-top: 10px; display: grid; gap: 8px; }
@@ -5109,3 +5115,6 @@ body:not([data-layout="billboard"]) .customize-clock-section { display: none; }
     .clock-popover:popover-open { transform: none; }
   }
 }
+
+.shared-spaces-notice { position: fixed; inset: auto 24px 24px auto; max-width: 28rem; padding: 1rem; border-radius: 16px; background: var(--surface, #fff); color: var(--text, #222); box-shadow: 0 8px 32px #0003; z-index: 100; }
+.shared-spaces-notice button { margin-inline-end: .5rem; }

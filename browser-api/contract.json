@@ -318,6 +318,18 @@
         "splitId": {
           "type": "string | null",
           "doc": "The Split View (F53) this tab belongs to, or null."
+        },
+        "syncNotSynced": {
+          "type": "boolean",
+          "optional": true
+        },
+        "readerAvailable": {
+          "type": "boolean",
+          "doc": "Article suitability hint; extraction may still fail."
+        },
+        "readerActive": {
+          "type": "boolean",
+          "doc": "The tab is displaying its transient Reader Mode view."
         }
       }
     },
@@ -403,6 +415,10 @@
         },
         "tabCount": {
           "type": "number"
+        },
+        "fromName": {
+          "type": "string",
+          "optional": true
         }
       }
     },
@@ -568,6 +584,9 @@
         "tabs": {
           "type": "TabEntry[]"
         },
+        "selectedTabIds": {
+          "type": "TabId[]"
+        },
         "activeTabId": {
           "type": "TabId | null"
         },
@@ -613,6 +632,9 @@
       "fields": {
         "tabs": {
           "type": "TabEntry[]"
+        },
+        "selectedTabIds": {
+          "type": "TabId[]"
         },
         "activeTabId": {
           "type": "TabId | null"
@@ -839,6 +861,11 @@
         "symbol": {
           "type": "string",
           "optional": true
+        },
+        "ackRecovery": {
+          "type": "boolean",
+          "optional": true,
+          "doc": "Dismiss the development-only recovery explanation on this device."
         }
       }
     },
@@ -850,6 +877,55 @@
         },
         "id": {
           "type": "WorkspaceId"
+        }
+      }
+    },
+    "SharedSpaceAdmission": {
+      "doc": "Local writes held from sync, without page contents; only present on a shared Space in Personal.",
+      "fields": {
+        "unsyncedTabIds": {
+          "type": "string[]"
+        },
+        "reason": {
+          "type": "'full' | 'tombstones' | 'tabs' | 'remote-over-budget' | 'required-state-over-budget' | null"
+        },
+        "state": {
+          "type": "'shared' | 'waiting' | 'notSynced' | 'full' | 'unavailable'",
+          "optional": true
+        },
+        "lastSyncedAt": {
+          "type": "number",
+          "optional": true
+        },
+        "failed": {
+          "type": "boolean",
+          "optional": true
+        },
+        "pending": {
+          "type": "boolean",
+          "optional": true
+        }
+      }
+    },
+    "SharedSpaceLibraryStatus": {
+      "doc": "Shared-library capacity. Concurrent remote additions are retained even above the local creation limit.",
+      "fields": {
+        "count": {
+          "type": "number"
+        },
+        "limit": {
+          "type": "number"
+        },
+        "canAdd": {
+          "type": "boolean"
+        },
+        "busy": {
+          "type": "boolean",
+          "optional": true
+        },
+        "slowed": {
+          "type": "boolean",
+          "optional": true
         }
       }
     },
@@ -886,6 +962,10 @@
         "symbol": {
           "type": "string",
           "doc": "A space-identity.js symbol id."
+        },
+        "sharedSync": {
+          "type": "SharedSpaceAdmission",
+          "optional": true
         }
       }
     },
@@ -907,6 +987,14 @@
         },
         "tint": {
           "type": "SpaceTint"
+        },
+        "sharedSync": {
+          "type": "SharedSpaceLibraryStatus | undefined",
+          "optional": true
+        },
+        "recoveryNotice": {
+          "type": "boolean | null",
+          "optional": true
         }
       }
     },
@@ -962,6 +1050,10 @@
     "OverlayMode": {
       "ts": "'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces'",
       "doc": "Overlay modes; every showOverlay() call in main.js passes one of these literals."
+    },
+    "PillNotice": {
+      "ts": "'link-copied' | 'clean-link-copied'",
+      "doc": "Fixed ids of the pill's brief confirmations; the strip owns their text."
     },
     "ShieldTrigger": {
       "ts": "'shield' | 'insecure'",
@@ -1033,7 +1125,7 @@
       }
     },
     "WorkspaceErrorCode": {
-      "ts": "'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch'",
+      "ts": "'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch' | 'saved-not-moved'",
       "doc": "Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js."
     },
     "WorkspaceProtectionReason": {
@@ -1047,6 +1139,10 @@
     "WorkspaceActionResult": {
       "doc": "Result of every Named Workspace action. Successes carry the refreshed workspace list; failures carry an error code and, for some codes, extra detail.",
       "fields": {
+        "movedCount": {
+          "type": "number",
+          "optional": true
+        },
         "ok": {
           "type": "boolean"
         },
@@ -1112,6 +1208,14 @@
         },
         "tint": {
           "type": "SpaceTint",
+          "optional": true
+        },
+        "sharedSync": {
+          "type": "SharedSpaceLibraryStatus | undefined",
+          "optional": true
+        },
+        "recoveryNotice": {
+          "type": "boolean | null",
           "optional": true
         }
       }
@@ -1264,6 +1368,55 @@
         },
         "groups": {
           "type": "RemoteGroup[]"
+        }
+      }
+    },
+    "SendStatus": {
+      "doc": "What sending a page reports (M7b addendum §6): sent (never \"delivered\"), unavailable (the sync Worker doesn't serve the sends store yet), failed (offline, rate limited, a server error) or invalid (a private, internal or inert tab, or a device that isn't a target).",
+      "ts": "'sent' | 'unavailable' | 'failed' | 'invalid'"
+    },
+    "SendResult": {
+      "doc": "The reply to sendTabToDevice.",
+      "fields": {
+        "status": {
+          "type": "SendStatus"
+        }
+      }
+    },
+    "SendTarget": {
+      "doc": "Another device of this sync account a page can be sent to, from sync.listSendTargets(): found in the sends store's presence entries or in tab sync, newest first, named as the Other devices drawer names it.",
+      "fields": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string"
+        }
+      }
+    },
+    "SentItem": {
+      "doc": "A page another device sent to this one that this device hasn't opened or dismissed, from sync.listSentToThisDevice(). Newest first, at most 20, each kept 7 days.",
+      "fields": {
+        "id": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "doc": "An http(s) address."
+        },
+        "title": {
+          "type": "string"
+        },
+        "sentAt": {
+          "type": "number",
+          "doc": "Epoch milliseconds."
+        },
+        "fromName": {
+          "type": "string",
+          "doc": "The sending device's name as this device shows it."
         }
       }
     },
@@ -1759,6 +1912,24 @@
       "doc": "Forget every closed entry in this window."
     },
     {
+      "name": "selectTab",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:select",
+      "params": [
+        {
+          "name": "tabId",
+          "type": "TabId | null"
+        },
+        {
+          "name": "mode",
+          "type": "'toggle' | 'range' | 'extend-up' | 'extend-down' | 'clear'"
+        }
+      ],
+      "returns": "TabId | null",
+      "doc": "Change the window-local tab selection and return the focused row id."
+    },
+    {
       "name": "switchTab",
       "group": "tabs",
       "kind": "invoke",
@@ -1984,6 +2155,24 @@
       ],
       "returns": "boolean",
       "doc": "Move every tab of a group, in order, into a new window with the same group. Refused (false) when the group holds every tab in its window or a member is changing quiet state."
+    },
+    {
+      "name": "openGroupSpaceMenu",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:space-menu",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        },
+        {
+          "name": "point",
+          "type": "Point"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Move Group to Space: a native menu of the profile's spaces at an overlay point; choosing one moves every tab of the group, in order, into that space as the same group (or into its group of the same name), and New Space… opens the Spaces editor bound to the group. False when the window, the group or every space is gone."
     },
     {
       "name": "ungroupGroup",
@@ -2582,6 +2771,14 @@
       "doc": "A Glance status message for the chrome to show."
     },
     {
+      "name": "onPillNotice",
+      "group": "island",
+      "kind": "event",
+      "channel": "chrome:pill-notice",
+      "payload": "PillNotice",
+      "doc": "Show a brief confirmation in the pill's label slot (Link copied)."
+    },
+    {
       "name": "openIsland",
       "group": "island",
       "kind": "send",
@@ -2934,6 +3131,70 @@
       "doc": "Name another synced device as this profile's devices list it; an empty name or null restores the name it publishes. Refused (false) for a device the Other devices drawer does not list."
     },
     {
+      "name": "listSendTargets",
+      "group": "sync",
+      "kind": "invoke",
+      "channel": "chrome:send-targets",
+      "params": [],
+      "returns": "SendTarget[]",
+      "doc": "Other devices of this sync account a page can be sent to. Empty unless Profile Sync is on in the Personal profile."
+    },
+    {
+      "name": "sendTabToDevice",
+      "group": "sync",
+      "kind": "invoke",
+      "channel": "chrome:send-tab",
+      "params": [
+        {
+          "name": "tabId",
+          "type": "TabId"
+        },
+        {
+          "name": "deviceId",
+          "type": "string"
+        }
+      ],
+      "returns": "SendResult",
+      "doc": "Send a tab's page to another device. Main reads the tab's own address and title; the renderer never passes a URL. Private, internal and inert tabs, and devices that aren't targets, answer invalid."
+    },
+    {
+      "name": "listSentToThisDevice",
+      "group": "sync",
+      "kind": "invoke",
+      "channel": "chrome:sent-list",
+      "params": [],
+      "returns": "SentItem[]",
+      "doc": "Pages other devices sent here that this device hasn't opened or dismissed."
+    },
+    {
+      "name": "openSentItem",
+      "group": "sync",
+      "kind": "invoke",
+      "channel": "chrome:sent-open",
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Open a sent page in a new ordinary tab and hide it on this device. False when it is no longer waiting."
+    },
+    {
+      "name": "dismissSentItem",
+      "group": "sync",
+      "kind": "invoke",
+      "channel": "chrome:sent-dismiss",
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Hide a sent page on this device without opening it. False when it is no longer waiting."
+    },
+    {
       "name": "cancelWorkspaceAction",
       "group": "workspaces",
       "kind": "send",
@@ -2949,6 +3210,86 @@
       "params": [],
       "returns": "WorkspacesPayload",
       "doc": "List Named Workspaces."
+    },
+    {
+      "name": "createSpaceWithLink",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-create-with-link",
+      "params": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "identity",
+          "type": "SpaceIdentityInput"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Create a saved space with the link held by the current new-space editor, without loading it."
+    },
+    {
+      "name": "createSpaceWithTabs",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-create-with-tabs",
+      "params": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "identity",
+          "type": "SpaceIdentityInput"
+        },
+        {
+          "name": "tabIds",
+          "type": "TabId[]"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Create a space and move the selected whole rows after one checked write."
+    },
+    {
+      "name": "groupTabsByName",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:group-many-by-name",
+      "params": [
+        {
+          "name": "tabIds",
+          "type": "TabId[]"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Move the selected whole rows to a named group in one pass."
+    },
+    {
+      "name": "createSpaceWithTab",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-create-with-tab",
+      "params": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "identity",
+          "type": "SpaceIdentityInput"
+        },
+        {
+          "name": "tabId",
+          "type": "TabId"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Create a space containing this window’s tab, then move the live tab without switching spaces."
     },
     {
       "name": "saveWorkspaceAs",
@@ -3160,6 +3501,14 @@
       "payload": "RemoteDevice[]",
       "doc": "Other devices' open tabs changed. Same projection as listRemoteTabs.",
       "payloadCheck": "fixtures"
+    },
+    {
+      "name": "onSentToThisDeviceUpdated",
+      "group": "sync",
+      "kind": "event",
+      "channel": "chrome:sent-updated",
+      "payload": "SentItem[]",
+      "doc": "Pages sent here changed: one arrived, or one was opened or dismissed. Same projection as listSentToThisDevice. Sent only to overlay views."
     },
     {
       "name": "onWorkspacesUpdated",
@@ -3405,6 +3754,20 @@
       "channel": "chrome:find-result",
       "payload": "FindResult",
       "doc": "Find-in-page match counts changed."
+    },
+    {
+      "name": "toggleReaderMode",
+      "group": "navigation",
+      "kind": "invoke",
+      "channel": "tabs:reader-toggle",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Enter or exit Reader Mode for an owned visible tab; false when extraction is unavailable."
     }
   ]
 }

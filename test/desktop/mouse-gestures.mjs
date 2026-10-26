@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { _electron } from 'playwright';
+import { inMainTurn } from './support/main-turn.js';
 
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-mouse-gestures-'));
 const { ELECTRON_RUN_AS_NODE: _ignored, ...cleanEnv } = process.env;
@@ -99,7 +100,7 @@ try {
   });
   assert.equal(privateResult.private, true, 'gesture new tab should retain private mode');
   assert.equal(privateResult.url, 'blanc://newtab/?private=1', 'private gesture new tab should use the private start page');
-  const settingsFocus = await electronApp.evaluate(async ({ webContents }) => {
+  const settingsFocus = await inMainTurn(electronApp, async ({ webContents }) => {
     const hook = globalThis.__blanc;
     hook.setMouseGestures(true, { L: 'back', R: 'forward', U: 'newTab', D: 'closeTab' });
     hook.openSettings();

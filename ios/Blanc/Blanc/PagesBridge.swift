@@ -1,66 +1,6 @@
 import Foundation
 import WebKit
-
-/// A minimal, order-preserving JSON value. Object pairs keep insertion order
-/// so `serialized` is deterministic (unit-testable) and valid for embedding
-/// directly into a `window.__blancResolve(...)` call.
-indirect enum JSONValue: Equatable {
-    case string(String)
-    case number(Double)
-    case bool(Bool)
-    case null
-    case array([JSONValue])
-    case object([(String, JSONValue)])
-
-    static func == (lhs: JSONValue, rhs: JSONValue) -> Bool {
-        switch (lhs, rhs) {
-        case (.string(let a), .string(let b)): return a == b
-        case (.number(let a), .number(let b)): return a == b
-        case (.bool(let a), .bool(let b)): return a == b
-        case (.null, .null): return true
-        case (.array(let a), .array(let b)): return a == b
-        case (.object(let a), .object(let b)):
-            return a.count == b.count && zip(a, b).allSatisfy { pair in
-                pair.0.0 == pair.1.0 && pair.0.1 == pair.1.1
-            }
-        default: return false
-        }
-    }
-
-    var serialized: String {
-        switch self {
-        case .string(let s): return Self.encodeString(s)
-        case .number(let n):
-            if n == n.rounded() && abs(n) < 1e15 { return String(Int(n)) }
-            return String(n)
-        case .bool(let b): return b ? "true" : "false"
-        case .null: return "null"
-        case .array(let items): return "[" + items.map(\.serialized).joined(separator: ",") + "]"
-        case .object(let pairs):
-            return "{" + pairs.map { "\(Self.encodeString($0.0)):\($0.1.serialized)" }.joined(separator: ",") + "}"
-        }
-    }
-
-    private static func encodeString(_ s: String) -> String {
-        var out = "\""
-        for scalar in s.unicodeScalars {
-            switch scalar {
-            case "\"": out += "\\\""
-            case "\\": out += "\\\\"
-            case "\n": out += "\\n"
-            case "\r": out += "\\r"
-            case "\t": out += "\\t"
-            default:
-                if scalar.value < 0x20 {
-                    out += String(format: "\\u%04x", scalar.value)
-                } else {
-                    out.unicodeScalars.append(scalar)
-                }
-            }
-        }
-        return out + "\""
-    }
-}
+import UIKit
 
 enum BridgeResult: Equatable {
     case value(JSONValue)
@@ -92,7 +32,12 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         case ("", "clearBrowsingData"): return .value(.null)
 
         case ("bookmarks", "list"): return .value(.array([]))
-        case ("bookmarks", "remove"), ("bookmarks", "clearFavicon"): return .value(.null)
+        // Favorites edit on the phone; importing (F30) and Start Page pins stay on the computer.
+        case ("bookmarks", "capabilities"):
+            return .value(.object([("editable", .bool(true)), ("import", .bool(false)), ("pins", .bool(false))]))
+        case ("bookmarks", "clearFavicon"): return .value(.null)
+        case ("bookmarks", "import"), ("bookmarks", "importBrowser"), ("bookmarks", "browserSources"):
+            return .reject(SyncCopy.text("favorites.editOnComputer"))
 
         case ("history", "list"): return .value(.array([]))
         case ("history", "remove"), ("history", "clear"): return .value(.null)
@@ -125,7 +70,7 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
             return .value(.object([("isDefault", .bool(false)), ("canSet", .bool(false))]))
 
         case ("start", "data"):
-            return .value(.object([("groups", .array([])), ("blockedThisWeek", .number(0))]))
+            return .value(startData())
         case ("start", "focusGroup"): return .value(.null)
 
         // `shortcuts` is not linked from any page, but `blanc://shortcuts/` is
@@ -136,6 +81,16 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         default:
             return .reject("Unknown method: \(group ?? "root").\(method)")
         }
+    }
+
+    static func startData(layout: BlancStartPageLayout = MobileStartPageDefaults.layout,
+                          adblockEnabled: Bool = true) -> JSONValue {
+        .object([
+            ("groups", .array([])), ("blockedThisWeek", .number(0)),
+            ("layout", .string(layout.rawValue)), ("topSites", .array([])),
+            ("wallpaperVisible", .bool(true)), ("dynamicWallpaperEnabled", .bool(false)),
+            ("mobileAdblockEnabled", .bool(adblockEnabled)),
+        ])
     }
 
     /// The `{ settings, searchEngines, appIcons, capabilities }`
@@ -173,6 +128,7 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
                 .string("theme"),
                 .string("searchEngine"),
                 .string("adblockEnabled"),
+                .string("sync"),
             ])),
         ])
     }
@@ -233,7 +189,8 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         return userScriptTemplate.replacingOccurrences(of: "__BLANC_MEMBERS__", with: json)
     }
 
-    static let userScriptSource = makeUserScript(members: bundledMembers)
+    private static let nativeMembers = [Member(name: "start.renderNativeClock", kind: "invoke", hosts: ["newtab"])]
+    static let userScriptSource = makeUserScript(members: bundledMembers + nativeMembers)
 
     private static let userScriptTemplate = #"""
     (function () {
@@ -289,7 +246,67 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
           };
         }
       }
+      function projectAppearance(data) {
+        const raw = data.appearance || {};
+        const settings = raw.settings || {};
+        const rules = globalThis.BlancStartRules;
+        if (!rules) return data;
+        data.clock = rules.clock.clockStyleFromSettings(settings);
+        data.dynamicWallpaperEnabled = settings.newtabDynamicWallpaper === true;
+        const source = settings.newtabCustomWallpaper && raw.hasImage ? 'custom'
+          : settings.newtabColorWallpaper ? 'color' : data.dynamicWallpaperEnabled ? 'time-of-day' : 'sunrise';
+        data.wallpaper = {
+          source, hasImage: raw.hasImage === true, image: raw.image || null,
+          wash: Number.isInteger(settings.newtabWallpaperWash) ? settings.newtabWallpaperWash : 100,
+          style: settings.newtabWallpaperStyle || 'auto',
+          color: { preset: settings.newtabWallpaperColor || 'sage', followSpace: false, inSpace: false,
+            presets: rules.presets, paint: rules.paint.colorWallpaper({
+              preset: settings.newtabWallpaperColor, fill: settings.newtabWallpaperFill, followSpace: false,
+            }) },
+        };
+        return data;
+      }
+      function appearanceCall(method, value) {
+        return call('start', method, [value]).then(raw => projectAppearance({ appearance: raw }));
+      }
+      if (host === 'newtab' && api.start) {
+        const rawData = api.start.data;
+        api.start.data = () => rawData().then(projectAppearance);
+        window.blancNativeClock = { render: value => call('start', 'renderNativeClock', [value]) };
+        api.start.setClock = value => appearanceCall('setClock', value).then(data => data.clock);
+        for (const method of ['setWallpaper', 'setWallpaperColor', 'setWallpaperFill', 'setWallpaperStyle', 'setWallpaperWash', 'removeWallpaper']) {
+          api.start[method] = value => appearanceCall(method, value).then(data => data.wallpaper);
+        }
+        api.start.setDynamicWallpaper = value => appearanceCall('setDynamicWallpaper', value).then(data => data.dynamicWallpaperEnabled);
+        api.start.chooseWallpaper = () => call('start', 'chooseWallpaper', []).then(reply => ({ ...reply,
+          wallpaper: projectAppearance({ appearance: reply.appearance }).wallpaper }));
+        const onStatus = api.start.onStatus;
+        api.start.onStatus = listener => onStatus(data => listener(data.appearance ? projectAppearance(data) : data));
+        const onVisibility = api.start.onVisibility;
+        api.start.onVisibility = listener => {
+          const off = onVisibility(listener);
+          if (typeof document === 'undefined') return off;
+          const changed = () => listener(!document.hidden);
+          document.addEventListener('visibilitychange', changed);
+          return () => { off(); document.removeEventListener('visibilitychange', changed); };
+        };
+      }
       window.bowserPages = api;
+      if (typeof document !== 'undefined' && location.hostname === 'newtab') {
+        document.addEventListener('DOMContentLoaded', function () {
+          const viewport = document.createElement('meta');
+          viewport.name = 'viewport';
+          viewport.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
+          document.head.append(viewport);
+          document.documentElement.dataset.platform = 'ios';
+          const style = document.createElement('link');
+          style.rel = 'stylesheet'; style.href = 'ios-start-page.css';
+          document.head.append(style);
+          const mobile = document.createElement('script');
+          mobile.src = 'ios-start-page.js'; document.body.append(mobile);
+        }, { once: true });
+      }
+
     })();
     """#
 
@@ -308,29 +325,261 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         let method = body["method"] as? String ?? ""
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
 
-        // settings.get/set need the live store + the manager's dispatch path, so
-        // they're handled on the instance; everything else uses the pure static
-        // response table.
-        let result: BridgeResult
-        if group == "settings", method == "get" {
-            result = .value(liveSettingsBootstrap())
-        } else if group == "settings", method == "set" {
-            if let args = body["args"] as? [Any], let patch = args.first as? [String: Any] {
-                manager?.applySettingsPatch(patch)
-            }
-            result = .value(.null)
-        } else {
-            result = Self.response(group: group, method: method, appVersion: version)
+        let host = webView.url?.host ?? ""
+        let fullMethod = group.map { $0 + "." + method } ?? method
+        guard message.frameInfo.isMainFrame,
+              message.frameInfo.request.url?.scheme == "blanc",
+              message.frameInfo.request.url?.host == host,
+              (Self.bundledMembers + Self.nativeMembers).contains(where: { $0.name == fullMethod && $0.kind == "invoke" && $0.hosts.contains(host) }) else {
+            resolve(id, result: .reject("Method not available on this page."), in: webView, host: host)
+            return
         }
+        let args = body["args"] as? [Any] ?? []
+        let documentURL = webView.url
+        if group == "start", method == "renderNativeClock" {
+            let tab = ((manager?.tabs ?? []) + (manager?.startPreviews ?? [])).first { $0.webView === webView }
+            let rendered = tab?.nativeClock.render(args.first as? [String: Any], in: webView) ?? false
+            resolve(id, result: .value(.bool(rendered)), in: webView, host: host)
+            return
+        }
+        if group == "start", method == "chooseWallpaper", let manager {
+            guard manager.wallpaperSelectionCompletion == nil else {
+                resolve(id, result: .reject("An image picker is already open"), in: webView, host: host)
+                return
+            }
+            manager.wallpaperSelectionCompletion = { [weak self, weak webView, weak manager] image in
+                guard let self, let webView, let manager else { return }
+                var reply: [String: Any] = ["cancelled": image == nil]
+                if let image {
+                    do { try manager.importWallpaper(image); reply["ok"] = true }
+                    catch { reply["error"] = "unreadable" }
+                }
+                reply["appearance"] = manager.startAppearance.payload
+                if webView.url == documentURL { self.resolve(id, result: .value(.from(reply)), in: webView, host: host) }
+            }
+            manager.isWallpaperPickerPresented = true
+            return
+        }
+        if group == "settings", method.hasPrefix("sync"), let engine = manager?.syncEngine {
+            Task { [weak self, weak webView] in
+                guard let self, let webView else { return }
+                let result = await self.syncResponse(method: method, args: args, engine: engine)
+                guard webView.url == documentURL else { return }
+                self.resolve(id, result: .value(result), in: webView, host: host)
+            }
+            return
+        }
+        var result = liveResponse(group: group, method: method, args: args, appVersion: version)
+        if group == "start", method == "data", let layout = manager?.previewLayout(for: webView), case .value(var data) = result {
+            data["layout"] = .string(layout.rawValue)
+            result = .value(data)
+        }
+        resolve(id, result: result, in: webView, host: host)
+    }
 
+    /// The answer to a call the sender checks above allowed, using live app state.
+    func liveResponse(group: String?, method: String, args: [Any], appVersion: String = "0") -> BridgeResult {
+        let text = { (index: Int) in args.indices.contains(index) ? args[index] as? String : nil }
+        let now = Date().timeIntervalSince1970 * 1000
+        switch (group ?? "", method) {
+        case ("settings", "get"): return .value(liveSettingsBootstrap())
+        case ("settings", "set"):
+            if let patch = args.first as? [String: Any] { manager?.applySettingsPatch(patch) }
+            return .value(.null)
+        case ("bookmarks", "list"): return .value(favoritesPayload())
+        case ("start", "data"):
+            var data = Self.startData(layout: manager?.settingsStore.newtabLayout ?? MobileStartPageDefaults.layout,
+                                      adblockEnabled: manager?.settingsStore.adblockEnabled ?? true)
+            data["remoteDevices"] = remoteDevicesPayload()
+            data["sentItems"] = sentItemsPayload()
+            data["bookmarks"] = favoritesPayload()
+            data["appearance"] = .from(manager?.startAppearance.payload ?? [:])
+            return .value(data)
+        case ("start", "renderNativeClock"):
+            // The sender validated this native-only capability for newtab.
+            return .value(.bool(false))
+        case ("start", "setLayout"):
+            guard let raw = text(0), let layout = BlancStartPageLayout(rawValue: raw) else { return .reject("Unknown Start Page layout") }
+            manager?.setStartLayout(layout)
+            return .value(.string(layout.rawValue))
+        case ("start", "openIsland"):
+            manager?.isPalettePresented = true
+            return .value(.null)
+        case ("start", "layoutUsed"): return .value(.null)
+        case ("start", "topSites"): return .value(.array([]))
+        case ("start", "setClock"), ("start", "setDynamicWallpaper"), ("start", "setWallpaper"),
+             ("start", "setWallpaperColor"), ("start", "setWallpaperFill"), ("start", "setWallpaperStyle"),
+             ("start", "setWallpaperWash"), ("start", "removeWallpaper"):
+            do {
+                let payload = try manager?.changeStartAppearance(method, value: args.first) ?? [:]
+                return .value(.from(payload))
+            } catch { return .reject("Could not save Start Page appearance") }
+        case ("start", "openSent"), ("start", "dismissSent"):
+            return .value(.bool(handleSent(method: method, id: text(0) ?? "")))
+        case ("history", "list"):
+            let options = args.first as? [String: Any] ?? [:]
+            let entries = manager?.historyStore.list(
+                query: options["query"] as? String ?? "", limit: (options["limit"] as? NSNumber)?.intValue ?? 500) ?? []
+            return .value(.array(entries.map {
+                .object([("url", .string($0.url)), ("title", .string($0.title)), ("visitedAt", .number(Double($0.visitedAt))), ("favicon", .null)])
+            }))
+        case ("history", "remove"):
+            guard let url = text(0), args.count > 1, let visitedAt = args[1] as? NSNumber else { return .value(.null) }
+            manager?.historyStore.remove(url: url, visitedAt: visitedAt.int64Value)
+        case ("history", "clear"):
+            manager?.historyStore.clear()
+        case ("bookmarks", "remove"):
+            guard let id = text(0) else { return .value(.null) }
+            editFavorites { SyncedFavorites.remove($0, id: id, now: now) }
+        case ("bookmarks", "setFolder"):
+            guard let id = text(0) else { return .value(.null) }
+            editFavorites { SyncedFavorites.setFolder($0, id: id, folder: text(1), now: now) }
+        case ("bookmarks", "renameFolder"):
+            guard let from = text(0), let to = text(1) else { return .value(.null) }
+            editFavorites { SyncedFavorites.renameFolder($0, from: from, to: to, now: now) }
+        case ("bookmarks", "removeFolder"):
+            guard let name = text(0) else { return .value(.null) }
+            editFavorites { SyncedFavorites.removeFolder($0, name: name, now: now) }
+        case ("bookmarks", "clearFavicon"):
+            guard let url = text(0) else { return .value(.null) }
+            editFavorites { store in
+                var next = store
+                next["items"] = .array((store["items"]?.array ?? []).map { item in
+                    guard item["url"]?.string == url, item["favicon"] != .null else { return item }
+                    var cleared = item
+                    cleared["favicon"] = .null
+                    return cleared
+                })
+                return next
+            }
+        default: return Self.response(group: group, method: method, appVersion: appVersion)
+        }
+        return .value(.null)
+    }
+    private func editFavorites(_ change: (JSONValue) -> JSONValue) {
+        manager?.syncEngine.editFavorites(change)
+    }
+
+    func broadcastAppearance() {
+        emit("start.onStatus", payload: .from(["appearance": manager?.startAppearance.payload ?? [:]]), host: "newtab")
+    }
+
+    private func resolve(_ id: Int, result: BridgeResult, in webView: WKWebView, host: String) {
         let payload: String
         let ok: Bool
         switch result {
-        case .value(let v): payload = v.serialized; ok = true
-        case .reject(let message): payload = JSONValue.string(message).serialized; ok = false
+        case .value(let value): payload = value.serialized; ok = true
+        case .reject(let error): payload = JSONValue.string(error).serialized; ok = false
         }
-
-        let js = "window.__blancResolve(\(id), \(ok), \(payload));"
-        webView.evaluateJavaScript(js)
+        webView.evaluateJavaScript(Self.guardedScript("window.__blancResolve(\(id), \(ok), \(payload));", host: host))
+    }
+    private func favoritesPayload() -> JSONValue {
+        .array((manager?.syncEngine.favorites ?? []).map {
+            .object([("addedAt", .number($0.addedAt)), ("updatedAt", .number($0.updatedAt)), ("id", .string($0.id)), ("url", .string($0.url)), ("title", .string($0.title)), ("favicon", $0.favicon.map(JSONValue.string) ?? .null), ("folder", $0.folder.map(JSONValue.string) ?? .null)])
+        })
+    }
+    /// Send to device (M7b): the start page's Sent to this device list, in
+    /// desktop's `SentItem` shape.
+    private func sentItemsPayload() -> JSONValue {
+        .array((manager?.syncEngine.inbox ?? []).map {
+            .object([("id", .string($0.id)), ("url", .string($0.url)), ("title", .string($0.title)), ("sentAt", .number(Double($0.sentAt))), ("fromName", .string($0.fromName))])
+        })
+    }
+    private func handleSent(method: String, id: String) -> Bool {
+        guard let manager, let item = manager.syncEngine.inbox.first(where: { $0.id == id }) else { return false }
+        if method == "openSent" {
+            guard let url = URL(string: item.url), ["http", "https"].contains(url.scheme?.lowercased() ?? "") else { return false }
+            manager.createTab(url: url)
+        }
+        manager.syncEngine.dismiss(id)
+        return true
+    }
+    private func remoteDevicesPayload() -> JSONValue {
+        guard let engine = manager?.syncEngine else { return .array([]) }
+        return .array(engine.remoteDevices.map { device in
+            .object([("id", .string(device.id)), ("name", .string(device.name)), ("tabs", .array(device.tabs.map { tab in
+                .object([("url", .string(tab.url)), ("title", .string(tab.title)), ("favicon", SyncedIcons.icon(for: tab.url, in: engine.icons["devices"] ?? .object([])).map(JSONValue.string) ?? .null)])
+            }))])
+        })
+    }
+    // Evaluate the origin guard in the destination document, not only against
+    // WKWebView.url: a provisional navigation can outpace native URL observers.
+    static func guardedScript(_ script: String, host: String) -> String {
+        """
+        (() => {
+          if (window.location.protocol !== 'blanc:' || window.location.host !== \(JSONValue.string(host).serialized)) return;
+          \(script)
+        })();
+        """
+    }
+    static func favoritesRefreshScript(previous: JSONValue, current: JSONValue, host: String) -> String? {
+        guard previous != current, ["newtab", "bookmarks"].contains(host) else { return nil }
+        return guardedScript("window.location.reload();", host: host)
+    }
+    private var lastFavoritesPayload: JSONValue = .array([])
+    func emitSettingsChanges() {
+        if let engine = manager?.syncEngine {
+            emit("settings.onAppearance", payload: .object([
+                ("settings", liveSettingsBootstrap()["settings"] ?? .object([])),
+                ("syncStatus", engine.status),
+            ]), host: "settings")
+        }
+    }
+    func emitSyncChanges() {
+        emitSettingsChanges()
+        emitRemoteTabs()
+        emit("start.onSentItems", payload: sentItemsPayload(), host: "newtab")
+        let current = favoritesPayload()
+        let previous = lastFavoritesPayload
+        lastFavoritesPayload = current
+        for tab in manager?.tabs ?? [] {
+            guard tab.currentURL.scheme == "blanc", let host = tab.currentURL.host,
+                  let script = Self.favoritesRefreshScript(previous: previous, current: current, host: host) else { continue }
+            tab.webView.evaluateJavaScript(script)
+        }
+    }
+    func emitRemoteTabs() { emit("start.onRemoteTabs", payload: remoteDevicesPayload(), host: "newtab") }
+    func emit(_ event: String, payload: JSONValue, host: String) {
+        for tab in (manager?.tabs ?? []) + (manager?.startPreviews ?? []) where tab.currentURL.scheme == "blanc" && tab.currentURL.host == host {
+            var delivered = payload
+            if event == "start.onStatus", delivered["layout"] != nil, let layout = manager?.previewLayout(for: tab.webView) {
+                delivered["layout"] = .string(layout.rawValue)
+            }
+            tab.webView.evaluateJavaScript(Self.guardedScript("window.__blancEmit(\(JSONValue.string(event).serialized), \(delivered.serialized));", host: host))
+        }
+    }
+    private func syncResponse(method: String, args: [Any], engine: SyncEngine) async -> JSONValue {
+        let options = args.first as? [String: Any] ?? [:]
+        switch method {
+        case "syncGet": return engine.status
+        case "syncNow": await engine.syncNow(); return engine.status
+        case "syncPreflight": return await engine.preflight(handle: options["handle"] as? String ?? "", passphrase: options["passphrase"] as? String ?? "")
+        case "syncEnable": return await engine.enable(handle: options["handle"] as? String ?? "", passphrase: options["passphrase"] as? String ?? "")
+        case "syncDisable": return await engine.disable(wipeRemote: options["wipeRemote"] as? Bool ?? false)
+        case "syncTabsSet": await engine.setShareTabs(args.first as? Bool ?? false); return engine.status
+        case "syncDeviceNameSet": engine.setDeviceName(args.first as? String ?? ""); return engine.status
+        case "syncPairBegin": return await engine.beginPairing()
+        case "syncPairCancel": await engine.cancelPairing(); return .object([("ok", .bool(true))])
+        case "syncPairState": return engine.pairingStatus()
+        case "syncJoinCode": return await engine.joinWithCode(args.first as? String ?? "")
+        case "syncSwitchCode": return await engine.switchWithCode(options["code"] as? String ?? "", wipeRemote: options["wipeRemote"] as? Bool ?? false)
+        case "syncRecoveryCodeCopy":
+            guard await confirmRecoveryCopy(), let code = engine.recoveryCode() else { return .object([("ok", .bool(false)), ("error", .string("cancelled"))]) }
+            // Recovery material stays native, device-local, and expires from the clipboard.
+            UIPasteboard.general.setItems([[UIPasteboard.typeAutomatic: code]], options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(120)])
+            return .object([("ok", .bool(true))])
+        default: return .object([("ok", .bool(false))])
+        }
+    }
+    private func confirmRecoveryCopy() async -> Bool {
+        guard let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first(where: { $0.activationState == .foregroundActive }),
+              var presenter = scene.windows.first(where: \.isKeyWindow)?.rootViewController else { return false }
+        while let presented = presenter.presentedViewController { presenter = presented }
+        return await withCheckedContinuation { continuation in
+            let alert = UIAlertController(title: SyncCopy.text("settings.sync.recovery.dialogMessage"), message: SyncCopy.text("settings.sync.recovery.dialogDetail"), preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: SyncCopy.text("settings.sync.recovery.cancel"), style: .cancel) { _ in continuation.resume(returning: false) })
+            alert.addAction(UIAlertAction(title: SyncCopy.text("settings.sync.recovery.dialogCopy"), style: .default) { _ in continuation.resume(returning: true) })
+            presenter.present(alert, animated: true)
+        }
     }
 }

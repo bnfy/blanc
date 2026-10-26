@@ -7,6 +7,7 @@
 const { validProfileId } = require('./local-profile-model');
 const { recaseWorkspacesFile } = require('./group-name-case');
 const { savedSplitColumns } = require('./split-model');
+const { savedPolicyColumns } = require('./document-policy');
 // A workspace id must survive a round-trip through session.json's
 // `workspaceId` binding pointer, so the rule is DEFINED in session-workspace
 // and imported here — one direction only. Defining it here and importing it
@@ -43,6 +44,9 @@ function sanitizeName(raw) {
 // Always a NEW array. Returning the caller's array by reference would let a
 // later updateCapture (or a store write) mutate the object we normalized from.
 const asArray = (value) => (Array.isArray(value) ? value.slice() : []);
+const sharedRecordId=value=>typeof value==='string'&&/^[0-9a-f]{32}$/.test(value);
+const sharedTabColumn=(source,length)=>Array.isArray(source.tabIds)&&source.tabIds.length===length
+  ? {tabIds:source.tabIds.map(id=>sharedRecordId(id)?id:null)} : {};
 /** Where the Recently closed band sits among the Space's groups; the default
  * (0, under Pinned) is never written. */
 const closedSlotColumn = (source) => ({
@@ -68,6 +72,7 @@ function normalizeWorkspace(raw) {
   const meta = asArray(raw.meta);
   return {
     id: raw.id,
+    ...(raw.preservedLocal===true?{preservedLocal:true}:{}),
     name,
     profileId: raw.profileId,
     createdAt: Number.isFinite(raw.createdAt) ? raw.createdAt : 0,
@@ -82,10 +87,15 @@ function normalizeWorkspace(raw) {
     // writer moved the URL column, so the record survives without its meta
     // rather than pairing a title with the wrong tab.
     meta: meta.length === urls.length ? meta : [],
+    ...sharedTabColumn(raw,urls.length),
+    ...(sharedRecordId(raw.sharedId)?{sharedId:raw.sharedId}:{}),
+    ...(sharedRecordId(raw.sharedId)&&['active','dormant'].includes(raw.sharedLink)?{sharedLink:raw.sharedLink}:{}),
+    ...(sharedRecordId(raw.recoveredFrom)?{recoveredFrom:raw.recoveredFrom}:{}),
     ...(Array.isArray(raw.localFiles) && raw.localFiles.length === urls.length
       ? { localFiles: raw.localFiles.map((value) => value === true) } : {}),
     ...closedSlotColumn(raw),
     ...savedSplitColumns(raw, urls.length),
+    ...savedPolicyColumns(raw),
     // Identity fields only when valid; normalizeFile assigns the defaults.
     ...(Identity.normalizeHex(raw.color) ? { color: Identity.normalizeHex(raw.color) } : {}),
     ...(Identity.isSymbol(raw.symbol) ? { symbol: raw.symbol } : {}),
@@ -114,12 +124,18 @@ function normalizeFile(raw) {
   const source = raw && typeof raw === 'object' ? raw : {};
   const seen = new Set();
   const workspaces = [];
+  let ordinaryCount=0;
   for (const entry of asArray(source.workspaces)) {
     const workspace = normalizeWorkspace(entry);
     if (!workspace || seen.has(workspace.id)) continue;
     seen.add(workspace.id);
+    // A remote concurrent addition or a preservation copy must not disappear
+    // on the next disk read. Ordinary local creation still uses the cap.
+    if(!workspace.sharedId&&!workspace.recoveredFrom&&!workspace.preservedLocal) {
+      if(ordinaryCount>=MAX_WORKSPACES)continue;
+      ordinaryCount++;
+    }
     workspaces.push(workspace);
-    if (workspaces.length === MAX_WORKSPACES) break;
   }
   // v1 displayed most-recently-saved first; migrate that order once.
   if (source.version === 1) workspaces.sort((a, b) => b.updatedAt - a.updatedAt);
@@ -151,7 +167,7 @@ function loadFile(raw) {
   return { status: 'supported', file };
 }
 
-const OPTIONAL_CAPTURE_COLUMNS = ['localFiles', 'closedSlot', 'sectionOrder', 'closedIndex', 'splits', 'splitIds'];
+const OPTIONAL_CAPTURE_COLUMNS = ['localFiles', 'closedSlot', 'sectionOrder', 'closedIndex', 'splits', 'splitIds', 'documentPolicy', 'inheritsDocumentPolicy', 'tabIds'];
 
 /** The tab columns a capture carries, copied so the record never aliases the
  * live arrays main.js built it from. */
@@ -166,10 +182,13 @@ const captureColumns = (capture) => {
     groupIds: asArray(source.groupIds),
     pinned: asArray(source.pinned),
     meta: meta.length === urls.length ? meta : [],
+    ...sharedTabColumn(source,urls.length),
     ...(Array.isArray(source.localFiles) && source.localFiles.length === urls.length
       ? { localFiles: source.localFiles.map((value) => value === true) } : {}),
     ...closedSlotColumn(source),
     ...savedSplitColumns(source, urls.length),
+    // Page-opened tabs' document-policy marks (document-policy.js).
+    ...savedPolicyColumns(source),
   };
 };
 

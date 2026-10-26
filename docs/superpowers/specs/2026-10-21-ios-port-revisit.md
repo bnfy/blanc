@@ -234,11 +234,12 @@ TestFlight build is the companion, not a generic browser.
 | M0–M6 | Prototype: tabs, palette, `blanc://` pages, one rule list, theming, settings-lite, session restore | F1, F2, F5–F7, F12, F14–F16, F18 | Built July 2026, unreleased |
 | **M6.5** | Re-baseline (below) | — | This PR |
 | **Duo-1** | iPhone Duo foundation: iOS 27.1 SDK build, edge to edge on both displays, the regular-width pill and in-place palette, fold continuity, CI on the Duo simulator ([design](2026-10-21-ios-iphone-duo-design.md)) | F1, F6, D30 | After M6.5 |
-| **M7** | Profile Sync on iOS: pairing code, Favorites and settings, Other devices (desktop open tabs), send a tab to a device ([design](2026-10-23-ios-m7-profile-sync-design.md); M7a [plan](../plans/2026-10-23-ios-m7a-sync-foundation.md), M7b Send to device planned after it) | F27, F9 (read) | Next |
-| **M8** | Favorites and History, live on the `blanc://` pages | F9, F10 | |
-| **M9** | Private tabs | F4 | |
-| **M10** | Groups and Spaces from sync, shown read-only on the phone; Bangs; the full shared slash-command set; Find in page | F3, F41 (read), F47, F7, F8 | |
+| **M7** | Profile Sync on iOS: pairing code, Favorites and settings, Other devices (desktop open tabs), send a tab to a device ([design](2026-10-23-ios-m7-profile-sync-design.md); M7a [plan](../plans/2026-10-23-ios-m7a-sync-foundation.md), M7b [design](2026-10-24-ios-m7b-send-to-device-design.md) and [plan](../plans/2026-10-24-ios-m7b-send-to-device.md)) | F27, F9 (read) | M7a merged (#1068), unreleased; packaged-desktop pairing passed, real-iPhone check is a gate before TestFlight. M7b designed and planned; needs a Worker deploy before any client release offers it. |
+| **M8** | Favorites and History, live on the `blanc://` pages | F9, F10 | Implemented 2026-10-24 ([plan](../plans/2026-10-24-ios-m8-m9-favorites-history-private.md)), unreleased |
+| **M9** | Private tabs | F4 | Implemented 2026-10-24 (same plan as M8), unreleased |
+| **M10** | Groups and Spaces from sync, shown read-only on the phone; the full shared slash-command set; Find in page (Bangs moved after iOS 1.0, owner 2026-10-24) | F3, F41 (read), F7, F8 | After M11 |
 | **Duo-2** | Two-pane Split View and floating Glance at regular width (the Duo's inner display) | F53, F34, D30 | With M10 |
+| **M11** | Tab gestures: swipe the pill sideways to switch tabs, flick a tab up to close it ([feedback plan §7](2026-10-23-ios-user-feedback-plan.md)) | F56 | Next: [design](2026-10-24-ios-m11-tab-gestures-design.md), [plan](../plans/2026-10-24-ios-m11-tab-gestures.md); before M10 (owner, 2026-10-24) |
 | **Beta** | First TestFlight upload, with the default-browser entitlement | D4 | Cut line |
 | Later | Editing groups and Spaces on the phone, downloads, permissions, passkeys, Quiet Tabs semantics, interface language (D27), the full filter pipeline (M15, now including `WKWebExtension` DNR and user-script cosmetics as options) | F3, F11, F13, F24, F31, F44, F12 | After the beta |
 | Later (Duo-3) | The side list from synced groups and Spaces, tabletop video, multiple windows | F28, F32, D30 | After the beta |
@@ -249,6 +250,9 @@ ladder ([plan](2026-10-23-ios-user-feedback-plan.md)): Tab Sync on iPhone and
 an explicit Send to device stay in M7; M10's Spaces need a desktop Spaces sync
 step first (opt-in, end-to-end encrypted, reversing F41's "never sync"); a
 Pill position Bottom/Top setting joins *Later*; AI summaries are declined.
+On 2026-10-24 Arc users' two tab gestures (swipe the bottom bar to switch tabs,
+swipe up to close one) became F56 in a new milestone, **M11**, before the
+beta.
 
 ### M6.5: the re-baseline
 

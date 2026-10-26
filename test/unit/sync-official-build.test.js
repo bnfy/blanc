@@ -114,3 +114,10 @@ test('a recovery code is refused in a renamed build before anything is stored', 
   assert.equal(fetchCalls.length, 0);
   assert.equal(sync.status().enabled, false);
 });
+
+test('shared-library previews also refuse a renamed build without a request', async () => {
+  const result = await sync.sharedIndexPreview();
+  assert.equal(result.ok, false);
+  assert.equal(result.error, 'service-unavailable');
+  assert.deepEqual(fetchCalls, []);
+});

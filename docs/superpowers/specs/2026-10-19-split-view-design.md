@@ -23,6 +23,7 @@ A **split** is a small, named-by-its-tabs set of 2–4 ordinary tabs in one wind
 - **Adding a pane:** while a split is showing, **Add to Split…** (pane header menu, the tab menu's **Add to Split**, `/split`) opens the same picker and adds the chosen tab as a new pane, up to four. With four panes the action is disabled, and its tooltip says why.
 - **Eligible tabs:** any tab in the window that isn't already in a split, including private tabs (a private pane shows the private chip, as a private Glance reference does). A split never crosses windows or profiles.
 - While a split is showing, **Open Glance** becomes **Add to Split…**. Glance and a visible split never coexist in one window.
+- **Open in Glance from a pane menu (owner direction, 2026-10-24):** in a two-pane split, either pane can be removed from the split and opened as a floating Glance over the remaining tab. The split dissolves, both existing pages keep their state, and closing Glance leaves its tab open. This applies to the focused pane too; other tabs cannot open Glance over a still-visible split.
 - **Which group wins.** The initiating tab decides the split's group:
   - **Keep as split:** the Glance main page.
   - **Split with ▸:** the right-clicked tab.

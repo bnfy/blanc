@@ -1,9 +1,25 @@
 const { app, BrowserWindow, View, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences, desktopCapturer, screen } = require('electron');
+// Playwright's loader forces --password-store=basic before loading this entry.
+// Sync acceptance uses a real, unlocked CI keyring: select it before ready,
+// after that loader, without relaxing safeStorage's plaintext-fallback guard.
+if (!app.isPackaged && process.platform === 'linux' && process.env.BLANC_TEST === '1'
+    && process.env.BLANC_TEST_SECURE_STORAGE === '1') {
+  app.commandLine.removeSwitch('password-store');
+  app.commandLine.appendSwitch('password-store', 'gnome-libsecret');
+}
 const { enforceLinuxSandbox } = require('./linux-sandbox-launch');
 if (!enforceLinuxSandbox({ app, dialog, shell, clipboard })) return;
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const packageMetadata = require('../../package.json');
+const drmSupport = require('./drm-support').createDrmSupport({
+  app, session, BrowserWindow, metadata: packageMetadata,
+  components: packageMetadata.blancRuntime === 'ecs' ? require('electron').components : undefined,
+});
+// A DRM build never loads local files, so their saved tabs are records only
+// (kept even when the file is missing). Set before anything restores or saves.
+require('./local-html-files').setLocalFilesRecordOnly(drmSupport.enabled);
 const { installMacOSQuitVisibilityGate } = require('./macos-quit');
 const {
   savesSessionEntry,
@@ -51,6 +67,7 @@ const { createMainI18n, testOverrides: i18nTestOverrides } = require('./i18n');
 const I18N_LOCALES = require('./i18n-locales.json');
 const { popupGeometry, validPopupSender, validPopupMessage, wirePopupDismissal } = require('./ublock-popup-host');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
+const { createReaderMode } = require('./reader-mode');
 const { createDarkWebsitesService } = require('./dark-websites-service');
 const { browserCommandDefinition, createBrowserCommandExecutor, installBrowserShortcuts, matchBrowserShortcut } = require('./browser-shortcuts');
 const { queueTabNavigation, reloadContents } = require('./tab-navigation');
@@ -154,6 +171,9 @@ const { shouldRemindDefaultBrowser, REMINDER_DELAY_MS } = require('./default-bro
 const { execFileSync, spawn } = require('node:child_process');
 const diagnostics = require('./diagnostics');
 const sync = require('./sync');
+const sharedSpaceState = require('./shared-spaces');
+const sharedSpaceModel = require('./shared-spaces-model');
+const { createRuntimeSync } = require('./shared-spaces-runtime');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
@@ -184,7 +204,8 @@ const { installDockMenu } = require('./dock-menu');
 const { createDockReopenLifecycle } = require('./dock-reopen');
 /** Handle from installDockMenu ({ update }); null until app-ready (macOS). */
 let dockMenuHandle = null;
-const { buildTabContextMenu, pinLabelKey, closableTabIds, closableBeside, pickSurvivorTabId } = require('./tab-context-menu-model');
+const { buildTabContextMenu, pinLabelKey, closableTabIds, closableBeside, pickSurvivorTabId, isCopyable } = require('./tab-context-menu-model');
+const { cleanLinkForCopy } = require('./clean-link');
 const { attachChromeMenu, attachRowMenu, toElectronTemplate: tabMenuTemplate } = require('./tab-context-menu');
 const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
 const settings = require('./settings');
@@ -217,6 +238,8 @@ const { siteKey: topSiteKey } = require('./top-sites');
 const startPagePins = require('./start-page-pins');
 const { JsonStore, discardProfileStoreEntries, enableTempSweep } = require('./store');
 const { persistableUrl, persistableEntries, sessionTabMeta, metaAfterHistoryClear } = require('./session-snapshot');
+const { runSpaceMove, appendTabToCapture, emptiedCapture } = require('./space-move');
+const documentPolicy = require('./document-policy');
 const { pinnedHomeFor, applyPinnedHomes } = require('./pinned-home');
 const { normalizeTabName, displayTitle, resolveTabRename } = require('./tab-name');
 const {
@@ -319,6 +342,7 @@ const {
   commandTargetTab,
   focusedPane,
   glanceLayoutPayload,
+  foregroundOpenRole,
 } = require('./glance-focus');
 const { moveTab: resolveTabMove, reorderItems } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot } = require('./closed-slot');
@@ -332,6 +356,9 @@ const { normalizeGroupName, sameGroupName, recaseSessionData } = require('./grou
 const { sanitizeGroupColor, groupRecord } = require('./group-color');
 const { deviceNamesEqual } = require('./device-names');
 const { attachDeviceHeaderMenu } = require('./device-context-menu');
+const { planTabEdits, runPerTab } = require('./tabs-batch');
+const { emptySelection, selectionState, pruneSelection, selectTabs, selectionRows } = require('./tab-selection');
+const { canOpenLinkInSpace, linkTitle, openLinkInSpace: openLinkInSpaceWith } = require('./space-open-link');
 const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const { HOVER_OPEN_DWELL_MS, initialHoverState, pointInRect, hoverStep } = require('./island-hover-open');
@@ -349,6 +376,7 @@ const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-
 const { createExternalUrlHandoff } = require('./external-url-handoff');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { isSupportedLocalHtmlUrl, restorableLocalHtmlUrl } = require('./local-html-files');
+const { localFileTabPlan, keepsLocalFile, isInertRecord, recordTitle } = require('./inert-local-file');
 const { createTabImportSessionStore, SESSION_TTL_MS } = require('./tab-import-session');
 const {
   sanitizeCandidateInput,
@@ -1603,6 +1631,13 @@ let activeTabHandoffRequest = null;
 // offline filter failure always has a usable recovery surface.
 let startupNavigationGateActive = false;
 const startupQueuedNavigations = new Map();
+// Default-off gate diagnostics (BLANC_NAVIGATION_TRACE); never alters a decision.
+const { navigationTrace } = require('./navigation-trace');
+// Navigations the startup/profile gate refused and queued: their own failure
+// can arrive after the gate replayed them (src/main/gate-refusals.js).
+const gateRefusals = require('./gate-refusals').createGateRefusals();
+// A provider or policy cancelling a replayed request is a real block: show it.
+blockingCoordinator.observeCancel(({ webContentsId, url }) => gateRefusals.disarm(webContentsId, url));
 const profileNavigationGates = require('./profile-navigation-gates').createProfileNavigationGates({
   coordinator: blockingCoordinator, queued: startupQueuedNavigations,
   resolveContents: id => {
@@ -1613,6 +1648,9 @@ const profileNavigationGates = require('./profile-navigation-gates').createProfi
   ready: profileId => blockingProviders?.status(profileId).phase === 'ready',
   enabled: () => settings.getSettings().adblockEnabled,
   startupActive: () => startupNavigationGateActive,
+  trace: navigationTrace,
+  onRefused: (webContentsId, url) => gateRefusals.noteRefused(webContentsId, url),
+  onReplay: (webContentsId, url) => gateRefusals.armReplay(webContentsId, url),
 });
 
 function installStartupNavigationGate(sessions) {
@@ -1625,9 +1663,15 @@ function installStartupNavigationGate(sessions) {
     ) {
       return false;
     }
+    let queued = false;
     if (details.method === 'GET' && Number.isInteger(details.webContentsId) && details.webContentsId > 0) {
       startupQueuedNavigations.set(details.webContentsId, details.url);
+      gateRefusals.noteRefused(details.webContentsId, details.url);
+      queued = true;
     }
+    const gateTab = tabs.get(tabIdByWebContentsId.get(details.webContentsId));
+    navigationTrace.record('startup-gate-cancel', { requestId: details.id, webContentsId: details.webContentsId, navEpoch: gateTab?.navEpoch,
+      private: gateTab?.private, resourceType: details.resourceType, url: details.url, method: details.method, queued });
     return true;
   };
   for (const browsingSession of sessions) {
@@ -1636,6 +1680,7 @@ function installStartupNavigationGate(sessions) {
 }
 
 function releaseStartupNavigationGate(sessions, { blockerAttached }) {
+  navigationTrace.record('startup-gate-release', { count: startupQueuedNavigations.size, outcome: blockerAttached ? 'blocker-attached' : 'continued-without-blocker' });
   startupNavigationGateActive = false;
   for (const browsingSession of sessions) blockingCoordinator.setGate(browsingSession, null);
   // A successful blocker attachment has already replaced the temporary
@@ -1656,7 +1701,10 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
 
   const queued = [...startupQueuedNavigations.entries()];
   for (const [webContentsId, url] of queued) {
-    if (profileNavigationGates.owns(webContentsId)) continue;
+    if (profileNavigationGates.owns(webContentsId)) {
+      navigationTrace.record('startup-gate-replay', { webContentsId, outcome: 'profile-gate-owns' });
+      continue;
+    }
     startupQueuedNavigations.delete(webContentsId);
     // A throwing predicate does not skip an entry — it propagates out of find
     // and leaves every queued tab behind the startup gate. This two-step read
@@ -1665,7 +1713,13 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
       (candidate) => liveContents(candidate)?.id === webContentsId
     );
     const wc = liveContents(tab);
-    if (!wc) continue;
+    if (!wc) {
+      gateRefusals.forget(webContentsId);
+      navigationTrace.record('startup-gate-replay', { webContentsId, private: tab?.private, outcome: 'no-live-tab' });
+      continue;
+    }
+    navigationTrace.record('startup-gate-replay', { webContentsId, navEpoch: tab.navEpoch, private: tab.private, url, outcome: 'replayed' });
+    gateRefusals.armReplay(webContentsId, url);
     wc.loadURL(url).catch(() => {});
   }
 }
@@ -1821,6 +1875,10 @@ function openExternalUrls(urls) {
 
 function openLocalHtmlFiles(paths) {
   if (paths?.length) launchHandedUrls = true;
+  if (drmSupport.enabled) {
+    void drmSupport.openLocalFiles(paths).catch(() => console.warn('Local HTML preview could not open'));
+    return;
+  }
   externalUrlHandoff.openLocalFiles(paths);
 }
 
@@ -2182,6 +2240,118 @@ const darkWebsites = createDarkWebsitesService({
   },
 });
 let darkWebsitesStylesheetSeq = 0;
+
+// Reader content has its own sandbox and never replaces a source tab's identity.
+const readerMode = createReaderMode({
+  ipcMain, t: mainI18n.t, tab: id => tabs.get(id),
+  stringsScript: () => mainI18n.stringsScript(),
+  owner: tab => windowRuntimes.runtimeForTab(tab.id),
+  visible: tab => isVisiblePaneId(windowRuntimes.runtimeForTab(tab.id), tab.id),
+  broadcast: tab => {
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (owner) withWindowRuntime(owner, () => scheduleBroadcastTabs());
+  },
+  changed: tab => {
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (!owner?.window || owner.window.isDestroyed()) return;
+    withWindowRuntime(owner, () => {
+      if (isVisiblePaneId(owner, tab.id)) {
+        delete tab.splitRounded; delete tab.glanceRounded;
+        setTabViewVisible(tab, true); attachTabViewToWindow(tab);
+        resizeActiveView(); restackAboveTabViews(); presentationContents(tab)?.focus();
+      }
+      broadcastTabs();
+    });
+  },
+  detach: (tab, view) => {
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (owner?.window && !owner.window.isDestroyed()) {
+      const window = owner.window;
+      const wc = liveViewContents(view);
+      if (wc?.isFocused()) window.webContents.focus();
+      const remove = () => {
+        if (!window.isDestroyed() && window.contentView.children.includes(view)) window.contentView.removeChildView(view);
+      };
+      // Aura restores native focus during WebContents destruction. Keep the
+      // hidden companion rooted until that stack returns, like ordinary tabs.
+      if (process.platform !== 'darwin' && wc) wc.once('destroyed', () => setImmediate(remove));
+      else remove();
+    }
+  },
+  wire: (tab, wc, owner) => {
+    tabIdByWebContentsId.set(wc.id, tab.id);
+    wc.once('destroyed', () => tabIdByWebContentsId.delete(wc.id));
+    installChromeShortcuts(wc, owner);
+    watchCursorFor(wc, () => currentTabBounds(tab), fn => bindWindowRuntime(owner, fn));
+  },
+  focused: tab => {
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (owner) withWindowRuntime(owner, () => noteFocusedPane(owner, tab.id));
+  },
+  findResult: (tab, result) => {
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (owner && findTargetTabId(owner) === tab.id) owner.overlayView?.webContents.send('chrome:find-result', {
+      activeMatchOrdinal: result.activeMatchOrdinal, matches: result.matches,
+    });
+  },
+  openInGlance: (tab, url) => {
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (owner && webReaderLink(url)) return withWindowRuntime(owner, () => openLinkInGlance(tab, url));
+  },
+  openLink: (tab, url, disposition) => {
+    if (!webReaderLink(url)) return;
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (!owner) return;
+    withWindowRuntime(owner, () => {
+      if (disposition === 'current-tab') {
+        readerMode.exit(tab);
+        liveContents(tab)?.loadURL(url).catch(() => {});
+        return;
+      }
+      const id = createTab(url, { private: tab.private });
+      if (disposition === 'new-window') moveTabToNewWindow(id);
+      else if (disposition === 'foreground-tab') {
+        if (foregroundOpenRole(owner, tab.id) === 'glance') void setGlanceTab(id).catch(() => {});
+        else setActiveTab(id);
+      }
+    });
+  },
+  allowImage: async (tab, url) => {
+    const wc = liveContents(tab);
+    const provider = blockingProviders?.effectiveForTab(tab);
+    if (!wc || !provider) return false;
+    // Node's pinned-address transport cannot inherit Chromium proxy auth or
+    // PAC routing. Omit the image instead of connecting around that policy.
+    if (await wc.session.resolveProxy(url) !== 'DIRECT') return false;
+    const decision = await provider.decide('onBeforeRequest', {
+      id: `reader-image-${++readerImageSeq}`, url, method: 'GET', resourceType: 'image',
+      webContentsId: wc.id, frame: wc.mainFrame, referrer: wc.getURL(), timestamp: Date.now(),
+    });
+    return !!decision && decision.cancel !== true && !decision.redirectURL;
+  },
+  resolveImageHost: async (tab, host) => {
+    const wc = liveContents(tab);
+    if (!wc) return [];
+    const result = await wc.session.resolveHost(host);
+    return (result?.endpoints ?? []).map(endpoint => ({ address: endpoint.address,
+      family: require('node:net').isIP(endpoint.address) }));
+  },
+});
+let readerImageSeq = 0;
+function webReaderLink(url) { return require('./reader-model').webUrl(url) !== null; }
+function presentationView(tab) { return readerMode.view(tab); }
+function presentationContents(tab) { return liveViewContents(presentationView(tab)); }
+async function toggleReaderMode(tab) {
+  const ok = await readerMode.toggle(tab);
+  if (!ok && tab && tabs.get(tab.id) === tab) {
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (owner?.window && !owner.window.isDestroyed()) dialog.showMessageBox(owner.window, {
+      type: 'info', message: mainI18n.t('reader.unavailable'), buttons: [mainI18n.t('dialog.ok')],
+    });
+  }
+  return ok;
+}
+
 /**
  * @typedef {object} SleepSnapshot
  * @property {import('electron').WebContentsView|null} view
@@ -2299,6 +2469,7 @@ let sleepTeardownInProgress = false;
  * this same contents is a reload without copying site data into Blanc.
  */
 async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpoch }) {
+  readerMode.forget(tab);
   const rendererIsExclusive = () => {
     try { return hasExclusiveRenderer(wc, webContents.getAllWebContents()); }
     catch { return false; }
@@ -2442,6 +2613,7 @@ async function quietTab(id, { broadcast = true } = {}) {
     return refuse(`storage:${quieted}`);
   }
 
+  readerMode.forget(tab);
   sleepTeardownInProgress = true;
   const wcId = wc.id;
   // Remove Blanc's stale-document listeners, but preserve Electron's own.
@@ -2723,7 +2895,9 @@ function commitWake(tab, generation) {
 async function failWake(tab, generation, { failedUrl = tab.url } = {}) {
   if (tab.wakeGeneration !== generation) return false;
   const wc = liveContents(tab);
-  if (wc) {
+  // An inert tab never gets an error page offering to load its page: it
+  // stays as it is (document-policy.js).
+  if (wc && !tab.inert) {
     const q = new URLSearchParams({
       url: failedUrl ?? '', code: 'wake-failed',
       desc: mainI18n.t('error.reloadFailed'), title: tab.title ?? '',
@@ -2778,13 +2952,29 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
   const tab = tabs.get(id);
   if (!tab) return false;
   if (!tab.asleep) return true;
+  if(tab.sharedPendingNav){navigateTo??=tab.sharedPendingNav;delete tab.sharedPendingNav;}
+  // A page-opened tab is never rebuilt with its own page (document-policy.js):
+  // its view only ever shows Blanc's explanation page, whatever was asked.
+  if (tab.inheritsDocumentPolicy && !tab.inert) tab.inert = true;
+  // A plain wake while one is under way joins it (below) rather than
+  // starting the explanation page's load over.
+  const joinsWake = tab.waking && !!liveContents(tab) && navigateTo === null && atIndex === null;
+  if (tab.inert && !joinsWake) {
+    navigateTo = documentPolicy.inertPageUrl(persistableUrl(tab.url), tab.title);
+    atIndex = null;
+  }
   if (startupNavigationGateActive) {
     pendingWakes.add(id);
     return false;
   }
 
   const owner = windowRuntimes.runtimeForTab(id) ?? primaryRuntime;
-  const snapshot = sleepSnapshots.get(id);
+  const stored = sleepSnapshots.get(id);
+  // An inert local-file record never replays history or moves within it: it
+  // only reloads its placeholder (a retained view keeps its renderer handoff).
+  const inert = isInertRecord(tab);
+  if (inert) atIndex = null;
+  const snapshot = inert && stored ? { ...stored, entries: [] } : stored;
   let wc;
   let generation;
   let retained = false;
@@ -3078,7 +3268,14 @@ function restoreArchivedEntry(entryId) {
   const entry = archive.takeEntry(String(entryId ?? ''));
   if (!entry) return false;
   // Archived tabs were never pinned, so there is no home to carry.
-  const id = createTab(entry.url, { customTitle: entry.customTitle ?? null, pinnedHomeUrl: null });
+  const id = createTab(entry.url, {
+    customTitle: entry.customTitle ?? null,
+    pinnedHomeUrl: null,
+    // Shown until the page loads; an inert tab never loads it.
+    title: entry.title ?? null,
+    favicon: entry.favicon ?? null,
+    inheritsDocumentPolicy: documentPolicy.restoredEntryMarker(entry),
+  });
   if (!id) return false;
   setActiveTab(id, { focusContent: true, focusAddress: false });
   return true;
@@ -3089,6 +3286,16 @@ function restoreArchivedEntry(entryId) {
  *  walk of `tabs` dereferencing view.webContents there is both the hot path and
  *  a crash once a tab can exist without a view. */
 const tabIdByWebContentsId = new Map();
+// An inert tab's view shows only Blanc's own page (document-policy.js). Its
+// will-navigate guard turns a click into a new tab; this cancels every other
+// main-frame request it would make (main-process loads, history, reloads,
+// redirect hops) before it leaves the browser, in every session.
+function inertRequestVeto(details) {
+  if (details.resourceType !== 'mainFrame' || !Number.isInteger(details.webContentsId)) return false;
+  const tab = tabs.get(tabIdByWebContentsId.get(details.webContentsId));
+  return !!tab?.inert && !documentPolicy.inertViewMayShow(details.url);
+}
+blockingCoordinator.setVeto(inertRequestVeto);
 
 /** Stop allowing (certificate spec §4.5): forget the active tab's origin in
  *  its session, drop pooled connections, and reload so the warning returns.
@@ -3923,7 +4130,7 @@ function ensureGlanceCardView(runtime = rt()) {
     resolveActiveTab: bindWindowRuntime(runtime, () => tabContextData(tabs.get(rt().activeTabId), runtime)),
     resolveTab: bindWindowRuntime(runtime, (rawId) => {
       const id = tabs.has(rawId) ? rawId : (tabs.has(Number(rawId)) ? Number(rawId) : null);
-      return id == null ? null : tabContextData(tabs.get(id), runtime);
+      return id == null ? null : tabRowContextData(tabs.get(id), runtime);
     }),
     actions: menuContextActions(runtime),
     getOffset: () => {
@@ -3953,14 +4160,14 @@ function restackGlanceCard() {
   const cardView = liveGlanceCardView();
   if (!glanceTab?.view || !cardView || !hasLiveWindow()) return;
   rt().window.contentView.addChildView(cardView);
-  rt().window.contentView.addChildView(glanceTab.view);
+  rt().window.contentView.addChildView(presentationView(glanceTab));
 }
 
 /** The Glance page's view gets rounded corners inside the card's frame; it
  * goes back to square when it leaves the card. */
 function roundGlancePage(tab, rounded) {
   if (!liveContents(tab) || !!tab.glanceRounded === rounded) return;
-  tab.view.setBorderRadius(rounded ? GLANCE_PAGE_RADIUS : 0);
+  presentationView(tab).setBorderRadius(rounded ? GLANCE_PAGE_RADIUS : 0);
   tab.glanceRounded = rounded;
 }
 
@@ -4055,7 +4262,7 @@ function keepIslandFloatOnTop(runtime = rt()) {
     .map((view) => children.indexOf(view)).filter((index) => index >= 0);
   if (!floats.length) return;
   const lowestFloat = Math.min(...floats);
-  const pages = [...tabs.values()].filter((tab) => liveContents(tab)).map((tab) => tab.view);
+  const pages = [...tabs.values()].filter((tab) => liveContents(tab)).map((tab) => presentationView(tab));
   const corners = [...runtime.splitCornerViews.values()].map((entry) => entry.view);
   if ([...pages, ...corners].some((view) => children.indexOf(view) > lowestFloat)) {
     withWindowRuntime(runtime, () => restackAboveTabViews());
@@ -4362,7 +4569,7 @@ function onSplitCornerInput(entry, input) {
   } else if (rt().activeTabId !== entry.tabId) {
     setActiveTab(entry.tabId);
   }
-  liveContents(tabs.get(rt().activeTabId))?.focus();
+  presentationContents(tabs.get(rt().activeTabId))?.focus();
 }
 
 function splitCornerModel(tab, focused) {
@@ -4421,7 +4628,7 @@ function placeSplitCorner(runtime, entry) {
   const pane = tabs.get(entry.tabId);
   const bounds = entry.width ? cornerTabBounds(entry.frame, entry.width) : null;
   const children = window.contentView.children;
-  const below = liveContents(pane) ? children.indexOf(pane.view) : -1;
+  const below = liveContents(pane) ? children.indexOf(presentationView(pane)) : -1;
   if (!bounds || below < 0) {
     if (children.includes(entry.view)) hideOverlayView(window, entry.view);
     return;
@@ -4472,7 +4679,7 @@ function syncSplitCornerTabs(geometry, place = (bounds) => bounds, runtime = rt(
  *  gets its square corners back. */
 function roundSplitPane(tab, rounded) {
   if (!liveContents(tab) || !!tab.splitRounded === rounded) return;
-  tab.view.setBorderRadius(rounded ? PANE_RADIUS - PANE_BORDER : 0);
+  presentationView(tab).setBorderRadius(rounded ? PANE_RADIUS - PANE_BORDER : 0);
   tab.splitRounded = rounded;
 }
 
@@ -4690,9 +4897,10 @@ function reopenSplitEntry(entry) {
       asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
       pinnedHomeUrl: member.pinnedHomeUrl,
       allowLocalFile: member.localFile === true,
-      openerSandboxFlags: member.openerSandboxFlags,
+      inheritsDocumentPolicy: member.inheritsDocumentPolicy === true,
     });
-    if (id && member.snapshot) {
+    // An inert local-file record never replays history (inert-local-file.js).
+    if (id && member.snapshot && !isInertRecord(tabs.get(id))) {
       sleepSnapshots.set(id, {
         view: null,
         entries: member.snapshot.entries,
@@ -5198,6 +5406,7 @@ function createOverlay() {
     if (overlayDragActive(rt())) return;
     if (rt().overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
+      if (['panel', 'palette'].includes(rt().overlayMode) && !rt().workspaceSwitcherOpen && clearTabSelection()) return;
       if ((rt().workspaceSwitcherOpen || rt().overlayMode === 'shield' || rt().overlayMode === 'group-menu')
         && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
         rt().overlayView.webContents.send('overlay:escape');
@@ -5285,7 +5494,7 @@ function createOverlay() {
     t: mainI18n.t,
     resolveTab: bindWindowRuntime(owner, (rawId) => {
       const id = tabs.has(rawId) ? rawId : (tabs.has(Number(rawId)) ? Number(rawId) : null);
-      return id == null ? null : tabContextData(tabs.get(id), owner);
+      return id == null ? null : tabRowContextData(tabs.get(id), owner);
     }),
     actions: menuContextActions(owner),
   });
@@ -5428,6 +5637,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   bumpGlanceRequestEpoch();
   const closingMode = rt().overlayMode;
   const closingPurpose = rt().overlayPurpose;
+  if (closingPurpose?.newSpaceLinkTitle != null) rt().newSpaceLink = null;
   const closingTrigger = rt().shieldTrigger;
   rt().overlayMode = null;
   rt().overlayPurpose = null;
@@ -5500,7 +5710,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
     const closedTrigger = closingMode === 'group-menu' && typeof closingPurpose?.groupId === 'string'
       ? `group-menu:${closingPurpose.groupId}` : null;
     stripSurfaces(rt()).send('chrome:island-state', { mode: null, trigger: closedTrigger, restoreTrigger });
-    if (refocusContent && !restoreTrigger) liveContents(tabs.get(rt().activeTabId))?.focus();
+    if (refocusContent && !restoreTrigger) presentationContents(tabs.get(rt().activeTabId))?.focus();
     if (retracts) {
       // Wake proximity from where the cursor is now. Moves over the expanded
       // overlay are never watched, so waiting for the next one would leave the
@@ -5804,7 +6014,7 @@ function hideUtilitySheet({ refocusContent = true, discardTabHandoff = true } = 
     hideOverlayView(runtime.window, sheet.view);
     sheet.view.setVisible(false);
   }
-  if (refocusContent) liveContents(tabs.get(runtime.activeTabId))?.focus();
+  if (refocusContent) presentationContents(tabs.get(runtime.activeTabId))?.focus();
   broadcastStartPageUtilitySheetVisibility(runtime, false);
 }
 
@@ -5839,7 +6049,7 @@ function noteFocusedPane(owner, tabId) {
     setImmediate(() => withWindowRuntime(owner, () => {
       const tab = tabs.get(tabId);
       if (!visibleSplitTabIds(owner).includes(tabId) || owner.activeTabId === tabId) return;
-      if (liveContents(tab)?.isFocused?.() !== true) return;
+      if (presentationContents(tab)?.isFocused?.() !== true) return;
       setActiveTab(tabId, { focusContent: false });
     }));
     return;
@@ -5859,7 +6069,7 @@ function noteFocusedPane(owner, tabId) {
  * surface took focus) the record stays as it was. */
 function syncFocusedPane(owner) {
   if (!owner) return;
-  const id = livePaneId(owner, (tabId) => liveContents(tabs.get(tabId)));
+  const id = livePaneId(owner, (tabId) => presentationContents(tabs.get(tabId)));
   if (id != null) noteFocusedPane(owner, id);
 }
 
@@ -6124,9 +6334,10 @@ function normalizeAddressInput(input) {
 
 /** The full typed-address routing pipeline — shared by the tabs:navigate IPC
  * handler and the address-bar menu's Paste and Go, so the two can't drift. */
-function navigateTabToAddress(id, rawText) {
+function navigateTabToAddress(id, rawText, { shared = false } = {}) {
   const tab = tabs.get(id);
   if (!tab) return;
+  if(!shared&&tab.sharedTabId)sharedRuntimeSync.supersede(windowRuntimes.runtimeForTab(id)??rt(),tab.sharedTabId,'nav');
   // Checked against the raw address-bar text, before normalizeAddressInput
   // — a bare mailto:/tel: URI has no "://" and would otherwise fall
   // through its domain-guessing heuristic into an unreachable https:// URL.
@@ -6147,6 +6358,12 @@ function navigateTabToAddress(id, rawText) {
   }
   // A typed utility address opens the sheet, never navigates the tab.
   if (isUtilityUrl(target)) return openInternalPage(target);
+  // An inert tab stays as it is (document-policy.js): a typed address opens
+  // in a new ordinary tab instead, as it would after copying the link.
+  if (tab.inert) {
+    setActiveTab(createTab(target, { private: tab.private }), { focusContent: true });
+    return;
+  }
   rt().tabsWantingAddressBarFocus.delete(id);
   // A quiet tab navigates in one step: restore() and a navigation are mutually
   // exclusive, so this spends the snapshot and loads the target directly.
@@ -6200,6 +6417,7 @@ function serializeTabs() {
       // cross this boundary merely because they were added to a tab record.
       const rest = {
         id: tab.id,
+        syncNotSynced:tab.sharedUnsynced===true,
         // F46: the label to draw — the person's name when renamed, else the
         // page's title. pageTitle carries the page's own title only while the
         // tab is renamed (tooltips, Quick Switcher). Inline on purpose: tests
@@ -6208,7 +6426,7 @@ function serializeTabs() {
         pageTitle: tab.customTitle ? tab.title : null,
         url: tab.url,
         isLoading: tab.isLoading,
-        canGoBack: tab.canGoBack,
+        canGoBack: tab.readerActive === true || tab.canGoBack,
         canGoForward: tab.canGoForward,
         favicon: rendererFavicon(tab.favicon),
         bookmarked: tab.bookmarked,
@@ -6235,6 +6453,8 @@ function serializeTabs() {
         // Ambient login-form hint — display state only, never persisted
         // or synced (spec §5).
         fillHint: tab.fillHint === true,
+        readerAvailable: tab.readerAvailable === true,
+        readerActive: tab.readerActive === true,
       };
       // Whether ads are allow-listed here. Derived rather than stored: the
       // exception list is edited from Settings and the slash commands alike,
@@ -6326,7 +6546,7 @@ let isQuitting = false;
 // pages it lost. A new main window clears it: Blanc did not quit after all.
 let sessionHeldForQuit = false;
 let sessionPersistenceSuspended = false;
-const restartApp = createAppRestarter({ app, webContents, onCancelled: () => {
+const restartApp = createAppRestarter({ app, webContents, beforeRelaunch: drmSupport.beforeRelaunch, onCancelled: () => {
   isQuitting = false;
   for (const runtime of windowRuntimes.all()) {
     if (runtime.window && !runtime.window.isDestroyed()) { runtime.closing = false; runtime.window.show(); }
@@ -6349,6 +6569,8 @@ app.on('will-quit', () => {
   onePasswordBroker?.stop();
 });
 app.on('before-quit', () => {
+  // Shared targets were persisted before materialization. Leave them for
+  // restoration rather than starting or waiting on page loads during quit.
   glanceCards.flush(); // a card moved inside the save debounce keeps its place
   forEachWindowRuntime((runtime) => {
     if (!runtime.closing && !runtime.workspaceTransition && runtime.workspaceId) {
@@ -6374,7 +6596,7 @@ function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
   // and url-less adopted children drop out in lockstep with their metadata.
   syncTabLayout(runtime);
   const entries = persistableEntries(runtime.tabOrder.map((id) => tabs.get(id)));
-  const persistedGroups = runtime.groups.filter((group) => entries.some((item) => item.groupId === group.id));
+  const persistedGroups = runtime.groups.filter(group=>entries.some(item=>item.groupId===group.id)||(runtime.sharedGroupPersistence&&runtime.sharedGroupIds?.includes(group.id)));
   // The band's place counts only items that are written, so a private tab or
   // a group held only by private tabs never shifts it on the next launch.
   // closedIndex counts groups and ungrouped tabs; closedSlot, the rollback
@@ -6399,11 +6621,14 @@ function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
     groupIds: entries.map((item) => item.groupId),
     pinned: entries.map((item) => item.pinned),
     meta: entries.map((item) => sessionTabMeta(tabs.get(item.id))),
+    ...(entries.some(item=>tabs.get(item.id)?.sharedTabId)?{tabIds:entries.map(item=>tabs.get(item.id)?.sharedTabId??null)}:{}),
     ...(entries.some((item) => tabs.get(item.id)?.localFile === true) ? {
       localFiles: entries.map((item) => tabs.get(item.id)?.localFile === true),
     } : {}),
     groups: persistedGroups,
     ...savedWindowSplits(runtime, entries),
+    // Every tab's document-policy mark, under a stamp (document-policy.js).
+    ...documentPolicy.stampedColumn(entries.map((item) => tabs.get(item.id))),
     ...(closedSlot > 0 ? { closedSlot } : {}),
     sectionOrder: true,
     ...(closedIndex > 0 ? { closedIndex } : {}),
@@ -6658,15 +6883,57 @@ function activeShieldPopover(serialized = serializeTabs()) {
   return model ? { ...model, controls, darkSite: darkWebsites.siteState(tab) } : null;
 }
 
+function clearTabSelection() {
+  const had = rt().selectedTabIds?.length > 0;
+  Object.assign(rt(), emptySelection());
+  rt().selectionRevision = (rt().selectionRevision ?? 0) + 1;
+  if (had) broadcastTabs();
+  return had;
+}
+function selectTabRows(id, mode) {
+  if (rt().resident || rt().closing || rt().workspaceTransition) return null;
+  const result = selectTabs(rt(), tabLayoutList(rt()), rt().groups, rt().activeTabId, id, mode);
+  const { focusId, ...selection } = result;
+  Object.assign(rt(), selection);
+  rt().selectionRevision = (rt().selectionRevision ?? 0) + 1;
+  broadcastTabs();
+  return focusId;
+}
+
+function sharedClosedBand(runtime) {
+  const local=projectEntries(runtime.closedEntries??[]).map((row,index)=>({...row,closedAt:runtime.closedEntries[index].closedAt}));
+  if(!isSharedSpacesOffered()||runtime.profileId!==DEFAULT_PROFILE_ID||!sync.sharedStatus().enabled)return local;
+  const ctx=sync.sharedContext(),entries=runtime.closedEntries??[],seen=new Set(entries.flatMap(row=>[row,...(row.tabs??[])].map(item=>item.syncedId??item.sharedTabId)).filter(Boolean));
+  const inbox=syncedClosed.inbox(ctx);
+  for(let i=0;i<local.length;i++)if(entries[i].sharedFrom)local[i].fromName=inbox.find(row=>row.id===entries[i].sharedTabId)?.fromName??entries[i].sharedFrom;
+  const unique=new Map(),state=sharedSpaceState.snapshot(ctx);
+  for(const row of inbox){const previous=unique.get(row.id),origin=state.blobs[row.spaceId]?.blob.tabs[row.id]?.deleted?.by;if(!previous||row.fromId===origin||(previous.fromId!==origin&&row.closedAt<previous.closedAt))unique.set(row.id,row);}
+  const remote=[...unique.values()].filter(row=>!seen.has(row.id)).map(row=>({id:'shared:'+row.id,title:row.title,fromName:row.fromName,favicon:null,tabCount:1,closedAt:row.closedAt}));
+  return [...remote,...local].sort((a,b)=>(a.closedAt??0)-(b.closedAt??0)).map(({closedAt:_time,...row})=>row);
+}
+function reopenSharedClosedEntry(id) {
+  if(!isSharedSpacesOffered()||rt().profileId!==DEFAULT_PROFILE_ID||!String(id).startsWith('shared:'))return false;
+  const row=syncedClosed.hide(sync.sharedContext(),String(id).slice(7));if(!row)return false;
+  const tabId=createTab(row.url,{title:row.title});if(tabId)setActiveTab(tabId);return true;
+}
+function clearSharedClosedEntries() {
+  if(isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID&&sync.sharedStatus().enabled)syncedClosed.clear(sync.sharedContext());
+  return clearClosedEntries();
+}
 function currentTabsPayload() {
   const widthMetrics = verticalTabsMetrics();
   // Serialize once and hand the same list to the popover, so connection is
   // derived a single time per broadcast.
-  const serialized = serializeTabs();
   const runtime = rt();
+  const shared=sharedSpaceRuntimeContext(runtime);
+  const unsynced=new Set(shared&&isSharedSpacesOffered()&&sharedSpaceState.isEnabled(shared.ctx)?sync.spaceStatus(shared.spaceId).unsyncedTabIds:[]);
+  for(const id of runtime.tabOrder){const tab=tabs.get(id);if(tab)tab.sharedUnsynced=unsynced.has(tab.sharedTabId);}
+  const serialized = serializeTabs();
   syncTabLayout(runtime);
+  Object.assign(runtime, pruneSelection(runtime, tabLayoutList(runtime)));
   return {
     tabs: serialized,
+    selectedTabIds: [...(runtime.selectedTabIds ?? [])],
     activeTabId: runtime.activeTabId,
     glanceTabId: activeGlanceTab()?.id ?? null,
     groups: runtime.groups,
@@ -6674,7 +6941,7 @@ function currentTabsPayload() {
     closedSlot: runtime.closedSlot,
     // Closed entries cross only as the five-field projection (spec §4.1);
     // snapshots, seeds, slot metadata, and view references stay in main.
-    closed: projectEntries(runtime.closedEntries ?? []),
+    closed: sharedClosedBand(runtime),
     tabLayout,
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
@@ -6746,20 +7013,20 @@ function resizeActiveView() {
       const content = split.panes[index]?.content;
       if (!liveContents(pane) || !content) return;
       roundSplitPane(pane, true);
-      pane.view.setBounds(place(content));
+      presentationView(pane).setBounds(place(content));
     });
   } else {
     roundSplitPane(tab, false);
     // The floating Glance card: the main page keeps the whole page area; the
     // card's chrome view and the Glance page inside it float over it.
-    if (liveContents(tab)) tab.view.setBounds(place(layout.pageBounds));
+    if (liveContents(tab)) presentationView(tab).setBounds(place(layout.pageBounds));
     const cardDrawn = rt().glanceCardDrawn === true;
     // The card is fixed to the window: a pushed Island sliding in moves the
     // main page beneath it, never the card or the page inside it.
     if (liveContents(glanceTab) && card) {
-      glanceTab.view.setBounds(card.page);
+      presentationView(glanceTab).setBounds(card.page);
       roundGlancePage(glanceTab, true);
-      if (glanceTab.view.getVisible?.() !== cardDrawn) setTabViewVisible(glanceTab, cardDrawn);
+      if (presentationView(glanceTab).getVisible?.() !== cardDrawn) setTabViewVisible(glanceTab, cardDrawn);
     }
     if (cardView) {
       if (card) cardView.setBounds(card.chrome);
@@ -6827,7 +7094,7 @@ function applyTabLayout(nextLayout) {
     // layout choice does not eject the user mid-interaction.
     hideOverlay({ refocusContent: false });
     resizeActiveView();
-    if (!rt().utilitySheetUrl) liveContents(tabs.get(rt().activeTabId))?.focus();
+    if (!rt().utilitySheetUrl) presentationContents(tabs.get(rt().activeTabId))?.focus();
     broadcastTabs();
   }, { liveOnly: true });
   scheduleMenuRebuild();
@@ -6928,7 +7195,7 @@ function installGlanceShortcut(webContents, owner = rt()) {
  * focused pane, else the main page (glance-focus.js). Never a quiet tab. */
 function browserCommandTab(runtime, sender = null) {
   const contentsOf = (tabId) =>
-    windowRuntimes.runtimeForTab(tabId) === runtime ? liveContents(tabs.get(tabId)) : null;
+    windowRuntimes.runtimeForTab(tabId) === runtime ? presentationContents(tabs.get(tabId)) : null;
   const tab = tabs.get(commandTargetTab(runtime, sender, contentsOf));
   return tab && windowRuntimes.runtimeForTab(tab.id) === runtime &&
     !tab.sleeping && liveContents(tab) ? tab : null;
@@ -6936,11 +7203,34 @@ function browserCommandTab(runtime, sender = null) {
 
 function reloadBrowserCommandTab(runtime, bypassCache = false, sender = null) {
   const tab = browserCommandTab(runtime, sender);
+  readerMode.exit(tab);
   const wc = liveContents(tab);
   return queueTabNavigation(wc, {
     isCurrent: () => !!tab && isVisiblePaneId(runtime, tab.id) && liveContents(tab) === wc,
     run: contents => reloadContents(contents, bypassCache),
   });
+}
+
+/** ⇧⌘C and Edit → Copy Link: the pane's address to the clipboard, with a
+ * moment's "Link copied" in the pill, since the clipboard itself shows
+ * nothing. Same eligibility as the tab menu's Copy Link (web and file pages;
+ * nothing for a blank or internal page). */
+function copyBrowserCommandLink(runtime, sender = null) {
+  const tab = browserCommandTab(runtime, sender);
+  if (!tab || !isCopyable(tab)) return false;
+  clipboard.writeText(tab.url);
+  stripSurfaces(runtime).send('chrome:pill-notice', 'link-copied');
+  return true;
+}
+
+/** ⌥⇧⌘C and Edit → Copy Clean Link: as Copy Link, minus tracking parameters
+ * (clean-link.js). An address with nothing to strip is copied as it is. */
+function copyCleanBrowserCommandLink(runtime) {
+  const tab = browserCommandTab(runtime);
+  if (!tab || !isCopyable(tab)) return false;
+  clipboard.writeText(cleanLinkForCopy(tab.url));
+  stripSurfaces(runtime).send('chrome:pill-notice', 'clean-link-copied');
+  return true;
 }
 
 const executeBrowserCommand = createBrowserCommandExecutor({
@@ -6951,16 +7241,21 @@ const executeBrowserCommand = createBrowserCommandExecutor({
   'reopen-tab': reopenClosedTab,
   'next-tab': () => cycleTab(1),
   'previous-tab': () => cycleTab(-1),
+  'copy-link': copyBrowserCommandLink,
   address: toggleIsland,
   find: (runtime, sender) => openFindBar(browserCommandTab(runtime, sender)?.id),
   reload: (runtime, sender) => reloadBrowserCommandTab(runtime, false, sender),
   'hard-reload': (runtime, sender) => reloadBrowserCommandTab(runtime, true, sender),
   back: (runtime, sender) => {
-    const nav = liveContents(browserCommandTab(runtime, sender))?.navigationHistory;
+    const tab = browserCommandTab(runtime, sender);
+    if (readerMode.exit(tab)) return;
+    const nav = liveContents(tab)?.navigationHistory;
     if (nav?.canGoBack()) nav.goBack();
   },
   forward: (runtime, sender) => {
-    const nav = liveContents(browserCommandTab(runtime, sender))?.navigationHistory;
+    const tab = browserCommandTab(runtime, sender);
+    readerMode.exit(tab);
+    const nav = liveContents(tab)?.navigationHistory;
     if (nav?.canGoForward()) nav.goForward();
   },
   history: () => openInternalPage('blanc://history/'),
@@ -6973,7 +7268,7 @@ const browserCommandDeliveries = [];
 function observeBrowserCommand(delivery) {
   if (!acceptanceTestMode) return;
   browserCommandDeliveries.push(delivery);
-  if (browserCommandDeliveries.length > 100) browserCommandDeliveries.shift();
+  if (browserCommandDeliveries.length > 200) browserCommandDeliveries.shift();
 }
 
 function ownsBrowserShortcutSurface(runtime, wc) {
@@ -6986,7 +7281,7 @@ function ownsBrowserShortcutSurface(runtime, wc) {
   const tabId = tabIdByWebContentsId.get(wc.id);
   const tab = tabs.get(tabId);
   return !!tab && windowRuntimes.runtimeForTab(tabId) === runtime &&
-    liveContents(tab) === wc && !tab.sleeping &&
+    presentationContents(tab) === wc && !tab.sleeping &&
     (runtime.activeTabId === tabId || runtime.glanceTabId === tabId || visibleSplitTabIds(runtime).includes(tabId));
 }
 
@@ -7302,6 +7597,47 @@ function knownRemoteDevices() {
   return remoteDevicesSource ? remoteDevicesSource() : sync.listRemoteDevices();
 }
 
+// Send to device (M7b addendum). Acceptance runs stand an injected source in
+// for sync's: { targets(), inbox(), hide(id), send({url, title, to}) }.
+let sendsSource = null;
+let pushSentItemsHook = null; // set once the surfaces exist; re-pushes the inbox
+const sendsBackend = () => sendsSource ?? {
+  targets: () => sync.listSendTargets(),
+  inbox: () => sync.listSentToThisDevice(),
+  hide: (id) => sync.hideSentItem(id),
+  send: (request) => sync.sendTab(request),
+};
+const knownSendTargets = () => sendsBackend().targets();
+const knownSentItems = () => sendsBackend().inbox();
+
+/** A tab whose page may be sent: an ordinary http(s) page. Private tabs never
+ * send (§2.6), and an inert page-opened tab only holds its address. */
+function canSendTab(tab) {
+  return !!tab && !tab.private && !tab.inert && /^https?:\/\//i.test(tab.url ?? '');
+}
+
+async function sendTabToDevice(tabId, deviceId) {
+  const tab = tabs.get(tabId);
+  if (!canSendTab(tab) || typeof deviceId !== 'string') return { status: 'invalid' };
+  if (!knownSendTargets().some((target) => target.id === deviceId)) return { status: 'invalid' };
+  const result = await sendsBackend().send({ url: tab.url, title: tab.title ?? '', to: deviceId });
+  return { status: SEND_STATUSES.has(result?.status) ? result.status : 'failed' };
+}
+const SEND_STATUSES = new Set(['sent', 'unavailable', 'failed', 'invalid']);
+
+/** Open a page another device sent here, in a new ordinary tab, and hide it
+ * on this device. */
+function openSentItem(id) {
+  const item = sendsBackend().hide(id);
+  if (!item || !/^https?:\/\//i.test(item.url)) return false;
+  const tabId = createTab(item.url);
+  if (tabId == null) return false;
+  setActiveTab(tabId, { focusContent: true, focusAddress: false });
+  return true;
+}
+
+const dismissSentItem = (id) => !!sendsBackend().hide(id);
+
 /** "Rename Device…": the panel's address field takes the device's shown name,
  * all of it selected (the overlay's name prompt). */
 function beginRenameDevice(deviceId) {
@@ -7367,11 +7703,12 @@ function closedMemberRecord(id) {
   }
   snapshot = sanitizeSnapshot(snapshot, { restorableCommit: tab.restorableCommit === true });
   return {
-    url: tab.url, title: tab.title, favicon: tab.favicon ?? null,
+    url: tab.url, title: recordTitle(tab, tab.title), favicon: tab.favicon ?? null,
+    ...(tab.sharedTabId?{sharedTabId:tab.sharedTabId}:{}),
     customTitle: tab.customTitle ?? null,
     pinnedHomeUrl: tab.pinnedHomeUrl ?? null,
     localFile: tab.localFile === true,
-    openerSandboxFlags: tab.openerSandboxFlags ?? 0,
+    inheritsDocumentPolicy: tab.inheritsDocumentPolicy === true,
     pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private, snapshot,
     // Batch entries (Close Other Tabs) span groups; each member re-resolves
     // this against the surviving groups at restore time. Group entries carry
@@ -7424,6 +7761,242 @@ function closeGroup(groupId) {
 // requires a main-issued, one-use decision for the current affected pages.
 // ---------------------------------------------------------------------------
 
+function applySharedSpaceRow(runtime, row) {
+  return withWindowRuntime(runtime, () => {
+    if(row.kind==='groups') {
+      let group=runtime.groups.find(item=>item.id===row.id);
+      if(row.op==='create-group') {
+        if(!group){group={id:row.id};runtime.groups.push(group);}
+        Object.assign(group,{name:row.record.name.v,color:row.record.color.v,collapsed:row.record.collapsed.v});
+      } else if(row.op==='delete-group') {
+        runtime.groups=runtime.groups.filter(item=>item.id!==row.id);
+        for(const id of runtime.tabOrder)if(tabs.get(id)?.groupId===row.id)tabs.get(id).groupId=null;
+      } else if(group&&row.field!=='pos')group[row.field]=row.value.v;
+      return true;
+    }
+    let tab=runtime.tabOrder.map(id=>tabs.get(id)).find(item=>item?.sharedTabId===row.id);
+    if(row.op==='create') {
+      if(!tab) {
+        const id=createTab(row.record.nav.v.url,{asleep:true,groupId:row.record.groupId.v,pinned:row.record.pinned.v,pinnedHomeUrl:row.record.pinned.v?row.record.nav.v.url:null,customTitle:row.record.name.v,title:row.record.nav.v.title});
+        tab=tabs.get(id);tab.sharedTabId=row.id;
+        return true;
+      }
+      tab.customTitle=row.record.name.v;tab.groupId=row.record.groupId.v;
+      if(row.record.pinned.v)markPinned(tab);else{tab.pinned=false;tab.pinnedHomeUrl=null;}
+      if(persistableUrl(tab.url)!==row.record.nav.v.url)return applySharedSpaceRow(runtime,{op:'nav',kind:'tabs',id:row.id,field:'nav',value:row.record.nav});
+      return true;
+    }
+    if(!tab)return true;
+    if(row.op==='close'){tab.sharedRemoteClose=true;closeTab(tab.id,{record:true,selectReplacement:false});return true;}
+    if(row.field==='nav') {
+      if(tab.asleep) {
+        tab.url=row.value.v.url;tab.title=row.value.v.title;tab.sharedPendingNav=row.value.v.url;
+        return true;
+      }
+      tab.sharedRemoteNavigation=row.value.v.url;
+      return Promise.resolve(navigateTabToAddress(tab.id,row.value.v.url,{shared:true})).then(result=>{
+        if(tab.sharedRemoteNavigation===row.value.v.url)delete tab.sharedRemoteNavigation;
+        return result!==false;
+      });
+    }
+    if(row.field==='name')tab.customTitle=row.value.v;
+    if(row.field==='groupId')tab.groupId=row.value.v;
+    if(row.field==='pinned') {
+      if(row.value.v)markPinned(tab);else{tab.pinned=false;tab.pinnedHomeUrl=null;}
+    }
+    return true;
+  });
+}
+
+const syncedClosed=require('./synced-closed');
+const { createSharingService } = require('./shared-spaces-service');
+const { isRecoveryPlaceholder } = require('./shared-spaces-sharing');
+function isSharedSpacesOffered() { return !app.isPackaged; }
+function sharedSidecarSpace(tab,runtime) {
+  if(!isSharedSpacesOffered()||runtime.profileId!==DEFAULT_PROFILE_ID)return null;
+  const workspace=namedWorkspaces.get(runtime.workspaceId),ctx=sync.sharedContext();
+  if(!workspace?.sharedId||!sharedSpaceState.isEnabled(ctx)||sharedSpaceState.isDormant(workspace.sharedId,ctx))return null;
+  const record=sharedSpaceState.rebind(ctx.accountId).data.blobs[workspace.sharedId]?.lastPublishable?.tabs[tab.sharedTabId];
+  return require('./shared-spaces-surfaces').publishedOccurrence(tab,record)?workspace.sharedId:null;
+}
+function sharedSpaceRuntimeContext(runtime) {
+  if(!isSharedSpacesOffered()||runtime.profileId!==DEFAULT_PROFILE_ID||!runtime.workspaceId)return null;
+  const workspace=namedWorkspaces.get(runtime.workspaceId);
+  if(!workspace?.sharedId||!sync.status().enabled)return null;
+  const ctx=sync.sharedContext(),store=sharedSpaceState.rebind(ctx.accountId),entry=store.data.blobs[workspace.sharedId];
+  if(!entry?.blob)return null;
+  runtime.sharedGroupPersistence=true;
+  runtime.sharedGroupIds=Object.keys(entry.blob.groups).filter(id=>!entry.blob.groups[id].deleted.v);
+  const state=Object.values(store.data.windows).find(item=>item?.spaceId===workspace.sharedId);
+  const protectedIds=runtime.resident?[]:[runtime.activeTabId,...visibleSplitTabIds(runtime)].map(id=>tabs.get(id)?.sharedTabId).filter(Boolean);
+  return {spaceId:workspace.sharedId,accountId:ctx.accountId,deviceId:ctx.deviceId,blob:entry.blob,window:state,protectedIds,ctx,store,workspace};
+}
+const sharedRuntimeSync=createRuntimeSync({
+  read:sharedSpaceRuntimeContext,
+  capture:runtime=>withWindowRuntime(runtime,()=>workspaceCapture(runtime)),
+  checkpoint:runtime=>withWindowRuntime(runtime,()=>{
+    if(!namedWorkspaces.saveCapture(runtime.workspaceId,workspaceCapture(runtime)).ok)return false;
+    return flushWorkspaceSession().ok;
+  }),
+  saveWindow:(runtime,state)=>{
+    const context=sharedSpaceRuntimeContext(runtime);if(!context)return false;
+    context.store.update(data=>{
+      for(const [key,value] of Object.entries(data.windows))if(value?.spaceId===state.spaceId)delete data.windows[key];
+      data.windows[`${runtime.id}:${state.spaceId}`]=state;
+    });
+    return state.accepted?.length?context.store.flush():true;
+  },
+  writeLocal:(runtime,blob,edits,diff)=>{
+    const context=sharedSpaceRuntimeContext(runtime);if(!context)return;
+    const entries=persistableEntries(runtime.tabOrder.map(id=>tabs.get(id)));
+    for(let i=0;i<entries.length;i++){const tab=tabs.get(entries[i].id);if(tab)tab.sharedTabId=diff.tabIds[i];}
+    sharedSpaceState.noteLocalSpace(context.spaceId,blob,edits,context.ctx);
+  },
+  applyRow:applySharedSpaceRow,
+  layout:(runtime,blob)=>withWindowRuntime(runtime,()=>{
+    if(!blob)return;
+    const order=sharedSpaceModel.orderOf(blob.tabs).filter(id=>blob.tabs[id].deleted.v!==true),rank=new Map(order.map((id,index)=>[id,index]));
+    runtime.tabOrder=runtime.tabOrder.map((id,index)=>({id,index,rank:rank.get(tabs.get(id)?.sharedTabId)??Infinity})).sort((a,b)=>a.rank-b.rank||a.index-b.index).map(item=>item.id);
+    for(const id of runtime.tabOrder){const tab=tabs.get(id),record=blob.tabs[tab?.sharedTabId];if(record&&!record.deleted.v)tab.groupId=sharedSpaceModel.effectiveGroup(blob,record);}
+    const groups=sharedSpaceModel.orderOf(blob.groups),groupRank=new Map(groups.map((id,index)=>[id,index]));
+    runtime.groups.sort((a,b)=>(groupRank.get(a.id)??Infinity)-(groupRank.get(b.id)??Infinity));
+    syncTabLayout(runtime);
+    if(!tabs.has(runtime.activeTabId)) {
+      const selected=runtime.tabOrder[0]??createTab(NEW_TAB_URL,{asleep:true});
+      selectSharedLayoutFallback(runtime,selected);
+    }
+  }),
+});
+function selectSharedLayoutFallback(runtime,selected) {
+  // Cold restoration must materialize the entire accepted set before any
+  // page wakes. A close of the saved selection can otherwise wake its
+  // replacement in the middle of the pass, making a later nav await loadURL.
+  if(runtime.resident||runtime.closing||runtime.sharedColdRestore)runtime.activeTabId=selected;
+  else setActiveTab(selected,{focusContent:false});
+}
+function wakeRestoredTarget(runtime,target) {
+  if(!hasLiveWindow()){runtime.activeTabId=target;return;}
+  // activeTabId is only a quiet, record-level selection during cold replay.
+  // Clear it so setActiveTab performs the real attach/show/focus path instead
+  // of returning early after merely creating the renderer in wakeTab.
+  if(runtime.activeTabId===target)runtime.activeTabId=null;
+  setActiveTab(target,{focusContent:true});
+}
+function captureSharedSpaceEdits(runtime) {
+  const context=sharedSpaceRuntimeContext(runtime);
+  if(!context?.window)return;
+  sharedRuntimeSync.local(runtime);
+}
+function closeSharedSpaceWindow(runtime, event, closeNormally) {
+  // Do not force the async apply queue here: even a previously started load
+  // can remain pending indefinitely. The durable accepted set survives the
+  // ordinary close checkpoint and is replayed when the Space is restored.
+  return closeNormally(event);
+}
+
+function hasDeferredSharedChanges(runtime) {
+  return !!sharedSpaceRuntimeContext(runtime)?.window?.accepted?.length;
+}
+function applySharedSpaceChanges(runtime, options={}) {
+  const context=sharedSpaceRuntimeContext(runtime);
+  if(!context||runtime.workspaceTransition||sharedSpaceState.isDormant(context.spaceId,context.ctx)||(!options.force&&!sharedSpaceState.isEnabled(context.ctx)))return Promise.resolve(false);
+  if(context.store.data.index.spaces[context.spaceId]?.deleted?.v===true) {
+    const removed=namedWorkspaces.remove(context.workspace.id);
+    if(!removed.ok)return Promise.resolve(false);
+    runtime.workspaceId=null;
+    if(runtime.resident)disposeResident(runtime);
+    broadcastWorkspacesUpdated();return Promise.resolve(true);
+  }
+  return sharedRuntimeSync.apply(runtime,options).then(result=>{
+    if(result&&windowRuntimes.all().includes(runtime))withWindowRuntime(runtime,()=>{scheduleBroadcastTabs();});
+    return result;
+  });
+}
+const sharedSharing=createSharingService({
+  sync,spaces:sharedSpaceState,workspaces:namedWorkspaces,offered:()=>isSharedSpacesOffered()&&require('./local-profile-context').isDefaultLocalProfile(),
+  devices:()=>sync.pairingDevices(),
+  ids:()=>require('node:crypto').randomUUID().replace(/-/g,''),
+  captureLocal:()=>{
+    for(const runtime of windowRuntimes.all())if(runtime.profileId===DEFAULT_PROFILE_ID&&runtime.workspaceId)withWindowRuntime(runtime,()=>{
+      captureSharedSpaceEdits(runtime);
+      namedWorkspaces.saveCapture(runtime.workspaceId,workspaceCapture(runtime));
+    });
+    return namedWorkspaces.flushPending();
+  },
+  isOpen:id=>windowRuntimes.all().some(runtime=>runtime.profileId===DEFAULT_PROFILE_ID&&runtime.workspaceId===id),
+  bind:item=>{
+    if(!item.blob)return;
+    const runtime=windowRuntimes.all().find(runtime=>runtime.profileId===DEFAULT_PROFILE_ID&&runtime.workspaceId===item.workspaceId);
+    if(!runtime)return;
+    runtime.sharedGroupPersistence=true;
+    runtime.sharedGroupIds=Object.keys(item.blob.groups).filter(id=>!item.blob.groups[id].deleted.v);
+    const ids=item.tabIds;
+    const entries=persistableEntries(runtime.tabOrder.map(id=>tabs.get(id)));
+    for(let i=0;i<entries.length;i++)tabs.get(entries[i].id).sharedTabId=ids[i];
+    for(const group of runtime.groups)if(item.groupBindings[group.id]){const oldId=group.id;group.id=item.groupBindings[oldId];for(const id of runtime.tabOrder){const tab=tabs.get(id);if(tab?.groupId===oldId)tab.groupId=group.id;}}
+    // The window already displays this exact snapshot: seed its receipt
+    // without replaying creates into the existing native views.
+    const ctx=sync.sharedContext(),store=sharedSpaceState.rebind(ctx.accountId);
+    store.update(data=>{data.windows[`${runtime.id}:${item.spaceId}`]={spaceId:item.spaceId,displayed:item.blob,accepted:[],groupBindings:{}};});
+    if(!flushWorkspaceSession().ok||!store.flush())throw new Error('save-failed');
+    withWindowRuntime(runtime,()=>captureSharedSpaceEdits(runtime));
+  },
+  recoveryName:name=>mainI18n.t('sharedSpaces.recoveryName',{name}),
+  recoverNative:(sid,recovery,records)=>{
+    for(const source of [...windowRuntimes.all()]) {
+      if(source.profileId!==DEFAULT_PROFILE_ID||namedWorkspaces.get(source.workspaceId)?.sharedId!==sid)continue;
+      const moving=source.tabOrder.filter(id=>records.tabs?.[tabs.get(id)?.sharedTabId]);if(!moving.length&&!source.sharedRecoveryPending)continue;
+      let target=windowRuntimes.all().find(runtime=>runtime.profileId===DEFAULT_PROFILE_ID&&runtime.workspaceId===recovery.id);
+      if(!target){target=makeResidentRuntime(DEFAULT_PROFILE_ID);target.workspaceId=recovery.id;withWindowRuntime(target,()=>applyWorkspaceToWindow(target,recovery));}
+      source.sharedRecoveryPending=true;
+      const wasTransition=source.workspaceTransition,wasSuspended=sessionPersistenceSuspended;
+      source.workspaceTransition=true;sessionPersistenceSuspended=true;
+      try {
+        for(const id of moving) {
+          const tab=tabs.get(id),groupId=tab.groupId;
+          // A previously opened recovery copy may contain edits or page state:
+          // retain it, and preserve the incoming native page as an extra local
+          // tab without the retired shared identity.
+          const duplicate=target.tabOrder.find(other=>tabs.get(other)?.sharedTabId===tab.sharedTabId);
+          const replace=duplicate&&isRecoveryPlaceholder(tabs.get(duplicate),records.tabs[tab.sharedTabId],sleepSnapshots.has(duplicate));
+          // After a crash the source may itself be only a restored copy of
+          // the old record. It has no new work to preserve beside an edited
+          // recovery tab; leave the recovery tab untouched and retire this
+          // redundant source instead of manufacturing another local copy.
+          if(duplicate&&!replace&&isRecoveryPlaceholder(tab,records.tabs[tab.sharedTabId],sleepSnapshots.has(id))) {
+            withWindowRuntime(source,()=>closeTab(id,{record:false,selectReplacement:false}));
+            continue;
+          }
+          if(replace)withWindowRuntime(target,()=>closeTab(duplicate,{record:false,selectReplacement:false}));
+          detachTabForMove(source,id);
+          if(duplicate&&!replace)delete tab.sharedTabId;
+          rehomeTab(tab,target);target.tabOrder.push(id);tab.groupId=groupId;
+        }
+        if(!source.tabOrder.length)withWindowRuntime(source,()=>{const id=createTab(NEW_TAB_URL,{asleep:true});source.activeTabId=id;});
+        withWindowRuntime(target,()=>{if(!target.tabOrder.includes(target.activeTabId))target.activeTabId=target.tabOrder[0];});
+      } finally {source.workspaceTransition=wasTransition;sessionPersistenceSuspended=wasSuspended;}
+      if(!namedWorkspaces.saveCapture(recovery.id,workspaceCapture(target)).ok||
+        !namedWorkspaces.saveCapture(source.workspaceId,workspaceCapture(source)).ok||
+        !namedWorkspaces.flushPending().ok||!flushWorkspaceSession().ok)throw new Error('save-failed');
+      source.sharedRecoveryPending=false;
+    }
+  },
+  changed:()=>broadcastWorkspacesUpdated(),
+});
+sync.onPairingShown(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>sharedSharing.armPairing()));
+sync.setSharedVisibilityProvider(()=>isSharedSpacesOffered()?namedWorkspaces.list().filter(workspace=>workspace.sharedId&&workspace.sharedLink==='active').map(workspace=>workspace.sharedId):[]);
+sync.onAccountChanged(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>{
+  namedWorkspaces.clearSharedLinks();
+  for(const runtime of windowRuntimes.all())if(runtime.profileId===DEFAULT_PROFILE_ID)for(const id of runtime.tabOrder){const tab=tabs.get(id);if(tab)delete tab.sharedTabId;}
+}));
+syncedClosed.onChanged(()=>{forEachWindowRuntime(runtime=>{if(runtime.profileId===DEFAULT_PROFILE_ID)scheduleBroadcastTabs();});});
+sharedSpaceState.onRemoteChanged(()=>{
+  withLocalProfile(DEFAULT_PROFILE_ID,()=>{sharedSharing.reconcile().catch(error=>console.warn('[shared-spaces] reconcile:',error.message));});
+  for(const runtime of windowRuntimes.all())withWindowRuntime(runtime,()=>{
+    applySharedSpaceChanges(runtime).catch(error=>console.warn('[shared-spaces] apply:',error.message));
+  });
+});
+
 /** captureWindowEntry's `groups` field is main.js's own runtime.groups array
  * (filtered), so its elements are the SAME live objects toggleGroupCollapsed
  * (etc.) mutates in place. workspaces.js/workspaces-model.js only shallow-
@@ -7438,9 +8011,14 @@ function closeGroup(groupId) {
  * the workspaces store instead. */
 function workspaceCapture(runtime, { previousActiveIndex = 0 } = {}) {
   const entry = captureWindowEntry(runtime, { previousActiveIndex });
+  const tabIds=persistableEntries(runtime.tabOrder.map(id=>tabs.get(id))).map(item=>{
+    const id=tabs.get(item.id)?.sharedTabId;
+    return typeof id==='string'&&/^[0-9a-f]{32}$/.test(id)?id:null;
+  });
   return {
     ...entry,
     groups: entry.groups.map(groupRecord),
+    ...(tabIds.some(Boolean)?{tabIds}:{}),
   };
 }
 
@@ -7451,6 +8029,7 @@ function autosaveWorkspaceBindings() {
   const runtime = rt();
   if (!runtime.workspaceId || runtime.closing || runtime.workspaceTransition) return;
   const workspace = namedWorkspaces.get(runtime.workspaceId);
+  if(workspace?.sharedId)captureSharedSpaceEdits(runtime);
   if (workspace) namedWorkspaces.queueCapture(runtime.workspaceId,
     workspaceCapture(runtime, { previousActiveIndex: workspace.activeIndex }));
 }
@@ -7490,16 +8069,33 @@ function workspaceProtection(runtime) {
   return scratchGuardResult(runtime) ?? { tabCount: 0, privateCount: 0 };
 }
 
+/** A fresh set-aside runtime for `profileId`: a space kept in memory with no
+ * window. Shared by a switch (stageWorkspace) and Move to Space. */
+function makeResidentRuntime(profileId) {
+  const resident = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId });
+  resident.resident = true;
+  resident.residentSince = Date.now(); // makeRoomForSpaces quiets the oldest first
+  return resident;
+}
+
+/** After a switch or a move, keep the spaces set aside within budget (D22),
+ * out of sight. It never delays or blocks the operation that scheduled it. */
+function scheduleMakeRoomForSpaces(profileId, after) {
+  setImmediate(() => {
+    makeRoomForSpaces(profileId).catch((error) => {
+      lastRoomPass = { outcome: 'failed', at: Date.now() };
+      console.debug(`[spaces] making room after ${after} failed`, error);
+    });
+  });
+}
+
 function stageWorkspace(runtime, workspace) {
+  Object.assign(runtime, emptySelection());
+  runtime.selectionRevision = (runtime.selectionRevision ?? 0) + 1;
   const priorSuspended = sessionPersistenceSuspended;
   sessionPersistenceSuspended = true;
   runtime.workspaceTransition = true;
-  const makeResident = () => {
-    const resident = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId: runtime.profileId });
-    resident.resident = true;
-    resident.residentSince = Date.now(); // makeRoomForSpaces quiets the oldest first
-    return resident;
-  };
+  const makeResident = () => makeResidentRuntime(runtime.profileId);
   let incoming = workspaceOwner(runtime, workspace.id);
   const isNew = !incoming;
   let outgoing;
@@ -7597,14 +8193,11 @@ function stageWorkspace(runtime, workspace) {
       }
       if (!outgoing.workspaceId) windowRuntimes.discardRuntime(outgoing);
       finishScope(); activate();
+      applySharedSpaceChanges(outgoing,{force:true}).catch(error=>console.warn('[shared-spaces] leave:',error.message));
+      applySharedSpaceChanges(runtime,{force:true}).catch(error=>console.warn('[shared-spaces] enter:',error.message));
       // The switch is done; now, out of sight, keep the spaces set aside
-      // within budget (D22). It never delays or blocks a switch.
-      setImmediate(() => {
-        makeRoomForSpaces(runtime.profileId).catch((error) => {
-          lastRoomPass = { outcome: 'failed', at: Date.now() };
-          console.debug('[spaces] making room after a switch failed', error);
-        });
-      });
+      // within budget (D22).
+      scheduleMakeRoomForSpaces(runtime.profileId, 'a switch');
     },
   };
 }
@@ -7627,6 +8220,7 @@ let lastRoomPass = null;
  * microphone, sound or media, a shared screen, a pending prompt or popup, or a
  * page with unsaved typing or an unload warning. */
 function residentHasLiveProtection(resident) {
+  if(hasDeferredSharedChanges(resident))return true;
   const pending = permissionPendingTabIds();
   return resident.tabOrder.some((id) => {
     const tab = tabs.get(id);
@@ -7912,8 +8506,11 @@ function applyWorkspaceToWindow(runtime, workspace) {
       groupIds: workspace.groupIds,
       pinned: workspace.pinned,
       meta: workspace.meta,
+      tabIds: workspace.tabIds,
       localFiles: workspace.localFiles,
       splitIds: workspace.splitIds,
+      documentPolicy: workspace.documentPolicy,
+      inheritsDocumentPolicy: workspace.inheritsDocumentPolicy,
       activeIndex: workspace.activeIndex,
     }, (url, _index, localFile) => isUtilityUrl(url)
       || (isForbiddenTopLevelUrl(url) && !(localFile && restorableLocalHtmlUrl(url))));
@@ -7931,7 +8528,9 @@ function applyWorkspaceToWindow(runtime, workspace) {
       pinnedHomeUrl: cleaned.meta?.[index]?.pinnedHomeUrl ?? null,
       allowLocalFile: cleaned.localFiles?.[index] === true,
       managedExtension: restorableUblockTool(url),
+      inheritsDocumentPolicy: documentPolicy.restoredMarker(cleaned, index),
     }));
+    if(cleaned.tabIds)restoredIds.forEach((id,index)=>{if(tabs.get(id))tabs.get(id).sharedTabId=cleaned.tabIds[index]??null;});
     pruneEmptyGroups();
     applySavedLayout(runtime, workspace, restoredIds);
     runtime.splits = [];
@@ -7944,6 +8543,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
     const selected = target ?? createTab(NEW_TAB_URL, { asleep: true });
     if (runtime.resident) runtime.activeTabId = selected;
     else setActiveTab(selected, { focusContent: true });
+    if(workspace.sharedId)applySharedSpaceChanges(runtime,{force:true}).catch(error=>console.warn('[shared-spaces] restore:',error.message));
   });
 }
 
@@ -7960,8 +8560,10 @@ function removeNamedWorkspace(id) {
     const shown = switchWindowToWorkspace(rt(), id, { newWindow: true });
     if (!shown.ok) return shown;
   }
+  const removedWorkspace=namedWorkspaces.get(id);
   const result = namedWorkspaces.remove(id);
   if (result.ok) {
+    sharedSharing.metadata(removedWorkspace,{deleted:true});
     const unbound = [];
     for (const runtime of windowRuntimes.all()) {
       if (runtime.profileId === rt().profileId && runtime.workspaceId === id) {
@@ -7983,6 +8585,7 @@ function undoRemoveNamedWorkspace(id) {
   const key = `${rt().profileId}:${id}`;
   const result = namedWorkspaces.restore(id);
   if (!result.ok) return result;
+  if(!sharedSharing.restored(id))return {ok:false,error:'storage-failed'};
   const runtimeIds = removedWorkspaceBindings.get(key) ?? [];
   removedWorkspaceBindings.delete(key);
   const peers = windowRuntimes.all().filter((r) => r.profileId === rt().profileId);
@@ -8053,7 +8656,9 @@ function toggleTabMuted(id) {
 
 function duplicateTab(id) {
   const source = tabs.get(id);
-  if (!source) return;
+  // A copy would be a fresh WebContents, which can't carry the opener's
+  // sandbox a page-opened tab may have (document-policy.js).
+  if (!source || source.inheritsDocumentPolicy) return;
   const insertAt = rt().tabOrder.indexOf(id) + 1;
   // A quiet source duplicates straight from its retained snapshot; waking it
   // just to read history defeats the feature and creates a needless reload.
@@ -8065,7 +8670,6 @@ function duplicateTab(id) {
     allowLocalFile: source.localFile === true,
     managedExtension: /^chrome-extension:/i.test(source.url) && !source.private && restorableUblockTool(source.url, source.profileId),
     private: source.private,
-    openerSandboxFlags: source.openerSandboxFlags,
     groupId: source.groupId,
     pinned: source.pinned,
     pinnedHomeUrl: source.pinnedHomeUrl,
@@ -8085,7 +8689,17 @@ function duplicateTab(id) {
  * invalidates (spec §4.2). Called from tab-view.js's did-navigate handler.
  */
 function onMainFrameCommit(tab, { url, httpResponseCode }) {
-  if (!isSupportedLocalHtmlUrl(url)) tab.localFile = false;
+  if(tab.sharedTabId&&tab.sharedRemoteNavigation!==url)sharedRuntimeSync.supersede(windowRuntimes.runtimeForTab(tab.id)??rt(),tab.sharedTabId,'nav');
+  // Leaving the file (or, on a DRM build, its inert placeholder) ends the grant.
+  if (!keepsLocalFile(tab, url)) {
+    tab.localFile = false;
+    tab.localFileUrl = null;
+    tab.inertLocalFileUrl = null;
+    tab.inertLocalFileTitle = null;
+  } else if (tab.localFile && isSupportedLocalHtmlUrl(url)) {
+    // Official builds: the grant now names the document actually showing.
+    tab.localFileUrl = new URL(url).href;
+  }
   refreshSiteMute(tab, url);
   // "This document has played media" is cleared ONLY here — clearing on pause
   // would unprotect exactly the paused video this rule exists to protect.
@@ -8153,6 +8767,11 @@ function notePopupChild(openerTabId, childWindow, sourceContentsId, targetUrl) {
 // initialized before this module-scope call.
 initTabView({
   t: mainI18n.t,
+  readerAction: tab => ({ active: readerMode.active(tab), click: () => toggleReaderMode(tab) }),
+  readerInvalidated: tab => readerMode.invalidate(tab),
+  readerLoaded: tab => readerMode.probe(tab),
+  readerForgotten: tab => readerMode.forget(tab),
+  readerCrashed: tab => readerMode.invalidate(tab),
   claimOutage: (tab, wc, url) => (tab.private ? null : blockingProviders?.forTab(tab)?.claimOutage?.(wc.id, url) ?? null),
   noteMainFrameCommitted: (tab, wc, url) => { if (!tab.private) blockingProviders?.forTab(tab)?.noteMainFrameCommitted?.(wc.id, url); },
   noteWebPageLoaded: (url) => dayOneSignals.notePageLoaded(url),
@@ -8198,7 +8817,7 @@ initTabView({
   dismissFillStatusForNavigation: (owner, tabId) => fillStatusSurface?.invalidatePending(owner.id, tabId),
   // Optional: the page context menu's Open Link in Glance (runs bound to the
   // opener's window runtime, so createTab and setGlanceTab act there).
-  openLinkInGlance,
+  openLinkInGlance, linkSpaceMenuItems,
   // Optional ambient-hint triggers (fill-hint.js owns all revalidation).
   onFillHintLoad: (tab) => fillHintScheduler?.notePageLoad(tab),
   onFillHintInPageNavigation: (tab) => fillHintScheduler?.noteInPageNavigation(tab),
@@ -8267,14 +8886,22 @@ initTabView({
   certificateObserver,
   isStartupGateActive: (tab) => startupNavigationGateActive || profileNavigationGates.active(tab),
   startupQueuedNavigations,
+  navigationTrace,
+  gateRefusals,
   onMainFrameCommit,
   noteWakeSuppressed,
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, lastViewedAt = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, lastViewedAt = null, adoptView = null, allowLocalFile = false, inheritsDocumentPolicy = false, httpReferrer = null, managedExtension = false } = {}) {
   if (/^chrome-extension:/i.test(url) && (isPrivate || !managedExtension)) return null;
-  const admittedLocalFile = allowLocalFile && isSupportedLocalHtmlUrl(url);
+  // Official builds load a granted local HTML file; a DRM build keeps a
+  // granted local-file record as an inert placeholder (src/main/inert-local-file.js).
+  const localPlan = localFileTabPlan(url, { drm: drmSupport.enabled, allowLocalFile });
+  url = localPlan.url;
+  const admittedLocalFile = localPlan.admitted;
+  // An inert record never replays navigation history: nothing may load the file.
+  if (localPlan.inertLocalFileUrl) restoreHistory = null;
   if (isForbiddenTopLevelUrl(url) && !admittedLocalFile) url = NEW_TAB_URL;
   if (isUtilityUrl(url)) {
     // Utility pages never become tabs regardless of caller (external
@@ -8308,16 +8935,22 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     localFile: typeof pinnedHomeUrl === 'string' && pinnedHomeUrl.startsWith('file:'),
   });
   const pinnedHome = pinned
-    ? (suppliedPinnedHome ?? pinnedHomeFor(url, { localFile: admittedLocalFile }))
+    ? (suppliedPinnedHome ?? pinnedHomeFor(url, { localFile: localPlan.localFile }))
     : null;
+  // A page-opened tab keeps its mark for life (document-policy.js). Only the
+  // live view Electron built for it, or the same view parked at close, may
+  // show its page; any other construction would drop the opener's sandbox, so
+  // the record is born inert instead.
+  const marked = inheritsDocumentPolicy === true;
+  const inert = marked && !adopted && !adopting;
   // Session restore builds every tab quiet: no view, renderer process, or
   // navigation — only the record the chrome draws. An adopted child is
-  // already live and can never be born quiet.
-  const bornQuiet = asleep && !adopted && !adopting;
+  // already live and can never be born quiet. An inert tab stays quiet until
+  // it is shown, and then loads only Blanc's explanation page (wakeTab).
+  const bornQuiet = (asleep || inert) && !adopted && !adopting;
   if (!bornQuiet) view ??= createTabView({
     private: isPrivate,
     profileId: owner.profileId,
-    openerSandboxFlags,
   });
 
   const tab = {
@@ -8334,12 +8967,20 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     url,
     // Main-process grant, never copied from an IPC option. Cleared when the
     // document leaves this local file; only an OS handoff can originate it.
-    localFile: admittedLocalFile,
+    localFile: localPlan.localFile,
+    // The file the grant names (main-only), so Blanc's own placeholder for that
+    // same file keeps the grant across commits (inert-local-file.js).
+    localFileUrl: localPlan.localFileUrl,
+    // DRM builds: the saved file URL this tab keeps as a record while it shows
+    // the inert placeholder. Null otherwise.
+    inertLocalFileUrl: localPlan.inertLocalFileUrl,
+    inertLocalFileTitle: localPlan.inertLocalFileUrl && typeof title === 'string' ? title : null,
     // Main-owned tool lifetime survives its temporary error URL during uBO reload.
     managedExtension: managedExtension === true && !isPrivate,
-    // Trusted Electron inheritance, kept in main memory for view recreation.
-    // Neither this nor the initial referrer comes from tabs:create IPC.
-    openerSandboxFlags,
+    // Never from tabs:create IPC. Sticky: no navigation or move clears it.
+    inheritsDocumentPolicy: marked,
+    // Never shows its own page again; see wakeTab.
+    inert,
     isLoading: false,
     canGoBack: false,
     canGoForward: false,
@@ -8437,7 +9078,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     wc.setAudioMuted(effectiveTabMuted(tab));
     view.setVisible(true);
     tab.url = wc.getURL() || tab.url;
-    tab.title = wc.getTitle() || tab.title;
+    // An inert local-file record keeps its saved title, not the placeholder's.
+    tab.title = recordTitle(tab, wc.getTitle() || tab.title);
     // Every other re-derivation of this flag hangs off a navigation event, and
     // an adoption performs none — leaving the heart drawn empty on a favorited
     // page, where a click would delete the favorite instead of adding it.
@@ -8486,7 +9128,10 @@ function sendWindowStartPageVisibility(runtime) {
 }
 
 function setTabViewVisible(tab, visible) {
-  tab.view.setVisible(visible);
+  const shown = presentationView(tab);
+  tab.view.setVisible(visible && shown === tab.view);
+  if (shown !== tab.view) shown.setVisible(visible);
+  if (visible) readerMode.probe(tab);
   if (tab.url?.startsWith('blanc://newtab')) {
     liveContents(tab)?.send('pages:start:visibility', startPageViewVisible(tab));
   }
@@ -8509,7 +9154,8 @@ function restackAboveTabViews() {
 }
 
 function attachTabViewToWindow(tab) {
-  attachTabView(rt().window, tab.view, { createView: () => new View() });
+  if (readerMode.active(tab)) attachTabView(rt().window, tab.view, { createView: () => new View() });
+  attachTabView(rt().window, presentationView(tab), { createView: () => new View() });
 }
 
 // Native Aura focus restoration can run after a tool navigation, including a
@@ -8553,6 +9199,8 @@ function detachTabView(tab, { retainManagedRoot = false } = {}) {
   setTabViewVisible(tab, false);
   if (retainManagedRoot && rootManagedExtensionView(tab)) return true;
   // Linux keeps the hidden view window-owned (tab-view-lifecycle.js).
+  const shown = presentationView(tab);
+  if (shown !== tab.view) releaseTabView(rt().window, shown);
   releaseTabView(rt().window, tab.view);
   return true;
 }
@@ -8599,6 +9247,7 @@ function setActiveTab(id, {
   focusContent = true,
   focusAddress = false,
   dismissUtilitySheet = true,
+  keepSpacesEditor = false,
 } = {}) {
   const next = tabs.get(id);
   if (!next || next.sleeping || windowRuntimes.runtimeForTab(id) !== rt()) return;
@@ -8644,7 +9293,8 @@ function setActiveTab(id, {
   // Find state is per-tab; a stale capsule over a different page misleads.
   // The shield popover describes one tab's site — same rule. The Spaces menu
   // describes this window, but a switch away from it is a fresh context too.
-  if (['find', 'shield', 'capture', 'spaces', 'group-menu'].includes(rt().overlayMode)) {
+  if (['find', 'shield', 'capture', 'spaces', 'group-menu'].includes(rt().overlayMode)
+    && !(keepSpacesEditor && rt().overlayMode === 'spaces')) {
     hideOverlay({ refocusContent: false });
   }
 
@@ -8681,6 +9331,7 @@ function setActiveTab(id, {
   if (nextSplit) nextSplit.focusedIndex = nextSplit.tabIds.indexOf(id);
 
   rt().activeTabId = id;
+  if(next.sharedTabId||prev?.sharedTabId)applySharedSpaceChanges(rt()).catch(error=>console.warn('[shared-spaces] switch:',error.message));
   resetFocusedPane();
   fillHintScheduler?.noteActivated(next);
   if (prevId && prevId !== id) rt().tabsWantingAddressBarFocus.delete(prevId);
@@ -8716,7 +9367,7 @@ function setActiveTab(id, {
   // blank new tab we instead want the chrome's address bar, and OS focus
   // can be claimed asynchronously by the attached child view, so blank-tab
   // activation keeps reclaiming focus until the user navigates or switches.
-  if (focusContent) liveContents(next)?.focus();
+  if (focusContent) presentationContents(next)?.focus();
   // Background tabs can't be pixel-sampled; catch up when they surface.
   scheduleSampleTint(next);
   broadcastTabs();
@@ -8733,6 +9384,28 @@ function setActiveTab(id, {
       reclaimAddressBarFocus(id);
     });
   }
+}
+
+/** A two-pane split can release either pane into a floating Glance. */
+async function openTabMenuGlance(id) {
+  const runtime = rt();
+  const split = visibleSplitOf(runtime);
+  if (split) {
+    const tab = tabs.get(id);
+    // Validate before changing the split. Other rows (and larger splits)
+    // cannot float over a split that would still be visible afterward.
+    if (split.tabIds.length !== 2 || !split.tabIds.includes(id)
+      || !tab || tab.sleeping || tab.asleep || !liveContents(tab)
+      || windowRuntimes.runtimeForTab(id) !== runtime) return false;
+    // Removing the active pane must hand the window to its survivor. Do not
+    // dissolve the split while that handoff would be refused by setActiveTab
+    // (notably during Quiet Tabs teardown or before a wake has live contents).
+    const survivor = tabs.get(split.tabIds.find((tabId) => tabId !== id));
+    if (!hasLiveWindow() || !survivor || survivor.sleeping || survivor.asleep
+      || !liveContents(survivor) || windowRuntimes.runtimeForTab(survivor.id) !== runtime) return false;
+    if (!removeTabFromSplit(id)) return false;
+  }
+  return setGlanceTab(id);
 }
 
 async function setGlanceTab(id) {
@@ -8847,7 +9520,7 @@ function closeGlance({ focusContent = true, announce = true } = {}) {
   broadcastTabs();
   scheduleMenuRebuild();
   if (announce && hasLiveWindow()) stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.closed'));
-  if (focusContent) liveContents(tabs.get(rt().activeTabId))?.focus();
+  if (focusContent) presentationContents(tabs.get(rt().activeTabId))?.focus();
   return true;
 }
 
@@ -8983,6 +9656,17 @@ function pushClosedEntry(entry) {
     for (const existing of list) if (existing.view) downgradeHeldEntry(existing);
   }
   list.push(entry);
+  if(isSharedSpacesOffered()&&owner.profileId===DEFAULT_PROFILE_ID&&sync.sharedStatus().enabled) {
+    const context=sharedSpaceRuntimeContext(owner),ctx=sync.sharedContext();
+    for(const item of entry.kind==='tab'?[entry]:(entry.tabs??[])) {
+      if(item.private||item.inheritsDocumentPolicy||documentPolicy.restoredEntryMarker(item)||!/^https?:/.test(item.url))continue;
+      const deleted=context?.blob.tabs[item.sharedTabId]?.deleted;
+      item.syncedId=item.syncedId??item.sharedTabId??require('node:crypto').randomUUID();
+      item.sharedRemote=item.sharedRemoteClose===true&&deleted?.v===true&&deleted.by!==context?.deviceId;
+      item.sharedFrom=item.sharedRemote?(require('./tabsync').getDeviceEntries(ctx)[deleted.by]?.name??syncedClosed.rebind(ctx.accountId).data.devices[deleted.by]?.name??deleted.by):null;
+      syncedClosed.addOwnItem(ctx,{id:item.syncedId,url:item.url,title:item.title,closedAt:entry.closedAt,spaceId:context?.spaceId??null});
+    }
+  }
   entry.expiryTimer = setTimeout(bindWindowRuntime(owner, () => {
     const due = new Set(expireEntries(owner.closedEntries ?? [], { now: Date.now() }));
     if (due.has(entry.id)) forgetClosedEntry(entry.id);
@@ -9008,10 +9692,12 @@ function disposeClosedEntry(entry) {
 /** Remove one entry without reopening it. Renderer ids are proposals; main
  * re-resolves them against the focused window's own list. */
 function forgetClosedEntry(entryId, { broadcast = true } = {}) {
+  if(String(entryId).startsWith('shared:')) {const row=syncedClosed.hide(sync.sharedContext(),String(entryId).slice(7));if(row&&broadcast)broadcastTabs();return !!row;}
   const list = rt().closedEntries ?? [];
   const at = list.findIndex((entry) => entry.id === String(entryId));
   if (at === -1) return false;
   const [entry] = list.splice(at, 1);
+  for(const item of [entry,...(entry.tabs??[])])if(item.syncedId||item.sharedTabId)syncedClosed.hide(sync.sharedContext(),item.syncedId??item.sharedTabId);
   disposeClosedEntry(entry);
   if (hasLiveWindow()) {
     scheduleMenuRebuild();
@@ -9051,9 +9737,10 @@ function reopenGroupEntry(entry) {
       asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
       pinnedHomeUrl: member.pinnedHomeUrl,
       allowLocalFile: member.localFile === true,
-      openerSandboxFlags: member.openerSandboxFlags,
+      inheritsDocumentPolicy: member.inheritsDocumentPolicy === true,
     });
-    if (id && member.snapshot) {
+    // An inert local-file record never replays history (inert-local-file.js).
+    if (id && member.snapshot && !isInertRecord(tabs.get(id))) {
       sleepSnapshots.set(id, {
         view: null,
         entries: member.snapshot.entries,
@@ -9086,9 +9773,10 @@ function reopenBatchEntry(entry) {
       asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
       pinnedHomeUrl: member.pinnedHomeUrl,
       allowLocalFile: member.localFile === true,
-      openerSandboxFlags: member.openerSandboxFlags,
+      inheritsDocumentPolicy: member.inheritsDocumentPolicy === true,
     });
-    if (id && member.snapshot) {
+    // An inert local-file record never replays history (inert-local-file.js).
+    if (id && member.snapshot && !isInertRecord(tabs.get(id))) {
       sleepSnapshots.set(id, {
         view: null,
         entries: member.snapshot.entries,
@@ -9097,9 +9785,10 @@ function reopenBatchEntry(entry) {
       });
     }
     return id;
-  }).filter(Boolean);
-  if (ids.length === 0) return;
-  setActiveTab(ids[0]);
+  });
+  if (entry.splits) applyRestoredSplits(rt(), entry, ids);
+  if (!ids.some(Boolean)) return;
+  setActiveTab(ids.find(Boolean));
   broadcastTabs();
   scheduleMenuRebuild();
 }
@@ -9115,6 +9804,7 @@ function closeTab(id) {
   const tab = tabs.get(id);
   if (tab) fillHintScheduler?.clearTab(tab);
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
+  readerMode.forget(tab);
   const wasActive = id === rt().activeTabId;
   const wasGlance = id === rt().glanceTabId;
   // Split View: closing a pane hands the window to the split's other pane.
@@ -9185,6 +9875,8 @@ function closeTab(id) {
 
   rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
+  if (tab.private && ![...tabs.values()].some(other => other.private && other.profileId === tab.profileId)) readerMode.forgetPrivate(tab.profileId);
+  if(tab.sharedTabId)captureSharedSpaceEdits(rt());
   popupChildCounts.delete(id);
   windowRuntimes.detachTab(id);
   rt().tabOrder = rt().tabOrder.filter((tid) => tid !== id);
@@ -9266,7 +9958,7 @@ function closeTab(id) {
     resizeActiveView();
     // The reference held keyboard focus: hand it to the main page rather than
     // leaving it on the strip where the detached view dropped it.
-    if (referenceHeldFocus) liveContents(tabs.get(rt().activeTabId))?.focus();
+    if (referenceHeldFocus) presentationContents(tabs.get(rt().activeTabId))?.focus();
     stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.tabClosed'));
   }
   broadcastTabs();
@@ -9440,7 +10132,7 @@ function reopenEntry(entry) {
   const common = {
     pinned: entry.pinned, muted: entry.muted, groupId: resolvedGroupId, customTitle: entry.customTitle,
     pinnedHomeUrl: entry.pinnedHomeUrl,
-    openerSandboxFlags: entry.openerSandboxFlags,
+    inheritsDocumentPolicy: entry.inheritsDocumentPolicy === true,
     managedExtension: restorableUblockTool(entry.url),
   };
 
@@ -9465,7 +10157,12 @@ function reopenEntry(entry) {
   downgradeHeldEntry(entry);
   const id = createTab(entry.url, {
     ...common,
+    // What an inert tab shows (document-policy.js); a loading page replaces it.
+    ...(common.inheritsDocumentPolicy ? { title: entry.title, favicon: entry.favicon } : {}),
     allowLocalFile: entry.localFile === true,
+    // A local-file record carries its saved title back (on a DRM build the
+    // placeholder never supplies one); other tabs take their page's title.
+    ...(entry.localFile === true && entry.title && entry.title !== entry.url ? { title: entry.title } : {}),
     restoreHistory: entry.snapshot
       ? { entries: entry.snapshot.entries, index: entry.snapshot.index }
       : null,
@@ -9920,7 +10617,7 @@ const ZOOM_MAX = 8;
  * focused page pane (glance-focus.js). Menu clicks carry no sender. */
 function zoomTargetWebContents() {
   if (rt().utilitySheetUrl) return liveUtilitySheet()?.wc ?? null;
-  return liveContents(browserCommandTab(rt()));
+  return presentationContents(browserCommandTab(rt()));
 }
 
 function zoomActiveTab(delta) {
@@ -10102,6 +10799,7 @@ const spaceTint = !app.isPackaged && ['island', 'frame'].includes(process.env.BL
 // Workspace IPC contains presentation metadata only. Ownership is derived
 // within the requesting profile; page snapshots, URLs and views stay in main.
 function workspacesProjection() {
+  const shared=isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID?sync.sharedStatus():null;
   return {
     status: namedWorkspaces.status(),
     // Recently Deleted shows each space as it was, so its tile keeps its colour and symbol.
@@ -10116,7 +10814,10 @@ function workspacesProjection() {
       tabCount: workspace.urls.length,
       color: workspace.color,
       symbol: workspace.symbol,
+      ...(shared?.enabled&&workspace.sharedId&&workspace.sharedLink!=='dormant'?{sharedSync:{...sync.spaceStatus(workspace.sharedId),state:require('./shared-spaces-surfaces').markState(shared,sync.spaceStatus(workspace.sharedId))}}:{}),
     })),
+    recoveryNotice:shared&&namedWorkspaces.list().some(workspace=>workspace.recoveredFrom)&&!sharedSpaceState.snapshot(sync.sharedContext()).recoveryNoticeSeen,
+    sharedSync:shared?.enabled?{count:shared.spaces,limit:shared.spaceLimit,canAdd:shared.canAdd,busy:!!(shared.waiting||shared.running),slowed:shared.backoff}:undefined,
     // "This window · N tabs" in the new-space editor: what save-as would keep.
     windowTabCount: rt().tabOrder.filter((tabId) => tabs.get(tabId) && !tabs.get(tabId).private).length,
     tint: spaceTint,
@@ -10411,6 +11112,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:close', (_e, id) => closeTab(id));
   chromeHandle('tabs:reopen-closed', () => reopenClosedTab());
   chromeHandle('tabs:reopen-entry', (_e, entryId) => {
+    if(reopenSharedClosedEntry(entryId))return;
     // Renderer input is a proposal: main re-resolves the id against its own
     // list; a stale or forged id is a no-op (the moveTabTo rule).
     const list = rt().closedEntries ?? [];
@@ -10420,13 +11122,16 @@ function registerIpcHandlers() {
     reopenEntry(entry);
   });
   chromeHandle('tabs:forget-closed-entry', (_e, entryId) => forgetClosedEntry(entryId));
-  chromeHandle('tabs:clear-closed', () => clearClosedEntries());
-  chromeHandle('tabs:switch', (_e, id) => setActiveTab(id));
-  chromeHandle('tabs:activate-from-rail', (_e, id) => activateTabFromRail(id));
+  chromeHandle('tabs:clear-closed', () => clearSharedClosedEntries());
+  chromeHandle('tabs:group-many-by-name', (_e, ids, name) => groupTabsByName(ids, name));
+  chromeHandle('tabs:select', (_e, id, mode) => selectTabRows(id, mode));
+  chromeHandle('tabs:switch', (_e, id) => { clearTabSelection(); return setActiveTab(id); });
+  chromeHandle('tabs:activate-from-rail', (_e, id) => { clearTabSelection(); return activateTabFromRail(id); });
   chromeHandle('tabs:set-glance', (_e, id) => setGlanceTab(id));
   chromeHandle('tabs:open-glance-picker', (_e, query) => openGlancePicker(typeof query === 'string' ? query.slice(0, 200) : ''));
   chromeHandle('tabs:close-glance', () => closeGlance());
   chromeHandle('tabs:open-glance-as-tab', () => openGlanceAsTab());
+  chromeHandle('tabs:reader-toggle', (_e, id) => windowRuntimes.runtimeForTab(id) === rt() ? toggleReaderMode(tabs.get(id)) : false);
   chromeHandle('tabs:navigate', (_e, id, url) => navigateTabToAddress(id, url));
   // Search completions are query text, not navigation targets: a suggestion
   // such as "example.com" must search for that text instead of being
@@ -10449,6 +11154,11 @@ function registerIpcHandlers() {
         : { engine: engine.id, query: query.trim(), url: target };
       return target;
     }
+    // An inert tab stays as it is; the search opens beside it.
+    if (tab.inert) {
+      setActiveTab(createTab(target, { private: tab.private }), { focusContent: true });
+      return target;
+    }
     if (tab.asleep) return wakeTab(id, { navigateTo: target });
     return liveContents(tab)?.loadURL(target);
   });
@@ -10457,6 +11167,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:back', (_e, id) => {
     const tab = tabs.get(id);
     if (!tab) return;
+    if (readerMode.exit(tab)) return;
     if (tab.asleep) {
       const snapshot = sleepSnapshots.get(id);
       return wakeTab(id, { atIndex: snapshot ? snapshot.index - 1 : null });
@@ -10466,6 +11177,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:forward', (_e, id) => {
     const tab = tabs.get(id);
     if (!tab) return;
+    readerMode.exit(tab);
     if (tab.asleep) {
       const snapshot = sleepSnapshots.get(id);
       return wakeTab(id, { atIndex: snapshot ? snapshot.index + 1 : null });
@@ -10475,6 +11187,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:reload', (_e, id) => {
     const tab = tabs.get(id);
     if (!tab) return;
+    readerMode.exit(tab);
     if (tab.asleep) return wakeTab(id);
     return liveContents(tab)?.reload();
   });
@@ -10486,6 +11199,7 @@ function registerIpcHandlers() {
   chromeHandle('groups:set-color', (_e, id, color) => setGroupColor(id, color));
   chromeHandle('groups:new-tab', (_e, id) => newTabInGroup(id) !== null);
   chromeHandle('groups:move-to-new-window', (_e, id) => moveGroupToNewWindow(id));
+  chromeHandle('groups:space-menu', (_e, id, point) => openGroupSpaceMenu(id, point));
   chromeHandle('groups:ungroup', (_e, id) => ungroupGroup(id));
   chromeOn('overlay:drag-state', (event, active) => {
     acceptOverlayDragState(rt(), event.sender, active);
@@ -10524,12 +11238,13 @@ function registerIpcHandlers() {
   });
   chromeHandle('tabs:get-all', () => (syncTabLayout(rt()), {
     tabs: serializeTabs(),
+    selectedTabIds: [...(rt().selectedTabIds ?? [])],
     activeTabId: rt().activeTabId,
     glanceTabId: activeGlanceTab()?.id ?? null,
     groups: rt().groups,
     splits: projectSplits(rt()),
     closedSlot: rt().closedSlot,
-    closed: projectEntries(rt().closedEntries ?? []),
+    closed: sharedClosedBand(rt()),
     tabLayout,
     ...verticalTabsMetrics(),
   }));
@@ -10537,9 +11252,9 @@ function registerIpcHandlers() {
     const tab = tabs.get(id);
     if (!tab) return;
     if (tab.asleep) return wakeTab(id); // find on the rebuilt page, never throw
-    return liveContents(tab)?.findInPage(query, options);
+    return presentationContents(tab)?.findInPage(query, options);
   });
-  chromeHandle('tabs:find-stop', (_e, id) => liveContents(tabs.get(id))?.stopFindInPage('clearSelection'));
+  chromeHandle('tabs:find-stop', (_e, id) => presentationContents(tabs.get(id))?.stopFindInPage('clearSelection'));
 
   // The resting pill's tooltips (renderer.js). Only the strip may ask.
   chromeOn('chrome:tooltip-show', (event, raw) => {
@@ -10763,6 +11478,11 @@ function registerIpcHandlers() {
   });
   chromeHandle('chrome:favorites-list', () => bookmarks.listBookmarks());
   chromeHandle('chrome:remote-tabs-list', () => knownRemoteDevices());
+  chromeHandle('chrome:send-targets', () => knownSendTargets());
+  chromeHandle('chrome:send-tab', (_e, tabId, deviceId) => sendTabToDevice(tabId, deviceId));
+  chromeHandle('chrome:sent-list', () => knownSentItems());
+  chromeHandle('chrome:sent-open', (_e, id) => openSentItem(id));
+  chromeHandle('chrome:sent-dismiss', (_e, id) => dismissSentItem(id));
   chromeHandle('chrome:rename-device', (_e, id, name) => sync.renameRemoteDevice(id, name, knownRemoteDevices()));
   if (ONE_PASSWORD_AVAILABLE) {
     chromeHandle('chrome:onepassword-fill', () => fillLoginFromOnePassword());
@@ -10779,6 +11499,9 @@ function registerIpcHandlers() {
   // workspaces.json.
   chromeOn('chrome:workspaces-cancel', () => workspaceController.cancel(rt()));
   chromeHandle('chrome:workspaces-list', () => workspacesProjection());
+  chromeHandle('chrome:workspaces-create-with-link', (_e, name, identity) => createSpaceWithLink(name, identity));
+  chromeHandle('chrome:workspaces-create-with-tabs', (_e, name, identity, ids) => createSpaceWithTabs(name, identity, ids));
+  chromeHandle('chrome:workspaces-create-with-tab', (_e, name, identity, id) => createSpaceWithTab(name, identity, id));
   chromeHandle('chrome:workspaces-save-as', (_e, name, identity) => {
     const result = saveCurrentWindowAsWorkspace(rt(), name, {
       color: typeof identity?.color === 'string' ? identity.color : undefined,
@@ -10834,12 +11557,14 @@ function registerIpcHandlers() {
     return { ok: true, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-update', (_e, id, patch) => {
+    if(patch?.ackRecovery===true&&isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID){const store=sharedSpaceState.rebind(sync.sharedContext().accountId);store.update(data=>{data.recoveryNoticeSeen=true;});if(!store.flush())return {ok:false,error:'storage-failed'};broadcastWorkspacesUpdated();return {ok:true,...workspacesProjection()};}
     const result = namedWorkspaces.update(id, {
       ...(typeof patch?.name === 'string' ? { name: patch.name } : {}),
       ...(typeof patch?.color === 'string' ? { color: patch.color } : {}),
       ...(typeof patch?.symbol === 'string' ? { symbol: patch.symbol } : {}),
     });
     if (!result.ok) return result; // not-found | invalid-name | duplicate-name | invalid-color | invalid-symbol
+    if(!sharedSharing.metadata(result.workspace??namedWorkspaces.get(id),patch??{}))return {ok:false,error:'storage-failed'};
     broadcastWorkspacesUpdated();
     return { ok: true, ...workspacesProjection() };
   });
@@ -10851,7 +11576,7 @@ function registerIpcHandlers() {
   });
 
   for (const [channel, operation] of [
-    ['chrome:workspaces-restore', (id) => namedWorkspaces.restore(id)],
+    ['chrome:workspaces-restore', (id) => {const result=namedWorkspaces.restore(id);return result.ok&&!sharedSharing.restored(id)?{ok:false,error:'storage-failed'}:result;}],
     ['chrome:workspaces-forget', (id) => namedWorkspaces.forget(id)],
     // The model refuses a negative or non-integer index (invalid-index).
     ['chrome:workspaces-move-to', (id, index) => namedWorkspaces.moveTo(id, index)],
@@ -10859,6 +11584,7 @@ function registerIpcHandlers() {
     chromeHandle(channel, (_event, ...args) => {
       const result = operation(...args);
       if (!result.ok) return result;
+      if(channel==='chrome:workspaces-move-to'&&!sharedSharing.reorder())return {ok:false,error:'storage-failed'};
       broadcastWorkspacesUpdated();
       return { ok: true, ...workspacesProjection() };
     });
@@ -11137,6 +11863,8 @@ const SLASH_COMMANDS = [
   ['/group <name>', 'slash.group.doc'],
   ['/ungroup', 'slash.ungroup.hint'],
   ['/close-group', 'slash.closeGroup.hint'],
+  ['/send <device>', 'slash.send.doc'],
+  ['/reader', 'slash.reader.hint'],
   ['/find', 'slash.find.hint'],
   ['/block-ads', 'slash.blockAds.hint'],
   ['/allow-ads', 'slash.allowAds.hint'],
@@ -11157,6 +11885,11 @@ const SLASH_COMMANDS = [
 const LAST_ACTIVE_TAB_ACCELERATOR = process.platform === 'darwin'
   ? 'Cmd+Alt+Z'
   : null;
+// macOS-only for the same reason: Ctrl+Alt+Shift+C is AltGr+Shift+C on
+// international layouts, which types a character (Ć on Polish keyboards).
+const COPY_CLEAN_LINK_ACCELERATOR = process.platform === 'darwin'
+  ? 'Cmd+Alt+Shift+C'
+  : null;
 const ONE_PASSWORD_ACCELERATOR = onePasswordAccelerator();
 // [catalog key, accelerator]; labels are translated when the menu is built.
 const COMMON_KEYSTROKES = [
@@ -11167,6 +11900,10 @@ const COMMON_KEYSTROKES = [
   ['menu.reopenClosedTab', 'CmdOrCtrl+Shift+T'],
   ['menu.searchCommands', 'CmdOrCtrl+L'],
   ['menu.findInPage', 'CmdOrCtrl+F'],
+  ['tabMenu.copyLink', 'CmdOrCtrl+Shift+C'],
+  ...(COPY_CLEAN_LINK_ACCELERATOR
+    ? [['menu.copyCleanLink', COPY_CLEAN_LINK_ACCELERATOR]]
+    : []),
   ...(ONE_PASSWORD_ACCELERATOR
     ? [['menu.fillOnePassword', ONE_PASSWORD_ACCELERATOR]]
     : []),
@@ -11257,7 +11994,7 @@ function buildMenuForRuntime(runtime) {
           ...command('reopen-tab'),
           enabled: (runtime.closedEntries?.length ?? 0) > 0,
         },
-        { id: 'print', label: t('menu.print'), accelerator: 'CmdOrCtrl+P', click: bound(() => liveContents(browserCommandTab(rt()))?.print()) },
+        { id: 'print', label: t('menu.print'), accelerator: 'CmdOrCtrl+P', click: bound(() => presentationContents(browserCommandTab(rt()))?.print()) },
         { type: 'separator' },
         command('downloads'),
         command('settings'),
@@ -11288,6 +12025,20 @@ function buildMenuForRuntime(runtime) {
         { type: 'separator' },
         { role: 'cut', label: t('menu.cut') },
         { role: 'copy', label: t('menu.copy') },
+        command('copy-link'),
+        {
+          id: 'copy-clean-link',
+          label: mn(t('menu.copyCleanLink')),
+          ...(COPY_CLEAN_LINK_ACCELERATOR
+            ? { accelerator: COPY_CLEAN_LINK_ACCELERATOR }
+            : {}),
+          click: (_item, window) => {
+            const target = window
+              ? windowRuntimes.all().find(candidate => candidate.window === window)
+              : focusedRuntime ?? runtime;
+            if (target) bindWindowRuntime(target, () => copyCleanBrowserCommandLink(target))();
+          },
+        },
         { role: 'paste', label: t('menu.paste') },
         ...(isMac ? [
           { role: 'pasteAndMatchStyle', label: t('menu.pasteAndMatchStyle') },
@@ -11323,6 +12074,7 @@ function buildMenuForRuntime(runtime) {
       submenu: [
         command('address'),
         command('find'),
+        { label: t('reader.title'), click: bound(() => toggleReaderMode(browserCommandTab(rt()))) },
         ...(ONE_PASSWORD_AVAILABLE ? [{
           label: t('menu.fillOnePassword'),
           accelerator: ONE_PASSWORD_ACCELERATOR,
@@ -11399,7 +12151,7 @@ function buildMenuForRuntime(runtime) {
         { label: t('menu.nextGroup'), accelerator: 'Alt+CmdOrCtrl+Down', click: bound(() => cycleCluster(1)) },
         { label: t('menu.previousGroup'), accelerator: 'Alt+CmdOrCtrl+Up', click: bound(() => cycleCluster(-1)) },
         { type: 'separator' },
-        { label: t('tabMenu.duplicate'), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && duplicateTab(rt().activeTabId)) },
+        { label: t('tabMenu.duplicate'), enabled: !!rt().activeTabId && !tabs.get(rt().activeTabId)?.inheritsDocumentPolicy, click: bound(() => rt().activeTabId && duplicateTab(rt().activeTabId)) },
         { label: t(pinLabelKey(tabs.get(rt().activeTabId))), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabPinned(rt().activeTabId)) },
         { label: t(tabs.get(rt().activeTabId)?.muted ? 'tabMenu.unmute' : 'tabMenu.mute'), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabMuted(rt().activeTabId)) },
         { type: 'separator' },
@@ -11497,6 +12249,7 @@ function buildMenuForRuntime(runtime) {
  * is the window runtime the menu belongs to. Null if the tab isn't in it. */
 function tabContextData(tab, owner) {
   if (!tab || tab.runtimeId !== owner.id) return null;
+  const visibleSplit = visibleSplitOf(owner);
   const home = tab.pinnedHomeUrl;
   const candidate = pinnedHomeFor(tab.url, { localFile: tab.localFile === true });
   const startPin = withLocalProfile(tab.profileId ?? DEFAULT_PROFILE_ID, () => startPagePins.pinState(tab.url));
@@ -11520,21 +12273,219 @@ function tabContextData(tab, owner) {
     groups: owner.groups.map((g) => ({ id: g.id, name: g.name })),
     activeTabId: owner.activeTabId,
     glanceTabId: owner.glanceTabId ?? null,
+    canGlance: !visibleSplit || (visibleSplit.tabIds.length === 2
+      && visibleSplit.tabIds.includes(tab.id)),
     canCloseOthers: closableTabIds({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id }).length > 0,
     canMoveToNewWindow: owner.tabOrder.length > 1,
+    // A page-opened tab can't be copied into a fresh view (document-policy.js).
+    canDuplicate: tab.inheritsDocumentPolicy !== true,
     canQuiet: explicitSleepEligible(tab, owner),
     canCloseAbove: closableBeside({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id, direction: 'above' }).length > 0,
     canCloseBelow: closableBeside({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id, direction: 'below' }).length > 0,
     // null: not a web page, so no site to mute.
     siteMuted: hostOf(tab.url) ? siteMutes.has(siteMuteKey(tab), hostOf(tab.url)) : null,
     splitCandidates: splitCandidatesFor(tab, owner),
+    sendTargets: sendTargetsFor(tab),
+    // Move to Space ▸ (the model hides it for a private tab).
+    spaces: spaceMoveTargets(owner),
+    canMoveToSpace: canMoveTabToSpace(tab, owner),
+    canCreateSpace: namedWorkspaces.list().length < MAX_WORKSPACES,
   };
+}
+
+/** Send to Device ▸'s devices for `tab`: null hides the item (sync is off,
+ * or the tab can't be sent), [] shows it disabled. */
+function sendTargetsFor(tab) {
+  if (!canSendTab(tab) || (!sendsSource && !sync.status().enabled)) return null;
+  return knownSendTargets().map(({ id, name }) => ({ id, name }));
+}
+
+function batchMembers(ids) {
+  if (!Array.isArray(ids) || !ids.length || new Set(ids).size !== ids.length) return null;
+  const members = ids.map(id => tabs.get(id));
+  if (members.some(tab => !tab || windowRuntimes.runtimeForTab(tab.id) !== rt())) return null;
+  const whole = selectionState(ids, null, tabLayoutList(rt())).selectedTabIds;
+  return whole.length === ids.length ? members : null;
+}
+
+async function runTabsAction(action, args = {}, ids = rt().selectedTabIds) {
+  const source = rt();
+  const members = batchMembers(ids);
+  if (!members || source.closing || source.workspaceTransition) return false;
+  ids = source.tabOrder.filter(id => ids.includes(id));
+  const stable = members.every(tab => !tab.sleeping && !tab.waking);
+  const place = stable && members.every(tab => canMoveTabToSpace(tab, source, true));
+  const revision = source.selectionRevision ?? 0;
+  const finish = (remaining = []) => {
+    // Quiet/wake can await a page. Do not overwrite a newer user selection.
+    if ((source.selectionRevision ?? 0) === revision) {
+      Object.assign(source, selectionState(remaining, null, tabLayoutList(source)));
+      source.selectionRevision = revision + 1;
+    }
+    broadcastTabs(); scheduleMenuRebuild();
+  };
+  if (action === 'batch-space-new') {
+    if (!place || namedWorkspaces.list().length >= MAX_WORKSPACES) return false;
+    showOverlay('spaces', { purpose: { newSpaceTabIds: ids } }); return true;
+  }
+  if (action === 'batch-space-move') {
+    if (!place) return false;
+    const result = moveTabsToSpace(ids, args.workspaceId);
+    finish(result.ok ? [] : ids.filter(id => windowRuntimes.runtimeForTab(id) === source));
+    if (!result.ok) showOverlay('spaces', { purpose: { spaceMoveError: {
+      name: namedWorkspaces.get(args.workspaceId)?.name ?? '', error: result.error, movedCount: result.movedCount ?? 0,
+    } } });
+    return result;
+  }
+  if (action === 'batch-new-window') {
+    if (!place) return false;
+    const ok = moveTabsToNewWindow(ids);
+    finish(ok ? [] : ids);
+    if (!ok) announceSplit(mainI18n.t('tabsSelection.failed'));
+    return ok;
+  }
+  if (action === 'batch-group-new') {
+    if (!place) return false;
+    showOverlay('panel', { prefill: '/group ', purpose: { beginGroupTabIds: ids } }); return true;
+  }
+  if (action === 'batch-copy') {
+    const links = members.filter(isCopyable).map(tab => tab.url);
+    if (!links.length) return false;
+    clipboard.writeText(links.join('\n'));
+    finish(); return true;
+  }
+  if (action === 'batch-reload' || action === 'batch-quiet') {
+    const result = await runPerTab(ids, async id => {
+      const tab = tabs.get(id);
+      if (!tab || windowRuntimes.runtimeForTab(id) !== source) return false;
+      if (action === 'batch-quiet') {
+        if (!explicitSleepEligible(tab, source)) return false;
+        await sleepTab(id); return tabs.get(id)?.asleep === true;
+      }
+      if (tab.asleep) return await wakeTab(id);
+      const wc = liveContents(tab); if (!wc) return false;
+      wc.reload(); return true;
+    });
+    finish(result.remaining);
+    announceSplit(mainI18n.t(action === 'batch-quiet' ? 'tabsSelection.quieted' : 'tabsSelection.reloaded', { count: result.done.length, total: ids.length }));
+    return result.remaining.length === 0;
+  }
+  if (!stable) return false;
+  if (action === 'batch-close') {
+    const records = new Map(ids.map(id => [id, { ...closedMemberRecord(id), id }]));
+    const splitRecords = structuredClone(source.splits);
+    let survivor = source.tabOrder.find(id => !ids.includes(id));
+    if (!survivor) survivor = createTab(newTabUrl());
+    if (ids.includes(source.activeTabId)) setActiveTab(survivor, { focusContent: false });
+    tabStateBroadcastSuppressionDepth++;
+    try { for (const id of ids) closeTab(id, { record: false, selectReplacement: false }); }
+    finally { tabStateBroadcastSuppressionDepth--; }
+    const closed = ids.filter(id => !tabs.has(id));
+    const entry = buildBatchEntry(closed.map(id => records.get(id)), Date.now(), splitRecords);
+    if (entry.tabs.length) pushClosedEntry(entry);
+    finish(ids.filter(id => tabs.has(id))); return closed.length === ids.length;
+  }
+  const kind = { 'batch-pin': 'pin', 'batch-mute': 'mute', 'batch-group-move': 'group', 'batch-group-none': 'group' }[action];
+  if (!kind || (kind === 'group' && !place)) return false;
+  const groupId = action === 'batch-group-none' ? null : args.groupId;
+  if (kind === 'group' && groupId && !source.groups.some(group => group.id === groupId)) return false;
+  let plan;
+  try { plan = planTabEdits(source.tabOrder.map(id => tabs.get(id)).filter(Boolean), ids, kind, {
+    groupId, muted: shownMuted, pinnedHome: tab => pinnedHomeFor(tab.url, { localFile: tab.localFile === true }),
+  });
+  } catch { announceSplit(mainI18n.t('tabsSelection.failed')); return false; }
+  if (!plan) return false;
+  for (const { id, patch } of plan.patches) Object.assign(tabs.get(id), patch);
+  source.tabOrder = plan.order;
+  if (kind === 'mute') for (const tab of members) { try { liveContents(tab)?.setAudioMuted(effectiveTabMuted(tab)); } catch {} }
+  pruneEmptyGroups(); finish(); return true;
+}
+
+function groupTabsByName(ids, rawName) {
+  const members = batchMembers(ids), name = normalizeGroupName(rawName);
+  if (!members || !name || !members.every(tab => canMoveTabToSpace(tab, rt(), true))) return false;
+  let group = rt().groups.find(g => sameGroupName(g.name, name));
+  if (!group) { group = { id: crypto.randomUUID(), name, collapsed: false, color: null }; rt().groups.push(group); }
+  return runTabsAction('batch-group-move', { groupId: group.id }, ids);
+}
+
+function moveTabsToNewWindow(ids) {
+  const source = rt();
+  const origin = { order: [...source.tabOrder], groups: structuredClone(source.groups), splits: structuredClone(source.splits), active: source.activeTabId,
+    fields: new Map(ids.map(id => [id, { groupId: tabs.get(id).groupId, splitId: tabs.get(id).splitId }])) };
+  const before = new Set(windowRuntimes.all());
+  let floor = null, ok = false;
+  tabStateBroadcastSuppressionDepth++;
+  const suspended = sessionPersistenceSuspended; sessionPersistenceSuspended = true;
+  try {
+    const survivor = source.tabOrder.find(id => !ids.includes(id)) ?? (floor = createTab(newTabUrl()));
+    if (ids.includes(source.activeTabId)) setActiveTab(survivor, { focusContent: false });
+    for (const id of ids) detachTabForMove(source, id);
+    source.splits = origin.splits.filter(split => !split.tabIds.some(id => ids.includes(id)));
+    if (takeSpaceMoveFault('transfer')) throw new Error('injected: new window failed');
+    const movedGroups = origin.groups.filter(g => ids.some(id => origin.fields.get(id).groupId === g.id));
+    const groupIds = new Map(movedGroups.map(group => [group.id,
+      source.tabOrder.some(id => tabs.get(id)?.groupId === group.id) ? crypto.randomUUID() : group.id]));
+    const movedFields = new Map([...origin.fields].map(([id, fields]) => [id,
+      { ...fields, groupId: groupIds.get(fields.groupId) ?? null }]));
+    openNewWindow({ profileId: source.profileId, adoptTabIds: ids, activeTabId: origin.active,
+      groups: movedGroups.map(group => ({ ...group, id: groupIds.get(group.id) })),
+      splits: origin.splits.filter(split => split.tabIds.every(id => ids.includes(id))),
+      tabFields: movedFields });
+    source.groups = source.groups.filter(group => source.tabOrder.some(id => tabs.get(id)?.groupId === group.id));
+    ok = true;
+  } catch {
+    for (const id of ids) { rehomeTab(tabs.get(id), source); Object.assign(tabs.get(id), origin.fields.get(id)); }
+    source.tabOrder = [...origin.order, ...(floor ? [floor] : [])]; source.groups = origin.groups; source.splits = origin.splits;
+    for (const runtime of windowRuntimes.all()) if (!before.has(runtime)) {
+      runtime.tabOrder = []; runtime.window?.destroy(); windowRuntimes.discardRuntime(runtime);
+    }
+    if (floor) closeTab(floor, { record: false, selectReplacement: false });
+    source.activeTabId = null; setActiveTab(origin.active, { focusContent: false });
+  } finally { tabStateBroadcastSuppressionDepth--; sessionPersistenceSuspended = suspended; }
+  broadcastTabs(); return ok;
+}
+
+function tabRowContextData(tab, owner) {
+  const context = tabContextData(tab, owner);
+  if (!context) return null;
+  Object.assign(owner, pruneSelection(owner, tabLayoutList(owner)));
+  if (!owner.selectedTabIds.includes(tab.id)) {
+    Object.assign(owner, selectionState([tab.id], tab.id, tabLayoutList(owner)));
+    owner.selectionRevision = (owner.selectionRevision ?? 0) + 1;
+    broadcastTabs();
+  }
+  const ids = [...owner.selectedTabIds];
+  if (ids.length < 2) return context;
+  const members = ids.map(id => tabs.get(id));
+  const stable = !owner.closing && !owner.workspaceTransition && !ids.some(id => tabs.get(id)?.sleeping || tabs.get(id)?.waking);
+  return { ...context, batch: { ids, members: members.map(tab => ({ ...tabContextData(tab, owner).tab,
+    canQuiet: explicitSleepEligible(tab, owner), canReload: !!tab.asleep || !!liveContents(tab) })),
+    groups: context.groups, spaces: context.spaces, canPlace: stable && members.every(tab => canMoveTabToSpace(tab, owner, true)),
+    canMutate: stable, canCreateSpace: context.canCreateSpace } };
+}
+
+/** The result of a send from the tab menu: read out always, and a native
+ * notice when the page didn't go. */
+function reportSendResult(owner, deviceId, status, targets) {
+  const name = targets.find((target) => target.id === deviceId)?.name ?? '';
+  const message = {
+    sent: mainI18n.t('sends.sent', { device: name }),
+    unavailable: mainI18n.t('sends.unavailable'),
+    invalid: mainI18n.t('sends.failed'),
+    failed: mainI18n.t('sends.failed'),
+  }[status] ?? mainI18n.t('sends.failed');
+  if (owner.window && !owner.window.isDestroyed()) stripSurfaces(owner).send('chrome:glance-status', message);
+  if (status !== 'sent' && owner.window && !owner.window.isDestroyed()) {
+    dialog.showMessageBox(owner.window, { type: 'info', message, buttons: [mainI18n.t('dialog.ok')] }).catch(() => {});
+  }
 }
 
 /** The action closures the context-menu runner calls, bound to `owner`. */
 function menuContextActions(owner) {
   const b = (fn) => bindWindowRuntime(owner, fn);
   return {
+    batch: b((action, args, ids) => runTabsAction(action, args, ids)),
     copy: (text) => clipboard.writeText(text),
     // A quiet tab has no live renderer to reload — waking IS its reload
     // (same branch openInternalPage takes).
@@ -11566,14 +12517,19 @@ function menuContextActions(owner) {
     toggleStartPagePin: b((id) => toggleStartPagePinForTab(id)),
     setGroup: b((id, gid) => setTabGroup(id, gid)),
     beginNewGroup: b((id) => beginNewGroup(id)),
+    beginNewSpaceForTab: b((id) => beginNewSpaceForTab(id)),
     rename: b((id) => beginRenameTab(id)),
     resetTitle: b((id) => renameTab(id, null)),
-    // Mirrors the row's glance chip: once the pane actually opens, dismiss the
-    // panel so it isn't left floating over the fresh Glance split (a quiet tab
-    // wakes first inside setGlanceTab, so success can take a beat).
-    glance: b(async (id) => { if (await setGlanceTab(id)) hideOverlay(); }),
+    // A split pane first becomes an ordinary tab; dismiss the panel only once
+    // Glance opens (a background quiet tab may need to wake first).
+    glance: b(async (id) => { if (await openTabMenuGlance(id)) hideOverlay(); }),
     closeGlance: b(() => closeGlance()),
     splitWith: b((id, otherId) => { if (splitTabWith(id, otherId)) hideOverlay(); }),
+    sendToDevice: b(async (id, deviceId) => {
+      const targets = knownSendTargets();
+      const { status } = await sendTabToDevice(id, deviceId);
+      reportSendResult(owner, deviceId, status, targets);
+    }),
     removeFromSplit: b((id) => removeTabFromSplit(id)),
     closeSplit: b((id) => { const split = splitForTab(rt().splits, id); if (split) closeSplit(split.id); }),
     quiet: b((id) => sleepTabNow(id)),
@@ -11584,6 +12540,13 @@ function menuContextActions(owner) {
     newTabBelow: b((id) => newTabBelow(id)),
     toggleSiteMute: b((id) => toggleSiteMute(id)),
     moveToNewWindow: b((id) => moveTabToNewWindow(id)),
+    moveToSpace: b((id, workspaceId) => {
+      const result = moveTabToSpace(id, workspaceId);
+      if (!result.ok) showOverlay('spaces', { purpose: { spaceMoveError: {
+        name: namedWorkspaces.get(workspaceId)?.name ?? '', error: result.error,
+      } } });
+      return result;
+    }),
     reopenClosed: b(() => reopenClosedTab()),
     close: b((id) => closeTab(id)),
   };
@@ -11661,7 +12624,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     // Vertical-rail rows: same string→number id coercion as the overlay rows.
     resolveTab: bindWindowRuntime(runtime, (rawId) => {
       const id = tabs.has(rawId) ? rawId : (tabs.has(Number(rawId)) ? Number(rawId) : null);
-      return id == null ? null : tabContextData(tabs.get(id), runtime);
+      return id == null ? null : tabRowContextData(tabs.get(id), runtime);
     }),
     actions: menuContextActions(runtime),
   });
@@ -11745,7 +12708,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
       });
     },
   });
-  rt().window.on('close', bindWindowRuntime(runtime, dockReopenLifecycle.onWindowClose));
+  rt().window.on('close', bindWindowRuntime(runtime, event=>closeSharedSpaceWindow(runtime,event,dockReopenLifecycle.onWindowClose)));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
     clearIslandHoverTimer(runtime);
     clearIslandAutoHideTimer(runtime);
@@ -12025,23 +12988,13 @@ function openNewWindow(options = {}) {
       runtime.tabOrder = [...adoptIds];
       // A moved group arrives whole: the same record (name, color, fold).
       if (options.group) runtime.groups = [groupRecord(options.group)];
+      if (options.groups) runtime.groups = options.groups.map(groupRecord);
+      if (options.splits) runtime.splits = structuredClone(options.splits);
       for (const id of adoptIds) {
         const tab = tabs.get(id);
-        tab.runtimeId = runtime.id;
         if (options.group) tab.groupId = options.group.id;
-        windowRuntimes.attachTab(runtime, id);
-        // Re-home the per-tab listener set: wireTabView binds its owner runtime
-        // once at attach time, so without this every media/find/beforeunload/
-        // window.open handler would keep acting on the OLD window. A retained-
-        // storage quiet tab keeps a live, still-wired WebContents in its sleep
-        // snapshot (wakeTab's retained branch deliberately skips rewiring), so
-        // that view needs the same treatment as an awake one.
-        const wiredView = liveContents(tab) ? tab.view : (sleepSnapshots.get(id)?.view ?? null);
-        const wiredWc = wiredView?.webContents;
-        if (wiredWc && !wiredWc.isDestroyed()) {
-          unwireTabView(wiredWc);
-          wireTabView(tab, wiredView, { owner: runtime, adopted: !!tab.adopted });
-        }
+        if (options.tabFields?.has(id)) Object.assign(tab, options.tabFields.get(id));
+        rehomeTab(tab, runtime);
       }
       tabId = adoptIds.includes(options.activeTabId) ? options.activeTabId : adoptIds[0];
       setActiveTab(tabId); // attaches (and wakes a discarded quiet tab) here
@@ -12061,11 +13014,29 @@ function openNewWindow(options = {}) {
   });
 }
 
+/** Make `runtime` the owner of a tab that has left another window. Re-homes
+ * the per-tab listener set too: wireTabView binds its owner runtime once at
+ * attach time, so without this every media/find/beforeunload/window.open
+ * handler would keep acting on the OLD window. A retained-storage quiet tab
+ * keeps a live, still-wired WebContents in its sleep snapshot (wakeTab's
+ * retained branch deliberately skips rewiring), so that view needs the same
+ * treatment as an awake one. */
+function rehomeTab(tab, runtime) {
+  tab.runtimeId = runtime.id;
+  windowRuntimes.attachTab(runtime, tab.id);
+  const wiredView = liveContents(tab) ? tab.view : (sleepSnapshots.get(tab.id)?.view ?? null);
+  const wiredWc = wiredView?.webContents;
+  if (wiredWc && !wiredWc.isDestroyed()) {
+    unwireTabView(wiredWc);
+    wireTabView(tab, wiredView, { owner: runtime, adopted: !!tab.adopted });
+  }
+}
+
 /** Detach a tab from `source` before it moves to a new window: cancel its
  * permission prompts, hand off Glance and the selection, drop it from the
  * order and ungroup it (a group spanning two windows isn't modeled). Shared
  * by Move Tab and Move Group to New Window. */
-function detachTabForMove(source, id) {
+function detachTabForMove(source, id, { keepSpacesEditor = false } = {}) {
   const tab = tabs.get(id);
   // Detach from the source window. A pending permission prompt belongs to
   // this window's runtime and would float over unrelated content (and its
@@ -12091,7 +13062,7 @@ function detachTabForMove(source, id) {
       const mruId = referenceId ?? previousSurvivor(rt().activationHistory,
         (tid) => tid !== id && tabs.has(tid) && windowRuntimes.runtimeForTab(tid) === rt());
       const survivor = mruId ?? pickSurvivorTabId(source.tabOrder, id);
-      if (survivor != null) setActiveTab(survivor, { focusContent: false });
+      if (survivor != null) setActiveTab(survivor, { focusContent: false, keepSpacesEditor });
     }
     source.tabOrder = source.tabOrder.filter((tid) => tid !== id);
     source.activationHistory = (source.activationHistory ?? []).filter((tid) => tid !== id);
@@ -12127,6 +13098,479 @@ function moveTabToNewWindow(id) {
   //    rewire, activation, focus, menu) all live in openNewWindow's adopt
   //    branch, keeping guards and sequencing in one place.
   openNewWindow({ profileId: source.profileId, adoptTabId: id });
+}
+
+/** Move to Space ▸ can take this tab out of `owner`: never a private tab
+ * (a space never keeps one), the window's only tab, or a page a space's
+ * record can't hold; and never a page using the camera or microphone, playing
+ * sound, sharing its screen, holding a popup, or mid quiet transition, since
+ * a space set aside keeps its pages out of sight with no window to stop them
+ * (the same work residentHasLiveProtection guards). The target's own state
+ * is per space (spaceMoveTargets). */
+function canMoveTabToSpace(tab, owner, allowLast = false) {
+  return !!tab && !tab.private && !tab.sleeping && !tab.waking && !tab.capturing
+    && !tab.audible && !tab.displayShareBlocking && !!persistableUrl(tab.url)
+    && !popupChildCounts.get(tab.id) && (allowLast || owner.tabOrder.length > 1)
+    && !owner.resident && !owner.closing && !owner.workspaceTransition && !sessionReadOnly
+    && !profileDeletions.hasPendingProfileDeletion(owner.profileId);
+}
+
+/** Whether a space can receive a tab now: not while the window or set-aside
+ * runtime holding it is closing or mid switch. */
+function spaceCanReceive(owner, workspaceId) {
+  const holder = workspaceOwner(owner, workspaceId);
+  return !holder || (!holder.closing && !holder.workspaceTransition);
+}
+
+/** The Move to Space ▸ rows for a tab in `owner`: every space of the profile,
+ * the window's own marked, a busy one disabled. The menu and the action read
+ * the same two predicates, so a row is never enabled for a move the action
+ * would refuse. */
+function spaceMoveTargets(owner) {
+  return namedWorkspaces.list().map((w) => ({
+    id: w.id, name: w.name, current: w.id === owner.workspaceId, enabled: spaceCanReceive(owner, w.id),
+  }));
+}
+
+/** Move to Space ▸ (#1060): take one tab out of its window and into a space
+ * of the same profile, where it lands last and ungrouped (a group spanning
+ * two spaces isn't modeled, as with Move Tab to New Window). The window stays
+ * where it is. The page itself moves, never a copy: a space shown in another
+ * window or set aside receives the tab, and a space open nowhere is first set
+ * aside from its saved tabs (born quiet, as a switch materializes them), then
+ * kept within the set-aside budget like a switch.
+ *
+ * Persistence runs in space-move.js's order: the space's record is written
+ * first, already holding the tab, and checked; only then does the tab move.
+ * A failed write moves nothing. Returns { ok: true } only when the write and
+ * the live transfer both succeed, otherwise { ok: false, error, moved }. */
+function moveTabToSpace(id, workspaceId, creation = null) {
+  const tab = tabs.get(id);
+  const source = windowRuntimes.runtimeForTab(id);
+  if (!tab || !source) return { ok: false, error: 'refused', moved: false };
+  return withWindowRuntime(source, () => {
+    let workspace = creation ? null : namedWorkspaces.get(workspaceId);
+    let target = null;
+    let materialized = false;
+    let floorId = null;
+    let origin = null;
+    let settledInTarget = false;
+    const result = runSpaceMove({
+      check() {
+        if (!canMoveTabToSpace(tab, source) || (!creation && source.workspaceId === workspaceId)) return { ok: false, error: 'refused' };
+        if (creation) {
+          const valid = namedWorkspaces.validateCreate(creation.name);
+          if (!valid.ok) return valid;
+        } else if (!workspace) return { ok: false, error: 'not-found' };
+        if (!creation && !spaceCanReceive(source, workspaceId)) return { ok: false, error: 'busy' };
+        // Enough to put the tab back whole if the transfer fails: its place,
+        // its group's record (detaching prunes a group it emptied) and whether
+        // it was the current tab.
+        const group = source.groups.find((g) => g.id === tab.groupId) ?? null;
+        origin = { index: source.tabOrder.indexOf(id), group: group ? groupRecord(group) : null, wasActive: source.activeTabId === id };
+        target = creation ? null : workspaceOwner(source, workspaceId);
+        return { ok: true };
+      },
+      prepare() {
+        if (!target) {
+          target = makeResidentRuntime(source.profileId);
+          materialized = true;
+          // Materializing creates every saved tab (quiet); as in stageWorkspace,
+          // no session write runs until the move is committed.
+          const priorSuspended = sessionPersistenceSuspended;
+          sessionPersistenceSuspended = true;
+          try {
+            if (!creation) withWindowRuntime(target, () => applyWorkspaceToWindow(target, workspace));
+          } finally {
+            sessionPersistenceSuspended = priorSuspended;
+          }
+          target.workspaceId = workspace?.id ?? null;
+          // A space saved empty comes back as one blank start page (the floor
+          // applyWorkspaceToWindow lays); the moved tab replaces it.
+          const [only] = target.tabOrder;
+          if (target.tabOrder.length === 1 && tabs.get(only)?.url === NEW_TAB_URL) floorId = only;
+        }
+        const base = workspaceCapture(target, { previousActiveIndex: workspace?.activeIndex ?? 0 });
+        const next = appendTabToCapture(floorId != null ? emptiedCapture(base) : base, {
+          url: persistableUrl(tab.url),
+          pinned: !!tab.pinned,
+          meta: sessionTabMeta(tab),
+          localFile: tab.localFile === true,
+          inheritsDocumentPolicy: tab.inheritsDocumentPolicy === true,
+        });
+        // A set-aside space with no selection shows the moved tab when opened.
+        if (floorId != null || (target.resident && !target.activeTabId)) next.activeIndex = next.urls.length - 1;
+        return { ok: true, next };
+      },
+      discard() {
+        if (materialized && target) disposeResident(target);
+      },
+      write(next) {
+        const fault = takeSpaceMoveFault('write');
+        if (fault) return { ok: false, error: fault };
+        if (!creation) return namedWorkspaces.saveCapture(workspace.id, next);
+        const saved = namedWorkspaces.create({ ...creation, capture: next });
+        if (saved.ok) {
+          workspace = saved.workspace;
+          target.workspaceId = workspace.id;
+        }
+        return saved;
+      },
+      transfer() {
+        if (tab.splitId) removeTabFromSplit(id);
+        detachTabForMove(source, id, { keepSpacesEditor: !!creation });
+        if (takeSpaceMoveFault('transfer')) throw new Error('injected: transfer failed after detaching');
+        withWindowRuntime(target, () => {
+          target.tabOrder = [...target.tabOrder, id];
+          rehomeTab(tab, target);
+          if (floorId != null) {
+            closeTab(floorId, { record: false, selectReplacement: false });
+            target.activeTabId = id;
+          }
+          if (target.resident && !target.activeTabId) target.activeTabId = id;
+        });
+      },
+      reconcile() {
+        // Whole in the space: it moved. Otherwise it belongs in its window,
+        // never half in each and never in neither. (Runs in `source`'s scope.)
+        if (target && windowRuntimes.runtimeForTab(id) === target && target.tabOrder.includes(id)) {
+          source.tabOrder = source.tabOrder.filter((tid) => tid !== id);
+          settledInTarget = true;
+          withWindowRuntime(target, () => broadcastTabs());
+          return true;
+        }
+        if (target) target.tabOrder = target.tabOrder.filter((tid) => tid !== id);
+        if (!source.tabOrder.includes(id)) {
+          const order = [...source.tabOrder];
+          order.splice(Math.min(Math.max(origin.index, 0), order.length), 0, id);
+          source.tabOrder = order;
+        }
+        if (windowRuntimes.runtimeForTab(id) !== source) rehomeTab(tab, source);
+        // Back in its group; a group it was alone in comes back too.
+        if (origin.group) {
+          if (!source.groups.some((g) => g.id === origin.group.id)) source.groups = [...source.groups, groupRecord(origin.group)];
+          tab.groupId = origin.group.id;
+        }
+        if (origin.wasActive) setActiveTab(id, { focusContent: false, keepSpacesEditor: !!creation });
+        broadcastTabs();
+        return false;
+      },
+      rewrite() {
+        // The record from what the space really holds; then the housekeeping
+        // finish() would have done, so a failed move leaves no space set aside
+        // that the budget and the Spaces menu don't know about.
+        const fault = takeSpaceMoveFault('rewrite');
+        const saved = fault ? { ok: false, error: fault }
+          : namedWorkspaces.saveCapture(workspace.id, workspaceCapture(target, { previousActiveIndex: workspace.activeIndex }));
+        if (materialized && !settledInTarget) disposeResident(target);
+        else if (target.resident) scheduleMakeRoomForSpaces(source.profileId, 'a failed move');
+        broadcastWorkspacesUpdated();
+        return saved;
+      },
+      finish() {
+        withWindowRuntime(target, () => broadcastTabs());
+        broadcastWorkspacesUpdated();
+        if (target.resident) scheduleMakeRoomForSpaces(source.profileId, 'a move');
+      },
+    });
+    if (creation && workspace) {
+      noteSpaceCreated();
+      return { ...result, ...(result.ok ? {} : { error: 'saved-not-moved' }), workspaceId: workspace.id };
+    }
+    return result;
+  });
+}
+
+/** Several selected rows share one write-ahead capture. Splits transfer as
+ * units; after an exception only complete units may remain in the target.
+ * With `group` (Move Group to Space ▸, D8) the tabs arrive as that group,
+ * with its name and colour, or join the target's group of the same name
+ * (two groups never differ only by case); the window's selection is kept. */
+function moveTabsToSpace(ids, workspaceId, creation = null, { group = null } = {}) {
+  const source = rt(), members = batchMembers(ids);
+  if (!members || !members.every(tab => canMoveTabToSpace(tab, source, true))) return { ok: false, error: 'busy', movedCount: 0 };
+  ids = source.tabOrder.filter(id => ids.includes(id));
+  const origin = { order: [...source.tabOrder], groups: structuredClone(source.groups), splits: structuredClone(source.splits), active: source.activeTabId,
+    fields: new Map(ids.map(id => [id, { groupId: tabs.get(id).groupId, splitId: tabs.get(id).splitId }])) };
+  const units = selectionRows(members);
+  let workspace = creation ? null : namedWorkspaces.get(workspaceId);
+  let target = null, materialized = false, targetFloor = null, sourceFloor = null;
+  let movedCount = 0, reconciled = false, landing = null;
+  const priorSelection = [...(source.selectedTabIds ?? [])];
+  const suspended = sessionPersistenceSuspended;
+  sessionPersistenceSuspended = true; tabStateBroadcastSuppressionDepth++;
+  let result;
+  try {
+    result = runSpaceMove({
+      check() {
+        if (creation) return namedWorkspaces.validateCreate(creation.name);
+        if (!workspace) return { ok: false, error: 'not-found' };
+        return workspaceId !== source.workspaceId && spaceCanReceive(source, workspaceId) ? { ok: true } : { ok: false, error: 'busy' };
+      },
+      prepare() {
+        target = creation ? null : workspaceOwner(source, workspaceId);
+        if (!target) {
+          target = makeResidentRuntime(source.profileId); materialized = true;
+          if (!creation) withWindowRuntime(target, () => applyWorkspaceToWindow(target, workspace));
+          target.workspaceId = workspace?.id ?? null;
+          if (target.tabOrder.length === 1 && tabs.get(target.tabOrder[0])?.url === NEW_TAB_URL) targetFloor = target.tabOrder[0];
+        }
+        let next = workspaceCapture(target, { previousActiveIndex: workspace?.activeIndex ?? 0 });
+        if (targetFloor) next = emptiedCapture(next);
+        const before = next.urls.length;
+        for (const id of ids) {
+          const tab = tabs.get(id);
+          next = appendTabToCapture(next, { url: persistableUrl(tab.url), pinned: tab.pinned, meta: sessionTabMeta(tab),
+            localFile: tab.localFile === true, inheritsDocumentPolicy: tab.inheritsDocumentPolicy === true });
+        }
+        if (group) {
+          const same = target.groups.find(g => sameGroupName(g.name, group.name));
+          // A fresh id: group pruning looks at every tab, so a shared id would
+          // keep the emptied source group alive behind the moved tabs.
+          const id = same?.id ?? crypto.randomUUID();
+          landing = { id, record: same ? null : { ...groupRecord(group), id } };
+          next.groupIds = next.groupIds.map((gid, index) => index >= before ? id : gid);
+          if (landing.record) next.groups = [...(next.groups ?? []), landing.record];
+        }
+        const captured = captureSplits(origin.splits, ids);
+        if (captured.splits.length) {
+          next.splits = [...(next.splits ?? []), ...captured.splits];
+          next.splitIds = [...(next.splitIds ?? Array(next.urls.length).fill(null)).slice(0, before), ...captured.splitIds];
+        }
+        return { ok: true, next };
+      },
+      discard() { if (materialized && target) disposeResident(target); },
+      write(next) {
+        const fault = takeSpaceMoveFault('write'); if (fault) return { ok: false, error: fault };
+        if (!creation) return namedWorkspaces.saveCapture(workspaceId, next);
+        const saved = namedWorkspaces.create({ ...creation, capture: next });
+        if (saved.ok) { workspace = saved.workspace; target.workspaceId = workspace.id; }
+        return saved;
+      },
+      transfer() {
+        const survivor = source.tabOrder.find(id => !ids.includes(id)) ?? (sourceFloor = createTab(newTabUrl()));
+        if (ids.includes(source.activeTabId)) setActiveTab(survivor, { focusContent: false, keepSpacesEditor: !!creation });
+        for (const unit of units) {
+          for (const id of unit) detachTabForMove(source, id, { keepSpacesEditor: !!creation });
+          for (const id of unit) {
+            target.tabOrder.push(id); rehomeTab(tabs.get(id), target);
+            if (landing) {
+              tabs.get(id).groupId = landing.id;
+              if (!target.groups.some(g => g.id === landing.id)) target.groups.push({ ...landing.record });
+            }
+            if (takeSpaceMoveFault('transfer-pane')) throw new Error('injected: incomplete split transfer');
+          }
+          const split = origin.splits.find(split => split.tabIds.every(id => unit.includes(id)));
+          if (split) {
+            source.splits = source.splits.filter(item => item.id !== split.id);
+            target.splits.push(structuredClone(split));
+          }
+          movedCount += unit.length;
+          if (takeSpaceMoveFault('transfer')) throw new Error('injected: batch transfer after first row');
+        }
+        if (targetFloor) withWindowRuntime(target, () => closeTab(targetFloor, { record: false, selectReplacement: false }));
+        if (!target.activeTabId) target.activeTabId = ids[0];
+      },
+      reconcile() {
+        const moved = new Set();
+        for (const unit of units) {
+          if (unit.every(id => windowRuntimes.runtimeForTab(id) === target && target.tabOrder.includes(id))) unit.forEach(id => moved.add(id));
+          else for (const id of unit) {
+            target.tabOrder = target.tabOrder.filter(tid => tid !== id);
+            rehomeTab(tabs.get(id), source); Object.assign(tabs.get(id), origin.fields.get(id));
+          }
+        }
+        movedCount = moved.size;
+        source.tabOrder = [...origin.order.filter(id => !moved.has(id)), ...source.tabOrder.filter(id => !origin.order.includes(id))];
+        source.groups = origin.groups.filter(group => source.tabOrder.some(id => tabs.get(id)?.groupId === group.id));
+        source.splits = origin.splits.filter(split => split.tabIds.every(id => !moved.has(id)));
+        target.splits = target.splits.filter(split => split.tabIds.every(id => windowRuntimes.runtimeForTab(id) === target));
+        target.groups = target.groups.filter(g => target.tabOrder.some(id => tabs.get(id)?.groupId === g.id));
+        if (sourceFloor && ids.some(id => !moved.has(id))) {
+          closeTab(sourceFloor, { record: false, selectReplacement: false }); sourceFloor = null;
+        }
+        if (!moved.has(origin.active)) { source.activeTabId = null; setActiveTab(origin.active, { focusContent: false, keepSpacesEditor: !!creation }); }
+        else if (!source.activeTabId) setActiveTab(source.tabOrder[0], { focusContent: false, keepSpacesEditor: !!creation });
+        if (moved.size && targetFloor) withWindowRuntime(target, () => closeTab(targetFloor, { record: false, selectReplacement: false }));
+        if (!target.activeTabId || !target.tabOrder.includes(target.activeTabId)) target.activeTabId = target.tabOrder[0] ?? null;
+        reconciled = true;
+        return moved.size > 0;
+      },
+      rewrite() {
+        const fault = takeSpaceMoveFault('rewrite');
+        const saved = fault ? { ok: false, error: fault } : namedWorkspaces.saveCapture(workspace.id, workspaceCapture(target, { previousActiveIndex: workspace.activeIndex }));
+        if (materialized && !movedCount) disposeResident(target);
+        return saved;
+      },
+      finish() {},
+    });
+  } finally { sessionPersistenceSuspended = suspended; tabStateBroadcastSuppressionDepth--; }
+  // If the exception came after the final row arrived and reconciliation
+  // confirmed every tab, the requested move is complete.
+  if (!result.ok && reconciled && movedCount === ids.length) result = { ok: true };
+  const kept = group ? priorSelection : result.ok ? [] : ids;
+  Object.assign(source, selectionState(kept.filter(id => windowRuntimes.runtimeForTab(id) === source), null, tabLayoutList(source)));
+  source.selectionRevision = (source.selectionRevision ?? 0) + 1;
+  broadcastTabs();
+  if (target && (!materialized || movedCount)) {
+    // A failed recovery write must keep its durable write-ahead copy. Merely
+    // publishing the live rows must not immediately autosave over it.
+    const prior = sessionPersistenceSuspended;
+    if (!result.ok && result.recorded === false) sessionPersistenceSuspended = true;
+    try { withWindowRuntime(target, () => broadcastTabs()); } finally { sessionPersistenceSuspended = prior; }
+    if (target.resident) scheduleMakeRoomForSpaces(source.profileId, 'a batch move');
+  }
+  broadcastWorkspacesUpdated();
+  if (creation && workspace) noteSpaceCreated();
+  return { ...result, movedCount, ...(creation && workspace ? { workspaceId: workspace.id } : {}),
+    ...(!result.ok && movedCount ? { error: 'moved-partly' } : {}) };
+}
+
+function createSpaceWithTabs(name, identity, ids) {
+  // New Space… from the group menu: the editor was opened for exactly this
+  // group's tabs, so they arrive as the group.
+  const groupId = rt().overlayMode === 'spaces' ? rt().overlayPurpose?.newSpaceGroupId : null;
+  const group = groupId ? rt().groups.find(g => g.id === groupId) : null;
+  const members = group ? groupMemberIds(rt(), group.id) : [];
+  const asGroup = group && Array.isArray(ids) && members.length === ids.length && members.every(id => ids.includes(id));
+  const result = moveTabsToSpace(ids, null, { name, color: typeof identity?.color === 'string' ? identity.color : undefined,
+    symbol: typeof identity?.symbol === 'string' ? identity.symbol : undefined }, { group: asGroup ? group : null });
+  const error = result.workspaceId && !result.ok ? 'saved-not-moved' : ({ refused: 'busy', 'prepare-failed': 'activation-failed' }[result.error] ?? result.error);
+  return { ok: result.ok, movedCount: result.movedCount ?? 0, ...(error ? { error } : {}), ...(result.workspaceId ? { workspaceId: result.workspaceId } : {}), ...workspacesProjection() };
+}
+
+/** Link menus retain their source runtime, but revalidate it on click. */
+function linkSpaceSource(opener, url) {
+  const source = windowRuntimes.runtimeForTab(opener?.id);
+  return canOpenLinkInSpace(opener, url) && tabs.get(opener.id) === opener
+    && source === rt() && !source.resident && !source.closing && !source.workspaceTransition
+    && !sessionReadOnly && !profileDeletions.hasPendingProfileDeletion(source.profileId);
+}
+
+function linkSpaceMenuItems(opener, url, text) {
+  if (!linkSpaceSource(opener, url)) return [];
+  const source = rt();
+  const spaces = namedWorkspaces.list();
+  if (!spaces.length) return [];
+  const submenu = spaces.filter(w => w.id !== source.workspaceId).map(w => ({
+    id: `link-space:${w.id}`, label: w.name, enabled: spaceCanReceive(source, w.id),
+    click: () => withWindowRuntime(source, () => openLinkInSpace(opener, url, w.id, text)),
+  }));
+  if (submenu.length) submenu.push({ type: 'separator' });
+  submenu.push({ id: 'link-space-new', label: mainI18n.t('tabMenu.newSpace'), enabled: spaces.length < MAX_WORKSPACES,
+    click: () => withWindowRuntime(source, () => {
+      if (!linkSpaceSource(opener, url) || namedWorkspaces.list().length >= MAX_WORKSPACES) return false;
+      // The URL stays in main. A renderer can submit identity, not substitute
+      // another link (or replay a local-file grant) at the create boundary.
+      source.newSpaceLink = { tabId: opener.id, url, title: linkTitle(url, text) };
+      showOverlay('spaces', { purpose: { newSpaceLinkTitle: linkTitle(url, text) } });
+      return true;
+    }),
+  });
+  return [{ label: mainI18n.t('contextMenu.openLinkInSpace'), submenu }];
+}
+
+function openLinkInSpace(opener, url, workspaceId, text) {
+  const source = rt();
+  let target = null, previousOrder = null;
+  const workspace = namedWorkspaces.get(workspaceId);
+  const result = openLinkInSpaceWith(opener, url, workspaceId, {
+    title: text,
+    check() {
+      if (!linkSpaceSource(opener, url) || source.workspaceId === workspaceId) return { ok: false, error: 'busy' };
+      if (!workspace) return { ok: false, error: 'not-found' };
+      if (!spaceCanReceive(source, workspaceId)) return { ok: false, error: 'busy' };
+      target = workspaceOwner(source, workspaceId);
+      previousOrder = target ? [...target.tabOrder] : null;
+      return { ok: true, visible: !!target && !target.resident, resident: !!target?.resident };
+    },
+    capture: () => target ? workspaceCapture(target, { previousActiveIndex: workspace.activeIndex }) : workspace,
+    write(next) {
+      const fault = takeSpaceMoveFault('write');
+      return fault ? { ok: false, error: fault } : namedWorkspaces.saveCapture(workspaceId, next);
+    },
+    create(link, title, asleep) {
+      const id = withWindowRuntime(target, () => createTab(link, { title, asleep }));
+      if (takeSpaceMoveFault('transfer')) throw new Error('injected: link creation failed after registration');
+      return id;
+    },
+    rollback() {
+      if (!target) return;
+      withWindowRuntime(target, () => {
+        for (const id of [...target.tabOrder]) {
+          if (!previousOrder.includes(id)) closeTab(id, { record: false, selectReplacement: false });
+        }
+      });
+    },
+  });
+  if (result.ok) {
+    if (target) withWindowRuntime(target, () => broadcastTabs());
+    announceSplit(mainI18n.t('ws.announce.openedIn', { space: workspace.name }));
+  } else showOverlay('spaces', { purpose: { spaceLinkError: { name: workspace?.name ?? '', error: result.error } } });
+  broadcastWorkspacesUpdated();
+  return result;
+}
+
+function createSpaceWithLink(name, identity) {
+  const source = rt();
+  const link = source.newSpaceLink;
+  const opener = tabs.get(link?.tabId);
+  if (!link || source.overlayMode !== 'spaces' || source.overlayPurpose?.newSpaceLinkTitle == null
+    || !linkSpaceSource(opener, link.url)) return { ok: false, error: 'not-found' };
+  const fault = takeSpaceMoveFault('write');
+  const result = fault ? { ok: false, error: fault } : namedWorkspaces.create({
+    name, color: typeof identity?.color === 'string' ? identity.color : undefined,
+    symbol: typeof identity?.symbol === 'string' ? identity.symbol : undefined,
+    capture: appendTabToCapture({ urls: [], groupIds: [], pinned: [], meta: [], groups: [], activeIndex: 0 }, {
+      url: link.url, pinned: false, meta: { title: link.title, favicon: null },
+    }),
+  });
+  if (result.ok) {
+    source.newSpaceLink = null;
+    noteSpaceCreated();
+    announceSplit(mainI18n.t('ws.announce.openedIn', { space: result.workspace.name }));
+    broadcastWorkspacesUpdated();
+  }
+  return { ok: result.ok, ...(result.error ? { error: result.error } : {}),
+    ...(result.workspace ? { workspaceId: result.workspace.id } : {}), ...workspacesProjection() };
+}
+
+/** The editor remembers the context-menu tab, not whichever tab is active later. */
+function beginNewSpaceForTab(id) {
+  const tab = tabs.get(id);
+  if (!canMoveTabToSpace(tab, rt()) || windowRuntimes.runtimeForTab(id) !== rt()
+    || namedWorkspaces.list().length >= MAX_WORKSPACES) return false;
+  showOverlay('spaces', { purpose: { newSpaceTabId: id } });
+  return true;
+}
+
+function createSpaceWithTab(name, identity, id) {
+  if (windowRuntimes.runtimeForTab(id) !== rt()) return { ok: false, error: 'not-found' };
+  const result = moveTabToSpace(id, null, {
+    name, color: typeof identity?.color === 'string' ? identity.color : undefined,
+    symbol: typeof identity?.symbol === 'string' ? identity.symbol : undefined,
+  });
+  // Internal move details stay in main; the bridge uses workspace errors.
+  const error = { refused: 'busy', 'prepare-failed': 'activation-failed' }[result.error] ?? result.error;
+  broadcastWorkspacesUpdated();
+  return { ok: result.ok, ...(error ? { error } : {}),
+    ...(result.workspaceId ? { workspaceId: result.workspaceId } : {}), ...workspacesProjection() };
+}
+
+// Acceptance-only faults for Move to Space (space-move.js's steps): each armed
+// step fails once with its error. Never armed outside BLANC_TEST=1.
+const spaceMoveFaults = new Map();
+function armSpaceMoveFault(step, error = 'storage-failed') {
+  if (!acceptanceTestMode) return false;
+  if (!['write', 'transfer', 'transfer-pane', 'rewrite'].includes(step)) return false;
+  spaceMoveFaults.set(step, String(error));
+  return true;
+}
+function takeSpaceMoveFault(step) {
+  if (!acceptanceTestMode || !spaceMoveFaults.has(step)) return null;
+  const error = spaceMoveFaults.get(step);
+  spaceMoveFaults.delete(step);
+  return error;
 }
 
 /** "New Tab in Group" (group menu): a new tab at the end of the group,
@@ -12169,6 +13613,78 @@ function moveGroupToNewWindow(groupId) {
   }
   for (const id of ids) detachTabForMove(source, id);
   openNewWindow({ profileId: source.profileId, adoptTabIds: ids, group: record, activeTabId });
+  return true;
+}
+
+function groupMemberIds(runtime, groupId) {
+  return runtime.tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
+}
+
+/** Move Group to Space ▸ (D8) can take this group: every member could go
+ * through Move to Space ▸ on its own, and the group can be the window's
+ * whole content (the window keeps a blank start page, as D7 allows). */
+function canMoveGroupToSpace(source, groupId) {
+  const ids = groupMemberIds(source, groupId);
+  const members = ids.length ? batchMembers(ids) : null;
+  return !!members && members.every((tab) => canMoveTabToSpace(tab, source, true)) ? ids : null;
+}
+
+/** Move Group to Space ▸ (D8): every member, in order, into `workspaceId`
+ * as the same group (moveTabsToSpace's `group`), through the §3 write-first
+ * orchestrator. A failure opens the Spaces menu with its reason, as Move to
+ * Space ▸ does for tabs. */
+function moveGroupToSpace(groupId, workspaceId) {
+  const source = rt();
+  const group = source.groups.find((g) => g.id === groupId);
+  const ids = group ? canMoveGroupToSpace(source, groupId) : null;
+  if (!ids || workspaceId === source.workspaceId) return { ok: false, error: 'busy', movedCount: 0 };
+  const result = moveTabsToSpace(ids, workspaceId, null, { group });
+  if (result.ok) {
+    announceSplit(mainI18n.t('ws.announce.groupMovedTo', { space: namedWorkspaces.get(workspaceId)?.name ?? '' }));
+  } else {
+    showOverlay('spaces', { purpose: { spaceMoveError: {
+      name: namedWorkspaces.get(workspaceId)?.name ?? '', error: result.error, movedCount: result.movedCount ?? 0,
+    } } });
+  }
+  scheduleMenuRebuild();
+  return result;
+}
+
+/** New Space… under Move Group to Space ▸: the Spaces editor, bound to this
+ * group (createSpaceWithTabs reads the purpose back). */
+function beginNewSpaceForGroup(groupId) {
+  const group = rt().groups.find((g) => g.id === groupId);
+  const ids = group ? canMoveGroupToSpace(rt(), groupId) : null;
+  if (!ids || namedWorkspaces.list().length >= MAX_WORKSPACES) return false;
+  showOverlay('spaces', { purpose: { newSpaceTabIds: ids, newSpaceGroupId: groupId, newSpaceGroupName: group.name } });
+  return true;
+}
+
+/** The group menu's Move Group to Space ▸: a native menu of the profile's
+ * spaces at `point` (overlay coordinates, from the group menu's button).
+ * Space names are radio items, which the pseudo-locale sweep skips. */
+function openGroupSpaceMenu(groupId, point) {
+  const source = rt();
+  if (!hasLiveWindow() || !source.groups.some((g) => g.id === groupId)) return false;
+  const spaces = spaceMoveTargets(source);
+  if (!spaces.length) return false;
+  const movable = !!canMoveGroupToSpace(source, groupId);
+  const template = [
+    ...spaces.map((space) => ({
+      label: space.name, type: 'radio', checked: space.current,
+      enabled: movable && !space.current && space.enabled,
+      click: () => withWindowRuntime(source, () => moveGroupToSpace(groupId, space.id)),
+    })),
+    { type: 'separator' },
+    { id: 'group-space-new', label: mainI18n.t('tabMenu.newSpace'), enabled: movable && spaces.length < MAX_WORKSPACES,
+      click: () => withWindowRuntime(source, () => beginNewSpaceForGroup(groupId)) },
+  ];
+  // The group menu has closed by now; its view keeps the bounds it had.
+  const bounds = source.overlayView?.getBounds() ?? { x: 0, y: 0 };
+  const menu = Menu.buildFromTemplate(template);
+  try {
+    menu.popup({ window: source.window, x: Math.round(bounds.x + (Number(point?.x) || 0)), y: Math.round(bounds.y + (Number(point?.y) || 0)) });
+  } catch { return false; /* window died mid-popup */ }
   return true;
 }
 
@@ -13246,6 +14762,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     tabCount: 0,
     windowCount: 0,
     error: null,
+    decided: false, // true once startup knows whether to ask (acceptance reads it)
   };
   // The color of the Space a tab's window is in, or null. Only the hex
   // reaches the page, never the Space's name or id.
@@ -13286,6 +14803,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           fill: current.newtabWallpaperFill,
           followSpace: current.newtabFollowSpaceColor,
           spaceColor,
+          surface: current.surfaceStyle,
         }),
         presets: SpaceIdentity.PRESETS.map(({ id, hex }) => ({ id, hex })),
       },
@@ -13360,6 +14878,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
+    sharedSpaces: { acknowledge:id=>sharedSharing.acknowledge(id), open:id=>{if(!isSharedSpacesOffered()||rt().profileId!==DEFAULT_PROFILE_ID)return {ok:false};return switchWindowToWorkspace(rt(),String(id));}, status:()=>{const openSheet=!!rt().sharedShowSheet;rt().sharedShowSheet=false;return {offered:isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID,...sync.sharedStatus(),question:sharedSharing.question(),openSheet};}, preview:()=>sharedSharing.preview(), apply:payload=>sharedSharing.apply(payload) },
+    drm: require('./drm-controls').createDrmControls({ support: drmSupport, restart: restartApp }),
     stringsScript: () => mainI18n.stringsScript(),
     i18n: mainI18n,
     defaultBrowserChanged: () => {
@@ -13507,6 +15027,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       blockedByDay: () => [...adblockWeekStats().data.days],
       blockedBarHeights: () => adblockStats.barHeights(adblockWeekStats().data.days),
       remoteDevices: () => knownRemoteDevices(),
+      sentItemsFor: (wc) => (tabs.get(tabIdByWebContentsId.get(wc.id))?.private ? [] : knownSentItems()),
+      openSent: (id) => openSentItem(id),
+      dismissSent: (id) => dismissSentItem(id),
+      sharedQuestionFor:wc=>startPageSenderIsPrivate(wc)?null:sharedSharing.question(),
+      sharedQuestionAnswer:(wc,id,on)=>{if(startPageSenderIsPrivate(wc))return false;const accepted=sharedSharing.acknowledge(id);if(accepted&&on){rt().sharedShowSheet=true;openSettingsSection('sync');}return accepted;},
       status: startPageStatus,
       visibleFor: (wc) => startPageViewVisible(tabs.get(tabIdByWebContentsId.get(wc.id))),
       // The Settings sheet is no tab, so it gets the ordinary (non-private) state.
@@ -13670,6 +15195,16 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // BLANC_TEST=0/false stays off.
   if (acceptanceTestMode) {
     require('./test-hook').install({
+      sharedSpacesTest:async(action,payload)=>{
+        if(action==='enable')return sync.enable(payload);
+        if(action==='pairingPeer'){sharedSharing.armPairing();require('./tabsync').mergeFromSync({devices:{'pseudo-peer':{name:'zzz-peer',platform:'linux',updatedAt:Date.now(),tabs:[],groups:[]}}},sync.sharedContext());return true;}
+        if(action==='disable')return sync.disable({wipeRemote:false});
+        if(action==='apply')return sharedSharing.apply(payload);
+        if(action==='pull')return sync.syncNow(payload);
+        if(action==='capture'){captureSharedSpaceEdits(rt());return true;}
+        if(action==='state')return {shared:sharedSpaceState.snapshot(sync.sharedContext()),context:sync.sharedContext(),closed:sharedClosedBand(rt()),parked:(rt().closedEntries??[]).map(entry=>({id:entry.id,sharedTabId:entry.sharedTabId,held:!!entry.view})),workspaces:workspacesProjection()};
+        return null;
+      },
       prepareDisplayCaptureHelper: () => displayCaptureLazy.prepare(),
       i18nState: () => mainI18n.state(),
       t: mainI18n.t,
@@ -13748,6 +15283,16 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           stackIndex: { main: children.indexOf(mainView), card: children.indexOf(cardView), glance: children.indexOf(glanceView) },
         };
       },
+      runLinkSpaceMenuItem: (tabId, url, text, itemId) => {
+        const opener = tabs.get(tabId);
+        if (!opener) return null;
+        return withWindowRuntime(windowRuntimes.runtimeForTab(tabId) ?? rt(), () => {
+          const items = linkSpaceMenuItems(opener, url, text)[0]?.submenu ?? [];
+          if (!itemId) return items.map(item => ({ id: item.id, label: item.label, enabled: item.enabled !== false }));
+          const item = items.find(item => item.id === itemId);
+          return item && item.enabled !== false ? item.click() : null;
+        });
+      },
       openLinkInGlance: (tabId, url) => {
         const opener = tabs.get(tabId);
         return opener ? withWindowRuntime(windowRuntimes.runtimeForTab(opener) ?? rt(), () => openLinkInGlance(opener, url)) : false;
@@ -13800,7 +15345,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (action === 'undo-remove') return announced(undoRemoveNamedWorkspace(args[0]));
         if (action === 'update') return announced(namedWorkspaces.update(args[0], args[1]));
         if (action === 'flush') { autosaveWorkspaceBindings(); return namedWorkspaces.flushPending(); }
+        // Move to Space: one saved record's URLs, and its one-shot step faults.
+        if (action === 'saved-urls') return namedWorkspaces.get(args[0])?.urls ?? null;
+        if (action === 'saved-groups') {
+          const saved = namedWorkspaces.get(args[0]);
+          return saved ? { groups: saved.groups ?? [], groupIds: saved.groupIds ?? [], urls: saved.urls ?? [] } : null;
+        }
+        if (action === 'arm-move-fault') return { ok: armSpaceMoveFault(args[0], args[1]) };
         if (action === 'reset') {
+          spaceMoveFaults.clear();
           for (const r of windowRuntimes.all()) {
             if (r.resident) {
               withWindowRuntime(r, () => { r.closing = true; for (const id of [...r.tabOrder]) closeTab(id, { record: false, selectReplacement: false }); });
@@ -13957,6 +15510,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         revealed: rt().islandRevealed === true,
         introducing: !!rt().islandAutoHideIntroTimer,
         sliding: !!rt().islandSlide,
+        reducedMotion: prefersReducedMotion(),
         introTipShown: !!rt().islandAutoHideIntroTimer && rt().tooltipViewAttached === true
           && rt().islandAutoHideIntroGeneration === rt().tooltipGeneration,
         stripHidden: islandStripHidden(),
@@ -13991,7 +15545,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         .sort((a, b) => (a.residentSince ?? 0) - (b.residentSince ?? 0))
         .map((r) => ({
           name: namedWorkspaces.get(r.workspaceId)?.name ?? null,
-          tabs: r.tabOrder.map((id) => { const tab = tabs.get(id); return { id, url: tab?.url ?? '', pinned: !!tab?.pinned, live: !!liveContents(tab), asleep: !!tab?.asleep }; }),
+          tabs: r.tabOrder.map((id) => { const tab = tabs.get(id); return { id, url: tab?.url ?? '', pinned: !!tab?.pinned, live: !!liveContents(tab), asleep: !!tab?.asleep, groupId: tab?.groupId ?? null }; }),
+          groups: r.groups.map(groupRecord),
         })),
       getRoomPass: () => lastRoomPass,
       // Starts quieting a set-aside space's active tab, waits until its
@@ -14065,6 +15620,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       createSplitFromTabs,
       keepGlanceAsSplit,
       moveGroupToNewWindowForTest: (groupId) => moveGroupToNewWindow(groupId),
+      moveGroupToSpaceForTest: (groupId, workspaceId) => moveGroupToSpace(groupId, workspaceId),
+      beginNewSpaceForGroupForTest: (groupId) => beginNewSpaceForGroup(groupId),
       /** Tab ids whose splitId names no split in their own window. */
       straySplitIds: () => [...tabs.values()].filter((tab) => tab.splitId
         && !(windowRuntimes.runtimeForTab(tab.id)?.splits ?? []).some((s) => s.id === tab.splitId)).map((tab) => tab.id),
@@ -14080,6 +15637,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         };
       },
       menuContextActionsForTest: () => menuContextActions(rt()),
+      selectTabRows, runTabsAction, getSelectedTabIds: () => [...(rt().selectedTabIds ?? [])],
       // The tab menu's items for one tab, as a right-click on its row builds them.
       tabMenuItemsForTest: (id) => {
         const ctx = tabContextData(tabs.get(id), rt());
@@ -14096,7 +15654,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           const pane = tabs.get(entry.tabId);
           const at = children.indexOf(entry.view);
           const shown = at >= 0 && (entry.view.getVisible?.() ?? true)
-            && liveContents(pane) && at > children.indexOf(pane.view);
+            && liveContents(pane) && at > children.indexOf(presentationView(pane));
           const drawn = entry.view.webContents.isDestroyed() ? null : await entry.view.webContents.executeJavaScript(
             "({ site: document.getElementById('site').textContent, focused: document.body.classList.contains('focused') })",
           ).catch(() => null);
@@ -14110,7 +15668,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         const tab = tabs.get(tabId);
         if (!hasLiveWindow() || !liveContents(tab)) return false;
         rt().window.contentView.addChildView(tab.view);
-        return true;
+        // Read the injected disorder in the same main-process turn: a queued
+        // layout may already repair it before a second inspector call.
+        const children = rt().window.contentView.children;
+        const pill = liveFloatRecord(rt(), 'pill')?.view;
+        return { paneIndex: children.indexOf(tab.view), pillIndex: children.indexOf(pill) };
       },
       /** Click a corner tab's × ('close') or body ('tab') through its own
        *  input events, as a real click arrives. */
@@ -14201,6 +15763,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         return sleepThresholdOverrideMs;
       },
       setRemoteDevicesSource: (fn) => { remoteDevicesSource = typeof fn === 'function' ? fn : null; },
+      setSendsSource: (source) => {
+        sendsSource = source && typeof source === 'object' ? source : null;
+        pushSentItemsHook?.();
+      },
     });
   }
 
@@ -14348,11 +15914,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // sync.js/tabicons.js pull these providers from their own timers/session
     // flows — bind them rather than trust every caller to already be bound.
     tabsync.setSnapshotProvider(bindWindowRuntime(primaryRuntime, () => ({
-      tabList: rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean),
+      tabList: rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean).map(tab=>({...tab,sharedSpaceId:sharedSidecarSpace(tab,rt())})),
       groups: rt().groups,
     })));
     tabicons.setSnapshotProvider(bindWindowRuntime(primaryRuntime, () => ({
-      tabList: rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean),
+      // Icons are keyed by page address, so a page-opened tab's icon would
+      // publish the address syncSnapshot keeps on this device.
+      tabList: rt().tabOrder.map((id) => tabs.get(id))
+        .filter((tab) => tab && tab.inheritsDocumentPolicy !== true),
     })));
 
     // Session/icon sync may run from palette open or Sync Now before this
@@ -14374,6 +15943,20 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     };
     tabsync.onRemoteChanged(pushRemoteDevices);
     tabicons.onRemoteChanged(pushRemoteDevices);
+    // Pages sent here arrived, or one was opened or dismissed: same surfaces.
+    const pushSentItems = () => {
+      forEachWindowRuntime((runtime) => {
+        const items = knownSentItems();
+        runtime.overlayView?.webContents.send('chrome:sent-updated', items);
+        for (const id of runtime.tabOrder) {
+          const tab = tabs.get(id);
+          if (tab?.private || !tab?.url?.startsWith('blanc://newtab')) continue;
+          liveContents(tab)?.send('pages:start:sent-items', items);
+        }
+      });
+    };
+    sync.onSendsChanged(pushSentItems);
+    pushSentItemsHook = pushSentItems;
     // A device renamed here or on another Mac re-labels the same surfaces.
     let shownDeviceNames = settings.getDeviceNames();
     settings.onSettingsChanged((next) => {
@@ -14434,6 +16017,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       meta: cleaned.meta,
       localFiles: cleaned.localFiles,
       splitIds: cleaned.splitIds,
+      documentPolicy: cleaned.documentPolicy,
+      inheritsDocumentPolicy: cleaned.inheritsDocumentPolicy,
       activeIndex: cleaned.activeIndex,
       closedSlot: saved.closedSlot ?? 0,
       groups: (Array.isArray(saved.groups) ? saved.groups : [])
@@ -14463,6 +16048,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // A single disposable blank tab has no meaningful recovery choice.
     diagnostics.resolveSessionRecovery();
   }
+  // Whether a recovery choice is wanted is now settled, either way.
+  sessionRecoveryState = { ...sessionRecoveryState, decided: true };
   sessionPersistenceSuspended = true;
 
   const blockingRequested =
@@ -14657,6 +16244,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // pass below (after every window's tabs exist) resolves that before
     // anything is actually bound.
     const workspaceCandidates = new Map(); // runtime -> workspaceId
+    const restoredTargets = new Map(); // runtime -> quiet tab selected after shared replay
     for (const runtime of restorableRuntimes) {
       const saved = savedByRuntime.get(runtime);
       if (!saved) continue;
@@ -14674,7 +16262,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           lastViewedAt: restoredLastViewedAt(saved.meta?.[index], Date.now()),
           allowLocalFile: saved.localFiles?.[index] === true,
           managedExtension: restorableUblockTool(url),
+          inheritsDocumentPolicy: documentPolicy.restoredMarker(saved, index),
         }));
+        restoredIds.forEach((id,index)=>{if(tabs.get(id))tabs.get(id).sharedTabId=saved.tabIds?.[index]??null;});
         pruneEmptyGroups();
         applySavedLayout(runtime, saved, restoredIds);
         applyRestoredSplits(runtime, saved, restoredIds);
@@ -14692,12 +16282,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         }
         const target = restoreTargetId(restoredIds, saved.activeIndex);
         if (!target) return;
-        // Activate first, then close the startup tab. The inverse briefly wakes
-        // the wrong quiet tab and doubles renderer memory during restore.
-        if (hasLiveWindow()) setActiveTab(target, { focusContent: true });
-        else runtime.activeTabId = target;
+        restoredTargets.set(runtime, target);
         const startupTabId = startupTabIds.get(runtime.id);
-        if (startupTabId && tabs.has(startupTabId)) closeTab(startupTabId);
+        if (startupTabId && tabs.has(startupTabId)) closeTab(startupTabId, { selectReplacement: false });
+        // Select without waking. Deferred shared navigation must materialize
+        // record-only while every restored page is quiet; waking first would
+        // make startup await the page's load before persistence is resumed.
+        runtime.activeTabId = target;
       });
     }
     // De-duplicate: only one window may bind a given workspace id — a second
@@ -14719,6 +16310,16 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       if (claimedWorkspaceIds.has(claim)) continue;
       claimedWorkspaceIds.add(claim);
       runtime.workspaceId = workspaceId;
+      runtime.sharedColdRestore = true;
+      try { await withWindowRuntime(runtime,()=>applySharedSpaceChanges(runtime,{force:true})); }
+      finally { runtime.sharedColdRestore = false; }
+    }
+    for (const [runtime,target] of restoredTargets) {
+      if (!windowRuntimes.all().includes(runtime)) continue;
+      const wakeTarget = tabs.has(target) ? target
+        : (tabs.has(runtime.activeTabId) ? runtime.activeTabId : runtime.tabOrder.find(id=>tabs.has(id)));
+      if (!wakeTarget) continue;
+      withWindowRuntime(runtime,()=>wakeRestoredTarget(runtime,wakeTarget));
     }
 
     // Recovery is an ephemeral neutral host. Destroy it while persistence is

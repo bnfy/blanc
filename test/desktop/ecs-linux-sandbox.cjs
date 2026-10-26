@@ -9,7 +9,7 @@ function processRole(command) {
   return { type: option('type'), subtype: option('utility-sub-type'), sandboxType: option('service-sandbox-type'),
     noSandboxFlag: /(?:^|[\s\0])--no-sandbox(?:[\s\0=]|$)/.test(command) };
 }
-async function inspectLinuxCdm(rootPid) {
+async function inspectLinuxCdm(rootPid, expectedBinary) {
   const rows = execFileSync('ps', ['-eo', 'pid=,ppid='], { encoding: 'utf8' }).trim().split('\n')
     .map(row => row.trim().split(/\s+/).map(Number));
   const owned = new Set([rootPid]);
@@ -34,13 +34,20 @@ async function inspectLinuxCdm(rootPid) {
     if (!command.includes('media.mojom.CdmServiceBroker')) continue;
     const maps = await read(pid, 'maps');
     if (!maps.includes('libwidevinecdm.so')) continue;
+    let binaryEvidence = {};
+    if (expectedBinary) {
+      assert(maps.includes(` ${expectedBinary}\n`), 'CDM service must map the exact selected binary');
+      const { createHash } = require('node:crypto');
+      const bytes = await fs.readFile(expectedBinary);
+      binaryEvidence = { binarySha256: createHash('sha256').update(bytes).digest('hex') };
+    }
     const seccomp = Number(status.match(/^Seccomp:\s*(\d+)/m)?.[1]);
     const noNewPrivs = Number(status.match(/^NoNewPrivs:\s*(\d+)/m)?.[1]);
     const namespace = kind => execFileSync('sudo', ['-n', 'readlink', `/proc/${pid}/ns/${kind}`], { encoding: 'utf8' }).trim();
     const parentNamespace = kind => execFileSync('sudo', ['-n', 'readlink', `/proc/${rootPid}/ns/${kind}`], { encoding: 'utf8' }).trim();
     const isolatedUserNamespace = namespace('user') !== parentNamespace('user');
     const isolatedPidNamespace = namespace('pid') !== parentNamespace('pid');
-    found.push({ loadedWidevine: true, seccomp, noNewPrivs, isolatedUserNamespace, isolatedPidNamespace,
+    found.push({ ...binaryEvidence, loadedWidevine: true, seccomp, noNewPrivs, isolatedUserNamespace, isolatedPidNamespace,
       sandboxType: roles.at(-1).sandboxType, noSandboxFlag: roles.at(-1).noSandboxFlag });
   }
   try {

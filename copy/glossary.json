@@ -20,7 +20,9 @@
     "Spaces",
     "Space",
     "Arc",
-    "StorableSidebar.json"
+    "StorableSidebar.json",
+    "Inter",
+    "JetBrains Mono"
   ],
   "fixedPatterns": [
     "(?<![\\w/:])/[a-z][a-z0-9-]*",
@@ -221,7 +223,18 @@
       "newtab.wallpaper.sunrise",
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
-      "newtab.clock.font.flex"
+      "newtab.clock.font.flex",
+      "settings.general.surfaceStyle.sunrise",
+      "settings.general.surfaceStyle.neutral",
+      "ios.settings.blocker",
+      "ios.settings.version",
+      "ios.settings.website",
+      "ios.settings.support",
+      "ios.settings.site",
+      "ios.settings.status",
+      "ios.settings.passphrase",
+      "reader.system",
+      "reader.sepia"
     ],
     "es": [
       "about.chromium",
@@ -267,7 +280,11 @@
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
       "newtab.clock.color",
-      "newtab.clock.font.flex"
+      "newtab.clock.font.flex",
+      "settings.general.surfaceStyle.sunrise",
+      "ios.settings.blocker",
+      "ios.settings.site",
+      "reader.sepia"
     ],
     "fr": [
       "about.chromium",
@@ -320,7 +337,13 @@
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
       "newtab.clock.style",
-      "newtab.clock.font.flex"
+      "newtab.clock.font.flex",
+      "settings.general.surfaceStyle.sunrise",
+      "ios.settings.blocker",
+      "ios.settings.version",
+      "ios.settings.site",
+      "ios.settings.source",
+      "ios.settings.custom"
     ],
     "pt-BR": [
       "about.chromium",
@@ -365,7 +388,11 @@
       "newtab.wallpaper.sunrise",
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
-      "newtab.clock.font.flex"
+      "newtab.clock.font.flex",
+      "settings.general.surfaceStyle.sunrise",
+      "ios.settings.blocker",
+      "ios.settings.site",
+      "ios.settings.status"
     ],
     "it": [
       "about.chromium",
@@ -421,7 +448,13 @@
       "newtab.wallpaper.sunrise",
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
-      "newtab.clock.font.flex"
+      "newtab.clock.font.flex",
+      "settings.general.surfaceStyle.sunrise",
+      "ios.settings.privacy",
+      "ios.settings.blocker",
+      "ios.settings.site",
+      "ios.settings.account",
+      "ios.settings.passphrase"
     ]
   }
 }

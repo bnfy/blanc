@@ -14,6 +14,7 @@ const build = (over = {}) => buildTabContextMenu({
   groups: over.groups ?? [],
   activeTabId: over.activeTabId ?? 1,
   glanceTabId: over.glanceTabId ?? null,
+  canGlance: over.canGlance ?? true,
   surface: over.surface ?? 'row',
   canCloseOthers: over.canCloseOthers ?? true,
   canMoveToNewWindow: over.canMoveToNewWindow ?? true,
@@ -22,6 +23,10 @@ const build = (over = {}) => buildTabContextMenu({
   canCloseBelow: over.canCloseBelow ?? true,
   siteMuted: over.siteMuted === undefined ? false : over.siteMuted,
   splitCandidates: over.splitCandidates ?? [],
+  sendTargets: over.sendTargets === undefined ? null : over.sendTargets,
+  spaces: over.spaces ?? [],
+  canMoveToSpace: over.canMoveToSpace ?? true,
+  canCreateSpace: over.canCreateSpace ?? false,
   t: englishT,
 });
 const ids = (items) => items.filter((i) => i.id).map((i) => i.id);
@@ -289,4 +294,91 @@ test('menu: a split tab offers Remove from Split and Close Split instead', () =>
   assert.equal(byId(m, 'close-split').label, 'Close Split');
   const order = ids(m);
   assert.equal(order.indexOf('remove-from-split'), order.indexOf('group') + 1);
+});
+
+test('menu: Send to Device lists the other devices, after the Start Page pin', () => {
+  const m = build({ sendTargets: [{ id: 'phone', name: 'iPhone' }, { id: 'neo', name: 'MacBook Neo' }] });
+  const at = ids(m).indexOf('send-to');
+  assert.equal(ids(m)[at - 1], 'toggle-start-pin');
+  assert.equal(ids(m)[at + 1], 'group');
+  const send = byId(m, 'send-to');
+  assert.equal(send.label, 'Send to Device');
+  assert.deepEqual(send.submenu.map((i) => [i.id, i.label, i.deviceId]), [
+    ['send-to-device', 'iPhone', 'phone'], ['send-to-device', 'MacBook Neo', 'neo'],
+  ]);
+});
+
+test('menu: Send to Device says No other devices, disabled, when there are none', () => {
+  const send = byId(build({ sendTargets: [] }), 'send-to');
+  assert.deepEqual(send.submenu, [{ id: 'send-none', label: 'No other devices', enabled: false }]);
+});
+
+test('menu: no Send to Device when the tab cannot be sent or sync is off', () => {
+  assert.equal(byId(build({ sendTargets: null }), 'send-to'), undefined);
+});
+
+test('isCopyable is shared with the Copy Link browser command', () => {
+  const { isCopyable } = require('../../src/main/tab-context-menu-model');
+  for (const url of ['https://example.com/a?b=1', 'http://127.0.0.1:8080/', 'file:///Users/me/page.html']) {
+    assert.equal(isCopyable({ url }), true, url);
+  }
+  for (const url of ['blanc://newtab/', 'blanc://settings/', 'about:blank', '', undefined]) {
+    assert.equal(isCopyable({ url }), false, String(url));
+  }
+});
+
+test('Move to Space lists every space, the current one checked, after Move to Group', () => {
+  const spaces = [{ id: 'w1', name: 'Work', current: true }, { id: 'w2', name: 'Reading', current: false }];
+  const m = build({ spaces });
+  const order = ids(m);
+  assert.equal(order.indexOf('space'), order.indexOf('group') + 1);
+  const item = byId(m, 'space');
+  assert.equal(item.label, 'Move to Space');
+  assert.deepEqual(item.submenu.map((i) => [i.id, i.label, i.type, i.checked, i.workspaceId]), [
+    ['space-move', 'Work', 'radio', true, 'w1'],
+    ['space-move', 'Reading', 'radio', false, 'w2'],
+    [undefined, undefined, 'separator', undefined, undefined],
+    ['space-new', 'New Space…', undefined, undefined, undefined],
+  ]);
+});
+
+test('Move to Space is hidden without spaces and for a private tab', () => {
+  assert.equal(byId(build(), 'space'), undefined);
+  assert.equal(byId(build({ tab: { private: true }, spaces: [{ id: 'w1', name: 'Work', current: false }] }), 'space'), undefined);
+});
+
+test('Move to Space is disabled with nowhere else to go, or when main refuses the move', () => {
+  const only = byId(build({ spaces: [{ id: 'w1', name: 'Work', current: true }] }), 'space');
+  assert.equal(only.enabled, false);
+  assert.equal(only.submenu, undefined);
+  const refused = byId(build({ canMoveToSpace: false, spaces: [{ id: 'w2', name: 'Reading', current: false }] }), 'space');
+  assert.equal(refused.enabled, false);
+});
+
+test('a space that cannot receive a tab right now is a disabled row, and alone does not enable the item', () => {
+  const busy = { id: 'w2', name: 'Reading', current: false, enabled: false };
+  const mine = { id: 'w1', name: 'Work', current: true };
+  const sub = byId(build({ spaces: [mine, busy, { id: 'w3', name: 'Play', current: false }] }), 'space').submenu;
+  assert.deepEqual(sub.filter((i) => i.id === 'space-move').map((i) => [i.label, i.enabled]), [['Work', undefined], ['Reading', false], ['Play', undefined]]);
+  assert.equal(byId(build({ spaces: [mine, busy] }), 'space').enabled, false);
+});
+
+test('Open in Glance respects whether the selected tab can leave Split View', () => {
+  for (const splitId of [null, 'split-1']) {
+    const menu = build({ activeTabId: 2, surface: 'row', tab: { splitId }, canGlance: false });
+    assert.equal(byId(menu, 'glance').enabled, false);
+  }
+  assert.equal(byId(build({ activeTabId: 2, surface: 'row', canGlance: true }), 'glance').enabled, true);
+});
+
+
+test('New Space is reachable from the only space and disabled at the profile limit', () => {
+  const spaces = [{ id: 'only', name: 'Only', current: true }];
+  const item = byId(build({ spaces, canCreateSpace: true }), 'space');
+  assert.equal(item.submenu.at(-1).id, 'space-new');
+  assert.equal(item.submenu.at(-1).enabled, true);
+  assert.equal(byId(build({ spaces, canCreateSpace: true, canMoveToSpace: false }), 'space').enabled, false);
+  const full = byId(build({ spaces: [...spaces, { id: 'other', name: 'Other' }], canCreateSpace: false }), 'space');
+  assert.equal(full.submenu.at(-1).enabled, false);
+  assert.equal(byId(build({ canCreateSpace: true }), 'space'), undefined);
 });

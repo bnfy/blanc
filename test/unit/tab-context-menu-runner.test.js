@@ -7,9 +7,9 @@ function spyActions() {
   const calls = [];
   const rec = (name) => (...args) => calls.push([name, ...args]);
   const names = ['copy', 'reload', 'duplicate', 'togglePin', 'toggleMute', 'toggleFavorite',
-    'setGroup', 'beginNewGroup', 'glance', 'quiet', 'newTab', 'newPrivateTab',
+    'setGroup', 'beginNewGroup', 'beginNewSpaceForTab', 'glance', 'quiet', 'newTab', 'newPrivateTab',
     'closeOthers', 'moveToNewWindow', 'reopenClosed', 'close', 'rename', 'resetTitle', 'closeGlance',
-    'returnPinnedHome', 'setPinnedHome', 'toggleStartPagePin'];
+    'returnPinnedHome', 'setPinnedHome', 'toggleStartPagePin', 'moveToSpace', 'sendToDevice'];
   const actions = {};
   for (const n of names) actions[n] = rec(n);
   return { actions, calls };
@@ -78,4 +78,31 @@ test('close-glance closes the pane, not the tab', () => {
   const { actions, calls } = spyActions();
   runTabContextMenuItem('close-glance', { tab, actions });
   assert.deepEqual(calls, [['closeGlance']]);
+});
+
+test('send-to-device sends the tab to the item\'s device', () => {
+  const { actions, calls } = spyActions();
+  runTabContextMenuItem('send-to-device', { tab, deviceId: 'phone', actions });
+  assert.deepEqual(calls, [['sendToDevice', 7, 'phone']]);
+});
+
+test('space-move moves the tab to the chosen space', () => {
+  const { actions, calls } = spyActions();
+  runTabContextMenuItem('space-move', { tab, workspaceId: 'w2', actions });
+  assert.deepEqual(calls, [['moveToSpace', 7, 'w2']]);
+});
+
+test('space-new opens the editor for the context tab', () => {
+  const { actions, calls } = spyActions();
+  runTabContextMenuItem('space-new', { tab: { id: 7 }, actions });
+  assert.deepEqual(calls, [['beginNewSpaceForTab', 7]]);
+});
+
+test('batch actions carry the menu selection and destination to the batch runner', () => {
+  const calls = [], selectedTabIds = ['a', 'b'];
+  const actions = { batch: (...args) => calls.push(args) };
+  for (const id of ['batch-space-move', 'batch-space-new', 'batch-new-window', 'batch-group-move', 'batch-group-none', 'batch-group-new', 'batch-pin', 'batch-mute', 'batch-reload', 'batch-quiet', 'batch-copy', 'batch-close']) {
+    runTabContextMenuItem(id, { tab, actions, selectedTabIds, groupId: 'g', workspaceId: 's' });
+    assert.deepEqual(calls.at(-1), [id, { groupId: 'g', workspaceId: 's' }, selectedTabIds]);
+  }
 });

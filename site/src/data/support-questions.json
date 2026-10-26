@@ -3,8 +3,16 @@
     "id": "architecture",
     "q": "What is Blanc built on?",
     "a": [
-      "Blanc uses Chromium to render websites and Electron to package that engine with a desktop runtime. Blanc supplies the floating island, tab management, settings and network-layer blocker. It uses official, unmodified Electron releases.",
+      "Blanc uses Chromium to render websites and Electron to package that engine with a desktop runtime. Blanc supplies the floating island, tab management, settings and network-layer blocker. Since Blanc 1.43 it runs on castLabs’ Electron for Content Security, a build of Electron that can play Widevine-protected video and music.",
       "This lets one small team maintain an app for macOS, Windows and Linux. The trade-off is a bundled runtime and a multi-process memory footprint; it is not a separate web engine or a native system-webview browser."
+    ]
+  },
+  {
+    "id": "protected-streaming",
+    "q": "Does protected streaming video play in Blanc?",
+    "a": [
+      "Yes, since Blanc 1.43. Blanc runs on castLabs’ Electron for Content Security and downloads Google’s Widevine component the first time it starts, so sites can play Widevine-protected video and music on macOS, Windows and Linux. Settings → Help → Protected media shows when the component is ready, and Linux asks for one restart. Whether a given title plays is up to the site.",
+      "On Windows, protected streaming needs an x64 PC. Blanc ships an x64 Windows build; on Windows on Arm it runs through emulation, where Widevine’s platform verification fails and services such as Netflix refuse to play."
     ]
   },
   {

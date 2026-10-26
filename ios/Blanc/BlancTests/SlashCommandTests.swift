@@ -8,8 +8,25 @@ final class SlashCommandTests: XCTestCase {
         XCTAssertTrue(names.contains("/close"))
     }
 
-    func testAvailableCountIsTwo() {
-        XCTAssertEqual(SlashCommand.available.count, 2)
+    func testAvailableIncludesPrivate() {
+        XCTAssertTrue(SlashCommand.available.map(\.command).contains("/private"))
+    }
+
+    @MainActor func testPrivateCommandOpensAPrivateTab() {
+        let manager = TabsManager(
+            settingsDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString),
+            sessionDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        let command = SlashCommand.available.first { $0.command == "/private" }
+        XCTAssertEqual(command?.hint, "Open a private tab (history stays untouched)")
+        command?.execute(manager)
+        XCTAssertEqual(manager.tabs.count, 2)
+        XCTAssertEqual(manager.activeTab?.isPrivate, true)
+        XCTAssertEqual(manager.activeTab?.currentURL, TabsManager.privateNewTabURL)
+    }
+
+    func testAvailableIncludesNativeSettingsRoutes() {
+        XCTAssertTrue(SlashCommand.available.map(\.command).contains("/settings"))
+        XCTAssertTrue(SlashCommand.available.map(\.command).contains("/sync"))
     }
 
     func testFilterEmptyReturnsAll() {
@@ -23,7 +40,7 @@ final class SlashCommandTests: XCTestCase {
     }
 
     func testFilterMatchesPrefix() {
-        let results = SlashCommand.filter(prefix: "/n")
+        let results = SlashCommand.filter(prefix: "/ne")
         XCTAssertEqual(results.count, 1)
         XCTAssertEqual(results[0].command, "/new")
     }

@@ -161,6 +161,35 @@
     }
   }
 
+  // ECS only. Poll while this settings document lives; readiness is not a
+  // promise that a particular streaming service will accept playback.
+  if (typeof window.bowserPages.settings.drmStatus === 'function') {
+    const card = document.getElementById('drmCard');
+    const status = document.getElementById('drmStatus');
+    const restart = document.getElementById('drmRestart');
+    let restarting = false;
+    const refresh = async () => {
+      try {
+        const state = await window.bowserPages.settings.drmStatus();
+        card.hidden = !state.enabled;
+        const key = ({ idle: 'drm.preparing', preparing: 'drm.preparing', ready: 'drm.ready',
+          'restart-required': 'drm.restartRequired', 'updates-disabled': 'drm.disabled' })[state.state] || 'drm.failed';
+        status.textContent = t(key);
+        restart.hidden = !state.canRestart;
+        restart.disabled = restarting;
+      } catch { status.textContent = t('drm.failed'); restart.hidden = true; }
+    };
+    restart.addEventListener('click', async () => {
+      restarting = true; restart.disabled = true;
+      try { await window.bowserPages.settings.drmRestart(); }
+      catch { status.textContent = t('drm.failed'); }
+      finally { restarting = false; await refresh(); }
+    });
+    await refresh();
+    const timer = setInterval(refresh, 2000);
+    window.addEventListener('unload', () => clearInterval(timer), { once: true });
+  }
+
   // --- Core: theme / search engine / adblock (always supported) ---
   const theme = document.getElementById('theme');
   const newtabLayout = document.getElementById('newtabLayout');
@@ -168,7 +197,7 @@
   const searchEngine = document.getElementById('searchEngine');
   const searchSuggestions = document.getElementById('searchSuggestions');
   const adblockEnabled = document.getElementById('adblockEnabled');
-  if (typeof window.bowserPages.settings.blockingStatus === 'function') {
+  if (supports('blockingStatus') && typeof window.bowserPages.settings.blockingStatus === 'function') {
     const selector = document.getElementById('adblockProvider');
     const label = id => id === 'ublock-origin' ? 'uBlock Origin' : 'Blanc Blocker';
     const renderBlocking = (state) => {
@@ -255,8 +284,37 @@
   searchSuggestions.checked = settings.searchSuggestions ?? false;
   adblockEnabled.checked = settings.adblockEnabled;
 
+  // iOS sends core settings with the existing appearance event after a pull.
+  // Update controls in place; a focused field belongs to the person editing it.
+  window.bowserPages.settings.onAppearance?.((state) => {
+    const current = state?.settings;
+    if (!current) return;
+    for (const [control, key] of [[theme, 'theme'], [searchEngine, 'searchEngine']]) {
+      if (typeof current[key] === 'string' && document.activeElement !== control) {
+        control.value = current[key];
+        settings[key] = current[key];
+      }
+    }
+    if (typeof current.adblockEnabled === 'boolean' && document.activeElement !== adblockEnabled) {
+      adblockEnabled.checked = current.adblockEnabled;
+      settings.adblockEnabled = current.adblockEnabled;
+    }
+  });
+
   theme.addEventListener('change', () =>
     window.bowserPages.settings.set({ theme: theme.value }));
+
+  // Main restyles every open internal page, this one included, on a change.
+  const surfaceStyle = document.getElementById('surfaceStyle');
+  const showSurfaceStyle = (value) => { surfaceStyle.value = value === 'neutral' ? 'neutral' : 'sunrise'; };
+  showSurfaceStyle(settings.surfaceStyle);
+  surfaceStyle.addEventListener('change', async () => {
+    try {
+      showSurfaceStyle((await window.bowserPages.settings.set({ surfaceStyle: surfaceStyle.value })).surfaceStyle);
+    } catch {
+      window.bowserPages.settings.get().then(({ settings: saved }) => showSurfaceStyle(saved.surfaceStyle), () => {});
+    }
+  });
   newtabLayout.addEventListener('change', () =>
     window.bowserPages.settings.set({ newtabLayout: newtabLayout.value }));
   // The tour opens as a real tab in the sheet's window — main creates and
@@ -1518,6 +1576,20 @@
       const switchNotice = document.getElementById('syncSwitchNotice');
       const recoveryCopy = document.getElementById('syncRecoveryCopy');
       const recoveryNote = document.getElementById('syncRecoveryNote');
+      const canCreate = supports('syncCreate');
+      const canWipeRemote = supports('syncWipeRemote');
+      pathStart.hidden = !canCreate;
+      startNewBtn.hidden = !canCreate;
+      for (const anchor of [pathStart, startNewBtn]) {
+        if (canCreate) continue;
+        const note = document.createElement('p');
+        note.className = 'section-hint';
+        note.dataset.i18n = 'settings.sync.createOnComputer';
+        note.textContent = t('settings.sync.createOnComputer');
+        anchor.after(note);
+      }
+      wipeEl.closest('label').hidden = !canWipeRemote;
+      switchWipe.closest('label').hidden = !canWipeRemote;
       let currentHandle = '';
 
       // On-state: one row per category; the error lives ONLY in its own row.
@@ -1541,11 +1613,23 @@
         }
       }
 
+      window.bowserPages.settings.onAppearance?.((state) => {
+        if (state?.syncStatus) renderStatus(state.syncStatus);
+      });
+
       // Off-state: the reducer owns the flow; this code only mirrors view()
       // to the DOM and performs each returned effect exactly once.
       let model = createSyncSetupModel();
       function renderSetup() {
         const v = view(model);
+        for (const [field, key] of [
+          [handleEl, model.path === 'join' ? 'settings.sync.enterSyncName' : 'settings.sync.giveYourSyncA'],
+          [passEl, model.path === 'join' ? 'settings.sync.enterPassphrase' : 'settings.sync.chooseAPassphrase'],
+        ]) {
+          const label = field.closest('label').querySelector('strong');
+          label.dataset.i18n = key;
+          label.textContent = t(key);
+        }
         setupTitle.textContent = v.setupTitle;
         setupIntro.textContent = v.setupIntro;
         paths.hidden = v.pathChosen;
@@ -1694,7 +1778,7 @@
         switchNotice.textContent = t('settings.sync.turningOn');
         let res;
         try {
-          res = await window.bowserPages.settings.syncSwitchCode({ code: effect.code, wipeRemote: effect.wipeRemote });
+          res = await window.bowserPages.settings.syncSwitchCode({ code: effect.code, wipeRemote: canWipeRemote && effect.wipeRemote });
         } catch {
           res = { ok: false, message: t('settings.sync.checkFailed') };
         }
@@ -1729,7 +1813,7 @@
         recoveryNote.textContent = res.ok ? t('settings.sync.recovery.copied') : (res.error === 'cancelled' ? '' : (res.message ?? ''));
       });
 
-      pathStart.addEventListener('click', () => { dispatch({ type: 'choose', path: 'start' }); handleEl.focus(); });
+      pathStart.addEventListener('click', () => { if (!canCreate) return; dispatch({ type: 'choose', path: 'start' }); handleEl.focus(); });
       pathCode.addEventListener('click', () => { dispatch({ type: 'choose', path: 'code' }); codeEl.focus(); });
       backBtn.addEventListener('click', () => dispatch({ type: 'back' }));
       codeBack.addEventListener('click', () => dispatch({ type: 'back' }));
@@ -1741,7 +1825,7 @@
       passEl.addEventListener('input', onInput);
       form.addEventListener('submit', (e) => { e.preventDefault(); dispatch({ type: 'submit' }); });
       tryAgainBtn.addEventListener('click', () => { dispatch({ type: 'input', handle: handleEl.value, passphrase: passEl.value }); passEl.focus(); });
-      startNewBtn.addEventListener('click', () => dispatch({ type: 'start-new' }));
+      startNewBtn.addEventListener('click', () => { if (canCreate) dispatch({ type: 'start-new' }); });
 
       window.bowserPages.settings.syncGet().then((status) => {
         renderStatus(status);
@@ -1759,7 +1843,7 @@
       });
 
       disableBtn.addEventListener('click', async () => {
-        const res = await window.bowserPages.settings.syncDisable({ wipeRemote: wipeEl.checked });
+        const res = await window.bowserPages.settings.syncDisable({ wipeRemote: canWipeRemote && wipeEl.checked });
         // A failed remote wipe keeps sync ON (the accountId is the only handle
         // on the server copy) — leave the checkbox set for the retry and say why.
         wipeEl.checked = res.ok ? false : wipeEl.checked;

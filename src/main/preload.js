@@ -35,11 +35,13 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   reopenClosedEntry: (entryId) => ipcRenderer.invoke('tabs:reopen-entry', entryId),
   forgetClosedEntry: (entryId) => ipcRenderer.invoke('tabs:forget-closed-entry', entryId),
   clearClosedEntries: () => ipcRenderer.invoke('tabs:clear-closed'),
+  selectTab: (tabId, mode) => ipcRenderer.invoke('tabs:select', tabId, mode),
   switchTab: (id) => ipcRenderer.invoke('tabs:switch', id),
   navigate: (id, url) => ipcRenderer.invoke('tabs:navigate', id, url),
   search: (id, query, engine) => ipcRenderer.invoke('tabs:search', id, query, engine),
   goBack: (id) => ipcRenderer.invoke('tabs:back', id),
   goForward: (id) => ipcRenderer.invoke('tabs:forward', id),
+  toggleReaderMode: (id) => ipcRenderer.invoke('tabs:reader-toggle', id),
   reload: (id) => ipcRenderer.invoke('tabs:reload', id),
   stop: (id) => ipcRenderer.invoke('tabs:stop', id),
   moveTab: (id, target) => ipcRenderer.invoke('tabs:move', id, target),
@@ -49,6 +51,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   setGroupColor: (groupId, color) => ipcRenderer.invoke('groups:set-color', groupId, color),
   newTabInGroup: (groupId) => ipcRenderer.invoke('groups:new-tab', groupId),
   moveGroupToNewWindow: (groupId) => ipcRenderer.invoke('groups:move-to-new-window', groupId),
+  openGroupSpaceMenu: (groupId, point) => ipcRenderer.invoke('groups:space-menu', groupId, point),
   ungroupGroup: (groupId) => ipcRenderer.invoke('groups:ungroup', groupId),
   activateTabFromRail: (id) => ipcRenderer.invoke('tabs:activate-from-rail', id),
   setGlanceTab: (id) => ipcRenderer.invoke('tabs:set-glance', id),
@@ -56,6 +59,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   closeGlance: () => ipcRenderer.invoke('tabs:close-glance'),
   openGlanceAsTab: () => ipcRenderer.invoke('tabs:open-glance-as-tab'),
   setTabGroup: (id, groupId) => ipcRenderer.invoke('tabs:set-group', id, groupId),
+  groupTabsByName: (tabIds, name) => ipcRenderer.invoke('tabs:group-many-by-name', tabIds, name),
   groupTabByName: (id, name) => ipcRenderer.invoke('tabs:group-by-name', id, name),
   toggleGroupCollapsed: (groupId) => ipcRenderer.invoke('tabs:toggle-group-collapsed', groupId),
   focusGroup: (groupId) => ipcRenderer.invoke('tabs:focus-group', groupId),
@@ -125,6 +129,11 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     ipcRenderer.on('chrome:glance-status', listener);
     return () => ipcRenderer.removeListener('chrome:glance-status', listener);
   },
+  onPillNotice: (callback) => {
+    const listener = (_event, kind) => callback(kind);
+    ipcRenderer.on('chrome:pill-notice', listener);
+    return () => ipcRenderer.removeListener('chrome:pill-notice', listener);
+  },
 
   openIsland: () => ipcRenderer.send('chrome:open-island'),
   openIslandCommands: () => ipcRenderer.send('chrome:open-island-commands'),
@@ -163,8 +172,17 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   listFavorites: () => ipcRenderer.invoke('chrome:favorites-list'),
   listRemoteTabs: () => ipcRenderer.invoke('chrome:remote-tabs-list'),
   renameDevice: (deviceId, name) => ipcRenderer.invoke('chrome:rename-device', deviceId, name),
+  // Send to device (M7b): main resolves the tab's address itself.
+  listSendTargets: () => ipcRenderer.invoke('chrome:send-targets'),
+  sendTabToDevice: (tabId, deviceId) => ipcRenderer.invoke('chrome:send-tab', tabId, deviceId),
+  listSentToThisDevice: () => ipcRenderer.invoke('chrome:sent-list'),
+  openSentItem: (id) => ipcRenderer.invoke('chrome:sent-open', id),
+  dismissSentItem: (id) => ipcRenderer.invoke('chrome:sent-dismiss', id),
   cancelWorkspaceAction: () => ipcRenderer.send('chrome:workspaces-cancel'),
   listWorkspaces: () => ipcRenderer.invoke('chrome:workspaces-list'),
+  createSpaceWithLink: (name, identity) => ipcRenderer.invoke('chrome:workspaces-create-with-link', name, identity),
+  createSpaceWithTabs: (name, identity, tabIds) => ipcRenderer.invoke('chrome:workspaces-create-with-tabs', name, identity, tabIds),
+  createSpaceWithTab: (name, identity, tabId) => ipcRenderer.invoke('chrome:workspaces-create-with-tab', name, identity, tabId),
   saveWorkspaceAs: (name, identity) => ipcRenderer.invoke('chrome:workspaces-save-as', name, identity),
   // opts: { decision?: string, newWindow?: true } — `decision` echoes the token
   // from an unsaved-scratch result (a confirmed "discard and switch");
@@ -194,6 +212,11 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     const listener = (_event, devices) => callback(devices);
     ipcRenderer.on('chrome:remote-tabs-updated', listener);
     return () => ipcRenderer.removeListener('chrome:remote-tabs-updated', listener);
+  },
+  onSentToThisDeviceUpdated: (callback) => {
+    const listener = (_event, items) => callback(items);
+    ipcRenderer.on('chrome:sent-updated', listener);
+    return () => ipcRenderer.removeListener('chrome:sent-updated', listener);
   },
   onWorkspacesUpdated: (callback) => {
     const listener = (_event, payload) => callback(payload);

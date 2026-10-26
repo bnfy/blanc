@@ -123,14 +123,14 @@ test('a foreground click in the Glance reference opens the new tab into Glance, 
   assert.deepEqual(background.glanced, []);
 });
 
-test('deferred contents retain Chromium document sandbox flags and the full referrer policy', () => {
+test('every page-opened child is marked and keeps the full referrer policy', () => {
   const h = harness();
   const referrer = { url: 'https://example.test/source', policy: 'origin' };
   const response = h.handler({ url: 'https://example.test/target', disposition: 'background-tab', referrer });
-  response.createWindow({ webPreferences: { openerSandboxFlags: 4294836015, nodeIntegration: true } });
-  assert.equal(h.created[0].options.openerSandboxFlags, 4294836015);
+  response.createWindow({ webPreferences: { nodeIntegration: true } });
+  assert.equal(h.created[0].options.inheritsDocumentPolicy, true);
   assert.equal(h.created[0].options.httpReferrer, referrer);
-  assert.equal(h.created[0].options.webPreferences, undefined, 'only the inherited sandbox flags are accepted');
+  assert.equal(h.created[0].options.webPreferences, undefined, 'replacement web preferences are never accepted');
 });
 
 test('a no-referrer navigation keeps its empty URL and policy', () => {
@@ -139,7 +139,7 @@ test('a no-referrer navigation keeps its empty URL and policy', () => {
   const response = h.handler({ url: 'https://example.test/target', disposition: 'background-tab', referrer });
   response.createWindow({});
   assert.equal(h.created[0].options.httpReferrer, referrer);
-  assert.equal(h.created[0].options.openerSandboxFlags, 0);
+  assert.equal(h.created[0].options.inheritsDocumentPolicy, true);
 });
 
 test('featureful new-window requests still use Electron popup creation', () => {

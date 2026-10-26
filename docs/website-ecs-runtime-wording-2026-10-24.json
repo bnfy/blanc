@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-24",
+  "decision": "After public v1.43.0 moved Blanc to castLabs’ Electron for Content Security for Widevine playback, the owner asked for the support answer that still said Blanc uses official, unmodified Electron releases to be updated.",
+  "claims": "docs/website-v1.43-claims.json (ecsRuntime evidence group).",
+  "supportAnswers": [
+    {
+      "id": "architecture",
+      "before": "Blanc uses Chromium to render websites and Electron to package that engine with a desktop runtime. Blanc supplies the floating island, tab management, settings and network-layer blocker. It uses official, unmodified Electron releases.",
+      "after": "Blanc uses Chromium to render websites and Electron to package that engine with a desktop runtime. Blanc supplies the floating island, tab management, settings and network-layer blocker. Since Blanc 1.43 it runs on castLabs’ Electron for Content Security, a build of Electron that can play Widevine-protected video and music."
+    }
+  ]
+}

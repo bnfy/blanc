@@ -5,7 +5,7 @@
 // never queued or replayed. Failed providers keep the gate until retry succeeds
 // or the user explicitly disables blocking.
 const MAX_PENDING = 256;
-function createProfileNavigationGates({ coordinator, queued, resolveContents, ready, enabled, startupActive }) {
+function createProfileNavigationGates({ coordinator, queued, resolveContents, ready, enabled, startupActive, trace = { record() {} }, onRefused = () => {}, onReplay = () => {} }) {
   const profiles = new Map();
   function prune(entry) {
     for (const [id, item] of entry.pending) {
@@ -23,10 +23,15 @@ function createProfileNavigationGates({ coordinator, queued, resolveContents, re
     entry.pending.delete(id); queued.delete(id);
     if (!/^https?:/i.test(details.url)) return false;
     const target = resolveContents(id);
+    let held = false;
     if (entry.pending.size < MAX_PENDING && details.method === 'GET' && target && target.tab.profileId === entry.profileId && !target.tab.private) {
       entry.pending.set(id, { wc: target.wc, epoch: target.tab.navEpoch, url: details.url });
       queued.set(id, details.url);
+      onRefused(id, details.url);
+      held = true;
     }
+    trace.record('profile-gate-cancel', { requestId: details.id, webContentsId: id, navEpoch: target?.tab.navEpoch, private: target?.tab.private,
+      url: details.url, method: details.method, queued: held });
     return true;
   }
   function hold(profileId, session) {
@@ -48,7 +53,12 @@ function createProfileNavigationGates({ coordinator, queued, resolveContents, re
       for (const [id, item] of entry.pending) {
         queued.delete(id);
         const target = resolveContents(id);
-        if (!target || target.tab.private || target.tab.profileId !== profileId || target.wc !== item.wc || target.tab.navEpoch !== item.epoch) continue;
+        if (!target || target.tab.private || target.tab.profileId !== profileId || target.wc !== item.wc || target.tab.navEpoch !== item.epoch) {
+          trace.record('profile-gate-replay', { webContentsId: id, outcome: 'superseded' });
+          continue;
+        }
+        trace.record('profile-gate-replay', { webContentsId: id, navEpoch: target.tab.navEpoch, url: item.url, outcome: 'replayed' });
+        onReplay(id, item.url, target.tab.navEpoch);
         target.wc.loadURL(item.url).catch(() => {});
       }
     }

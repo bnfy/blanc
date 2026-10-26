@@ -21,9 +21,11 @@ test('createTab accepts the three lazy-restore options', () => {
 });
 
 test('a quiet-born tab gets no view, and returns before anything is wired', () => {
-  assert.match(createTabSource, /const bornQuiet = asleep && !adopted && !adopting;/,
+  assert.match(createTabSource, /const bornQuiet = \(asleep \|\| inert\) && !adopted && !adopting;/,
     'an adopted window.open child — or a Tier 0 reopen adopting its parked view — '
     + 'is already live and can never be born quiet');
+  // A page-opened tab without a live view is born inert, so born quiet too.
+  assert.match(createTabSource, /const inert = marked && !adopted && !adopting;/);
   assert.match(createTabSource, /view: bornQuiet \? null : view,/);
 
   const quietReturn = createTabSource.indexOf('if (bornQuiet) {');
@@ -54,8 +56,10 @@ test('the restored active tab is picked without indexing into a hole', () => {
     /restoredIds\[\s*\n?\s*Math\.min\(Math\.max\(0, saved\.activeIndex\), restoredIds\.length - 1\)/,
     'createTab returns null for a url it refuses; raw indexing activates undefined'
   );
-  const activate = mainSource.indexOf('setActiveTab(target, { focusContent: true });');
-  const closeStartup = mainSource.indexOf('if (startupTabId && tabs.has(startupTabId)) closeTab(startupTabId);');
-  assert.ok(activate > 0 && closeStartup > activate,
-    'activate before closing startup, or closeTab wakes an extra restored tab as its replacement');
+  const closeStartup = mainSource.indexOf("closeTab(startupTabId, { selectReplacement: false })");
+  const selectQuiet = mainSource.indexOf('runtime.activeTabId = target;', closeStartup);
+  const replay = mainSource.indexOf('await withWindowRuntime(runtime,()=>applySharedSpaceChanges(runtime,{force:true}))', selectQuiet);
+  const activate = mainSource.indexOf('wakeRestoredTarget(runtime,wakeTarget)', replay);
+  assert.ok(closeStartup > 0 && closeStartup < selectQuiet && selectQuiet < replay && replay < activate,
+    'close without replacement, select quietly, replay Shared Spaces, then wake exactly the selected tab');
 });

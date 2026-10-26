@@ -6,6 +6,7 @@ const ctx = require('../support/context');
 const { overlayPage } = require('../support/overlay');
 const { waitForValue } = require('../support/poll');
 const { frontChromeWindow } = require('../support/tab-drag');
+const { inMainTurn } = require('../support/main-turn');
 
 async function mainChromePage() {
   for (let attempt = 0; attempt < 40; attempt += 1) {
@@ -295,7 +296,7 @@ When('I dismiss the orphaned Change picker with Escape', async function () {
   // path (main's before-input-event on the overlay). CDP-injected keys from
   // page.press bypass before-input-event and land in the overlay's reason-less
   // DOM fallback instead.
-  await ctx.app.evaluate(({ webContents }) => {
+  await inMainTurn(ctx.app, ({ webContents }) => {
     const overlay = webContents.getAllWebContents()
       .find((candidate) => candidate.getURL() === 'blanc-chrome://overlay/');
     if (!overlay) throw new Error('overlay webContents not found');
@@ -508,7 +509,7 @@ When('I choose the slow quiet tab and cancel with Escape before it wakes', async
   await page.press('#glancePickerInput', 'Enter');
   await page.locator('#glancePickerInput[aria-busy="true"]').waitFor();
   // The real cancel path is main's before-input-event on the overlay.
-  await ctx.app.evaluate(({ webContents }) => {
+  await inMainTurn(ctx.app, ({ webContents }) => {
     const overlay = webContents.getAllWebContents()
       .find((candidate) => candidate.getURL() === 'blanc-chrome://overlay/');
     overlay.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
@@ -675,7 +676,7 @@ When('I press the close-tab command in the find bar', async function () {
   await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'find', 'find capsule');
   const page = await overlayPage();
   await page.locator('#findInput').waitFor();
-  await ctx.app.evaluate(({ Menu, webContents }) => {
+  await inMainTurn(ctx.app, ({ Menu, webContents }) => {
     if (process.platform === 'darwin') {
       Menu.getApplicationMenu().getMenuItemById('browser-close-tab').click();
       return;
@@ -1797,7 +1798,13 @@ When('I watch the Glance card while I point at the top edge of the window', asyn
     const card = await glanceCard(this);
     return JSON.stringify({ card: card?.cardViewBounds, page: card?.viewBounds });
   };
+  await waitForValue(() => this.call('focusWindow'), Boolean, 'the window to receive the pointer');
   this.glanceCardSeen = new Set([await read()]);
+  // Keep the sampled cursor and injected event at the same position. The
+  // auto-hide setup parks sampling below the strip, which would otherwise
+  // immediately hide the Island again after this synthetic move.
+  const bounds = await this.call('windowContentBounds');
+  assert.equal(await this.call('setTestCursorPoint', { x: bounds.x + 400, y: bounds.y + 2 }), true);
   const state = await this.state();
   assert.equal(await this.call('sendMouseInput', state.activeTabId, { type: 'mouseMove', x: 400, y: 2 }), true);
   const until = Date.now() + 1200;
@@ -1807,9 +1814,10 @@ When('I watch the Glance card while I point at the top edge of the window', asyn
     if ((await this.call('islandAutoHideState'))?.sliding) slid = true;
   }
   this.glanceIslandSlid = slid;
+  this.glanceIslandFinal = await this.call('islandAutoHideState');
 });
 
 Then('the Glance card never moved while the Island slid in', async function () {
-  assert.equal(this.glanceIslandSlid, true, 'the Island slid in while the card was watched');
+  assert.equal(this.glanceIslandSlid, true, `the Island slid in while the card was watched: ${JSON.stringify(this.glanceIslandFinal)}`);
   assert.deepEqual([...this.glanceCardSeen].map((value) => JSON.parse(value)), [JSON.parse([...this.glanceCardSeen][0])]);
 });

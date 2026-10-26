@@ -77,4 +77,59 @@ final class QuickSwitcherTests: XCTestCase {
         let hostResults = QuickSwitcher.search(query: "auth", tabs: [tab])
         XCTAssertEqual(hostResults.count, 1)
     }
+    func testFuzzyLocalAndFavoriteMatchesStayWeakDespiteSourceRanking() {
+        let local = makeTab(title: "Gmail", url: "https://mail.google.com")
+        let favorite = Favorite(id: "saved", url: "https://saved.example/", title: "Gmail", favicon: nil, folder: nil)
+        let results = QuickSwitcher.search(query: "gml", tabs: [local], remote: [], favorites: [favorite])
+        XCTAssertEqual(results.count, 2)
+        XCTAssertTrue(results.allSatisfy { $0.score >= QuickSwitcher.strongMatchScore })
+        XCTAssertTrue(results.allSatisfy { $0.strength < QuickSwitcher.strongMatchScore })
+        XCTAssertEqual(results.first?.localTabID, local.id)
+    }
+    func testSubstringStrengthDoesNotDependOnSource() {
+        let local = makeTab(title: "Gmail", url: "https://mail.google.com")
+        let favorite = Favorite(id: "saved", url: "https://saved.example/", title: "Gmail", favicon: nil, folder: nil)
+        let remote = RemoteDevice(id: "laptop", name: "Laptop", platform: "darwin", updatedAt: 1, tabs: [RemoteTab(url: "https://remote.example/", title: "Gmail", groupId: nil, pinned: false)])
+        let results = QuickSwitcher.search(query: "gmail", tabs: [local], remote: [remote], favorites: [favorite])
+        XCTAssertEqual(results.count, 3)
+        XCTAssertTrue(results.allSatisfy { $0.strength == QuickSwitcher.strongMatchScore })
+        XCTAssertEqual(results.map(\.id).map { $0.split(separator: ":").first! }, ["local", "favorite", "remote"])
+    }
+
+    func testHistoryRanksBelowRemoteTabs() {
+        let remote = RemoteDevice(id: "laptop", name: "Laptop", platform: "darwin", updatedAt: 1, tabs: [RemoteTab(url: "https://remote.example/", title: "Recipes", groupId: nil, pinned: false)])
+        let history = [HistoryEntry(url: "https://visited.example/", title: "Recipes", visitedAt: 1)]
+        let results = QuickSwitcher.search(query: "recipes", tabs: [], remote: [remote], favorites: [], history: history)
+        XCTAssertEqual(results.map(\.id), ["remote:laptop:0", "history:https://visited.example/"])
+        XCTAssertEqual(results.last?.url?.absoluteString, "https://visited.example/")
+        XCTAssertEqual(results.last?.strength, QuickSwitcher.strongMatchScore)
+    }
+    func testHistoryIsDeduplicatedAgainstOpenTabs() {
+        let local = makeTab(title: "Recipes", url: "https://recipes.example/")
+        let favorite = Favorite(id: "saved", url: "https://saved.example/", title: "Recipes", favicon: nil, folder: nil)
+        let history = [
+            HistoryEntry(url: local.currentURL.absoluteString, title: "Recipes", visitedAt: 3),
+            HistoryEntry(url: "https://saved.example/", title: "Recipes", visitedAt: 2),
+            HistoryEntry(url: "https://other.example/", title: "Recipes", visitedAt: 1),
+            HistoryEntry(url: "https://other.example/", title: "Recipes", visitedAt: 0),
+        ]
+        let results = QuickSwitcher.search(query: "recipes", tabs: [local], remote: [], favorites: [favorite], history: history)
+        XCTAssertEqual(results.map { $0.id.split(separator: ":").first! }, ["local", "favorite", "history"])
+        XCTAssertEqual(results.last?.id, "history:https://other.example/")
+    }
+    func testHistoryKeepsTheListAtTwelve() {
+        let history = (0..<20).map { HistoryEntry(url: "https://site.example/\($0)", title: "Match", visitedAt: Int64($0)) }
+        XCTAssertEqual(QuickSwitcher.search(query: "match", tabs: [], remote: [], favorites: [], history: history).count, 12)
+    }
+    func testGoNeverTradesATypedAddressForAHistoryMatch() {
+        let history = [HistoryEntry(url: "https://github.com/bnfy/blanc/pull/1097", title: "Move to Space", visitedAt: 1)]
+        for typed in ["github.com", "https://github.com", "localhost:3000", "192.168.1.1", "mailto:a@b.test"] {
+            let results = QuickSwitcher.search(query: typed, tabs: [], remote: [], favorites: [], history: history)
+            XCTAssertNil(QuickSwitcher.goTarget(query: typed, results: results), typed)
+        }
+        let words = QuickSwitcher.search(query: "move to space", tabs: [], remote: [], favorites: [], history: history)
+        XCTAssertEqual(QuickSwitcher.goTarget(query: "move to space", results: words)?.id, "history:https://github.com/bnfy/blanc/pull/1097")
+        let fuzzy = QuickSwitcher.search(query: "mvsp", tabs: [], remote: [], favorites: [], history: history)
+        XCTAssertNil(QuickSwitcher.goTarget(query: "mvsp", results: fuzzy), "a weak match never takes Go")
+    }
 }

@@ -47,6 +47,12 @@ final class BlancSchemeHandlerTests: XCTestCase {
         XCTAssertEqual(BlancPageResolver.mimeType(forFilename: "icon.png"), "image/png")
     }
 
+    func testVirtualStringsUsesBundledCatalog() {
+        XCTAssertEqual(BlancPageResolver.resolvedFilename(host: "newtab", path: "/strings.js"), "strings.js")
+        XCTAssertEqual(BlancPageResolver.stringsFilename(preferred: ["fr-FR"]), "strings.fr.js")
+        XCTAssertEqual(BlancPageResolver.mimeType(forFilename: "instrument-sans.woff2"), "font/woff2")
+    }
+
     // An unmapped/absent extension falls back to octet-stream.
     func testUnknownExtensionMime() {
         XCTAssertEqual(BlancPageResolver.mimeType(forFilename: "passwd"), "application/octet-stream")

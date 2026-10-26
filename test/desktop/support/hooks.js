@@ -50,7 +50,7 @@ async function closeApp(electronApp) {
   assertNoMainProcessExceptions(electronApp);
 }
 
-async function launchApp(extraEnv = {}) {
+async function launchApp(extraEnv = {}, { recoveryChoice = null } = {}) {
   // Cursor/VS Code agent shells inherit ELECTRON_RUN_AS_NODE=1 so their own
   // Electron host can spawn Node helpers. That makes the app binary reject
   // Playwright's --remote-debugging-port as a "bad option" and exit before
@@ -96,6 +96,28 @@ async function launchApp(extraEnv = {}) {
   // blocker-gated workspace restore. Returning while persistence is still
   // suspended lets the first scenario mutate an in-memory workspace that
   // cannot yet reach session.json.
+  // After a crash, startup waits for the session-recovery choice (the crash
+  // ledger) when the crashed session held something to restore; make it as
+  // a person would. A session of one blank start page asks nothing. Wait for
+  // startup to have decided which: before that, startupReady() can read true
+  // (persistence isn't suspended yet) while a prompt is still coming.
+  if (recoveryChoice) {
+    const asked = await electronApp.evaluate(
+      () => new Promise((resolve) => {
+        const t = setInterval(() => {
+          const recovery = globalThis.__blancCall ? globalThis.__blanc?.sessionRecoveryState?.() : null;
+          if (recovery?.decided === true) {
+            clearInterval(t);
+            resolve(recovery.required === true);
+          }
+        }, 50);
+      })
+    );
+    if (asked) {
+      const chosen = await callTestHook(electronApp, 'chooseSessionRecovery', [recoveryChoice]);
+      if (!chosen?.ok) throw new Error(`session recovery choice failed: ${JSON.stringify(chosen)}`);
+    }
+  }
   await electronApp.evaluate(
     () => new Promise((resolve) => {
       const t = setInterval(() => {
@@ -330,9 +352,28 @@ BeforeAll({ timeout: 120_000 }, async () => {
   ctx.app = await launchApp();
   // F28-1 exercises a genuine process relaunch against this same profile,
   // rather than a renderer reload or an in-memory persistence proxy.
-  ctx.relaunch = async () => {
+  ctx.relaunch = async (extraEnv = {}) => {
     if (ctx.app) await closeApp(ctx.app);
-    ctx.app = await launchApp();
+    ctx.app = await launchApp(extraEnv);
+  };
+  // A crash, not a quit: the process is killed, so nothing gets a chance to
+  // flush on the way out, and the next launch sees only what was on disk.
+  // The whole tree goes: on Windows, kill() reaches only the browser process,
+  // and its orphaned GPU and renderer processes keep the stdio pipes (and so
+  // this runner) open until the job times out (pinned-home-recovery-smoke
+  // kills the same way).
+  ctx.crashAndRelaunch = async () => {
+    const child = ctx.app?.process();
+    if (child && child.exitCode === null) {
+      const exited = new Promise((resolve) => child.once('exit', resolve));
+      if (process.platform === 'win32') {
+        try { execFileSync('taskkill.exe', ['/pid', String(child.pid), '/t', '/f'], { stdio: 'ignore' }); } catch { child.kill('SIGKILL'); }
+      } else {
+        child.kill('SIGKILL');
+      }
+      await exited;
+    }
+    ctx.app = await launchApp({}, { recoveryChoice: 'restore' });
   };
 
   // The F19 scenarios write the REAL system clipboard — save the developer's
@@ -389,6 +430,7 @@ AfterAll(async () => {
   }
   ctx.app = null;
   ctx.relaunch = null;
+  ctx.crashAndRelaunch = null;
   if (fixturesHandle) await fixturesHandle.close();
   if (secureFixturesHandle) await secureFixturesHandle.close();
   if (untrustedFixturesHandle) await untrustedFixturesHandle.close();

@@ -25,6 +25,29 @@ function slice(startMarker, endMarker) {
   return start >= 0 && end >= 0 ? mainSource.slice(start, end) : null;
 }
 
+test('workspaceCapture zips shared record ids through the same private-tab filter as URLs',()=>{
+  const source=slice('function workspaceCapture(runtime, { previousActiveIndex = 0 } = {}) {','\n/** Autosave only');
+  const tabs=new Map([[1,{id:1,url:'https://one.test/',sharedTabId:'a'.repeat(32)}],
+    [2,{id:2,url:'https://private.test/',private:true,sharedTabId:'b'.repeat(32)}],
+    [3,{id:3,url:'https://two.test/',sharedTabId:'c'.repeat(32)}]]);
+  const context={tabs,groupRecord,persistableEntries:require('../../src/main/session-snapshot').persistableEntries,
+    captureWindowEntry:()=>({urls:['https://one.test/','https://two.test/'],groups:[]})};
+  vm.runInNewContext(source+'\nthis.capture=workspaceCapture;',context);
+  const result=context.capture({tabOrder:[1,2,3]});
+  assert.deepEqual(JSON.parse(JSON.stringify(result)).tabIds,['a'.repeat(32),'c'.repeat(32)]);
+});
+test('the Space projection carries admission status only in the Personal profile',()=>{
+  const source=slice('function workspacesProjection() {','\n/** Freshness:');
+  const runtime={profileId:'default',workspaceId:'ws',tabOrder:[]},sharedId='a'.repeat(32);
+  let offered=true;const context={isSharedSpacesOffered:()=>offered,require:()=>require('../../src/main/shared-spaces-surfaces'),sharedSpaceState:{snapshot:()=>({recoveryNoticeSeen:false})},rt:()=>runtime,DEFAULT_PROFILE_ID:'default',spaceTint:'mark',tabs:new Map(),workspaceOwner:()=>null,
+    namedWorkspaces:{status:()=> 'ready',deleted:()=>[],list:()=>[{id:'ws',sharedId,name:'Work',revision:0,urls:['https://example.test/'],color:'#426c4c',symbol:'briefcase'}]},
+    sync:{sharedContext:()=>({}),sharedStatus:()=>({enabled:true,available:true,spaces:26,spaceLimit:25,canAdd:false}),spaceStatus:id=>({reason:'tabs',unsyncedTabIds:[id]})}};
+  vm.runInNewContext(source+'\nthis.project=workspacesProjection;',context);
+  const result=JSON.parse(JSON.stringify(context.project()));
+  assert.deepEqual(result.sharedSync,{count:26,limit:25,canAdd:false,busy:false});assert.deepEqual(result.items[0].sharedSync,{reason:'tabs',unsyncedTabIds:[sharedId],state:'full'});
+  offered=false;assert.equal(context.project().items[0].sharedSync,undefined);offered=true;runtime.profileId='named';const other=context.project();assert.equal(other.sharedSync,undefined);assert.equal(other.items[0].sharedSync,undefined);
+});
+
 const applySource = slice(
   'function applyWorkspaceToWindow(runtime, workspace) {',
   '\nfunction removeNamedWorkspace'
@@ -88,6 +111,7 @@ function applyHarness(runtime) {
     applyRestoredSplits: (_runtime, saved, ids) => calls.push(['applyRestoredSplits', saved, [...ids]]),
     setActiveTab: (id, opts) => calls.push(['setActiveTab', id, opts]),
     restorableUblockTool: () => false,
+    documentPolicy: require('../../src/main/document-policy'),
     filterRestoredSession,
     clampClosedSlot,
     groupRecord,

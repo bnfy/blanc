@@ -8,6 +8,24 @@ The notices that ship inside packaged Blanc builds are in
 [compliance/THIRD_PARTY_NOTICES.txt](compliance/THIRD_PARTY_NOTICES.txt); this file is the
 repository-level version of the same record.
 
+## Reader Mode — Mozilla Readability, DOMPurify, and Source Serif 4
+
+Mozilla Readability 0.6.0 is redistributed under Apache-2.0. DOMPurify 3.4.17
+is dual-licensed under MPL-2.0 or Apache-2.0; Blanc uses the Apache-2.0 option.
+The desktop runtime license records are generated in the packaged compliance
+notices. Full upstream texts also ship in `src/renderer/pages/reader-*-LICENSE.txt`
+and `reader-dompurify-MPL.txt`, including in the native iOS bundle.
+
+Blanc's executable copy of Readability applies two documented changes through
+`src/main/reader-readability-adaptation.js`: fully anchored article-type matching
+and an HTTP(S)/fragment link allowlist. The pinned upstream npm files are unchanged;
+desktop and iOS share the adapted code and retain the upstream copyright notices.
+
+Source Serif 4 Regular is copyright Adobe and its contributors, distributed
+under SIL OFL 1.1; its full text is `src/renderer/pages/source-serif-4-OFL.txt`.
+Reader executable inputs and the font bytes are recorded in `reader-pinned.json`.
+These third-party grants do not change Blanc's reserved identity assets.
+
 ## EasyList and EasyPrivacy filter lists — CC BY-SA 3.0 or later
 
 Copyright (c) The EasyList authors — <https://easylist.to/>
@@ -66,6 +84,8 @@ Copyright (c) 2024 1Password. Full licence text in
   stay variable).
   Roboto Flex declares no Reserved Font Name. Full license text:
   [src/renderer/pages/roboto-flex-OFL.txt](src/renderer/pages/roboto-flex-OFL.txt).
+
+Reader Mode also offers the already bundled Inter and JetBrains Mono files above.
 
 All five font files remain under the SIL Open Font License, Version 1.1; Blanc's
 MIT grant does not supersede those terms. The font files and their full licence texts

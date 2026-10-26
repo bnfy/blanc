@@ -5,6 +5,7 @@ import path from 'node:path';
 import { _electron } from 'playwright';
 import testHookCall from './support/test-hook-call.js';
 import poll from './support/poll.js';
+import { inMainTurn } from './support/main-turn.js';
 import workspace from '../../src/main/session-workspace.js';
 
 const { callTestHook } = testHookCall;
@@ -75,7 +76,7 @@ async function holdNextChrome(app) {
 
 if (process.platform === 'darwin') {
   await withRecovery([{ id: 'primary', profileId: 'profile_work', urls: ['https://example.test/work'], activeIndex: 0 }], async (app, page, profile) => {
-    const closedId = await app.evaluate(({ BrowserWindow }) => {
+    const closedId = await inMainTurn(app, ({ BrowserWindow }) => {
       const window = BrowserWindow.getAllWindows()[0];
       const id = window.id;
       window.close();
@@ -119,7 +120,7 @@ await withRecovery([
   await holdNextChrome(app); // Secondary is created first; primary was focused.
   await page.locator('#recoveryRestore').click();
   await waitForValue(() => app.evaluate(() => !!globalThis.releaseRecoveryTestChrome), Boolean, 'secondary chrome held');
-  await app.evaluate(() => globalThis.recoveryTestWindow.close());
+  await inMainTurn(app, () => globalThis.recoveryTestWindow.close());
   await ready(app);
   const rows = await callTestHook(app, 'windowRuntimes');
   const state = await callTestHook(app, 'state');
@@ -138,7 +139,7 @@ if (process.platform === 'darwin') {
     await holdNextChrome(app);
     await page.locator('#recoveryRestore').click();
     await waitForValue(() => app.evaluate(() => !!globalThis.releaseRecoveryTestChrome), Boolean, 'primary chrome held');
-    await app.evaluate(() => globalThis.recoveryTestWindow.close());
+    await inMainTurn(app, () => globalThis.recoveryTestWindow.close());
     await ready(app);
     const rows = await callTestHook(app, 'windowRuntimes');
     const primary = rows.find((r) => r.id === 'primary');

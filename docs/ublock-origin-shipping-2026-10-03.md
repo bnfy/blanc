@@ -719,3 +719,17 @@ on-time timeout still fails closed exactly as before; no request is sent
 undecided during grace. Under a coincident freeze a genuinely late answer can
 be accepted within that bound. The base deadlines are unchanged. Design:
 `docs/superpowers/specs/2026-10-06-ubo-deadline-grace-design.md`.
+
+## FSF reply (2026-10-21)
+
+On October 21, 2026 the FSF Licensing and Compliance Manager answered ticket
+#2769466 (and the follow-up availability request). The FSF made no
+determination: it said it cannot answer without giving legal advice, because
+what makes a work a derivative depends on the applicable copyright law. It
+pointed to its published GPL plugins FAQ, noted that releasing a program under
+the GPL is the easiest way to comply, and said it is not affiliated with the
+uBlock project, whose authors as copyright holders are best placed to answer.
+It gave no referral, no assessment and no fee quote, and the ticket is closed
+on that reply. No FSF approval or clearance exists or is claimed; the October 3
+release basis above is unchanged, and contacting the uBlock authors or outside
+counsel remains an owner decision.

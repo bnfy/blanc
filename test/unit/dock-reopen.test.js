@@ -294,6 +294,6 @@ test('main installs both handlers from the tested Dock-reopen lifecycle', () => 
   assert.match(main, /checkpointWorkspaceSession\(runtime, \{ excludeRuntime: runtime \}\)/);
   assert.match(main, /if \(effect === 'quit'\) \{[\s\S]*?checkpointWorkspaceSession\(runtime\);[\s\S]*?sessionHeldForQuit = true;/);
   assert.match(main, /closeEffect: dockReopenLifecycle\.closeSessionEffect\(\)/);
-  assert.match(main, /\.on\('close', bindWindowRuntime\(runtime, dockReopenLifecycle\.onWindowClose\)\)/);
+  assert.match(main, /\.on\('close', bindWindowRuntime\(runtime, event=>closeSharedSpaceWindow\(runtime,event,dockReopenLifecycle\.onWindowClose\)\)/);
   assert.match(main, /dockReopenLifecycle\.onChromeReady/);
 });

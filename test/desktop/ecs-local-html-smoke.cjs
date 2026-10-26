@@ -136,8 +136,8 @@ async function clickStaticLink(page, selector) {
 async function run(appPath, output) {
   const app = await fs.realpath(appPath);
   if (process.platform === 'darwin') execFileSync('codesign', ['--verify', '--deep', '--strict', app]);
-  const { full, executable, fuseExecutable, asar, launchEnv, profileEnv = () => ({}) } = candidatePaths(app);
-  const previewModule = extractFile(asar, full ? 'src/main/ecs-local-html.cjs' : 'ecs-local-html.cjs').toString();
+  const { full, production, executable, fuseExecutable, asar, launchEnv, profileEnv = () => ({}) } = candidatePaths(app);
+  const previewModule = extractFile(asar, production ? 'src/main/local-html-preview.js' : full ? 'src/main/ecs-local-html.cjs' : 'ecs-local-html.cjs').toString();
   assert.match(previewModule, /javascript:\s*false/);
   assert.match(previewModule, /script-src 'none'/);
   assert.ok(!previewModule.includes('sandbox allow-scripts'));
@@ -183,8 +183,11 @@ async function run(appPath, output) {
       for (let round = 0; round < 2; round++) {
         const port = 55821;
         const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env; void ignored;
-        const child = spawn(executable, [`--user-data-dir=${profile}`, `--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1'], {
-          env: { ...env, ...launchEnv, ...profileEnv(profile), BLANC_DRM_DIAGNOSTIC_PROFILE: profile, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1', BLANC_ECS_LOCAL_HTML: html }, stdio: ['ignore', 'pipe', 'pipe'],
+        if (production && process.platform !== 'darwin') throw Error('Production file-open is currently a macOS LaunchServices boundary; use ecs-production-smoke.mjs for web file-access checks');
+        const args = [`--user-data-dir=${profile}`, `--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1'];
+        const child = spawn(production ? '/usr/bin/open' : executable, production ? ['-n', '-W', '-a', app, html, '--args', ...args] : args, {
+          env: { ...env, ...launchEnv, ...profileEnv(profile), BLANC_DRM_DIAGNOSTIC_PROFILE: profile, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1', BLANC_ECS_LOCAL_HTML: html,
+            ...(production ? { BLANC_UPDATE_CHANNEL: 'ecs-qualification-disabled' } : {}) }, stdio: ['ignore', 'pipe', 'pipe'],
         });
         const exited = new Promise(resolve => child.once('exit', resolve));
         let logs = ''; child.stdout.on('data', b => { logs += b; }); child.stderr.on('data', b => { logs += b; });
@@ -219,7 +222,8 @@ async function run(appPath, output) {
           await clickStaticLink(page, '#network-link'); await delay(200);
           assert.equal((await inspectStatic(page)).url, original, 'network navigation denied');
           evidence.reports.at(-1).navigationDenied = true;
-          if (full) await fs.writeFile(path.join(profile, 'ecs-smoke-quit'), 'quit');
+          if (production) await page.send('Browser.close').catch(() => {});
+          else if (full) await fs.writeFile(path.join(profile, 'ecs-smoke-quit'), 'quit');
           for (const target of full ? [] : (await targets(port)).filter(t => t.type === 'page')) {
             const socket = target.id === localTarget.id ? page : await connect(target);
             if (socket !== page) sockets.push(socket);
@@ -228,7 +232,10 @@ async function run(appPath, output) {
           await Promise.race([exited, delay(10000).then(() => { throw Error('Candidate did not quit'); })]);
         } finally {
           if (child.exitCode === null) {
-            if (full) await fs.writeFile(path.join(profile, 'ecs-smoke-quit'), 'quit');
+            if (production) {
+              const target = (await targets(port).catch(() => [])).find(t => t.type === 'page');
+              if (target) { const client = await connect(target); await client.send('Browser.close').catch(() => {}); client.close(); }
+            } else if (full) await fs.writeFile(path.join(profile, 'ecs-smoke-quit'), 'quit');
             for (const target of await targets(port).catch(() => [])) {
               if (target.type !== 'page') continue;
               const socket = await connect(target).catch(() => null);

@@ -3,6 +3,67 @@
   "noPage": ["1.42"],
   "pages": [
     {
+      "release": "1.43",
+      "highlights": [
+        {
+          "id": "protected-video-playback",
+          "tile": "Protected video",
+          "title": "Watch protected video and music",
+          "body": "Blanc now plays video and music that sites protect with Widevine DRM, on Mac, Windows and Linux. Netflix and Spotify were tried on an Apple Silicon Mac; whether a particular site plays still depends on that site.",
+          "steps": [
+            "Keep browsing while Blanc downloads the Widevine component from Google in the background.",
+            "Open Settings, then Help, to see when Protected media is ready."
+          ],
+          "note": "On Linux, Blanc asks you to restart once the component is installed, and again after it updates.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/protected-media-v1.43.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Settings sheet open on Help over the Start Page. A Protected media card reads: The protected-media component is ready. Playback availability depends on the website."
+          }
+        },
+        {
+          "id": "glass-app-icons",
+          "tile": "Glass app icons",
+          "title": "Two new glass app icons",
+          "body": "Sunrise Spectrum and Sunrise Amber redraw the Sunrise in glass: a ring sun, rays and water lines inside a white outline. Spectrum is coral and red over royal blue; Amber is gold over bronze. Both turn dark in Dark mode.",
+          "steps": [
+            "Open Settings, then General.",
+            "Under App icon, choose Sunrise Spectrum or Sunrise Amber."
+          ],
+          "platforms": [
+            "mac"
+          ],
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/app-icons-v1.43.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Settings sheet open on General. The App icon row shows five icons, Sunrise, Sunrise Dark, Sunrise Gold, Sunrise Spectrum and Sunrise Amber, with Sunrise Spectrum selected."
+          }
+        },
+        {
+          "id": "neutral-surface-style",
+          "tile": "Neutral style",
+          "title": "A plainer look for Blanc’s own pages",
+          "body": "The new Neutral surface style swaps the cream and gold of the Start Page, Favorites, History, Downloads and Settings for plain ink and gray, in Light and Dark. Sunrise stays the default.",
+          "steps": [
+            "Open Settings, then General.",
+            "Set Surface style to Neutral."
+          ],
+          "note": "Wallpapers, app icons and the Sunrise mark don’t change.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/neutral-surface-v1.43.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "The Favorites sheet in the Neutral surface style over the Start Page: a white card on a light gray sheet listing MDN Web Docs, GitHub, Wikipedia, Hacker News, NASA and BBC News."
+          }
+        }
+      ]
+    },
+    {
       "release": "1.41",
       "highlights": [
         {

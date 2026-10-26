@@ -70,6 +70,9 @@ function sleepCandidates(tabList, options) {
     if (tab.asleep || tab.sleeping || tab.waking || tab.isLoading) return;
     if (tab.audible || tab.muted || tab.usedMedia || tab.capturing || tab.displayShareBlocking || tab.pinned) return;
     if (tab.adopted || tab.restorableCommit !== true || tab.deepScrolled) return;
+    // Waking would need a fresh view, which a page-opened tab can't have
+    // (document-policy.js). An inert tab shows only Blanc's page and may rest.
+    if (tab.inheritsDocumentPolicy === true && tab.inert !== true) return;
     if (permissionPendingTabIds.has(tab.id)) return;
     if ((popupChildCounts.get(tab.id) ?? 0) !== 0) return;
     // Keep opener families together while both sides still exist. A stale

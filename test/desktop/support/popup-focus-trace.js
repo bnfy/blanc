@@ -1,5 +1,7 @@
 'use strict';
 
+const { inMainTurn } = require('./main-turn');
+
 // Fixture-only, bounded native event history. Never records webpage URLs,
 // headers or bodies; managed tool names come from a fixed allowlist.
 async function install(electron) {
@@ -63,7 +65,7 @@ async function install(electron) {
 // Direct fixture/DevTools calls do not imply the foreground window state a
 // native shield click has. Keep real production blur dismissal enabled.
 async function focusFixtureWindow(electron) {
-  const target = await electron.evaluate(({ app, BrowserWindow }) => {
+  const target = await inMainTurn(electron, ({ app, BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows().sort((a, b) => a.id - b.id)
       .find(win => win.webContents.getURL() === 'blanc-chrome://index/');
     if (!win) throw new Error('Fixture chrome window unavailable');

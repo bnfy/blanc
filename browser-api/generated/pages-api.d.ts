@@ -97,6 +97,16 @@ export interface NewtabPagesAPI {
     onVisibility: (callback: (payload: unknown) => void) => void;
     /** Open tabs from other synced devices changed. IPC: event `pages:start:remote-tabs`. */
     onRemoteTabs: (callback: (payload: unknown) => void) => void;
+    /** Open a page another device sent here in a new ordinary tab, and hide it on this device. IPC: invoke `pages:start:open-sent`. */
+    openSent: (id: string) => Promise<unknown>;
+    /** Hide a page another device sent here without opening it. IPC: invoke `pages:start:dismiss-sent`. */
+    dismissSent: (id: string) => Promise<unknown>;
+    /** Pages other devices sent here changed. IPC: event `pages:start:sent-items`. */
+    onSentItems: (callback: (payload: unknown) => void) => void;
+    /** Development-only Shared Spaces pairing notice. IPC: invoke `pages:start:shared-question`. */
+    sharedQuestion: () => Promise<unknown>;
+    /** Development-only Shared Spaces pairing notice. IPC: invoke `pages:start:shared-question-answer`. */
+    sharedQuestionAnswer: (id: string, on: boolean) => Promise<unknown>;
   };
 }
 
@@ -137,6 +147,8 @@ export interface BookmarksPagesAPI {
     onChanged: (callback: () => void) => void;
   };
   bookmarks: {
+    /** Whether this host permits editing Favorites. IPC: invoke `pages:bookmarks:capabilities`. */
+    capabilities: () => Promise<unknown>;
     /** List Favorites (internal name: bookmarks). IPC: invoke `pages:bookmarks:list`. */
     list: () => Promise<unknown>;
     /** Drop a Favorite's cached favicon after it failed to load. IPC: invoke `pages:bookmarks:clear-favicon`. */
@@ -253,6 +265,10 @@ export interface SettingsPagesAPI {
     blockingOpen: (tool: unknown) => Promise<unknown>;
     /** Blocking provider status changed. IPC: event `pages:blocking:status`. */
     onBlockingStatus: (callback: (payload: unknown) => void) => void;
+    /** Read sanitized ECS protected-media readiness. IPC: invoke `pages:settings:drm-status`. */
+    drmStatus: () => Promise<unknown>;
+    /** Restart through the unsaved-work guard only when protected media requires it. IPC: invoke `pages:settings:drm-restart`. */
+    drmRestart: () => Promise<boolean>;
     /** Check for an app update now. IPC: invoke `pages:settings:check-for-updates`. */
     checkForUpdates: () => Promise<unknown>;
     /** Appearance changed outside the page (for example /theme). IPC: event `pages:settings:appearance`. */
@@ -297,6 +313,16 @@ export interface SettingsPagesAPI {
     trustReceipt: () => Promise<unknown>;
     /** Open a release, verification, SBOM or provenance link for this version. IPC: invoke `pages:settings:open-trust-link`. */
     openTrustLink: (kind: unknown) => Promise<unknown>;
+    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-preview`. */
+    sharedSpacesPreview: () => Promise<unknown>;
+    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-apply`. */
+    sharedSpacesApply: (payload: unknown) => Promise<unknown>;
+    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-status`. */
+    sharedSpacesStatus: () => Promise<unknown>;
+    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-open`. */
+    sharedSpacesOpen: (id: string) => Promise<unknown>;
+    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-acknowledge`. */
+    sharedSpacesAcknowledge: (id: string) => Promise<unknown>;
   };
   profiles: {
     /** Local profiles. IPC: invoke `pages:profiles:list`. */

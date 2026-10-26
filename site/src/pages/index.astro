@@ -116,14 +116,14 @@ const comparison = [
   ["Phone and tablet apps", "no", "Desktop only", "yes", ""],
   ["Chrome Web Store extensions", "no", "", "yes", "On desktop"],
   ["Built-in password manager", "no", "1Password fill", "yes", "Google Password Manager"],
-  ["Plays protected streaming video", "no", "", "yes", ""],
+  ["Plays protected streaming video", "yes", "Since Blanc 1.43; on Windows, x64 PCs only", "yes", ""],
   ["Free and open source", "yes", "MIT; name and logo reserved", "part", "Free; built on the open-source Chromium project, under Google’s terms"],
 ];
 const markLabel = { yes: "Yes", no: "No", part: "Partly" };
 const faqs = [
   ["Does Blanc run on Windows and Linux?", "Yes. Blanc runs on macOS 13 or later (Apple Silicon or Intel), Windows 10 or later (64-bit) and 64-bit Linux as an AppImage."],
   ["Will my Chrome extensions work?", "Blanc doesn’t install extensions from the Chrome Web Store. Ad and tracker blocking is built in, and on supported builds you can choose the full uBlock Origin instead."],
-  ["Will my websites work?", "Blanc runs on Chromium, the open-source engine Chrome is built on. Protected streaming video, such as Netflix, doesn’t play in Blanc."],
+  ["Will my websites work?", "Blanc runs on Chromium, the open-source engine Chrome is built on. Since Blanc 1.43 it can also play Widevine-protected streaming video and music; on Windows that needs an x64 PC."],
   ["Is Blanc really free?", "Yes. Every feature, including Blanc Spaces, is free. Blanc Patron is optional support at US$30 a year or US$4 a month, plus tax, and unlocks nothing."],
   ["What does Blanc send?", "Nothing optional until you save your setup choices. Usage measurement (no addresses, searches or page contents) and search suggestions are preselected; turn either off before saving or later in Settings."],
   ["Can I sync with my phone?", "No. Blanc is a desktop browser. Optional sync keeps Favorites, settings and open tabs in step across your computers, end-to-end encrypted with a passphrase only you know. History and passwords never sync."],
@@ -184,6 +184,10 @@ const faqs = [
               class="more-link"
               href="#switch">See how to switch <span aria-hidden="true">›</span></a>
           </div>
+          <aside class="home-measurement" aria-label="Optional website measurement">
+            <p>Optional Google analytics and ad measurement stay off until you choose Allow. You can download Blanc without consenting.</p>
+            <button type="button" data-consent-open aria-controls="consent">Measurement choices</button>
+          </aside>
           <p class="handheld-note" data-handheld-note hidden>
             Blanc is a desktop browser for macOS, Windows and Linux.
             <span id="hero-share-status" role="status" aria-live="polite"></span>

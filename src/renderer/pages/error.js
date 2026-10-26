@@ -5,6 +5,12 @@
   const code = params.get('code') || '';
   const desc = params.get('desc') || '';
   const certificateFailure = params.get('kind') === 'certificate';
+  // A page-opened tab Blanc can't rebuild with its opener's restrictions
+  // (main/document-policy.js). It offers no way to load the page here.
+  const inert = params.get('kind') === 'inert';
+  // A local HTML tab kept as a record on a build that never loads local files
+  // (src/main/inert-local-file.js): explain, and offer no retry.
+  const localFileRecord = !certificateFailure && !inert && code === 'local-file';
   if (code === '-20') document.getElementById('blockingSettingsLink').hidden = false;
 
   document.getElementById('errorUrl').textContent = url;
@@ -12,11 +18,34 @@
   // their only writer (the page's static text is applied after it runs).
   document.getElementById('errorTitle').textContent = certificateFailure
     ? t('error.certificate.title')
-    : t('error.title');
+    : localFileRecord ? t('error.localFile.title') : t('error.title');
   document.getElementById('safetyLink').textContent = certificateFailure
     ? t('error.certificate.back')
     : t('error.newTab');
-  if (certificateFailure) {
+  if (inert) {
+    document.getElementById('errorTitle').textContent = t('error.inert.title');
+    document.getElementById('errorDetail').textContent = t('error.inert.detail');
+    const pageTitle = params.get('title');
+    if (pageTitle) document.title = pageTitle;
+    const copy = document.createElement('button');
+    copy.type = 'button';
+    copy.id = 'copyLink';
+    copy.className = 'advanced-toggle';
+    copy.textContent = t('error.inert.copy');
+    copy.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(url);
+        copy.textContent = t('error.inert.copied');
+      } catch {
+        // Clipboard refused: leave the address selected to copy by hand.
+        const range = document.createRange();
+        range.selectNodeContents(document.getElementById('errorUrl'));
+        getSelection().removeAllRanges();
+        getSelection().addRange(range);
+      }
+    });
+    document.getElementById('retryLink').replaceWith(copy);
+  } else if (certificateFailure) {
     document.getElementById('errorDetail').textContent =
       params.get('certMessage') || t('error.certificate.unproven');
     const details = document.getElementById('certificateDetails');
@@ -78,6 +107,8 @@
         if (event.key === 'Escape' && !panel.hidden) { setOpen(false); toggle.focus(); }
       });
     }
+  } else if (localFileRecord) {
+    document.getElementById('errorDetail').textContent = t('error.localFile.detail');
   } else {
     // Network failures carry a numeric code; crashes carry a reason string.
     const NON_NUMERIC = /[^-\d]/;
@@ -92,7 +123,9 @@
 
   // Only re-link to schemes a failed navigation can legitimately have —
   // never let a crafted error URL smuggle e.g. javascript: into the href.
-  if (/^(https?|file):\/\//i.test(url)) {
+  if (localFileRecord) {
+    document.getElementById('retryLink').hidden = true;
+  } else if (!inert && /^(https?|file):\/\//i.test(url)) {
     document.getElementById('retryLink').href = url;
   }
 })();

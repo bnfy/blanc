@@ -17,6 +17,7 @@ function storage() {
     get: async (key, options) => { const value = records.get(key) ?? null; return value && options?.type === 'json' ? JSON.parse(value) : value; },
     put: async (key, value) => { writes.push(key); records.set(key, value); },
     delete: async (key) => records.delete(key),
+    list: async ({ prefix = '' } = {}) => ({ keys: [...records.keys()].filter(k => k.startsWith(prefix)).map(name => ({ name })), list_complete: true }),
   } };
 }
 async function send(env, body, headers = {}) {
@@ -92,7 +93,7 @@ test('v1 encrypted records, version responses, conflicts and locator-only deleti
   assert.equal(decrypt(secret, record.blob), '{"legacy":"record"}');
   assert.equal((await send(env, JSON.stringify({ blob, ifVersion: null }))).status, 409);
   assert.equal((await send(env, JSON.stringify({ blob, ifVersion: version }))).status, 200);
-  for (const store of ['settings', 'session', 'icons']) env.records.set(`blob:${account}:${store}`, '{}');
+  for (const store of ['settings', 'session', 'icons', 'sends']) env.records.set(`blob:${account}:${store}`, '{}');
   assert.equal((await worker.fetch(new Request(`https://sync.example.test/v1/blob/${account}`, { method: 'DELETE' }), env)).status, 204);
   assert.equal([...env.records.keys()].some((key) => key.startsWith('blob:')), false, 'R3 remains: the locator alone authorizes deletion');
 });
@@ -112,4 +113,19 @@ test('R5 residual concurrency: same-version writers both succeed and a pending w
   finish();
   assert.equal((await pending).status, 200);
   assert.equal(env.records.has(key), true, 'v1 has no atomic deletion fence');
+});
+
+test('sends is a known store and other names stay unknown', async () => {
+  const worker = await workerPromise;
+  const env = storage();
+  const sendsUrl = `https://sync.example.test/v1/blob/${account}/sends`;
+  const put = await worker.fetch(new Request(sendsUrl, { method: 'PUT', body: JSON.stringify({ blob: { ct: 'sent' }, ifVersion: null }), duplex: 'half' }), env);
+  assert.equal(put.status, 200);
+  const read = await worker.fetch(new Request(sendsUrl), env);
+  assert.equal(read.status, 200);
+  assert.deepEqual((await read.json()).blob, { ct: 'sent' });
+  assert.equal(env.records.has(`blob:${account}:sends`), true);
+  const unknown = await worker.fetch(new Request(`https://sync.example.test/v1/blob/${account}/history`), env);
+  assert.equal(unknown.status, 404);
+  assert.equal(await unknown.text(), 'unknown store');
 });
