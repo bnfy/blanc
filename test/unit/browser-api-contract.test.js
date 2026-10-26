@@ -305,7 +305,7 @@ test('a new workspace error code is reported', () => {
 
 test('a new protection reason is reported', () => {
   const problems = api.checkWorkspaceCodes(api.loadContract(),
-    sendSources("return { blocked: true, reason: 'active-page' };", "return { blocked: true, reason: 'signing-in' };"));
+    sendSources("return { blocked: true, reason: 'active-page', pages };", "return { blocked: true, reason: 'signing-in', pages };"));
   assert.ok(problems.some((p) => p.includes("reason 'signing-in'")), problems.join('\n'));
 });
 
