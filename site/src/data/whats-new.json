@@ -18,13 +18,11 @@
           ],
           "note": "Some pages aren’t articles. On those, Blanc says so and leaves the page as it was.",
           "media": {
-            "kind": "todo",
-            "todo": "Capture this from the merged 1.44.0 build, and get the owner’s sign-off on it and on this text.",
-            "candidates": [
-              "/feature-captures/floating-island-v1.40.0.webp",
-              "/feature-captures/auto-hide-island-v1.39.0.webp",
-              "/feature-captures/island-hover-v1.38.0.webp"
-            ]
+            "kind": "image",
+            "src": "/feature-captures/reader-mode-v1.44.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "An article titled “Why the tide comes in twice a day” in Blanc’s Reader Mode, in the Sepia theme. The Appearance panel is open with Theme, Font, Text size and Reading width."
           }
         },
         {
@@ -39,11 +37,11 @@
           "note": "These appear once you have a space. Private tabs don’t offer them.",
           "learnMore": "/features/workspaces",
           "media": {
-            "kind": "todo",
-            "todo": "Capture this from the merged 1.44.0 build, and get the owner’s sign-off on it and on this text.",
-            "candidates": [
-              "/feature-captures/tab-group-colors-v1.38.0.webp"
-            ]
+            "kind": "image",
+            "src": "/feature-captures/move-to-space-v1.44.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s tab panel listing five tabs, with a tab’s menu open on Move to Space. The submenu lists the spaces Work, Home and Lisbon trip, and New Space…"
           }
         },
         {
@@ -57,9 +55,11 @@
           ],
           "learnMore": "/features/vertical-tabs",
           "media": {
-            "kind": "todo",
-            "todo": "Capture this from the merged 1.44.0 build, and get the owner’s sign-off on it and on this text.",
-            "candidates": []
+            "kind": "image",
+            "src": "/feature-captures/select-tabs-v1.44.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Four tabs selected in Blanc’s tab panel, with the menu for the selection open: 4 tabs, Move to Space, Move Tabs to New Window, Move to Group, Pin, Mute, Reload, Quiet, Copy Links and Close Tabs."
           }
         },
         {
@@ -74,14 +74,11 @@
           "note": "Sending needs Profile Sync on both devices. Private tabs and internal pages can’t be sent.",
           "learnMore": "/features/sync",
           "media": {
-            "kind": "todo",
-            "todo": "Capture this from the merged 1.44.0 build, and get the owner’s sign-off on it and on this text.",
-            "candidates": [
-              "/feature-captures/profile-window-v1.36.0.webp",
-              "/feature-captures/profiles-v1.36.0.webp",
-              "/feature-captures/profile-window-v1.30.1.webp",
-              "/feature-captures/profiles-v1.30.1.webp"
-            ]
+            "kind": "image",
+            "src": "/feature-captures/send-to-device-v1.44.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "The Ledger Start Page with Favorites on the left and Sent to this device on the right: Weeknight lentil soup from iPhone and Lisbon walking routes from Work laptop."
           }
         }
       ]
