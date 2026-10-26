@@ -273,6 +273,22 @@
     <string name="ws_editor_saving">En cours…</string>
     <string name="ws_decision_label">Choix avant de changer de Space</string>
     <string name="ws_decision_protected">Cette fenêtre contient des pages qui doivent rester ouvertes. Ouvrez le Space dans une autre fenêtre, ou terminez l’opération en cours sur la page et réessayez.</string>
+    <string name="ws_decision_blocked_loading">« %1$s » est encore en cours de chargement.</string>
+    <string name="ws_decision_blocked_opener">« %1$s » est encore reliée à la page qui l’a ouverte, comme pendant une connexion.</string>
+    <string name="ws_decision_blocked_capture">« %1$s » utilise votre caméra, votre micro ou votre écran.</string>
+    <string name="ws_decision_blocked_popup">« %1$s » a une fenêtre pop-up ouverte.</string>
+    <plurals name="ws_decision_blocked_hint">
+        <item quantity="one">Cette page doit rester ouverte. Terminez ce qu’elle fait ou fermez-la, ou ouvrez le Space dans une autre fenêtre.</item>
+        <item quantity="many">Ces pages doivent rester ouvertes. Terminez ce qu’elles font ou fermez-les, ou ouvrez le Space dans une autre fenêtre.</item>
+        <item quantity="other">Ces pages doivent rester ouvertes. Terminez ce qu’elles font ou fermez-les, ou ouvrez le Space dans une autre fenêtre.</item>
+    </plurals>
+    <plurals name="ws_decision_blocked_more">
+        <item quantity="one">et %1$d autre page</item>
+        <item quantity="many">et %1$d autres pages</item>
+        <item quantity="other">et %1$d autres pages</item>
+    </plurals>
+    <string name="ws_decision_show_tab">Afficher</string>
+    <string name="ws_decision_show_tab_label">Afficher %1$s</string>
     <plurals name="ws_decision_close_private">
         <item quantity="one">%1$d onglet privé va se fermer. Les brouillons de page ne sont pas enregistrés sur le disque.</item>
         <item quantity="many">%1$d onglets privés vont se fermer. Les brouillons de page ne sont pas enregistrés sur le disque.</item>

@@ -243,6 +243,7 @@ const { runSpaceMove, appendTabToCapture, emptiedCapture } = require('./space-mo
 const documentPolicy = require('./document-policy');
 const { pinnedHomeFor, applyPinnedHomes } = require('./pinned-home');
 const { normalizeTabName, displayTitle, resolveTabRename } = require('./tab-name');
+const { blockingPages } = require('./space-switch-guard');
 const {
   PRIMARY_WINDOW_ID,
   loadWorkspace,
@@ -8304,12 +8305,21 @@ function workspaceOwner(runtime, id) {
   return windowRuntimes.all().find((r) => r.profileId === runtime.profileId && r.workspaceId === id) ?? null;
 }
 
+/** A tab with no title is named by its site in the switch refusal. */
+function hostLabel(url) {
+  try { return new URL(url).host || String(url ?? ''); } catch { return String(url ?? ''); }
+}
+
 function workspaceProtection(runtime) {
   if (runtime.closing || runtime.workspaceTransition || runtime.permissionPrompts.size || runtime.authenticationPrompts) return { blocked: true, reason: 'permission-or-transition' };
   const members = runtime.tabOrder.map((id) => tabs.get(id)).filter(Boolean);
-  if (members.some((t) => t.capturing || t.sleeping || t.waking || t.isLoading || t.openerTabId || popupChildCounts.get(t.id))) {
-    return { blocked: true, reason: 'active-page' };
-  }
+  const pages = blockingPages(members, {
+    popupCount: (id) => popupChildCounts.get(id) ?? 0,
+    mainFrameLoading: (tab) => liveContents(tab)?.isLoadingMainFrame() === true,
+    openerConnected: (tab) => !!liveContents(tab) && !!liveContents(tabs.get(tab.openerTabId)),
+    label: (tab) => displayTitle(tab) || hostLabel(tab.url),
+  });
+  if (pages.length) return { blocked: true, reason: 'active-page', pages };
   return scratchGuardResult(runtime) ?? { tabCount: 0, privateCount: 0 };
 }
 

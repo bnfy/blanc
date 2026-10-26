@@ -1043,6 +1043,39 @@
     "message": "This window has pages that need to stay open. Open the space in another window, or finish the active page operation and try again.",
     "note": "Shown before switching space when a page in this window is busy (for example uploading or capturing)."
   },
+  "ws.decision.blocked.loading": {
+    "message": "“{title}” is still loading.",
+    "note": "Switch prompt: names a tab that keeps the window from switching space because its page is still loading; {title} is the tab’s name."
+  },
+  "ws.decision.blocked.opener": {
+    "message": "“{title}” is still connected to the page that opened it, as during a sign-in.",
+    "note": "Switch prompt: names a tab opened by another open page (for example a sign-in), which keeps the window from switching space; {title} is the tab’s name."
+  },
+  "ws.decision.blocked.capture": {
+    "message": "“{title}” is using your camera, microphone or screen.",
+    "note": "Switch prompt: names a tab that keeps the window from switching space because it is capturing; {title} is the tab’s name."
+  },
+  "ws.decision.blocked.popup": {
+    "message": "“{title}” has a pop-up window open.",
+    "note": "Switch prompt: names a tab that keeps the window from switching space because a pop-up it opened is still open; {title} is the tab’s name."
+  },
+  "ws.decision.blockedHint": {
+    "message": "{count, plural, one {This page needs to stay open. Finish or close it, or open the space in another window.} other {These pages need to stay open. Finish or close them, or open the space in another window.}}",
+    "note": "Switch prompt shown above the list of tabs that keep the window from switching space."
+  },
+  "ws.decision.blockedMore": {
+    "message": "{count, plural, one {and # more page} other {and # more pages}}",
+    "note": "Switch prompt: counts the blocking tabs not listed by name."
+  },
+  "ws.decision.showTab": {
+    "message": "Show tab",
+    "note": "Switch prompt: button that goes to a tab keeping the window from switching space.",
+    "maxLength": 16
+  },
+  "ws.decision.showTabLabel": {
+    "message": "Show {title}",
+    "note": "Accessible name of the Show tab button; {title} is the tab’s name."
+  },
   "ws.decision.closePrivate": {
     "message": "{count, plural, one {# private tab will close. Page drafts are not saved to disk.} other {# private tabs will close. Page drafts are not saved to disk.}}",
     "note": "Shown before switching space when every tab that would close is private."

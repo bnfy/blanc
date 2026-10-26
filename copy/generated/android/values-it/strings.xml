@@ -273,6 +273,22 @@
     <string name="ws_editor_saving">Salvataggio…</string>
     <string name="ws_decision_label">Scelta al cambio di Space</string>
     <string name="ws_decision_protected">Questa finestra ha pagine che devono restare aperte. Apri lo Space in un’altra finestra oppure termina l’operazione in corso nella pagina e riprova.</string>
+    <string name="ws_decision_blocked_loading">«%1$s» è ancora in caricamento.</string>
+    <string name="ws_decision_blocked_opener">«%1$s» è ancora collegata alla pagina che l’ha aperta, come durante un accesso.</string>
+    <string name="ws_decision_blocked_capture">«%1$s» sta usando la fotocamera, il microfono o lo schermo.</string>
+    <string name="ws_decision_blocked_popup">«%1$s» ha una finestra pop-up aperta.</string>
+    <plurals name="ws_decision_blocked_hint">
+        <item quantity="one">Questa pagina deve restare aperta. Termina ciò che sta facendo o chiudila, oppure apri lo Space in un’altra finestra.</item>
+        <item quantity="many">Queste pagine devono restare aperte. Termina ciò che stanno facendo o chiudile, oppure apri lo Space in un’altra finestra.</item>
+        <item quantity="other">Queste pagine devono restare aperte. Termina ciò che stanno facendo o chiudile, oppure apri lo Space in un’altra finestra.</item>
+    </plurals>
+    <plurals name="ws_decision_blocked_more">
+        <item quantity="one">e %1$d altra pagina</item>
+        <item quantity="many">e altre %1$d pagine</item>
+        <item quantity="other">e altre %1$d pagine</item>
+    </plurals>
+    <string name="ws_decision_show_tab">Mostra scheda</string>
+    <string name="ws_decision_show_tab_label">Mostra %1$s</string>
     <plurals name="ws_decision_close_private">
         <item quantity="one">Verrà chiusa %1$d scheda privata. Le bozze della pagina non vengono salvate su disco.</item>
         <item quantity="many">Verranno chiuse %1$d schede private. Le bozze delle pagine non vengono salvate su disco.</item>

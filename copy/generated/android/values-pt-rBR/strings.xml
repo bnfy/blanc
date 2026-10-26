@@ -273,6 +273,22 @@
     <string name="ws_editor_saving">Salvando…</string>
     <string name="ws_decision_label">Decisão ao trocar de Space</string>
     <string name="ws_decision_protected">Esta janela tem páginas que precisam continuar abertas. Abra o Space em outra janela, ou conclua a operação em andamento na página e tente de novo.</string>
+    <string name="ws_decision_blocked_loading">“%1$s” ainda está carregando.</string>
+    <string name="ws_decision_blocked_opener">“%1$s” ainda está conectada à página que a abriu, como durante um login.</string>
+    <string name="ws_decision_blocked_capture">“%1$s” está usando sua câmera, seu microfone ou sua tela.</string>
+    <string name="ws_decision_blocked_popup">“%1$s” tem uma janela pop-up aberta.</string>
+    <plurals name="ws_decision_blocked_hint">
+        <item quantity="one">Esta página precisa continuar aberta. Conclua o que ela está fazendo ou feche-a, ou abra o Space em outra janela.</item>
+        <item quantity="many">Estas páginas precisam continuar abertas. Conclua o que elas estão fazendo ou feche-as, ou abra o Space em outra janela.</item>
+        <item quantity="other">Estas páginas precisam continuar abertas. Conclua o que elas estão fazendo ou feche-as, ou abra o Space em outra janela.</item>
+    </plurals>
+    <plurals name="ws_decision_blocked_more">
+        <item quantity="one">e mais %1$d página</item>
+        <item quantity="many">e mais %1$d páginas</item>
+        <item quantity="other">e mais %1$d páginas</item>
+    </plurals>
+    <string name="ws_decision_show_tab">Mostrar aba</string>
+    <string name="ws_decision_show_tab_label">Mostrar %1$s</string>
     <plurals name="ws_decision_close_private">
         <item quantity="one">%1$d aba privada será fechada. Rascunhos da página não são salvos no disco.</item>
         <item quantity="many">%1$d abas privadas serão fechadas. Rascunhos das páginas não são salvos no disco.</item>
