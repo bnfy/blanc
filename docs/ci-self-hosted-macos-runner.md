@@ -35,24 +35,25 @@ One repository variable, `MAC_RUNNER_LABELS`, switches it on:
 
 Each job then starts from a clean macOS image and leaves nothing behind for the next one. That matters because pull request code runs here.
 
-1. **Install Tart** (Cirrus Labs' macOS virtualization for Apple Silicon): `brew install cirruslabs/cli/tart`. *Check Tart's current licence before relying on it. It's source-available with a free tier for small installations.*
-2. **Make a base image** from one of Cirrus Labs' public macOS images, for example `tart clone ghcr.io/cirruslabs/macos-sequoia-base:latest blanc-ci-base`. *Check the current image names on their registry; use the macOS version matching `macos-15`.* Then boot it once (`tart run blanc-ci-base`) and inside it:
-   - make sure the user logs in automatically to a desktop session. Electron tests need a real GUI session;
-   - install Node 22 and Git. `actions/setup-node` also installs Node per job, but Git must be there;
-   - download the GitHub Actions runner into `~/actions-runner`, from Settings → Actions → Runners → *New self-hosted runner* → macOS ARM64. Don't configure it yet;
-   - shut the VM down.
-3. **The job loop on the host:** a small script, run as a LaunchAgent so it restarts, repeats:
-   1. `tart clone blanc-ci-base ci-$N` to get a fresh copy;
-   2. get a one-time registration from the GitHub API, either a just-in-time runner config (`POST /repos/bnfy/blanc/actions/runners/generate-jitconfig` with `labels` and `runner_group_id`) or a registration token (`POST /repos/bnfy/blanc/actions/runners/registration-token`). That needs a fine-grained token with *Administration: read and write* on `bnfy/blanc` only, kept on the host, never in the VM image;
-   3. boot the clone, then inside it configure the runner as **ephemeral** with the labels below (`./config.sh --url https://github.com/bnfy/blanc --token … --labels blanc-ci --ephemeral --unattended`, or `./run.sh --jitconfig …`) and start it. It takes exactly one job and exits;
-   4. when the VM's runner exits, `tart stop` and `tart delete ci-$N`.
+`scripts/ci-mac-vm-runners.sh install` sets this up on the CI Mac. Run it as the account the VMs should run under, with `gh` signed in as a repository admin. It needs no admin rights on the Mac, and no Homebrew.
 
-   Run two loops to use two VMs at once. Apple's macOS licence allows two macOS virtual machines per Mac, and Tart enforces that, so two VMs is the ceiling per machine.
-4. **Labels:** self-hosted runners get `self-hosted`, `macOS` and `ARM64` automatically. Add `blanc-ci` so nothing else matches by accident.
+1. **Tart.** The script downloads Tart (Cirrus Labs' Apple Silicon virtualization, licensed FSL-1.1-ALv2 since 2.33, which allows this use) into `~/blanc-ci-vms`.
+2. **The golden image.** It clones `ghcr.io/cirruslabs/macos-sequoia-base:latest`, matching `macos-15`; that's tens of GB the first time. The base image logs `admin` in automatically, gives it passwordless sudo, and ships the Command Line Tools and Homebrew; the script checks the first two. Inside it, the script installs the latest GitHub Actions runner and a LaunchAgent in admin's GUI session (Electron tests need one). The result is saved as `blanc-ci-golden`. It sizes each VM from the Mac: two VMs when the Mac has 24 GB of memory or more, otherwise one.
+3. **The job loop.** A LaunchAgent on the host (`dev.blanc.ci-vms`) runs one loop per VM slot:
+   1. ask GitHub for a just-in-time runner config (`POST /repos/bnfy/blanc/actions/runners/generate-jitconfig`), good for one job, with the labels below;
+   2. write it into the slot's folder and boot a fresh clone of the golden image with that folder shared **read-only**;
+   3. in the VM, the LaunchAgent runs the runner with that config. It takes exactly one job, then the VM powers itself off;
+   4. delete the clone and start again. A VM still up after 6 hours (a hung job, or an idle runner) is replaced.
+
+   The host's GitHub sign-in never enters a VM; each VM only sees its own single-use config. Apple's macOS licence allows two macOS VMs per Mac, and Virtualization.framework enforces that, so two VMs is the ceiling per machine.
+4. **Labels:** `self-hosted`, `macOS`, `ARM64` and `blanc-ci`, the same as the direct install, so `MAC_RUNNER_LABELS` doesn't change.
+5. **Switching over.** Once a VM runner is online, the script retires a direct-install runner left by `scripts/ci-mac-runner-setup.sh`, waiting for it to finish any job it's running, and sets `MAC_RUNNER_LABELS` if it isn't set. If GitHub won't unregister it yet, `retire-direct` finishes the job later.
+
+Day to day: `status` shows the loop, the VMs and the runners GitHub sees. `rebuild-image` refreshes the image with a newer macOS image or runner. `stop` and `start` pause the loop; jobs wait meanwhile. `uninstall` deletes the variable first, then the loop, the VMs and their runners. Logs are in `~/blanc-ci-vms`.
 
 ## Simpler but weaker: the runner directly on the Mac
 
-Register the runner on a dedicated non-admin user account (`./config.sh --url https://github.com/bnfy/blanc --token … --labels blanc-ci`, then `./svc.sh install && ./svc.sh start`). It's quicker to set up, but jobs share one machine and can leave state behind for the next job. That's acceptable only because forks are excluded, and only on a machine with nothing else on it.
+`scripts/ci-mac-runner-setup.sh` registers the runner on a dedicated non-admin user account and starts it as a LaunchAgent. It's quicker to set up, but jobs share one machine and can leave state behind for the next job. That's acceptable only because forks are excluded, and only on a machine with nothing else on it.
 
 ## Switching it on
 

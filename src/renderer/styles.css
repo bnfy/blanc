@@ -4046,6 +4046,11 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 .ws-decision-title { margin: 0 0 3px; font: 600 13.5px/1.25 var(--font-text); color: var(--text); }
 .ws-decision .ws-switcher-confirm-msg { margin: 0; color: var(--text-dim); font: 12.5px/1.45 var(--font-text); overflow-wrap: anywhere; }
 .ws-decision-actions { display: flex; flex-direction: column; gap: 6px; }
+.ws-blocking { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.ws-blocking-row { display: flex; align-items: center; gap: 10px; padding: 7px 7px 7px 10px; border-radius: 11px; background: var(--surface); }
+.ws-blocking-text { flex: 1; min-width: 0; color: var(--text); font: 12.5px/1.4 var(--font-text); overflow-wrap: anywhere; }
+.ws-blocking-row .ws-pill { flex: none; height: 26px; padding: 0 10px; background: var(--surface-raised); }
+.ws-blocking-more { padding: 0 10px; color: var(--text-dim); font: 12px/1.4 var(--font-text); }
 .ws-decision-actions .ws-pill { width: 100%; height: 34px; border-radius: 11px; }
 /* Recently Deleted: each space as it was (its tile and name, in full in the
    name's tooltip), when it went, Restore, and a trash button for the

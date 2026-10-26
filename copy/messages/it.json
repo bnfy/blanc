@@ -1014,6 +1014,38 @@
     "message": "Questa finestra ha pagine che devono restare aperte. Apri lo Space in un’altra finestra oppure termina l’operazione in corso nella pagina e riprova.",
     "source": "sha256:1cf3c1878235dc614fa0bc52fde05df78c3aa3aa9a5103872758a6339907f81f"
   },
+  "ws.decision.blocked.loading": {
+    "message": "«{title}» è ancora in caricamento.",
+    "source": "sha256:6dc8e622ed9031c808be4544b2426dbba89fe25afcaf8941a841ea3a5c78b0ad"
+  },
+  "ws.decision.blocked.opener": {
+    "message": "«{title}» è ancora collegata alla pagina che l’ha aperta, come durante un accesso.",
+    "source": "sha256:37fb414ceb6199453cb2729789df83a3ffc82394cb315621be991101a7382457"
+  },
+  "ws.decision.blocked.capture": {
+    "message": "«{title}» sta usando la fotocamera, il microfono o lo schermo.",
+    "source": "sha256:748bb29e4ccca5b33ee0ebf799fb110ca6e1b5f9e02fcb49375bd2bde5c4aabf"
+  },
+  "ws.decision.blocked.popup": {
+    "message": "«{title}» ha una finestra pop-up aperta.",
+    "source": "sha256:4197dac905641253eba747220cfb56b2420bd81304324497c333f826085c5d55"
+  },
+  "ws.decision.blockedHint": {
+    "message": "{count, plural, one {Questa pagina deve restare aperta. Termina ciò che sta facendo o chiudila, oppure apri lo Space in un’altra finestra.} many {Queste pagine devono restare aperte. Termina ciò che stanno facendo o chiudile, oppure apri lo Space in un’altra finestra.} other {Queste pagine devono restare aperte. Termina ciò che stanno facendo o chiudile, oppure apri lo Space in un’altra finestra.}}",
+    "source": "sha256:fc92f8e4e1049e26ac4bde96d9ee8169abfde0d036f08dfb803bdbd29110643b"
+  },
+  "ws.decision.blockedMore": {
+    "message": "{count, plural, one {e # altra pagina} many {e altre # pagine} other {e altre # pagine}}",
+    "source": "sha256:9dc36a79388ce41717cd7a9bc72268a29215cb07356aa89af804295e2861631a"
+  },
+  "ws.decision.showTab": {
+    "message": "Mostra scheda",
+    "source": "sha256:89ed6ce468d90f5fb8f5ef509c5250b6a57cb164fcb490af0a4091ed5551f691"
+  },
+  "ws.decision.showTabLabel": {
+    "message": "Mostra {title}",
+    "source": "sha256:7def82161f8ac0d7f81f454c1ab0767f7c4bee9d8f462db0dda6fdd521112943"
+  },
   "ws.decision.closePrivate": {
     "message": "{count, plural, one {Verrà chiusa # scheda privata. Le bozze della pagina non vengono salvate su disco.} many {Verranno chiuse # schede private. Le bozze delle pagine non vengono salvate su disco.} other {Verranno chiuse # schede private. Le bozze delle pagine non vengono salvate su disco.}}",
     "source": "sha256:685e4c4d3c2abe14a4d58f9333744d51d4e7cb0f2ede5a327d197d08e7627031"

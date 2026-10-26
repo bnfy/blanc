@@ -273,6 +273,22 @@
     <string name="ws_editor_saving">Guardando…</string>
     <string name="ws_decision_label">Decisión al cambiar de Space</string>
     <string name="ws_decision_protected">Esta ventana tiene páginas que deben seguir abiertas. Abre el Space en otra ventana o termina la operación en curso de la página e inténtalo de nuevo.</string>
+    <string name="ws_decision_blocked_loading">«%1$s» todavía está cargando.</string>
+    <string name="ws_decision_blocked_opener">«%1$s» sigue conectada a la página que la abrió, como durante un inicio de sesión.</string>
+    <string name="ws_decision_blocked_capture">«%1$s» está usando tu cámara, tu micrófono o tu pantalla.</string>
+    <string name="ws_decision_blocked_popup">«%1$s» tiene una ventana emergente abierta.</string>
+    <plurals name="ws_decision_blocked_hint">
+        <item quantity="one">Esta página debe seguir abierta. Termina lo que está haciendo o ciérrala, o abre el Space en otra ventana.</item>
+        <item quantity="many">Estas páginas deben seguir abiertas. Termina lo que están haciendo o ciérralas, o abre el Space en otra ventana.</item>
+        <item quantity="other">Estas páginas deben seguir abiertas. Termina lo que están haciendo o ciérralas, o abre el Space en otra ventana.</item>
+    </plurals>
+    <plurals name="ws_decision_blocked_more">
+        <item quantity="one">y %1$d página más</item>
+        <item quantity="many">y %1$d páginas más</item>
+        <item quantity="other">y %1$d páginas más</item>
+    </plurals>
+    <string name="ws_decision_show_tab">Ver pestaña</string>
+    <string name="ws_decision_show_tab_label">Ver %1$s</string>
     <plurals name="ws_decision_close_private">
         <item quantity="one">Se cerrará %1$d pestaña privada. Los borradores de la página no se guardan en el disco.</item>
         <item quantity="many">Se cerrarán %1$d pestañas privadas. Los borradores de las páginas no se guardan en el disco.</item>

@@ -43,6 +43,14 @@ async function startWorkspaceFixtures() {
         window.opener?.postMessage({kind:'workspace-login', mode:new URLSearchParams(location.search).get('mode'), opener:!!window.opener}, location.origin);
         document.getElementById('close').onclick = () => window.close();
       </script>`);
+    // A page whose own document has loaded but whose frame keeps reloading
+    // (an ad or chat widget): it must not block a space switch (#1140).
+    if (url.pathname === '/busy-frame') return send(res, `
+      <p id="busy">Busy frame fixture</p><iframe id="frame"></iframe>
+      <script>
+        addEventListener('load', () => setInterval(() => { document.getElementById('frame').src = '/slow-frame?' + Date.now(); }, 300));
+      </script>`);
+    if (url.pathname === '/slow-frame') { setTimeout(() => { if (!res.writableEnded) send(res, '<p>frame</p>'); }, 5000); return; }
     send(res, '<p id="ordinary">Ordinary restart fixture</p>');
   });
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
