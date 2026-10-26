@@ -1,0 +1,174 @@
+{
+  "observedDate": "2026-10-26",
+  "approvalDate": "2026-10-26",
+  "approvedReviewHead": "8fa787a554790649d34fdfba5a6572dc5338b1e6",
+  "accountLabel": "BNFY",
+  "workerName": "blanc-sync",
+  "workerPlan": "Workers Paid",
+  "workerUsageModel": "standard",
+  "billingCycle": {
+    "start": "2026-10-17",
+    "endInclusive": "2026-11-16",
+    "days": 31,
+    "observedDays": 10
+  },
+  "dashboard": {
+    "observedThrough": "2026-10-26",
+    "usageCostUSD": 0,
+    "projectedCycleCostUSD": 0,
+    "roundedValues": true,
+    "workerRequests": 206420,
+    "workerCpuMs": 3960000,
+    "kvReads": 195740,
+    "kvWrites": 109390,
+    "kvDeletes": 52,
+    "kvLists": 500,
+    "doRequests": 16910,
+    "doDurationGBSeconds": 76.29,
+    "sqliteRowsRead": 16960,
+    "sqliteRowsWritten": 16870,
+    "storageDisplay": "KV and SQLite: 0 GB-months, rounded; not evidence of zero stored data"
+  },
+  "invoice": {
+    "date": "2026-10-17",
+    "dashboardStatus": "Paid",
+    "workerSubscriptionUSD": 5,
+    "basicLoadBalancingUSD": 5,
+    "invoiceTotalUSD": 10,
+    "committed": false
+  },
+  "existingBudgetAlertsUSD": [
+    10,
+    30
+  ],
+  "analytics": {
+    "window": "2026-10-01T00:00:00Z through 2026-10-26T00:00:00Z",
+    "source": "Cloudflare GraphQL adaptive analytics, may be sampled",
+    "allKVOperations": {
+      "read": 497030,
+      "write": 312290,
+      "delete": 100,
+      "list": 1460
+    },
+    "syncKVOperations": {
+      "delete": 70,
+      "read": 229740,
+      "write": 133390,
+      "list": 40
+    },
+    "calendar31DayProjection": {
+      "read": 616317,
+      "write": 387240,
+      "delete": 124,
+      "list": 1810
+    },
+    "allKVStorageDailyMaxBytesOct25": 19564135,
+    "syncKVStorageDailyMaxBytesOct25": 5626771,
+    "workerRequests": 391028,
+    "syncWorkerRequests": 67757,
+    "doDurationGBs": 112.369749888,
+    "doRowsRead": 27749,
+    "doRowsWritten": 27643,
+    "doRequests": 27694
+  },
+  "projection": {
+    "baseline31DayProjection": {
+      "kvReads": 606794.0,
+      "kvWrites": 339109.0,
+      "requests": 639902.0,
+      "cpuMs": 12276000.0,
+      "doRequests": 52421.0,
+      "duration": 236.49900000000002,
+      "rowsRead": 52576.0,
+      "rowsWritten": 52297.0
+    },
+    "results": [
+      {
+        "additionalHeavyAccounts": 0,
+        "usageCost": 0.0,
+        "components": {
+          "kvRead": 0.0,
+          "kvWrite": 0.0,
+          "requests": 0.0,
+          "cpu": 0.0,
+          "doReq": 0.0,
+          "duration": 0.0,
+          "rowsRead": 0.0,
+          "rowsWritten": 0
+        }
+      },
+      {
+        "additionalHeavyAccounts": 10,
+        "usageCost": 27.77,
+        "components": {
+          "kvRead": 1.007397,
+          "kvWrite": 26.765545,
+          "requests": 0.0,
+          "cpu": 0.0,
+          "doReq": 0.0,
+          "duration": 0.0,
+          "rowsRead": 0.0,
+          "rowsWritten": 0
+        }
+      },
+      {
+        "additionalHeavyAccounts": 15,
+        "usageCost": 45.91,
+        "components": {
+          "kvRead": 3.859397,
+          "kvWrite": 41.800545,
+          "requests": 0.0,
+          "cpu": 0.0975,
+          "doReq": 0.15,
+          "duration": 0.0,
+          "rowsRead": 0.0,
+          "rowsWritten": 0
+        }
+      },
+      {
+        "additionalHeavyAccounts": 100,
+        "usageCost": 359.53,
+        "components": {
+          "kvRead": 52.343397,
+          "kvWrite": 297.395545,
+          "requests": 6.2315706,
+          "cpu": 2.65872,
+          "doReq": 0.8999999999999999,
+          "duration": 0.0,
+          "rowsRead": 0.0,
+          "rowsWritten": 0
+        }
+      }
+    ]
+  },
+  "projectionAssumptions": {
+    "fullCycleDays": 31,
+    "additionalDevicesPerAccount": 2,
+    "activeHoursPerDay": 8,
+    "fixedGetsPerDeviceMinute": 8,
+    "spaceGetsPerDeviceMinute": 2,
+    "spacePutsPerDeviceDay": 20,
+    "fixedPutsPerDeviceDay": 40,
+    "workerCpuMsPerRequest": 5,
+    "doSecondsPerRequest": 0.1,
+    "doAllocatedGB": 0.128,
+    "storageAndExceptionalRequestsExcluded": true
+  },
+  "approvedBudget": {
+    "usd": 50,
+    "period": "actual billing cycle",
+    "scope": [
+      "Workers usage",
+      "Workers KV usage",
+      "Durable Objects usage"
+    ],
+    "exclusions": [
+      "fixed subscriptions",
+      "tax",
+      "domains",
+      "other products"
+    ],
+    "providerEnforcedCap": false
+  },
+  "operationsPerformed": []
+}
