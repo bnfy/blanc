@@ -1,0 +1,241 @@
+{
+  "observedAtUtc": "2026-10-26T22:49:38.757996+00:00",
+  "scope": "Read-only management metadata and code; no user-data inventory or endpoint probes",
+  "baseCandidate": "2aefa5dc8d63fbea3181266a13cba276c46038cd",
+  "production": {
+    "deploymentId": "a816832c-cb3d-42ee-867c-17b74e5557fe",
+    "createdOn": "2026-10-25T13:40:13.55266Z",
+    "versions": [
+      {
+        "version_id": "106160ef-42e6-4499-bf4f-e3c72937774e",
+        "percentage": 100
+      }
+    ],
+    "workersDevEnabled": true,
+    "versionUrlsEnabled": true,
+    "cleanupEnabled": "true",
+    "dailyAccountLimit": "100",
+    "cronExpressions": [
+      "17 4 * * *"
+    ],
+    "syncDurableObjectNamespaceCount": 0,
+    "durableObjectInventoryTotal": 5
+  },
+  "retainedVersions": [
+    {
+      "number": 1,
+      "id": "deb23f79-05fe-4b3e-a67a-e156f58883f8",
+      "createdOn": "2026-07-07T15:03:14.584099Z",
+      "modules": [
+        {
+          "name": "index.js",
+          "bytes": 3527,
+          "sha256": "d36bc2ecc0646ea6db7dd88813416b5e251e286cd92f14a655529b5e8711d557"
+        }
+      ],
+      "acceptedStores": [
+        "bookmarks",
+        "settings"
+      ],
+      "blobLimit": 524288,
+      "blobLimitUnits": "UTF-16 code units",
+      "rejectsUnknownStores": true,
+      "hasSpaceRoute": false,
+      "hasDurableObjectBinding": false,
+      "kvNamespaceMatchesCandidate": true,
+      "versionUrlCount": 1
+    },
+    {
+      "number": 2,
+      "id": "d673c38c-e2a4-405d-9b1c-fbe0a4d406fe",
+      "createdOn": "2026-07-22T08:51:49.006994Z",
+      "modules": [
+        {
+          "name": "index.js",
+          "bytes": 3538,
+          "sha256": "48f9f28b5e12e3a700b5f303189d0c79482c9903f02f09d27baeee7e6dfbc714"
+        }
+      ],
+      "acceptedStores": [
+        "bookmarks",
+        "settings",
+        "session"
+      ],
+      "blobLimit": 524288,
+      "blobLimitUnits": "UTF-16 code units",
+      "rejectsUnknownStores": true,
+      "hasSpaceRoute": false,
+      "hasDurableObjectBinding": false,
+      "kvNamespaceMatchesCandidate": true,
+      "versionUrlCount": 1
+    },
+    {
+      "number": 3,
+      "id": "a8f81a1c-1faa-4ec2-a47b-40aca4127163",
+      "createdOn": "2026-08-09T13:59:16.088817Z",
+      "modules": [
+        {
+          "name": "index.js",
+          "bytes": 3547,
+          "sha256": "dc2834201262444c4344bbd5ba4844713e05db14f42cb47d02c69f0d07ce6a60"
+        }
+      ],
+      "acceptedStores": [
+        "bookmarks",
+        "settings",
+        "session",
+        "icons"
+      ],
+      "blobLimit": 524288,
+      "blobLimitUnits": "UTF-16 code units",
+      "rejectsUnknownStores": true,
+      "hasSpaceRoute": false,
+      "hasDurableObjectBinding": false,
+      "kvNamespaceMatchesCandidate": true,
+      "versionUrlCount": 1
+    },
+    {
+      "number": 4,
+      "id": "ee52d321-1b60-4d3c-9e83-9a136b39246d",
+      "createdOn": "2026-10-06T03:02:14.084708Z",
+      "modules": [
+        {
+          "name": "index.js",
+          "bytes": 8091,
+          "sha256": "be64e5c51d2cb923547f4195963ff6f1b43b1a4972630555b5f35c47901b1f98"
+        }
+      ],
+      "acceptedStores": [
+        "bookmarks",
+        "settings",
+        "session",
+        "icons"
+      ],
+      "blobLimit": 524288,
+      "blobLimitUnits": "UTF-8 bytes",
+      "rejectsUnknownStores": true,
+      "hasSpaceRoute": false,
+      "hasDurableObjectBinding": false,
+      "kvNamespaceMatchesCandidate": true,
+      "versionUrlCount": 1
+    },
+    {
+      "number": 5,
+      "id": "3348953b-cf30-465b-9217-b1e74252fa3c",
+      "createdOn": "2026-10-06T03:04:10.23257Z",
+      "modules": [
+        {
+          "name": "index.js",
+          "bytes": 8091,
+          "sha256": "be64e5c51d2cb923547f4195963ff6f1b43b1a4972630555b5f35c47901b1f98"
+        }
+      ],
+      "acceptedStores": [
+        "bookmarks",
+        "settings",
+        "session",
+        "icons"
+      ],
+      "blobLimit": 524288,
+      "blobLimitUnits": "UTF-8 bytes",
+      "rejectsUnknownStores": true,
+      "hasSpaceRoute": false,
+      "hasDurableObjectBinding": false,
+      "kvNamespaceMatchesCandidate": true,
+      "versionUrlCount": 1
+    },
+    {
+      "number": 6,
+      "id": "d24015ae-7790-4ddf-8e47-c031b0e3649b",
+      "createdOn": "2026-10-06T04:31:13.562018Z",
+      "modules": [
+        {
+          "name": "index.js",
+          "bytes": 8091,
+          "sha256": "be64e5c51d2cb923547f4195963ff6f1b43b1a4972630555b5f35c47901b1f98"
+        }
+      ],
+      "acceptedStores": [
+        "bookmarks",
+        "settings",
+        "session",
+        "icons"
+      ],
+      "blobLimit": 524288,
+      "blobLimitUnits": "UTF-8 bytes",
+      "rejectsUnknownStores": true,
+      "hasSpaceRoute": false,
+      "hasDurableObjectBinding": false,
+      "kvNamespaceMatchesCandidate": true,
+      "versionUrlCount": 1
+    },
+    {
+      "number": 7,
+      "id": "cec782e2-0d08-4585-8f89-b307baa334b8",
+      "createdOn": "2026-10-16T22:24:10.562615Z",
+      "modules": [
+        {
+          "name": "index.js",
+          "bytes": 9894,
+          "sha256": "4ce6ec26faa52f24a42338ba8c5c314390119d699d29a58ac959598a4153806f"
+        }
+      ],
+      "acceptedStores": [
+        "bookmarks",
+        "settings",
+        "session",
+        "icons"
+      ],
+      "blobLimit": 524288,
+      "blobLimitUnits": "UTF-8 bytes",
+      "rejectsUnknownStores": true,
+      "hasSpaceRoute": false,
+      "hasDurableObjectBinding": false,
+      "kvNamespaceMatchesCandidate": true,
+      "versionUrlCount": 1
+    },
+    {
+      "number": 8,
+      "id": "106160ef-42e6-4499-bf4f-e3c72937774e",
+      "createdOn": "2026-10-25T13:40:12.467351Z",
+      "modules": [
+        {
+          "name": "index.js",
+          "bytes": 9903,
+          "sha256": "7c9d8763e38aca0330154cac001b2d7db786fd6e64affd1c0567b49f2276dcc9"
+        }
+      ],
+      "acceptedStores": [
+        "bookmarks",
+        "settings",
+        "session",
+        "icons",
+        "sends"
+      ],
+      "blobLimit": 524288,
+      "blobLimitUnits": "UTF-8 bytes",
+      "rejectsUnknownStores": true,
+      "hasSpaceRoute": false,
+      "hasDurableObjectBinding": false,
+      "kvNamespaceMatchesCandidate": true,
+      "versionUrlCount": 1
+    }
+  ],
+  "isolatedBranchPreviewInventory": {
+    "workersInspected": 10,
+    "totalPreviews": 0,
+    "allResponsesSuccessful": true,
+    "allPagesComplete": true
+  },
+  "operatorAttestations": {
+    "date": "2026-10-26",
+    "otherWritesImportsDeletedSyncResourcesOrExternalWriters": "None known; only reviewed deployments",
+    "providerRetentionUncertainty": "Accept the stated uncertainty",
+    "deploymentAuthorization": false
+  },
+  "limitations": [
+    "Operator attestation does not independently reconstruct deleted resources or history.",
+    "Inventories are dated snapshots and must be refreshed before an authorized cutover.",
+    "Version URL shutdown, cron removal/drain, alert delivery and public-copy publication have not been performed."
+  ]
+}

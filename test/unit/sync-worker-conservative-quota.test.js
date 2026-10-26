@@ -86,6 +86,7 @@ test('unknown ledger schema fails closed without mutating customer data',async()
  const h=await fixture();h.object();h.states.get(account).values.set('ledger',{schema:1,accountId:account,stores:{},erasing:false});
  assert.equal((await h.put(sid(1))).status,503);assert.equal(h.records.size,0);
 });
-test('rollout configuration keeps cleanup disabled and the independent daily limit at ten',()=>{
+test('rollout configuration closes alternate version writers and leaves cleanup unscheduled',()=>{
  const config=fs.readFileSync('cloudflare/sync-worker/wrangler.toml','utf8');assert.match(config,/CLEANUP_ENABLED = "false"/);assert.match(config,/NEW_ACCOUNT_DAILY_LIMIT = "10"/);
+ assert.match(config,/^workers_dev = true$/m);assert.match(config,/^preview_urls = false$/m);assert.match(config,/^crons = \[\]$/m);
 });

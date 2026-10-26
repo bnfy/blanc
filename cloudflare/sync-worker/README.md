@@ -20,7 +20,9 @@ approval. Keep the existing production KV namespace and use one 100% cutover,
 not a traffic split. Before requesting deployment, recheck version/writer scope,
 confirm no out-of-schema operator writes/imports are known, review the exact
 code/configuration and recovery references, and ensure an old cleanup invocation
-is not still running. Do not create or substitute an empty namespace.
+is not still running. Do not create or substitute an empty namespace. The
+current evidence and the future cutover checklist are in
+[`docs/reviews/2026-10-26-sync-deployment-readiness.md`](../../docs/reviews/2026-10-26-sync-deployment-readiness.md).
 
 ## Storage budget
 
@@ -73,12 +75,14 @@ Design: `docs/superpowers/specs/2026-10-05-sync-storage-budget-design.md`.
   or remove both atomically. Partial account wipes retain SQLite data and block
   writes until all legacy KV deletions succeed, then atomically clear SQLite.
   The client retains its erasure credentials on any failure.
-- A daily Cron Trigger (04:17 UTC) deletes blobs of accounts with no marker,
-  at most `CLEANUP_MAX_DELETES` per run. It does nothing unless
-  `CLEANUP_ENABLED = "true"` on the legacy Worker. With the quota binding,
-  cleanup always skips: a stale listing must never reset a live ledger. The
-  checked-in rollout configuration sets cleanup to false; a ledger-aware
-  replacement and enablement need separate review.
+- The legacy production Worker's daily Cron Trigger (04:17 UTC) deletes blobs
+  of accounts with no marker, at most `CLEANUP_MAX_DELETES` per run, when
+  `CLEANUP_ENABLED = "true"`. With the quota binding, cleanup always skips: a
+  stale listing must never reset a live ledger. The checked-in rollout
+  configuration has no Cron Trigger (`crons = []`) and sets cleanup to false.
+  Removing and draining the legacy trigger before cutover is in the
+  [deployment readiness checklist](../../docs/reviews/2026-10-26-sync-deployment-readiness.md).
+  A ledger-aware replacement and enablement need separate review.
 
 Never set `CLEANUP_ENABLED` until every account has a marker:
 `node scripts/backfill-seen-markers.mjs`, then

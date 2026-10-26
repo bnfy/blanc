@@ -6,6 +6,10 @@ Status: **draft for owner review; not deployment approval**. Prepared October 26
 real-device validation and PR E remain on hold. This document changes neither
 public copy nor production configuration.
 
+> **Current status:** see [Sync deployment readiness](2026-10-26-sync-deployment-readiness.md).
+> It records which of the open items below the 22:49 UTC follow-up closed, and
+> the future cutover checklist. The findings here are a dated 22:30 UTC snapshot.
+
 ## Proposed backend-only copy
 
 These replacements must be reviewed and coordinated with an eventual authorized
