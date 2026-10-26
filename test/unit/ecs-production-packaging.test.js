@@ -77,7 +77,10 @@ test('a builder failure remains nonzero with the real temporary-file exit hook i
   try {
     const result = spawnSync(process.execPath, ['-r', preload,
       path.join(root, 'scripts/build-ecs-production.cjs'), '--mac', '--arm64'],
-      { cwd: root, encoding: 'utf8', timeout: 15000 });
+      { cwd: root, encoding: 'utf8', timeout: 15000,
+        // The builder is replaced above: these inert values let Windows reach
+        // the deliberate build rejection instead of its credential preflight.
+        env: { ...process.env, CSC_LINK: 'test-only-not-a-certificate', CSC_KEY_PASSWORD: 'test-only' } });
     assert.equal(result.status, 1, result.stderr);
     assert.match(result.stderr, /deliberate packaging failure/);
   } finally {
