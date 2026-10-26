@@ -67,3 +67,17 @@ Register the runner on a dedicated non-admin user account (`./config.sh --url ht
 - **Jobs sit queued forever:** no idle runner has every label in the variable. Fix the runner's labels, or delete the variable to fall back at once.
 - **A test passes on hosted macOS but fails on the Mac:** compare the runner image (Node, Xcode command-line tools, screen size). The hosted image is described at <https://github.com/actions/runner-images>. Fall back by deleting the variable while you investigate.
 - **The Mac is offline:** jobs wait for it rather than falling back. Delete the variable until it's back.
+
+
+## Owner-approved private Mac signing exception (October 26, 2026)
+
+The `mac-scan` job in `release-windows-linux.yml` uses the distinct `blanc-mac`
+Apple Silicon runner for an explicitly dispatched, protected `ecs-signing`
+workflow. It does not use `MAC_RUNNER_LABELS` or the secret-free `blanc-ci` PR
+runners. The exact approved commit must equal both the workflow SHA and
+checkout SHA; the host architecture and console GUI session are checked.
+Signing material lives in a run-specific temporary directory and is removed
+before packaged browser tests, including failure cleanup. The job never
+publishes a release or updater feed. Native Intel validation remains hosted.
+The separate `mac_runner_probe` option checks toolchain/GUI readiness without
+accessing a signing environment or credentials.

@@ -22,10 +22,11 @@ test('Mac scan mode accepts only exact-commit production ECS input and no releas
 
 test('Mac signing stays protected, read-only, native on both architectures and tied to the workflow SHA', () => {
   assert.equal(job.environment, 'ecs-signing');
-  assert.equal(job.env.DEVELOPER_DIR, '/Applications/Xcode_26.3.app/Contents/Developer');
+  assert.equal(job.env.DEVELOPER_DIR, '${{ matrix.developer_dir }}');
   assert.deepEqual(job.permissions, { contents: 'read' });
   assert.deepEqual(job.strategy.matrix.include.map(x => x.arch), ['arm64', 'x64']);
-  assert.deepEqual(job.strategy.matrix.include.map(x => x.runner), ['macos-26', 'macos-26-intel']);
+  assert.deepEqual(job.strategy.matrix.include.map(x => x.runner), [['self-hosted', 'macOS', 'ARM64', 'blanc-mac'], 'macos-26-intel']);
+  assert.deepEqual(job.strategy.matrix.include.map(x => x.developer_dir), ['/Applications/Xcode.app/Contents/Developer', '/Applications/Xcode_26.3.app/Contents/Developer']);
   const icon = job.steps.findIndex(x => x.run?.includes('node scripts/preflight-mac-icon.cjs'));
   assert(icon >= 0 && icon < job.steps.findIndex(x => x.run === 'npm run release:verify:press'));
   const checkout = job.steps.find(x => x.uses?.startsWith('actions/checkout@'));
@@ -57,6 +58,12 @@ test('Mac scan artifacts contain verified installers only, with credentials remo
   const smoke = job.steps.findIndex(x => x.run === 'npm run test:packaged:first-run');
   assert.equal(job.steps[cleanup].if, 'always()');
   assert(cleanup < smoke);
+  const macCleanup = job.steps.findIndex(x => x.name === 'Remove temporary Mac signing material');
+  assert.equal(job.steps[macCleanup].if, 'always()');
+  assert(macCleanup < smoke);
+  assert(job.steps[macCleanup].run.includes('test "$APP_BUILDER_TMP_DIR" = "$RUNNER_TEMP/blanc-mac-sign-$GITHUB_RUN_ID-$TARGET_ARCH"'));
+  assert(job.steps[macCleanup].run.includes('security delete-keychain'));
+  assert.equal(job.env.APP_BUILDER_TMP_DIR, '${{ runner.temp }}/blanc-mac-sign-${{ github.run_id }}-${{ matrix.arch }}');
   assert.equal(job.env.BLANC_UPDATE_CHANNEL, undefined, 'updater unit tests must exercise production defaults');
   assert.equal(job.steps[smoke].env.BLANC_UPDATE_CHANNEL, 'ecs-qualification-disabled');
   const upload = job.steps.find(x => x.uses?.startsWith('actions/upload-artifact@'));

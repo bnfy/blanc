@@ -1329,19 +1329,23 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: macos-26
+          # Owner-authorized signing runner, separate from secret-free blanc-ci VMs.
+          - runner: [self-hosted, macOS, ARM64, blanc-mac]
             arch: arm64
             app_dir: mac-arm64
+            developer_dir: /Applications/Xcode.app/Contents/Developer
           - runner: macos-26-intel
             arch: x64
             app_dir: mac
+            developer_dir: /Applications/Xcode_26.3.app/Contents/Developer
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 90
     env:
       APPROVED_SOURCE_SHA: ${{ inputs.source_sha }}
       TARGET_ARCH: ${{ matrix.arch }}
       APP_DIR: dist/${{ matrix.app_dir }}/Blanc.app
-      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      DEVELOPER_DIR: ${{ matrix.developer_dir }}
+      APP_BUILDER_TMP_DIR: ${{ runner.temp }}/blanc-mac-sign-${{ github.run_id }}-${{ matrix.arch }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -1355,6 +1359,9 @@ jobs:
           [[ "$APPROVED_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
           test "$GITHUB_SHA" = "$APPROVED_SOURCE_SHA"
           test "$(git rev-parse HEAD)" = "$APPROVED_SOURCE_SHA"
+          case "$TARGET_ARCH:$(uname -m)" in arm64:arm64|x64:x86_64) ;; *) echo 'Native architecture mismatch' >&2; exit 1 ;; esac
+          test "$(stat -f %Su /dev/console)" = "$(id -un)"
+          mkdir -m 700 "$APP_BUILDER_TMP_DIR"
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
@@ -1411,6 +1418,19 @@ jobs:
       - name: Remove EVS credentials before browser tests
         if: always()
         run: node scripts/prepare-evs-ci.cjs --clean
+      - name: Remove temporary Mac signing material
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$APP_BUILDER_TMP_DIR" = "$RUNNER_TEMP/blanc-mac-sign-$GITHUB_RUN_ID-$TARGET_ARCH"
+          if [ -d "$APP_BUILDER_TMP_DIR" ]; then
+            for keychain in "$APP_BUILDER_TMP_DIR"/*.keychain*; do
+              test -f "$keychain" || continue
+              security delete-keychain "$keychain"
+            done
+            rm -rf -- "$APP_BUILDER_TMP_DIR"
+          fi
       - name: Smoke-test the signed packaged first-run experience
         env:
           BLANC_PACKAGED_EXECUTABLE: ${{ github.workspace }}/dist/${{ matrix.app_dir }}/Blanc.app/Contents/MacOS/Blanc

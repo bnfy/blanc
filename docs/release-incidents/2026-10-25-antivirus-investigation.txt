@@ -1,5 +1,15 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+SELF-HOSTED MAC SWITCH (Oct 26 owner request): Run 40399246738 was canceled
+before signing when the owner requested self-hosted Mac execution. The
+credentials-free probe 40401500622 passed on blanc-mac: native arm64, macOS
+27.2, Xcode 27.1 and a console GUI session. Mac scan now uses that dedicated
+runner for ARM, separate from the secret-free blanc-ci PR VMs. Intel retains
+a native hosted Intel runner; Rosetta is not accepted as Intel evidence.
+Signing temporary files/keychains use a run/architecture-specific directory
+with an always-run cleanup before packaged browser tests. Protected approval,
+exact-SHA binding, full gates, notarization and nonpublication remain required.
+
 DRAG FIX AND SIGNED-ARTIFACT SCAN (Oct 26): The earlier signed ARM candidate
 from run 40383559962 (source 1d50596a5) completed VirusTotal at 0/60 on Oct 26,
 with Avast, AVG and Kaspersky explicitly Undetected. Its exact DMG hash is
