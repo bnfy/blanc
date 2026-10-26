@@ -88,6 +88,7 @@ function setupPages(hooks = {}) {
   });
   const trustLinks = trustLinksForVersion(app.getVersion());
   const onePasswordAvailable = () => hooks.onePasswordAvailable?.() === true;
+  const recentTabOrderAvailable = () => hooks.recentTabOrderAvailable?.() === true;
   const developmentBrandMarkPath = hooks.developmentBrandMarkPath ?? null;
   const developmentDockIconPath = hooks.developmentDockIconPath ?? null;
   const developmentDarkDockIconPath = hooks.developmentDarkDockIconPath ?? null;
@@ -452,6 +453,7 @@ function setupPages(hooks = {}) {
       architecture: process.arch,
     },
     onePasswordAvailable: onePasswordAvailable(),
+    recentTabOrderAvailable: recentTabOrderAvailable(),
     searchEngines: Object.fromEntries(
       Object.entries(settings.SEARCH_ENGINES).map(([key, { label }]) => [key, label])
     ),

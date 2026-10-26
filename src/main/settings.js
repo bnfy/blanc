@@ -14,6 +14,7 @@ const { normalizeWash, normalizeWashStyle } = require('./wallpaper-model');
 const { normalizePreset, normalizeFill } = require('./start-page-paint');
 const clockRules = require('./start-clock-style');
 const { AUTO_HIDE_STYLES, normalizeAutoHideStyle } = require('./island-autohide');
+const { TAB_SWITCH_ORDERS, normalizeTabSwitchOrder } = require('./tab-switcher');
 
 // Surface style: the palette of Blanc's own warm pages (utility sheets, the
 // Start Page). Neutral swaps the cream and gold for plain ink and gray.
@@ -244,6 +245,10 @@ const DEFAULTS = {
   // Device-local, not Profile Synced.
   islandAutoHide: false,
   islandAutoHideStyle: 'float',
+  // Ctrl+Tab steps through tabs in the order they were used ('recent') or
+  // the tab list's order ('list'). Device-local: a habit of the keyboard in
+  // front of you. Only Linux offers 'recent' so far (tab-switcher.js).
+  tabSwitchOrder: 'recent',
   // Palette of the internal pages; device-local, not Profile Synced.
   surfaceStyle: 'sunrise',
   // Floating Glance: the card's remembered size and place, as fractions of
@@ -520,6 +525,7 @@ function getSettings() {
   if (typeof data.searchPriorityResults !== 'boolean') data.searchPriorityResults = DEFAULTS.searchPriorityResults;
   if (typeof data.islandAutoHide !== 'boolean') data.islandAutoHide = DEFAULTS.islandAutoHide;
   data.islandAutoHideStyle = normalizeAutoHideStyle(data.islandAutoHideStyle);
+  data.tabSwitchOrder = normalizeTabSwitchOrder(data.tabSwitchOrder);
   if (!SURFACE_STYLES.includes(data.surfaceStyle)) data.surfaceStyle = DEFAULTS.surfaceStyle;
   if (!isGlanceFrame(data.glanceFrame)) data.glanceFrame = null;
   if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
@@ -645,6 +651,7 @@ function sanitize(partial) {
   if (typeof partial.searchPriorityResults === 'boolean') clean.searchPriorityResults = partial.searchPriorityResults;
   if (typeof partial.islandAutoHide === 'boolean') clean.islandAutoHide = partial.islandAutoHide;
   if (AUTO_HIDE_STYLES.includes(partial.islandAutoHideStyle)) clean.islandAutoHideStyle = partial.islandAutoHideStyle;
+  if (TAB_SWITCH_ORDERS.includes(partial.tabSwitchOrder)) clean.tabSwitchOrder = partial.tabSwitchOrder;
   if (SURFACE_STYLES.includes(partial.surfaceStyle)) clean.surfaceStyle = partial.surfaceStyle;
   if (TAB_SLEEP_DELAYS.includes(partial.tabSleep)) clean.tabSleep = partial.tabSleep;
   if (TAB_ARCHIVE_DELAYS.includes(partial.tabArchive)) clean.tabArchive = partial.tabArchive;

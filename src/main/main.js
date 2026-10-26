@@ -78,6 +78,7 @@ const {
   previousSurvivor,
   previousActiveSurvivor,
 } = require('./tab-activation');
+const tabSwitcherModule = require('./tab-switcher');
 const {
   shieldChipState, shieldPopoverModel, shieldProviderModel, connectionFor, committedUrlOf, activeConnection,
 } = require('./shield-model');
@@ -3422,6 +3423,11 @@ function cancelPermissionPromptsForTab(tabId) {
 // persistence; this live copy makes every child-view bounds calculation use
 // one coherent value throughout a layout transition.
 const initialPresentationSettings = settings.getSettings();
+// Ctrl+Tab by most recent use (tab-switcher.js). Offered only where the
+// Control release is proven to reach Blanc; elsewhere Ctrl+Tab goes by position.
+const RECENT_TAB_ORDER_AVAILABLE = tabSwitcherModule.recentOrderAvailable(process.platform);
+let tabSwitchOrder = tabSwitcherModule.normalizeTabSwitchOrder(initialPresentationSettings.tabSwitchOrder);
+const recentTabOrder = () => RECENT_TAB_ORDER_AVAILABLE && tabSwitchOrder === 'recent';
 let tabLayout = normalizeTabLayout(initialPresentationSettings.tabLayout);
 let islandHoverOpen = initialPresentationSettings.islandHoverOpen === true;
 let islandAutoHide = initialPresentationSettings.islandAutoHide === true;
@@ -4354,6 +4360,15 @@ function applyIslandAutoHide(next) {
 }
 
 /** Float the revealed Island over the page, or push the page down. */
+function applyTabSwitchOrder(next) {
+  const order = tabSwitcherModule.normalizeTabSwitchOrder(next);
+  if (order === tabSwitchOrder) return;
+  tabSwitchOrder = order;
+  for (const runtime of windowRuntimes.all()) tabSwitcher.cancel(runtime);
+  // The Ctrl+Tab menu items are display-only in most-recent order.
+  scheduleMenuRebuild();
+}
+
 function applyIslandAutoHideStyle(next) {
   const style = islandAutoHideModule.normalizeAutoHideStyle(next);
   if (style === islandAutoHideStyle) return;
@@ -7237,14 +7252,41 @@ function copyCleanBrowserCommandLink(runtime) {
   return true;
 }
 
+// Most-recent Ctrl+Tab: a Tab moves the pick, the Control release lands on it.
+// Nothing changes before the release, so focus stays put and quiet tabs sleep.
+const tabSwitcher = tabSwitcherModule.createTabSwitcher({
+  orderFor: (runtime) => tabSwitcherModule.switcherOrder({
+    activeTabId: runtime.activeTabId,
+    history: runtime.activationHistory ?? [],
+    tabOrder: runtime.tabOrder,
+    splitOf: (id) => tabs.get(id)?.splitId ?? null,
+  }),
+  land: (runtime, id) => bindWindowRuntime(runtime, () => {
+    // Landing in a collapsed group unfolds it, as ⌘1–9 does.
+    const group = rt().groups.find((g) => g.id === tabs.get(id)?.groupId);
+    if (group?.collapsed) group.collapsed = false;
+    setActiveTab(id);
+  })(),
+  isLive: (runtime, id) => tabs.has(id) && windowRuntimes.runtimeForTab(id) === runtime,
+});
+
+function stepTabSwitch(runtime, direction, sender) {
+  if (!recentTabOrder()) return cycleTab(direction);
+  tabSwitcher.step(runtime, direction);
+  // A menu click has no key to release: it is a whole tap.
+  if (!sender) tabSwitcher.release(runtime);
+}
+
 const executeBrowserCommand = createBrowserCommandExecutor({
   'new-window': runtime => openNewWindow({ profileId: runtime.profileId }),
   'new-tab': () => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true }),
   'new-private-tab': () => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true }),
   'close-tab': (runtime, sender) => { const tab = browserCommandTab(runtime, sender); if (tab) closeTab(tab.id); },
   'reopen-tab': reopenClosedTab,
-  'next-tab': () => cycleTab(1),
-  'previous-tab': () => cycleTab(-1),
+  'next-tab': (runtime, sender) => stepTabSwitch(runtime, 1, sender),
+  'previous-tab': (runtime, sender) => stepTabSwitch(runtime, -1, sender),
+  'next-tab-in-order': () => cycleTab(1),
+  'previous-tab-in-order': () => cycleTab(-1),
   'copy-link': copyBrowserCommandLink,
   address: toggleIsland,
   find: (runtime, sender) => openFindBar(browserCommandTab(runtime, sender)?.id),
@@ -7289,6 +7331,28 @@ function ownsBrowserShortcutSurface(runtime, wc) {
     (runtime.activeTabId === tabId || runtime.glanceTabId === tabId || visibleSplitTabIds(runtime).includes(tabId));
 }
 
+/** Ends a most-recent Ctrl+Tab switch: the Control release lands on the pick;
+ * Esc, any other key and a click cancel it. Every surface of the window
+ * listens, because the release arrives wherever focus is. */
+function installTabSwitchRelease(webContents, getRuntime) {
+  webContents.on('before-input-event', (event, input) => {
+    const runtime = getRuntime();
+    if (!runtime || !tabSwitcher.isSwitching(runtime)) return;
+    if (input.type === 'keyUp' && input.key === 'Control') {
+      tabSwitcher.release(runtime);
+      return;
+    }
+    if (input.type !== 'keyDown' || ['Tab', 'Control', 'Shift'].includes(input.key)) return;
+    tabSwitcher.cancel(runtime);
+    if (input.key === 'Escape') event.preventDefault();
+  });
+  webContents.on('before-mouse-event', (_event, mouse) => {
+    if (mouse.type !== 'mouseDown') return;
+    const runtime = getRuntime();
+    if (runtime) tabSwitcher.cancel(runtime);
+  });
+}
+
 function installChromeShortcuts(webContents, owner = rt()) {
   const getRuntime = () => typeof owner === 'function' ? owner() : owner;
   installBrowserShortcuts({
@@ -7297,7 +7361,10 @@ function installChromeShortcuts(webContents, owner = rt()) {
     ownsSurface: ownsBrowserShortcutSurface,
     execute: (id, runtime, sender) => bindWindowRuntime(runtime, () => executeBrowserCommand(id, runtime, sender))(),
     observe: observeBrowserCommand,
+    // A consumed Ctrl+Tab press takes the Control release with it (spec §3.4).
+    consumes: (id) => !(recentTabOrder() && (id === 'next-tab' || id === 'previous-tab')),
   });
+  installTabSwitchRelease(webContents, getRuntime);
   installVerticalTabsShortcut(webContents, owner);
   installIslandAutoHideShortcut(webContents, owner);
   installGlanceShortcut(webContents, owner);
@@ -11956,6 +12023,9 @@ function buildMenuForRuntime(runtime) {
       id: `browser-${id}`,
       label: mn(t(definition.labelKey)),
       accelerator: definition.primary,
+      // In most-recent order the press must reach the page unconsumed, so the
+      // menu shows Ctrl+Tab without registering it (or every Tab steps twice).
+      ...(recentTabOrder() && (id === 'next-tab' || id === 'previous-tab') ? { registerAccelerator: false } : {}),
       click: (_item, window) => {
         const target = window
           ? windowRuntimes.all().find(candidate => candidate.window === window)
@@ -12151,6 +12221,8 @@ function buildMenuForRuntime(runtime) {
         { type: 'separator' },
         command('next-tab'),
         command('previous-tab'),
+        command('next-tab-in-order'),
+        command('previous-tab-in-order'),
         { label: t('menu.nextTabInGroup'), accelerator: 'Alt+CmdOrCtrl+Right', click: bound(() => cycleTabInCluster(1)) },
         { label: t('menu.previousTabInGroup'), accelerator: 'Alt+CmdOrCtrl+Left', click: bound(() => cycleTabInCluster(-1)) },
         { label: t('menu.nextGroup'), accelerator: 'Alt+CmdOrCtrl+Down', click: bound(() => cycleCluster(1)) },
@@ -12659,6 +12731,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   }));
   rt().window.on('blur', bindWindowRuntime(runtime, () => {
     stopIslandRevealWatch(runtime);
+    tabSwitcher.cancel(runtime);
     suppressIslandHover(runtime);
     hidePillTooltip(runtime);
   }));
@@ -15136,6 +15209,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       }),
     },
     onePasswordAvailable: () => ONE_PASSWORD_AVAILABLE,
+    recentTabOrderAvailable: () => RECENT_TAB_ORDER_AVAILABLE,
     // Settings status card (Task 9): presence is a hint, Verify is truth.
     onePasswordAppDetected: () => findOnePasswordApp() !== null,
     onePasswordDeviceSupported: () => ONE_PASSWORD_DEVICE_SUPPORTED,
@@ -15238,6 +15312,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         overlayMode: rt().overlayMode,
         activeViewVisible: liveContents(tabs.get(rt().activeTabId)) ? tabs.get(rt().activeTabId).view.getVisible() : false,
         addressFocusGeneration: rt().addressFocusGeneration,
+        tabSwitchPick: tabSwitcher.pick(rt()),
       }),
       navigateTabToAddress, liveContents, tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getSplits: () => rt().splits ?? [], getActiveTabId: () => rt().activeTabId, getIslandRect: () => rt().islandRect, getIslandHoverRect: () => rt().islandHoverRect, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
@@ -15832,6 +15907,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     }
     applyIslandAutoHide(s.islandAutoHide === true);
     applyIslandAutoHideStyle(s.islandAutoHideStyle);
+    applyTabSwitchOrder(s.tabSwitchOrder);
     const nextOnePasswordConfigurationKey = JSON.stringify([
       s.onePasswordEnabled,
       s.onePasswordAccount,

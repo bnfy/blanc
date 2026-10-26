@@ -1,5 +1,13 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+CURRENT-MAIN RECONCILIATION: The first corrected-toolchain run 40369380490 was
+canceled while both Mac jobs were still queued. Main had advanced to
+3fde552b0 (the merged Linux MRU tab-switching change), making PR 1135 conflict
+only in its generated security inventory and preventing PR checks. Main is
+merged with the acceptance fixes retained; the 64-entry inventory was refreshed
+against the combined source. The replacement native run will test this exact
+reconciled commit. No signed artifact or public release came from the queued run.
+
 NATIVE BUILD FOLLOW-UP (Oct 26): Run 40357193090 passed all 541 Intel desktop
 scenarios; ARM passed 540/541, with F28-18 measuring a zero-height title at
 18px. The geometry driver now scopes to a visible title inside the rail,
