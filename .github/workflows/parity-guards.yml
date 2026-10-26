@@ -97,6 +97,10 @@ jobs:
         if: runner.os == 'Linux'
         run: bash scripts/ci-enable-linux-sandbox.sh
       - run: npm ci
+      - name: Sync Worker quota in the local Workers runtime
+        run: |
+          npm ci --prefix cloudflare/sync-worker
+          npm --prefix cloudflare/sync-worker run test:runtime
       - name: Generated brand assets match their sources
         # Needs sharp from npm ci. PNGs within one channel level of the
         # committed file count as current (macOS/Linux rasterizer rounding).
@@ -250,7 +254,11 @@ jobs:
         # would queue three more jobs for it. docs/ci-self-hosted-macos-runner.md
         os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
     runs-on: ${{ (matrix.os == 'macos-latest' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
-    timeout-minutes: 20
+    # Shared Spaces includes two real clients and hard restarts while obeying
+    # the real 10-GET/60-second window (about 26 minutes on its own on Linux),
+    # and its keyring apt-get install can take several minutes; preserve time
+    # for the ordinary smokes.
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0

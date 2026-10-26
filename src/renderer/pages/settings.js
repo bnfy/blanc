@@ -1979,11 +1979,13 @@
       }
       wipeEl.closest('label').hidden = !canWipeRemote;
       switchWipe.closest('label').hidden = !canWipeRemote;
+      const eraseRetry = document.getElementById('syncEraseRetry');
       let currentHandle = '';
 
       // On-state: one row per category; the error lives ONLY in its own row.
       function renderStatus(status, note) {
         const on = !!status.enabled;
+        eraseRetry.hidden = !canWipeRemote || !status.erasurePending;
         setup.hidden = on;
         active.hidden = !on;
         tabsShareEl.checked = !!status.syncTabs;
@@ -2231,19 +2233,25 @@
         nowBtn.disabled = false;
       });
 
-      disableBtn.addEventListener('click', async () => {
-        const res = await window.bowserPages.settings.syncDisable({ wipeRemote: canWipeRemote && wipeEl.checked });
+      async function turnOff(wipeRemote) {
+        eraseRetry.disabled = true;
+        disableBtn.disabled = true;
+        let res;
+        try { res = await window.bowserPages.settings.syncDisable({ wipeRemote }); }
+        finally { eraseRetry.disabled = false; disableBtn.disabled = false; }
         // A failed remote wipe keeps sync ON (the accountId is the only handle
         // on the server copy) — leave the checkbox set for the retry and say why.
         wipeEl.checked = res.ok ? false : wipeEl.checked;
         model = createSyncSetupModel();
         pairingModel = createPairingModel();
         switchModel = createSwitchModel();
-        renderStatus(res.status, res.ok ? null : res.message);
+        renderStatus(res.status, res.ok || res.error === 'erasure-pending' ? null : res.message);
         renderSetup();
         renderPairing();
         renderSwitch();
-      });
+      }
+      eraseRetry.addEventListener('click', () => turnOff(true));
+      disableBtn.addEventListener('click', () => turnOff(canWipeRemote && wipeEl.checked));
 
       tabsShareEl.addEventListener('change', async () => {
         renderStatus(await window.bowserPages.settings.syncTabsSet(tabsShareEl.checked));

@@ -18,7 +18,7 @@ function setup(t,{packaged=false}={}) {
     isOpen:()=>false,bind:()=>events.push('bind'),changed:()=>{},recoverNative:()=>events.push('move'),recoveryName:name=>name+' · kept on this device'});
   return {d,service,sync,repo,events,get rows(){return rows;},setRows:value=>{rows=value;}};
 }
-test('packaged builds expose no sharing sheet or mutation',async t=>{
+test('a refused offering gate exposes no sharing sheet or mutation',async t=>{
   const h=setup(t,{packaged:true});assert.equal((await h.service.preview()).offered,false);
   assert.equal((await h.service.apply({enabled:true,selections:[{id:'local',mode:'copy'}]})).ok,false);
   assert.deepEqual(h.events,[]);

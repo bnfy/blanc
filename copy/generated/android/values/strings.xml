@@ -481,8 +481,6 @@
     <string name="menu_settings">Settings</string>
     <string name="menu_next_tab">Next Tab</string>
     <string name="menu_previous_tab">Previous Tab</string>
-    <string name="menu_next_tab_in_order">Next Tab in List Order</string>
-    <string name="menu_previous_tab_in_order">Previous Tab in List Order</string>
     <string name="menu_reload">Reload</string>
     <string name="menu_copy_clean_link">Copy Clean Link</string>
     <string name="menu_undo">Undo</string>
@@ -2256,8 +2254,6 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="sends_no_match">No device named “%1$s”.</string>
     <string name="slash_send_hint">Type a space, then a device name — e.g. \"iPhone\"</string>
     <string name="slash_send_doc">Send this tab\'s page to another synced device</string>
-    <string name="slash_copy_hint">Copy this page\'s link — add \"clean\" to drop tracking parameters</string>
-    <string name="slash_copy_doc">Copy this page\'s link; with clean, without tracking parameters</string>
     <string name="shared_spaces_switch">Keep Spaces and groups in sync on this device</string>
     <string name="shared_spaces_title">Choose Spaces to sync</string>
     <string name="shared_spaces_explanation">Share these Spaces across devices on this sync account. Open tabs, tab names, groups and pinned tabs will sync.</string>
@@ -2268,6 +2264,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="shared_spaces_rejoin">Rejoin</string>
     <string name="shared_spaces_copy">Add as a copy</string>
     <string name="shared_spaces_full">This Space is too large to sync. Split it into smaller Spaces first.</string>
+    <string name="shared_spaces_account_full">Spaces sync storage is full. Delete a Space to free its content storage. Deleted Spaces still count toward the Space limit for 30 days.</string>
     <string name="shared_spaces_unavailable">Spaces sync is unavailable. Favorites, settings, open-tab sharing and Send to device continue.</string>
     <string name="shared_spaces_recovery_name">%1$s · kept on this device</string>
     <string name="shared_spaces_shared">Shared</string>
@@ -2372,6 +2369,12 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="tabs_menu_close">Close Tabs</string>
     <string name="ws_new_with_tabs">With these tabs</string>
     <string name="ws_error_moved_partly">Moved %1$s tabs to %2$s. The other tabs stayed here.</string>
+    <string name="sync_error_erasure_pending">The server copy is still being erased. Try again to finish erasing it, or turn off sync without erasing.</string>
+    <string name="settings_sync_try_again">Try again</string>
+    <string name="menu_next_tab_in_order">Next Tab in List Order</string>
+    <string name="menu_previous_tab_in_order">Previous Tab in List Order</string>
+    <string name="slash_copy_hint">Copy this page\'s link — add \"clean\" to drop tracking parameters</string>
+    <string name="slash_copy_doc">Copy this page\'s link; with clean, without tracking parameters</string>
     <string name="reader_title">Reader Mode</string>
     <string name="reader_enter">Enter Reader Mode</string>
     <string name="reader_exit">Exit Reader Mode</string>

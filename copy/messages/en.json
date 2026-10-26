@@ -1799,14 +1799,6 @@
     "message": "Previous Tab",
     "note": "App menu command that switches to the previous tab."
   },
-  "menu.nextTabInOrder": {
-    "message": "Next Tab in List Order",
-    "note": "App menu command (Ctrl+PageDown) that switches to the next tab in the tab list, whatever order Ctrl+Tab uses."
-  },
-  "menu.previousTabInOrder": {
-    "message": "Previous Tab in List Order",
-    "note": "App menu command (Ctrl+PageUp) that switches to the previous tab in the tab list, whatever order Ctrl+Tab uses."
-  },
   "menu.reload": {
     "message": "Reload",
     "note": "Context menu command (page background, tab) that reloads the page."
@@ -8426,14 +8418,6 @@
     "message": "Send this tab's page to another synced device",
     "note": "Reference description of /send <device> on blanc://shortcuts and in Help → Slash Commands."
   },
-  "slash.copy.hint": {
-    "message": "Copy this page's link — add \"clean\" to drop tracking parameters",
-    "note": "Slash command hint shown in the ⌘L palette for /copy. \"clean\" is the literal argument the user types; keep it untranslated."
-  },
-  "slash.copy.doc": {
-    "message": "Copy this page's link; with clean, without tracking parameters",
-    "note": "Reference description of /copy [clean] on blanc://shortcuts and in Help → Slash Commands. \"clean\" is the literal argument; keep it untranslated."
-  },
   "sharedSpaces.switch": {
     "message": "Keep Spaces and groups in sync on this device",
     "note": "Development-only Shared Spaces controls."
@@ -8473,6 +8457,10 @@
   "sharedSpaces.full": {
     "message": "This Space is too large to sync. Split it into smaller Spaces first.",
     "note": "Development-only Shared Spaces controls."
+  },
+  "sharedSpaces.accountFull": {
+    "message": "Spaces sync storage is full. Delete a Space to free its content storage. Deleted Spaces still count toward the Space limit for 30 days.",
+    "note": "Explains the account-wide encrypted storage quota and a recovery action."
   },
   "sharedSpaces.unavailable": {
     "message": "Spaces sync is unavailable. Favorites, settings, open-tab sharing and Send to device continue.",
@@ -8866,6 +8854,46 @@
   "ws.error.movedPartly": {
     "message": "Moved {count} tabs to {name}. The other tabs stayed here.",
     "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "sync.error.erasurePending": {
+    "message": "The server copy is still being erased. Try again to finish erasing it, or turn off sync without erasing.",
+    "note": "Settings Sync: pending server erasure and its retry action."
+  },
+  "settings.sync.tryAgain": {
+    "message": "Try again",
+    "note": "Settings Sync: pending server erasure and its retry action."
+  },
+  "menu.nextTabInOrder": {
+    "message": "Next Tab in List Order",
+    "note": "App menu command (Ctrl+PageDown) that switches to the next tab in the tab list, whatever order Ctrl+Tab uses."
+  },
+  "menu.previousTabInOrder": {
+    "message": "Previous Tab in List Order",
+    "note": "App menu command (Ctrl+PageUp) that switches to the previous tab in the tab list, whatever order Ctrl+Tab uses."
+  },
+  "settings.general.tabSwitchOrder.label": {
+    "message": "Switch tabs with Ctrl+Tab",
+    "note": "Settings → General: setting name. Chooses the order Ctrl+Tab goes through tabs."
+  },
+  "settings.general.tabSwitchOrder.hint": {
+    "message": "Hold Ctrl and press Tab to go back through the tabs you used last, then let go of Ctrl to switch. Esc stays where you are.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.tabSwitchOrder.recent": {
+    "message": "In the order you used them",
+    "note": "Settings → General → Switch tabs with Ctrl+Tab: option (most recently used first; the default)."
+  },
+  "settings.general.tabSwitchOrder.list": {
+    "message": "In the order of the tab list",
+    "note": "Settings → General → Switch tabs with Ctrl+Tab: option (the order tabs appear in the list)."
+  },
+  "slash.copy.hint": {
+    "message": "Copy this page's link — add \"clean\" to drop tracking parameters",
+    "note": "Slash command hint shown in the ⌘L palette for /copy. \"clean\" is the literal argument the user types; keep it untranslated."
+  },
+  "slash.copy.doc": {
+    "message": "Copy this page's link; with clean, without tracking parameters",
+    "note": "Reference description of /copy [clean] on blanc://shortcuts and in Help → Slash Commands. \"clean\" is the literal argument; keep it untranslated."
   },
   "reader.title": {
     "message": "Reader Mode",

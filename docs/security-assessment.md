@@ -84,12 +84,50 @@ transitions rather than trusting data because it originated inside the app.
 | A renderer abuses permissions, capture, popups, downloads, or native-app callbacks | Deny-by-default permission policy, per-origin decisions, trusted capture confirmation, popup inheritance, strict scheme/host allowlists, explicit callback confirmation, secret-redacted prompts | A user can still approve a deceptive request; Blanc does not currently provide a full Safe Browsing-style phishing and malware interstitial service. |
 | Browsing, private-session, credential, or workspace data crosses a profile or persistence boundary | Separate persistent profile sessions, a separate in-memory private session, private-history and restore exclusions, owner-only atomic local files, OS credential wrapping, bounded quiet/closed-tab snapshots that never cross IPC or disk | Malware running with the user's account can read displayed data or exercise the user's authority. Crash and platform behavior can still expose data outside Blanc's controls. |
 | An internal page or IPC call becomes a confused deputy | Per-host bridge allowlists and main-process checks for owned WebContents, session, surface, main frame, and expected payload shape | Main-process implementation defects can still defeat these checks; security-sensitive IPC changes require review and regression tests. |
-| Profile Sync or the tab relay leaks or corrupts user data | Client-side AES-GCM profile payloads, context-bound tab-handoff envelopes, opaque identifiers, one-time claims and expiry for tab handoffs, size limits and rate limits | Profile Sync uses possession of a passphrase-derived account identifier as its storage capability; possession permits retrieval, replacement and deletion without a separate credential (R3). Weak passphrases, endpoint compromise and non-atomic KV write/deletion races remain open (R5). Candidate v1 byte limits do not close these risks. |
+| Profile Sync or the tab relay leaks or corrupts user data | Client-side AES-GCM profile payloads, context-bound tab-handoff envelopes, opaque identifiers, one-time claims and expiry for tab handoffs, size/rate limits, and a separately configured per-account storage quota | Profile Sync uses possession of a passphrase-derived account identifier as its storage capability; possession permits retrieval, replacement and deletion without a separate credential (R3). Weak passphrases, endpoint compromise and non-atomic KV write/deletion races remain open (R5). Shared Spaces excludes private/internal/local/restricted pages; navigating a bound tab to one retains its last shareable web record. Deferred hostile navigation still reaches the ordinary top-level URL guard. Quota accounting limits storage exposure but does not authenticate the bearer locator or make KV writes atomic. |
 | Telemetry, newsletter, or site services collect more data than promised or are abused | First-run choice before telemetry sends, strict payload allowlists, HMAC pseudonyms, retention bounds, consent confirmation, origin checks, rate and size limits, data-flow drift tests | Cloudflare, Resend, and any configured analytics processor remain external processors; service configuration and privileged accounts require operational control. |
 | A dependency or generated asset is substituted or becomes vulnerable | Committed npm lockfiles, hash-pinned filter inputs, license/SBOM generation, Dependabot update proposals, production dependency audit, CodeQL, commit-pinned Actions, packaged-payload checks | Automated findings require human triage. No scanner proves the absence of vulnerabilities, and upstream security fixes still require a new Blanc release. |
 | A release asset or update is replaced | Protected `main`, procedural prohibition on replacing released versions, native build gates, macOS signing/notarization, Windows timestamped Authenticode, Sigstore-authenticated complete `SHA256SUMS`, SBOM, provenance, and fresh public verification | Public Windows verification execution/parsing failures and cached installers can bypass the publisher check (R2); the candidate rejects those paths, pending staged native handoff. Linux manual downloads depend on explicit authenticated-manifest verification; the automatic updater does not independently verify that Sigstore manifest. GitHub release API immutability was false when inspected. The release and infrastructure authority is concentrated in one maintainer. |
 
 ## Assessment evidence and review triggers
+
+### Shared Spaces PR D source review — 2026-10-25
+
+Source review completed by Codex for the PR D candidate. The checks below
+cover source and local fixtures; production deployment, real-device candidate
+validation and the owner's platform confirmations remain blocked. This is
+not release evidence or a decision to close R3/R5.
+
+| Boundary | Reviewed control and evidence |
+| --- | --- |
+| Data and consent | `shared-spaces-adapter.js` and `shared-spaces-model.js` admit bounded HTTP(S) metadata only; private/internal/local/document-policy content is excluded. A bound tab on an excluded page retains its last shareable record. `shared-spaces-service.js` records consent on each device/account, stages drafts before local binding, and preserves dormant links without publishing them. |
+| Credential changes | `sync.js` captures account, generation, consent and protected key for each operation. The queue rechecks cancellation before dispatch and after awaits; disable, account changes, suspension, consent changes and unavailable stores cancel queued work. `sync-queue-callers.test.js` covers these boundaries, including an in-flight PUT and account replacement. Linux `basic_text` remains refused by `sync-key-storage.js`. |
+| Untrusted navigation | Model sanitization accepts only HTTP(S), not `javascript:`, `data:`, internal or local schemes. `shared-spaces-runtime.js` persists accepted targets before applying them, protects active tabs and visible panes, and does not publish remote application as a local edit. `applySharedSpaceRow` uses ordinary quiet-tab creation or `navigateTabToAddress`; normal URL, document-policy, blocker and session rules remain in force. |
+| Renderer authority | Settings controls use `textContent` and DOM construction for peer names and choices. `pages.js`, `tab-preload.js` and `browser-api/bridges.json` restrict sharing actions to the owned Settings main frame; arbitrary web pages get no sharing or credential API. The Worker receives only encrypted payloads and an opaque locator. |
+| Quota and deletion | Schema 2 keeps new Space ciphertext and its charge in one SQLite transaction; fixed stores remain in KV under eight permanent historical reservations. Before/after-commit failures reload a complete row/charge pair or neither, so retry and erasure do not depend on stale reads or permanent intents. Selective DELETE is atomic. Account wipe retains SQLite data and blocks writes on partial legacy KV failure, then atomically clears the active database. Missing quota binding refuses Space reads/mutations and account erasure. Oversized blobs (413), account quota (507), and rate limit (429) remain distinct. |
+| Open R3/R5 | The locator remains a bearer capability: an account member can read, replace or erase ciphertext. Fixed-store KV reads/version checks remain non-atomic: same-version fixed-store PUTs can both succeed, and a lost acknowledged write may be unrecoverable. Stale replicas can resurrect expired tombstones; long-stale absent records are preserved in a local recovery Space. Space stores now compare versions inside their serialized SQLite write handler and reject stale writers with 409; pending edits merge and retry. Tests assert the remaining fixed-store limits without claiming an authenticated protocol. |
+
+The owner approved the conservative reservation plan in
+[#1134 at a303b55f6](https://github.com/bnfy/blanc/pull/1134), replacing the
+freeze/export/inventory proposal. The follow-up candidate reserves 8,391,120
+bytes and eight slots permanently; no customer ciphertext inventory or backup
+is required. Production history/writer scope must be rechecked before any
+deployment request; out-of-schema imports or writers invalidate the proof.
+Cleanup is disabled and cannot reset a quota ledger even if accidentally
+enabled. The [implementation review record](security-reviews/2026-10-25-sync-conservative-quota-implementation.md)
+covers schema validation, transactional upload recovery and erasure, conservative
+capacity, and the owner-approved October 26 move to authoritative SQLite.
+Cloudflare PITR history is a separate provider retention boundary: active
+database deletion is tested, provider purge is not. No restore endpoint is
+exposed; restoring erased ciphertext is prohibited. Provider retention/policy
+and new SQLite costs must be reviewed before deployment. Deployment, real-device
+validation, #1132 merge and PR E remain held. See the
+[Worker README](../cloudflare/sync-worker/README.md).
+
+Review reference: Cloudflare's [Durable Object concurrency rules](https://developers.cloudflare.com/durable-objects/best-practices/rules-of-durable-objects/)
+explain that external KV I/O can interleave requests, and
+[KV consistency](https://developers.cloudflare.com/kv/concepts/how-kv-works/)
+requires distinguishing serialized writes from eventually consistent reads.
 
 The detailed [August 12 audit](../security_privacy_audit_2026-08-12.md) records
 17 findings, their remediation, validation, and remaining limits. The

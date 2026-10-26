@@ -43,8 +43,10 @@ function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setT
     if(pos<0){wake();return;}
     const op=waiting.splice(pos,1)[0];running=op;op.state='running';
     try {
-      scheduler.record();persist(scheduler.snapshot());
-      const outcome=await op.run({attempt:op.attempt});
+      const reservation=scheduler.record();persist(scheduler.snapshot());
+      let outcome;
+      try {outcome=await op.run({attempt:op.attempt});}
+      finally {scheduler.settle(reservation);persist(scheduler.snapshot());}
       const cancelled=op.cancelled?.();
       if(cancelled)complete(op,null,makeError('cancelled:'+cancelled));
       else if(outcome?.retry){op.attempt++;op.state='waiting';waiting.push(op);}

@@ -1239,11 +1239,15 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   `docs/superpowers/specs/2026-10-24-move-to-space-follow-ups-design.md`).
 - Entry points: the ⌘L panel footer's Spaces button, `/space` (alias
   `/workspace`), Bring Your Tabs (F40) and the Arc Spaces import (F45).
-- Spaces are device-local and profile-scoped; they never sync.
-- **Planned, not built (2026-10-23):** opt-in, end-to-end-encrypted Spaces
-  sync through Profile Sync, which will replace the rule above once it ships,
-  and Spaces shown read-only on iPhone. Plan:
-  `docs/superpowers/specs/2026-10-23-ios-user-feedback-plan.md`.
+- Spaces are profile-scoped. On each desktop device, **Keep Spaces and groups
+  in sync on this device** is off by default. When enabled it synchronizes the
+  chosen Spaces through end-to-end-encrypted Profile Sync (F57); private tabs,
+  internal pages, local files and document-policy-restricted pages never enter
+  the encrypted records.
+- If a shared tab navigates to an internal page, local file, or another
+  unshareable page, its shared record stays at the last shareable HTTP(S) page.
+  Other devices keep showing that page. Only actually closing the tab publishes
+  its final deletion; returning to HTTP(S) updates the same record.
 - **Acceptance:**
   [`acceptance/F41-named-workspaces.feature`](./acceptance/F41-named-workspaces.feature)
   (`@workspace`, bound in `test/desktop/steps/named-workspaces.steps.js`,
@@ -1692,6 +1696,20 @@ Two gestures Arc's iPhone users rely on, asked for on r/ArcBrowser
   `/close`; Reduce Motion replaces the slide with a cross-fade.
 - **Desktop.** Not applicable: trackpad and keyboard tab switching already
   exist, and the Island has no bottom bar.
+
+## F57 — Shared Spaces sync (desktop)
+
+Each desktop device may opt selected Blanc Spaces into Profile Sync. The
+encrypted records contain shareable HTTP(S) addresses, titles, custom names,
+pins, groups, ordering and final close tombstones; they never contain page
+content, history, private tabs, internal pages, local files, permissions or
+document-policy-restricted pages. Active and visible tabs defer remote closes
+and navigations until they are no longer protected.
+
+Moving a bound tab to an internal page, local file or other excluded page does
+not delete its shared record: other devices retain the last shareable web page.
+Only an actual close publishes deletion. The switch is off by default and is
+local to each device. See `acceptance/shared-spaces.feature` and the M16 design.
 
 ## F58 — Reader Mode (desktop and iOS candidate)
 

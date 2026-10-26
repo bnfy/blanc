@@ -26,7 +26,13 @@ function createScheduler({limit=10,windowMs=60000,log=[],nextClass='I',cursors={
   }
   function record() {
     if(!canRequest())throw new RangeError('Sync request window exhausted');
-    events.push({wall:now(),at:monotonic()});
+    const event={wall:now(),at:monotonic()};events.push(event);return event;
+  }
+  // Charge through completion, not just reservation: persisting the log and
+  // network latency can otherwise compress actual dispatch/arrival windows.
+  function settle(event) {
+    event.wall=now();event.at=monotonic();
+    if(!events.includes(event))events.push(event);
   }
   function pick(work={}) {
     if(!canRequest())return null;
@@ -53,6 +59,6 @@ function createScheduler({limit=10,windowMs=60000,log=[],nextClass='I',cursors={
   function onRateLimited() {refresh();cap=Math.max(Math.min(3,limit),Math.floor(cap/2));recoverAt=monotonic()+360000;}
   function snapshot() {refresh();return {log:events.map(e=>e.wall),nextClass:next,cursors:{...items},windowLimit:cap,
     backoffUntil:recoverAt===null?null:now()+Math.max(0,recoverAt-monotonic()-60000)};}
-  return {canRequest,record,next:pick,markIndexDue:()=>{indexDue=true;},onRateLimited,snapshot,windowFreesAt};
+  return {canRequest,record,settle,next:pick,markIndexDue:()=>{indexDue=true;},onRateLimited,snapshot,windowFreesAt};
 }
 module.exports={createScheduler};

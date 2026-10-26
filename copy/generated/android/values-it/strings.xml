@@ -497,8 +497,6 @@
     <string name="menu_settings">Impostazioni</string>
     <string name="menu_next_tab">Scheda successiva</string>
     <string name="menu_previous_tab">Scheda precedente</string>
-    <string name="menu_next_tab_in_order">Scheda successiva nell’ordine dell’elenco</string>
-    <string name="menu_previous_tab_in_order">Scheda precedente nell’ordine dell’elenco</string>
     <string name="menu_reload">Ricarica</string>
     <string name="menu_copy_clean_link">Copia link pulito</string>
     <string name="menu_undo">Annulla</string>
@@ -2327,8 +2325,6 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="sends_no_match">Nessun dispositivo chiamato “%1$s”.</string>
     <string name="slash_send_hint">Digita uno spazio, poi il nome di un dispositivo, ad es. “iPhone”</string>
     <string name="slash_send_doc">Invia la pagina di questa scheda a un altro dispositivo sincronizzato</string>
-    <string name="slash_copy_hint">Copia il link di questa pagina: aggiungi «clean» per togliere i parametri di tracciamento</string>
-    <string name="slash_copy_doc">Copia il link di questa pagina; con clean, senza parametri di tracciamento</string>
     <string name="shared_spaces_switch">Sincronizza Spaces e gruppi su questo dispositivo</string>
     <string name="shared_spaces_title">Scegli gli Spaces da sincronizzare</string>
     <string name="shared_spaces_explanation">Condividi questi Spaces tra i dispositivi di questo account. Verranno sincronizzati schede aperte, nomi, gruppi e schede fissate.</string>
@@ -2339,6 +2335,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="shared_spaces_rejoin">Ricollega</string>
     <string name="shared_spaces_copy">Aggiungi come copia</string>
     <string name="shared_spaces_full">Questo Space è troppo grande. Dividilo prima in Spaces più piccoli.</string>
+    <string name="shared_spaces_account_full">Lo spazio di archiviazione per la sincronizzazione degli Spaces è pieno. Elimina uno Space per liberare lo spazio occupato dai suoi contenuti. Gli Spaces eliminati continuano a contare nel limite per 30 giorni.</string>
     <string name="shared_spaces_unavailable">La sincronizzazione degli Spaces non è disponibile. Preferiti, impostazioni, schede aperte e Invia al dispositivo continuano a funzionare.</string>
     <string name="shared_spaces_recovery_name">%1$s · conservato su questo dispositivo</string>
     <string name="shared_spaces_shared">Condiviso</string>
@@ -2445,6 +2442,12 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="tabs_menu_close">Chiudi schede</string>
     <string name="ws_new_with_tabs">Con queste schede</string>
     <string name="ws_error_moved_partly">%1$s schede spostate in %2$s. Le altre sono rimaste qui.</string>
+    <string name="sync_error_erasure_pending">La cancellazione della copia sul server è ancora in sospeso. Riprova per completarla, oppure disattiva la sincronizzazione senza cancellare i dati.</string>
+    <string name="settings_sync_try_again">Riprova</string>
+    <string name="menu_next_tab_in_order">Scheda successiva nell’ordine dell’elenco</string>
+    <string name="menu_previous_tab_in_order">Scheda precedente nell’ordine dell’elenco</string>
+    <string name="slash_copy_hint">Copia il link di questa pagina: aggiungi «clean» per togliere i parametri di tracciamento</string>
+    <string name="slash_copy_doc">Copia il link di questa pagina; con clean, senza parametri di tracciamento</string>
     <string name="reader_title">Modalità lettura</string>
     <string name="reader_enter">Attiva modalità lettura</string>
     <string name="reader_exit">Esci dalla modalità lettura</string>

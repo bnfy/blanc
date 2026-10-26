@@ -3,6 +3,7 @@ const model=require('./shared-spaces-model');
 const adapter=require('./shared-spaces-adapter');
 const copy=value=>structuredClone(value);
 function projectSpace(blob) {
+  const {DOCUMENT_POLICY_VERSION}=require('./document-policy');
   const clean=model.sanitizeBlob(blob);if(!clean)throw new TypeError('Invalid Space');
   const ids=model.orderOf(clean.tabs).filter(id=>!clean.tabs[id].deleted.v);
   const groupIds=model.orderOf(clean.groups).filter(id=>!clean.groups[id].deleted.v);
@@ -10,6 +11,7 @@ function projectSpace(blob) {
     meta:ids.map(id=>({title:clean.tabs[id].nav.v.title,customTitle:clean.tabs[id].name.v})),
     pinned:ids.map(id=>clean.tabs[id].pinned.v),groupIds:ids.map(id=>model.effectiveGroup(clean,clean.tabs[id])),
     groups:groupIds.map(id=>({id,name:clean.groups[id].name.v,color:clean.groups[id].color.v,collapsed:clean.groups[id].collapsed.v})),
+    documentPolicy:DOCUMENT_POLICY_VERSION,inheritsDocumentPolicy:ids.map(()=>false),localFiles:ids.map(()=>false),
     activeIndex:Math.max(0,ids.indexOf(model.activeTabId(clean))),sectionOrder:true};
 }
 function planSharing(index,workspaces,selections,{now,deviceId,ids,encryptFn}) {

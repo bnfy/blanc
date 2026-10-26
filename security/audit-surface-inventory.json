@@ -80,7 +80,7 @@
     },
     {
       "file": "cloudflare/sync-worker/src/index.js",
-      "sha256": "f0b9a4962dd4097ee08e8b8a2580d29d67e51043760513564f839244f46d2e19",
+      "sha256": "af0c77e55123f03b181465f384cd4625f6edae49a065e571a966787ff6ce48e4",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -251,7 +251,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "ff2456123f36f76c29f928c1eac6d622db35c4f377d3d9de7dd966026fa3d402",
+      "sha256": "52a9c02c67fa69991d5647b4eeb71baec8d8b469679e03e0c956ab9951f00776",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -944,7 +944,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "91db50538f7f3416c1c5a35dbc9357939934ce15d469dd564b542146ec931ddf",
+      "sha256": "1be88f4352d9bb8942b0cd30ba5c2a301c2b8605b2c13b38d27cf95aba161947",
       "literalChannels": [
         "before-quit"
       ],

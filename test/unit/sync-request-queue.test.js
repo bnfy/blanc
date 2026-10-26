@@ -26,6 +26,13 @@ test('an exhausted window makes a send wait rather than fail and exposes its nex
   await tick();assert.equal(done,false);assert.equal(queue.status().waiting,1);assert.ok(queue.status().windowFreesAt>1800000000000);
   await advance(60000);assert.equal((await send).outcome,'sent');assert.equal(ran,1);
 });
+test('variable persistence latency cannot compress actual GET dispatches into one window',async()=>{
+ let t=0,wake,writes=0;const sent=[],scheduler=createScheduler({limit:1,now:()=>t,monotonic:()=>t});
+ const queue=createRequestQueue({scheduler,now:()=>t,persist:()=>{if(++writes===1)t+=25;},setTimer:fn=>{wake=fn;return 1;},clearTimer:()=>{wake=null;}});
+ const request=()=>queue.enqueue({class:'F',item:'settings',run:async()=>{sent.push(t);}});
+ await request();const second=request();await tick();t=60000;wake?.();await tick();assert.equal(sent.length,1);
+ t=60025;wake?.();await second;assert.deepEqual(sent,[25,60025]);
+});
 test('generation, disable, suspended, consent-off and unavailable cancel waiting work without running it',async()=>{
   for(const reason of ['generation','disabled','suspended','consent-off','unavailable']) {
     const {scheduler,queue}=setup(1);scheduler.record();let ran=false,outcomes=0;
@@ -56,7 +63,7 @@ test('a request-log persistence failure prevents the GET and leaves the queue dr
 });
 test('failed persistence of a 429 backoff still completes every caller and drains',async()=>{
   const scheduler=createScheduler();let writes=0,callbacks=0;
-  const queue=createRequestQueue({scheduler,persist:()=>{if(++writes===2)throw new Error('disk full during backoff');}});
+  const queue=createRequestQueue({scheduler,persist:()=>{if(++writes===3)throw new Error('disk full during backoff');}});
   const op=queue.enqueue({class:'F',item:'settings',run:()=>{throw new Error('http-429');},onOutcome:()=>callbacks++});
   const result=await Promise.race([op,new Promise(r=>setTimeout(()=>r({error:new Error('queue wedged')}),50))]);
   assert.equal(result.error.message,'disk full during backoff');assert.equal(callbacks,1);

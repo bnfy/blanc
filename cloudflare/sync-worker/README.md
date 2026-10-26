@@ -14,10 +14,13 @@ protocol PR does not authorize a production deployment. Before deployment,
 record the storage-exposure decision below and verify the approved client and
 Worker order. Never enable or change cleanup as part of this protocol update.
 
-1. `cd cloudflare/sync-worker`
-2. `wrangler kv namespace create SYNC` → paste the id into `wrangler.toml`.
-3. `wrangler deploy`
-4. Confirm the URL matches `SYNC_ENDPOINT` in `src/main/sync.js`.
+The approved reservation plan is [#1134 at a303b55f6](https://github.com/bnfy/blanc/pull/1134).
+Its implementation is a separate review; approval of that plan is not deployment
+approval. Keep the existing production KV namespace and use one 100% cutover,
+not a traffic split. Before requesting deployment, recheck version/writer scope,
+confirm no out-of-schema operator writes/imports are known, review the exact
+code/configuration and recovery references, and ensure an old cleanup invocation
+is not still running. Do not create or substitute an empty namespace.
 
 ## Storage budget
 
@@ -28,9 +31,54 @@ Design: `docs/superpowers/specs/2026-10-05-sync-storage-budget-design.md`.
 - `new:<UTC day>` counts new accounts. Past `NEW_ACCOUNT_DAILY_LIMIT`, a new
   account's upload gets `503 {"error":"busy"}` with `Retry-After`; existing
   accounts are never refused.
+- An account-scoped Durable Object reserves every blob write against
+  `ACCOUNT_STORAGE_QUOTA_BYTES` (20 MiB by default) and
+  `ACCOUNT_STORAGE_MAX_STORES` (256 by default). Schema 2 reserves eight fixed
+  slots permanently, without reading or listing KV. The four historically
+  character-limited stores each reserve `3 * 524288 + 58 + 256` bytes; the other
+  four reserve `524288 + 58 + 256`. The total is **8,391,120 bytes**, including
+  wrappers and per-key headroom, even when the keys are absent or overwritten
+  with smaller values. This covers the verified legacy Unicode bound and late
+  fixed-only writes. No placeholder blobs, inventory import or backup is made.
+  Following the owner’s October 26 decision, new Space ciphertext lives only in
+  the account Durable Object’s SQLite storage. Its value, byte charge and slot
+  commit in one transaction; there is no KV mirror or separate pending intent.
+  Fixed stores stay in KV. Requests are serialized per account. A successful
+  replacement settles its charge atomically with its ciphertext. Quota exhaustion returns
+  `507 {"error":"account-quota"}` without storing the candidate blob. A
+  per-Space DELETE releases its value and quota reservation after the retained
+  deletion window; fixed stores remain removable only by the account wipe.
+  Blob GET responses advertise `X-Blanc-Space-Delete: 1`. Clients require
+  that capability before selective cleanup: older v1 Workers interpreted
+  DELETE paths with a store suffix as an account-wide wipe. Without the
+  capability, clients retain the expired id for a later cleanup attempt.
+  When the client learns a Space is deleted, it immediately replaces its
+  encrypted content with an empty Space blob. This frees the content bytes
+  while the encrypted index keeps the final deletion for 30 days. The compact
+  blob still uses one store slot until the final DELETE. Turning sharing off
+  on one device makes its link dormant and frees no server storage. Closed-tab
+  tombstones also remain until expiry, so removing tabs is not an immediate
+  storage-recovery action. Shrinking an existing blob is allowed even if a
+  subsequently lowered quota leaves the account above its allowance. Fixed
+  writes remain available when dynamic capacity is exhausted. Reserved headroom
+  is not occupied KV data: 507 does not prove 20 MiB of actual ciphertext exists.
+  The remaining dynamic allowance is 12,580,400 bytes and 248 slots: 23 full-cap
+  Space blobs fit; 25 blobs at the measured 320-KiB plaintext guide charge
+  19,323,470 bytes (18.4283 MiB), within the allowance.
+  A transaction failure returns 503. Even if its response was lost after commit,
+  retry/eviction sees a complete ciphertext-plus-charge pair or neither. No stale
+  KV read, timeout, intent reset or permanent lock is used to recover. Space GET,
+  PUT, selective DELETE and account wipe fail closed if the binding is missing;
+  fixed-store sync remains available. Failed DELETEs retain both value and charge
+  or remove both atomically. Partial account wipes retain SQLite data and block
+  writes until all legacy KV deletions succeed, then atomically clear SQLite.
+  The client retains its erasure credentials on any failure.
 - A daily Cron Trigger (04:17 UTC) deletes blobs of accounts with no marker,
   at most `CLEANUP_MAX_DELETES` per run. It does nothing unless
-  `CLEANUP_ENABLED = "true"`.
+  `CLEANUP_ENABLED = "true"` on the legacy Worker. With the quota binding,
+  cleanup always skips: a stale listing must never reset a live ledger. The
+  checked-in rollout configuration sets cleanup to false; a ledger-aware
+  replacement and enablement need separate review.
 
 Never set `CLEANUP_ENABLED` until every account has a marker:
 `node scripts/backfill-seen-markers.mjs`, then
@@ -44,8 +92,10 @@ Never set `CLEANUP_ENABLED` until every account has a marker:
 ## API
 
 - `GET /v1/blob/:accountId/:store` → `{ version, blob }` | 404 | 429
-- `PUT /v1/blob/:accountId/:store` `{ ifVersion, blob }` → `{ version }` | 409 | 400 | 413
-- `DELETE /v1/blob/:accountId` → 204 (account wipe)
+- `PUT /v1/blob/:accountId/:store` `{ ifVersion, blob }` → `{ version }` | 409 | 400 | 413 | 429 | 503 | 507
+- `DELETE /v1/blob/:accountId` → 204 (completed account wipe) | 503
+- `DELETE /v1/blob/:accountId/space-<id>` → 204 (one retired Space blob and
+  its quota charge; fixed stores reject this method)
 - `POST /v1/pair/:pairId` `{ blob }` → 201 | 409 `{"error":"exists"}` | 400 | 413 (4 KiB cap).
   Device pairing (design 2026-10-16): the sender parks its wrapped sync secret
   under an id derived from an eight-character code; stored with a 600 s TTL.
@@ -69,11 +119,14 @@ available yet. The M16 protocol additionally serves `spaces` (the library index)
 `space-<32 lowercase hex>` (one immutable Space id per blob). Malformed or
 unknown store names return `404 unknown store`. Account DELETE directly deletes
 every known fixed-store key and adds the `blob:<accountId>:` keys returned across
-all listing pages, including orphan Space blobs. It removes the activity marker
+all listing pages, including orphan Space blobs. With the quota binding it
+directly deletes every ledger-known dynamic key as well, even if listing
+fails or omits them all. It removes the activity marker
 only after those deletions succeed; it does not depend on the index. Direct
-fixed-store deletion does not depend on listing freshness. KV may still omit a
-dynamic Space key from a stale listing, and concurrent writes can recreate keys;
-the v1 protocol does not provide an atomic, immediately complete account wipe.
+fixed-store and ledger-known dynamic deletion do not depend on listing freshness.
+A successful wipe also atomically clears all SQLite ciphertext and the ledger;
+reinitialization recreates all eight reserves. Later writes can recreate keys; the v1 protocol does not provide an
+atomic, immediately complete global account wipe.
 
 Deploy these routes before a client release offers the Spaces switch. A client
 meeting an older Worker reports "Spaces sync isn't available yet"; Favorites,
@@ -94,18 +147,21 @@ missing or misleading lengths do not bypass the stream cap. Over-limit
 streams are cancelled with 413 before a blob is stored. Routes, encryption,
 derivation, conflict and version response shapes remain v1-compatible.
 
-KV counters and version checks are non-atomic. Two same-version writes can
-both succeed, losing one write; a pending write can recreate data after a
-DELETE. Client reconciliation does not guarantee recovery. Strict concurrency,
-deletion fencing and authenticated migration are separate v2 work.
+KV counters and fixed-store version checks are non-atomic. Two same-version
+fixed-store writes can both succeed, losing one write; an old KV writer can
+recreate data after DELETE. Client reconciliation does not guarantee recovery.
+Space stores compare `ifVersion` with SQLite inside the serialized `/write`
+handler before committing: a stale writer receives 409 with the current version.
+This also covers deletion compaction. Space ciphertext and quota commit together.
+An unfinished account wipe blocks writes with `503 {error: "quota erasure pending"}`;
+clients retain credentials and offer an explicit wipe retry.
 
 ## M16 storage scenarios and deployment decision
 
-The desktop's 25 **live** Spaces limit is not a server quota. The Worker accepts
-arbitrary valid Space ids, and deleted or orphan blobs can accumulate under an
-active account. Inactive-account cleanup does not bound that growth. Reducing
-`NEW_ACCOUNT_DAILY_LIMIT` restricts account creation, not storage per existing
-account. R3/R5 and non-atomic counters remain unchanged.
+The desktop's 25 **live** Spaces limit is not the server quota. Deleted and
+orphan blobs count against the separate account-wide byte and store limits.
+`NEW_ACCOUNT_DAILY_LIMIT` starts at 10 and remains independently configurable;
+changing it does not change an existing account's storage allowance. R3 and the fixed-store R5 KV version race remain open.
 
 Using the **historical pricing assumption** in the October 5 storage design
 ($0.50 per decimal GB-month after 1 GB included), the following is an occupancy
@@ -124,7 +180,8 @@ request charges and any price changes are excluded.
 Arithmetic: `33 * 524288 * dailyAccounts * 365 / 1e9`; price is
 `max(0, GB - 1) * 0.50`. More than 25 historical Space ids changes this scenario:
 1,000 capped Space blobs plus eight fixed blobs is 504 MiB per account, even
-if only 25 Spaces are live. There is no finite per-account byte bound here.
+if only 25 Spaces are live. That was the pre-quota exposure; the Worker now
+refuses growth beyond the configured 20 MiB or 256-store account ceilings.
 
 The October 5 listing measured 42 accounts and 138 blobs; it is historical,
 not a new production measurement. The design estimates 150–220 KiB for a
@@ -137,9 +194,38 @@ a wipe listing N keys needs approximately `ceil(N/P)` listings, deletion of the
 union of those keys and the eight fixed-store keys, and marker deletion. Missing
 fixed keys can therefore add up to eight delete calls; retries add requests.
 
-**Before deployment the owner must separately choose:** explicitly accept
-unbounded per-account blob growth, or require a reviewed, enforceable quota or
-retention mechanism first. No such mechanism is added here. Choosing a lower
-new-account limit is a separate decision and is not acceptance of this risk.
-The former four-store/$36 scenario in the design is historical and does not
-bound M16 storage. The full deployment gate is in the approved M16 plan.
+The owner rejected unbounded per-account growth and required an enforceable
+quota, separately selecting a daily new-account limit of 10. This candidate
+proposes the 20 MiB / 256-store values above; implementation, limits and legacy
+reservation verification require review before deployment. The former four-store/$36 scenario is
+historical and does not bound M16 storage. The full deployment gate remains in
+the approved M16 plan; merging this code does not authorize deployment.
+
+For a future approved recovery, preserve this exact ledger schema and binding.
+Setting the limits to 8,391,120 bytes and eight slots refuses new dynamic keys
+and dynamic growth while fixed writes and successful shrinking replacements
+remain available. Never roll back to unmetered dynamic routes or clear the
+ledger. This configuration was rehearsed locally; applying it in production
+still requires operator approval.
+
+## SQLite rollout and provider recovery
+
+Schema 2 is a candidate implementing the storage change authorized on October 26;
+schema 1 was never deployed. Unexpected pre-existing ledger schemas fail closed rather than
+importing or discarding KV data. Before deployment, recheck that no Space route
+or accountant has been deployed and no external writer/import exists. A deployed
+schema-1 ledger would require a separate migration, not an automatic upgrade.
+Recovery must preserve schema 2, its binding and authoritative SQLite ciphertext;
+rolling back to a KV-only implementation would strand data and is prohibited.
+
+[Cloudflare documents](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/)
+atomic SQLite transactions and deleteAll, plus provider point-in-time recovery
+for up to 30 days. A successful wipe removes the active database; local tests
+cannot verify provider history deletion. No PITR restore/export endpoint or
+backup is added by Blanc, and restoring erased account data is prohibited.
+Provider retention, restoration policy and the required privacy/FAQ wording need
+review before deployment/release; do not claim provider history is immediately
+purged or that a database restore could not resurrect erased ciphertext.
+The earlier KV-only cost examples are historical, not estimates for the new
+KV-plus-SQLite design. Review SQLite storage/row/compute costs and billing alerts
+before requesting deployment; the 20-MiB payload accounting bound is unchanged.

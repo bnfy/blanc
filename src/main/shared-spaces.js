@@ -197,8 +197,19 @@ function exportSidecar(ctx) {
 }
 const spaceCount=ctx=>Object.values(model.sanitizeIndex(rebind(ctx.accountId).data.index)?.spaces??{}).filter(record=>record.deleted.v!==true).length;
 const canAddSpace=ctx=>spaceCount(ctx)<model.LIMITS.spaces;
+const deletedSpaceIds=ctx=>Object.entries(rebind(ctx.accountId).data.index.spaces).filter(([,record])=>record.deleted?.v===true).map(([id])=>id);
+function retiredSpaceIds(ctx,now=Date.now()) {
+  const d=rebind(ctx.accountId).data;
+  // Cleanup runs only after the index no longer names the expired record.
+  // An obsolete pre-deletion publication receipt must not retain its blob
+  // forever when the device was offline throughout the retention window.
+  return Object.entries(d.index.spaces).filter(([,record])=>record.deleted?.v===true&&now-record.deleted.c>=model.LIMITS.tombstoneMs).map(([id])=>id);
+}
+function forgetRetiredSpace(id,ctx) {
+  const s=rebind(ctx.accountId);s.update(d=>{delete d.index.spaces[id];delete d.knownIndex[id];delete d.blobs[id];delete d.pending[id];delete d.recoveries[id];for(const [key,row] of Object.entries(d.windows))if(row?.spaceId===id)delete d.windows[key];});
+}
 module.exports={rebind,snapshot,setEnabled,isEnabled,setDormant,isDormant,isDraft,noteLocalSpace,setIndex,mergeIndex,exportIndex,settleIndex,
-  mergeSpace,exportSpace:mergeSpace,settleSpace,spaceIds,spaceCount,canAddSpace,exportSidecar,mergeSidecar,setOwnSidecar,
+  mergeSpace,exportSpace:mergeSpace,settleSpace,spaceIds,spaceCount,canAddSpace,deletedSpaceIds,retiredSpaceIds,forgetRetiredSpace,exportSidecar,mergeSidecar,setOwnSidecar,
   equals:(a,b)=>canonical(a)===canonical(b),hasPublishableContent:payload=>Object.keys(payload?.spaces??{}).length>0,
   onChanged:fn=>changed.add(fn),onRemoteChanged:fn=>remoteChanged.add(fn),
   onSyncDisabled:()=>{rebind('');notify(remoteChanged);}};

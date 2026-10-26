@@ -1,7 +1,8 @@
 'use strict';
+const {attachQuota,blobView}=require('../support/sync-quota.cjs');
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 let createSyncFixture;try{({createSyncFixture}=require('../desktop/support/sync-fixture'));}catch(e){if(e.code!=='MODULE_NOT_FOUND')throw e;}
-const worker=import(`data:text/javascript;base64,${fs.readFileSync(require.resolve('../../cloudflare/sync-worker/src/index.js')).toString('base64')}`).then(m=>m.default);
+const worker=import(`data:text/javascript;base64,${fs.readFileSync(require.resolve('../../cloudflare/sync-worker/src/index.js')).toString('base64')}`);
 const account='a'.repeat(64),sid=n=>n.toString(16).padStart(32,'0');
 function directStorage() {
   const records=new Map();return {records,SYNC:{get:async(k,o)=>{const v=records.get(k)??null;return v&&o?.type==='json'?JSON.parse(v):v;},
@@ -20,12 +21,15 @@ function normalize(versions) {
 }
 test('fixture HTTP routes, statuses, bodies and stored keys match the real Worker handler',async t=>{
   assert.equal(typeof createSyncFixture,'function');t.mock.method(Date,'now',()=>1800000000000);
-  const fixture=await createSyncFixture({pageSize:2});t.after(()=>fixture.close());const direct=directStorage(),stable=[normalize(new Map()),normalize(new Map())];
+  const fixture=await createSyncFixture({pageSize:2});t.after(()=>fixture.close());const direct=directStorage(),quota=attachQuota(direct,(await worker).AccountQuota),directBlobs=blobView(direct.records,quota.states),stable=[normalize(new Map()),normalize(new Map())];
   async function pair(method,store,body,who=account) {
     const path='/v1/blob/'+who+(store?'/'+store:'');const bodies=Array.isArray(body)?body:[body,body];
-    const responses=await Promise.all([(await worker).fetch(new Request('https://direct.test'+path,options(method,bodies[0])),direct),fetch(fixture.url+path,options(method,bodies[1]))]);
+    const responses=await Promise.all([(await worker).default.fetch(new Request('https://direct.test'+path,options(method,bodies[0])),direct),fetch(fixture.url+path,options(method,bodies[1]))]);
     const values=await Promise.all(responses.map(parsed));assert.equal(responses[0].status,responses[1].status);
-    assert.deepEqual(stable[0](values[0]),stable[1](values[1]));return {status:responses[0].status,values};
+    assert.deepEqual(stable[0](values[0]),stable[1](values[1]));
+    const stored=records=>Object.fromEntries([...records].sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>{try{return [k,JSON.parse(v)];}catch{return [k,v];}}));
+    assert.deepEqual(stable[0](stored(directBlobs)),stable[1](stored(fixture.blobs)));
+    return {status:responses[0].status,values};
   }
   assert.equal((await pair('GET','space-'+sid(1))).status,404);
   for(const store of ['spaces','closed','shared','space-'+sid(1)]) {
@@ -43,12 +47,12 @@ test('fixture HTTP routes, statuses, bodies and stored keys match the real Worke
   const stored=env=>Object.fromEntries([...env.records].sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>{try{return [k,JSON.parse(v)];}catch{return [k,v];}}));
   assert.deepEqual(stable[0](stored(direct)),stable[1](stored(fixture.env)));
 });
-test('same-version concurrent PUTs both succeed through the real non-atomic Worker check',async t=>{
+test('same-version concurrent Space PUTs have one winner through the real atomic Worker check',async t=>{
   const f=await createSyncFixture();t.after(()=>f.close());const store='space-'+sid(1),url=f.url+'/v1/blob/'+account+'/'+store;
   const first=await (await fetch(url,options('PUT',{blob:{ct:'seed'},ifVersion:null}))).json();
   f.raceNextPuts({accountId:account,store,count:2});
   const writes=await Promise.all(['A','B'].map(ct=>fetch(url,options('PUT',{blob:{ct},ifVersion:first.version}))));
-  assert.deepEqual(writes.map(x=>x.status),[200,200]);
+  assert.deepEqual(writes.map(x=>x.status).sort(),[200,409]);
   const final=await (await fetch(url)).json();assert.ok(['A','B'].includes(final.blob.ct));
 });
 test('stale reads and acknowledged disappearing writes change KV visibility without replacing the handler',async t=>{

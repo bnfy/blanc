@@ -66,7 +66,7 @@
       "default": "off",
       "recipient": "Blanc Cloudflare Worker",
       "data": ["opaque v1 account locator", "store name", "opaque version", "AES-256-GCM ciphertext", "ordinary edge metadata"],
-      "retentionByBlanc": "ciphertext until a configured client requests account wipe; non-atomic account-locator and raw client-IP rate counters in KV up to 120 seconds; provider logging/metadata retention requires deployed verification",
+      "retentionByBlanc": "active ciphertext until a configured client requests account wipe; unreleased candidate stores Space ciphertext in SQLite with provider PITR history up to 30 days, requiring retention review before deployment; fixed stores stay in KV; non-atomic account-locator and raw client-IP rate counters in KV up to 120 seconds; provider logging/metadata retention requires deployed verification",
       "code": ["src/main/sync.js", "src/main/sync-crypto.js", "cloudflare/sync-worker/src/index.js"]
     },
     {

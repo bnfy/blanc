@@ -43,7 +43,7 @@ async function touchAccount(env, accountId, marker, now = Date.now()) {
 // marker is new; only new accounts are ever refused, so a flood can block
 // sign-ups for a day but never existing users. KV has no atomic increment,
 // so like bumpLimited this is an order-of-magnitude bound, not an exact one.
-const DEFAULT_NEW_ACCOUNT_DAILY_LIMIT = 100;
+const DEFAULT_NEW_ACCOUNT_DAILY_LIMIT = 10;
 const NEW_COUNTER_TTL_SECONDS = 2 * 24 * 60 * 60;
 const utcDay = (now) => new Date(now).toISOString().slice(0, 10);
 
@@ -91,6 +91,9 @@ async function listNames(env, prefix) {
 }
 
 async function cleanupInactive(env) {
+  // The quota rollout deliberately does not enable legacy listing-based
+  // cleanup. A future ledger-aware cleanup needs its own reviewed rollout.
+  if (env.ACCOUNT_QUOTA) return { skipped: true, deleted: 0 };
   if (env.CLEANUP_ENABLED !== 'true') return { skipped: true, deleted: 0 };
   const max = limitFrom(env.CLEANUP_MAX_DELETES, DEFAULT_CLEANUP_MAX_DELETES);
   const live = new Set((await listNames(env, 'seen:')).map((name) => name.slice('seen:'.length)));
@@ -126,17 +129,30 @@ const ipRateLimited = (env, ip) => (ip ? bumpLimited(env, `ip:${ip}`, IP_RATE_LI
 
 async function handleGet(env, accountId, store) {
   if (await rateLimited(env, accountId)) return json({ error: 'rate-limited' }, 429);
-  const rec = await env.SYNC.get(blobKey(accountId, store), { type: 'json' });
-  if (!rec) return new Response('not found', { status: 404 });
+  const read = await readBlob(env, accountId, store);
+  if (read.response) return read.response;
+  const rec = read.record;
+  const capable=response=>{response.headers.set('X-Blanc-Space-Delete','1');return response;};
+  if (!rec) return capable(new Response('not found', { status: 404 }));
   await touchAccount(env, accountId, await readMarker(env, accountId));
-  return json({ version: rec.version, blob: rec.blob });
+  return capable(json({ version: rec.version, blob: rec.blob }));
+}
+
+async function readBlob(env, accountId, store) {
+  if (!dynamicStore(store)) return { record: await env.SYNC.get(blobKey(accountId, store), { type: 'json' }) };
+  if (!env.ACCOUNT_QUOTA) return { response: unavailable('quota unavailable') };
+  try {
+    const result = await env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId)).fetch('https://quota.invalid/read', { method: 'POST', body: JSON.stringify({ accountId, store }) });
+    if (!result.ok) return { response: unavailable('quota unavailable') };
+    return await result.json();
+  } catch { return { response: unavailable('quota unavailable') }; }
 }
 
 // Optimistic concurrency: reject if the caller's ifVersion isn't current. The
-// read-then-write isn't a transaction: racing writers can both succeed and one
-// write can be lost. Reconciliation does not guarantee recovery of that data.
-// Atomic concurrency and deletion fencing require a separate protocol project.
+// fixed-store KV read-then-write is not a transaction and can lose racing
+// writes. Spaces compare and commit inside the serialized account object.
 async function handlePut(env, accountId, store, body) {
+  if (dynamicStore(store) && !env.ACCOUNT_QUOTA) return unavailable('quota unavailable');
   if (!body || typeof body.blob !== 'object' || body.blob === null) return json({ error: 'bad blob' }, 400);
   if (new TextEncoder().encode(JSON.stringify(body.blob)).byteLength > MAX_BLOB_BYTES) return json({ error: 'too large' }, 413);
   const marker = await readMarker(env, accountId);
@@ -144,25 +160,161 @@ async function handlePut(env, accountId, store, body) {
     const busy = await newAccountRefusal(env);
     if (busy) return busy;
   }
-  const cur = await env.SYNC.get(blobKey(accountId, store), { type: 'json' });
-  if ((body.ifVersion ?? null) !== (cur?.version ?? null)) return json({ version: cur?.version ?? null, error: 'conflict' }, 409);
+  if (!dynamicStore(store)) {
+    const read = await readBlob(env, accountId, store);
+    if (read.response) return read.response;
+    const cur = read.record;
+    if ((body.ifVersion ?? null) !== (cur?.version ?? null)) return json({ version: cur?.version ?? null, error: 'conflict' }, 409);
+  }
   const version = crypto.randomUUID();
-  await env.SYNC.put(blobKey(accountId, store), JSON.stringify({ version, blob: body.blob }));
+  const stored = JSON.stringify({ version, blob: body.blob });
+  if (env.ACCOUNT_QUOTA) {
+    const quota = env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId));
+    const response = await quota.fetch('https://quota.invalid/write', { method: 'POST', body: JSON.stringify({ accountId, store, stored, ifVersion: body.ifVersion ?? null }) });
+    if (response.status === 507) return json({ error: 'account-quota' }, 507);
+    if (response.status === 409 || response.status === 503) return response;
+    if (!response.ok) return json({ error: 'quota unavailable' }, 503);
+  } else await env.SYNC.put(blobKey(accountId, store), stored);
   if (!marker) await countNewAccount(env);
   await touchAccount(env, accountId, marker);
   return json({ version });
 }
 
 async function handleDelete(env, accountId) {
-  // List before deleting: cursors may be offset-based in local fixtures and
-  // Space blobs can outlive their index entries. Never rely on the live index.
-  // KV listings can omit recently written keys. Preserve the direct deletion
-  // of every known fixed store; enumeration supplements it for dynamic ids.
-  const keys = new Set([...STORES].map((store) => blobKey(accountId, store)));
-  for (const key of await listNames(env, `blob:${accountId}:`)) keys.add(key);
-  await Promise.all([...keys].map((key) => env.SYNC.delete(key)));
-  await env.SYNC.delete(seenKey(accountId));
+  if(env.ACCOUNT_QUOTA)return env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId)).fetch('https://quota.invalid/delete-account',{method:'POST',body:JSON.stringify({accountId})});
+  return unavailable('quota unavailable');
+}
+
+async function handleStoreDelete(env, accountId, store) {
+  if (env.ACCOUNT_QUOTA) {
+    const response = await env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId)).fetch('https://quota.invalid/delete-store', { method: 'POST', body: JSON.stringify({ accountId, store }) });
+    if (response.status === 409 || response.status === 503) return response;
+    if (!response.ok) return json({ error: 'quota unavailable' }, 503);
+  } else return unavailable('quota unavailable');
   return new Response(null, { status: 204 });
+}
+
+const DEFAULT_ACCOUNT_QUOTA_BYTES = 20 * 1024 * 1024;
+const DEFAULT_ACCOUNT_QUOTA_STORES = 256;
+const QUOTA_KEY_OVERHEAD_BYTES = 256;
+const STORED_WRAPPER_BYTES = 58;
+const MAX_STORED_BYTES = MAX_BLOB_BYTES + STORED_WRAPPER_BYTES;
+const OLD_CHARACTER_STORES = new Set(['bookmarks', 'settings', 'session', 'icons']);
+const FIXED_RESERVATION_BYTES = [...STORES].reduce((sum, store) =>
+  sum + (OLD_CHARACTER_STORES.has(store) ? 3 : 1) * MAX_BLOB_BYTES + STORED_WRAPPER_BYTES + QUOTA_KEY_OVERHEAD_BYTES, 0);
+const dynamicStore = store => /^space-[0-9a-f]{32}$/.test(store);
+const unavailable = error => json({ error }, 503);
+
+// Eight permanent reservations cover the verified fixed-only legacy universe,
+// including the older UTF-16 size cap. No KV read/list decides quota usage.
+// New Space ciphertext and its charge are one SQLite transaction. A late
+// request must reserve again; no external KV PUT can outlive its Space charge.
+export class AccountQuota {
+  static get fixedReservationBytes() { return FIXED_RESERVATION_BYTES; }
+  constructor(state, env) { this.state = state; this.env = env; this.initializing = null; this.tail = Promise.resolve(); }
+  async bootstrap(accountId) {
+    let ledger = await this.state.storage.get('ledger');
+    if (ledger !== undefined && ledger !== null) {
+      if (ledger.schema !== 2 || ledger.accountId !== accountId || typeof ledger.erasing !== 'boolean' ||
+          !ledger.stores || typeof ledger.stores !== 'object' || Array.isArray(ledger.stores) ||
+          Object.entries(ledger.stores).some(([store, row]) => !dynamicStore(store) || !row ||
+            !Number.isSafeInteger(row.bytes) || row.bytes < 0 || row.bytes > MAX_STORED_BYTES ||
+            row.intent !== undefined)) throw new Error('incompatible quota ledger');
+      return ledger;
+    }
+    ledger = { schema: 2, accountId, stores: {}, erasing: false };
+    await this.save(ledger);
+    return ledger;
+  }
+  async save(ledger) {
+    await this.state.storage.put('ledger', ledger);
+    this.initializing = Promise.resolve(ledger);
+  }
+  async commitBlob(ledger, store, stored) {
+    await this.state.storage.transaction(async tx => {
+      if (stored === null) await tx.delete('blob:' + store);
+      else await tx.put('blob:' + store, stored);
+      await tx.put('ledger', ledger);
+    });
+    this.initializing = Promise.resolve(ledger);
+  }
+  fetch(request) {
+    const result = this.tail.then(() => this.handle(request)).catch(async () => {
+      // Reload durable state after a failed persistence operation. Never
+      // publish a partially mutated in-memory ledger as the next request's base.
+      this.initializing = null;
+      try { if ((await this.state.storage.get('ledger'))?.erasing) return unavailable('quota erasure pending'); } catch {}
+      return unavailable('quota unavailable');
+    });
+    this.tail = result.then(() => {}, () => {});
+    return result;
+  }
+  async handle(request) {
+    if (request.method !== 'POST') return new Response('method not allowed', { status: 405 });
+    const path = new URL(request.url).pathname;
+    if (!['/read', '/write', '/delete-store', '/delete-account'].includes(path)) return new Response('method not allowed', { status: 405 });
+    let body;
+    try { body = await request.json(); } catch { return json({ error: 'bad quota request' }, 400); }
+    if (!body || !/^[0-9a-f]{64}$/.test(body.accountId)) return json({ error: 'bad quota request' }, 400);
+    const byteLimit = limitFrom(this.env.ACCOUNT_STORAGE_QUOTA_BYTES, DEFAULT_ACCOUNT_QUOTA_BYTES);
+    const storeLimit = limitFrom(this.env.ACCOUNT_STORAGE_MAX_STORES, DEFAULT_ACCOUNT_QUOTA_STORES);
+    if (byteLimit < FIXED_RESERVATION_BYTES || storeLimit < STORES.size) return unavailable('invalid quota configuration');
+    // An unauthenticated miss must not create persistent account storage or
+    // bypass the PUT-only daily admission limit by allocating empty ledgers.
+    if (path === '/read' && !this.initializing && await this.state.storage.get('ledger') == null) return json({ record: null });
+    this.initializing ??= this.bootstrap(body.accountId);
+    const ledger = await this.initializing;
+    if (ledger.accountId !== body.accountId) return json({ error: 'wrong account' }, 400);
+    if (path === '/read') {
+      if (!dynamicStore(body.store)) return json({ error: 'bad quota request' }, 400);
+      const stored = await this.state.storage.get('blob:' + body.store);
+      if (Boolean(stored) !== Boolean(ledger.stores[body.store])) throw new Error('inconsistent Space storage');
+      return json({ record: stored ? JSON.parse(stored) : null });
+    }
+    if (path === '/delete-account') {
+      const next = structuredClone(ledger); next.erasing = true; await this.save(next);
+      // Keep SQLite ciphertext + ledger until all legacy KV deletes succeed.
+      // Erasing blocks writes until retry; deleteAll then atomically erases all
+      // SQLite values and quota. It cannot leave a half-committed Space write.
+      const prefix = `blob:${body.accountId}:`;
+      const keys = new Set([...STORES, ...Object.keys(next.stores)].map(store => blobKey(body.accountId, store)));
+      // Supplement known keys for defense in depth, but never let a stale or
+      // unavailable listing omit ledger-known keys or decide their charges.
+      try { for (const key of await listNames(this.env, prefix)) if (key.startsWith(prefix)) keys.add(key); }
+      catch { /* Fixed reservations + durable dynamic keys remain authoritative. */ }
+      for (const key of keys) await this.env.SYNC.delete(key);
+      await this.env.SYNC.delete(seenKey(body.accountId));
+      await this.state.storage.deleteAll(); this.initializing = null;
+      return new Response(null, { status: 204 });
+    }
+    if (ledger.erasing) return unavailable('quota erasure pending');
+    if (path === '/delete-store') {
+      if (!dynamicStore(body.store)) return new Response('method not allowed', { status: 405 });
+      const before = ledger.stores[body.store];
+      const next = structuredClone(ledger);
+      if (before) { delete next.stores[body.store]; await this.commitBlob(next, body.store, null); }
+      return json({}, 200);
+    }
+    if (typeof body.store !== 'string' || (!STORES.has(body.store) && !dynamicStore(body.store)) || typeof body.stored !== 'string') return json({ error: 'bad quota request' }, 400);
+    const bytes = new TextEncoder().encode(body.stored).byteLength;
+    if (bytes > MAX_STORED_BYTES) return json({ error: 'too large' }, 413);
+    if (STORES.has(body.store)) {
+      await this.env.SYNC.put(blobKey(body.accountId, body.store), body.stored);
+      return json({}, 200); // The permanent reserve never changes.
+    }
+    const current = await this.state.storage.get('blob:' + body.store);
+    if (Boolean(current) !== Boolean(ledger.stores[body.store])) throw new Error('inconsistent Space storage');
+    const currentVersion = current ? JSON.parse(current).version : null;
+    if ((body.ifVersion ?? null) !== currentVersion) return json({ error: 'conflict', version: currentVersion }, 409);
+    const before = ledger.stores[body.store];
+    const nextBytes = FIXED_RESERVATION_BYTES + Object.values(ledger.stores).reduce((sum, row) => sum + row.bytes + QUOTA_KEY_OVERHEAD_BYTES, 0)
+      + (before ? bytes - before.bytes : bytes + QUOTA_KEY_OVERHEAD_BYTES);
+    const nextSlots = STORES.size + Object.keys(ledger.stores).length + (before ? 0 : 1);
+    if ((nextBytes > byteLimit || nextSlots > storeLimit) && !(before && bytes <= before.bytes)) return json({ error: 'account-quota' }, 507);
+    const next = structuredClone(ledger); next.stores[body.store] = { bytes };
+    await this.commitBlob(next, body.store, body.stored);
+    return json({}, 200);
+  }
 }
 
 async function readBoundedJson(request, maxBytes = MAX_REQUEST_BYTES) {
@@ -240,8 +392,9 @@ export default {
       return json({ error: 'rate-limited' }, 429);
     }
 
-    if (request.method === 'DELETE') return handleDelete(env, accountId);
+    if (request.method === 'DELETE' && !store) return handleDelete(env, accountId);
     if (store && !STORES.has(store) && !/^space-[0-9a-f]{32}$/.test(store)) return new Response('unknown store', { status: 404 });
+    if (request.method === 'DELETE') return /^space-[0-9a-f]{32}$/.test(store) ? handleStoreDelete(env, accountId, store) : new Response('method not allowed', { status: 405 });
     // GET/PUT address one store; only DELETE is account-wide. Requiring the
     // segment stops a storeless PUT from writing an unwipeable orphan key.
     if ((request.method === 'GET' || request.method === 'PUT') && !store) {

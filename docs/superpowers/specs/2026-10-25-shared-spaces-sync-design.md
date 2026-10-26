@@ -63,6 +63,18 @@ One blob, the directory of the library:
 - Name ≤60 (desktop's cap), colour `#rrggbb`, symbol one of the sixteen; invalid values are repaired as `workspaces-model.js` already does, never rejected.
 - `rev` is the content revision of the Space blob as last written by the device that wrote it (§6.1). It is a hint for fetching, never the only reason to fetch. It travels with the clock and writer of the write that set it, `revAt` and `revBy`, and two hints merge like a field: the higher `revAt` wins, then the smaller `revBy`, then the smaller hash; a hint without `revAt` ranks below any hint with one. A writer publishing a new hint sets `revAt` to at least one more than the hint it replaces, so a device whose clock runs behind still publishes a hint that wins. (Choosing by hash alone would keep whichever revision sorts first, so a reader that held an old revision would keep it after merging a newer one about half the time and republish it, and the hint would stop meaning "changed".) After a successful blob write the writer records the uploaded revision as the one it last saw, so its own published hint doesn't send it to fetch its own write.
 - A deleted Space keeps its index entry as a tombstone for 30 days (§3.5).
+- **Storage reclamation (owner decision, 2026-10-25):** a client that knows
+  this tombstone replaces `space-<spaceId>` with an encrypted empty Space
+  (`{v:1, spaceId, groups:{}, tabs:{}}`) through its normal sync queue. It never
+  replays the deleted Space's pending tab edits into that replacement. This
+  releases content bytes immediately while retaining the final index deletion.
+  After 30 days, the client removes the index tombstone, deletes the individual
+  Space store, and only then forgets the local id. The compact value continues
+  to consume one server store slot until that DELETE. A dormant link releases
+  no server storage, and tab-close tombstones still retain their bytes until
+  expiry. The account-full message distinguishes content space from retained
+  store slots. The Worker permits shrinking existing values even above a
+  lowered quota. R3/R5 and the known stale-writer races remain unchanged.
 
 ### 3.2 One Space, one blob: store `space-<spaceId>`
 

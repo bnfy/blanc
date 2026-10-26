@@ -19681,90 +19681,6 @@
         }
       }
     },
-    "menu.nextTabInOrder": {
-      "comment": "App menu command (Ctrl+PageDown) that switches to the next tab in the tab list, whatever order Ctrl+Tab uses.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Next Tab in List Order"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nächster Tab in Listenreihenfolge"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pestaña siguiente en el orden de la lista"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Onglet suivant dans l’ordre de la liste"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scheda successiva nell’ordine dell’elenco"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Próxima aba na ordem da lista"
-          }
-        }
-      }
-    },
-    "menu.previousTabInOrder": {
-      "comment": "App menu command (Ctrl+PageUp) that switches to the previous tab in the tab list, whatever order Ctrl+Tab uses.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Previous Tab in List Order"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vorheriger Tab in Listenreihenfolge"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pestaña anterior en el orden de la lista"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Onglet précédent dans l’ordre de la liste"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scheda precedente nell’ordine dell’elenco"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aba anterior na ordem da lista"
-          }
-        }
-      }
-    },
     "menu.reload": {
       "comment": "Context menu command (page background, tab) that reloads the page.",
       "extractionState": "manual",
@@ -92077,90 +91993,6 @@
         }
       }
     },
-    "slash.copy.hint": {
-      "comment": "Slash command hint shown in the ⌘L palette for /copy. \"clean\" is the literal argument the user types; keep it untranslated.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copy this page's link — add \"clean\" to drop tracking parameters"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Link dieser Seite kopieren – mit „clean“ ohne Tracking-Parameter"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copiar el enlace de esta página: añade «clean» para quitar los parámetros de seguimiento"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copier le lien de cette page — ajoutez « clean » pour retirer les paramètres de suivi"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copia il link di questa pagina: aggiungi «clean» per togliere i parametri di tracciamento"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copiar o link desta página — adicione “clean” para tirar os parâmetros de rastreamento"
-          }
-        }
-      }
-    },
-    "slash.copy.doc": {
-      "comment": "Reference description of /copy [clean] on blanc://shortcuts and in Help → Slash Commands. \"clean\" is the literal argument; keep it untranslated.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copy this page's link; with clean, without tracking parameters"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Link dieser Seite kopieren; mit clean ohne Tracking-Parameter"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copiar el enlace de esta página; con clean, sin parámetros de seguimiento"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copier le lien de cette page ; avec clean, sans paramètres de suivi"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copia il link di questa pagina; con clean, senza parametri di tracciamento"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copiar o link desta página; com clean, sem parâmetros de rastreamento"
-          }
-        }
-      }
-    },
     "sharedSpaces.switch": {
       "comment": "Development-only Shared Spaces controls.",
       "extractionState": "manual",
@@ -92577,6 +92409,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Este Space é grande demais. Primeiro divida-o em Spaces menores."
+          }
+        }
+      }
+    },
+    "sharedSpaces.accountFull": {
+      "comment": "Explains the account-wide encrypted storage quota and a recovery action.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spaces sync storage is full. Delete a Space to free its content storage. Deleted Spaces still count toward the Space limit for 30 days."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Speicher für die Spaces-Synchronisierung ist voll. Lösche einen Space, um seinen Inhaltsspeicher freizugeben. Gelöschte Spaces zählen noch 30 Tage zum Space-Limit."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El almacenamiento de sincronización de Spaces está lleno. Elimina un Space para liberar el almacenamiento de su contenido. Los Spaces eliminados siguen contando para el límite de Spaces durante 30 días."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le stockage de synchronisation des Spaces est plein. Supprimez un Space pour libérer le stockage de son contenu. Les Spaces supprimés comptent encore dans la limite des Spaces pendant 30 jours."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo spazio di archiviazione per la sincronizzazione degli Spaces è pieno. Elimina uno Space per liberare lo spazio occupato dai suoi contenuti. Gli Spaces eliminati continuano a contare nel limite per 30 giorni."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O armazenamento da sincronização de Spaces está cheio. Exclua um Space para liberar o armazenamento do seu conteúdo. Spaces excluídos continuam contando para o limite por 30 dias."
           }
         }
       }
@@ -96885,6 +96759,258 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ abas movidas para %2$@. As outras ficaram aqui."
+          }
+        }
+      }
+    },
+    "sync.error.erasurePending": {
+      "comment": "Settings Sync: pending server erasure and its retry action.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server copy is still being erased. Try again to finish erasing it, or turn off sync without erasing."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Kopie auf dem Server wird noch gelöscht. Versuche es erneut, um den Vorgang abzuschließen, oder deaktiviere die Synchronisierung ohne Löschen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La copia del servidor sigue pendiente de borrado. Inténtalo de nuevo para terminar de borrarla, o desactiva la sincronización sin borrar los datos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La copie sur le serveur est toujours en cours de suppression. Réessayez pour terminer la suppression, ou désactivez la synchronisation sans effacer les données."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La cancellazione della copia sul server è ancora in sospeso. Riprova per completarla, oppure disattiva la sincronizzazione senza cancellare i dati."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A cópia no servidor ainda está sendo apagada. Tente novamente para concluir ou desative a sincronização sem apagar os dados."
+          }
+        }
+      }
+    },
+    "settings.sync.tryAgain": {
+      "comment": "Settings Sync: pending server erasure and its retry action.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut versuchen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intentar de nuevo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réessayer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riprova"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tentar novamente"
+          }
+        }
+      }
+    },
+    "menu.nextTabInOrder": {
+      "comment": "App menu command (Ctrl+PageDown) that switches to the next tab in the tab list, whatever order Ctrl+Tab uses.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next Tab in List Order"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächster Tab in Listenreihenfolge"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pestaña siguiente en el orden de la lista"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onglet suivant dans l’ordre de la liste"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scheda successiva nell’ordine dell’elenco"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Próxima aba na ordem da lista"
+          }
+        }
+      }
+    },
+    "menu.previousTabInOrder": {
+      "comment": "App menu command (Ctrl+PageUp) that switches to the previous tab in the tab list, whatever order Ctrl+Tab uses.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous Tab in List Order"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorheriger Tab in Listenreihenfolge"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pestaña anterior en el orden de la lista"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onglet précédent dans l’ordre de la liste"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scheda precedente nell’ordine dell’elenco"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aba anterior na ordem da lista"
+          }
+        }
+      }
+    },
+    "slash.copy.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /copy. \"clean\" is the literal argument the user types; keep it untranslated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy this page's link — add \"clean\" to drop tracking parameters"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link dieser Seite kopieren – mit „clean“ ohne Tracking-Parameter"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar el enlace de esta página: añade «clean» para quitar los parámetros de seguimiento"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier le lien de cette page — ajoutez « clean » pour retirer les paramètres de suivi"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia il link di questa pagina: aggiungi «clean» per togliere i parametri di tracciamento"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar o link desta página — adicione “clean” para tirar os parâmetros de rastreamento"
+          }
+        }
+      }
+    },
+    "slash.copy.doc": {
+      "comment": "Reference description of /copy [clean] on blanc://shortcuts and in Help → Slash Commands. \"clean\" is the literal argument; keep it untranslated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy this page's link; with clean, without tracking parameters"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link dieser Seite kopieren; mit clean ohne Tracking-Parameter"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar el enlace de esta página; con clean, sin parámetros de seguimiento"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier le lien de cette page ; avec clean, sans paramètres de suivi"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia il link di questa pagina; con clean, senza parametri di tracciamento"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar o link desta página; com clean, sem parâmetros de rastreamento"
           }
         }
       }

@@ -497,8 +497,6 @@
     <string name="menu_settings">Configuración</string>
     <string name="menu_next_tab">Pestaña siguiente</string>
     <string name="menu_previous_tab">Pestaña anterior</string>
-    <string name="menu_next_tab_in_order">Pestaña siguiente en el orden de la lista</string>
-    <string name="menu_previous_tab_in_order">Pestaña anterior en el orden de la lista</string>
     <string name="menu_reload">Recargar</string>
     <string name="menu_copy_clean_link">Copiar enlace limpio</string>
     <string name="menu_undo">Deshacer</string>
@@ -2327,8 +2325,6 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="sends_no_match">No hay ningún dispositivo llamado «%1$s».</string>
     <string name="slash_send_hint">Escribe un espacio y luego el nombre de un dispositivo, p. ej., «iPhone»</string>
     <string name="slash_send_doc">Enviar la página de esta pestaña a otro dispositivo sincronizado</string>
-    <string name="slash_copy_hint">Copiar el enlace de esta página: añade «clean» para quitar los parámetros de seguimiento</string>
-    <string name="slash_copy_doc">Copiar el enlace de esta página; con clean, sin parámetros de seguimiento</string>
     <string name="shared_spaces_switch">Mantener Spaces y grupos sincronizados en este dispositivo</string>
     <string name="shared_spaces_title">Elegir Spaces para sincronizar</string>
     <string name="shared_spaces_explanation">Comparte estos Spaces entre los dispositivos de esta cuenta. Se sincronizarán las pestañas abiertas, sus nombres, los grupos y las pestañas fijadas.</string>
@@ -2339,6 +2335,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="shared_spaces_rejoin">Volver a unirse</string>
     <string name="shared_spaces_copy">Añadir como copia</string>
     <string name="shared_spaces_full">Este Space es demasiado grande. Divídelo primero en Spaces más pequeños.</string>
+    <string name="shared_spaces_account_full">El almacenamiento de sincronización de Spaces está lleno. Elimina un Space para liberar el almacenamiento de su contenido. Los Spaces eliminados siguen contando para el límite de Spaces durante 30 días.</string>
     <string name="shared_spaces_unavailable">La sincronización de Spaces no está disponible. Los favoritos, los ajustes, las pestañas abiertas y Enviar a dispositivo siguen funcionando.</string>
     <string name="shared_spaces_recovery_name">%1$s · conservado en este dispositivo</string>
     <string name="shared_spaces_shared">Compartido</string>
@@ -2445,6 +2442,12 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="tabs_menu_close">Cerrar pestañas</string>
     <string name="ws_new_with_tabs">Con estas pestañas</string>
     <string name="ws_error_moved_partly">Se movieron %1$s pestañas a %2$s. Las demás siguen aquí.</string>
+    <string name="sync_error_erasure_pending">La copia del servidor sigue pendiente de borrado. Inténtalo de nuevo para terminar de borrarla, o desactiva la sincronización sin borrar los datos.</string>
+    <string name="settings_sync_try_again">Intentar de nuevo</string>
+    <string name="menu_next_tab_in_order">Pestaña siguiente en el orden de la lista</string>
+    <string name="menu_previous_tab_in_order">Pestaña anterior en el orden de la lista</string>
+    <string name="slash_copy_hint">Copiar el enlace de esta página: añade «clean» para quitar los parámetros de seguimiento</string>
+    <string name="slash_copy_doc">Copiar el enlace de esta página; con clean, sin parámetros de seguimiento</string>
     <string name="reader_title">Modo de lectura</string>
     <string name="reader_enter">Entrar en modo de lectura</string>
     <string name="reader_exit">Salir del modo de lectura</string>

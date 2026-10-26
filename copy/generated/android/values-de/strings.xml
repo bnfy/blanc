@@ -481,8 +481,6 @@
     <string name="menu_settings">Einstellungen</string>
     <string name="menu_next_tab">Nächster Tab</string>
     <string name="menu_previous_tab">Vorheriger Tab</string>
-    <string name="menu_next_tab_in_order">Nächster Tab in Listenreihenfolge</string>
-    <string name="menu_previous_tab_in_order">Vorheriger Tab in Listenreihenfolge</string>
     <string name="menu_reload">Neu laden</string>
     <string name="menu_copy_clean_link">Bereinigten Link kopieren</string>
     <string name="menu_undo">Rückgängig</string>
@@ -2256,8 +2254,6 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="sends_no_match">Kein Gerät namens „%1$s“.</string>
     <string name="slash_send_hint">Leerzeichen, dann einen Gerätenamen eingeben – z. B. „iPhone“</string>
     <string name="slash_send_doc">Die Seite dieses Tabs an ein anderes synchronisiertes Gerät senden</string>
-    <string name="slash_copy_hint">Link dieser Seite kopieren – mit „clean“ ohne Tracking-Parameter</string>
-    <string name="slash_copy_doc">Link dieser Seite kopieren; mit clean ohne Tracking-Parameter</string>
     <string name="shared_spaces_switch">Spaces und Gruppen auf diesem Gerät synchronisieren</string>
     <string name="shared_spaces_title">Spaces zum Synchronisieren auswählen</string>
     <string name="shared_spaces_explanation">Teile diese Spaces mit Geräten in diesem Synchronisierungskonto. Offene Tabs, Tabnamen, Gruppen und angeheftete Tabs werden synchronisiert.</string>
@@ -2268,6 +2264,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="shared_spaces_rejoin">Erneut beitreten</string>
     <string name="shared_spaces_copy">Als Kopie hinzufügen</string>
     <string name="shared_spaces_full">Dieser Space ist zu groß. Teile ihn zuerst in kleinere Spaces auf.</string>
+    <string name="shared_spaces_account_full">Der Speicher für die Spaces-Synchronisierung ist voll. Lösche einen Space, um seinen Inhaltsspeicher freizugeben. Gelöschte Spaces zählen noch 30 Tage zum Space-Limit.</string>
     <string name="shared_spaces_unavailable">Spaces-Synchronisierung ist nicht verfügbar. Favoriten, Einstellungen, offene Tabs und An Gerät senden funktionieren weiterhin.</string>
     <string name="shared_spaces_recovery_name">%1$s · auf diesem Gerät behalten</string>
     <string name="shared_spaces_shared">Geteilt</string>
@@ -2372,6 +2369,12 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="tabs_menu_close">Tabs schließen</string>
     <string name="ws_new_with_tabs">Mit diesen Tabs</string>
     <string name="ws_error_moved_partly">%1$s Tabs nach %2$s verschoben. Die anderen Tabs bleiben hier.</string>
+    <string name="sync_error_erasure_pending">Die Kopie auf dem Server wird noch gelöscht. Versuche es erneut, um den Vorgang abzuschließen, oder deaktiviere die Synchronisierung ohne Löschen.</string>
+    <string name="settings_sync_try_again">Erneut versuchen</string>
+    <string name="menu_next_tab_in_order">Nächster Tab in Listenreihenfolge</string>
+    <string name="menu_previous_tab_in_order">Vorheriger Tab in Listenreihenfolge</string>
+    <string name="slash_copy_hint">Link dieser Seite kopieren – mit „clean“ ohne Tracking-Parameter</string>
+    <string name="slash_copy_doc">Link dieser Seite kopieren; mit clean ohne Tracking-Parameter</string>
     <string name="reader_title">Lesemodus</string>
     <string name="reader_enter">Lesemodus öffnen</string>
     <string name="reader_exit">Lesemodus verlassen</string>

@@ -497,8 +497,6 @@
     <string name="menu_settings">Réglages</string>
     <string name="menu_next_tab">Onglet suivant</string>
     <string name="menu_previous_tab">Onglet précédent</string>
-    <string name="menu_next_tab_in_order">Onglet suivant dans l’ordre de la liste</string>
-    <string name="menu_previous_tab_in_order">Onglet précédent dans l’ordre de la liste</string>
     <string name="menu_reload">Actualiser</string>
     <string name="menu_copy_clean_link">Copier le lien épuré</string>
     <string name="menu_undo">Annuler</string>
@@ -2327,8 +2325,6 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="sends_no_match">Aucun appareil nommé « %1$s ».</string>
     <string name="slash_send_hint">Tapez une espace, puis un nom d’appareil, par ex. « iPhone »</string>
     <string name="slash_send_doc">Envoyer la page de cet onglet vers un autre appareil synchronisé</string>
-    <string name="slash_copy_hint">Copier le lien de cette page — ajoutez « clean » pour retirer les paramètres de suivi</string>
-    <string name="slash_copy_doc">Copier le lien de cette page ; avec clean, sans paramètres de suivi</string>
     <string name="shared_spaces_switch">Synchroniser les Spaces et les groupes sur cet appareil</string>
     <string name="shared_spaces_title">Choisir les Spaces à synchroniser</string>
     <string name="shared_spaces_explanation">Partagez ces Spaces entre les appareils de ce compte. Les onglets ouverts, leurs noms, les groupes et les onglets épinglés seront synchronisés.</string>
@@ -2339,6 +2335,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="shared_spaces_rejoin">Rejoindre à nouveau</string>
     <string name="shared_spaces_copy">Ajouter une copie</string>
     <string name="shared_spaces_full">Ce Space est trop volumineux. Divisez-le d’abord en Spaces plus petits.</string>
+    <string name="shared_spaces_account_full">Le stockage de synchronisation des Spaces est plein. Supprimez un Space pour libérer le stockage de son contenu. Les Spaces supprimés comptent encore dans la limite des Spaces pendant 30 jours.</string>
     <string name="shared_spaces_unavailable">La synchronisation des Spaces est indisponible. Les favoris, les réglages, les onglets ouverts et Envoyer à un appareil restent disponibles.</string>
     <string name="shared_spaces_recovery_name">%1$s · conservé sur cet appareil</string>
     <string name="shared_spaces_shared">Partagé</string>
@@ -2445,6 +2442,12 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="tabs_menu_close">Fermer les onglets</string>
     <string name="ws_new_with_tabs">Avec ces onglets</string>
     <string name="ws_error_moved_partly">%1$s onglets déplacés vers %2$s. Les autres sont restés ici.</string>
+    <string name="sync_error_erasure_pending">La copie sur le serveur est toujours en cours de suppression. Réessayez pour terminer la suppression, ou désactivez la synchronisation sans effacer les données.</string>
+    <string name="settings_sync_try_again">Réessayer</string>
+    <string name="menu_next_tab_in_order">Onglet suivant dans l’ordre de la liste</string>
+    <string name="menu_previous_tab_in_order">Onglet précédent dans l’ordre de la liste</string>
+    <string name="slash_copy_hint">Copier le lien de cette page — ajoutez « clean » pour retirer les paramètres de suivi</string>
+    <string name="slash_copy_doc">Copier le lien de cette page ; avec clean, sans paramètres de suivi</string>
     <string name="reader_title">Mode lecture</string>
     <string name="reader_enter">Activer le mode lecture</string>
     <string name="reader_exit">Quitter le mode lecture</string>

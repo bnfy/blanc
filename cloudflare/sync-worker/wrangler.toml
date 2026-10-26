@@ -8,9 +8,19 @@ binding = "SYNC"
 id = "0e6ba79c73d64d77bbb76886666c33d5"
 
 [vars]
-NEW_ACCOUNT_DAILY_LIMIT = "100"
+NEW_ACCOUNT_DAILY_LIMIT = "10"
+ACCOUNT_STORAGE_QUOTA_BYTES = "20971520"
+ACCOUNT_STORAGE_MAX_STORES = "256"
 CLEANUP_MAX_DELETES = "1000"
-CLEANUP_ENABLED = "true"
+CLEANUP_ENABLED = "false"
+
+[[durable_objects.bindings]]
+name = "ACCOUNT_QUOTA"
+class_name = "AccountQuota"
+
+[[migrations]]
+tag = "v1-account-quota"
+new_sqlite_classes = ["AccountQuota"]
 
 [triggers]
 crons = ["17 4 * * *"]
