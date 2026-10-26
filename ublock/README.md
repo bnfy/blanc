@@ -69,6 +69,29 @@ Running `check-ublock-package.cjs --write` preserves and verifies this inventory
 Availability of these preferred sources does not establish exact build
 reproduction or close the remaining distribution assessment.
 
+HSLuv's `sources/hsluv-0.1.0-preferred.tar.gz` retains all library sources,
+tests, licenses, snapshots and build definitions from the pinned revision. Only
+`scripts/secrets.sh`, an unrelated publisher encryption utility, is omitted.
+It is referenced only by the upstream deployment README, not by the HSLuv build,
+tests or uBO runtime. Its individual scan reproduces Avast/AVG's PUP warning;
+the archive with only that helper omitted returns 0/59, including Avast, AVG
+and Kaspersky Undetected. This is a source selection, not a runtime patch or
+removal of any filtering rule. This result does not clear a final installer.
+
+`preferred-sources.json` records the original upstream digest, omitted helper's
+path and digest, and the prepared archive's digest. The bundled, hash-pinned
+`prepare-hsluv-source.py` authenticates that original archive and compares every
+retained file's bytes and permissions. It never executes archived scripts.
+Reproduce the prepared archive with Python 3.13 from the immutable upstream
+download recorded in the component entry:
+
+```
+python3 ublock/prepare-hsluv-source.py /path/to/hsluv-0.1.0.tar.gz /tmp/hsluv-preferred.tar.gz
+```
+
+The full original project remains available at that immutable upstream revision;
+the source required to build the bundled HSLuv library stays inside the app.
+
 
 The same inventory now pins uAssets main and production snapshots used by the
 1.75.0 release. All thirteen separately copied assets match those immutable
@@ -77,6 +100,30 @@ preferred text/templates with upstream's recorded timestamp substitution.
 See `docs/evidence/2026-10-03-ubo-component-rebuilds/asset-inputs.json`.
 These source archives are distribution inputs only; no archived build script is
 extracted or executed by Blanc at runtime or during packaging.
+
+`sources/uAssets-1.75.0-main-preferred.tar.gz` retains all 85 other files and
+101 entries from the pinned main snapshot, with unchanged bytes and permissions.
+Only `tools/update-3rdparties.sh` is omitted: its sole upstream caller is the
+daily publisher workflow, and it fetches newer remote lists rather than building
+this pinned release. The Makefile, validation tools, filter-build scripts,
+templates, preferred lists, exact third-party snapshots and licenses all remain.
+The production snapshot is unchanged. No filter or runtime behavior changes.
+
+A one-member ZIP of that helper reproduces Kaspersky's exact Mimikatz warning
+(1/63); the prepared complete-source selection returns 0/60, including Avast,
+AVG and Kaspersky Undetected. These are sample results, not final-installer
+clearance or a vendor's final classification of the immutable published build.
+The same pinned provenance and retained-member checks described above apply to
+`prepare-uassets-source.py`. Reproduce with Python 3.13:
+
+```
+python3 ublock/prepare-uassets-source.py /path/to/uAssets-main-original.tar.gz /tmp/uAssets-main-preferred.tar.gz
+```
+
+The original immutable upstream digest, path, helper digest and preparation
+reason remain recorded in `preferred-sources.json`. The publisher helper is
+outside the source needed to rebuild the pinned asset snapshots; the source
+selection does not replace the original snapshot inputs with live downloads.
 
 
 The LGPLv3 diff notice is supplemented by the full unmodified GNU LGPLv3 text

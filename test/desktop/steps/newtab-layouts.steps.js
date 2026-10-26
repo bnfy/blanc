@@ -3,6 +3,7 @@
 const assert = require('node:assert/strict');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { waitForValue } = require('../support/poll');
+const ctx = require('../support/context');
 
 const MAHJONG_TILE_COUNTS = Object.freeze({
   turtle: 144, arch: 96, peaks: 72, pyramid: 108, fortress: 96, butterfly: 94, bridge: 100, cross: 86,
@@ -470,6 +471,7 @@ Then('the six-control Mahjong rail fits its table at every desktop breakpoint', 
   assert.ok(original, 'window content bounds should be available');
   // Blanc's 68px Island strip leaves the game viewport at window height - 68.
   const sizes = [678, 679, 727, 728, 788, 789, 800].map((height) => ({ width: 1280, height }));
+  const chromeHeight = (await this.call('islandAutoHideState')).chromeHeight;
   const seenTiers = new Set();
   try {
     for (const size of sizes) {
@@ -481,7 +483,8 @@ Then('the six-control Mahjong rail fits its table at every desktop breakpoint', 
       );
       const game = await waitForValue(
         () => this.call('readMahjongDom'),
-        (value) => value?.viewportWidth === size.width && value.dockButtonCount === 6,
+        (value) => value?.viewportWidth === size.width
+          && value.viewportHeight === size.height - chromeHeight && value.dockButtonCount === 6,
         `six-control Mahjong dock at ${size.width}x${size.height}`
       );
       const tier = expectedRailTier(game.viewportHeight);
@@ -558,15 +561,23 @@ Then('the Mahjong records sheet stays contained at the default, minimum, and zoo
 });
 
 Then('rapid Undo cancels pending Mahjong feedback', async function () {
+  await waitForValue(() => this.call('focusWindow'), Boolean, 'focused Mahjong window');
   const result = await this.call('rapidUndoMahjongMatch');
   assert.ok(result?.matched, 'a free matching pair should be available');
   assert.equal(result.score, '0');
-  assert.equal(result.live, 'Last move undone.');
+  // The live region clears synchronously and publishes on the next animation
+  // frame. Native CI can delay that frame past the helper's motion wait.
+  const page = ctx.app.windows().find((candidate) =>
+    !candidate.isClosed() && candidate.url().startsWith('blanc://mahjong/'));
+  assert.ok(page, 'Mahjong page remains open');
+  await page.waitForFunction(() =>
+    document.getElementById('mjLive')?.textContent === 'Last move undone.');
   assert.equal(result.transientCount, 0, 'stale motion elements should be removed');
   assert.equal(result.comboFxClass, 'mj-combo-fx');
 });
 
 Then('Mahjong correctness flows pass in the renderer', async function () {
+  await waitForValue(() => this.call('focusWindow'), Boolean, 'focused Mahjong audit window');
   const result = await this.call('auditMahjongCorrectness');
   assert.ok(result && !result.error, result?.error || 'Mahjong correctness audit should run');
   assert.ok(result.classicHintCount > 1, 'Classic should expose multiple hint pairs');

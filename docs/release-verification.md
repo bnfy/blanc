@@ -122,6 +122,47 @@ way. A real bug always means a fix and a full release.
 
 ### Private Windows and Linux validation before release
 
+The native workflow also accepts `mode=mac-scan`, `runtime=ecs`,
+`platform=all` and the exact `source_sha` for a manual Apple Silicon + Intel
+installer scan run. The workflow ref and checkout must both resolve to that
+SHA. This job uses the existing `ecs-signing` protected environment and cannot
+publish: its token has only `contents: read`, it accepts no release tag, and
+only installer/ZIP/blockmap files, candidate metadata and checksums are uploaded
+as three-day Actions artifacts. No updater YAML, credential files, profiles,
+EVS caches, tags or GitHub Releases are uploaded or modified.
+
+EVS signs the Widevine runtime, not the Apple application identity. In addition
+to the existing EVS secrets, this job requires these protected secrets:
+
+- `MAC_CSC_LINK`: Base64 P12 for the exact pinned Developer ID certificate and
+  its private key; never use a bulk export of all keychain identities.
+- `MAC_CSC_KEY_PASSWORD`: the password protecting that P12.
+- `APPLE_ID` and `APPLE_APP_SPECIFIC_PASSWORD`: the existing notarization
+  account credentials. The team remains `XYGUCY4498`.
+
+Adding these secrets, exporting the private key, or allowing a new branch into
+the signing environment requires explicit owner authorization. The environment
+must retain its required reviewer and explicit branch allowlist. Never send
+credentials in chat, command arguments or logs, or return EVS secrets from CI.
+Only the approved workflow SHA may use them. Apple credentials are supplied
+only to the build step; EVS files are removed before packaged browser tests,
+and the hosted runner and builder's temporary signing keychain are disposable.
+The job retains the press gate, pinned profile/certificate preflight, production
+ECS/uBO packaging, strict signature/fuse/source checks, stapled notarization,
+Gatekeeper assessment and packaged first-run smoke. A successful run still
+requires the exact downloaded installer digests and antivirus scan results;
+it does not authorize publication or waive the remaining release gates.
+
+For local production-config macOS installers that must be scanned before any
+release side effect, use the same operator command with
+`BLANC_RELEASE_BUILD_ONLY=1` and `BLANC_RELEASE_PLATFORMS=mac`. Both Mac
+architectures, a new version/build number, committed inputs, signing,
+notarization, the press gate and packaged checks remain required. This mode may
+build a clean candidate branch and exits before tag creation, draft creation,
+native workflow dispatch, Sigstore authorization or publication. It does not
+authorize a later release or bypass the ordinary origin/main requirement when
+publishing. Keep the resulting artifact digests with the scan evidence.
+
 When a platform feature needs affected-machine confirmation, build private
 candidates without creating a tag, draft, or public updater entry:
 

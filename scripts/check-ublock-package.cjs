@@ -34,8 +34,38 @@ function sourceInputs(directory) {
       || !/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(component.repository)
       || component.url !== `https://codeload.github.com/${component.repository}/tar.gz/${component.revision}`
       || hash(fs.readFileSync(path.join(directory, member))) !== component.sha256) throw new Error('ubo-preferred-source-integrity');
+    if (member === 'sources/hsluv-0.1.0-preferred.tar.gz') {
+      const preparation = component.sourcePreparation;
+      if (component.name !== 'hsluv-0.1.0' || component.repository !== 'hsluv/hsluv'
+        || component.revision !== '9cd8574fad8874828b3a8119843527d62d79887a'
+        || component.sha256 !== '013caa6074bc17d16678d46a8947769a740f43e15757f8fcd3de5e1774fa4570'
+        || preparation?.script !== 'prepare-hsluv-source.py'
+        || preparation.upstreamSha256 !== '1691357d86b2bbeead0ad2e31f0c4eeb40497e50bcf0faa8e97e91df50b7f9ee'
+        || preparation.omittedPath !== 'hsluv-9cd8574fad8874828b3a8119843527d62d79887a/scripts/secrets.sh'
+        || preparation.omittedSha256 !== 'e1ce30a59c2cfda3c4e9b58bfea3cf1ce4d5ae7b374238e2138cc0637880c501') {
+        throw new Error('ubo-source-preparation-invalid');
+      }
+      sources.push({ path: preparation.script, sha256: hash(fs.readFileSync(path.join(directory, preparation.script))) });
+    } else if (member === 'sources/uAssets-1.75.0-main-preferred.tar.gz') {
+      const preparation = component.sourcePreparation;
+      if (component.name !== 'uAssets-1.75.0-main' || component.repository !== 'uBlockOrigin/uAssets'
+        || component.revision !== 'f9bd781375aeefae03196d07d079c772fa15e3e6'
+        || component.sha256 !== '9a82d98674423e99c6527c900820f1afb786a56cd75eddf7905afdd72ba8df17'
+        || preparation?.script !== 'prepare-uassets-source.py'
+        || preparation.upstreamSha256 !== '1e0b65e660123f6015d84485d5ec6ac8571eeee957a0cbc0b5ea083850afe7d7'
+        || preparation.omittedPath !== 'uAssets-f9bd781375aeefae03196d07d079c772fa15e3e6/tools/update-3rdparties.sh'
+        || preparation.omittedSha256 !== '3d7f5cc541a347155ec15a88c6172dda0100a415883127d9c60ed77aaec53f77') {
+        throw new Error('ubo-source-preparation-invalid');
+      }
+      sources.push({ path: preparation.script, sha256: hash(fs.readFileSync(path.join(directory, preparation.script))) });
+    } else if (component.sourcePreparation !== undefined) {
+      throw new Error('ubo-source-preparation-invalid');
+    }
     seen.add(member);
     sources.push({ path: member, url: component.url, sha256: component.sha256 });
+  }
+  for (const entry of enumerate(path.join(directory, 'sources'))) {
+    if (!seen.has('sources/' + entry.path)) throw new Error('ubo-source-unlisted');
   }
   return sources;
 }

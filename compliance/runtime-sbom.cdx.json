@@ -5,9 +5,9 @@
   "metadata": {
     "component": {
       "type": "application",
-      "bom-ref": "application:runtime:blanc@1.43.1",
+      "bom-ref": "application:runtime:blanc@1.43.2",
       "name": "Blanc",
-      "version": "1.43.1",
+      "version": "1.43.2",
       "description": "Shipped desktop runtime: npm closure, Electron framework, bundled fonts, and blocker data provenance."
     },
     "properties": [
@@ -459,7 +459,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "efe5fa22eba2a0c4978b0c17420f73836dac298433f4d29ae4bb4a097071ec3d"
+          "content": "0a75108ef6591f9cbe5c8e5f57bef6fe268cf01dabce8e988aba50e1a8d6bbf2"
         }
       ],
       "licenses": [
@@ -2148,7 +2148,7 @@
   ],
   "dependencies": [
     {
-      "ref": "application:runtime:blanc@1.43.1",
+      "ref": "application:runtime:blanc@1.43.2",
       "dependsOn": [
         "asset:blanc-adblock-seed",
         "asset:caveat-font",

@@ -431,6 +431,10 @@ function install(refs) {
     }
     activeTabImportFixtureName = name;
     if (dom.step === 'source') {
+      await waitForTabImportDom(
+        (value) => value?.step === 'source' && value.sourceRows.some((row) => row.label === fixture.sourceLabel && !row.disabled),
+        `${fixture.sourceLabel} source button to become enabled`, fixture.timeout,
+      );
       await clickTabImportSelector('.tab-import-source-btn', fixture.sourceLabel);
       dom = await waitForTabImportDom(
         (value) => value?.step === 'tabs' && value.preview.length === fixture.candidateCount,
@@ -475,6 +479,10 @@ function install(refs) {
     }
     activeTabImportFixtureName = name;
     if (dom.recoveryHidden) {
+      await waitForTabImportDom(
+        (value) => value?.step === 'source' && value.sourceRows.some((row) => row.label === fixture.sourceLabel && !row.disabled),
+        `${fixture.sourceLabel} source button to become enabled`, fixture.timeout,
+      );
       await clickTabImportSelector('.tab-import-source-btn', fixture.sourceLabel);
       dom = await waitForTabImportDom(
         (value) => value?.step === 'source' && value.recoveryHidden === false,
@@ -665,6 +673,7 @@ function install(refs) {
     },
     /** Auto-hide state plus where the page view starts (0 = strip hidden). */
     islandAutoHideState() { return getIslandAutoHideState(); },
+    setNativeReducedMotion(on) { return refs.setTestReducedMotion(on); },
     overlayShowCount() { return getOverlayShowCount(); },
     resetOverlayShowCount() { resetOverlayShowCount(); },
     setTestCursorPoint(point) { return setTestCursorPoint(point); },
@@ -2094,7 +2103,14 @@ function install(refs) {
           refreshTiles();
           for (const index of free.slice(0, 3)) await clickTile(index);
           document.getElementById('mjHint').click();
-          await sleep(30);
+          // Announcements clear synchronously and publish on an animation
+          // frame. Wait for publication, not an assumed frame duration; the
+          // acceptance assertion still checks the exact message afterwards.
+          const hintDeadline = Date.now() + 5000;
+          while (!document.getElementById('mjLive')?.textContent) {
+            if (Date.now() >= hintDeadline) return { error: 'Hint announcement did not publish' };
+            await sleep(16);
+          }
           const safeHint = {
             highlighted: highlighted(),
             live: document.getElementById('mjLive')?.textContent ?? null,
@@ -4026,6 +4042,7 @@ function install(refs) {
         tabLayout: 'island',
         newtabLayout: 'billboard',
         verticalTabsWidth: 248,
+        verticalTabsTextSize: 'default',
         appIcon: 'sunrise',
         adblockExceptions: [],
         bangsEnabled: true,

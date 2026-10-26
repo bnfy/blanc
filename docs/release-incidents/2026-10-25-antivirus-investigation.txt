@@ -1,0 +1,563 @@
+Antivirus investigation and source-preserving candidate — 2026-10-25
+
+SIGNED APPLE SILICON CANDIDATE (Oct 26): Run 40383559962 at 1d50596a5
+completed both jobs. Apple Silicon passed all 541 scenarios / 4,731 steps,
+the full press gate, signing, notarization and packaged first-run smoke.
+The downloaded DMG SHA-256 is
+634dedc10392fd3e795d34b9e71b92e8c01ed7cdbcc348d1927767491e07baa3.
+Independent local digest, Developer ID, pinned certificate, Gatekeeper,
+stapled ticket, VMP, uBO and adblock payload verification all passed.
+Antivirus scanning is pending; this is an unpublished candidate.
+Intel passed 540/541 scenarios. Its only failure was F35-3 snapshotting an
+empty Hint announcement after a fixed 30 ms delay. The helper now waits up
+to five seconds for publication, retaining the existing message assertion.
+The complete scenario passes locally (14 steps, no retry), as does lint.
+The earlier reset crash, hover and text geometry failures did not recur.
+An interrupted local full diagnostic run exposed real-pointer interference
+in auto-hide tests. Parking the pointer away from the toolbar gave 4/4
+focused passes (47 steps; one existing retry on the clean-head control).
+Temporary diagnostics were removed; no complete latest local pass is claimed.
+
+MACOS 26 ACCEPTANCE FOLLOW-UP (Oct 26): Run 40376951754 at 66d0c635d
+passed the real production icon compiler preflight on Intel, resolving the
+previous host/toolchain mismatch. The Intel press gate then failed six desktop
+scenarios: four reset hooks reported Target crashed, vertical hover timed out,
+and the title measurement observed a detached element. The queued ARM job was
+canceled; no signed installer was produced. Title selection and measurement
+now happen atomically in the renderer, preserving the clipping assertion.
+Hover setup requires native focus and renderer layout completion, then a
+stable reported target rectangle. Targeted local checks pass: 8 scenarios /
+88 steps for site controls and text sizing, and 16 hover scenarios / 157 steps.
+The crash did not reproduce in the focused run. Renderer crash URL, reason
+and exit-code diagnostics are added to test launches, and the private Mac
+press gate forwards application output. No crash recovery or gate bypass was
+added; the full native gate and exact-installer scans remain required.
+
+NATIVE ACCEPTANCE PASSED; ICON HOST FIX (Oct 26): At f825f599a, Apple Silicon
+passed all 541 scenarios / 4,731 steps and the complete press gate. Packaging
+then failed explicitly (exit 1) in actool: Xcode 26.3's asset agent encountered
+missing CoreMedia/MediaToolbox symbols on the macOS 15 host. No signed output
+was produced. The replacement mac-scan matrix uses native macOS 26 runners,
+retaining pinned Xcode 26.3, and compiles the actual production Icon.icon with
+electron-builder's own compiler before running the full press gate. This
+preflight catches host/runtime incompatibility before the long acceptance run.
+The old Intel job was canceled after the ARM failure; its gate was still running.
+Current main's /copy change (9e66fee2a) is reconciled for the replacement run.
+Test-only follow-ups now wait for Mahjong's real animation-frame Undo message
+(the complete 14-step scenario passes without retry) and supply inert inputs
+to the mocked Windows builder regression (the hosted Windows suite passed).
+No application signing or source-distribution safeguard has been relaxed.
+
+CURRENT-MAIN RECONCILIATION: The first corrected-toolchain run 40369380490 was
+canceled while both Mac jobs were still queued. Main had advanced to
+3fde552b0 (the merged Linux MRU tab-switching change), making PR 1135 conflict
+only in its generated security inventory and preventing PR checks. Main is
+merged with the acceptance fixes retained; the 64-entry inventory was refreshed
+against the combined source. The replacement native run will test this exact
+reconciled commit. No signed artifact or public release came from the queued run.
+
+NATIVE BUILD FOLLOW-UP (Oct 26): Run 40357193090 passed all 541 Intel desktop
+scenarios; ARM passed 540/541, with F28-18 measuring a zero-height title at
+18px. The geometry driver now scopes to a visible title inside the rail,
+excluding hidden/transient drag copies, retaining the clipping assertion.
+The complete F28-18 and F35-3 scenarios pass locally: 2 scenarios / 36 steps.
+Intel packaging did NOT produce a signed installer: its earlier error was
+actool 16.4, below Icon Composer's required 26.0. The missing app reported by
+the verification step was a consequence, not an incorrect output directory.
+Both native runner inventories include Xcode 26.3; mac-scan now selects that
+DEVELOPER_DIR explicitly and reports the compiler versions before acceptance.
+The builder's temp-file dependency installs an async-exit-hook beforeExit
+handler with code 0, overriding a caught error's process.exitCode. The CLI now
+exits explicitly with code 1; a regression using the actual temporary-file
+exit hook confirms failed packaging stays failed. The build step also requires
+its app.asar output before advancing. Eight targeted packaging/workflow unit
+tests pass. Full native acceptance/signing/scanning remains pending; nothing
+has been published and the runtime uBO payload remains unchanged.
+
+MAHJONG VIEWPORT RACE: The final native run's live Intel log exposed a retry
+in the rail-tier assertion. Its resize loop keeps width constant but had waited
+only for width, allowing the prior viewport height to be sampled and a tier to
+be missed. The driver now also waits for the expected height below the current
+chrome band. The same full Mahjong scenario passes locally (14 steps), retaining
+all three tier, size and containment assertions. This changes only acceptance
+code/documentation; packaged application inputs remain those of 2e59e6b71.
+
+COMPLETE LOCAL ACCEPTANCE PASSED: At 85342c1c5 the full local gate passed all
+541 scenarios / 4,731 steps (including diagnostic After hooks); two scenarios
+recovered under the existing retry policy. All originally reported failures
+passed. Hosted ARM at 9b3049387 passed 540/541 scenarios, exposing a separate
+new vertical-text-size fixture isolation bug: a retry inherited extra-large
+from its previous attempt and failed its initial default-size assertion.
+The central scenario reset now restores verticalTabsTextSize to default.
+A focused real-Settings-UI check passes the complete text-size scenario, then
+deliberately sets extra-large and proves reset restores default (23 steps).
+The obsolete hosted attempt was stopped before signing; native full-gate
+verification on the corrected source remains required. No assertion, retry
+limit, security check or release gate was removed.
+
+FULL LOCAL ACCEPTANCE FOLLOW-UP: The reconciled source completed 541 scenarios
+with 540 passing; all originally reported failures passed. The remaining
+F1-24 pointer-fallback scenario injected a page move without first activating
+its native window, although production edge reveal intentionally requires a
+focused window. Its driver now waits for native focus before sending the page
+event, matching the other pointer scenarios. The app's inactive-window guard
+is unchanged. Nine focused scenarios / 121 steps pass after that correction,
+including both native motion modes. Added immediate failed-scenario reporting
+for subsequent long runs without changing assertions, retries or exit status.
+The complete local suite is being repeated; hosted validation remains pending.
+
+UPSTREAM ACCEPTANCE RECONCILIATION: Integrated origin/main f67ec4ecd after
+discovering overlapping fixture fixes had landed in e53b98975 (PR #1141).
+Retained those upstream renderer/load waits and the candidate's explicit
+motion matrix, source-button readiness waits and Mac display setup. Resolved
+only the overlapping test comments/assertion text; retained current main's
+Reader, vertical-tab and other changes. Regenerated the 1.43.2 SBOMs for the
+merged dependency graph. Reviewed the acceptance-only native-motion hook:
+both its setter and reader are gated by the existing unpackaged acceptance
+mode; no production channel or capability is added. Refreshed only main.js's
+inventory hash, with its channel list unchanged. Lint, complete substrate and
+541-scenario / 4,190-step wiring checks pass. The inventory's five tests pass
+after refresh; full runtime validation remains pending.
+
+OCTOBER 26 ACCEPTANCE REPAIR: Wired the existing tallest-display helper into
+mac-scan before its press gate, preserving the exact requested window sizes.
+The Glance motion scenario now selects normal native motion explicitly through
+an unpackaged-acceptance-only hook and restores the system preference afterward.
+A behavioral unit test checks that normal launches always use the real system
+preference. Floating-view assertions wait for renderer geometry to settle, not
+just the native view's visibility. Their scenarios now cover native reduced
+motion both on and off. The archive fixture waits for page loading to finish
+before switching Spaces; tab-import fixtures wait for their actual source
+button to become enabled before clicking. No protection or assertion is removed.
+Validation: eight focused desktop scenarios / 101 steps pass; 47 related unit
+tests, lint, and the 532-scenario / 4,106-step dry wiring check pass. Full desktop
+and hosted native validation are still required before claiming gate recovery.
+
+OCTOBER 26 REPORTER FOLLOW-UP: The owner supplied the original reporter's
+email screenshot stating they rescanned the same published 1.43.1 arm64 DMG
+and Kaspersky now reports Undetected; Avast and AVG retain their original
+label. This corroborates rollout of the lab's promised correction, as reported
+by the customer. No independent new VirusTotal scan was performed this turn.
+The screenshot and structured evidence are saved under outputs/antivirus-1431
+in the original workspace. Do not describe Avast/AVG as vendor-cleared.
+
+FINAL INSTALLER SCANS STILL PENDING: Hosted run 40243141471 at exact source
+274f9efe162fe29832d8caedc69f8ea5340b8300 failed desktop acceptance before
+signing on both architectures. Intel passed 525/530 scenarios; five failed.
+ARM passed 505/530; 25 failed, including content-bound checks requesting
+1000x700 but observing 1000x684 on the hosted display. Other failures include
+Island timing, Space/tab archive fixtures and tab-import quit-safety fixtures.
+These failures are not waived or classified as harmless. Signing, notarization
+and installer artifact upload were skipped. No signed installer exists from
+this run; no final-DMG antivirus clearance or release-readiness claim is made.
+No release, tag or updater feed was changed.
+
+KASPERSKY FALSE POSITIVE ACKNOWLEDGED: The owner supplied the lab's October 25
+18:46 reply in case KL-3111306 to the exact single-file reproducer. It explicitly
+states this was a false detection and says the next update will fix it. This
+establishes the vendor's classification, not deployed-database verification or
+Avast/AVG clearance. Screenshot and nonsecret structured evidence are saved in
+outputs/antivirus-1431 in the original workspace. Final signed-DMG scans remain
+required before release.
+
+HOSTED ENVIRONMENT CORRECTION: Intel run 40242128073 passed substrate and then
+failed 12 updater unit tests because the job-wide BLANC_UPDATE_CHANNEL override
+disabled their production-default updater fixture. All other unit tests passed
+(4,778 passed, two skipped). The override now applies only to the packaged
+first-run smoke step, with a scope assertion in the workflow test. Canceled the
+obsolete attempt before signing. The updater/workflow focused rerun passes.
+
+PRE-SIGNING GATE CORRECTIONS: Run 40241202298 was canceled while both native
+Mac jobs remained queued after independent PR checks exposed an unchanged VEX
+payload digest and a Windows-only test-fixture dependency on shasum. Re-reviewed
+the exact revised uBO source inputs against the existing node-forge execution
+boundary (recorded in its security review), retaining the exact-digest guard
+and advisory policy. The publication-boundary unit test now supplies a strict
+checksum fixture instead of requiring macOS's CLI on Windows. Eight focused
+tests and lint pass. The complete local unit gate then passed 4,790 tests with
+two skipped and zero failures (195 seconds). No signing or publication
+occurred in this queued run.
+
+FIRST HOSTED ATTEMPT: Run 40240699074 at source 849470959 stopped before signing
+on Intel because the shallow checkout omitted immutable v1.27.0, required by
+compatibility:check. The substrate checks preceding it, including the updated
+SBOMs and uBO/source integrity, passed. Canceled the obsolete run while arm64
+was queued; no installers or credentials were uploaded as artifacts. The Mac
+checkout now fetches full history/tags, guarded by the workflow test. All three
+focused Mac workflow tests pass. Signing, final installer scans and release
+clearance remain pending; no tag, release or updater feed was changed.
+
+PROTECTED MAC SIGNING PROVISIONED: The owner explicitly approved adding only
+codex/antivirus-source-packaging to the existing ecs-signing branch allowlist
+and storing the pinned Apple signing identity and existing notarization
+credentials there. Exported one SecIdentity object whose certificate SHA-1 is
+55283A84D3706D5A22386D5F002A0CD4845ECFD4 into a randomly password-encrypted
+private P12 (duplicate keychain references were not bulk-exported). The P12
+passed the existing exact certificate/profile preflight. MAC_CSC_LINK,
+MAC_CSC_KEY_PASSWORD, APPLE_ID and APPLE_APP_SPECIFIC_PASSWORD were streamed
+to protected GitHub secrets without values in arguments, chat or logs. The
+existing EVS secrets stayed in GitHub. Verified the required bnfy reviewer and
+branch-policy configuration are unchanged, with only the exact approved branch
+added. Deleted the temporary local P12/password after secret-name verification.
+No credential was committed or included in any artifact.
+
+Draft PR https://github.com/bnfy/blanc/pull/1135 is open and attached for review.
+Its first ordinary-package/substrate checks correctly rejected stale 1.43.1
+SBOM version records after the package version bump; the pinned ignored blocker
+seed was prepared and both versioned SBOMs regenerated for 1.43.2. The protected
+Mac build has not yet been dispatched. No tag, release or feed was modified.
+
+GITHUB MAC SCAN ROUTE PREPARED: Owner asked whether the Mac installer can be
+built/signed in Actions using the existing EVS credentials, then scanned
+without publication. Added manual mac-scan mode to the existing native workflow
+with native arm64 and Intel runners, exact workflow/source SHA binding,
+contents:read permission, the press gate, production ECS signing order and
+Apple profile/identity preflight. It verifies packaged sources/fuses/signature,
+stapled notarization and Gatekeeper, then runs packaged first-run smoke after
+EVS credential cleanup. Only installers, blockmaps, digests and candidate
+metadata become three-day Actions artifacts; no tags/releases/updater metadata
+are written. Other platform jobs exclude this mode. Twenty-six focused
+workflow/release tests pass, including input rejection and publication-boundary
+checks. No run has been dispatched.
+
+The existing ecs-signing environment has EVS_CONFIG_JSON and EVS_CACHE_JSON,
+requires bnfy review, and currently permits only main and
+codex/ecs-production-integration. It has no Apple signing/notarization secrets.
+Running the prepared Mac job therefore needs explicit authorization to allow
+codex/antivirus-source-packaging and add the exact pinned Developer ID P12/key,
+its password, and existing Apple notarization account credentials as protected
+Mac secrets. No credential export, upload or branch-policy change has occurred.
+
+SIGNED-INSTALLER PREPARATION: Owner authorized building and scanning the final
+signed installer before release. Prepared version 1.43.2 / Mac build 1432, with
+both arm64 and x64 selected. Added explicit BLANC_RELEASE_BUILD_ONLY=1 to the
+existing release owner: production signing/notarization and packaged gates are
+retained, but execution stops before tag/draft creation, native dispatch,
+Sigstore or publication. A clean candidate branch is allowed only in this
+nonpublishing mode; normal releases still require exact origin/main. Fourteen
+release/build-only tests and bash syntax validation pass. The new version has
+no existing local tag or GitHub release/draft. Developer ID/provisioning-profile
+preflight and existing GitHub authentication pass.
+
+The official castLabs latest release was rechecked on October 25: it remains
+44.9.3+wvcus, published October 22 at 21:31:20Z. Runtime pin and per-platform
+archive hashes remain unchanged in build/ecs-runtime.json; the existing
+security review/waivers are not replaced or broadened by this check.
+
+BUILD HAS NOT STARTED: local EVS configuration has no populated account name
+or authorization tokens. A private copy could not refresh noninteractively.
+The pinned castlabs-evs 1.3.2 client was restored in a temporary virtualenv;
+its supported empty signature cache is initialized, but no account was created
+and no credential was entered, reset or displayed. Signing-related 1Password
+item-name searches found no matching item. Prior ECS setup records name
+temporary EVS files which no longer exist. The GitHub ecs-signing environment
+still has EVS_CONFIG_JSON and EVS_CACHE_JSON secret names; their values are not
+available through the read API and were not exported. A narrow confirmation
+email search found no account message. The owner does not know the local
+configuration location. Existing EVS authentication must be restored, or a
+separately reviewed protected signing route used, before the production VMP
+signing and Apple build can proceed. No signed 1.43.2 installer or installer
+scan is claimed. No tag, draft, publication, feed change or reset occurred.
+
+COMPLETED COMBINED CONTROL: 0/61, with Avast, AVG and Kaspersky all explicitly
+Undetected. The combined 667-file runtime/source/license diagnostic ZIP is
+SHA256 9565e943e7bc482671306450b248b76292ff39284e79a3e5c93903185d1596af,
+analysis dated 2026-10-25 18:02:14 EDT. This is the complete public uBO runtime
+plus all seven retained source archives and both license texts. It is not the
+final application ASAR or a signed installer. Source packaging fixes are
+committed as 85ed9cf75 (HSLuv) and 71e517537 (uAssets) on
+codex/antivirus-source-packaging. No merge, release, native signing, notarization
+or updater publication was performed. Vendor review on the immutable installer
+remains open. The reviewed fix is prepared; final signed-installer validation
+must occur through the normal release gates before any clearance claim.
+https://www.virustotal.com/gui/file/9565e943e7bc482671306450b248b76292ff39284e79a3e5c93903185d1596af/detection
+
+COMBINED SOURCE FIX PREPARED (18:00 EDT): The approved challenge completed,
+the uAssets source-selection archive was submitted and its scan completed
+0/60. Avast, AVG and Kaspersky explicitly report Undetected on SHA256
+9a82d98674423e99c6527c900820f1afb786a56cd75eddf7905afdd72ba8df17.
+https://www.virustotal.com/gui/file/9a82d98674423e99c6527c900820f1afb786a56cd75eddf7905afdd72ba8df17/detection
+The source fix now replaces only the main uAssets source archive with this
+preferred-source selection and bundles prepare-uassets-source.py. It pins the
+authenticated original, exact omitted helper, selected archive and preparation
+script. Reproduction with Python 3.13 produces the exact scanned digest. All
+101 retained entries / 85 files have original bytes, modes, types and sizes.
+The package gate rejects altered omission/provenance records or extra sources.
+The HSLuv selection previously completed 0/59. Required sources remain bundled;
+neither source selection substitutes an upstream URL for required build inputs.
+
+Validation passed: 34 focused Node tests (package, distribution and runtime
+pin), four source-preparation tests, lint, source inventory and adaptation
+verification. The 658 upstream runtime file records and 79 adaptation changes
+remain unchanged. The combined rebuilt diagnostic ASAR passes actual packaged
+source/license/host/adaptation verification. It is not signed, launched or
+distributed. ASAR SHA256
+b4b920d4afa61a2c60de9f000b83344a1a5bb73021616520ecdf5e0b45ec2a45.
+No final signed-installer clearance or release is claimed.
+
+An additional diagnostic ZIP combines all 658 unchanged public runtime files,
+the seven retained public source archives and both GPL/LGPL texts (667 files),
+SHA256 9565e943e7bc482671306450b248b76292ff39284e79a3e5c93903185d1596af.
+It contains no unpublished first-party host/preparation code. Its completed
+result is recorded above; it is not final-installer clearance.
+
+The owner supplied Kaspersky's request to resend the 37 KB diagnostic ZIP in an
+archive with password infected. The exact requested ZIP and the smaller exact
+helper reproducer were placed inside blanc-KL-3111306-samples.zip, encrypted
+with that password. Both were decrypted and compared with the original bytes.
+Outer SHA256 f25717effa8029114f31adca8f51b831ef4b00fae76fd06023299b2eb9a52af7.
+Sent from/reply-to support@blanc.day to newvirus@kaspersky.com under KL-3111306;
+Resend ID 01a17513-1e0c-7e91-908e-96997030f940, delivery confirmed. Only public
+source diagnostic samples were sent. No private files or customer data.
+
+EXACT KASPERSKY ARCHIVED MEMBER IDENTIFIED (17:14 EDT).
+A one-member ZIP of unchanged uAssets tools/update-3rdparties.sh completed
+1/63 and reproduces Kaspersky UDS:Trojan-PSW.Win32.Mimikatz. The original member
+is 1,099 bytes, SHA256
+3d7f5cc541a347155ec15a88c6172dda0100a415883127d9c60ed77aaec53f77.
+The positive ZIP preserves its complete original upstream directory path,
+uassets-update-3rdparties-only.zip, 763 bytes, SHA256
+8401c1b7590260c9158d54f6beea8f9c88c93556604cc008d9e0c7c12d388c78.
+https://www.virustotal.com/gui/file/8401c1b7590260c9158d54f6beea8f9c88c93556604cc008d9e0c7c12d388c78/detection
+This is a fresh archived-member reproduction, not a fresh positive scan of the
+bare script; its older cached bare-file scan was clean. The fresh one-member
+make-diffpatch.sh and update-diffpatches.sh ZIP controls each completed 0/64,
+Kaspersky Undetected. The filter-build-script pair completed 0/64; the three
+update/publishing scripts completed 1/64. make-validate.sh separately completed
+0/59, Kaspersky Undetected.
+
+The entire identified helper was inspected, not executed. It fetches newer
+third-party filter/suffix snapshots into a temporary file. Its only upstream
+reference is .github/workflows/update-3rd-party-assets.yml, an owner-restricted
+daily publishing workflow. The Makefile and source build/test tools do not call
+it. Both pinned asset snapshots and all filter-build inputs remain present.
+A diagnostic source archive omitting only this unused live-update publisher
+helper retains all other 101 entries / 85 files, comparing every byte, mode,
+type and size with the authenticated original. Its SHA256 is
+9a82d98674423e99c6527c900820f1afb786a56cd75eddf7905afdd72ba8df17.
+It is selected for upload, but a new CAPTCHA blocks submission; owner approval
+has been requested. No clean result or completed uAssets packaging fix is yet
+claimed. The repository's original uAssets archive remains unchanged.
+
+The exact 763-byte reproducer and filename/verdict screenshot were sent to
+newvirus@kaspersky.com under KL-3111306, from/reply-to support@blanc.day.
+Resend message ID 01a174eb-704d-7013-9fdf-9e7373920a5a; delivery confirmed. The report distinguishes
+the archived result from the old bare-file cache and requests rule correction
+for the public upstream source and immutable installer. No private files or
+customer data were submitted.
+
+SHELL PARTITION UPDATE (17:09 EDT): The approved shell/JavaScript challenge
+checkboxes completed successfully and both controls were submitted. The six
+shell scripts completed 1/63 with the exact Kaspersky Mimikatz label, SHA256
+7483af12aec01d1b53eaef8cc021dd5569ea249fa87ffef52a231e3fda777fbc.
+The five-file JavaScript control completed 0/64, Kaspersky Undetected, SHA256
+c85e3cc1c8e2c07212a2b26656f08e90ecffdaebf5f450cd609c835d650fc0fd.
+Five shell scripts have old cached individual clean scans; these are not a
+substitute for fresh controls. Two new samples are selected and blocked at
+new CAPTCHAs: the unchanged tools/make-validate.sh alone, 372 bytes, SHA256
+718330ee7674326484e2894b2a36e0204ff8dde592ff2138ac8a43869f52c1e0;
+and the other five shell scripts together, SHA256
+fa0cfc1b9a879d0f6f27a67ae359d070b3e1549ba9f8ac80bdcd375b5f5c5524.
+No individual culprit or verdict for these two pending controls is claimed.
+The new action-time approval was requested for both challenges.
+The KL-3111306 screenshot/sample follow-up delivery is confirmed.
+
+LATEST KASPERSKY UPDATE: TOOLS-ONLY CONTROL REPRODUCES, 1/64.
+All three owner-approved CAPTCHAs completed and their samples were submitted.
+The 11-file uassets-tools-only.zip, SHA256
+d14a279d673019914fc096d46b0b272d64cfacd2cb2eabed86cb2c642d7aff1b,
+completed 1/64 with Kaspersky UDS:Trojan-PSW.Win32.Mimikatz at 17:07:07 EDT.
+Templates-only completed 0/63, SHA256
+351033b2325387d2b4877901fe9ce6d5197924d5bebd893aae312b186f0a7165.
+Root-documents-only completed 0/64, SHA256
+95f2e8d0275889e212f56ddeafb425ffaf388f2a26ca994c38a9a8f96f0a2f52.
+Kaspersky explicitly reports Undetected for both negative controls. The exact
+individual tool remains unknown; no required source has been removed.
+
+The owner supplied a screenshot of Kaspersky analyst correspondence under case
+KL-3111306 saying they could not reproduce and requesting filename/verdict
+screenshots. This does not clear the observed VirusTotal result. An authorized
+follow-up was sent to newvirus@kaspersky.com from support@blanc.day, with the
+positive 37 KB public diagnostic ZIP and a filename/verdict screenshot attached,
+its exact hash and timestamp, plus the new 11-tool result and negative controls.
+It asks the lab to check its VirusTotal/cloud UDS backend specifically. Resend
+message ID 01a174e4-4bab-7ab3-b1c8-cde19fedab91. This report does not claim a
+reproduction in an installed Kaspersky endpoint product.
+
+Two further byte-preserving partitions of those 11 tools are prepared: shell
+tools SHA256 7483af12aec01d1b53eaef8cc021dd5569ea249fa87ffef52a231e3fda777fbc
+(six files) and JavaScript tools SHA256
+c85e3cc1c8e2c07212a2b26656f08e90ecffdaebf5f450cd609c835d650fc0fd
+(five files). New displayed CAPTCHAs block submission; action-time approval was
+requested for both. No verdict is claimed for these partitions.
+
+CURRENT UPDATE: EXACT HSLUV MEMBER IDENTIFIED; NARROW SOURCE FIX PREPARED.
+The verified HSLuv source-selection fix is committed as 85ed9cf75.
+The latest Kaspersky controls explicitly report Undetected for the uAssets
+filter-source group (0/61), third-party-list group (0/61), and .github metadata
+group (0/64). A ZIP of the remaining 47 build/metadata members reproduces the
+Mimikatz label (1/62), SHA256
+b2a91c132a3cc9aa1cc18f8c732a195ae27e1c0b9e75cbd6e32fe81f5fb88671.
+URLhaus inside a one-file ZIP is also Undetected by Kaspersky; omitting it from
+the larger source group leaves the exact Mimikatz label. Do not blame or remove
+the protective list. A 37 KB tools/templates/docs-only control, SHA256
+3ac6d6d38a126e1585d38547e08e05828bc7162204439ccb284a47e0b3339035,
+was submitted after the approved CAPTCHA and completed 1/63, reproducing the
+exact Kaspersky Mimikatz label. It contains 34 unchanged source members. The
+exact Kaspersky inner-file trigger remains unknown. The owner-approved CAPTCHA
+was completed and the reduced sample's Relations view inspected, including all
+34 members. No positive cached member result is exposed; cached scans are old
+and several members have no result. Three further tools-only, templates-only
+and root-docs-only controls were selected for upload. New CAPTCHA challenges
+block their submission; they are not claimed as tested. The prior
+approved control CAPTCHAs completed successfully, including the multi-image
+challenge used to open the positive metadata sample's Relations view.
+
+HSLuv scripts/secrets.sh, SHA256
+e1ce30a59c2cfda3c4e9b58bfea3cf1ce4d5ae7b374238e2138cc0637880c501,
+independently reproduces the five PUP detections (5/60), including the exact
+original Avast and AVG labels. It is an upstream publisher encryption utility,
+referenced only by the deployment README; no library build/test/runtime code
+references it. It is not needed to generate the HSLuv library bundled by uBO.
+https://www.virustotal.com/gui/file/e1ce30a59c2cfda3c4e9b58bfea3cf1ce4d5ae7b374238e2138cc0637880c501/detection
+
+The prepared HSLuv archive omits only that unused publisher utility, retaining
+all other 83 entries / 64 files, original bytes and permissions, including every
+library source, test, snapshot, license and build definition. Its SHA256 is
+013caa6074bc17d16678d46a8947769a740f43e15757f8fcd3de5e1774fa4570.
+Completed VirusTotal scan: 0/59, with Avast, AVG and Kaspersky explicitly
+Undetected. This is sample clearance, not final-installer clearance.
+https://www.virustotal.com/gui/file/013caa6074bc17d16678d46a8947769a740f43e15757f8fcd3de5e1774fa4570/detection
+
+The new source preparation authenticates the immutable original and exact
+omitted helper digest, verifies every retained member, and executes no upstream
+script. It is bundled and pinned with the source inventory. The original URL,
+revision, digest and precise source-selection reason are recorded. All 658 uBO
+runtime files, the host adaptation and the other six source archives are
+unchanged. The owner-distribution record has a candidate engineering source-scope
+review; no outside legal sign-off or new owner waiver is claimed. Validation:
+29 focused Node tests, two preparation tests, lint, package/adaptation checks,
+real-source member comparison and rebuilt ASAR verification passed.
+
+The approved member scans completed: five Maxima math files 0/64; twelve public
+encrypted deployment artifacts 0/63, with all original engines Undetected.
+The archived website control is clean on the original detecting engines.
+The exact helper was exposed through the positive code/build partition's
+Relations view. The earlier suspicion about encrypted artifacts is ruled out.
+
+Kaspersky's separate source warning remains OPEN. Both the complete uAssets
+ZIP (1/60) and an 86-file source-only ZIP (1/62) reproduce Mimikatz, confirming
+that a container-only change is not a solution for it either. URLhaus-only and
+without-URLhaus diagnostic controls are now prepared; both show new CAPTCHAs.
+Action-time approval was requested for those two challenges. Do not remove a
+protective rule or required filter source based on this untested suspicion.
+No release was made. Everything below describes earlier investigation stages.
+
+UPDATE: CANDIDATE REJECTED AFTER SCANNER VALIDATION.
+The approved CAPTCHA completed and the HSLuv source-file control was submitted.
+The complete 65-file ZIP returned 5/65, including the original Avast/AVG labels.
+The exact committed HSLuv replacement ZIP independently returned 5/64 with the
+same labels. Thus gzip/TAR-to-ZIP conversion does NOT eliminate this warning.
+The experimental replacements and converter were removed in a follow-up commit;
+all original source archives and their pins were restored. Only the guards
+rejecting unlisted source archives remain as a packaging improvement. The
+candidate details and earlier validation below are historical, not clearance
+or the current source-container layout. No release was made.
+
+https://www.virustotal.com/gui/file/e96991a8afdf32836ff85c633c7bcd5d135eafe23e7fdf69307828da9da9db7e/detection
+https://www.virustotal.com/gui/file/00479f218504d20cc463ea169966c0c28b01c6492da77c43317fa794ab49678f/detection
+
+Member isolation continues. Two visible CAPTCHAs now block the five Maxima math
+files and twelve public encrypted deployment artifacts. A fresh unauthenticated
+download from the immutable upstream codeload URL matched the original source
+digest and every byte of those twelve artifacts. This establishes that the
+partition contains already-public upstream files, not local credentials or
+customer data. Automatic approval review initially stopped that partition until
+its public provenance was established; upload preparation was allowed after the
+fresh-download comparison. Action-time CAPTCHA approval is separately pending.
+
+Published installer: Blanc-1.43.1-arm64.dmg
+SHA-256: 137821c40fd25771d1041fcb609af9993100ef9d8c363749774eeab4042777fb
+Release commit: 154d1db84a7d54d83b6dd40ef91ea7042636446f
+The public digest, authenticated checksum manifest, Developer ID signature,
+Gatekeeper acceptance and stapled notarization ticket were verified independently.
+The app was not launched during initial sample inspection.
+
+Confirmed triggers (not a blanket malware/false-positive determination):
+
+1. ublock/sources/hsluv-0.1.0.tar.gz
+   SHA-256 1691357d86b2bbeead0ad2e31f0c4eeb40497e50bcf0faa8e97e91df50b7f9ee
+   Immutable upstream revision: hsluv/hsluv 9cd8574fad8874828b3a8119843527d62d79887a
+   Individual VirusTotal result: 5/61. Avast and AVG return MacOS:Agent-GV [PUP].
+   The unchanged decompressed TAR also returns these labels (5/60).
+   Omitting only this archive from the full original uBO package removes the
+   related PUP results; Kaspersky remains positive (1/64).
+   https://www.virustotal.com/gui/file/1691357d86b2bbeead0ad2e31f0c4eeb40497e50bcf0faa8e97e91df50b7f9ee/detection
+   https://www.virustotal.com/gui/file/ce092b917b030c17e5b660ac4e6bbaa2267a9d2c5598156ede2ebfc68e9d9f47/detection
+
+2. ublock/sources/uAssets-1.75.0-main.tar.gz
+   SHA-256 1e0b65e660123f6015d84485d5ec6ac8571eeee957a0cbc0b5ea083850afe7d7
+   Immutable upstream revision: uBlockOrigin/uAssets f9bd781375aeefae03196d07d079c772fa15e3e6
+   A diagnostic ZIP containing only this unchanged archive reproduces the exact
+   Kaspersky UDS:Trojan-PSW.Win32.Mimikatz label, completed 1/63.
+   Wrapper SHA-256: 222201670e9b5a0757ad706b4a1d4ce1b625044f466260f02578d747453db215.
+   Direct gzip analysis remains uncompleted; this result is explicitly the
+   recursive one-member wrapper result. The exact inner member/rule is unknown.
+   https://www.virustotal.com/gui/file/222201670e9b5a0757ad706b4a1d4ce1b625044f466260f02578d747453db215/detection
+
+Controls: full original uBO ZIP reproduces all original labels (6/58); runtime-only
+uBO ZIP 0/64; metadata-only 0/63; first-party code 0/65; npm dependencies 0/63.
+The URLhaus defensive list freshly returned 0/58 with all three original
+engines Undetected. Do not remove its protective rules based on malware names.
+The code-source archive partition reports Kaspersky Undetected. The uAssets
+main+prod partition reproduces Kaspersky (1/63). The individual prod control
+is CAPTCHA-blocked, so this does not assert that main is the only uAssets trigger.
+Timeouts on the original DMG and app.asar rescans do not establish clearance.
+
+Candidate prepared on codex/antivirus-source-packaging:
+- Replace only the two confirmed gzip/TAR source containers with standard ZIPs.
+- Preserve all 186 entries, including 151 files, original paths, bytes,
+  permission bits, licenses, build scripts, tests and source snapshots.
+- Keep all 658 uBO runtime files and the existing adaptation unchanged.
+- Keep the other five source archives, GPL/LGPL texts and all notices bundled.
+- Record both original and redistributed digests, revisions and upstream URLs.
+- Bundle and hash-pin the offline converter; it authenticates the original
+  archives and independently compares every resulting entry, never executing
+  archived scripts.
+- Reject stale/unlisted source archives both in the checkout and actual ASAR.
+This changes source containers, not runtime detection behavior or source access.
+It does not replace bundled corresponding source with a network-only offer.
+
+Candidate ZIP digests:
+HSLuv: 00479f218504d20cc463ea169966c0c28b01c6492da77c43317fa794ab49678f
+uAssets main: a064e149e27bfdae081cd6bde41eaa31d5d7dcb1cacb297de5f24e4259b83d38
+
+Validation completed:
+- 29 focused Node tests (package integrity, adaptation and distribution gates).
+- Three Python tests (completeness, wrong-digest rejection and unsafe members).
+- Real-source byte/permission comparison for every entry in both replacements.
+- uBO package and reproducible-adaptation checks; filtering code unchanged.
+- Rebuilt application ASAR passes packaged uBO/source/license/host verification.
+- Stale-source negative ASAR rejected for unlisted original HSLuv archive.
+- npm run lint and git diff --check.
+
+OPEN before shipping: neither replacement container nor final installer has
+antivirus clearance. A HSLuv source-file control upload requires a visible
+VirusTotal CAPTCHA; action-time approval was requested and is pending. No
+account is required for the anonymous scans that have succeeded. No protection,
+source file or filter rule has been removed to claim a clean result. No release
+assets have been changed and no release has been published.
+
+Vendor escalation:
+Avast/AVG exact HSLuv evidence delivered to DL-Virus@gendigital.com.
+Resend email 01a17447-577f-7a28-aabc-8a4d9ee9aa33.
+Kaspersky exact uAssets main evidence submitted to newvirus@kaspersky.com.
+Resend email 01a17449-7ca2-765a-a8e2-a40691d4a7b0.
+Both requests ask for the exact inner member/rule and correction of the unchanged
+public installer as well as the upstream archive. Analyst findings remain pending.
+
+Detailed local snapshots, screenshots, preservation inventories and earlier
+comparison records are retained in the original workspace under
+outputs/antivirus-1431/. Public sample extractions and candidate ASARs are under
+/tmp/blanc-av-review-1431/. These local paths are evidence, not release artifacts.
+

@@ -32,24 +32,31 @@
       "repository": "hsluv/hsluv",
       "revision": "9cd8574fad8874828b3a8119843527d62d79887a",
       "url": "https://codeload.github.com/hsluv/hsluv/tar.gz/9cd8574fad8874828b3a8119843527d62d79887a",
-      "sha256": "1691357d86b2bbeead0ad2e31f0c4eeb40497e50bcf0faa8e97e91df50b7f9ee",
-      "file": "hsluv-0.1.0.tar.gz",
-      "sourcePath": "sources/hsluv-0.1.0.tar.gz",
+      "sha256": "013caa6074bc17d16678d46a8947769a740f43e15757f8fcd3de5e1774fa4570",
+      "file": "hsluv-0.1.0-preferred.tar.gz",
+      "sourcePath": "sources/hsluv-0.1.0-preferred.tar.gz",
       "runtimePath": "lib/hsluv/hsluv-0.1.0.min.js",
       "exactBundledMatches": [
         "hsluv-9cd8574fad8874828b3a8119843527d62d79887a/javascript/dist/hsluv-0.0.3.min.js",
         "hsluv-9cd8574fad8874828b3a8119843527d62d79887a/javascript/dist/hsluv-0.1.0.min.js"
       ],
-      "buildReproduced": false
+      "buildReproduced": false,
+      "sourcePreparation": {
+        "script": "prepare-hsluv-source.py",
+        "upstreamSha256": "1691357d86b2bbeead0ad2e31f0c4eeb40497e50bcf0faa8e97e91df50b7f9ee",
+        "omittedPath": "hsluv-9cd8574fad8874828b3a8119843527d62d79887a/scripts/secrets.sh",
+        "omittedSha256": "e1ce30a59c2cfda3c4e9b58bfea3cf1ce4d5ae7b374238e2138cc0637880c501",
+        "reason": "Unused upstream publisher encryption utility; not referenced by the library build, tests or runtime. All preferred program source and build definitions retained."
+      }
     },
     {
       "name": "uAssets-1.75.0-main",
       "repository": "uBlockOrigin/uAssets",
       "revision": "f9bd781375aeefae03196d07d079c772fa15e3e6",
       "url": "https://codeload.github.com/uBlockOrigin/uAssets/tar.gz/f9bd781375aeefae03196d07d079c772fa15e3e6",
-      "sha256": "1e0b65e660123f6015d84485d5ec6ac8571eeee957a0cbc0b5ea083850afe7d7",
-      "file": "uAssets-1.75.0-main.tar.gz",
-      "sourcePath": "sources/uAssets-1.75.0-main.tar.gz",
+      "sha256": "9a82d98674423e99c6527c900820f1afb786a56cd75eddf7905afdd72ba8df17",
+      "file": "uAssets-1.75.0-main-preferred.tar.gz",
+      "sourcePath": "sources/uAssets-1.75.0-main-preferred.tar.gz",
       "role": "preferred filter sources and build scripts",
       "runtimePaths": [
         "assets/thirdparties/pgl.yoyo.org/as/README.md",
@@ -66,7 +73,14 @@
         "thirdparties/urlhaus-filter/urlhaus-filter-online.txt"
       ],
       "buildReproduced": false,
-      "evidence": "docs/evidence/2026-10-03-ubo-component-rebuilds/asset-inputs.json"
+      "evidence": "docs/evidence/2026-10-03-ubo-component-rebuilds/asset-inputs.json",
+      "sourcePreparation": {
+        "script": "prepare-uassets-source.py",
+        "upstreamSha256": "1e0b65e660123f6015d84485d5ec6ac8571eeee957a0cbc0b5ea083850afe7d7",
+        "omittedPath": "uAssets-f9bd781375aeefae03196d07d079c772fa15e3e6/tools/update-3rdparties.sh",
+        "omittedSha256": "3d7f5cc541a347155ec15a88c6172dda0100a415883127d9c60ed77aaec53f77",
+        "reason": "Unused upstream daily publisher helper that fetches newer remote lists. Pinned snapshots, preferred filter sources, templates, build/test tools and licenses are retained unchanged."
+      }
     },
     {
       "name": "uAssets-1.75.0-prod",

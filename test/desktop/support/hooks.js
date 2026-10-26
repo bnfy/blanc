@@ -3,7 +3,7 @@ const os = require('node:os');
 const fs = require('node:fs');
 const { execFileSync } = require('node:child_process');
 const { _electron } = require('playwright');
-const { BeforeAll, AfterAll, Before, After, setDefaultTimeout } = require('@cucumber/cucumber');
+const { BeforeAll, AfterAll, Before, After, Status, setDefaultTimeout } = require('@cucumber/cucumber');
 const fixtures = require('./fixtures-server');
 const ctx = require('./context');
 const { callTestHook } = require('./test-hook-call');
@@ -88,6 +88,18 @@ async function launchApp(extraEnv = {}, { recoveryChoice = null } = {}) {
       electronApp.process()[stream]?.on('data', (chunk) => process.stderr.write(`[app ${stream}] ${chunk}`));
     }
   }
+  // Keep native renderer failures attributable to a URL and exit reason.
+  // This observes crashes only; it never restarts a target or turns a failure
+  // into a passing retry.
+  await electronApp.evaluate(({ app, webContents }) => {
+    const observe = (contents) => contents.on('render-process-gone', (_event, details) => {
+      console.error('[desktop renderer crash]', JSON.stringify({
+        id: contents.id, url: contents.getURL(), ...details,
+      }));
+    });
+    for (const contents of webContents.getAllWebContents()) observe(contents);
+    app.on('web-contents-created', (_event, contents) => observe(contents));
+  });
   electronApp.__blancUncaughtOffset = fs.existsSync(uncaughtLogPath)
     ? fs.statSync(uncaughtLogPath).size
     : 0;
@@ -392,6 +404,15 @@ Before(async function () {
   ctx.groupMembers = null;
   ctx.standalonePinnedTabId = null;
   await callTestHook(ctx.app, 'reset');
+});
+
+// The full suite can take tens of minutes on hosted Macs. Emit a failed
+// scenario's actual assertion immediately, while retaining Cucumber's final
+// report and retry policy, so CI diagnosis need not wait for the last scenario.
+After(function ({ pickle, result, willBeRetried }) {
+  if (result?.status === Status.FAILED) {
+    console.error(`[desktop acceptance] ${pickle.name}${willBeRetried ? ' (retry pending)' : ''}\n${result.message || 'No failure detail'}`);
+  }
 });
 
 // Scenarios tagged @test-platform-linux run in an app that acts as on Linux

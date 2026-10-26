@@ -1652,27 +1652,26 @@ When('I choose {string} vertical tab text in Settings', async function (size) {
 
 Then('vertical tab titles use {float} pixel text without clipping', async function (size) {
   const page = await chromePage();
-  try {
-    await page.waitForFunction((expected) => {
-      const title = document.querySelector('.vertical-tab-title');
-      return title && parseFloat(getComputedStyle(title).fontSize) === expected;
-    }, size);
-  } catch (error) {
-    error.message += JSON.stringify(await page.evaluate(() => ({
-      size: document.getElementById('verticalTabsRail').dataset.textSize,
-      titles: [...document.querySelectorAll('.vertical-tab-title')].map((el) => getComputedStyle(el).fontSize),
-    })));
-    throw error;
-  }
-  const metrics = await page.locator('.vertical-tab-title').first().evaluate((title) => {
+  // Select and measure in one renderer turn: a render can replace the rail
+  // between a locator resolving and a later evaluation of that element.
+  const metrics = await waitForValue(() => page.evaluate(() => {
+    const title = [...document.querySelectorAll('#verticalTabsRail .vertical-tab-title')]
+      .find((el) => el.getBoundingClientRect().height > 0);
+    if (!title) return null;
     const row = title.closest('.vertical-tab-primary').getBoundingClientRect();
     const rect = title.getBoundingClientRect();
-    return { top: rect.top - row.top, bottom: row.bottom - rect.bottom, height: rect.height, lineHeight: parseFloat(getComputedStyle(title).lineHeight) };
-  });
+    const style = getComputedStyle(title);
+    return {
+      fontSize: parseFloat(style.fontSize),
+      top: rect.top - row.top, bottom: row.bottom - rect.bottom,
+      height: rect.height, lineHeight: parseFloat(style.lineHeight),
+      headers: [...document.querySelectorAll('#verticalTabsRail .vertical-tabs-group-header')]
+        .map((el) => parseFloat(getComputedStyle(el).fontSize)),
+    };
+  }), (value) => value && value.fontSize === size && value.height > 0
+    && Number.isFinite(value.lineHeight), 'vertical tab text layout', 7000);
   assert.ok(metrics.top >= 0 && metrics.bottom >= 0 && metrics.height >= metrics.lineHeight - 1, JSON.stringify(metrics));
-  for (const header of await page.locator('.vertical-tabs-group-header').all()) {
-    assert.equal(await header.evaluate((el) => parseFloat(getComputedStyle(el).fontSize)), size - 2);
-  }
+  for (const fontSize of metrics.headers) assert.equal(fontSize, size - 2);
   if (process.env.BLANC_TAB_TEXT_CAPTURES) {
     const fs = require('node:fs');
     const path = require('node:path');

@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const { After, Given, When, Then } = require('@cucumber/cucumber');
 const { waitForValue } = require('../support/poll');
-const { frontChromeWindow } = require('../support/tab-drag');
+const { chromePage } = require('../support/tab-drag');
 const ctx = require('../support/context');
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -26,11 +26,23 @@ async function prepare(world, { enabled, layout = 'island' }) {
   await world.call('setIslandHoverOpen', enabled);
   await world.call('closeOverlay');
   await world.call('resetOverlayShowCount');
-  await frontChromeWindow(world);
+  await waitForValue(() => world.call('focusWindow'), Boolean,
+    'hover test window to take native focus');
+  const page = await chromePage();
+  await page.waitForFunction((expected) =>
+    document.documentElement.dataset.tabLayout === expected, layout);
+  await waitForValue(() => world.call('overlayRendererMode'),
+    (mode) => mode == null, 'hover test overlay renderer to close');
   // Hover-open's target is the favicon + domain area, not the whole pill.
+  let previous;
   const rect = await waitForValue(
     () => world.call('islandHoverRect'),
-    (value) => value && value.width > 0 && value.height > 0,
+    (value) => {
+      const settled = value && value.width > 0 && value.height > 0 && previous
+        && ['x', 'y', 'width', 'height'].every((key) => value[key] === previous[key]);
+      previous = value;
+      return settled;
+    },
     'the Island URL area rectangle',
   );
   world.islandPillRect = await world.call('islandRect');

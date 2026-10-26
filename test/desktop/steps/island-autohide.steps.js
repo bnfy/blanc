@@ -74,6 +74,11 @@ Given('the Island auto-hides', async function () {
   await prepare(this, 'island');
 });
 
+Given('native Reduce Motion is {word}', async function (value) {
+  assert.ok(value === 'on' || value === 'off');
+  assert.equal(await this.call('setNativeReducedMotion', value === 'on'), true);
+});
+
 Given('the Island auto-hides with vertical tabs', async function () {
   await prepare(this, 'vertical');
 });
@@ -210,6 +215,10 @@ Given('the window has no global pointer position, as on native Wayland', async f
 });
 
 async function pageMove(world, y) {
+  // Focusing a WebContents does not activate its native window. Edge reveal
+  // intentionally ignores inactive windows, so establish the real pointer's
+  // focused-window precondition before injecting the page event.
+  await waitForValue(() => world.call('focusWindow'), Boolean, 'the page window to receive the pointer');
   const state = await world.call('state');
   assert.equal(await world.call('sendMouseInput', state.activeTabId, { type: 'mouseMove', x: 400, y }), true);
 }
@@ -257,6 +266,7 @@ When('the palette closes with the pointer well below the Island', async function
 });
 
 After({ tags: '@island-autohide' }, async function () {
+  await this.call('setNativeReducedMotion', null).catch(() => {});
   if (this.floatOriginalSize) {
     await this.call('setWindowContentSize', this.floatOriginalSize.width, this.floatOriginalSize.height).catch(() => {});
     this.floatOriginalSize = null;
