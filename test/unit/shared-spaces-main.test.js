@@ -4,10 +4,10 @@ const model=require('../../src/main/shared-spaces-model');
 let createRuntimeSync;try{({createRuntimeSync}=require('../../src/main/shared-spaces-runtime'));}catch(e){if(e.code!=='MODULE_NOT_FOUND')throw e;}
 const id=n=>n.toString(16).padStart(32,'0'),f=(v,c=100)=>({v,c,by:'peer'}),sid=id(99);
 const record=(n,left='')=>({nav:f({url:'https://example.test/'+n,title:'T'+n}),name:f(null),pinned:f(false),groupId:f(null),pos:f(model.keyFor(left,'',id(n))),deleted:f(false)});
-test('packaged and development desktop builds offer the Shared Spaces consent flow',()=>{
+test('only development desktop builds offer the Shared Spaces consent flow',()=>{
   const fs=require('node:fs'),vm=require('node:vm'),source=fs.readFileSync(require.resolve('../../src/main/main.js'),'utf8');
   const helper=source.match(/function isSharedSpacesOffered\(\) \{[^\n]+\}/)?.[0];assert.ok(helper);
-  for(const isPackaged of [true,false]){const context={app:{isPackaged}};vm.runInNewContext(helper+';this.offered=isSharedSpacesOffered();',context);assert.equal(context.offered,true);}
+  for(const isPackaged of [true,false]){const context={app:{isPackaged}};vm.runInNewContext(helper+';this.offered=isSharedSpacesOffered();',context);assert.equal(context.offered,!isPackaged);}
 });
 function harness(override) {
   assert.equal(typeof createRuntimeSync,'function');
