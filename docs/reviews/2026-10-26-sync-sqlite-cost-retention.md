@@ -1,6 +1,10 @@
 # Shared Spaces: SQLite cost and recovery-history deployment review
 
-**Prepared 2026-10-26; awaiting owner review.** Code reviewed:
+**Prepared 2026-10-26; owner approved at `8fa787a55`.** The subsequent
+[billing evidence and approved budget/procedure](2026-10-26-sync-billing-budget.md)
+record verified usage and the separate $50 approval. The original scenario
+assumptions below are retained; approval does not authorize deployment.
+Code reviewed:
 [#1132](https://github.com/bnfy/blanc/pull/1132) at
 `6921497287b4aec16a20b670a6e67d39be9f0558`, including #1136 and #1137.
 This supplements the [conservative quota implementation review](../security-reviews/2026-10-25-sync-conservative-quota-implementation.md)
@@ -39,8 +43,10 @@ not a rolling maximum of 3,650. This is not a bound against abuse.
 ## 2. Price basis and reproducible calculation
 
 USD list prices checked against official documentation on 2026-10-26. Actual
-Cloudflare billing plan, credits, existing usage and available allowances have
-**not** been verified. Figures below assume Workers Paid standard pricing, before
+Cloudflare billing plan, credits, existing usage and available allowances had
+**not** been verified when this scenario review was prepared; the
+[follow-up billing record](2026-10-26-sync-billing-budget.md) now verifies the
+actual plan, cycle and observed usage. Figures below assume Workers Paid standard pricing, before
 tax, with this service receiving all listed monthly allowances. Allowances are
 shared across the billing account; do not allocate them again to other Workers.
 
@@ -225,10 +231,10 @@ freely usable Space data. Public copy/media remains unapproved and unpublished.
 | Item | Recommendation / evidence needed | Status |
 | --- | --- | --- |
 | Storage architecture | Keep SQLite atomic Space writes and conservative fixed reservation | Existing owner direction; retained |
-| Operating budget | Record actual billing tier, remaining shared allowances and recent aggregate KV/Worker usage; owner selects monthly USD ceiling | Not approved/verified |
-| Cost monitoring | Proposed warning at 50%, intervention review at 80%, daily projected month-end cost; measure KV writes, DO duration/rows/storage and rejected traffic | Proposal, not configured |
-| Intervention | At threshold, owner reviews traffic controls or pauses new admission; existing-account load can persist, so this alone cannot cap costs | No automatic action authorized |
-| Recovery history | Adopt no-PITR-restore policy; resolve provider questions or explicitly accept stated uncertainty | Awaiting review |
+| Operating budget | Actual plan, cycle and observed usage recorded in the billing follow-up; $50/cycle for Workers, KV and DO usage, excluding fixed subscriptions and other products | Approved October 26; not a provider-enforced cap |
+| Cost monitoring | Follow the approved billing record: $10 actual/$25 projected investigation; $30 actual/$40 projected escalation; $50 decision threshold | Procedure approved; monitoring/alert setup not activated |
+| Intervention | Follow the approved procedure; admission changes, suspension and restoration require explicit owner authorization | Procedure approved; no standing incident authority |
+| Recovery history | No-PITR-restore policy recorded in the approved review; resolve provider questions or explicitly accept stated uncertainty before deployment | Policy approved; deployment evidence/decision remains open |
 | Retention promise | Approve backend copy revision or safe cleanup implementation before cutover | Deployment blocker |
 | Production preflight | Reconfirm all deployed/preview writers, no preexisting Space/schema-1 data, same KV namespace; one 100% cutover and old cleanup stopped | Not repeated in this review |
 | Remaining gates | #1132 stays unmerged; deployment approval, subsequent real-device/platform and server-erasure evidence, then separate PR E approval | All on hold |
