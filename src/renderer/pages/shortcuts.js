@@ -31,6 +31,7 @@ const SLASH_COMMANDS = [
   ['/block-ads', 'slash.blockAds.hint'],
   ['/allow-ads', 'slash.allowAds.hint'],
   ['/dark-site', 'slash.darkSite.hint'],
+  ['/route [off]', 'slash.route.doc'],
   ['/1password', 'slash.1password.hint'],
   ['/theme [system|light|dark]', 'slash.theme.doc'],
   ['/patron', 'slash.patron.hint'],

@@ -1,7 +1,7 @@
 # Link routing: open links from other apps where they belong
 
 **Date:** 2026-10-26
-**Status:** decided (§11, owner, 2026-10-26). PR 1 implemented (§10); PR 2 not yet.
+**Status:** decided (§11, owner, 2026-10-26). PRs 1 and 2 implemented (§10).
 **Builds on:** the OS link handoff (`src/main/external-url-handoff.js`, `startup-urls.js`, the `open-url` and `second-instance` handlers in `main.js`), local profiles (`local-profile-model.js`, `local-profiles.js`, one profile per window), Blanc Spaces (`workspaces-model.js`, `workspace-controller.js`, each Space belongs to one profile) and Settings → Profiles.
 **Reference:** Arc's *Air Traffic Control*. Arc's release notes introduce it on May 3, 2023 as a way to send links to the right Space by domain, set up under *Arc → Settings → Links → Air Traffic Control* ([Arc for macOS 2023 release notes](https://resources.arc.net/hc/en-us/articles/20498377604887-Arc-for-macOS-2023-Release-Notes)). Arc's sunset FAQ says its successor, Dia, has no equivalent and can't open sites in a chosen profile automatically ([Arc Sunset FAQ](https://resources.arc.net/hc/en-us/articles/44413577819159-Arc-Sunset-Frequently-Asked-Questions)). The finer details below, such as *contains* versus *is equal to* matching and the last-used Space as a destination, come from a third-party guide ([allthings.how](https://allthings.how/how-to-route-links-to-specific-arc-spaces-using-air-traffic-control-in-the-arc-browser/)), not from Arc. The request came from r/ArcBrowser on 2026-10-24, in the same post as Ctrl-Tab and Copy Link.
 
@@ -156,6 +156,12 @@ These are conveniences; Settings stays the full editor.
    - Settings saves only rows whose value is valid; a row still being typed stays on the page until it is. Because deleting a profile removes its rules, "Profile deleted" shows only while a deletion is still finishing.
    - `contains` compares against the URL exactly as it was handed over, lowercased.
    - The mobile D-register entry is D32 (`spec/divergence-register.md`).
+
+   **PR 2 is implemented** (2026-10-26). The shield popover row and `/route [off]` share one main path, `chrome:route-active` (`toggle`, `on`, `off`), over the pure `siteRouteSwitchModel`, `setSiteLinkRoute` and `removeSiteLinkRoute` in `link-routes.js`; main confirms in the pill (`route-on`, `route-off`, `route-limit`, `route-unavailable`). Covered by unit tests and F60-4/F60-5. Choices the text above left open:
+   - Neither is offered in a private tab: the rule would write that tab's host to `settings.json`, which private tabs never touch. `/route` there shows "Can't route this page".
+   - A new rule goes first in the list, so a broader rule further down can't shadow it; replacing a rule keeps its place and id and clears its private flag. At 50 rules a new one is refused ("Rule limit reached").
+   - The switch reads *…in this Space* when the window shows one, and its note names where a rule sends the site instead.
+   - `/route` works with a single profile too (it can still point at a Space); only the popover row waits for two profiles, as §3.6 says.
 3. Website and What's New only after the release that carries PR 1 (`docs/marketing-claims.md`). The claim is "routes links from other apps by domain to a profile or Space", not anything about understanding what the link is.
 
 ## 11. Decisions (owner, 2026-10-26)

@@ -251,7 +251,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "0361ae7a70c274cec9233cffe85a2e1ec94777be99f06d2ca1d5e94ccd863468",
+      "sha256": "ff2456123f36f76c29f928c1eac6d622db35c4f377d3d9de7dd966026fa3d402",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -317,6 +317,7 @@
         "chrome:rename-device",
         "chrome:reset-split",
         "chrome:resize-split",
+        "chrome:route-active",
         "chrome:search-suggestions",
         "chrome:send-tab",
         "chrome:send-targets",
@@ -645,7 +646,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "7913103b385eb099440a9d82ab5b26b77646cda90f95460818bf3eaf6837be2b",
+      "sha256": "2072daaebda10449f2324b7d22a7461a8ff73227c7a9c826811fb89b71fd6827",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -701,6 +702,7 @@
         "chrome:rename-device",
         "chrome:reset-split",
         "chrome:resize-split",
+        "chrome:route-active",
         "chrome:search-suggestions",
         "chrome:send-tab",
         "chrome:send-targets",

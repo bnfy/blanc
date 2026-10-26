@@ -35,6 +35,8 @@
     <string name="slash_block_ads_hint">Block ads here, or toggle blocking everywhere</string>
     <string name="slash_allow_ads_hint">Allow ads on this site</string>
     <string name="slash_dark_site_hint">Darken this site, or leave it as drawn</string>
+    <string name="slash_route_hint">Open links to this site from other apps here — add \"off\" to stop</string>
+    <string name="slash_route_doc">Open links to this site from other apps in this window\'s profile or Space; with off, stop</string>
     <string name="slash_1password_hint">Fill a login from 1Password</string>
     <string name="slash_theme_hint">Cycle appearance, or choose system / light / dark</string>
     <string name="slash_theme_doc">Cycle appearance, or switch directly to system, light, or dark</string>
@@ -61,6 +63,10 @@
     <string name="pill_placeholder">Search or type a URL</string>
     <string name="pill_notice_clean_link_copied">Clean link copied</string>
     <string name="pill_notice_link_copied">Link copied</string>
+    <string name="pill_notice_route_on">Links open here</string>
+    <string name="pill_notice_route_off">Link rule removed</string>
+    <string name="pill_notice_route_limit">Rule limit reached</string>
+    <string name="pill_notice_route_unavailable">Can’t route this page</string>
     <string name="pill_commands">Commands (/)</string>
     <string name="pill_private_chip">Private</string>
     <string name="pill_private_title">Leave private mode — closes this tab</string>
@@ -351,6 +357,10 @@
     <string name="shield_dark">Dark website</string>
     <string name="shield_dark_label">Dark website for this site</string>
     <string name="shield_dark_note">Applies while Blanc is dark.</string>
+    <string name="shield_route">Open links to this site in this profile</string>
+    <string name="shield_route_space">Open links to this site in this Space</string>
+    <string name="shield_route_note">For links from other apps.</string>
+    <string name="shield_route_elsewhere">Links from other apps open in %1$s now.</string>
     <string name="shield_connection">Connection</string>
     <string name="shield_settings">Blocking settings</string>
     <string name="shield_choose_blocker">Choose a blocker</string>

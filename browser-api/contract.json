@@ -486,6 +486,43 @@
         },
         "darkSite": {
           "type": "ShieldDarkSite | null"
+        },
+        "route": {
+          "type": "ShieldRoute | null"
+        }
+      }
+    },
+    "ShieldRoute": {
+      "doc": "The shield popover's link routing switch (F60): whether links to this site from other apps open in this window's profile (scope 'profile') or Space ('space'); `elsewhere` names the profile, or profile and Space, a rule sends them to instead. Null in private tabs and with fewer than two profiles.",
+      "fields": {
+        "on": {
+          "type": "boolean"
+        },
+        "scope": {
+          "type": "'profile' | 'space'"
+        },
+        "elsewhere": {
+          "type": "string | null"
+        }
+      }
+    },
+    "RouteResult": {
+      "doc": "The outcome of /route, /route off or the shield popover's link routing switch. Main shows the pill notice.",
+      "fields": {
+        "ok": {
+          "type": "boolean"
+        },
+        "host": {
+          "type": "string | null",
+          "optional": true
+        },
+        "on": {
+          "type": "boolean",
+          "optional": true
+        },
+        "error": {
+          "type": "'unavailable' | 'no-host' | 'too-many' | 'invalid'",
+          "optional": true
         }
       }
     },
@@ -1058,7 +1095,7 @@
       "doc": "Overlay modes; every showOverlay() call in main.js passes one of these literals."
     },
     "PillNotice": {
-      "ts": "'link-copied' | 'clean-link-copied'",
+      "ts": "'link-copied' | 'clean-link-copied' | 'route-on' | 'route-off' | 'route-limit' | 'route-unavailable'",
       "doc": "Fixed ids of the pill's brief confirmations; the strip owns their text."
     },
     "ShieldTrigger": {
@@ -3613,6 +3650,20 @@
       "params": [],
       "returns": "DarkSiteResult | null",
       "doc": "Darken the active site, or leave it as the site drew it (Dark websites). Resolves to the hostname and whether it is now darkened while Blanc is dark, or null when the page has no website."
+    },
+    {
+      "name": "routeActiveSite",
+      "group": "appearance",
+      "kind": "invoke",
+      "channel": "chrome:route-active",
+      "params": [
+        {
+          "name": "mode",
+          "type": "'toggle' | 'on' | 'off'"
+        }
+      ],
+      "returns": "RouteResult",
+      "doc": "Link routing (F60): send links to the active site from other apps to this window's profile and Space ('on', /route), remove that rule ('off', /route off), or flip it (the shield popover's switch)."
     },
     {
       "name": "siteInfoForgetCertificateException",

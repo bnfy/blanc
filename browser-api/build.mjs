@@ -1324,6 +1324,20 @@ export function payloadFixtures() {
     }
   }
 
+  // The real link routing switch (F60) over each rule and window shape.
+  const { siteRouteSwitchModel } = requireMain('./link-routes');
+  const routeRule = (profileId, spaceId = null) => [{ id: 'r1', match: { kind: 'domain', value: 'example.com' }, destination: { profileId, spaceId, private: false } }];
+  const siteRoutes = [];
+  for (const routes of [[], routeRule('work'), routeRule('work', 'space-1'), routeRule('default')]) {
+    for (const here of [{ profileId: 'work', spaceId: null }, { profileId: 'work', spaceId: 'space-1' }]) {
+      for (const liveProfileCount of [1, 2]) {
+        siteRoutes.push((url, privateTab) => siteRouteSwitchModel({
+          routes, url, here, privateTab, liveProfileCount, nameFor: ({ profileId }) => (profileId === 'default' ? 'Personal' : null),
+        }));
+      }
+    }
+  }
+
   const urls = ['https://example.com/a', 'http://example.com/', 'http://localhost:3000/', 'blanc://newtab/', 'file:///tmp/x.html', 'not a url', ''];
   const cert = sanitizeCertificate({ subjectName: 'example.com', issuerName: 'Example CA', validStart: 1700000000, validExpiry: 1800000000, fingerprint: 'sha256/abc' });
   const statuses = [
@@ -1346,8 +1360,12 @@ export function payloadFixtures() {
             for (const privateTab of [false, true]) {
               const model = shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled, provider, readiness, connection: connectionFor({ url, isLoading: false }), t });
               if (model) {
-                for (const darkSite of darkSites) {
-                  add(`shieldPopover(${url}, ${provider}, ${readiness})`, 'ShieldPopover', { ...model, controls: shieldProviderModel(status, privateTab, t), darkSite: darkSite(url, privateTab) });
+                darkSites.forEach((darkSite, index) => {
+                  const route = siteRoutes[index % siteRoutes.length](url, privateTab);
+                  add(`shieldPopover(${url}, ${provider}, ${readiness})`, 'ShieldPopover', { ...model, controls: shieldProviderModel(status, privateTab, t), darkSite: darkSite(url, privateTab), route });
+                });
+                for (const siteRoute of siteRoutes) {
+                  add(`shieldPopover(${url}, ${provider}, ${readiness}, route)`, 'ShieldPopover', { ...model, controls: shieldProviderModel(status, privateTab, t), darkSite: darkSites[0](url, privateTab), route: siteRoute(url, privateTab) });
                 }
               }
             }

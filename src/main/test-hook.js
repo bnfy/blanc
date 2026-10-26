@@ -2690,8 +2690,18 @@ function install(refs) {
           toggleShown: !document.getElementById('shieldPopToggle').hidden,
           connection: row && !row.hidden ? 'Connection · ' + document.getElementById('shieldPopConnectionValue').textContent : null,
           header: document.querySelector('.shield-pop-state')?.textContent.trim() ?? '',
+          route: document.getElementById('shieldPopRoute')?.hidden === false ? {
+            label: document.getElementById('shieldPopRouteLabel').textContent,
+            on: document.getElementById('shieldPopRouteToggle').getAttribute('aria-checked') === 'true',
+            note: document.getElementById('shieldPopRouteNote').textContent,
+          } : null,
         };
       })()`);
+    },
+    clickShieldRouteToggle() {
+      const wc = getOverlayWebContents();
+      if (!wc) throw new Error('overlay webContents unavailable');
+      return wc.executeJavaScript(`document.getElementById('shieldPopRouteToggle').click()`);
     },
     clickShieldPopoverToggle() {
       const wc = getOverlayWebContents();

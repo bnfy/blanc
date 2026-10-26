@@ -141,6 +141,14 @@
     "message": "Escurecer este site, ou deixá-lo como está",
     "source": "sha256:ff525b1b76f536964552a68e8b19248c6a27a4a86602a2c1828d86555e32945e"
   },
+  "slash.route.hint": {
+    "message": "Abrir aqui links para este site vindos de outros apps; adicione \"off\" para parar",
+    "source": "sha256:dde0466c9fa15b0ec6901bc25f656a64c01a53ce19da21df6ef743d50b5e6b88"
+  },
+  "slash.route.doc": {
+    "message": "Abrir links para este site vindos de outros apps no perfil ou Space desta janela; com off, parar",
+    "source": "sha256:435c11c48179fa813a76e4702acd3a911b562b542f5b7ae16ab4a39b0b628343"
+  },
   "slash.1password.hint": {
     "message": "Preencher um login do 1Password",
     "source": "sha256:91e7b778054c9d197be7303b3d3a465541d01d31c472ba9e75e7513fc3c5c91a"
@@ -244,6 +252,22 @@
   "pill.notice.linkCopied": {
     "message": "Link copiado",
     "source": "sha256:da3f613d76760b8fce41b8708d0815baed0ebf3477d27dd561ed32ee01445658"
+  },
+  "pill.notice.routeOn": {
+    "message": "Links abrem aqui",
+    "source": "sha256:d540633c81dce670022a30e63ff965dec1be40cb6e0e283c7bec6ac74a7a1550"
+  },
+  "pill.notice.routeOff": {
+    "message": "Regra removida",
+    "source": "sha256:affffd5d45c41df157533387394fe5b4e90902c0ee660edeeb19990822fb35cf"
+  },
+  "pill.notice.routeLimit": {
+    "message": "Limite de regras",
+    "source": "sha256:cb855a71b54e200a54c6d150aecb94754932f81128fd12450f972efd1befd0c0"
+  },
+  "pill.notice.routeUnavailable": {
+    "message": "Indisponível aqui",
+    "source": "sha256:00b45bc2b285b4c817da0776d06afd062ec57e659ba825e31dbd87d5d8dda130"
   },
   "pill.commands": {
     "message": "Comandos (/)",
@@ -1261,6 +1285,22 @@
   "shield.darkNote": {
     "message": "Vale enquanto o Blanc está escuro.",
     "source": "sha256:29cbc4c053936adc34d23fe294929603a8459491e410dafd089bdbca5a3f72ad"
+  },
+  "shield.route": {
+    "message": "Abrir links para este site neste perfil",
+    "source": "sha256:dfd40b3ad4c2bc89627a8737b6ddbfbc204e10a08991a46633aae58151ce26c6"
+  },
+  "shield.routeSpace": {
+    "message": "Abrir links para este site neste Space",
+    "source": "sha256:2ec81bd8186da179ab34b9f7f2b2f7f849b4ec0d9bfc6fe60f2b37f40c016236"
+  },
+  "shield.routeNote": {
+    "message": "Para links de outros apps.",
+    "source": "sha256:10b18d615b1e48b5c895ea29403091094d48ae553532fee6b5610e027c245877"
+  },
+  "shield.routeElsewhere": {
+    "message": "Links de outros apps agora abrem em {destination}.",
+    "source": "sha256:72a7ce9a1f009f4cb90727d488e7ce313f2a558d50e3786fbfda3e997cf6e66a"
   },
   "shield.connection": {
     "message": "Conexão",
