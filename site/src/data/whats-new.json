@@ -1,7 +1,91 @@
 {
   "firstRelease": "1.36",
-  "noPage": ["1.42"],
+  "noPage": [
+    "1.42"
+  ],
   "pages": [
+    {
+      "release": "1.44",
+      "highlights": [
+        {
+          "id": "reader-mode",
+          "tile": "Reader Mode",
+          "title": "Read articles without the clutter",
+          "body": "Reader Mode lifts the article out of the page you’ve already loaded, on your computer, and keeps its headings, links, images, tables and code. It’s free, and leaving it returns to the page as you left it, without reloading.",
+          "steps": [
+            "Type /reader, or choose Enter Reader Mode when the expanded Island offers it.",
+            "Pick System, Light, Dark or Sepia, a typeface, a text size and a width. Blanc remembers them on this device."
+          ],
+          "note": "Some pages aren’t articles. On those, Blanc says so and leaves the page as it was.",
+          "media": {
+            "kind": "todo",
+            "todo": "Capture this from the merged 1.44.0 build, and get the owner’s sign-off on it and on this text.",
+            "candidates": [
+              "/feature-captures/floating-island-v1.40.0.webp",
+              "/feature-captures/auto-hide-island-v1.39.0.webp",
+              "/feature-captures/island-hover-v1.38.0.webp"
+            ]
+          }
+        },
+        {
+          "id": "move-to-space",
+          "tile": "Move to Space",
+          "title": "Move tabs and groups between spaces",
+          "body": "Move a tab, as it is, to the end of another space without leaving the window you’re in. A whole group moves with its name and colour, and a link can open straight in another space.",
+          "steps": [
+            "Right-click a tab and choose Move to Space, then a space. New Space… makes a space that starts with that tab.",
+            "For a group, open its menu and choose Move Group to Space. For a link, right-click it and choose Open Link in Space."
+          ],
+          "note": "These appear once you have a space. Private tabs don’t offer them.",
+          "learnMore": "/features/workspaces",
+          "media": {
+            "kind": "todo",
+            "todo": "Capture this from the merged 1.44.0 build, and get the owner’s sign-off on it and on this text.",
+            "candidates": [
+              "/feature-captures/tab-group-colors-v1.38.0.webp"
+            ]
+          }
+        },
+        {
+          "id": "select-several-tabs",
+          "tile": "Select tabs",
+          "title": "Act on several tabs at once",
+          "body": "Select tabs in the `⌘L` panel or in vertical tabs, then move, group, pin, mute, reload, quiet, copy the links of or close them all together. Closing them is one entry in Recently closed.",
+          "steps": [
+            "`⌘-click` (Ctrl-click on Windows and Linux) to add or remove a tab, or Shift-click to select a range.",
+            "Right-click a selected tab and choose what to do with all of them."
+          ],
+          "learnMore": "/features/vertical-tabs",
+          "media": {
+            "kind": "todo",
+            "todo": "Capture this from the merged 1.44.0 build, and get the owner’s sign-off on it and on this text.",
+            "candidates": []
+          }
+        },
+        {
+          "id": "send-to-device",
+          "tile": "Send to Device",
+          "title": "Send a page to your other devices",
+          "body": "Send the page you’re on to another of your synced Blanc devices. It waits there in Sent to this device, and nothing opens by itself. Pages stay up to 7 days.",
+          "steps": [
+            "Right-click the tab and choose Send to Device, then a device, or type /send and the device’s name.",
+            "On the other device, find it at the top of the Other devices drawer or on the Ledger start page."
+          ],
+          "note": "Sending needs Profile Sync on both devices. Private tabs and internal pages can’t be sent.",
+          "learnMore": "/features/sync",
+          "media": {
+            "kind": "todo",
+            "todo": "Capture this from the merged 1.44.0 build, and get the owner’s sign-off on it and on this text.",
+            "candidates": [
+              "/feature-captures/profile-window-v1.36.0.webp",
+              "/feature-captures/profiles-v1.36.0.webp",
+              "/feature-captures/profile-window-v1.30.1.webp",
+              "/feature-captures/profiles-v1.30.1.webp"
+            ]
+          }
+        }
+      ]
+    },
     {
       "release": "1.43",
       "highlights": [
