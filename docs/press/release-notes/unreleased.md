@@ -1,7 +1,8 @@
 # Unreleased notes
 
 Changes merged since v1.43.1, for the next release's notes. Include only what
-is present in the selected release commit.
+is present in the selected release commit, and clear the checks at the end
+before publishing.
 
 ## Added
 
@@ -21,10 +22,75 @@ is present in the selected release commit.
   this Space** when the window shows one); click it again to remove the rule.
   `/route` in the ⌘L panel does the same for the current page, and
   `/route off` removes its rule. Neither is available in a private tab.
+- **Reader Mode.** Read an article without the clutter around it. Type
+  `/reader`, or choose **Enter Reader Mode** when the expanded Island offers
+  it. Blanc lifts the article out of the page you've already loaded, on your
+  computer, and keeps its headings, links, images with captions, tables and
+  code. Choose System, Light, Dark or Sepia, one of four typefaces, a text
+  size from 16 to 28 pixels and one of three widths; Blanc remembers your
+  choice on this device. **Exit Reader Mode** returns to the page as you left
+  it, without reloading. Reader Mode is free. Some pages aren't articles, and
+  on those Blanc says so and leaves the page as it was.
+- **Copy Link (⇧⌘C, Ctrl+Shift+C on Windows and Linux).** Copies the current
+  page's address without selecting the address first, from the keyboard or
+  Edit → **Copy Link**. The Island briefly says "Link copied". On macOS,
+  ⌥⇧⌘C copies the address without tracking parameters (Edit → **Copy Clean
+  Link**). Blank and internal pages copy nothing.
+- **`/copy` and `/copy clean`.** The same two copies from the ⌘L panel, so
+  the clean copy has a keyboard path on Windows and Linux too.
+- **Ctrl+Tab by most recent use (Linux).** Ctrl+Tab goes back to the tab you
+  used before, and a second tap comes back. Hold Ctrl and press Tab again to
+  step further back; a row of tab icons under the Island shows where you'll
+  land, and letting go of Ctrl switches there. Esc stays put, a click on a
+  tile switches at once, and Ctrl+W closes the picked tab. Ctrl+PageDown and
+  Ctrl+PageUp still go by position. Turn it off in Settings → General →
+  **Switch tabs with Ctrl+Tab**. On macOS and Windows, Ctrl+Tab still goes by
+  position for now.
+- **Select several tabs.** In the ⌘L panel and in vertical tabs, ⌘-click
+  (Ctrl-click on Windows and Linux) adds or removes a tab, Shift-click selects
+  a range, and Shift with the arrow keys extends the selection. Right-click a
+  selected tab to move, group, pin, mute, reload, quiet, copy the links of or
+  close them all at once. Closing them is one entry in Recently closed.
+- **Move to Space.** Once you have a space, a tab's menu has **Move to Space ▸**: it moves the tab,
+  as it is, to the end of another space without leaving the window you're in.
+  **New Space…** in the same menu makes a space that starts with that tab. A
+  tab group's menu has **Move Group to Space ▸**, which moves the whole group
+  with its name and colour, and **Open Link in Space ▸** in a link's menu
+  opens the link in another space. Private tabs don't offer these.
+- **Send to Device.** Send the page you're on to another of your synced
+  Blanc devices from the tab menu's **Send to Device ▸** or with
+  `/send <device>`. It waits for you in **Sent to this device** at the top of
+  the Other devices drawer and on the Ledger start page; nothing opens by
+  itself. Pages stay up to 7 days. Private tabs and internal pages can't be
+  sent. Sending needs Profile Sync on both devices.
+- **Vertical tab text size.** Settings → General → Island → **Vertical tab
+  text size**: Default, Large or Extra large. Titles and group names grow
+  together, in every open window at once.
 
-Rules apply only to links from other apps. Links you click inside Blanc and
-addresses you type stay where they are. A rule matches the link as it was
-handed over, so a shortened link (such as `t.co`) is matched by its own
-address, not by where it leads. Deleting a profile removes the rules that
-point at it; a rule whose Space was deleted is skipped until you choose
-another Space or undo the deletion.
+## Changed
+
+- **Switching spaces says which tab is in the way, and is in the way less
+  often.** When a page has to stay open during a switch, the switch box names
+  up to three of them with the reason (still loading, using your camera,
+  microphone or screen, a pop-up open, or connected to the page that opened
+  it, as during a sign-in) and a **Show tab** button. A tab another page
+  opened no longer holds the window once that page has closed, and a page
+  whose ad or chat frame keeps reloading no longer counts as loading.
+
+## Fixed
+
+- **Open in Glance** in a tab's menu now works on either page of a two-page
+  split: that page leaves the split and floats over the other.
+
+## Before publishing
+
+- **Send to Device:** confirm the sync Worker serving the `sends` store is
+  deployed (`cloudflare/sync-worker/README.md`). Until it is, sending says
+  "Sending isn't available yet." Take the entry out, or deploy first.
+- **Link routing:** check it with real apps on each platform (spec §8: Slack
+  or Mail on macOS, the Windows default-browser handoff, `xdg-open` on
+  Linux), cold and warm. So far it has been tested on Linux only, in CI and
+  under xvfb.
+- Leave out what these notes don't cover on purpose: Shared Spaces is offered
+  only in development builds, the iOS changes belong to the iPhone app's
+  notes, and the CI, test, website and spec changes aren't user-visible.
