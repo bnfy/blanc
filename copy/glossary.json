@@ -234,7 +234,10 @@
       "ios.settings.status",
       "ios.settings.passphrase",
       "reader.system",
-      "reader.sepia"
+      "reader.sepia",
+      "settings.linkRoutes.domainPlaceholder",
+      "settings.linkRoutes.containsPlaceholder",
+      "settings.linkRoutes.domainLabel"
     ],
     "es": [
       "about.chromium",
@@ -284,7 +287,9 @@
       "settings.general.surfaceStyle.sunrise",
       "ios.settings.blocker",
       "ios.settings.site",
-      "reader.sepia"
+      "reader.sepia",
+      "settings.linkRoutes.domainPlaceholder",
+      "settings.linkRoutes.containsPlaceholder"
     ],
     "fr": [
       "about.chromium",
@@ -343,7 +348,9 @@
       "ios.settings.version",
       "ios.settings.site",
       "ios.settings.source",
-      "ios.settings.custom"
+      "ios.settings.custom",
+      "settings.linkRoutes.domainPlaceholder",
+      "settings.linkRoutes.containsPlaceholder"
     ],
     "pt-BR": [
       "about.chromium",
@@ -392,7 +399,9 @@
       "settings.general.surfaceStyle.sunrise",
       "ios.settings.blocker",
       "ios.settings.site",
-      "ios.settings.status"
+      "ios.settings.status",
+      "settings.linkRoutes.domainPlaceholder",
+      "settings.linkRoutes.containsPlaceholder"
     ],
     "it": [
       "about.chromium",
@@ -454,7 +463,9 @@
       "ios.settings.blocker",
       "ios.settings.site",
       "ios.settings.account",
-      "ios.settings.passphrase"
+      "ios.settings.passphrase",
+      "settings.linkRoutes.domainPlaceholder",
+      "settings.linkRoutes.containsPlaceholder"
     ]
   }
 }

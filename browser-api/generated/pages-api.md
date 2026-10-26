@@ -102,6 +102,8 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `settings.chooseWallpaper` | invoke | `pages:start:choose-wallpaper` | settings | Pick an image file for the Start Page wallpaper and show it. |
 | `settings.removeWallpaper` | invoke | `pages:start:remove-wallpaper` | settings | Delete the stored Start Page image and return to Sunrise. |
 | `settings.language` | invoke | `pages:settings:language` | settings | Choose the interface language; optionally relaunch to apply it. |
+| `settings.linkTargets` | invoke | `pages:settings:link-targets` | settings | Where link routing rules can point: live profiles and Spaces, ids and names only. |
+| `settings.setLinkRoutes` | invoke | `pages:settings:link-routes:set` | settings | Replace the link routing rules; main validates the whole list and stores all or nothing. |
 | `settings.blockingStatus` | invoke | `pages:blocking:status` | settings | Blocking provider status. |
 | `settings.blockingRetry` | invoke | `pages:blocking:retry` | settings | Retry a blocking provider that failed to start. |
 | `settings.blockingOpen` | invoke | `pages:blocking:open` | settings | Open a managed uBlock Origin tool view. |

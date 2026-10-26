@@ -6,10 +6,16 @@ const { localHtmlUrlsFromPaths } = require('./local-html-files');
 /** OS URL delivery is independent of app activation and chrome loading.
  * Pin each warm request to its receiving runtime; cold requests resolve only
  * after session restore has chosen the startup window/profile. No page-load
- * await belongs here: a selected tab should be visible while it loads. */
+ * await belongs here: a selected tab should be visible while it loads.
+ *
+ * Link routing (F60): `routeFor(url)` names a web URL's destination (a
+ * matched rule's { profileId, spaceId, private }) or null, once per URL when
+ * it first flushes, so a cold link sees the restored windows. getRuntime gets
+ * that destination with the pinned runtime and keeps a live match; createTab
+ * receives it too. Local files are never routed. */
 function createExternalUrlHandoff({
   application, isReady, isQuitting, getRuntime, ensureWindow, isWindowReady, withRuntime,
-  createTab, activateTab, revealWindow,
+  createTab, activateTab, revealWindow, routeFor = () => null,
 }) {
   let pending = [];
   let activeIntent = null;
@@ -21,11 +27,15 @@ function createExternalUrlHandoff({
     activeIntent?.cancel();
     const initiallyHidden = application.isHidden?.() === true;
     const listeners = [];
+    // Windows receiving this handoff's earlier URLs. A routed URL can open a
+    // new window that takes focus on its own; that is not the user moving away.
+    const companions = new Set();
     let cancelled = false;
     let window = null;
     const dispose = () => {
       for (const remove of listeners) remove();
       listeners.length = 0;
+      companions.clear();
       if (activeIntent === intent) activeIntent = null;
     };
     const cancel = () => {
@@ -46,6 +56,9 @@ function createExternalUrlHandoff({
         window = target;
         for (const event of ['hide', 'minimize', 'closed']) listen(window, event);
       },
+      allowWindow(target) {
+        if (!cancelled && target) companions.add(target);
+      },
       consume() {
         // Hiding an already inactive macOS app need not emit resignation or
         // BrowserWindow.hide. Detect that transition before releasing chrome.
@@ -58,7 +71,7 @@ function createExternalUrlHandoff({
       listen(application, event);
     }
     listen(application, 'browser-window-focus', (_event, focused) => {
-      if (window && focused !== window) cancel();
+      if (window && focused !== window && !companions.has(focused)) cancel();
     });
     activeIntent = intent;
     return intent;
@@ -71,16 +84,21 @@ function createExternalUrlHandoff({
       const entries = pending;
       pending = [];
       for (const entry of entries) {
-        const runtime = getRuntime(entry.runtime);
+        if (entry.destination === undefined) entry.destination = entry.localFile ? null : (routeFor(entry.url) ?? null);
+        const runtime = getRuntime(entry.runtime, entry.destination);
         entry.runtime = runtime;
         ensureWindow(runtime);
-        entry.intent?.trackWindow(runtime.window);
+        if (entry.activate) entry.intent?.trackWindow(runtime.window);
+        else entry.intent?.allowWindow(runtime.window);
         if (!isWindowReady(runtime)) {
           pending.push(entry);
           continue;
         }
         withRuntime(runtime, () => {
-          const id = createTab(entry.url, entry.localFile ? { allowLocalFile: true } : undefined);
+          const options = entry.localFile ? { allowLocalFile: true }
+            : entry.destination ? { destination: entry.destination } : undefined;
+          const id = createTab(entry.url, options);
+          if (!entry.activate) return;
           const shouldReveal = entry.intent?.consume();
           if (id == null || !shouldReveal) return;
           activateTab(id);
@@ -103,7 +121,9 @@ function createExternalUrlHandoff({
       url,
       runtime,
       localFile: localFiles,
-      intent: activate ? intent : null,
+      destination: undefined,
+      activate,
+      intent,
     })));
     flush();
   }

@@ -4661,6 +4661,162 @@
     "message": "Impossibile caricare i profili.",
     "source": "sha256:607124b2d0c4000a2cae3418f97d95c5ab84d81ecdc5b8d627e675d02b995bfe"
   },
+  "settings.linkRoutes.title": {
+    "message": "Apri i link da altre app",
+    "source": "sha256:38a8f4f43803c6553932d894f0d015091aa8e7bff6d633fa8ef1e5bbeda8e252"
+  },
+  "settings.linkRoutes.hint": {
+    "message": "Quando un’altra app apre un link in Blanc, la prima regola che corrisponde decide il profilo, ed eventualmente lo Space, in cui si apre. Le regole restano su questo dispositivo.",
+    "source": "sha256:40218d63e7c2480dc5215578160ea9cd79e2ef7e76eeb69bcaa6e7731002dae4"
+  },
+  "settings.linkRoutes.fallback": {
+    "message": "Tutto il resto: l’ultima finestra che hai usato",
+    "source": "sha256:50add5e3e37cbc88e614962dbabeff994ef03bd438272d6ac8ee8a17de67605a"
+  },
+  "settings.linkRoutes.add": {
+    "message": "Aggiungi regola",
+    "source": "sha256:0cf4bfb4aa5b0eec136c1c86c0a91d9d006a4f22eb819eb95555e28d6f5c83fe"
+  },
+  "settings.linkRoutes.linksTo": {
+    "message": "Link a",
+    "source": "sha256:3001324968138f7580e3c01c40b34f35955780226d82b65c372563c963ddc8fd"
+  },
+  "settings.linkRoutes.linksContaining": {
+    "message": "Link che contengono",
+    "source": "sha256:df2a1a507db447f1896acc1fe4ef297c61d17b93f946d6fbd553510b1b37c349"
+  },
+  "settings.linkRoutes.openIn": {
+    "message": "si aprono in",
+    "source": "sha256:7b89f81e04fe56d85edeec515a5ba3cce3404f61a558c63c1303c279363aef2a"
+  },
+  "settings.linkRoutes.domainLabel": {
+    "message": "Dominio",
+    "source": "sha256:74dc3abb531fc3dbbb44394c93be78a3964b9746ac2266e698aa2296566843ce"
+  },
+  "settings.linkRoutes.containsLabel": {
+    "message": "Testo nell’indirizzo",
+    "source": "sha256:f715b9e7154071392627adc2e4f5df5b28bb2e09c1e73bfb3da9bc1b094efefa"
+  },
+  "settings.linkRoutes.domainPlaceholder": {
+    "message": "example.com",
+    "source": "sha256:2f1644224e80ada75257ec42ddb225499e5dea9a414e1d9bc0d847c55653f8a2"
+  },
+  "settings.linkRoutes.containsPlaceholder": {
+    "message": "/teams/design",
+    "source": "sha256:ead8752651b3b4acff58e45a46e17aff9899499684152839e00a8d07068c90c7"
+  },
+  "settings.linkRoutes.profileLabel": {
+    "message": "Profilo",
+    "source": "sha256:7f750b44554428c6fd6da891f0a3c6247781f2323ccb56fc08838ead19e7cd6c"
+  },
+  "settings.linkRoutes.spaceLabel": {
+    "message": "Space",
+    "source": "sha256:0bcb4a557a0952e05d9a6b0bbcc2340baaed1a987fdb14e7fde57c1acb3edb23"
+  },
+  "settings.linkRoutes.anyWindow": {
+    "message": "Qualsiasi finestra",
+    "source": "sha256:e2c077e4feda534ad476df769f45817e37a0e56a8b67746bab154b7e0f29adfd"
+  },
+  "settings.linkRoutes.private": {
+    "message": "Scheda privata",
+    "source": "sha256:44201759c4a61248de625810e96f78dc0adf22657acfc48efb3d05dc67013a67"
+  },
+  "settings.linkRoutes.profileDeleted": {
+    "message": "Profilo eliminato",
+    "source": "sha256:f9eca0afb915085ff54e0c82e24143d0ba64e5d27b32be0be791e60ea03f2c08"
+  },
+  "settings.linkRoutes.spaceDeleted": {
+    "message": "Space eliminato",
+    "source": "sha256:b375c1ca04933e58f5570d2fb1e1034f314770e7a09a3c4f6c1b86a5b587ed50"
+  },
+  "settings.linkRoutes.profileDeletedNote": {
+    "message": "Il suo profilo è stato eliminato, quindi questa regola viene saltata.",
+    "source": "sha256:d0968df27ce69af94121806e872e59b66a124ef92b4069938bb29e67f065ed0a"
+  },
+  "settings.linkRoutes.spaceDeletedNote": {
+    "message": "Il suo Space è stato eliminato, quindi questa regola viene saltata. Annulla l’eliminazione o scegli un altro Space.",
+    "source": "sha256:e39e4d3abde6a1951dd9ed4a2df368f4744aa785ae269bc77d681e417ffb5001"
+  },
+  "settings.linkRoutes.destinationSpace": {
+    "message": "{profile}, {space}",
+    "source": "sha256:1a95d408b0459d8d66d72d6f757b81c1e2028b94804a21254594d9dd438ce003"
+  },
+  "settings.linkRoutes.destinationPrivate": {
+    "message": "{destination}, come scheda privata",
+    "source": "sha256:9456e86371dc2c00839ae61a9b246f09ff6822049df78a00a7618be0b6f9b9cc"
+  },
+  "settings.linkRoutes.summaryDomain": {
+    "message": "I link a {value} si aprono in {destination}",
+    "source": "sha256:2008fd8b5ecb24f002a8371d79756565c0b2ecfb7ae4b28bcd0bd5cff0255c64"
+  },
+  "settings.linkRoutes.summaryContains": {
+    "message": "I link che contengono {value} si aprono in {destination}",
+    "source": "sha256:204c5923c1014421cb30349ef825b5934f09049201867646c5db4fc0ed045c6c"
+  },
+  "settings.linkRoutes.summaryNew": {
+    "message": "Nuova regola, apre in {destination}",
+    "source": "sha256:6f97acc0f4f4e61094e5d1dd886529dc472badda1638df9bc56da2a44dad4506"
+  },
+  "settings.linkRoutes.more": {
+    "message": "Altre opzioni per questa regola",
+    "source": "sha256:2b15a1d0038845b7d388d68fcb183818c04d8a39e7907ab480d87b0278ca8be8"
+  },
+  "settings.linkRoutes.moveUp": {
+    "message": "Sposta su",
+    "source": "sha256:9ff79e934df66f755f282f1f3064b9383d861c5ce549bbad0919bf368d80c6c8"
+  },
+  "settings.linkRoutes.moveDown": {
+    "message": "Sposta giù",
+    "source": "sha256:d32d14e436ab90fa834252fb3101e21a65580431469296e4293318904c0ab664"
+  },
+  "settings.linkRoutes.matchContains": {
+    "message": "Corrispondi agli indirizzi che contengono…",
+    "source": "sha256:5ddf99c8e17e36c6693556e5fb001b8e06adeecd610696426e9be99786a76200"
+  },
+  "settings.linkRoutes.matchDomain": {
+    "message": "Corrispondi a un dominio…",
+    "source": "sha256:1e4d0cb437924d9a6261953c8012c546d679ca88ce50c0fd3c8042a3a717c105"
+  },
+  "settings.linkRoutes.delete": {
+    "message": "Elimina",
+    "source": "sha256:36c0a91692dee62807cbad5e8a59d08c819b2534126cc6d09cd5345e4f820072"
+  },
+  "settings.linkRoutes.deleted": {
+    "message": "Regola eliminata.",
+    "source": "sha256:e3ddeae03304df1f1fddf33f57f121a13f031a7faf9e76767ce5d4df2a63d2bf"
+  },
+  "settings.linkRoutes.moved": {
+    "message": "Spostata in posizione {position} di {count}.",
+    "source": "sha256:bda12525a9804ec09946147acc776fe46af7ad8c681ba62cd0c549b3cd1ccbbd"
+  },
+  "settings.linkRoutes.invalidDomain": {
+    "message": "Inserisci un dominio come example.com, senza percorso né porta.",
+    "source": "sha256:25b1838d173a7645f9b5c48a8457603e146d38a6eef93c814a0a1e6df957a74b"
+  },
+  "settings.linkRoutes.invalidContains": {
+    "message": "Questo testo non può essere usato.",
+    "source": "sha256:37f07a1e591b8bfd3f5e5ac9c159de648d7b61562a200ec030ca0e8c6c9d7bfb"
+  },
+  "settings.linkRoutes.tooLong": {
+    "message": "Usa al massimo 200 caratteri.",
+    "source": "sha256:3b3f25d37b7eef19bc29853ab34745e80d4f5b45e95046b85d3d60e5194dcd00"
+  },
+  "settings.linkRoutes.keptHost": {
+    "message": "È stato tenuto solo il dominio: {host}",
+    "source": "sha256:5afa2fd26c35cd4524d35d9e1f95881383c85227f16a5daa6c9fe25aa797bd7b"
+  },
+  "settings.linkRoutes.limit": {
+    "message": "Puoi avere fino a {count} regole.",
+    "source": "sha256:4cc80f7442aba77c6a6c2e00ab8e58a4602db3bf50910c45a59b1583ad648a90"
+  },
+  "settings.linkRoutes.saveFailed": {
+    "message": "Impossibile salvare le regole.",
+    "source": "sha256:1246339483c0c4b27c549ccd272c138d5ddb516e5075da9146b1783bd7da18bd"
+  },
+  "settings.linkRoutes.loadFailed": {
+    "message": "Impossibile caricare le regole.",
+    "source": "sha256:9b436bec0d8173a1be60dcf473e80f70ff42c892d468315e4c49af6d2081941e"
+  },
   "settings.sync.lastSynced": {
     "message": "Ultima sincronizzazione: {when}",
     "source": "sha256:ec9e505c180944c07460c8a8bc41c2e563cf16ca347d5a4aafaa8c9197fedff2"

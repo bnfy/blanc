@@ -1741,3 +1741,41 @@ the candidate branch; not shipped in public v1.43.1.
 - **Card.** Not in the first version: a held multi-step works blind until the
   favicon-strip card follows.
 - **Mobile.** Not applicable: phones have no Ctrl key.
+
+## F60 — Open links from other apps where they belong (desktop)
+
+A short, ordered list of rules sends a link another app hands Blanc to the
+profile, and optionally the Space, it belongs in, like Arc's Air Traffic
+Control (asked for on r/ArcBrowser, 2026-10-24). Design:
+`docs/superpowers/specs/2026-10-26-link-routing-design.md`. Implemented on the
+candidate branch (PR 1); not shipped in public v1.43.1.
+
+- **What is routed.** Only web URLs the OS hands Blanc: macOS `open-url`, and
+  http(s) URLs on the command line at startup or through a second launch.
+  Local HTML files, tab handoff, links clicked inside Blanc and typed
+  addresses are never routed.
+- **Rules.** *Links to example.com open in Work*: a `domain` rule matches the
+  URL's parsed host (ASCII, lowercase, a leading `www.` dropped from the rule)
+  and its subdomains; IP addresses match only exactly; userinfo never counts,
+  so `https://work.example.com@evil.test/` matches `evil.test`. *Match
+  addresses containing…* is a case-insensitive substring of the whole URL. The
+  first matching rule wins. At most 50 rules, each value at most 200
+  characters, no regular expressions.
+- **Destinations.** A profile: its most recently focused window, else a new
+  window of that profile holding just the link. A profile and Space: the
+  window showing that Space, else the Space opens in a new window (never by
+  switching the current one); if that is refused or fails, a new window of
+  the profile. Optionally as a private tab. The receiving window comes to the
+  front; a multi-URL handoff routes each URL, keeps their order per window
+  and selects only the last.
+- **Deleted targets.** Deleting a profile removes its rules. A rule whose
+  Space was deleted is kept, marked "Space deleted" and skipped, because
+  Spaces have Undo. A skipped rule lets the link fall through.
+- **Unmatched links** open exactly as before: in the window used last.
+- **Settings.** Settings → Profiles → Open links from other apps, shown with
+  at least two profiles or one Space. Rules are device-local, never synced and
+  never visible to websites.
+- **Not yet.** The shield popover's *Open links to this site in this profile*
+  and `/route` follow in PR 2.
+- **Mobile.** Not applicable until a mobile Blanc has profiles to route
+  between.

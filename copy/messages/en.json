@@ -4806,6 +4806,162 @@
     "message": "Couldn’t load profiles.",
     "note": "Settings → Profiles: error."
   },
+  "settings.linkRoutes.title": {
+    "message": "Open links from other apps",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): card title."
+  },
+  "settings.linkRoutes.hint": {
+    "message": "When another app opens a link in Blanc, the first rule that matches decides the profile, and optionally the Space, it opens in. Rules stay on this device.",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): explanation under the title."
+  },
+  "settings.linkRoutes.fallback": {
+    "message": "Everything else: the window you used last",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): fixed last row describing links no rule matches."
+  },
+  "settings.linkRoutes.add": {
+    "message": "Add rule",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): button that adds a rule row."
+  },
+  "settings.linkRoutes.linksTo": {
+    "message": "Links to",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): start of a domain rule row, followed by the domain field."
+  },
+  "settings.linkRoutes.linksContaining": {
+    "message": "Links containing",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): start of a contains rule row, followed by the text field."
+  },
+  "settings.linkRoutes.openIn": {
+    "message": "open in",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): between the rule’s value field and the profile menu."
+  },
+  "settings.linkRoutes.domainLabel": {
+    "message": "Domain",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): accessible name of the domain field."
+  },
+  "settings.linkRoutes.containsLabel": {
+    "message": "Text in the address",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): accessible name of the contains field."
+  },
+  "settings.linkRoutes.domainPlaceholder": {
+    "message": "example.com",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): placeholder of the domain field; keep it a bare domain."
+  },
+  "settings.linkRoutes.containsPlaceholder": {
+    "message": "/teams/design",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): placeholder of the contains field; keep it a URL path."
+  },
+  "settings.linkRoutes.profileLabel": {
+    "message": "Profile",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): accessible name of the profile menu."
+  },
+  "settings.linkRoutes.spaceLabel": {
+    "message": "Space",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): accessible name of the Space menu."
+  },
+  "settings.linkRoutes.anyWindow": {
+    "message": "Any window",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): first choice of the Space menu: the profile’s most recently used window."
+  },
+  "settings.linkRoutes.private": {
+    "message": "Private tab",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): checkbox: open the link as a private tab."
+  },
+  "settings.linkRoutes.profileDeleted": {
+    "message": "Profile deleted",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): shown in place of a rule’s profile that no longer exists."
+  },
+  "settings.linkRoutes.spaceDeleted": {
+    "message": "Space deleted",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): shown in place of a rule’s Space that no longer exists."
+  },
+  "settings.linkRoutes.profileDeletedNote": {
+    "message": "Its profile was deleted, so this rule is skipped.",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): note under a rule whose profile is gone."
+  },
+  "settings.linkRoutes.spaceDeletedNote": {
+    "message": "Its Space was deleted, so this rule is skipped. Undo the deletion or choose another Space.",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): note under a rule whose Space is gone."
+  },
+  "settings.linkRoutes.destinationSpace": {
+    "message": "{profile}, {space}",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): a destination with a Space, inside a rule’s summary."
+  },
+  "settings.linkRoutes.destinationPrivate": {
+    "message": "{destination}, as a private tab",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): a private destination, inside a rule’s summary."
+  },
+  "settings.linkRoutes.summaryDomain": {
+    "message": "Links to {value} open in {destination}",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): accessible name of a domain rule row."
+  },
+  "settings.linkRoutes.summaryContains": {
+    "message": "Links containing {value} open in {destination}",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): accessible name of a contains rule row."
+  },
+  "settings.linkRoutes.summaryNew": {
+    "message": "New rule, opening in {destination}",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): accessible name of a rule row whose value is still empty."
+  },
+  "settings.linkRoutes.more": {
+    "message": "More options for this rule",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): accessible name of a rule’s ⋮ button."
+  },
+  "settings.linkRoutes.moveUp": {
+    "message": "Move up",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): ⋮ menu item."
+  },
+  "settings.linkRoutes.moveDown": {
+    "message": "Move down",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): ⋮ menu item."
+  },
+  "settings.linkRoutes.matchContains": {
+    "message": "Match addresses containing…",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): ⋮ menu item turning a domain rule into a contains rule."
+  },
+  "settings.linkRoutes.matchDomain": {
+    "message": "Match a domain…",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): ⋮ menu item turning a contains rule back into a domain rule."
+  },
+  "settings.linkRoutes.delete": {
+    "message": "Delete",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): ⋮ menu item."
+  },
+  "settings.linkRoutes.deleted": {
+    "message": "Rule deleted.",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): status after deleting a rule."
+  },
+  "settings.linkRoutes.moved": {
+    "message": "Moved to position {position} of {count}.",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): status after moving a rule; {position} and {count} are numbers."
+  },
+  "settings.linkRoutes.invalidDomain": {
+    "message": "Enter a domain such as example.com, without a path or port.",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): error under an invalid domain field."
+  },
+  "settings.linkRoutes.invalidContains": {
+    "message": "This text can’t be matched.",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): error under an invalid contains field."
+  },
+  "settings.linkRoutes.tooLong": {
+    "message": "Use at most 200 characters.",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): error under a field that is too long."
+  },
+  "settings.linkRoutes.keptHost": {
+    "message": "Kept just the domain: {host}",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): hint after a whole URL was pasted into the domain field; {host} is the domain kept."
+  },
+  "settings.linkRoutes.limit": {
+    "message": "You can have up to {count} rules.",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): status when the rule limit is reached; {count} is 50."
+  },
+  "settings.linkRoutes.saveFailed": {
+    "message": "Couldn’t save the rules.",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): status when saving fails."
+  },
+  "settings.linkRoutes.loadFailed": {
+    "message": "Couldn’t load the rules.",
+    "note": "Settings → Profiles → Open links from other apps (F60 link routing): status when loading fails."
+  },
   "settings.sync.lastSynced": {
     "message": "Last synced {when}",
     "note": "Settings → Sync: status row; {when} is a relative time such as “5 minutes ago” or “yesterday”, or a date."
