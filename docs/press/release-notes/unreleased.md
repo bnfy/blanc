@@ -84,9 +84,13 @@ before publishing.
 
 ## Before publishing
 
-- **Send to Device:** confirm the sync Worker serving the `sends` store is
-  deployed (`cloudflare/sync-worker/README.md`). Until it is, sending says
-  "Sending isn't available yet." Take the entry out, or deploy first.
+- **Send to Device:** the production `blanc-sync` Worker already serves the
+  `sends` store. Its deployed source, read through the Cloudflare API on
+  October 26, 2026, has the store list `bookmarks, settings, session, icons,
+  sends`, as in commit `97088934` (#1087). The M16 Space stores aren't in it,
+  and they stay on hold for the owner's decision in
+  `cloudflare/sync-worker/README.md`. Re-read the deployed source before
+  publishing: a later `wrangler deploy` from `main` would ship M16 too.
 - **Link routing:** check it with real apps on each platform (spec §8: Slack
   or Mail on macOS, the Windows default-browser handoff, `xdg-open` on
   Linux), cold and warm. So far it has been tested on Linux only, in CI and
