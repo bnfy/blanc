@@ -293,24 +293,69 @@ try {
         used.push(id);
       }
       const settle = 600;
+      const commandState = () => call(app, 'browserCommandState');
+      const cardsBefore = (await commandState()).switcherCardShows;
       // A tap goes to the previous tab, and tapping again comes back.
       await keys(['keydown', 'ctrl'], ['key', 'Tab'], ['keyup', 'ctrl'], settle);
       await wait(state, value => value.activeTabId === used[1], 'a tap lands on the previous tab');
       await keys(['keydown', 'ctrl'], ['key', 'Tab'], ['keyup', 'ctrl'], settle);
       await wait(state, value => value.activeTabId === used[2], 'a second tap comes back');
+      assert.equal((await commandState()).switcherCardShows, cardsBefore, 'a tap never shows the card');
       // Held Ctrl: two Tabs step two back, and nothing changes before the release.
       await keys(['keydown', 'ctrl'], 150, ['key', 'Tab'], 250, ['key', 'Tab'], 250);
       assert.equal((await state()).activeTabId, used[2], 'stepping never switches before the release');
-      assert.equal((await call(app, 'browserCommandState')).tabSwitchPick, used[0]);
+      let held = await commandState();
+      assert.equal(held.tabSwitchPick, used[0]);
+      assert.equal(held.overlayMode, 'switcher', 'a held switch shows the card');
+      assert.equal(held.switcherCardShows, cardsBefore + 1);
+      assert.notEqual(held.focusedWebContentsId, await app.evaluate(({ webContents }) =>
+        webContents.getAllWebContents().find(wc => wc.getURL() === 'blanc-chrome://overlay/')?.id ?? -1), 'the card never takes focus');
       await keys(['keyup', 'ctrl'], settle);
       await wait(state, value => value.activeTabId === used[0], 'the release lands two back');
+      assert.equal((await commandState()).overlayMode, null, 'landing closes the card');
       // Esc cancels: the release then changes nothing.
       await keys(['keydown', 'ctrl'], 150, ['key', 'Tab'], 250, ['key', 'Escape'], 150, ['keyup', 'ctrl'], settle);
       assert.equal((await state()).activeTabId, used[0], 'Esc stays where you are');
       assert.equal((await call(app, 'browserCommandState')).tabSwitchPick, null);
-      steps += 4;
+      assert.equal((await commandState()).overlayMode, null, 'Esc closes the card');
+      // Ctrl+W closes the pick, not the current tab; the pick moves one step
+      // older and the release still arrives to land on it (D4).
+      await keys(['keydown', 'ctrl'], 150, ['key', 'Tab'], 250);
+      held = await commandState();
+      const closing = held.tabSwitchPick;
+      const after = held.tabSwitchOrder[held.tabSwitchOrder.indexOf(closing) + 1] ?? held.tabSwitchOrder[1];
+      await keys(['key', 'w'], 400);
+      await wait(state, value => !value.tabOrder.includes(closing), 'Ctrl+W closes the picked tab');
+      held = await commandState();
+      assert.equal(held.activeTabId, used[0], 'Ctrl+W leaves the current tab open and current');
+      assert.equal(held.tabSwitchPick, after, 'the pick moves one step older');
+      assert.equal(held.overlayMode, 'switcher', 'the card stays open');
+      await keys(['keyup', 'ctrl'], settle);
+      await wait(state, value => value.activeTabId === after, 'the release after Ctrl+W lands on the new pick');
+      // A click on a tile lands on it at once; the release then changes nothing.
+      await keys(['keydown', 'ctrl'], 150, ['key', 'Tab'], 250, ['key', 'Tab'], 250);
+      held = await commandState();
+      assert.equal(held.overlayMode, 'switcher');
+      // Click the current tab's neighbour in the order, not the pick, so the
+      // landing proves the click and not the release.
+      const target = used[0];
+      const tile = held.tabSwitchOrder.indexOf(target);
+      assert.ok(tile > 0 && held.tabSwitchPick !== target, 'the clicked tile is not the pick');
+      const rect = await app.evaluate(async ({ webContents }, index) => {
+        const overlay = webContents.getAllWebContents().find(wc => wc.getURL() === 'blanc-chrome://overlay/');
+        return overlay.executeJavaScript(`(() => { const r = document.getElementById('switcher-tile-${index}').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
+      }, tile);
+      const view = held.overlayBounds;
+      assert.ok(view, 'overlay bounds');
+      execFileSync('xdotool', ['mousemove', '--window', xid, String(Math.round(view.x + rect.x)), String(Math.round(view.y + rect.y)), 'click', '1']);
+      await wait(state, value => value.activeTabId === target, 'a click on a tile lands on it');
+      await keys(['keyup', 'ctrl'], settle);
+      assert.equal((await state()).activeTabId, target, 'the release after a click changes nothing');
+      assert.equal((await commandState()).overlayMode, null);
+      steps += 7;
       assert.equal(await call(app, 'setTabSwitchOrder', ['list']), 'list');
-      for (const id of used) await call(app, 'closeTab', [id]);
+      const open = used.filter(id => id !== closing);
+      for (const id of open) await call(app, 'closeTab', [id]);
       await wait(state, value => used.every(id => !value.tabOrder.includes(id)), 'most-recent fixtures closed');
     }
   }

@@ -1029,6 +1029,9 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="settings_general_tab_sleep_1h">Después de 1 hora</string>
     <string name="settings_general_tab_sleep_6h">Después de 6 horas</string>
     <string name="settings_general_tab_switch_order_label">Cambiar de pestaña con Ctrl+Tab</string>
+    <string name="switcher_label">Selector de pestañas</string>
+    <string name="switcher_opened">Cambiar de pestaña, %1$s, %2$s de %3$s</string>
+    <string name="switcher_step">%1$s, %2$s de %3$s</string>
     <string name="settings_general_tab_switch_order_hint">Mantén pulsado Ctrl y pulsa Tab para volver por las pestañas que usaste por última vez; suelta Ctrl para cambiar. Esc te deja donde estás.</string>
     <string name="settings_general_tab_switch_order_recent">En el orden en que las usaste</string>
     <string name="settings_general_tab_switch_order_list">En el orden de la lista de pestañas</string>

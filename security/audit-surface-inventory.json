@@ -251,7 +251,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "5e749f00b56be599c4d4b4b459c5662e40d4df9f132ec3ba8f35d1c6376b6942",
+      "sha256": "9b97b8e7f774ff5e09d634eda76c54d18e3268a165b353a821ddbe78f82f947f",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -334,6 +334,7 @@
         "chrome:split-layout",
         "chrome:split-remove",
         "chrome:strip-hidden",
+        "chrome:switcher-pick",
         "chrome:theme-appearance",
         "chrome:tooltip-hide",
         "chrome:tooltip-show",
@@ -645,7 +646,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "9a401522af0f12f5af46dfda98a6a5eeb963568b8a34267fc52ffb5586e52e82",
+      "sha256": "2072daaebda10449f2324b7d22a7461a8ff73227c7a9c826811fb89b71fd6827",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -718,6 +719,7 @@
         "chrome:split-layout",
         "chrome:split-remove",
         "chrome:strip-hidden",
+        "chrome:switcher-pick",
         "chrome:theme-appearance",
         "chrome:tooltip-hide",
         "chrome:tooltip-show",

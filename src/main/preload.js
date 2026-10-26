@@ -147,6 +147,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   openGroupMenu: (groupId, anchor) => ipcRenderer.send('chrome:open-group-menu', groupId, anchor),
   captureStop: (surfaceId) => ipcRenderer.send('chrome:capture-stop', surfaceId),
   captureFocus: (surfaceId) => ipcRenderer.send('chrome:capture-focus', surfaceId),
+  switcherPick: (tabId) => ipcRenderer.send('chrome:switcher-pick', tabId),
   copyActiveLink: (clean) => ipcRenderer.send('chrome:copy-link', clean),
   stopDisplayShare: (shareId) => ipcRenderer.send('display-capture:stop', { shareId }),
   resolveDisplayPicker: (choice) => ipcRenderer.send('display-capture:picker-resolve', choice),

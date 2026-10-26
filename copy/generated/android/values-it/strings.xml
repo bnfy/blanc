@@ -1029,6 +1029,9 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_tab_sleep_1h">Dopo 1 ora</string>
     <string name="settings_general_tab_sleep_6h">Dopo 6 ore</string>
     <string name="settings_general_tab_switch_order_label">Cambia scheda con Ctrl+Tab</string>
+    <string name="switcher_label">Selettore schede</string>
+    <string name="switcher_opened">Cambia scheda, %1$s, %2$s di %3$s</string>
+    <string name="switcher_step">%1$s, %2$s di %3$s</string>
     <string name="settings_general_tab_switch_order_hint">Tieni premuto Ctrl e premi Tab per tornare alle schede usate più di recente, poi rilascia Ctrl per passarci. Esc ti lascia dove sei.</string>
     <string name="settings_general_tab_switch_order_recent">Nell’ordine in cui le hai usate</string>
     <string name="settings_general_tab_switch_order_list">Nell’ordine dell’elenco delle schede</string>

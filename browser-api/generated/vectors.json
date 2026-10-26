@@ -3390,6 +3390,32 @@
         }
       ]
     },
+    "switcherPick": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:switcher-pick",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "tab-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:switcher-pick",
+              "args": [
+                "tab-id-1"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "copyActiveLink": {
       "kind": "send",
       "platforms": [

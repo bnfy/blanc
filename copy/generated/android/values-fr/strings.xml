@@ -1029,6 +1029,9 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_tab_sleep_1h">Après 1 heure</string>
     <string name="settings_general_tab_sleep_6h">Après 6 heures</string>
     <string name="settings_general_tab_switch_order_label">Changer d’onglet avec Ctrl+Tab</string>
+    <string name="switcher_label">Sélecteur d’onglets</string>
+    <string name="switcher_opened">Changer d’onglet, %1$s, %2$s sur %3$s</string>
+    <string name="switcher_step">%1$s, %2$s sur %3$s</string>
     <string name="settings_general_tab_switch_order_hint">Maintenez Ctrl et appuyez sur Tab pour revenir aux onglets utilisés en dernier, puis relâchez Ctrl pour changer. Échap vous laisse où vous êtes.</string>
     <string name="settings_general_tab_switch_order_recent">Dans l’ordre où vous les avez utilisés</string>
     <string name="settings_general_tab_switch_order_list">Dans l’ordre de la liste des onglets</string>
