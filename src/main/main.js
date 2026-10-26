@@ -7444,7 +7444,8 @@ function installChromeShortcuts(webContents, owner = rt()) {
     // pick (the close-tab command), and the release still lands (D4).
     defers: (id, runtime) => id === 'close-tab' && tabSwitcher.isSwitching(runtime),
   });
-  installTabSwitchRelease(webContents, getRuntime);
+  // Only where most-recent order can run; elsewhere no surface carries these.
+  if (RECENT_TAB_ORDER_AVAILABLE) installTabSwitchRelease(webContents, getRuntime);
   installVerticalTabsShortcut(webContents, owner);
   installIslandAutoHideShortcut(webContents, owner);
   installGlanceShortcut(webContents, owner);
