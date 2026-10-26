@@ -25,7 +25,10 @@ In **Retention and deletion**, replace the encrypted-sync list item with:
 > Encrypted Sync data remains in active storage until you erase the server copy.
 > Automatic deletion of inactive accounts is currently paused. Turning off Sync
 > without erasing leaves the server copy in place. A successful erase removes the
-> active server copy; if erasure fails, it remains pending and you can retry.
+> active server copy, but cached encrypted values in Cloudflare KV may remain
+> readable while deletion propagates across its network. This propagation is
+> separate from provider recovery history and backups. If erasure fails, it
+> remains pending and you can retry.
 > Other devices with Sync enabled can upload data again. Cloudflare documents
 > recovery of SQLite storage to points within the preceding 30 days. Deleted
 > encrypted data may remain in that recovery history. Bananify does not use
@@ -44,7 +47,9 @@ in `site/src/data/support-questions.json`):
 **What happens when I turn off Sync or erase the server copy?**
 
 > Turning off Sync without erasing leaves the encrypted server copy in place.
-> Choose the erase option to remove the active copy. If erasure fails, Blanc
+> Choose the erase option to remove the active copy. Cached encrypted values in
+> Cloudflare KV may remain readable while deletion propagates across its network.
+> This is separate from provider recovery history and backups. If erasure fails, Blanc
 > keeps the credentials needed to retry and offers Try again. Devices that still
 > have Sync enabled can upload data again. Automatic deletion of inactive Sync
 > accounts is paused. Cloudflare provides SQLite recovery history covering the
@@ -115,17 +120,32 @@ This is a **qualified preflight, not a clean deployment sign-off**:
    or schema-1 data. No data listing is requested as a substitute for that
    history; the conservative plan avoids an eventually consistent inventory.
    Unexpected evidence requires review, not an empty-ledger reset or deletion.
-2. Resolve old-version access before cutover. Review how Version URLs will be
-   disabled or isolated, and verify the effective result after the authorized
-   change. Do not deploy a candidate preview against production resources.
-   No preview settings were changed in this preflight.
+2. Disable Version URLs before the candidate cutover, under separate explicit
+   operator authorization. Prepare and review a configuration change setting
+   top-level `preview_urls = false` in `cloudflare/sync-worker/wrangler.toml`;
+   omission preserves the currently enabled setting. Keep the production
+   workers.dev endpoint enabled. Apply the Version URL disable through the
+   dashboard before uploading the candidate, then carry the explicit false
+   setting in the reviewed candidate configuration so subsequent deployments
+   preserve it. Verify management metadata reports `previews_enabled=false`
+   and that every inventoried old Version URL and alias is blocked by the
+   platform, rather than merely returning the Worker's own unknown-route 404. Use
+   requests without account locators, credentials or sync payloads; do not call
+   blob or erase routes. Record the URL inventory, verification time and results
+   in the private operator evidence. If any URL remains reachable, the inventory
+   is incomplete, or either verification fails, **stop before candidate upload
+   or cutover** and return for review. Do not deploy a candidate preview against
+   production resources. This does not close the separate isolated branch Preview
+   inventory gap in item 1. No configuration change or URL probe is authorized or
+   performed by this document.
 3. Approve the retention replacements and provider-history uncertainty (or
    obtain provider clarification), then coordinate the public backend wording
    with deployment. Until then, keep current public wording and Worker unchanged.
 4. At authorized cutover, re-read the exact candidate head/configuration and
    production identity. Use the same KV namespace, SQLite AccountQuota migration,
    20 MiB/256-store allowance, fixed reservation 8,391,120 bytes/eight slots,
-   daily admission 10, cleanup false, invocation logs off, and one 100% rollout.
+   daily admission 10, cleanup false, invocation logs off, explicit
+   `preview_urls = false` with item 2's shutdown evidence, and one 100% rollout.
    Establish old cleanup is no longer running; a cron configuration read alone
    does not prove this. Preserve schema 2/SQLite on any recovery; never roll back
    to KV-only code. These are future operator steps, not actions performed here.
@@ -141,6 +161,7 @@ This is a **qualified preflight, not a clean deployment sign-off**:
 
 - [SQLite storage/PITR](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/): preceding-30-day recovery window; not evidence of physical purge.
 - [Version URLs](https://developers.cloudflare.com/workers/versions-and-deployments/version-urls/): versions use their existing resources.
+- [KV deletion](https://developers.cloudflare.com/kv/api/delete-key-value-pairs/): successful deletion can take time to propagate across the global network.
 - [Preview resource isolation](https://developers.cloudflare.com/workers/previews/resources/): isolated Previews are distinct; service bindings may still reach production.
 - [Versions and deployments](https://developers.cloudflare.com/workers/versions-and-deployments/): code/config versions do not version underlying stored data.
 - Repository candidate: `cloudflare/sync-worker/wrangler.toml` and `src/index.js`;
