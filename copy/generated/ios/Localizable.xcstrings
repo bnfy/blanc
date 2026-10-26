@@ -91003,6 +91003,90 @@
         }
       }
     },
+    "slash.copy.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /copy. \"clean\" is the literal argument the user types; keep it untranslated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy this page's link — add \"clean\" to drop tracking parameters"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link dieser Seite kopieren – mit „clean“ ohne Tracking-Parameter"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar el enlace de esta página: añade «clean» para quitar los parámetros de seguimiento"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier le lien de cette page — ajoutez « clean » pour retirer les paramètres de suivi"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia il link di questa pagina: aggiungi «clean» per togliere i parametri di tracciamento"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar o link desta página — adicione “clean” para tirar os parâmetros de rastreamento"
+          }
+        }
+      }
+    },
+    "slash.copy.doc": {
+      "comment": "Reference description of /copy [clean] on blanc://shortcuts and in Help → Slash Commands. \"clean\" is the literal argument; keep it untranslated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy this page's link; with clean, without tracking parameters"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link dieser Seite kopieren; mit clean ohne Tracking-Parameter"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar el enlace de esta página; con clean, sin parámetros de seguimiento"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier le lien de cette page ; avec clean, sans paramètres de suivi"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia il link di questa pagina; con clean, senza parametri di tracciamento"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar o link desta página; com clean, sem parâmetros de rastreamento"
+          }
+        }
+      }
+    },
     "sharedSpaces.switch": {
       "comment": "Development-only Shared Spaces controls.",
       "extractionState": "manual",

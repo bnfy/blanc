@@ -2229,6 +2229,8 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="sends_no_match">Kein Gerät namens „%1$s“.</string>
     <string name="slash_send_hint">Leerzeichen, dann einen Gerätenamen eingeben – z. B. „iPhone“</string>
     <string name="slash_send_doc">Die Seite dieses Tabs an ein anderes synchronisiertes Gerät senden</string>
+    <string name="slash_copy_hint">Link dieser Seite kopieren – mit „clean“ ohne Tracking-Parameter</string>
+    <string name="slash_copy_doc">Link dieser Seite kopieren; mit clean ohne Tracking-Parameter</string>
     <string name="shared_spaces_switch">Spaces und Gruppen auf diesem Gerät synchronisieren</string>
     <string name="shared_spaces_title">Spaces zum Synchronisieren auswählen</string>
     <string name="shared_spaces_explanation">Teile diese Spaces mit Geräten in diesem Synchronisierungskonto. Offene Tabs, Tabnamen, Gruppen und angeheftete Tabs werden synchronisiert.</string>

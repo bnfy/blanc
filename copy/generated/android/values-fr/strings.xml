@@ -2298,6 +2298,8 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="sends_no_match">Aucun appareil nommé « %1$s ».</string>
     <string name="slash_send_hint">Tapez une espace, puis un nom d’appareil, par ex. « iPhone »</string>
     <string name="slash_send_doc">Envoyer la page de cet onglet vers un autre appareil synchronisé</string>
+    <string name="slash_copy_hint">Copier le lien de cette page — ajoutez « clean » pour retirer les paramètres de suivi</string>
+    <string name="slash_copy_doc">Copier le lien de cette page ; avec clean, sans paramètres de suivi</string>
     <string name="shared_spaces_switch">Synchroniser les Spaces et les groupes sur cet appareil</string>
     <string name="shared_spaces_title">Choisir les Spaces à synchroniser</string>
     <string name="shared_spaces_explanation">Partagez ces Spaces entre les appareils de ce compte. Les onglets ouverts, leurs noms, les groupes et les onglets épinglés seront synchronisés.</string>
