@@ -1441,6 +1441,33 @@
         "doc": "Choose the interface language; optionally relaunch to apply it."
       },
       {
+        "name": "settings.linkTargets",
+        "kind": "invoke",
+        "channel": "pages:settings:link-targets",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Where link routing rules can point: live profiles and Spaces, ids and names only."
+      },
+      {
+        "name": "settings.setLinkRoutes",
+        "kind": "invoke",
+        "channel": "pages:settings:link-routes:set",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "routes",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Replace the link routing rules; main validates the whole list and stores all or nothing."
+      },
+      {
         "name": "settings.blockingStatus",
         "kind": "invoke",
         "channel": "pages:blocking:status",

@@ -2690,8 +2690,18 @@ function install(refs) {
           toggleShown: !document.getElementById('shieldPopToggle').hidden,
           connection: row && !row.hidden ? 'Connection · ' + document.getElementById('shieldPopConnectionValue').textContent : null,
           header: document.querySelector('.shield-pop-state')?.textContent.trim() ?? '',
+          route: document.getElementById('shieldPopRoute')?.hidden === false ? {
+            label: document.getElementById('shieldPopRouteLabel').textContent,
+            on: document.getElementById('shieldPopRouteToggle').getAttribute('aria-checked') === 'true',
+            note: document.getElementById('shieldPopRouteNote').textContent,
+          } : null,
         };
       })()`);
+    },
+    clickShieldRouteToggle() {
+      const wc = getOverlayWebContents();
+      if (!wc) throw new Error('overlay webContents unavailable');
+      return wc.executeJavaScript(`document.getElementById('shieldPopRouteToggle').click()`);
     },
     clickShieldPopoverToggle() {
       const wc = getOverlayWebContents();
@@ -2979,6 +2989,56 @@ function install(refs) {
       const wc = getUtilitySheetWebContents();
       if (!wc) return false;
       return wc.executeJavaScript(`(() => { const b = document.querySelector('.hint-toggle'); b?.click(); return !!b; })()`);
+    },
+    /** Settings → Profiles → Open links from other apps (F60): read the
+     * group, or drive its controls the way a person does. */
+    async settingsLinkRoutes(action, ...args) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const [action, ...args] = ${JSON.stringify([String(action), ...args])};
+        const card = document.getElementById('linkRoutesCard');
+        if (!card) return null;
+        const rows = () => [...document.querySelectorAll('#linkRoutesList .link-route-row')];
+        const fire = (element, ...events) => { for (const type of events) element.dispatchEvent(new Event(type, { bubbles: true })); };
+        if (action === 'state') {
+          return {
+            ready: card.dataset.ready === 'true',
+            shown: !card.hidden,
+            fallback: card.querySelector('.link-route-fallback')?.textContent ?? '',
+            rows: rows().map((row) => {
+              const [profile, space] = row.querySelectorAll('select');
+              const input = row.querySelector('input[type="text"]');
+              return {
+                label: row.getAttribute('aria-label'),
+                value: input.value,
+                invalid: input.getAttribute('aria-invalid') === 'true',
+                error: row.querySelector('.field-error')?.textContent ?? '',
+                note: row.querySelector('.link-route-note')?.textContent ?? '',
+                profileId: profile.value,
+                spaceId: space.value || null,
+                private: row.querySelector('input[type="checkbox"]').checked,
+              };
+            }),
+          };
+        }
+        if (action === 'add') { document.getElementById('linkRouteAdd').click(); return rows().length; }
+        const row = rows()[args[0]];
+        if (!row) return false;
+        if (action === 'fill') {
+          const input = row.querySelector('input[type="text"]');
+          input.value = args[1];
+          fire(input, 'input', 'change');
+          return true;
+        }
+        if (action === 'profile') {
+          const select = row.querySelectorAll('select')[0];
+          select.value = args[1];
+          fire(select, 'change');
+          return select.value === args[1];
+        }
+        return false;
+      })()`);
     },
     async settingsCreateProfile(name) {
       const wc = getUtilitySheetWebContents();
@@ -3997,6 +4057,7 @@ function install(refs) {
       pushRemoteDevices([]);
       // A device a scenario renamed shows its published name again.
       for (const id of Object.keys(settings.getDeviceNames())) settings.setDeviceName(id, '');
+      settings.setLinkRoutes([]);
       setWindowContentSize(1280, 800);
       // A fresh tab first so closing the rest never empties the window.
       const keep = createTab(newTabUrl());

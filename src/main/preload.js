@@ -234,6 +234,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   toggleAdblock: () => ipcRenderer.invoke('chrome:adblock-toggle'),
   allowAdsOnActiveSite: () => ipcRenderer.invoke('chrome:adblock-exempt-active'),
   toggleDarkSiteOnActiveSite: () => ipcRenderer.invoke('chrome:dark-site-active'),
+  routeActiveSite: (mode) => ipcRenderer.invoke('chrome:route-active', mode),
   siteInfoForgetCertificateException: () => ipcRenderer.invoke('chrome:site-info-forget-certificate-exception'),
   sleepBackgroundTabs: () => ipcRenderer.invoke('chrome:sleep-background-tabs'),
   inviteFriend: () => ipcRenderer.invoke('chrome:invite-friend'),

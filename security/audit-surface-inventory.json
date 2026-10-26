@@ -251,7 +251,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "4ac75a270a54caad7be0abc3319a817c795fac292179e557687012bb9dd8e3b5",
+      "sha256": "26a025edd3c9dc52cb8af1df5ee8517980db9b5fe885fd816ac13ba209740d90",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -317,6 +317,7 @@
         "chrome:rename-device",
         "chrome:reset-split",
         "chrome:resize-split",
+        "chrome:route-active",
         "chrome:search-suggestions",
         "chrome:send-tab",
         "chrome:send-targets",
@@ -501,7 +502,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "228858fae14401fc8dac13fc77dfd99176c77fce6cee8b6e829fce821a319707",
+      "sha256": "d9afbf2071cd27eaa52192268dea7cec66a7b0be62775382613cc42fc6082854",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -559,6 +560,8 @@
         "pages:settings:drm-status",
         "pages:settings:get",
         "pages:settings:language",
+        "pages:settings:link-routes:set",
+        "pages:settings:link-targets",
         "pages:settings:onepassword-status",
         "pages:settings:onepassword-verify",
         "pages:settings:open-onepassword-app",
@@ -643,7 +646,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "7913103b385eb099440a9d82ab5b26b77646cda90f95460818bf3eaf6837be2b",
+      "sha256": "2072daaebda10449f2324b7d22a7461a8ff73227c7a9c826811fb89b71fd6827",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -699,6 +702,7 @@
         "chrome:rename-device",
         "chrome:reset-split",
         "chrome:resize-split",
+        "chrome:route-active",
         "chrome:search-suggestions",
         "chrome:send-tab",
         "chrome:send-targets",
@@ -954,7 +958,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "c51ebcb4785ea2afe8d03176c884638559d47c377f4bcea40a63f20dfb266a6d",
+      "sha256": "13da55d67be9de472ed081340009d582e0cf9880fd7a765117ab6c5ffa710aec",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1014,6 +1018,8 @@
         "pages:settings:drm-status",
         "pages:settings:get",
         "pages:settings:language",
+        "pages:settings:link-routes:set",
+        "pages:settings:link-targets",
         "pages:settings:onepassword-status",
         "pages:settings:onepassword-verify",
         "pages:settings:open-onepassword-app",

@@ -22,6 +22,7 @@ const SURFACE_STYLES = ['sunrise', 'neutral'];
 const { migrateSupporter, downgradeMirror, isRecordActive } = require('./patron-model');
 const { DEFAULT_MAPPING, mappingOrDefault, validMapping } = require('./mouse-gestures');
 const { normalizeDeviceNames, setDeviceNameEntry, mergeDeviceNames, deviceNamesEqual } = require('./device-names');
+const { normalizeLinkRoutes, validateLinkRoutes } = require('./link-routes');
 const {
   isValidSearchTemplate,
   searchUrlFromTemplate,
@@ -255,6 +256,10 @@ const DEFAULTS = {
   // the page area ({x, y, width, height}, each 0..1), or null for the
   // first-open frame. Device-local, written ONLY by setGlanceFrame().
   glanceFrame: null,
+  // F60 link routing: ordered rules sending links from other apps to a
+  // profile/Space (link-routes.js). Device-local like the profile and Space
+  // ids it names, never in SYNCED_KEYS, written ONLY by setLinkRoutes().
+  linkRoutes: [],
   // Preferred rail width. The live layout may temporarily cap it to preserve
   // the minimum website pane, but that window-size cap is never persisted.
   verticalTabsWidth: VERTICAL_TABS_DEFAULT_WIDTH,
@@ -528,6 +533,7 @@ function getSettings() {
   data.tabSwitchOrder = normalizeTabSwitchOrder(data.tabSwitchOrder);
   if (!SURFACE_STYLES.includes(data.surfaceStyle)) data.surfaceStyle = DEFAULTS.surfaceStyle;
   if (!isGlanceFrame(data.glanceFrame)) data.glanceFrame = null;
+  data.linkRoutes = normalizeLinkRoutes(data.linkRoutes);
   if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
   data.darkWebsitesExceptions = normalizeHostnameList(data.darkWebsitesExceptions);
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
@@ -869,6 +875,17 @@ function setGlanceFrame(frame) {
   return true;
 }
 
+/** The link routing rules' private write path. Validates the whole list
+ * (link-routes.js) and stores all or nothing; setSettings()'s whitelist has
+ * no linkRoutes. Returns { ok, routes } or { ok: false, error, index? }. */
+function setLinkRoutes(routes) {
+  const result = validateLinkRoutes(routes);
+  if (!result.ok) return result;
+  ensureStore().update((data) => { data.linkRoutes = result.routes; });
+  for (const fn of listeners) fn(getSettings());
+  return { ok: true, routes: structuredClone(result.routes) };
+}
+
 function isDynamicWallpaperEnabled() {
   return getSettings().newtabDynamicWallpaper === true;
 }
@@ -1102,6 +1119,7 @@ module.exports = {
   setSupporter,
   setUiLanguage,
   setGlanceFrame,
+  setLinkRoutes,
   isPatronActive,
   isDynamicWallpaperEnabled,
   setPatron,

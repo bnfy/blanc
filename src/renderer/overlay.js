@@ -36,6 +36,10 @@
   const shieldPopNote = document.getElementById('shieldPopNote');
   const shieldPopDark = document.getElementById('shieldPopDark');
   const shieldPopDarkToggle = document.getElementById('shieldPopDarkToggle');
+  const shieldPopRoute = document.getElementById('shieldPopRoute');
+  const shieldPopRouteLabel = document.getElementById('shieldPopRouteLabel');
+  const shieldPopRouteToggle = document.getElementById('shieldPopRouteToggle');
+  const shieldPopRouteNote = document.getElementById('shieldPopRouteNote');
   const shieldPopSettings = document.getElementById('shieldPopSettings');
   const shieldPopLabel = document.getElementById('shieldPopLabel');
   const shieldPopProvider = document.getElementById('shieldPopProvider');
@@ -1533,6 +1537,11 @@
     { cmd: '/block-ads', hint: blancI18n.t('slash.blockAds.hint'), run: () => window.browserAPI.toggleAdblock() },
     { cmd: '/allow-ads', hint: blancI18n.t('slash.allowAds.hint'), run: () => window.browserAPI.allowAdsOnActiveSite() },
     { cmd: '/dark-site', hint: blancI18n.t('slash.darkSite.hint'), run: () => window.browserAPI.toggleDarkSiteOnActiveSite() },
+    // Link routing (F60): links to this site from other apps open in this
+    // window's profile (and Space); "/route off" removes the rule.
+    { cmd: '/route', hint: blancI18n.t('slash.route.hint'), run: (input) => {
+      window.browserAPI.routeActiveSite(commandArgument(input).toLowerCase() === 'off' ? 'off' : 'on');
+    } },
     { cmd: '/1password', hint: blancI18n.t('slash.1password.hint'),
       available: typeof window.browserAPI.fillLoginFromOnePassword === 'function',
       run: () => window.browserAPI.fillLoginFromOnePassword() },
@@ -3268,6 +3277,17 @@
       shieldPopDarkToggle.setAttribute('aria-checked', String(dark.on));
       document.getElementById('shieldPopDarkNote').hidden = dark.appliesNow;
     }
+    // Link routing (F60): the same rule /route writes, for links from other apps.
+    const route = v.route;
+    shieldPopRoute.hidden = !route;
+    if (route) {
+      shieldPopRouteLabel.textContent = blancI18n.t(route.scope === 'space' ? 'shield.routeSpace' : 'shield.route');
+      shieldPopRouteToggle.classList.toggle('on', route.on);
+      shieldPopRouteToggle.setAttribute('aria-checked', String(route.on));
+      shieldPopRouteNote.textContent = route.elsewhere
+        ? blancI18n.t('shield.routeElsewhere', { destination: route.elsewhere })
+        : blancI18n.t('shield.routeNote');
+    }
   }
 
   shieldPopToggle.addEventListener('click', () => {
@@ -3279,6 +3299,9 @@
   });
   shieldPopDarkToggle.addEventListener('click', () => {
     window.browserAPI.toggleDarkSiteOnActiveSite();
+  });
+  shieldPopRouteToggle.addEventListener('click', () => {
+    window.browserAPI.routeActiveSite('toggle');
   });
   function providerName(provider) { return provider === 'ublock-origin' ? 'uBlock Origin' : 'Blanc Blocker'; }
 

@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-154 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+155 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -137,6 +137,7 @@
 | `toggleAdblock` | blocking | invoke | `chrome:adblock-toggle` | `() => Promise<ProviderBlockAdsResult \| BlockAdsResult>` | all |
 | `allowAdsOnActiveSite` | blocking | invoke | `chrome:adblock-exempt-active` | `() => Promise<string \| null \| AllowAdsError>` | all |
 | `toggleDarkSiteOnActiveSite` | appearance | invoke | `chrome:dark-site-active` | `() => Promise<DarkSiteResult \| null>` | all |
+| `routeActiveSite` | appearance | invoke | `chrome:route-active` | `(mode: 'toggle' \| 'on' \| 'off') => Promise<RouteResult>` | all |
 | `siteInfoForgetCertificateException` | island | invoke | `chrome:site-info-forget-certificate-exception` | `() => Promise<boolean>` | all |
 | `sleepBackgroundTabs` | tabs | invoke | `chrome:sleep-background-tabs` | `() => Promise<TabId[]>` | all |
 | `inviteFriend` | island | invoke | `chrome:invite-friend` | `() => Promise<InviteFriendResult>` | all |
@@ -465,6 +466,28 @@ The active tab's shield popover: shieldPopoverModel() plus provider controls.
 | `connection` | `ConnectionState \| null` |  |
 | `controls` | `ShieldProviderControls` |  |
 | `darkSite` | `ShieldDarkSite \| null` |  |
+| `route` | `ShieldRoute \| null` |  |
+
+### `ShieldRoute`
+
+The shield popover's link routing switch (F60): whether links to this site from other apps open in this window's profile (scope 'profile') or Space ('space'); `elsewhere` names the profile, or profile and Space, a rule sends them to instead. Null in private tabs and with fewer than two profiles.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `on` | `boolean` |  |
+| `scope` | `'profile' \| 'space'` |  |
+| `elsewhere` | `string \| null` |  |
+
+### `RouteResult`
+
+The outcome of /route, /route off or the shield popover's link routing switch. Main shows the pill notice.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `ok` | `boolean` |  |
+| `host?` | `string \| null` |  |
+| `on?` | `boolean` |  |
+| `error?` | `'unavailable' \| 'no-host' \| 'too-many' \| 'invalid'` |  |
 
 ### `ShieldDarkSite`
 
@@ -798,7 +821,7 @@ Overlay modes; every showOverlay() call in main.js passes one of these literals.
 
 Fixed ids of the pill's brief confirmations; the strip owns their text.
 
-`'link-copied' \| 'clean-link-copied'`
+`'link-copied' \| 'clean-link-copied' \| 'route-on' \| 'route-off' \| 'route-limit' \| 'route-unavailable'`
 
 ### `ShieldTrigger`
 

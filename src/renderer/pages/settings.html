@@ -562,6 +562,16 @@
             <p class="section-hint" id="profilesStatus" role="status" aria-live="polite"></p>
             <div id="profilesList" class="row-list"></div>
           </div>
+          <div class="settings-card settings-card--content" id="linkRoutesCard" hidden>
+            <h3 class="card-title" data-i18n="settings.linkRoutes.title">Open links from other apps</h3>
+            <p class="section-hint" data-i18n="settings.linkRoutes.hint">When another app opens a link in Blanc, the first rule that matches decides the profile, and optionally the Space, it opens in. Rules stay on this device.</p>
+            <div id="linkRoutesList" class="link-route-list"></div>
+            <div class="link-route-row link-route-fallback" data-i18n="settings.linkRoutes.fallback">Everything else: the window you used last</div>
+            <div class="toolbar-row link-route-toolbar">
+              <button type="button" id="linkRouteAdd" data-i18n="settings.linkRoutes.add">Add rule</button>
+            </div>
+            <p class="section-hint" id="linkRoutesStatus" role="status" aria-live="polite"></p>
+          </div>
         </section>
 
         <section class="settings-group" id="group-privacy">
