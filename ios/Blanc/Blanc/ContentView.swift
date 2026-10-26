@@ -1,4 +1,5 @@
 import SwiftUI
+import WebKit
 
 struct ContentView: View {
     let manager: TabsManager
@@ -7,7 +8,6 @@ struct ContentView: View {
     private var isPrivate: Bool { manager.activeTab?.isPrivate ?? false }
     /// A private tab uses the private (dark) look whatever the appearance setting.
     private var style: BrowserStyle { BrowserStyle(scheme: isPrivate ? .dark : colorScheme) }
-    @State private var showSiteProtection = false
     @State private var showTabGrid = false
 
     private var isStartPage: Bool {
@@ -20,7 +20,11 @@ struct ContentView: View {
             if let tab = manager.activeTab {
                 WebView(tab: tab)
                     .id(tab.id)
+                    .opacity(tab.reader == nil ? 1 : 0)
+                    .allowsHitTesting(tab.reader == nil)
+                    .accessibilityHidden(tab.reader != nil)
                     .ignoresSafeArea(edges: isStartPage ? .all : [])
+                if let reader = tab.reader { ReaderWebView(reader: reader).id(ObjectIdentifier(reader)) }
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -31,9 +35,9 @@ struct ContentView: View {
         .overlay(alignment: .bottom) {
             if isStartPage { islandContainer }
         }
-        .onChange(of: showSiteProtection) { _, visible in
-            if !visible { manager.presentPendingSettings() }
-        }
+        .alert(ReaderCopy.text("reader.title"), isPresented: Binding(get: { manager.readerError }, set: { manager.readerError = $0 })) {
+            Button("OK", role: .cancel) {}
+        } message: { Text(ReaderCopy.text("reader.unavailable")) }
         .fullScreenCover(isPresented: $showTabGrid) {
             TabGridView(manager: manager)
         }
@@ -83,12 +87,14 @@ struct ContentView: View {
 
     private func openTabGrid() {
         manager.activeTab?.captureThumbnail()
-        showSiteProtection = false
         showTabGrid = true
     }
 
     private var addressPill: some View {
         HStack(spacing: 0) {
+            islandMark
+            Rectangle().fill(style.border).frame(width: 1, height: 18)
+
             Button { manager.isPalettePresented = true } label: {
                 HStack(spacing: 10) {
                     Text(displayDomain)
@@ -98,7 +104,7 @@ struct ContentView: View {
                         .truncationMode(.middle)
                     Spacer(minLength: 0)
                 }
-                .padding(.leading, 16)
+                .padding(.leading, 12)
                 .frame(maxWidth: .infinity, minHeight: 48)
                 .contentShape(Rectangle())
             }
@@ -120,22 +126,6 @@ struct ContentView: View {
                 .accessibilityIdentifier("pill.private")
             }
 
-            blockerButton
-
-            if let tab = manager.activeTab, !tab.isPrivate, TabsManager.canFavorite(tab.currentURL) {
-                let favorited = manager.isFavorite(tab)
-                Button { manager.toggleFavorite(tab) } label: {
-                    // The frame is the label's: on iOS 26 a bare ~20 pt symbol
-                    // as the tap target doesn't register taps at all.
-                    Image(systemName: favorited ? "heart.fill" : "heart")
-                        .frame(width: 44, height: 48)
-                        .contentShape(Rectangle())
-                }
-                .accessibilityLabel(SyncCopy.text(favorited ? "tabMenu.removeFavorite" : "tabMenu.saveFavorite"))
-                .accessibilityValue(favorited ? "on" : "off")
-                .accessibilityIdentifier("pill.favorite")
-            }
-            sendMenu
 
             Button {
                 if manager.activeTab?.isLoading == true {
@@ -165,54 +155,69 @@ struct ContentView: View {
         .environment(\.colorScheme, isPrivate ? .dark : colorScheme)
     }
 
-    /// Blanc Blocker, as on desktop's pill: the cut shield, faded when the
-    /// person has allowed ads here or switched blocking off, opening site
-    /// protection. WebKit's content blocker reports nothing it blocks, so the
-    /// phone has no count badge.
-    @ViewBuilder
-    private var blockerButton: some View {
-        if let tab = manager.activeTab, AdblockExceptions.host(for: tab.currentURL) != nil {
-            let protected = manager.isSiteProtected(tab)
-            Button { showSiteProtection = true } label: {
-                BlockerShield()
-                    .stroke(style: StrokeStyle(lineWidth: 1.4, lineCap: .round, lineJoin: .round))
-                    .frame(width: 16, height: 16)
-                    .foregroundStyle(protected ? style.text : style.secondary)
-                    .opacity(protected ? 1 : 0.45)
-                    .frame(width: 44, height: 48)
-                    .contentShape(Rectangle())
-            }
-            .accessibilityLabel("Site protection")
-            .accessibilityValue(protected ? "on" : "off")
-            .accessibilityIdentifier("pill.shield")
-            .popover(isPresented: $showSiteProtection) {
-                SiteProtectionView(manager: manager, tab: tab, style: style)
-                    .presentationCompactAdaptation(.popover)
+    /// The Sunrise mark: the page's actions, so the Island keeps only the
+    /// site, reload and New tab. Drawn in the theme's ink through the shipped
+    /// mark's alpha, as the interface always draws it.
+    private var islandMark: some View {
+        IslandMarkButton(image: Self.sunriseMark, tint: style.text, menu: islandMenuElements)
+            .frame(width: 48, height: 48)
+    }
+
+    /// The Sunrise menu's entries for the current page (`IslandMenu`).
+    private func islandMenuElements() -> [UIMenuElement] {
+        let tab = manager.activeTab
+        func action(_ key: String, _ symbol: String, state: UIMenuElement.State = .off, _ run: @escaping () -> Void) -> UIAction {
+            UIAction(title: SyncCopy.text(key), image: UIImage(systemName: symbol), state: state) { _ in run() }
+        }
+        return IslandMenu.items(for: tab, manager: manager).compactMap { item -> UIMenuElement? in
+            switch item {
+            case .customizeStartPage:
+                return action("newtab.customize.button", "slider.horizontal.3") { manager.showSettings(.startPage) }
+            case .blocking(let on):
+                guard let tab else { return nil }
+                return action("shield.adBlocking", "shield", state: on ? .on : .off) { manager.setSiteProtection(tab, on: !on) }
+            case .blockingSettings:
+                return action("shield.settings", "shield.slash") { manager.showSettings(.privacy) }
+            case .favorite(let saved):
+                guard let tab else { return nil }
+                return action(saved ? "tabMenu.removeFavorite" : "tabMenu.saveFavorite", saved ? "heart.fill" : "heart") {
+                    manager.toggleFavorite(tab)
+                }
+            case .send:
+                guard let tab else { return nil }
+                return UIMenu(title: SyncCopy.text("tabMenu.sendToDevice"), image: UIImage(systemName: "paperplane"),
+                              children: manager.syncEngine.sendTargets.map { target in
+                                  UIAction(title: target.name) { _ in send(tab: tab, to: target) }
+                              })
+            case .share:
+                guard let tab else { return nil }
+                return action("share.picker.share", "square.and.arrow.up") { share(tab.currentURL) }
+            case .find:
+                guard let tab else { return nil }
+                return action("menu.findInPage", "magnifyingglass") {
+                    (tab.reader?.webView ?? tab.webView).findInteraction?.presentFindNavigator(showingReplace: false)
+                }
+            case .newPrivateTab:
+                return UIMenu(options: .displayInline, children: [
+                    action("menu.newPrivateTab", "eye.slash") { manager.createTab(isPrivate: true) },
+                ])
             }
         }
     }
 
-    /// Send to device (M7b): the page goes to one of the account's other
-    /// devices. Shown only for a web page while sync has somewhere to send it.
-    @ViewBuilder
-    private var sendMenu: some View {
-        let targets = manager.syncEngine.sendTargets
-        if let tab = manager.activeTab, manager.canSend(tab), !targets.isEmpty
-        {
-            Menu {
-                Section(SyncCopy.text("tabMenu.sendToDevice")) {
-                    ForEach(targets) { target in
-                        Button(target.name) { send(tab: tab, to: target) }
-                    }
-                }
-            } label: {
-                Image(systemName: "paperplane")
-            }
-            .accessibilityLabel(SyncCopy.text("tabMenu.sendToDevice"))
-            .accessibilityIdentifier("pill.send")
-            .frame(width: 44, height: 48)
-        }
+    private func share(_ url: URL) {
+        guard let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
+                .first(where: { $0.activationState == .foregroundActive }),
+              var presenter = scene.windows.first(where: \.isKeyWindow)?.rootViewController else { return }
+        while let presented = presenter.presentedViewController { presenter = presented }
+        let sheet = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+        sheet.popoverPresentationController?.sourceView = presenter.view
+        presenter.present(sheet, animated: true)
     }
+
+    private static let sunriseMark: UIImage? = Bundle.main
+        .path(forResource: "sunrise-mark", ofType: "png", inDirectory: "pages")
+        .flatMap(UIImage.init(contentsOfFile:))
 
     private func send(tab: TabModel, to target: SendTarget) {
         let url = tab.currentURL.absoluteString
@@ -238,79 +243,6 @@ struct ContentView: View {
         }
         let host = url.host ?? "Start Page"
         return host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
-    }
-}
-
-/// Blanc Blocker's mark: desktop's cut shield (`#pillShield` in
-/// `src/renderer/index.html`) on the same 16-unit grid, the cut parallel to
-/// the Blanc mark's diagonal.
-private struct BlockerShield: Shape {
-    func path(in rect: CGRect) -> Path {
-        let unit = min(rect.width, rect.height) / 16
-        let origin = CGPoint(x: rect.midX - 8 * unit, y: rect.midY - 8 * unit)
-        func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
-            CGPoint(x: origin.x + x * unit, y: origin.y + y * unit)
-        }
-        var path = Path()
-        path.move(to: point(8, 1.8))
-        path.addLine(to: point(13, 3.7))
-        path.addLine(to: point(13, 7.5))
-        path.addCurve(to: point(8, 14.2), control1: point(13, 10.6), control2: point(10.9, 12.8))
-        path.addCurve(to: point(3, 7.5), control1: point(5.1, 12.8), control2: point(3, 10.6))
-        path.addLine(to: point(3, 3.7))
-        path.closeSubpath()
-        path.move(to: point(4.4, 11.47))
-        path.addLine(to: point(12.61, 3.55))
-        return path
-    }
-}
-
-/// Site protection, desktop's shield popover for the phone: the site, its
-/// Blanc Blocker switch, and a way to Settings when blocking is off everywhere.
-private struct SiteProtectionView: View {
-    let manager: TabsManager
-    let tab: TabModel
-    let style: BrowserStyle
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        let host = AdblockExceptions.host(for: tab.currentURL) ?? ""
-        VStack(spacing: 14) {
-            VStack(spacing: 3) {
-                Text("Site protection")
-                    .font(BrowserStyle.font(17, semibold: true))
-                Text(host)
-                    .font(BrowserStyle.font(13))
-                    .foregroundStyle(style.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-            }
-            if manager.settingsStore.adblockEnabled {
-                Toggle(isOn: Binding(
-                    get: { manager.isSiteProtected(tab) },
-                    set: { manager.setSiteProtection(tab, on: $0) }
-                )) {
-                    Text("Ad & tracker blocking").font(BrowserStyle.font(15))
-                }
-                .accessibilityLabel("Ad & tracker protection for this site")
-                .accessibilityIdentifier("shield.toggle")
-                Text("Changing site protection reloads this page.")
-                    .font(BrowserStyle.font(12))
-                    .foregroundStyle(style.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            } else {
-                Text("Ad blocking is off everywhere")
-                    .font(BrowserStyle.font(15))
-                Button("Blocking settings") {
-                    dismiss()
-                    manager.pendingSettingsDestination = .privacy
-                }
-                .font(BrowserStyle.font(15, semibold: true))
-            }
-        }
-        .padding(18)
-        .frame(width: 280)
-        .foregroundStyle(style.text)
     }
 }
 

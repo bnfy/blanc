@@ -580,7 +580,10 @@ html { --stage-w: 100vw; }
   border-right: none;
   color: var(--text);
   font-family: var(--font-text);
+  --vertical-tab-font-size: 12.5px;
 }
+.vertical-tabs-rail[data-text-size="large"] { --vertical-tab-font-size: 15px; }
+.vertical-tabs-rail[data-text-size="extra-large"] { --vertical-tab-font-size: 18px; }
 
 .vertical-tabs-rail[hidden] {
   display: none;
@@ -721,7 +724,7 @@ body.mac .vertical-tabs-toolbar {
   gap: 7px;
   color: var(--text-dim);
   font-family: var(--font-text);
-  font-size: 10.5px;
+  font-size: calc(var(--vertical-tab-font-size) - 2px);
   font-weight: 500;
   line-height: 1;
 }
@@ -786,7 +789,7 @@ body.mac .vertical-tabs-toolbar {
 
 .vertical-tabs-group-header {
   width: 100%;
-  height: 28px;
+  height: calc(var(--vertical-tab-font-size) + 15.5px);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -794,7 +797,7 @@ body.mac .vertical-tabs-toolbar {
   border-radius: var(--radius);
   color: var(--text-dim);
   font-family: var(--font-text);
-  font-size: 10.5px;
+  font-size: calc(var(--vertical-tab-font-size) - 2px);
   text-align: left;
 }
 
@@ -849,7 +852,7 @@ body.mac .vertical-tabs-toolbar {
 .vertical-tab-row {
   position: relative;
   min-width: 0;
-  min-height: 36px;
+  min-height: calc(var(--vertical-tab-font-size) + 23.5px);
   display: grid;
   grid-template-columns: minmax(0, 1fr) 28px;
   align-items: center;
@@ -877,7 +880,7 @@ body.mac .vertical-tabs-toolbar {
 
 .vertical-tab-primary {
   width: 100%;
-  height: 34px;
+  height: calc(var(--vertical-tab-font-size) + 21.5px);
   min-width: 0;
   display: flex;
   align-items: center;
@@ -914,7 +917,8 @@ body.mac .vertical-tabs-toolbar {
   overflow: hidden;
   white-space: nowrap;
   color: var(--text);
-  font-size: 12.5px;
+  font-size: var(--vertical-tab-font-size);
+  line-height: 1.3;
 }
 
 .vertical-tab-title-text {

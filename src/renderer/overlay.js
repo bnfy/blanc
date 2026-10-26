@@ -15,6 +15,7 @@
   const panelAnchor = document.getElementById('panelAnchor');
   const islandPanel = document.getElementById('islandPanel');
   const addressInput = document.getElementById('addressInput');
+  const readerBtn = document.getElementById('readerBtn');
   const panelSiteInfo = document.getElementById('panelSiteInfo');
   const islandList = document.getElementById('islandList');
   const islandHint = document.getElementById('islandHint');
@@ -763,6 +764,10 @@
     panelSiteInfo.setAttribute('aria-expanded', String(visible && siteInfoOpen));
     if (!visible) siteInfoOpen = false;
 
+    readerBtn.hidden = !tab?.readerAvailable && !tab?.readerActive;
+    readerBtn.setAttribute('aria-pressed', String(tab?.readerActive === true));
+    readerBtn.setAttribute('aria-label', blancI18n.t(tab?.readerActive ? 'reader.exit' : 'reader.enter'));
+    readerBtn.dataset.tooltip = blancI18n.t(tab?.readerActive ? 'reader.exit' : 'reader.enter');
     const verticalTabsActive = state.tabLayout === 'vertical';
     footerTabLayout.dataset.tooltip = verticalTabsActive
       ? blancI18n.t('rail.islandLayout')
@@ -1511,6 +1516,12 @@
         return sendActiveTabTo(tabId, name);
       },
       resultNotice: (result) => sendNotice(result) },
+    // Copy Link (⌘⇧C / Ctrl+Shift+C); "/copy clean" is Copy Clean Link, which
+    // has a chord on macOS only. Main shows the pill's "copied" notice.
+    { cmd: '/copy', hint: blancI18n.t('slash.copy.hint'), run: (input) => {
+      window.browserAPI.copyActiveLink(commandArgument(input).toLowerCase() === 'clean');
+    } },
+    { cmd: '/reader', hint: blancI18n.t('slash.reader.hint'), run: () => window.browserAPI.toggleReaderMode(state.activeTabId) },
     { cmd: '/find', hint: blancI18n.t('slash.find.hint'), run: () => window.browserAPI.openFindBar(), keepOverlay: true },
     { cmd: '/block-ads', hint: blancI18n.t('slash.blockAds.hint'), run: () => window.browserAPI.toggleAdblock() },
     { cmd: '/allow-ads', hint: blancI18n.t('slash.allowAds.hint'), run: () => window.browserAPI.allowAdsOnActiveSite() },
@@ -3665,6 +3676,10 @@
       : window.browserAPI.reload(state.activeTabId);
   });
   heartBtn.addEventListener('click', () => window.browserAPI.toggleBookmark());
+  readerBtn.addEventListener('click', () => {
+    window.browserAPI.closeOverlay();
+    window.browserAPI.toggleReaderMode(state.activeTabId);
+  });
   panelSiteInfo.addEventListener('click', () => {
     if (panelSiteInfo.hidden) return;
     siteInfoOpen = !siteInfoOpen;

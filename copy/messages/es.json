@@ -1656,7 +1656,7 @@
   },
   "menu.nextTab": {
     "message": "Pestaña siguiente",
-    "source": "sha256:12ca40176db7453b154628a13c40288eb1b4ca366f30e6aa973011e104b44441"
+    "source": "sha256:7c0223dd3c091d292ae82a106172645f32fb368fea60ad26646b02d027e803d6"
   },
   "menu.previousTab": {
     "message": "Pestaña anterior",
@@ -8312,5 +8312,147 @@
   "settings.sync.tryAgain": {
     "message": "Intentar de nuevo",
     "source": "sha256:9a3dd573e6c2ddc13a475a86f7ca941999f15c4fe666db42df4ad94772f923ac"
+  },
+  "menu.nextTabInOrder": {
+    "message": "Pestaña siguiente en el orden de la lista",
+    "source": "sha256:40e1b7243bd95c969cdf1c8c43e75e3a5c69fdbc5ba40c2f0d90e93e6299cb12"
+  },
+  "menu.previousTabInOrder": {
+    "message": "Pestaña anterior en el orden de la lista",
+    "source": "sha256:59d0988b21d1f252b3a9d75e30527d6519e5092347249b4a6b1762f3f2a69846"
+  },
+  "settings.general.tabSwitchOrder.label": {
+    "message": "Cambiar de pestaña con Ctrl+Tab",
+    "source": "sha256:b4eea66cf23fea0dd823e0eca62cb9bc2bf9a3b26e963fef4a6e55da47422cf2"
+  },
+  "settings.general.tabSwitchOrder.hint": {
+    "message": "Mantén pulsado Ctrl y pulsa Tab para volver por las pestañas que usaste por última vez; suelta Ctrl para cambiar. Esc te deja donde estás.",
+    "source": "sha256:a1bc7a2aaa5992538e4b286c9711a02136ac03f7e0b81a2febded17a22892803"
+  },
+  "settings.general.tabSwitchOrder.recent": {
+    "message": "En el orden en que las usaste",
+    "source": "sha256:a55a18693b898163b09b865118594e02e3ed5451128acbe81ba66b8938a956a4"
+  },
+  "settings.general.tabSwitchOrder.list": {
+    "message": "En el orden de la lista de pestañas",
+    "source": "sha256:0e315b305f59dff6c13aa32616734cb834b59612a4cf99ad2e6a7d41b7a57e64"
+  },
+  "slash.copy.hint": {
+    "message": "Copiar el enlace de esta página: añade «clean» para quitar los parámetros de seguimiento",
+    "source": "sha256:c943befa1145a690327874749e7d7318e5d3dc40dcf5777b253b0d75a1df1999"
+  },
+  "slash.copy.doc": {
+    "message": "Copiar el enlace de esta página; con clean, sin parámetros de seguimiento",
+    "source": "sha256:0f48927cacd58733093898a175f574ec7f93173df849f2509b9a68e0adbf36e1"
+  },
+  "reader.title": {
+    "message": "Modo de lectura",
+    "source": "sha256:b13787c87b6607b274f6cff82b603f73b2ad445a4783ae5d8206a264a813c558"
+  },
+  "reader.enter": {
+    "message": "Entrar en modo de lectura",
+    "source": "sha256:4938a97e9b96a1757ac309218c48d9181384a9fe838b3aa4c23e78b76b4a18d8"
+  },
+  "reader.exit": {
+    "message": "Salir del modo de lectura",
+    "source": "sha256:44badce47e412ee8d6c84a7ec26ebfcaed9cb8fe67bd2c3e65b10e23ef4b45af"
+  },
+  "reader.appearance": {
+    "message": "Apariencia",
+    "source": "sha256:588b0883e72a40238532f8ad41ea570e0a6391ae0a27573aa2558fe264788e53"
+  },
+  "reader.theme": {
+    "message": "Tema",
+    "source": "sha256:72a18f375a37f668a5a84d468713b7a8a18d9cc1e6a277bb48701ec5a8fc34df"
+  },
+  "reader.system": {
+    "message": "Sistema",
+    "source": "sha256:654627b7fc85a4bcef5d5fa08684cf2b8ec7889a2d67446f5a20963d031812f4"
+  },
+  "reader.light": {
+    "message": "Claro",
+    "source": "sha256:eaf240b8c784c625e29c3b4766b270ed5bc0dc4695fc37089682e9dcf3decf03"
+  },
+  "reader.dark": {
+    "message": "Oscuro",
+    "source": "sha256:cb02eff42bf08ad7f833b9aecfcfcec0d931bdd95af025bbdc2bd5109e3b3230"
+  },
+  "reader.sepia": {
+    "message": "Sepia",
+    "source": "sha256:f1c6602adb25c9e3750ad1dbad1094d0dea92bddf03d0aeeea3b36d949efa98b"
+  },
+  "reader.font": {
+    "message": "Fuente",
+    "source": "sha256:85adbd67ea6c98638589db70cc24d2d045697ebbc658788bcf37113b0418f4ee"
+  },
+  "reader.serif": {
+    "message": "Con serifa",
+    "source": "sha256:445f44062ed4714a5e739a7c917e039a3749e6f12e5ed7e41e98becccecbac39"
+  },
+  "reader.sans": {
+    "message": "Sin serifa",
+    "source": "sha256:4f09a34de8f0111297fa5398714bc17afa3c737e15016b7f22528cf3c3999bba"
+  },
+  "reader.size": {
+    "message": "Tamaño del texto",
+    "source": "sha256:6b4d4ea35c86b040c1db27a012c86cf9718e4155ea63469baea4570e8d32a2c3"
+  },
+  "reader.width": {
+    "message": "Ancho de lectura",
+    "source": "sha256:bc928740344b10362081f8181f489a96a1194aa31b0d6584a211a932f58c8961"
+  },
+  "reader.narrow": {
+    "message": "Estrecho",
+    "source": "sha256:cd694ec6574ed8ef591a28b7b680116da69e7bb53ddf62a29996278d83d7f896"
+  },
+  "reader.comfortable": {
+    "message": "Cómodo",
+    "source": "sha256:1c413b1548d44e5ffc47694e3245c078c6166103e6628261a526ba619863055b"
+  },
+  "reader.wide": {
+    "message": "Ancho",
+    "source": "sha256:e6223eda1dea77164c2c72db357cd3ca4085014094d84d930f12d522a99c807f"
+  },
+  "reader.hint": {
+    "message": "Lee este artículo con texto ajustable y menos distracciones",
+    "source": "sha256:5e2fedf7089e63484671150bcc34c91ab91dee23e6b1ad1d64254bf82443e2ed"
+  },
+  "reader.unavailable": {
+    "message": "El modo de lectura no encontró ningún artículo en esta página.",
+    "source": "sha256:b200701936114f9e44000e07b9e7deca75243b99888a669bb60498e293808a59"
+  },
+  "slash.reader.hint": {
+    "message": "Lee este artículo con texto ajustable y menos distracciones",
+    "source": "sha256:5e2fedf7089e63484671150bcc34c91ab91dee23e6b1ad1d64254bf82443e2ed"
+  },
+  "reader.inter": {
+    "message": "Inter",
+    "note": "Reader Mode font family name; keep the font name unchanged.",
+    "source": "sha256:511a20e6408a8c87b4a90feac9487cd0b08054d8c2aaf9e5e6384757d0a7a7c0"
+  },
+  "reader.mono": {
+    "message": "JetBrains Mono",
+    "note": "Reader Mode font family name; keep the font name unchanged.",
+    "source": "sha256:3c0883b4aaec8dc4b7089202a5de987c2590516927f130dcd0dc686532968e13"
+  },
+  "settings.general.verticalTabsTextSize.label": {
+    "message": "Tamaño del texto de las pestañas verticales",
+    "source": "sha256:980577e5feb9a37e9a7c0a9a232897f11b858680a721d83b919cc47860c1a532"
+  },
+  "settings.general.verticalTabsTextSize.hint": {
+    "message": "Lee mejor los títulos de las pestañas y los nombres de los grupos en la barra lateral de pestañas verticales.",
+    "source": "sha256:3df2d1c042fb52ee6369ccd4845682082a37ad69a8e3fee9e33ee825f4bde3d0"
+  },
+  "settings.general.verticalTabsTextSize.default": {
+    "message": "Predeterminado",
+    "source": "sha256:8292a6907893aa574476ae2de1d5e0cfd49e8637ab4611b17fa308d64c4d408a"
+  },
+  "settings.general.verticalTabsTextSize.large": {
+    "message": "Grande",
+    "source": "sha256:7923ea0a25aae6c16f0d882d18bd07a8df207c1b0821fceb7398dbe2661462d0"
+  },
+  "settings.general.verticalTabsTextSize.extraLarge": {
+    "message": "Muy grande",
+    "source": "sha256:b190d1a2e4582b543524201e108e5f45e3d03df1164f5ca4ebc3ffb474cd7786"
   }
 }

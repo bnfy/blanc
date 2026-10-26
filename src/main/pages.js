@@ -65,6 +65,7 @@ function registerPagesScheme() {
     ...(require('../../package.json').blancRuntime === 'ecs'
       ? [require('./local-html-preview').LOCAL_HTML_SCHEME] : []),
     { scheme: 'blanc', privileges: { standard: true, secure: true } },
+    { scheme: 'blanc-reader', privileges: { standard: true, secure: true } },
     // The privileged strip + overlay cannot remain on file:// when the
     // GrantFileProtocolExtraPrivileges fuse is disabled. Their handler is a
     // separate, exact allowlist in chrome-protocol.js.
@@ -87,6 +88,7 @@ function setupPages(hooks = {}) {
   });
   const trustLinks = trustLinksForVersion(app.getVersion());
   const onePasswordAvailable = () => hooks.onePasswordAvailable?.() === true;
+  const recentTabOrderAvailable = () => hooks.recentTabOrderAvailable?.() === true;
   const developmentBrandMarkPath = hooks.developmentBrandMarkPath ?? null;
   const developmentDockIconPath = hooks.developmentDockIconPath ?? null;
   const developmentDarkDockIconPath = hooks.developmentDarkDockIconPath ?? null;
@@ -451,6 +453,7 @@ function setupPages(hooks = {}) {
       architecture: process.arch,
     },
     onePasswordAvailable: onePasswordAvailable(),
+    recentTabOrderAvailable: recentTabOrderAvailable(),
     searchEngines: Object.fromEntries(
       Object.entries(settings.SEARCH_ENGINES).map(([key, { label }]) => [key, label])
     ),

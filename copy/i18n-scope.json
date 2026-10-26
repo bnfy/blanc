@@ -356,6 +356,18 @@
     "src/renderer/pages/newtab-shared-spaces.js": {
       "state": "guarded",
       "allow": []
+    },
+    "src/renderer/pages/reader.html": {
+      "state": "guarded",
+      "allow": []
+    },
+    "src/renderer/pages/reader.js": {
+      "state": "guarded",
+      "allow": []
+    },
+    "src/renderer/pages/reader-content.js": {
+      "state": "guarded",
+      "allow": []
     }
   }
 }

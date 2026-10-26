@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
+import { execFileSync } from 'node:child_process';
 import { _electron } from 'playwright';
 import hook from './support/test-hook-call.js';
 import polling from './support/poll.js';
@@ -14,7 +15,9 @@ const expected = runtime.verifyElectronRuntime().locked;
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-shortcuts-'));
 const userData = path.join(root, 'profile');
 fs.mkdirSync(`${userData}-Dev`);
-fs.writeFileSync(path.join(`${userData}-Dev`, 'settings.json'), JSON.stringify({ onboardingVersion: 1, adblockEnabled: false, searchSuggestions: false, usagePing: false }));
+// List order keeps synthetic Ctrl+Tab presses switching at once; the
+// most-recent order is exercised below with real keys (Linux).
+fs.writeFileSync(path.join(`${userData}-Dev`, 'settings.json'), JSON.stringify({ onboardingVersion: 1, adblockEnabled: false, searchSuggestions: false, usagePing: false, tabSwitchOrder: 'list' }));
 const uncaught = path.join(root, 'uncaught.log');
 const server = http.createServer((_req, res) => {
   res.setHeader('Content-Type', 'text/html');
@@ -100,9 +103,9 @@ try {
     const settingsPage = await wait(async () => (await app.windows()).find(page => page.url().startsWith('blanc://settings/')), Boolean, 'Settings page');
     await settingsPage.locator('a[data-group="help"]').click();
     assert.equal(await settingsPage.locator('#browserCompatibilityCard').isVisible(), true);
-    await press('next-tab', iteration % 2 ? 'PageDown' : 'Tab', ['control'], 'sheet');
+    await press(iteration % 2 ? 'next-tab-in-order' : 'next-tab', iteration % 2 ? 'PageDown' : 'Tab', ['control'], 'sheet');
     await wait(state, value => value.activeTabId !== created.activeTabId, 'tab switched from Settings');
-    await press('previous-tab', iteration % 2 ? 'PageUp' : 'Tab', iteration % 2 ? ['control'] : ['control', 'shift']);
+    await press(iteration % 2 ? 'previous-tab-in-order' : 'previous-tab', iteration % 2 ? 'PageUp' : 'Tab', iteration % 2 ? ['control'] : ['control', 'shift']);
     await wait(state, value => value.activeTabId === created.activeTabId, 'tab restored');
     await press('close-tab', 'W', ['control']);
     await wait(state, value => value.tabOrder.length === count, 'exactly one tab closed');
@@ -178,6 +181,20 @@ try {
   });
   await wait(() => call(app, 'readClipboardText'), value => value === `${origin}/one?keep=1`, 'clean address copied');
   steps++;
+  // /copy and /copy clean in the ⌘L panel do the same as the shortcut and the menu.
+  const slash = async (text) => {
+    await call(app, 'openPalette');
+    await wait(() => call(app, 'overlayMode'), value => value === 'palette', `palette for ${text}`);
+    await addressInput.fill(text);
+    await addressInput.press('Enter');
+  };
+  await call(app, 'setClipboardText', ['sentinel']);
+  await slash('/copy');
+  await wait(() => call(app, 'readClipboardText'), value => value === `${origin}/one?utm_source=news&keep=1`, '/copy copied the address');
+  await slash('/copy clean');
+  await wait(() => call(app, 'readClipboardText'), value => value === `${origin}/one?keep=1`, '/copy clean copied the clean address');
+  await wait(() => call(app, 'overlayMode'), value => value === null, '/copy closes the panel');
+  steps += 2;
   await press('find', 'F', ['control']);
   await wait(() => call(app, 'overlayMode'), value => value === 'find', 'Find');
   await press('settings', ',', ['control'], 'overlay');
@@ -245,6 +262,58 @@ try {
     wc.sendInputEvent({ type: 'keyUp', keyCode: 'W', modifiers: ['control'] });
   }, { id: heldContentsId, inputCount });
   assert.equal((await call(app, 'browserCommandState')).deliveries.length, priorDeliveries);
+  // Ctrl+Tab by most recent use, on Linux where it ships (tab-switcher.js).
+  // Real X11 keys: a synthetic event skips the native path where a consumed
+  // press loses the Control release (spec §3.4, §10).
+  if (process.platform === 'linux') {
+    let xdotool = true;
+    try { execFileSync('xdotool', ['version'], { stdio: 'ignore' }); } catch { xdotool = false; }
+    if (!xdotool && process.env.GITHUB_ACTIONS) throw new Error('xdotool is required for the most-recent Ctrl+Tab scenario on Linux CI');
+    if (!xdotool) console.log('Most-recent Ctrl+Tab skipped: xdotool is not installed');
+    else {
+      assert.equal(await call(app, 'setTabSwitchOrder', ['recent']), 'recent');
+      const xid = await app.evaluate(({ BrowserWindow }) => {
+        const win = BrowserWindow.getAllWindows().find(w => w.webContents.getURL() === 'blanc-chrome://index/');
+        const handle = win.getNativeWindowHandle();
+        return String(handle.length >= 8 ? handle.readBigUInt64LE(0) : handle.readUInt32LE(0));
+      });
+      const keys = async (...steps) => {
+        try { execFileSync('xdotool', ['windowfocus', '--sync', xid]); } catch { execFileSync('xdotool', ['windowfocus', xid]); }
+        await new Promise(resolve => setTimeout(resolve, 200));
+        for (const step of steps) {
+          if (typeof step === 'number') await new Promise(resolve => setTimeout(resolve, step));
+          else execFileSync('xdotool', step);
+        }
+      };
+      const used = [];
+      for (const name of ['recent-1', 'recent-2', 'recent-3']) {
+        const id = await call(app, 'openTab', [`${origin}/${name}`]);
+        await call(app, 'activateTab', [id, true]);
+        await wait(state, value => value.activeTabId === id, `${name} used`);
+        used.push(id);
+      }
+      const settle = 600;
+      // A tap goes to the previous tab, and tapping again comes back.
+      await keys(['keydown', 'ctrl'], ['key', 'Tab'], ['keyup', 'ctrl'], settle);
+      await wait(state, value => value.activeTabId === used[1], 'a tap lands on the previous tab');
+      await keys(['keydown', 'ctrl'], ['key', 'Tab'], ['keyup', 'ctrl'], settle);
+      await wait(state, value => value.activeTabId === used[2], 'a second tap comes back');
+      // Held Ctrl: two Tabs step two back, and nothing changes before the release.
+      await keys(['keydown', 'ctrl'], 150, ['key', 'Tab'], 250, ['key', 'Tab'], 250);
+      assert.equal((await state()).activeTabId, used[2], 'stepping never switches before the release');
+      assert.equal((await call(app, 'browserCommandState')).tabSwitchPick, used[0]);
+      await keys(['keyup', 'ctrl'], settle);
+      await wait(state, value => value.activeTabId === used[0], 'the release lands two back');
+      // Esc cancels: the release then changes nothing.
+      await keys(['keydown', 'ctrl'], 150, ['key', 'Tab'], 250, ['key', 'Escape'], 150, ['keyup', 'ctrl'], settle);
+      assert.equal((await state()).activeTabId, used[0], 'Esc stays where you are');
+      assert.equal((await call(app, 'browserCommandState')).tabSwitchPick, null);
+      steps += 4;
+      assert.equal(await call(app, 'setTabSwitchOrder', ['list']), 'list');
+      for (const id of used) await call(app, 'closeTab', [id]);
+      await wait(state, value => used.every(id => !value.tabOrder.includes(id)), 'most-recent fixtures closed');
+    }
+  }
   const primaryBefore = (await call(app, 'windowRuntimes'))[0];
   const otherId = await call(app, 'openNewWindow');
   await wait(() => call(app, 'windowRuntimes'), windows => windows.some(window => window.id === otherId && window.tabs.length === 1), 'second window');

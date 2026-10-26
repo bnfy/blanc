@@ -8,7 +8,8 @@ import WebKit
 enum WebViewConfiguration {
     static func make(
         schemeHandler: BlancSchemeHandler, bridge: PagesBridge,
-        dataStore: WKWebsiteDataStore = .default()
+        dataStore: WKWebsiteDataStore = .default(),
+        startPageHold: StartPageHold? = nil
     ) -> WKWebViewConfiguration {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = dataStore
@@ -26,6 +27,11 @@ enum WebViewConfiguration {
             forMainFrameOnly: true)
         config.userContentController.addUserScript(userScript)
         config.userContentController.add(bridge, name: PagesBridge.messageHandlerName)
+        if let startPageHold {
+            config.userContentController.addUserScript(WKUserScript(
+                source: StartPageHold.userScriptSource, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+            config.userContentController.add(startPageHold, name: StartPageHold.messageHandlerName)
+        }
         return config
     }
 }

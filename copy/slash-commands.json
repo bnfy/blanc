@@ -87,6 +87,15 @@
       }
     },
     {
+      "command": "/copy",
+      "doc": {
+        "command": "/copy [clean]"
+      }
+    },
+    {
+      "command": "/reader"
+    },
+    {
       "command": "/find"
     },
     {

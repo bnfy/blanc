@@ -66,6 +66,9 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F54 | Billboard clock Font & color | PARTIAL | N/A | N/A | Desktop only. Four bundled faces (Roboto Flex added) with weight and a type-designed height from each face's width axis, Automatic or a Spaces preset at a tone, Solid or a refracting Glass, and a shadow that keeps it readable on any background; synced; values finished in a pure module. | — |
 | F56 | Tab gestures | N/A | PLANNED | PLANNED | Phone only. A sideways swipe on the pill switches to the previous or next tab in the dots' order; the switcher is a sideways strip of page cards, and flicking one up closes it; both have VoiceOver and `/close` equivalents; page-edge back/forward unchanged (D7). | D7 |
 
+| F58 | Reader Mode | PARTIAL | PARTIAL | PLANNED | Free manual local article reading, shared sanitizer/reading UI and appearance defaults, source identity and return without reload; no reader-content persistence or sync. Candidate only; platform release gates pending. iOS reuses already-loaded canvas-readable images. | D31 |
+| F59 | Switch tabs in the order you used them | PARTIAL | N/A | N/A | Desktop only. Ctrl+Tab steps back through tabs by most recent use and lands when Ctrl is released; Esc cancels; Ctrl+PageDown/PageUp keep list order. Linux only until the Ctrl release is proven on Windows and macOS; the card follows. | — |
+
 ## Notes on the "mobile-only wins"
 
 Two existing rows invert the usual desktop-leads pattern, while F38 records the

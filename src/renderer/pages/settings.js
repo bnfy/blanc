@@ -6,6 +6,7 @@
     appInfo,
     capabilities,
     onePasswordAvailable,
+    recentTabOrderAvailable,
     languages,
   } =
     await window.bowserPages.settings.get();
@@ -512,6 +513,15 @@
     document.getElementById('tabLayoutSetting')?.remove();
   }
 
+  if (supports('tabLayout')) {
+    const textSize = document.getElementById('verticalTabsTextSize');
+    textSize.value = settings.verticalTabsTextSize ?? 'default';
+    textSize.addEventListener('change', () =>
+      window.bowserPages.settings.set({ verticalTabsTextSize: textSize.value }));
+  } else {
+    document.getElementById('verticalTabsTextSizeSetting')?.remove();
+  }
+
   if (supports('islandHoverOpen')) {
     const islandHoverOpen = document.getElementById('islandHoverOpen');
     islandHoverOpen.checked = settings.islandHoverOpen === true;
@@ -658,6 +668,19 @@
       languageSetting.hidden = false;
       syncRelaunch();
     }
+  }
+
+  // Ctrl+Tab by most recent use is offered only where main says the Ctrl
+  // release reaches Blanc (tab-switcher.js); elsewhere Ctrl+Tab stays by position.
+  if (recentTabOrderAvailable === true && supports('tabSwitchOrder')) {
+    const tabSwitchOrder = document.getElementById('tabSwitchOrder');
+    tabSwitchOrder.value = settings.tabSwitchOrder === 'list' ? 'list' : 'recent';
+    tabSwitchOrder.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ tabSwitchOrder: tabSwitchOrder.value });
+      tabSwitchOrder.value = saved.tabSwitchOrder === 'list' ? 'list' : 'recent';
+    });
+  } else {
+    document.getElementById('tabSwitchOrderSetting')?.remove();
   }
 
   if (supports('tabSleep')) {
