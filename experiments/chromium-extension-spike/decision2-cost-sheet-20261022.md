@@ -1,14 +1,14 @@
 # Decision 2 — staffing and CI cost sheet
 
-October 22, 2026. Planning sheet, not a budget approval. Source: [measured rebase ledger](rebase-ledger.md) and dated evidence in the [primary plan](../../docs/chromium-migration-implementation-plan-2026-10-16.md).
+Updated October 26, 2026. Planning sheet, not a budget approval. See the [bounded operating proposal](decision2-operating-proposal-20261026.md) and [completed CI/usage evidence](evidence/decision2-operations-20261026/README.md). Source: [measured rebase ledger](rebase-ledger.md) and dated evidence in the [primary plan](../../docs/chromium-migration-implementation-plan-2026-10-16.md).
 
 | Cost item | Evidence / proposed commitment |
 | --- | --- |
 | One measured cold build | 9,587.120 s (2h39m47.120s), accumulated across two invocations; 57,664 reported steps. Mixed repair/unfinished-cold work is included, not counted again as incremental. |
-| Rebase friction | One broken anchor, one API change; 21 upstream files at the historical rebase. Current accepted prerender-replacement footprint is73files/180hunks ([recorded inventory](evidence/f12-prerender-repair-20261024/patch-inventory.json)), so this is not a measured rebase of today's larger patch set. |
+| Rebase friction | One broken anchor, one API change; 21 upstream files at the historical rebase. Current repair footprint is75files/184hunks ([recorded inventory](evidence/f12-redirect-repair-20261025/README.md)), so this is not a measured rebase of today's larger patch set. |
 | Human effort | Owner attention and agent editing time were not measured. Cannot establish the two-owner-day kill threshold from build logs. Next deliberate rebase records active attention separately. |
 | Incremental development | Recent private-only prefetch fixture builds recorded 38.82/40.13 s, then zero-action guard. Illustrative local runs only; no routine rebase or fleet estimate. |
-| CI money | The [completed-run timing response](evidence/decision2-closeout-20261024/github-completed-run-timing.json) reports18m21s wall duration and zero billable fields for shared-repository run40050159492. It is not a billing export or native-build measurement; actual runner rates/storage/signing cost remain uncollected. No $0-cost inference. Budget sign-off remains open. |
+| CI compute/storage | Verified public repository and standard hosted labels; GitHub policy makes this compute free. Four completed exact-head workflows:26non-skipped jobs,69m16s summed job intervals, zero uploaded Actions artifacts. This is not an invoice or $0-total-cost claim. Account-wide cache/storage, signing, hardware/power and owner time remain unpriced; see [evidence](evidence/decision2-operations-20261026/README.md). |
 | Maintenance proposal | Owner-approved October22: Anthony Loria as sole maintainer; suspend distribution when he cannot review security updates. This supersedes the draft independent-backup requirement. Review upstream security notices each working day; block distribution of a known vulnerable candidate until fixed or withdrawn. Confirm capacity for milestone rebases and urgent security updates explicitly. |
 | Release operations | Reserve operator availability for signing/notarization, clean-Mac acceptance, update/rollback rehearsal and incident withdrawal. Anthony Loria is the named sole maintainer; L3/L8/L9 acceptance is already recorded. Final release approval remains separate. |
 | Capacity decision | Owner must accept measured limitations and staffing commitment or reject expansion. Calendar estimates in the original plan are not a release ETA. |
@@ -19,7 +19,7 @@ No paid service, runner, release or staffing commitment is made here. Latency re
 
 | Field | Value at this checkpoint |
 | --- | --- |
-| Maximum monthly out-of-pocket build/signing spend | Unspecified; owner cannot estimate yet. Prepare existing-hardware/no-new-service proposal; no expenditure authorized by this sheet |
+| Maximum monthly out-of-pocket build/signing spend | Unspecified; [existing-hardware/no-new-service proposal prepared](decision2-operating-proposal-20261026.md). Public standard CI compute eligibility verified; no new expenditure authorized |
 | Maximum owner-attention hours per rebase | Unspecified; measure at next necessary update. Original two-owner-day stop rule remains intact |
 | Actual prior operator time | Not measured; cannot reconstruct honestly from task duration |
 | Actual provider bill / allocated charges | Not supplied; completed-run timing is not a bill |
@@ -29,4 +29,4 @@ A ceiling is a budget decision, not evidence that the current implementation fit
 
 ### Owner response and conservative proposal
 
-The owner could not reasonably supply cash/hour limits without a quantified workload. Do not ask again for a guess. Prepare a range from actual attributable bills and hands-on work, with compiler time separate. Proposed interim operation uses existing Macs/signing and no new paid service; preserve cache reuse and test only affected changes. This proposal is not yet a budget approval and does not close the cost/capacity gate. No new benchmark/rebase is authorized merely to collect these numbers.
+The owner could not reasonably supply cash/hour limits without a quantified workload. Do not ask again for a guess. The [operating proposal](decision2-operating-proposal-20261026.md) is now concrete: existing Macs/signing, current standard public CI, no new paid services, affected-only checks and prospective active-time/cash recording on the next necessary update. It retains the primary plan stop rules. Actual operator hours and remaining cash allocations are unknown, so affordability and cost/capacity acceptance remain open. No new benchmark/rebase is authorized merely to collect these numbers.
