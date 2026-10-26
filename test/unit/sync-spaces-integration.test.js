@@ -34,7 +34,7 @@ async function environment(t) {
     assert.equal(done,true,'sync must settle through the request queue');if(failure)throw failure;return value;
   }
   t.after(async()=>{for(const d of devices){await d.sync.disable({wipeRemote:true});await d.dispose();}await fixture.close();});
-  return {fixture,device,drive,read:store=>{const raw=fixture.env.records.get(`blob:${account}:${store}`);return raw?JSON.parse(decrypt(key,JSON.parse(raw).blob)):null;}};
+  return {fixture,device,drive,read:store=>{const raw=fixture.blobs.get(`blob:${account}:${store}`);return raw?JSON.parse(decrypt(key,JSON.parse(raw).blob)):null;}};
 }
 function createSpace(d) {const local=blob();d.spaces.noteLocalSpace(sid,local,{tabs:local.tabs},d.ctx);d.spaces.setIndex(index(),d.ctx);}
 test('cold-start retirement cancels queued Space work before stale reads can restore deleted content',async t=>{
@@ -44,7 +44,7 @@ test('cold-start retirement cancels queued Space work before stale reads can res
  const b=e.device('B',{seed:false,files:{'shared-spaces.json':saved}});
  e.fixture.inject({type:'stale',accountId:account,store,times:1});
  await e.drive(b.sync.syncNow());
- assert.equal(e.fixture.env.records.has(`blob:${account}:${store}`),false);
+ assert.equal(e.fixture.blobs.has(`blob:${account}:${store}`),false);
  assert.equal(b.spaces.snapshot(b.ctx).blobs[sid],undefined);assert.equal(b.spaces.snapshot(b.ctx).pending[sid],undefined);
  const removed=e.fixture.requests.findIndex(r=>r.method==='DELETE'&&r.store===store);assert.ok(removed>=0);
  assert.equal(e.fixture.requests.slice(removed+1).some(r=>r.store===store),false,'no queued request may follow successful retirement');
@@ -55,14 +55,14 @@ test('a Worker without selective DELETE capability never receives a per-Space DE
   a.spaces.rebind(account).update(d=>{d.index.spaces[sid].deleted=field(true,Date.now()-model.LIMITS.tombstoneMs-1);});
   await e.drive(a.sync.syncNow(['spaces']));
   assert.equal(e.fixture.requests.some(r=>r.method==='DELETE'&&r.store===store),false);
-  assert.ok(e.fixture.env.records.has(`blob:${account}:${store}`));
+  assert.ok(e.fixture.blobs.has(`blob:${account}:${store}`));
   assert.ok(a.spaces.snapshot(a.ctx).index.spaces[sid],'retain the id until a capable Worker permits cleanup');
 });
 test('expired deletion frees its server slot despite an old pending index receipt',async t=>{
   const e=await environment(t),a=e.device('A');createSpace(a);await e.drive(a.sync.syncNow([store]));
   a.spaces.rebind(account).update(d=>{d.index.spaces[sid].deleted=field(true,Date.now()-model.LIMITS.tombstoneMs-1);d.pending[sid]={index:{rev:'old-publication'}};});
   await e.drive(a.sync.syncNow(['spaces']));
-  assert.equal(e.fixture.env.records.has(`blob:${account}:${store}`),false);
+  assert.equal(e.fixture.blobs.has(`blob:${account}:${store}`),false);
   assert.equal(a.spaces.snapshot(a.ctx).index.spaces[sid],undefined);
   assert.equal(a.spaces.snapshot(a.ctx).pending[sid],undefined);
 });
@@ -77,7 +77,7 @@ test('optional Space quota failure reaches the account status and clears after s
 test('deleting a Space compacts its encrypted blob immediately and frees a full account for the next write',async t=>{
   const e=await environment(t),a=e.device('A');createSpace(a);
   await e.drive(a.sync.syncNow([store]));
-  const before=e.fixture.env.records.get(`blob:${account}:${store}`);
+  const before=e.fixture.blobs.get(`blob:${account}:${store}`);
   const used=(await e.fixture.quotaUsage(account)).bytes;
   e.fixture.env.ACCOUNT_STORAGE_QUOTA_BYTES=String(used);
   const write=()=>fetch(`${e.fixture.url}/v1/blob/${account}/space-${'d'.repeat(32)}`,{method:'PUT',body:JSON.stringify({ifVersion:null,blob:{ct:'x'.repeat(100)}})});
@@ -85,10 +85,10 @@ test('deleting a Space compacts its encrypted blob immediately and frees a full 
   const deleted=index();deleted.spaces[sid].deleted=field(true,Date.now()+1,'A');a.spaces.setIndex(deleted,a.ctx);
   await e.drive(a.sync.syncNow([store]));
   assert.deepEqual(e.read(store),{v:1,spaceId:sid,groups:{},tabs:{}});
-  assert.ok(Buffer.byteLength(e.fixture.env.records.get(`blob:${account}:${store}`))<Buffer.byteLength(before));
+  assert.ok(Buffer.byteLength(e.fixture.blobs.get(`blob:${account}:${store}`))<Buffer.byteLength(before));
   assert.equal((await write()).status,200,'deletion frees bytes without advancing the 30-day clock');
   assert.equal(a.spaces.snapshot(a.ctx).index.spaces[sid].deleted.v,true,'the index tombstone remains');
-  assert.ok(e.fixture.env.records.has(`blob:${account}:${store}`),'the retained store slot is removed after expiry');
+  assert.ok(e.fixture.blobs.has(`blob:${account}:${store}`),'the retained store slot is removed after expiry');
 });
 test('the endpoint override requires explicit unpackaged acceptance mode and a loopback origin',async t=>{
   for(const [packaged,testMode,endpoint,wantLocal] of [[false,'1','http://127.0.0.1:12345',true],[true,'1','http://127.0.0.1:12345',false],[false,'true','http://127.0.0.1:12345',false],[false,'1','https://example.test',false]]) {
@@ -148,7 +148,7 @@ test('reconciliation discovers a blob update even when its acknowledged index wr
 test('without a surviving local copy, an acknowledged disappearing write remains unrecoverable',async t=>{
   const e=await environment(t),a=e.device('A');createSpace(a);await e.drive(a.sync.syncNow([store]));await e.drive(a.sync.syncNow([store]));
   assert.equal(a.spaces.snapshot(a.ctx).pending[sid].tabs,undefined);
-  const old=JSON.parse(e.fixture.env.records.get(`blob:${account}:${store}`));
+  const old=JSON.parse(e.fixture.blobs.get(`blob:${account}:${store}`));
   e.fixture.inject({type:'disappear',store});
   const ack=await fetch(e.fixture.url+`/v1/blob/${account}/${store}`,{method:'PUT',body:JSON.stringify({ifVersion:old.version,blob:encrypt(key,JSON.stringify(blob()))}),headers:{'content-type':'application/json'}});
   assert.equal(ack.status,200);assert.equal(e.read(store),null);

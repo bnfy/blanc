@@ -1,9 +1,9 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
+const {quotaState}=require('../support/sync-quota.cjs');
 const modulePromise=import(`data:text/javascript;base64,${fs.readFileSync(require.resolve('../../cloudflare/sync-worker/src/index.js')).toString('base64')}`);
 const account='a'.repeat(64),sid=n=>'space-'+n.toString(16).padStart(32,'0');
 const fixed=['bookmarks','settings','session','icons','sends','spaces','closed','shared'],BASE=8391120;
-function state(){const values=new Map();return {values,storage:{get:async k=>structuredClone(values.get(k)),put:async(k,v)=>values.set(k,structuredClone(v)),deleteAll:async()=>values.clear()}};}
 async function fixture(vars={}) {
  const mod=await modulePromise,records=new Map(),states=new Map(),objects=new Map(),calls=[];
  const env={ACCOUNT_STORAGE_QUOTA_BYTES:String(BASE+2000),ACCOUNT_STORAGE_MAX_STORES:'10',NEW_ACCOUNT_DAILY_LIMIT:'10',...vars,SYNC:{
@@ -11,19 +11,19 @@ async function fixture(vars={}) {
   put:async(k,v)=>{calls.push(['put',k]);records.set(k,String(v));},delete:async k=>{calls.push(['delete',k]);records.delete(k);},
   list:async()=>{calls.push(['list']);return {keys:[],list_complete:true};},
  }};
- const object=()=>{if(!states.has(account))states.set(account,state());if(!objects.has(account))objects.set(account,new mod.AccountQuota(states.get(account),env));return objects.get(account);};
+ const object=()=>{if(!states.has(account))states.set(account,quotaState());if(!objects.has(account))objects.set(account,new mod.AccountQuota(states.get(account),env));return objects.get(account);};
  env.ACCOUNT_QUOTA={idFromName:id=>id,get:id=>{assert.equal(id,account);return {fetch:(url,init)=>object().fetch(new Request(url,init))};}};
  const post=(path,body={})=>object().fetch(new Request('https://quota.invalid/'+path,{method:'POST',body:JSON.stringify({accountId:account,...body})}));
- const put=(store,blob={ct:'x'})=>mod.default.fetch(new Request(`https://local.test/v1/blob/${account}/${store}`,{method:'PUT',body:JSON.stringify({blob,ifVersion:JSON.parse(records.get(`blob:${account}:${store}`)??'null')?.version??null})}),env);
+ const put=(store,blob={ct:'x'})=>mod.default.fetch(new Request(`https://local.test/v1/blob/${account}/${store}`,{method:'PUT',body:JSON.stringify({blob,ifVersion:JSON.parse((store.startsWith('space-')?states.get(account)?.values.get('blob:'+store):records.get(`blob:${account}:${store}`))??'null')?.version??null})}),env);
  return {mod,env,records,calls,states,object,post,put,evict:()=>objects.clear(),ledger:async()=>states.get(account)?.storage.get('ledger')};
 }
 test('all 256 legacy fixed-store combinations initialize eight reserves without KV inventory',async()=>{
  for(let mask=0;mask<256;mask++){
   const h=await fixture();for(let n=0;n<8;n++)if(mask&(1<<n))h.records.set(`blob:${account}:${fixed[n]}`,JSON.stringify({version:'legacy',blob:{ct:'x'}}));
-  h.env.SYNC.get=h.env.SYNC.list=async()=>{throw new Error('inventory is forbidden');};
+  h.env.SYNC.get=async k=>{if(k.startsWith('blob:'))throw new Error('inventory is forbidden');return null;};h.env.SYNC.list=async()=>{throw new Error('inventory is forbidden');};
   assert.equal((await h.post('write',{store:sid(1),stored:'{}'})).status,200);
-  const ledger=await h.ledger();assert.equal(ledger.schema,1);assert.deepEqual(Object.keys(ledger.stores),[sid(1)]);
-  assert.equal(h.mod.AccountQuota.fixedReservationBytes,BASE);assert.equal(h.records.size,mask.toString(2).replace(/0/g,'').length+1);
+  const ledger=await h.ledger();assert.equal(ledger.schema,2);assert.deepEqual(Object.keys(ledger.stores),[sid(1)]);
+  assert.equal(h.mod.AccountQuota.fixedReservationBytes,BASE);assert.equal(h.records.size,mask.toString(2).replace(/0/g,'').length);
  }
 });
 test('historical Unicode values remain covered after fixed writes, stale reads, deletion attempts and eviction',async()=>{
@@ -47,41 +47,11 @@ test('successful shrinking replacement frees dynamic bytes even after a configur
  h.env.ACCOUNT_STORAGE_QUOTA_BYTES=String(BASE+800);
  assert.equal((await h.put(sid(2))).status,507);assert.equal((await h.put(sid(1),{})).status,200);assert.equal((await h.put(sid(2),{})).status,200);
 });
-test('failed reservation persistence sends no KV write and a fresh operation reloads durable state',async()=>{
- const h=await fixture();await h.object().bootstrap(account);const st=h.states.get(account),put=st.storage.put;let fail=true;
- st.storage.put=async(k,v)=>{if(fail){fail=false;throw new Error('disk failed');}return put(k,v);};
- assert.equal((await h.put(sid(1))).status,503);assert.equal(h.records.has(`blob:${account}:${sid(1)}`),false);
- assert.equal((await h.put(sid(2))).status,200);assert.deepEqual(Object.keys((await h.ledger()).stores),[sid(2)]);
-});
-for(const committed of [false,true])test(`uncertain KV PUT (${committed?'after':'before'} mutation) retains its key and charge across eviction`,async()=>{
- const h=await fixture({ACCOUNT_STORAGE_MAX_STORES:'9'}),put=h.env.SYNC.put;
- h.env.SYNC.put=async(k,v)=>{if(k.endsWith(sid(1))){if(committed)await put(k,v);throw new Error('unknown KV outcome');}return put(k,v);};
- assert.equal((await h.put(sid(1),{ct:'x'.repeat(900)})).status,503);h.evict();
- const row=(await h.ledger()).stores[sid(1)];assert.equal(row.intent,'put');assert.ok(row.bytes>=900);
- assert.equal((await h.put(sid(2))).status,507);
- assert.equal((await h.post('delete-store',{store:sid(1)})).status,503);
- assert.equal((await h.post('delete-account')).status,503,'uncertain writes cannot be forgotten by erasure');
- assert.ok((await h.ledger()).stores[sid(1)]);
-});
-test('crash after durable reservation and before finalization never loses a possibly stored key',async()=>{
- const h=await fixture(),st=h.object().state,put=st.storage.put;let writes=0;
- st.storage.put=async(k,v)=>{if(++writes===3)throw new Error('finalization lost');return put(k,v);};
- assert.equal((await h.put(sid(1))).status,503);assert.ok(h.records.has(`blob:${account}:${sid(1)}`));h.evict();
- assert.equal((await h.ledger()).stores[sid(1)].intent,'put');assert.equal((await h.post('delete-account')).status,503);
-});
-test('failed delete is retryable after eviction without releasing its quota early',async()=>{
- const h=await fixture({ACCOUNT_STORAGE_MAX_STORES:'9'});await h.put(sid(1));const del=h.env.SYNC.delete;let fail=true;
- h.env.SYNC.delete=async k=>{if(fail&&k.endsWith(sid(1))){fail=false;throw new Error('delete failed');}return del(k);};
+test('failed SQLite deletion retains its charge and data until retry across eviction',async()=>{
+ const h=await fixture({ACCOUNT_STORAGE_MAX_STORES:'9'});await h.put(sid(1));const st=h.states.get(account),transaction=st.storage.transaction;let fail=true;
+ st.storage.transaction=async fn=>{if(fail){fail=false;throw Error('disk unavailable');}return transaction(fn);};
  assert.equal((await h.post('delete-store',{store:sid(1)})).status,503);h.evict();assert.equal((await h.put(sid(2))).status,507);
- assert.equal((await h.post('delete-store',{store:sid(1)})).status,200);assert.equal((await h.put(sid(2))).status,200);
-});
-test('a late write after an error remains covered and cannot be forgotten by erasure',async()=>{
- const h=await fixture({ACCOUNT_STORAGE_MAX_STORES:'9'}),put=h.env.SYNC.put;let land;
- h.env.SYNC.put=async(k,v)=>{if(k.endsWith(sid(1))){land=()=>put(k,v);throw new Error('completion unknown');}return put(k,v);};
- assert.equal((await h.put(sid(1),{ct:'x'.repeat(900)})).status,503);h.evict();
- assert.equal((await h.post('delete-account')).status,503);await land();
- assert.ok(h.records.has(`blob:${account}:${sid(1)}`));assert.equal((await h.ledger()).stores[sid(1)].intent,'put');
- assert.equal((await h.put(sid(2))).status,507);
+ assert.ok(st.values.has('blob:'+sid(1)));assert.equal((await h.post('delete-store',{store:sid(1)})).status,200);assert.equal((await h.put(sid(2))).status,200);
 });
 test('reviewed recovery limits preserve the ledger and fixed sync while refusing dynamic growth',async()=>{
  const h=await fixture();await h.put(sid(1),{ct:'x'.repeat(900)});const before=await h.ledger();
@@ -95,7 +65,7 @@ test('account wipe deletes all fixed and ledger-known dynamic keys even when lis
  const h=await fixture();await h.put(sid(1));await h.put(sid(2));await h.put('settings');
  h.env.SYNC.list=async()=>{throw new Error('listing must not be needed');};
  assert.equal((await h.post('delete-account')).status,204);
- assert.equal([...h.records.keys()].some(k=>k.startsWith(`blob:${account}:`)),false);
+ assert.equal([...h.records.keys()].some(k=>k.startsWith(`blob:${account}:`)),false);assert.equal(h.states.get(account).values.size,0);
  for(const name of [...fixed,sid(1),sid(2)])assert.ok(h.calls.some(([op,k])=>op==='delete'&&k===`blob:${account}:${name}`));
  h.evict();assert.equal((await h.put(sid(3))).status,200);assert.deepEqual(Object.keys((await h.ledger()).stores),[sid(3)]);
 });
@@ -110,10 +80,10 @@ test('generic reset and legacy cleanup cannot discard charges from a live accoun
  const h=await fixture({CLEANUP_ENABLED:'true'});await h.put(sid(1));
  assert.equal((await h.object().fetch(new Request('https://quota.invalid/',{method:'DELETE'}))).status,405);
  const before=await h.ledger();let work;await h.mod.default.scheduled({},h.env,{waitUntil:p=>{work=p;}});await work;
- assert.deepEqual(await h.ledger(),before);assert.ok(h.records.has(`blob:${account}:${sid(1)}`));
+ assert.deepEqual(await h.ledger(),before);assert.ok(h.states.get(account).values.has('blob:'+sid(1)));
 });
 test('unknown ledger schema fails closed without mutating customer data',async()=>{
- const h=await fixture();h.object();h.states.get(account).values.set('ledger',{accountId:account,stores:{}});
+ const h=await fixture();h.object();h.states.get(account).values.set('ledger',{schema:1,accountId:account,stores:{},erasing:false});
  assert.equal((await h.put(sid(1))).status,503);assert.equal(h.records.size,0);
 });
 test('rollout configuration keeps cleanup disabled and the independent daily limit at ten',()=>{

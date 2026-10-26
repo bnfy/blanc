@@ -23,7 +23,10 @@ The quota follow-up implements the owner's approved conservative reservation
 plan in [#1134 at a303b55f6](https://github.com/bnfy/blanc/pull/1134), replacing
 the prior inventory migration gate. Its separate code review is recorded in
 [the implementation record](2026-10-25-sync-conservative-quota-implementation.md).
-It needs no KV inventory/export or maintenance freeze. Rechecking legacy
+The owner authorized authoritative SQLite Space storage on October 26; that
+follow-up uses schema 2 with atomic ciphertext/quota commits and retryable
+erasure. It needs no KV inventory/export or maintenance freeze. Provider PITR
+retention and SQLite costs remain deployment review inputs. Rechecking legacy
 route/writer scope, reviewing exact implementation/config/recovery references
 and obtaining separate Worker deployment approval remain mandatory.
 

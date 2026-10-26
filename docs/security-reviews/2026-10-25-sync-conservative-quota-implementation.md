@@ -1,77 +1,94 @@
-# Conservative quota implementation — candidate review
+# Conservative quota implementation — revised candidate review
 
-Implements the owner-approved [plan #1134 at a303b55f6](https://github.com/bnfy/blanc/pull/1134)
+Implements [plan #1134 at a303b55f6](https://github.com/bnfy/blanc/pull/1134)
 on a separate branch from approved #1132 at
-`510f87addcc4d5bfe28015c0e11f725a04a1c0db`. This is local candidate evidence,
-not production or release evidence. #1132 remains unmerged. Worker deployment,
-real-device validation and PR E remain on hold.
+`510f87addcc4d5bfe28015c0e11f725a04a1c0db`. The owner additionally authorized
+**authoritative SQLite storage for Space blobs on October 26**, addressing
+#1137’s uncertain-upload recovery finding. This amends the plan’s dynamic KV
+write mechanism; the eight-store reservation policy and capacity remain intact.
 
-## Accounting and capacity
+#1132 remains unchanged and unmerged. Worker deployment, real-device validation
+and PR E remain on hold. This is candidate/local evidence, not release evidence.
 
-Schema 1 initializes from durable state, with no KV inventory. Eight fixed
-reservations cover every historical fixed-store combination and the old
-UTF-16 cap: four times `(3 * 524288 + 58 + 256)` plus four times
-`(524288 + 58 + 256)` = **8,391,120 bytes**. Fixed reservations never shrink.
-The remaining allowance is 12,580,400 bytes and 248 dynamic slots under the
-unchanged 20-MiB/256-slot settings. Twenty-three full-cap Space blobs fit;
-twenty-five at the measured 436,980-byte envelope guide charge 19,323,470 bytes
-(18.4283 MiB). Reserved headroom does not itself occupy KV storage.
+## Storage boundary and quota
 
-Each dynamic key reserves bytes and a slot durably before external I/O, under
-one account request queue. Successful replacement settles to the new size.
-Failed or interrupted writes retain their high-water charge and key. Eviction
-reloads the same schema; unknown schemas and invalid limits fail closed.
-Cleanup is configured off and unconditionally skips when quota is bound;
-there is no generic reset endpoint. Daily new-account admission remains 10,
-independent of byte/slot capacity. R3 bearer-locator authority, approximate
-admission counters and R5 non-atomic version checks remain open.
+Schema 2 stores each encrypted Space representation under `blob:space-<id>`
+in its account SQLite database. The same transaction writes its byte charge
+into `ledger`. The value is authoritative, not a backup or a KV mirror. Fixed
+stores, activity/admission counters and pairing retain their existing KV paths.
+The external route/encryption/version response shapes are unchanged. Version
+checks still precede the write, so same-version concurrent writers can both
+succeed; this does not claim to close R3 bearer authority or all R5 lost writes.
 
-## Erasure and uncertain outcomes
+Eight permanent fixed reservations cover historical UTF-16 bounds without a KV
+inventory: four times `(3 * 524288 + 58 + 256)` plus four times
+`(524288 + 58 + 256)` = **8,391,120 bytes**. The unchanged 20-MiB/256-slot limit
+leaves 12,580,400 bytes and 248 dynamic slots. Twenty-three full-cap Space blobs
+fit; twenty-five at the 436,980-byte envelope guide charge 19,323,470 bytes
+(18.4283 MiB). Reserved headroom is not actual occupied storage.
 
-Account erasure deletes eight fixed keys and every durable dynamic key directly.
-Listing supplements these addresses but cannot remove them or reset accounting.
-Partial failure retains the complete map and blocks writes until a retried wipe
-succeeds. Failed individual DELETEs retain a retryable deletion intent. Only
-successful deletion releases a dynamic reservation; only a completed wipe
-clears the ledger. Later writes are still possible: this adds no global fencing.
+SQLite ciphertext plus quota settle atomically for both upload and compaction.
+A failure before commit leaves neither new value nor new charge. A lost response
+after commit leaves both; eviction/retry reloads the complete pair. There is no
+uncertain intent that needs resetting, no inference from a missing/stale KV read,
+and no untracked external Space write that could arrive after its charge is freed.
+Each stored value is below the existing 512-KiB blob cap plus its 58-byte wrapper;
+the ledger contains metadata only, not an aggregate multi-megabyte value.
 
-**Availability limitation for review:** an unresolved PUT intent returns 503
-on further mutation of that key and on account erasure, even if the first
-attempt failed before mutation. A post-write durable-finalization failure also
-leaves this conservative intent. Missing/stale KV reads cannot prove that an
-earlier larger write will not arrive. This candidate has no automatic outcome
-reconciliation or operator reset, so ordinary retry does not clear that state.
-Other keys remain usable, and clients retain erasure credentials on failure.
-Resolving an uncertain intent needs a separately reviewed recovery mechanism;
-the code never reports a successful wipe while forgetting a possibly late write.
+## Erasure and missing binding
 
-## Local evidence and recovery
+Selective Space deletion atomically removes ciphertext and its charge. Account
+wipe first persists `erasing`, blocks writes and directly deletes all eight fixed
+KV keys plus known legacy addresses. Listing is supplementary only. Any KV
+failure retains the complete SQLite database for retry. Only after those deletes
+succeed does SQLite deleteAll atomically clear ciphertext and ledger. A failed
+final deletion can be retried across eviction; failure never clears client wipe
+credentials. Later requests and legacy fixed-only writes can still recreate data:
+this adds no global deletion fence against another device.
 
-`sync-worker-conservative-quota.test.js` covers all 256 fixed-key combinations
-with inventory unavailable, historical Unicode and late old fixed writes,
-capacity exhaustion, successful shrink/delete, interrupted persistence,
-KV errors before/after mutation, delayed writes after errors, finalization
-failure, partial erasure across eviction, empty cleanup and unknown schema.
-The other Worker tests preserve request/conflict/rate-limit behavior. The local
-fixture runs the actual handler and accountant; its quota setup now includes
-the permanent reserve. Native F57-7 verifies refusal and immediate compaction
-recovery. The checked-in Wrangler/SQLite runtime verifies the 23-blob capacity,
-fixed writes while full, eviction, compaction, selective deletion and wiping.
-An additional disposable Miniflare KV/SQLite probe seeds all 256 legacy subsets
-in real KV while the accountant's inventory methods throw, then seeds historical
-Unicode and a late larger fixed overwrite. The probe is test-only and creates
-no deployed seed or ledger-read route.
-Exact completed validation counts are recorded in the draft PR description.
+Without ACCOUNT_QUOTA, Space reads/writes, selective deletion and account wipe
+return 503, without touching ciphertext. Fixed-store sync can continue. Cleanup
+is disabled and quota-bound Cron always skips; generic reset is unavailable.
+Unknown schemas, including the undeployed schema 1, fail closed rather than
+silently migrating or erasing ciphertext.
 
-Recovery rehearsal retains schema/binding and changes only limits to
-8,391,120 bytes/eight slots. Fixed service and shrinking replacements continue;
-new dynamic keys/growth are refused without dropping existing reservations.
-The candidate commit plus these configuration overrides is the local recovery
-reference; its production use still needs explicit operator authorization.
+## Provider retention and recovery gates
 
-Before deployment approval, recheck all deployed/preview versions, namespace
-writers and absence of pre-existing quota state; obtain the owner's confirmation
-that no out-of-schema imports/writes are known. Keep the production namespace,
-use one 100% cutover with cleanup disabled, and ensure prior cleanup is no
-longer in flight. No export, ciphertext backup, freeze or production mutation
-was performed by this implementation.
+[Cloudflare’s SQLite API documentation](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/)
+describes atomic deleteAll and up to 30 days of provider PITR history. A 204
+proves deletion from active storage, not immediate provider-history purge.
+Local tests cannot exercise PITR. Blanc adds no restore/export endpoint or
+backup artifact; restoring erased accounts is prohibited. Before deployment,
+review provider retention and restoration policy; privacy/FAQ copy must accurately
+state the boundary before release. The prior KV-only cost scenario does not price
+SQLite row operations, storage or compute; review those costs and billing alerts.
+
+Before deployment approval, recheck all production/preview versions and writers,
+no existing Space/DO deployment, and no out-of-schema imports. Keep the existing
+KV namespace, use one 100% cutover, cleanup disabled, and ensure old cleanup is
+not still running. An existing schema-1 namespace requires a separately reviewed
+migration; this implementation does not import one.
+
+A future recovery must retain **schema 2 and authoritative SQLite data**. Local
+rehearsal limits capacity to 8,391,120 bytes/eight slots: fixed service and
+shrinking replacements continue, new dynamic keys/growth fail without forgetting
+stored data. Rolling back to KV-only code would strand SQLite ciphertext and is
+prohibited. Use the reviewed candidate code plus those configuration overrides
+as the recovery reference, only under separate operator authorization.
+
+## Validation
+
+Regression coverage includes all 256 fixed-store subsets, historical Unicode,
+late fixed writes, capacity/compaction/churn, upload failure before/after commit,
+rollback between ciphertext and ledger writes, eviction and retry, failed
+selective deletion, failed final wipe, partial KV wipe and missing binding.
+The actual Wrangler/SQLite runtime checks capacity, eviction, compaction and
+wipe. A disposable real KV/SQLite probe additionally tests all 256 legacy subsets
+and injected failures before/after native transaction commit, then successful
+retry and erasure. Its fault/inspection routes exist only in the test module.
+
+The fixture observes both backends explicitly; normal protocol operations run
+the real handler/accountant. Stale and disappearing-write cases are explicit
+fault injections, not a claim that SQLite normally loses acknowledged commits.
+The draft PR description records exact completed local validation counts and
+reviewed source commit. No production mutation or real-device test is performed.

@@ -33,17 +33,18 @@ Design: `docs/superpowers/specs/2026-10-05-sync-storage-budget-design.md`.
   accounts are never refused.
 - An account-scoped Durable Object reserves every blob write against
   `ACCOUNT_STORAGE_QUOTA_BYTES` (20 MiB by default) and
-  `ACCOUNT_STORAGE_MAX_STORES` (256 by default). Schema 1 reserves eight fixed
+  `ACCOUNT_STORAGE_MAX_STORES` (256 by default). Schema 2 reserves eight fixed
   slots permanently, without reading or listing KV. The four historically
   character-limited stores each reserve `3 * 524288 + 58 + 256` bytes; the other
   four reserve `524288 + 58 + 256`. The total is **8,391,120 bytes**, including
   wrappers and per-key headroom, even when the keys are absent or overwritten
   with smaller values. This covers the verified legacy Unicode bound and late
   fixed-only writes. No placeholder blobs, inventory import or backup is made.
-  Dynamic keys reserve stored-value bytes plus 256 bytes and a slot durably
-  before KV I/O. Requests are serialized per account. A successful replacement
-  settles its charge; an uncertain PUT retains its high-water charge and key
-  across eviction. Quota exhaustion returns
+  Following the owner’s October 26 decision, new Space ciphertext lives only in
+  the account Durable Object’s SQLite storage. Its value, byte charge and slot
+  commit in one transaction; there is no KV mirror or separate pending intent.
+  Fixed stores stay in KV. Requests are serialized per account. A successful
+  replacement settles its charge atomically with its ciphertext. Quota exhaustion returns
   `507 {"error":"account-quota"}` without storing the candidate blob. A
   per-Space DELETE releases its value and quota reservation after the retained
   deletion window; fixed stores remain removable only by the account wipe.
@@ -64,14 +65,14 @@ Design: `docs/superpowers/specs/2026-10-05-sync-storage-budget-design.md`.
   The remaining dynamic allowance is 12,580,400 bytes and 248 slots: 23 full-cap
   Space blobs fit; 25 blobs at the measured 320-KiB plaintext guide charge
   19,323,470 bytes (18.4283 MiB), within the allowance.
-  An uncertain PUT returns 503 and blocks mutation of that key and account
-  erasure, rather than forgetting a write that could still land. There is no
-  automatic outcome reconciliation or privileged reset in this candidate;
-  merely retrying or reading a missing value cannot clear that intent. Other
-  keys remain available. This availability limitation requires review.
-  Failed DELETEs retain their charge and can be retried. A partial account wipe
-  retains the entire key map, blocks writes and returns failure until retry
-  succeeds; the client must retain its erasure credentials.
+  A transaction failure returns 503. Even if its response was lost after commit,
+  retry/eviction sees a complete ciphertext-plus-charge pair or neither. No stale
+  KV read, timeout, intent reset or permanent lock is used to recover. Space GET,
+  PUT, selective DELETE and account wipe fail closed if the binding is missing;
+  fixed-store sync remains available. Failed DELETEs retain both value and charge
+  or remove both atomically. Partial account wipes retain SQLite data and block
+  writes until all legacy KV deletions succeed, then atomically clear SQLite.
+  The client retains its erasure credentials on any failure.
 - A daily Cron Trigger (04:17 UTC) deletes blobs of accounts with no marker,
   at most `CLEANUP_MAX_DELETES` per run. It does nothing unless
   `CLEANUP_ENABLED = "true"` on the legacy Worker. With the quota binding,
@@ -123,8 +124,8 @@ directly deletes every ledger-known dynamic key as well, even if listing
 fails or omits them all. It removes the activity marker
 only after those deletions succeed; it does not depend on the index. Direct
 fixed-store and ledger-known dynamic deletion do not depend on listing freshness.
-Only a successful wipe clears the ledger; reinitialization recreates all eight
-reserves. Later writes can recreate keys; the v1 protocol does not provide an
+A successful wipe also atomically clears all SQLite ciphertext and the ledger;
+reinitialization recreates all eight reserves. Later writes can recreate keys; the v1 protocol does not provide an
 atomic, immediately complete global account wipe.
 
 Deploy these routes before a client release offers the Spaces switch. A client
@@ -203,3 +204,25 @@ and dynamic growth while fixed writes and successful shrinking replacements
 remain available. Never roll back to unmetered dynamic routes or clear the
 ledger. This configuration was rehearsed locally; applying it in production
 still requires operator approval.
+
+## SQLite rollout and provider recovery
+
+Schema 2 is a candidate implementing the storage change authorized on October 26;
+schema 1 was never deployed. Unexpected pre-existing ledger schemas fail closed rather than
+importing or discarding KV data. Before deployment, recheck that no Space route
+or accountant has been deployed and no external writer/import exists. A deployed
+schema-1 ledger would require a separate migration, not an automatic upgrade.
+Recovery must preserve schema 2, its binding and authoritative SQLite ciphertext;
+rolling back to a KV-only implementation would strand data and is prohibited.
+
+[Cloudflare documents](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/)
+atomic SQLite transactions and deleteAll, plus provider point-in-time recovery
+for up to 30 days. A successful wipe removes the active database; local tests
+cannot verify provider history deletion. No PITR restore/export endpoint or
+backup is added by Blanc, and restoring erased account data is prohibited.
+Provider retention, restoration policy and the required privacy/FAQ wording need
+review before deployment/release; do not claim provider history is immediately
+purged or that a database restore could not resurrect erased ciphertext.
+The earlier KV-only cost examples are historical, not estimates for the new
+KV-plus-SQLite design. Review SQLite storage/row/compute costs and billing alerts
+before requesting deployment; the 20-MiB payload accounting bound is unchanged.

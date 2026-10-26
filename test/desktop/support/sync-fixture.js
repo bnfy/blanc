@@ -4,11 +4,8 @@
 const http=require('node:http');
 const fs=require('node:fs');
 const {AsyncLocalStorage}=require('node:async_hooks');
+const {quotaState,blobView}=require('../../support/sync-quota.cjs');
 const workerModulePromise=import(`data:text/javascript;base64,${fs.readFileSync(require.resolve('../../../cloudflare/sync-worker/src/index.js')).toString('base64')}`);
-
-function quotaState() {
-  const values=new Map();return {storage:{get:async key=>structuredClone(values.get(key)),put:async(key,value)=>values.set(key,structuredClone(value)),deleteAll:async()=>values.clear()}};
-}
 
 async function createSyncFixture({pageSize=2,now=()=>Date.now()}={}) {
   const workerModule=await workerModulePromise,worker=workerModule.default,records=new Map(),expires=new Map(),scope=new AsyncLocalStorage();
@@ -37,14 +34,27 @@ async function createSyncFixture({pageSize=2,now=()=>Date.now()}={}) {
   }};
   const quotaObjects=new Map(),quotaStates=new Map();
   env.ACCOUNT_QUOTA={idFromName:name=>name,get:id=>({fetch:(url,init)=>{
-    let object=quotaObjects.get(id);if(!object){const state=quotaState();quotaStates.set(id,state);object=new workerModule.AccountQuota(state,env);quotaObjects.set(id,object);}
-    return object.fetch(new Request(url,init));
+    let object=quotaObjects.get(id);if(!object){let state=quotaStates.get(id);if(!state){state=quotaState();quotaStates.set(id,state);}object=new workerModule.AccountQuota(state,env);quotaObjects.set(id,object);}
+    return (async()=>{
+      const response=await object.fetch(new Request(url,init));
+      if(new URL(url).pathname!=='/read'||!response.ok)return response;
+      const context=scope.getStore(),barrier=race;
+      if(barrier&&context?.method==='PUT'&&context.blobKey===barrier.key){barrier.arrived++;if(barrier.arrived===barrier.count){clearTimeout(barrier.timer);race=null;barrier.release();}await barrier.ready;}
+      if(context?.fault?.type==='stale')return Response.json({record:context.fault.frozen?JSON.parse(context.fault.frozen):null});
+      return response;
+    })();
   }})};
+  const blobs=blobView(records,quotaStates);
+  async function loseBlob(accountId,store){
+    blobs.delete(`blob:${accountId}:${store}`);
+    const state=quotaStates.get(accountId),ledger=await state?.storage.get('ledger');
+    if(ledger?.stores[store]){delete ledger.stores[store];await state.storage.put('ledger',ledger);quotaObjects.delete(accountId);}
+  }
   function inject(input) {
     const rule={...input,remaining:input.times??1};
     if(rule.type==='stale') {
       if(!rule.accountId||!rule.store)throw new TypeError('Stale-read fault needs accountId and store');
-      rule.frozen=raw(`blob:${rule.accountId}:${rule.store}`);
+      rule.frozen=blobs.get(`blob:${rule.accountId}:${rule.store}`)??null;
     }
     rules.push(rule);return rule;
   }
@@ -64,7 +74,11 @@ async function createSyncFixture({pageSize=2,now=()=>Date.now()}={}) {
     const blobKey=`blob:${event.accountId}:${event.store}`;
     const response=await scope.run({...event,fault,blobKey},()=>worker.fetch(request,env));
     event.status=response.status;
-    if(fault?.type==='disappear'&&request.method==='PUT'&&response.ok)await env.SYNC.delete(blobKey);
+    if(fault?.type==='disappear'&&request.method==='PUT'&&response.ok){
+      // Explicit storage-loss fault: remove both halves of the committed row.
+      // SQLite's normal transactional path cannot produce this split itself.
+      await loseBlob(event.accountId,event.store);
+    }
     return response;
   }
   const handler=async(req,res)=>{
@@ -79,7 +93,7 @@ async function createSyncFixture({pageSize=2,now=()=>Date.now()}={}) {
   const server=http.createServer(handler);
   await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});
   url='http://127.0.0.1:'+server.address().port;
-  return {url,env,requests,inject,dispatch,
+  return {url,env,blobs,loseBlob,requests,inject,dispatch,
     quotaUsage:async accountId=>{const ledger=await quotaStates.get(accountId)?.storage.get('ledger');return {bytes:workerModule.AccountQuota.fixedReservationBytes+Object.values(ledger?.stores??{}).reduce((sum,row)=>sum+row.bytes+256,0),stores:8+Object.keys(ledger?.stores??{}).length};},
     clientEndpoint:async name=>{const server=http.createServer(handler);await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});clientServers.push(server);const origin='http://127.0.0.1:'+server.address().port;clients.set(origin,name);return origin;},
     beforeNextPut:(store,before)=>inject({type:'hook',store,before}),

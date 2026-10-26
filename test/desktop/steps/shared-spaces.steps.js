@@ -113,7 +113,7 @@ When('the account storage is full and I delete Work',{timeout:180000},async func
  await this.call('sharedSpacesTest','pull',['space-'+this.sid]);
 });
 Then('the next encrypted write succeeds without waiting for retention expiry',{timeout:180000},async function(){
- const saved=this.sharedFixture.env.records.get(`blob:${this.sharedKey.accountId}:space-${this.sid}`);assert.ok(saved);
+ const saved=this.sharedFixture.blobs.get(`blob:${this.sharedKey.accountId}:space-${this.sid}`);assert.ok(saved);
  const compact=JSON.parse(decrypt(this.sharedKey.key,JSON.parse(saved).blob));assert.deepEqual(compact.tabs,{});assert.deepEqual(compact.groups,{});
  assert.equal((await this.quotaProbe()).status,200);
  const state=await this.call('sharedSpacesTest','state');assert.equal(state.shared.index.spaces[this.sid].deleted.v,true);
@@ -195,7 +195,7 @@ When('an index write fails after the new Space blob succeeds',{timeout:180000},a
  const state=await this.call('sharedSpacesTest','state'),row=state.workspaces.items.find(w=>w.name==='Work');
  assert.equal((await this.call('sharedSpacesTest','apply',{enabled:true,selections:[{id:row.id,mode:'copy'}]})).ok,true);
  this.sid=Object.keys((await this.call('sharedSpacesTest','state')).shared.blobs)[0];
- assert.ok(this.sharedFixture.env.records.has(`blob:${this.sharedKey.accountId}:space-${this.sid}`));
+ assert.ok(this.sharedFixture.blobs.has(`blob:${this.sharedKey.accountId}:space-${this.sid}`));
  assert.equal(this.sharedFixture.env.records.has(`blob:${this.sharedKey.accountId}:spaces`),false);
 });
 Then('the restored client retries the missing index entry',{timeout:300000},async function(){
@@ -203,5 +203,5 @@ Then('the restored client retries the missing index entry',{timeout:300000},asyn
  await this.call('sharedSpacesTest','pull',['space-'+this.sid,'spaces']);
  const raw=this.sharedFixture.env.records.get(`blob:${this.sharedKey.accountId}:spaces`);assert.ok(raw);
  const index=JSON.parse(decrypt(this.sharedKey.key,JSON.parse(raw).blob));assert.ok(index.spaces[this.sid]);
- assert.ok(this.sharedFixture.env.records.has(`blob:${this.sharedKey.accountId}:space-${this.sid}`));
+ assert.ok(this.sharedFixture.blobs.has(`blob:${this.sharedKey.accountId}:space-${this.sid}`));
 });

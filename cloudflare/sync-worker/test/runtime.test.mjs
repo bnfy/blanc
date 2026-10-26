@@ -36,11 +36,14 @@ test('real local KV and SQLite cover every legacy subset without inventory',{tim
  const source=await readFile(new URL('../src/index.js',import.meta.url),'utf8');
  const probe=`import {AccountQuota} from './quota.mjs';
  export class ProbeQuota extends AccountQuota {
-  constructor(state,env){super(state,{...env,SYNC:{
+  constructor(state,env){const fault={mode:null};super({storage:{
+   get:(...a)=>state.storage.get(...a),put:(...a)=>state.storage.put(...a),deleteAll:()=>state.storage.deleteAll(),
+   transaction:async callback=>{const mode=fault.mode;fault.mode=null;const result=await state.storage.transaction(async tx=>{const result=await callback(tx);if(mode==='before')throw Error('failure before commit');return result;});if(mode==='after')throw Error('response lost after commit');return result;}
+  }},{...env,SYNC:{
    get:async()=>{throw new Error('no inventory');},list:async()=>{throw new Error('no inventory');},
    put:(...args)=>env.SYNC.put(...args),delete:(...args)=>env.SYNC.delete(...args)
-  }});}
-  async fetch(request){if(request.method==='GET')return Response.json(await this.state.storage.get('ledger'));return super.fetch(request);}
+  }});this.fault=fault;}
+  async fetch(request){if(new URL(request.url).pathname==='/fault'){this.fault.mode=await request.text();return new Response('armed');}if(request.method==='GET')return Response.json((await this.state.storage.get('ledger'))??null);return super.fetch(request);}
  }
  export default {fetch(){return new Response('test only',{status:404});}};`;
  const runtime=new Miniflare(convertV4MiniflareOptions({compatibilityDate:'2026-10-01',modules:[
@@ -57,8 +60,8 @@ test('real local KV and SQLite cover every legacy subset without inventory',{tim
   const write=await object.fetch('https://quota.invalid/write',{method:'POST',body:JSON.stringify({accountId:account,store,stored:JSON.stringify(row)})});
   assert.equal(write.status,200);await write.arrayBuffer();
   const ledger=await (await object.fetch('https://quota.invalid/ledger')).json();
-  assert.equal(ledger.schema,1);assert.deepEqual(ledger.stores,{[store]:{bytes:Buffer.byteLength(JSON.stringify(row)),intent:null}});
-  assert.equal(await env.SYNC.get(`blob:${account}:${store}`),JSON.stringify(row));
+  assert.equal(ledger.schema,2);assert.deepEqual(ledger.stores,{[store]:{bytes:Buffer.byteLength(JSON.stringify(row))}});
+  assert.equal(await env.SYNC.get(`blob:${account}:${store}`),null);const read=await (await object.fetch('https://quota.invalid/read',{method:'POST',body:JSON.stringify({accountId:account,store})})).json();assert.deepEqual(read.record,row);
  }
  const account='f'.repeat(64),historical=JSON.stringify({version:'x'.repeat(36),blob:{ct:'€'.repeat(524279)}});
  for(const store of fixed.slice(0,4))await env.SYNC.put(`blob:${account}:${store}`,historical);
@@ -68,4 +71,15 @@ test('real local KV and SQLite cover every legacy subset without inventory',{tim
  // A late fixed-only legacy writer must not invalidate the unchanged reserve.
  await env.SYNC.put(`blob:${account}:settings`,historical);
  assert.deepEqual((await (await object.fetch('https://quota.invalid/ledger')).json()).stores,{});
+ for(const mode of ['before','after']){
+  const id=(mode==='before'?'c':'d').repeat(64),store='space-'+'9'.repeat(32),object=env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(id));
+  const post=(path,body)=>object.fetch('https://quota.invalid/'+path,{method:'POST',body:JSON.stringify({accountId:id,...body})});
+  await post('read',{store});await object.fetch('https://quota.invalid/fault',{method:'POST',body:mode});
+  assert.equal((await post('write',{store,stored:JSON.stringify(row)})).status,503);
+  const ledger=await (await object.fetch('https://quota.invalid/ledger')).json(),read=await (await post('read',{store})).json();
+  assert.equal(Boolean(ledger.stores[store]),mode==='after');assert.equal(Boolean(read.record),mode==='after');
+  assert.equal((await post('write',{store,stored:JSON.stringify(row)})).status,200);
+  assert.equal((await post('delete-account',{})).status,204);
+  assert.equal(await (await object.fetch('https://quota.invalid/ledger')).json(),null);
+ }
 });
