@@ -1,7 +1,7 @@
 # Ctrl-Tab by most recent use
 
 **Date:** 2026-10-24
-**Status:** draft for the owner's review. Not yet implemented. Revised 2026-10-25 with the Linux spike (§10): the release can't be detected the way the first draft assumed, and §3.4 now describes the approach that works on Linux. Windows and macOS are still to be measured. The decisions it needs are in §11.
+**Status:** draft for the owner's review. Not yet implemented. Revised 2026-10-25 with the Linux spike (§10): the release can't be detected the way the first draft assumed, and §3.4 now describes the approach that works on Linux. Windows and macOS are still to be measured. The owner decided D1–D6 on 2026-10-26 (§11), taking every recommendation.
 **Builds on:** the per-window activation history (`src/main/tab-activation.js`, which already powers ⌥⌘Z and the close-tab survivor rule), the overlay view (`src/renderer/overlay.js`), the shared browser-command table (`src/main/browser-shortcuts.js`) and the Windows/Linux shortcut router (`installBrowserShortcuts`).
 **Reference:** Arc, Firefox (*Ctrl+Tab cycles through tabs in recently used order*, on by default since Firefox 61) and every desktop window switcher (⌘-Tab, Alt-Tab). Chrome and Safari switch by position. The request came from r/ArcBrowser on 2026-10-24 (*"Ctrl-Tab for Most Recently Used tab switcher. This is probably the most irritating. Remembering the exact location of the last used tab is such a bad UX."*), asked of people who left Arc for Chrome.
 
@@ -30,7 +30,7 @@ Holding **Ctrl** and pressing **Tab** steps back through the window's tabs in th
 | click anywhere else | — | cancels |
 
 - Ctrl+PageDown and Ctrl+PageUp keep positional cycling on every platform, so the order of the tab list stays reachable from the keyboard; today they are silent aliases of Ctrl+Tab, and under this design they stop being aliases (§5).
-- On macOS the Tab menu's **Next Tab** / **Previous Tab** items take the new meaning with their existing Ctrl+Tab / Ctrl+Shift+Tab accelerators. Their labels change to **Previous Used Tab** / **Next Used Tab**? No: the labels stay, the behaviour note moves to the Shortcuts page (D2 in §11 asks which labels the owner prefers).
+- On macOS the Tab menu's **Next Tab** / **Previous Tab** items take the new meaning with their existing Ctrl+Tab / Ctrl+Shift+Tab accelerators. Their labels stay **Next Tab** / **Previous Tab**, and the Shortcuts page explains the order (D2).
 - ⌥⌘Z stays as it is. A person who only ever taps Ctrl+Tab gets the same result from either.
 
 ### 3.2 Order
@@ -61,7 +61,7 @@ This is the part that decides whether the feature exists.
 
 - `installBrowserShortcuts` handles Ctrl+Tab and Ctrl+Shift+Tab without calling `preventDefault()`. The key releases then arrive on the focused surface, every time: a page, a quick tap, the ⌘L panel, the Settings sheet and the chrome strip all delivered `Control` `keyUp` in the spike.
 - The menu items keep showing Ctrl+Tab but are built with `registerAccelerator: false`. Without that, the unconsumed press also reaches the native menu accelerator and every Tab steps twice (measured).
-- **Trade-off:** web pages now receive Ctrl+Tab key events, which Chrome keeps from them. A page can't stop Blanc's step (Blanc has already acted when the page sees the key), but a web app that binds Ctrl+Tab itself (some web code editors do) reacts too. D6 in §11.
+- **Trade-off:** web pages now receive Ctrl+Tab key events, which Chrome keeps from them. A page can't stop Blanc's step (Blanc has already acted when the page sees the key), but a web app that binds Ctrl+Tab itself (some web code editors do) reacts too. The owner accepted this (D6).
 
 **The state machine** is unchanged in shape: *closed → stepping (Ctrl held) → landed or cancelled*. It arms on the first Ctrl+Tab and listens for `Control` `keyUp` on **every** webContents of the window. The window's `before-input-event` listeners are already on every surface (`installChromeShortcuts`); tab-view.js already tracks held modifiers there for gestures.
 
@@ -76,7 +76,7 @@ This is the part that decides whether the feature exists.
 
 - **Settings → General → Switch tabs with Ctrl+Tab:** *In the order you used them* (default) / *In the order of the tab list*. Device-local like the Island's auto-hide (not in `SYNCED_KEYS`): it is a habit of the keyboard in front of the person.
 - With the positional choice, Ctrl+Tab behaves exactly as today and the card never appears; Ctrl+PageDown/PageUp are positional either way.
-- Default on is the choice to make (D1): Firefox's default, Arc's only behaviour, and the point of the feature. People who want the tab-strip order have the setting and the PageDown keys.
+- Default on (D1, decided): Firefox's default, Arc's only behaviour, and the point of the feature. People who want the tab-strip order have the setting and the PageDown keys.
 
 ## 4. Interactions with existing features
 
@@ -145,14 +145,16 @@ Nothing new leaves main: the card's payload is the same `{id, title, favicon, pr
 3. **PR 2:** the card in the overlay, click-to-land, Ctrl+W while open, announcements.
 4. Website and What's New only after the release that carries both PRs (`docs/marketing-claims.md`).
 
-## 11. Decisions needed from the owner
+## 11. Decisions (owner, 2026-10-26)
 
-- **D1 — Default.** Most-recent-first by default, with the list order as the setting (recommended, §3.5), or the reverse.
-- **D2 — Menu labels.** Keep **Next Tab** / **Previous Tab** on the Tab menu and explain the order on the Shortcuts page, or rename them (**Last Used Tab** / **Next Used Tab**) and give the positional items their own names.
-- **D3 — The card.** The one-row favicon strip (§3.3), or a vertical list of titles like the ⌘L switcher. The strip is closer to ⌘-Tab and fits the Island; the list is easier to read with many tabs.
-- **D4 — Ctrl+W while the card is open** closes the picked tab (as proposed) or is ignored.
-- **D5 — Platforms.** Ship on a platform only if the spike shows reliable release delivery there (proposed), or ship everywhere with the stuck-open fallback of §3.4 as the known limit.
-- **D6 — Pages see Ctrl+Tab.** The Linux fix (§3.4) lets web pages receive Ctrl+Tab key events in *recent* order, unlike Chrome. Accept that (proposed: Blanc still steps first, and the page can't block it), or keep consuming the press and ship *recent* order only where another release signal exists.
+The owner took the recommendation on all six.
+
+- **D1 — Default.** Most-recent-first by default; the list order is the setting (§3.5).
+- **D2 — Menu labels.** The Tab menu keeps **Next Tab** / **Previous Tab**; the Shortcuts page explains the order.
+- **D3 — The card.** The one-row favicon strip (§3.3), not a vertical list of titles.
+- **D4 — Ctrl+W while the card is open** closes the picked tab.
+- **D5 — Platforms.** *Recent* order ships on a platform only once the spike shows reliable release delivery there. Linux qualifies (§10); Windows and macOS wait for the probe. A platform that doesn't qualify keeps positional Ctrl+Tab, recorded in the D-register, with no timer fallback.
+- **D6 — Pages see Ctrl+Tab.** Accepted: in *recent* order Blanc doesn't consume the Ctrl+Tab press (§3.4), so web pages also receive it. Blanc steps first, and a page can't block it.
 
 ## 12. Open questions
 
