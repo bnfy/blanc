@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-24",
+  "updated": "2026-10-26",
   "stages": [
     { "id": "now", "label": "Now", "summary": "In the works" },
     { "id": "next", "label": "Next", "summary": "On the horizon" },
@@ -21,6 +21,13 @@
       "product": "Blanc Browser",
       "title": "Blanc for Teams",
       "line": "Blanc built under your team’s own brand and kept up to date for you. We’re taking a few pilot teams."
+    },
+    {
+      "id": "chrome-web-store",
+      "stage": "now",
+      "product": "Blanc Browser",
+      "title": "Chrome Web Store extensions",
+      "line": "Coming soon: add extensions from the Chrome Web Store to Blanc."
     },
     {
       "id": "crash-reports",
