@@ -1,0 +1,16 @@
+{
+  "profilesRemoved": [
+    "/private/tmp/blanc-devtools-candidate-20261026/affected-checks/profile-regular",
+    "/private/tmp/blanc-devtools-candidate-20261026/affected-checks/profile-private"
+  ],
+  "cleanExits": [
+    {
+      "code": 0,
+      "signal": null
+    },
+    {
+      "code": 0,
+      "signal": null
+    }
+  ]
+}

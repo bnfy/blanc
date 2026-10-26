@@ -1,0 +1,17 @@
+{
+  "source": "1523375af5b93cf910d9cca82f522155ef525adf",
+  "version": "157.0.8103.15",
+  "archive": "/private/tmp/blanc-devtools-candidate-20261026/Blanc-Chromium-Preview-stapled.zip",
+  "archiveSha256": "e57f5cdb989d86736e6fd5add8734d0a35d802a096a6158ddb1a960f7000fc2e",
+  "archiveBytes": 243876968,
+  "notarization": {
+    "id": "cf57f6ef-9458-4189-83da-ec053c64cd7f",
+    "status": "Accepted",
+    "message": "Processing complete"
+  },
+  "memberCount": 463,
+  "functionalChecks": 42,
+  "passed": 42,
+  "postNotaryExecutableAssetsComplianceUnchanged": true,
+  "noNewLaunchGateApproval": true
+}

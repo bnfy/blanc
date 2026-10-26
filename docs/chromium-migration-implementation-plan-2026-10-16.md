@@ -1,5 +1,9 @@
 # Migrate to a Chromium fork: implementation plan
 
+## Current October26 — signed DevTools repair checks
+
+> October 26: [Signed DevTools repair evidence](../experiments/chromium-extension-spike/evidence/f12-devtools-signed-20261026/README.md) records 42 passing affected checks in regular and private profiles on source `1523375`. The replacement is Developer ID signed and Apple notarization was accepted (`cf57f6ef`); stapling, ticket validation, strict signature and Gatekeeper checks pass. The tested executable, UI asset and compliance bytes are unchanged after notarization; archive SHA-256 begins `e57f5cdb989d`. The audit verifies 17 ARM64 executables, 10 Preview identities and eight certificate-blocklist keys. No full F12, Decision 2 or additional launch-gate approval is implied. No native build or repeated owner walkthrough; Electron paused, Google baseline separate, latency deferred.
+
 ## Current October25 — DevTools replacement gap repaired in native output
 
 [Repair evidence](../experiments/chromium-extension-spike/evidence/f12-redirect-repair-20261025/README.md) passes42affected regular/private checks and3preparation tests. The gate is finalized after mutating proxies and, for network overrides, at their downstream receiver; the old outer insertion is removed. Replaced blocked URLs now receive a new native block with zero arrival, allowed replacements and header semantics pass, and normal no-interception controls pass. An adjunct main-frame probe lacks a strict digest join and remains unqualified, excluded from passes. One incremental70.63s/23step build,guard0; fresh75files/184hunks/151clean dependencies. The existing signed14706b0e artifact is unchanged and still needs the repair; no signed acceptance or newgate credit. Primary plan remains authoritative; Electron paused, Google separate, latency deferred.
