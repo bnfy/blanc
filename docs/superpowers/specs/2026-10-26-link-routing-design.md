@@ -1,7 +1,7 @@
 # Link routing: open links from other apps where they belong
 
 **Date:** 2026-10-26
-**Status:** draft for the owner's review. Not yet implemented. The decisions it needs are in §11.
+**Status:** decided (§11, owner, 2026-10-26). Not yet implemented.
 **Builds on:** the OS link handoff (`src/main/external-url-handoff.js`, `startup-urls.js`, the `open-url` and `second-instance` handlers in `main.js`), local profiles (`local-profile-model.js`, `local-profiles.js`, one profile per window), Blanc Spaces (`workspaces-model.js`, `workspace-controller.js`, each Space belongs to one profile) and Settings → Profiles.
 **Reference:** Arc's *Air Traffic Control*. Arc's release notes introduce it on May 3, 2023 as a way to send links to the right Space by domain, set up under *Arc → Settings → Links → Air Traffic Control* ([Arc for macOS 2023 release notes](https://resources.arc.net/hc/en-us/articles/20498377604887-Arc-for-macOS-2023-Release-Notes)). Arc's sunset FAQ says its successor, Dia, has no equivalent and can't open sites in a chosen profile automatically ([Arc Sunset FAQ](https://resources.arc.net/hc/en-us/articles/44413577819159-Arc-Sunset-Frequently-Asked-Questions)). The finer details below, such as *contains* versus *is equal to* matching and the last-used Space as a destination, come from a third-party guide ([allthings.how](https://allthings.how/how-to-route-links-to-specific-arc-spaces-using-air-traffic-control-in-the-arc-browser/)), not from Arc. The request came from r/ArcBrowser on 2026-10-24, in the same post as Ctrl-Tab and Copy Link.
 
@@ -150,15 +150,17 @@ These are conveniences; Settings stays the full editor.
 2. **PR 2:** the shield popover row and `/route`.
 3. Website and What's New only after the release that carries PR 1 (`docs/marketing-claims.md`). The claim is "routes links from other apps by domain to a profile or Space", not anything about understanding what the link is.
 
-## 11. Decisions needed from the owner
+## 11. Decisions (owner, 2026-10-26)
 
-- **D1 — Destination.** A profile with an optional Space (recommended, §3.3), or profiles only. Spaces are what Arc users mean, and profiles are what keeps sign-ins apart; offering both costs one dropdown.
-- **D2 — A Space that isn't open.** Open it in a new window (recommended), or switch the last window of that profile to it. Switching would rearrange a window the user may be looking at, and the Space switch guard can refuse it for a busy page. A new window always works.
-- **D3 — Links clicked inside Blanc.** Leave them alone (recommended), or route them too. Routing them would move a page between profiles mid-browse, and with it the cookies it was opened with. Arc only routed links from outside.
-- **D4 — Matching.** Domain plus contains (recommended), or domain only. Contains covers "this one Notion workspace" or "this GitHub org", which a domain can't express.
-- **D5 — Private destination.** Offer "as a private tab" (recommended: cheap, and it answers "open links from this app privately" for one domain), or leave it out of the first version.
-- **D6 — Unmatched links.** Keep today's behavior (recommended), or add a setting to send them to a fixed profile. The fixed-profile choice is easy to add later.
-- **D7 — Where it lives.** Settings → Profiles (recommended: it's about which profile), or a new Links section.
+The owner took the recommendation on all seven.
+
+- **D1 — Destination.** A profile with an optional Space (§3.3), not profiles only. Spaces are what Arc users mean, and profiles are what keeps sign-ins apart.
+- **D2 — A Space that isn't open.** It opens in a new window. The user's current window is never switched to it: that would rearrange a window they may be looking at, and the Space switch guard can refuse it for a busy page.
+- **D3 — Links clicked inside Blanc.** These are left alone; only links from other apps are routed. Routing them would move a page between profiles mid-browse, along with the cookies it was opened with.
+- **D4 — Matching.** Domain plus contains (§3.2). Contains covers "this one Notion workspace" or "this GitHub org".
+- **D5 — Private destination.** "As a private tab" is offered in the first version.
+- **D6 — Unmatched links.** These keep today's behavior, the window used last. A fixed-profile choice can come later.
+- **D7 — Where it lives.** Settings → Profiles (§3.5).
 
 ## 12. Open questions
 
