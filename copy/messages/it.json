@@ -3625,6 +3625,18 @@
     "message": "Cambia scheda con Ctrl+Tab",
     "source": "sha256:b4eea66cf23fea0dd823e0eca62cb9bc2bf9a3b26e963fef4a6e55da47422cf2"
   },
+  "switcher.label": {
+    "message": "Selettore schede",
+    "source": "sha256:730755b221421afe873892a3785472a1f808def67b8c67f1ed52f9670c9b620e"
+  },
+  "switcher.opened": {
+    "message": "Cambia scheda, {title}, {position} di {count}",
+    "source": "sha256:a9c62606702bc3a72c3c5c17d6d7d4f71cdaca8801a8a672d11d05351ace3ea9"
+  },
+  "switcher.step": {
+    "message": "{title}, {position} di {count}",
+    "source": "sha256:e7c1baa4853a8382e5de5e9c8441840ba5c5ae23e833d6291895b184b05e7ca8"
+  },
   "settings.general.tabSwitchOrder.hint": {
     "message": "Tieni premuto Ctrl e premi Tab per tornare alle schede usate più di recente, poi rilascia Ctrl per passarci. Esc ti lascia dove sei.",
     "source": "sha256:a1bc7a2aaa5992538e4b286c9711a02136ac03f7e0b81a2febded17a22892803"

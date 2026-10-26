@@ -504,7 +504,7 @@ export interface DownloadsActivity {
 }
 
 /** Overlay modes; every showOverlay() call in main.js passes one of these literals. */
-export type OverlayMode = 'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces';
+export type OverlayMode = 'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces' | 'switcher';
 
 /** Fixed ids of the pill's brief confirmations; the strip owns their text. */
 export type PillNotice = 'link-copied' | 'clean-link-copied';
@@ -1317,6 +1317,11 @@ export interface BlancBrowserAPI {
    * IPC: send `chrome:capture-focus`.
    */
   captureFocus(surfaceId: CaptureSurfaceId): void;
+  /**
+   * Land on a Ctrl+Tab card entry the user clicked; main ignores it unless the card is showing and offered that tab.
+   * IPC: send `chrome:switcher-pick`.
+   */
+  switcherPick(tabId: TabId): void;
   /**
    * Copy the current tab's address (/copy), or its tracking-free form when clean is true (/copy clean).
    * IPC: send `chrome:copy-link`.

@@ -1,7 +1,7 @@
 # Ctrl-Tab by most recent use
 
 **Date:** 2026-10-24
-**Status:** decided; PR 1 (no card) implemented on Linux on 2026-10-26 (§10), PR 2 to follow. Revised 2026-10-25 with the Linux spike (§10): the release can't be detected the way the first draft assumed, and §3.4 now describes the approach that works on Linux. Windows and macOS are still to be measured. The owner decided D1–D6 on 2026-10-26 (§11), taking every recommendation.
+**Status:** decided; implemented on Linux on 2026-10-26 (PR 1 and PR 2, §10). Revised 2026-10-25 with the Linux spike (§10): the release can't be detected the way the first draft assumed, and §3.4 now describes the approach that works on Linux. Windows and macOS are still to be measured. The owner decided D1–D6 on 2026-10-26 (§11), taking every recommendation.
 **Builds on:** the per-window activation history (`src/main/tab-activation.js`, which already powers ⌥⌘Z and the close-tab survivor rule), the overlay view (`src/renderer/overlay.js`), the shared browser-command table (`src/main/browser-shortcuts.js`) and the Windows/Linux shortcut router (`installBrowserShortcuts`).
 **Reference:** Arc, Firefox (*Ctrl+Tab cycles through tabs in recently used order*, on by default since Firefox 61) and every desktop window switcher (⌘-Tab, Alt-Tab). Chrome and Safari switch by position. The request came from r/ArcBrowser on 2026-10-24 (*"Ctrl-Tab for Most Recently Used tab switcher. This is probably the most irritating. Remembering the exact location of the last used tab is such a bad UX."*), asked of people who left Arc for Chrome.
 
@@ -143,6 +143,13 @@ Nothing new leaves main: the card's payload is the same `{id, title, favicon, pr
 
    **Implemented 2026-10-26, Linux only (D5).** On Windows and macOS `recentOrderAvailable()` is false: Ctrl+Tab keeps going by position, the press is still consumed and the setting row is hidden. The Shortcuts page lists the new **Next/Previous Tab in List Order** items (Ctrl+PageDown/PageUp) from the live menu. `browser-shortcuts-smoke.mjs` drives the recent order with real X11 keys from `xdotool` on the Linux CI job (tap, second tap, held double step, Esc); with the press consumed again it fails, as the spike predicts.
 3. **PR 2:** the card in the overlay, click-to-land, Ctrl+W while open, announcements.
+
+   **Implemented 2026-10-26, Linux only.** The card is overlay mode `'switcher'` (`overlay:show` with `purpose.switcher = { tabIds, pick }`, `chrome:switcher-pick` for a click), geometry in `tab-switcher.js` `switcherBounds`. Three things differ from §3–§6 as first written:
+   - **Ctrl+W goes through the menu accelerator.** Consuming the Ctrl+W press loses the Control release exactly as a consumed Ctrl+Tab does (the smoke reproduced it: the pick closed and the release never landed). While a switch is in progress, `installBrowserShortcuts` leaves Ctrl+W alone (`defers`) and the Tab menu's Close Tab accelerator runs it, which closes the pick. The page also sees that Ctrl+W, so a page that cancels its keydown stops this one Ctrl+W, as with any unconsumed menu key.
+   - **The card draws only over a bare page.** With the ⌘L panel, Find or a popover open, the overlay is busy, so the switch works blind and lands as usual (§4 expected the card over the panel).
+   - **Announcements come from the card's own polite region**, not the strip's: the card is its own document and never takes focus, so `aria-activedescendant` alone wouldn't be spoken.
+
+   The smoke covers each item with real keys: no card on a tap, the card on a held step without focus moving, Esc, Ctrl+W followed by the release, and a mouse click on a tile.
 4. Website and What's New only after the release that carries both PRs (`docs/marketing-claims.md`).
 
 ## 11. Decisions (owner, 2026-10-26)
