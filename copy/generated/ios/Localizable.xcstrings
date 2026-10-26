@@ -95521,6 +95521,48 @@
         }
       }
     },
+    "tabs.closedToast": {
+      "comment": "iPhone: banner over the Island for five seconds after a tab closes, beside Undo (menu.undo).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab closed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab geschlossen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pestaña cerrada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onglet fermé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scheda chiusa"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aba fechada"
+          }
+        }
+      }
+    },
     "tabMenu.newSpace": {
       "comment": "Last item of the tab menu Move to Space submenu; opens the new-space editor.",
       "extractionState": "manual",

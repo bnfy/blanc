@@ -9,6 +9,15 @@ struct ContentView: View {
     /// A private tab uses the private (dark) look whatever the appearance setting.
     private var style: BrowserStyle { BrowserStyle(scheme: isPrivate ? .dark : colorScheme) }
     @State private var showTabGrid = false
+    /// M11: how far the page has followed a sideways swipe on the Island.
+    @State private var swipeOffset: CGFloat = 0
+    @State private var isSwiping = false
+    /// True while a switch's slide finishes; a new swipe waits for it.
+    @State private var isCommitting = false
+    /// Resets on its own when the drag ends or is cancelled.
+    @GestureState private var isDragging = false
+    @State private var pageWidth: CGFloat = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isStartPage: Bool {
         manager.activeTab?.currentURL.scheme == "blanc" && manager.activeTab?.currentURL.host == "newtab"
@@ -24,9 +33,15 @@ struct ContentView: View {
                     .allowsHitTesting(tab.reader == nil)
                     .accessibilityHidden(tab.reader != nil)
                     .ignoresSafeArea(edges: isStartPage ? .all : [])
-                if let reader = tab.reader { ReaderWebView(reader: reader).id(ObjectIdentifier(reader)) }
+                    .offset(x: swipeOffset)
+                if swipeOffset != 0, let neighbor = manager.neighbor(of: tab.id, offset: swipeOffset < 0 ? 1 : -1) {
+                    neighborPage(neighbor)
+                        .offset(x: swipeOffset + (swipeOffset < 0 ? pageWidth : -pageWidth))
+                }
+                if let reader = tab.reader { ReaderWebView(reader: reader).id(ObjectIdentifier(reader)).offset(x: swipeOffset) }
             }
         }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pageWidth = $0 }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if !isStartPage {
                 islandContainer.background(style.background)
@@ -72,17 +87,107 @@ struct ContentView: View {
                     .accessibilityAddTraits(.updatesFrequently)
                     .accessibilityIdentifier("send.banner")
             }
+            UndoBanner(manager: manager, style: style)
             addressPill
-                .simultaneousGesture(DragGesture(minimumDistance: 24).onEnded { value in
-                    if value.translation.height < -40 && abs(value.translation.height) > abs(value.translation.width) {
-                        openTabGrid()
-                    }
-                })
+                .simultaneousGesture(DragGesture(minimumDistance: 12)
+                    .updating($isDragging) { _, dragging, _ in dragging = true }
+                    .onChanged(swipeChanged)
+                    .onEnded(swipeEnded))
+                .onChange(of: isDragging) { _, dragging in
+                    // A cancelled drag (a call, Control Center) gets no onEnded.
+                    guard !dragging, isSwiping else { return }
+                    isSwiping = false
+                    if !isCommitting { withAnimation(Self.swipeSpring) { swipeOffset = 0 } }
+                }
                 .accessibilityAction(named: "Show all tabs") { openTabGrid() }
+                .accessibilityAction(named: SyncCopy.text("menu.nextTab")) { switchTab(by: 1) }
+                .accessibilityAction(named: SyncCopy.text("menu.previousTab")) { switchTab(by: -1) }
         }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity)
+    }
+
+    /// The neighbor's last picture beside the page while it follows the finger,
+    /// or its site's name on a plain card when it has none yet.
+    private func neighborPage(_ tab: TabModel) -> some View {
+        ZStack(alignment: .top) {
+            BrowserStyle(scheme: tab.isPrivate ? .dark : colorScheme).background
+            if let picture = tab.thumbnail {
+                Image(uiImage: picture).resizable().aspectRatio(contentMode: .fit)
+            } else {
+                Text(tab.currentURL.host() ?? tab.pageTitle)
+                    .font(BrowserStyle.font(17))
+                    .frame(maxHeight: .infinity)
+            }
+        }
+        .ignoresSafeArea(edges: isStartPage ? .all : [])
+        .allowsHitTesting(false)
+    }
+
+    private func swipeChanged(_ value: DragGesture.Value) {
+        guard !isCommitting else { return }
+        if !isSwiping {
+            guard IslandSwipe.isSideways(value.translation) else { return }
+            isSwiping = true
+        }
+        guard !reduceMotion else { return }
+        let id = manager.activeTabId
+        swipeOffset = IslandSwipe.displayed(value.translation.width,
+                                            hasPrevious: manager.neighbor(of: id, offset: -1) != nil,
+                                            hasNext: manager.neighbor(of: id, offset: 1) != nil)
+    }
+
+    private func swipeEnded(_ value: DragGesture.Value) {
+        guard !isCommitting else { return }
+        guard isSwiping else {
+            // The Island's upward swipe opens the tab grid.
+            if value.translation.height < -40 && abs(value.translation.height) > abs(value.translation.width) {
+                openTabGrid()
+            }
+            return
+        }
+        isSwiping = false
+        let id = manager.activeTabId
+        let outcome = IslandSwipe.outcome(dx: value.translation.width,
+                                          predictedDx: value.predictedEndTranslation.width,
+                                          width: max(pageWidth, 1),
+                                          hasPrevious: manager.neighbor(of: id, offset: -1) != nil,
+                                          hasNext: manager.neighbor(of: id, offset: 1) != nil)
+        switch outcome {
+        case .stay: withAnimation(Self.swipeSpring) { swipeOffset = 0 }
+        case .next: switchTab(by: 1)
+        case .previous: switchTab(by: -1)
+        }
+    }
+
+    private static let swipeSpring = Animation.spring(response: 0.35, dampingFraction: 0.85)
+
+    /// Goes to the next (1) or previous (-1) tab: the page slides the rest of
+    /// the way, or cross-fades with Reduce Motion.
+    private func switchTab(by offset: Int) {
+        guard !isCommitting else { return }
+        guard let target = manager.neighbor(of: manager.activeTabId, offset: offset) else {
+            withAnimation(Self.swipeSpring) { swipeOffset = 0 }
+            return
+        }
+        UISelectionFeedbackGenerator().selectionChanged()
+        if reduceMotion {
+            withAnimation(.easeInOut(duration: 0.2)) { manager.setActive(target.id) }
+            return
+        }
+        isCommitting = true
+        withAnimation(Self.swipeSpring) {
+            swipeOffset = offset > 0 ? -pageWidth : pageWidth
+        } completion: {
+            isCommitting = false
+            var settle = Transaction()
+            settle.disablesAnimations = true
+            withTransaction(settle) {
+                manager.setActive(target.id)
+                swipeOffset = 0
+            }
+        }
     }
 
     private func openTabGrid() {
@@ -95,19 +200,23 @@ struct ContentView: View {
             islandMark
             Rectangle().fill(style.border).frame(width: 1, height: 18)
 
-            Button { manager.isPalettePresented = true } label: {
-                HStack(spacing: 10) {
-                    Text(displayDomain)
-                        .font(BrowserStyle.font(15))
-                        .tracking(0.15)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                    Spacer(minLength: 0)
-                }
-                .padding(.leading, 12)
-                .frame(maxWidth: .infinity, minHeight: 48)
-                .contentShape(Rectangle())
+            // A tap rather than a Button: a Button also fires when a sideways
+            // swipe on the Island lifts inside it, a tap fails once the finger moves.
+            HStack(spacing: 10) {
+                Text(displayDomain)
+                    .font(BrowserStyle.font(15))
+                    .tracking(0.15)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Spacer(minLength: 0)
             }
+            .padding(.leading, 12)
+            .frame(maxWidth: .infinity, minHeight: 48)
+            .contentShape(Rectangle())
+            .onTapGesture { manager.isPalettePresented = true }
+            .accessibilityElement(children: .ignore)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { manager.isPalettePresented = true }
             .accessibilityLabel("Search or switch tabs, \(displayDomain)")
             .accessibilityIdentifier("pill.palette")
 
