@@ -577,6 +577,7 @@ Then('rapid Undo cancels pending Mahjong feedback', async function () {
 });
 
 Then('Mahjong correctness flows pass in the renderer', async function () {
+  await waitForValue(() => this.call('focusWindow'), Boolean, 'focused Mahjong audit window');
   const result = await this.call('auditMahjongCorrectness');
   assert.ok(result && !result.error, result?.error || 'Mahjong correctness audit should run');
   assert.ok(result.classicHintCount > 1, 'Classic should expose multiple hint pairs');

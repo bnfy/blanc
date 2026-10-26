@@ -2103,7 +2103,14 @@ function install(refs) {
           refreshTiles();
           for (const index of free.slice(0, 3)) await clickTile(index);
           document.getElementById('mjHint').click();
-          await sleep(30);
+          // Announcements clear synchronously and publish on an animation
+          // frame. Wait for publication, not an assumed frame duration; the
+          // acceptance assertion still checks the exact message afterwards.
+          const hintDeadline = Date.now() + 5000;
+          while (!document.getElementById('mjLive')?.textContent) {
+            if (Date.now() >= hintDeadline) return { error: 'Hint announcement did not publish' };
+            await sleep(16);
+          }
           const safeHint = {
             highlighted: highlighted(),
             live: document.getElementById('mjLive')?.textContent ?? null,

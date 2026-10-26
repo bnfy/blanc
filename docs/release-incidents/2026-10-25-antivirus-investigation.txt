@@ -1,5 +1,23 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+SIGNED APPLE SILICON CANDIDATE (Oct 26): Run 40383559962 at 1d50596a5
+completed both jobs. Apple Silicon passed all 541 scenarios / 4,731 steps,
+the full press gate, signing, notarization and packaged first-run smoke.
+The downloaded DMG SHA-256 is
+634dedc10392fd3e795d34b9e71b92e8c01ed7cdbcc348d1927767491e07baa3.
+Independent local digest, Developer ID, pinned certificate, Gatekeeper,
+stapled ticket, VMP, uBO and adblock payload verification all passed.
+Antivirus scanning is pending; this is an unpublished candidate.
+Intel passed 540/541 scenarios. Its only failure was F35-3 snapshotting an
+empty Hint announcement after a fixed 30 ms delay. The helper now waits up
+to five seconds for publication, retaining the existing message assertion.
+The complete scenario passes locally (14 steps, no retry), as does lint.
+The earlier reset crash, hover and text geometry failures did not recur.
+An interrupted local full diagnostic run exposed real-pointer interference
+in auto-hide tests. Parking the pointer away from the toolbar gave 4/4
+focused passes (47 steps; one existing retry on the clean-head control).
+Temporary diagnostics were removed; no complete latest local pass is claimed.
+
 MACOS 26 ACCEPTANCE FOLLOW-UP (Oct 26): Run 40376951754 at 66d0c635d
 passed the real production icon compiler preflight on Intel, resolving the
 previous host/toolchain mismatch. The Intel press gate then failed six desktop
