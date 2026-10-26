@@ -554,6 +554,14 @@ export type WorkspaceErrorCode = 'activation-failed' | 'busy' | 'duplicate-name'
 /** Why a window may not switch workspaces right now, from workspaceProtection() in main.js. */
 export type WorkspaceProtectionReason = 'permission-or-transition' | 'active-page';
 
+/** A page that keeps a window from switching space, from blockingPages() in space-switch-guard.js. */
+export interface WorkspaceBlockingTab {
+  id: TabId;
+  /** The tab's label (its custom name or page title), else its site. */
+  title: string;
+  reason: 'loading' | 'opener' | 'capture' | 'popup';
+}
+
 /** What a successful open or create did: swapped this window, found it already here, or focused another window. */
 export type WorkspaceAction = 'swap' | 'noop' | 'focus';
 
@@ -566,6 +574,8 @@ export interface WorkspaceActionResult {
   cause?: WorkspaceErrorCode;
   /** With protected-pages. */
   reason?: WorkspaceProtectionReason;
+  /** The pages holding the window, in tab order (with protected-pages and active-page). */
+  blockingTabs?: WorkspaceBlockingTab[];
   /** Unsaved tabs (with unsaved-scratch). */
   tabCount?: number;
   /** Private tabs among them (with unsaved-scratch). */

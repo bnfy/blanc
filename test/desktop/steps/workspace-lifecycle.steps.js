@@ -7,7 +7,7 @@ const ctx = require('../support/context');
 const { waitForValue, expectPageClose } = require('../support/poll');
 const { startWorkspaceFixtures } = require('../support/workspace-fixtures');
 
-const tags = '@F41-12 or @F41-13 or @F41-14';
+const tags = '@F41-12 or @F41-13 or @F41-14 or @F41-80 or @F41-81';
 const pageAt = url => waitForValue(() => Promise.resolve(ctx.app.context().pages().find(page => page.url() === url)), Boolean, `workspace fixture ${url}`);
 Before({ tags }, async function () { this.lifecycleFixture = await startWorkspaceFixtures(); });
 After({ tags }, async function () { await this.lifecycleFixture?.close(); });
@@ -67,7 +67,13 @@ When('I try switching workspaces during fixture sign-in', async function () {
   this.loginForcedGuard = await this.call('workspaceAction', 'open', this.loginTarget, { force: true, decision: 'not-a-valid-decision' });
 });
 Then('the switch is refused and the sign-in callback still reaches its opener', async function () {
-  for (const result of [this.loginGuard, this.loginForcedGuard]) assert.deepEqual(result, { ok: false, error: 'protected-pages', reason: 'active-page' });
+  // The refusal names the page holding the window (#1140): the relying page
+  // while its pop-up is open, else the sign-in tab connected to it.
+  const tabs = (await this.call('state')).tabs;
+  const blocking = this.loginMode === 'popup'
+    ? { id: this.loginTab, title: 'Workspace lifecycle fixture', reason: 'popup' }
+    : { id: tabs.find(tab => tab.url.includes('/provider?mode=tab')).id, title: 'Workspace lifecycle fixture', reason: 'opener' };
+  for (const result of [this.loginGuard, this.loginForcedGuard]) assert.deepEqual(result, { ok: false, error: 'protected-pages', reason: 'active-page', blockingTabs: [blocking] });
   assert.equal((await this.call('workspaceAction', 'list')).items.find(workspace => workspace.active)?.id, this.loginWorkspace);
   assert.equal(await this.call('workspacePageIdentity', this.loginTab), this.loginIdentity);
   assert.equal(await this.loginChild.evaluate(() => !!window.opener), true);
@@ -81,4 +87,25 @@ Then('the switch is refused and the sign-in callback still reaches its opener', 
   await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
   assert.equal((await this.call('workspaceAction', 'open', this.loginWorkspace)).ok, true);
   assert.equal(await this.call('workspacePageIdentity', this.loginTab), this.loginIdentity);
+});
+
+When('the page that opened the sign-in tab closes', async function () {
+  await this.call('closeTab', this.loginTab);
+  await waitForValue(() => this.call('state'), state => !state.tabs.some(tab => tab.id === this.loginTab), 'the opener tab closes');
+  assert.equal(await this.loginChild.evaluate(() => !!window.opener), false, 'the sign-in tab has lost its opener');
+});
+Given('a named workspace whose page keeps loading a frame', async function () {
+  await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
+  this.loginWorkspace = (await this.call('workspaceAction', 'save', 'Busy frame workspace')).workspace.id;
+  const target = await this.call('workspaceAction', 'create', 'Busy frame away'); assert.equal(target.ok, true); this.loginTarget = target.workspaceId;
+  await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
+  assert.equal((await this.call('workspaceAction', 'open', this.loginWorkspace)).ok, true);
+  this.frameTab = await this.call('openTab', this.lifecycleFixture.base + '/busy-frame');
+  await waitForValue(() => Promise.resolve(this.lifecycleFixture.requests.pages['/slow-frame'] ?? 0), count => count >= 2, 'the frame keeps reloading');
+  await this.waitForState(state => state.tabs.some(tab => tab.id === this.frameTab && tab.isLoading));
+});
+Then('switching workspaces is accepted', async function () {
+  const result = await this.call('workspaceAction', 'open', this.loginTarget);
+  assert.equal(result.ok, true, `switch refused: ${JSON.stringify(result)}`);
+  assert.equal((await this.call('workspaceAction', 'list')).items.find(workspace => workspace.active)?.id, this.loginTarget);
 });
