@@ -3429,6 +3429,7 @@ let onePasswordConfigurationKey = JSON.stringify([
   initialPresentationSettings.onePasswordEnabled,
   initialPresentationSettings.onePasswordAccount,
 ]);
+let verticalTabsTextSize = initialPresentationSettings.verticalTabsTextSize;
 // This is the saved preference, not necessarily the current rendered width.
 // calculateChromeLayout temporarily caps it when the window is too narrow to
 // preserve the 392px website pane.
@@ -6943,6 +6944,7 @@ function currentTabsPayload() {
     // snapshots, seeds, slot metadata, and view references stay in main.
     closed: sharedClosedBand(runtime),
     tabLayout,
+    verticalTabsTextSize,
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
     ...captureBroadcastState(serialized),
@@ -11246,6 +11248,7 @@ function registerIpcHandlers() {
     closedSlot: rt().closedSlot,
     closed: sharedClosedBand(rt()),
     tabLayout,
+    verticalTabsTextSize,
     ...verticalTabsMetrics(),
   }));
   chromeHandle('tabs:find', (_e, id, query, options) => {
@@ -15856,6 +15859,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     applyAppIcon();
     applyVerticalTabsWidth(s.verticalTabsWidth);
     applyTabLayout(s.tabLayout);
+    if (s.verticalTabsTextSize !== verticalTabsTextSize) {
+      verticalTabsTextSize = s.verticalTabsTextSize;
+      forEachWindowRuntime(() => broadcastTabs(), { liveOnly: true });
+    }
     const nextDarkWebsitesKey = JSON.stringify([s.darkWebsites, s.darkWebsitesExceptions]);
     if (nextDarkWebsitesKey !== lastDarkWebsitesKey) {
       lastDarkWebsitesKey = nextDarkWebsitesKey;

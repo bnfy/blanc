@@ -2390,4 +2390,9 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="slash_reader_hint">Lee este artículo con texto ajustable y menos distracciones</string>
     <string name="reader_inter">Inter</string>
     <string name="reader_mono">JetBrains Mono</string>
+    <string name="settings_general_vertical_tabs_text_size_label">Tamaño del texto de las pestañas verticales</string>
+    <string name="settings_general_vertical_tabs_text_size_hint">Lee mejor los títulos de las pestañas y los nombres de los grupos en la barra lateral de pestañas verticales.</string>
+    <string name="settings_general_vertical_tabs_text_size_default">Predeterminado</string>
+    <string name="settings_general_vertical_tabs_text_size_large">Grande</string>
+    <string name="settings_general_vertical_tabs_text_size_extra_large">Muy grande</string>
 </resources>

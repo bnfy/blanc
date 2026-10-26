@@ -2319,4 +2319,9 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="slash_reader_hint">Read this article with adjustable text and fewer distractions</string>
     <string name="reader_inter">Inter</string>
     <string name="reader_mono">JetBrains Mono</string>
+    <string name="settings_general_vertical_tabs_text_size_label">Vertical tab text size</string>
+    <string name="settings_general_vertical_tabs_text_size_hint">Make tab titles and group names easier to read in the vertical tab sidebar.</string>
+    <string name="settings_general_vertical_tabs_text_size_default">Default</string>
+    <string name="settings_general_vertical_tabs_text_size_large">Large</string>
+    <string name="settings_general_vertical_tabs_text_size_extra_large">Extra large</string>
 </resources>

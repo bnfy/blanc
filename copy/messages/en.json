@@ -8673,5 +8673,25 @@
   "reader.mono": {
     "message": "JetBrains Mono",
     "note": "Reader Mode font family name; keep the font name unchanged."
+  },
+  "settings.general.verticalTabsTextSize.label": {
+    "message": "Vertical tab text size",
+    "note": "Desktop Settings, General → Island. Vertical-tab sidebar text-size label. Applies on this device; tab titles and group names grow together."
+  },
+  "settings.general.verticalTabsTextSize.hint": {
+    "message": "Make tab titles and group names easier to read in the vertical tab sidebar.",
+    "note": "Desktop Settings, General → Island. Vertical-tab sidebar text-size hint. Applies on this device; tab titles and group names grow together."
+  },
+  "settings.general.verticalTabsTextSize.default": {
+    "message": "Default",
+    "note": "Desktop Settings, General → Island. Vertical-tab sidebar text-size default. Applies on this device; tab titles and group names grow together."
+  },
+  "settings.general.verticalTabsTextSize.large": {
+    "message": "Large",
+    "note": "Desktop Settings, General → Island. Vertical-tab sidebar text-size large. Applies on this device; tab titles and group names grow together."
+  },
+  "settings.general.verticalTabsTextSize.extraLarge": {
+    "message": "Extra large",
+    "note": "Desktop Settings, General → Island. Vertical-tab sidebar text-size extraLarge. Applies on this device; tab titles and group names grow together."
   }
 }
