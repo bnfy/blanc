@@ -62,4 +62,17 @@ void ContentClientParams::FinalizeBlancFactory(
   patch('content/browser/loader/url_loader_factory_utils.cc','content_client_params->FinalizeBlancFactory(',
     '  if (auto terminal_url_loader_factory =\n          terminal_params.TakeURLLoaderFactory()) {',
     '  if (content_client_params && terminal_params.is_for_network_service()) {\n    content_client_params->FinalizeBlancFactory(factory_builder, factory_override_ptr, type);\n  }\n\n  if (auto terminal_url_loader_factory =\n          terminal_params.TakeURLLoaderFactory()) {');
+  patch('content/browser/loader/navigation_url_loader_impl.cc',
+    '// Blanc: navigation uses a separate factory assembly path.',
+    '  net::CookieSettingOverrides devtools_cookie_overrides;',
+    `  // Blanc: navigation uses a separate factory assembly path. Gate after
+  // DevTools so initial and restarted subframe requests are checked before I/O.
+  url_loader_factory::ContentClientParams(
+      browser_context, frame_tree_node->current_frame_host(),
+      frame_tree_node->current_frame_host()->GetProcess()->GetDeprecatedID(),
+      url::Origin(), net::IsolationInfo(), ukm_id)
+      .FinalizeBlancFactory(factory_builder, /*factory_override=*/nullptr,
+                           ContentBrowserClient::URLLoaderFactoryType::kNavigation);
+
+  net::CookieSettingOverrides devtools_cookie_overrides;`);
 }
