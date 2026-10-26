@@ -173,6 +173,7 @@ When('the pointer rests at the top edge over the page pane', async function () {
 // will appear must not count as entering it, or hover-open is disarmed by the
 // time the rest band reveals the Island under the pointer.
 When('the pointer rests on the page where the hidden address will appear', async function () {
+  await waitForValue(() => this.call('focusWindow'), Boolean, 'the hidden address window to take native focus');
   const rect = this.hoverIslandRect;
   assert.ok(rect, 'the hover-open steps recorded the address rectangle');
   const point = { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) };

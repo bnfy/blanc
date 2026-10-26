@@ -1319,8 +1319,59 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
-  mac-scan:
+  # Keep native-focus acceptance off the operator's shared signing desktop.
+  # This job has no environment or signing secrets; ARM runs in a fresh Tart VM.
+  mac-scan-acceptance:
     needs: validate-inputs
+    if: ${{ inputs.mode == 'mac-scan' && inputs.runtime == 'ecs' && !inputs.mac_runner_probe }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: [self-hosted, macOS, ARM64, blanc-ci]
+            arch: arm64
+          - runner: macos-26-intel
+            arch: x64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    env:
+      APPROVED_SOURCE_SHA: ${{ inputs.source_sha }}
+      TARGET_ARCH: ${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Bind acceptance to the approved workflow and native desktop
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$APPROVED_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$GITHUB_SHA" = "$APPROVED_SOURCE_SHA"
+          test "$(git rev-parse HEAD)" = "$APPROVED_SOURCE_SHA"
+          case "$TARGET_ARCH:$(uname -m)" in arm64:arm64|x64:x86_64) ;; *) echo 'Native architecture mismatch' >&2; exit 1 ;; esac
+          test "$(stat -f %Su /dev/console)" = "$(id -un)"
+          APP_BUILDER_TMP_DIR="$RUNNER_TEMP/blanc-mac-acceptance-$GITHUB_RUN_ID-$TARGET_ARCH"
+          mkdir -m 700 "$APP_BUILDER_TMP_DIR"
+          printf 'APP_BUILDER_TMP_DIR=%s\n' "$APP_BUILDER_TMP_DIR" >> "$GITHUB_ENV"
+          sw_vers
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm ci --prefix site
+      - name: Use the tallest display mode for desktop acceptance
+        run: swift scripts/ci-macos-tall-display.swift
+      - name: Run the complete release press gate on the isolated native desktop
+        env:
+          BLANC_TEST_APP_OUTPUT: '1'
+        run: npm run release:verify:press
+
+  mac-scan:
+    needs: [validate-inputs, mac-scan-acceptance]
     if: ${{ inputs.mode == 'mac-scan' && inputs.runtime == 'ecs' && !inputs.mac_runner_probe }}
     environment: ecs-signing
     permissions:
@@ -1373,12 +1424,6 @@ jobs:
           xcodebuild -version
           xcrun actool --version
           node scripts/preflight-mac-icon.cjs
-      - name: Use the tallest display mode for desktop acceptance
-        run: swift scripts/ci-macos-tall-display.swift
-      - name: Run the release press gate before signing
-        env:
-          BLANC_TEST_APP_OUTPUT: '1'
-        run: npm run release:verify:press
       - name: Install pinned EVS client
         run: |
           python3 -m venv "$RUNNER_TEMP/evs-venv"

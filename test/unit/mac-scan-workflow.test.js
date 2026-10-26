@@ -7,6 +7,7 @@ const { spawnSync } = require('node:child_process');
 const yaml = require('js-yaml');
 const workflow = yaml.load(fs.readFileSync(path.join(__dirname, '../../.github/workflows/release-windows-linux.yml'), 'utf8'));
 const job = workflow.jobs['mac-scan'];
+const acceptance = workflow.jobs['mac-scan-acceptance'];
 
 test('Mac scan mode accepts only exact-commit production ECS input and no release tag', () => {
   const script = workflow.jobs['validate-inputs'].steps[0].run;
@@ -28,19 +29,20 @@ test('Mac signing stays protected, read-only, native on both architectures and t
   assert.deepEqual(job.strategy.matrix.include.map(x => x.runner), [['self-hosted', 'macOS', 'ARM64', 'blanc-mac'], 'macos-26-intel']);
   assert.deepEqual(job.strategy.matrix.include.map(x => x.developer_dir), ['/Applications/Xcode.app/Contents/Developer', '/Applications/Xcode_26.3.app/Contents/Developer']);
   const icon = job.steps.findIndex(x => x.run?.includes('node scripts/preflight-mac-icon.cjs'));
-  assert(icon >= 0 && icon < job.steps.findIndex(x => x.run === 'npm run release:verify:press'));
+  assert(icon >= 0 && icon < job.steps.findIndex(x => x.env?.CSC_LINK));
+  assert.deepEqual(job.needs, ['validate-inputs', 'mac-scan-acceptance']);
   const checkout = job.steps.find(x => x.uses?.startsWith('actions/checkout@'));
   assert.equal(checkout.with.ref, '${{ inputs.source_sha }}');
   assert.equal(checkout.with['fetch-depth'], 0, 'press compatibility checks require immutable release tags');
   assert.equal(checkout.with['persist-credentials'], false);
-  const display = job.steps.findIndex(x => x.run === 'swift scripts/ci-macos-tall-display.swift');
-  const press = job.steps.findIndex(x => x.run === 'npm run release:verify:press');
+  const display = acceptance.steps.findIndex(x => x.run === 'swift scripts/ci-macos-tall-display.swift');
+  const press = acceptance.steps.findIndex(x => x.run === 'npm run release:verify:press');
   assert(display >= 0 && display < press, 'native geometry acceptance needs the existing tall-display setup');
   const binding = job.steps.find(x => x.name === 'Bind workflow and source to the approved commit').run;
   assert(binding.includes('test "$GITHUB_SHA" = "$APPROVED_SOURCE_SHA"'));
   assert(binding.includes('test "$(git rev-parse HEAD)" = "$APPROVED_SOURCE_SHA"'));
   for (const [name, other] of Object.entries(workflow.jobs)) {
-    if (name === 'validate-inputs' || name === 'mac-scan' || name === 'mac-runner-probe') continue;
+    if (name === 'validate-inputs' || name === 'mac-scan' || name === 'mac-scan-acceptance' || name === 'mac-runner-probe') continue;
     assert.match(other.if, /inputs\.mode == '(?:release|validation)'/, name);
   }
 });
@@ -83,4 +85,23 @@ test('self-hosted toolchain probe has no signing environment or secrets', () => 
   assert.match(probe.if, /inputs\.mac_runner_probe/);
   assert.match(job.if, /!inputs\.mac_runner_probe/);
   assert(!JSON.stringify(probe).includes('secrets.'));
+});
+
+test('native Mac acceptance is a secret-free prerequisite on isolated desktops', () => {
+  assert.equal(acceptance.environment, undefined);
+  assert.deepEqual(acceptance.permissions, { contents: 'read' });
+  assert.deepEqual(acceptance.strategy.matrix.include.map(x => x.runner),
+    [['self-hosted', 'macOS', 'ARM64', 'blanc-ci'], 'macos-26-intel']);
+  assert.deepEqual(acceptance.strategy.matrix.include.map(x => x.arch), ['arm64', 'x64']);
+  assert(!JSON.stringify(acceptance).includes('secrets.'));
+  assert.match(acceptance.if, /!inputs\.mac_runner_probe/);
+  const checkout = acceptance.steps.find(x => x.uses?.startsWith('actions/checkout@'));
+  assert.equal(checkout.with.ref, '${{ inputs.source_sha }}');
+  assert.equal(checkout.with['persist-credentials'], false);
+  const binding = acceptance.steps.find(x => x.name?.startsWith('Bind acceptance')).run;
+  assert(binding.includes('test "$GITHUB_SHA" = "$APPROVED_SOURCE_SHA"'));
+  assert(binding.includes('test "$(git rev-parse HEAD)" = "$APPROVED_SOURCE_SHA"'));
+  assert(binding.includes('Native architecture mismatch'));
+  assert.equal(acceptance.steps.filter(x => x.run === 'npm run release:verify:press').length, 1);
+  assert(!job.steps.some(x => x.run === 'npm run release:verify:press'));
 });

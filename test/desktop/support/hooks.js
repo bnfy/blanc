@@ -7,6 +7,7 @@ const { BeforeAll, AfterAll, Before, After, Status, setDefaultTimeout } = requir
 const fixtures = require('./fixtures-server');
 const ctx = require('./context');
 const { callTestHook } = require('./test-hook-call');
+const { useNativeFocus } = require('./native-focus');
 const { browserDataRoot } = require('../../../src/main/browser-data-import');
 const { createChromiumSession } = require('../../support/chromium-session-fixture');
 
@@ -83,6 +84,7 @@ async function launchApp(extraEnv = {}, { recoveryChoice = null } = {}) {
       ...extraEnv,
     },
   });
+  electronApp.__blancNativeFocusSettled = await useNativeFocus(electronApp);
   if (process.env.BLANC_TEST_APP_OUTPUT === '1') {
     for (const stream of ['stdout', 'stderr']) {
       electronApp.process()[stream]?.on('data', (chunk) => process.stderr.write(`[app ${stream}] ${chunk}`));
@@ -92,10 +94,15 @@ async function launchApp(extraEnv = {}, { recoveryChoice = null } = {}) {
   // This observes crashes only; it never restarts a target or turns a failure
   // into a passing retry.
   await electronApp.evaluate(({ app, webContents }) => {
+    globalThis.__blancUnexpectedRendererCrashes = [];
     const observe = (contents) => contents.on('render-process-gone', (_event, details) => {
-      console.error('[desktop renderer crash]', JSON.stringify({
-        id: contents.id, url: contents.getURL(), ...details,
-      }));
+      const loss = { id: contents.id, url: contents.getURL(), ...details };
+      console.error('[desktop renderer crash]', JSON.stringify(loss));
+      // Quiet-tab discard deliberately kills renderers. Native crashes and
+      // OOMs must fail even when their target closes before the next step.
+      if (details.reason === 'crashed' || details.reason === 'oom') {
+        globalThis.__blancUnexpectedRendererCrashes.push(loss);
+      }
     });
     for (const contents of webContents.getAllWebContents()) observe(contents);
     app.on('web-contents-created', (_event, contents) => observe(contents));
@@ -394,7 +401,10 @@ BeforeAll({ timeout: 120_000 }, async () => {
 });
 
 Before(async function () {
-  if (ctx.app) assertNoMainProcessExceptions(ctx.app);
+  if (ctx.app) {
+    assertNoMainProcessExceptions(ctx.app);
+    await ctx.app.__blancNativeFocusSettled();
+  }
   ctx.tabByName = {};
   ctx.activeExpectedUrl = null;
   ctx.lastNewTabId = null;
@@ -404,6 +414,7 @@ Before(async function () {
   ctx.groupMembers = null;
   ctx.standalonePinnedTabId = null;
   await callTestHook(ctx.app, 'reset');
+  await ctx.app.__blancNativeFocusSettled();
 });
 
 // The full suite can take tens of minutes on hosted Macs. Emit a failed
@@ -413,6 +424,15 @@ After(function ({ pickle, result, willBeRetried }) {
   if (result?.status === Status.FAILED) {
     console.error(`[desktop acceptance] ${pickle.name}${willBeRetried ? ' (retry pending)' : ''}\n${result.message || 'No failure detail'}`);
   }
+});
+
+// Protocol failures from asynchronous navigation handling must fail even the
+// final scenario, rather than waiting for a subsequent Before hook.
+After(async function () {
+  if (!ctx.app) return;
+  await ctx.app.__blancNativeFocusSettled();
+  const crashes = await ctx.app.evaluate(() => globalThis.__blancUnexpectedRendererCrashes || []);
+  if (crashes.length) throw new Error(`Unexpected desktop renderer loss: ${JSON.stringify(crashes)}`);
 });
 
 // Scenarios tagged @test-platform-linux run in an app that acts as on Linux

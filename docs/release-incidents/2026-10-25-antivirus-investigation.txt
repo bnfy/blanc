@@ -1,5 +1,35 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+NATIVE FOCUS AND VISIBILITY FIXES (Oct 26 continuation): The matched crash
+stack is a Chromium focus-emulation teardown during frame replacement.
+Acceptance now disables Playwright's focus emulation through public CDP while
+frames are live, including new pages and subsequent main-frame navigations.
+Native pointer scenarios establish real window focus. Unexpected protocol
+errors remain fatal, and crashed/OOM renderer events fail scenario teardown;
+intentional quiet-tab renderer kills remain observable without false failures.
+The affected local group passed 57 scenarios / 631 steps with retries off.
+200 cross-origin reset cycles with a minimized window passed with the new
+handling; the old control also passed, so this stress control did not itself
+reproduce the intermittent crash. Three harness tests cover synchronization,
+protocol failures and page-close races.
+
+The completed Intel log for 40401704221 shows 541/541 desktop scenarios passed,
+then wallpaper visibility timed out after real minimization. A new event-order
+regression reproduces wallpaper remaining visible when minimize is emitted
+before native flags update. Blanc now sends hidden state directly on hide/
+minimize and samples settled state after show/restore. The full wallpaper
+check retains real minimize/restore and Dock lifecycle checks. Intermediate
+opacity is observed before input acknowledgement, retaining the thresholds.
+
+Further native-state capture found the shared signing desktop lost OS focus
+mid-test. Full acceptance therefore moves to fresh, secret-free ARM Tart VMs
+and native hosted Intel. Both complete press gates must succeed before the
+protected signing job can start. Signing remains on the dedicated protected
+Mac/hosted Intel runners; no signing credentials are sent to PR VMs. Final
+isolated validation is required before claiming the fixes and installer pass.
+Targeted workflow, focus, wallpaper-model and source-wiring checks: 33 passed;
+lint and all 64 audit-inventory entries passed. No publication is authorized.
+
 SELF-HOSTED ACCEPTANCE DIAGNOSIS (Oct 26): Run 40401704221, source
 518c77417573f07ffe412b211580894921439d8d, reached 524/541 on the ARM
 blanc-mac runner and failed before signing. Five setup failures followed one

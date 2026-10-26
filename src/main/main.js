@@ -9272,10 +9272,10 @@ function startPageViewVisible(tab) {
     && tab.view?.getVisible() === true;
 }
 
-function sendWindowStartPageVisibility(runtime) {
+function sendWindowStartPageVisibility(runtime, forceHidden = false) {
   for (const tab of tabs.values()) {
     if (tab.runtimeId === runtime.id && tab.url?.startsWith('blanc://newtab')) {
-      liveContents(tab)?.send('pages:start:visibility', startPageViewVisible(tab));
+      liveContents(tab)?.send('pages:start:visibility', !forceHidden && startPageViewVisible(tab));
     }
   }
 }
@@ -12809,8 +12809,12 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   }));
   for (const event of ['hide', 'show', 'minimize', 'restore']) {
     rt().window.on(event, bindWindowRuntime(runtime, () => {
-      sendWindowStartPageVisibility(runtime);
-      if (event === 'hide' || event === 'minimize') runtime.pageTintController?.pause();
+      const hidden = event === 'hide' || event === 'minimize';
+      // Native hide/minimize can precede isVisible()/isMinimized() updates.
+      // Suspend immediately from the event; sample show/restore after its turn.
+      if (hidden) sendWindowStartPageVisibility(runtime, true);
+      else setImmediate(bindWindowRuntime(runtime, () => sendWindowStartPageVisibility(runtime)));
+      if (hidden) runtime.pageTintController?.pause();
       else scheduleSampleTint(tabs.get(runtime.activeTabId));
     }));
   }
@@ -15783,6 +15787,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         win.show();
         win.moveTop();
         app.focus({ steal: true });
+        win.focus();
         return win.isFocused();
       },
       getUtilitySheetBounds: () => liveUtilitySheet()?.view.getBounds() ?? null,

@@ -6,6 +6,7 @@ import { _electron } from 'playwright';
 import testHookCall from './support/test-hook-call.js';
 import poll from './support/poll.js';
 import { inMainTurn } from './support/main-turn.js';
+import { useNativeFocus } from './support/native-focus.js';
 const { callTestHook } = testHookCall;
 const { waitForValue } = poll;
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-wallpaper-'));
@@ -23,6 +24,37 @@ const uncaught = path.join(root, 'uncaught.log');
 let app;
 // The wallpaper switch lives in the footer's Customize popover, so it is only
 // exposed to assistive tech (and getByRole) while that popover is open.
+// Arm the compositor observation before sending the click. A busy native
+// runner can acknowledge input after an intermediate opacity has passed.
+const observeOpacity = async (target, phase, low, high) => {
+  await target.evaluate(({ phase, low, high }) => {
+    const observation = { seen: false, last: null };
+    window.wallpaperOpacityObservation = observation;
+    const sample = () => {
+      if (window.wallpaperOpacityObservation !== observation) return;
+      const current = document.body.dataset.wallpaperPhase || null;
+      const layers = [...document.querySelectorAll('.start-wallpaper-layer')];
+      const opacities = layers.filter(layer => phase === null || layer.classList.contains('is-visible'))
+        .map(layer => Number(getComputedStyle(layer).opacity));
+      observation.last = { phase: current, opacities, hidden: document.hidden, visible: document.body.dataset.wallpaperVisible,
+        reduced: matchMedia('(prefers-reduced-motion: reduce)').matches, focused: document.hasFocus(),
+        classes: layers.map(layer => layer.className) };
+      observation.first ??= observation.last;
+      observation.samples = (observation.samples || 0) + 1;
+      if (current === phase && opacities.some(opacity => opacity > low && opacity < high)) {
+        observation.seen = true;
+        return;
+      }
+      requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  }, { phase, low, high });
+};
+const waitForOpacity = (target) => waitForValue(
+  () => target.evaluate(() => window.wallpaperOpacityObservation),
+  observation => observation?.seen === true,
+  'an intermediate compositor opacity after the click',
+);
 const openCustomize = async (target) => {
   const isOpen = () => target.evaluate(() => document.getElementById('customizePopover').matches(':popover-open'));
   if (!(await isOpen())) await target.getByRole('button', { name: 'Customize', exact: true }).click();
@@ -30,6 +62,7 @@ const openCustomize = async (target) => {
 };
 try {
   app = await _electron.launch({ chromiumSandbox: true, args: [path.resolve('.'), `--user-data-dir=${profile}`], env: { ...env, BLANC_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaught } });
+  const nativeFocusSettled = await useNativeFocus(app);
   const page = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc://newtab/'), Boolean, 'new tab');
   const footerToggle = page.getByRole('button', { name: 'Change with time of day', exact: true });
   await page.waitForLoadState('domcontentloaded'); // found by URL while <head> scripts may still load
@@ -40,6 +73,18 @@ try {
     if (!browser) throw new Error('browser chrome window missing');
     return browser.id;
   });
+  const focusBrowserWindow = async () => {
+    await inMainTurn(app, ({ app, BrowserWindow }, id) => {
+      const window = BrowserWindow.fromId(id);
+      window.show();
+      app.focus({ steal: true });
+      window.focus();
+    }, browserWindowId);
+    await waitForValue(() => app.evaluate(({ BrowserWindow }, id) => BrowserWindow.fromId(id).isFocused(), browserWindowId),
+      Boolean, 'wallpaper browser window to take native focus');
+    await nativeFocusSettled();
+  };
+  await focusBrowserWindow();
   await page.waitForFunction(() => !document.getElementById('dynamicWallpaperToggle').disabled);
   const data = await page.evaluate(() => window.bowserPages.start.data());
   assert.equal(data.patronActive, false);
@@ -149,20 +194,16 @@ try {
     }
   }
   // Actual compositor opacity must fade both ways, including a fast reversal.
+  await focusBrowserWindow();
   await privatePage.emulateMedia({ reducedMotion: 'no-preference', colorScheme: 'dark' });
   await privatePage.evaluate(() => { Date.prototype.getHours = () => 12; wallpaper.refresh(); });
   await privatePage.waitForFunction(() => document.body.dataset.wallpaperPhase === 'day'
     && !document.querySelector('.start-wallpaper-layer.is-fading'));
   await openCustomize(privatePage);
   const privateSwitch = privatePage.getByRole('button', { name: 'Change with time of day', exact: true });
+  await observeOpacity(privatePage, null, 0.2, 0.6);
   await privateSwitch.click();
-  await privatePage.waitForFunction(() => !document.body.dataset.wallpaperPhase
-    && [...document.querySelectorAll('.start-wallpaper-layer')].some((layer) => {
-      const opacity = Number(getComputedStyle(layer).opacity);
-      // Reverse partway through the fade. Reversing its first few frames can
-      // finish before the automation receives the click acknowledgement.
-      return opacity > 0.2 && opacity < 0.6;
-    }));
+  await waitForOpacity(privatePage);
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-fading').count(), 2);
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-fading').first().evaluate((layer) =>
     getComputedStyle(layer).transitionDuration), '2s');
@@ -170,24 +211,18 @@ try {
   await app.evaluate(({ powerMonitor }) => powerMonitor.emit('resume'));
   await privatePage.evaluate(() => window.bowserPages.start.data());
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-fading').count(), 2);
+  await observeOpacity(privatePage, 'day', 0.1, 0.95);
   await privateSwitch.click();
-  await privatePage.waitForFunction(() => document.body.dataset.wallpaperPhase === 'day'
-    && [...document.querySelectorAll('.start-wallpaper-layer.is-visible')].some((layer) => {
-      const opacity = Number(getComputedStyle(layer).opacity);
-      return opacity > 0.1 && opacity < 0.95;
-    }));
+  await waitForOpacity(privatePage);
   await privatePage.waitForFunction(() => !document.querySelector('.start-wallpaper-layer.is-fading'));
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-visible').count(), 1);
   await privateSwitch.click();
   await privatePage.waitForFunction(() => !document.body.dataset.wallpaperPhase
     && !document.querySelector('.start-wallpaper-layer.is-fading'));
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-visible').count(), 0);
+  await observeOpacity(privatePage, 'day', 0.1, 0.95);
   await privateSwitch.click();
-  await privatePage.waitForFunction(() => document.body.dataset.wallpaperPhase === 'day'
-    && [...document.querySelectorAll('.start-wallpaper-layer.is-visible')].some((layer) => {
-      const opacity = Number(getComputedStyle(layer).opacity);
-      return opacity > 0.1 && opacity < 0.95;
-    }));
+  await waitForOpacity(privatePage);
   await privatePage.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'dark' });
   await privatePage.waitForFunction(() => !document.querySelector('.start-wallpaper-layer.is-fading'));
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-visible').evaluate((layer) =>
@@ -243,6 +278,18 @@ try {
   // real hide/show events there; native desktop runners retain minimize/restore.
   const hiddenAction = process.platform === 'linux' ? 'hide' : 'minimize';
   const visibleAction = process.platform === 'linux' ? 'show' : 'restore';
+  // Native events may precede the corresponding BrowserWindow flag update.
+  // Model that ordering explicitly before exercising real minimize/restore.
+  await inMainTurn(app, ({ BrowserWindow }, { id, event }) => BrowserWindow.fromId(id).emit(event),
+    { id: browserWindowId, event: hiddenAction });
+  await waitForValue(() => privatePage.evaluate(() => document.body.dataset.wallpaperVisible),
+    value => value === 'false', 'hide/minimize event to suspend wallpaper before native flags change');
+  assert.equal(await privatePage.evaluate(() => wallpaperMinuteTimers.size), 0);
+  await inMainTurn(app, ({ BrowserWindow }, { id, event }) => BrowserWindow.fromId(id).emit(event),
+    { id: browserWindowId, event: visibleAction });
+  await waitForValue(() => privatePage.evaluate(() => document.body.dataset.wallpaperVisible),
+    value => value === 'true', 'show/restore event to resume wallpaper');
+  assert.equal(await privatePage.evaluate(() => wallpaperMinuteTimers.size), 1);
   await inMainTurn(app, ({ BrowserWindow }, { id, action }) => BrowserWindow.fromId(id)[action](), { id: browserWindowId, action: hiddenAction });
   await waitForValue(() => app.evaluate(({ BrowserWindow }, id) => {
     const window = BrowserWindow.fromId(id);
@@ -289,7 +336,13 @@ try {
     assert.equal(await app.evaluate(({ webContents }, id) => webContents.fromId(id)?.getURL(), contentsId),
       'blanc://newtab/?private=1', 'Dock reopen preserves the same start-page WebContents');
   }
+  await nativeFocusSettled();
   console.log(`newtab-wallpaper-smoke PASS: free entitlement, 48 rendered combinations, footer mouse/keyboard toggles in all layouts and styles, 60 responsive footer placement checks, on/off opacity fades and rapid reversal, reduced-motion settlement, persistence and Settings parity, strict footer IPC, main-owned hidden-tab visibility, live opt-in/out and resume status${process.platform === 'darwin' ? ', Dock close/reopen timer suspension' : ''}`);
+} catch (error) {
+  if (app) console.error('[wallpaper native state]', JSON.stringify(await app.evaluate(({ BrowserWindow }) =>
+    BrowserWindow.getAllWindows().map(window => ({ id: window.id, url: window.webContents.getURL(),
+      visible: window.isVisible(), minimized: window.isMinimized(), focused: window.isFocused() }))).catch(() => null)));
+  throw error;
 } finally {
   if (app) await app.close();
   const errors = fs.existsSync(uncaught) ? fs.readFileSync(uncaught, 'utf8').trim() : '';

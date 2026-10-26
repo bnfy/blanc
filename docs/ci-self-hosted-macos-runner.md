@@ -71,13 +71,18 @@ Register the runner on a dedicated non-admin user account (`./config.sh --url ht
 
 ## Owner-approved private Mac signing exception (October 26, 2026)
 
-The `mac-scan` job in `release-windows-linux.yml` uses the distinct `blanc-mac`
-Apple Silicon runner for an explicitly dispatched, protected `ecs-signing`
-workflow. It does not use `MAC_RUNNER_LABELS` or the secret-free `blanc-ci` PR
-runners. The exact approved commit must equal both the workflow SHA and
-checkout SHA; the host architecture and console GUI session are checked.
-Signing material lives in a run-specific temporary directory and is removed
-before packaged browser tests, including failure cleanup. The job never
-publishes a release or updater feed. Native Intel validation remains hosted.
-The separate `mac_runner_probe` option checks toolchain/GUI readiness without
-accessing a signing environment or credentials.
+The secret-free `mac-scan-acceptance` job runs the complete press gate on
+fresh `blanc-ci` ARM VMs and a native hosted Intel runner. The protected
+`mac-scan` signing job depends on both acceptance legs succeeding at the exact
+same workflow/source SHA. Native-focus tests must not run on the operator's
+shared signing desktop: observed focus loss made compositor and edge-reveal
+checks unreliable there.
+
+The signing job uses the distinct `blanc-mac` Apple Silicon runner and a native
+hosted Intel runner in the `ecs-signing` environment. Signing secrets never
+reach the `blanc-ci` VMs. The approved SHA must equal the workflow and checkout
+SHA; architecture and console GUI ownership are checked. Signing material
+lives in a run-specific temporary directory and is removed before packaged
+browser tests, including failure cleanup. The workflow never publishes a
+release or updater feed. The `mac_runner_probe` option checks the signing
+host's toolchain/GUI readiness without a signing environment or credentials.
