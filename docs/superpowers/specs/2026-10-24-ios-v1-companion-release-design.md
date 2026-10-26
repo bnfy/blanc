@@ -317,7 +317,7 @@ documents stay correct.
 | **M16** | **Shared Spaces, groups and Recently closed: the desktop protocol** (its own design; Worker stores; desktop UI for the switch, merges, remote closes; desktop-to-desktop Spaces sync). Ships as a public desktop feature release first (§4.7). | New; built in the parallel desktop Spaces session |
 | **M17** | **Shared Spaces on iPhone**: the Space mark and menu, groups in the switcher, Bring a Space, the Recently closed band, the per-device switch | New |
 | M10 | The full shared slash-command set, Find in page, the shield chip and per-site allow (Bangs moved after 1.0, owner 2026-10-24) | After M11 |
-| M11 | Tab gestures and the card strip (F56) ([design](2026-10-24-ios-m11-tab-gestures-design.md), [plan](../plans/2026-10-24-ios-m11-tab-gestures.md)) | Next, before M10 (owner, 2026-10-24) |
+| M11 | Tab gestures and the card strip (F56) ([design](2026-10-24-ios-m11-tab-gestures-design.md), [plan](../plans/2026-10-24-ios-m11-tab-gestures.md)) | Implemented, unreleased; before M10 (owner, 2026-10-24) |
 | Duo-1 | Edge to edge on both Duo displays, the regular-width pill and palette, fold continuity, CI on the Duo simulator | Only "no letterboxing" and the regular-width pill are in 1.0; the rest of the Duo design (Duo-2, Duo-3) is after |
 | **M18** | **First minute and release readiness**: the walkthrough (§3), default browser, share-sheet target, Background App Refresh, six languages, App Store listing | New |
 | Beta | TestFlight, the real-iPhone gate, kill criteria armed | |

@@ -14,6 +14,8 @@ enum UITestSeed {
   static var privateTab: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestPrivate") }
   /// `-BlancUITestStartPage`: sync off, one tab on the Start Page.
   static var startPage: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestStartPage") }
+  /// `-BlancUITestTwoTabs`: sync off, example.com (current) and example.org.
+  static var twoTabs: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestTwoTabs") }
   static let pageURL = URL(string: "https://example.com/")!
 
   static func seedSends(into directory: URL) {
