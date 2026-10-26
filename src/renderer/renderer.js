@@ -605,6 +605,10 @@
   const PILL_NOTICE_KEYS = {
     'link-copied': 'pill.notice.linkCopied',
     'clean-link-copied': 'pill.notice.cleanLinkCopied',
+    'route-on': 'pill.notice.routeOn',
+    'route-off': 'pill.notice.routeOff',
+    'route-limit': 'pill.notice.routeLimit',
+    'route-unavailable': 'pill.notice.routeUnavailable',
   };
   const PILL_NOTICE_MS = 1600;
   let pillNoticeKey = null;

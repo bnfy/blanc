@@ -297,6 +297,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F60-1 | The link routing group is offered only when there is somewhere to route to | — | ✅ | ➖ | ➖ |
 | F60-2 | A rule added in Settings sends a domain's links to its profile | — | ✅ | ➖ | ➖ |
 | F60-3 | Deleting a profile removes its rules and its links fall through | — | ✅ | ➖ | ➖ |
+| F60-4 | The shield popover makes and removes the rule for the site in view | — | ✅ | ➖ | ➖ |
+| F60-5 | `/route` and `/route off` write and remove the rule; a private tab can't | — | ✅ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance

@@ -239,6 +239,22 @@ export interface ShieldPopover {
   connection: ConnectionState | null;
   controls: ShieldProviderControls;
   darkSite: ShieldDarkSite | null;
+  route: ShieldRoute | null;
+}
+
+/** The shield popover's link routing switch (F60): whether links to this site from other apps open in this window's profile (scope 'profile') or Space ('space'); `elsewhere` names the profile, or profile and Space, a rule sends them to instead. Null in private tabs and with fewer than two profiles. */
+export interface ShieldRoute {
+  on: boolean;
+  scope: 'profile' | 'space';
+  elsewhere: string | null;
+}
+
+/** The outcome of /route, /route off or the shield popover's link routing switch. Main shows the pill notice. */
+export interface RouteResult {
+  ok: boolean;
+  host?: string | null;
+  on?: boolean;
+  error?: 'unavailable' | 'no-host' | 'too-many' | 'invalid';
 }
 
 /** The shield popover's Dark website switch. `on` describes the site while Blanc is dark (what /dark-site flips); `appliesNow` is whether Blanc is dark now. */
@@ -507,7 +523,7 @@ export interface DownloadsActivity {
 export type OverlayMode = 'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces' | 'switcher';
 
 /** Fixed ids of the pill's brief confirmations; the strip owns their text. */
-export type PillNotice = 'link-copied' | 'clean-link-copied';
+export type PillNotice = 'link-copied' | 'clean-link-copied' | 'route-on' | 'route-off' | 'route-limit' | 'route-unavailable';
 
 /** Which strip control opened the shield popover. */
 export type ShieldTrigger = 'shield' | 'insecure';
@@ -1572,6 +1588,11 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:dark-site-active`.
    */
   toggleDarkSiteOnActiveSite(): Promise<DarkSiteResult | null>;
+  /**
+   * Link routing (F60): send links to the active site from other apps to this window's profile and Space ('on', /route), remove that rule ('off', /route off), or flip it (the shield popover's switch).
+   * IPC: invoke `chrome:route-active`.
+   */
+  routeActiveSite(mode: 'toggle' | 'on' | 'off'): Promise<RouteResult>;
   /**
    * Stop allowing the active tab's origin past its certificate warning for this session, close that session's connections, and reload the tab. Resolves false when there was nothing to forget.
    * IPC: invoke `chrome:site-info-forget-certificate-exception`.

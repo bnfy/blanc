@@ -2,6 +2,7 @@
   "commands": {
     "/send": "Send to device (M7b), unreleased after public v1.42.1; needs the sync Worker deploy first.",
     "/reader": "Reader Mode is implemented on the candidate branch; not shipped in public v1.43.1.",
-    "/copy": "Copy Link as a slash command (with /copy clean for Copy Clean Link); merged on main, not shipped in public v1.43.1."
+    "/copy": "Copy Link as a slash command (with /copy clean for Copy Clean Link); merged on main, not shipped in public v1.43.1.",
+    "/route": "Link routing (F60) PR 2: /route sends links to this site from other apps to this window's profile; candidate branch, not shipped in public v1.43.1."
   }
 }

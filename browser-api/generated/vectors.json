@@ -2955,6 +2955,46 @@
               "clean-link-copied"
             ]
           ]
+        },
+        {
+          "emit": [
+            "route-on"
+          ],
+          "callbacks": [
+            [
+              "route-on"
+            ]
+          ]
+        },
+        {
+          "emit": [
+            "route-off"
+          ],
+          "callbacks": [
+            [
+              "route-off"
+            ]
+          ]
+        },
+        {
+          "emit": [
+            "route-limit"
+          ],
+          "callbacks": [
+            [
+              "route-limit"
+            ]
+          ]
+        },
+        {
+          "emit": [
+            "route-unavailable"
+          ],
+          "callbacks": [
+            [
+              "route-unavailable"
+            ]
+          ]
         }
       ]
     },
@@ -6382,6 +6422,73 @@
         null
       ]
     },
+    "routeActiveSite": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:route-active",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "toggle"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:route-active",
+              "args": [
+                "toggle"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "mode = \"on\"",
+          "args": [
+            "on"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:route-active",
+              "args": [
+                "on"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "mode = \"off\"",
+          "args": [
+            "off"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:route-active",
+              "args": [
+                "off"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        },
+        {
+          "ok": true,
+          "host": "route-result-1",
+          "on": true,
+          "error": "unavailable"
+        }
+      ]
+    },
     "siteInfoForgetCertificateException": {
       "kind": "invoke",
       "platforms": [
@@ -6724,6 +6831,11 @@
                 "darkSite": {
                   "on": true,
                   "appliesNow": true
+                },
+                "route": {
+                  "on": true,
+                  "scope": "profile",
+                  "elsewhere": "shield-route-1"
                 }
               },
               "captureChip": {
@@ -6778,6 +6890,11 @@
                   "darkSite": {
                     "on": true,
                     "appliesNow": true
+                  },
+                  "route": {
+                    "on": true,
+                    "scope": "profile",
+                    "elsewhere": "shield-route-1"
                   }
                 },
                 "captureChip": {
@@ -6907,6 +7024,11 @@
                 "darkSite": {
                   "on": true,
                   "appliesNow": true
+                },
+                "route": {
+                  "on": true,
+                  "scope": "profile",
+                  "elsewhere": "shield-route-1"
                 }
               },
               "captureChip": {
@@ -7068,6 +7190,11 @@
                   "darkSite": {
                     "on": true,
                     "appliesNow": true
+                  },
+                  "route": {
+                    "on": true,
+                    "scope": "profile",
+                    "elsewhere": "shield-route-1"
                   }
                 },
                 "captureChip": {

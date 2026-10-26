@@ -376,7 +376,10 @@ const { xdgOpen } = require('./xdg-open');
 const { webUrlsFromArgv } = require('./startup-urls');
 const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-activation');
 const { createExternalUrlHandoff } = require('./external-url-handoff');
-const { matchLinkRoute, linkRoutesWithoutProfile, resolveRoutedRuntime } = require('./link-routes');
+const {
+  matchLinkRoute, linkRoutesWithoutProfile, resolveRoutedRuntime,
+  siteLinkRouteState, siteRouteSwitchModel, setSiteLinkRoute, removeSiteLinkRoute,
+} = require('./link-routes');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { isSupportedLocalHtmlUrl, restorableLocalHtmlUrl } = require('./local-html-files');
 const { localFileTabPlan, keepsLocalFile, isInertRecord, recordTitle } = require('./inert-local-file');
@@ -7004,7 +7007,70 @@ function activeShieldPopover(serialized = serializeTabs()) {
     // the popover and the active tab row cannot disagree within a broadcast.
     connection: activeConnection(serialized, rt().activeTabId),
   });
-  return model ? { ...model, controls, darkSite: darkWebsites.siteState(tab) } : null;
+  return model ? { ...model, controls, darkSite: darkWebsites.siteState(tab), route: siteRouteSwitch(tab) } : null;
+}
+
+/** Where a rule made from this window points: its profile, and its Space
+ * when the window shows one that still exists. */
+function linkRouteHere(runtime) {
+  const spaceId = runtime.workspaceId
+    && linkRouteLiveness.isLiveSpace(runtime.profileId, runtime.workspaceId) ? runtime.workspaceId : null;
+  return { profileId: runtime.profileId, spaceId };
+}
+
+/** The shield popover's "Open links to this site in this profile" switch
+ * (F60 §3.6): offered with two or more profiles, never in a private tab
+ * (the rule would write its host to settings.json). `elsewhere` names where
+ * links to this site go now, when a rule sends them somewhere else. */
+function siteRouteSwitch(tab) {
+  const liveProfiles = localProfiles.listLocalProfiles().filter((profile) => linkRouteLiveness.isLiveProfile(profile.id));
+  return siteRouteSwitchModel({
+    routes: settings.getSettings().linkRoutes,
+    url: tab.url,
+    here: linkRouteHere(rt()),
+    privateTab: !!tab.private,
+    liveProfileCount: liveProfiles.length,
+    nameFor: ({ profileId, spaceId }) => {
+      const profile = liveProfiles.find((candidate) => candidate.id === profileId)?.name;
+      const space = spaceId ? withLocalProfile(profileId, () => namedWorkspaces.get(spaceId)?.name) : null;
+      if (!profile) return null;
+      return space ? mainI18n.t('settings.linkRoutes.destinationSpace', { profile, space }) : profile;
+    },
+  });
+}
+
+/** The shield switch ('toggle'), /route ('on') and /route off ('off'): the
+ * domain rule for the active tab's host. Main confirms in the pill. */
+function routeActiveSite(mode) {
+  const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
+  const notice = (kind) => stripSurfaces(rt()).send('chrome:pill-notice', kind);
+  if (!tab || tab.private || !['toggle', 'on', 'off'].includes(mode)) {
+    notice('route-unavailable');
+    return { ok: false, error: 'unavailable' };
+  }
+  const routes = settings.getSettings().linkRoutes;
+  const here = linkRouteHere(rt());
+  const state = siteLinkRouteState(routes, tab.url, here);
+  if (!state) {
+    notice('route-unavailable');
+    return { ok: false, error: 'no-host' };
+  }
+  const turnOn = mode === 'on' || (mode === 'toggle' && !state.on);
+  const result = turnOn
+    ? setSiteLinkRoute(routes, tab.url, here, () => `r${crypto.randomUUID().replaceAll('-', '').slice(0, 24)}`)
+    : removeSiteLinkRoute(routes, tab.url);
+  if (!result.ok) {
+    notice(result.error === 'too-many' ? 'route-limit' : 'route-unavailable');
+    return { ok: false, error: result.error, host: result.host ?? null };
+  }
+  const saved = settings.setLinkRoutes(result.routes);
+  if (!saved.ok) {
+    notice('route-unavailable');
+    return { ok: false, error: 'invalid', host: result.host };
+  }
+  notice(turnOn ? 'route-on' : 'route-off');
+  broadcastTabs();
+  return { ok: true, host: result.host, on: turnOn };
 }
 
 function clearTabSelection() {
@@ -11944,6 +12010,7 @@ function registerIpcHandlers() {
     if (result) broadcastTabs();
     return result;
   });
+  chromeHandle('chrome:route-active', (_event, mode) => routeActiveSite(mode));
   chromeHandle('chrome:site-info-forget-certificate-exception', () => forgetActiveCertificateException());
   chromeHandle('chrome:sleep-background-tabs', () => sleepBackgroundTabsNow());
   chromeHandle('chrome:invite-friend', () => inviteFriendNow());
@@ -12137,6 +12204,7 @@ const SLASH_COMMANDS = [
   ['/block-ads', 'slash.blockAds.hint'],
   ['/allow-ads', 'slash.allowAds.hint'],
   ['/dark-site', 'slash.darkSite.hint'],
+  ['/route [off]', 'slash.route.doc'],
   ['/1password', 'slash.1password.hint'],
   ['/theme [system|light|dark]', 'slash.theme.doc'],
   ['/patron', 'slash.patron.hint'],

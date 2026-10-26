@@ -171,6 +171,65 @@ function resolveRoutedRuntime(destination, preferred, { runtimes, focusOrder, op
   return openProfileWindow(destination.profileId);
 }
 
+/** The rule host for a page: its parsed host with a leading `www.` dropped,
+ * or null when the page has no web host. */
+function siteRouteHost(url) {
+  if (!urlHost(url)) return null;
+  const domain = normalizeDomain(String(url));
+  return domain.ok ? domain.value : null;
+}
+
+const sameDestination = (destination, here) => destination.profileId === here.profileId
+  && (destination.spaceId ?? null) === (here.spaceId ?? null) && destination.private !== true;
+
+/** The shield popover's "Open links to this site in this profile" switch
+ * (spec §3.6): the domain rule for exactly this page's host, and whether it
+ * points `here` ({ profileId, spaceId }). null when the page has no host. */
+function siteLinkRouteState(routes, url, here) {
+  const host = siteRouteHost(url);
+  if (!host) return null;
+  const rule = normalizeLinkRoutes(routes).find((route) => route.match.kind === 'domain' && route.match.value === host) ?? null;
+  return { host, rule, on: !!rule && sameDestination(rule.destination, here) };
+}
+
+/** The shield popover's switch model: null in a private tab, with fewer
+ * than two live profiles, or for a page with no host. `nameFor(destination)`
+ * names where a rule for this host sends links instead, or returns null. */
+function siteRouteSwitchModel({ routes, url, here, privateTab, liveProfileCount, nameFor = () => null }) {
+  if (privateTab || liveProfileCount < 2) return null;
+  const state = siteLinkRouteState(routes, url, here);
+  if (!state) return null;
+  const elsewhere = state.rule && !state.on ? (nameFor(state.rule.destination) ?? null) : null;
+  return { on: state.on, scope: here.spaceId ? 'space' : 'profile', elsewhere };
+}
+
+/** Write or replace the domain rule for this page's host so it points
+ * `here`. A replaced rule keeps its id and place; a new one goes first, so a
+ * broader rule further down can't shadow it. */
+function setSiteLinkRoute(routes, url, here, makeId) {
+  const host = siteRouteHost(url);
+  if (!host) return { ok: false, error: 'no-host' };
+  const list = normalizeLinkRoutes(routes);
+  const destination = { profileId: here.profileId, spaceId: here.spaceId ?? null, private: false };
+  const index = list.findIndex((route) => route.match.kind === 'domain' && route.match.value === host);
+  if (index >= 0) {
+    list[index] = { ...list[index], destination };
+  } else {
+    if (list.length >= MAX_LINK_ROUTES) return { ok: false, error: 'too-many', host };
+    list.unshift({ id: makeId(), match: { kind: 'domain', value: host }, destination });
+  }
+  return { ok: true, host, routes: list };
+}
+
+/** Remove the domain rule for this page's host, wherever it points. */
+function removeSiteLinkRoute(routes, url) {
+  const host = siteRouteHost(url);
+  if (!host) return { ok: false, error: 'no-host' };
+  const list = normalizeLinkRoutes(routes);
+  const kept = list.filter((route) => !(route.match.kind === 'domain' && route.match.value === host));
+  return { ok: true, host, removed: kept.length !== list.length, routes: kept };
+}
+
 /** Deleting a profile removes the rules that point at it. */
 function linkRoutesWithoutProfile(routes, profileId) {
   return normalizeLinkRoutes(routes).filter((route) => route.destination.profileId !== profileId);
@@ -189,4 +248,9 @@ module.exports = {
   linkRouteTargetState,
   linkRoutesWithoutProfile,
   resolveRoutedRuntime,
+  siteRouteHost,
+  siteLinkRouteState,
+  siteRouteSwitchModel,
+  setSiteLinkRoute,
+  removeSiteLinkRoute,
 };
