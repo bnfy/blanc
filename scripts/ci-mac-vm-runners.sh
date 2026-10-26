@@ -11,6 +11,7 @@
 #   scripts/ci-mac-vm-runners.sh status          VMs, the loop's service and the runners GitHub sees
 #   scripts/ci-mac-vm-runners.sh rebuild-image   rebuild the golden image (newer macOS image or runner)
 #   scripts/ci-mac-vm-runners.sh stop|start      stop or start the VM loop (jobs wait while it's stopped)
+#   scripts/ci-mac-vm-runners.sh retire-direct   unregister the direct-install runner once it's idle
 #   scripts/ci-mac-vm-runners.sh uninstall       stop everything, delete the VMs and image, unset the variable
 #
 # How a job runs: the host asks GitHub for a just-in-time runner config (single
@@ -34,6 +35,7 @@ AGENT="dev.blanc.ci-vms"
 AGENT_PLIST="$HOME/Library/LaunchAgents/$AGENT.plist"
 DIRECT_RUNNER_DIR="${BLANC_RUNNER_DIR:-$HOME/actions-runner-blanc}"
 HOST="$(scutil --get LocalHostName 2>/dev/null || hostname -s)"
+DIRECT_NAME="${BLANC_RUNNER_NAME:-$HOST-blanc}"
 MAX_VM_HOURS="${BLANC_VM_MAX_HOURS:-6}"
 
 say() { printf '\n==> %s\n' "$*"; }
@@ -273,14 +275,31 @@ agent_start() {
 }
 agent_stop() { launchctl bootout "gui/$(id -u)/$AGENT" 2>/dev/null || true; }
 
+direct_runner_busy() {
+  gh api "repos/$REPO/actions/runners" --paginate --jq ".runners[] | select(.name == \"$DIRECT_NAME\") | .busy"
+}
+
+# Retire a runner left by scripts/ci-mac-runner-setup.sh, but only between
+# jobs: stopping it mid-job kills that job, and GitHub refuses to unregister a
+# runner it still counts as busy. A job killed that way is reported busy until
+# GitHub gives up on it, which can take several minutes.
 retire_direct_runner() {
   [[ -x "$DIRECT_RUNNER_DIR/config.sh" && -f "$DIRECT_RUNNER_DIR/.runner" ]] || return 0
-  say "Retiring the directly installed runner in $DIRECT_RUNNER_DIR (the VMs replace it)"
-  (cd "$DIRECT_RUNNER_DIR" && { ./svc.sh stop || true; } && { ./svc.sh uninstall || true; })
+  say "Retiring the directly installed runner $DIRECT_NAME (the VMs replace it)"
+  local waited=0
+  while [[ "$(direct_runner_busy)" == true ]]; do
+    (( waited % 60 == 0 )) && echo "waiting for it to finish its current job…"
+    sleep 15; waited=$(( waited + 15 ))
+  done
+  (cd "$DIRECT_RUNNER_DIR" && { ./svc.sh stop >/dev/null 2>&1 || true; } && { ./svc.sh uninstall >/dev/null 2>&1 || true; })
   local token
   token="$(gh api -X POST "repos/$REPO/actions/runners/remove-token" --jq .token)"
-  (cd "$DIRECT_RUNNER_DIR" && ./config.sh remove --token "$token")
-  echo "Removed. $DIRECT_RUNNER_DIR can be deleted."
+  if (cd "$DIRECT_RUNNER_DIR" && ./config.sh remove --token "$token"); then
+    echo "Removed. $DIRECT_RUNNER_DIR can be deleted."
+  else
+    echo "warning: couldn't unregister it; once GitHub shows it idle or offline, run: $0 retire-direct" >&2
+    return 1
+  fi
 }
 
 install() {
@@ -305,7 +324,7 @@ install() {
     [[ "$i" -lt 60 ]] || die "no VM runner came online; see $STATE/loop.log and $STATE/slot-1.log"
   done
 
-  retire_direct_runner
+  retire_direct_runner || true
 
   if [[ "$(gh variable get MAC_RUNNER_LABELS -R "$REPO" 2>/dev/null || true)" != "$LABELS_JSON" ]]; then
     gh variable set MAC_RUNNER_LABELS -R "$REPO" --body "$LABELS_JSON"
@@ -360,7 +379,8 @@ case "${1:-}" in
   stop) agent_stop; say "Stopped. Jobs wait for a runner until you start it again or run uninstall." ;;
   start) agent_start; say "Started." ;;
   uninstall) preflight; uninstall ;;
+  retire-direct) preflight; retire_direct_runner ;;
   serve) serve ;;
-  -h|--help|"") sed -n '2,24p' "$0" ;;
+  -h|--help|"") sed -n '2,25p' "$0" ;;
   *) die "unknown command: $1 (try --help)" ;;
 esac

@@ -47,7 +47,7 @@ Each job then starts from a clean macOS image and leaves nothing behind for the 
 
    The host's GitHub sign-in never enters a VM; each VM only sees its own single-use config. Apple's macOS licence allows two macOS VMs per Mac, and Virtualization.framework enforces that, so two VMs is the ceiling per machine.
 4. **Labels:** `self-hosted`, `macOS`, `ARM64` and `blanc-ci`, the same as the direct install, so `MAC_RUNNER_LABELS` doesn't change.
-5. **Switching over.** Once a VM runner is online, the script retires a direct-install runner left by `scripts/ci-mac-runner-setup.sh` and sets `MAC_RUNNER_LABELS` if it isn't set.
+5. **Switching over.** Once a VM runner is online, the script retires a direct-install runner left by `scripts/ci-mac-runner-setup.sh`, waiting for it to finish any job it's running, and sets `MAC_RUNNER_LABELS` if it isn't set. If GitHub won't unregister it yet, `retire-direct` finishes the job later.
 
 Day to day: `status` shows the loop, the VMs and the runners GitHub sees. `rebuild-image` refreshes the image with a newer macOS image or runner. `stop` and `start` pause the loop; jobs wait meanwhile. `uninstall` deletes the variable first, then the loop, the VMs and their runners. Logs are in `~/blanc-ci-vms`.
 
