@@ -53,10 +53,19 @@ const rowFor = (list, id) => list.locator(`[data-drag-tab][data-tab-id="${id}"]`
 const headerFor = (list, groupId) => list.locator(`[data-drag-header][data-group-id="${groupId}"]`);
 
 async function boxOf(locator, label) {
-  await locator.scrollIntoViewIfNeeded();
-  const box = await locator.boundingBox();
-  assert.ok(box, `${label} has a rendered box`);
-  return box;
+  // List updates can replace a header while Playwright waits for scroll
+  // stability. Resolve the locator again before any pointer input; never
+  // retry a drag or swallow a closed renderer / unrelated action failure.
+  return waitForValue(async () => {
+    try {
+      await locator.scrollIntoViewIfNeeded({ timeout: 2000 });
+      return await locator.boundingBox();
+    } catch (error) {
+      if (!String(error?.message).includes('Element is not attached to the DOM')) throw error;
+      return null;
+    }
+  }, (box) => box && box.width > 0 && box.height > 0,
+  `${label} to have an attached rendered box`, 7000);
 }
 
 /**

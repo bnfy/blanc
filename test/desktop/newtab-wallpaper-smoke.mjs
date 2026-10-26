@@ -33,6 +33,13 @@ try {
   const page = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc://newtab/'), Boolean, 'new tab');
   const footerToggle = page.getByRole('button', { name: 'Change with time of day', exact: true });
   await page.waitForLoadState('domcontentloaded'); // found by URL while <head> scripts may still load
+  // Overlay and utility windows can change native creation order. Keep the
+  // actual browser window identity for resize/minimize/close operations.
+  const browserWindowId = await app.evaluate(({ BrowserWindow }) => {
+    const browser = BrowserWindow.getAllWindows().find(window => window.webContents.getURL() === 'blanc-chrome://index/');
+    if (!browser) throw new Error('browser chrome window missing');
+    return browser.id;
+  });
   await page.waitForFunction(() => !document.getElementById('dynamicWallpaperToggle').disabled);
   const data = await page.evaluate(() => window.bowserPages.start.data());
   assert.equal(data.patronActive, false);
@@ -50,7 +57,7 @@ try {
   assert.equal((await page.evaluate(() => window.bowserPages.start.data())).dynamicWallpaperEnabled, true,
     'footer enables the free setting without Patron');
   assert.equal(JSON.parse(fs.readFileSync(path.join(`${profile}-Dev`, 'settings.json'))).usagePing, false);
-  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setContentSize(1200, 820));
+  await inMainTurn(app, ({ BrowserWindow }, id) => BrowserWindow.fromId(id).setContentSize(1200, 820), browserWindowId);
   const privateId = await callTestHook(app, 'openTab', ['blanc://newtab/?private=1', { private: true }]);
   const privatePage = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc://newtab/?private=1'), Boolean, 'private start page');
   // The page is found by URL while its <head> scripts may still be loading, so
@@ -92,7 +99,7 @@ try {
       await openCustomize(current);
       const switcher = current.getByRole('button', { name: 'Change with time of day', exact: true });
       for (const width of [640, 800, 1040, 1041, 1200]) {
-        await app.evaluate(({ BrowserWindow }, width) => BrowserWindow.getAllWindows()[0].setContentSize(width, 820), width);
+        await inMainTurn(app, ({ BrowserWindow }, { id, width }) => BrowserWindow.fromId(id).setContentSize(width, 820), { id: browserWindowId, width });
         await current.waitForFunction((width) => innerWidth === width, width);
         await openCustomize(current);
         const boxes = await current.evaluate(() => {
@@ -236,10 +243,20 @@ try {
   // real hide/show events there; native desktop runners retain minimize/restore.
   const hiddenAction = process.platform === 'linux' ? 'hide' : 'minimize';
   const visibleAction = process.platform === 'linux' ? 'show' : 'restore';
-  await app.evaluate(({ BrowserWindow }, action) => BrowserWindow.getAllWindows()[0][action](), hiddenAction);
+  await inMainTurn(app, ({ BrowserWindow }, { id, action }) => BrowserWindow.fromId(id)[action](), { id: browserWindowId, action: hiddenAction });
+  await waitForValue(() => app.evaluate(({ BrowserWindow }, id) => {
+    const window = BrowserWindow.fromId(id);
+    return { minimized: window.isMinimized(), visible: window.isVisible() };
+  }, browserWindowId), state => hiddenAction === 'hide' ? !state.visible : state.minimized,
+  'browser window native minimize/hide', 7000);
   await privatePage.waitForFunction(() => document.body.dataset.wallpaperVisible === 'false');
   assert.equal(await privatePage.evaluate(() => wallpaperMinuteTimers.size), 0);
-  await app.evaluate(({ BrowserWindow }, action) => BrowserWindow.getAllWindows()[0][action](), visibleAction);
+  await inMainTurn(app, ({ BrowserWindow }, { id, action }) => BrowserWindow.fromId(id)[action](), { id: browserWindowId, action: visibleAction });
+  await waitForValue(() => app.evaluate(({ BrowserWindow }, id) => {
+    const window = BrowserWindow.fromId(id);
+    return { minimized: window.isMinimized(), visible: window.isVisible() };
+  }, browserWindowId), state => state.visible && !state.minimized,
+  'browser window native restore/show', 7000);
   await privatePage.waitForFunction(() => document.body.dataset.wallpaperVisible === 'true');
   assert.equal(await privatePage.evaluate(() => wallpaperMinuteTimers.size), 1);
   await app.evaluate(({ powerMonitor }) => powerMonitor.emit('resume'));
@@ -247,12 +264,12 @@ try {
   if (process.platform === 'darwin') {
     const contentsId = await app.evaluate(({ webContents }) => webContents.getAllWebContents()
       .find((wc) => wc.getURL() === 'blanc://newtab/?private=1').id);
-    const closedWindowId = await inMainTurn(app, ({ BrowserWindow }) => {
-      const window = BrowserWindow.getAllWindows()[0];
+    const closedWindowId = await inMainTurn(app, ({ BrowserWindow }, browserWindowId) => {
+      const window = BrowserWindow.fromId(browserWindowId);
       const id = window.id;
       window.close();
       return id;
-    });
+    }, browserWindowId);
     await waitForValue(() => app.evaluate(({ BrowserWindow }, id) => BrowserWindow.fromId(id) === null, closedWindowId), Boolean, 'window closed');
     await waitForValue(() => privatePage.evaluate(() => document.body.dataset.wallpaperVisible),
       (value) => value === 'false', 'retained start page hidden');

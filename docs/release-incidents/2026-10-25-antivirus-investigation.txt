@@ -1,5 +1,32 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+DRAG FIX AND SIGNED-ARTIFACT SCAN (Oct 26): The earlier signed ARM candidate
+from run 40383559962 (source 1d50596a5) completed VirusTotal at 0/60 on Oct 26,
+with Avast, AVG and Kaspersky explicitly Undetected. Its exact DMG hash is
+634dedc10392fd3e795d34b9e71b92e8c01ed7cdbcc348d1927767491e07baa3.
+https://www.virustotal.com/gui/file/634dedc10392fd3e795d34b9e71b92e8c01ed7cdbcc348d1927767491e07baa3
+This is evidence for that installer, not clearance for another source/build.
+Run 40392169650 at e8cf7455f reached 540/541 scenarios on ARM; only F3-17
+failed because its Recently closed header detached during pre-drag scrolling.
+The geometry helper now re-resolves exactly that detached-element failure
+before pointer input; renderer closure and other errors remain fatal. It does
+not retry a drag or change outcome assertions. All 38 drag scenarios / 327
+steps pass locally with retries disabled; two regression tests and lint pass.
+The Linux parity job initially timed out loading the real Chrome Web Store
+named-profile private page. One unchanged-source rerun passed all seven Store
+paths and five 111-command keyboard runs. Original failure is retained in
+/tmp/blanc-e8-linux-shortcuts.log; rerun evidence is in the adjacent -rerun log.
+Intel in run 40392169650 passed all 541 desktop scenarios / 4,731 steps, then
+the standalone wallpaper smoke test timed out waiting for minimization to
+hide the wallpaper. That test selected getAllWindows()[0] and issued native
+operations directly from the inspector. It now pins the actual chrome window,
+performs resize/minimize/restore/close in a main-event-loop turn, and verifies
+native minimize/restore state before checking the unchanged wallpaper/timer
+assertions. The full local smoke passes: 48 rendered combinations, 60 footer
+placement checks, opacity/reduced-motion, Settings parity and Dock lifecycle.
+Both old native jobs are complete and failed before signing.
+No release, tag, feed update or PR merge has occurred.
+
 SIGNED APPLE SILICON CANDIDATE (Oct 26): Run 40383559962 at 1d50596a5
 completed both jobs. Apple Silicon passed all 541 scenarios / 4,731 steps,
 the full press gate, signing, notarization and packaged first-run smoke.
@@ -7,7 +34,7 @@ The downloaded DMG SHA-256 is
 634dedc10392fd3e795d34b9e71b92e8c01ed7cdbcc348d1927767491e07baa3.
 Independent local digest, Developer ID, pinned certificate, Gatekeeper,
 stapled ticket, VMP, uBO and adblock payload verification all passed.
-Antivirus scanning is pending; this is an unpublished candidate.
+The scan subsequently completed at 0/60 as recorded above; the candidate remains unpublished.
 Intel passed 540/541 scenarios. Its only failure was F35-3 snapshotting an
 empty Hint announcement after a fixed 30 ms delay. The helper now waits up
 to five seconds for publication, retaining the existing message assertion.
