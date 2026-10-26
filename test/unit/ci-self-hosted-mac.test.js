@@ -26,8 +26,8 @@ test('every runs-on that can pick the self-hosted Mac also refuses forks', () =>
 });
 
 test('Intel, iOS, the unit suite and the release workflows stay on GitHub-hosted runners', () => {
-  // unit (macos-15) waited a median 24 minutes for the Mac's two VM slots and
-  // ran twice as long there (October 26, 2026); hosted macOS takes it at once.
+  // unit (macos-15) waited a median 24 minutes for the Mac's two VM slots
+  // (October 26, 2026); hosted macOS takes it at once.
   for (const name of ['unit-tests.yml', 'ios.yml', 'release-windows-linux.yml', 'prerelease-smoke.yml', 'nightly-desktop.yml']) {
     assert.ok(!read(name).includes('MAC_RUNNER_LABELS'), name);
   }
