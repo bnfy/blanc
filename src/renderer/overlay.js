@@ -57,6 +57,13 @@
   const capturePop = document.getElementById('capturePop');
   const capturePopHead = document.getElementById('capturePopHead');
   const capturePopRows = document.getElementById('capturePopRows');
+  const switcherCard = document.getElementById('switcherCard');
+  const switcherTiles = document.getElementById('switcherTiles');
+  const switcherTitle = document.getElementById('switcherTitle');
+  const switcherHost = document.getElementById('switcherHost');
+  const switcherStatus = document.getElementById('switcherStatus');
+  /** The Ctrl+Tab card's last payload from main: `{ tabIds, pick }`. */
+  let switcherModel = null;
   const displayShareBackdrop = document.getElementById('displayShareBackdrop');
   const displaySharePicker = document.getElementById('displaySharePicker');
   const displayShareOrigin = document.getElementById('displayShareOrigin');
@@ -2891,6 +2898,8 @@
     shieldPop.hidden = next !== 'shield';
     shieldPopPointer.hidden = next !== 'shield' || !shieldConnected;
     capturePop.hidden = next !== 'capture';
+    switcherCard.hidden = next !== 'switcher';
+    if (next !== 'switcher') switcherModel = null;
     displayShareBackdrop.hidden = next !== 'display-share';
     if (next !== 'display-share') displayShareModel = null;
     glancePickerEl.hidden = next !== 'glance';
@@ -3031,6 +3040,57 @@
     } else if (next === 'capture') {
       renderCapturePop();
       capturePopRows.querySelector('.capture-pop-stop, .display-share-stop')?.focus();
+    } else if (next === 'switcher') {
+      const previousPick = switcherModel ? switcherModel.tabIds[switcherModel.pick] : undefined;
+      switcherModel = purpose?.switcher ?? null;
+      renderSwitcher({ announce: reshow ? 'step' : 'open', previousPick });
+    }
+  }
+
+  // The Ctrl+Tab card draws main's order and pick as they are; it keeps no
+  // order of its own and never takes focus (main reads the keys). A click on a
+  // tile is the one thing it sends back.
+  function renderSwitcher({ announce = null, previousPick } = {}) {
+    const model = switcherModel;
+    const entries = (model?.tabIds ?? [])
+      .map((id) => state.tabs.find((tab) => tab.id === id))
+      .filter(Boolean);
+    const pickId = model?.tabIds[model.pick];
+    const tiles = entries.map((tab, index) => {
+      const li = document.createElement('li');
+      li.className = 'switcher-tile';
+      li.id = `switcher-tile-${index}`;
+      li.setAttribute('role', 'option');
+      li.setAttribute('aria-selected', String(tab.id === pickId));
+      li.setAttribute('aria-label', tab.title || blancI18n.t('tab.untitled'));
+      li.dataset.i18nIgnore = 'aria-label'; // a page title
+      const icon = document.createElement('span');
+      setFavicon(icon, tab);
+      li.append(icon);
+      li.addEventListener('mousedown', (event) => {
+        event.preventDefault();
+        window.browserAPI.switcherPick(tab.id);
+      });
+      return li;
+    });
+    switcherTiles.replaceChildren(...tiles);
+    const picked = entries.find((tab) => tab.id === pickId);
+    const pickIndex = entries.indexOf(picked);
+    if (pickIndex >= 0) {
+      switcherTiles.setAttribute('aria-activedescendant', `switcher-tile-${pickIndex}`);
+      tiles[pickIndex].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    } else {
+      switcherTiles.removeAttribute('aria-activedescendant');
+    }
+    switcherTitle.textContent = picked ? picked.title || blancI18n.t('tab.untitled') : '';
+    switcherTitle.dataset.i18nIgnore = '';
+    switcherHost.textContent = picked ? tabDomain(picked) : '';
+    switcherHost.dataset.i18nIgnore = '';
+    // Opening and each step say where the pick is; a repaint for another
+    // reason (a tab's title loading) says nothing.
+    if (picked && (announce === 'open' || (announce === 'step' && previousPick !== pickId))) {
+      const params = { title: picked.title || blancI18n.t('tab.untitled'), position: pickIndex + 1, count: entries.length };
+      switcherStatus.textContent = blancI18n.t(announce === 'open' ? 'switcher.opened' : 'switcher.step', params);
     }
   }
 
@@ -3590,6 +3650,9 @@
     shieldPopPointer.hidden = true;
     shieldConnected = false;
     glancePickerEl.hidden = true;
+    switcherCard.hidden = true;
+    switcherModel = null;
+    switcherStatus.textContent = '';
     inputTouched = false;
     siteInfoOpen = false;
     commandResultGeneration += 1;
@@ -3964,6 +4027,7 @@
     if (mode === 'glance') renderGlancePicker();
     if (mode === 'shield') renderShieldPop();
     if (mode === 'capture') renderCapturePop();
+    if (mode === 'switcher') renderSwitcher();
   });
   // Cached-first: the panel renders the cache instantly, and this repaints
   // when the panel-open refresh's pull lands (tab sync).

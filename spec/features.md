@@ -1738,6 +1738,10 @@ the candidate branch; not shipped in public v1.43.1.
 - **Platforms.** Recent order needs Blanc to see the Ctrl release; it ships
   only where that has been proven (Linux so far). Elsewhere Ctrl+Tab keeps
   going by position and the setting is hidden.
-- **Card.** Not in the first version: a held multi-step works blind until the
-  favicon-strip card follows.
+- **Card.** From the second step (or 150 ms into a held Ctrl), a row of
+  favicon tiles under the Island shows the pick raised, with its title and
+  host. It never takes focus; a click on a tile switches at once; Ctrl+W closes
+  the picked tab and the pick moves one step older. Screen readers hear
+  "Switch tabs, {title}, {n} of {count}" and each step. With another Island
+  surface open the switch works without the card.
 - **Mobile.** Not applicable: phones have no Ctrl key.
