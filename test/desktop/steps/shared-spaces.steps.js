@@ -104,7 +104,7 @@ Then('device B still sees its last shareable web page',{timeout:180000},async fu
 });
 When('the account storage is full and I delete Work',{timeout:180000},async function(){
  const state=await this.call('sharedSpacesTest','state');this.sid=Object.keys(state.shared.blobs)[0];
- const usage=[...this.sharedFixture.env.records].filter(([k])=>k.startsWith(`blob:${this.sharedKey.accountId}:`)).reduce((sum,[,v])=>sum+Buffer.byteLength(v)+256,0);
+ const usage=(await this.sharedFixture.quotaUsage(this.sharedKey.accountId)).bytes;
  this.sharedFixture.env.ACCOUNT_STORAGE_QUOTA_BYTES=String(usage);
  this.quotaProbe=()=>fetch(`${this.sharedFixture.url}/v1/blob/${this.sharedKey.accountId}/space-${'d'.repeat(32)}`,{method:'PUT',body:JSON.stringify({ifVersion:null,blob:encrypt(this.sharedKey.key,JSON.stringify({probe:'x'.repeat(100)}))})});
  const refused=await this.quotaProbe();assert.equal(refused.status,507);assert.deepEqual(await refused.json(),{error:'account-quota'});
@@ -113,7 +113,7 @@ When('the account storage is full and I delete Work',{timeout:180000},async func
  await this.call('sharedSpacesTest','pull',['space-'+this.sid]);
 });
 Then('the next encrypted write succeeds without waiting for retention expiry',{timeout:180000},async function(){
- const saved=this.sharedFixture.env.records.get(`blob:${this.sharedKey.accountId}:space-${this.sid}`);assert.ok(saved);
+ const saved=this.sharedFixture.blobs.get(`blob:${this.sharedKey.accountId}:space-${this.sid}`);assert.ok(saved);
  const compact=JSON.parse(decrypt(this.sharedKey.key,JSON.parse(saved).blob));assert.deepEqual(compact.tabs,{});assert.deepEqual(compact.groups,{});
  assert.equal((await this.quotaProbe()).status,200);
  const state=await this.call('sharedSpacesTest','state');assert.equal(state.shared.index.spaces[this.sid].deleted.v,true);
@@ -195,7 +195,7 @@ When('an index write fails after the new Space blob succeeds',{timeout:180000},a
  const state=await this.call('sharedSpacesTest','state'),row=state.workspaces.items.find(w=>w.name==='Work');
  assert.equal((await this.call('sharedSpacesTest','apply',{enabled:true,selections:[{id:row.id,mode:'copy'}]})).ok,true);
  this.sid=Object.keys((await this.call('sharedSpacesTest','state')).shared.blobs)[0];
- assert.ok(this.sharedFixture.env.records.has(`blob:${this.sharedKey.accountId}:space-${this.sid}`));
+ assert.ok(this.sharedFixture.blobs.has(`blob:${this.sharedKey.accountId}:space-${this.sid}`));
  assert.equal(this.sharedFixture.env.records.has(`blob:${this.sharedKey.accountId}:spaces`),false);
 });
 Then('the restored client retries the missing index entry',{timeout:300000},async function(){
@@ -203,7 +203,31 @@ Then('the restored client retries the missing index entry',{timeout:300000},asyn
  await this.call('sharedSpacesTest','pull',['space-'+this.sid,'spaces']);
  const raw=this.sharedFixture.env.records.get(`blob:${this.sharedKey.accountId}:spaces`);assert.ok(raw);
  const index=JSON.parse(decrypt(this.sharedKey.key,JSON.parse(raw).blob));assert.ok(index.spaces[this.sid]);
- assert.ok(this.sharedFixture.env.records.has(`blob:${this.sharedKey.accountId}:space-${this.sid}`));
+ assert.ok(this.sharedFixture.blobs.has(`blob:${this.sharedKey.accountId}:space-${this.sid}`));
+});
+
+When('erasing the server copy fails once', {timeout:180000}, async function(){
+ this.sharedPage=await settingsPage(this);
+ const remove=this.sharedFixture.env.SYNC.delete;let fail=true;
+ this.sharedFixture.env.SYNC.delete=async key=>{if(fail){fail=false;throw Error('erase failed once');}return remove(key);};
+ await this.sharedPage.locator('#syncWipe').check();
+ await this.sharedPage.locator('#syncDisable').click();
+});
+Then('Settings keeps the credentials and offers an erasure retry', {timeout:180000}, async function(){
+ await waitForValue(()=>this.sharedPage.locator('#syncStatusError').textContent(),text=>text.includes('server copy is still being erased'),'pending erasure message');
+ assert.equal(await this.sharedPage.locator('#syncEraseRetry').isVisible(),true);
+ assert.equal(await this.sharedPage.locator('#syncDisable').isVisible(),true);
+ assert.equal(await this.sharedPage.locator('#syncWipe').isEnabled(),true);
+ const state=await this.sharedPage.evaluate(()=>window.bowserPages.settings.syncGet());assert.equal(state.enabled,true);
+});
+When('I retry erasing the server copy', {timeout:180000}, async function(){
+ await this.sharedPage.locator('#syncEraseRetry').click();
+});
+Then('the erasure completes and sync turns off', {timeout:180000}, async function(){
+ await waitForValue(()=>this.sharedPage.locator('#syncEraseRetry').isVisible(),v=>!v,'erasure retry cleared');
+ const state=await this.sharedPage.evaluate(()=>window.bowserPages.settings.syncGet());assert.equal(state.enabled,false);
+ assert.equal([...this.sharedFixture.blobs.keys()].some(k=>k.startsWith(`blob:${this.sharedKey.accountId}:`)),false);
+ assert.equal(this.sharedFixture.requests.filter(r=>r.method==='DELETE'&&!r.store&&r.status===204).length,1);
 });
 Given('the background Work tab has unsaved input',{timeout:60000},async function(){
  assert.notEqual((await this.state()).activeTabId,this.firstTab,'the first Work tab is in the background');

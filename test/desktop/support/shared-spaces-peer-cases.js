@@ -23,7 +23,7 @@ async function runPeerCase(name){
  async function advance(amount){wall+=amount;for(const d of devices)await d.clock.advance(amount);}
  function device(name,{syncTabs=false}={}){const clock=virtualClock(wall),d=syncDevice({clock,key,endpoint:fixture.url,record:{deviceId:name,syncTabs},fetch:(url,options)=>{assert.ok(String(url).startsWith(fixture.url+'/'));if((options?.method??'GET')==='GET'){const s=d.spaces.snapshot(d.ctx);trace.push({device:name,at:wall,item:String(url).split('/').at(-1),class:({S:'I',F:'S',R:'F',I:'R'})[s.nextClass],cap:s.windowLimit});}return fetch(url,options);}});d.ctx={accountId:account,deviceId:name};d.clock=clock;d.spaces.setEnabled(true,d.ctx);devices.push(d);return d;}
  async function drive(promise){let done=false,result,error;promise.then(v=>{done=true;result=v;},e=>{done=true;error=e;});for(let n=0;n<3000&&!done;n++){await new Promise(r=>setTimeout(r,2));const delay=Math.min(...devices.map(d=>d.clock.nextDelay()));if(Number.isFinite(delay))await advance(delay);}assert.ok(done,'the real request queue must settle');if(error)throw error;return result;}
- const read=s=>{const raw=fixture.env.records.get(`blob:${account}:${s}`);return raw?JSON.parse(decrypt(key,JSON.parse(raw).blob)):null;};
+ const read=s=>{const raw=fixture.blobs.get(`blob:${account}:${s}`);return raw?JSON.parse(decrypt(key,JSON.parse(raw).blob)):null;};
  const seed=(d,b=blob())=>{d.spaces.noteLocalSpace(b.spaceId,b,{tabs:b.tabs},d.ctx);d.spaces.setIndex({v:1,spaces:{[b.spaceId]:index(b.spaceId)}},d.ctx);};
  const a=device('A');
  try {
@@ -69,14 +69,18 @@ async function runPeerCase(name){
   if(name==='same-version writes replay pending fields'){
    const b=device('B');await drive(b.sync.syncNow([store]));const al=blob(),bl=blob();al.tabs[id(1)].name=f('A edit',300);bl.tabs[id(1)].pinned=f(true,301,'B');
    a.spaces.noteLocalSpace(sid,al,{tabs:{[id(1)]:{name:al.tabs[id(1)].name}}},a.ctx);b.spaces.noteLocalSpace(sid,bl,{tabs:{[id(1)]:{pinned:bl.tabs[id(1)].pinned}}},b.ctx);
+   const from=fixture.requests.length;
    fixture.raceNextPuts({accountId:account,store});await drive(Promise.all([a.sync.syncNow([store]),b.sync.syncNow([store])]));
+   const puts=fixture.requests.slice(from).filter(r=>r.method==='PUT'&&r.store===store);
+   assert.deepEqual(puts.slice(0,2).map(r=>r.status).sort(),[200,409]);
+   assert.ok(puts.slice(2).some(r=>r.status===200),'loser must replay its pending edit on retry');
    await drive(a.sync.syncNow([store]));await drive(b.sync.syncNow([store]));await drive(a.sync.syncNow([store]));
    assert.equal(read(store).tabs[id(1)].name.v,'A edit');assert.equal(read(store).tabs[id(1)].pinned.v,true);return;
   }
   if(name==='unrecoverable write is reported honestly'){
    const local=blob();local.tabs[id(1)].name=f('Lost',500);a.spaces.noteLocalSpace(sid,local,{tabs:{[id(1)]:{name:local.tabs[id(1)].name}}},a.ctx);await drive(a.sync.syncNow([store]));await drive(a.sync.syncNow([store]));
    assert.equal(a.spaces.snapshot(a.ctx).pending[sid]?.tabs,undefined);
-   fixture.env.records.delete(`blob:${account}:${store}`);await a.dispose();devices.splice(devices.indexOf(a),1);
+   await fixture.loseBlob(account,store);await a.dispose();devices.splice(devices.indexOf(a),1);
    const fresh=device('fresh');assert.equal(read(store),null);assert.equal(fresh.spaces.snapshot(fresh.ctx).blobs[sid],undefined);
    fixture.inject({type:'network',store});fresh.spaces.noteLocalSpace(sid,blob(),{},fresh.ctx);await drive(fresh.sync.syncNow([store]));
    assert.equal(surfaces.markState(fresh.sync.sharedStatus(),fresh.sync.spaceStatus(sid)),'notSynced');assert.ok(fresh.sync.spaceStatus(sid).failed);return;

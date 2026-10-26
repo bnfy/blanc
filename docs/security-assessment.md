@@ -104,16 +104,25 @@ not release evidence or a decision to close R3/R5.
 | Credential changes | `sync.js` captures account, generation, consent and protected key for each operation. The queue rechecks cancellation before dispatch and after awaits; disable, account changes, suspension, consent changes and unavailable stores cancel queued work. `sync-queue-callers.test.js` covers these boundaries, including an in-flight PUT and account replacement. Linux `basic_text` remains refused by `sync-key-storage.js`. |
 | Untrusted navigation | Model sanitization accepts only HTTP(S), not `javascript:`, `data:`, internal or local schemes. `shared-spaces-runtime.js` persists accepted targets before applying them, protects active tabs and visible panes, and does not publish remote application as a local edit. `applySharedSpaceRow` uses ordinary quiet-tab creation or `navigateTabToAddress`; normal URL, document-policy, blocker and session rules remain in force. |
 | Renderer authority | Settings controls use `textContent` and DOM construction for peer names and choices. `pages.js`, `tab-preload.js` and `browser-api/bridges.json` restrict sharing actions to the owned Settings main frame; arbitrary web pages get no sharing or credential API. The Worker receives only encrypted payloads and an opaque locator. |
-| Quota and deletion | One account Durable Object serializes reservation plus KV write, rollback, single-store deletion and account deletion. This closes a discovered reservation/write-order race; a stalled-write regression verifies it. Deleting a Space compacts encrypted content immediately, retaining the index tombstone and store slot for 30 days; individual DELETE then releases the slot. Oversized blobs (413), account quota (507), and rate limit (429) remain distinct. |
-| Open R3/R5 | The locator remains a bearer capability: an account member can read, replace or erase ciphertext. KV reads/version checks remain non-atomic: same-version PUTs can both succeed, and a lost acknowledged write may be unrecoverable. Stale replicas can resurrect expired tombstones; long-stale absent records are preserved in a local recovery Space. Tests assert these limits rather than claiming an authenticated or atomic protocol. |
+| Quota and deletion | Schema 2 keeps new Space ciphertext and its charge in one SQLite transaction; fixed stores remain in KV under eight permanent historical reservations. Before/after-commit failures reload a complete row/charge pair or neither, so retry and erasure do not depend on stale reads or permanent intents. Selective DELETE is atomic. Account wipe retains SQLite data and blocks writes on partial legacy KV failure, then atomically clears the active database. Missing quota binding refuses Space reads/mutations and account erasure. Oversized blobs (413), account quota (507), and rate limit (429) remain distinct. |
+| Open R3/R5 | The locator remains a bearer capability: an account member can read, replace or erase ciphertext. Fixed-store KV reads/version checks remain non-atomic: same-version fixed-store PUTs can both succeed, and a lost acknowledged write may be unrecoverable. Stale replicas can resurrect expired tombstones; long-stale absent records are preserved in a local recovery Space. Space stores now compare versions inside their serialized SQLite write handler and reject stale writers with 409; pending edits merge and retry. Tests assert the remaining fixed-store limits without claiming an authenticated protocol. |
 
-The quota's first-use inventory reads eventually consistent KV. Before any
-production activation, the owner must verify a complete legacy inventory during
-a controlled migration and review its accounting; a stale listing must not be
-represented as proof that every existing blob was charged. This operational
-migration gate, the Durable Object binding/migration and chosen quota values
-are deployment review inputs. Quota code does not authorize a destructive
-legacy cleanup. See the [Worker README](../cloudflare/sync-worker/README.md).
+The owner approved the conservative reservation plan in
+[#1134 at a303b55f6](https://github.com/bnfy/blanc/pull/1134), replacing the
+freeze/export/inventory proposal. The follow-up candidate reserves 8,391,120
+bytes and eight slots permanently; no customer ciphertext inventory or backup
+is required. Production history/writer scope must be rechecked before any
+deployment request; out-of-schema imports or writers invalidate the proof.
+Cleanup is disabled and cannot reset a quota ledger even if accidentally
+enabled. The [implementation review record](security-reviews/2026-10-25-sync-conservative-quota-implementation.md)
+covers schema validation, transactional upload recovery and erasure, conservative
+capacity, and the owner-approved October 26 move to authoritative SQLite.
+Cloudflare PITR history is a separate provider retention boundary: active
+database deletion is tested, provider purge is not. No restore endpoint is
+exposed; restoring erased ciphertext is prohibited. Provider retention/policy
+and new SQLite costs must be reviewed before deployment. Deployment, real-device
+validation, #1132 merge and PR E remain held. See the
+[Worker README](../cloudflare/sync-worker/README.md).
 
 Review reference: Cloudflare's [Durable Object concurrency rules](https://developers.cloudflare.com/durable-objects/best-practices/rules-of-durable-objects/)
 explain that external KV I/O can interleave requests, and

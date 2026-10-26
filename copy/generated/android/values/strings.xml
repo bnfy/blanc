@@ -2298,4 +2298,6 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="tabs_menu_close">Close Tabs</string>
     <string name="ws_new_with_tabs">With these tabs</string>
     <string name="ws_error_moved_partly">Moved %1$s tabs to %2$s. The other tabs stayed here.</string>
+    <string name="sync_error_erasure_pending">The server copy is still being erased. Try again to finish erasing it, or turn off sync without erasing.</string>
+    <string name="settings_sync_try_again">Try again</string>
 </resources>

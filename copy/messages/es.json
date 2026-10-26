@@ -8304,5 +8304,13 @@
   "ws.error.movedPartly": {
     "message": "Se movieron {count} pestañas a {name}. Las demás siguen aquí.",
     "source": "sha256:85a9da370663e1476aa1b2bce59cfe9d40a4719ecbf6eb636f487d31da2c415b"
+  },
+  "sync.error.erasurePending": {
+    "message": "La copia del servidor sigue pendiente de borrado. Inténtalo de nuevo para terminar de borrarla, o desactiva la sincronización sin borrar los datos.",
+    "source": "sha256:9fca28f75e8f0202e782be8ce6e4dd9096ff1b367d109582dfa8f5d5a8bcc660"
+  },
+  "settings.sync.tryAgain": {
+    "message": "Intentar de nuevo",
+    "source": "sha256:9a3dd573e6c2ddc13a475a86f7ca941999f15c4fe666db42df4ad94772f923ac"
   }
 }

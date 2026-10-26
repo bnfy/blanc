@@ -8589,5 +8589,13 @@
   "ws.error.movedPartly": {
     "message": "Moved {count} tabs to {name}. The other tabs stayed here.",
     "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "sync.error.erasurePending": {
+    "message": "The server copy is still being erased. Try again to finish erasing it, or turn off sync without erasing.",
+    "note": "Settings Sync: pending server erasure and its retry action."
+  },
+  "settings.sync.tryAgain": {
+    "message": "Try again",
+    "note": "Settings Sync: pending server erasure and its retry action."
   }
 }

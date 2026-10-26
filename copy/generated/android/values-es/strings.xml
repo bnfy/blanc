@@ -2369,4 +2369,6 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="tabs_menu_close">Cerrar pestañas</string>
     <string name="ws_new_with_tabs">Con estas pestañas</string>
     <string name="ws_error_moved_partly">Se movieron %1$s pestañas a %2$s. Las demás siguen aquí.</string>
+    <string name="sync_error_erasure_pending">La copia del servidor sigue pendiente de borrado. Inténtalo de nuevo para terminar de borrarla, o desactiva la sincronización sin borrar los datos.</string>
+    <string name="settings_sync_try_again">Intentar de nuevo</string>
 </resources>

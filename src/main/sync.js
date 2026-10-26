@@ -16,7 +16,7 @@ const { deviceName } = require('./device-name');
 const { resolveDeviceName } = require('./device-names');
 const { deriveKeys, encrypt, decrypt } = require('./sync-crypto');
 const pairingCodes = require('./sync-pairing');
-const { wipeDecision } = require('./sync-wipe');
+const { wipeDecision, responseCode } = require('./sync-wipe');
 const {
   SyncKeyStorageError,
   protectSyncKey,
@@ -68,7 +68,7 @@ function ensureStore() {
   if (store) return store;
   store = new JsonStore('sync', {
     enabled: false, handle: '', accountId: '', protectedKey: '', key: '',
-    lastSyncedAt: 0, lastError: null,
+    lastSyncedAt: 0, lastError: null, erasurePending: false,
     deviceId: '', syncTabs: false, syncSpaces: false,
   });
   // One-time migration from pre-hardening profiles. The old field is erased
@@ -294,7 +294,7 @@ function status() {
   const chosen = d.deviceId ? settings.getDeviceNames()[d.deviceId] : null;
   return {
     enabled: d.enabled, handle: d.handle, lastSyncedAt: d.lastSyncedAt,
-    lastError: keyProtectionError || d.lastError, syncTabs: !!d.syncTabs,
+    lastError: keyProtectionError || (d.erasurePending ? 'erasure-pending' : d.lastError), erasurePending: !!d.erasurePending, syncTabs: !!d.syncTabs,
     // What this device is called on the others ('' = no chosen name) and the
     // name it publishes, which stays the computer's (device-name.js).
     deviceName: chosen?.name ?? '', deviceNamePublished: deviceName(),
@@ -319,7 +319,7 @@ function passphraseStrong(p) {
 function errorCode(err) {
   const code = err instanceof SyncError ? err.message : '';
   if(code==='payload-too-large')return 'rejected:413';
-  if (['bad-passphrase', 'rate-limited', 'conflict', 'server', 'account-quota', 'pair-not-found', 'pair-unavailable', 'pair-invalid'].includes(code)) return code;
+  if (['bad-passphrase', 'rate-limited', 'conflict', 'server', 'account-quota', 'erasure-pending', 'pair-not-found', 'pair-unavailable', 'pair-invalid'].includes(code)) return code;
   if (/^http-4/.test(code)) return `rejected:${code.slice(5)}`;
   if (/^http-5/.test(code)) return 'server-error';
   return 'offline';
@@ -380,7 +380,7 @@ function adoptCredentials({ handle, accountId, key, protectedKey }) {
   const previousAccount=syncStore.data.accountId;
   syncStore.update((d) => {
     d.enabled = true; d.handle = handle; d.accountId = accountId;
-    d.protectedKey = protectedKey; d.key = ''; d.lastError = null;
+    d.protectedKey = protectedKey; d.key = ''; d.lastError = null; d.erasurePending = false;
     if(previousAccount!==accountId)d.syncSpaces=false;
   });
   if (!syncStore.flush()) {
@@ -672,12 +672,13 @@ async function disable({ wipeRemote = false } = {}) {
       let outcome;
       try {
         const res = await net.fetch(`${ACTIVE_SYNC_ENDPOINT}/v1/blob/${d.accountId}`, { method: 'DELETE' });
-        outcome = { status: res.status };
+        outcome = { status: res.status, code: responseCode(res.status, await responseText(res)) };
       } catch {
         outcome = { error: true };
       }
       const decision = wipeDecision(outcome);
       if (!decision.clearCredentials) {
+        if (decision.error === 'erasure-pending') ensureStore().update(s => { s.erasurePending = true; s.lastError = decision.error; });
         return { ok: false, error: decision.error, status: status() };
       }
     } else if (d.enabled && d.accountId && d.protectedKey) {
@@ -686,7 +687,7 @@ async function disable({ wipeRemote = false } = {}) {
     }
     ensureStore().update((s) => {
       s.enabled = false; s.handle = ''; s.accountId = '';
-      s.protectedKey = ''; s.key = ''; s.lastError = null;
+      s.protectedKey = ''; s.key = ''; s.lastError = null; s.erasurePending = false;
       s.syncSpaces = false;
     });
     keyProtectionError = null;
@@ -724,7 +725,7 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     for(const id of sharedSpaces.retiredSpaceIds(run.ctx))if(!payload.spaces?.[id]) {
       const removed=await net.fetch(`${ACTIVE_SYNC_ENDPOINT}/v1/blob/${accountId}/space-${id}`,{method:'DELETE'});
       if(run.stale())throw new SyncError('stale');
-      if(!removed.ok)throw new SyncError(`http-${removed.status}`);
+      if(!removed.ok)throw new SyncError(responseCode(removed.status, await responseText(removed)));
       requestQueue?.cancelWhere(op=>op.item==='space-'+id,'retired');
       sharedSpaces.forgetRetiredSpace(id,run.ctx);
     }
@@ -746,7 +747,7 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     if (desc.optional && await responseText(getRes) === 'unknown store') return { unavailable: true };
     if (run.stale()) throw new SyncError('stale');
     missing = true;
-  } else throw new SyncError(`http-${getRes.status}`);
+  } else throw new SyncError(responseCode(getRes.status, await responseText(getRes)));
   let plan = null, stored = false;
   try {
     let payload;
@@ -787,7 +788,7 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     if (putRes.status === 409) throw new SyncError('conflict');
     if (putRes.status === 507) throw new SyncError('account-quota');
     if (desc.optional && putRes.status === 404) return { unavailable: true };
-    if (!putRes.ok) throw new SyncError(`http-${putRes.status}`);
+    if (!putRes.ok) throw new SyncError(responseCode(putRes.status, await responseText(putRes)));
     stored = true;
     desc.stored?.(payload,run.ctx);
     await cleanupRetiredSpaces(payload);
@@ -941,10 +942,10 @@ async function syncNow(names = null, { onOutcome } = {}) {
   if(!ensureStore().data.enabled)return {ok:false,error:'sync-off'};
   if(keyProtectionError)return {ok:false,error:keyProtectionError};
   const required=results.filter(x=>!x.desc.optional);
-  const quotaError=results.find(x=>x.error?.message==='account-quota')?.error;
+  const quotaError=(results.find(x=>x.error?.message==='erasure-pending')??results.find(x=>x.error?.message==='account-quota'))?.error;
   const firstError=required.find(x=>x.error && !x.error.message.startsWith('cancelled:'))?.error??quotaError;
   if(required.length||quotaError||ensureStore().data.lastError==='account-quota')ensureStore().update(state=>{
-    if(firstError)state.lastError=errorCode(firstError);
+    if(firstError){state.lastError=errorCode(firstError);if(state.lastError==='erasure-pending')state.erasurePending=true;}
     else if(!skippedRequiredSelected){state.lastError=null;if(required.length)state.lastSyncedAt=Date.now();}
   });
   return firstError?{ok:false,error:keyProtectionError||errorCode(firstError)}:{ok:true};

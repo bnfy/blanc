@@ -8304,5 +8304,13 @@
   "ws.error.movedPartly": {
     "message": "{count} abas movidas para {name}. As outras ficaram aqui.",
     "source": "sha256:85a9da370663e1476aa1b2bce59cfe9d40a4719ecbf6eb636f487d31da2c415b"
+  },
+  "sync.error.erasurePending": {
+    "message": "A cópia no servidor ainda está sendo apagada. Tente novamente para concluir ou desative a sincronização sem apagar os dados.",
+    "source": "sha256:9fca28f75e8f0202e782be8ce6e4dd9096ff1b367d109582dfa8f5d5a8bcc660"
+  },
+  "settings.sync.tryAgain": {
+    "message": "Tentar novamente",
+    "source": "sha256:9a3dd573e6c2ddc13a475a86f7ca941999f15c4fe666db42df4ad94772f923ac"
   }
 }

@@ -2369,4 +2369,6 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="tabs_menu_close">Chiudi schede</string>
     <string name="ws_new_with_tabs">Con queste schede</string>
     <string name="ws_error_moved_partly">%1$s schede spostate in %2$s. Le altre sono rimaste qui.</string>
+    <string name="sync_error_erasure_pending">La cancellazione della copia sul server è ancora in sospeso. Riprova per completarla, oppure disattiva la sincronizzazione senza cancellare i dati.</string>
+    <string name="settings_sync_try_again">Riprova</string>
 </resources>

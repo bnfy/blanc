@@ -5,7 +5,7 @@
 // Clearing after a failed DELETE would strand unreachable ciphertext while
 // telling the user it's gone.
 /**
- * @param {{ error: true } | { status: number }} outcome - the DELETE attempt:
+ * @param {{ error: true } | { status: number, code?: string }} outcome - the DELETE attempt:
  *   { error: true } for a network failure, { status } for an HTTP response.
  * @returns {{ clearCredentials: boolean, ok: boolean, error: string | null }} —
  *   `error` is a sync error code (sync-messages.js).
@@ -14,10 +14,18 @@ function wipeDecision(outcome) {
   if (outcome.error) {
     return { clearCredentials: false, ok: false, error: 'wipe-offline' };
   }
+  if (outcome.code === 'erasure-pending') return { clearCredentials: false, ok: false, error: 'erasure-pending' };
   const s = outcome.status;
   if (s >= 200 && s < 300) return { clearCredentials: true, ok: true, error: null };
   if (s === 429) return { clearCredentials: false, ok: false, error: 'rate-limited' };
   return { clearCredentials: false, ok: false, error: `wipe-failed:${s}` };
 }
 
-module.exports = { wipeDecision };
+// Only this explicit server signal means a durable erasure is pending.
+function responseCode(status, body) {
+  if (status === 503) {
+    try { if (JSON.parse(body).error === 'quota erasure pending') return 'erasure-pending'; } catch {}
+  }
+  return `http-${status}`;
+}
+module.exports = { wipeDecision, responseCode };

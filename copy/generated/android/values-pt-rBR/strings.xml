@@ -2369,4 +2369,6 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="tabs_menu_close">Fechar abas</string>
     <string name="ws_new_with_tabs">Com estas abas</string>
     <string name="ws_error_moved_partly">%1$s abas movidas para %2$s. As outras ficaram aqui.</string>
+    <string name="sync_error_erasure_pending">A cópia no servidor ainda está sendo apagada. Tente novamente para concluir ou desative a sincronização sem apagar os dados.</string>
+    <string name="settings_sync_try_again">Tentar novamente</string>
 </resources>

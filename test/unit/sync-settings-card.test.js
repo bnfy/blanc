@@ -85,7 +85,9 @@ test('the visual redesign preserves every established on-state control and handl
   assert.match(html, /<input id="syncTabsShare" type="checkbox" \/> <span>share this device’s open tabs with your other devices<\/span>/);
 
   assert.match(js, /nowBtn\.addEventListener\('click',[\s\S]*?settings\.syncNow\(\)/);
-  assert.match(js, /disableBtn\.addEventListener\('click',[\s\S]*?settings\.syncDisable\(\{ wipeRemote: canWipeRemote && wipeEl\.checked \}\)/);
+  assert.match(js, /disableBtn\.addEventListener\('click', \(\) => turnOff\(canWipeRemote && wipeEl\.checked\)\)/);
+  assert.match(js, /eraseRetry\.addEventListener\('click', \(\) => turnOff\(true\)\)/);
+  assert.match(js, /async function turnOff\(wipeRemote\)[\s\S]*?settings\.syncDisable\(\{ wipeRemote \}\)/);
   assert.match(js, /wipeEl\.checked = res\.ok \? false : wipeEl\.checked/,
     'a failed remote wipe stays selected for a safe retry');
   assert.match(js, /tabsShareEl\.addEventListener\('change',[\s\S]*?settings\.syncTabsSet\(tabsShareEl\.checked\)/);
