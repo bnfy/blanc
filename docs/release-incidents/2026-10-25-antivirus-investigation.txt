@@ -1,5 +1,18 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+COMPLETE LOCAL ACCEPTANCE PASSED: At 85342c1c5 the full local gate passed all
+541 scenarios / 4,731 steps (including diagnostic After hooks); two scenarios
+recovered under the existing retry policy. All originally reported failures
+passed. Hosted ARM at 9b3049387 passed 540/541 scenarios, exposing a separate
+new vertical-text-size fixture isolation bug: a retry inherited extra-large
+from its previous attempt and failed its initial default-size assertion.
+The central scenario reset now restores verticalTabsTextSize to default.
+A focused real-Settings-UI check passes the complete text-size scenario, then
+deliberately sets extra-large and proves reset restores default (23 steps).
+The obsolete hosted attempt was stopped before signing; native full-gate
+verification on the corrected source remains required. No assertion, retry
+limit, security check or release gate was removed.
+
 FULL LOCAL ACCEPTANCE FOLLOW-UP: The reconciled source completed 541 scenarios
 with 540 passing; all originally reported failures passed. The remaining
 F1-24 pointer-fallback scenario injected a page move without first activating
