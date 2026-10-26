@@ -9,6 +9,12 @@ on:
   push:
     branches: [main]
   pull_request:
+  # macOS legs of the desktop jobs run here, not on every pull request or push:
+  # GitHub's concurrent macOS job limit queued PRs for 30-40 minutes behind them
+  # (October 2026). A manual run can add them to any branch.
+  schedule:
+    - cron: "41 7 * * *"
+  workflow_dispatch:
 
 # A new push to a pull request cancels that PR's older run. Pushes to main,
 # schedules and manual dispatches each get their own group (run_id), so
@@ -243,8 +249,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+        # macOS only nightly and on manual runs (see `on:` above), on the
+        # self-hosted Mac when vars.MAC_RUNNER_LABELS is set. Every pull request
+        # would queue three more jobs for it. docs/ci-self-hosted-macos-runner.md
+        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
+    runs-on: ${{ (matrix.os == 'macos-latest' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
     # Shared Spaces includes two real clients and hard restarts while obeying
     # the real 10-GET/60-second window; preserve time for the ordinary smokes.
     timeout-minutes: 35
@@ -298,8 +307,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+        # macOS only nightly and on manual runs (see `on:` above), on the
+        # self-hosted Mac when vars.MAC_RUNNER_LABELS is set. Every pull request
+        # would queue three more jobs for it. docs/ci-self-hosted-macos-runner.md
+        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
+    runs-on: ${{ (matrix.os == 'macos-latest' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -366,8 +378,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+        # macOS only nightly and on manual runs (see `on:` above), on the
+        # self-hosted Mac when vars.MAC_RUNNER_LABELS is set. Every pull request
+        # would queue three more jobs for it. docs/ci-self-hosted-macos-runner.md
+        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
+    runs-on: ${{ (matrix.os == 'macos-latest' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

@@ -988,6 +988,13 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_tab_sleep_30m">Nach 30 Minuten</string>
     <string name="settings_general_tab_sleep_1h">Nach 1 Stunde</string>
     <string name="settings_general_tab_sleep_6h">Nach 6 Stunden</string>
+    <string name="settings_general_tab_switch_order_label">Tabs mit Strg+Tab wechseln</string>
+    <string name="switcher_label">Tab-Umschalter</string>
+    <string name="switcher_opened">Tabs wechseln, %1$s, %2$s von %3$s</string>
+    <string name="switcher_step">%1$s, %2$s von %3$s</string>
+    <string name="settings_general_tab_switch_order_hint">Halte Strg gedrückt und drücke Tab, um durch die zuletzt genutzten Tabs zurückzugehen; lass Strg los, um zu wechseln. Mit Esc bleibst du, wo du bist.</string>
+    <string name="settings_general_tab_switch_order_recent">In der Reihenfolge der Nutzung</string>
+    <string name="settings_general_tab_switch_order_list">In der Reihenfolge der Tab-Liste</string>
     <string name="settings_general_tab_archive_label">Inaktive Tabs archivieren</string>
     <string name="settings_general_tab_archive_hint">Blanc schließt lose Tabs, die du länger nicht geöffnet hast, und bewahrt sie 30 Tage in deinem Archiv auf. Angeheftete Tabs und Tabgruppen werden nie archiviert.</string>
     <string name="settings_general_tab_archive_off">Aus</string>
@@ -2302,10 +2309,6 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_sync_try_again">Erneut versuchen</string>
     <string name="menu_next_tab_in_order">Nächster Tab in Listenreihenfolge</string>
     <string name="menu_previous_tab_in_order">Vorheriger Tab in Listenreihenfolge</string>
-    <string name="settings_general_tab_switch_order_label">Tabs mit Strg+Tab wechseln</string>
-    <string name="settings_general_tab_switch_order_hint">Halte Strg gedrückt und drücke Tab, um durch die zuletzt genutzten Tabs zurückzugehen; lass Strg los, um zu wechseln. Mit Esc bleibst du, wo du bist.</string>
-    <string name="settings_general_tab_switch_order_recent">In der Reihenfolge der Nutzung</string>
-    <string name="settings_general_tab_switch_order_list">In der Reihenfolge der Tab-Liste</string>
     <string name="slash_copy_hint">Link dieser Seite kopieren – mit „clean“ ohne Tracking-Parameter</string>
     <string name="slash_copy_doc">Link dieser Seite kopieren; mit clean ohne Tracking-Parameter</string>
     <string name="reader_title">Lesemodus</string>

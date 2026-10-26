@@ -230,6 +230,16 @@
     <header id="capturePopHead" class="capture-pop-head" data-i18n="capture.pop.inUse">in use</header>
     <ul id="capturePopRows" class="capture-pop-rows"></ul>
   </section>
+  <!-- Ctrl+Tab by most recent use (spec 2026-10-24-mru-tab-switcher-design.md
+       §3.3). Never focused: main reads every key, the page keeps focus. -->
+  <section id="switcherCard" class="switcher-card" hidden>
+    <ul id="switcherTiles" class="switcher-tiles" role="listbox" aria-label="Tab switcher" data-i18n-aria-label="switcher.label"></ul>
+    <div class="switcher-caption">
+      <span id="switcherTitle" class="switcher-title"></span>
+      <span id="switcherHost" class="switcher-host"></span>
+    </div>
+    <div id="switcherStatus" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  </section>
   <script src="tab-sections.js"></script>
   <script src="tab-drag.js"></script>
   <script src="space-identity.js"></script>
