@@ -1,0 +1,9 @@
+# Chromium fixture CodeQL repair — October 26, 2026
+
+The signed repair evidence was published in `db343141e8b25dc77beadc5863dd3a256ebaa14b`. Inspection of its parent `1523375af5b93cf910d9cca82f522155ef525adf` found seven CodeQL annotations under “Improper code sanitization,” despite the CodeQL check conclusion being success. Six redirect harness copies interpolate JSON-encoded values into JavaScript. The just-published signed harness contains the same pattern.
+
+Seven executable harness copies now use the existing `callFunction` helper: authored functions cross `Runtime.callFunctionOn` as code, while URL/body/array values cross as CDP arguments. Navigation waits and ordinary controls use the same boundary. Request methods, bodies, headers, false/error results, timing, interception sequencing and historical assertions are preserved. No runtime, application source, signed artifact or native build changed.
+
+36 focused checks execute the actual 18 changed function literals with hostile URL/body data in success/refusal modes through a mock CDP boundary. They verify values stay data, POST/header behavior, error outcomes and remote-object cleanup. Both existing CDP helper tests pass; all seven files parse. These are harness checks, not new native runtime passes. Original script bytes are retained as adjacent `.original.gz` files; original result records remain unchanged and inventories cover both source versions. No query exclusions or alert dismissals were added.
+
+The previously observed Ubuntu modified-link job `121245558182` fails the Electron sandbox-duplication assertion (`allowed` versus `SecurityError`, line168); it is outside the paused Chromium work. The latest branch must still be checked after this repair. Full L11, Decision 2 and release acceptance remain open. Google baseline separate; Electron paused; latency deferred.

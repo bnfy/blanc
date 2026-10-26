@@ -1,5 +1,7 @@
 # Migrate to a Chromium fork: implementation plan
 
+> October 26 CI follow-up: [fixture CodeQL repair](../experiments/chromium-extension-spike/evidence/l11-fixture-repair-20261026/README.md) removes dynamic JavaScript construction from seven redirect harness copies. All 36 focused argument-boundary checks and two helper tests pass; original scripts/results are preserved. Signed candidate bytes are unchanged. Hosted analysis on the repair head remains pending; known Electron sandbox-duplication failures remain paused. No new launch-gate acceptance or repeated native suite.
+
 ## Current October26 — signed DevTools repair checks
 
 > October 26: [Signed DevTools repair evidence](../experiments/chromium-extension-spike/evidence/f12-devtools-signed-20261026/README.md) records 42 passing affected checks in regular and private profiles on source `1523375`. The replacement is Developer ID signed and Apple notarization was accepted (`cf57f6ef`); stapling, ticket validation, strict signature and Gatekeeper checks pass. The tested executable, UI asset and compliance bytes are unchanged after notarization; archive SHA-256 begins `e57f5cdb989d`. The audit verifies 17 ARM64 executables, 10 Preview identities and eight certificate-blocklist keys. No full F12, Decision 2 or additional launch-gate approval is implied. No native build or repeated owner walkthrough; Electron paused, Google baseline separate, latency deferred.

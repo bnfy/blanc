@@ -1,3 +1,4 @@
+import { callFunction } from '../../cdp-function.mjs';
 import fs from 'node:fs';
 import http from 'node:http';
 import { spawn } from 'node:child_process';
@@ -64,11 +65,11 @@ try{
   child=spawn(app+'/Contents/MacOS/Blanc Prototype',['--user-data-dir='+profile,'--remote-debugging-port=0','--no-first-run','--no-default-browser-check','--host-resolver-rules=MAP googleads.g.doubleclick.net 127.0.0.1','--blanc-prototype-assets='+assets+'/BlancAssets','--blanc-blocker-assets='+assets+'/BlancBlocker'],{stdio:['ignore',fd,fd]});child.on('exit',(code,signal)=>child.result={code,signal});
   const port=await until(()=>{const p=profile+'/DevToolsActivePort';return fs.existsSync(p)&&Number(fs.readFileSync(p,'utf8').split('\n')[0]);});const base='http://127.0.0.1:'+port;browser=await connect((await fetch(base+'/json/version').then(r=>r.json())).webSocketDebuggerUrl);
   const context=mode==='private'?(await browser.send('Target.createBrowserContext',{disposeOnDetach:true})).browserContextId:null;row.browserContextId=context;
-  const target=await browser.send('Target.createTarget',{url:origin+'/page',...(context?{browserContextId:context}:{})});const info=await until(async()=>(await fetch(base+'/json/list').then(r=>r.json())).find(t=>t.id===target.targetId));const page=await connect(info.webSocketDebuggerUrl);await page.send('Page.navigate',{url:origin+'/page'});await until(()=>page.eval('location.href==='+JSON.stringify(origin+'/page')));await page.send('Network.enable');await page.send('Fetch.enable',{patterns:[{urlPattern:'*',requestStage:'Request'}]});
+  const target=await browser.send('Target.createTarget',{url:origin+'/page',...(context?{browserContextId:context}:{})});const info=await until(async()=>(await fetch(base+'/json/list').then(r=>r.json())).find(t=>t.id===target.targetId));const page=await connect(info.webSocketDebuggerUrl);await page.send('Page.navigate',{url:origin+'/page'});await until(()=>callFunction(page, url => location.href === url, [origin+'/page']));await page.send('Network.enable');await page.send('Fetch.enable',{patterns:[{urlPattern:'*',requestStage:'Request'}]});
   for(const label of (mode==='regular'?['replace-allow','replace-block']:['headers','replace-allow','replace-block'])){
    const start=hits.length, eventStart=events.length, handled=new Set();const c={label,interceptions:[]};row.cases.push(c);
    await browser.send('Tracing.start',{categories:'-*,disabled-by-default-blanc.attribution',transferMode:'ReturnAsStream'});
-   let done=false;const fp=page.eval(`(async()=>{try{const r=await fetch(${JSON.stringify(origin+'/start/'+label)},{headers:{'X-Keep':'original-keep','X-Remove':'original-remove'}});return {ok:true,data:await r.json()}}catch(e){return {ok:false,error:e.name}}})()`).then(value=>{done=true;return value;});
+   let done=false;const fp=callFunction(page, async url => {try{const r=await fetch(url,{headers:{'X-Keep':'original-keep','X-Remove':'original-remove'}});return {ok:true,data:await r.json()}}catch(e){return {ok:false,error:e.name}}}, [origin+'/start/'+label]).then(value=>{done=true;return value;});
    const deadline=Date.now()+15000;
    while(!done && Date.now()<deadline){
     for(const e of events.slice(eventStart).filter(e=>e.method==='Fetch.requestPaused'&&!handled.has(e.params.requestId))){

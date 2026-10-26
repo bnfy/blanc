@@ -1,3 +1,4 @@
+import { callFunction } from '../../cdp-function.mjs';
 import fs from 'node:fs';
 import http from 'node:http';
 import { spawn } from 'node:child_process';
@@ -68,11 +69,11 @@ try{
   browser=await connect((await fetch(base+'/json/version').then(r=>r.json())).webSocketDebuggerUrl);
   const context=mode==='private'?(await browser.send('Target.createBrowserContext',{disposeOnDetach:true})).browserContextId:null;row.browserContextId=context;
   const target=await browser.send('Target.createTarget',{url:origin+'/page',...(context?{browserContextId:context}:{})});
-  const info=await until(async()=>(await fetch(base+'/json/list').then(r=>r.json())).find(t=>t.id===target.targetId));const page=await connect(info.webSocketDebuggerUrl);await page.send('Page.navigate',{url:origin+'/page'});await until(()=>page.eval('location.href==='+JSON.stringify(origin+'/page')));await page.send('Network.enable');
+  const info=await until(async()=>(await fetch(base+'/json/list').then(r=>r.json())).find(t=>t.id===target.targetId));const page=await connect(info.webSocketDebuggerUrl);await page.send('Page.navigate',{url:origin+'/page'});await until(()=>callFunction(page, url => location.href === url, [origin+'/page']));await page.send('Network.enable');
   await browser.send('Tracing.start',{categories:'-*,disabled-by-default-blanc.attribution',transferMode:'ReturnAsStream'});
   for(const status of [303,308])for(const outcome of ['allow','block']){
    const path=`/start/${status}/${outcome}`, body=`${mode}-${status}-${outcome}`, start=hits.length;
-   const value=await page.eval(`(async()=>{try{const r=await fetch(${JSON.stringify(origin+path)},{method:'POST',body:${JSON.stringify(body)},headers:{'Content-Type':'text/plain','X-Probe':'method-check'}});return {ok:true,status:r.status,data:await r.json()}}catch(e){return {ok:false,error:e.name}}})()`);
+   const value=await callFunction(page, async (url, body) => {try{const r=await fetch(url,{method:'POST',body,headers:{'Content-Type':'text/plain','X-Probe':'method-check'}});return {ok:true,status:r.status,data:await r.json()}}catch(e){return {ok:false,error:e.name}}}, [origin+path, body]);
    const request=await until(()=>events.find(e=>e.method==='Network.requestWillBeSent'&&e.params.request.url===origin+path));
    row.cases.push({status,outcome,body,value,requestId:request.params.requestId,serverHits:hits.slice(start)});
   }
