@@ -3,7 +3,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
   TAB_SWITCH_ORDERS, normalizeTabSwitchOrder, recentOrderAvailable,
-  switcherOrder, startSwitch, stepSwitch, createTabSwitcher,
+  switcherOrder, startSwitch, stepSwitch, removeFromSwitch, switcherBounds,
+  SWITCHER_CARD_HEIGHT, createTabSwitcher,
 } = require('../../src/main/tab-switcher');
 
 test('the setting has two orders and defaults to most recent', () => {
@@ -53,8 +54,8 @@ test('order: a split is one entry, at its most recently active pane', () => {
 });
 
 test('start: Ctrl+Tab picks the previous tab, Ctrl+Shift+Tab the oldest; nothing with one tab', () => {
-  assert.deepEqual(startSwitch(['c', 'b', 'a'], 1), { order: ['c', 'b', 'a'], pick: 1 });
-  assert.deepEqual(startSwitch(['c', 'b', 'a'], -1), { order: ['c', 'b', 'a'], pick: 2 });
+  assert.deepEqual(startSwitch(['c', 'b', 'a'], 1), { order: ['c', 'b', 'a'], pick: 1, steps: 1 });
+  assert.deepEqual(startSwitch(['c', 'b', 'a'], -1), { order: ['c', 'b', 'a'], pick: 2, steps: 1 });
   assert.equal(startSwitch(['c'], 1), null);
   assert.equal(startSwitch([], -1), null);
 });
@@ -64,18 +65,43 @@ test('step: wraps through the current tab in both directions', () => {
   assert.equal(stepSwitch(s, 1).pick, 0);
   assert.equal(stepSwitch({ ...s, pick: 0 }, -1).pick, 2);
   assert.equal(stepSwitch({ ...s, pick: 1 }, 1).pick, 2);
+  assert.equal(stepSwitch(stepSwitch({ ...s, steps: 1 }, 1), 1).steps, 3, 'steps count, so the card opens on the second');
+});
+
+test('closing the pick (Ctrl+W) moves it one step older, wrapping past the current tab', () => {
+  assert.deepEqual(removeFromSwitch({ order: ['d', 'c', 'b', 'a'], pick: 1 }, 'c'), { order: ['d', 'b', 'a'], pick: 1 });
+  assert.deepEqual(removeFromSwitch({ order: ['d', 'c', 'b', 'a'], pick: 3 }, 'a'), { order: ['d', 'c', 'b'], pick: 1 });
+  // Another entry going keeps the same tab picked.
+  assert.deepEqual(removeFromSwitch({ order: ['d', 'c', 'b', 'a'], pick: 3 }, 'c'), { order: ['d', 'b', 'a'], pick: 2 });
+  assert.equal(removeFromSwitch({ order: ['d', 'c'], pick: 1 }, 'c'), null, 'only the current tab is left');
+  const s = { order: ['d', 'c'], pick: 1 };
+  assert.equal(removeFromSwitch(s, 'gone'), s);
+});
+
+test('the card is centred over the page pane, inside the window', () => {
+  const b = switcherBounds({ pageX: 0, pageWidth: 1280, windowHeight: 800, top: 56 });
+  assert.equal(b.x + b.width / 2, 640);
+  assert.equal(b.y, 56);
+  assert.ok(b.height > SWITCHER_CARD_HEIGHT);
+  const rail = switcherBounds({ pageX: 248, pageWidth: 1032, windowHeight: 800, top: 56 });
+  assert.equal(rail.x + rail.width / 2, 248 + 516);
+  const narrow = switcherBounds({ pageX: 0, pageWidth: 400, windowHeight: 120, top: 56 });
+  assert.equal(narrow.width, 400);
+  assert.equal(narrow.y + narrow.height, 120);
 });
 
 function harness(orders = { w: ['c', 'b', 'a'] }) {
   const landed = [];
+  const changes = [];
   const live = new Set(['a', 'b', 'c', 'd']);
   const runtimes = Object.fromEntries(Object.keys(orders).map((k) => [k, { id: k }]));
   const switcher = createTabSwitcher({
     orderFor: (runtime) => orders[runtime.id],
     land: (runtime, id) => landed.push([runtime.id, id]),
     isLive: (_runtime, id) => live.has(id),
+    onChange: (runtime) => changes.push([runtime.id, switcher.session(runtime)?.pick ?? null]),
   });
-  return { switcher, landed, live, runtimes };
+  return { switcher, landed, live, runtimes, changes };
 }
 
 test('a tap goes to the previous tab; a second tap would start afresh', () => {
@@ -128,4 +154,27 @@ test('sessions are per window', () => {
   switcher.release(v);
   switcher.release(w);
   assert.deepEqual(landed, [['v', 'a'], ['w', 'b']]);
+});
+
+test('the card hears every step, removal and end', () => {
+  const { switcher, changes, runtimes: { w } } = harness({ w: ['d', 'c', 'b', 'a'] });
+  switcher.step(w, 1);
+  switcher.step(w, 1);
+  switcher.removed(w, 'b');
+  switcher.cancel(w);
+  switcher.cancel(w); // nothing to cancel: no change
+  assert.deepEqual(changes, [['w', 1], ['w', 2], ['w', 2], ['w', null]]);
+});
+
+test('a click on a card entry lands on it at once', () => {
+  const { switcher, landed, runtimes: { w } } = harness();
+  switcher.step(w, 1);
+  assert.equal(switcher.choose(w, 'a'), true);
+  assert.deepEqual(landed, [['w', 'a']]);
+  assert.equal(switcher.isSwitching(w), false);
+  switcher.step(w, 1);
+  assert.equal(switcher.choose(w, 'c'), false, 'choosing the current tab changes nothing');
+  assert.equal(switcher.isSwitching(w), false);
+  assert.equal(switcher.choose(w, 'b'), false, 'no switch, no landing');
+  assert.deepEqual(landed, [['w', 'a']]);
 });

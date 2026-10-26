@@ -168,3 +168,23 @@ test('an unconsumed command reaches the page and its repeats run; consumed ones 
   assert.deepEqual(calls, ['next-tab', 'next-tab', 'close-tab'], 'a consumed repeat still never runs');
   assert.equal(prevented, 2);
 });
+
+test('a deferred command is left entirely to the menu accelerator', () => {
+  const wc = Object.assign(new EventEmitter(), { id: 7, isDestroyed: () => false });
+  const runtime = { id: 'w', switching: true };
+  const calls = [];
+  installBrowserShortcuts({
+    webContents: wc, getRuntime: () => runtime, ownsSurface: () => true, platform: 'linux',
+    execute: (id) => { calls.push(id); return true; },
+    defers: (id, owner) => id === 'close-tab' && owner.switching,
+  });
+  let prevented = 0;
+  const emit = (key) => wc.emit('before-input-event', { preventDefault: () => prevented++ }, input(key, { control: true }));
+  emit('w');
+  assert.deepEqual(calls, [], 'Ctrl+W during a switch neither runs here nor is consumed');
+  assert.equal(prevented, 0);
+  runtime.switching = false;
+  emit('w');
+  assert.deepEqual(calls, ['close-tab']);
+  assert.equal(prevented, 1);
+});
