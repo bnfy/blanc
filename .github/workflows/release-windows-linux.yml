@@ -19,6 +19,11 @@ on:
           - release
           - validation
           - mac-scan
+      mac_diagnostic:
+        description: "Run only isolated native-focus and wallpaper diagnostics; never sign"
+        required: false
+        default: false
+        type: boolean
       mac_runner_probe:
         description: "Inspect the self-hosted Mac toolchain without signing credentials"
         required: false
@@ -78,6 +83,8 @@ jobs:
       - name: Validate trusted workflow inputs before use
         shell: bash
         env:
+          MAC_DIAGNOSTIC: ${{ inputs.mac_diagnostic }}
+          MAC_RUNNER_PROBE: ${{ inputs.mac_runner_probe }}
           RELEASE_MODE: ${{ inputs.mode }}
           RELEASE_TAG: ${{ inputs.tag }}
           RELEASE_PLATFORM: ${{ inputs.platform }}
@@ -90,6 +97,10 @@ jobs:
           VALIDATION_REF: ${{ github.ref }}
         run: |
           case "$RELEASE_RUNTIME" in official|ecs) ;; *) echo "Unknown release runtime" >&2; exit 1 ;; esac
+          if [ "$MAC_DIAGNOSTIC" = true ] && { [ "$RELEASE_MODE" != mac-scan ] || [ "$RELEASE_RUNTIME" != ecs ] || [ "$MAC_RUNNER_PROBE" = true ]; }; then
+            echo "Mac diagnostics require standalone nonpublishing ECS scan mode" >&2
+            exit 1
+          fi
           # Public ECS packages: release mode uploads to the draft; validation
           # mode builds the same marker-free package as a private artifact.
           if [ "$RELEASE_RUNTIME" = ecs ] && { [ "$UBLOCK_CANDIDATE" = true ] || [ "$ECS_CANDIDATE" = true ] || [ "$ECS_PRODUCTION" = true ] || [ "$ECS_WINDOWS_LIFECYCLE" = true ]; }; then
@@ -1321,9 +1332,106 @@ jobs:
 
   # Keep native-focus acceptance off the operator's shared signing desktop.
   # This job has no environment or signing secrets; ARM runs in a fresh Tart VM.
+  mac-scan-diagnostic:
+    needs: validate-inputs
+    if: ${{ inputs.mode == 'mac-scan' && inputs.runtime == 'ecs' && !inputs.mac_runner_probe && inputs.mac_diagnostic }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: [self-hosted, macOS, ARM64, blanc-ci]
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    env:
+      APPROVED_SOURCE_SHA: ${{ inputs.source_sha }}
+      TARGET_ARCH: ${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Bind acceptance to the approved workflow and native desktop
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$APPROVED_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$GITHUB_SHA" = "$APPROVED_SOURCE_SHA"
+          test "$(git rev-parse HEAD)" = "$APPROVED_SOURCE_SHA"
+          case "$TARGET_ARCH:$(uname -m)" in arm64:arm64|x64:x86_64) ;; *) echo 'Native architecture mismatch' >&2; exit 1 ;; esac
+          test "$(stat -f %Su /dev/console)" = "$(id -un)"
+          APP_BUILDER_TMP_DIR="$RUNNER_TEMP/blanc-mac-acceptance-$GITHUB_RUN_ID-$TARGET_ARCH"
+          mkdir -m 700 "$APP_BUILDER_TMP_DIR"
+          printf 'APP_BUILDER_TMP_DIR=%s\n' "$APP_BUILDER_TMP_DIR" >> "$GITHUB_ENV"
+          sw_vers
+      - name: Provide a temporary large desktop inside the isolated ARM VM
+        if: matrix.arch == 'arm64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun clang -fobjc-arc -framework Foundation -framework CoreGraphics scripts/ci-macos-virtual-display.m -o "$RUNNER_TEMP/blanc-ci-display"
+          "$RUNNER_TEMP/blanc-ci-display" "$RUNNER_TEMP/blanc-ci-display.ready" > "$RUNNER_TEMP/blanc-ci-display.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/blanc-ci-display.pid"
+          for attempt in {1..200}; do
+            test -f "$RUNNER_TEMP/blanc-ci-display.ready" && break
+            kill -0 "$(cat "$RUNNER_TEMP/blanc-ci-display.pid")" 2>/dev/null || { cat "$RUNNER_TEMP/blanc-ci-display.log"; exit 1; }
+            sleep 0.2
+          done
+          test -f "$RUNNER_TEMP/blanc-ci-display.ready" || { cat "$RUNNER_TEMP/blanc-ci-display.log"; exit 1; }
+          cat "$RUNNER_TEMP/blanc-ci-display.ready"
+      - name: Keep the isolated test desktop awake
+        shell: bash
+        run: |
+          caffeinate -d -i -u -t 7200 > "$RUNNER_TEMP/blanc-ci-awake.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/blanc-ci-awake.pid"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm ci --prefix site
+      - name: Use the tallest display mode for desktop acceptance
+        run: swift scripts/ci-macos-tall-display.swift
+      - name: Run only the remaining native-focus scenarios without retries
+        id: focused
+        env:
+          BLANC_TEST_APP_OUTPUT: '1'
+          DIAGNOSTIC_NAMES: '^(The 1Password fill and its hint follow the focused pane|Window buttons come and go with the floating pill on Windows and Linux|Mahjong opens as a playable managed tab|A fresh profile is offered the walkthrough|Fill questions open as a dialog capsule with Cancel focused and full keyboard control|The success confirmation waits while pointed at or focused)$'
+        run: npm run test:acceptance:desktop -- --retry 0 --name "$DIAGNOSTIC_NAMES"
+      - name: Run the complete wallpaper lifecycle and compositor check
+        if: always() && (steps.focused.outcome == 'success' || steps.focused.outcome == 'failure')
+        run: npm run test:wallpaper:desktop
+      - name: Record the isolated GUI and activity assertions
+        if: always()
+        run: |
+          swift -e 'import AppKit; print("foreground:", NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "none"); for screen in NSScreen.screens { print("screen:", screen.frame) }'
+          pmset -g assertions
+
+      - name: Remove the temporary VM display
+        if: always() && matrix.arch == 'arm64'
+        shell: bash
+        run: |
+          if test -f "$RUNNER_TEMP/blanc-ci-display.pid"; then
+            display_pid="$(cat "$RUNNER_TEMP/blanc-ci-display.pid")"
+            if kill -0 "$display_pid" 2>/dev/null; then
+              kill "$display_pid"
+            fi
+          fi
+
+      - name: Release the test desktop activity assertion
+        if: always()
+        shell: bash
+        run: |
+          if test -f "$RUNNER_TEMP/blanc-ci-awake.pid"; then
+            awake_pid="$(cat "$RUNNER_TEMP/blanc-ci-awake.pid")"
+            if kill -0 "$awake_pid" 2>/dev/null; then kill "$awake_pid"; fi
+          fi
+
   mac-scan-acceptance:
     needs: validate-inputs
-    if: ${{ inputs.mode == 'mac-scan' && inputs.runtime == 'ecs' && !inputs.mac_runner_probe }}
+    if: ${{ inputs.mode == 'mac-scan' && inputs.runtime == 'ecs' && !inputs.mac_runner_probe && !inputs.mac_diagnostic }}
     permissions:
       contents: read
     strategy:
@@ -1373,6 +1481,11 @@ jobs:
           done
           test -f "$RUNNER_TEMP/blanc-ci-display.ready" || { cat "$RUNNER_TEMP/blanc-ci-display.log"; exit 1; }
           cat "$RUNNER_TEMP/blanc-ci-display.ready"
+      - name: Keep the isolated test desktop awake
+        shell: bash
+        run: |
+          caffeinate -d -i -u -t 7200 > "$RUNNER_TEMP/blanc-ci-awake.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/blanc-ci-awake.pid"
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
@@ -1396,9 +1509,18 @@ jobs:
             fi
           fi
 
+      - name: Release the test desktop activity assertion
+        if: always()
+        shell: bash
+        run: |
+          if test -f "$RUNNER_TEMP/blanc-ci-awake.pid"; then
+            awake_pid="$(cat "$RUNNER_TEMP/blanc-ci-awake.pid")"
+            if kill -0 "$awake_pid" 2>/dev/null; then kill "$awake_pid"; fi
+          fi
+
   mac-scan:
     needs: [validate-inputs, mac-scan-acceptance]
-    if: ${{ inputs.mode == 'mac-scan' && inputs.runtime == 'ecs' && !inputs.mac_runner_probe }}
+    if: ${{ inputs.mode == 'mac-scan' && inputs.runtime == 'ecs' && !inputs.mac_runner_probe && !inputs.mac_diagnostic }}
     environment: ecs-signing
     permissions:
       contents: read

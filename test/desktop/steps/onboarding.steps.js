@@ -34,6 +34,7 @@ Then('every onboarding title fits in Instrument Sans in light and dark themes', 
         (bounds) => bounds?.width === size.width && bounds?.height === size.height,
         `${size.label} onboarding content bounds`,
       );
+      await waitForValue(() => this.call('focusWindow'), Boolean, 'onboarding audit window to take native focus');
       const audit = await this.call('auditOnboardingInvitationTypography');
       for (const theme of ['light', 'dark']) {
         const result = audit?.[theme];

@@ -1,5 +1,24 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+FOCUSED FOLLOW-UP AFTER ISOLATED RUN (Oct 26): ARM in run 40410630501
+completed 4,845 passing unit tests (two skipped), then 537/541 desktop
+scenarios passed. No unexpected renderer crash was reported. Four remaining
+failures concern Mahjong native focus, onboarding focus outline (not title
+geometry), decision-capsule native focus and notice focus-paused dismissal.
+The detailed log is /tmp/blanc-arm-9eb-live.log. The aggregate gate was
+insufficient for monitoring; direct per-job logs are now inspected with
+terminal escapes saved to files rather than rendered.
+
+The next run is diagnostic-only: the affected focus cases without retries
+plus the full wallpaper check on the disposable VM. It cannot sign and cannot
+replace the complete gate. Desktop activity assertions prevent idle display
+sleep during GUI tests. Keyboard-outline auditing now focuses the actual
+onboarding WebContents and establishes keyboard modality; explicitly holding
+focus in a passive notice focuses its native view first. Decision presentation
+still must acquire native focus itself. Failed scenarios now record real
+window/display/focused-WebContents state. These changes require focused VM
+validation before another complete candidate run.
+
 ISOLATED VM DISPLAY PREFLIGHT (Oct 26): Run 40409609581 at 630011048
 passed native architecture/GUI ownership and dependency setup on both hosts.
 The ARM VM reports only 1024x768 as its largest native mode. The run was

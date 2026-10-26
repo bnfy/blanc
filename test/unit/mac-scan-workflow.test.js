@@ -42,7 +42,7 @@ test('Mac signing stays protected, read-only, native on both architectures and t
   assert(binding.includes('test "$GITHUB_SHA" = "$APPROVED_SOURCE_SHA"'));
   assert(binding.includes('test "$(git rev-parse HEAD)" = "$APPROVED_SOURCE_SHA"'));
   for (const [name, other] of Object.entries(workflow.jobs)) {
-    if (name === 'validate-inputs' || name === 'mac-scan' || name === 'mac-scan-acceptance' || name === 'mac-runner-probe') continue;
+    if (name === 'validate-inputs' || name === 'mac-scan' || name === 'mac-scan-acceptance' || name === 'mac-scan-diagnostic' || name === 'mac-runner-probe') continue;
     assert.match(other.if, /inputs\.mode == '(?:release|validation)'/, name);
   }
 });
@@ -116,4 +116,22 @@ test('the disposable ARM VM gets a temporary native screen before acceptance', (
   const cleanup = acceptance.steps.find(x => x.name === 'Remove the temporary VM display');
   assert.equal(cleanup.if, "always() && matrix.arch == 'arm64'");
   assert.match(cleanup.run, /kill/);
+});
+
+test('focused diagnostics cannot reach signing or substitute for the full press gate', () => {
+  const diagnostic = workflow.jobs['mac-scan-diagnostic'];
+  assert.equal(diagnostic.environment, undefined);
+  assert.deepEqual(diagnostic.permissions, { contents: 'read' });
+  assert(!JSON.stringify(diagnostic).includes('secrets.'));
+  assert.match(diagnostic.if, /inputs\.mac_diagnostic/);
+  assert.match(job.if, /!inputs\.mac_diagnostic/);
+  assert.match(acceptance.if, /!inputs\.mac_diagnostic/);
+  const runs = diagnostic.steps.map(step => step.run || '').join('\n');
+  assert(!/gh\s+release|git\s+(tag|push)|build-ecs-production/.test(runs));
+  assert.match(runs, /--retry 0 --name/);
+  assert(diagnostic.steps.some(step => step.run === 'npm run test:wallpaper:desktop'));
+  for (const target of [diagnostic, acceptance]) {
+    assert(target.steps.some(step => step.run?.includes('caffeinate -d -i -u -t 7200')));
+    assert(target.steps.some(step => step.if === 'always()' && step.run?.includes('blanc-ci-awake.pid')));
+  }
 });

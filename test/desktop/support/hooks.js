@@ -420,9 +420,17 @@ Before(async function () {
 // The full suite can take tens of minutes on hosted Macs. Emit a failed
 // scenario's actual assertion immediately, while retaining Cucumber's final
 // report and retry policy, so CI diagnosis need not wait for the last scenario.
-After(function ({ pickle, result, willBeRetried }) {
+After(async function ({ pickle, result, willBeRetried }) {
   if (result?.status === Status.FAILED) {
     console.error(`[desktop acceptance] ${pickle.name}${willBeRetried ? ' (retry pending)' : ''}\n${result.message || 'No failure detail'}`);
+    const native = await ctx.app?.evaluate(({ BrowserWindow, screen, webContents }) => ({
+      focusedContents: webContents.getFocusedWebContents()?.id ?? null,
+      displays: screen.getAllDisplays().map(display => ({ id: display.id, bounds: display.bounds, workArea: display.workArea })),
+      windows: BrowserWindow.getAllWindows().map(window => ({ id: window.id, focused: window.isFocused(),
+        visible: window.isVisible(), minimized: window.isMinimized(), maximized: window.isMaximized(),
+        fullscreen: window.isFullScreen(), bounds: window.getBounds(), content: window.getContentBounds() })),
+    })).catch(error => ({ observationError: error.message }));
+    console.error('[desktop native state]', JSON.stringify(native));
   }
 });
 

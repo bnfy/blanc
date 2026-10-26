@@ -2360,6 +2360,11 @@ function install(refs) {
       const tab = tabs.get(getActiveTabId());
       const wc = tab?.view?.webContents;
       if (!wc || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      // Focus outlines are a keyboard contract; inspector evaluation alone
+      // does not focus the native view or establish keyboard modality.
+      wc.focus();
+      wc.sendInputEvent({ type: 'keyDown', keyCode: 'Tab' });
+      wc.sendInputEvent({ type: 'keyUp', keyCode: 'Tab' });
       const debuggerWasAttached = wc.debugger.isAttached();
       if (!debuggerWasAttached) wc.debugger.attach('1.3');
 

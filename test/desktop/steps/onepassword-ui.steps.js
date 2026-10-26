@@ -9,6 +9,8 @@
 const assert = require('node:assert/strict');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const ctx = require('../support/context');
+const { waitForValue } = require('../support/poll');
+const { inMainTurn } = require('../support/main-turn');
 
 const AVAILABLE = require('../../../src/main/onepassword-availability').isOnePasswordAvailable();
 const SUCCESS_DISMISS_MS = 4000; // fill-status.js's timer; waits use +25%
@@ -92,7 +94,7 @@ When('a fill confirmation question is presented', async function () {
   // Native focus lands on the capsule at presentation; in a long suite run
   // the app window may be backgrounded, so front it FIRST (same rule as the
   // pointer-driven steps) or isFocused() reads false for the whole window.
-  await this.call('focusWindow');
+  await waitForValue(() => this.call('focusWindow'), Boolean, 'fill decision window to take native focus');
   assert.deepEqual(await this.call('showFillStatus', 'confirm-heuristic'), { mode: 'decision' });
   await waitForCapsule(this, '#fillDecision');
 });
@@ -240,6 +242,10 @@ When('I switch to another tab', async function () {
 });
 
 When('I hold focus on its dismiss control while hovering and then move the pointer away', async function () {
+  await waitForValue(() => this.call('focusWindow'), Boolean, 'fill notice window to take native focus');
+  const { viewContentsId } = await this.call('fillStatusState');
+  await inMainTurn(ctx.app, ({ webContents }, id) => webContents.fromId(id).focus(), viewContentsId);
+  await waitForValue(() => this.call('fillStatusState'), state => state.viewFocused, 'fill notice view to take native focus');
   // Hover + focus pause independently; releasing only the pointer must not
   // resume the timer while focus still holds (checkpoint-A regression).
   await readCapsule(this, `(() => {
