@@ -61,9 +61,10 @@ test('Mac scan artifacts contain verified installers only, with credentials remo
   const macCleanup = job.steps.findIndex(x => x.name === 'Remove temporary Mac signing material');
   assert.equal(job.steps[macCleanup].if, 'always()');
   assert(macCleanup < smoke);
-  assert(job.steps[macCleanup].run.includes('test "$APP_BUILDER_TMP_DIR" = "$RUNNER_TEMP/blanc-mac-sign-$GITHUB_RUN_ID-$TARGET_ARCH"'));
+  assert(job.steps[macCleanup].run.includes('APP_BUILDER_TMP_DIR="$RUNNER_TEMP/blanc-mac-sign-$GITHUB_RUN_ID-$TARGET_ARCH"'));
   assert(job.steps[macCleanup].run.includes('security delete-keychain'));
-  assert.equal(job.env.APP_BUILDER_TMP_DIR, '${{ runner.temp }}/blanc-mac-sign-${{ github.run_id }}-${{ matrix.arch }}');
+  assert.equal(job.env.APP_BUILDER_TMP_DIR, undefined, 'runner context is initialized inside the job');
+  assert(job.steps.find(x => x.name === 'Bind workflow and source to the approved commit').run.includes('APP_BUILDER_TMP_DIR=%s'));
   assert.equal(job.env.BLANC_UPDATE_CHANNEL, undefined, 'updater unit tests must exercise production defaults');
   assert.equal(job.steps[smoke].env.BLANC_UPDATE_CHANNEL, 'ecs-qualification-disabled');
   const upload = job.steps.find(x => x.uses?.startsWith('actions/upload-artifact@'));
