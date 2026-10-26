@@ -40111,6 +40111,300 @@
         }
       }
     },
+    "settings.general.tabSwitchOrder.label": {
+      "comment": "Settings → General: setting name. Chooses the order Ctrl+Tab goes through tabs.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch tabs with Ctrl+Tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs mit Strg+Tab wechseln"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar de pestaña con Ctrl+Tab"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changer d’onglet avec Ctrl+Tab"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambia scheda con Ctrl+Tab"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trocar de aba com Ctrl+Tab"
+          }
+        }
+      }
+    },
+    "switcher.label": {
+      "comment": "Accessible name of the Ctrl+Tab card: a row of tab icons under the Island while Ctrl is held.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab switcher"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab-Umschalter"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selector de pestañas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sélecteur d’onglets"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selettore schede"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alternador de abas"
+          }
+        }
+      }
+    },
+    "switcher.opened": {
+      "comment": "Screen reader announcement when the Ctrl+Tab card opens. {title} is the picked tab's title; {position} and {count} are numbers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch tabs, %1$@, %2$@ of %3$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs wechseln, %1$@, %2$@ von %3$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar de pestaña, %1$@, %2$@ de %3$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changer d’onglet, %1$@, %2$@ sur %3$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambia scheda, %1$@, %2$@ di %3$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alternar abas, %1$@, %2$@ de %3$@"
+          }
+        }
+      }
+    },
+    "switcher.step": {
+      "comment": "Screen reader announcement each time Tab moves the pick on the Ctrl+Tab card. {title} is the picked tab's title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@ of %3$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@ von %3$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@ de %3$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@ sur %3$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@ di %3$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@ de %3$@"
+          }
+        }
+      }
+    },
+    "settings.general.tabSwitchOrder.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold Ctrl and press Tab to go back through the tabs you used last, then let go of Ctrl to switch. Esc stays where you are."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Halte Strg gedrückt und drücke Tab, um durch die zuletzt genutzten Tabs zurückzugehen; lass Strg los, um zu wechseln. Mit Esc bleibst du, wo du bist."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantén pulsado Ctrl y pulsa Tab para volver por las pestañas que usaste por última vez; suelta Ctrl para cambiar. Esc te deja donde estás."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maintenez Ctrl et appuyez sur Tab pour revenir aux onglets utilisés en dernier, puis relâchez Ctrl pour changer. Échap vous laisse où vous êtes."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tieni premuto Ctrl e premi Tab per tornare alle schede usate più di recente, poi rilascia Ctrl per passarci. Esc ti lascia dove sei."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segure Ctrl e pressione Tab para voltar pelas abas que você usou por último; solte Ctrl para trocar. Esc deixa você onde está."
+          }
+        }
+      }
+    },
+    "settings.general.tabSwitchOrder.recent": {
+      "comment": "Settings → General → Switch tabs with Ctrl+Tab: option (most recently used first; the default).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In the order you used them"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In der Reihenfolge der Nutzung"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En el orden en que las usaste"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dans l’ordre où vous les avez utilisés"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nell’ordine in cui le hai usate"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na ordem em que você as usou"
+          }
+        }
+      }
+    },
+    "settings.general.tabSwitchOrder.list": {
+      "comment": "Settings → General → Switch tabs with Ctrl+Tab: option (the order tabs appear in the list).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In the order of the tab list"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In der Reihenfolge der Tab-Liste"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En el orden de la lista de pestañas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dans l’ordre de la liste des onglets"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nell’ordine dell’elenco delle schede"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na ordem da lista de abas"
+          }
+        }
+      }
+    },
     "settings.general.tabArchive.label": {
       "comment": "Settings → General: label of the Tab Archive delay select.",
       "extractionState": "manual",
@@ -94005,174 +94299,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aba anterior na ordem da lista"
-          }
-        }
-      }
-    },
-    "settings.general.tabSwitchOrder.label": {
-      "comment": "Settings → General: setting name. Chooses the order Ctrl+Tab goes through tabs.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Switch tabs with Ctrl+Tab"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tabs mit Strg+Tab wechseln"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cambiar de pestaña con Ctrl+Tab"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Changer d’onglet avec Ctrl+Tab"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cambia scheda con Ctrl+Tab"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trocar de aba com Ctrl+Tab"
-          }
-        }
-      }
-    },
-    "settings.general.tabSwitchOrder.hint": {
-      "comment": "Settings → General: explanation under a setting.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hold Ctrl and press Tab to go back through the tabs you used last, then let go of Ctrl to switch. Esc stays where you are."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Halte Strg gedrückt und drücke Tab, um durch die zuletzt genutzten Tabs zurückzugehen; lass Strg los, um zu wechseln. Mit Esc bleibst du, wo du bist."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mantén pulsado Ctrl y pulsa Tab para volver por las pestañas que usaste por última vez; suelta Ctrl para cambiar. Esc te deja donde estás."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Maintenez Ctrl et appuyez sur Tab pour revenir aux onglets utilisés en dernier, puis relâchez Ctrl pour changer. Échap vous laisse où vous êtes."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tieni premuto Ctrl e premi Tab per tornare alle schede usate più di recente, poi rilascia Ctrl per passarci. Esc ti lascia dove sei."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Segure Ctrl e pressione Tab para voltar pelas abas que você usou por último; solte Ctrl para trocar. Esc deixa você onde está."
-          }
-        }
-      }
-    },
-    "settings.general.tabSwitchOrder.recent": {
-      "comment": "Settings → General → Switch tabs with Ctrl+Tab: option (most recently used first; the default).",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "In the order you used them"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "In der Reihenfolge der Nutzung"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "En el orden en que las usaste"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dans l’ordre où vous les avez utilisés"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nell’ordine in cui le hai usate"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Na ordem em que você as usou"
-          }
-        }
-      }
-    },
-    "settings.general.tabSwitchOrder.list": {
-      "comment": "Settings → General → Switch tabs with Ctrl+Tab: option (the order tabs appear in the list).",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "In the order of the tab list"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "In der Reihenfolge der Tab-Liste"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "En el orden de la lista de pestañas"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dans l’ordre de la liste des onglets"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nell’ordine dell’elenco delle schede"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Na ordem da lista de abas"
           }
         }
       }

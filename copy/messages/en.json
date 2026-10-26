@@ -3662,6 +3662,34 @@
     "note": "Settings → General: choice in a dropdown.",
     "maxLength": 19
   },
+  "settings.general.tabSwitchOrder.label": {
+    "message": "Switch tabs with Ctrl+Tab",
+    "note": "Settings → General: setting name. Chooses the order Ctrl+Tab goes through tabs."
+  },
+  "switcher.label": {
+    "message": "Tab switcher",
+    "note": "Accessible name of the Ctrl+Tab card: a row of tab icons under the Island while Ctrl is held."
+  },
+  "switcher.opened": {
+    "message": "Switch tabs, {title}, {position} of {count}",
+    "note": "Screen reader announcement when the Ctrl+Tab card opens. {title} is the picked tab's title; {position} and {count} are numbers."
+  },
+  "switcher.step": {
+    "message": "{title}, {position} of {count}",
+    "note": "Screen reader announcement each time Tab moves the pick on the Ctrl+Tab card. {title} is the picked tab's title."
+  },
+  "settings.general.tabSwitchOrder.hint": {
+    "message": "Hold Ctrl and press Tab to go back through the tabs you used last, then let go of Ctrl to switch. Esc stays where you are.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.tabSwitchOrder.recent": {
+    "message": "In the order you used them",
+    "note": "Settings → General → Switch tabs with Ctrl+Tab: option (most recently used first; the default)."
+  },
+  "settings.general.tabSwitchOrder.list": {
+    "message": "In the order of the tab list",
+    "note": "Settings → General → Switch tabs with Ctrl+Tab: option (the order tabs appear in the list)."
+  },
   "settings.general.tabArchive.label": {
     "message": "Archive inactive tabs",
     "note": "Settings → General: label of the Tab Archive delay select."
