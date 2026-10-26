@@ -22,11 +22,13 @@ test('every runs-on that can pick the self-hosted Mac also refuses forks', () =>
       assert.ok(line.includes("vars.MAC_RUNNER_LABELS != ''"), `${name}: falls back to the hosted runner when unset`);
     }
   }
-  assert.equal(uses, 5, 'unit, three parity-guards desktop jobs and the uBO desktop job');
+  assert.equal(uses, 4, 'three parity-guards desktop jobs and the uBO desktop job');
 });
 
-test('Intel, iOS and the release workflows stay on GitHub-hosted runners', () => {
-  for (const name of ['ios.yml', 'release-windows-linux.yml', 'prerelease-smoke.yml', 'nightly-desktop.yml']) {
+test('Intel, iOS, the unit suite and the release workflows stay on GitHub-hosted runners', () => {
+  // unit (macos-15) waited a median 24 minutes for the Mac's two VM slots and
+  // ran twice as long there (October 26, 2026); hosted macOS takes it at once.
+  for (const name of ['unit-tests.yml', 'ios.yml', 'release-windows-linux.yml', 'prerelease-smoke.yml', 'nightly-desktop.yml']) {
     assert.ok(!read(name).includes('MAC_RUNNER_LABELS'), name);
   }
   const ublock = read('ublock-origin.yml');
@@ -53,7 +55,7 @@ test('the VM runners keep the direct runner\'s labels and keep the host credenti
 
 test('the parity macOS legs stay nightly even with the self-hosted Mac', () => {
   // On every pull request they queued three more jobs per PR for the Mac's two
-  // VM slots (October 26, 2026); unit (macos-15) and uBO's desktop leg stay.
+  // VM slots (October 26, 2026); uBO's desktop leg stays.
   const matrices = read('parity-guards.yml').split('\n').filter((line) => /^\s*os: \$\{\{ fromJSON\(/.test(line));
   assert.equal(matrices.length, 3);
   for (const line of matrices) {
