@@ -90,6 +90,15 @@ Feature: Shared Spaces
     And the Shared Spaces client crashes and restores
     Then the restored client retries the missing index entry
 
+  @F57-13
+  Scenario: A background page with unsaved input waits for a remote navigation
+    Given a Shared Spaces fixture with the Work Space shared
+    And the background Work tab has unsaved input
+    When device B navigates the background Work tab
+    Then the background tab keeps its page and its input
+    When its input is cleared and Shared Spaces applies again
+    Then the background tab follows the remote navigation
+
   @F57-14
   Scenario: Failed server erasure can be retried without losing credentials
     Given a Shared Spaces fixture with the Work Space shared

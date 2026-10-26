@@ -229,3 +229,26 @@ Then('the erasure completes and sync turns off', {timeout:180000}, async functio
  assert.equal([...this.sharedFixture.blobs.keys()].some(k=>k.startsWith(`blob:${this.sharedKey.accountId}:`)),false);
  assert.equal(this.sharedFixture.requests.filter(r=>r.method==='DELETE'&&!r.store&&r.status===204).length,1);
 });
+Given('the background Work tab has unsaved input',{timeout:60000},async function(){
+ assert.notEqual((await this.state()).activeTabId,this.firstTab,'the first Work tab is in the background');
+ await this.call('workspacePageScript',this.firstTab,"(()=>{const i=document.createElement('input');i.id='draft';document.body.append(i);i.value='typed draft';return true;})()");
+});
+When('device B navigates the background Work tab',{timeout:180000},async function(){
+ this.backgroundUrl=this.fixtureUrl('shared-first');
+ await editPeer(this,blob=>{const id=Object.keys(blob.tabs).find(id=>blob.tabs[id].nav.v.url===this.backgroundUrl);assert.ok(id);this.navigated=id;blob.tabs[id].nav=model.field({url:this.fixtureUrl('remote-navigation'),title:'Remote navigation'},Date.now()+1,'device-b');});
+});
+Then('the background tab keeps its page and its input',{timeout:60000},async function(){
+ const tab=(await this.state()).tabs.find(t=>t.id===this.firstTab);assert.equal(tab.url,this.backgroundUrl);
+ assert.equal(await this.call('workspacePageScript',this.firstTab,"document.getElementById('draft')?.value"),'typed draft');
+});
+When('its input is cleared and Shared Spaces applies again',{timeout:180000},async function(){
+ await this.call('workspacePageScript',this.firstTab,"document.getElementById('draft').remove()");
+ // A tab switch is one of the passes that retries deferred rows; switching
+ // back leaves the first tab in the background again, now with nothing unsaved.
+ const active=(await this.state()).activeTabId;
+ await this.call('activateTab',this.firstTab);await this.waitForState(s=>s.activeTabId===this.firstTab);
+ await this.call('activateTab',active);await this.waitForState(s=>s.activeTabId===active);
+});
+Then('the background tab follows the remote navigation',{timeout:60000},async function(){
+ await this.waitForState(s=>s.tabs.some(t=>t.id===this.firstTab&&t.url===this.fixtureUrl('remote-navigation')),{timeout:30000});
+});

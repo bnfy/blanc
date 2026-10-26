@@ -7670,10 +7670,17 @@ function applySharedSpaceRow(runtime, row) {
         tab.url=row.value.v.url;tab.title=row.value.v.title;tab.sharedPendingNav=row.value.v.url;
         return true;
       }
-      tab.sharedRemoteNavigation=row.value.v.url;
-      return Promise.resolve(navigateTabToAddress(tab.id,row.value.v.url,{shared:true})).then(result=>{
-        if(tab.sharedRemoteNavigation===row.value.v.url)delete tab.sharedRemoteNavigation;
-        return result!==false;
+      // A background page with unsaved input waits, as the active tab does:
+      // returning false keeps the row pending for a later pass. The probe is
+      // Quiet Tabs' own and fails safe (an unanswered frame counts as unsaved).
+      const wc=liveContents(tab);
+      return Promise.resolve(wc?probeTabDirty(tab,wc):{unsaved:false}).then(probe=>{
+        if(probe.unsaved||!tabs.has(tab.id))return false;
+        tab.sharedRemoteNavigation=row.value.v.url;
+        return Promise.resolve(navigateTabToAddress(tab.id,row.value.v.url,{shared:true})).then(result=>{
+          if(tab.sharedRemoteNavigation===row.value.v.url)delete tab.sharedRemoteNavigation;
+          return result!==false;
+        });
       });
     }
     if(row.field==='name')tab.customTitle=row.value.v;

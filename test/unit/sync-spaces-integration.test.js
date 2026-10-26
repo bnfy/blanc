@@ -13,12 +13,12 @@ const tick=()=>new Promise(r=>setTimeout(r,5));
 async function environment(t) {
   let wall=1800000000000;t.mock.method(Date,'now',()=>wall);
   const fixture=await createSyncFixture(),devices=[];
-  function device(name,{seed=true,legacyDelete=false,files={}}={}) {
+  function device(name,{seed=true,legacyDelete=false,files={},afterFetch=null}={}) {
     const clock=virtualClock(wall);
     const d=syncDevice({clock,key,files,endpoint:fixture.url,record:{deviceId:name},fetch:async(url,options)=>{
       assert.ok(String(url).startsWith(fixture.url+'/'),'integration requests must never leave the local fixture');
       if(legacyDelete&&options?.method==='DELETE'&&String(url).includes('/space-'))throw new Error('legacy Worker would wipe the whole account');
-      const response=await fetch(url,options);if(!legacyDelete)return response;
+      const response=await fetch(url,options);afterFetch?.(String(url),options);if(!legacyDelete)return response;
       const headers=new Headers(response.headers);headers.delete('X-Blanc-Space-Delete');return new Response(response.body,{status:response.status,headers});
     }});
     d.ctx={accountId:account,deviceId:name,deviceName:name,platform:'darwin'};d.clock=clock;
@@ -49,6 +49,21 @@ test('cold-start retirement cancels queued Space work before stale reads can res
  const removed=e.fixture.requests.findIndex(r=>r.method==='DELETE'&&r.store===store);assert.ok(removed>=0);
  assert.equal(e.fixture.requests.slice(removed+1).some(r=>r.store===store),false,'no queued request may follow successful retirement');
  await e.drive(b.sync.syncNow());assert.equal(e.fixture.requests.slice(removed+1).some(r=>r.store===store),false,'later full passes must not retain phantom work');
+});
+test('a pass that goes stale before retirement sends no per-Space DELETE',async t=>{
+  // Retirement DELETEs run outside the request queue; the stale check after
+  // the index PUT (with no await before the first DELETE) must keep a credential
+  // or consent change from reaching the server.
+  let disableOnSpacesPut=false,a;
+  const e=await environment(t);
+  a=e.device('A',{afterFetch:(url,options)=>{if(disableOnSpacesPut&&options?.method==='PUT'&&url.endsWith('/spaces')){disableOnSpacesPut=false;a.sync.disable({wipeRemote:false});}}});
+  createSpace(a);await e.drive(a.sync.syncNow([store]));
+  a.spaces.rebind(account).update(d=>{d.index.spaces[sid].deleted=field(true,Date.now()-model.LIMITS.tombstoneMs-1);d.pending[sid]={...(d.pending[sid]??{}),index:true};});
+  disableOnSpacesPut=true;
+  await e.drive(a.sync.syncNow(['spaces']).catch(()=>null));
+  assert.equal(disableOnSpacesPut,false,'the index upload ran and turned sync off');
+  assert.equal(e.fixture.requests.some(r=>r.method==='DELETE'&&r.store===store),false);
+  assert.ok(e.fixture.blobs.has(`blob:${account}:${store}`));
 });
 test('a Worker without selective DELETE capability never receives a per-Space DELETE',async t=>{
   const e=await environment(t),a=e.device('A',{legacyDelete:true});createSpace(a);await e.drive(a.sync.syncNow([store]));
