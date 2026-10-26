@@ -19,6 +19,11 @@ on:
           - release
           - validation
           - mac-scan
+      mac_runner_probe:
+        description: "Inspect the self-hosted Mac toolchain without signing credentials"
+        required: false
+        default: false
+        type: boolean
       tag:
         description: "Release tag to build and upload to (required in release mode)"
         required: false
@@ -1316,7 +1321,7 @@ jobs:
 
   mac-scan:
     needs: validate-inputs
-    if: ${{ inputs.mode == 'mac-scan' && inputs.runtime == 'ecs' }}
+    if: ${{ inputs.mode == 'mac-scan' && inputs.runtime == 'ecs' && !inputs.mac_runner_probe }}
     environment: ecs-signing
     permissions:
       contents: read
@@ -1443,3 +1448,29 @@ jobs:
             dist/mac-candidate-*.json
           if-no-files-found: error
           retention-days: 3
+
+  mac-runner-probe:
+    needs: validate-inputs
+    if: ${{ inputs.mode == 'mac-scan' && inputs.runtime == 'ecs' && inputs.mac_runner_probe }}
+    runs-on: [self-hosted, macOS, ARM64, blanc-mac]
+    permissions:
+      contents: read
+    timeout-minutes: 5
+    env:
+      APPROVED_SOURCE_SHA: ${{ inputs.source_sha }}
+    steps:
+      - name: Inspect self-hosted Mac without credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_SHA" = "$APPROVED_SOURCE_SHA"
+          uname -m
+          sw_vers
+          xcode-select -p
+          xcodebuild -version || true
+          for app in /Applications/Xcode*.app; do
+            test -d "$app" || continue
+            DEVELOPER_DIR="$app/Contents/Developer" xcodebuild -version || true
+          done
+          test "$(stat -f %Su /dev/console)" = "$(id -un)" && echo 'Runner has the console GUI session' || echo 'Runner differs from the console GUI session'
+          df -h "$RUNNER_TEMP"

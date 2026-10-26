@@ -39,7 +39,7 @@ test('Mac signing stays protected, read-only, native on both architectures and t
   assert(binding.includes('test "$GITHUB_SHA" = "$APPROVED_SOURCE_SHA"'));
   assert(binding.includes('test "$(git rev-parse HEAD)" = "$APPROVED_SOURCE_SHA"'));
   for (const [name, other] of Object.entries(workflow.jobs)) {
-    if (name === 'validate-inputs' || name === 'mac-scan') continue;
+    if (name === 'validate-inputs' || name === 'mac-scan' || name === 'mac-runner-probe') continue;
     assert.match(other.if, /inputs\.mode == '(?:release|validation)'/, name);
   }
 });
@@ -66,4 +66,13 @@ test('Mac scan artifacts contain verified installers only, with credentials remo
   assert(runs.includes('codesign --verify --deep --strict'));
   assert(runs.includes('xcrun stapler validate'));
   assert(runs.includes('spctl --assess'));
+});
+
+test('self-hosted toolchain probe has no signing environment or secrets', () => {
+  const probe = workflow.jobs['mac-runner-probe'];
+  assert.equal(probe.environment, undefined);
+  assert.deepEqual(probe['runs-on'], ['self-hosted', 'macOS', 'ARM64', 'blanc-mac']);
+  assert.match(probe.if, /inputs\.mac_runner_probe/);
+  assert.match(job.if, /!inputs\.mac_runner_probe/);
+  assert(!JSON.stringify(probe).includes('secrets.'));
 });
