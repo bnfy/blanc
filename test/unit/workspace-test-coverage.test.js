@@ -45,7 +45,9 @@ test('Packaged Workspace smoke uses production projections and requires a gracef
 });
 test('Workspace regression coverage is wired to platform CI and future signed-package gates', () => {
   const parity = read('.github/workflows/parity-guards.yml');
-  assert.match(parity, /workspace-regressions:[\s\S]*?os: \[ubuntu-latest, windows-latest, macos-latest\]/);
+  // Linux and Windows on every change; macOS nightly and on manual runs.
+  assert.match(parity, /workspace-regressions:[\s\S]*?os: \$\{\{ fromJSON\(\(github\.event_name == 'schedule' \|\| github\.event_name == 'workflow_dispatch'\) && '\["ubuntu-latest", "windows-latest", "macos-latest"\]' \|\| '\["ubuntu-latest", "windows-latest"\]'\) \}\}/);
+  assert.match(parity, /schedule:\n\s+- cron:/);
   assert.ok(parity.includes('xvfb-run -a npm run test:workspaces:desktop'));
   assert.ok(read('scripts/release.sh').includes('npm run test:packaged:workspaces'));
   const native = read('.github/workflows/release-windows-linux.yml');

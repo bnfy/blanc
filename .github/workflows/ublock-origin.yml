@@ -28,6 +28,11 @@ on:
       - '.gitattributes'
       - 'package*.json'
       - '.github/workflows/ublock-origin.yml'
+  # Pull requests run the Windows and Linux desktop jobs; both Macs (Apple
+  # Silicon and Intel) run nightly on main and on manual runs, so they don't
+  # hold PRs in the macOS queue (October 2026).
+  schedule:
+    - cron: "11 7 * * *"
   workflow_dispatch:
     inputs:
       installed_intel:
@@ -71,7 +76,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15, macos-15-intel, windows-latest, ubuntu-latest]
+        os: ${{ fromJSON(github.event_name == 'pull_request' && '["windows-latest", "ubuntu-latest"]' || '["macos-15", "macos-15-intel", "windows-latest", "ubuntu-latest"]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
