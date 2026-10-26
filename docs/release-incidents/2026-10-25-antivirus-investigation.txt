@@ -1,5 +1,34 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+SELF-HOSTED ACCEPTANCE DIAGNOSIS (Oct 26): Run 40401704221, source
+518c77417573f07ffe412b211580894921439d8d, reached 524/541 on the ARM
+blanc-mac runner and failed before signing. Five setup failures followed one
+renderer SIGSEGV; the other failures principally involved native focus and
+Island pointer behavior. The failure is not waived and no new ARM installer
+was produced. Intel was still running its press gate when this entry was made.
+
+Five local renderer crash reports share offset 0x1372b48 and invalid address
+0x568. The matching standard Electron 44.9.3 symbol UUID is
+4C4C442D55553144A1FC8F505C7CA8700. Symbols resolve the first frames to
+blink::FrameSelection::FocusedOrActiveStateChanged,
+blink::FocusController::FocusHasChanged, InspectorEmulationAgent::disable,
+DevToolsSession::Detach, then LocalFrame/Frame detachment during navigation.
+The pre-signing suite uses standard Electron; the packaged app uses castLabs.
+This identifies the crash path, not a completed root-cause fix or evidence
+that the castLabs package has the same crash. Playwright enables DevTools
+focus emulation; its teardown interaction requires further isolation.
+
+A local no-retry subset passed 11/12, reproducing floating-address hover but
+not the crash. Floating-address input now reacquires native focus and waits
+for settled geometry. The immediate float-to-push scenario also reacquires
+focus before sending input, retaining the immediate style change and all
+outcome assertions. Both targeted scenarios pass (24 steps, retries off).
+The initial broader group was 47/48, isolating the missing style-switch focus
+precondition. A subsequent broader run still reproduced a separate hidden-
+address edge-reveal failure; the full gate is not certified by these fixes.
+Logs and resolved crash frames are retained under /tmp/blanc-*; original ARM
+log: /tmp/blanc-selfhost-518.log. Nothing has been published.
+
 SELF-HOSTED MAC SWITCH (Oct 26 owner request): Run 40399246738 was canceled
 before signing when the owner requested self-hosted Mac execution. The
 credentials-free probe 40401500622 passed on blanc-mac: native arm64, macOS

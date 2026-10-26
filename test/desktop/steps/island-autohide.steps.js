@@ -409,7 +409,14 @@ Then('the shield menu hangs under the floating pill over a page that stays still
 });
 
 When('I rest the pointer on the floating address', async function () {
-  const hover = await waitForValue(() => this.call('islandHoverRect'), Boolean, 'the address rectangle');
+  await waitForValue(() => this.call('focusWindow'), Boolean, 'the floating address window to take native focus');
+  let previous;
+  const hover = await waitForValue(() => this.call('islandHoverRect'), (value) => {
+    const settled = value && value.width > 0 && value.height > 0 && previous
+      && ['x', 'y', 'width', 'height'].every((key) => Math.abs(value[key] - previous[key]) < 0.1);
+    previous = value;
+    return settled;
+  }, 'the floating address rectangle to settle');
   const pill = await floatState(this);
   const point = { x: Math.round(hover.x + hover.width / 2), y: Math.round(hover.y + hover.height / 2) };
   await restCursor(this, point);
@@ -518,6 +525,7 @@ Then('the floating pill shows the private theme', async function () {
 });
 
 When('I point at the top edge of the window and switch auto-hide to push at once', async function () {
+  await waitForValue(() => this.call('focusWindow'), Boolean, 'the window to receive the pointer before switching styles');
   const state = await this.call('state');
   await restCursor(this, { x: 400, y: 2 });
   assert.equal(await this.call('sendMouseInput', state.activeTabId, { type: 'mouseMove', x: 400, y: 2 }), true);
