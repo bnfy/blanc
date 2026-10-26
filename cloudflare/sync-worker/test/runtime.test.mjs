@@ -10,6 +10,11 @@ test('the configured Worker and SQLite Durable Object enforce quota and release 
  const server=createTestHarness({root,workers:[{configPath:'./wrangler.toml'}]});t.after(()=>server.close());await server.listen();
  const worker=server.getWorker(),account='a'.repeat(64),sid=n=>'space-'+n.toString(16).padStart(32,'0'),base='/v1/blob/'+account+'/';
  const put=(name,blob,ifVersion=null)=>worker.fetch(base+name,{method:'PUT',body:JSON.stringify({blob,ifVersion})});
+ const race=await Promise.all(['one','two'].map(ct=>put(sid(999),{ct})));
+ assert.deepEqual(race.map(r=>r.status).sort(),[200,409]);
+ const winner=await race.find(r=>r.status===200).json();
+ assert.equal((await race.find(r=>r.status===409).json()).version,winner.version);
+ assert.equal((await worker.fetch(base+sid(999),{method:'DELETE'})).status,204);
  const large={ct:'x'.repeat(512*1024-9)};let full=null;const versions=new Map();
  for(let n=1;n<45;n++){
   const response=await put(sid(n),large);
@@ -78,7 +83,7 @@ test('real local KV and SQLite cover every legacy subset without inventory',{tim
   assert.equal((await post('write',{store,stored:JSON.stringify(row)})).status,503);
   const ledger=await (await object.fetch('https://quota.invalid/ledger')).json(),read=await (await post('read',{store})).json();
   assert.equal(Boolean(ledger.stores[store]),mode==='after');assert.equal(Boolean(read.record),mode==='after');
-  assert.equal((await post('write',{store,stored:JSON.stringify(row)})).status,200);
+  assert.equal((await post('write',{store,stored:JSON.stringify(row),ifVersion:read.record?.version??null})).status,200);
   assert.equal((await post('delete-account',{})).status,204);
   assert.equal(await (await object.fetch('https://quota.invalid/ledger')).json(),null);
  }

@@ -16,9 +16,11 @@ Schema 2 stores each encrypted Space representation under `blob:space-<id>`
 in its account SQLite database. The same transaction writes its byte charge
 into `ledger`. The value is authoritative, not a backup or a KV mirror. Fixed
 stores, activity/admission counters and pairing retain their existing KV paths.
-The external route/encryption/version response shapes are unchanged. Version
-checks still precede the write, so same-version concurrent writers can both
-succeed; this does not claim to close R3 bearer authority or all R5 lost writes.
+The external route/encryption/version response shapes are unchanged. Space version checks run inside the serialized `/write` handler against SQLite,
+including empty deletion-compaction blobs; exactly one same-version writer succeeds
+and the other receives 409 with the current version. The client fetches, merges
+and replays its pending edits. Fixed-store KV checks remain non-atomic. This does
+not close R3 bearer authority or the fixed-store R5 limitation.
 
 Eight permanent fixed reservations cover historical UTF-16 bounds without a KV
 inventory: four times `(3 * 524288 + 58 + 256)` plus four times
@@ -92,3 +94,14 @@ the real handler/accountant. Stale and disappearing-write cases are explicit
 fault injections, not a claim that SQLite normally loses acknowledged commits.
 The draft PR description records exact completed local validation counts and
 reviewed source commit. No production mutation or real-device test is performed.
+
+## October 26 review follow-up
+
+A failed wipe with a durable `erasing` marker returns `503` with `quota erasure pending`.
+That signal is preserved through the public write route and mapped to the desktop's
+`erasure-pending` code. Settings persists that state, retains credentials, and offers
+**Try again** to repeat the account wipe; **Turn off sync** with the erase checkbox
+cleared remains available. Successful wipe clears credentials and the notice. All
+six languages carry the message. F57-14 exercises failed wipe, notice and retry
+against the local real-handler fixture. No deployment or real-device evidence is
+claimed. Gate D still requires the final combined head.

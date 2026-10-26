@@ -89,3 +89,11 @@ Feature: Shared Spaces
     When an index write fails after the new Space blob succeeds
     And the Shared Spaces client crashes and restores
     Then the restored client retries the missing index entry
+
+  @F57-14
+  Scenario: Failed server erasure can be retried without losing credentials
+    Given a Shared Spaces fixture with the Work Space shared
+    When erasing the server copy fails once
+    Then Settings keeps the credentials and offers an erasure retry
+    When I retry erasing the server copy
+    Then the erasure completes and sync turns off

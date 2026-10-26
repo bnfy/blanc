@@ -147,18 +147,21 @@ missing or misleading lengths do not bypass the stream cap. Over-limit
 streams are cancelled with 413 before a blob is stored. Routes, encryption,
 derivation, conflict and version response shapes remain v1-compatible.
 
-KV counters and version checks are non-atomic. Two same-version writes can
-both succeed, losing one write; a pending write can recreate data after a
-DELETE. Client reconciliation does not guarantee recovery. Strict concurrency,
-deletion fencing and authenticated migration are separate v2 work.
+KV counters and fixed-store version checks are non-atomic. Two same-version
+fixed-store writes can both succeed, losing one write; an old KV writer can
+recreate data after DELETE. Client reconciliation does not guarantee recovery.
+Space stores compare `ifVersion` with SQLite inside the serialized `/write`
+handler before committing: a stale writer receives 409 with the current version.
+This also covers deletion compaction. Space ciphertext and quota commit together.
+An unfinished account wipe blocks writes with `503 {error: "quota erasure pending"}`;
+clients retain credentials and offer an explicit wipe retry.
 
 ## M16 storage scenarios and deployment decision
 
 The desktop's 25 **live** Spaces limit is not the server quota. Deleted and
 orphan blobs count against the separate account-wide byte and store limits.
 `NEW_ACCOUNT_DAILY_LIMIT` starts at 10 and remains independently configurable;
-changing it does not change an existing account's storage allowance. R3/R5 and
-the underlying KV version race remain unchanged.
+changing it does not change an existing account's storage allowance. R3 and the fixed-store R5 KV version race remain open.
 
 Using the **historical pricing assumption** in the October 5 storage design
 ($0.50 per decimal GB-month after 1 GB included), the following is an occupancy

@@ -36,10 +36,10 @@ async function createSyncFixture({pageSize=2,now=()=>Date.now()}={}) {
   env.ACCOUNT_QUOTA={idFromName:name=>name,get:id=>({fetch:(url,init)=>{
     let object=quotaObjects.get(id);if(!object){let state=quotaStates.get(id);if(!state){state=quotaState();quotaStates.set(id,state);}object=new workerModule.AccountQuota(state,env);quotaObjects.set(id,object);}
     return (async()=>{
+      const context=scope.getStore(),barrier=new URL(url).pathname==='/write'?race:null;
+      if(barrier&&context?.method==='PUT'&&context.blobKey===barrier.key){barrier.arrived++;if(barrier.arrived===barrier.count){clearTimeout(barrier.timer);race=null;barrier.release();}await barrier.ready;}
       const response=await object.fetch(new Request(url,init));
       if(new URL(url).pathname!=='/read'||!response.ok)return response;
-      const context=scope.getStore(),barrier=race;
-      if(barrier&&context?.method==='PUT'&&context.blobKey===barrier.key){barrier.arrived++;if(barrier.arrived===barrier.count){clearTimeout(barrier.timer);race=null;barrier.release();}await barrier.ready;}
       if(context?.fault?.type==='stale')return Response.json({record:context.fault.frozen?JSON.parse(context.fault.frozen):null});
       return response;
     })();

@@ -178,3 +178,18 @@ test('a successful index PUT updates the cache so the next unchanged pass cannot
   assert.equal(e.read('spaces').spaces[sid].rev,published);
   assert.equal(e.fixture.requests.slice(before).some(x=>x.store==='spaces'&&x.method==='PUT'),false);
 });
+
+test('erasure-pending writes preserve credentials and notice until a successful wipe retry',async t=>{
+ const e=await environment(t),a=e.device('A');createSpace(a);await e.drive(a.sync.syncNow([store]));
+ const remove=e.fixture.env.SYNC.delete;let fail=true;
+ e.fixture.env.SYNC.delete=async key=>{if(fail){fail=false;throw Error('failed erase');}return remove(key);};
+ const failed=await a.sync.disable({wipeRemote:true});
+ assert.equal(failed.error,'erasure-pending');assert.equal(a.sync.status().enabled,true);assert.equal(a.sync.status().erasurePending,true);
+ const local=blob();local.tabs[id(1)].name=field('Change after failed wipe',999);
+ a.spaces.noteLocalSpace(sid,local,{tabs:{[id(1)]:{name:local.tabs[id(1)].name}}},a.ctx);
+ const attempt=await e.drive(a.sync.syncNow([store]));assert.equal(attempt.error,'erasure-pending');
+ assert.equal(a.sync.status().lastError,'erasure-pending');
+ assert.equal((await a.sync.disable({wipeRemote:true})).ok,true);
+ assert.equal(a.sync.status().erasurePending,false);assert.equal(a.sync.status().enabled,false);
+ assert.equal(e.fixture.blobs.has(`blob:${account}:${store}`),false);
+});

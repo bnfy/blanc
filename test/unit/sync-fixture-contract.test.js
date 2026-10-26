@@ -47,12 +47,12 @@ test('fixture HTTP routes, statuses, bodies and stored keys match the real Worke
   const stored=env=>Object.fromEntries([...env.records].sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>{try{return [k,JSON.parse(v)];}catch{return [k,v];}}));
   assert.deepEqual(stable[0](stored(direct)),stable[1](stored(fixture.env)));
 });
-test('same-version concurrent PUTs both succeed through the real non-atomic Worker check',async t=>{
+test('same-version concurrent Space PUTs have one winner through the real atomic Worker check',async t=>{
   const f=await createSyncFixture();t.after(()=>f.close());const store='space-'+sid(1),url=f.url+'/v1/blob/'+account+'/'+store;
   const first=await (await fetch(url,options('PUT',{blob:{ct:'seed'},ifVersion:null}))).json();
   f.raceNextPuts({accountId:account,store,count:2});
   const writes=await Promise.all(['A','B'].map(ct=>fetch(url,options('PUT',{blob:{ct},ifVersion:first.version}))));
-  assert.deepEqual(writes.map(x=>x.status),[200,200]);
+  assert.deepEqual(writes.map(x=>x.status).sort(),[200,409]);
   const final=await (await fetch(url)).json();assert.ok(['A','B'].includes(final.blob.ct));
 });
 test('stale reads and acknowledged disappearing writes change KV visibility without replacing the handler',async t=>{

@@ -149,9 +149,8 @@ async function readBlob(env, accountId, store) {
 }
 
 // Optimistic concurrency: reject if the caller's ifVersion isn't current. The
-// read-then-write isn't a transaction: racing writers can both succeed and one
-// write can be lost. Reconciliation does not guarantee recovery of that data.
-// Atomic concurrency and deletion fencing require a separate protocol project.
+// fixed-store KV read-then-write is not a transaction and can lose racing
+// writes. Spaces compare and commit inside the serialized account object.
 async function handlePut(env, accountId, store, body) {
   if (dynamicStore(store) && !env.ACCOUNT_QUOTA) return unavailable('quota unavailable');
   if (!body || typeof body.blob !== 'object' || body.blob === null) return json({ error: 'bad blob' }, 400);
@@ -161,16 +160,19 @@ async function handlePut(env, accountId, store, body) {
     const busy = await newAccountRefusal(env);
     if (busy) return busy;
   }
-  const read = await readBlob(env, accountId, store);
-  if (read.response) return read.response;
-  const cur = read.record;
-  if ((body.ifVersion ?? null) !== (cur?.version ?? null)) return json({ version: cur?.version ?? null, error: 'conflict' }, 409);
+  if (!dynamicStore(store)) {
+    const read = await readBlob(env, accountId, store);
+    if (read.response) return read.response;
+    const cur = read.record;
+    if ((body.ifVersion ?? null) !== (cur?.version ?? null)) return json({ version: cur?.version ?? null, error: 'conflict' }, 409);
+  }
   const version = crypto.randomUUID();
   const stored = JSON.stringify({ version, blob: body.blob });
   if (env.ACCOUNT_QUOTA) {
     const quota = env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId));
-    const response = await quota.fetch('https://quota.invalid/write', { method: 'POST', body: JSON.stringify({ accountId, store, stored }) });
+    const response = await quota.fetch('https://quota.invalid/write', { method: 'POST', body: JSON.stringify({ accountId, store, stored, ifVersion: body.ifVersion ?? null }) });
     if (response.status === 507) return json({ error: 'account-quota' }, 507);
+    if (response.status === 409 || response.status === 503) return response;
     if (!response.ok) return json({ error: 'quota unavailable' }, 503);
   } else await env.SYNC.put(blobKey(accountId, store), stored);
   if (!marker) await countNewAccount(env);
@@ -186,6 +188,7 @@ async function handleDelete(env, accountId) {
 async function handleStoreDelete(env, accountId, store) {
   if (env.ACCOUNT_QUOTA) {
     const response = await env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId)).fetch('https://quota.invalid/delete-store', { method: 'POST', body: JSON.stringify({ accountId, store }) });
+    if (response.status === 409 || response.status === 503) return response;
     if (!response.ok) return json({ error: 'quota unavailable' }, 503);
   } else return unavailable('quota unavailable');
   return new Response(null, { status: 204 });
@@ -236,10 +239,11 @@ export class AccountQuota {
     this.initializing = Promise.resolve(ledger);
   }
   fetch(request) {
-    const result = this.tail.then(() => this.handle(request)).catch(() => {
+    const result = this.tail.then(() => this.handle(request)).catch(async () => {
       // Reload durable state after a failed persistence operation. Never
       // publish a partially mutated in-memory ledger as the next request's base.
       this.initializing = null;
+      try { if ((await this.state.storage.get('ledger'))?.erasing) return unavailable('quota erasure pending'); } catch {}
       return unavailable('quota unavailable');
     });
     this.tail = result.then(() => {}, () => {});
@@ -298,6 +302,10 @@ export class AccountQuota {
       await this.env.SYNC.put(blobKey(body.accountId, body.store), body.stored);
       return json({}, 200); // The permanent reserve never changes.
     }
+    const current = await this.state.storage.get('blob:' + body.store);
+    if (Boolean(current) !== Boolean(ledger.stores[body.store])) throw new Error('inconsistent Space storage');
+    const currentVersion = current ? JSON.parse(current).version : null;
+    if ((body.ifVersion ?? null) !== currentVersion) return json({ error: 'conflict', version: currentVersion }, 409);
     const before = ledger.stores[body.store];
     const nextBytes = FIXED_RESERVATION_BYTES + Object.values(ledger.stores).reduce((sum, row) => sum + row.bytes + QUOTA_KEY_OVERHEAD_BYTES, 0)
       + (before ? bytes - before.bytes : bytes + QUOTA_KEY_OVERHEAD_BYTES);

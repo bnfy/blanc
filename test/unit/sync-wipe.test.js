@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const { wipeDecision } = require('../../src/main/sync-wipe');
+const { wipeDecision, responseCode } = require('../../src/main/sync-wipe');
 const { syncErrorText } = require('../../src/main/sync-messages');
 const { englishT: t } = require('../support/english-t');
 
@@ -28,4 +28,13 @@ test('only a confirmed 2xx clears the local record', () => {
     assert.equal(decision.ok, true);
     assert.equal(decision.error, null);
   }
+});
+
+test('only the explicit erasure signal maps to the actionable pending code', () => {
+ assert.equal(responseCode(503, '{"error":"quota erasure pending"}'), 'erasure-pending');
+ assert.equal(responseCode(503, '{"error":"quota unavailable"}'), 'http-503');
+ assert.equal(responseCode(503, 'bad json'), 'http-503');
+ const decision=wipeDecision({status:503,code:'erasure-pending'});
+ assert.equal(decision.clearCredentials,false);
+ assert.match(syncErrorText(decision.error,t),/server copy is still being erased/);
 });

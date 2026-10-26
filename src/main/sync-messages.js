@@ -19,6 +19,7 @@ const ERROR_KEYS = {
   conflict: 'sync.error.conflict',
   server: 'sync.error.server',
   'server-error': 'sync.error.serverError',
+  'erasure-pending': 'sync.error.erasurePending',
   'account-quota': 'sharedSpaces.accountFull',
   offline: 'sync.error.offline',
   'sync-off': 'sync.error.off',

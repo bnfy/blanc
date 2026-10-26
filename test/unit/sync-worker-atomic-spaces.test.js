@@ -49,3 +49,20 @@ for(const afterCommit of [false,true])test(`failed final SQLite wipe ${afterComm
  assert.equal((await h.request('DELETE')).status,204);assert.equal(st.values.size,0);
  assert.equal(h.records.has(`blob:${account}:settings`),false);
 });
+
+test('Space compare-and-set admits exactly one same-version write, including compaction',async()=>{
+ const h=await setup();await h.put();const version=JSON.parse(h.blobs.get(`blob:${account}:${space}`)).version;
+ const replies=await Promise.all([{ct:'edit'},{ct:'empty compacted Space'}].map(blob=>h.request('PUT',space,{blob,ifVersion:version})));
+ assert.deepEqual(replies.map(r=>r.status).sort(),[200,409]);
+ const current=JSON.parse(h.blobs.get(`blob:${account}:${space}`));
+ assert.deepEqual(await replies.find(r=>r.status===409).json(),{error:'conflict',version:current.version});
+ assert.equal((await h.request('PUT',space,{blob:{ct:'retry'},ifVersion:current.version})).status,200);
+});
+test('failed account erasure preserves its distinct error on fixed and Space writes',async()=>{
+ const h=await setup();await h.put();h.env.SYNC.delete=async()=>{throw Error('offline');};
+ assert.equal((await h.request('DELETE')).status,503);
+ for(const store of ['settings',space]){
+  const res=await h.request('PUT',store,{blob:{ct:'later'},ifVersion:store===space?JSON.parse(h.blobs.get(`blob:${account}:${space}`)).version:null});
+  assert.equal(res.status,503);assert.deepEqual(await res.json(),{error:'quota erasure pending'});
+ }
+});

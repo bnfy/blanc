@@ -69,7 +69,11 @@ async function runPeerCase(name){
   if(name==='same-version writes replay pending fields'){
    const b=device('B');await drive(b.sync.syncNow([store]));const al=blob(),bl=blob();al.tabs[id(1)].name=f('A edit',300);bl.tabs[id(1)].pinned=f(true,301,'B');
    a.spaces.noteLocalSpace(sid,al,{tabs:{[id(1)]:{name:al.tabs[id(1)].name}}},a.ctx);b.spaces.noteLocalSpace(sid,bl,{tabs:{[id(1)]:{pinned:bl.tabs[id(1)].pinned}}},b.ctx);
+   const from=fixture.requests.length;
    fixture.raceNextPuts({accountId:account,store});await drive(Promise.all([a.sync.syncNow([store]),b.sync.syncNow([store])]));
+   const puts=fixture.requests.slice(from).filter(r=>r.method==='PUT'&&r.store===store);
+   assert.deepEqual(puts.slice(0,2).map(r=>r.status).sort(),[200,409]);
+   assert.ok(puts.slice(2).some(r=>r.status===200),'loser must replay its pending edit on retry');
    await drive(a.sync.syncNow([store]));await drive(b.sync.syncNow([store]));await drive(a.sync.syncNow([store]));
    assert.equal(read(store).tabs[id(1)].name.v,'A edit');assert.equal(read(store).tabs[id(1)].pinned.v,true);return;
   }

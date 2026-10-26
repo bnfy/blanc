@@ -205,3 +205,27 @@ Then('the restored client retries the missing index entry',{timeout:300000},asyn
  const index=JSON.parse(decrypt(this.sharedKey.key,JSON.parse(raw).blob));assert.ok(index.spaces[this.sid]);
  assert.ok(this.sharedFixture.blobs.has(`blob:${this.sharedKey.accountId}:space-${this.sid}`));
 });
+
+When('erasing the server copy fails once', {timeout:180000}, async function(){
+ this.sharedPage=await settingsPage(this);
+ const remove=this.sharedFixture.env.SYNC.delete;let fail=true;
+ this.sharedFixture.env.SYNC.delete=async key=>{if(fail){fail=false;throw Error('erase failed once');}return remove(key);};
+ await this.sharedPage.locator('#syncWipe').check();
+ await this.sharedPage.locator('#syncDisable').click();
+});
+Then('Settings keeps the credentials and offers an erasure retry', {timeout:180000}, async function(){
+ await waitForValue(()=>this.sharedPage.locator('#syncStatusError').textContent(),text=>text.includes('server copy is still being erased'),'pending erasure message');
+ assert.equal(await this.sharedPage.locator('#syncEraseRetry').isVisible(),true);
+ assert.equal(await this.sharedPage.locator('#syncDisable').isVisible(),true);
+ assert.equal(await this.sharedPage.locator('#syncWipe').isEnabled(),true);
+ const state=await this.sharedPage.evaluate(()=>window.bowserPages.settings.syncGet());assert.equal(state.enabled,true);
+});
+When('I retry erasing the server copy', {timeout:180000}, async function(){
+ await this.sharedPage.locator('#syncEraseRetry').click();
+});
+Then('the erasure completes and sync turns off', {timeout:180000}, async function(){
+ await waitForValue(()=>this.sharedPage.locator('#syncEraseRetry').isVisible(),v=>!v,'erasure retry cleared');
+ const state=await this.sharedPage.evaluate(()=>window.bowserPages.settings.syncGet());assert.equal(state.enabled,false);
+ assert.equal([...this.sharedFixture.blobs.keys()].some(k=>k.startsWith(`blob:${this.sharedKey.accountId}:`)),false);
+ assert.equal(this.sharedFixture.requests.filter(r=>r.method==='DELETE'&&!r.store&&r.status===204).length,1);
+});

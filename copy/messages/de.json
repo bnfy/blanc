@@ -8304,5 +8304,13 @@
   "ws.error.movedPartly": {
     "message": "{count} Tabs nach {name} verschoben. Die anderen Tabs bleiben hier.",
     "source": "sha256:85a9da370663e1476aa1b2bce59cfe9d40a4719ecbf6eb636f487d31da2c415b"
+  },
+  "sync.error.erasurePending": {
+    "message": "Die Kopie auf dem Server wird noch gelöscht. Versuche es erneut, um den Vorgang abzuschließen, oder deaktiviere die Synchronisierung ohne Löschen.",
+    "source": "sha256:9fca28f75e8f0202e782be8ce6e4dd9096ff1b367d109582dfa8f5d5a8bcc660"
+  },
+  "settings.sync.tryAgain": {
+    "message": "Erneut versuchen",
+    "source": "sha256:9a3dd573e6c2ddc13a475a86f7ca941999f15c4fe666db42df4ad94772f923ac"
   }
 }

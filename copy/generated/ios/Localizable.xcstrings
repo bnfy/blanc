@@ -93840,6 +93840,90 @@
           }
         }
       }
+    },
+    "sync.error.erasurePending": {
+      "comment": "Settings Sync: pending server erasure and its retry action.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server copy is still being erased. Try again to finish erasing it, or turn off sync without erasing."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Kopie auf dem Server wird noch gelöscht. Versuche es erneut, um den Vorgang abzuschließen, oder deaktiviere die Synchronisierung ohne Löschen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La copia del servidor sigue pendiente de borrado. Inténtalo de nuevo para terminar de borrarla, o desactiva la sincronización sin borrar los datos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La copie sur le serveur est toujours en cours de suppression. Réessayez pour terminer la suppression, ou désactivez la synchronisation sans effacer les données."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La cancellazione della copia sul server è ancora in sospeso. Riprova per completarla, oppure disattiva la sincronizzazione senza cancellare i dati."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A cópia no servidor ainda está sendo apagada. Tente novamente para concluir ou desative a sincronização sem apagar os dados."
+          }
+        }
+      }
+    },
+    "settings.sync.tryAgain": {
+      "comment": "Settings Sync: pending server erasure and its retry action.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut versuchen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intentar de nuevo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réessayer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riprova"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tentar novamente"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

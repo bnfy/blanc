@@ -2298,4 +2298,6 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="tabs_menu_close">Tabs schließen</string>
     <string name="ws_new_with_tabs">Mit diesen Tabs</string>
     <string name="ws_error_moved_partly">%1$s Tabs nach %2$s verschoben. Die anderen Tabs bleiben hier.</string>
+    <string name="sync_error_erasure_pending">Die Kopie auf dem Server wird noch gelöscht. Versuche es erneut, um den Vorgang abzuschließen, oder deaktiviere die Synchronisierung ohne Löschen.</string>
+    <string name="settings_sync_try_again">Erneut versuchen</string>
 </resources>

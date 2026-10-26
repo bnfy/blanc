@@ -2369,4 +2369,6 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="tabs_menu_close">Fermer les onglets</string>
     <string name="ws_new_with_tabs">Avec ces onglets</string>
     <string name="ws_error_moved_partly">%1$s onglets déplacés vers %2$s. Les autres sont restés ici.</string>
+    <string name="sync_error_erasure_pending">La copie sur le serveur est toujours en cours de suppression. Réessayez pour terminer la suppression, ou désactivez la synchronisation sans effacer les données.</string>
+    <string name="settings_sync_try_again">Réessayer</string>
 </resources>
