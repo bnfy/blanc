@@ -258,6 +258,8 @@ if (window.location.protocol === 'blanc:') {
         chooseWallpaper: () => invoke('pages:start:choose-wallpaper'),
         removeWallpaper: () => invoke('pages:start:remove-wallpaper'),
         language: (code, restart) => invoke('pages:settings:language', code, restart),
+        linkTargets: () => invoke('pages:settings:link-targets'),
+        setLinkRoutes: (routes) => invoke('pages:settings:link-routes:set', routes),
         onAppearance: (callback) => {
           ipcRenderer.on('pages:settings:appearance', (_event, status) => callback(status));
         },

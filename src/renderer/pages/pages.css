@@ -443,6 +443,46 @@ body.sheet .row .actions button {
 
 .row-list { display: flex; flex-direction: column; }
 
+/* Settings → Profiles: link routing rules (F60). One wrapping line per rule. */
+.link-route-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
+.link-route-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  font-size: 13px;
+}
+.link-route-row:focus-within { background: var(--surface); }
+.link-route-row > input[type="text"] { flex: 1 1 160px; min-width: 120px; }
+.link-route-row > .link-route-note,
+.link-route-row > .hint { flex: 1 0 100%; margin: 0; }
+.link-route-row > .link-route-note { color: var(--danger); font-size: 12.5px; }
+.link-route-fallback { color: var(--text-dim); margin-bottom: 12px; }
+.link-route-more { position: relative; margin-left: auto; }
+.link-route-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  padding: 4px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.18);
+}
+.link-route-menu[hidden] { display: none; }
+/* Out-rank the sheet's filled buttons: menu items are plain rows. */
+body .link-route-menu[role="menu"] > button { text-align: left; border: 0; background: transparent; box-shadow: none; }
+body .link-route-menu[role="menu"] > button:hover:not(:disabled),
+body .link-route-menu[role="menu"] > button:focus-visible { background: var(--surface); }
+body .link-route-menu[role="menu"] > button:disabled { opacity: 0.45; cursor: default; }
+body .link-route-menu[role="menu"] > button.danger { color: var(--danger); }
+
 .row {
   display: flex;
   align-items: center;

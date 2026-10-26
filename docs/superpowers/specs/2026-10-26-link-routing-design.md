@@ -1,7 +1,7 @@
 # Link routing: open links from other apps where they belong
 
 **Date:** 2026-10-26
-**Status:** decided (§11, owner, 2026-10-26). Not yet implemented.
+**Status:** decided (§11, owner, 2026-10-26). PR 1 implemented (§10); PR 2 not yet.
 **Builds on:** the OS link handoff (`src/main/external-url-handoff.js`, `startup-urls.js`, the `open-url` and `second-instance` handlers in `main.js`), local profiles (`local-profile-model.js`, `local-profiles.js`, one profile per window), Blanc Spaces (`workspaces-model.js`, `workspace-controller.js`, each Space belongs to one profile) and Settings → Profiles.
 **Reference:** Arc's *Air Traffic Control*. Arc's release notes introduce it on May 3, 2023 as a way to send links to the right Space by domain, set up under *Arc → Settings → Links → Air Traffic Control* ([Arc for macOS 2023 release notes](https://resources.arc.net/hc/en-us/articles/20498377604887-Arc-for-macOS-2023-Release-Notes)). Arc's sunset FAQ says its successor, Dia, has no equivalent and can't open sites in a chosen profile automatically ([Arc Sunset FAQ](https://resources.arc.net/hc/en-us/articles/44413577819159-Arc-Sunset-Frequently-Asked-Questions)). The finer details below, such as *contains* versus *is equal to* matching and the last-used Space as a destination, come from a third-party guide ([allthings.how](https://allthings.how/how-to-route-links-to-specific-arc-spaces-using-air-traffic-control-in-the-arc-browser/)), not from Arc. The request came from r/ArcBrowser on 2026-10-24, in the same post as Ctrl-Tab and Copy Link.
 
@@ -148,6 +148,14 @@ These are conveniences; Settings stays the full editor.
 
 1. **PR 1:** `link-routes.js` and its tests, the setting, the handoff integration, the Settings group, copy in six languages, and the acceptance scenarios.
 2. **PR 2:** the shield popover row and `/route`.
+
+   **PR 1 is implemented** (2026-10-26). `src/main/link-routes.js` holds the rules (`normalizeLinkRoutes`, `validateLinkRoutes`, `normalizeDomain`, `matchLinkRoute`) and the window choice (`resolveRoutedRuntime`), all pure and unit-tested; `createExternalUrlHandoff` asks `routeFor(url)` once per URL when it first flushes, so a cold link sees the restored windows. `linkRoutes` is in `settings.js` (written only by `setLinkRoutes()`) and `internalDefaults`; Settings reads `pages:settings:link-targets` and writes `pages:settings:link-routes:set`. Covered by unit tests, `test/desktop/external-links-smoke.mjs` (profile, deleted profile, a Space that isn't open, a profile with no window) and `spec/acceptance/link-routing.feature` (F60-1–3). Where it differs from the text above:
+   - A new window opened for a routed link holds just the link, not a Start Page tab beside it (§12's proposal), so it doesn't go through `openNewWindow({ profileId })`, which adds one; it creates the profile's window directly.
+   - A Space that isn't showing opens through `workspaceController.open(..., { newWindow: true })` with a caller that carries only the profile and a lock id, because the profile may have no window open.
+   - In a multi-URL handoff, a window that receives an earlier URL and takes focus by itself no longer cancels the final URL's reveal; only the user moving elsewhere does.
+   - Settings saves only rows whose value is valid; a row still being typed stays on the page until it is. Because deleting a profile removes its rules, "Profile deleted" shows only while a deletion is still finishing.
+   - `contains` compares against the URL exactly as it was handed over, lowercased.
+   - The mobile D-register entry is D32 (`spec/divergence-register.md`).
 3. Website and What's New only after the release that carries PR 1 (`docs/marketing-claims.md`). The claim is "routes links from other apps by domain to a profile or Space", not anything about understanding what the link is.
 
 ## 11. Decisions (owner, 2026-10-26)

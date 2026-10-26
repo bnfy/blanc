@@ -251,7 +251,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "35d38a4bd34ad4ffe968d57af4ab572837875c1d865c39e5a41d19ac231911ab",
+      "sha256": "0361ae7a70c274cec9233cffe85a2e1ec94777be99f06d2ca1d5e94ccd863468",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -501,7 +501,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "228858fae14401fc8dac13fc77dfd99176c77fce6cee8b6e829fce821a319707",
+      "sha256": "d9afbf2071cd27eaa52192268dea7cec66a7b0be62775382613cc42fc6082854",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -559,6 +559,8 @@
         "pages:settings:drm-status",
         "pages:settings:get",
         "pages:settings:language",
+        "pages:settings:link-routes:set",
+        "pages:settings:link-targets",
         "pages:settings:onepassword-status",
         "pages:settings:onepassword-verify",
         "pages:settings:open-onepassword-app",
@@ -954,7 +956,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "c51ebcb4785ea2afe8d03176c884638559d47c377f4bcea40a63f20dfb266a6d",
+      "sha256": "13da55d67be9de472ed081340009d582e0cf9880fd7a765117ab6c5ffa710aec",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1014,6 +1016,8 @@
         "pages:settings:drm-status",
         "pages:settings:get",
         "pages:settings:language",
+        "pages:settings:link-routes:set",
+        "pages:settings:link-targets",
         "pages:settings:onepassword-status",
         "pages:settings:onepassword-verify",
         "pages:settings:open-onepassword-app",

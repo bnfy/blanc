@@ -1245,6 +1245,9 @@
     document.getElementById('group-patron')?.remove();
   }
 
+  // Set by the link routing block below; profile changes re-read its targets.
+  let refreshLinkRoutes = () => {};
+
   // --- Local profiles ---
   if (supports('localProfiles')) {
     const profileList = document.getElementById('profilesList');
@@ -1356,6 +1359,7 @@
         row.append(main, actions);
         profileList.append(row);
       }
+      refreshLinkRoutes();
     }
 
     async function createProfile() {
@@ -1381,6 +1385,368 @@
     });
   } else {
     document.getElementById('group-profiles')?.remove();
+  }
+
+  // --- Open links from other apps (F60) ---
+  // Rules live in main (settings.setLinkRoutes() validates the whole list).
+  // Rows being typed stay here until their value is valid; only valid rows
+  // are saved, so an unfinished row never blocks the others.
+  if (supports('localProfiles') && supports('linkRoutes')) {
+    const card = document.getElementById('linkRoutesCard');
+    const list = document.getElementById('linkRoutesList');
+    const addButton = document.getElementById('linkRouteAdd');
+    const status = document.getElementById('linkRoutesStatus');
+    const MAX_RULES = 50;
+    const MAX_VALUE = 200;
+    let targets = { profiles: [], spaces: [] };
+    let currentProfileId = 'default';
+    let drafts = (settings.linkRoutes ?? []).map((route) => ({
+      id: route.id,
+      kind: route.match.kind,
+      text: route.match.value,
+      profileId: route.destination.profileId,
+      spaceId: route.destination.spaceId ?? null,
+      private: route.destination.private === true,
+      note: '',
+    }));
+    let loadSerial = 0;
+    let saving = Promise.resolve();
+
+    const newId = () => `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+    const isIp = (host) => /^\d{1,3}(?:\.\d{1,3}){3}$/.test(host) || host.startsWith('[');
+
+    // Mirrors normalizeDomain() in src/main/link-routes.js so the field can
+    // explain itself; main normalizes again and is the one that stores.
+    function fieldDomain(text) {
+      const value = text.trim();
+      if (!value) return { ok: false, error: 'empty' };
+      if (value.length > MAX_VALUE) return { ok: false, error: 'too-long' };
+      const fromUrl = /^[a-z][a-z0-9+.-]*:\/\//i.test(value);
+      if (!fromUrl && /[\s/\\:@?#*%[\]]/.test(value)) return { ok: false, error: 'invalid' };
+      let host;
+      try {
+        const url = new URL(fromUrl ? value : `http://${value}/`);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') return { ok: false, error: 'invalid' };
+        host = url.hostname.toLowerCase().replace(/\.$/, '');
+      } catch {
+        return { ok: false, error: 'invalid' };
+      }
+      if (!host || host.includes('..') || host.startsWith('.')) return { ok: false, error: 'invalid' };
+      if (!isIp(host) && host.startsWith('www.') && host.slice(4).includes('.')) host = host.slice(4);
+      if (host.length > MAX_VALUE) return { ok: false, error: 'too-long' };
+      return { ok: true, value: host, fromUrl };
+    }
+    function fieldContains(text) {
+      const value = text.trim();
+      if (!value) return { ok: false, error: 'empty' };
+      if (value.length > MAX_VALUE) return { ok: false, error: 'too-long' };
+      if ([...value].some((ch) => ch.charCodeAt(0) < 0x20 || ch.charCodeAt(0) === 0x7f)) return { ok: false, error: 'invalid' };
+      return { ok: true, value };
+    }
+    const check = (draft) => (draft.kind === 'domain' ? fieldDomain : fieldContains)(draft.text);
+
+    const profileName = (id) => targets.profiles.find((profile) => profile.id === id)?.name ?? null;
+    const spaceName = (draft) => targets.spaces.find((space) =>
+      space.id === draft.spaceId && space.profileId === draft.profileId)?.name ?? null;
+
+    function summary(draft) {
+      const profile = profileName(draft.profileId) ?? t('settings.linkRoutes.profileDeleted');
+      let destination = profile;
+      if (draft.spaceId) {
+        destination = t('settings.linkRoutes.destinationSpace', {
+          profile, space: spaceName(draft) ?? t('settings.linkRoutes.spaceDeleted'),
+        });
+      }
+      if (draft.private) destination = t('settings.linkRoutes.destinationPrivate', { destination });
+      const value = draft.text.trim();
+      if (!value) return t('settings.linkRoutes.summaryNew', { destination });
+      return t(draft.kind === 'domain' ? 'settings.linkRoutes.summaryDomain' : 'settings.linkRoutes.summaryContains',
+        { value, destination });
+    }
+
+    function save() {
+      const routes = [];
+      for (const draft of drafts) {
+        const result = check(draft);
+        if (!result.ok) continue;
+        routes.push({
+          id: draft.id,
+          match: { kind: draft.kind, value: result.value },
+          destination: { profileId: draft.profileId, spaceId: draft.spaceId, private: draft.private },
+        });
+      }
+      saving = saving.then(async () => {
+        const result = await window.bowserPages.settings.setLinkRoutes(routes);
+        if (!result?.ok) status.textContent = t('settings.linkRoutes.saveFailed');
+      }).catch(() => { status.textContent = t('settings.linkRoutes.saveFailed'); });
+      return saving;
+    }
+
+    const option = (value, label) => {
+      const element = document.createElement('option');
+      element.value = value;
+      element.textContent = label;
+      element.dataset.i18nIgnore = '';
+      return element;
+    };
+
+    function fillSpaces(select, draft) {
+      select.replaceChildren(option('', t('settings.linkRoutes.anyWindow')));
+      for (const space of targets.spaces.filter((candidate) => candidate.profileId === draft.profileId)) {
+        select.append(option(space.id, space.name));
+      }
+      if (draft.spaceId && !spaceName(draft)) select.append(option(draft.spaceId, t('settings.linkRoutes.spaceDeleted')));
+      select.value = draft.spaceId ?? '';
+      select.disabled = select.options.length < 2;
+    }
+
+    function targetNote(draft) {
+      if (!profileName(draft.profileId)) return t('settings.linkRoutes.profileDeletedNote');
+      if (draft.spaceId && !spaceName(draft)) return t('settings.linkRoutes.spaceDeletedNote');
+      return '';
+    }
+
+    let openMenu = null;
+    function closeMenu({ focusButton = false } = {}) {
+      if (!openMenu) return;
+      const { menu, trigger } = openMenu;
+      menu.hidden = true;
+      trigger.setAttribute('aria-expanded', 'false');
+      openMenu = null;
+      if (focusButton) trigger.focus();
+    }
+    document.addEventListener('click', (event) => {
+      if (openMenu && !openMenu.menu.parentElement.contains(event.target)) closeMenu();
+    });
+
+    function focusRow(index, selector) {
+      list.children[index]?.querySelector(selector)?.focus();
+    }
+
+    function moveDraft(index, delta) {
+      const target = index + delta;
+      if (target < 0 || target >= drafts.length) return;
+      [drafts[index], drafts[target]] = [drafts[target], drafts[index]];
+      render();
+      save();
+      focusRow(target, '.link-route-more > button');
+      status.textContent = t('settings.linkRoutes.moved', { position: target + 1, count: drafts.length });
+    }
+
+    function renderRow(draft, index) {
+      const row = document.createElement('div');
+      row.className = 'link-route-row';
+      row.setAttribute('role', 'group');
+      row.dataset.routeId = draft.id;
+      const errorId = `linkRouteError-${draft.id}`;
+
+      const lead = document.createElement('span');
+      lead.textContent = t(draft.kind === 'domain' ? 'settings.linkRoutes.linksTo' : 'settings.linkRoutes.linksContaining');
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.autocomplete = 'off';
+      input.spellcheck = false;
+      input.maxLength = MAX_VALUE;
+      input.value = draft.text;
+      input.placeholder = t(draft.kind === 'domain' ? 'settings.linkRoutes.domainPlaceholder' : 'settings.linkRoutes.containsPlaceholder');
+      input.setAttribute('aria-label', t(draft.kind === 'domain' ? 'settings.linkRoutes.domainLabel' : 'settings.linkRoutes.containsLabel'));
+      input.setAttribute('aria-describedby', errorId);
+
+      const openIn = document.createElement('span');
+      openIn.textContent = t('settings.linkRoutes.openIn');
+
+      const profileSelect = document.createElement('select');
+      profileSelect.setAttribute('aria-label', t('settings.linkRoutes.profileLabel'));
+      for (const profile of targets.profiles) profileSelect.append(option(profile.id, profile.name));
+      if (!profileName(draft.profileId)) profileSelect.append(option(draft.profileId, t('settings.linkRoutes.profileDeleted')));
+      profileSelect.value = draft.profileId;
+
+      const spaceSelect = document.createElement('select');
+      spaceSelect.setAttribute('aria-label', t('settings.linkRoutes.spaceLabel'));
+      fillSpaces(spaceSelect, draft);
+
+      const privateLabel = document.createElement('label');
+      privateLabel.className = 'inline-check';
+      const privateBox = document.createElement('input');
+      privateBox.type = 'checkbox';
+      privateBox.checked = draft.private;
+      const privateText = document.createElement('span');
+      privateText.textContent = t('settings.linkRoutes.private');
+      privateLabel.append(privateBox, privateText);
+
+      const more = document.createElement('div');
+      more.className = 'link-route-more';
+      const trigger = document.createElement('button');
+      trigger.type = 'button';
+      trigger.textContent = '⋮';
+      trigger.setAttribute('aria-label', t('settings.linkRoutes.more'));
+      trigger.setAttribute('aria-haspopup', 'menu');
+      trigger.setAttribute('aria-expanded', 'false');
+      const menu = document.createElement('div');
+      menu.className = 'link-route-menu';
+      menu.setAttribute('role', 'menu');
+      menu.hidden = true;
+      const item = (key, action, { disabled = false, danger = false } = {}) => {
+        const element = document.createElement('button');
+        element.type = 'button';
+        element.setAttribute('role', 'menuitem');
+        element.textContent = t(key);
+        element.disabled = disabled;
+        if (danger) element.className = 'danger';
+        element.addEventListener('click', (event) => {
+          event.stopPropagation();
+          closeMenu();
+          action();
+        });
+        return element;
+      };
+      menu.append(
+        item('settings.linkRoutes.moveUp', () => moveDraft(index, -1), { disabled: index === 0 }),
+        item('settings.linkRoutes.moveDown', () => moveDraft(index, 1), { disabled: index === drafts.length - 1 }),
+        item(draft.kind === 'domain' ? 'settings.linkRoutes.matchContains' : 'settings.linkRoutes.matchDomain', () => {
+          draft.kind = draft.kind === 'domain' ? 'contains' : 'domain';
+          draft.note = '';
+          render();
+          save();
+          focusRow(index, 'input[type="text"]');
+        }),
+        item('settings.linkRoutes.delete', () => {
+          drafts.splice(index, 1);
+          render();
+          save();
+          if (drafts.length) focusRow(Math.min(index, drafts.length - 1), 'input[type="text"]');
+          else addButton.focus();
+          status.textContent = t('settings.linkRoutes.deleted');
+        }, { danger: true }),
+      );
+      const menuItems = () => [...menu.querySelectorAll('button:not(:disabled)')];
+      trigger.addEventListener('click', (event) => {
+        event.stopPropagation();
+        if (openMenu?.menu === menu) return closeMenu();
+        closeMenu();
+        menu.hidden = false;
+        trigger.setAttribute('aria-expanded', 'true');
+        openMenu = { menu, trigger };
+        menuItems()[0]?.focus();
+      });
+      menu.addEventListener('keydown', (event) => {
+        const items = menuItems();
+        const at = items.indexOf(document.activeElement);
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+          event.preventDefault();
+          const step = event.key === 'ArrowDown' ? 1 : -1;
+          items[(at + step + items.length) % items.length]?.focus();
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          closeMenu({ focusButton: true });
+        } else if (event.key === 'Tab') {
+          closeMenu();
+        }
+      });
+      more.append(trigger, menu);
+
+      const note = document.createElement('p');
+      note.className = 'link-route-note';
+      const error = document.createElement('p');
+      error.className = 'hint field-error';
+      error.id = errorId;
+
+      const refresh = () => {
+        row.setAttribute('aria-label', summary(draft));
+        const result = check(draft);
+        const invalid = !result.ok && result.error !== 'empty';
+        input.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+        let errorKey = draft.kind === 'domain' ? 'settings.linkRoutes.invalidDomain' : 'settings.linkRoutes.invalidContains';
+        if (result.error === 'too-long') errorKey = 'settings.linkRoutes.tooLong';
+        error.textContent = invalid ? t(errorKey) : draft.note;
+        error.hidden = !error.textContent;
+        note.textContent = targetNote(draft);
+        note.hidden = !note.textContent;
+      };
+
+      input.addEventListener('input', () => {
+        draft.text = input.value;
+        draft.note = '';
+        refresh();
+      });
+      input.addEventListener('change', () => {
+        draft.text = input.value;
+        const result = check(draft);
+        if (result.ok && draft.kind === 'domain') {
+          draft.note = result.fromUrl ? t('settings.linkRoutes.keptHost', { host: result.value }) : '';
+          draft.text = result.value;
+          input.value = result.value;
+        }
+        refresh();
+        save();
+      });
+      profileSelect.addEventListener('change', () => {
+        draft.profileId = profileSelect.value;
+        draft.spaceId = null;
+        fillSpaces(spaceSelect, draft);
+        refresh();
+        save();
+      });
+      spaceSelect.addEventListener('change', () => {
+        draft.spaceId = spaceSelect.value || null;
+        refresh();
+        save();
+      });
+      privateBox.addEventListener('change', () => {
+        draft.private = privateBox.checked;
+        refresh();
+        save();
+      });
+
+      row.append(lead, input, openIn, profileSelect, spaceSelect, privateLabel, more, note, error);
+      refresh();
+      return row;
+    }
+
+    function render() {
+      closeMenu();
+      list.replaceChildren(...drafts.map(renderRow));
+      addButton.disabled = drafts.length >= MAX_RULES;
+      if (addButton.disabled) status.textContent = t('settings.linkRoutes.limit', { count: MAX_RULES });
+    }
+
+    addButton.addEventListener('click', () => {
+      if (drafts.length >= MAX_RULES) return;
+      const profileId = targets.profiles.some((profile) => profile.id === currentProfileId)
+        ? currentProfileId : (targets.profiles[0]?.id ?? 'default');
+      drafts.push({ id: newId(), kind: 'domain', text: '', profileId, spaceId: null, private: false, note: '' });
+      render();
+      focusRow(drafts.length - 1, 'input[type="text"]');
+    });
+
+    refreshLinkRoutes = async () => {
+      const serial = ++loadSerial;
+      try {
+        const [next, profiles] = await Promise.all([
+          window.bowserPages.settings.linkTargets(),
+          window.bowserPages.profiles.list(),
+        ]);
+        if (serial !== loadSerial) return;
+        targets = { profiles: next?.profiles ?? [], spaces: next?.spaces ?? [] };
+        currentProfileId = profiles?.currentId ?? currentProfileId;
+        // Deleting a profile removed its rules in main; drop them here too.
+        const { settings: stored } = await window.bowserPages.settings.get();
+        if (serial !== loadSerial) return;
+        const storedIds = new Set((stored.linkRoutes ?? []).map((route) => route.id));
+        drafts = drafts.filter((draft) => storedIds.has(draft.id) || !check(draft).ok
+          || profileName(draft.profileId));
+        card.hidden = !(targets.profiles.length >= 2 || targets.spaces.length >= 1);
+        card.dataset.ready = 'true';
+        // Never rebuild under someone typing in a rule.
+        if (!list.contains(document.activeElement)) render();
+      } catch {
+        status.textContent = t('settings.linkRoutes.loadFailed');
+      }
+    };
+    refreshLinkRoutes();
+  } else {
+    document.getElementById('linkRoutesCard')?.remove();
   }
 
   // --- Site permissions ---

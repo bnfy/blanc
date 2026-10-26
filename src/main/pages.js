@@ -482,6 +482,12 @@ function setupPages(hooks = {}) {
   // it, so pages:settings:set drops it like any unknown key.
   handle('pages:settings:language', 'settings', (code, restart) =>
     hooks.i18n?.changeUiLanguage(code, { restart }) ?? false);
+  // F60 link routing. Targets are names and opaque ids only; the rules'
+  // only write path is settings.setLinkRoutes(), which validates the list.
+  handle('pages:settings:link-targets', 'settings', () =>
+    hooks.linkRoutes?.targets() ?? { profiles: [], spaces: [] });
+  handle('pages:settings:link-routes:set', 'settings', (routes) =>
+    settings.setLinkRoutes(Array.isArray(routes) ? routes : null));
   handle('pages:settings:trust-receipt', 'settings', async () => {
     const current = settings.getSettings();
     const blocker = JSON.parse(fs.readFileSync(path.join(app.getAppPath(), 'adblock/sources/pinned.json'), 'utf8'));

@@ -188,7 +188,102 @@ try {
   const batchReceiver = final.find((rt) => rt.id === receiver.id);
   assert.equal(batchReceiver.tabs.filter((tab) => tab.url === `${origin}/batch-a`).length, 1);
   assert.equal(batchReceiver.tabs.filter((tab) => tab.url === `${origin}/batch-b`).length, 1);
-  console.log('external-links-smoke PASS: cold launch, hidden/minimized restore, readiness cancellation, windowless reopen, profile routing, second-instance batch');
+  console.log('external-links second-instance batch PASS');
+
+  // F60: rules route a link from another app to a profile or Space.
+  const linkRoutes = (routes) => app.evaluate((_electron, { root, routes }) => {
+    const require = process.getBuiltinModule('module').createRequire(`${root}/package.json`);
+    const settings = require('./src/main/settings');
+    return routes ? settings.setLinkRoutes(routes) : settings.getSettings().linkRoutes;
+  }, { root: path.resolve('.'), routes });
+  const local = `http://localhost:${server.address().port}`;
+  const workId = profile.profile.id;
+  const rule = (id, kind, value, destination) => ({
+    id, match: { kind, value }, destination: { spaceId: null, private: false, ...destination },
+  });
+  const holder = (routed, url) => routed.find((rt) => rt.tabs.some((tab) => tab.url === url));
+  const delivered = (url) => waitForValue(() => callTestHook(app, 'windowRuntimes'),
+    (routed) => !!holder(routed, url), `routed ${url}`);
+
+  // The work window was used last; a rule still sends this link to Personal.
+  assert.equal((await linkRoutes([rule('personal', 'domain', 'localhost', { profileId: 'default' })])).ok, true);
+  await deliver(`${local}/route-personal`);
+  let routed = await delivered(`${local}/route-personal`);
+  assert.equal(holder(routed, `${local}/route-personal`).profileId, 'default');
+  console.log('external-links route to profile PASS');
+
+  // A rule whose profile is gone is skipped: the link opens as it does today.
+  const beforeGone = await callTestHook(app, 'windowRuntimes');
+  assert.equal((await linkRoutes([
+    rule('gone', 'contains', '/route-gone', { profileId: 'profile_gone' }),
+  ])).ok, true);
+  await deliver(`${local}/route-gone`);
+  routed = await delivered(`${local}/route-gone`);
+  assert.equal(routed.length, beforeGone.length, 'a skipped rule opens no window');
+  assert.notEqual(holder(routed, `${local}/route-gone`).profileId, 'profile_gone');
+
+  // Deleting a profile removes its rules; its links then fall through.
+  const doomed = await callTestHook(app, 'createProfileWindow', ['Routing doomed']);
+  assert.equal(doomed.ok, true);
+  await linkRoutes([
+    rule('doomed', 'contains', '/route-doomed', { profileId: doomed.profile.id }),
+    rule('keep', 'contains', '/route-keep', { profileId: workId }),
+  ]);
+  assert.equal((await callTestHook(app, 'deleteProfile', [doomed.profile.id, 'Routing doomed'])).ok, true);
+  await waitForValue(() => linkRoutes(), (routes) => routes.length === 1 && routes[0].id === 'keep', 'rules of the deleted profile removed');
+  await deliver(`${local}/route-doomed`);
+  routed = await delivered(`${local}/route-doomed`);
+  assert.notEqual(holder(routed, `${local}/route-doomed`).profileId, doomed.profile.id);
+  console.log('external-links deleted profile falls through PASS');
+
+  // A Space that isn't showing opens in a new window of its profile.
+  const spaces = await callTestHook(app, 'createProfileWindow', ['Routing spaces']);
+  assert.equal(spaces.ok, true);
+  const spacesId = spaces.profile.id;
+  const spacesWindow = { id: spaces.runtimeId };
+  const saved = await waitForValue(() => callTestHook(app, 'workspaceActionInWindow', [spacesWindow.id, 'save', 'Routed space']),
+    (result) => result?.ok, 'save the Space');
+  const spaceId = saved.workspace.id;
+  // Switching away waits for the Start Page to finish loading.
+  await waitForValue(() => callTestHook(app, 'workspaceActionInWindow', [spacesWindow.id, 'create', 'Routing elsewhere']),
+    (result) => result?.ok, 'switch the window to another Space');
+  routed = await callTestHook(app, 'windowRuntimes');
+  assert.equal(routed.some((rt) => rt.workspaceId === spaceId && rt.attached && !rt.resident), false, 'the Space is not showing');
+  const windowIds = new Set(routed.map((rt) => rt.id));
+  await linkRoutes([rule('space', 'contains', '/route-space', { profileId: spacesId, spaceId })]);
+  await deliver(`${local}/route-space`);
+  routed = await delivered(`${local}/route-space`);
+  const spaceWindow = holder(routed, `${local}/route-space`);
+  assert.equal(windowIds.has(spaceWindow.id), false, 'the Space opened in a new window');
+  assert.equal(spaceWindow.profileId, spacesId);
+  assert.equal(spaceWindow.workspaceId, spaceId);
+  assert.equal(spaceWindow.attached, true);
+  assert.equal(spaceWindow.tabs.find((tab) => tab.url === `${local}/route-space`).id, spaceWindow.activeTabId);
+  assert.equal(routed.find((rt) => rt.id === spacesWindow.id).workspaceId !== spaceId, true, 'the current window is not switched');
+  console.log('external-links route to a Space that is not open PASS');
+
+  // The same Space, now showing, takes the next link in that window.
+  await deliver(`${local}/route-space/again`);
+  routed = await delivered(`${local}/route-space/again`);
+  assert.equal(holder(routed, `${local}/route-space/again`).id, spaceWindow.id);
+
+  // A profile with no window open gets a new window holding just the link.
+  for (const rt of routed.filter((candidate) => candidate.profileId === spacesId && candidate.attached)) {
+    assert.equal(await callTestHook(app, 'closeWindowRuntime', [rt.id]), true);
+  }
+  await waitForValue(() => callTestHook(app, 'windowRuntimes'),
+    (all) => !all.some((rt) => rt.profileId === spacesId && rt.attached), 'profile windows closed');
+  await linkRoutes([rule('profile-window', 'contains', '/route-new-window', { profileId: spacesId })]);
+  await deliver(`${local}/route-new-window`);
+  routed = await delivered(`${local}/route-new-window`);
+  const newWindow = holder(routed, `${local}/route-new-window`);
+  assert.equal(newWindow.profileId, spacesId);
+  assert.equal(newWindow.attached, true);
+  assert.deepEqual(newWindow.tabs.map((tab) => tab.url), [`${local}/route-new-window`]);
+  assert.equal(newWindow.activeTabId, newWindow.tabs[0].id);
+  console.log('external-links route to a profile with no window PASS');
+  await linkRoutes([]);
+  console.log('external-links-smoke PASS: cold launch, hidden/minimized restore, readiness cancellation, windowless reopen, profile routing, second-instance batch, link routing rules');
 } finally {
   if (app) await app.close();
   await new Promise((resolve) => server.close(resolve));

@@ -376,6 +376,7 @@ const { xdgOpen } = require('./xdg-open');
 const { webUrlsFromArgv } = require('./startup-urls');
 const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-activation');
 const { createExternalUrlHandoff } = require('./external-url-handoff');
+const { matchLinkRoute, linkRoutesWithoutProfile, resolveRoutedRuntime } = require('./link-routes');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { isSupportedLocalHtmlUrl, restorableLocalHtmlUrl } = require('./local-html-files');
 const { localFileTabPlan, keepsLocalFile, isInertRecord, recordTitle } = require('./inert-local-file');
@@ -1613,12 +1614,14 @@ const externalUrlHandoff = createExternalUrlHandoff({
   application: app,
   isReady: () => externalUrlsFlushable,
   isQuitting: () => isQuitting,
-  getRuntime: resolveExternalRuntime,
+  getRuntime: (preferred, destination) => destination
+    ? routedExternalRuntime(destination, preferred) : resolveExternalRuntime(preferred),
   ensureWindow: (runtime) => createMainWindow(runtime, { ensureStartTab: true }),
   isWindowReady: (runtime) => runtime.chromeReady && !runtime.closing
     && runtime.window && !runtime.window.isDestroyed(),
   withRuntime: withWindowRuntime,
-  createTab: (url, options) => createTab(url, options),
+  routeFor: linkRouteDestination,
+  createTab: (url, { destination, ...options } = {}) => createRoutedTab(url, destination, options),
   activateTab: (id) => setActiveTab(id),
   revealWindow: (window) => bringExternalWindowToFront(app, window),
 });
@@ -1868,6 +1871,96 @@ const urlsFromArgv = webUrlsFromArgv;
 
 function resolveExternalRuntime(preferred = focusedRuntime) {
   return externalWindowRuntime(windowRuntimes.all(), preferred ?? focusedRuntime, primaryRuntime, focusedRuntime);
+}
+
+// F60 link routing (link-routes.js). A rule names a profile, optionally a
+// Space and a private tab; a rule whose profile (or one being deleted) or
+// Space is gone is skipped, so the link falls through to the next rule and
+// finally to resolveExternalRuntime, exactly as before.
+const linkRouteLiveness = {
+  isLiveProfile: (id) => !!localProfiles.getLocalProfile(id)
+    && !profileDeletions.hasPendingProfileDeletion(id) && !deletingProfileIds.has(id),
+  isLiveSpace: (profileId, spaceId) => withLocalProfile(profileId, () => !!namedWorkspaces.get(spaceId)),
+};
+
+function linkRouteDestination(url) {
+  const route = matchLinkRoute(settings.getSettings().linkRoutes, url, linkRouteLiveness);
+  return route ? { ...route.destination } : null;
+}
+
+// Window focus order per runtime, for "the profile's most recently focused
+// window". Main-process only.
+const runtimeFocusSerials = new WeakMap();
+let runtimeFocusSerial = 0;
+let linkRouteSpaceSerial = 0;
+
+const isLiveBrowserRuntime = (runtime) => windowRuntimes.all().includes(runtime)
+  && !runtime.closing && !runtime.resident && runtime.window && !runtime.window.isDestroyed();
+
+/** The window a routed link opens in (link-routes.js resolveRoutedRuntime):
+ * a Space that isn't showing opens in a new window (D2); if that is refused
+ * or fails, a new window of the Space's profile. */
+function routedExternalRuntime(destination, preferred) {
+  return resolveRoutedRuntime(destination, preferred, {
+    runtimes: windowRuntimes.all().filter(isLiveBrowserRuntime),
+    focusOrder: (runtime) => runtimeFocusSerials.get(runtime) ?? 0,
+    openSpace: openSpaceForRoutedLink,
+    openProfileWindow: newRoutedProfileRuntime,
+  });
+}
+
+function openSpaceForRoutedLink({ profileId, spaceId }) {
+  // The controller needs only a profile and a lock id from its caller when
+  // opening elsewhere; no window of this profile need exist yet.
+  const caller = { id: `link-route-${++linkRouteSpaceSerial}`, profileId };
+  let result;
+  try {
+    result = withLocalProfile(profileId, () => workspaceController.open(caller, spaceId, { newWindow: true }));
+  } catch {
+    return null;
+  }
+  if (!result?.ok) return null;
+  broadcastWorkspacesUpdated();
+  const target = windowRuntimes.all().find((runtime) => String(runtime.id) === result.windowId);
+  if (!target) return null;
+  createMainWindow(target);
+  return isLiveBrowserRuntime(target) && target.profileId === profileId ? target : null;
+}
+
+// A new window of the profile holding just the routed link: no Start Page
+// tab is added beside it (createRoutedTab selects the link). A macOS primary
+// whose window was closed keeps its tabs: reopen it, as an unrouted link does.
+function newRoutedProfileRuntime(profileId) {
+  if (primaryRuntime.profileId === profileId && windowRuntimes.all().includes(primaryRuntime)
+    && !primaryRuntime.resident && (!primaryRuntime.window || primaryRuntime.window.isDestroyed())) {
+    return primaryRuntime;
+  }
+  const runtime = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId });
+  createMainWindow(runtime, { ensureStartTab: false });
+  return runtime;
+}
+
+/** The Settings page's choices for a rule's destination: live profiles and
+ * their Spaces, ids and names only. */
+function linkRouteTargets() {
+  const profiles = localProfiles.listLocalProfiles()
+    .filter((profile) => linkRouteLiveness.isLiveProfile(profile.id))
+    .map(({ id, name }) => ({ id, name }));
+  const spaces = profiles.flatMap((profile) => withLocalProfile(profile.id, () => namedWorkspaces.list())
+    .map((space) => ({ id: space.id, name: space.name, profileId: profile.id })));
+  return { profiles, spaces };
+}
+
+function createRoutedTab(url, destination, options) {
+  const id = createTab(url, { ...options, private: destination?.private === true });
+  // A window opened for a routed link starts empty; an earlier URL of a
+  // multi-URL handoff must still leave it showing a tab.
+  if (id && rt().activeTabId == null) setActiveTab(id);
+  if (!id && !rt().tabOrder.length) {
+    const start = createTab(newTabUrl());
+    if (start) setActiveTab(start, { focusContent: false });
+  }
+  return id;
 }
 
 function openExternalUrls(urls) {
@@ -12825,6 +12918,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   rt().window.on('focus', bindWindowRuntime(runtime, () => {
     focusedRuntime = runtime;
     if (!runtime.islandRevealed) watchIslandReveal(runtime);
+    runtimeFocusSerials.set(runtime, ++runtimeFocusSerial);
     setFocusedLocalProfile(runtime.profileId);
     buildMenu(runtime);
     refreshDockMenu(); // frontmost window changed → new active-tab line
@@ -14091,6 +14185,10 @@ async function completeNamedProfileDeletion(profileId, {
   } catch (error) {
     errors.push(error);
   }
+  // Deleting a profile removes the link routing rules that point at it.
+  const routes = settings.getSettings().linkRoutes;
+  const keptRoutes = linkRoutesWithoutProfile(routes, profileId);
+  if (keptRoutes.length !== routes.length) settings.setLinkRoutes(keptRoutes);
   profileSessionRegistry.remove(profileId);
 
   if (errors.length) {
@@ -14185,6 +14283,8 @@ function windowRuntimeSnapshots() {
     }).filter(Boolean),
     groups: runtime.groups.map(({ id, name, collapsed, color }) => ({ id, name, collapsed, color: color ?? null })),
     attached: !!runtime.window && !runtime.window.isDestroyed(),
+    workspaceId: runtime.workspaceId ?? null,
+    resident: !!runtime.resident,
   }));
 }
 
@@ -15303,6 +15403,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       rename: renameNamedLocalProfile,
       remove: deleteNamedLocalProfile,
     },
+    linkRoutes: { targets: linkRouteTargets },
     // listShortcuts() reads only the live Electron application menu — no
     // runtime-owned state — so this one hook is left unwrapped.
     shortcuts: {
