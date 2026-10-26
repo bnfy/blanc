@@ -1778,4 +1778,4 @@ candidate branch (PR 1); not shipped in public v1.43.1.
 - **Not yet.** The shield popover's *Open links to this site in this profile*
   and `/route` follow in PR 2.
 - **Mobile.** Not applicable until a mobile Blanc has profiles to route
-  between.
+  between (D32).

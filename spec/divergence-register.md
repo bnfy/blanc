@@ -756,3 +756,28 @@ unloaded and cross-origin images without canvas permission are omitted, keeping
 alt text and captions. Both platforms share extraction, sanitization, fonts,
 appearance defaults, manual activation, and original-page return. Broader iOS
 image coverage requires a reviewed blocker-equivalent path first.
+
+---
+
+## D32 — Link routing only on desktop
+**Features:** F60
+
+**Why:** Link routing chooses between local profiles, and Spaces inside them,
+for a link another app hands Blanc. Only desktop has more than one profile
+to choose between. iOS hands every link to the default browser's single
+profile, and Android isn't built yet.
+
+- **Desktop:** ordered domain and contains rules in Settings → Profiles send
+  links from other apps (macOS `open-url`, command-line and second-instance
+  URLs) to a profile, optionally a Space and a private tab.
+- **iOS:** not offered. Links open as they do today.
+- **Android:** not offered until it is built with profiles.
+
+**Parity contract:** a link no rule matches behaves the same everywhere: it
+opens in the window, or app, used last. Links clicked inside Blanc are never
+routed on any platform. If a mobile Blanc gains profiles, it adopts the
+desktop rule model (matching on the parsed host, first match wins, rules
+device-local and never synced) rather than inventing a separate one.
+
+**Status:** Desktop PR 1 implemented on the candidate branch, not shipped in
+public v1.43.1. Revisit when a mobile Blanc has profiles.

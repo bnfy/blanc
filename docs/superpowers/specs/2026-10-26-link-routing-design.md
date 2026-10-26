@@ -155,7 +155,7 @@ These are conveniences; Settings stays the full editor.
    - In a multi-URL handoff, a window that receives an earlier URL and takes focus by itself no longer cancels the final URL's reveal; only the user moving elsewhere does.
    - Settings saves only rows whose value is valid; a row still being typed stays on the page until it is. Because deleting a profile removes its rules, "Profile deleted" shows only while a deletion is still finishing.
    - `contains` compares against the URL exactly as it was handed over, lowercased.
-   - No D-register entry was added for mobile: F60 is N/A there, as F59 is, until a mobile Blanc has profiles.
+   - The mobile D-register entry is D32 (`spec/divergence-register.md`).
 3. Website and What's New only after the release that carries PR 1 (`docs/marketing-claims.md`). The claim is "routes links from other apps by domain to a profile or Space", not anything about understanding what the link is.
 
 ## 11. Decisions (owner, 2026-10-26)

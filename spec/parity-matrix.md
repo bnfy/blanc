@@ -67,7 +67,7 @@ See [`README.md`](./README.md#status-legend) for meanings.
 
 | F58 | Reader Mode | PARTIAL | PARTIAL | PLANNED | Free manual local article reading, shared sanitizer/reading UI and appearance defaults, source identity and return without reload; no reader-content persistence or sync. Candidate only; platform release gates pending. iOS reuses already-loaded canvas-readable images. | D31 |
 | F59 | Switch tabs in the order you used them | PARTIAL | N/A | N/A | Desktop only. Ctrl+Tab steps back through tabs by most recent use and lands when Ctrl is released; Esc cancels; Ctrl+PageDown/PageUp keep list order. Linux only until the Ctrl release is proven on Windows and macOS; the card follows. | — |
-| F60 | Open links from other apps where they belong | PARTIAL | N/A | N/A | Desktop only. Ordered domain/contains rules in Settings → Profiles send links other apps hand Blanc to a profile, optionally a Space (opened in a new window when not showing) and a private tab; unmatched links keep the window used last. Device-local, never synced. Candidate only; the shield popover row and `/route` follow. | — |
+| F60 | Open links from other apps where they belong | PARTIAL | N/A | N/A | Desktop only. Ordered domain/contains rules in Settings → Profiles send links other apps hand Blanc to a profile, optionally a Space (opened in a new window when not showing) and a private tab; unmatched links keep the window used last. Device-local, never synced. Candidate only; the shield popover row and `/route` follow. | D32 |
 
 ## Notes on the "mobile-only wins"
 
