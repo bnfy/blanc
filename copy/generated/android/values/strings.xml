@@ -991,6 +991,9 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_tab_sleep_1h">After 1 hour</string>
     <string name="settings_general_tab_sleep_6h">After 6 hours</string>
     <string name="settings_general_tab_switch_order_label">Switch tabs with Ctrl+Tab</string>
+    <string name="switcher_label">Tab switcher</string>
+    <string name="switcher_opened">Switch tabs, %1$s, %2$s of %3$s</string>
+    <string name="switcher_step">%1$s, %2$s of %3$s</string>
     <string name="settings_general_tab_switch_order_hint">Hold Ctrl and press Tab to go back through the tabs you used last, then let go of Ctrl to switch. Esc stays where you are.</string>
     <string name="settings_general_tab_switch_order_recent">In the order you used them</string>
     <string name="settings_general_tab_switch_order_list">In the order of the tab list</string>

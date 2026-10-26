@@ -991,6 +991,9 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_tab_sleep_1h">Nach 1 Stunde</string>
     <string name="settings_general_tab_sleep_6h">Nach 6 Stunden</string>
     <string name="settings_general_tab_switch_order_label">Tabs mit Strg+Tab wechseln</string>
+    <string name="switcher_label">Tab-Umschalter</string>
+    <string name="switcher_opened">Tabs wechseln, %1$s, %2$s von %3$s</string>
+    <string name="switcher_step">%1$s, %2$s von %3$s</string>
     <string name="settings_general_tab_switch_order_hint">Halte Strg gedrückt und drücke Tab, um durch die zuletzt genutzten Tabs zurückzugehen; lass Strg los, um zu wechseln. Mit Esc bleibst du, wo du bist.</string>
     <string name="settings_general_tab_switch_order_recent">In der Reihenfolge der Nutzung</string>
     <string name="settings_general_tab_switch_order_list">In der Reihenfolge der Tab-Liste</string>

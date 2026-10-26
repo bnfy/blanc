@@ -1019,6 +1019,9 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_tab_sleep_1h">Depois de 1 hora</string>
     <string name="settings_general_tab_sleep_6h">Depois de 6 horas</string>
     <string name="settings_general_tab_switch_order_label">Trocar de aba com Ctrl+Tab</string>
+    <string name="switcher_label">Alternador de abas</string>
+    <string name="switcher_opened">Alternar abas, %1$s, %2$s de %3$s</string>
+    <string name="switcher_step">%1$s, %2$s de %3$s</string>
     <string name="settings_general_tab_switch_order_hint">Segure Ctrl e pressione Tab para voltar pelas abas que você usou por último; solte Ctrl para trocar. Esc deixa você onde está.</string>
     <string name="settings_general_tab_switch_order_recent">Na ordem em que você as usou</string>
     <string name="settings_general_tab_switch_order_list">Na ordem da lista de abas</string>
