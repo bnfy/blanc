@@ -4399,6 +4399,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -4538,6 +4545,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -4707,6 +4721,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -4837,6 +4858,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -4971,6 +4999,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -5105,6 +5140,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -5192,6 +5234,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -5279,6 +5328,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -5366,6 +5422,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -5482,6 +5545,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -5571,6 +5641,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -5658,6 +5735,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",

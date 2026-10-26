@@ -11317,6 +11317,534 @@
         }
       }
     },
+    "ws.decision.blocked.loading": {
+      "comment": "Switch prompt: names a tab that keeps the window from switching space because its page is still loading; {title} is the tab’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%1$@” is still loading."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%1$@“ lädt noch."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«%1$@» todavía está cargando."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "« %1$@ » est encore en cours de chargement."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«%1$@» è ancora in caricamento."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%1$@” ainda está carregando."
+          }
+        }
+      }
+    },
+    "ws.decision.blocked.opener": {
+      "comment": "Switch prompt: names a tab opened by another open page (for example a sign-in), which keeps the window from switching space; {title} is the tab’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%1$@” is still connected to the page that opened it, as during a sign-in."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%1$@“ ist noch mit der Seite verbunden, die den Tab geöffnet hat, etwa bei einer Anmeldung."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«%1$@» sigue conectada a la página que la abrió, como durante un inicio de sesión."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "« %1$@ » est encore reliée à la page qui l’a ouverte, comme pendant une connexion."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«%1$@» è ancora collegata alla pagina che l’ha aperta, come durante un accesso."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%1$@” ainda está conectada à página que a abriu, como durante um login."
+          }
+        }
+      }
+    },
+    "ws.decision.blocked.capture": {
+      "comment": "Switch prompt: names a tab that keeps the window from switching space because it is capturing; {title} is the tab’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%1$@” is using your camera, microphone or screen."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%1$@“ verwendet deine Kamera, dein Mikrofon oder deinen Bildschirm."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«%1$@» está usando tu cámara, tu micrófono o tu pantalla."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "« %1$@ » utilise votre caméra, votre micro ou votre écran."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«%1$@» sta usando la fotocamera, il microfono o lo schermo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%1$@” está usando sua câmera, seu microfone ou sua tela."
+          }
+        }
+      }
+    },
+    "ws.decision.blocked.popup": {
+      "comment": "Switch prompt: names a tab that keeps the window from switching space because a pop-up it opened is still open; {title} is the tab’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%1$@” has a pop-up window open."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%1$@“ hat ein Pop-up-Fenster geöffnet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«%1$@» tiene una ventana emergente abierta."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "« %1$@ » a une fenêtre pop-up ouverte."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«%1$@» ha una finestra pop-up aperta."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%1$@” tem uma janela pop-up aberta."
+          }
+        }
+      }
+    },
+    "ws.decision.blockedHint": {
+      "comment": "Switch prompt shown above the list of tabs that keep the window from switching space.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "This page needs to stay open. Finish or close it, or open the space in another window."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "These pages need to stay open. Finish or close them, or open the space in another window."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Diese Seite muss geöffnet bleiben. Schließe den Vorgang ab oder den Tab, oder öffne den Space in einem anderen Fenster."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Diese Seiten müssen geöffnet bleiben. Schließe die Vorgänge ab oder die Tabs, oder öffne den Space in einem anderen Fenster."
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Esta página debe seguir abierta. Termina lo que está haciendo o ciérrala, o abre el Space en otra ventana."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Estas páginas deben seguir abiertas. Termina lo que están haciendo o ciérralas, o abre el Space en otra ventana."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Estas páginas deben seguir abiertas. Termina lo que están haciendo o ciérralas, o abre el Space en otra ventana."
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Cette page doit rester ouverte. Terminez ce qu’elle fait ou fermez-la, ou ouvrez le Space dans une autre fenêtre."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Ces pages doivent rester ouvertes. Terminez ce qu’elles font ou fermez-les, ou ouvrez le Space dans une autre fenêtre."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Ces pages doivent rester ouvertes. Terminez ce qu’elles font ou fermez-les, ou ouvrez le Space dans une autre fenêtre."
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Questa pagina deve restare aperta. Termina ciò che sta facendo o chiudila, oppure apri lo Space in un’altra finestra."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Queste pagine devono restare aperte. Termina ciò che stanno facendo o chiudile, oppure apri lo Space in un’altra finestra."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Queste pagine devono restare aperte. Termina ciò che stanno facendo o chiudile, oppure apri lo Space in un’altra finestra."
+                }
+              }
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Esta página precisa continuar aberta. Conclua o que ela está fazendo ou feche-a, ou abra o Space em outra janela."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Estas páginas precisam continuar abertas. Conclua o que elas estão fazendo ou feche-as, ou abra o Space em outra janela."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Estas páginas precisam continuar abertas. Conclua o que elas estão fazendo ou feche-as, ou abra o Space em outra janela."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ws.decision.blockedMore": {
+      "comment": "Switch prompt: counts the blocking tabs not listed by name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "and %1$lld more page"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "and %1$lld more pages"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "und %1$lld weitere Seite"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "und %1$lld weitere Seiten"
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "y %1$lld página más"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "y %1$lld páginas más"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "y %1$lld páginas más"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "et %1$lld autre page"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "et %1$lld autres pages"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "et %1$lld autres pages"
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "e %1$lld altra pagina"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "e altre %1$lld pagine"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "e altre %1$lld pagine"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "e mais %1$lld página"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "e mais %1$lld páginas"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "e mais %1$lld páginas"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ws.decision.showTab": {
+      "comment": "Switch prompt: button that goes to a tab keeping the window from switching space.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab zeigen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver pestaña"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra scheda"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar aba"
+          }
+        }
+      }
+    },
+    "ws.decision.showTabLabel": {
+      "comment": "Accessible name of the Show tab button; {title} is the tab’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ zeigen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher %1$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar %1$@"
+          }
+        }
+      }
+    },
     "ws.decision.closePrivate": {
       "comment": "Shown before switching space when every tab that would close is private.",
       "extractionState": "manual",

@@ -274,6 +274,20 @@
     <string name="ws_editor_saving">Speichern…</string>
     <string name="ws_decision_label">Entscheidung zum Space-Wechsel</string>
     <string name="ws_decision_protected">In diesem Fenster sind Seiten, die geöffnet bleiben müssen. Öffne den Space in einem anderen Fenster oder schließe den laufenden Vorgang auf der Seite ab und versuche es erneut.</string>
+    <string name="ws_decision_blocked_loading">„%1$s“ lädt noch.</string>
+    <string name="ws_decision_blocked_opener">„%1$s“ ist noch mit der Seite verbunden, die den Tab geöffnet hat, etwa bei einer Anmeldung.</string>
+    <string name="ws_decision_blocked_capture">„%1$s“ verwendet deine Kamera, dein Mikrofon oder deinen Bildschirm.</string>
+    <string name="ws_decision_blocked_popup">„%1$s“ hat ein Pop-up-Fenster geöffnet.</string>
+    <plurals name="ws_decision_blocked_hint">
+        <item quantity="one">Diese Seite muss geöffnet bleiben. Schließe den Vorgang ab oder den Tab, oder öffne den Space in einem anderen Fenster.</item>
+        <item quantity="other">Diese Seiten müssen geöffnet bleiben. Schließe die Vorgänge ab oder die Tabs, oder öffne den Space in einem anderen Fenster.</item>
+    </plurals>
+    <plurals name="ws_decision_blocked_more">
+        <item quantity="one">und %1$d weitere Seite</item>
+        <item quantity="other">und %1$d weitere Seiten</item>
+    </plurals>
+    <string name="ws_decision_show_tab">Tab zeigen</string>
+    <string name="ws_decision_show_tab_label">%1$s zeigen</string>
     <plurals name="ws_decision_close_private">
         <item quantity="one">%1$d privater Tab wird geschlossen. Seitenentwürfe werden nicht auf dem Datenträger gespeichert.</item>
         <item quantity="other">%1$d private Tabs werden geschlossen. Seitenentwürfe werden nicht auf dem Datenträger gespeichert.</item>

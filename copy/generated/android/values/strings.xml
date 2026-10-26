@@ -274,6 +274,20 @@
     <string name="ws_editor_saving">Saving…</string>
     <string name="ws_decision_label">Space switch decision</string>
     <string name="ws_decision_protected">This window has pages that need to stay open. Open the space in another window, or finish the active page operation and try again.</string>
+    <string name="ws_decision_blocked_loading">“%1$s” is still loading.</string>
+    <string name="ws_decision_blocked_opener">“%1$s” is still connected to the page that opened it, as during a sign-in.</string>
+    <string name="ws_decision_blocked_capture">“%1$s” is using your camera, microphone or screen.</string>
+    <string name="ws_decision_blocked_popup">“%1$s” has a pop-up window open.</string>
+    <plurals name="ws_decision_blocked_hint">
+        <item quantity="one">This page needs to stay open. Finish or close it, or open the space in another window.</item>
+        <item quantity="other">These pages need to stay open. Finish or close them, or open the space in another window.</item>
+    </plurals>
+    <plurals name="ws_decision_blocked_more">
+        <item quantity="one">and %1$d more page</item>
+        <item quantity="other">and %1$d more pages</item>
+    </plurals>
+    <string name="ws_decision_show_tab">Show tab</string>
+    <string name="ws_decision_show_tab_label">Show %1$s</string>
     <plurals name="ws_decision_close_private">
         <item quantity="one">%1$d private tab will close. Page drafts are not saved to disk.</item>
         <item quantity="other">%1$d private tabs will close. Page drafts are not saved to disk.</item>

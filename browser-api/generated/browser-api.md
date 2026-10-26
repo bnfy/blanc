@@ -886,6 +886,16 @@ Why a window may not switch workspaces right now, from workspaceProtection() in 
 
 `'permission-or-transition' \| 'active-page'`
 
+### `WorkspaceBlockingTab`
+
+A page that keeps a window from switching space, from blockingPages() in space-switch-guard.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `TabId` |  |
+| `title` | `string` | The tab's label (its custom name or page title), else its site. |
+| `reason` | `'loading' \| 'opener' \| 'capture' \| 'popup'` |  |
+
 ### `WorkspaceAction`
 
 What a successful open or create did: swapped this window, found it already here, or focused another window.
@@ -903,6 +913,7 @@ Result of every Named Workspace action. Successes carry the refreshed workspace 
 | `error?` | `WorkspaceErrorCode` |  |
 | `cause?` | `WorkspaceErrorCode` | Why a saved workspace could not be opened (with saved-not-opened). |
 | `reason?` | `WorkspaceProtectionReason` | With protected-pages. |
+| `blockingTabs?` | `WorkspaceBlockingTab[]` | The pages holding the window, in tab order (with protected-pages and active-page). |
 | `tabCount?` | `number` | Unsaved tabs (with unsaved-scratch). |
 | `privateCount?` | `number` | Private tabs among them (with unsaved-scratch). |
 | `decision?` | `string` | Token to send back as a confirmed "discard and switch" (with unsaved-scratch). |

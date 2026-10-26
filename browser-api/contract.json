@@ -1175,6 +1175,21 @@
       "ts": "'permission-or-transition' | 'active-page'",
       "doc": "Why a window may not switch workspaces right now, from workspaceProtection() in main.js."
     },
+    "WorkspaceBlockingTab": {
+      "doc": "A page that keeps a window from switching space, from blockingPages() in space-switch-guard.js.",
+      "fields": {
+        "id": {
+          "type": "TabId"
+        },
+        "title": {
+          "type": "string",
+          "doc": "The tab's label (its custom name or page title), else its site."
+        },
+        "reason": {
+          "type": "'loading' | 'opener' | 'capture' | 'popup'"
+        }
+      }
+    },
     "WorkspaceAction": {
       "ts": "'swap' | 'noop' | 'focus'",
       "doc": "What a successful open or create did: swapped this window, found it already here, or focused another window."
@@ -1201,6 +1216,11 @@
         "reason": {
           "type": "WorkspaceProtectionReason",
           "doc": "With protected-pages.",
+          "optional": true
+        },
+        "blockingTabs": {
+          "type": "WorkspaceBlockingTab[]",
+          "doc": "The pages holding the window, in tab order (with protected-pages and active-page).",
           "optional": true
         },
         "tabCount": {
