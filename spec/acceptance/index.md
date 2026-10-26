@@ -46,6 +46,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Tab migration | `tab-migration.feature` | F40 (D22) |
 | Interface language | `interface-language.feature` | F44 (D27) |
 | Arc Spaces import | `arc-spaces-import.feature` | F45 |
+| Link routing | `link-routing.feature` | F60 |
 
 ## Grid
 
@@ -293,6 +294,9 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F46-8 | Choosing `/rename` without a name asks for one | — | ✅ | ➖ | ➖ |
 | F46-9 | Enter on an untouched rename prompt keeps the page title after the page retitles | — | ✅ | ➖ | ➖ |
 | F46-10 | A renamed tab keeps its name in the command panel while it loads | — | ✅ | ➖ | ➖ |
+| F60-1 | The link routing group is offered only when there is somewhere to route to | — | ✅ | ➖ | ➖ |
+| F60-2 | A rule added in Settings sends a domain's links to its profile | — | ✅ | ➖ | ➖ |
+| F60-3 | Deleting a profile removes its rules and its links fall through | — | ✅ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance

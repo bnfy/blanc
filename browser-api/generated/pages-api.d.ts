@@ -257,6 +257,10 @@ export interface SettingsPagesAPI {
     removeWallpaper: () => Promise<unknown>;
     /** Choose the interface language; optionally relaunch to apply it. IPC: invoke `pages:settings:language`. */
     language: (code: unknown, restart: unknown) => Promise<unknown>;
+    /** Where link routing rules can point: live profiles and Spaces, ids and names only. IPC: invoke `pages:settings:link-targets`. */
+    linkTargets: () => Promise<unknown>;
+    /** Replace the link routing rules; main validates the whole list and stores all or nothing. IPC: invoke `pages:settings:link-routes:set`. */
+    setLinkRoutes: (routes: unknown) => Promise<unknown>;
     /** Blocking provider status. IPC: invoke `pages:blocking:status`. */
     blockingStatus: () => Promise<unknown>;
     /** Retry a blocking provider that failed to start. IPC: invoke `pages:blocking:retry`. */
