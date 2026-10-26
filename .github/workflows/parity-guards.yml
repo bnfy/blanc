@@ -245,10 +245,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # GitHub-hosted macOS only nightly and on manual runs (see `on:` above);
-        # with a self-hosted Mac (vars.MAC_RUNNER_LABELS) on every change too.
-        # docs/ci-self-hosted-macos-runner.md
-        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || vars.MAC_RUNNER_LABELS != '') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
+        # macOS only nightly and on manual runs (see `on:` above), on the
+        # self-hosted Mac when vars.MAC_RUNNER_LABELS is set. Every pull request
+        # would queue three more jobs for it. docs/ci-self-hosted-macos-runner.md
+        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
     runs-on: ${{ (matrix.os == 'macos-latest' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
     timeout-minutes: 20
     steps:
@@ -301,10 +301,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # GitHub-hosted macOS only nightly and on manual runs (see `on:` above);
-        # with a self-hosted Mac (vars.MAC_RUNNER_LABELS) on every change too.
-        # docs/ci-self-hosted-macos-runner.md
-        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || vars.MAC_RUNNER_LABELS != '') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
+        # macOS only nightly and on manual runs (see `on:` above), on the
+        # self-hosted Mac when vars.MAC_RUNNER_LABELS is set. Every pull request
+        # would queue three more jobs for it. docs/ci-self-hosted-macos-runner.md
+        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
     runs-on: ${{ (matrix.os == 'macos-latest' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
     timeout-minutes: 10
     steps:
@@ -372,10 +372,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # GitHub-hosted macOS only nightly and on manual runs (see `on:` above);
-        # with a self-hosted Mac (vars.MAC_RUNNER_LABELS) on every change too.
-        # docs/ci-self-hosted-macos-runner.md
-        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || vars.MAC_RUNNER_LABELS != '') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
+        # macOS only nightly and on manual runs (see `on:` above), on the
+        # self-hosted Mac when vars.MAC_RUNNER_LABELS is set. Every pull request
+        # would queue three more jobs for it. docs/ci-self-hosted-macos-runner.md
+        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
     runs-on: ${{ (matrix.os == 'macos-latest' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
     timeout-minutes: 10
     steps:

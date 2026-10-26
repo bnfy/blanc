@@ -34,3 +34,14 @@ test('Intel, iOS and the release workflows stay on GitHub-hosted runners', () =>
   assert.match(ublock, /runs-on: \$\{\{ \(matrix\.os == 'macos-15' && vars\.MAC_RUNNER_LABELS/);
   assert.doesNotMatch(ublock, /matrix\.os == 'macos-15-intel' && vars\.MAC_RUNNER_LABELS/);
 });
+
+test('the parity macOS legs stay nightly even with the self-hosted Mac', () => {
+  // On every pull request they queued three more jobs per PR for the Mac's two
+  // VM slots (October 26, 2026); unit (macos-15) and uBO's desktop leg stay.
+  const matrices = read('parity-guards.yml').split('\n').filter((line) => /^\s*os: \$\{\{ fromJSON\(/.test(line));
+  assert.equal(matrices.length, 3);
+  for (const line of matrices) {
+    assert.ok(line.includes("github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'"), line.trim());
+    assert.ok(!line.includes('MAC_RUNNER_LABELS'), line.trim());
+  }
+});
