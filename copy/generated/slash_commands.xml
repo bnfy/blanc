@@ -20,6 +20,7 @@
     <string name="slash_ungroup">Take this tab out of its group</string>
     <string name="slash_close_group">Close every tab in this group</string>
     <string name="slash_send">Type a space, then a device name — e.g. &quot;iPhone&quot;</string>
+    <string name="slash_reader">Read this article with adjustable text and fewer distractions</string>
     <string name="slash_find">Find in page</string>
     <string name="slash_block_ads">Block ads here, or toggle blocking everywhere</string>
     <string name="slash_allow_ads">Allow ads on this site</string>

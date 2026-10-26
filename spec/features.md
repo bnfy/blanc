@@ -351,6 +351,7 @@ From the desktop `DEFAULTS`:
 | `theme` | `system` | system/light/dark |
 | `tabLayout` | `island` | desktop-only `island`/`vertical`; device-local, never synced (F28/D19) |
 | `verticalTabsWidth` | `248` | desktop-only preferred rail width, clamped to 200–360px; device-local, never synced (F28/D19) |
+| `verticalTabsTextSize` | `default` | desktop-only `default`/`large`/`extra-large`; device-local, never synced (F28/D19) |
 | `appIcon` | `sunrise` | one of `sunrise`/`sunrise-dark`/`paper`/`ink`; device-local |
 | `adblockExceptions` | `[]` | lowercased hostnames, no scheme/path/`www.` |
 | `darkWebsites` | `false` | desktop-only boolean; device-local, never synced (F42) |
@@ -669,6 +670,10 @@ From the desktop `DEFAULTS`:
   vertical tabs off. The top bar and group labels use spacing instead of
   divider rules. `⌘⌥V` on macOS / `Ctrl+Alt+V` elsewhere toggles the layout
   from anywhere.
+- Settings → General → Island offers **Vertical tab text size**: Default
+  (12.5px), Large (15px), and Extra large (18px). Tab titles and group labels
+  grow together, with taller rows to fit. The device-local choice applies to
+  all open windows immediately and survives restart; it never syncs.
 - The rail renders local tabs from the canonical tab order: ungrouped pins,
   then named groups (group pins first) and runs of ungrouped tabs in tab order,
   followed by the new-tab action. As in the island, each group is a tinted
@@ -1224,6 +1229,14 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   new space before moving it live, without switching this window. It remains
   available when the current space is the only one; creation is disabled at
   25 spaces. Cancel creates nothing, and a failed save keeps the editor open.
+- A tab group's menu has **Move Group to Space ▸** once the profile has a
+  space: the same spaces and New Space… in a native menu. Every member moves,
+  live and in order, to the end of the space as the same group, with its name
+  and colour; if the space already has a group of that name (in any case),
+  the tabs join it instead, keeping that group's name and colour. It is
+  disabled when any member couldn't move on its own; moving a window's every
+  tab leaves a blank start page. The same write-first rule applies (D8 of
+  `docs/superpowers/specs/2026-10-24-move-to-space-follow-ups-design.md`).
 - Entry points: the ⌘L panel footer's Spaces button, `/space` (alias
   `/workspace`), Bring Your Tabs (F40) and the Arc Spaces import (F45).
 - Spaces are device-local and profile-scoped; they never sync.
@@ -1236,7 +1249,8 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   (`@workspace`, bound in `test/desktop/steps/named-workspaces.steps.js`,
   `test/desktop/steps/workspace-lifecycle.steps.js`,
   `test/desktop/steps/spaces-redesign.steps.js` and
-  `test/desktop/steps/move-to-space.steps.js`);
+  `test/desktop/steps/move-to-space.steps.js` and
+  `test/desktop/steps/group-space.steps.js`);
   `test/unit/workspace*.test.js`, `test/unit/space*.test.js`.
 
 - **Open Link in Space:** the page link menu offers other spaces and New Space… for normal web links. A space shown in another window loads a background tab there; a set-aside space receives a quiet tab; a closed space receives only a saved record. Deferred writes are checked before adding a tab. New Space fixes its start to “With this link” and saves without loading. Private tabs and non-web links do not offer it. Failures open the existing Spaces error surface; success is announced to screen readers. F41-51–57 cover destinations, restart, write failures and quiet-tab rollback.
@@ -1678,3 +1692,27 @@ Two gestures Arc's iPhone users rely on, asked for on r/ArcBrowser
   `/close`; Reduce Motion replaces the slide with a cross-fade.
 - **Desktop.** Not applicable: trackpad and keyboard tab switching already
   exist, and the Island has no bottom bar.
+
+## F58 — Reader Mode (desktop and iOS candidate)
+
+Free, manually activated article reading, implemented on the candidate branch;
+not shipped in public v1.43.1. `/reader` always permits a manual attempt. A
+suitability hint offers Enter Reader Mode in the expanded Island (desktop) or
+palette (iOS); the active reader has Exit Reader Mode and appearance controls.
+
+- Extract the already-loaded main-frame article locally, retaining its source
+  view for return without reloading. No pre-load transformation or speed claim.
+- Shared Source Serif 4, Instrument Sans, Inter, and JetBrains Mono fonts;
+  System/Light/Dark/Sepia, 16–28px text, and three widths;
+  remember appearance locally, with private changes confined to memory.
+- Retain headings, available metadata, links, figures/captions, tables, and code;
+  sanitize untrusted markup and preserve language/direction. Failure retains
+  the source and explains that no article was found.
+- Keep source identity for history, Favorites, sharing, and restore. Never save
+  or sync reader article content or reader-active state.
+- Desktop uses a sandboxed companion, blocker-checked cookie-free image broker,
+  and reader-aware Find/Print/zoom/focus/Glance/Split View. iOS uses a separate
+  nonpersistent WKWebView and already-loaded, canvas-readable images (D31).
+- See `docs/reader-mode.md`, `browser-api/reader.json`, and F58 acceptance tests.
+  Automatic activation, speech, AI, annotations, offline saving, and pre-load
+  simplification are outside this version.

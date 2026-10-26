@@ -117,16 +117,14 @@ final class SettingsUITests: XCTestCase {
         let input = app.textFields["island.address"]
         XCTAssertTrue(input.waitForExistence(timeout: 5))
         input.tap(); input.typeText("https://example.com/\n")
-        let shield = app.buttons["pill.shield"]
-        XCTAssertTrue(shield.waitForExistence(timeout: 10))
-        XCTAssertEqual(shield.value as? String, "off")
-        shield.tap()
-        capture("Native Settings — shield transition")
+        // With blocking off everywhere, the Sunrise menu offers the way back.
+        app.openIslandMenu()
+        capture("Native Settings — Sunrise menu, blocking off")
         let settings = app.buttons["Blocking settings"]
         XCTAssertTrue(settings.waitForExistence(timeout: 5)); settings.tap()
         XCTAssertTrue(app.navigationBars["Privacy"].waitForExistence(timeout: 5))
         tap("settings.done")
-        XCTAssertTrue(shield.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["island.menu"].waitForExistence(timeout: 5))
     }
 
     func testLanguagesAndLargeText() {

@@ -508,6 +508,7 @@
     <string name="group_menu_color_none">Aucune couleur</string>
     <string name="group_menu_new_tab">Nouvel onglet dans le groupe</string>
     <string name="group_menu_move_to_new_window">Déplacer le groupe dans une nouvelle fenêtre</string>
+    <string name="group_menu_move_to_space">Déplacer le groupe dans le Space</string>
     <string name="device_menu_rename">Renommer l’appareil…</string>
     <string name="tab_menu_reset_title">Réinitialiser le titre de l’onglet</string>
     <string name="tab_menu_pin">Épingler l’onglet</string>
@@ -2338,6 +2339,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ws_error_move_failed">L’onglet n’a pas pu être déplacé vers %1$s.</string>
     <string name="context_menu_open_link_in_space">Ouvrir le lien dans un Space</string>
     <string name="ws_announce_opened_in">Ouvert dans %1$s</string>
+    <string name="ws_announce_group_moved_to">Groupe déplacé dans %1$s</string>
     <string name="ws_new_with_link">Avec ce lien</string>
     <string name="ws_error_open_link_failed">Impossible d’ouvrir le lien dans %1$s.</string>
     <string name="rail_state_selected">sélectionné</string>
@@ -2366,4 +2368,31 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="tabs_menu_close">Fermer les onglets</string>
     <string name="ws_new_with_tabs">Avec ces onglets</string>
     <string name="ws_error_moved_partly">%1$s onglets déplacés vers %2$s. Les autres sont restés ici.</string>
+    <string name="reader_title">Mode lecture</string>
+    <string name="reader_enter">Activer le mode lecture</string>
+    <string name="reader_exit">Quitter le mode lecture</string>
+    <string name="reader_appearance">Apparence</string>
+    <string name="reader_theme">Thème</string>
+    <string name="reader_system">Système</string>
+    <string name="reader_light">Clair</string>
+    <string name="reader_dark">Sombre</string>
+    <string name="reader_sepia">Sépia</string>
+    <string name="reader_font">Police</string>
+    <string name="reader_serif">Avec empattements</string>
+    <string name="reader_sans">Sans empattement</string>
+    <string name="reader_size">Taille du texte</string>
+    <string name="reader_width">Largeur de lecture</string>
+    <string name="reader_narrow">Étroite</string>
+    <string name="reader_comfortable">Confortable</string>
+    <string name="reader_wide">Large</string>
+    <string name="reader_hint">Lire cet article avec un texte réglable et moins de distractions</string>
+    <string name="reader_unavailable">Le mode lecture n’a trouvé aucun article sur cette page.</string>
+    <string name="slash_reader_hint">Lire cet article avec un texte réglable et moins de distractions</string>
+    <string name="reader_inter">Inter</string>
+    <string name="reader_mono">JetBrains Mono</string>
+    <string name="settings_general_vertical_tabs_text_size_label">Taille du texte des onglets verticaux</string>
+    <string name="settings_general_vertical_tabs_text_size_hint">Facilitez la lecture des titres des onglets et des noms des groupes dans la barre latérale des onglets verticaux.</string>
+    <string name="settings_general_vertical_tabs_text_size_default">Par défaut</string>
+    <string name="settings_general_vertical_tabs_text_size_large">Grande</string>
+    <string name="settings_general_vertical_tabs_text_size_extra_large">Très grande</string>
 </resources>

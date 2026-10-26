@@ -36,6 +36,13 @@ final class TabsManager {
     var settingsDestination: SettingsDestination?
     var pendingSettingsDestination: SettingsDestination?
 
+    /// The Start Page was held: open its settings (see `StartPageHold`).
+    func startPageHeld(_ tab: TabModel) {
+        guard tab.currentURL.scheme == "blanc", tab.currentURL.host == "newtab" else { return }
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        showSettings(.startPage)
+    }
+
     func showSettings(_ destination: SettingsDestination = .root) {
         if isPalettePresented {
             pendingSettingsDestination = destination
@@ -84,6 +91,8 @@ final class TabsManager {
             tab.webView.reload()
         }
     }
+    let readerPreferences: ReaderPreferences
+    var readerError = false
     var activeTabId: UUID?
 
     let settingsStore: SettingsStore
@@ -110,7 +119,7 @@ final class TabsManager {
                 if let search = values?["searchEngine"]?.text { patch["searchEngine"] = search }
                 if let enabled = values?["adblockEnabled"]?.boolean { patch["adblockEnabled"] = enabled }
                 self.applySettingsPatch(patch)
-            }, tabsSource: { [weak self] in self?.tabs.map { ($0.currentURL.absoluteString, $0.pageTitle) } ?? [] })
+            }, tabsSource: { [weak self] in self?.syncedTabs ?? [] })
         engine.onChanged = { [weak self] in self?.bridge.emitSyncChanges() }
         return engine
     }()
@@ -118,11 +127,71 @@ final class TabsManager {
 
     @ObservationIgnored private let schemeHandler: BlancSchemeHandler
     @ObservationIgnored private lazy var bridge = PagesBridge(manager: self)
+    @ObservationIgnored private lazy var startPageHold = StartPageHold(manager: self)
     @ObservationIgnored private let contentBlocker = ContentBlocker()
     @ObservationIgnored private let sessionStore: SessionStore
     @ObservationIgnored private var isRestoringSession = false
 
     static let newTabURL = URL(string: "blanc://newtab/")!
+    static let privateNewTabURL = URL(string: "blanc://newtab/?private=1")!
+
+    /// One in-memory web session shared by every private tab, forgotten when
+    /// the last private tab closes (and when Blanc quits).
+    @ObservationIgnored private var privateStore: WKWebsiteDataStore?
+    var privateDataStore: WKWebsiteDataStore {
+        if let privateStore { return privateStore }
+        let store = WKWebsiteDataStore.nonPersistent()
+        privateStore = store
+        return store
+    }
+
+    /// The open tabs other devices may see; private tabs never leave the phone.
+    var syncedTabs: [(url: String, title: String)] {
+        tabs.filter { !$0.isPrivate }.map { ($0.currentURL.absoluteString, $0.pageTitle) }
+    }
+
+    func toggleReaderMode() {
+        guard let tab = activeTab else { return }
+        if tab.reader != nil { tab.exitReader(); return }
+        if tab.readerBusy { return }
+        guard tab.readerAllowed, !tab.isLoading,
+              tab.webView.url == tab.currentURL,
+              ReaderController.isWebURL(tab.currentURL),
+              let script = ReaderController.script("reader-extract.generated") else { readerError = true; return }
+        tab.readerBusy = true
+        let generation = tab.readerGeneration
+        let url = tab.currentURL
+        Task { @MainActor [weak self, weak tab] in
+            guard let self, let tab else { return }
+            defer { tab.readerBusy = false }
+            let result = try? await tab.webView.evaluateJavaScript(script, in: nil, contentWorld: .world(name: "blanc-reader-extraction"))
+            guard tab.readerGeneration == generation, tab.currentURL == url,
+                  tab.webView.url == url,
+                  tabs.contains(where: { $0 === tab }), activeTabId == tab.id else { return }
+            guard let article = result as? [String: Any], let content = article["content"] as? String,
+                  content.utf8.count <= 5 * 1024 * 1024,
+                  let text = article["textContent"] as? String, text.trimmingCharacters(in: .whitespacesAndNewlines).count >= 200 else {
+                readerError = true; return
+            }
+            tab.reader = ReaderController(article: article, sourceURL: url,
+                appearance: readerPreferences.value(isPrivate: tab.isPrivate),
+                saveAppearance: { [weak self, weak tab] value in
+                    guard let tab else { return }
+                    self?.readerPreferences.set(value, isPrivate: tab.isPrivate)
+                }, onExit: { [weak tab] in tab?.exitReader() },
+                openLink: { [weak self, weak tab] link, disposition in
+                    guard let self, let tab else { return }
+                    if disposition != "current-tab" {
+                        let active = activeTabId
+                        createTab(url: link, isPrivate: tab.isPrivate)
+                        if disposition == "background-tab" { activeTabId = active }
+                    } else {
+                        tab.exitReader()
+                        tab.navigationDelegate.load(link, in: tab.webView)
+                    }
+                })
+        }
+    }
 
     var activeTab: TabModel? {
         guard let activeTabId else { return nil }
@@ -140,6 +209,7 @@ final class TabsManager {
         let sessionDirectory = UITestSeed.settings ? UITestSeed.settingsDirectory : sessionDirectory
         #endif
         syncDirectory = settingsDirectory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        self.readerPreferences = ReaderPreferences(directory: settingsDirectory)
         let appearance = StartAppearanceStore(directory: settingsDirectory)
         self.startAppearance = appearance
         self.schemeHandler = BlancSchemeHandler(wallpaperURL: appearance.imageURL, wallpaperVersion: { [weak appearance] in
@@ -166,10 +236,15 @@ final class TabsManager {
             UITestSeed.seedSends(into: syncDirectory)
             savedURLs = [UITestSeed.pageURL]
         }
-        if UITestSeed.favorites {
+        if UITestSeed.startPage {
+            UITestSeed.seedFavorites(into: syncDirectory)
+            savedURLs = [TabsManager.newTabURL]
+        }
+        if UITestSeed.favorites || UITestSeed.privateTab {
             UITestSeed.seedFavorites(into: syncDirectory)
             savedURLs = [UITestSeed.pageURL]
         }
+        defer { if UITestSeed.privateTab { createTab(url: UITestSeed.pageURL, isPrivate: true) } }
         #endif
         if savedURLs.isEmpty {
             createTab()
@@ -208,16 +283,42 @@ final class TabsManager {
     }
 
     @discardableResult
-    func createTab(url: URL = TabsManager.newTabURL) -> UUID {
+    func createTab(url: URL? = nil, isPrivate: Bool = false) -> UUID {
+        let url = url ?? (isPrivate ? Self.privateNewTabURL : Self.newTabURL)
         if !isRestoringSession, activeTabId != nil, routeSettings(url) { return activeTabId! }
-        activeTab?.captureThumbnail()
-        let config = WebViewConfiguration.make(schemeHandler: schemeHandler, bridge: bridge)
+        let config = WebViewConfiguration.make(
+            schemeHandler: schemeHandler, bridge: bridge,
+            dataStore: isPrivate ? privateDataStore : .default(),
+            startPageHold: startPageHold)
         if contentBlocker.enabled, !AdblockExceptions.isExcepted(url, in: settingsStore.adblockExceptions),
            let ruleList = contentBlocker.compiledRuleList {
             config.userContentController.add(ruleList)
         }
-        let tab = TabModel(url: url, configuration: config)
-        if contentBlocker.enabled && !contentBlocker.isReady && !AdblockExceptions.isExcepted(url, in: settingsStore.adblockExceptions) {
+        let tab = TabModel(url: url, configuration: config, isPrivate: isPrivate)
+        return add(tab)
+    }
+
+    /// A tab a page opened: last in the list and current, private when its
+    /// opener is.
+    private func openChild(of opener: TabModel, configuration: WKWebViewConfiguration, url: URL?) -> WKWebView {
+        let tab = TabModel(
+            url: url ?? URL(string: "about:blank")!, configuration: configuration,
+            isPrivate: opener.isPrivate, load: false)
+        tab.readerAllowed = false // A page-opened child may inherit sandbox policy.
+        add(tab)
+        return tab.webView
+    }
+
+    @discardableResult
+    private func add(_ tab: TabModel) -> UUID {
+        activeTab?.captureThumbnail()
+        let isPrivate = tab.isPrivate
+        tab.uiDelegate.onOpenChild = { [weak self, weak tab] configuration, url in
+            guard let self, let tab else { return nil }
+            return self.openChild(of: tab, configuration: configuration, url: url)
+        }
+        if contentBlocker.enabled && !contentBlocker.isReady
+            && !AdblockExceptions.isExcepted(tab.currentURL, in: settingsStore.adblockExceptions) {
             contentBlocker.attach(to: tab.webView)
         }
         tab.navigationDelegate.onSettingsNavigation = { [weak self] url in self?.routeSettings(url) ?? false }
@@ -226,10 +327,10 @@ final class TabsManager {
             self?.persistSession()
         }
         tab.navigationDelegate.onVisit = { [weak self] url, title in
-            self?.historyStore.addVisit(url: url, title: title)
+            if !isPrivate { self?.historyStore.addVisit(url: url, title: title) }
         }
         tab.navigationDelegate.onTitleChange = { [weak self, weak tab] in
-            if let tab { self?.historyStore.updateTitle(url: tab.currentURL, title: tab.pageTitle) }
+            if let tab, !isPrivate { self?.historyStore.updateTitle(url: tab.currentURL, title: tab.pageTitle) }
             self?.syncEngine.tabsChanged()
         }
         tab.navigationDelegate.onWillLoadMainFrame = { [weak self, weak tab] url in
@@ -241,13 +342,27 @@ final class TabsManager {
         return tab.id
     }
 
+    /// A Favorite, History or other-device page picked in the Quick Switcher;
+    /// picked from a private tab, it opens privately.
+    func openFromSwitcher(_ url: URL) {
+        createTab(url: url, isPrivate: activeTab?.isPrivate ?? false)
+    }
+
+    /// Only an ordinary web page can be sent to another device (desktop's
+    /// `canSendTab`).
+    func canSend(_ tab: TabModel) -> Bool {
+        !tab.isPrivate && ["http", "https"].contains(tab.currentURL.scheme?.lowercased() ?? "")
+    }
+
     func closeTab(_ id: UUID) {
+        tabs.first { $0.id == id }?.exitReader()
         guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
         let wasActive = id == activeTabId
         // If the tab is still queued for a cold-compile drain, drop it so its web view
         // isn't reloaded after it's gone (and isn't kept alive by the pending queue).
         contentBlocker.cancelPending(for: tabs[index].webView)
         tabs.remove(at: index)
+        if !tabs.contains(where: \.isPrivate) { privateStore = nil; readerPreferences.clearPrivate() }
 
         if tabs.isEmpty {
             createTab()
@@ -265,6 +380,7 @@ final class TabsManager {
         if id != activeTabId { activeTab?.captureThumbnail() }
         guard tabs.contains(where: { $0.id == id }) else { return }
         activeTabId = id
+        activeTab?.probeReader()
         persistSession()
     }
 
@@ -286,9 +402,11 @@ final class TabsManager {
     /// don't overwrite the saved session mid-rebuild.
     func persistSession() {
         guard !isRestoringSession else { return }
-        guard !tabs.isEmpty else { return }
-        let urls = tabs.map { $0.currentURL.absoluteString }
-        let activeIdx = tabs.firstIndex(where: { $0.id == activeTabId }) ?? 0
+        // Private tabs are never saved. With only private tabs open, the saved
+        // session is one blank tab, so tabs the person closed stay closed.
+        let saved = tabs.filter { !$0.isPrivate }
+        let urls = saved.isEmpty ? [Self.newTabURL.absoluteString] : saved.map { $0.currentURL.absoluteString }
+        let activeIdx = saved.firstIndex(where: { $0.id == activeTabId }) ?? 0
         sessionStore.save(urls: urls, activeIndex: activeIdx)
         syncEngine.tabsChanged()
     }

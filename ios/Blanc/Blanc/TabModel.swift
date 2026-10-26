@@ -12,21 +12,44 @@ final class TabModel: Identifiable {
     var canGoForward = false
     var isLoading = false
     var pageTitle = ""
+    /// Never saved, synced or recorded in History; its web data lives only in
+    /// memory (`TabsManager.privateDataStore`).
+    let isPrivate: Bool
     var thumbnail: UIImage?
+    var reader: ReaderController?
+    var readerAvailable = false
+    var readerGeneration = 0
+    var readerAllowed = true
+    var readerBusy = false
+    @ObservationIgnored private var readerURLObservation: NSKeyValueObservation?
 
     let nativeClock = NativeClockOverlay()
     let webView: WKWebView
     let navigationDelegate: TabNavigationDelegate
+    let uiDelegate = TabUIDelegate()
 
-    init(url: URL, configuration: WKWebViewConfiguration) {
+    /// `load: false` is for a page-opened tab, whose request WebKit loads itself.
+    init(url: URL, configuration: WKWebViewConfiguration, isPrivate: Bool = false, load: Bool = true) {
+        self.isPrivate = isPrivate
         self.currentURL = url
         self.addressText = url.absoluteString
         self.webView = WKWebView(frame: .zero, configuration: configuration)
         webView.allowsBackForwardNavigationGestures = true
+        webView.isFindInteractionEnabled = true
         self.navigationDelegate = TabNavigationDelegate()
         navigationDelegate.tab = self
         webView.navigationDelegate = navigationDelegate
-        navigationDelegate.load(url, in: webView)
+        webView.uiDelegate = uiDelegate
+        // pushState/replaceState and fragment changes do not consistently
+        // produce a finished navigation. Invalidate stale reader snapshots
+        // from WebKit's actual document URL as well as delegate callbacks.
+        readerURLObservation = webView.observe(\.url, options: [.new]) { [weak self] webView, _ in
+            Task { @MainActor [weak self, weak webView] in
+                guard let self, let url = webView?.url else { return }
+                self.navigationDelegate.applyURL(url, to: self)
+            }
+        }
+        if load { navigationDelegate.load(url, in: webView) }
     }
 
     /// Convenience initializer for tests and previews — uses a bare web-view
@@ -38,6 +61,7 @@ final class TabModel: Identifiable {
     }
 
     func submitAddress(using normalizer: AddressNormalizer) {
+        exitReader()
         if OSHandoff.isHandoff(addressText) {
             OSHandoff.open(addressText)
             return

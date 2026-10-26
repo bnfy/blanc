@@ -508,6 +508,7 @@
     <string name="group_menu_color_none">Sem cor</string>
     <string name="group_menu_new_tab">Nova aba no grupo</string>
     <string name="group_menu_move_to_new_window">Mover o grupo para uma nova janela</string>
+    <string name="group_menu_move_to_space">Mover grupo para o Space</string>
     <string name="device_menu_rename">Renomear dispositivo…</string>
     <string name="tab_menu_reset_title">Redefinir título da aba</string>
     <string name="tab_menu_pin">Fixar aba</string>
@@ -2338,6 +2339,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="ws_error_move_failed">Não foi possível mover a aba para %1$s.</string>
     <string name="context_menu_open_link_in_space">Abrir link em Space</string>
     <string name="ws_announce_opened_in">Aberto em %1$s</string>
+    <string name="ws_announce_group_moved_to">Grupo movido para %1$s</string>
     <string name="ws_new_with_link">Com este link</string>
     <string name="ws_error_open_link_failed">Não foi possível abrir o link em %1$s.</string>
     <string name="rail_state_selected">selecionada</string>
@@ -2366,4 +2368,31 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="tabs_menu_close">Fechar abas</string>
     <string name="ws_new_with_tabs">Com estas abas</string>
     <string name="ws_error_moved_partly">%1$s abas movidas para %2$s. As outras ficaram aqui.</string>
+    <string name="reader_title">Modo de leitura</string>
+    <string name="reader_enter">Entrar no modo de leitura</string>
+    <string name="reader_exit">Sair do modo de leitura</string>
+    <string name="reader_appearance">Aparência</string>
+    <string name="reader_theme">Tema</string>
+    <string name="reader_system">Sistema</string>
+    <string name="reader_light">Claro</string>
+    <string name="reader_dark">Escuro</string>
+    <string name="reader_sepia">Sépia</string>
+    <string name="reader_font">Fonte</string>
+    <string name="reader_serif">Com serifa</string>
+    <string name="reader_sans">Sem serifa</string>
+    <string name="reader_size">Tamanho do texto</string>
+    <string name="reader_width">Largura de leitura</string>
+    <string name="reader_narrow">Estreita</string>
+    <string name="reader_comfortable">Confortável</string>
+    <string name="reader_wide">Larga</string>
+    <string name="reader_hint">Leia este artigo com texto ajustável e menos distrações</string>
+    <string name="reader_unavailable">O modo de leitura não encontrou um artigo nesta página.</string>
+    <string name="slash_reader_hint">Leia este artigo com texto ajustável e menos distrações</string>
+    <string name="reader_inter">Inter</string>
+    <string name="reader_mono">JetBrains Mono</string>
+    <string name="settings_general_vertical_tabs_text_size_label">Tamanho do texto das abas verticais</string>
+    <string name="settings_general_vertical_tabs_text_size_hint">Facilite a leitura dos títulos das abas e dos nomes dos grupos na barra lateral de abas verticais.</string>
+    <string name="settings_general_vertical_tabs_text_size_default">Padrão</string>
+    <string name="settings_general_vertical_tabs_text_size_large">Grande</string>
+    <string name="settings_general_vertical_tabs_text_size_extra_large">Muito grande</string>
 </resources>

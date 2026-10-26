@@ -958,6 +958,44 @@
         false
       ]
     },
+    "openGroupSpaceMenu": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:space-menu",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1",
+            {
+              "x": 1,
+              "y": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:space-menu",
+              "args": [
+                "group-id-1",
+                {
+                  "x": 1,
+                  "y": 1
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
     "ungroupGroup": {
       "kind": "invoke",
       "platforms": [
@@ -1579,6 +1617,7 @@
           "closed": [],
           "closedSlot": 1,
           "tabLayout": "island",
+          "verticalTabsTextSize": "tabs-snapshot-1",
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
           "verticalTabsMinWidth": 1,
@@ -1639,7 +1678,9 @@
                 "error": "site-info-1"
               },
               "splitId": "tab-entry-1",
-              "syncNotSynced": true
+              "syncNotSynced": true,
+              "readerAvailable": true,
+              "readerActive": true
             }
           ],
           "selectedTabIds": [
@@ -1666,6 +1707,7 @@
           ],
           "closedSlot": 1,
           "tabLayout": "island",
+          "verticalTabsTextSize": "tabs-snapshot-1",
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
           "verticalTabsMinWidth": 1,
@@ -6506,6 +6548,7 @@
               "closed": [],
               "closedSlot": 1,
               "tabLayout": "island",
+              "verticalTabsTextSize": "tabs-updated-payload-1",
               "adblockEnabled": true,
               "shieldPopover": {
                 "variant": "site",
@@ -6559,6 +6602,7 @@
                 "closed": [],
                 "closedSlot": 1,
                 "tabLayout": "island",
+                "verticalTabsTextSize": "tabs-updated-payload-1",
                 "adblockEnabled": true,
                 "shieldPopover": {
                   "variant": "site",
@@ -6658,7 +6702,9 @@
                     "error": "site-info-1"
                   },
                   "splitId": "tab-entry-1",
-                  "syncNotSynced": true
+                  "syncNotSynced": true,
+                  "readerAvailable": true,
+                  "readerActive": true
                 }
               ],
               "selectedTabIds": [
@@ -6685,6 +6731,7 @@
               ],
               "closedSlot": 1,
               "tabLayout": "island",
+              "verticalTabsTextSize": "tabs-updated-payload-1",
               "adblockEnabled": true,
               "shieldPopover": {
                 "variant": "site",
@@ -6816,7 +6863,9 @@
                       "error": "site-info-1"
                     },
                     "splitId": "tab-entry-1",
-                    "syncNotSynced": true
+                    "syncNotSynced": true,
+                    "readerAvailable": true,
+                    "readerActive": true
                   }
                 ],
                 "selectedTabIds": [
@@ -6843,6 +6892,7 @@
                 ],
                 "closedSlot": 1,
                 "tabLayout": "island",
+                "verticalTabsTextSize": "tabs-updated-payload-1",
                 "adblockEnabled": true,
                 "shieldPopover": {
                   "variant": "site",
@@ -7294,6 +7344,36 @@
             ]
           ]
         }
+      ]
+    },
+    "toggleReaderMode": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "tabs:reader-toggle",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "tab-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:reader-toggle",
+              "args": [
+                "tab-id-1"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
       ]
     }
   }

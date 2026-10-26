@@ -364,7 +364,7 @@ Dragging tabs as a group needs its own spec, because `tab-drag.js`'s source mode
 | D5 | Placement actions on several tabs (§6.6, kinds 1 and 2): disabled unless every tab qualifies, or applied to the tabs that can with a note on the rest? Reload and Quiet act per tab either way. Eligibility is all tabs; only kind 1 is also all-or-nothing in execution. | **Disabled unless every tab qualifies.** |
 | D6 | Close Tabs with pinned tabs selected: close them, or skip them like Close Other Tabs? | **Close them.** Selecting them was an explicit choice. |
 | D7 | Moving every tab of a window: allowed, leaving one blank start page, or disabled? | **Allowed.** |
-| D8 | Add Move Group to Space ▸ to the group menu so a group moves with its name and colour? | **Yes.** Small; it mirrors Move Group to New Window, through the §3 orchestrator. |
+| D8 | Add Move Group to Space ▸ to the group menu so a group moves with its name and colour? | **Yes.** Small; it mirrors Move Group to New Window, through the §3 orchestrator. **Built (2026-10-25):** the batch move's write-first path with the group carried along; a target group of the same name (any case) receives the tabs instead, since two groups never differ only by case. F41-75..79. |
 | D9 | Split View from a selection of two to four tabs? | **A separate spec**, out of scope here. |
 | D10 | Visual confirmation after Open Link in Space and Move to Space, beyond the screen-reader announcement? Blanc has no toast surface today; failures already open the Spaces menu (§3.2). | **None in v1.** Revisit if people report not knowing where the tab went. |
 

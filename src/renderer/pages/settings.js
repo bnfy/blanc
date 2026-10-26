@@ -512,6 +512,15 @@
     document.getElementById('tabLayoutSetting')?.remove();
   }
 
+  if (supports('tabLayout')) {
+    const textSize = document.getElementById('verticalTabsTextSize');
+    textSize.value = settings.verticalTabsTextSize ?? 'default';
+    textSize.addEventListener('change', () =>
+      window.bowserPages.settings.set({ verticalTabsTextSize: textSize.value }));
+  } else {
+    document.getElementById('verticalTabsTextSizeSetting')?.remove();
+  }
+
   if (supports('islandHoverOpen')) {
     const islandHoverOpen = document.getElementById('islandHoverOpen');
     islandHoverOpen.checked = settings.islandHoverOpen === true;

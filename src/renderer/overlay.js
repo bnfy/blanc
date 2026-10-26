@@ -15,6 +15,7 @@
   const panelAnchor = document.getElementById('panelAnchor');
   const islandPanel = document.getElementById('islandPanel');
   const addressInput = document.getElementById('addressInput');
+  const readerBtn = document.getElementById('readerBtn');
   const panelSiteInfo = document.getElementById('panelSiteInfo');
   const islandList = document.getElementById('islandList');
   const islandHint = document.getElementById('islandHint');
@@ -763,6 +764,10 @@
     panelSiteInfo.setAttribute('aria-expanded', String(visible && siteInfoOpen));
     if (!visible) siteInfoOpen = false;
 
+    readerBtn.hidden = !tab?.readerAvailable && !tab?.readerActive;
+    readerBtn.setAttribute('aria-pressed', String(tab?.readerActive === true));
+    readerBtn.setAttribute('aria-label', blancI18n.t(tab?.readerActive ? 'reader.exit' : 'reader.enter'));
+    readerBtn.dataset.tooltip = blancI18n.t(tab?.readerActive ? 'reader.exit' : 'reader.enter');
     const verticalTabsActive = state.tabLayout === 'vertical';
     footerTabLayout.dataset.tooltip = verticalTabsActive
       ? blancI18n.t('rail.islandLayout')
@@ -1144,8 +1149,9 @@
       button.addEventListener('click', async () => {
         // A refused name keeps the menu open with its notice; nothing runs.
         if (!(await commitGroupName({ close: false }))) return;
+        const box = button.getBoundingClientRect();
         closeGroupMenu({ commit: false, closeOverlay: true });
-        run();
+        run(box);
       });
       return button;
     };
@@ -1154,6 +1160,14 @@
     actions.append(
       action(blancI18n.t('groupMenu.newTab'), () => window.browserAPI.newTabInGroup(group.id)),
       action(blancI18n.t('groupMenu.moveToNewWindow'), () => window.browserAPI.moveGroupToNewWindow(group.id), { disabled: holdsEveryTab }),
+    );
+    // Move Group to Space ▸ (D8): shown once the profile has a space, like
+    // Move to Space ▸ in the tab menu. Main lists the spaces in a native menu.
+    if (wsWorkspaces.length) {
+      actions.append(action(blancI18n.t('groupMenu.moveToSpace'),
+        (box) => window.browserAPI.openGroupSpaceMenu(group.id, { x: box.left, y: box.bottom })));
+    }
+    actions.append(
       action(blancI18n.t('groupMenu.ungroup'), () => window.browserAPI.ungroupGroup(group.id)),
       action(blancI18n.t('groupMenu.close'), () => window.browserAPI.closeGroup(group.id)),
     );
@@ -1502,6 +1516,7 @@
         return sendActiveTabTo(tabId, name);
       },
       resultNotice: (result) => sendNotice(result) },
+    { cmd: '/reader', hint: blancI18n.t('slash.reader.hint'), run: () => window.browserAPI.toggleReaderMode(state.activeTabId) },
     { cmd: '/find', hint: blancI18n.t('slash.find.hint'), run: () => window.browserAPI.openFindBar(), keepOverlay: true },
     { cmd: '/block-ads', hint: blancI18n.t('slash.blockAds.hint'), run: () => window.browserAPI.toggleAdblock() },
     { cmd: '/allow-ads', hint: blancI18n.t('slash.allowAds.hint'), run: () => window.browserAPI.allowAdsOnActiveSite() },
@@ -3001,7 +3016,9 @@
       } else if (purpose?.newSpaceLinkTitle != null) {
         workspaceUI.begin('new', null, { start: 'link', tabTitle: purpose.newSpaceLinkTitle });
       } else if (Array.isArray(purpose?.newSpaceTabIds)) {
-        workspaceUI.begin('new', null, { start: 'tabs', tabId: purpose.newSpaceTabIds, tabTitle: blancI18n.t('tabsMenu.header', { count: purpose.newSpaceTabIds.length }) });
+        // From Move Group to Space ▸ the editor names the group (user data).
+        workspaceUI.begin('new', null, { start: 'tabs', tabId: purpose.newSpaceTabIds,
+          tabTitle: typeof purpose.newSpaceGroupName === 'string' ? purpose.newSpaceGroupName : blancI18n.t('tabsMenu.header', { count: purpose.newSpaceTabIds.length }) });
       } else if (purpose?.newSpaceTabId != null) {
         const tab = state.tabs.find((item) => item.id === purpose.newSpaceTabId);
         workspaceUI.begin('new', null, { start: 'tab', tabId: purpose.newSpaceTabId, tabTitle: tab?.customTitle || tab?.title || tab?.url || '' });
@@ -3654,6 +3671,10 @@
       : window.browserAPI.reload(state.activeTabId);
   });
   heartBtn.addEventListener('click', () => window.browserAPI.toggleBookmark());
+  readerBtn.addEventListener('click', () => {
+    window.browserAPI.closeOverlay();
+    window.browserAPI.toggleReaderMode(state.activeTabId);
+  });
   panelSiteInfo.addEventListener('click', () => {
     if (panelSiteInfo.hidden) return;
     siteInfoOpen = !siteInfoOpen;

@@ -1,5 +1,6 @@
 {
   "commands": {
-    "/send": "Send to device (M7b), unreleased after public v1.42.1; needs the sync Worker deploy first."
+    "/send": "Send to device (M7b), unreleased after public v1.42.1; needs the sync Worker deploy first.",
+    "/reader": "Reader Mode is implemented on the candidate branch; not shipped in public v1.43.1."
   }
 }

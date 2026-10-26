@@ -6,8 +6,13 @@ import WebKit
 /// shared (stateless / keyed off `message.webView`), so the same instances
 /// are installed on every tab's configuration.
 enum WebViewConfiguration {
-    static func make(schemeHandler: BlancSchemeHandler, bridge: PagesBridge) -> WKWebViewConfiguration {
+    static func make(
+        schemeHandler: BlancSchemeHandler, bridge: PagesBridge,
+        dataStore: WKWebsiteDataStore = .default(),
+        startPageHold: StartPageHold? = nil
+    ) -> WKWebViewConfiguration {
         let config = WKWebViewConfiguration()
+        config.websiteDataStore = dataStore
         config.setURLSchemeHandler(schemeHandler, forURLScheme: "blanc")
 
         if let url = Bundle.main.url(forResource: "ios-start-rules", withExtension: "js", subdirectory: "pages"),
@@ -22,6 +27,11 @@ enum WebViewConfiguration {
             forMainFrameOnly: true)
         config.userContentController.addUserScript(userScript)
         config.userContentController.add(bridge, name: PagesBridge.messageHandlerName)
+        if let startPageHold {
+            config.userContentController.addUserScript(WKUserScript(
+                source: StartPageHold.userScriptSource, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+            config.userContentController.add(startPageHold, name: StartPageHold.messageHandlerName)
+        }
         return config
     }
 }

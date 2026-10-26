@@ -1870,6 +1870,10 @@
     "message": "Move Group to New Window",
     "note": "Item in a tab group’s menu; moves every tab of the group, in order, into a new window."
   },
+  "groupMenu.moveToSpace": {
+    "message": "Move Group to Space",
+    "note": "Item in a tab group’s menu, shown once the profile has a space (Blanc Spaces); opens a menu of spaces, and choosing one moves every tab of the group, in order, into that space as the same group."
+  },
   "deviceMenu.rename": {
     "message": "Rename Device…",
     "note": "Only item in the right-click menu of a synced device's header in the ⌘L panel's Other devices drawer; opens the panel to rename that device on every synced device. Menu items use title case, like Rename Group…."
@@ -8498,6 +8502,10 @@
     "message": "Opened in {space}",
     "note": "Screen-reader confirmation. {space} is a user-provided space name."
   },
+  "ws.announce.groupMovedTo": {
+    "message": "Group moved to {space}",
+    "note": "Screen-reader confirmation after Move Group to Space. {space} is a user-provided space name."
+  },
   "ws.new.withLink": {
     "message": "With this link",
     "note": "Fixed start line in the New Space editor opened from a link."
@@ -8577,5 +8585,113 @@
   "ws.error.movedPartly": {
     "message": "Moved {count} tabs to {name}. The other tabs stayed here.",
     "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "reader.title": {
+    "message": "Reader Mode",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.enter": {
+    "message": "Enter Reader Mode",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.exit": {
+    "message": "Exit Reader Mode",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.appearance": {
+    "message": "Appearance",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.theme": {
+    "message": "Theme",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.system": {
+    "message": "System",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.light": {
+    "message": "Light",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.dark": {
+    "message": "Dark",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.sepia": {
+    "message": "Sepia",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.font": {
+    "message": "Font",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.serif": {
+    "message": "Serif",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.sans": {
+    "message": "Sans-serif",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.size": {
+    "message": "Text size",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.width": {
+    "message": "Reading width",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.narrow": {
+    "message": "Narrow",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.comfortable": {
+    "message": "Comfortable",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.wide": {
+    "message": "Wide",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.hint": {
+    "message": "Read this article with adjustable text and fewer distractions",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.unavailable": {
+    "message": "Reader Mode couldn’t find an article on this page.",
+    "note": "Reader Mode controls and article availability."
+  },
+  "slash.reader.hint": {
+    "message": "Read this article with adjustable text and fewer distractions",
+    "note": "Reader Mode controls and article availability."
+  },
+  "reader.inter": {
+    "message": "Inter",
+    "note": "Reader Mode font family name; keep the font name unchanged."
+  },
+  "reader.mono": {
+    "message": "JetBrains Mono",
+    "note": "Reader Mode font family name; keep the font name unchanged."
+  },
+  "settings.general.verticalTabsTextSize.label": {
+    "message": "Vertical tab text size",
+    "note": "Desktop Settings, General → Island. Vertical-tab sidebar text-size label. Applies on this device; tab titles and group names grow together."
+  },
+  "settings.general.verticalTabsTextSize.hint": {
+    "message": "Make tab titles and group names easier to read in the vertical tab sidebar.",
+    "note": "Desktop Settings, General → Island. Vertical-tab sidebar text-size hint. Applies on this device; tab titles and group names grow together."
+  },
+  "settings.general.verticalTabsTextSize.default": {
+    "message": "Default",
+    "note": "Desktop Settings, General → Island. Vertical-tab sidebar text-size default. Applies on this device; tab titles and group names grow together."
+  },
+  "settings.general.verticalTabsTextSize.large": {
+    "message": "Large",
+    "note": "Desktop Settings, General → Island. Vertical-tab sidebar text-size large. Applies on this device; tab titles and group names grow together."
+  },
+  "settings.general.verticalTabsTextSize.extraLarge": {
+    "message": "Extra large",
+    "note": "Desktop Settings, General → Island. Vertical-tab sidebar text-size extraLarge. Applies on this device; tab titles and group names grow together."
   }
 }

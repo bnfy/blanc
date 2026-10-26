@@ -67,6 +67,7 @@ const { createMainI18n, testOverrides: i18nTestOverrides } = require('./i18n');
 const I18N_LOCALES = require('./i18n-locales.json');
 const { popupGeometry, validPopupSender, validPopupMessage, wirePopupDismissal } = require('./ublock-popup-host');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
+const { createReaderMode } = require('./reader-mode');
 const { createDarkWebsitesService } = require('./dark-websites-service');
 const { browserCommandDefinition, createBrowserCommandExecutor, installBrowserShortcuts, matchBrowserShortcut } = require('./browser-shortcuts');
 const { queueTabNavigation, reloadContents } = require('./tab-navigation');
@@ -341,6 +342,7 @@ const {
   commandTargetTab,
   focusedPane,
   glanceLayoutPayload,
+  foregroundOpenRole,
 } = require('./glance-focus');
 const { moveTab: resolveTabMove, reorderItems } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot } = require('./closed-slot');
@@ -2238,6 +2240,118 @@ const darkWebsites = createDarkWebsitesService({
   },
 });
 let darkWebsitesStylesheetSeq = 0;
+
+// Reader content has its own sandbox and never replaces a source tab's identity.
+const readerMode = createReaderMode({
+  ipcMain, t: mainI18n.t, tab: id => tabs.get(id),
+  stringsScript: () => mainI18n.stringsScript(),
+  owner: tab => windowRuntimes.runtimeForTab(tab.id),
+  visible: tab => isVisiblePaneId(windowRuntimes.runtimeForTab(tab.id), tab.id),
+  broadcast: tab => {
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (owner) withWindowRuntime(owner, () => scheduleBroadcastTabs());
+  },
+  changed: tab => {
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (!owner?.window || owner.window.isDestroyed()) return;
+    withWindowRuntime(owner, () => {
+      if (isVisiblePaneId(owner, tab.id)) {
+        delete tab.splitRounded; delete tab.glanceRounded;
+        setTabViewVisible(tab, true); attachTabViewToWindow(tab);
+        resizeActiveView(); restackAboveTabViews(); presentationContents(tab)?.focus();
+      }
+      broadcastTabs();
+    });
+  },
+  detach: (tab, view) => {
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (owner?.window && !owner.window.isDestroyed()) {
+      const window = owner.window;
+      const wc = liveViewContents(view);
+      if (wc?.isFocused()) window.webContents.focus();
+      const remove = () => {
+        if (!window.isDestroyed() && window.contentView.children.includes(view)) window.contentView.removeChildView(view);
+      };
+      // Aura restores native focus during WebContents destruction. Keep the
+      // hidden companion rooted until that stack returns, like ordinary tabs.
+      if (process.platform !== 'darwin' && wc) wc.once('destroyed', () => setImmediate(remove));
+      else remove();
+    }
+  },
+  wire: (tab, wc, owner) => {
+    tabIdByWebContentsId.set(wc.id, tab.id);
+    wc.once('destroyed', () => tabIdByWebContentsId.delete(wc.id));
+    installChromeShortcuts(wc, owner);
+    watchCursorFor(wc, () => currentTabBounds(tab), fn => bindWindowRuntime(owner, fn));
+  },
+  focused: tab => {
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (owner) withWindowRuntime(owner, () => noteFocusedPane(owner, tab.id));
+  },
+  findResult: (tab, result) => {
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (owner && findTargetTabId(owner) === tab.id) owner.overlayView?.webContents.send('chrome:find-result', {
+      activeMatchOrdinal: result.activeMatchOrdinal, matches: result.matches,
+    });
+  },
+  openInGlance: (tab, url) => {
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (owner && webReaderLink(url)) return withWindowRuntime(owner, () => openLinkInGlance(tab, url));
+  },
+  openLink: (tab, url, disposition) => {
+    if (!webReaderLink(url)) return;
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (!owner) return;
+    withWindowRuntime(owner, () => {
+      if (disposition === 'current-tab') {
+        readerMode.exit(tab);
+        liveContents(tab)?.loadURL(url).catch(() => {});
+        return;
+      }
+      const id = createTab(url, { private: tab.private });
+      if (disposition === 'new-window') moveTabToNewWindow(id);
+      else if (disposition === 'foreground-tab') {
+        if (foregroundOpenRole(owner, tab.id) === 'glance') void setGlanceTab(id).catch(() => {});
+        else setActiveTab(id);
+      }
+    });
+  },
+  allowImage: async (tab, url) => {
+    const wc = liveContents(tab);
+    const provider = blockingProviders?.effectiveForTab(tab);
+    if (!wc || !provider) return false;
+    // Node's pinned-address transport cannot inherit Chromium proxy auth or
+    // PAC routing. Omit the image instead of connecting around that policy.
+    if (await wc.session.resolveProxy(url) !== 'DIRECT') return false;
+    const decision = await provider.decide('onBeforeRequest', {
+      id: `reader-image-${++readerImageSeq}`, url, method: 'GET', resourceType: 'image',
+      webContentsId: wc.id, frame: wc.mainFrame, referrer: wc.getURL(), timestamp: Date.now(),
+    });
+    return !!decision && decision.cancel !== true && !decision.redirectURL;
+  },
+  resolveImageHost: async (tab, host) => {
+    const wc = liveContents(tab);
+    if (!wc) return [];
+    const result = await wc.session.resolveHost(host);
+    return (result?.endpoints ?? []).map(endpoint => ({ address: endpoint.address,
+      family: require('node:net').isIP(endpoint.address) }));
+  },
+});
+let readerImageSeq = 0;
+function webReaderLink(url) { return require('./reader-model').webUrl(url) !== null; }
+function presentationView(tab) { return readerMode.view(tab); }
+function presentationContents(tab) { return liveViewContents(presentationView(tab)); }
+async function toggleReaderMode(tab) {
+  const ok = await readerMode.toggle(tab);
+  if (!ok && tab && tabs.get(tab.id) === tab) {
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (owner?.window && !owner.window.isDestroyed()) dialog.showMessageBox(owner.window, {
+      type: 'info', message: mainI18n.t('reader.unavailable'), buttons: [mainI18n.t('dialog.ok')],
+    });
+  }
+  return ok;
+}
+
 /**
  * @typedef {object} SleepSnapshot
  * @property {import('electron').WebContentsView|null} view
@@ -2355,6 +2469,7 @@ let sleepTeardownInProgress = false;
  * this same contents is a reload without copying site data into Blanc.
  */
 async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpoch }) {
+  readerMode.forget(tab);
   const rendererIsExclusive = () => {
     try { return hasExclusiveRenderer(wc, webContents.getAllWebContents()); }
     catch { return false; }
@@ -2498,6 +2613,7 @@ async function quietTab(id, { broadcast = true } = {}) {
     return refuse(`storage:${quieted}`);
   }
 
+  readerMode.forget(tab);
   sleepTeardownInProgress = true;
   const wcId = wc.id;
   // Remove Blanc's stale-document listeners, but preserve Electron's own.
@@ -3314,6 +3430,7 @@ let onePasswordConfigurationKey = JSON.stringify([
   initialPresentationSettings.onePasswordEnabled,
   initialPresentationSettings.onePasswordAccount,
 ]);
+let verticalTabsTextSize = initialPresentationSettings.verticalTabsTextSize;
 // This is the saved preference, not necessarily the current rendered width.
 // calculateChromeLayout temporarily caps it when the window is too narrow to
 // preserve the 392px website pane.
@@ -4046,14 +4163,14 @@ function restackGlanceCard() {
   const cardView = liveGlanceCardView();
   if (!glanceTab?.view || !cardView || !hasLiveWindow()) return;
   rt().window.contentView.addChildView(cardView);
-  rt().window.contentView.addChildView(glanceTab.view);
+  rt().window.contentView.addChildView(presentationView(glanceTab));
 }
 
 /** The Glance page's view gets rounded corners inside the card's frame; it
  * goes back to square when it leaves the card. */
 function roundGlancePage(tab, rounded) {
   if (!liveContents(tab) || !!tab.glanceRounded === rounded) return;
-  tab.view.setBorderRadius(rounded ? GLANCE_PAGE_RADIUS : 0);
+  presentationView(tab).setBorderRadius(rounded ? GLANCE_PAGE_RADIUS : 0);
   tab.glanceRounded = rounded;
 }
 
@@ -4148,7 +4265,7 @@ function keepIslandFloatOnTop(runtime = rt()) {
     .map((view) => children.indexOf(view)).filter((index) => index >= 0);
   if (!floats.length) return;
   const lowestFloat = Math.min(...floats);
-  const pages = [...tabs.values()].filter((tab) => liveContents(tab)).map((tab) => tab.view);
+  const pages = [...tabs.values()].filter((tab) => liveContents(tab)).map((tab) => presentationView(tab));
   const corners = [...runtime.splitCornerViews.values()].map((entry) => entry.view);
   if ([...pages, ...corners].some((view) => children.indexOf(view) > lowestFloat)) {
     withWindowRuntime(runtime, () => restackAboveTabViews());
@@ -4455,7 +4572,7 @@ function onSplitCornerInput(entry, input) {
   } else if (rt().activeTabId !== entry.tabId) {
     setActiveTab(entry.tabId);
   }
-  liveContents(tabs.get(rt().activeTabId))?.focus();
+  presentationContents(tabs.get(rt().activeTabId))?.focus();
 }
 
 function splitCornerModel(tab, focused) {
@@ -4514,7 +4631,7 @@ function placeSplitCorner(runtime, entry) {
   const pane = tabs.get(entry.tabId);
   const bounds = entry.width ? cornerTabBounds(entry.frame, entry.width) : null;
   const children = window.contentView.children;
-  const below = liveContents(pane) ? children.indexOf(pane.view) : -1;
+  const below = liveContents(pane) ? children.indexOf(presentationView(pane)) : -1;
   if (!bounds || below < 0) {
     if (children.includes(entry.view)) hideOverlayView(window, entry.view);
     return;
@@ -4565,7 +4682,7 @@ function syncSplitCornerTabs(geometry, place = (bounds) => bounds, runtime = rt(
  *  gets its square corners back. */
 function roundSplitPane(tab, rounded) {
   if (!liveContents(tab) || !!tab.splitRounded === rounded) return;
-  tab.view.setBorderRadius(rounded ? PANE_RADIUS - PANE_BORDER : 0);
+  presentationView(tab).setBorderRadius(rounded ? PANE_RADIUS - PANE_BORDER : 0);
   tab.splitRounded = rounded;
 }
 
@@ -5596,7 +5713,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
     const closedTrigger = closingMode === 'group-menu' && typeof closingPurpose?.groupId === 'string'
       ? `group-menu:${closingPurpose.groupId}` : null;
     stripSurfaces(rt()).send('chrome:island-state', { mode: null, trigger: closedTrigger, restoreTrigger });
-    if (refocusContent && !restoreTrigger) liveContents(tabs.get(rt().activeTabId))?.focus();
+    if (refocusContent && !restoreTrigger) presentationContents(tabs.get(rt().activeTabId))?.focus();
     if (retracts) {
       // Wake proximity from where the cursor is now. Moves over the expanded
       // overlay are never watched, so waiting for the next one would leave the
@@ -5900,7 +6017,7 @@ function hideUtilitySheet({ refocusContent = true, discardTabHandoff = true } = 
     hideOverlayView(runtime.window, sheet.view);
     sheet.view.setVisible(false);
   }
-  if (refocusContent) liveContents(tabs.get(runtime.activeTabId))?.focus();
+  if (refocusContent) presentationContents(tabs.get(runtime.activeTabId))?.focus();
   broadcastStartPageUtilitySheetVisibility(runtime, false);
 }
 
@@ -5935,7 +6052,7 @@ function noteFocusedPane(owner, tabId) {
     setImmediate(() => withWindowRuntime(owner, () => {
       const tab = tabs.get(tabId);
       if (!visibleSplitTabIds(owner).includes(tabId) || owner.activeTabId === tabId) return;
-      if (liveContents(tab)?.isFocused?.() !== true) return;
+      if (presentationContents(tab)?.isFocused?.() !== true) return;
       setActiveTab(tabId, { focusContent: false });
     }));
     return;
@@ -5955,7 +6072,7 @@ function noteFocusedPane(owner, tabId) {
  * surface took focus) the record stays as it was. */
 function syncFocusedPane(owner) {
   if (!owner) return;
-  const id = livePaneId(owner, (tabId) => liveContents(tabs.get(tabId)));
+  const id = livePaneId(owner, (tabId) => presentationContents(tabs.get(tabId)));
   if (id != null) noteFocusedPane(owner, id);
 }
 
@@ -6312,7 +6429,7 @@ function serializeTabs() {
         pageTitle: tab.customTitle ? tab.title : null,
         url: tab.url,
         isLoading: tab.isLoading,
-        canGoBack: tab.canGoBack,
+        canGoBack: tab.readerActive === true || tab.canGoBack,
         canGoForward: tab.canGoForward,
         favicon: rendererFavicon(tab.favicon),
         bookmarked: tab.bookmarked,
@@ -6339,6 +6456,8 @@ function serializeTabs() {
         // Ambient login-form hint — display state only, never persisted
         // or synced (spec §5).
         fillHint: tab.fillHint === true,
+        readerAvailable: tab.readerAvailable === true,
+        readerActive: tab.readerActive === true,
       };
       // Whether ads are allow-listed here. Derived rather than stored: the
       // exception list is edited from Settings and the slash commands alike,
@@ -6827,6 +6946,7 @@ function currentTabsPayload() {
     // snapshots, seeds, slot metadata, and view references stay in main.
     closed: sharedClosedBand(runtime),
     tabLayout,
+    verticalTabsTextSize,
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
     ...captureBroadcastState(serialized),
@@ -6897,20 +7017,20 @@ function resizeActiveView() {
       const content = split.panes[index]?.content;
       if (!liveContents(pane) || !content) return;
       roundSplitPane(pane, true);
-      pane.view.setBounds(place(content));
+      presentationView(pane).setBounds(place(content));
     });
   } else {
     roundSplitPane(tab, false);
     // The floating Glance card: the main page keeps the whole page area; the
     // card's chrome view and the Glance page inside it float over it.
-    if (liveContents(tab)) tab.view.setBounds(place(layout.pageBounds));
+    if (liveContents(tab)) presentationView(tab).setBounds(place(layout.pageBounds));
     const cardDrawn = rt().glanceCardDrawn === true;
     // The card is fixed to the window: a pushed Island sliding in moves the
     // main page beneath it, never the card or the page inside it.
     if (liveContents(glanceTab) && card) {
-      glanceTab.view.setBounds(card.page);
+      presentationView(glanceTab).setBounds(card.page);
       roundGlancePage(glanceTab, true);
-      if (glanceTab.view.getVisible?.() !== cardDrawn) setTabViewVisible(glanceTab, cardDrawn);
+      if (presentationView(glanceTab).getVisible?.() !== cardDrawn) setTabViewVisible(glanceTab, cardDrawn);
     }
     if (cardView) {
       if (card) cardView.setBounds(card.chrome);
@@ -6978,7 +7098,7 @@ function applyTabLayout(nextLayout) {
     // layout choice does not eject the user mid-interaction.
     hideOverlay({ refocusContent: false });
     resizeActiveView();
-    if (!rt().utilitySheetUrl) liveContents(tabs.get(rt().activeTabId))?.focus();
+    if (!rt().utilitySheetUrl) presentationContents(tabs.get(rt().activeTabId))?.focus();
     broadcastTabs();
   }, { liveOnly: true });
   scheduleMenuRebuild();
@@ -7079,7 +7199,7 @@ function installGlanceShortcut(webContents, owner = rt()) {
  * focused pane, else the main page (glance-focus.js). Never a quiet tab. */
 function browserCommandTab(runtime, sender = null) {
   const contentsOf = (tabId) =>
-    windowRuntimes.runtimeForTab(tabId) === runtime ? liveContents(tabs.get(tabId)) : null;
+    windowRuntimes.runtimeForTab(tabId) === runtime ? presentationContents(tabs.get(tabId)) : null;
   const tab = tabs.get(commandTargetTab(runtime, sender, contentsOf));
   return tab && windowRuntimes.runtimeForTab(tab.id) === runtime &&
     !tab.sleeping && liveContents(tab) ? tab : null;
@@ -7087,6 +7207,7 @@ function browserCommandTab(runtime, sender = null) {
 
 function reloadBrowserCommandTab(runtime, bypassCache = false, sender = null) {
   const tab = browserCommandTab(runtime, sender);
+  readerMode.exit(tab);
   const wc = liveContents(tab);
   return queueTabNavigation(wc, {
     isCurrent: () => !!tab && isVisiblePaneId(runtime, tab.id) && liveContents(tab) === wc,
@@ -7130,11 +7251,15 @@ const executeBrowserCommand = createBrowserCommandExecutor({
   reload: (runtime, sender) => reloadBrowserCommandTab(runtime, false, sender),
   'hard-reload': (runtime, sender) => reloadBrowserCommandTab(runtime, true, sender),
   back: (runtime, sender) => {
-    const nav = liveContents(browserCommandTab(runtime, sender))?.navigationHistory;
+    const tab = browserCommandTab(runtime, sender);
+    if (readerMode.exit(tab)) return;
+    const nav = liveContents(tab)?.navigationHistory;
     if (nav?.canGoBack()) nav.goBack();
   },
   forward: (runtime, sender) => {
-    const nav = liveContents(browserCommandTab(runtime, sender))?.navigationHistory;
+    const tab = browserCommandTab(runtime, sender);
+    readerMode.exit(tab);
+    const nav = liveContents(tab)?.navigationHistory;
     if (nav?.canGoForward()) nav.goForward();
   },
   history: () => openInternalPage('blanc://history/'),
@@ -7160,7 +7285,7 @@ function ownsBrowserShortcutSurface(runtime, wc) {
   const tabId = tabIdByWebContentsId.get(wc.id);
   const tab = tabs.get(tabId);
   return !!tab && windowRuntimes.runtimeForTab(tabId) === runtime &&
-    liveContents(tab) === wc && !tab.sleeping &&
+    presentationContents(tab) === wc && !tab.sleeping &&
     (runtime.activeTabId === tabId || runtime.glanceTabId === tabId || visibleSplitTabIds(runtime).includes(tabId));
 }
 
@@ -8646,6 +8771,11 @@ function notePopupChild(openerTabId, childWindow, sourceContentsId, targetUrl) {
 // initialized before this module-scope call.
 initTabView({
   t: mainI18n.t,
+  readerAction: tab => ({ active: readerMode.active(tab), click: () => toggleReaderMode(tab) }),
+  readerInvalidated: tab => readerMode.invalidate(tab),
+  readerLoaded: tab => readerMode.probe(tab),
+  readerForgotten: tab => readerMode.forget(tab),
+  readerCrashed: tab => readerMode.invalidate(tab),
   claimOutage: (tab, wc, url) => (tab.private ? null : blockingProviders?.forTab(tab)?.claimOutage?.(wc.id, url) ?? null),
   noteMainFrameCommitted: (tab, wc, url) => { if (!tab.private) blockingProviders?.forTab(tab)?.noteMainFrameCommitted?.(wc.id, url); },
   noteWebPageLoaded: (url) => dayOneSignals.notePageLoaded(url),
@@ -9002,7 +9132,10 @@ function sendWindowStartPageVisibility(runtime) {
 }
 
 function setTabViewVisible(tab, visible) {
-  tab.view.setVisible(visible);
+  const shown = presentationView(tab);
+  tab.view.setVisible(visible && shown === tab.view);
+  if (shown !== tab.view) shown.setVisible(visible);
+  if (visible) readerMode.probe(tab);
   if (tab.url?.startsWith('blanc://newtab')) {
     liveContents(tab)?.send('pages:start:visibility', startPageViewVisible(tab));
   }
@@ -9025,7 +9158,8 @@ function restackAboveTabViews() {
 }
 
 function attachTabViewToWindow(tab) {
-  attachTabView(rt().window, tab.view, { createView: () => new View() });
+  if (readerMode.active(tab)) attachTabView(rt().window, tab.view, { createView: () => new View() });
+  attachTabView(rt().window, presentationView(tab), { createView: () => new View() });
 }
 
 // Native Aura focus restoration can run after a tool navigation, including a
@@ -9069,6 +9203,8 @@ function detachTabView(tab, { retainManagedRoot = false } = {}) {
   setTabViewVisible(tab, false);
   if (retainManagedRoot && rootManagedExtensionView(tab)) return true;
   // Linux keeps the hidden view window-owned (tab-view-lifecycle.js).
+  const shown = presentationView(tab);
+  if (shown !== tab.view) releaseTabView(rt().window, shown);
   releaseTabView(rt().window, tab.view);
   return true;
 }
@@ -9235,7 +9371,7 @@ function setActiveTab(id, {
   // blank new tab we instead want the chrome's address bar, and OS focus
   // can be claimed asynchronously by the attached child view, so blank-tab
   // activation keeps reclaiming focus until the user navigates or switches.
-  if (focusContent) liveContents(next)?.focus();
+  if (focusContent) presentationContents(next)?.focus();
   // Background tabs can't be pixel-sampled; catch up when they surface.
   scheduleSampleTint(next);
   broadcastTabs();
@@ -9388,7 +9524,7 @@ function closeGlance({ focusContent = true, announce = true } = {}) {
   broadcastTabs();
   scheduleMenuRebuild();
   if (announce && hasLiveWindow()) stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.closed'));
-  if (focusContent) liveContents(tabs.get(rt().activeTabId))?.focus();
+  if (focusContent) presentationContents(tabs.get(rt().activeTabId))?.focus();
   return true;
 }
 
@@ -9672,6 +9808,7 @@ function closeTab(id) {
   const tab = tabs.get(id);
   if (tab) fillHintScheduler?.clearTab(tab);
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
+  readerMode.forget(tab);
   const wasActive = id === rt().activeTabId;
   const wasGlance = id === rt().glanceTabId;
   // Split View: closing a pane hands the window to the split's other pane.
@@ -9742,6 +9879,7 @@ function closeTab(id) {
 
   rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
+  if (tab.private && ![...tabs.values()].some(other => other.private && other.profileId === tab.profileId)) readerMode.forgetPrivate(tab.profileId);
   if(tab.sharedTabId)captureSharedSpaceEdits(rt());
   popupChildCounts.delete(id);
   windowRuntimes.detachTab(id);
@@ -9824,7 +9962,7 @@ function closeTab(id) {
     resizeActiveView();
     // The reference held keyboard focus: hand it to the main page rather than
     // leaving it on the strip where the detached view dropped it.
-    if (referenceHeldFocus) liveContents(tabs.get(rt().activeTabId))?.focus();
+    if (referenceHeldFocus) presentationContents(tabs.get(rt().activeTabId))?.focus();
     stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.tabClosed'));
   }
   broadcastTabs();
@@ -10483,7 +10621,7 @@ const ZOOM_MAX = 8;
  * focused page pane (glance-focus.js). Menu clicks carry no sender. */
 function zoomTargetWebContents() {
   if (rt().utilitySheetUrl) return liveUtilitySheet()?.wc ?? null;
-  return liveContents(browserCommandTab(rt()));
+  return presentationContents(browserCommandTab(rt()));
 }
 
 function zoomActiveTab(delta) {
@@ -10997,6 +11135,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:open-glance-picker', (_e, query) => openGlancePicker(typeof query === 'string' ? query.slice(0, 200) : ''));
   chromeHandle('tabs:close-glance', () => closeGlance());
   chromeHandle('tabs:open-glance-as-tab', () => openGlanceAsTab());
+  chromeHandle('tabs:reader-toggle', (_e, id) => windowRuntimes.runtimeForTab(id) === rt() ? toggleReaderMode(tabs.get(id)) : false);
   chromeHandle('tabs:navigate', (_e, id, url) => navigateTabToAddress(id, url));
   // Search completions are query text, not navigation targets: a suggestion
   // such as "example.com" must search for that text instead of being
@@ -11032,6 +11171,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:back', (_e, id) => {
     const tab = tabs.get(id);
     if (!tab) return;
+    if (readerMode.exit(tab)) return;
     if (tab.asleep) {
       const snapshot = sleepSnapshots.get(id);
       return wakeTab(id, { atIndex: snapshot ? snapshot.index - 1 : null });
@@ -11041,6 +11181,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:forward', (_e, id) => {
     const tab = tabs.get(id);
     if (!tab) return;
+    readerMode.exit(tab);
     if (tab.asleep) {
       const snapshot = sleepSnapshots.get(id);
       return wakeTab(id, { atIndex: snapshot ? snapshot.index + 1 : null });
@@ -11050,6 +11191,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:reload', (_e, id) => {
     const tab = tabs.get(id);
     if (!tab) return;
+    readerMode.exit(tab);
     if (tab.asleep) return wakeTab(id);
     return liveContents(tab)?.reload();
   });
@@ -11061,6 +11203,7 @@ function registerIpcHandlers() {
   chromeHandle('groups:set-color', (_e, id, color) => setGroupColor(id, color));
   chromeHandle('groups:new-tab', (_e, id) => newTabInGroup(id) !== null);
   chromeHandle('groups:move-to-new-window', (_e, id) => moveGroupToNewWindow(id));
+  chromeHandle('groups:space-menu', (_e, id, point) => openGroupSpaceMenu(id, point));
   chromeHandle('groups:ungroup', (_e, id) => ungroupGroup(id));
   chromeOn('overlay:drag-state', (event, active) => {
     acceptOverlayDragState(rt(), event.sender, active);
@@ -11107,15 +11250,16 @@ function registerIpcHandlers() {
     closedSlot: rt().closedSlot,
     closed: sharedClosedBand(rt()),
     tabLayout,
+    verticalTabsTextSize,
     ...verticalTabsMetrics(),
   }));
   chromeHandle('tabs:find', (_e, id, query, options) => {
     const tab = tabs.get(id);
     if (!tab) return;
     if (tab.asleep) return wakeTab(id); // find on the rebuilt page, never throw
-    return liveContents(tab)?.findInPage(query, options);
+    return presentationContents(tab)?.findInPage(query, options);
   });
-  chromeHandle('tabs:find-stop', (_e, id) => liveContents(tabs.get(id))?.stopFindInPage('clearSelection'));
+  chromeHandle('tabs:find-stop', (_e, id) => presentationContents(tabs.get(id))?.stopFindInPage('clearSelection'));
 
   // The resting pill's tooltips (renderer.js). Only the strip may ask.
   chromeOn('chrome:tooltip-show', (event, raw) => {
@@ -11725,6 +11869,7 @@ const SLASH_COMMANDS = [
   ['/ungroup', 'slash.ungroup.hint'],
   ['/close-group', 'slash.closeGroup.hint'],
   ['/send <device>', 'slash.send.doc'],
+  ['/reader', 'slash.reader.hint'],
   ['/find', 'slash.find.hint'],
   ['/block-ads', 'slash.blockAds.hint'],
   ['/allow-ads', 'slash.allowAds.hint'],
@@ -11854,7 +11999,7 @@ function buildMenuForRuntime(runtime) {
           ...command('reopen-tab'),
           enabled: (runtime.closedEntries?.length ?? 0) > 0,
         },
-        { id: 'print', label: t('menu.print'), accelerator: 'CmdOrCtrl+P', click: bound(() => liveContents(browserCommandTab(rt()))?.print()) },
+        { id: 'print', label: t('menu.print'), accelerator: 'CmdOrCtrl+P', click: bound(() => presentationContents(browserCommandTab(rt()))?.print()) },
         { type: 'separator' },
         command('downloads'),
         command('settings'),
@@ -11934,6 +12079,7 @@ function buildMenuForRuntime(runtime) {
       submenu: [
         command('address'),
         command('find'),
+        { label: t('reader.title'), click: bound(() => toggleReaderMode(browserCommandTab(rt()))) },
         ...(ONE_PASSWORD_AVAILABLE ? [{
           label: t('menu.fillOnePassword'),
           accelerator: ONE_PASSWORD_ACCELERATOR,
@@ -13141,8 +13287,11 @@ function moveTabToSpace(id, workspaceId, creation = null) {
 }
 
 /** Several selected rows share one write-ahead capture. Splits transfer as
- * units; after an exception only complete units may remain in the target. */
-function moveTabsToSpace(ids, workspaceId, creation = null) {
+ * units; after an exception only complete units may remain in the target.
+ * With `group` (Move Group to Space ▸, D8) the tabs arrive as that group,
+ * with its name and colour, or join the target's group of the same name
+ * (two groups never differ only by case); the window's selection is kept. */
+function moveTabsToSpace(ids, workspaceId, creation = null, { group = null } = {}) {
   const source = rt(), members = batchMembers(ids);
   if (!members || !members.every(tab => canMoveTabToSpace(tab, source, true))) return { ok: false, error: 'busy', movedCount: 0 };
   ids = source.tabOrder.filter(id => ids.includes(id));
@@ -13151,7 +13300,8 @@ function moveTabsToSpace(ids, workspaceId, creation = null) {
   const units = selectionRows(members);
   let workspace = creation ? null : namedWorkspaces.get(workspaceId);
   let target = null, materialized = false, targetFloor = null, sourceFloor = null;
-  let movedCount = 0, reconciled = false;
+  let movedCount = 0, reconciled = false, landing = null;
+  const priorSelection = [...(source.selectedTabIds ?? [])];
   const suspended = sessionPersistenceSuspended;
   sessionPersistenceSuspended = true; tabStateBroadcastSuppressionDepth++;
   let result;
@@ -13178,6 +13328,15 @@ function moveTabsToSpace(ids, workspaceId, creation = null) {
           next = appendTabToCapture(next, { url: persistableUrl(tab.url), pinned: tab.pinned, meta: sessionTabMeta(tab),
             localFile: tab.localFile === true, inheritsDocumentPolicy: tab.inheritsDocumentPolicy === true });
         }
+        if (group) {
+          const same = target.groups.find(g => sameGroupName(g.name, group.name));
+          // A fresh id: group pruning looks at every tab, so a shared id would
+          // keep the emptied source group alive behind the moved tabs.
+          const id = same?.id ?? crypto.randomUUID();
+          landing = { id, record: same ? null : { ...groupRecord(group), id } };
+          next.groupIds = next.groupIds.map((gid, index) => index >= before ? id : gid);
+          if (landing.record) next.groups = [...(next.groups ?? []), landing.record];
+        }
         const captured = captureSplits(origin.splits, ids);
         if (captured.splits.length) {
           next.splits = [...(next.splits ?? []), ...captured.splits];
@@ -13200,6 +13359,10 @@ function moveTabsToSpace(ids, workspaceId, creation = null) {
           for (const id of unit) detachTabForMove(source, id, { keepSpacesEditor: !!creation });
           for (const id of unit) {
             target.tabOrder.push(id); rehomeTab(tabs.get(id), target);
+            if (landing) {
+              tabs.get(id).groupId = landing.id;
+              if (!target.groups.some(g => g.id === landing.id)) target.groups.push({ ...landing.record });
+            }
             if (takeSpaceMoveFault('transfer-pane')) throw new Error('injected: incomplete split transfer');
           }
           const split = origin.splits.find(split => split.tabIds.every(id => unit.includes(id)));
@@ -13227,6 +13390,7 @@ function moveTabsToSpace(ids, workspaceId, creation = null) {
         source.groups = origin.groups.filter(group => source.tabOrder.some(id => tabs.get(id)?.groupId === group.id));
         source.splits = origin.splits.filter(split => split.tabIds.every(id => !moved.has(id)));
         target.splits = target.splits.filter(split => split.tabIds.every(id => windowRuntimes.runtimeForTab(id) === target));
+        target.groups = target.groups.filter(g => target.tabOrder.some(id => tabs.get(id)?.groupId === g.id));
         if (sourceFloor && ids.some(id => !moved.has(id))) {
           closeTab(sourceFloor, { record: false, selectReplacement: false }); sourceFloor = null;
         }
@@ -13249,7 +13413,8 @@ function moveTabsToSpace(ids, workspaceId, creation = null) {
   // If the exception came after the final row arrived and reconciliation
   // confirmed every tab, the requested move is complete.
   if (!result.ok && reconciled && movedCount === ids.length) result = { ok: true };
-  Object.assign(source, selectionState(result.ok ? [] : ids.filter(id => windowRuntimes.runtimeForTab(id) === source), null, tabLayoutList(source)));
+  const kept = group ? priorSelection : result.ok ? [] : ids;
+  Object.assign(source, selectionState(kept.filter(id => windowRuntimes.runtimeForTab(id) === source), null, tabLayoutList(source)));
   source.selectionRevision = (source.selectionRevision ?? 0) + 1;
   broadcastTabs();
   if (target && (!materialized || movedCount)) {
@@ -13267,8 +13432,14 @@ function moveTabsToSpace(ids, workspaceId, creation = null) {
 }
 
 function createSpaceWithTabs(name, identity, ids) {
+  // New Space… from the group menu: the editor was opened for exactly this
+  // group's tabs, so they arrive as the group.
+  const groupId = rt().overlayMode === 'spaces' ? rt().overlayPurpose?.newSpaceGroupId : null;
+  const group = groupId ? rt().groups.find(g => g.id === groupId) : null;
+  const members = group ? groupMemberIds(rt(), group.id) : [];
+  const asGroup = group && Array.isArray(ids) && members.length === ids.length && members.every(id => ids.includes(id));
   const result = moveTabsToSpace(ids, null, { name, color: typeof identity?.color === 'string' ? identity.color : undefined,
-    symbol: typeof identity?.symbol === 'string' ? identity.symbol : undefined });
+    symbol: typeof identity?.symbol === 'string' ? identity.symbol : undefined }, { group: asGroup ? group : null });
   const error = result.workspaceId && !result.ok ? 'saved-not-moved' : ({ refused: 'busy', 'prepare-failed': 'activation-failed' }[result.error] ?? result.error);
   return { ok: result.ok, movedCount: result.movedCount ?? 0, ...(error ? { error } : {}), ...(result.workspaceId ? { workspaceId: result.workspaceId } : {}), ...workspacesProjection() };
 }
@@ -13447,6 +13618,78 @@ function moveGroupToNewWindow(groupId) {
   }
   for (const id of ids) detachTabForMove(source, id);
   openNewWindow({ profileId: source.profileId, adoptTabIds: ids, group: record, activeTabId });
+  return true;
+}
+
+function groupMemberIds(runtime, groupId) {
+  return runtime.tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
+}
+
+/** Move Group to Space ▸ (D8) can take this group: every member could go
+ * through Move to Space ▸ on its own, and the group can be the window's
+ * whole content (the window keeps a blank start page, as D7 allows). */
+function canMoveGroupToSpace(source, groupId) {
+  const ids = groupMemberIds(source, groupId);
+  const members = ids.length ? batchMembers(ids) : null;
+  return !!members && members.every((tab) => canMoveTabToSpace(tab, source, true)) ? ids : null;
+}
+
+/** Move Group to Space ▸ (D8): every member, in order, into `workspaceId`
+ * as the same group (moveTabsToSpace's `group`), through the §3 write-first
+ * orchestrator. A failure opens the Spaces menu with its reason, as Move to
+ * Space ▸ does for tabs. */
+function moveGroupToSpace(groupId, workspaceId) {
+  const source = rt();
+  const group = source.groups.find((g) => g.id === groupId);
+  const ids = group ? canMoveGroupToSpace(source, groupId) : null;
+  if (!ids || workspaceId === source.workspaceId) return { ok: false, error: 'busy', movedCount: 0 };
+  const result = moveTabsToSpace(ids, workspaceId, null, { group });
+  if (result.ok) {
+    announceSplit(mainI18n.t('ws.announce.groupMovedTo', { space: namedWorkspaces.get(workspaceId)?.name ?? '' }));
+  } else {
+    showOverlay('spaces', { purpose: { spaceMoveError: {
+      name: namedWorkspaces.get(workspaceId)?.name ?? '', error: result.error, movedCount: result.movedCount ?? 0,
+    } } });
+  }
+  scheduleMenuRebuild();
+  return result;
+}
+
+/** New Space… under Move Group to Space ▸: the Spaces editor, bound to this
+ * group (createSpaceWithTabs reads the purpose back). */
+function beginNewSpaceForGroup(groupId) {
+  const group = rt().groups.find((g) => g.id === groupId);
+  const ids = group ? canMoveGroupToSpace(rt(), groupId) : null;
+  if (!ids || namedWorkspaces.list().length >= MAX_WORKSPACES) return false;
+  showOverlay('spaces', { purpose: { newSpaceTabIds: ids, newSpaceGroupId: groupId, newSpaceGroupName: group.name } });
+  return true;
+}
+
+/** The group menu's Move Group to Space ▸: a native menu of the profile's
+ * spaces at `point` (overlay coordinates, from the group menu's button).
+ * Space names are radio items, which the pseudo-locale sweep skips. */
+function openGroupSpaceMenu(groupId, point) {
+  const source = rt();
+  if (!hasLiveWindow() || !source.groups.some((g) => g.id === groupId)) return false;
+  const spaces = spaceMoveTargets(source);
+  if (!spaces.length) return false;
+  const movable = !!canMoveGroupToSpace(source, groupId);
+  const template = [
+    ...spaces.map((space) => ({
+      label: space.name, type: 'radio', checked: space.current,
+      enabled: movable && !space.current && space.enabled,
+      click: () => withWindowRuntime(source, () => moveGroupToSpace(groupId, space.id)),
+    })),
+    { type: 'separator' },
+    { id: 'group-space-new', label: mainI18n.t('tabMenu.newSpace'), enabled: movable && spaces.length < MAX_WORKSPACES,
+      click: () => withWindowRuntime(source, () => beginNewSpaceForGroup(groupId)) },
+  ];
+  // The group menu has closed by now; its view keeps the bounds it had.
+  const bounds = source.overlayView?.getBounds() ?? { x: 0, y: 0 };
+  const menu = Menu.buildFromTemplate(template);
+  try {
+    menu.popup({ window: source.window, x: Math.round(bounds.x + (Number(point?.x) || 0)), y: Math.round(bounds.y + (Number(point?.y) || 0)) });
+  } catch { return false; /* window died mid-popup */ }
   return true;
 }
 
@@ -15109,6 +15352,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (action === 'flush') { autosaveWorkspaceBindings(); return namedWorkspaces.flushPending(); }
         // Move to Space: one saved record's URLs, and its one-shot step faults.
         if (action === 'saved-urls') return namedWorkspaces.get(args[0])?.urls ?? null;
+        if (action === 'saved-groups') {
+          const saved = namedWorkspaces.get(args[0]);
+          return saved ? { groups: saved.groups ?? [], groupIds: saved.groupIds ?? [], urls: saved.urls ?? [] } : null;
+        }
         if (action === 'arm-move-fault') return { ok: armSpaceMoveFault(args[0], args[1]) };
         if (action === 'reset') {
           spaceMoveFaults.clear();
@@ -15308,7 +15555,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         .sort((a, b) => (a.residentSince ?? 0) - (b.residentSince ?? 0))
         .map((r) => ({
           name: namedWorkspaces.get(r.workspaceId)?.name ?? null,
-          tabs: r.tabOrder.map((id) => { const tab = tabs.get(id); return { id, url: tab?.url ?? '', pinned: !!tab?.pinned, live: !!liveContents(tab), asleep: !!tab?.asleep }; }),
+          tabs: r.tabOrder.map((id) => { const tab = tabs.get(id); return { id, url: tab?.url ?? '', pinned: !!tab?.pinned, live: !!liveContents(tab), asleep: !!tab?.asleep, groupId: tab?.groupId ?? null }; }),
+          groups: r.groups.map(groupRecord),
         })),
       getRoomPass: () => lastRoomPass,
       // Starts quieting a set-aside space's active tab, waits until its
@@ -15382,6 +15630,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       createSplitFromTabs,
       keepGlanceAsSplit,
       moveGroupToNewWindowForTest: (groupId) => moveGroupToNewWindow(groupId),
+      moveGroupToSpaceForTest: (groupId, workspaceId) => moveGroupToSpace(groupId, workspaceId),
+      beginNewSpaceForGroupForTest: (groupId) => beginNewSpaceForGroup(groupId),
       /** Tab ids whose splitId names no split in their own window. */
       straySplitIds: () => [...tabs.values()].filter((tab) => tab.splitId
         && !(windowRuntimes.runtimeForTab(tab.id)?.splits ?? []).some((s) => s.id === tab.splitId)).map((tab) => tab.id),
@@ -15414,7 +15664,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           const pane = tabs.get(entry.tabId);
           const at = children.indexOf(entry.view);
           const shown = at >= 0 && (entry.view.getVisible?.() ?? true)
-            && liveContents(pane) && at > children.indexOf(pane.view);
+            && liveContents(pane) && at > children.indexOf(presentationView(pane));
           const drawn = entry.view.webContents.isDestroyed() ? null : await entry.view.webContents.executeJavaScript(
             "({ site: document.getElementById('site').textContent, focused: document.body.classList.contains('focused') })",
           ).catch(() => null);
@@ -15616,6 +15866,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     applyAppIcon();
     applyVerticalTabsWidth(s.verticalTabsWidth);
     applyTabLayout(s.tabLayout);
+    if (s.verticalTabsTextSize !== verticalTabsTextSize) {
+      verticalTabsTextSize = s.verticalTabsTextSize;
+      forEachWindowRuntime(() => broadcastTabs(), { liveOnly: true });
+    }
     const nextDarkWebsitesKey = JSON.stringify([s.darkWebsites, s.darkWebsitesExceptions]);
     if (nextDarkWebsitesKey !== lastDarkWebsitesKey) {
       lastDarkWebsitesKey = nextDarkWebsitesKey;

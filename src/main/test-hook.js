@@ -205,6 +205,8 @@ function install(refs) {
     createSplitFromTabs,
     keepGlanceAsSplit,
     moveGroupToNewWindowForTest,
+    moveGroupToSpaceForTest,
+    beginNewSpaceForGroupForTest,
     straySplitIds,
     windowChildViewCount,
     menuContextActionsForTest,
@@ -819,6 +821,15 @@ function install(refs) {
       return item ? { label: item.label, enabled: item.enabled !== false } : null;
     },
     moveGroupToNewWindow(groupId) { return !!moveGroupToNewWindowForTest(groupId); },
+    // Move Group to Space ▸ (D8): the menu's actions, by group name.
+    moveGroupToSpaceByName(name, workspaceId) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      return group ? moveGroupToSpaceForTest(group.id, workspaceId) : null;
+    },
+    beginNewSpaceForGroupByName(name) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      return group ? beginNewSpaceForGroupForTest(group.id) : false;
+    },
     straySplitIds() { return straySplitIds(); },
     windowChildViewCount() { return windowChildViewCount(); },
     attachedTabViewIds() { return attachedTabViewIds(); },

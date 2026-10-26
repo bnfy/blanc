@@ -3,13 +3,14 @@ import WebKit
 
 /// Native destinations also serve legacy internal links without creating tabs.
 enum SettingsDestination: String, Identifiable, Hashable {
-    case root, privacy, sync
+    case root, privacy, sync, startPage
     var id: String { rawValue }
     static func resolve(_ url: URL) -> Self? {
         guard url.scheme?.lowercased() == "blanc", url.host?.lowercased() == "settings" else { return nil }
         switch url.fragment?.lowercased() {
         case "group-sync", "sync": return .sync
         case "group-privacy", "privacy": return .privacy
+        case "start-page", "startpage", "group-startpage": return .startPage
         default: return .root
         }
     }
@@ -97,6 +98,7 @@ struct SettingsSheet: View {
                     switch destination {
                     case .sync: SyncSettingsView(engine: manager.syncEngine)
                     case .privacy: PrivacySettingsView(manager: manager)
+                    case .startPage: StartSettingsView(manager: manager)
                     case .root: root
                     }
                 }
@@ -125,9 +127,7 @@ struct SettingsSheet: View {
                 Picker(SettingsCopy.text("theme"), selection: Binding(get: { manager.settingsStore.theme }, set: { manager.applySettingsPatch(["theme": $0.rawValue]) })) {
                     ForEach(BlancThemePreference.allCases, id: \.self) { Text(SettingsCopy.text($0.rawValue)).tag($0) }
                 }.accessibilityIdentifier("settings.theme")
-                NavigationLink {
-                    StartSettingsView(manager: manager)
-                } label: {
+                NavigationLink(value: SettingsDestination.startPage) {
                     summary("startPage", value: SettingsCopy.text(manager.settingsStore.newtabLayout.rawValue))
                 }.accessibilityIdentifier("settings.startPage")
             }

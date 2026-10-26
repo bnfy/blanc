@@ -8,7 +8,9 @@
     "MPL-2.0",
     "MPL-2.0 AND CC-BY-SA-3.0-or-later",
     "OFL-1.1",
-    "Python-2.0"
+    "Python-2.0",
+    "Apache-2.0",
+    "(MPL-2.0 OR Apache-2.0)"
   ],
   "metadataOverrides": {},
   "runtimeAssetLicenseExceptions": {
@@ -144,7 +146,7 @@
       "license": "ISC",
       "licenseFile": "src/renderer/ublock-popup-icons/lucide-LICENSE.txt",
       "homepage": "https://github.com/lucide-icons/lucide/tree/0.468.0",
-      "attribution": "Lucide Contributors 2022; portions by Cole Bemis 2013\u20132022 (Feather, MIT)"
+      "attribution": "Lucide Contributors 2022; portions by Cole Bemis 2013–2022 (Feather, MIT)"
     },
     {
       "id": "dark-reader-engine",
@@ -167,6 +169,17 @@
       "licenseFile": "bangs/sources/kagi-bangs-LICENSE.txt",
       "homepage": "https://github.com/kagisearch/bangs",
       "attribution": "Kagi Search and contributors; compiled into src/renderer/pages/bangs-catalog.js by bangs/build.mjs"
+    },
+    {
+      "id": "source-serif-font",
+      "name": "Source Serif 4 Regular",
+      "version": "4.005",
+      "type": "file",
+      "file": "src/renderer/pages/source-serif-4-regular.woff2",
+      "license": "OFL-1.1",
+      "licenseFile": "src/renderer/pages/source-serif-4-OFL.txt",
+      "homepage": "https://github.com/adobe-fonts/source-serif",
+      "attribution": "Adobe; Frank Grießhammer and contributors"
     }
   ]
 }

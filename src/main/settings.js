@@ -45,6 +45,7 @@ const isSearchEngineId = (id) => typeof id === 'string' && Object.hasOwn(SEARCH_
 
 const THEMES = ['system', 'light', 'dark'];
 const TAB_LAYOUTS = ['island', 'vertical'];
+const VERTICAL_TABS_TEXT_SIZES = ['default', 'large', 'extra-large'];
 // Start-page layouts (Bowser Design System, "New tab v2" handoff). Same class
 // of preference as the theme — it describes the browser you want, so it syncs.
 const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally'];
@@ -100,8 +101,8 @@ const CHECKLIST_FLAGS = [
 ];
 
 // Keys that sync across devices (see the profile-sync spec). Deliberately
-// excludes tabLayout, verticalTabsWidth, appIcon, searchSuggestions, and the
-// device's 1Password integration configuration
+// excludes tabLayout, verticalTabsWidth, verticalTabsTextSize, appIcon,
+// searchSuggestions, and the device's 1Password integration configuration
 // (device-local), usagePing (per-install consent), and supporter (never —
 // that would be license sharing).
 // deviceNames is merged entry by entry (device-names.js), never as one
@@ -252,6 +253,7 @@ const DEFAULTS = {
   // Preferred rail width. The live layout may temporarily cap it to preserve
   // the minimum website pane, but that window-size cap is never persisted.
   verticalTabsWidth: VERTICAL_TABS_DEFAULT_WIDTH,
+  verticalTabsTextSize: 'default',
   // 'off' disables automatic quieting; the manual /sleep command still works.
   tabSleep: '1h',
   tabArchive: 'off',
@@ -556,6 +558,7 @@ function getSettings() {
   data.deviceNames = normalizeDeviceNames(data.deviceNames);
   data.homePage = normalizeHomepage(data.homePage, DEFAULTS.homePage);
   data.verticalTabsWidth = normalizeVerticalTabsWidth(data.verticalTabsWidth);
+  if (!VERTICAL_TABS_TEXT_SIZES.includes(data.verticalTabsTextSize)) data.verticalTabsTextSize = DEFAULTS.verticalTabsTextSize;
   if (!isAppIconAllowed(data.appIcon)) data.appIcon = DEFAULTS.appIcon;
   // Read coercion for a corrupted stored state (hand-edited settings.json): custom
   // without a valid template reads back as the default, never as plaintext-capable
@@ -636,6 +639,7 @@ function sanitize(partial) {
   if (normalizeWashStyle(partial.newtabWallpaperStyle) !== null) clean.newtabWallpaperStyle = partial.newtabWallpaperStyle;
   if (NEWTAB_LAYOUTS.includes(partial.newtabLayout)) clean.newtabLayout = partial.newtabLayout;
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
+  if (VERTICAL_TABS_TEXT_SIZES.includes(partial.verticalTabsTextSize)) clean.verticalTabsTextSize = partial.verticalTabsTextSize;
   if (typeof partial.islandSiteColors === 'boolean') clean.islandSiteColors = partial.islandSiteColors;
   if (typeof partial.islandHoverOpen === 'boolean') clean.islandHoverOpen = partial.islandHoverOpen;
   if (typeof partial.searchPriorityResults === 'boolean') clean.searchPriorityResults = partial.searchPriorityResults;

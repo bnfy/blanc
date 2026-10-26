@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-150 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+152 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -28,6 +28,7 @@
 | `setGroupColor` | groups | invoke | `groups:set-color` | `(groupId: GroupId, color: string \| null) => Promise<GroupColorResult>` | all |
 | `newTabInGroup` | groups | invoke | `groups:new-tab` | `(groupId: GroupId) => Promise<boolean>` | all |
 | `moveGroupToNewWindow` | groups | invoke | `groups:move-to-new-window` | `(groupId: GroupId) => Promise<boolean>` | all |
+| `openGroupSpaceMenu` | groups | invoke | `groups:space-menu` | `(groupId: GroupId, point: Point) => Promise<boolean>` | all |
 | `ungroupGroup` | groups | invoke | `groups:ungroup` | `(groupId: GroupId) => Promise<void>` | all |
 | `activateTabFromRail` | tabs | invoke | `tabs:activate-from-rail` | `(id: TabId) => Promise<boolean>` | all |
 | `setGlanceTab` | glance | invoke | `tabs:set-glance` | `(id: TabId) => Promise<boolean>` | all |
@@ -156,6 +157,7 @@
 | `onFloatFrame` | island | event | `chrome:float-frame` | `(payload: FloatFrame) => void` | all |
 | `onFloatShown` | island | event | `chrome:float-shown` | `(payload: boolean) => void` | all |
 | `onFindResult` | find | event | `chrome:find-result` | `(payload: FindResult) => void` | all |
+| `toggleReaderMode` | navigation | invoke | `tabs:reader-toggle` | `(id: TabId) => Promise<boolean>` | all |
 
 ## Types
 
@@ -373,6 +375,8 @@ One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only stat
 | `siteInfo` | `SiteInfo` |  |
 | `splitId` | `string \| null` | The Split View (F53) this tab belongs to, or null. |
 | `syncNotSynced?` | `boolean` |  |
+| `readerAvailable` | `boolean` | Article suitability hint; extraction may still fail. |
+| `readerActive` | `boolean` | The tab is displaying its transient Reader Mode view. |
 
 ### `TabGroup`
 
@@ -535,6 +539,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | `closed` | `ClosedEntrySummary[]` |  |
 | `closedSlot` | `number` | How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
+| `verticalTabsTextSize` | `string` |  |
 | `verticalTabsWidth` | `number` |  |
 | `verticalTabsPreferredWidth` | `number` |  |
 | `verticalTabsMinWidth` | `number` |  |
@@ -556,6 +561,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | `closed` | `ClosedEntrySummary[]` |  |
 | `closedSlot` | `number` | How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
+| `verticalTabsTextSize` | `string` |  |
 | `adblockEnabled` | `boolean` |  |
 | `shieldPopover` | `ShieldPopover \| null` |  |
 | `captureChip` | `CaptureChip` |  |

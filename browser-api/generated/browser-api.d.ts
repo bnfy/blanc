@@ -164,6 +164,10 @@ export interface TabEntry {
   /** The Split View (F53) this tab belongs to, or null. */
   splitId: string | null;
   syncNotSynced?: boolean;
+  /** Article suitability hint; extraction may still fail. */
+  readerAvailable: boolean;
+  /** The tab is displaying its transient Reader Mode view. */
+  readerActive: boolean;
 }
 
 /** A tab group: a name, and optionally one of the Spaces preset colors. */
@@ -292,6 +296,7 @@ export interface TabsSnapshot {
   /** How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
   closedSlot: number;
   tabLayout: TabLayout;
+  verticalTabsTextSize: string;
   verticalTabsWidth: number;
   verticalTabsPreferredWidth: number;
   verticalTabsMinWidth: number;
@@ -312,6 +317,7 @@ export interface TabsUpdatedPayload {
   /** How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
   closedSlot: number;
   tabLayout: TabLayout;
+  verticalTabsTextSize: string;
   adblockEnabled: boolean;
   shieldPopover: ShieldPopover | null;
   captureChip: CaptureChip;
@@ -1009,6 +1015,11 @@ export interface BlancBrowserAPI {
    */
   moveGroupToNewWindow(groupId: GroupId): Promise<boolean>;
   /**
+   * Move Group to Space: a native menu of the profile's spaces at an overlay point; choosing one moves every tab of the group, in order, into that space as the same group (or into its group of the same name), and New Space… opens the Spaces editor bound to the group. False when the window, the group or every space is gone.
+   * IPC: invoke `groups:space-menu`.
+   */
+  openGroupSpaceMenu(groupId: GroupId, point: Point): Promise<boolean>;
+  /**
    * Make every tab in a group ungrouped; the empty group goes away.
    * IPC: invoke `groups:ungroup`.
    */
@@ -1652,6 +1663,11 @@ export interface BlancBrowserAPI {
    * IPC: event `chrome:find-result`.
    */
   onFindResult(callback: (payload: FindResult) => void): () => void;
+  /**
+   * Enter or exit Reader Mode for an owned visible tab; false when extraction is unavailable.
+   * IPC: invoke `tabs:reader-toggle`.
+   */
+  toggleReaderMode(id: TabId): Promise<boolean>;
 }
 
 declare global {

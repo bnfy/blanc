@@ -4074,6 +4074,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40mozilla/readability@0.6.0",
+      "name": "@mozilla/readability",
+      "version": "0.6.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "8ee1b9556878a808afcd301e333bd8f71b3d1d8e6b01caf613823bb624920a8911162ed7219080bbdd999124ec223d4e3dc78289f2f77297ed78fde90d3f7f41"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40mozilla/readability@0.6.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@mozilla/readability"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@mozilla/readability/-/readability-0.6.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40noble/hashes@1.8.0",
       "name": "@noble/hashes",
       "version": "1.8.0",
@@ -5239,6 +5284,51 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/@types/responselike/-/responselike-1.0.3.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40types/trusted-types@2.0.7",
+      "name": "@types/trusted-types",
+      "version": "2.0.7",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "49c68f767d5d41cce06e5d101537933a65471542eddfde17260390368c95859eabdaf2e730b25f04f779dd2079d93ff71b7e95235fe0d8c65a5f47300ee5ec7f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40types/trusted-types@2.0.7",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@types/trusted-types"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "true"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@types/trusted-types/-/trusted-types-2.0.7.tgz"
         }
       ]
     },
@@ -8209,6 +8299,49 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/dmg-builder/-/dmg-builder-26.17.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/dompurify@3.4.17",
+      "name": "dompurify",
+      "version": "3.4.17",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "07fa52958547439f24a88483ff20e3b89d727f3237e26d60178940a1dd9bc1246188de0ae429771fc01fee1a81d8f9932fdd75b5d12e7679d79f9167851a33d3"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "(MPL-2.0 OR Apache-2.0)"
+        }
+      ],
+      "purl": "pkg:npm/dompurify@3.4.17",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/dompurify"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/dompurify/-/dompurify-3.4.17.tgz"
         }
       ]
     },
@@ -20946,6 +21079,8 @@
         "pkg:npm/%40eslint/js@10.0.1",
         "pkg:npm/%40ghostery/adblocker-electron@2.20.1",
         "pkg:npm/%40ghostery/adblocker@2.20.1",
+        "pkg:npm/%40mozilla/readability@0.6.0",
+        "pkg:npm/dompurify@3.4.17",
         "pkg:npm/electron-builder@26.17.0",
         "pkg:npm/electron-updater@6.8.9",
         "pkg:npm/electron@44.9.3",
@@ -21515,6 +21650,10 @@
       ]
     },
     {
+      "ref": "pkg:npm/%40mozilla/readability@0.6.0",
+      "dependsOn": []
+    },
+    {
       "ref": "pkg:npm/%40noble/hashes@1.8.0",
       "dependsOn": []
     },
@@ -21653,6 +21792,10 @@
       "dependsOn": [
         "pkg:npm/%40types/node@24.13.2"
       ]
+    },
+    {
+      "ref": "pkg:npm/%40types/trusted-types@2.0.7",
+      "dependsOn": []
     },
     {
       "ref": "pkg:npm/%40xmldom/xmldom@0.8.15",
@@ -22060,6 +22203,12 @@
         "pkg:npm/builder-util@26.16.0",
         "pkg:npm/fs-extra@10.1.0",
         "pkg:npm/js-yaml@4.3.2"
+      ]
+    },
+    {
+      "ref": "pkg:npm/dompurify@3.4.17",
+      "dependsOn": [
+        "pkg:npm/%40types/trusted-types@2.0.7"
       ]
     },
     {

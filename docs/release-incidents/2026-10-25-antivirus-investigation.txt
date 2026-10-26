@@ -1,5 +1,18 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+UPSTREAM ACCEPTANCE RECONCILIATION: Integrated origin/main f67ec4ecd after
+discovering overlapping fixture fixes had landed in e53b98975 (PR #1141).
+Retained those upstream renderer/load waits and the candidate's explicit
+motion matrix, source-button readiness waits and Mac display setup. Resolved
+only the overlapping test comments/assertion text; retained current main's
+Reader, vertical-tab and other changes. Regenerated the 1.43.2 SBOMs for the
+merged dependency graph. Reviewed the acceptance-only native-motion hook:
+both its setter and reader are gated by the existing unpackaged acceptance
+mode; no production channel or capability is added. Refreshed only main.js's
+inventory hash, with its channel list unchanged. Lint, complete substrate and
+541-scenario / 4,190-step wiring checks pass. The inventory's five tests pass
+after refresh; full runtime validation remains pending.
+
 OCTOBER 26 ACCEPTANCE REPAIR: Wired the existing tallest-display helper into
 mac-scan before its press gate, preserving the exact requested window sizes.
 The Glance motion scenario now selects normal native motion explicitly through
