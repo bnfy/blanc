@@ -2825,3 +2825,12 @@ The macOS Blanc startup restore now runs as a non-nestable main-thread task afte
 ## October25 final-factory repair footprint
 
 The owner's standing October21 consolidation authorization covers the new75existing-upstream-files/184hunks ceiling (+2/+4 from73/180). The added existing files are the internal URL-loader factory utility source/header; the late hook preserves the original context while gating downstream DevTools replacements.151Git dependency checkouts remain clean. One18-planned/23-actual-step incremental build passes, finalguard0. Counts exclude copied Blanc-owned files under the established policy, not their maintenance cost. No cold build, toolchain/GN change, latency or Electron work. See evidence/f12-redirect-repair-20261025.
+
+
+### October26 separate navigation factory
+
+October 26 navigation repair: [separate factory finding and focused evidence](evidence/f12-navigation-gate-20261026/README.md) records a real regular/private subframe network-admission gap in signed source1523375. The direct navigation factory now invokes the existing final gate after DevTools assembly. Repaired native output passes20new navigation checks and4preparation tests; baseline8pass/6fail retained. Incremental60.28s/6steps, finalguard0; fresh76files/185hunks and151clean Git dependencies. Direct main-frame request/profile attribution is qualified under deliberate mainFrame allow policy. Signed replacement/affected-only checks and privileged navigation replacement attribution remain pending; no new gate acceptance (9/12). Electron paused, Google baseline separate, latency deferred.
+
+### October26 signed navigation replacement
+
+October 26 signed navigation repair: [notarized affected-path evidence](evidence/f12-navigation-signed-20261026/README.md) binds source`efb1b511` and archive`19cdde2731c4`. Apple accepted submission`214024e9-4c28-47b3-9575-44db8220ba11`; stapling, ticket, strict signature and Gatekeeper checks pass. All20affected regular/private navigation checks pass on the replacement, with exact request/profile joins and zero blocked-subframe server arrivals. The17ARM64executables/UI/compliance bytes match the frozen signed audit; no native rebuild, prior passing matrix or owner distribution walkthrough repeated. Earlier baseline failures remain retained. F12/Decision2 and privileged navigation replacement/restart attribution remain open; no new gate approval. Electron paused, Google baseline separate, latency deferred.

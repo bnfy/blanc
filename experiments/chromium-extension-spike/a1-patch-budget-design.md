@@ -1,8 +1,14 @@
+> October 26 signed navigation repair: [notarized affected-path evidence](evidence/f12-navigation-signed-20261026/README.md) binds source`efb1b511` and archive`19cdde2731c4`. Apple accepted submission`214024e9-4c28-47b3-9575-44db8220ba11`; stapling, ticket, strict signature and Gatekeeper checks pass. All20affected regular/private navigation checks pass on the replacement, with exact request/profile joins and zero blocked-subframe server arrivals. The17ARM64executables/UI/compliance bytes match the frozen signed audit; no native rebuild, prior passing matrix or owner distribution walkthrough repeated. Earlier baseline failures remain retained. F12/Decision2 and privileged navigation replacement/restart attribution remain open; no new gate approval. Electron paused, Google baseline separate, latency deferred.
+
+> October 26 navigation repair: [separate factory finding and focused evidence](evidence/f12-navigation-gate-20261026/README.md) records a real regular/private subframe network-admission gap in signed source1523375. The direct navigation factory now invokes the existing final gate after DevTools assembly. Repaired native output passes20new navigation checks and4preparation tests; baseline8pass/6fail retained. Incremental60.28s/6steps, finalguard0; fresh76files/185hunks and151clean Git dependencies. Direct main-frame request/profile attribution is qualified under deliberate mainFrame allow policy. Signed replacement/affected-only checks and privileged navigation replacement attribution remain pending; no new gate acceptance (9/12). Electron paused, Google baseline separate, latency deferred.
+
 # A1: upstream integration and patch-budget design
 
 > October 26 technical review complete: [source-bound review](evidence/a1-design-review-20261026/README.md) covers all **75 existing upstream files / 184 hunks** in the signed DevTools repair source. Exact patch digests and the changed path set match the recorded inventory; no dependency audit, build or runtime suite was repeated. Fourteen selected owned-source copies also match. Technical recommendations are recorded below; Decision 2/owner approval, layout migration, automated apply tooling and measured savings remain open. Electron paused, Google baseline separate, latency deferred.
 
 Reviewed implementation: Blanc source `1523375af5b93cf910d9cca82f522155ef525adf`, Chromium157.0.8103.15 / upstream `1aa07b638799e59656559ae6c6649d4b197f555e`. The recorded October25 inventory includes151clean Git dependencies; that dependency audit is not newly rerun. The owner permits recorded budget changes with later consolidation, so the old49/120 and58/137 ceilings are historical. No patch deletion, layout move, GN/toolchain change or new build is performed by this review.
+
+Current navigation addendum: `content/browser/loader/navigation_url_loader_impl.cc` adds one network-enforcement file/hunk. Current totals are76/185 and network enforcement9/27; the complete75/184review below remains bound to its historical signed source. The new patch preserves post-DevTools ordering on the separate navigation assembly path. See the focused evidence above; no consolidation reduction is claimed.
 
 ## Historical starting point — October 20
 
@@ -10,7 +16,7 @@ Fresh configuration-pinned inventory against Chromium commit `41520584daa68d0040
 
 ## Reviewed boundary and dependency decisions
 
-The current75-path ledger is a maintenance inventory, not a promise that75sites can become one generic hook. `domains.json` gives each path one primary responsibility; several files also contain research or shared duties. Tests and binary branding remain in the count.
+The dated75-path ledger below is a maintenance inventory, not a promise that75sites can become one generic hook. `domains.json` gives each path one primary responsibility; several files also contain research or shared duties. Tests and binary branding remain in the count.
 
 | Responsibility | Upstream files | Hunks | Review disposition |
 | --- | ---: | ---: | --- |
@@ -83,7 +89,7 @@ The future apply tool operates only on the pinned clean source/dependency revisi
 
 ## CI reporting design
 
-Every PR should run a lightweight manifest/source-policy check and report the intended upstream paths, direct delta, override delta and missing evidence. A dedicated trusted runner with the pinned Chromium checkout runs the authoritative existing counter after applying the series. Upload signed/hashed inventory evidence tied to the PR SHA, Chromium SHA, resolved dependency pins and tool version. A missing checkout or refused dependency audit is **unverified**, never a zero count or successful budget check. Report the actual current count against the reviewed baseline (currently75/184); any future enforced ceiling must be explicitly documented rather than retaining the historical58/137 limit. Avoid giving untrusted PR scripts credentials or a writable shared developer checkout.
+Every PR should run a lightweight manifest/source-policy check and report the intended upstream paths, direct delta, override delta and missing evidence. A dedicated trusted runner with the pinned Chromium checkout runs the authoritative existing counter after applying the series. Upload signed/hashed inventory evidence tied to the PR SHA, Chromium SHA, resolved dependency pins and tool version. A missing checkout or refused dependency audit is **unverified**, never a zero count or successful budget check. Report the actual current count against the reviewed baseline (currently76/185); any future enforced ceiling must be explicitly documented rather than retaining the historical58/137 limit. Avoid giving untrusted PR scripts credentials or a writable shared developer checkout.
 
 The hosted PR suite currently does not constitute this authoritative Chromium inventory job. Wiring the manifest/apply tool and runner is implementation after Decision 2. The technical design review is complete at the stated source; tool/runner implementation and owner acceptance remain open. This artifact does not close the runtime, visual, VoiceOver, cost, latency or extension-upgrade gates.
 
