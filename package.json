@@ -124,6 +124,7 @@
     "browser-api:check": "node browser-api/build.mjs --check",
     "substrate:check": "npm run brand:check && npm run tokens:check && npm run settings:check && npm run copy:check && npm run browser-api:check && npm run adblock:check && npm run darkreader:check && npm run ublock:check && npm run compliance:check && npm run compatibility:check && npm run audit-inventory:check && npm run bangs:check && npm run reader:check",
     "lint": "eslint \"src/**/*.js\" \"cloudflare/**/src/**/*.js\" --max-warnings 0",
+    "ci:queue": "node scripts/ci-queue-report.mjs",
     "test:ublock-dashboard:desktop": "node test/desktop/ublock-dashboard.mjs",
     "runtime:check": "node scripts/preflight-electron-runtime.js",
     "test:browser-shortcuts:desktop": "node test/desktop/browser-shortcuts-smoke.mjs",
@@ -276,7 +277,7 @@
         "CFBundleDisplayName": "Blanc Browser",
         "NSMicrophoneUsageDescription": "Blanc allows websites you approve to use your microphone.",
         "NSCameraUsageDescription": "Blanc allows websites you approve to use your camera.",
-        "NSAudioCaptureUsageDescription": "Blanc lets you share this Mac\u2019s screen and system audio with a website after you choose a source.",
+        "NSAudioCaptureUsageDescription": "Blanc lets you share this Mac’s screen and system audio with a website after you choose a source.",
         "CFBundleDocumentTypes": [
           {
             "CFBundleTypeRole": "Viewer",

@@ -81,14 +81,18 @@ function createBrowserCommandExecutor(actions, { platform = process.platform } =
 
 /** `consumes(id)` false lets a command's key press reach the page too: Ctrl+Tab
  * in most-recent order, whose Control release must still arrive (a consumed
- * press takes the following key releases with it), and whose repeats step. */
-function installBrowserShortcuts({ webContents, getRuntime, ownsSurface, execute, platform = process.platform, observe = () => {}, consumes = () => true }) {
+ * press takes the following key releases with it), and whose repeats step.
+ * `defers(id)` true leaves the press alone entirely, for the application
+ * menu's accelerator to run: Ctrl+W during a Ctrl+Tab switch, which must
+ * neither be consumed nor run twice. */
+function installBrowserShortcuts({ webContents, getRuntime, ownsSurface, execute, platform = process.platform, observe = () => {}, consumes = () => true, defers = () => false }) {
   if (platform !== 'win32' && platform !== 'linux') return;
   webContents.on('before-input-event', (event, input) => {
     const id = matchBrowserShortcut(input, platform);
     if (!id || webContents.isDestroyed()) return;
     const runtime = getRuntime();
     if (!runtime || !ownsSurface(runtime, webContents)) return;
+    if (defers(id, runtime)) return;
     // This suppresses both page input and Electron's menu accelerator. Repeats
     // are consumed too, so holding Ctrl+W cannot close an entire workspace.
     const consumed = consumes(id);

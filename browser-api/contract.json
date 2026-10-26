@@ -1054,7 +1054,7 @@
       }
     },
     "OverlayMode": {
-      "ts": "'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces'",
+      "ts": "'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces' | 'switcher'",
       "doc": "Overlay modes; every showOverlay() call in main.js passes one of these literals."
     },
     "PillNotice": {
@@ -2931,6 +2931,19 @@
         }
       ],
       "doc": "Focus the surface that is capturing."
+    },
+    {
+      "name": "switcherPick",
+      "group": "tabs",
+      "kind": "send",
+      "channel": "chrome:switcher-pick",
+      "params": [
+        {
+          "name": "tabId",
+          "type": "TabId"
+        }
+      ],
+      "doc": "Land on a Ctrl+Tab card entry the user clicked; main ignores it unless the card is showing and offered that tab."
     },
     {
       "name": "copyActiveLink",
