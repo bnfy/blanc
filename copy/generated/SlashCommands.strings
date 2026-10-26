@@ -19,6 +19,7 @@
 "slash_ungroup" = "Take this tab out of its group";
 "slash_close_group" = "Close every tab in this group";
 "slash_send" = "Type a space, then a device name — e.g. \"iPhone\"";
+"slash_copy" = "Copy this page's link — add \"clean\" to drop tracking parameters";
 "slash_reader" = "Read this article with adjustable text and fewer distractions";
 "slash_find" = "Find in page";
 "slash_block_ads" = "Block ads here, or toggle blocking everywhere";

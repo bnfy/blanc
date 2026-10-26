@@ -251,7 +251,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "b929a711b7aab165cb7ec8041566161dfe97790412b39600385c9e3326450b07",
+      "sha256": "43e73742bedd4424ed21f88f6af36ddc7a67a9b6558a6ac9956ca88fba53002f",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -277,6 +277,7 @@
         "chrome:blocking-provider",
         "chrome:capture-focus",
         "chrome:capture-stop",
+        "chrome:copy-link",
         "chrome:cycle-theme",
         "chrome:dark-site-active",
         "chrome:downloads",
@@ -641,7 +642,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "32120a30d381e42faabaab326c7912ba667061cfdf6c7426235d7780c8a1cd7b",
+      "sha256": "7e75c296d70905fe992c93618f167ca7f8b255285bb3a8721500d410368aec10",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -657,6 +658,7 @@
         "chrome:blocking-provider",
         "chrome:capture-focus",
         "chrome:capture-stop",
+        "chrome:copy-link",
         "chrome:cycle-theme",
         "chrome:dark-site-active",
         "chrome:downloads",

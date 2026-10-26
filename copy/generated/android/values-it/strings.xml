@@ -2275,6 +2275,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="sends_no_match">Nessun dispositivo chiamato “%1$s”.</string>
     <string name="slash_send_hint">Digita uno spazio, poi il nome di un dispositivo, ad es. “iPhone”</string>
     <string name="slash_send_doc">Invia la pagina di questa scheda a un altro dispositivo sincronizzato</string>
+    <string name="slash_copy_hint">Copia il link di questa pagina: aggiungi «clean» per togliere i parametri di tracciamento</string>
+    <string name="slash_copy_doc">Copia il link di questa pagina; con clean, senza parametri di tracciamento</string>
     <string name="shared_spaces_switch">Sincronizza Spaces e gruppi su questo dispositivo</string>
     <string name="shared_spaces_title">Scegli gli Spaces da sincronizzare</string>
     <string name="shared_spaces_explanation">Condividi questi Spaces tra i dispositivi di questo account. Verranno sincronizzati schede aperte, nomi, gruppi e schede fissate.</string>

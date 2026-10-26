@@ -181,6 +181,20 @@ try {
   });
   await wait(() => call(app, 'readClipboardText'), value => value === `${origin}/one?keep=1`, 'clean address copied');
   steps++;
+  // /copy and /copy clean in the ⌘L panel do the same as the shortcut and the menu.
+  const slash = async (text) => {
+    await call(app, 'openPalette');
+    await wait(() => call(app, 'overlayMode'), value => value === 'palette', `palette for ${text}`);
+    await addressInput.fill(text);
+    await addressInput.press('Enter');
+  };
+  await call(app, 'setClipboardText', ['sentinel']);
+  await slash('/copy');
+  await wait(() => call(app, 'readClipboardText'), value => value === `${origin}/one?utm_source=news&keep=1`, '/copy copied the address');
+  await slash('/copy clean');
+  await wait(() => call(app, 'readClipboardText'), value => value === `${origin}/one?keep=1`, '/copy clean copied the clean address');
+  await wait(() => call(app, 'overlayMode'), value => value === null, '/copy closes the panel');
+  steps += 2;
   await press('find', 'F', ['control']);
   await wait(() => call(app, 'overlayMode'), value => value === 'find', 'Find');
   await press('settings', ',', ['control'], 'overlay');

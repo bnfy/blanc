@@ -7929,6 +7929,14 @@
     "message": "Envoyer la page de cet onglet vers un autre appareil synchronisé",
     "source": "sha256:1d542be7aafa7207a6c34f1c5e2cf7af7ca4ccfa459231580cb7bd0215988b97"
   },
+  "slash.copy.hint": {
+    "message": "Copier le lien de cette page — ajoutez « clean » pour retirer les paramètres de suivi",
+    "source": "sha256:c943befa1145a690327874749e7d7318e5d3dc40dcf5777b253b0d75a1df1999"
+  },
+  "slash.copy.doc": {
+    "message": "Copier le lien de cette page ; avec clean, sans paramètres de suivi",
+    "source": "sha256:0f48927cacd58733093898a175f574ec7f93173df849f2509b9a68e0adbf36e1"
+  },
   "sharedSpaces.switch": {
     "message": "Synchroniser les Spaces et les groupes sur cet appareil",
     "source": "sha256:c02b1330d0aebe0038d68ab7853e3248ed9c0cb053c485c6d84f21705521d43a"
