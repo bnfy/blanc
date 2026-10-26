@@ -32,3 +32,28 @@ Feature: open links from other apps where they belong
     Then no rule points at Work
     When another app opens a link to the routed site
     Then the link opens in the Personal window
+
+  @F60-4 @F60
+  Scenario: the shield popover makes and removes the rule for the site in view
+    Given a second local profile whose window is closed
+    And the routed site is open in Personal
+    When I open the shield popover
+    Then it offers "Open links to this site in this profile", off
+    When I turn on the popover's link routing switch
+    Then a rule sends the routed site to Personal
+    And the pill says "Links open here"
+    And the popover's link routing switch is on
+    When I turn off the popover's link routing switch
+    Then no rule is left for the routed site
+
+  @F60-5 @F60
+  Scenario: /route and /route off write and remove the rule; a private tab can't
+    Given the routed site is open in Personal
+    When I run the slash command "/route"
+    Then a rule sends the routed site to Personal
+    When I run the slash command "/route off"
+    Then no rule is left for the routed site
+    When the routed site is open in a private tab
+    And I run the slash command "/route"
+    Then no rule is left for the routed site
+    And the pill says "Can’t route this page"

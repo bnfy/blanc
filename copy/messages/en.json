@@ -136,6 +136,14 @@
     "message": "Darken this site, or leave it as drawn",
     "note": "Slash command hint shown in the ⌘L palette for /dark-site."
   },
+  "slash.route.hint": {
+    "message": "Open links to this site from other apps here — add \"off\" to stop",
+    "note": "Slash command hint shown in the ⌘L palette for /route (F60). \"off\" is the literal argument the user types; keep it untranslated."
+  },
+  "slash.route.doc": {
+    "message": "Open links to this site from other apps in this window's profile or Space; with off, stop",
+    "note": "Reference description of /route [off] on blanc://shortcuts and in Help → Slash Commands. \"off\" is the literal argument; keep it untranslated."
+  },
   "slash.1password.hint": {
     "message": "Fill a login from 1Password",
     "note": "Slash command hint shown in the ⌘L palette for /1password."
@@ -248,6 +256,26 @@
     "message": "Link copied",
     "note": "Brief confirmation shown in the pill's label slot after Copy Link (⇧⌘C / Ctrl+Shift+C) puts the page address on the clipboard.",
     "maxLength": 16
+  },
+  "pill.notice.routeOn": {
+    "message": "Links open here",
+    "note": "Brief confirmation in the pill's label slot after /route or the shield switch: links to this site from other apps now open in this window's profile or Space.",
+    "maxLength": 24
+  },
+  "pill.notice.routeOff": {
+    "message": "Link rule removed",
+    "note": "Brief confirmation in the pill's label slot after /route off or the shield switch removes this site's link routing rule.",
+    "maxLength": 24
+  },
+  "pill.notice.routeLimit": {
+    "message": "Rule limit reached",
+    "note": "Brief notice in the pill's label slot when /route can't add a rule because there are already 50.",
+    "maxLength": 24
+  },
+  "pill.notice.routeUnavailable": {
+    "message": "Can’t route this page",
+    "note": "Brief notice in the pill's label slot when /route can't make a rule: a private tab, or a page without a website.",
+    "maxLength": 24
   },
   "pill.commands": {
     "message": "Commands (/)",
@@ -1272,6 +1300,22 @@
   "shield.darkNote": {
     "message": "Applies while Blanc is dark.",
     "note": "Note under the dark website switch."
+  },
+  "shield.route": {
+    "message": "Open links to this site in this profile",
+    "note": "Label of the shield popover's link routing switch (F60): links to this site from other apps open in this window's profile."
+  },
+  "shield.routeSpace": {
+    "message": "Open links to this site in this Space",
+    "note": "Label of the shield popover's link routing switch (F60) when the window shows a Space: links from other apps open in this Space."
+  },
+  "shield.routeNote": {
+    "message": "For links from other apps.",
+    "note": "Note under the shield popover's link routing switch (F60)."
+  },
+  "shield.routeElsewhere": {
+    "message": "Links from other apps open in {destination} now.",
+    "note": "Note under the shield popover's link routing switch (F60) when a rule sends this site's links elsewhere; {destination} is a profile name, or a profile and a Space."
   },
   "shield.connection": {
     "message": "Connection",

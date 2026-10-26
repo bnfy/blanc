@@ -108,6 +108,12 @@
       "command": "/dark-site"
     },
     {
+      "command": "/route",
+      "doc": {
+        "command": "/route [off]"
+      }
+    },
+    {
       "command": "/1password",
       "platforms": [
         "macos",

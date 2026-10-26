@@ -1429,6 +1429,90 @@
         }
       }
     },
+    "slash.route.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /route (F60). \"off\" is the literal argument the user types; keep it untranslated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open links to this site from other apps here — add \"off\" to stop"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links zu dieser Website aus anderen Apps hier öffnen – mit „off“ beenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir aquí los enlaces a este sitio de otras apps; añade \"off\" para dejar de hacerlo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir ici les liens vers ce site venant d’autres apps ; ajoutez « off » pour arrêter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri qui i link a questo sito da altre app; aggiungi \"off\" per smettere"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir aqui links para este site vindos de outros apps; adicione \"off\" para parar"
+          }
+        }
+      }
+    },
+    "slash.route.doc": {
+      "comment": "Reference description of /route [off] on blanc://shortcuts and in Help → Slash Commands. \"off\" is the literal argument; keep it untranslated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open links to this site from other apps in this window's profile or Space; with off, stop"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links zu dieser Website aus anderen Apps im Profil oder Space dieses Fensters öffnen; mit off beenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir los enlaces a este sitio de otras apps en el perfil o Space de esta ventana; con off, dejar de hacerlo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir les liens vers ce site venant d’autres apps dans le profil ou le Space de cette fenêtre ; avec off, arrêter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri i link a questo sito da altre app nel profilo o nello Space di questa finestra; con off, smetti"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir links para este site vindos de outros apps no perfil ou Space desta janela; com off, parar"
+          }
+        }
+      }
+    },
     "slash.1password.hint": {
       "comment": "Slash command hint shown in the ⌘L palette for /1password.",
       "extractionState": "manual",
@@ -2517,6 +2601,174 @@
           "stringUnit": {
             "state": "translated",
             "value": "Link copiado"
+          }
+        }
+      }
+    },
+    "pill.notice.routeOn": {
+      "comment": "Brief confirmation in the pill's label slot after /route or the shield switch: links to this site from other apps now open in this window's profile or Space.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links open here"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links öffnen hier"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se abrirán aquí"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les liens s’ouvrent ici"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I link si aprono qui"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links abrem aqui"
+          }
+        }
+      }
+    },
+    "pill.notice.routeOff": {
+      "comment": "Brief confirmation in the pill's label slot after /route off or the shield switch removes this site's link routing rule.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link rule removed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linkregel entfernt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regla eliminada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Règle supprimée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regola eliminata"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regra removida"
+          }
+        }
+      }
+    },
+    "pill.notice.routeLimit": {
+      "comment": "Brief notice in the pill's label slot when /route can't add a rule because there are already 50.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rule limit reached"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regellimit erreicht"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Límite de reglas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trop de règles"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite di regole"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite de regras"
+          }
+        }
+      }
+    },
+    "pill.notice.routeUnavailable": {
+      "comment": "Brief notice in the pill's label slot when /route can't make a rule: a private tab, or a page without a website.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can’t route this page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier nicht möglich"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No disponible aquí"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible ici"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non disponibile qui"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indisponível aqui"
           }
         }
       }
@@ -13809,6 +14061,174 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vale enquanto o Blanc está escuro."
+          }
+        }
+      }
+    },
+    "shield.route": {
+      "comment": "Label of the shield popover's link routing switch (F60): links to this site from other apps open in this window's profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open links to this site in this profile"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links zu dieser Website in diesem Profil öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir enlaces a este sitio en este perfil"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir les liens vers ce site dans ce profil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri i link a questo sito in questo profilo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir links para este site neste perfil"
+          }
+        }
+      }
+    },
+    "shield.routeSpace": {
+      "comment": "Label of the shield popover's link routing switch (F60) when the window shows a Space: links from other apps open in this Space.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open links to this site in this Space"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links zu dieser Website in diesem Space öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir enlaces a este sitio en este Space"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir les liens vers ce site dans ce Space"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri i link a questo sito in questo Space"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir links para este site neste Space"
+          }
+        }
+      }
+    },
+    "shield.routeNote": {
+      "comment": "Note under the shield popover's link routing switch (F60).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For links from other apps."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für Links aus anderen Apps."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para enlaces de otras apps."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pour les liens d’autres apps."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per i link da altre app."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para links de outros apps."
+          }
+        }
+      }
+    },
+    "shield.routeElsewhere": {
+      "comment": "Note under the shield popover's link routing switch (F60) when a rule sends this site's links elsewhere; {destination} is a profile name, or a profile and a Space.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links from other apps open in %1$@ now."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links aus anderen Apps öffnen jetzt in %1$@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los enlaces de otras apps se abren ahora en %1$@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les liens d’autres apps s’ouvrent maintenant dans %1$@."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I link da altre app ora si aprono in %1$@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links de outros apps agora abrem em %1$@."
           }
         }
       }

@@ -35,6 +35,8 @@
     <string name="slash_block_ads_hint">Werbung hier blockieren oder das Blockieren überall umschalten</string>
     <string name="slash_allow_ads_hint">Werbung auf dieser Website erlauben</string>
     <string name="slash_dark_site_hint">Diese Website abdunkeln oder so lassen, wie sie gestaltet ist</string>
+    <string name="slash_route_hint">Links zu dieser Website aus anderen Apps hier öffnen – mit „off“ beenden</string>
+    <string name="slash_route_doc">Links zu dieser Website aus anderen Apps im Profil oder Space dieses Fensters öffnen; mit off beenden</string>
     <string name="slash_1password_hint">Anmeldedaten aus 1Password ausfüllen</string>
     <string name="slash_theme_hint">Darstellung wechseln oder system / light / dark wählen</string>
     <string name="slash_theme_doc">Darstellung wechseln oder direkt zu system, light oder dark wechseln</string>
@@ -61,6 +63,10 @@
     <string name="pill_placeholder">Suchen oder URL eingeben</string>
     <string name="pill_notice_clean_link_copied">Bereinigter Link kopiert</string>
     <string name="pill_notice_link_copied">Link kopiert</string>
+    <string name="pill_notice_route_on">Links öffnen hier</string>
+    <string name="pill_notice_route_off">Linkregel entfernt</string>
+    <string name="pill_notice_route_limit">Regellimit erreicht</string>
+    <string name="pill_notice_route_unavailable">Hier nicht möglich</string>
     <string name="pill_commands">Befehle (/)</string>
     <string name="pill_private_chip">Privat</string>
     <string name="pill_private_title">Privaten Modus verlassen – schließt diesen Tab</string>
@@ -337,6 +343,10 @@
     <string name="shield_dark">Dunkle Website</string>
     <string name="shield_dark_label">Dunkle Darstellung für diese Website</string>
     <string name="shield_dark_note">Gilt, solange Blanc dunkel ist.</string>
+    <string name="shield_route">Links zu dieser Website in diesem Profil öffnen</string>
+    <string name="shield_route_space">Links zu dieser Website in diesem Space öffnen</string>
+    <string name="shield_route_note">Für Links aus anderen Apps.</string>
+    <string name="shield_route_elsewhere">Links aus anderen Apps öffnen jetzt in %1$s.</string>
     <string name="shield_connection">Verbindung</string>
     <string name="shield_settings">Blocker-Einstellungen</string>
     <string name="shield_choose_blocker">Blocker wählen</string>

@@ -211,3 +211,54 @@ test('resolveRoutedRuntime picks the Space window, else the profile window used 
   // No window of the profile: a new one.
   assert.equal(resolveRoutedRuntime({ profileId: 'other', spaceId: null }, personal, deps).profileId, 'other');
 });
+
+test('the shield switch and /route write, replace and remove the rule for this host', () => {
+  const { siteRouteHost, siteLinkRouteState, setSiteLinkRoute, removeSiteLinkRoute } = require('../../src/main/link-routes');
+  assert.equal(siteRouteHost('https://www.Example.com/a?b'), 'example.com');
+  assert.equal(siteRouteHost('https://work.example.com@evil.test/'), 'evil.test');
+  assert.equal(siteRouteHost('blanc://newtab/'), null);
+  assert.equal(siteLinkRouteState([], 'about:blank', { profileId: 'work' }), null);
+
+  const here = { profileId: 'work', spaceId: 'space-1' };
+  const broad = rule('broad', 'domain', 'example.com', { profileId: 'default' });
+  let ids = 0;
+  const makeId = () => `new${++ids}`;
+  assert.equal(siteLinkRouteState([broad], 'https://jira.example.com/x', here).rule, null, 'only the exact host counts');
+
+  // New: goes first, so the broader rule can't shadow it.
+  let result = setSiteLinkRoute([broad], 'https://jira.example.com/x', here, makeId);
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.routes.map((route) => route.id), ['new1', 'broad']);
+  assert.deepEqual(result.routes[0].destination, { profileId: 'work', spaceId: 'space-1', private: false });
+  assert.equal(siteLinkRouteState(result.routes, 'https://jira.example.com/y', here).on, true);
+  assert.equal(siteLinkRouteState(result.routes, 'https://jira.example.com/y', { profileId: 'work', spaceId: null }).on, false);
+
+  // Replace: keeps id and place.
+  const moved = setSiteLinkRoute([broad, { ...result.routes[0], destination: { profileId: 'default', spaceId: null, private: true } }],
+    'https://jira.example.com/', here, makeId);
+  assert.deepEqual(moved.routes.map((route) => route.id), ['broad', 'new1']);
+  assert.equal(moved.routes[1].destination.private, false);
+
+  // Remove: only the exact host's rule.
+  const removed = removeSiteLinkRoute(moved.routes, 'https://jira.example.com/');
+  assert.deepEqual(removed.routes.map((route) => route.id), ['broad']);
+  assert.equal(removed.removed, true);
+  assert.equal(removeSiteLinkRoute(removed.routes, 'https://jira.example.com/').removed, false);
+
+  // A full list refuses a new rule but still replaces one.
+  const full = Array.from({ length: 50 }, (_, i) => rule(`r${i}`, 'domain', `d${i}.example`));
+  assert.deepEqual(setSiteLinkRoute(full, 'https://new.example/', here, makeId), { ok: false, error: 'too-many', host: 'new.example' });
+  assert.equal(setSiteLinkRoute(full, 'https://d3.example/', here, makeId).ok, true);
+});
+
+test('the shield switch is offered with two profiles, never in a private tab', () => {
+  const { siteRouteSwitchModel } = require('../../src/main/link-routes');
+  const routes = [rule('r', 'domain', 'example.com', { profileId: 'default' })];
+  const base = { routes, url: 'https://www.example.com/', here: { profileId: 'work', spaceId: null }, privateTab: false, liveProfileCount: 2 };
+  assert.deepEqual(siteRouteSwitchModel({ ...base, nameFor: () => 'Personal' }), { on: false, scope: 'profile', elsewhere: 'Personal' });
+  assert.equal(siteRouteSwitchModel({ ...base, privateTab: true }), null);
+  assert.equal(siteRouteSwitchModel({ ...base, liveProfileCount: 1 }), null);
+  assert.equal(siteRouteSwitchModel({ ...base, url: 'blanc://newtab/' }), null);
+  assert.deepEqual(siteRouteSwitchModel({ ...base, here: { profileId: 'default', spaceId: null } }), { on: true, scope: 'profile', elsewhere: null });
+  assert.deepEqual(siteRouteSwitchModel({ ...base, routes: [], here: { profileId: 'work', spaceId: 'space-1' } }), { on: false, scope: 'space', elsewhere: null });
+});

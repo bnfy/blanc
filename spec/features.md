@@ -1775,7 +1775,14 @@ candidate branch (PR 1); not shipped in public v1.43.1.
 - **Settings.** Settings → Profiles → Open links from other apps, shown with
   at least two profiles or one Space. Rules are device-local, never synced and
   never visible to websites.
-- **Not yet.** The shield popover's *Open links to this site in this profile*
-  and `/route` follow in PR 2.
+- **Making a rule from where you are.** With two or more profiles, the
+  shield popover has *Open links to this site in this profile* (*…in this
+  Space* when the window shows one): it writes or replaces the domain rule
+  for the page's host, pointing at this window's profile and Space, and a
+  second click removes it. A new rule goes first, so a broader rule further
+  down can't shadow it. When a rule sends the site elsewhere, the row says
+  where. `/route` does the same for the active tab and `/route off` removes
+  the rule for its host. Neither is offered in a private tab, which would
+  write its host to settings; the pill says so.
 - **Mobile.** Not applicable until a mobile Blanc has profiles to route
   between (D32).

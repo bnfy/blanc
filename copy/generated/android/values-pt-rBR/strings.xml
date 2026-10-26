@@ -35,6 +35,8 @@
     <string name="slash_block_ads_hint">Bloquear anúncios aqui, ou ativar ou desativar o bloqueio em todos os sites</string>
     <string name="slash_allow_ads_hint">Permitir anúncios neste site</string>
     <string name="slash_dark_site_hint">Escurecer este site, ou deixá-lo como está</string>
+    <string name="slash_route_hint">Abrir aqui links para este site vindos de outros apps; adicione \"off\" para parar</string>
+    <string name="slash_route_doc">Abrir links para este site vindos de outros apps no perfil ou Space desta janela; com off, parar</string>
     <string name="slash_1password_hint">Preencher um login do 1Password</string>
     <string name="slash_theme_hint">Alternar a aparência, ou escolher system / light / dark</string>
     <string name="slash_theme_doc">Alterna a aparência, ou muda direto para system, light ou dark</string>
@@ -61,6 +63,10 @@
     <string name="pill_placeholder">Pesquise ou digite uma URL</string>
     <string name="pill_notice_clean_link_copied">Link limpo copiado</string>
     <string name="pill_notice_link_copied">Link copiado</string>
+    <string name="pill_notice_route_on">Links abrem aqui</string>
+    <string name="pill_notice_route_off">Regra removida</string>
+    <string name="pill_notice_route_limit">Limite de regras</string>
+    <string name="pill_notice_route_unavailable">Indisponível aqui</string>
     <string name="pill_commands">Comandos (/)</string>
     <string name="pill_private_chip">Privada</string>
     <string name="pill_private_title">Sair do modo privado — fecha esta aba</string>
@@ -347,6 +353,10 @@
     <string name="shield_dark">Site escuro</string>
     <string name="shield_dark_label">Site escuro para este site</string>
     <string name="shield_dark_note">Vale enquanto o Blanc está escuro.</string>
+    <string name="shield_route">Abrir links para este site neste perfil</string>
+    <string name="shield_route_space">Abrir links para este site neste Space</string>
+    <string name="shield_route_note">Para links de outros apps.</string>
+    <string name="shield_route_elsewhere">Links de outros apps agora abrem em %1$s.</string>
     <string name="shield_connection">Conexão</string>
     <string name="shield_settings">Configurações de bloqueio</string>
     <string name="shield_choose_blocker">Escolha um bloqueador</string>

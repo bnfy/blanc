@@ -3419,17 +3419,17 @@ body.split-tab-surface.focused { --split-tab-border: var(--split-pane-focused-bo
   font-family: var(--font-ui); font-variant-numeric: tabular-nums; }
 .shield-pop-head:not([hidden]) + #shieldPopCount { margin-top: 12px; }
 .shield-pop-note { color: var(--text-dim); font-size: 12px; margin-top: 5px; }
-#shieldPopToggle, #shieldPopDarkToggle {
+#shieldPopToggle, #shieldPopDarkToggle, #shieldPopRouteToggle {
   appearance: none; width: 34px; height: 20px; border-radius: 999px;
   border: 1px solid var(--border); background: var(--surface);
   position: relative; flex: 0 0 auto; cursor: pointer; padding: 0;
 }
-#shieldPopToggle .knob, #shieldPopDarkToggle .knob {
+#shieldPopToggle .knob, #shieldPopDarkToggle .knob, #shieldPopRouteToggle .knob {
   position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
   border-radius: 50%; background: var(--text-dim); transition: left 120ms ease, background 120ms ease;
 }
-#shieldPopToggle.on, #shieldPopDarkToggle.on { background: var(--accent); border-color: var(--accent); }
-#shieldPopToggle.on .knob, #shieldPopDarkToggle.on .knob { left: 16px; background: var(--bg); }
+#shieldPopToggle.on, #shieldPopDarkToggle.on, #shieldPopRouteToggle.on { background: var(--accent); border-color: var(--accent); }
+#shieldPopToggle.on .knob, #shieldPopDarkToggle.on .knob, #shieldPopRouteToggle.on .knob { left: 16px; background: var(--bg); }
 .shield-pop-dark { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
 #shieldPopDarkOnOff { font-weight: 600; }
 #shieldPop[data-step="chooser"] .shield-pop-header {
