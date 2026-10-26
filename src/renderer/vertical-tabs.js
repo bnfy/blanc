@@ -54,6 +54,7 @@
     return JSON.stringify({
       activeTabId: payload.activeTabId,
       selectedTabIds: payload.selectedTabIds ?? [],
+      verticalTabsTextSize: payload.verticalTabsTextSize,
       groups: (payload.groups || []).map(({ id, name, collapsed, color }) => ({ id, name, collapsed, color: color ?? null })),
       tabs: (payload.tabs || []).map((tab) => ({
         id: tab.id,
@@ -667,6 +668,8 @@
       return;
     }
     document.documentElement.dataset.tabLayout = layout;
+    rail.dataset.textSize = ['large', 'extra-large'].includes(payload.verticalTabsTextSize)
+      ? payload.verticalTabsTextSize : 'default';
     rail.hidden = layout !== 'vertical';
     rail.dataset.activeTabId = payload.activeTabId || '';
     if (layout !== 'vertical') {

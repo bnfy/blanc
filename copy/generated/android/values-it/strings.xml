@@ -2390,4 +2390,9 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="slash_reader_hint">Leggi questo articolo con testo regolabile e meno distrazioni</string>
     <string name="reader_inter">Inter</string>
     <string name="reader_mono">JetBrains Mono</string>
+    <string name="settings_general_vertical_tabs_text_size_label">Dimensione del testo delle schede verticali</string>
+    <string name="settings_general_vertical_tabs_text_size_hint">Leggi più facilmente i titoli delle schede e i nomi dei gruppi nella barra laterale delle schede verticali.</string>
+    <string name="settings_general_vertical_tabs_text_size_default">Predefinita</string>
+    <string name="settings_general_vertical_tabs_text_size_large">Grande</string>
+    <string name="settings_general_vertical_tabs_text_size_extra_large">Molto grande</string>
 </resources>

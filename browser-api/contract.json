@@ -606,6 +606,9 @@
         "tabLayout": {
           "type": "TabLayout"
         },
+        "verticalTabsTextSize": {
+          "type": "string"
+        },
         "verticalTabsWidth": {
           "type": "number"
         },
@@ -654,6 +657,9 @@
         },
         "tabLayout": {
           "type": "TabLayout"
+        },
+        "verticalTabsTextSize": {
+          "type": "string"
         },
         "adblockEnabled": {
           "type": "boolean"

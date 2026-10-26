@@ -2319,4 +2319,9 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="slash_reader_hint">Diesen Artikel mit anpassbarem Text und weniger Ablenkungen lesen</string>
     <string name="reader_inter">Inter</string>
     <string name="reader_mono">JetBrains Mono</string>
+    <string name="settings_general_vertical_tabs_text_size_label">Textgröße der vertikalen Tabs</string>
+    <string name="settings_general_vertical_tabs_text_size_hint">Mach Tabtitel und Gruppennamen in der vertikalen Tab-Seitenleiste leichter lesbar.</string>
+    <string name="settings_general_vertical_tabs_text_size_default">Standard</string>
+    <string name="settings_general_vertical_tabs_text_size_large">Groß</string>
+    <string name="settings_general_vertical_tabs_text_size_extra_large">Sehr groß</string>
 </resources>

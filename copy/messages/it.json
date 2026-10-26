@@ -8390,5 +8390,25 @@
     "message": "JetBrains Mono",
     "note": "Reader Mode font family name; keep the font name unchanged.",
     "source": "sha256:3c0883b4aaec8dc4b7089202a5de987c2590516927f130dcd0dc686532968e13"
+  },
+  "settings.general.verticalTabsTextSize.label": {
+    "message": "Dimensione del testo delle schede verticali",
+    "source": "sha256:980577e5feb9a37e9a7c0a9a232897f11b858680a721d83b919cc47860c1a532"
+  },
+  "settings.general.verticalTabsTextSize.hint": {
+    "message": "Leggi più facilmente i titoli delle schede e i nomi dei gruppi nella barra laterale delle schede verticali.",
+    "source": "sha256:3df2d1c042fb52ee6369ccd4845682082a37ad69a8e3fee9e33ee825f4bde3d0"
+  },
+  "settings.general.verticalTabsTextSize.default": {
+    "message": "Predefinita",
+    "source": "sha256:8292a6907893aa574476ae2de1d5e0cfd49e8637ab4611b17fa308d64c4d408a"
+  },
+  "settings.general.verticalTabsTextSize.large": {
+    "message": "Grande",
+    "source": "sha256:7923ea0a25aae6c16f0d882d18bd07a8df207c1b0821fceb7398dbe2661462d0"
+  },
+  "settings.general.verticalTabsTextSize.extraLarge": {
+    "message": "Molto grande",
+    "source": "sha256:b190d1a2e4582b543524201e108e5f45e3d03df1164f5ca4ebc3ffb474cd7786"
   }
 }

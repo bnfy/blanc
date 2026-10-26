@@ -99,6 +99,34 @@ test('tab layout and rail width default, validate, persist, and stay out of Prof
   assert.equal(settings.getSettings().verticalTabsWidth, 248);
 });
 
+test('vertical tab text size validates, persists, and stays local', async (t) => {
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-tab-text-'));
+  t.after(() => fs.rmSync(userData, { recursive: true, force: true }));
+  let settings = loadSettings(userData);
+  assert.equal(settings.getSettings().verticalTabsTextSize, 'default');
+  assert.equal(settingsSchema.internalDefaults.includes('verticalTabsTextSize'), true);
+  for (const size of ['large', 'extra-large', 'default', 'extra-large']) {
+    assert.equal(settings.setSettings({ verticalTabsTextSize: size }).verticalTabsTextSize, size);
+  }
+  for (const invalid of ['huge', '', null, 18, {}, ['large']]) {
+    assert.equal(settings.setSettings({ verticalTabsTextSize: invalid }).verticalTabsTextSize, 'extra-large');
+  }
+  assert.equal(Object.hasOwn(settings.exportForSync().values, 'verticalTabsTextSize'), false);
+  assert.equal(Object.hasOwn(settings.getSettings()._syncMeta, 'verticalTabsTextSize'), false);
+  settings.mergeFromSync({
+    values: { verticalTabsTextSize: 'large' },
+    meta: { verticalTabsTextSize: Date.now() + 10_000 },
+  });
+  assert.equal(settings.getSettings().verticalTabsTextSize, 'extra-large');
+  await waitForJson(path.join(userData, 'settings.json'), (json) => json.verticalTabsTextSize === 'extra-large');
+  settings = loadSettings(userData);
+  assert.equal(settings.getSettings().verticalTabsTextSize, 'extra-large');
+  const saved = JSON.parse(fs.readFileSync(path.join(userData, 'settings.json'), 'utf8'));
+  saved.verticalTabsTextSize = 'invalid';
+  fs.writeFileSync(path.join(userData, 'settings.json'), JSON.stringify(saved));
+  assert.equal(loadSettings(userData).getSettings().verticalTabsTextSize, 'default');
+});
+
 test('settings page presents the two tab layouts as an Appearance choice', () => {
   const html = withoutInterfaceKeys(fs.readFileSync(
     path.join(__dirname, '../../src/renderer/pages/settings.html'),

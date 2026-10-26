@@ -539,6 +539,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | `closed` | `ClosedEntrySummary[]` |  |
 | `closedSlot` | `number` | How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
+| `verticalTabsTextSize` | `string` |  |
 | `verticalTabsWidth` | `number` |  |
 | `verticalTabsPreferredWidth` | `number` |  |
 | `verticalTabsMinWidth` | `number` |  |
@@ -560,6 +561,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | `closed` | `ClosedEntrySummary[]` |  |
 | `closedSlot` | `number` | How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
+| `verticalTabsTextSize` | `string` |  |
 | `adblockEnabled` | `boolean` |  |
 | `shieldPopover` | `ShieldPopover \| null` |  |
 | `captureChip` | `CaptureChip` |  |

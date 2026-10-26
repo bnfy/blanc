@@ -2390,4 +2390,9 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="slash_reader_hint">Lire cet article avec un texte réglable et moins de distractions</string>
     <string name="reader_inter">Inter</string>
     <string name="reader_mono">JetBrains Mono</string>
+    <string name="settings_general_vertical_tabs_text_size_label">Taille du texte des onglets verticaux</string>
+    <string name="settings_general_vertical_tabs_text_size_hint">Facilitez la lecture des titres des onglets et des noms des groupes dans la barre latérale des onglets verticaux.</string>
+    <string name="settings_general_vertical_tabs_text_size_default">Par défaut</string>
+    <string name="settings_general_vertical_tabs_text_size_large">Grande</string>
+    <string name="settings_general_vertical_tabs_text_size_extra_large">Très grande</string>
 </resources>

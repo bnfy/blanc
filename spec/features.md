@@ -351,6 +351,7 @@ From the desktop `DEFAULTS`:
 | `theme` | `system` | system/light/dark |
 | `tabLayout` | `island` | desktop-only `island`/`vertical`; device-local, never synced (F28/D19) |
 | `verticalTabsWidth` | `248` | desktop-only preferred rail width, clamped to 200–360px; device-local, never synced (F28/D19) |
+| `verticalTabsTextSize` | `default` | desktop-only `default`/`large`/`extra-large`; device-local, never synced (F28/D19) |
 | `appIcon` | `sunrise` | one of `sunrise`/`sunrise-dark`/`paper`/`ink`; device-local |
 | `adblockExceptions` | `[]` | lowercased hostnames, no scheme/path/`www.` |
 | `darkWebsites` | `false` | desktop-only boolean; device-local, never synced (F42) |
@@ -669,6 +670,10 @@ From the desktop `DEFAULTS`:
   vertical tabs off. The top bar and group labels use spacing instead of
   divider rules. `⌘⌥V` on macOS / `Ctrl+Alt+V` elsewhere toggles the layout
   from anywhere.
+- Settings → General → Island offers **Vertical tab text size**: Default
+  (12.5px), Large (15px), and Extra large (18px). Tab titles and group labels
+  grow together, with taller rows to fit. The device-local choice applies to
+  all open windows immediately and survives restart; it never syncs.
 - The rail renders local tabs from the canonical tab order: ungrouped pins,
   then named groups (group pins first) and runs of ungrouped tabs in tab order,
   followed by the new-tab action. As in the island, each group is a tinted
