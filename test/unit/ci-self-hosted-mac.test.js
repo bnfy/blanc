@@ -49,4 +49,14 @@ test('the VM runners keep the direct runner\'s labels and keep the host credenti
   assert.doesNotMatch(vm, /gh auth token|GH_TOKEN|registration-token/);
   // Apple allows two macOS VMs per Mac.
   assert.match(vm, /SLOTS >= 1 && SLOTS <= 2/);
+
+test('the parity macOS legs stay nightly even with the self-hosted Mac', () => {
+  // On every pull request they queued three more jobs per PR for the Mac's two
+  // VM slots (October 26, 2026); unit (macos-15) and uBO's desktop leg stay.
+  const matrices = read('parity-guards.yml').split('\n').filter((line) => /^\s*os: \$\{\{ fromJSON\(/.test(line));
+  assert.equal(matrices.length, 3);
+  for (const line of matrices) {
+    assert.ok(line.includes("github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'"), line.trim());
+    assert.ok(!line.includes('MAC_RUNNER_LABELS'), line.trim());
+  }
 });

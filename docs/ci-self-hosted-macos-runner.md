@@ -15,7 +15,7 @@ One repository variable, `MAC_RUNNER_LABELS`, switches it on:
 | Job | Variable unset (default) | Variable set |
 |---|---|---|
 | `unit (macos-15)` (unit-tests.yml) | GitHub-hosted, every PR | self-hosted, every PR |
-| `workspace-regressions`, `favorites-import`, `browser-shortcuts` macOS legs (parity-guards.yml) | GitHub-hosted, nightly and manual runs only | self-hosted, every PR and push, plus nightly |
+| `workspace-regressions`, `favorites-import`, `browser-shortcuts` macOS legs (parity-guards.yml) | GitHub-hosted, nightly and manual runs only | self-hosted, nightly and manual runs only. On every pull request they'd queue three more jobs per PR for the Mac's two slots |
 | `desktop (macos-15)` (ublock-origin.yml) | GitHub-hosted, nightly and manual runs only | self-hosted, matching PRs, plus nightly |
 | `desktop (macos-15-intel)`, iOS `xctest`, nightly desktop acceptance, release and prerelease workflows | GitHub-hosted | **unchanged: GitHub-hosted** |
 
