@@ -1,11 +1,14 @@
 # Sync deployment readiness: closed evidence gaps and future cutover checklist
 
-Status: **draft for owner review; not deployment approval**. Prepared October 26,
-2026 on `codex/sync-deployment-readiness`, from the #1168 merge `2aefa5dc8` plus
-`cafa6620` (Shared Spaces hidden in packaged builds). #1132 remains open and
-unmerged. Worker deployment, real-device validation and PR E remain on hold.
-Nothing here was deployed or uploaded, and no production setting, schedule,
-alert or billing configuration was changed.
+Status: **configuration, checklist and retention wording approved by the owner
+on October 26, 2026; not deployment approval** (see *Owner decisions*). Prepared
+on `codex/sync-deployment-readiness`, from the #1168 merge `2aefa5dc8` plus
+`cafa6620` (Shared Spaces hidden in packaged builds). #1132 merged into main at
+22:57 UTC with that change. Worker deployment, real-device validation and PR E
+remain on hold. Nothing here was deployed or uploaded, and no production
+setting, schedule, alert or billing configuration was changed. Until this record
+merges, main's `cloudflare/sync-worker/wrangler.toml` still has the legacy cron
+and no `preview_urls` setting: don't deploy the Sync Worker from main.
 
 This record supersedes the open-item list in
 [the October 26 preflight](2026-10-26-sync-retention-preflight.md) ("What remains
@@ -254,15 +257,22 @@ G4. No data probes or test accounts. Those remain held.
 - A stop in phase C or D leaves Version URLs off or the cron removed. Both are
   safe resting states for the legacy Worker.
 
-## Decisions still needed
+## Owner decisions
 
-1. Approve the three configuration settings, including removing the cron as an
+Approved by the owner on October 26, 2026, after reviewing this record:
+
+1. The three configuration settings, including removing the cron as an
    additional safeguard.
-2. Approve this checklist, including the D6 wait and the C5 pass criterion.
-3. Approve the final backend retention wording for publication with phase D.
-4. Keep the accepted provider uncertainty, or send the provider questions.
-5. Separately: deployment approval, then the held real-device and erasure checks.
-   PR E stays on hold.
+2. This checklist, including the D6 wait and the C5 pass criterion.
+3. The backend retention wording drafted in #1168 (`b177a35da`), for publication
+   with phase D as phase B describes. It is not published yet.
+4. The provider-retention uncertainty stays accepted as stated. The provider
+   questions remain unsent.
+
+**Not approved:** the Worker deployment and every production step in phases C–G.
+Each still needs the separate written authorization in phase 0 and phase F,
+naming the exact candidate SHA and the window. The held real-device and erasure
+checks and PR E remain on hold.
 
 ## Sources
 
