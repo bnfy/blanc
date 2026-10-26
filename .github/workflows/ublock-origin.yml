@@ -76,8 +76,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJSON(github.event_name == 'pull_request' && '["windows-latest", "ubuntu-latest"]' || '["macos-15", "macos-15-intel", "windows-latest", "ubuntu-latest"]') }}
-    runs-on: ${{ matrix.os }}
+        # Pull requests add Apple Silicon only when a self-hosted Mac is set up
+        # (vars.MAC_RUNNER_LABELS); Intel always stays GitHub-hosted, nightly.
+        os: ${{ fromJSON(github.event_name == 'pull_request' && (vars.MAC_RUNNER_LABELS != '' && '["macos-15", "windows-latest", "ubuntu-latest"]' || '["windows-latest", "ubuntu-latest"]') || '["macos-15", "macos-15-intel", "windows-latest", "ubuntu-latest"]') }}
+    runs-on: ${{ (matrix.os == 'macos-15' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
     timeout-minutes: 20
     steps:
       - name: Preserve verified bytes on Windows

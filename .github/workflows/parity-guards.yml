@@ -245,9 +245,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # macOS only nightly and on manual runs (see `on:` above).
-        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
-    runs-on: ${{ matrix.os }}
+        # GitHub-hosted macOS only nightly and on manual runs (see `on:` above);
+        # with a self-hosted Mac (vars.MAC_RUNNER_LABELS) on every change too.
+        # docs/ci-self-hosted-macos-runner.md
+        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || vars.MAC_RUNNER_LABELS != '') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
+    runs-on: ${{ (matrix.os == 'macos-latest' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -299,9 +301,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # macOS only nightly and on manual runs (see `on:` above).
-        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
-    runs-on: ${{ matrix.os }}
+        # GitHub-hosted macOS only nightly and on manual runs (see `on:` above);
+        # with a self-hosted Mac (vars.MAC_RUNNER_LABELS) on every change too.
+        # docs/ci-self-hosted-macos-runner.md
+        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || vars.MAC_RUNNER_LABELS != '') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
+    runs-on: ${{ (matrix.os == 'macos-latest' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -368,9 +372,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # macOS only nightly and on manual runs (see `on:` above).
-        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
-    runs-on: ${{ matrix.os }}
+        # GitHub-hosted macOS only nightly and on manual runs (see `on:` above);
+        # with a self-hosted Mac (vars.MAC_RUNNER_LABELS) on every change too.
+        # docs/ci-self-hosted-macos-runner.md
+        os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || vars.MAC_RUNNER_LABELS != '') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
+    runs-on: ${{ (matrix.os == 'macos-latest' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
