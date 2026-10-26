@@ -1,7 +1,7 @@
 # Ctrl-Tab by most recent use
 
 **Date:** 2026-10-24
-**Status:** draft for the owner's review. Not yet implemented. Revised 2026-10-25 with the Linux spike (§10): the release can't be detected the way the first draft assumed, and §3.4 now describes the approach that works on Linux. Windows and macOS are still to be measured. The owner decided D1–D6 on 2026-10-26 (§11), taking every recommendation.
+**Status:** decided; PR 1 (no card) implemented on Linux on 2026-10-26 (§10), PR 2 to follow. Revised 2026-10-25 with the Linux spike (§10): the release can't be detected the way the first draft assumed, and §3.4 now describes the approach that works on Linux. Windows and macOS are still to be measured. The owner decided D1–D6 on 2026-10-26 (§11), taking every recommendation.
 **Builds on:** the per-window activation history (`src/main/tab-activation.js`, which already powers ⌥⌘Z and the close-tab survivor rule), the overlay view (`src/renderer/overlay.js`), the shared browser-command table (`src/main/browser-shortcuts.js`) and the Windows/Linux shortcut router (`installBrowserShortcuts`).
 **Reference:** Arc, Firefox (*Ctrl+Tab cycles through tabs in recently used order*, on by default since Firefox 61) and every desktop window switcher (⌘-Tab, Alt-Tab). Chrome and Safari switch by position. The request came from r/ArcBrowser on 2026-10-24 (*"Ctrl-Tab for Most Recently Used tab switcher. This is probably the most irritating. Remembering the exact location of the last used tab is such a bad UX."*), asked of people who left Arc for Chrome.
 
