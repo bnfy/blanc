@@ -11571,6 +11571,11 @@ function registerIpcHandlers() {
     const id = tabs.has(rawId) ? rawId : null;
     if (id != null) tabSwitcher.choose(rt(), id);
   });
+  // /copy and /copy clean: the current tab's address, as ⌘⇧C and Copy Clean Link.
+  chromeOn('chrome:copy-link', (_e, clean) => {
+    if (clean === true) copyCleanBrowserCommandLink(rt());
+    else copyBrowserCommandLink(rt());
+  });
   chromeOn('chrome:capture-focus', (_e, surfaceId) => {
     hideOverlay({ refocusContent: false });
     focusCaptureSurface(surfaceId);
@@ -12022,6 +12027,7 @@ const SLASH_COMMANDS = [
   ['/ungroup', 'slash.ungroup.hint'],
   ['/close-group', 'slash.closeGroup.hint'],
   ['/send <device>', 'slash.send.doc'],
+  ['/copy [clean]', 'slash.copy.doc'],
   ['/reader', 'slash.reader.hint'],
   ['/find', 'slash.find.hint'],
   ['/block-ads', 'slash.blockAds.hint'],

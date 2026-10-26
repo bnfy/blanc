@@ -1523,6 +1523,11 @@
         return sendActiveTabTo(tabId, name);
       },
       resultNotice: (result) => sendNotice(result) },
+    // Copy Link (⌘⇧C / Ctrl+Shift+C); "/copy clean" is Copy Clean Link, which
+    // has a chord on macOS only. Main shows the pill's "copied" notice.
+    { cmd: '/copy', hint: blancI18n.t('slash.copy.hint'), run: (input) => {
+      window.browserAPI.copyActiveLink(commandArgument(input).toLowerCase() === 'clean');
+    } },
     { cmd: '/reader', hint: blancI18n.t('slash.reader.hint'), run: () => window.browserAPI.toggleReaderMode(state.activeTabId) },
     { cmd: '/find', hint: blancI18n.t('slash.find.hint'), run: () => window.browserAPI.openFindBar(), keepOverlay: true },
     { cmd: '/block-ads', hint: blancI18n.t('slash.blockAds.hint'), run: () => window.browserAPI.toggleAdblock() },

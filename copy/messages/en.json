@@ -8193,6 +8193,14 @@
     "message": "Send this tab's page to another synced device",
     "note": "Reference description of /send <device> on blanc://shortcuts and in Help → Slash Commands."
   },
+  "slash.copy.hint": {
+    "message": "Copy this page's link — add \"clean\" to drop tracking parameters",
+    "note": "Slash command hint shown in the ⌘L palette for /copy. \"clean\" is the literal argument the user types; keep it untranslated."
+  },
+  "slash.copy.doc": {
+    "message": "Copy this page's link; with clean, without tracking parameters",
+    "note": "Reference description of /copy [clean] on blanc://shortcuts and in Help → Slash Commands. \"clean\" is the literal argument; keep it untranslated."
+  },
   "sharedSpaces.switch": {
     "message": "Keep Spaces and groups in sync on this device",
     "note": "Development-only Shared Spaces controls."

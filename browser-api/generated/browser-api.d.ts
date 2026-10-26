@@ -1313,6 +1313,11 @@ export interface BlancBrowserAPI {
    */
   switcherPick(tabId: TabId): void;
   /**
+   * Copy the current tab's address (/copy), or its tracking-free form when clean is true (/copy clean).
+   * IPC: send `chrome:copy-link`.
+   */
+  copyActiveLink(clean: boolean): void;
+  /**
    * Stop a screen share.
    * IPC: send `display-capture:stop`.
    */

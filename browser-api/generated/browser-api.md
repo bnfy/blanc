@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-153 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+154 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -87,6 +87,7 @@
 | `captureStop` | capture | send | `chrome:capture-stop` | `(surfaceId: CaptureSurfaceId)` | all |
 | `captureFocus` | capture | send | `chrome:capture-focus` | `(surfaceId: CaptureSurfaceId)` | all |
 | `switcherPick` | tabs | send | `chrome:switcher-pick` | `(tabId: TabId)` | all |
+| `copyActiveLink` | tabs | send | `chrome:copy-link` | `(clean: boolean)` | all |
 | `stopDisplayShare` | capture | send | `display-capture:stop` | `(shareId: DisplayShareId)` | all |
 | `resolveDisplayPicker` | capture | send | `display-capture:picker-resolve` | `(choice: DisplayPickerChoice)` | all |
 | `openMainMenu` | window | invoke | `chrome:open-main-menu` | `(point: Point) => Promise<boolean>` | all |

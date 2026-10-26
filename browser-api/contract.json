@@ -2946,6 +2946,19 @@
       "doc": "Land on a Ctrl+Tab card entry the user clicked; main ignores it unless the card is showing and offered that tab."
     },
     {
+      "name": "copyActiveLink",
+      "group": "tabs",
+      "kind": "send",
+      "channel": "chrome:copy-link",
+      "params": [
+        {
+          "name": "clean",
+          "type": "boolean"
+        }
+      ],
+      "doc": "Copy the current tab's address (/copy), or its tracking-free form when clean is true (/copy clean)."
+    },
+    {
       "name": "stopDisplayShare",
       "group": "capture",
       "kind": "send",
