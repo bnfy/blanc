@@ -1,5 +1,20 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+MACOS 26 ACCEPTANCE FOLLOW-UP (Oct 26): Run 40376951754 at 66d0c635d
+passed the real production icon compiler preflight on Intel, resolving the
+previous host/toolchain mismatch. The Intel press gate then failed six desktop
+scenarios: four reset hooks reported Target crashed, vertical hover timed out,
+and the title measurement observed a detached element. The queued ARM job was
+canceled; no signed installer was produced. Title selection and measurement
+now happen atomically in the renderer, preserving the clipping assertion.
+Hover setup requires native focus and renderer layout completion, then a
+stable reported target rectangle. Targeted local checks pass: 8 scenarios /
+88 steps for site controls and text sizing, and 16 hover scenarios / 157 steps.
+The crash did not reproduce in the focused run. Renderer crash URL, reason
+and exit-code diagnostics are added to test launches, and the private Mac
+press gate forwards application output. No crash recovery or gate bypass was
+added; the full native gate and exact-installer scans remain required.
+
 NATIVE ACCEPTANCE PASSED; ICON HOST FIX (Oct 26): At f825f599a, Apple Silicon
 passed all 541 scenarios / 4,731 steps and the complete press gate. Packaging
 then failed explicitly (exit 1) in actool: Xcode 26.3's asset agent encountered

@@ -88,6 +88,18 @@ async function launchApp(extraEnv = {}, { recoveryChoice = null } = {}) {
       electronApp.process()[stream]?.on('data', (chunk) => process.stderr.write(`[app ${stream}] ${chunk}`));
     }
   }
+  // Keep native renderer failures attributable to a URL and exit reason.
+  // This observes crashes only; it never restarts a target or turns a failure
+  // into a passing retry.
+  await electronApp.evaluate(({ app, webContents }) => {
+    const observe = (contents) => contents.on('render-process-gone', (_event, details) => {
+      console.error('[desktop renderer crash]', JSON.stringify({
+        id: contents.id, url: contents.getURL(), ...details,
+      }));
+    });
+    for (const contents of webContents.getAllWebContents()) observe(contents);
+    app.on('web-contents-created', (_event, contents) => observe(contents));
+  });
   electronApp.__blancUncaughtOffset = fs.existsSync(uncaughtLogPath)
     ? fs.statSync(uncaughtLogPath).size
     : 0;

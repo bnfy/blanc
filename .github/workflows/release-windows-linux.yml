@@ -1363,6 +1363,8 @@ jobs:
       - name: Use the tallest display mode for desktop acceptance
         run: swift scripts/ci-macos-tall-display.swift
       - name: Run the release press gate before signing
+        env:
+          BLANC_TEST_APP_OUTPUT: '1'
         run: npm run release:verify:press
       - name: Install pinned EVS client
         run: |
