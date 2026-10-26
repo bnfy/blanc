@@ -1336,6 +1336,7 @@ jobs:
       APPROVED_SOURCE_SHA: ${{ inputs.source_sha }}
       TARGET_ARCH: ${{ matrix.arch }}
       APP_DIR: dist/${{ matrix.app_dir }}/Blanc.app
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -1354,6 +1355,10 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm ci --prefix site
+      - name: Verify the icon compiler toolchain
+        run: |
+          xcodebuild -version
+          xcrun actool --version
       - name: Use the tallest display mode for desktop acceptance
         run: swift scripts/ci-macos-tall-display.swift
       - name: Run the release press gate before signing
@@ -1383,6 +1388,7 @@ jobs:
           done
           node scripts/preflight-mac-signing.mjs
           node scripts/build-ecs-production.cjs --release --mac "--$TARGET_ARCH"
+          test -f "$APP_DIR/Contents/Resources/app.asar"
       - name: Verify final signed package and stapled notarization
         shell: bash
         run: |

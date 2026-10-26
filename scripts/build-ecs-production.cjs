@@ -55,5 +55,7 @@ async function main() {
   await build({ config: configuration({ release }), publish: 'never',
     targets: platform.createTarget(args.includes('--dir') ? ['dir'] : undefined, ...arches) });
 }
-if (require.main === module) main().catch(error => { console.error(error); process.exitCode = 1; });
+// temp-file registers async-exit-hook's beforeExit handler with code 0.
+// Exit explicitly on failure so that handler cannot overwrite a failed build.
+if (require.main === module) main().catch(error => { console.error(error); process.exit(1); });
 module.exports = { configuration };

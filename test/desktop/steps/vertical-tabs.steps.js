@@ -1652,9 +1652,14 @@ When('I choose {string} vertical tab text in Settings', async function (size) {
 
 Then('vertical tab titles use {float} pixel text without clipping', async function (size) {
   const page = await chromePage();
+  // A drag preview also contains title spans; restored rails can exist before
+  // layout. Measure a visible row in the rail, never a hidden/transient copy.
+  const title = page.locator('#verticalTabsRail .vertical-tab-title:visible').first();
+  await title.waitFor({ state: 'visible' });
   try {
     await page.waitForFunction((expected) => {
-      const title = document.querySelector('.vertical-tab-title');
+      const title = [...document.querySelectorAll('#verticalTabsRail .vertical-tab-title')]
+        .find((el) => el.getBoundingClientRect().height > 0);
       return title && parseFloat(getComputedStyle(title).fontSize) === expected;
     }, size);
   } catch (error) {
@@ -1664,7 +1669,7 @@ Then('vertical tab titles use {float} pixel text without clipping', async functi
     })));
     throw error;
   }
-  const metrics = await page.locator('.vertical-tab-title').first().evaluate((title) => {
+  const metrics = await title.evaluate((title) => {
     const row = title.closest('.vertical-tab-primary').getBoundingClientRect();
     const rect = title.getBoundingClientRect();
     return { top: rect.top - row.top, bottom: row.bottom - rect.bottom, height: rect.height, lineHeight: parseFloat(getComputedStyle(title).lineHeight) };

@@ -22,6 +22,7 @@ test('Mac scan mode accepts only exact-commit production ECS input and no releas
 
 test('Mac signing stays protected, read-only, native on both architectures and tied to the workflow SHA', () => {
   assert.equal(job.environment, 'ecs-signing');
+  assert.equal(job.env.DEVELOPER_DIR, '/Applications/Xcode_26.3.app/Contents/Developer');
   assert.deepEqual(job.permissions, { contents: 'read' });
   assert.deepEqual(job.strategy.matrix.include.map(x => x.arch), ['arm64', 'x64']);
   const checkout = job.steps.find(x => x.uses?.startsWith('actions/checkout@'));

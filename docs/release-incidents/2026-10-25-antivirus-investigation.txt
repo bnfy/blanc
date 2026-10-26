@@ -1,5 +1,23 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+NATIVE BUILD FOLLOW-UP (Oct 26): Run 40357193090 passed all 541 Intel desktop
+scenarios; ARM passed 540/541, with F28-18 measuring a zero-height title at
+18px. The geometry driver now scopes to a visible title inside the rail,
+excluding hidden/transient drag copies, retaining the clipping assertion.
+The complete F28-18 and F35-3 scenarios pass locally: 2 scenarios / 36 steps.
+Intel packaging did NOT produce a signed installer: its earlier error was
+actool 16.4, below Icon Composer's required 26.0. The missing app reported by
+the verification step was a consequence, not an incorrect output directory.
+Both native runner inventories include Xcode 26.3; mac-scan now selects that
+DEVELOPER_DIR explicitly and reports the compiler versions before acceptance.
+The builder's temp-file dependency installs an async-exit-hook beforeExit
+handler with code 0, overriding a caught error's process.exitCode. The CLI now
+exits explicitly with code 1; a regression using the actual temporary-file
+exit hook confirms failed packaging stays failed. The build step also requires
+its app.asar output before advancing. Eight targeted packaging/workflow unit
+tests pass. Full native acceptance/signing/scanning remains pending; nothing
+has been published and the runtime uBO payload remains unchanged.
+
 MAHJONG VIEWPORT RACE: The final native run's live Intel log exposed a retry
 in the rail-tier assertion. Its resize loop keeps width constant but had waited
 only for width, allowing the prior viewport height to be sampled and a tier to

@@ -52,3 +52,35 @@ test('ECS release mode drops internal markers, needs the pipeline and the review
   // VMP signing order and publication refusal are unchanged.
   assert.match(build, /publish: 'never'/);
 });
+
+
+test('a builder failure remains nonzero with the real temporary-file exit hook installed', () => {
+  const { spawnSync } = require('node:child_process');
+  const root = path.join(__dirname, '../..');
+  const temp = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'blanc-builder-failure-'));
+  const preload = path.join(temp, 'preload.cjs');
+  fs.writeFileSync(preload, `
+    const Module = require('node:module');
+    const load = Module._load;
+    Module._load = function (id, ...args) {
+      if (id !== 'electron-builder') return load.call(this, id, ...args);
+      return {
+        Platform: { MAC: { createTarget: () => new Map() } }, Arch: { arm64: 3 },
+        build: async () => {
+          const { TmpDir } = require(${JSON.stringify(path.join(root, 'node_modules/temp-file'))});
+          await new TmpDir().getTempFile({ suffix: '.txt' });
+          throw new Error('deliberate packaging failure');
+        },
+      };
+    };
+  `);
+  try {
+    const result = spawnSync(process.execPath, ['-r', preload,
+      path.join(root, 'scripts/build-ecs-production.cjs'), '--mac', '--arm64'],
+      { cwd: root, encoding: 'utf8', timeout: 15000 });
+    assert.equal(result.status, 1, result.stderr);
+    assert.match(result.stderr, /deliberate packaging failure/);
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+});
