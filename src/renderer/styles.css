@@ -1254,8 +1254,9 @@ body > .tab-drag-ghost[aria-hidden="true"] {
 }
 
 /* Direct tab targets: globally reachable standalone pins, then the active
-   section. A small extra gap is the only distinction between those sets; all
-   dots keep the same one-dot/one-tab visual and interaction contract. */
+   section, set apart by a small extra gap. Pinned tabs' dots are rounded
+   squares (.island-dot.pinned); every dot keeps the same one-dot/one-tab
+   interaction contract. */
 #pillDots {
   display: flex;
   gap: 10px;
@@ -1386,6 +1387,10 @@ body > .tab-drag-ghost[aria-hidden="true"] {
   inset: -9px -5px;
 }
 .island-dot.active { background: var(--accent); }
+/* Pinned tabs (#1176): the same 6px footprint, squared off, so the budget,
+   spacing and hit area never change. Every other state (active, private,
+   loading, group color) applies to it unchanged. */
+.island-dot.pinned { border-radius: 1.5px; }
 .island-dot.loading { animation: island-pulse 0.9s ease-in-out infinite; }
 /* Quiet is NOT marked on the dots — it is carried by the row-level dim on the
    panel row and rail. The dot is a switch target, not a status field, and

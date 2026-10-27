@@ -253,6 +253,14 @@ test('pinned and active-section dots use spacing alone as their separator', () =
   assert.doesNotMatch(styles, /\.dot-section-start[^}]*border/s);
 });
 
+test('a pinned tab\'s dot is a rounded square with the same footprint (#1176)', () => {
+  assert.match(source, /\(t\.pinned \? ' pinned' : ''\)/, 'every pinned tab, grouped or not, is marked');
+  const rule = styles.match(/\.island-dot\.pinned\s*\{([^}]*)\}/);
+  assert.ok(rule, '.island-dot.pinned is styled');
+  assert.match(rule[1], /border-radius:\s*1\.5px/);
+  assert.doesNotMatch(rule[1], /width|height|margin|padding/, 'the dot keeps its 6px footprint');
+});
+
 test('overflow copy describes the window-wide remainder, not the active group', () => {
   // Copy lives in the interface catalog (F44); the English is unchanged.
   const catalog = JSON.parse(require('node:fs').readFileSync(require('node:path').join(__dirname, '../../copy/messages/en.json'), 'utf8'));

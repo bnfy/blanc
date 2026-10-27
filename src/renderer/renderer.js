@@ -1055,7 +1055,9 @@
       'island-dot' +
       (t.id === state.activeTabId ? ' active' : '') +
       (t.isLoading ? ' loading' : '') +
-      (t.private ? ' private' : '');
+      (t.private ? ' private' : '') +
+      // A pinned tab's dot is a rounded square (#1176), wherever it sits.
+      (t.pinned ? ' pinned' : '');
     TabSections.paintGroup(dot, dotGroup, 'dot-group-colored');
     const dotTitle = t.title || blancI18n.t('tab.untitled');
     dot.dataset.tooltip = dotTitle;
