@@ -42,6 +42,17 @@ const ACTIVE_SYNC_ENDPOINT = (()=>{
   }
   return SYNC_ENDPOINT;
 })();
+// The client's rolling request window (10 requests per minute). Acceptance
+// runs shorten it, gated like the endpoint above, so a scenario that turns
+// sync on doesn't sit out a whole minute; the budget step checks the same
+// window, so the limiter is still exercised.
+const REQUEST_WINDOW_MS = (()=>{
+  if(!app.isPackaged && process.env.BLANC_TEST==='1' && process.env.BLANC_TEST_SYNC_WINDOW_MS) {
+    const ms=Number(process.env.BLANC_TEST_SYNC_WINDOW_MS);
+    if(Number.isInteger(ms) && ms>=1000 && ms<=60000)return ms;
+  }
+  return 60000;
+})();
 // A renamed build may not store data on Bananify's server (bananify-services.js).
 // disable() still lets it erase a copy that is already there.
 // Errors are codes (`error` in replies, `lastError` in the store); pages.js
@@ -253,7 +264,7 @@ function invalidateGeneration(reason='generation') {
 function getRequestQueue() {
   if(requestQueue)return requestQueue;
   const data=sharedSpaces.rebind(ensureStore().data.accountId).data;
-  requestScheduler=createScheduler({log:data.requestLog,nextClass:data.nextClass,cursors:data.cursors,
+  requestScheduler=createScheduler({windowMs:REQUEST_WINDOW_MS,log:data.requestLog,nextClass:data.nextClass,cursors:data.cursors,
     windowLimit:data.windowLimit,backoffUntil:data.backoffUntil});
   requestQueue=createRequestQueue({scheduler:requestScheduler,makeError:message=>new SyncError(message),persist:state=>{
     const s=sharedSpaces.rebind(ensureStore().data.accountId);

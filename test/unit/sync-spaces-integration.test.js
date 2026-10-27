@@ -113,6 +113,14 @@ test('the endpoint override requires explicit unpackaged acceptance mode and a l
     await d.sync.disable({wipeRemote:true});
   }
 });
+test('the request-window override requires explicit unpackaged acceptance mode and a 1–60 s window',async t=>{
+  for(const [packaged,testMode,windowMs,want] of [[false,'1','5000',5000],[true,'1','5000',60000],[false,'true','5000',60000],[false,'1','500',60000],[false,'1','90000',60000],[false,'1','5e3x',60000]]) {
+    const d=syncDevice({packaged,testMode,windowMs,fetch:async(url,opts={})=>({status:(opts.method??'GET')==='GET'?404:opts.method==='DELETE'?204:200,ok:(opts.method??'GET')!=='GET',text:async()=> 'not found'})});
+    t.after(async()=>{await d.sync.disable({wipeRemote:true});await d.dispose();});await d.sync.syncNow(['sends']);
+    assert.equal(d.schedulerOptions[0]?.windowMs,want,JSON.stringify({packaged,testMode,windowMs}));
+    await d.sync.disable({wipeRemote:true});
+  }
+});
 test('two desktop sync instances converge through the real Worker and acknowledge fetched writes',async t=>{
   const e=await environment(t),a=e.device('A'),b=e.device('B');createSpace(a);
   assert.equal((await e.drive(a.sync.syncNow([store]))).ok,true);

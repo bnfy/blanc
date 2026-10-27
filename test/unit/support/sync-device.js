@@ -10,8 +10,8 @@ function virtualClock(start=Date.now()) {
     setTimer:(fn,delay)=>{timers.set(++next,{fn,at:mono+delay});return next;},clearTimer:id=>timers.delete(id),
     advance:async amount=>{wall+=amount;mono+=amount;for(const [id,timer] of [...timers])if(timer.at<=mono){timers.delete(id);timer.fn();}await new Promise(r=>setImmediate(r));}};
 }
-function syncDevice({fetch,clock,files={},key=Buffer.alloc(32,9),record={},endpoint,packaged=false,testMode='1'}={}) {
-  const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-sync-device-')),cache=new Map(),stores=[];
+function syncDevice({fetch,clock,files={},key=Buffer.alloc(32,9),record={},endpoint,windowMs,packaged=false,testMode='1'}={}) {
+  const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-sync-device-')),cache=new Map(),stores=[],schedulerOptions=[];
   const initial={enabled:true,accountId:'a'.repeat(64),handle:'test',deviceId:'desktop',syncTabs:false,
     protectedKey:Buffer.from(key.toString('base64')).toString('base64'),key:'',lastError:null,lastSyncedAt:0,...record};
   for(const [name,data] of Object.entries({'sync.json':initial,'settings.json':{onboardingVersion:1},...files}))fs.writeFileSync(path.join(tmp,name),JSON.stringify(data));
@@ -26,7 +26,7 @@ function syncDevice({fetch,clock,files={},key=Buffer.alloc(32,9),record={},endpo
       const resolved=ordinary.resolve(specifier);
       if(!resolved.startsWith(main+path.sep))return ordinary(specifier);
       const exported=load(resolved);
-      if(clock && resolved===path.join(main,'sync-scheduler.js'))return {...exported,createScheduler:options=>exported.createScheduler({...options,now:clock.now,monotonic:clock.monotonic})};
+      if(resolved===path.join(main,'sync-scheduler.js'))return {...exported,createScheduler:options=>{schedulerOptions.push(options);return exported.createScheduler(clock?{...options,now:clock.now,monotonic:clock.monotonic}:options);}};
       if(clock && resolved===path.join(main,'sync-request-queue.js'))return {...exported,createRequestQueue:options=>exported.createRequestQueue({...options,now:clock.now,setTimer:clock.setTimer,clearTimer:clock.clearTimer})};
       return exported;
     };
@@ -36,16 +36,17 @@ function syncDevice({fetch,clock,files={},key=Buffer.alloc(32,9),record={},endpo
     }
     return mod.exports;
   }
-  const previous={mode:process.env.BLANC_TEST,endpoint:process.env.BLANC_TEST_SYNC_ENDPOINT};let sync;
+  const overrides=Object.entries({BLANC_TEST_SYNC_ENDPOINT:endpoint,BLANC_TEST_SYNC_WINDOW_MS:windowMs}).filter(([,value])=>value!==undefined);
+  const previous=Object.fromEntries(['BLANC_TEST',...overrides.map(([key])=>key)].map(key=>[key,process.env[key]]));let sync;
   try {
-    if(endpoint!==undefined){process.env.BLANC_TEST=testMode;process.env.BLANC_TEST_SYNC_ENDPOINT=endpoint;}
+    if(overrides.length){process.env.BLANC_TEST=testMode;for(const [key,value] of overrides)process.env[key]=value;}
     sync=load(path.join(main,'sync.js'));
   } finally {
-    if(endpoint!==undefined)for(const [key,value] of [['BLANC_TEST',previous.mode],['BLANC_TEST_SYNC_ENDPOINT',previous.endpoint]]) {
+    if(overrides.length)for(const [key,value] of Object.entries(previous)) {
       if(value===undefined)delete process.env[key];else process.env[key]=value;
     }
   }
-  return {sync,workspaces:load(path.join(main,'workspaces.js')),tabsync:load(path.join(main,'tabsync.js')),spaces:load(path.join(main,'shared-spaces.js')),closed:load(path.join(main,'synced-closed.js')),sends:load(path.join(main,'sends.js')),record:initial,tmp,
+  return {sync,schedulerOptions,workspaces:load(path.join(main,'workspaces.js')),tabsync:load(path.join(main,'tabsync.js')),spaces:load(path.join(main,'shared-spaces.js')),closed:load(path.join(main,'synced-closed.js')),sends:load(path.join(main,'sends.js')),record:initial,tmp,
     async dispose(){for(const store of stores)store.flushPending();for(const store of stores)await store.settled();fs.rmSync(tmp,{recursive:true,force:true});}};
 }
 module.exports={syncDevice,virtualClock};

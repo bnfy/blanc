@@ -8,8 +8,14 @@ const ctx=require('../support/context');
 const {waitForValue}=require('../support/poll');
 const {callTestHook}=require('../support/test-hook-call');
 const handle='Shared Spaces acceptance',passphrase='correct horse battery staple Shared Spaces';
-Before({tags:'@F57 and not @peer-driver',timeout:180000},async function(){
- this.sharedFixture=await createSyncFixture();await ctx.relaunch({BLANC_TEST_SYNC_ENDPOINT:this.sharedFixture.url});
+// The app's sync request window. Turning sync on spends a whole window, so
+// scenarios shorten it from a minute. The two-client scenario keeps the real
+// one: its clients share one account against the Worker's real per-account
+// limit, and its budget step audits that window.
+const windowMsFor=scenario=>scenario.pickle.tags.some(t=>t.name==='@two-clients')?60000:5000;
+Before({tags:'@F57 and not @peer-driver',timeout:180000},async function(scenario){
+ this.windowMs=windowMsFor(scenario);this.windowEnv={BLANC_TEST_SYNC_WINDOW_MS:String(this.windowMs)};
+ this.sharedFixture=await createSyncFixture();await ctx.relaunch({BLANC_TEST_SYNC_ENDPOINT:this.sharedFixture.url,...this.windowEnv});
  if(process.platform==='linux'){
   const storage=await ctx.app.evaluate(({safeStorage})=>({available:safeStorage.isEncryptionAvailable(),backend:safeStorage.getSelectedStorageBackend()}));
   assert.equal(storage.available,true,`Shared Spaces requires secure OS storage (${storage.backend})`);
@@ -120,7 +126,7 @@ Then('the next encrypted write succeeds without waiting for retention expiry',{t
 });
 Given('a second complete desktop client sharing Work',{timeout:300000},async function(){
  const endpoint=await this.sharedFixture.clientEndpoint('B');
- this.sharedPeer=await ctx.launchPeerApp({BLANC_TEST_SYNC_ENDPOINT:endpoint});
+ this.sharedPeer=await ctx.launchPeerApp({BLANC_TEST_SYNC_ENDPOINT:endpoint,...this.windowEnv});
  this.peerCall=(method,...args)=>callTestHook(this.sharedPeer,method,args);
  await this.peerCall('reset');assert.equal((await this.peerCall('sharedSpacesTest','enable',{handle,passphrase})).ok,true);
  assert.equal((await this.peerCall('sharedSpacesTest','apply',{enabled:true,selections:[]})).ok,true);
@@ -168,8 +174,8 @@ Then('both complete clients rejoin dormant edits without duplicate tabs',{timeou
 });
 Then('the complete clients stay within their request budgets',{timeout:60000},async function(){
  const gets=this.sharedFixture.requests.filter(r=>r.method==='GET');
- for(const client of ['A','B']){const rows=gets.filter(r=>r.client===client),times=rows.map(r=>r.at);assert.ok(times.length>10,'audit the complete history across multiple windows');for(const at of times)assert.ok(times.filter(time=>time>at-60000&&time<=at).length<=10,client+' exceeded its rolling GET window: '+JSON.stringify(rows.filter(r=>r.at>at-60000&&r.at<=at).map(r=>({store:r.store,offset:r.at-at,status:r.status}))));}
- const minutes=new Map();for(const r of gets){const minute=Math.floor(r.at/60000);minutes.set(minute,(minutes.get(minute)??0)+1);}for(const count of minutes.values())assert.ok(count<=20);
+ for(const client of ['A','B']){const rows=gets.filter(r=>r.client===client),times=rows.map(r=>r.at);assert.ok(times.length>10,'audit the complete history across multiple windows');for(const at of times)assert.ok(times.filter(time=>time>at-this.windowMs&&time<=at).length<=10,client+' exceeded its rolling GET window: '+JSON.stringify(rows.filter(r=>r.at>at-this.windowMs&&r.at<=at).map(r=>({store:r.store,offset:r.at-at,status:r.status}))));}
+ const minutes=new Map();for(const r of gets){const minute=Math.floor(r.at/this.windowMs);minutes.set(minute,(minutes.get(minute)??0)+1);}for(const count of minutes.values())assert.ok(count<=20);
  assert.equal(this.sharedFixture.requests.some(r=>r.status===429),false);
 });
 Then('the Shared Spaces peer driver verifies {string}',{timeout:180000},async function(name){
