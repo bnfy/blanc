@@ -671,6 +671,30 @@ body.mac .vertical-tabs-toolbar {
   padding: 8px 10px 7px 103px;
 }
 
+/* Windows and Linux: the rail owns the window's top-left corner, where the
+   strip's main-menu button sits, so the button joins the rail's first row (as
+   the traffic lights do on macOS) instead of vanishing beneath it. The rail is
+   theme chrome, not the sampled page header, so a dark page tint must not
+   recolor the button, and a covered strip never hides it (no float copy of it
+   is drawn in this layout). */
+:root[data-tab-layout="vertical"]:not([data-platform="darwin"]):not([data-surface]) #mainMenuButton {
+  z-index: 6;
+  top: 7px;
+}
+:root[data-tab-layout="vertical"]:not([data-platform="darwin"]) .vertical-tabs-toolbar {
+  padding-left: 50px;
+}
+:root[data-tab-layout="vertical"]:not([data-platform="darwin"]):not([data-surface]) #strip.tint-dark #mainMenuButton {
+  color: var(--text-dim);
+}
+:root[data-tab-layout="vertical"]:not([data-platform="darwin"]):not([data-surface]) #strip.tint-dark #mainMenuButton:is(:hover, :focus-visible, [aria-expanded="true"]) {
+  background: var(--accent-dim);
+  color: var(--text);
+}
+:root[data-tab-layout="vertical"]:not([data-platform="darwin"]):not([data-surface]) #strip.strip-hidden.split-open #mainMenuButton {
+  visibility: visible;
+}
+
 .vertical-tabs-layout-button {
   width: 28px;
   height: 28px;

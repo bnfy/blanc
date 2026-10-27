@@ -216,6 +216,22 @@ test('Edit exposes the copy-clean-link chord only on macOS', () => {
   assert.doesNotMatch(main, /'(?:CmdOrCtrl|Ctrl)\+Alt\+Shift\+C'/);
 });
 
+test('with vertical tabs the menu button joins the rail instead of hiding under it', () => {
+  const styles = fs.readFileSync(path.join(ROOT, 'src/renderer/styles.css'), 'utf8');
+  const button = ':root[data-tab-layout="vertical"]:not([data-platform="darwin"]):not([data-surface])';
+  const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  // The rail (z-index 5) owns the top-left corner; the button must stack above it.
+  assert.match(styles, /\.vertical-tabs-rail \{[^}]*z-index: 5;/);
+  assert.match(styles, new RegExp(`${escape(button)} #mainMenuButton \\{[^}]*z-index: 6;`));
+  // The rail's first row keeps the button clear of its own controls.
+  assert.match(styles, /:root\[data-tab-layout="vertical"\]:not\(\[data-platform="darwin"\]\) \.vertical-tabs-toolbar \{[^}]*padding-left: 50px;/);
+  // On the rail it follows the theme, not a dark page tint, and stays visible
+  // while a split covers the strip.
+  assert.match(styles, new RegExp(`${escape(button)} #strip\\.tint-dark #mainMenuButton \\{[^}]*color: var\\(--text-dim\\);`));
+  assert.match(styles, new RegExp(`${escape(button)} #strip\\.strip-hidden\\.split-open #mainMenuButton \\{[^}]*visibility: visible;`));
+});
+
 test('chrome markup and IPC keep one native menu definition', () => {
   const html = fs.readFileSync(path.join(ROOT, 'src/renderer/index.html'), 'utf8');
   const renderer = fs.readFileSync(path.join(ROOT, 'src/renderer/renderer.js'), 'utf8');
