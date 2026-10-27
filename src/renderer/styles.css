@@ -671,6 +671,26 @@ body.mac .vertical-tabs-toolbar {
   padding: 8px 10px 7px 103px;
 }
 
+/* Windows and Linux: with vertical tabs the main-menu button moves out of the
+   strip into this row (vertical-tabs.js placeMainMenuButton), leading it as
+   the traffic lights do on macOS, and takes the row's own button look. */
+.vertical-tabs-toolbar #mainMenuButton {
+  position: static;
+  width: 28px;
+  height: 28px;
+  margin-right: auto;
+}
+.vertical-tabs-toolbar #mainMenuButton:focus-visible {
+  background: transparent;
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+.vertical-tabs-toolbar #mainMenuButton:hover,
+.vertical-tabs-toolbar #mainMenuButton[aria-expanded="true"] {
+  background: var(--surface);
+  color: var(--text);
+}
+
 .vertical-tabs-layout-button {
   width: 28px;
   height: 28px;

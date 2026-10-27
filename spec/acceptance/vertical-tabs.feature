@@ -234,3 +234,13 @@ Feature: Desktop vertical tabs
     When I choose "default" vertical tab text in Settings
     Then vertical tab titles use 12.5 pixel text without clipping
     And vertical tab drag previews keep their text size and height
+
+  @F28-19 @F28 @desktop @D19 @test-platform-linux
+  Scenario: The main-menu button moves into the rail on Windows and Linux
+    Given a fresh desktop settings profile
+    When I set the tab layout to "vertical"
+    Then the main-menu button leads the rail's first row, uncovered
+    When I click the main-menu button
+    Then the main menu opens below the main-menu button
+    When I set the tab layout to "island"
+    Then the main-menu button is back in the strip's top-left corner

@@ -195,6 +195,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F28-16 | Non-destructive narrow-window width cap and persistence | D19 | ✅ | ➖ | ➖ |
 | F28-17 | Overflow-only tab-title hover scrolling | D19 | ✅ | ➖ | ➖ |
 | F28-18 | Vertical tab text size, live updates and persistence | D19 | ✅ | ➖ | ➖ |
+| F28-19 | Windows/Linux main-menu button moves into the rail | D19 | ✅ | ➖ | ➖ |
 | F30-1 | Direct profile import preserves supported Favorites and folders | D22 | ✅ | ⬜ | ⬜ |
 | F30-2 | Repeated browser import is idempotent | D22 | ✅ | ⬜ | ⬜ |
 | F30-3 | Fresh first run offers Favorites migration | D22 | ✅ | ⬜ | ⬜ |
