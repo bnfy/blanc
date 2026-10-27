@@ -335,14 +335,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40cucumber/ci-environment@14.0.0",
+      "bom-ref": "pkg:npm/%40cucumber/ci-environment@15.0.0",
       "name": "@cucumber/ci-environment",
-      "version": "14.0.0",
+      "version": "15.0.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "0896e33cf1ae9357c0acf455281e85536abd147c4e40e7aaec8109701d8d2cd84e855f7bb9accbc6fc03e6e70025bfdf964cbe73338b86f698691005ea5e5061"
+          "content": "f73232d18227ed3930b38a4d24495ffe43a73f2ffacb15993d61fa78c356f2cfc1b15dddd74f97b35ca3a761f010c3c4967ac51151d0954b385c6435337ab637"
         }
       ],
       "licenses": [
@@ -352,7 +352,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40cucumber/ci-environment@14.0.0",
+      "purl": "pkg:npm/%40cucumber/ci-environment@15.0.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -374,20 +374,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@cucumber/ci-environment/-/ci-environment-14.0.0.tgz"
+          "url": "https://registry.npmjs.org/@cucumber/ci-environment/-/ci-environment-15.0.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40cucumber/cucumber-expressions@20.0.0",
+      "bom-ref": "pkg:npm/%40cucumber/cucumber-expressions@20.1.0",
       "name": "@cucumber/cucumber-expressions",
-      "version": "20.0.0",
+      "version": "20.1.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "b761412cab94d14d673f914cf291e25689d8717566d3b7ef5ebfc7f68b1dbeb8dc2d74967393826ce3aa57f9394b9eb0fd89dd3efd52bf6fe6ff1d4a058bc894"
+          "content": "2974090a11d3c87760e8723b7c7cb7ce98dfa12db4e6f57507f68940a07cd951603066dd55d89a4b2eec4ed6a9ff943bf3b6a72e666ddb94e0d05a90da7e1fab"
         }
       ],
       "licenses": [
@@ -397,7 +397,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40cucumber/cucumber-expressions@20.0.0",
+      "purl": "pkg:npm/%40cucumber/cucumber-expressions@20.1.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -419,20 +419,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@cucumber/cucumber-expressions/-/cucumber-expressions-20.0.0.tgz"
+          "url": "https://registry.npmjs.org/@cucumber/cucumber-expressions/-/cucumber-expressions-20.1.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40cucumber/cucumber@13.2.1",
+      "bom-ref": "pkg:npm/%40cucumber/cucumber@13.3.0",
       "name": "@cucumber/cucumber",
-      "version": "13.2.1",
+      "version": "13.3.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "2a6de62db64a384fd3951f44c4659c1bb3f0386d40accb7f47a05ec6b321180f292c668b0966084931d2b697ed2eeba154abd577744ee4cfe97c044acaf7325a"
+          "content": "e8e4a88ff490a20270123a0dacf67982dc930f06e6b420eecc9fe173cd6739587010100eeb2a6075677ea8249c39dc99c60b50bd4586e77e0b0566f987dfd8f1"
         }
       ],
       "licenses": [
@@ -442,7 +442,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40cucumber/cucumber@13.2.1",
+      "purl": "pkg:npm/%40cucumber/cucumber@13.3.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -464,7 +464,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@cucumber/cucumber/-/cucumber-13.2.1.tgz"
+          "url": "https://registry.npmjs.org/@cucumber/cucumber/-/cucumber-13.3.0.tgz"
         }
       ]
     },
@@ -515,14 +515,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40cucumber/gherkin-utils@12.0.1",
+      "bom-ref": "pkg:npm/%40cucumber/gherkin-utils@12.0.2",
       "name": "@cucumber/gherkin-utils",
-      "version": "12.0.1",
+      "version": "12.0.2",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "bc89876e64f3bc67193f848549bc7b3fa8da9c764df81a8659773710843b51e60c783cf057dc9b4a545fa44095df8d29c4a619c8c4edb9208fdc20d77ee58243"
+          "content": "7baefc590a94df3267677196e03ecee3f9ab0f7be4bb48946093f3edcb8b370de370af3576f6ede6261ae65ded7d3f73dabc44e4e6c53d46d390337bcc5c2a8f"
         }
       ],
       "licenses": [
@@ -532,7 +532,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40cucumber/gherkin-utils@12.0.1",
+      "purl": "pkg:npm/%40cucumber/gherkin-utils@12.0.2",
       "properties": [
         {
           "name": "blanc:development",
@@ -554,20 +554,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@cucumber/gherkin-utils/-/gherkin-utils-12.0.1.tgz"
+          "url": "https://registry.npmjs.org/@cucumber/gherkin-utils/-/gherkin-utils-12.0.2.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40cucumber/gherkin@41.0.0",
+      "bom-ref": "pkg:npm/%40cucumber/gherkin@42.0.1",
       "name": "@cucumber/gherkin",
-      "version": "41.0.0",
+      "version": "42.0.1",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "a4a1b1d44ccd8ed59ba70ef89047af283323ef5745dd949a149a4b62e595bd164a7be0b0a2ae62124b8c6842c88358f122ef231ff0361cf329311f1406f746d3"
+          "content": "2aa83450b856a9b5e9fdad5cd38343e2c4b82939482fcdf5b50d0d8592d759d1214fa2e236c6792c5473cbf941cbb410a5c2a1ae82a9fe2dc2d967449d104a36"
         }
       ],
       "licenses": [
@@ -577,7 +577,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40cucumber/gherkin@41.0.0",
+      "purl": "pkg:npm/%40cucumber/gherkin@42.0.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -599,65 +599,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@cucumber/gherkin/-/gherkin-41.0.0.tgz"
+          "url": "https://registry.npmjs.org/@cucumber/gherkin/-/gherkin-42.0.1.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40cucumber/gherkin@42.0.0",
-      "name": "@cucumber/gherkin",
-      "version": "42.0.0",
-      "scope": "optional",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "90172ff8d5781464185fa348b120a3b23697f0cb117441f9e7d050f711053e090b417fd9fff259ad8f787e98f15baaaea385799319731628950b9c68b85f4092"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/%40cucumber/gherkin@42.0.0",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "true"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/@cucumber/cucumber/node_modules/@cucumber/gherkin"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "root"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/@cucumber/gherkin/-/gherkin-42.0.0.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/%40cucumber/html-formatter@24.1.0",
+      "bom-ref": "pkg:npm/%40cucumber/html-formatter@24.2.0",
       "name": "@cucumber/html-formatter",
-      "version": "24.1.0",
+      "version": "24.2.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "e5304b9c14feb48bed6a6c3f8ed6e5055833436fdc91dfa677c234af0904936f6f14c085ebc8cdc21c8e346aba95e51832ae24545f8a745844f311ab49cde427"
+          "content": "e98e628cac8578d89a31d7189dafdfa35065bb379b9bc2febd2032bb2988b7b0f1bb916ad6c0d8306a91d6b61eb8d749997caefd846d18b3acad974224240622"
         }
       ],
       "licenses": [
@@ -667,7 +622,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40cucumber/html-formatter@24.1.0",
+      "purl": "pkg:npm/%40cucumber/html-formatter@24.2.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -689,20 +644,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@cucumber/html-formatter/-/html-formatter-24.1.0.tgz"
+          "url": "https://registry.npmjs.org/@cucumber/html-formatter/-/html-formatter-24.2.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40cucumber/junit-xml-formatter@0.14.0",
+      "bom-ref": "pkg:npm/%40cucumber/junit-xml-formatter@0.15.0",
       "name": "@cucumber/junit-xml-formatter",
-      "version": "0.14.0",
+      "version": "0.15.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "b83b89c92b14af56f5544004442f98cb0bd58728018182003327d23332d9dcbae8babb9d69664885f4cd0f8b8b36445965070fafa218bfeaa3e533fc453249fa"
+          "content": "dfbd64fe0d69f94564c42b519aa3c5895368b15ee7a15f77a87e816d4b4df655eb176d9011b6fe6285748298615a89747e08151f37ce6ee938a89dd842f0ecae"
         }
       ],
       "licenses": [
@@ -712,7 +667,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40cucumber/junit-xml-formatter@0.14.0",
+      "purl": "pkg:npm/%40cucumber/junit-xml-formatter@0.15.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -734,7 +689,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@cucumber/junit-xml-formatter/-/junit-xml-formatter-0.14.0.tgz"
+          "url": "https://registry.npmjs.org/@cucumber/junit-xml-formatter/-/junit-xml-formatter-0.15.0.tgz"
         }
       ]
     },
@@ -785,14 +740,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40cucumber/messages@33.0.4",
+      "bom-ref": "pkg:npm/%40cucumber/messages@34.2.1",
       "name": "@cucumber/messages",
-      "version": "33.0.4",
+      "version": "34.2.1",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "8ba3f56b46e79a179c3877ef216d2b84cc6ffe030a7c12b00ccc660fdfd4a351d2aa9435ee87079acd49c165bab9330b028a6aa9695ccfb97a3dac7ea94393ce"
+          "content": "6a3da20801bd64ea4c55c3317204a189fbf97db47de9bed232075670f5d787641b169ece11c027439302e587d65034836ac9b0ec553934912c3ab5dd4d0394d4"
         }
       ],
       "licenses": [
@@ -802,52 +757,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40cucumber/messages@33.0.4",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "true"
-        },
-        {
-          "name": "blanc:lockPaths",
-          "value": "node_modules/@cucumber/gherkin-utils/node_modules/@cucumber/messages,node_modules/@cucumber/gherkin/node_modules/@cucumber/messages"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "root"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/@cucumber/messages/-/messages-33.0.4.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/%40cucumber/messages@34.2.0",
-      "name": "@cucumber/messages",
-      "version": "34.2.0",
-      "scope": "optional",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "e97e93d5302999b40dab10b43a1dc67272d4fa07c4e5fa7e7045c4fe697af8b771efa43a0439a480ce6f6a04920d73febdeb4f57615bd2459578fed0211ebe03"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/%40cucumber/messages@34.2.0",
+      "purl": "pkg:npm/%40cucumber/messages@34.2.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -869,20 +779,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@cucumber/messages/-/messages-34.2.0.tgz"
+          "url": "https://registry.npmjs.org/@cucumber/messages/-/messages-34.2.1.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40cucumber/pretty-formatter@4.0.0",
+      "bom-ref": "pkg:npm/%40cucumber/pretty-formatter@4.1.0",
       "name": "@cucumber/pretty-formatter",
-      "version": "4.0.0",
+      "version": "4.1.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "bd628751f8cca61b5b7871e5401675810ccf2f7fc713f3b674d9e906a10e203c2f869eed2afa927bc92c729d87ee902b6f137a7ae12947925bb2d25dce8de2ca"
+          "content": "71b75be3de3e5f79c7c6f3f7e2c6f289aec2795224aacd0adfe2d6a6c17cb3309251560ec6199b3fae87fd877b7facabd8184a2e6903a24c845f6e150323acb4"
         }
       ],
       "licenses": [
@@ -892,7 +802,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40cucumber/pretty-formatter@4.0.0",
+      "purl": "pkg:npm/%40cucumber/pretty-formatter@4.1.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -914,20 +824,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@cucumber/pretty-formatter/-/pretty-formatter-4.0.0.tgz"
+          "url": "https://registry.npmjs.org/@cucumber/pretty-formatter/-/pretty-formatter-4.1.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40cucumber/query@16.0.0",
+      "bom-ref": "pkg:npm/%40cucumber/query@16.1.1",
       "name": "@cucumber/query",
-      "version": "16.0.0",
+      "version": "16.1.1",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "0ad1811cb73ddb2d5136881718e15517bb28f9774b479ad5b891ac4ba9c7ef22de6b2c9885d57c9585bf2c6f11d39726e22ac6fd13ba5a7e48d82020c4c866c1"
+          "content": "48168fe0b73bc6fe798d8efc43cadaa31bdb0483c68502abba2fd3abe97a8d8065d5a955d131b5b16f1346d93d5bb450976ee7549a3d0f2caf012a77ef82fd4e"
         }
       ],
       "licenses": [
@@ -937,52 +847,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40cucumber/query@16.0.0",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "true"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/@cucumber/pretty-formatter/node_modules/@cucumber/query"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "root"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/@cucumber/query/-/query-16.0.0.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/%40cucumber/query@16.0.1",
-      "name": "@cucumber/query",
-      "version": "16.0.1",
-      "scope": "optional",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "a99c026cbe562e11c6a8175866f82e039cce4c474b6ae313ad01037037082cc93a795c8fc20b6691c1f6ff8b3f8e74fe7f4d9c5b46556c0693a083778fa8255f"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/%40cucumber/query@16.0.1",
+      "purl": "pkg:npm/%40cucumber/query@16.1.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -1004,20 +869,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@cucumber/query/-/query-16.0.1.tgz"
+          "url": "https://registry.npmjs.org/@cucumber/query/-/query-16.1.1.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40cucumber/tag-expressions@11.0.0",
+      "bom-ref": "pkg:npm/%40cucumber/tag-expressions@11.0.1",
       "name": "@cucumber/tag-expressions",
-      "version": "11.0.0",
+      "version": "11.0.1",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "ed4a3a758493f3165b1f0c1e9970adecabfcd1887f484f390f239e775fc54f0c515ecdcd6153829ba7bf87c0f19614c62290faad85dfa58de71e721700530197"
+          "content": "c7402cb0cd8728ba31c3c812780b18a3440af702263836013433b8db7fcad4f7e4dafc00fcc75e7114b5932e62dd197ce24a21686d2e517848051f874eefd08e"
         }
       ],
       "licenses": [
@@ -1027,7 +892,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40cucumber/tag-expressions@11.0.0",
+      "purl": "pkg:npm/%40cucumber/tag-expressions@11.0.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -1049,7 +914,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@cucumber/tag-expressions/-/tag-expressions-11.0.0.tgz"
+          "url": "https://registry.npmjs.org/@cucumber/tag-expressions/-/tag-expressions-11.0.1.tgz"
         }
       ]
     },
@@ -16087,14 +15952,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/playwright-core@1.63.0",
+      "bom-ref": "pkg:npm/playwright-core@1.64.1",
       "name": "playwright-core",
-      "version": "1.63.0",
+      "version": "1.64.1",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "ad80ac045fcce478d4721e766dbb5538d1058efe97bbcb26f21ef674d951e5bcc81357ef0bf6f182ca7392349f53e3307843263ccf0a25e6c6ea79f2c68e660a"
+          "content": "042e2cf32e9211503a435ad2c594eda3c848d4a508df15e51c6660bc6a8fe08a8f748fdae855fd1f6f480cdcfbbcaa3d976d5be8b7d8a2c49c3cbe8cdf1c720d"
         }
       ],
       "licenses": [
@@ -16104,7 +15969,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/playwright-core@1.63.0",
+      "purl": "pkg:npm/playwright-core@1.64.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -16126,20 +15991,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/playwright-core/-/playwright-core-1.63.0.tgz"
+          "url": "https://registry.npmjs.org/playwright-core/-/playwright-core-1.64.1.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/playwright@1.63.0",
+      "bom-ref": "pkg:npm/playwright@1.64.1",
       "name": "playwright",
-      "version": "1.63.0",
+      "version": "1.64.1",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "fbbce204b89d4b835a34276de7b4940d3fb062699de5f9a241e8d489cfe46fe62c61208fc8e384f6c79bccc8cd990aec9cda4326a778587bd5ffc95f29f50352"
+          "content": "1c2ad5847af9410bb0628b301141936fb806a79db6c9f95bbff493f27178b05586b8b8d00add7b43f12e6e918648d2989f5b6c4c23d9c6a1e11c27d5511bbb50"
         }
       ],
       "licenses": [
@@ -16149,7 +16014,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/playwright@1.63.0",
+      "purl": "pkg:npm/playwright@1.64.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -16171,7 +16036,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/playwright/-/playwright-1.63.0.tgz"
+          "url": "https://registry.npmjs.org/playwright/-/playwright-1.64.1.tgz"
         }
       ]
     },
@@ -21074,7 +20939,7 @@
       "ref": "application:root:blanc@1.44.0",
       "dependsOn": [
         "pkg:npm/%401password/sdk@0.5.0",
-        "pkg:npm/%40cucumber/cucumber@13.2.1",
+        "pkg:npm/%40cucumber/cucumber@13.3.0",
         "pkg:npm/%40electron/asar@4.3.1",
         "pkg:npm/%40eslint/js@10.0.1",
         "pkg:npm/%40ghostery/adblocker-electron@2.20.1",
@@ -21086,7 +20951,7 @@
         "pkg:npm/electron@44.9.3",
         "pkg:npm/eslint@10.12.0",
         "pkg:npm/globals@17.13.0",
-        "pkg:npm/playwright@1.63.0",
+        "pkg:npm/playwright@1.64.1",
         "pkg:npm/sharp@0.35.5"
       ]
     },
@@ -21133,29 +20998,29 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40cucumber/ci-environment@14.0.0",
+      "ref": "pkg:npm/%40cucumber/ci-environment@15.0.0",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40cucumber/cucumber-expressions@20.0.0",
+      "ref": "pkg:npm/%40cucumber/cucumber-expressions@20.1.0",
       "dependsOn": [
         "pkg:npm/regexp-match-indices@1.0.2"
       ]
     },
     {
-      "ref": "pkg:npm/%40cucumber/cucumber@13.2.1",
+      "ref": "pkg:npm/%40cucumber/cucumber@13.3.0",
       "dependsOn": [
-        "pkg:npm/%40cucumber/ci-environment@14.0.0",
-        "pkg:npm/%40cucumber/cucumber-expressions@20.0.0",
+        "pkg:npm/%40cucumber/ci-environment@15.0.0",
+        "pkg:npm/%40cucumber/cucumber-expressions@20.1.0",
         "pkg:npm/%40cucumber/gherkin-streams@7.0.1",
-        "pkg:npm/%40cucumber/gherkin-utils@12.0.1",
-        "pkg:npm/%40cucumber/gherkin@42.0.0",
-        "pkg:npm/%40cucumber/html-formatter@24.1.0",
-        "pkg:npm/%40cucumber/junit-xml-formatter@0.14.0",
+        "pkg:npm/%40cucumber/gherkin-utils@12.0.2",
+        "pkg:npm/%40cucumber/gherkin@42.0.1",
+        "pkg:npm/%40cucumber/html-formatter@24.2.0",
+        "pkg:npm/%40cucumber/junit-xml-formatter@0.15.0",
         "pkg:npm/%40cucumber/message-streams@5.0.1",
-        "pkg:npm/%40cucumber/messages@34.2.0",
-        "pkg:npm/%40cucumber/pretty-formatter@4.0.0",
-        "pkg:npm/%40cucumber/tag-expressions@11.0.0",
+        "pkg:npm/%40cucumber/messages@34.2.1",
+        "pkg:npm/%40cucumber/pretty-formatter@4.1.0",
+        "pkg:npm/%40cucumber/tag-expressions@11.0.1",
         "pkg:npm/assertion-error-formatter@3.0.0",
         "pkg:npm/cli-table3@0.6.5",
         "pkg:npm/commander@15.0.0",
@@ -21187,35 +21052,29 @@
       ]
     },
     {
-      "ref": "pkg:npm/%40cucumber/gherkin-utils@12.0.1",
+      "ref": "pkg:npm/%40cucumber/gherkin-utils@12.0.2",
       "dependsOn": [
-        "pkg:npm/%40cucumber/gherkin@41.0.0",
-        "pkg:npm/%40cucumber/messages@33.0.4",
+        "pkg:npm/%40cucumber/gherkin@42.0.1",
+        "pkg:npm/%40cucumber/messages@34.2.1",
         "pkg:npm/%40teppeis/multimaps@3.0.0",
         "pkg:npm/commander@15.0.0",
         "pkg:npm/source-map-support@0.5.21"
       ]
     },
     {
-      "ref": "pkg:npm/%40cucumber/gherkin@41.0.0",
+      "ref": "pkg:npm/%40cucumber/gherkin@42.0.1",
       "dependsOn": [
-        "pkg:npm/%40cucumber/messages@33.0.4"
+        "pkg:npm/%40cucumber/messages@34.2.1"
       ]
     },
     {
-      "ref": "pkg:npm/%40cucumber/gherkin@42.0.0",
-      "dependsOn": [
-        "pkg:npm/%40cucumber/messages@34.2.0"
-      ]
-    },
-    {
-      "ref": "pkg:npm/%40cucumber/html-formatter@24.1.0",
+      "ref": "pkg:npm/%40cucumber/html-formatter@24.2.0",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40cucumber/junit-xml-formatter@0.14.0",
+      "ref": "pkg:npm/%40cucumber/junit-xml-formatter@0.15.0",
       "dependsOn": [
-        "pkg:npm/%40cucumber/query@16.0.1",
+        "pkg:npm/%40cucumber/query@16.1.1",
         "pkg:npm/%40teppeis/multimaps@3.0.0",
         "pkg:npm/luxon@3.7.2",
         "pkg:npm/xmlbuilder@15.1.1"
@@ -21228,36 +21087,25 @@
       ]
     },
     {
-      "ref": "pkg:npm/%40cucumber/messages@33.0.4",
+      "ref": "pkg:npm/%40cucumber/messages@34.2.1",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40cucumber/messages@34.2.0",
-      "dependsOn": []
-    },
-    {
-      "ref": "pkg:npm/%40cucumber/pretty-formatter@4.0.0",
+      "ref": "pkg:npm/%40cucumber/pretty-formatter@4.1.0",
       "dependsOn": [
-        "pkg:npm/%40cucumber/query@16.0.0",
+        "pkg:npm/%40cucumber/query@16.1.1",
         "pkg:npm/luxon@3.7.2"
       ]
     },
     {
-      "ref": "pkg:npm/%40cucumber/query@16.0.0",
+      "ref": "pkg:npm/%40cucumber/query@16.1.1",
       "dependsOn": [
         "pkg:npm/%40teppeis/multimaps@3.0.0",
         "pkg:npm/lodash.sortby@4.7.0"
       ]
     },
     {
-      "ref": "pkg:npm/%40cucumber/query@16.0.1",
-      "dependsOn": [
-        "pkg:npm/%40teppeis/multimaps@3.0.0",
-        "pkg:npm/lodash.sortby@4.7.0"
-      ]
-    },
-    {
-      "ref": "pkg:npm/%40cucumber/tag-expressions@11.0.0",
+      "ref": "pkg:npm/%40cucumber/tag-expressions@11.0.1",
       "dependsOn": []
     },
     {
@@ -23228,13 +23076,13 @@
       ]
     },
     {
-      "ref": "pkg:npm/playwright-core@1.63.0",
+      "ref": "pkg:npm/playwright-core@1.64.1",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/playwright@1.63.0",
+      "ref": "pkg:npm/playwright@1.64.1",
       "dependsOn": [
-        "pkg:npm/playwright-core@1.63.0"
+        "pkg:npm/playwright-core@1.64.1"
       ]
     },
     {
