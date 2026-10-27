@@ -25,8 +25,12 @@ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-healing-smoke-'));
 const jsonPath = path.join(dir, 'healing.json');
 const run = spawnSync('npx', [
   'cucumber-js', '-c', 'test/desktop/cucumber.mjs', '-p', 'harness',
-  '--format', 'progress', '--format', `json:${jsonPath}`,
-], { encoding: 'utf8', shell: process.platform === 'win32', maxBuffer: 64 * 1024 * 1024 });
+], {
+  encoding: 'utf8',
+  shell: process.platform === 'win32',
+  maxBuffer: 64 * 1024 * 1024,
+  env: { ...process.env, BLANC_HEALING_REPORT: jsonPath },
+});
 
 const RANK = { passed: 0, skipped: 1, pending: 2, undefined: 3, ambiguous: 4, failed: 5 };
 // A scenario's status is its worst step or hook; its message is every error

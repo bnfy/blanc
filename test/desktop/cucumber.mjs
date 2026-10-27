@@ -93,4 +93,9 @@ export const harness = {
   paths: ['test/desktop/harness/*.feature'],
   require: [...common.require, 'test/desktop/harness/*.steps.js'],
   retry: 0,
+  // healing-smoke.mjs names its JSON report here: a [type, path] pair skips
+  // Cucumber's colon parsing, which rejects a Windows drive letter.
+  ...(process.env.BLANC_HEALING_REPORT
+    ? { format: ['progress', ['json', process.env.BLANC_HEALING_REPORT]] }
+    : {}),
 };
