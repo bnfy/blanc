@@ -313,6 +313,8 @@ export interface TabsSnapshot {
   closedSlot: number;
   tabLayout: TabLayout;
   verticalTabsTextSize: string;
+  /** Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). */
+  islandTabIcons: boolean;
   verticalTabsWidth: number;
   verticalTabsPreferredWidth: number;
   verticalTabsMinWidth: number;
@@ -334,6 +336,8 @@ export interface TabsUpdatedPayload {
   closedSlot: number;
   tabLayout: TabLayout;
   verticalTabsTextSize: string;
+  /** Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). */
+  islandTabIcons: boolean;
   adblockEnabled: boolean;
   shieldPopover: ShieldPopover | null;
   captureChip: CaptureChip;

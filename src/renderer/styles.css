@@ -1997,6 +1997,53 @@ button.insecure-badge {
   animation: none;
 }
 
+/* Site icons instead of dots (#1175, Settings > Show site icons on the
+   Island). Each direct tab is an 18px tile holding its 14px favicon, drawn
+   with the same setFavicon rendering as the pill, so loading, internal and
+   fallback icons look as they do there. Tiles are wider than dots, so the fit
+   (fitIslandDots) shows fewer before the rest move into +N. The states keep
+   their meaning: the active tab is ringed in the accent, a pinned tab sits on
+   a tile, a private tab is outlined in dashes, and a colored group puts a bar
+   under its icons. The icon is always showing, so there is no peek. */
+#pillDots.icons { gap: 6px; }
+#pillDots.icons .island-dot {
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#pillDots.icons .island-dot::before { inset: -6px -3px; }
+#pillDots.icons .island-dot.loading { animation: none; }
+#pillDots.icons .island-dot.dot-group-colored { background: transparent; }
+#pillDots.icons .island-dot.dot-group-colored::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: -4px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--group-color);
+}
+#pillDots.icons .island-dot.pinned { background: var(--border); }
+#pillDots.icons .island-dot.active { box-shadow: 0 0 0 1.5px var(--accent); }
+#pillDots.icons .island-dot.private { outline: 1px dashed var(--text-dim); outline-offset: -1px; }
+#pillDots.icons .island-dot.private.active { outline-color: var(--accent); }
+/* Internal pages stay anonymous in the Island (as the pill's own favicon
+   does): a quiet placeholder instead of the Blanc mark. */
+#pillDots.icons .dot-icon.internal {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--border);
+  -webkit-mask: none;
+  mask: none;
+}
+
 @keyframes favicon-spin {
   to { transform: rotate(360deg); }
 }

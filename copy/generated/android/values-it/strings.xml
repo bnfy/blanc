@@ -1011,6 +1011,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_search_priority_results_hint">Mentre scrivi, mostra i suggerimenti di ricerca sopra le tue schede, i gruppi, gli Spaces, i Preferiti e la Cronologia.</string>
     <string name="settings_general_island_hover_open_label">Apri l’Island al passaggio del puntatore</string>
     <string name="settings_general_island_hover_open_hint">Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic.</string>
+    <string name="settings_general_island_tab_icons_label">Mostra le icone dei siti nell’Island</string>
+    <string name="settings_general_island_tab_icons_hint">Mostra l’icona del sito di ogni scheda invece di un punto. Le icone occupano più spazio, quindi ci stanno meno schede.</string>
     <string name="settings_general_island_auto_hide_label">Nascondi automaticamente l’Island</string>
     <string name="settings_general_island_auto_hide_hint">Le pagine riempiono la finestra. Porta il puntatore al bordo superiore o apri ricerca e comandi per far tornare l’Island.</string>
     <string name="settings_general_island_auto_hide_style_label">Quando l’Island torna</string>

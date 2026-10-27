@@ -333,6 +333,18 @@ Feature: Tabs and tab groups
     Then no group menu is open
     And no side-list group header is marked open
     And a click in the island panel keeps it open
+
+  @F3-33 @F3 @desktop
+  Scenario: The Island can show site icons instead of dots
+    Given a standalone pinned tab
+    And a group "work" with 2 tabs
+    When I turn on site icons on the Island
+    And I activate a tab in group "work"
+    Then the island shows 3 direct tab dots
+    And every direct tab shows its site icon
+    When I turn off site icons on the Island
+    Then the island shows 3 direct tab dots
+    And the direct tabs are dots again
   @F2-9 @F2 @desktop
   Scenario: New Tab Below opens inside the group, directly below
     Given a group "work" with 2 tabs

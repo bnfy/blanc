@@ -97,6 +97,29 @@ When('I activate the standalone pinned tab', async function () {
   await this.waitForState((state) => state.activeTabId === id);
 });
 
+// ---- F3-33: site icons instead of dots (#1175) ----
+
+for (const [word, on] of [['on', true], ['off', false]]) {
+  When(`I turn ${word} site icons on the Island`, async function () {
+    assert.equal(await this.call('setIslandTabIcons', on), on);
+    await waitForValue(() => this.call('islandDotsState'), (dots) => dots?.iconsMode === on, `Island icons ${word}`);
+  });
+}
+
+Then('every direct tab shows its site icon', async function () {
+  const dots = await this.call('islandDotsState');
+  assert.equal(dots.iconsMode, true, JSON.stringify(dots));
+  assert.equal(dots.iconCount, dots.directCount, JSON.stringify(dots));
+  assert.equal(dots.peekCount, 0, 'an icon at rest needs no hover peek');
+});
+
+Then('the direct tabs are dots again', async function () {
+  const dots = await this.call('islandDotsState');
+  assert.equal(dots.iconsMode, false, JSON.stringify(dots));
+  assert.equal(dots.iconCount, 0, JSON.stringify(dots));
+  assert.equal(dots.peekCount, dots.directCount, JSON.stringify(dots));
+});
+
 // ---- F2-6: group close is one undo step ----
 
 /** Ordered member URLs for a named group, read from the same state()

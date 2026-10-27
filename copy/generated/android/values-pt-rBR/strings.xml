@@ -1011,6 +1011,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_search_priority_results_hint">Ao digitar, mostra as sugestões de pesquisa acima das suas abas, grupos, Spaces, Favoritos e Histórico.</string>
     <string name="settings_general_island_hover_open_label">Abrir a Island ao passar o cursor</string>
     <string name="settings_general_island_hover_open_hint">Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar.</string>
+    <string name="settings_general_island_tab_icons_label">Mostrar ícones dos sites na Island</string>
+    <string name="settings_general_island_tab_icons_hint">Mostra o ícone do site de cada aba em vez de um ponto. Os ícones ocupam mais espaço, então cabem menos abas.</string>
     <string name="settings_general_island_auto_hide_label">Ocultar a Island automaticamente</string>
     <string name="settings_general_island_auto_hide_hint">As páginas ocupam a janela inteira. Leve o ponteiro à borda superior ou abra a busca e os comandos para trazer a Island de volta.</string>
     <string name="settings_general_island_auto_hide_style_label">Quando a Island volta</string>

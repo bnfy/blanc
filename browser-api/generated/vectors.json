@@ -1618,6 +1618,7 @@
           "closedSlot": 1,
           "tabLayout": "island",
           "verticalTabsTextSize": "tabs-snapshot-1",
+          "islandTabIcons": true,
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
           "verticalTabsMinWidth": 1,
@@ -1708,6 +1709,7 @@
           "closedSlot": 1,
           "tabLayout": "island",
           "verticalTabsTextSize": "tabs-snapshot-1",
+          "islandTabIcons": true,
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
           "verticalTabsMinWidth": 1,
@@ -6807,6 +6809,7 @@
               "closedSlot": 1,
               "tabLayout": "island",
               "verticalTabsTextSize": "tabs-updated-payload-1",
+              "islandTabIcons": true,
               "adblockEnabled": true,
               "shieldPopover": {
                 "variant": "site",
@@ -6866,6 +6869,7 @@
                 "closedSlot": 1,
                 "tabLayout": "island",
                 "verticalTabsTextSize": "tabs-updated-payload-1",
+                "islandTabIcons": true,
                 "adblockEnabled": true,
                 "shieldPopover": {
                   "variant": "site",
@@ -7000,6 +7004,7 @@
               "closedSlot": 1,
               "tabLayout": "island",
               "verticalTabsTextSize": "tabs-updated-payload-1",
+              "islandTabIcons": true,
               "adblockEnabled": true,
               "shieldPopover": {
                 "variant": "site",
@@ -7166,6 +7171,7 @@
                 "closedSlot": 1,
                 "tabLayout": "island",
                 "verticalTabsTextSize": "tabs-updated-payload-1",
+                "islandTabIcons": true,
                 "adblockEnabled": true,
                 "shieldPopover": {
                   "variant": "site",

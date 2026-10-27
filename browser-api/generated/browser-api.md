@@ -565,6 +565,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | `closedSlot` | `number` | How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
 | `verticalTabsTextSize` | `string` |  |
+| `islandTabIcons` | `boolean` | Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). |
 | `verticalTabsWidth` | `number` |  |
 | `verticalTabsPreferredWidth` | `number` |  |
 | `verticalTabsMinWidth` | `number` |  |
@@ -587,6 +588,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | `closedSlot` | `number` | How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
 | `verticalTabsTextSize` | `string` |  |
+| `islandTabIcons` | `boolean` | Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). |
 | `adblockEnabled` | `boolean` |  |
 | `shieldPopover` | `ShieldPopover \| null` |  |
 | `captureChip` | `CaptureChip` |  |

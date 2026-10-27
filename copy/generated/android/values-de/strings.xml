@@ -981,6 +981,8 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_search_priority_results_hint">Zeigt beim Tippen Suchvorschläge über deinen Tabs, Gruppen, Spaces, Favoriten und dem Verlauf an.</string>
     <string name="settings_general_island_hover_open_label">Island beim Darüberfahren öffnen</string>
     <string name="settings_general_island_hover_open_hint">Lass den Zeiger auf der Adresse in der Island ruhen, um sie ohne Klick zu öffnen.</string>
+    <string name="settings_general_island_tab_icons_label">Website-Symbole in der Island zeigen</string>
+    <string name="settings_general_island_tab_icons_hint">Zeigt für jeden Tab das Symbol der Website statt eines Punkts. Symbole brauchen mehr Platz, deshalb passen weniger Tabs hinein.</string>
     <string name="settings_general_island_auto_hide_label">Island automatisch ausblenden</string>
     <string name="settings_general_island_auto_hide_hint">Seiten füllen das Fenster. Bewege den Zeiger an den oberen Rand oder öffne Suche und Befehle, um die Island zurückzuholen.</string>
     <string name="settings_general_island_auto_hide_style_label">Wenn die Island zurückkommt</string>

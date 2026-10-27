@@ -39757,6 +39757,90 @@
         }
       }
     },
+    "settings.general.islandTabIcons.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show site icons on the Island"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website-Symbole in der Island zeigen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar iconos de sitios en la Island"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher les icônes des sites dans l’Island"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra le icone dei siti nell’Island"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar ícones dos sites na Island"
+          }
+        }
+      }
+    },
+    "settings.general.islandTabIcons.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show each tab’s site icon instead of a dot. Icons take more room, so fewer tabs fit."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigt für jeden Tab das Symbol der Website statt eines Punkts. Symbole brauchen mehr Platz, deshalb passen weniger Tabs hinein."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muestra el icono del sitio de cada pestaña en lugar de un punto. Los iconos ocupan más espacio, así que caben menos pestañas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Affiche l’icône du site de chaque onglet au lieu d’un point. Les icônes prennent plus de place : moins d’onglets y tiennent."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra l’icona del sito di ogni scheda invece di un punto. Le icone occupano più spazio, quindi ci stanno meno schede."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra o ícone do site de cada aba em vez de um ponto. Os ícones ocupam mais espaço, então cabem menos abas."
+          }
+        }
+      }
+    },
     "settings.general.islandAutoHide.label": {
       "comment": "Settings → General: setting name.",
       "extractionState": "manual",

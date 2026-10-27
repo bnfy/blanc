@@ -3523,6 +3523,16 @@
     "note": "Settings → General: explanation under a setting.",
     "source": "sha256:6a86198b7bfd2f7ff14e2ef0eb16790a53a6f2b428fc5600f8a9e417e3504936"
   },
+  "settings.general.islandTabIcons.label": {
+    "message": "Mostrar ícones dos sites na Island",
+    "note": "Settings → General: setting name.",
+    "source": "sha256:07319322d085961d1f3218a5b85373d016c4718dda53afb6c15ca15b10c61b66"
+  },
+  "settings.general.islandTabIcons.hint": {
+    "message": "Mostra o ícone do site de cada aba em vez de um ponto. Os ícones ocupam mais espaço, então cabem menos abas.",
+    "note": "Settings → General: explanation under a setting.",
+    "source": "sha256:9c6f58227a47c1d7876bde4dec2fa5726dde3c79776bdcbeac75230a470eea81"
+  },
   "settings.general.islandAutoHide.label": {
     "message": "Ocultar a Island automaticamente",
     "note": "Settings → General: setting name.",
