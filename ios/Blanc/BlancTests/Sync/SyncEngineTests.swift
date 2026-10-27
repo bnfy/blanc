@@ -358,7 +358,7 @@ actor MemorySyncTransport: SyncTransport {
         // The phone's tabs go; its presence stays, so Settings → Sync lists it.
         let own = payload["devices"]?[f.state.state.deviceId]
         XCTAssertNotEqual(own?["retracted"], .bool(true))
-        XCTAssertEqual(own?["tabs"]?.array?.count, 0)
+        XCTAssertEqual(own?["tabs"], .array([]))
         XCTAssertEqual(own?["platform"], .string("ios"))
         let g = try await make()
         await g.engine.syncNow()
@@ -584,7 +584,7 @@ actor MemorySyncTransport: SyncTransport {
         await f.engine.syncNow()
         let devices = try await f.transport.value(accountA, .session, key: f.key)?["devices"]
         let own = devices?[f.state.state.deviceId]
-        XCTAssertEqual(own?["tabs"]?.array?.count, 0)
+        XCTAssertEqual(own?["tabs"], .array([]))
         XCTAssertNotEqual(own?["retracted"], .bool(true))
         XCTAssertNotNil(devices?["desktop-a"])
         // Unchanged presence is not uploaded again on the next pass.
