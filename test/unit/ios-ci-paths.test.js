@@ -7,10 +7,13 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const fs = require('node:fs');
 const path = require('node:path');
+const { execFileSync } = require('node:child_process');
 
 const root = path.join(__dirname, '../..');
-const workflow = fs.readFileSync(path.join(root, '.github/workflows/ios.yml'), 'utf8');
-const project = fs.readFileSync(path.join(root, 'ios/Blanc/Blanc.xcodeproj/project.pbxproj'), 'utf8');
+// Windows checkouts may use CRLF.
+const read = (file) => fs.readFileSync(path.join(root, file), 'utf8').replace(/\r\n/g, '\n');
+const workflow = read('.github/workflows/ios.yml');
+const project = read('ios/Blanc/Blanc.xcodeproj/project.pbxproj');
 
 function listed(event) {
   const block = workflow.split(new RegExp(`^  ${event}:\\n`, 'm'))[1];
@@ -32,11 +35,16 @@ function externalInputs() {
     const kind = project.slice(project.lastIndexOf('{', m.index), m.index);
     inputs.add(/lastKnownFileType = folder/.test(kind) ? `${ref}/**` : ref);
   }
-  // Symlinked sources in ios/Blanc point at generated files elsewhere.
-  for (const name of fs.readdirSync(path.join(root, 'ios/Blanc'))) {
-    const full = path.join(root, 'ios/Blanc', name);
-    if (!fs.lstatSync(full).isSymbolicLink()) continue;
-    const target = path.relative(root, path.resolve(path.dirname(full), fs.readlinkSync(full)));
+  // Symlinked sources in ios/Blanc point at generated files elsewhere. Read
+  // them from git's index (mode 120000): a Windows checkout without symlink
+  // support writes each one as a plain file holding its target.
+  const index = execFileSync('git', ['ls-files', '-s', '--', 'ios/Blanc'], { cwd: root, encoding: 'utf8' });
+  for (const line of index.split('\n')) {
+    const m = line.match(/^120000 \S+ \d+\t(ios\/Blanc\/[^/]+)$/);
+    if (!m) continue;
+    const full = path.join(root, m[1]);
+    const link = fs.lstatSync(full).isSymbolicLink() ? fs.readlinkSync(full) : fs.readFileSync(full, 'utf8').trim();
+    const target = path.posix.normalize(path.posix.join(path.posix.dirname(m[1]), link.replace(/\\/g, '/')));
     if (!target.startsWith('ios/')) inputs.add(target);
   }
   return inputs;
