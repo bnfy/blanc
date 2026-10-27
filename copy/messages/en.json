@@ -4073,10 +4073,6 @@
     "message": "Favorites and settings",
     "note": "Settings → Sync → Set up Sync: text (dt)."
   },
-  "settings.sync.thisDevicesOpenTabs": {
-    "message": "This device’s open tabs",
-    "note": "Settings → Sync → Set up Sync: text (dt)."
-  },
   "settings.sync.lastError": {
     "message": "Last error",
     "note": "Settings → Sync → Set up Sync: text (dt)."
@@ -4087,9 +4083,17 @@
     "maxLength": 24
   },
   "settings.sync.syncDisable": {
-    "message": "Turn off sync",
-    "note": "Settings → Sync → Set up Sync: button.",
+    "message": "Turn off",
+    "note": "Settings → Sync (on): button at the end of the Turn off sync row.",
     "maxLength": 19
+  },
+  "settings.sync.turnOff.title": {
+    "message": "Turn off sync",
+    "note": "Settings → Sync (on): row label for stopping sync on this device."
+  },
+  "settings.sync.turnOff.hint": {
+    "message": "This device stops syncing. Its favorites and settings stay as they are.",
+    "note": "Settings → Sync (on): explanation under Turn off sync."
   },
   "settings.profiles.title": {
     "message": "Profiles",
@@ -4476,12 +4480,12 @@
     "note": "Settings → Privacy & Security → Calls and connections: error shown when the custom DNS address is invalid."
   },
   "settings.sync.syncWipe": {
-    "message": "also delete synced data",
-    "note": "Settings → Sync: checkbox beside Turn off sync that also erases the server copy (lowercase, continues the button)."
+    "message": "Also delete synced data",
+    "note": "Settings → Sync (on): checkbox under Turn off sync that also erases the server copy."
   },
   "settings.sync.syncTabsShare": {
-    "message": "share this device’s open tabs with your other devices",
-    "note": "Settings → Sync: checkbox that publishes this device’s open tabs to your other devices (lowercase in the original)."
+    "message": "Share this device’s open tabs with your other devices",
+    "note": "Settings → Sync (on): label of the switch that publishes this device’s open tabs to your other devices."
   },
   "settings.general.newtabDynamicWallpaper.syncedHint": {
     "message": "Wallpaper follows this machine’s local time. The on/off choice syncs across devices.",
@@ -5051,14 +5055,6 @@
     "message": "Not synced yet",
     "note": "Settings → Sync: status row before the first sync."
   },
-  "settings.sync.sharing": {
-    "message": "Sharing",
-    "note": "Settings → Sync: status of this device’s open tabs when they are shared."
-  },
-  "settings.sync.notShared": {
-    "message": "Not shared",
-    "note": "Settings → Sync: status of this device’s open tabs when they are not shared."
-  },
   "settings.sync.turningOn": {
     "message": "Turning on sync…",
     "note": "Settings → Sync setup: shown while sync is turned on."
@@ -5131,6 +5127,15 @@
     "message": "Add another device",
     "note": "Settings → Sync (on): button that shows a pairing code for a new device."
   },
+  "settings.sync.addAnotherDeviceHint": {
+    "message": "Shows a code to enter on the new device. It’s good for ten minutes.",
+    "note": "Settings → Sync (on): explanation under Add another device."
+  },
+  "settings.sync.pairing.show": {
+    "message": "Show code",
+    "note": "Settings → Sync (on): button in the Add another device row that shows the pairing code.",
+    "maxLength": 20
+  },
   "settings.sync.pairing.instruction": {
     "message": "On your other device, open Settings → Sync, choose Add this device to my sync, and enter this code.",
     "note": "Settings → Sync → Add another device: instruction above the code."
@@ -5155,6 +5160,15 @@
     "message": "Connect to a different sync with a code",
     "note": "Settings → Sync (on): opens the panel that moves this device to another sync."
   },
+  "settings.sync.switch.hint": {
+    "message": "Moves this device to another sync, using a code from one of that sync’s devices.",
+    "note": "Settings → Sync (on): explanation under Connect to a different sync with a code."
+  },
+  "settings.sync.switch.enterCode": {
+    "message": "Enter code",
+    "note": "Settings → Sync (on): button that opens the form for joining a different sync with a code.",
+    "maxLength": 20
+  },
   "settings.sync.switch.title": {
     "message": "This device will leave its current sync, “{name}”.",
     "note": "Settings → Sync → Connect to a different sync: heading; {name} is the current sync name."
@@ -5174,6 +5188,19 @@
   "settings.sync.recovery.copy": {
     "message": "Copy recovery code",
     "note": "Settings → Sync (on): copies the recovery code to the clipboard after a native confirmation."
+  },
+  "settings.sync.recovery.title": {
+    "message": "Recovery code",
+    "note": "Settings → Sync (on): row label for the recovery code."
+  },
+  "settings.sync.recovery.hint": {
+    "message": "Lets a device join this sync when none of your other devices is at hand. Keep it in your password manager.",
+    "note": "Settings → Sync (on): explanation under Recovery code."
+  },
+  "settings.sync.recovery.copyShort": {
+    "message": "Copy",
+    "note": "Settings → Sync (on): button in the Recovery code row; copies the code after a native confirmation.",
+    "maxLength": 16
   },
   "settings.sync.recovery.copied": {
     "message": "Copied. Paste it into your password manager.",
@@ -8870,22 +8897,6 @@
   "menu.previousTabInOrder": {
     "message": "Previous Tab in List Order",
     "note": "App menu command (Ctrl+PageUp) that switches to the previous tab in the tab list, whatever order Ctrl+Tab uses."
-  },
-  "settings.general.tabSwitchOrder.label": {
-    "message": "Switch tabs with Ctrl+Tab",
-    "note": "Settings → General: setting name. Chooses the order Ctrl+Tab goes through tabs."
-  },
-  "settings.general.tabSwitchOrder.hint": {
-    "message": "Hold Ctrl and press Tab to go back through the tabs you used last, then let go of Ctrl to switch. Esc stays where you are.",
-    "note": "Settings → General: explanation under a setting."
-  },
-  "settings.general.tabSwitchOrder.recent": {
-    "message": "In the order you used them",
-    "note": "Settings → General → Switch tabs with Ctrl+Tab: option (most recently used first; the default)."
-  },
-  "settings.general.tabSwitchOrder.list": {
-    "message": "In the order of the tab list",
-    "note": "Settings → General → Switch tabs with Ctrl+Tab: option (the order tabs appear in the list)."
   },
   "slash.copy.hint": {
     "message": "Copy this page's link — add \"clean\" to drop tracking parameters",

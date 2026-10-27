@@ -5,14 +5,21 @@
   const api=window.bowserPages?.settings;
   if(!api?.sharedSpacesStatus)return;
   const status=await api.sharedSpacesStatus();if(!status.offered)return;
-  const {t}=blancI18n,anchor=document.getElementById('syncTabsShare')?.closest('.toolbar-row');if(!anchor)return;
-  const row=document.createElement('div');row.className='toolbar-row';row.id='sharedSpacesControl';
-  const label=document.createElement('label');label.className='inline-check';
+  const {t}=blancI18n,anchor=document.getElementById('syncTabsShareSetting');if(!anchor)return;
+  // A Settings row like its neighbours: label, explanation and live status on
+  // the left, the switch on the right; the pairing question opens below.
+  const row=document.createElement('div');row.className='setting sync-action';row.id='sharedSpacesControl';
+  const text=document.createElement('div');text.className='label';
+  const title=document.createElement('span');title.id='sharedSpacesLabel';title.textContent=t('sharedSpaces.switch');
+  const detail=document.createElement('span');detail.className='hint';detail.id='sharedSpacesHint';detail.textContent=t('sharedSpaces.accountLine')+' '+t('sharedSpaces.offLine');
+  const note=document.createElement('span');note.className='hint sync-row-status';note.setAttribute('role','status');
+  text.append(title,detail,note);
+  const label=document.createElement('label');label.className='toggle';
   const toggle=document.createElement('input');toggle.type='checkbox';toggle.checked=!!status.enabled;toggle.id='sharedSpacesToggle';
-  label.append(toggle,document.createTextNode(' '+t('sharedSpaces.switch')));
-  const note=document.createElement('p');note.className='section-hint';note.setAttribute('role','status');
-  const detail=document.createElement('p');detail.className='section-hint';detail.textContent=t('sharedSpaces.accountLine')+' '+t('sharedSpaces.offLine');
-  row.append(label,detail,note);anchor.after(row);
+  toggle.setAttribute('aria-labelledby','sharedSpacesLabel');toggle.setAttribute('aria-describedby','sharedSpacesHint');
+  const track=document.createElement('span');track.className='track';
+  label.append(toggle,track);
+  row.append(text,label);anchor.after(row);
   const dialog=document.createElement('dialog');dialog.className='shared-spaces-dialog';dialog.setAttribute('aria-labelledby','sharedSpacesHeading');
   const heading=document.createElement('h2');heading.id='sharedSpacesHeading';heading.textContent=t('sharedSpaces.title');
   const explanation=document.createElement('p');explanation.textContent=t('sharedSpaces.explanation');
@@ -24,10 +31,11 @@
   function showQuestion(question) {
     if(promptId===question?.deviceId)return;
     prompt?.remove();prompt=null;promptId=question?.deviceId??null;if(!question)return;
-    prompt=document.createElement('div');const text=document.createElement('p'),detail=document.createElement('p'),yes=document.createElement('button'),no=document.createElement('button');
+    prompt=document.createElement('div');prompt.className='sync-panel';const text=document.createElement('strong'),detail=document.createElement('p'),actions=document.createElement('div'),yes=document.createElement('button'),no=document.createElement('button');
+    detail.className='sync-panel-body';actions.className='sync-panel-actions';no.className='quiet';
     text.textContent=t('sharedSpaces.pairQuestion',{name:question.name});detail.textContent=t('sharedSpaces.pairDetail');yes.textContent=t('sharedSpaces.confirm');no.textContent=t('sharedSpaces.notNow');
     const dismiss=async()=>{if(await api.sharedSpacesAcknowledge(question.deviceId)){prompt?.remove();prompt=null;promptId=null;}};
-    yes.addEventListener('click',async()=>{await dismiss();toggle.click();});no.addEventListener('click',dismiss);prompt.append(text,detail,yes,no);row.append(prompt);
+    yes.addEventListener('click',async()=>{await dismiss();toggle.click();});no.addEventListener('click',dismiss);actions.append(yes,no);prompt.append(text,detail,actions);row.append(prompt);
   }
   showQuestion(status.question);
   if(status.accountFull)note.textContent=t('sharedSpaces.accountFull');

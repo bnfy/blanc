@@ -1925,7 +1925,6 @@
       const syncStatusHandle = document.getElementById('syncStatusHandle');
       const deviceNameEl = document.getElementById('syncDeviceName');
       const syncStatusData = document.getElementById('syncStatusData');
-      const syncStatusTabs = document.getElementById('syncStatusTabs');
       const syncStatusErrorRow = document.getElementById('syncStatusErrorRow');
       const syncStatusError = document.getElementById('syncStatusError');
       const nowBtn = document.getElementById('syncNow');
@@ -1982,7 +1981,8 @@
       const eraseRetry = document.getElementById('syncEraseRetry');
       let currentHandle = '';
 
-      // On-state: one row per category; the error lives ONLY in its own row.
+      // On-state: the summary, then one row per setting; the error lives ONLY in
+      // its own callout. Open-tab sharing shows as its switch, not a status line.
       function renderStatus(status, note) {
         const on = !!status.enabled;
         eraseRetry.hidden = !canWipeRemote || !status.erasurePending;
@@ -1997,7 +1997,6 @@
           deviceNameEl.placeholder = status.deviceNamePublished || '';
           const lastSynced = relativeSyncTime(status.lastSyncedAt);
           syncStatusData.textContent = lastSynced ? t('settings.sync.lastSynced', { when: lastSynced }) : t('settings.sync.notSynced');
-          syncStatusTabs.textContent = status.syncTabs ? t('settings.sync.sharing') : t('settings.sync.notShared');
           syncStatusErrorRow.hidden = !status.lastError;
           syncStatusError.textContent = status.lastError || '';
           activeStatus.textContent = note || '';

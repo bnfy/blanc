@@ -293,7 +293,7 @@ body.sheet .history-views > button[aria-pressed="true"] {
   flex: 1 1 160px;
   min-width: 0;
 }
-/* Inline "also delete synced data" checkbox next to Turn-off-sync. */
+/* Inline checkboxes such as "Also delete synced data" under Turn off sync. */
 .inline-check {
   display: inline-flex;
   align-items: center;
@@ -717,6 +717,9 @@ body.sheet .page > .row-list > .empty {
   min-width: 0;
   max-width: min(360px, 100%);
 }
+/* One control column per card: selectors share a minimum width, so their
+   left edges line up and every hint beside them folds at the same place. */
+.settings-card .setting > .settings-select { min-width: min(224px, 100%); }
 .setting input[type="url"] { width: 280px; max-width: 100%; min-width: 0; }
 .gesture-editor { padding: 12px 0 16px; border-bottom: 1px solid var(--border); }
 .gesture-editor-heading { margin-bottom: 8px; font-size: 12px; font-weight: 600; }
@@ -1189,7 +1192,9 @@ body.sheet #profilesList {
   border-top: 1px solid var(--border);
   border-radius: 0;
 }
-body.sheet #profilesList .row { padding-inline: 0; }
+/* Row text lines up with the field above; the hover and focus wash keeps its
+   own inner padding by reaching into the card's margin. */
+body.sheet #profilesList .row { margin-inline: -12px; padding-inline: 12px; }
 body.sheet #group-diagnostics #diagnosticsSummary {
   max-width: none;
   margin: 0 0 16px;
@@ -1234,9 +1239,10 @@ body.sheet .card-title {
   font-weight: var(--type-card-title-weight);
 }
 .settings-group .settings-card + .settings-card { margin-top: 12px; }
-/* The last row in a card sits right above its own border — a trailing
-   hairline there would double up against it. */
-.settings-card > .setting:last-child { border-bottom: none; }
+/* The last visible row in a card sits right above its own border — a
+   trailing hairline there would double up against it. Rows that settings.js
+   hides (a custom DNS address, say) don't count as last. */
+.settings-card > .setting:not(:has(~ :not([hidden]))) { border-bottom: none; }
 .trust-receipt-list {
   display: grid;
   grid-template-columns: minmax(130px, 0.35fr) minmax(0, 1fr);
@@ -4582,15 +4588,58 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
 #syncSetupStatus { min-height: 1.5em; }
 .sync-form button.quiet { background: transparent; border-color: transparent; color: var(--text-dim); }
 .sync-form button.quiet:hover { color: var(--accent); }
-.sync-status-list { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; margin: 0 0 12px; font-size: 13px; }
-.sync-status-list > div { display: contents; }
-.sync-status-list dt { color: var(--text-dim); }
-.sync-status-list dd { margin: 0; }
-.sync-status-list dd > input { width: 100%; max-width: 320px; }
-/* A field row: its label lines up with the text inside the input. */
-.sync-status-list dt:has(> label),
-.sync-status-list dt:has(> label) + dd { align-self: baseline; }
-.sync-device-name-hint { display: block; margin-top: 4px; color: var(--text-dim); font-size: 12px; }
+/* On state (#syncActive): two cards in the Settings card-and-row grammar.
+   The overview card opens with a summary of this sync; every other line is
+   a .setting row with its control on the right. */
+.sync-summary {
+  padding: 14px 0 16px;
+  border-bottom: 1px solid var(--border);
+}
+.sync-summary-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.sync-summary-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+.sync-summary-main > button,
+.sync-error > button,
+.sync-action > button { flex: none; white-space: nowrap; }
+.sync-summary-label { color: var(--text-dim); font-size: 12px; }
+.sync-summary-name {
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.sync-summary-meta { color: var(--text-dim); font-size: 12.5px; }
+.sync-summary-when:not(:empty)::before { content: "· "; }
+.sync-active-status { color: var(--text); font-size: 12.5px; }
+.sync-active-status:empty { display: none; }
+.sync-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--danger) 9%, transparent);
+  font-size: 12.5px;
+}
+.sync-error p { margin: 0; line-height: 1.45; }
+.sync-error strong { color: var(--danger); font-weight: 600; }
+/* Rows bring their own vertical padding, as in the other row-only cards. */
+body.sheet #syncActive .settings-card { padding-block: 2px; }
+.sync-overview .setting > input[type="text"] { flex: 0 1 240px; width: 240px; max-width: 100%; min-width: 0; }
+.sync-action .label .inline-check { margin-top: 6px; }
+.sync-row-status:empty { display: none; }
 .sync-code-input {
   font-family: "Inter", var(--font-text);
   font-variant-numeric: tabular-nums;
@@ -4601,9 +4650,25 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
 @media (max-width: 600px) {
   #group-sync input { font-size: 16px; }
 }
-.sync-devices { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
-.sync-pairing, .sync-switch { margin-top: 10px; display: grid; gap: 8px; }
-.sync-pairing-instruction { margin: 0; font-size: 13px; line-height: 1.45; }
+/* A row that opens a panel (the pairing code, the switch form, the shared
+   Spaces question) wraps it onto a full-width line of its own. */
+.sync-action { flex-wrap: wrap; }
+.sync-action > .sync-panel { flex: 1 0 100%; }
+.sync-panel {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.sync-panel > strong { font-size: 13.5px; font-weight: 600; line-height: 1.4; }
+.sync-panel .sync-field > strong { font-size: 13px; }
+.sync-panel-body,
+.sync-pairing-instruction { margin: 0; color: var(--text-dim); font-size: 12.5px; line-height: 1.5; }
+.sync-panel-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.sync-pairing-remaining { margin-right: auto; color: var(--text-dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+.sync-panel-notice { margin: 0; color: var(--text-dim); font-size: 12px; }
+.sync-panel-notice:empty { display: none; }
 .sync-pairing-code {
   font-family: "Inter", var(--font-text);
   font-variant-numeric: tabular-nums;
@@ -4611,13 +4676,29 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
   font-weight: 600;
   letter-spacing: 0.12em;
   text-align: center;
-  padding: 10px 0;
+  padding: 12px 0;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
   user-select: all;
 }
-.sync-pairing-actions { align-items: center; }
-.sync-switch > strong { font-size: 14px; }
+/* Buttons in a panel sit on --surface: the filled ones step up to the card
+   colour and Cancel stays a transparent button of the same size. */
+body.sheet .sync-panel button:not([class]),
+body.sheet .sync-panel button.danger { background-color: var(--surface-raised); }
+body.sheet .sync-panel button:not([class]):hover { background-color: var(--border); }
+body.sheet .sync-panel button.danger:hover { background-color: var(--danger); }
+body.sheet .sync-panel button.quiet {
+  min-height: 32px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background-color: transparent;
+  color: var(--text-dim);
+  font-size: var(--type-body-size);
+  font-weight: 500;
+}
+body.sheet .sync-panel button.quiet:hover { color: var(--text); background-color: var(--border); }
 
 @media (max-width: 720px) {
   .sync-guide-step {
