@@ -328,6 +328,13 @@ if [ "$LOCAL_HEAD" != "$(git rev-parse origin/main)" ]; then
   exit 1
 fi
 
+# Keep the Mac and its display awake for the rest of the release: the press
+# gate's acceptance run and the packaged checks drive real windows for about 40
+# minutes, and a sleeping display fails focus-dependent scenarios (October 2026).
+if command -v caffeinate >/dev/null 2>&1; then
+  caffeinate -dimsu -w $$ &
+fi
+
 # Resume after a flake. A packaged check that fails, then passes when rerun
 # alone against the same build, is not a reason to rebuild and re-notarize.
 # BLANC_RELEASE_RESUME_FROM=<step> (with BLANC_RELEASE_RESUME_REASON) skips the
