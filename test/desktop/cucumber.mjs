@@ -7,6 +7,8 @@
 //               (drivable via main-process state). This is what CI runs green.
 //   dry       - `runnable` under --dry-run: verifies every selected step
 //               resolves to a definition without launching Electron.
+//   rerun     - `runnable` scenarios named as path:line arguments, once, with
+//               no retry: the release gate's rerun of what failed.
 //   default   - every desktop-applicable scenario (`not @mobile`). Runs the
 //               implemented subset and reports the rest as UNDEFINED — an
 //               honest view of the remaining backlog.
@@ -82,8 +84,22 @@ const RUNNABLE = [
   '@F48-1', '@F48-2', '@F48-3', '@F48-4', '@F48-5', '@F48-6', '@F48-7',
 ].join(' or ');
 
+// The release gate (scripts/acceptance-gate.mjs) names its JSON report here: a
+// [type, path] pair skips Cucumber's colon parsing, which rejects a Windows
+// drive letter.
+const gateReport = process.env.BLANC_ACCEPTANCE_REPORT
+  ? { format: ['progress', ['json', process.env.BLANC_ACCEPTANCE_REPORT]] }
+  : {};
+
 export default { ...common, tags: 'not @mobile' };
-export const runnable = { ...common, tags: RUNNABLE, retry: 1 };
+export const runnable = { ...common, tags: RUNNABLE, retry: 1, ...gateReport };
+// The gate's one rerun of scenarios that failed `runnable`, in a fresh process:
+// no `paths`, so the positional path:line arguments are the whole selection
+// (Cucumber 13 merges positional paths with a profile's), and no retry, so it
+// is exactly one more attempt.
+export const rerun = {
+  require: common.require, import: common.import, tags: RUNNABLE, retry: 0, ...gateReport,
+};
 export const dry = { ...common, tags: RUNNABLE, dryRun: true };
 // The harness's own self-test (test/desktop/harness/): scenarios that break the
 // app on purpose to prove the hooks heal it. Run by healing-smoke.mjs, which
