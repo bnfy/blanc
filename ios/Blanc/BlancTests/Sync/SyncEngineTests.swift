@@ -349,13 +349,17 @@ actor MemorySyncTransport: SyncTransport {
         XCTAssertEqual(try JSONValue(data: data)["values"]?["theme"], .string("system"))
         _ = await f.engine.disable()
     }
-    func testShareOffPublishesRetractionAndNeverSharedDoesNotPublishSession() async throws {
+    func testShareOffPublishesPresenceAndNeverSharedDoesNotCreateSession() async throws {
         let f = try await make(sharing: true)
         await f.engine.syncNow()
         await f.engine.setShareTabs(false)
         let data = try await SyncWorkerClient(transport: f.transport).get(accountA, .session)
         let payload = try JSONValue(data: SyncCrypto.open(XCTUnwrap(data).blob, key: f.key))
-        XCTAssertEqual(payload["devices"]?[f.state.state.deviceId]?["retracted"], .bool(true))
+        // The phone's tabs go; its presence stays, so Settings → Sync lists it.
+        let own = payload["devices"]?[f.state.state.deviceId]
+        XCTAssertNotEqual(own?["retracted"], .bool(true))
+        XCTAssertEqual(own?["tabs"]?.array?.count, 0)
+        XCTAssertEqual(own?["platform"], .string("ios"))
         let g = try await make()
         await g.engine.syncNow()
         let puts = await putCount(g.transport, suffix: "/session"); XCTAssertEqual(puts, 0)
@@ -571,6 +575,33 @@ actor MemorySyncTransport: SyncTransport {
         _ = await f.engine.switchWithCode(try code(accountB, key: f.key))
         XCTAssertTrue(f.engine.inbox.isEmpty)
         XCTAssertTrue(f.engine.sendTargets.isEmpty)
+    }
+    // Every device announces itself (Settings → Sync's device list): a phone
+    // that doesn't share tabs publishes its presence into an existing tab list.
+    func testNotSharingAnnouncesPresenceIntoAnExistingTabList() async throws {
+        let f = try await make()
+        try await f.transport.install(accountA, .session, session("desktop-a"), key: f.key)
+        await f.engine.syncNow()
+        let devices = try await f.transport.value(accountA, .session, key: f.key)?["devices"]
+        let own = devices?[f.state.state.deviceId]
+        XCTAssertEqual(own?["tabs"]?.array?.count, 0)
+        XCTAssertNotEqual(own?["retracted"], .bool(true))
+        XCTAssertNotNil(devices?["desktop-a"])
+        // Unchanged presence is not uploaded again on the next pass.
+        let before = await putCount(f.transport, suffix: "/session")
+        await f.engine.syncNow()
+        let after = await putCount(f.transport, suffix: "/session")
+        XCTAssertEqual(after, before)
+    }
+    func testDisableRetractsPresenceFromTheTabList() async throws {
+        let f = try await make()
+        try await f.transport.install(accountA, .session, session("desktop-a"), key: f.key)
+        await f.engine.syncNow()
+        let own = f.state.state.deviceId
+        _ = await f.engine.disable()
+        let devices = try await f.transport.value(accountA, .session, key: f.key)?["devices"]
+        XCTAssertEqual(devices?[own]?["retracted"], .bool(true))
+        XCTAssertNotNil(devices?["desktop-a"])
     }
     func testDisablePublishesSendsRetraction() async throws {
         let f = try await make()

@@ -208,7 +208,7 @@ import Observation
       try check(g)
       _ = try decode(found.blob, key: key)
       if stateStore.state.enabled, stateStore.state.accountId != payload.accountId {
-        if stateStore.state.syncTabs { await retractBestEffort() }
+        await retractBestEffort()
         await retractSendsBestEffort()
         try check(g)
       }
@@ -317,7 +317,7 @@ import Observation
     defer { transitioning = false }
     await barrier()
     do {
-      if stateStore.state.enabled, stateStore.state.syncTabs { await retractBestEffort() }
+      if stateStore.state.enabled { await retractBestEffort() }
       if stateStore.state.enabled { await retractSendsBestEffort() }
       await cancelPairing()
       let oldKey = try secrets.readKey()
@@ -414,11 +414,17 @@ import Observation
         remote: pulled[.session]?.1["devices"] ?? .object([]), ownId: stateStore.state.deviceId,
         now: clock())
       mergedSession = .object([("devices", mergedSession)])
-      if stateStore.state.syncTabs {
+      // Every device announces itself, so Settings → Sync can list it: a
+      // phone that doesn't share its tabs publishes its presence alone (no
+      // tabs). It never creates a missing tab list, which would recreate data
+      // deleted from desktop; desktop creates that list.
+      let announcesPresence = !stateStore.state.syncTabs && pulled[.session] != nil
+      if stateStore.state.syncTabs || announcesPresence {
         let previous = mergedSession["devices"]?[stateStore.state.deviceId]
         mergedSession = replacingOwn(
           in: mergedSession,
-          entry: TabSnapshots.ownEntry(tabs: tabsSource(), previous: previous, now: clock()))
+          entry: TabSnapshots.ownEntry(
+            tabs: stateStore.state.syncTabs ? tabsSource() : [], previous: previous, now: clock()))
       }
       let mergedIcons: JSONValue =
         iconsUnavailable
@@ -457,7 +463,7 @@ import Observation
           .bookmarks, payload: mergedFavorites, remote: pulled[.bookmarks], snapshot: snap)
         try check(g)
       }
-      if stateStore.state.syncTabs {
+      if stateStore.state.syncTabs || announcesPresence {
         let uploadedSession = try await writeMerged(
           .session,
           payload: .object([
@@ -604,11 +610,17 @@ import Observation
   /// phone keeps sync.json but not the device-only key). Try to tell the other
   /// devices this phone stopped sharing; if that can't happen, its entry ages
   /// out after 30 days like any silent device's.
+  /// Leaving a sync: take this phone off the others' device lists. Only an
+  /// entry the server holds is retracted; a phone that never published sends
+  /// nothing to the old account.
   private func retractBestEffort() async {
     guard let snap = try? snapshot() else { return }
-    try? await retract(snap)
+    try? await retract(snap, leaving: true)
   }
-  private func retract(_ snap: AccountSnapshot) async throws {
+  /// Turning sharing off (`leaving: false`) replaces this phone's tabs with its
+  /// presence alone, whose fresh clock beats every stale copy of the tabs;
+  /// leaving the sync (`leaving: true`) publishes a retraction.
+  private func retract(_ snap: AccountSnapshot, leaving: Bool = false) async throws {
     let item = try await request { try await client.get(snap.accountId, .session) }
     try check(snap.generation)
     // No tab list on the server: nothing lists this phone, and writing one
@@ -623,9 +635,15 @@ import Observation
           ownId: stateStore.state.deviceId, now: clock())
       )
     ])
-    let previous = merged["devices"]?[stateStore.state.deviceId]?["updatedAt"]?.integer ?? 0
+    let own = merged["devices"]?[stateStore.state.deviceId]
+    if leaving, own == nil || own?["retracted"]?.isTruthy == true { return }
+    let previous = own?["updatedAt"]?.integer ?? 0
+    let now = max(clock(), previous + 1)
     let value = replacingOwn(
-      in: merged, entry: TabSnapshots.retraction(now: max(clock(), previous + 1)))
+      in: merged,
+      entry: leaving
+        ? TabSnapshots.retraction(now: now)
+        : TabSnapshots.ownEntry(tabs: [], previous: nil, now: now))
     session = try await writeMerged(.session, payload: value, remote: remote, snapshot: snap)
     try stateStore.save(.session, session)
   }

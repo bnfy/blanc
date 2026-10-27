@@ -152,3 +152,7 @@ Acceptance: a Gherkin scenario added to `spec/acceptance/` (dry-run-resolvable; 
 - Real-time presence / server push (the 15s publish debounce + pull on launch/focus/panel-open is the freshness).
 - Remote-closing tabs on another device; any write path targeting another device's entry.
 - History and downloads sync (unchanged from the original spec's phasing).
+
+## Addendum (2026-10-27): the iOS app announces itself too
+
+The iOS app follows the same rule as desktop, within its own invariant that it never creates a missing `session` store (doing so could recreate data deleted from desktop). A phone that doesn't share its tabs publishes its presence (`tabs: []`, platform `ios`) into an existing tab list on each pass, uploading only when it changes; turning sharing off publishes that presence instead of a retraction; leaving the sync retracts the phone's entry whether or not it shared tabs, and only if the server holds one.
