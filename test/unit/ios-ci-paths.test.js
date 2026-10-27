@@ -35,16 +35,14 @@ function externalInputs() {
     const kind = project.slice(project.lastIndexOf('{', m.index), m.index);
     inputs.add(/lastKnownFileType = folder/.test(kind) ? `${ref}/**` : ref);
   }
-  // Symlinked sources in ios/Blanc point at generated files elsewhere. Read
-  // them from git's index (mode 120000): a Windows checkout without symlink
-  // support writes each one as a plain file holding its target.
-  const index = execFileSync('git', ['ls-files', '-s', '--', 'ios/Blanc'], { cwd: root, encoding: 'utf8' });
-  for (const line of index.split('\n')) {
-    const m = line.match(/^120000 \S+ \d+\t(ios\/Blanc\/[^/]+)$/);
+  // Symlinked sources in ios/Blanc point at generated files elsewhere. Take
+  // each link and its target from git's index (mode 120000, blob = target),
+  // not the checkout: Windows without symlink support writes a plain file.
+  const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' });
+  for (const line of git('ls-files', '-s', '--', 'ios/Blanc').split('\n')) {
+    const m = line.match(/^120000 ([0-9a-f]+) \d+\t(ios\/Blanc\/[^/]+)$/);
     if (!m) continue;
-    const full = path.join(root, m[1]);
-    const link = fs.lstatSync(full).isSymbolicLink() ? fs.readlinkSync(full) : fs.readFileSync(full, 'utf8').trim();
-    const target = path.posix.normalize(path.posix.join(path.posix.dirname(m[1]), link.replace(/\\/g, '/')));
+    const target = path.posix.normalize(path.posix.join(path.posix.dirname(m[2]), git('cat-file', '-p', m[1]).trim()));
     if (!target.startsWith('ios/')) inputs.add(target);
   }
   return inputs;
