@@ -138,6 +138,11 @@ async function stopApp() {
 // main-process turn (support/main-turn.js); plain reads of main's state don't.
 const tabsNow = async () => (await callTestHook(app, 'windowRuntimes'))[0].tabs;
 const hook = (method, args) => callTestHook(app, method, args);
+/** Log the refusals Quiet Tabs gave before a tab rested (or for a tab that
+ * may stay awake), so a passing run still shows which refusals occur. */
+function noteRefusals(label, { rested, reasons }) {
+  if (reasons.length) console.log(`${label} quiet: ${rested ? 'rested after' : 'stayed awake after'} ${reasons.join(', ')}`);
+}
 // Read from main: page script can stall while a document is being replaced.
 async function hrefOf(id) {
   const wcId = await callTestHook(app, 'workspacePageIdentity', [id]);
@@ -346,6 +351,7 @@ try {
   await callTestHook(app, 'activateTab', [(await callTestHook(app, 'newTab'))]);
   const ordinaryRest = await restTab(hook, ordinary, 'ordinary');
   assert.equal(ordinaryRest.rested, true, `ordinary: quiet (refused: ${ordinaryRest.reasons.join(', ')})`);
+  noteRefusals('ordinary', ordinaryRest);
   await assertLoads(ordinary, ordinaryUrl, 'ordinary after quiet');
 
   // Positive control for the archive path: an ordinary tab archives and restores.
@@ -409,6 +415,7 @@ try {
     const quiet = await restTab(hook, child.id, variant.name, { required: !variant.sandbox });
     const { rested } = quiet;
     if (!variant.sandbox) assert.equal(rested, true, `${variant.name}: forced quiet (refused: ${quiet.reasons.join(', ')})`);
+    noteRefusals(variant.name, quiet);
     if (rested) await assertInert(child.id, child.url, `${variant.name} woken`);
     else await assertDocumentPolicy(child.id, variant, `${variant.name} after a refused quiet`);
     await callTestHook(app, 'closeTab', [child.id]);
