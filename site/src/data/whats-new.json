@@ -31,8 +31,8 @@
           "title": "Move tabs and groups between spaces",
           "body": "Move a tab, as it is, to the end of another space without leaving the window you’re in. A whole group moves with its name and colour, and a link can open straight in another space.",
           "steps": [
-            "Right-click a tab and choose Move to Space, then a space. New Space… makes a space that starts with that tab.",
-            "For a group, open its menu and choose Move Group to Space. For a link, right-click it and choose Open Link in Space."
+            "Right-click a tab, choose Move to Space, then pick a space or New Space….",
+            "For a whole group, use Move Group to Space; for a link, Open Link in Space."
           ],
           "note": "These appear once you have a space. Private tabs don’t offer them.",
           "learnMore": "/features/workspaces",
