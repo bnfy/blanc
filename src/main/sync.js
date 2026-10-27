@@ -684,6 +684,9 @@ async function disable({ wipeRemote = false } = {}) {
     } else if (d.enabled && d.accountId && d.protectedKey) {
       await retractSends(d).catch(() => {});
       await retractSends(d,'closed',syncedClosed.retractedOwn).catch(() => {});
+      // Every device announces itself in the open-tabs store, sharing or not,
+      // so leaving takes this one off the others' device lists at once.
+      await retractSends(d,'session',()=>({retracted:true,updatedAt:Date.now()})).catch(() => {});
     }
     ensureStore().update((s) => {
       s.enabled = false; s.handle = ''; s.accountId = '';
@@ -1080,7 +1083,8 @@ function renameRemoteDevice(deviceId, name, devices = listRemoteDevices()) {
   return true;
 }
 
-/** Leaving a sync (M7b §3): publish this device's sends entry as retracted,
+/** Leaving a sync (M7b §3): publish this device's entry in a per-device
+ * store (sends, closed, session) as retracted,
  * best effort and bounded, so the account's other devices stop offering it
  * as a target and drop its items. Never creates the store. Runs inside
  * disable()'s barrier, after the last pass has settled. */
@@ -1226,8 +1230,10 @@ function init() {
     const ctx = tabSyncContext();
     // Presence (M7b §3): a device that doesn't share tabs stays a target.
     if (sends.heartbeatDue(ctx)) syncNow(['sends']).catch(() => {});
-    if (!d.syncTabs) return;
+    // Its open-tabs entry is presence alone then (tabsync-model presenceEntry),
+    // and stays listed in Settings → Sync only while it keeps this heartbeat.
     if (tabsync.heartbeatDue(ctx)) scheduleSession(5000);
+    if (!d.syncTabs) return;
     if (tabicons.heartbeatDue(ctx)) scheduleIcons(5000);
   }), 60 * 60 * 1000).unref?.();
 }
