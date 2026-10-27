@@ -250,6 +250,13 @@ function invalidateGeneration(reason='generation') {
   syncGen+=1;
   requestQueue?.cancelWhere(()=>true,reason);
 }
+/** Acceptance harness only (sharedSpacesTest "resetRequestWindow"): empty the
+ * persisted request log and free the window, so a scenario whose own requests
+ * crossed it stops waiting. Whatever was waiting on the window runs now. */
+async function resetRequestWindowForTest() {
+  getRequestQueue().resetWindow();
+  return true;
+}
 function getRequestQueue() {
   if(requestQueue)return requestQueue;
   const data=sharedSpaces.rebind(ensureStore().data.accountId).data;
@@ -1243,6 +1250,7 @@ module.exports = {
   switchWithCode,
   copyRecoveryCode,
   syncNow,
+  resetRequestWindowForTest,
   sharedStatus,
   spaceStatus,
   setSyncSpaces,

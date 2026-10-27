@@ -56,9 +56,12 @@ function createScheduler({limit=10,windowMs=60000,log=[],nextClass='I',cursors={
     }
     return null;
   }
+  // Acceptance harness only (sync.resetRequestWindowForTest): forget every
+  // recorded request and any back-off, as if the window had just opened.
+  function resetWindow() {events=[];cap=limit;recoverAt=null;}
   function onRateLimited() {refresh();cap=Math.max(Math.min(3,limit),Math.floor(cap/2));recoverAt=monotonic()+360000;}
   function snapshot() {refresh();return {log:events.map(e=>e.wall),nextClass:next,cursors:{...items},windowLimit:cap,
     backoffUntil:recoverAt===null?null:now()+Math.max(0,recoverAt-monotonic()-60000)};}
-  return {canRequest,record,settle,next:pick,markIndexDue:()=>{indexDue=true;},onRateLimited,snapshot,windowFreesAt};
+  return {canRequest,record,settle,next:pick,markIndexDue:()=>{indexDue=true;},onRateLimited,resetWindow,snapshot,windowFreesAt};
 }
 module.exports={createScheduler};
