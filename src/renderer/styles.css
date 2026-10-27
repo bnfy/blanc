@@ -2002,9 +2002,12 @@ button.insecure-badge {
    with the same setFavicon rendering as the pill, so loading, internal and
    fallback icons look as they do there. Tiles are wider than dots, so the fit
    (fitIslandDots) shows fewer before the rest move into +N. The states keep
-   their meaning: the active tab is ringed in the accent, a pinned tab sits on
-   a tile, a private tab is outlined in dashes, and a colored group puts a bar
-   under its icons. The icon is always showing, so there is no peek. */
+   their meaning without heavy outlines: the active tab has a small dot under
+   its icon (as in the Dock), a pinned tab sits on a tile, a colored group
+   tints its tiles, and a private tab is outlined in a dashed hairline. The
+   icon is always showing, so there is no peek, and the active tab's icon is
+   always among them, so the pill's own favicon steps aside while the row is
+   drawn (it stays for vertical tabs and splits, which hide the row). */
 #pillDots.icons { gap: 6px; }
 #pillDots.icons .island-dot {
   width: 18px;
@@ -2018,19 +2021,20 @@ button.insecure-badge {
 }
 #pillDots.icons .island-dot::before { inset: -6px -3px; }
 #pillDots.icons .island-dot.loading { animation: none; }
-#pillDots.icons .island-dot.dot-group-colored { background: transparent; }
-#pillDots.icons .island-dot.dot-group-colored::after {
+#pillDots.icons .island-dot.dot-group-colored { background: color-mix(in srgb, var(--group-color) 22%, transparent); }
+#pillDots.icons .island-dot.pinned { background: var(--border); }
+#pillDots.icons .island-dot.active::after {
   content: '';
   position: absolute;
-  left: 4px;
-  right: 4px;
-  bottom: -4px;
-  height: 2px;
-  border-radius: 1px;
-  background: var(--group-color);
+  left: 50%;
+  bottom: -5px;
+  width: 3px;
+  height: 3px;
+  margin-left: -1.5px;
+  border-radius: 50%;
+  background: var(--accent);
 }
-#pillDots.icons .island-dot.pinned { background: var(--border); }
-#pillDots.icons .island-dot.active { box-shadow: 0 0 0 1.5px var(--accent); }
+:root:not([data-tab-layout="vertical"]) #strip:not(.split-open) #islandPill:has(> #pillDots.icons) > #pillFavicon { display: none; }
 #pillDots.icons .island-dot.private { outline: 1px dashed var(--text-dim); outline-offset: -1px; }
 #pillDots.icons .island-dot.private.active { outline-color: var(--accent); }
 /* Internal pages stay anonymous in the Island (as the pill's own favicon

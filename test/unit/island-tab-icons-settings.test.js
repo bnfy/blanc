@@ -67,6 +67,11 @@ test('the strip draws icons at rest, refits on a change and keeps every state', 
   assert.match(renderer, /pillDots\.classList\.toggle\('icons', state\.islandTabIcons === true\)/);
   assert.match(renderer, /icons: state\.islandTabIcons === true,/, 'the dot signature redraws on a change');
   assert.match(renderer, /\/\/ Site icons are wider than dots, so switching starts a fresh fit\.\n\s+state\.islandTabIcons === true,/);
+  // No heavy outlines: the active tab is a small dot under its icon, and the
+  // pill's own favicon steps aside while the icon row is drawn.
+  assert.doesNotMatch(styles, /#pillDots\.icons \.island-dot\.active\s*\{[^}]*box-shadow/);
+  assert.match(styles, /#pillDots\.icons \.island-dot\.active::after\s*\{[^}]*width:\s*3px;[^}]*height:\s*3px;/);
+  assert.match(styles, /:root:not\(\[data-tab-layout="vertical"\]\) #strip:not\(\.split-open\) #islandPill:has\(> #pillDots\.icons\) > #pillFavicon \{ display: none; \}/);
   for (const state of ['active', 'pinned', 'private', 'dot-group-colored']) {
     assert.match(styles, new RegExp(`#pillDots\\.icons \\.island-dot\\.${state}\\b`), `${state} keeps a mark in icon mode`);
   }
