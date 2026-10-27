@@ -4094,6 +4094,7 @@ function install(refs) {
         tabLayout: 'island',
         newtabLayout: 'billboard',
         verticalTabsWidth: 248,
+        verticalTabsTextSize: 'default',
         appIcon: 'sunrise',
         adblockExceptions: [],
         bangsEnabled: true,
