@@ -90,6 +90,13 @@ When('I activate a tab in group {string}', async function (name) {
   await this.waitForState((state) => state.activeTabId === id);
 });
 
+When('I activate the standalone pinned tab', async function () {
+  const id = ctx.standalonePinnedTabId;
+  assert.ok(id, 'the scenario should have a standalone pinned tab');
+  await this.call('activateTab', id);
+  await this.waitForState((state) => state.activeTabId === id);
+});
+
 // ---- F2-6: group close is one undo step ----
 
 /** Ordered member URLs for a named group, read from the same state()

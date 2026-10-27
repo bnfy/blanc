@@ -17,7 +17,8 @@ toolbar (Bowser Design System "Island Chrome").
 
 - **Resting pill** shows, left→right: back/forward (desktop; mobile uses edge-swipe
   gestures per D7), direct dots for standalone pinned tabs followed by the
-  active section (named group, loose tabs, or pinned shelf), capped at 8 total,
+  active section (named group or loose tabs; with a standalone pin active, the
+  section last visited), capped at 8 total,
   with a quiet window-wide `+N` for every omitted tab that opens the panel; on
   a pointer platform, hovering/focusing a dot reveals that tab's favicon so it
   can be identified before switching), favicon,
@@ -114,8 +115,10 @@ toolbar (Bowser Design System "Island Chrome").
   or its ⋮ opens the group menu: the name, the colors, New Tab in Group, Move
   Group to New Window, Ungroup and Close Group.
 - The pill's direct dots show standalone pins followed by the active section:
-  the active named group, the active tab's run of ungrouped tabs, or the
-  pinned shelf itself.
+  the active named group or the active tab's run of ungrouped tabs. When a
+  standalone pin is active, the section is the one the person was last on
+  (the first section if none is known yet), so a pinned tab never hides every
+  other tab behind `+N`; with only pins, the shelf is the whole set.
   They share an eight-dot budget, always retain the active tab, and use `+N` to
   count every other tab in the window. A group's pinned tabs stay inside it and
   lead its rows/dots; only ungrouped pins use the standalone pinned section.
