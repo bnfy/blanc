@@ -91,6 +91,7 @@ const sync = require('../../src/main/sync');
 const sends = require('../../src/main/sends');
 
 const remoteSends = () => (blobs.has('sends') ? JSON.parse(decrypt(key, blobs.get('sends').blob)) : null);
+const remoteSession = () => (blobs.has('session') ? JSON.parse(decrypt(key, blobs.get('session').blob)) : null);
 function putRemoteSends(devices) {
   version += 1;
   blobs.set('sends', { version: `v${version}`, blob: encrypt(key, JSON.stringify({ devices })) });
@@ -199,11 +200,16 @@ test('another account never sees this inbox or these dismissed ids', () => {
 });
 
 test('turning sync off publishes a retraction and clears the store', async () => {
-  await sync.syncNow(['sends']);
+  await sync.syncNow(['sends', 'session']);
   assert.ok(remoteSends().devices[OWN] && !remoteSends().devices[OWN].retracted);
+  // Not sharing tabs, this device still announces itself in the open-tabs
+  // store (presence alone), so Settings → Sync lists it on the others.
+  const presence = remoteSession().devices[OWN];
+  assert.ok(presence && !presence.retracted && presence.tabs.length === 0 && presence.name.length > 0);
   const res = await sync.disable();
   assert.equal(res.ok, true);
   assert.equal(remoteSends().devices[OWN].retracted, true);
+  assert.equal(remoteSession().devices[OWN].retracted, true, 'leaving takes it off the other devices’ lists');
   assert.ok(remoteSends().devices[PHONE], 'other entries pass through untouched');
   assert.deepEqual(sync.listSendTargets(), []);
   assert.deepEqual(sync.listSentToThisDevice(), []);
