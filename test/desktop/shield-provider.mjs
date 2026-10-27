@@ -10,7 +10,10 @@ import poll from './support/poll.js';
 import popupFocusTrace from './support/popup-focus-trace.js';
 import hooks from './support/test-hook-call.js';
 import { inMainTurn } from './support/main-turn.js';
-const { waitForValue, clickWhenSettled } = poll;
+const { clickWhenSettled } = poll;
+// Waits here get 20 s, not poll.js's 5 s: on a slow Intel runner the uBO
+// Dashboard tab had not opened 5 s after its link was clicked (October 2026).
+const waitForValue = (read, predicate, label, timeout = 20_000) => poll.waitForValue(read, predicate, label, timeout);
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-shield-provider-'));
 fs.mkdirSync(dir + '-Dev');
 const settingsFile = path.join(dir + '-Dev', 'settings.json');
