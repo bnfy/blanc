@@ -85,6 +85,10 @@ Feature: Tabs and tab groups
     When I activate a tab in group "play"
     Then the island shows 4 direct tab dots
     And the island shows 2 more tabs
+    # #1174: the pinned tab keeps the section it was opened from.
+    When I activate the standalone pinned tab
+    Then the island shows 4 direct tab dots
+    And the island shows 2 more tabs
 
   @F3-3 @F3 @all
   Scenario: Collapsing a group tucks its tabs away in the panel
