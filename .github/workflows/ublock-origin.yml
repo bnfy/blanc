@@ -28,6 +28,8 @@ on:
       - 'test/desktop/support/poll.js'
       - 'test/desktop/support/main-turn.js'
       - 'test/desktop/support/popup-focus-trace.js'
+      - 'test/desktop/support/quiet-rest.js'
+      - 'test/desktop/support/temp-profile.js'
       - 'test/unit/ublock*'
       - 'test/unit/blocking*'
       - 'test/unit/shield*'
