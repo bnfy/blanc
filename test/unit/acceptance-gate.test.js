@@ -9,10 +9,11 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { pathToFileURL } = require('node:url');
 
 const root = path.join(__dirname, '..', '..');
-const gate = () => import(path.join(root, 'scripts', 'acceptance-gate.mjs'));
-const cucumberConfig = () => import(path.join(root, 'test', 'desktop', 'cucumber.mjs'));
+const gate = () => import(pathToFileURL(path.join(root, 'scripts', 'acceptance-gate.mjs')).href);
+const cucumberConfig = () => import(pathToFileURL(path.join(root, 'test', 'desktop', 'cucumber.mjs')).href);
 
 const ok = { result: { status: 'passed' } };
 const failed = (message) => ({ result: { status: 'failed', error_message: message } });
