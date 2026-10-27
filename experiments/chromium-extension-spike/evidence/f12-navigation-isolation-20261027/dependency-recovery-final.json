@@ -1,0 +1,26 @@
+[
+  {
+    "path": "src/third_party/libvpx/source/libvpx",
+    "pin": "d603b5421220b05fd37c5bb6439eb0398cc1f1fe",
+    "restoredFiles": 1252,
+    "bytes": 24419532
+  },
+  {
+    "path": "src/third_party/pdfium",
+    "pin": "4e6f5ead3e8eef06e8a8482ec4afff4b52845e18",
+    "restoredFiles": 5215,
+    "bytes": 21127103
+  },
+  {
+    "path": "src/third_party/skia",
+    "pin": "ac947b5f02facc8237e889c3977c3a670d9d4664",
+    "restoredFiles": 12412,
+    "bytes": 189081187
+  },
+  {
+    "path": "src/third_party/webrtc",
+    "pin": "95554e4a0c5c343fdc989387d9d0ce18e2a2294b",
+    "restoredFiles": 7591,
+    "bytes": 104021279
+  }
+]

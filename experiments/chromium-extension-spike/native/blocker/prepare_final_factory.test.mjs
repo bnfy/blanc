@@ -8,6 +8,7 @@ function fixture(t,legacy='') {
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-final-factory-'));
   t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
   const sources={
+    'content/browser/devtools/devtools_url_loader_interceptor.cc':'void Apply() {\n      if (request->trusted_params) {\n        request->trusted_params->isolation_info = {};\n      }\n}\n',
     'chrome/browser/chrome_content_browser_client.cc':'#include "chrome/services/blanc_blocker/blocker_proxy.h"\nChromeContentBrowserClient::ChromeContentBrowserClient() {\n}\n'+legacy,
     'content/browser/loader/navigation_url_loader_impl.cc':'void CreateNetworkLoaderFactory() {\n  devtools_params.Run();\n  net::CookieSettingOverrides devtools_cookie_overrides;\n}\n',
     'content/browser/loader/url_loader_factory_utils.h':'class ContentClientParams {\n private:\n  raw_ptr<BrowserContext> browser_context_;\n};\n',
@@ -41,4 +42,18 @@ test('a changed navigation assembly anchor fails closed',t=>{
   const f=fixture(t);
   fs.writeFileSync(path.join(f.root,'content/browser/loader/navigation_url_loader_impl.cc'),'void UnknownNavigationAssembly() {}\n');
   assert.throws(()=>prepareFinalFactory(f.root),/final factory anchor mismatch content\/browser\/loader\/navigation_url_loader_impl.cc/);
+});
+
+test('main-frame replacement derives isolation from existing trusted context',t=>{
+  const f=fixture(t);prepareFinalFactory(f.root);
+  const s=f.read('content/browser/devtools/devtools_url_loader_interceptor.cc');
+  assert.match(s,/!isolation_info.IsEmpty\(\) &&/);
+  assert.match(s,/net::IsolationInfo::RequestType::kMainFrame/);
+  assert.match(s,/isolation_info = isolation_info.CreateForRedirect\(new_origin\)/);
+  assert.match(s,/else \{\n          isolation_info = \{\};/);
+});
+test('changed trusted-isolation reset anchor is refused',t=>{
+  const f=fixture(t);
+  fs.writeFileSync(path.join(f.root,'content/browser/devtools/devtools_url_loader_interceptor.cc'),'void UnknownReset() {}\n');
+  assert.throws(()=>prepareFinalFactory(f.root),/final factory anchor mismatch content\/browser\/devtools\/devtools_url_loader_interceptor.cc/);
 });

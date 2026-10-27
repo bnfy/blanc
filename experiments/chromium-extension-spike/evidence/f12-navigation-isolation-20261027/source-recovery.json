@@ -1,0 +1,10 @@
+{
+  "pinnedUpstream": "1aa07b638799e59656559ae6c6649d4b197f555e",
+  "expectedMissing": 502465,
+  "restoredFiles": 502465,
+  "restoredBytes": 4162089934,
+  "elapsedSeconds": 106.3,
+  "existingFilesOverwritten": 0,
+  "buildsStarted": 0,
+  "error": null
+}

@@ -75,4 +75,21 @@ void ContentClientParams::FinalizeBlancFactory(
                            ContentBrowserClient::URLLoaderFactoryType::kNavigation);
 
   net::CookieSettingOverrides devtools_cookie_overrides;`);
+  patch('content/browser/devtools/devtools_url_loader_interceptor.cc',
+    '// Blanc: retain trusted main-navigation isolation across replacement.',
+    '      if (request->trusted_params) {\n        request->trusted_params->isolation_info = {};\n      }',
+    `      if (request->trusted_params) {
+        // Blanc: retain trusted main-navigation isolation across replacement.
+        // Derive the new origin/cookie key using the existing trusted context;
+        // CreateForRedirect preserves its nonce and isolation partition.
+        auto& isolation_info = request->trusted_params->isolation_info;
+        if (!isolation_info.IsEmpty() &&
+            isolation_info.request_type() ==
+                net::IsolationInfo::RequestType::kMainFrame) {
+          isolation_info = isolation_info.CreateForRedirect(new_origin);
+        } else {
+          isolation_info = {};
+        }
+      }`);
+
 }

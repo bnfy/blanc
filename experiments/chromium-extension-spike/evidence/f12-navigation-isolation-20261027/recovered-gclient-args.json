@@ -1,0 +1,6 @@
+{
+  "source": "/Users/anthonyjloria/Projects/BlancChromium157/src/build/config/gclient_args.gni",
+  "destination": "/private/tmp/blanc-chromium157-update/src/build/config/gclient_args.gni",
+  "sha256": "12ab8ee6520e8c1f859b1f31c56c5938a2b6111fa999bcbb616b2a7d5f4cc6ab",
+  "scope": "Preserved original same-host generated dependency flags, Android NDK version and location-tag defaults match pinned DEPS; no sync/hooks or argument edit"
+}

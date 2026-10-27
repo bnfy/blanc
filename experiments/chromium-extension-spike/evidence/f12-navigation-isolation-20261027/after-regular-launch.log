@@ -1,0 +1,7 @@
+[89781:14037225:1027/140227.650437:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[89781:14037032:1027/140228.762706:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:49590/devtools/browser/662c4cb9-ae3a-4b62-aca3-e87be5f1213b
+[89781:14037032:1027/140229.533414:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[89781:14037032:1027/140229.535642:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[89781:14037032:1027/140231.672749:ERROR:base/process/kill_posix.cc:33] waitpid(89797): No child processes (10)
