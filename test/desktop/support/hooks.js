@@ -3,10 +3,13 @@ const os = require('node:os');
 const fs = require('node:fs');
 const { execFileSync } = require('node:child_process');
 const { _electron } = require('playwright');
-const { BeforeAll, AfterAll, Before, After, setDefaultTimeout } = require('@cucumber/cucumber');
+const { BeforeAll, AfterAll, Before, After, AfterStep, setDefaultTimeout } = require('@cucumber/cucumber');
 const fixtures = require('./fixtures-server');
 const ctx = require('./context');
 const { callTestHook } = require('./test-hook-call');
+const {
+  isTransportError, firstLine, shouldHealAfterReset, exitCodeOf, probeApp, routeUncaught, createHealingLog,
+} = require('./app-health');
 const { browserDataRoot } = require('../../../src/main/browser-data-import');
 const { createChromiumSession } = require('../../support/chromium-session-fixture');
 
@@ -33,23 +36,24 @@ function mainProcessExceptionsSinceLaunch(electronApp) {
   return contents.slice(electronApp.__blancUncaughtOffset ?? 0).trim();
 }
 
-function assertNoMainProcessExceptions(electronApp) {
-  const failures = mainProcessExceptionsSinceLaunch(electronApp);
-  if (failures) throw new Error(`Electron main-process exception:\n${failures}`);
-}
-
+/**
+ * Close an app and return the main-process exception text it logged since its
+ * launch. The text is also queued on ctx.pendingMainProcessException, which
+ * the last After hook turns into the scenario's failure: throwing here instead
+ * left callers such as ctx.relaunch holding a closed app.
+ */
 async function closeApp(electronApp) {
-  if (!electronApp) return;
+  if (!electronApp) return '';
+  const text = mainProcessExceptionsSinceLaunch(electronApp);
+  if (text) ctx.pendingMainProcessException += `${text}\n`;
   try {
     await electronApp.close();
   } catch (error) {
     // A fatal main-process exception may close Playwright's target before the
-    // explicit close completes. Prefer the captured application stack when it
-    // exists; otherwise preserve the original close failure.
-    assertNoMainProcessExceptions(electronApp);
-    throw error;
+    // explicit close completes; a process that is already gone is closed.
+    if (exitCodeOf(electronApp) === null) throw error;
   }
-  assertNoMainProcessExceptions(electronApp);
+  return text;
 }
 
 async function launchApp(extraEnv = {}, { recoveryChoice = null, profileDir = userDataDir } = {}) {
@@ -351,12 +355,15 @@ BeforeAll({ timeout: 120_000 }, async () => {
     recoverableSession.subarray(0, recoverableSession.length - 3),
   );
 
+  ctx.healing = createHealingLog();
+  ctx.profileDir = userDataDir;
   ctx.app = await launchApp();
   // F28-1 exercises a genuine process relaunch against this same profile,
   // rather than a renderer reload or an in-memory persistence proxy.
   ctx.relaunch = async (extraEnv = {}) => {
     if (ctx.app) await closeApp(ctx.app);
     relaunchEnv = extraEnv;
+    ctx.profileDir = userDataDir;
     ctx.app = await launchApp(extraEnv);
   };
   ctx.launchPeerApp = async (extraEnv = {}) => {
@@ -393,8 +400,68 @@ BeforeAll({ timeout: 120_000 }, async () => {
   savedClipboard = await callTestHook(ctx.app, 'readClipboardText').catch(() => null);
 });
 
-Before(async function () {
-  if (ctx.app) assertNoMainProcessExceptions(ctx.app);
+// Cucumber runs After hooks in reverse definition order, and support files load
+// before step files, so this hook (the first After defined) runs after every
+// tagged After, including those that relaunch the app. A main-process
+// exception fails the scenario during which it was logged, once.
+After(function () {
+  const current = ctx.app ? mainProcessExceptionsSinceLaunch(ctx.app) : '';
+  const text = ctx.pendingMainProcessException + current;
+  ctx.pendingMainProcessException = '';
+  if (current) {
+    ctx.app.__blancUncaughtOffset = fs.statSync(uncaughtLogPath).size;
+    ctx.appSuspect = 'main-process exception';
+  }
+  if (text) throw new Error(`Electron main-process exception:\n${text}`);
+});
+
+// A step or hook that failed because the app's handle broke (a crashed
+// renderer leaves its page answering every call with "Target crashed") marks
+// the app for a relaunch before the next scenario.
+AfterStep(function ({ result }) {
+  if (result.status === 'FAILED' && isTransportError(result.message)) {
+    ctx.appSuspect = firstLine(result.message);
+  }
+});
+
+// After a renderer crash, Chromium answers requests Playwright already gave up
+// on, and Playwright's message handler throws "Target crashed" for each as an
+// uncaught exception: a stream of them while the old app dies. Cucumber fails
+// whatever hook or step is running when one arrives, so one crash used to fail
+// every following scenario. A capture callback receives uncaught exceptions
+// instead of the listeners: these mark the app for a relaunch and go no
+// further; everything else reaches Cucumber, or ends the run as Node would.
+process.setUncaughtExceptionCaptureCallback((error) => {
+  const route = routeUncaught(error, { listeners: process.listenerCount('uncaughtException') });
+  if (route === 'suspect') {
+    ctx.appSuspect = firstLine(error.message);
+  } else if (route === 'forward') {
+    process.emit('uncaughtException', error, 'uncaughtException');
+  } else {
+    process.stderr.write(`${error?.stack ?? error}\n`);
+    process.exit(1);
+  }
+});
+
+// Cucumber can abandon a hook that failed through an uncaught exception while
+// its code is still running, so a heal may still be in flight when the next
+// Before starts. Only one runs at a time, and Before waits for it.
+let healInFlight = null;
+function healApp(scenario, reason) {
+  healInFlight ??= (async () => {
+    process.stderr.write(`acceptance: relaunching Blanc before "${scenario}" (${reason})\n`);
+    await closeApp(ctx.app).catch(() => {});
+    // Whatever the broken app logged was attributed by the After hook already.
+    ctx.pendingMainProcessException = '';
+    ctx.app = await launchApp(relaunchEnv, { profileDir: ctx.profileDir });
+    ctx.healing.record({ scenario, reason });
+    ctx.appSuspect = null;
+  })().finally(() => { healInFlight = null; });
+  return healInFlight;
+}
+
+Before(async function (scenario) {
+  if (healInFlight) await healInFlight.catch(() => {});
   ctx.tabByName = {};
   ctx.activeExpectedUrl = null;
   ctx.lastNewTabId = null;
@@ -403,7 +470,17 @@ Before(async function () {
   ctx.addressMenuFieldText = null;
   ctx.groupMembers = null;
   ctx.standalonePinnedTabId = null;
-  await callTestHook(ctx.app, 'reset');
+  const name = scenario.pickle.name;
+  let reason = ctx.appSuspect;
+  if (!reason) ({ reason } = await probeApp(ctx.app));
+  if (reason) await healApp(name, reason);
+  try {
+    await callTestHook(ctx.app, 'reset');
+  } catch (error) {
+    if (!shouldHealAfterReset({ alreadyHealed: Boolean(reason), error })) throw error;
+    await healApp(name, `reset: ${firstLine(error.message)}`);
+    await callTestHook(ctx.app, 'reset');
+  }
 });
 
 // Scenarios tagged @test-platform-linux run in an app that acts as on Linux
@@ -434,9 +511,13 @@ AfterAll(async () => {
     await callTestHook(ctx.app, 'setClipboardText', [savedClipboard])
       .catch(() => {});
   }
+  // A relaunch still in flight would leave an app running after the run.
+  if (healInFlight) await healInFlight.catch(() => {});
+  for (const line of ctx.healing?.summaryLines() ?? []) process.stderr.write(`${line}\n`);
   if (ctx.app) {
     try {
-      await closeApp(ctx.app);
+      const text = await closeApp(ctx.app);
+      if (text) closeFailure = new Error(`Electron main-process exception:\n${text}`);
     } catch (error) {
       closeFailure = error;
     }

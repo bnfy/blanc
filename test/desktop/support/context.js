@@ -3,6 +3,17 @@
 // per-scenario map of logical page names -> tab ids (reset in a Before hook).
 module.exports = {
   app: null,
+  // The profile directory the current app runs on, so a relaunch that heals
+  // a broken app brings it back on the same one.
+  profileDir: null,
+  // Why the current app must be relaunched before the next scenario, set when
+  // a step or hook failed because the app's handle broke.
+  appSuspect: null,
+  // Main-process exception text collected when an app was closed, reported as
+  // the scenario's failure by the last After hook.
+  pendingMainProcessException: '',
+  // Every relaunch the harness made to heal the app (app-health.js).
+  healing: null,
   relaunch: null,
   crashAndRelaunch: null,
   launchPeerApp: null,

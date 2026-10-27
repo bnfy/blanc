@@ -85,3 +85,12 @@ const RUNNABLE = [
 export default { ...common, tags: 'not @mobile' };
 export const runnable = { ...common, tags: RUNNABLE, retry: 1 };
 export const dry = { ...common, tags: RUNNABLE, dryRun: true };
+// The harness's own self-test (test/desktop/harness/): scenarios that break the
+// app on purpose to prove the hooks heal it. Run by healing-smoke.mjs, which
+// checks the expected mix of failures; never part of `runnable`.
+export const harness = {
+  ...common,
+  paths: ['test/desktop/harness/*.feature'],
+  require: [...common.require, 'test/desktop/harness/*.steps.js'],
+  retry: 0,
+};

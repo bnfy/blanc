@@ -8,16 +8,26 @@ const {
   createHealingLog,
   firstLine,
   shouldHealAfterReset,
+  exitCodeOf,
+  routeUncaught,
 } = require('../desktop/support/app-health');
 
 const fakeApp = ({ exitCode = null, mainOk = true, pages = [] } = {}) => ({
   process: () => ({ exitCode, signalCode: null, pid: 4242 }),
   evaluate: () => (mainOk ? Promise.resolve(1) : new Promise(() => {})),
-  windows: () => pages.map(({ url, ok }) => ({
-    isClosed: () => false,
-    url: () => url,
-    evaluate: () => (ok ? Promise.resolve(1) : Promise.reject(new Error('Target crashed'))),
-  })),
+  windows: () => pages.map(({ url, ok, error = 'Target crashed', hang = false, closesDuringProbe = false }) => {
+    let closed = false;
+    return {
+      isClosed: () => closed,
+      url: () => url,
+      evaluate: () => {
+        if (hang) return new Promise(() => {});
+        if (ok) return Promise.resolve(1);
+        if (closesDuringProbe) closed = true;
+        return Promise.reject(new Error(`page.evaluate: ${error}`));
+      },
+    };
+  }),
 });
 
 test('transport errors are recognised and ordinary assertion failures are not', () => {
@@ -54,7 +64,42 @@ test('one crashed page makes the app unhealthy and names the page', async () => 
     { url: 'http://127.0.0.1:1/site/ads.example', ok: false },
   ] }));
   assert.equal(result.healthy, false);
-  assert.match(result.reason, /ads\.example did not answer: Target crashed/);
+  assert.match(result.reason, /ads\.example did not answer: page\.evaluate: Target crashed/);
+});
+
+test('a page in the middle of a navigation is not a crash', async () => {
+  const result = await probeApp(fakeApp({ pages: [
+    { url: 'blanc://newtab/', ok: false, error: 'Execution context was destroyed, most likely because of a navigation' },
+  ] }));
+  assert.deepEqual(result, { healthy: true, reason: null });
+});
+
+test('a page that is slow to answer is not a crash', async () => {
+  const result = await probeApp(fakeApp({ pages: [{ url: 'blanc://newtab/', hang: true }] }), { timeoutMs: 50 });
+  assert.deepEqual(result, { healthy: true, reason: null });
+});
+
+test('a page that closed while it was probed is skipped', async () => {
+  const result = await probeApp(fakeApp({ pages: [
+    { url: 'http://127.0.0.1:1/site/gone', ok: false, error: 'Target page, context or browser has been closed', closesDuringProbe: true },
+  ] }));
+  assert.deepEqual(result, { healthy: true, reason: null });
+});
+
+test('an app whose handle Playwright already disposed is unhealthy, not a throw', async () => {
+  const disposed = { process: () => { throw new TypeError("Cannot read properties of undefined (reading '_object')"); } };
+  assert.deepEqual(await probeApp(disposed), { healthy: false, reason: 'app handle disposed' });
+  assert.equal(exitCodeOf(disposed), 'disposed');
+  assert.equal(exitCodeOf(fakeApp({ exitCode: null })), null);
+  assert.equal(exitCodeOf(fakeApp({ exitCode: 1 })), 1);
+});
+
+test('a late transport error is swallowed and marks the app; anything else reaches Cucumber', () => {
+  const late = new Error('Target crashed');
+  assert.equal(routeUncaught(late, { listeners: 1 }), 'suspect');
+  assert.equal(routeUncaught(late, { listeners: 0 }), 'suspect');
+  assert.equal(routeUncaught(new Error('real bug in a step'), { listeners: 1 }), 'forward');
+  assert.equal(routeUncaught(new Error('real bug outside any hook'), { listeners: 0 }), 'fatal');
 });
 
 test('a missing app is unhealthy', async () => {
