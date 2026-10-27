@@ -85,9 +85,11 @@ test('every helper the desktop scripts import starts it when it changes', () => 
 
 test('the desktop job leaves lint and the unit suite to other workflows on pull requests', () => {
   const desktop = workflow.slice(workflow.indexOf('\n  desktop:'), workflow.indexOf('\n  intel-audio:'));
+  const lines = desktop.split('\n').map((line) => line.trim());
   for (const command of ['npm run lint', 'npm run test:unit']) {
-    const step = desktop.match(new RegExp(`- if: (.*)\\n\\s+run: ${command.replace(/[.:]/g, '\\$&')}\\n`));
-    assert.ok(step, `${command} runs only when guarded`);
-    assert.equal(step[1], "${{ github.event_name != 'pull_request' }}", command);
+    const at = lines.indexOf(`run: ${command}`);
+    assert.ok(at > 0, `${command} runs only as a guarded step`);
+    assert.equal(lines[at - 1], "- if: ${{ github.event_name != 'pull_request' }}", command);
+    assert.ok(!lines.includes(`- run: ${command}`), `${command} has no unguarded step`);
   }
 });
