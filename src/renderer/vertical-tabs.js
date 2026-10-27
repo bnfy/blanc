@@ -12,7 +12,25 @@
   const newTabShortcut = document.getElementById('verticalTabsNewShortcut');
   const resizeHandle = document.getElementById('verticalTabsResizeHandle');
   const announcer = document.getElementById('verticalTabsAnnouncer');
+  const mainMenuButton = document.getElementById('mainMenuButton');
   if (!api || !rail || !list || !useIslandButton || !newTabButton || !resizeHandle) return;
+
+  /** Windows and Linux: the strip's main-menu button sits in the window's
+   * top-left corner, which the rail owns in this layout, so the button moves
+   * into the rail's first row (as the traffic lights do on macOS) and back to
+   * the strip. Living in the rail, it takes the rail's look, stacking and
+   * focus order rather than the strip's tint and auto-hide states. */
+  function placeMainMenuButton(layout) {
+    if (!mainMenuButton) return;
+    const home = layout === 'vertical'
+      ? useIslandButton.parentElement
+      : document.getElementById('strip');
+    if (!home || mainMenuButton.parentElement === home) return;
+    const hadFocus = document.activeElement === mainMenuButton;
+    if (layout === 'vertical') home.prepend(mainMenuButton);
+    else home.insertBefore(mainMenuButton, document.getElementById('islandPill'));
+    if (hadFocus) mainMenuButton.focus({ preventScroll: true });
+  }
 
   const ICONS = {
     close: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
@@ -663,11 +681,13 @@
       // A vertical payload without main's authoritative width is incomplete;
       // fail closed to Island instead of inventing renderer geometry.
       document.documentElement.dataset.tabLayout = 'island';
+      placeMainMenuButton('island');
       rail.hidden = true;
       lastSignature = null;
       return;
     }
     document.documentElement.dataset.tabLayout = layout;
+    placeMainMenuButton(layout);
     rail.dataset.textSize = ['large', 'extra-large'].includes(payload.verticalTabsTextSize)
       ? payload.verticalTabsTextSize : 'default';
     rail.hidden = layout !== 'vertical';

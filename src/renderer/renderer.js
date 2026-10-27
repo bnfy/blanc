@@ -1678,8 +1678,9 @@
     // Windows and Linux: where the window controls and the main-menu button
     // sit, so a floating Island can draw its copies of them in place.
     const controlsBox = isMac ? null : boxOf(windowControls);
-    // With vertical tabs the menu button sits in the rail's first row, which
-    // the page never covers (styles.css): never float it.
+    // With vertical tabs the menu button lives in the rail's first row, which
+    // the page never covers (vertical-tabs.js placeMainMenuButton): never
+    // float it.
     const menuBox = isMac || state.tabLayout === 'vertical' ? null : boxOf(mainMenuButton);
     const rect = {
       x: (r.left + r.width / 2) - width / 2,

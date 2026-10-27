@@ -1737,3 +1737,62 @@ Then('vertical tab drag previews keep their text size and height', async functio
     await page.locator('body > .tab-drag-ghost').waitFor({ state: 'detached' });
   }
 });
+
+// ---------- F28-19: the Windows/Linux main-menu button in the rail ----------
+// The app acts as on Linux here (@test-platform-linux), so the strip draws its
+// own main-menu button and main records a click instead of popping up a menu.
+
+/** Where the menu button is, which row holds it, and whether a pointer at its
+ * centre reaches it (nothing drawn over it). */
+function mainMenuButtonState(page) {
+  return page.evaluate(() => {
+    const button = document.getElementById('mainMenuButton');
+    const r = button.getBoundingClientRect();
+    const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    const layoutButton = document.getElementById('verticalTabsUseIsland').getBoundingClientRect();
+    return {
+      hidden: button.hidden,
+      home: button.parentElement?.id || button.parentElement?.className || '',
+      leads: button.parentElement?.firstElementChild === button,
+      beforePill: button.nextElementSibling?.id === 'islandPill',
+      rect: { x: r.left, y: r.top, width: r.width, height: r.height },
+      layoutButtonX: layoutButton.left,
+      reachable: !!hit && button.contains(hit),
+    };
+  });
+}
+
+Then('the main-menu button leads the rail\'s first row, uncovered', async function () {
+  const page = await chromePage();
+  const state = await waitForValue(() => mainMenuButtonState(page),
+    (value) => value.home === 'vertical-tabs-toolbar' && value.reachable,
+    'the main-menu button in the rail\'s first row');
+  assert.equal(state.hidden, false);
+  assert.equal(state.leads, true, 'the button comes first in the row, so it comes first in focus order too');
+  assert.ok(state.rect.x + state.rect.width < state.layoutButtonX, JSON.stringify(state));
+});
+
+When('I click the main-menu button', async function () {
+  this.mainMenuRequestCount = (await this.call('mainMenuRequests')).length;
+  this.mainMenuButtonRect = (await mainMenuButtonState(await chromePage())).rect;
+  // A real pointer click: Playwright refuses it if anything covers the button.
+  await (await chromePage()).locator('#mainMenuButton').click();
+});
+
+Then('the main menu opens below the main-menu button', async function () {
+  const requests = await waitForValue(() => this.call('mainMenuRequests'),
+    (value) => value?.length > this.mainMenuRequestCount, 'a main menu request');
+  const { from, point } = requests.at(-1);
+  const rect = this.mainMenuButtonRect;
+  assert.equal(from, 'strip');
+  assert.ok(Math.abs(point.x - rect.x) <= 2 && Math.abs(point.y - (rect.y + rect.height)) <= 2,
+    JSON.stringify({ point, rect }));
+});
+
+Then('the main-menu button is back in the strip\'s top-left corner', async function () {
+  const page = await chromePage();
+  const state = await waitForValue(() => mainMenuButtonState(page),
+    (value) => value.home === 'strip' && value.reachable, 'the main-menu button back in the strip');
+  assert.equal(state.beforePill, true);
+  assert.deepEqual({ x: state.rect.x, y: state.rect.y }, { x: 8, y: 8 });
+});
