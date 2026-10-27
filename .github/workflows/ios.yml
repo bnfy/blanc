@@ -1,10 +1,13 @@
 name: iOS
 
-# Builds the iOS app (ios/Blanc) and runs its XCTest suite on a simulator. The
-# app bundles the desktop's blanc:// pages, the generated settings and token
-# substrate, the iOS blocklist and the bowserPages contract, so a change to any
-# of those inputs runs it too. Simulator builds are unsigned; nothing here
-# touches signing, TestFlight or App Store Connect.
+# Builds the iOS app (ios/Blanc) and runs its XCTest suite on a simulator. It
+# runs only when something the Xcode project builds from changes: ios/ itself,
+# the desktop's blanc:// pages and the iOS blocklist (bundled folders), the
+# bowserPages contract, and the two generated Swift files ios/Blanc symlinks
+# (settings and tokens). Sources that only feed those generated files, and the
+# Android outputs beside them, don't run it. Keep this list in step with the
+# project's references outside ios/. Simulator builds are unsigned; nothing
+# here touches signing, TestFlight or App Store Connect.
 on:
   push:
     branches: [main]
@@ -12,9 +15,8 @@ on:
       - .github/workflows/ios.yml
       - ios/**
       - src/renderer/pages/**
-      - settings-schema/**
-      - tokens/**
-      - copy/generated/**
+      - settings-schema/generated/BlancSettings.swift
+      - tokens/generated/Tokens.swift
       - adblock/generated/**
       - browser-api/bridges.json
   pull_request:
@@ -22,9 +24,8 @@ on:
       - .github/workflows/ios.yml
       - ios/**
       - src/renderer/pages/**
-      - settings-schema/**
-      - tokens/**
-      - copy/generated/**
+      - settings-schema/generated/BlancSettings.swift
+      - tokens/generated/Tokens.swift
       - adblock/generated/**
       - browser-api/bridges.json
   workflow_dispatch:
