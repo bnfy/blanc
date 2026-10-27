@@ -9,7 +9,7 @@ const {waitForValue}=require('../support/poll');
 const {callTestHook}=require('../support/test-hook-call');
 const handle='Shared Spaces acceptance',passphrase='correct horse battery staple Shared Spaces';
 Before({tags:'@F57 and not @peer-driver',timeout:180000},async function(){
- this.sharedFixture=await createSyncFixture();await ctx.relaunch({BLANC_TEST_SYNC_ENDPOINT:this.sharedFixture.url});
+ this.sharedFixture=await createSyncFixture();await ctx.relaunch({BLANC_TEST_SYNC_ENDPOINT:this.sharedFixture.url},{freshProfile:true});
  if(process.platform==='linux'){
   const storage=await ctx.app.evaluate(({safeStorage})=>({available:safeStorage.isEncryptionAvailable(),backend:safeStorage.getSelectedStorageBackend()}));
   assert.equal(storage.available,true,`Shared Spaces requires secure OS storage (${storage.backend})`);

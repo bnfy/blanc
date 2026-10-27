@@ -29,6 +29,18 @@ let savedClipboard = null;
 let uncaughtLogPath;
 let relaunchEnv = {};
 const peerApps = new Map();
+// Temporary profiles made by ctx.relaunch(..., { freshProfile: true }). An
+// unpackaged Blanc keeps its data beside each one in "<dir>-Dev", so both go.
+const tempProfileDirs = new Set();
+function removeUnusedTempProfiles({ all = false } = {}) {
+  for (const directory of tempProfileDirs) {
+    if (!all && directory === ctx.profileDir) continue;
+    for (const target of [directory, `${directory}-Dev`]) {
+      fs.rmSync(target, { recursive: true, force: true, maxRetries: 5 });
+    }
+    tempProfileDirs.delete(directory);
+  }
+}
 
 function mainProcessExceptionsSinceLaunch(electronApp) {
   if (!uncaughtLogPath || !fs.existsSync(uncaughtLogPath)) return '';
@@ -360,11 +372,19 @@ BeforeAll({ timeout: 120_000 }, async () => {
   ctx.app = await launchApp();
   // F28-1 exercises a genuine process relaunch against this same profile,
   // rather than a renderer reload or an in-memory persistence proxy.
-  ctx.relaunch = async (extraEnv = {}) => {
+  // { freshProfile: true } relaunches on a new temporary profile instead, as a
+  // new device would start (Shared Spaces: the sync request budget persists in
+  // the profile, so reusing one made each scenario wait out the last one's).
+  // Any relaunch removes temporary profiles no longer in use.
+  ctx.relaunch = async (extraEnv = {}, { freshProfile = false } = {}) => {
     if (ctx.app) await closeApp(ctx.app);
     relaunchEnv = extraEnv;
-    ctx.profileDir = userDataDir;
-    ctx.app = await launchApp(extraEnv);
+    ctx.profileDir = freshProfile
+      ? fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-shared-a-'))
+      : userDataDir;
+    if (freshProfile) tempProfileDirs.add(ctx.profileDir);
+    removeUnusedTempProfiles();
+    ctx.app = await launchApp(extraEnv, { profileDir: ctx.profileDir });
   };
   ctx.launchPeerApp = async (extraEnv = {}) => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-shared-peer-'));
@@ -392,7 +412,7 @@ BeforeAll({ timeout: 120_000 }, async () => {
       }
       await exited;
     }
-    ctx.app = await launchApp(relaunchEnv, { recoveryChoice: 'restore' });
+    ctx.app = await launchApp(relaunchEnv, { recoveryChoice: 'restore', profileDir: ctx.profileDir });
   };
 
   // The F19 scenarios write the REAL system clipboard — save the developer's
@@ -525,6 +545,7 @@ AfterAll(async () => {
   ctx.app = null;
   ctx.relaunch = null;
   ctx.crashAndRelaunch = null;
+  removeUnusedTempProfiles({ all: true });
   if (fixturesHandle) await fixturesHandle.close();
   if (secureFixturesHandle) await secureFixturesHandle.close();
   if (untrustedFixturesHandle) await untrustedFixturesHandle.close();
