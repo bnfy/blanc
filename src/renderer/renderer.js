@@ -743,6 +743,8 @@
       floatSurface ? root.style.getPropertyValue('--float-stage-width') : window.innerWidth,
       root.dataset.platform, state.tabLayout, root.style.getPropertyValue('--vertical-tabs-w'),
       shown, state.tabs.length, state.activeTabId, pillDomain.textContent,
+      // Site icons are wider than dots, so switching starts a fresh fit.
+      state.islandTabIcons === true,
     ].join('|');
   }
 
@@ -764,6 +766,7 @@
     const dotsSig = dotsSignature();
     if (dotsSig !== lastDotsSig) {
       lastDotsSig = dotsSig;
+      pillDots.classList.toggle('icons', state.islandTabIcons === true);
       pillDots.replaceChildren(...islandDots());
     }
   }
@@ -1019,6 +1022,7 @@
   function dotsSignature() {
     const { pinned, shown, hidden } = islandTabPresentation();
     return JSON.stringify({
+      icons: state.islandTabIcons === true,
       // The first active-section dot gains spacing after the pinned set, so a
       // pin/group move can change the DOM even if the visible ids do not.
       pinnedCount: pinned.length,
@@ -1069,10 +1073,11 @@
     // Hover/focus peek: the dot blooms into its tab's favicon so you can tell
     // which site it holds before switching. Reuses the pill favicon rendering
     // (has-icon / internal / loading / fallback); the native title tooltip
-    // still carries the exact page title a beat later.
-    const peek = document.createElement('span');
-    setFavicon(peek, t, 'dot-peek favicon');
-    dot.appendChild(peek);
+    // still carries the exact page title a beat later. With site icons on
+    // (#1175) the icon is drawn at rest instead, so there is nothing to peek.
+    const icon = document.createElement('span');
+    setFavicon(icon, t, state.islandTabIcons === true ? 'dot-icon favicon' : 'dot-peek favicon');
+    dot.appendChild(icon);
     dot.addEventListener('click', (e) => {
       e.stopPropagation(); // switch without expanding
       window.browserAPI.switchTab(t.id);

@@ -533,6 +533,17 @@
     document.getElementById('islandHoverOpenSetting')?.remove();
   }
 
+  if (supports('islandTabIcons')) {
+    const islandTabIcons = document.getElementById('islandTabIcons');
+    islandTabIcons.checked = settings.islandTabIcons === true;
+    islandTabIcons.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ islandTabIcons: islandTabIcons.checked });
+      islandTabIcons.checked = saved.islandTabIcons === true;
+    });
+  } else {
+    document.getElementById('islandTabIconsSetting')?.remove();
+  }
+
   // How a revealed Island makes room; only meaningful while auto-hide is on.
   const islandAutoHideStyleSetting = document.getElementById('islandAutoHideStyleSetting');
   const showIslandAutoHideStyle = (on) => {

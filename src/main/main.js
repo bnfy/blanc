@@ -3533,6 +3533,7 @@ let onePasswordConfigurationKey = JSON.stringify([
   initialPresentationSettings.onePasswordAccount,
 ]);
 let verticalTabsTextSize = initialPresentationSettings.verticalTabsTextSize;
+let islandTabIcons = initialPresentationSettings.islandTabIcons === true;
 // This is the saved preference, not necessarily the current rendered width.
 // calculateChromeLayout temporarily caps it when the window is too narrow to
 // preserve the 392px website pane.
@@ -7134,6 +7135,7 @@ function currentTabsPayload() {
     closed: sharedClosedBand(runtime),
     tabLayout,
     verticalTabsTextSize,
+    islandTabIcons,
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
     ...captureBroadcastState(serialized),
@@ -11576,6 +11578,7 @@ function registerIpcHandlers() {
     closed: sharedClosedBand(rt()),
     tabLayout,
     verticalTabsTextSize,
+    islandTabIcons,
     ...verticalTabsMetrics(),
   }));
   chromeHandle('tabs:find', (_e, id, query, options) => {
@@ -16226,6 +16229,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     applyTabLayout(s.tabLayout);
     if (s.verticalTabsTextSize !== verticalTabsTextSize) {
       verticalTabsTextSize = s.verticalTabsTextSize;
+      forEachWindowRuntime(() => broadcastTabs(), { liveOnly: true });
+    }
+    if ((s.islandTabIcons === true) !== islandTabIcons) {
+      islandTabIcons = s.islandTabIcons === true;
       forEachWindowRuntime(() => broadcastTabs(), { liveOnly: true });
     }
     const nextDarkWebsitesKey = JSON.stringify([s.darkWebsites, s.darkWebsitesExceptions]);

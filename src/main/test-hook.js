@@ -1162,6 +1162,7 @@ function install(refs) {
 
     // ---- settings ----
     setAdblock(on) { settings.setSettings({ adblockEnabled: !!on }); },
+    setIslandTabIcons(on) { return settings.setSettings({ islandTabIcons: !!on }).islandTabIcons; },
     setTabSwitchOrder(order) { settings.setSettings({ tabSwitchOrder: order }); return settings.getSettings().tabSwitchOrder; },
     async probeOnePasswordUtilityProcess() {
       const result = await probeOnePasswordPackage();
@@ -3288,6 +3289,11 @@ function install(refs) {
             .map((dot) => dot.title),
           overflowText: overflow?.textContent ?? '',
           overflowLabel: overflow?.getAttribute('aria-label') ?? '',
+          // Site icons instead of dots (#1175): the row's mode and, per
+          // direct tab, whether it draws an icon at rest.
+          iconsMode: document.getElementById('pillDots')?.classList.contains('icons') === true,
+          iconCount: document.querySelectorAll('#pillDots .island-dot > .dot-icon').length,
+          peekCount: document.querySelectorAll('#pillDots .island-dot > .dot-peek').length,
         };
       })()`);
     },
@@ -4111,6 +4117,7 @@ function install(refs) {
         tabSleep: '1h',
         tabArchive: 'off',
         islandHoverOpen: false,
+        islandTabIcons: false,
         islandAutoHide: false,
         islandAutoHideStyle: 'float',
         surfaceStyle: 'sunrise',

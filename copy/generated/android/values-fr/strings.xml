@@ -1011,6 +1011,8 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_search_priority_results_hint">Pendant la saisie, affiche les suggestions de recherche au-dessus de vos onglets, groupes, Spaces, Favoris et Historique.</string>
     <string name="settings_general_island_hover_open_label">Ouvrir l’Island au survol</string>
     <string name="settings_general_island_hover_open_hint">Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer.</string>
+    <string name="settings_general_island_tab_icons_label">Afficher les icônes des sites dans l’Island</string>
+    <string name="settings_general_island_tab_icons_hint">Affiche l’icône du site de chaque onglet au lieu d’un point. Les icônes prennent plus de place : moins d’onglets y tiennent.</string>
     <string name="settings_general_island_auto_hide_label">Masquer automatiquement l’Island</string>
     <string name="settings_general_island_auto_hide_hint">Les pages occupent toute la fenêtre. Amenez le pointeur au bord supérieur ou ouvrez la recherche et les commandes pour faire revenir l’Island.</string>
     <string name="settings_general_island_auto_hide_style_label">Quand l’Island revient</string>

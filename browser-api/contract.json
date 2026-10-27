@@ -646,6 +646,10 @@
         "verticalTabsTextSize": {
           "type": "string"
         },
+        "islandTabIcons": {
+          "type": "boolean",
+          "doc": "Draw each direct tab on the Island as its site icon instead of a dot (device-local setting)."
+        },
         "verticalTabsWidth": {
           "type": "number"
         },
@@ -697,6 +701,10 @@
         },
         "verticalTabsTextSize": {
           "type": "string"
+        },
+        "islandTabIcons": {
+          "type": "boolean",
+          "doc": "Draw each direct tab on the Island as its site icon instead of a dot (device-local setting)."
         },
         "adblockEnabled": {
           "type": "boolean"

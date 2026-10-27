@@ -981,6 +981,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_search_priority_results_hint">As you type, show search suggestions above your tabs, groups, Spaces, Favorites and history.</string>
     <string name="settings_general_island_hover_open_label">Open the Island on hover</string>
     <string name="settings_general_island_hover_open_hint">Rest the pointer on the Island’s address to open it without clicking.</string>
+    <string name="settings_general_island_tab_icons_label">Show site icons on the Island</string>
+    <string name="settings_general_island_tab_icons_hint">Show each tab’s site icon instead of a dot. Icons take more room, so fewer tabs fit.</string>
     <string name="settings_general_island_auto_hide_label">Auto-hide the Island</string>
     <string name="settings_general_island_auto_hide_hint">Let pages fill the window. Move the pointer to the top edge, or open search and commands, to bring the Island back.</string>
     <string name="settings_general_island_auto_hide_style_label">When the Island comes back</string>

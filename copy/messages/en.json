@@ -3604,6 +3604,14 @@
     "message": "Rest the pointer on the Island’s address to open it without clicking.",
     "note": "Settings → General: explanation under a setting."
   },
+  "settings.general.islandTabIcons.label": {
+    "message": "Show site icons on the Island",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.islandTabIcons.hint": {
+    "message": "Show each tab’s site icon instead of a dot. Icons take more room, so fewer tabs fit.",
+    "note": "Settings → General: explanation under a setting."
+  },
   "settings.general.islandAutoHide.label": {
     "message": "Auto-hide the Island",
     "note": "Settings → General: setting name."

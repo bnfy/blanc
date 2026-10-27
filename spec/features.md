@@ -21,7 +21,9 @@ toolbar (Bowser Design System "Island Chrome").
   section last visited), capped at 8 total,
   with a quiet window-wide `+N` for every omitted tab that opens the panel; on
   a pointer platform, hovering/focusing a dot reveals that tab's favicon so it
-  can be identified before switching), favicon,
+  can be identified before switching; a device-local setting, off by default,
+  draws each direct tab as its site icon instead, and fewer fit before `+N`;
+  a pinned tab's dot is a rounded square), favicon,
   domain, shield count (F12), a private chip when private (F4), and a trailing
   action cluster (reload / favorite / close tab / downloads). The resting pill
   carries **no group name** — group identity is named in full in the panel
