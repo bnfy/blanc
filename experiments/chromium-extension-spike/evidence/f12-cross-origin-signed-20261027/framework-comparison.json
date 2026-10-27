@@ -1,0 +1,11 @@
+{
+  "comparison": "signature-removed disposable copies",
+  "same_size": 591377768,
+  "differing_offsets": [
+    3712,
+    3713,
+    3714
+  ],
+  "interpretation": "three bytes within __LINKEDIT segment vmsize field, changed by re-signing; all other bytes identical",
+  "tested_native_vs_packaged": "equivalent apart from signing metadata"
+}

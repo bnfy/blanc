@@ -1,0 +1,7 @@
+{
+  "files": [
+    "overlay.html",
+    "pages/newtab.html"
+  ],
+  "result": "equal after replacing preview-build meta tag; revision and packagedAt differ"
+}
