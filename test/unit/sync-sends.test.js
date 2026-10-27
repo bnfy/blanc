@@ -120,6 +120,14 @@ test('a device that does not share its tabs is still a target through presence',
   assert.equal(remoteSends().devices[OWN].name.length > 0, true, 'our presence was published once the store existed');
 });
 
+test('Settings lists the same devices as names and platforms only, after this device’s platform', () => {
+  const listed = sync.listDevices();
+  assert.equal(listed.platform, process.platform);
+  assert.deepEqual(listed.devices, sync.listSendTargets().map(({ name, platform }) => ({ name, platform })));
+  assert.equal(listed.devices.length, 2);
+  for (const device of listed.devices) assert.deepEqual(Object.keys(device).sort(), ['name', 'platform'], 'no device id reaches the page');
+});
+
 test('send puts at once and reports sent', async () => {
   requests.length = 0;
   const res = await sync.sendTab({ url: 'https://example.org/a', title: 'A', to: PHONE });

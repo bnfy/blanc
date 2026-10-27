@@ -1679,6 +1679,17 @@
         "doc": "Name this device as the user's other devices list it, then return the new status. An empty name restores the computer's name; main ignores a non-string."
       },
       {
+        "name": "settings.syncDevices",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-devices",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "This device's platform and the other devices this sync knows of (devices sharing their open tabs plus Send to Device presence), as names and platforms only. No device ids or keys cross."
+      },
+      {
         "name": "settings.syncPairBegin",
         "kind": "invoke",
         "channel": "pages:settings:sync-pair-begin",
