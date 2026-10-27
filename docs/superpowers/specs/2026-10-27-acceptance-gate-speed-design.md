@@ -1,7 +1,7 @@
 # A faster, self-healing acceptance gate
 
-October 27, 2026. **Status: awaiting owner review of this file.** Nothing here
-is built yet.
+October 27, 2026. **Status: approved by the owner on October 27, 2026. PR A
+(§1, §2) is in review as #1187; PR B (§3, §5) and PR C (§4) follow.**
 
 **Relates to:** `scripts/release.sh` (the press verification gate),
 `test/desktop/` (the Cucumber + Playwright acceptance harness),
