@@ -153,6 +153,16 @@ Acceptance: a Gherkin scenario added to `spec/acceptance/` (dry-run-resolvable; 
 - Remote-closing tabs on another device; any write path targeting another device's entry.
 - History and downloads sync (unchanged from the original spec's phasing).
 
+## Addendum (2026-10-27): every device announces itself
+
+Settings → Sync lists the account's devices, so the `session` store now also carries the presence of devices that don't share their tabs. This changes §3, §5 and §6 as follows; the owner asked for a complete device list on 2026-10-27.
+
+- **Consent (§3).** With `syncTabs` off, a desktop no longer omits or retracts its entry. It publishes its presence alone: `{ name, platform, updatedAt, tabs: [], groups: [] }`. No tab, group or icon leaves a device that doesn't share them; the icons sidecar still retracts.
+- **Retraction (§5).** Turning sharing off publishes that presence entry with a fresh clock, which LWW-beats every stale copy of the tabs exactly as the retraction did. Only leaving the sync (Turn off sync, or Connect to a different sync) now retracts this device's `session` entry, best effort and never creating the store, alongside the `sends` and `closed` departures.
+- **Heartbeat (§6).** The daily republish runs for every device, not only sharing ones, so presence never ages past the 30-day prune.
+- **Rendering.** Nothing changes in any Other devices list: `displayDevices` (and iOS `TabSnapshots.devices`) already hide an entry without tabs, and every released desktop keeps such an entry through its merges (`sanitizeEntry` passes it unchanged), so mixed versions never drop it or loop on PUTs. Send to Device already counts any non-retracted `session` entry as a target.
+- **Store creation.** A non-sharing desktop may now create a missing `session` store. If it does so inside Cloudflare KV's short missing-read window after another device created it, that device's tabs vanish from the drawers until its next pass, when the §6 repair comparison republishes them. This is the same exposure a device turning sharing on already had.
+
 ## Addendum (2026-10-27): the iOS app announces itself too
 
 The iOS app follows the same rule as desktop, within its own invariant that it never creates a missing `session` store (doing so could recreate data deleted from desktop). A phone that doesn't share its tabs publishes its presence (`tabs: []`, platform `ios`) into an existing tab list on each pass, uploading only when it changes; turning sharing off publishes that presence instead of a retraction; leaving the sync retracts the phone's entry whether or not it shared tabs, and only if the server holds one.
