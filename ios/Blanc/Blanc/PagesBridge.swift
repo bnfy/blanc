@@ -561,6 +561,13 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         case "syncPairBegin": return await engine.beginPairing()
         case "syncPairCancel": await engine.cancelPairing(); return .object([("ok", .bool(true))])
         case "syncPairState": return engine.pairingStatus()
+        // Settings → Sync's device list, as desktop's sync.listDevices: names
+        // and platforms only, never a device id.
+        case "syncDevices":
+            return .object([
+                ("platform", .string("ios")),
+                ("devices", .array(engine.sendTargets.map { .object([("name", .string($0.name)), ("platform", .string($0.platform))]) })),
+            ])
         case "syncJoinCode": return await engine.joinWithCode(args.first as? String ?? "")
         case "syncSwitchCode": return await engine.switchWithCode(options["code"] as? String ?? "", wipeRemote: options["wipeRemote"] as? Bool ?? false)
         case "syncRecoveryCodeCopy":

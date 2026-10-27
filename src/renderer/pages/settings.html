@@ -365,8 +365,7 @@
 
         <section class="settings-group" id="group-sync">
           <h2 class="group-title" data-i18n="settings.sync.title">Sync</h2>
-          <div class="settings-card sync-settings-card">
-            <div id="syncSetup">
+            <div id="syncSetup" class="settings-card sync-settings-card">
               <header class="sync-setup-header">
                 <h3 id="syncSetupTitle" data-i18n="settings.sync.syncSetupTitle">Set up Sync</h3>
                 <p id="syncSetupIntro" data-i18n="settings.sync.syncSetupIntro">
@@ -495,57 +494,120 @@
                 </ol>
               </form>
             </div>
-            <div id="syncActive" hidden>
-              <dl class="sync-status-list">
-                <div><dt data-i18n="settings.sync.syncName">Sync name</dt><dd id="syncStatusHandle" data-i18n-ignore=""></dd></div>
-                <div><dt><label for="syncDeviceName" data-i18n="settings.sync.deviceName">This device’s name</label></dt><dd><input id="syncDeviceName" type="text" maxlength="80" autocomplete="off" spellcheck="false" aria-describedby="syncDeviceNameHint" data-i18n-ignore="placeholder" /><span class="sync-device-name-hint" id="syncDeviceNameHint" data-i18n="settings.sync.deviceNameHint">How your other devices list this one. Leave empty to use the computer’s name.</span></dd></div>
-                <div><dt data-i18n="settings.sync.favoritesAndSettings">Favorites and settings</dt><dd id="syncStatusData"></dd></div>
-                <div><dt data-i18n="settings.sync.thisDevicesOpenTabs">This device’s open tabs</dt><dd id="syncStatusTabs"></dd></div>
-                <div id="syncStatusErrorRow" hidden><dt data-i18n="settings.sync.lastError">Last error</dt><dd id="syncStatusError"></dd></div>
-              </dl>
-              <p class="section-hint" id="syncActiveStatus" role="status"></p>
-              <div class="toolbar-row">
+          <!-- On state (redesign 2026-10-27): who you are and what syncs, then
+               your devices, then everything rarer one level deeper. Element
+               ids are the ones settings.js and settings-shared-spaces.js drive. -->
+          <div id="syncActive" hidden>
+            <div class="settings-card sync-hero">
+              <div class="sync-hero-main">
+                <span class="sync-avatar" id="syncAvatar" aria-hidden="true"></span>
+                <div class="sync-hero-text">
+                  <span class="page-sr-only" data-i18n="settings.sync.syncName">Sync name</span>
+                  <strong class="sync-hero-name" id="syncStatusHandle" data-i18n-ignore=""></strong>
+                  <span class="sync-hero-status" id="syncStatusLine"><span class="sync-status-dot" aria-hidden="true"></span><span id="syncStatusData"></span></span>
+                  <span class="sync-active-status" id="syncActiveStatus" role="status"></span>
+                </div>
                 <button id="syncNow" data-i18n="settings.sync.syncNow">Sync now</button>
+              </div>
+              <div class="sync-error" id="syncStatusErrorRow" hidden>
+                <p><strong data-i18n="settings.sync.lastError">Last error</strong> <span id="syncStatusError"></span></p>
                 <button id="syncEraseRetry" hidden data-i18n="settings.sync.tryAgain">Try again</button>
-                <button id="syncDisable" class="danger" data-i18n="settings.sync.syncDisable">Turn off sync</button>
-                <label class="inline-check"><input id="syncWipe" type="checkbox" /> <span data-i18n="settings.sync.syncWipe">also delete synced data</span></label>
               </div>
-              <div class="toolbar-row">
-                <label class="inline-check"><input id="syncTabsShare" type="checkbox" /> <span data-i18n="settings.sync.syncTabsShare">share this device’s open tabs with your other devices</span></label>
+              <h3 class="sync-section-label" id="syncWhatTitle" data-i18n="settings.sync.what.title">What syncs</h3>
+              <div class="sync-what-grid" role="list" aria-labelledby="syncWhatTitle">
+                <div class="sync-what" role="listitem">
+                  <svg class="sync-what-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 10c0 5.65-7 10-7 10z"/></svg>
+                  <span class="sync-what-text"><span class="sync-what-label" data-i18n="settings.sync.what.favorites">Favorites</span><span class="sync-what-state" data-i18n="settings.sync.what.always">Always on</span></span>
+                </div>
+                <div class="sync-what" role="listitem">
+                  <svg class="sync-what-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/><circle cx="9" cy="7" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="8" cy="17" r="1.8"/></svg>
+                  <span class="sync-what-text"><span class="sync-what-label" data-i18n="settings.sync.what.settings">Settings</span><span class="sync-what-state" data-i18n="settings.sync.what.always">Always on</span></span>
+                </div>
+                <label class="sync-what sync-what-toggle" id="syncTabsShareSetting" role="listitem">
+                  <svg class="sync-what-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="8" width="16" height="11" rx="2"/><path d="M7 8V6.5A1.5 1.5 0 0 1 8.5 5h4A1.5 1.5 0 0 1 14 6.5V8"/></svg>
+                  <span class="sync-what-text"><span class="sync-what-label" id="syncTabsShareLabel" data-i18n="settings.sync.what.tabs">Open tabs</span><span class="sync-what-state" id="syncTabsShareHint" data-i18n="settings.sync.what.tabsHint">From this device</span></span>
+                  <span class="toggle"><input id="syncTabsShare" type="checkbox" aria-labelledby="syncTabsShareLabel" aria-describedby="syncTabsShareHint" /><span class="track"></span></span>
+                </label>
               </div>
-              <div class="sync-devices">
-                <div class="toolbar-row" id="syncDeviceActions">
-                  <button id="syncAddDevice" type="button" data-i18n="settings.sync.addAnotherDevice">Add another device</button>
-                  <button id="syncSwitchOpen" type="button" class="quiet" data-i18n="settings.sync.switch.open">Connect to a different sync with a code</button>
-                  <button id="syncRecoveryCopy" type="button" class="quiet" data-i18n="settings.sync.recovery.copy">Copy recovery code</button>
+            </div>
+
+            <div class="settings-card sync-devices-card">
+              <div class="sync-card-head">
+                <h3 class="sync-section-label" id="syncDevicesTitle" data-i18n="settings.sync.devices.title">Devices</h3>
+                <button id="syncAddDevice" type="button" class="sync-add" data-i18n="settings.sync.devices.add">Add device</button>
+              </div>
+              <p class="sync-panel-notice" id="syncPairingNotice" role="status"></p>
+              <ul class="sync-device-list" id="syncDeviceList" aria-labelledby="syncDevicesTitle">
+                <li class="sync-device sync-device-self">
+                  <span class="sync-device-icon" id="syncThisDeviceIcon" aria-hidden="true"></span>
+                  <span class="sync-device-text">
+                    <input id="syncDeviceName" class="sync-device-name" type="text" maxlength="80" autocomplete="off" spellcheck="false" aria-label="This device’s name" aria-describedby="syncDeviceNameHint" data-i18n-aria-label="settings.sync.deviceName" data-i18n-ignore="placeholder" />
+                    <span class="sync-device-meta"><span class="sync-badge" data-i18n="settings.sync.devices.thisDevice">This device</span> <span id="syncThisDevicePlatform"></span></span>
+                    <span class="sync-device-name-hint" id="syncDeviceNameHint" data-i18n="settings.sync.deviceNameHint">How your other devices list this one. Leave empty to use the computer’s name.</span>
+                  </span>
+                </li>
+              </ul>
+              <p class="sync-devices-missing" data-i18n="settings.sync.devices.missing">Don’t see a device? Update Blanc on it, or turn on Open tabs there.</p>
+            </div>
+
+            <details class="settings-card sync-more">
+              <summary class="sync-more-summary">
+                <span class="sync-more-text"><span class="sync-more-title" data-i18n="settings.sync.more.title">More options</span><span class="sync-more-hint" data-i18n="settings.sync.more.hint">Recovery code, joining another sync, and turning sync off</span></span>
+                <svg class="sync-more-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.75 4 4.25-4 4.25"/></svg>
+              </summary>
+              <div class="setting sync-action">
+                <div class="label">
+                  <span id="syncSwitchLabel" data-i18n="settings.sync.switch.open">Connect to a different sync with a code</span>
+                  <span class="hint" id="syncSwitchHint" data-i18n="settings.sync.switch.hint">Moves this device to another sync, using a code from one of that sync’s devices.</span>
                 </div>
-                <p class="section-hint" id="syncRecoveryNote" role="status"></p>
-                <div id="syncPairing" class="sync-pairing" hidden>
-                  <p class="sync-pairing-instruction" data-i18n="settings.sync.pairing.instruction">On your other device, open Settings → Sync, choose Add this device to my sync, and enter this code.</p>
-                  <div class="sync-pairing-code" id="syncPairingCode" data-i18n-ignore="" aria-live="polite"></div>
-                  <div class="toolbar-row sync-pairing-actions">
-                    <span class="section-hint" id="syncPairingRemaining"></span>
-                    <button id="syncPairingCopy" type="button" class="quiet" data-i18n="settings.sync.pairing.copy">Copy</button>
-                    <button id="syncPairingCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
-                  </div>
-                  <p class="section-hint" id="syncPairingNotice" role="status"></p>
-                </div>
-                <form id="syncSwitch" class="sync-switch" hidden>
+                <button id="syncSwitchOpen" type="button" aria-describedby="syncSwitchLabel syncSwitchHint" data-i18n="settings.sync.switch.enterCode">Enter code</button>
+                <form id="syncSwitch" class="sync-panel sync-switch" hidden>
                   <strong id="syncSwitchName"></strong>
-                  <p class="section-hint" id="syncSwitchBody"></p>
+                  <p class="sync-panel-body" id="syncSwitchBody"></p>
                   <label class="inline-check"><input id="syncSwitchWipe" type="checkbox" /> <span id="syncSwitchWipeLabel"></span></label>
                   <label class="sync-field">
                     <strong data-i18n="settings.sync.setup.codeTitle">Enter the code from your other device</strong>
                     <input id="syncSwitchCode" class="sync-code-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" />
                   </label>
-                  <div class="toolbar-row">
+                  <div class="sync-panel-actions">
                     <button id="syncSwitchSubmit" type="submit" class="danger" data-i18n="settings.sync.switch.connect">Connect</button>
                     <button id="syncSwitchCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
                   </div>
-                  <p class="section-hint" id="syncSwitchNotice" role="status"></p>
+                  <p class="sync-panel-notice" id="syncSwitchNotice" role="status"></p>
                 </form>
               </div>
-            </div>
+              <div class="setting sync-action">
+                <div class="label">
+                  <span id="syncRecoveryLabel" data-i18n="settings.sync.recovery.title">Recovery code</span>
+                  <span class="hint" id="syncRecoveryHint" data-i18n="settings.sync.recovery.hint">Lets a device join this sync when none of your other devices is at hand. Keep it in your password manager.</span>
+                  <span class="hint sync-recovery-note" id="syncRecoveryNote" role="status"></span>
+                </div>
+                <button id="syncRecoveryCopy" type="button" aria-describedby="syncRecoveryLabel syncRecoveryHint" data-i18n="settings.sync.recovery.copyShort">Copy</button>
+              </div>
+              <div class="setting sync-action sync-turn-off">
+                <div class="label">
+                  <span id="syncTurnOffLabel" data-i18n="settings.sync.turnOff.title">Turn off sync</span>
+                  <span class="hint" id="syncTurnOffHint" data-i18n="settings.sync.turnOff.hint">This device stops syncing. Its favorites and settings stay as they are.</span>
+                  <label class="inline-check"><input id="syncWipe" type="checkbox" /> <span data-i18n="settings.sync.syncWipe">Also delete synced data</span></label>
+                </div>
+                <button id="syncDisable" class="danger" aria-describedby="syncTurnOffLabel syncTurnOffHint" data-i18n="settings.sync.syncDisable">Turn off</button>
+              </div>
+            </details>
+
+            <!-- Add device: a modal sheet, because showing the code is a task
+                 of its own. Esc or Cancel ends it (settings.js). -->
+            <dialog class="sync-sheet" id="syncPairingDialog" aria-labelledby="syncPairingTitle">
+              <div id="syncPairing" class="sync-pairing" hidden>
+                <h2 class="sync-sheet-title" id="syncPairingTitle" data-i18n="settings.sync.addAnotherDevice">Add another device</h2>
+                <p class="sync-pairing-instruction" data-i18n="settings.sync.pairing.instruction">On your other device, open Settings → Sync, choose Add this device to my sync, and enter this code.</p>
+                <div class="sync-pairing-code" id="syncPairingCode" data-i18n-ignore="" aria-live="polite"></div>
+                <div class="sync-panel-actions">
+                  <span class="sync-pairing-remaining" id="syncPairingRemaining"></span>
+                  <button id="syncPairingCopy" type="button" data-i18n="settings.sync.pairing.copy">Copy</button>
+                  <button id="syncPairingCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
+                </div>
+              </div>
+            </dialog>
           </div>
         </section>
 

@@ -502,7 +502,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "d9afbf2071cd27eaa52192268dea7cec66a7b0be62775382613cc42fc6082854",
+      "sha256": "95437eb6c406321eb348c2d9de0105b8ab0bc1c107797de43f2097aeac242511",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -574,6 +574,7 @@
         "pages:settings:shared-spaces-status",
         "pages:settings:supporter-activate",
         "pages:settings:sync-device-name-set",
+        "pages:settings:sync-devices",
         "pages:settings:sync-disable",
         "pages:settings:sync-enable",
         "pages:settings:sync-get",
@@ -944,7 +945,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "8052bb992c6217320919d8e46da15b6c9893f3d38f49722f3112d84cf765bf7d",
+      "sha256": "88860b7e66d68c3f8e6d581fe73c7dbcc81f1c6d1138532615fbf4a2b2d536f9",
       "literalChannels": [
         "before-quit"
       ],
@@ -958,7 +959,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "13da55d67be9de472ed081340009d582e0cf9880fd7a765117ab6c5ffa710aec",
+      "sha256": "b85d8f767aa82c01adaa1410e5af7ca9c29a0fe65ef488a8bd052bfa635c5a36",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1032,6 +1033,7 @@
         "pages:settings:shared-spaces-status",
         "pages:settings:supporter-activate",
         "pages:settings:sync-device-name-set",
+        "pages:settings:sync-devices",
         "pages:settings:sync-disable",
         "pages:settings:sync-enable",
         "pages:settings:sync-get",

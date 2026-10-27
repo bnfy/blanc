@@ -578,6 +578,8 @@ function setupPages(hooks = {}) {
   // lives in sync.json, never settings.json, so it cannot cross sync.
   handle('pages:settings:sync-tabs-set', 'settings', (on) => sync.setSyncTabs(!!on));
   handle('pages:settings:sync-device-name-set', 'settings', (name) => sync.setThisDeviceName(name));
+  // Names and platforms only: Settings → Sync's device list (sync.listDevices).
+  handle('pages:settings:sync-devices', 'settings', () => sync.listDevices());
   // Device pairing (design 2026-10-16): the pairing code crosses to the page
   // for display; the wrapped secret, the key and the recovery code never do.
   handle('pages:settings:sync-pair-begin', 'settings', async () => syncReply(await sync.beginPairing()));

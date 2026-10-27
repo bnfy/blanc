@@ -86,7 +86,15 @@ import XCTest
         let m = manager()
         m.undoWindow = .milliseconds(50)
         m.closeTab(open(m, "b.example").id)
-        try await Task.sleep(for: .milliseconds(400))
+        // The expiry hops back to the main actor, and on a CI simulator the
+        // main thread can stall for seconds while WebKit launches the new
+        // tab's content process (#1184). Count turns, not wall-clock time, so
+        // a stall doesn't spend the budget before the expiry gets its turn.
+        var turns = 0
+        while m.lastClosed != nil, turns < 250 {
+            try await Task.sleep(for: .milliseconds(20))
+            turns += 1
+        }
         XCTAssertNil(m.lastClosed)
         XCTAssertEqual(m.reopenList.map(\.url.host), ["b.example"])
     }

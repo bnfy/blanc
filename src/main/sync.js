@@ -1135,6 +1135,17 @@ function listSendTargets() {
     .map(({ id, name, platform }) => ({ id, name: resolveDeviceName(names, id, name), platform }));
 }
 
+/** Settings → Sync's device list: this device's platform, then every other
+ * device this sync knows of. Those are the Send to Device targets (devices
+ * sharing their open tabs, plus Send to Device presence), so a device that
+ * does neither isn't listed; Settings says so. No ids or keys reach the page. */
+function listDevices() {
+  return {
+    platform: process.platform,
+    devices: listSendTargets().map(({ name, platform }) => ({ name, platform })),
+  };
+}
+
 /** Pages other devices sent here that this device hasn't opened or dismissed. */
 function listSentToThisDevice() {
   if (!isDefaultLocalProfile()) return [];
@@ -1265,6 +1276,7 @@ module.exports = {
   renameRemoteDevice,
   setThisDeviceName,
   listSendTargets,
+  listDevices,
   listSentToThisDevice,
   hideSentItem,
   sendTab,

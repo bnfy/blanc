@@ -3973,10 +3973,6 @@
     "message": "Preferiti e impostazioni",
     "source": "sha256:cd7adad03202d4fa5699465da81449321058a17adab36510e30e5171aef46e04"
   },
-  "settings.sync.thisDevicesOpenTabs": {
-    "message": "Schede aperte su questo dispositivo",
-    "source": "sha256:7e47afadaae890115a563bfbfbea6bd20c871ed1c94493ff627dd306b1f35e43"
-  },
   "settings.sync.lastError": {
     "message": "Ultimo errore",
     "source": "sha256:1dbf1c3b2146d465a62f9b90f9dea08e65a1bb3f4e0ff06124c188a9f2dc7cbc"
@@ -3987,7 +3983,15 @@
   },
   "settings.sync.syncDisable": {
     "message": "Disattiva",
-    "source": "sha256:7f787675426fdd484c9ade065403e43964fc813937041fa0a9640fad46dbb490"
+    "source": "sha256:f0d6e7347bbc925a4e670fb79b8276216645e5c07f13314c0e97fcd60f9f5c6b"
+  },
+  "settings.sync.turnOff.title": {
+    "message": "Disattiva la sincronizzazione",
+    "source": "sha256:8e14ed15b67ed12c52d7b45e8c1390a7d5fcd5252bd8916768acf848dd2a90eb"
+  },
+  "settings.sync.turnOff.hint": {
+    "message": "Questo dispositivo smette di sincronizzarsi. I suoi preferiti e le sue impostazioni restano come sono.",
+    "source": "sha256:b5a1a6396344203e20f1f23c19a68d4d88226d993e22af471686243ca17dd1ae"
   },
   "settings.profiles.title": {
     "message": "Profili",
@@ -4342,12 +4346,8 @@
     "source": "sha256:185ccffbd3d1b0b7ac8fe703bb2a5af825fc03e4214b122ebf164d3fae5803b9"
   },
   "settings.sync.syncWipe": {
-    "message": "elimina anche i dati sincronizzati",
-    "source": "sha256:ae66751de4940f5f0e7feaf06c03d815fbadf1984bb7f08b98ca88180d4d0e2c"
-  },
-  "settings.sync.syncTabsShare": {
-    "message": "condividi le schede aperte di questo dispositivo con gli altri tuoi dispositivi",
-    "source": "sha256:62ce644bbbfcb4d4fa361f75f4eea3a9b8e9aaec8e82b7dc490ab4e9637f8916"
+    "message": "Elimina anche i dati sincronizzati",
+    "source": "sha256:d656e0266117b8f6f63022f08364ce32128913465698811095c30de371977178"
   },
   "settings.general.newtabDynamicWallpaper.syncedHint": {
     "message": "Lo sfondo segue l’ora locale di questo computer. La scelta di attivarlo o meno si sincronizza tra i dispositivi.",
@@ -4901,14 +4901,6 @@
     "message": "Non ancora sincronizzato",
     "source": "sha256:736f6a6e724597553e912c9e79aec3e6feced37159a8e440a5dfb1235e8d31e2"
   },
-  "settings.sync.sharing": {
-    "message": "Condivise",
-    "source": "sha256:d4989b13c2beb7bc7435d7ce6c1b5f795f5fc61d303b889fc2322bc02e53693e"
-  },
-  "settings.sync.notShared": {
-    "message": "Non condivise",
-    "source": "sha256:8d7e1eec1472e29da80a2bcc66aa02648eb1302d5552e27013b07b4341d2f789"
-  },
   "settings.sync.turningOn": {
     "message": "Attivazione della sincronizzazione…",
     "source": "sha256:259deec9a6d166fa409be3a88b58ce9e19084dcd3e741038f6e8162b0536d464"
@@ -4981,6 +4973,82 @@
     "message": "Aggiungi un altro dispositivo",
     "source": "sha256:f2685746e9bb506c73833ba5d1e14e1534854427b3ab01cf38aa9e094bd93e8e"
   },
+  "settings.sync.what.title": {
+    "message": "Cosa viene sincronizzato",
+    "source": "sha256:c35e03d48e1b6436142c7ce4761409fc3e993026253141848da4541d3fa413a2"
+  },
+  "settings.sync.what.favorites": {
+    "message": "Preferiti",
+    "source": "sha256:eb6de4bf3c91c1517769a63ad4043c11178de070ec60ce3351e593a887fab8e7"
+  },
+  "settings.sync.what.settings": {
+    "message": "Impostazioni",
+    "source": "sha256:43356a5c105b12917f5ca2d42757ef4b35c162ef61904740a26cc20a591c29eb"
+  },
+  "settings.sync.what.always": {
+    "message": "Sempre attivo",
+    "source": "sha256:de249071e6dd03979aea2e62cd96f0403d570be54748ac3e16c9384c25066e2b"
+  },
+  "settings.sync.what.tabs": {
+    "message": "Schede aperte",
+    "source": "sha256:cc47e5b9260b5b13a5324712bfe400a816fab37fd50fab315b8eb2ce19dc8d65"
+  },
+  "settings.sync.what.tabsHint": {
+    "message": "Da questo dispositivo",
+    "source": "sha256:ec356845b1c0bd9bad46d3277925331e8d7c0f75e352e8907f13408851f109d5"
+  },
+  "settings.sync.what.spaces": {
+    "message": "Spaces e gruppi",
+    "source": "sha256:4cd7c81759578035df9fa327c5a6aa87d99c4f20f9513d494b763b9faed42f23"
+  },
+  "settings.sync.what.spacesHint": {
+    "message": "Su questo dispositivo",
+    "source": "sha256:be0f2a3628a8e4debcfc009ba53e43f187c126b190e2363ebb9e23f1933b01e5"
+  },
+  "settings.sync.devices.title": {
+    "message": "Dispositivi",
+    "source": "sha256:af960101069f8a17a7208c35d2598ee7ecd4929d0ad62db3fdebd823e166dc4f"
+  },
+  "settings.sync.devices.add": {
+    "message": "Aggiungi dispositivo",
+    "source": "sha256:6fa6276903dfb8d3aa2bb634a0d4725b19a016901c5b90bed83293dc7612b5d2"
+  },
+  "settings.sync.devices.thisDevice": {
+    "message": "Questo dispositivo",
+    "source": "sha256:b3aef50482ad194b133fec2a0ee2d24aab57a23c42f8a1400a4db5b37e2e4091"
+  },
+  "settings.sync.devices.platform.darwin": {
+    "message": "Mac",
+    "source": "sha256:9c351bad4d6a94f97f6d5806fb7fa3c99aeec905a11c73c35ab5887b373210f0"
+  },
+  "settings.sync.devices.platform.win32": {
+    "message": "Windows",
+    "source": "sha256:33e9b9d7e6881b61b14a94b71a4275616b3adb60bf7050a2d79149c2b5ab14be"
+  },
+  "settings.sync.devices.platform.linux": {
+    "message": "Linux",
+    "source": "sha256:038263045ce82f17006066ff4253e3d1cfec40886079915f92c683a5988a8b35"
+  },
+  "settings.sync.devices.platform.ios": {
+    "message": "iPhone",
+    "source": "sha256:87390a642f0d1037d05d893211bbb455a5d5517caba8f584491f682ec41684b3"
+  },
+  "settings.sync.devices.platform.unknown": {
+    "message": "Dispositivo",
+    "source": "sha256:a0ae45e0aaf0979a3bd2d4e657c1863339f629e53df153005c838cfb59cb2d4b"
+  },
+  "settings.sync.devices.missing": {
+    "message": "Manca un dispositivo? Aggiorna Blanc su quel dispositivo o attiva lì “Schede aperte”.",
+    "source": "sha256:8849ef9d6a703e40b9956b0fd570615512831aac4e8a1a847c0a94fa929f512f"
+  },
+  "settings.sync.more.title": {
+    "message": "Altre opzioni",
+    "source": "sha256:43f8c2e74ba87e0d496afef3bd5f0f70c78379108238cf706237db9bc8429ee2"
+  },
+  "settings.sync.more.hint": {
+    "message": "Codice di recupero, unirsi a un’altra sincronizzazione e disattivare la sincronizzazione",
+    "source": "sha256:79795525f1825fc2d47ca0908364b950b2bc5e3ff665a3754878627604cb5254"
+  },
   "settings.sync.pairing.instruction": {
     "message": "Sull’altro dispositivo apri Impostazioni → Sincronizzazione, scegli “Aggiungi questo dispositivo alla mia sincronizzazione” e inserisci questo codice.",
     "source": "sha256:716bde0e975f43357a82fffdcc9dbf9300d21f048b22f253074cd951b9de43e9"
@@ -5005,6 +5073,14 @@
     "message": "Collegati a un’altra sincronizzazione con un codice",
     "source": "sha256:a8f93780fed5e33ab8a57b5f836c7f471ca6d2b2c04d7f1a88a0628dbb93dbf4"
   },
+  "settings.sync.switch.hint": {
+    "message": "Sposta questo dispositivo in un’altra sincronizzazione, con un codice da uno dei suoi dispositivi.",
+    "source": "sha256:0b1515703345738df9befd818bf764e6290b1c544ab245b3e050ccf30bbb177d"
+  },
+  "settings.sync.switch.enterCode": {
+    "message": "Inserisci codice",
+    "source": "sha256:3fc8ba08d8ccfc11f1e3cf63241f527cdfd0d65cc9d02859655c18f417fff254"
+  },
   "settings.sync.switch.title": {
     "message": "Questo dispositivo lascerà la sincronizzazione attuale, “{name}”.",
     "source": "sha256:3b7d7ad43cb524826acb2c6deaa11f31801063a8755d3cc103632a78c98e6149"
@@ -5024,6 +5100,18 @@
   "settings.sync.recovery.copy": {
     "message": "Copia il codice di recupero",
     "source": "sha256:45c4b77a5c682e067f3793752189c885140807cd1586068ffcf1e04ee5be7a91"
+  },
+  "settings.sync.recovery.title": {
+    "message": "Codice di recupero",
+    "source": "sha256:c2129945b582dc7fe87d67c9937645380b4d7ea6ed80a732091db43debe12c02"
+  },
+  "settings.sync.recovery.hint": {
+    "message": "Permette a un dispositivo di unirsi a questa sincronizzazione anche quando nessuno dei tuoi altri dispositivi è a portata di mano. Conservalo nel tuo gestore di password.",
+    "source": "sha256:3e4453ea02b4534c5c027c9306ff05834fc26c0ebdf1d4e606dfe4d652969ad8"
+  },
+  "settings.sync.recovery.copyShort": {
+    "message": "Copia",
+    "source": "sha256:196a0bba2ead170565055d0f234b5f842f749f0a7cc153759441dc4ba6268b8d"
   },
   "settings.sync.recovery.copied": {
     "message": "Copiato. Incollalo nel tuo gestore di password.",
@@ -8129,10 +8217,6 @@
     "message": "Invia la pagina di questa scheda a un altro dispositivo sincronizzato",
     "source": "sha256:1d542be7aafa7207a6c34f1c5e2cf7af7ca4ccfa459231580cb7bd0215988b97"
   },
-  "sharedSpaces.switch": {
-    "message": "Sincronizza Spaces e gruppi su questo dispositivo",
-    "source": "sha256:c02b1330d0aebe0038d68ab7853e3248ed9c0cb053c485c6d84f21705521d43a"
-  },
   "sharedSpaces.title": {
     "message": "Scegli gli Spaces da sincronizzare",
     "source": "sha256:5a18823d575c4e530e97fff1dd445b7fcd198705aa312fc5733c58777aa6d4ad"
@@ -8580,22 +8664,6 @@
   "menu.previousTabInOrder": {
     "message": "Scheda precedente nell’ordine dell’elenco",
     "source": "sha256:59d0988b21d1f252b3a9d75e30527d6519e5092347249b4a6b1762f3f2a69846"
-  },
-  "settings.general.tabSwitchOrder.label": {
-    "message": "Cambia scheda con Ctrl+Tab",
-    "source": "sha256:b4eea66cf23fea0dd823e0eca62cb9bc2bf9a3b26e963fef4a6e55da47422cf2"
-  },
-  "settings.general.tabSwitchOrder.hint": {
-    "message": "Tieni premuto Ctrl e premi Tab per tornare alle schede usate più di recente, poi rilascia Ctrl per passarci. Esc ti lascia dove sei.",
-    "source": "sha256:a1bc7a2aaa5992538e4b286c9711a02136ac03f7e0b81a2febded17a22892803"
-  },
-  "settings.general.tabSwitchOrder.recent": {
-    "message": "Nell’ordine in cui le hai usate",
-    "source": "sha256:a55a18693b898163b09b865118594e02e3ed5451128acbe81ba66b8938a956a4"
-  },
-  "settings.general.tabSwitchOrder.list": {
-    "message": "Nell’ordine dell’elenco delle schede",
-    "source": "sha256:0e315b305f59dff6c13aa32616734cb834b59612a4cf99ad2e6a7d41b7a57e64"
   },
   "slash.copy.hint": {
     "message": "Copia il link di questa pagina: aggiungi «clean» per togliere i parametri di tracciamento",

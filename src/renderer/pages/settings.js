@@ -1925,7 +1925,6 @@
       const syncStatusHandle = document.getElementById('syncStatusHandle');
       const deviceNameEl = document.getElementById('syncDeviceName');
       const syncStatusData = document.getElementById('syncStatusData');
-      const syncStatusTabs = document.getElementById('syncStatusTabs');
       const syncStatusErrorRow = document.getElementById('syncStatusErrorRow');
       const syncStatusError = document.getElementById('syncStatusError');
       const nowBtn = document.getElementById('syncNow');
@@ -1965,6 +1964,14 @@
       const switchNotice = document.getElementById('syncSwitchNotice');
       const recoveryCopy = document.getElementById('syncRecoveryCopy');
       const recoveryNote = document.getElementById('syncRecoveryNote');
+      // Redesign 2026-10-27: identity, status colour, the device list and the
+      // Add device sheet.
+      const avatar = document.getElementById('syncAvatar');
+      const statusLine = document.getElementById('syncStatusLine');
+      const deviceList = document.getElementById('syncDeviceList');
+      const thisDeviceIcon = document.getElementById('syncThisDeviceIcon');
+      const thisDevicePlatform = document.getElementById('syncThisDevicePlatform');
+      const pairingDialog = document.getElementById('syncPairingDialog');
       const canCreate = supports('syncCreate');
       const canWipeRemote = supports('syncWipeRemote');
       pathStart.hidden = !canCreate;
@@ -1982,7 +1989,68 @@
       const eraseRetry = document.getElementById('syncEraseRetry');
       let currentHandle = '';
 
-      // On-state: one row per category; the error lives ONLY in its own row.
+      // Devices are drawn, not named: a phone for iOS, a computer otherwise.
+      const DEVICE_ICON_PATHS = {
+        computer: ['M5.5 5h13A1.5 1.5 0 0 1 20 6.5V16H4V6.5A1.5 1.5 0 0 1 5.5 5z', 'M2.5 19h19'],
+        phone: ['M8.5 3h7A1.5 1.5 0 0 1 17 4.5v15a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 19.5v-15A1.5 1.5 0 0 1 8.5 3z', 'M11 18h2'],
+      };
+      function drawDeviceIcon(el, platform) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        for (const d of DEVICE_ICON_PATHS[platform === 'ios' ? 'phone' : 'computer']) {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', d);
+          svg.append(path);
+        }
+        el.replaceChildren(svg);
+      }
+      const platformLabel = (platform) => ({
+        darwin: t('settings.sync.devices.platform.darwin'),
+        win32: t('settings.sync.devices.platform.win32'),
+        linux: t('settings.sync.devices.platform.linux'),
+        ios: t('settings.sync.devices.platform.ios'),
+      })[platform] ?? t('settings.sync.devices.platform.unknown');
+
+      // This device leads the list (its name is the field); every other device
+      // the sync knows of follows, newest first, as names and platforms only.
+      let devicesRequest = 0;
+      async function refreshDevices() {
+        const request = ++devicesRequest;
+        let listed;
+        try { listed = await window.bowserPages.settings.syncDevices(); } catch { return; }
+        if (request !== devicesRequest || !listed) return;
+        drawDeviceIcon(thisDeviceIcon, listed.platform);
+        thisDevicePlatform.textContent = platformLabel(listed.platform);
+        deviceList.querySelectorAll('.sync-device-other').forEach((row) => row.remove());
+        for (const device of listed.devices ?? []) {
+          const row = document.createElement('li');
+          row.className = 'sync-device sync-device-other';
+          const icon = document.createElement('span');
+          icon.className = 'sync-device-icon';
+          icon.setAttribute('aria-hidden', 'true');
+          drawDeviceIcon(icon, device.platform);
+          const text = document.createElement('span');
+          text.className = 'sync-device-text';
+          const name = document.createElement('span');
+          name.className = 'sync-device-label';
+          name.dataset.i18nIgnore = '';
+          name.textContent = device.name;
+          text.append(name);
+          // An iPhone is named "iPhone": don't say it twice.
+          const platform = platformLabel(device.platform);
+          if (platform.toLocaleLowerCase() !== String(device.name).trim().toLocaleLowerCase()) {
+            const meta = document.createElement('span');
+            meta.className = 'sync-device-meta';
+            meta.textContent = platform;
+            text.append(meta);
+          }
+          row.append(icon, text);
+          deviceList.append(row);
+        }
+      }
+
+      // On-state: identity and status, what syncs, then the devices; the error
+      // lives ONLY in its own callout. Open-tab sharing shows as its switch.
       function renderStatus(status, note) {
         const on = !!status.enabled;
         eraseRetry.hidden = !canWipeRemote || !status.erasurePending;
@@ -1997,10 +2065,13 @@
           deviceNameEl.placeholder = status.deviceNamePublished || '';
           const lastSynced = relativeSyncTime(status.lastSyncedAt);
           syncStatusData.textContent = lastSynced ? t('settings.sync.lastSynced', { when: lastSynced }) : t('settings.sync.notSynced');
-          syncStatusTabs.textContent = status.syncTabs ? t('settings.sync.sharing') : t('settings.sync.notShared');
           syncStatusErrorRow.hidden = !status.lastError;
           syncStatusError.textContent = status.lastError || '';
           activeStatus.textContent = note || '';
+          // The sync's monogram, and a status dot: up to date, waiting, or an error.
+          avatar.textContent = Array.from(String(status.handle || '').trim())[0]?.toLocaleUpperCase() ?? '';
+          statusLine.dataset.state = status.lastError ? 'error' : (lastSynced ? 'ok' : 'pending');
+          refreshDevices();
         }
       }
 
@@ -2116,6 +2187,10 @@
         pairingRemaining.textContent = pv.showing ? t('settings.sync.pairing.expiresIn', { time: pv.remainingText }) : '';
         pairingNotice.textContent = pv.expired ? t('settings.sync.pairing.expired') : pv.noticeText;
         pairingNotice.hidden = !pairingNotice.textContent;
+        // The code shows in a modal sheet; its notice (expired, failed) stays
+        // in the Devices card, where it is still visible once the sheet closes.
+        if (pv.showing && !pairingDialog.open) pairingDialog.showModal();
+        if (!pv.showing && pairingDialog.open) pairingDialog.close();
         if (pv.showing && !pairingTimer) pairingTimer = setInterval(() => dispatchPairing({ type: 'tick', now: Date.now() }), 1000);
         if (!pv.showing && pairingTimer) { clearInterval(pairingTimer); pairingTimer = null; }
       }
@@ -2137,6 +2212,8 @@
       }
       addDeviceBtn.addEventListener('click', () => dispatchPairing({ type: 'begin' }));
       pairingCancel.addEventListener('click', () => dispatchPairing({ type: 'cancel' }));
+      // Esc on the sheet is Cancel: the model ends the code and closes it.
+      pairingDialog.addEventListener('cancel', (event) => { event.preventDefault(); dispatchPairing({ type: 'cancel' }); });
       pairingCopy.addEventListener('click', () => {
         // The pairing code is the one secret meant to travel; the recovery
         // code never passes through this page.

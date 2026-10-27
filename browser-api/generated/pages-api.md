@@ -120,6 +120,7 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `settings.syncNow` | invoke | `pages:settings:sync-now` | settings | Sync now, then return the new status. |
 | `settings.syncTabsSet` | invoke | `pages:settings:sync-tabs-set` | settings | Turn open-tab sync on or off; main coerces to boolean. |
 | `settings.syncDeviceNameSet` | invoke | `pages:settings:sync-device-name-set` | settings | Name this device as the user's other devices list it, then return the new status. An empty name restores the computer's name; main ignores a non-string. |
+| `settings.syncDevices` | invoke | `pages:settings:sync-devices` | settings | This device's platform and the other devices this sync knows of (devices sharing their open tabs plus Send to Device presence), as names and platforms only. No device ids or keys cross. |
 | `settings.syncPairBegin` | invoke | `pages:settings:sync-pair-begin` | settings | Park this device's wrapped sync secret under a fresh pairing code; returns the code and expiry for display. No key crosses. |
 | `settings.syncPairCancel` | invoke | `pages:settings:sync-pair-cancel` | settings | Retract the current pairing code. |
 | `settings.syncPairState` | invoke | `pages:settings:sync-pair-state` | settings | The live pairing code and expiry, so a reopened Settings page can resume the countdown. |
