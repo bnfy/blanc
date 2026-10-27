@@ -47,6 +47,8 @@
     "test:quiet-tabs:desktop": "cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags @quiet-tabs",
     "test:favorites-import:desktop": "cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags @browser-migration",
     "test:tab-view-drawing:desktop": "node test/desktop/tab-view-drawing-smoke.mjs",
+    "pretest:acceptance:healing:desktop": "npm run runtime:check",
+    "test:acceptance:healing:desktop": "node test/desktop/healing-smoke.mjs",
     "test:pinned-home-recovery:desktop": "node test/desktop/pinned-home-recovery-smoke.mjs",
     "test:pdf-viewer:desktop": "node test/desktop/pdf-viewer-smoke.mjs",
     "test:packaged:tab-view-drawing": "node test/desktop/packaged-tab-view-drawing-smoke.mjs",
@@ -190,7 +192,7 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
-    "@cucumber/cucumber": "^13.2.1",
+    "@cucumber/cucumber": "^13.3.0",
     "@electron/asar": "4.3.1",
     "@eslint/js": "10.0.1",
     "@ghostery/adblocker": "^2.18.2",
@@ -198,7 +200,7 @@
     "electron-builder": "^26.15.3",
     "eslint": "10.12.0",
     "globals": "17.13.0",
-    "playwright": "^1.63.0",
+    "playwright": "^1.64.1",
     "sharp": "^0.35.5"
   },
   "dependencies": {

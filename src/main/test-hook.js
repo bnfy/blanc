@@ -3952,6 +3952,13 @@ function install(refs) {
       if (!wc || wc.isDestroyed()) return null;
       return terminateRenderer(wc);
     },
+    /** For the acceptance harness's self-test: an uncaught main-process
+     *  exception, which the BLANC_TEST handler logs before exiting. */
+    raiseMainProcessExceptionForTest() {
+      // Late enough that this call's reply reaches the harness first.
+      setTimeout(() => { throw new Error('acceptance harness: synthetic main-process exception'); }, 100);
+      return true;
+    },
     sleepState(id) {
       const snapshots = getSleepSnapshots();
       const one = (tabId, tab) => ({

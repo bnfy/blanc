@@ -67,8 +67,10 @@ function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setT
       op.waiters.push({resolve,onOutcome});
     });wake();return promise;
   }
+  // Acceptance harness only: free the window and run whatever waited on it.
+  function resetWindow() {scheduler.resetWindow();persist(scheduler.snapshot());wake();}
   const settled=()=>!running&&!waiting.length?Promise.resolve():new Promise(resolve=>drain.push(resolve));
   const runningSettled=()=>running?new Promise(resolve=>running.waiters.push({resolve:()=>resolve()})):Promise.resolve();
-  return {enqueue,cancelWhere,status,settled,runningSettled};
+  return {enqueue,cancelWhere,status,settled,runningSettled,resetWindow};
 }
 module.exports={createRequestQueue};

@@ -56,3 +56,16 @@ test('damaged persisted scheduler metadata cannot permanently wedge sync',()=>{
   for(let n=0;n<10;n++)s.record();assert.equal(s.canRequest(),false);
   c.advance(60000);assert.equal(s.canRequest(),true);
 });
+test('resetWindow forgets every recorded request and any back-off, and restart charging after it',()=>{
+  const c=clock(),s=createScheduler(c);
+  while(s.canRequest())s.record();
+  s.onRateLimited();
+  assert.equal(s.canRequest(),false);
+  s.resetWindow();
+  assert.equal(s.canRequest(),true);
+  assert.equal(s.windowFreesAt(),c.now());
+  assert.deepEqual(s.snapshot().log,[]);
+  assert.equal(s.snapshot().windowLimit,10);
+  assert.equal(s.snapshot().backoffUntil,null);
+  let n=0;while(s.canRequest()){s.record();n++;}assert.equal(n,10);
+});

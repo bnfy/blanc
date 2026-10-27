@@ -15561,6 +15561,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if(action==='disable')return sync.disable({wipeRemote:false});
         if(action==='apply')return sharedSharing.apply(payload);
         if(action==='pull')return sync.syncNow(payload);
+        if(action==='resetRequestWindow')return sync.resetRequestWindowForTest();
         if(action==='capture'){captureSharedSpaceEdits(rt());return true;}
         if(action==='state')return {shared:sharedSpaceState.snapshot(sync.sharedContext()),context:sync.sharedContext(),closed:sharedClosedBand(rt()),parked:(rt().closedEntries??[]).map(entry=>({id:entry.id,sharedTabId:entry.sharedTabId,held:!!entry.view})),workspaces:workspacesProjection()};
         return null;

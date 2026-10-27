@@ -43,3 +43,8 @@ jobs:
         run: swift scripts/ci-macos-tall-display.swift
       - name: Full runnable desktop acceptance suite
         run: npm run test:acceptance:desktop
+      # The harness's own self-test: a crash or main-process exception fails
+      # only its own scenario. Runs even when the suite above failed.
+      - name: Acceptance harness healing
+        if: ${{ !cancelled() }}
+        run: npm run test:acceptance:healing:desktop

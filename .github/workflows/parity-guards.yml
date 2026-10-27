@@ -372,6 +372,12 @@ jobs:
       - name: Pinned-home crash recovery (Windows)
         if: ${{ !cancelled() && runner.os != 'Linux' }}
         run: npm run test:pinned-home-recovery:desktop
+      - name: Acceptance harness healing (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: xvfb-run -a npm run test:acceptance:healing:desktop
+      - name: Acceptance harness healing (Windows)
+        if: ${{ !cancelled() && runner.os != 'Linux' }}
+        run: npm run test:acceptance:healing:desktop
 
   browser-shortcuts:
     needs: changes

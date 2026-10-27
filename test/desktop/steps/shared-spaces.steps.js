@@ -9,7 +9,7 @@ const {waitForValue}=require('../support/poll');
 const {callTestHook}=require('../support/test-hook-call');
 const handle='Shared Spaces acceptance',passphrase='correct horse battery staple Shared Spaces';
 Before({tags:'@F57 and not @peer-driver',timeout:180000},async function(){
- this.sharedFixture=await createSyncFixture();await ctx.relaunch({BLANC_TEST_SYNC_ENDPOINT:this.sharedFixture.url});
+ this.sharedFixture=await createSyncFixture();await ctx.relaunch({BLANC_TEST_SYNC_ENDPOINT:this.sharedFixture.url},{freshProfile:true});
  if(process.platform==='linux'){
   const storage=await ctx.app.evaluate(({safeStorage})=>({available:safeStorage.isEncryptionAvailable(),backend:safeStorage.getSelectedStorageBackend()}));
   assert.equal(storage.available,true,`Shared Spaces requires secure OS storage (${storage.backend})`);
@@ -20,7 +20,11 @@ Before({tags:'@F57 and not @peer-driver',timeout:180000},async function(){
 });
 After({tags:'@F57 and not @peer-driver',timeout:180000},async function(scenario){
  if(scenario.result?.message)process.stderr.write(scenario.result.message+'\n');
- try{if(this.sharedPeer){await callTestHook(this.sharedPeer,'sharedSpacesTest',['disable']);await ctx.closePeerApp(this.sharedPeer);}await this.call('sharedSpacesTest','disable');await ctx.relaunch();}finally{await this.sharedFixture?.close();this.sharedKey?.key.fill(0);}
+ // The relaunch back to the main profile runs even when the app died during
+ // the scenario and disable throws; otherwise later scenarios would be healed
+ // onto this temporary profile, with a sync endpoint that is about to close.
+ try{if(this.sharedPeer){await callTestHook(this.sharedPeer,'sharedSpacesTest',['disable']);await ctx.closePeerApp(this.sharedPeer);}await this.call('sharedSpacesTest','disable');}
+ finally{try{await ctx.relaunch();}finally{await this.sharedFixture?.close();this.sharedKey?.key.fill(0);}}
 });
 async function setup(world,shared){
  world.firstTab=await world.call('openTab',world.fixtureUrl('shared-first'));
@@ -67,6 +71,7 @@ When('device B adds a tab to Work',{timeout:180000},async function(){
 });
 Then('the remote tab appears quiet',async function(){const state=await this.waitForState(s=>s.tabs.some(t=>t.url===this.remoteUrl));const tab=state.tabs.find(t=>t.url===this.remoteUrl);assert.equal(tab.asleep,true);});
 When('device B closes the background Work tab',{timeout:180000},async function(){
+ await this.call('sharedSpacesTest','resetRequestWindow');
  await editPeer(this,blob=>{const id=Object.keys(blob.tabs).find(id=>blob.tabs[id].nav.v.url===this.fixtureUrl('shared-first'));assert.ok(id);this.closedRecord=id;blob.tabs[id].deleted=model.field(true,Date.now()+1,'device-b');});
 });
 Then('its parked page appears once in Recently closed',async function(){
@@ -176,6 +181,7 @@ Then('the Shared Spaces peer driver verifies {string}',{timeout:180000},async fu
  await require('../support/shared-spaces-peer-cases').runPeerCase(name);
 });
 When('device B closes the active Work tab',{timeout:180000},async function(){
+ await this.call('sharedSpacesTest','resetRequestWindow');
  this.closedActiveUrl=this.fixtureUrl('shared-second');
  await editPeer(this,blob=>{const id=Object.keys(blob.tabs).find(id=>blob.tabs[id].nav.v.url===this.closedActiveUrl);assert.ok(id);blob.tabs[id].deleted=model.field(true,Date.now()+1,'device-b');});
  const state=await this.call('sharedSpacesTest','state');assert.ok(Object.values(state.shared.windows).some(w=>w.accepted.some(row=>row.op==='close')),'remote close must be durably deferred before crashing');
@@ -199,6 +205,7 @@ When('an index write fails after the new Space blob succeeds',{timeout:180000},a
  assert.equal(this.sharedFixture.env.records.has(`blob:${this.sharedKey.accountId}:spaces`),false);
 });
 Then('the restored client retries the missing index entry',{timeout:300000},async function(){
+ await this.call('sharedSpacesTest','resetRequestWindow');
  this.indexFault.remaining=0;
  await this.call('sharedSpacesTest','pull',['space-'+this.sid,'spaces']);
  const raw=this.sharedFixture.env.records.get(`blob:${this.sharedKey.accountId}:spaces`);assert.ok(raw);

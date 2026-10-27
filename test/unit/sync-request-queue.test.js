@@ -92,3 +92,13 @@ test('continuous requested work and focus refreshes cannot starve any class or i
   assert.equal(new Set(events.filter(x=>x.kind==='F').map(x=>x.item)).size,7);
   queue.cancelWhere(()=>true,'disabled');await Promise.all(calls);assert.equal(outcomes,calls.length);
 });
+test('resetWindow lets a request waiting on an exhausted window run now and persists the empty log',async()=>{
+  let t=0,wake,persisted=[];const scheduler=createScheduler({limit:10,now:()=>1800000000000+t,monotonic:()=>t});
+  const queue=createRequestQueue({scheduler,persist:s=>persisted.push(s),now:()=>1800000000000+t,setTimer:fn=>{wake=fn;return 1;},clearTimer:()=>{wake=null;}});
+  for(let i=0;i<10;i++)scheduler.record();let ran=0;
+  const send=queue.enqueue({class:'F',item:'sends',run:async()=>{ran++;return 'sent';}});
+  await tick();assert.equal(queue.status().waiting,1);assert.equal(ran,0);
+  queue.resetWindow();
+  assert.deepEqual(persisted.at(-1).log,[]);assert.equal(persisted.at(-1).backoffUntil,null);
+  await tick();await tick();assert.equal((await send).outcome,'sent');assert.equal(ran,1);assert.equal(queue.status().waiting,0);
+});
