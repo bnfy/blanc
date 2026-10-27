@@ -208,7 +208,7 @@ import Observation
       try check(g)
       _ = try decode(found.blob, key: key)
       if stateStore.state.enabled, stateStore.state.accountId != payload.accountId {
-        await retractBestEffort()
+        if listedInTabList { await retractBestEffort() }
         await retractSendsBestEffort()
         try check(g)
       }
@@ -317,7 +317,7 @@ import Observation
     defer { transitioning = false }
     await barrier()
     do {
-      if stateStore.state.enabled { await retractBestEffort() }
+      if stateStore.state.enabled, listedInTabList { await retractBestEffort() }
       if stateStore.state.enabled { await retractSendsBestEffort() }
       await cancelPairing()
       let oldKey = try secrets.readKey()
@@ -605,14 +605,20 @@ import Observation
     }
     throw SyncError.conflict(version: nil)
   }
+  /// Whether this phone may be on the others' device lists: it shares its
+  /// tabs, or a pass published its presence. A phone that never published
+  /// sends nothing to the old account when it leaves.
+  private var listedInTabList: Bool {
+    if stateStore.state.syncTabs { return true }
+    guard let own = session["devices"]?[stateStore.state.deviceId] else { return false }
+    return own["retracted"]?.isTruthy != true
+  }
   /// Leaving a sync (turning it off, or switching to another) must never depend
   /// on the network or on the key still being there (a backup restored to a new
-  /// phone keeps sync.json but not the device-only key). Try to tell the other
-  /// devices this phone stopped sharing; if that can't happen, its entry ages
-  /// out after 30 days like any silent device's.
-  /// Leaving a sync: take this phone off the others' device lists. Only an
-  /// entry the server holds is retracted; a phone that never published sends
-  /// nothing to the old account.
+  /// phone keeps sync.json but not the device-only key). Try to take this phone
+  /// off the others' device lists; only an entry the server holds is retracted,
+  /// and if that can't happen, the entry ages out after 30 days like any silent
+  /// device's.
   private func retractBestEffort() async {
     guard let snap = try? snapshot() else { return }
     try? await retract(snap, leaving: true)
