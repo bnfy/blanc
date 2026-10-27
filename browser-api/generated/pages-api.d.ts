@@ -293,6 +293,8 @@ export interface SettingsPagesAPI {
     syncTabsSet: (on: unknown) => Promise<unknown>;
     /** Name this device as the user's other devices list it, then return the new status. An empty name restores the computer's name; main ignores a non-string. IPC: invoke `pages:settings:sync-device-name-set`. */
     syncDeviceNameSet: (name: unknown) => Promise<unknown>;
+    /** This device's platform and the other devices this sync knows of (devices sharing their open tabs plus Send to Device presence), as names and platforms only. No device ids or keys cross. IPC: invoke `pages:settings:sync-devices`. */
+    syncDevices: () => Promise<unknown>;
     /** Park this device's wrapped sync secret under a fresh pairing code; returns the code and expiry for display. No key crosses. IPC: invoke `pages:settings:sync-pair-begin`. */
     syncPairBegin: () => Promise<unknown>;
     /** Retract the current pairing code. IPC: invoke `pages:settings:sync-pair-cancel`. */

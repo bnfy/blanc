@@ -5,14 +5,25 @@
   const api=window.bowserPages?.settings;
   if(!api?.sharedSpacesStatus)return;
   const status=await api.sharedSpacesStatus();if(!status.offered)return;
-  const {t}=blancI18n,anchor=document.getElementById('syncTabsShare')?.closest('.toolbar-row');if(!anchor)return;
-  const row=document.createElement('div');row.className='toolbar-row';row.id='sharedSpacesControl';
-  const label=document.createElement('label');label.className='inline-check';
+  const {t}=blancI18n,anchor=document.getElementById('syncTabsShareSetting');if(!anchor)return;
+  // A tile in What syncs beside Open tabs; its explanation, live status and
+  // pairing question sit under the grid, in #sharedSpacesControl.
+  const svgNs='http://www.w3.org/2000/svg',icon=document.createElementNS(svgNs,'svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('class','sync-what-icon');icon.setAttribute('aria-hidden','true');
+  for(const [x,y] of [[4.5,4.5],[13.5,4.5],[4.5,13.5],[13.5,13.5]]){const r=document.createElementNS(svgNs,'rect');r.setAttribute('x',x);r.setAttribute('y',y);r.setAttribute('width','6');r.setAttribute('height','6');r.setAttribute('rx','1.5');icon.append(r);}
+  const tile=document.createElement('label');tile.className='sync-what sync-what-toggle';tile.id='sharedSpacesTile';tile.setAttribute('role','listitem');
+  const text=document.createElement('span');text.className='sync-what-text';
+  const title=document.createElement('span');title.className='sync-what-label';title.id='sharedSpacesLabel';title.textContent=t('settings.sync.what.spaces');
+  const state=document.createElement('span');state.className='sync-what-state';state.textContent=t('settings.sync.what.spacesHint');
+  text.append(title,state);
+  const label=document.createElement('span');label.className='toggle';
   const toggle=document.createElement('input');toggle.type='checkbox';toggle.checked=!!status.enabled;toggle.id='sharedSpacesToggle';
-  label.append(toggle,document.createTextNode(' '+t('sharedSpaces.switch')));
-  const note=document.createElement('p');note.className='section-hint';note.setAttribute('role','status');
-  const detail=document.createElement('p');detail.className='section-hint';detail.textContent=t('sharedSpaces.accountLine')+' '+t('sharedSpaces.offLine');
-  row.append(label,detail,note);anchor.after(row);
+  toggle.setAttribute('aria-labelledby','sharedSpacesLabel');toggle.setAttribute('aria-describedby','sharedSpacesHint');
+  const track=document.createElement('span');track.className='track';
+  label.append(toggle,track);tile.append(icon,text,label);anchor.after(tile);
+  const row=document.createElement('div');row.className='sync-what-note';row.id='sharedSpacesControl';
+  const detail=document.createElement('p');detail.id='sharedSpacesHint';detail.textContent=t('sharedSpaces.accountLine')+' '+t('sharedSpaces.offLine');
+  const note=document.createElement('p');note.className='sync-row-status';note.setAttribute('role','status');
+  row.append(detail,note);anchor.parentElement.after(row);
   const dialog=document.createElement('dialog');dialog.className='shared-spaces-dialog';dialog.setAttribute('aria-labelledby','sharedSpacesHeading');
   const heading=document.createElement('h2');heading.id='sharedSpacesHeading';heading.textContent=t('sharedSpaces.title');
   const explanation=document.createElement('p');explanation.textContent=t('sharedSpaces.explanation');
@@ -24,10 +35,11 @@
   function showQuestion(question) {
     if(promptId===question?.deviceId)return;
     prompt?.remove();prompt=null;promptId=question?.deviceId??null;if(!question)return;
-    prompt=document.createElement('div');const text=document.createElement('p'),detail=document.createElement('p'),yes=document.createElement('button'),no=document.createElement('button');
+    prompt=document.createElement('div');prompt.className='sync-panel';const text=document.createElement('strong'),detail=document.createElement('p'),actions=document.createElement('div'),yes=document.createElement('button'),no=document.createElement('button');
+    detail.className='sync-panel-body';actions.className='sync-panel-actions';no.className='quiet';
     text.textContent=t('sharedSpaces.pairQuestion',{name:question.name});detail.textContent=t('sharedSpaces.pairDetail');yes.textContent=t('sharedSpaces.confirm');no.textContent=t('sharedSpaces.notNow');
     const dismiss=async()=>{if(await api.sharedSpacesAcknowledge(question.deviceId)){prompt?.remove();prompt=null;promptId=null;}};
-    yes.addEventListener('click',async()=>{await dismiss();toggle.click();});no.addEventListener('click',dismiss);prompt.append(text,detail,yes,no);row.append(prompt);
+    yes.addEventListener('click',async()=>{await dismiss();toggle.click();});no.addEventListener('click',dismiss);actions.append(yes,no);prompt.append(text,detail,actions);row.append(prompt);
   }
   showQuestion(status.question);
   if(status.accountFull)note.textContent=t('sharedSpaces.accountFull');

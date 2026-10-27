@@ -210,6 +210,8 @@ When('erasing the server copy fails once', {timeout:180000}, async function(){
  this.sharedPage=await settingsPage(this);
  const remove=this.sharedFixture.env.SYNC.delete;let fail=true;
  this.sharedFixture.env.SYNC.delete=async key=>{if(fail){fail=false;throw Error('erase failed once');}return remove(key);};
+ // Turning sync off lives under More options in Settings → Sync.
+ await this.sharedPage.locator('.sync-more').evaluate(details=>{details.open=true;});
  await this.sharedPage.locator('#syncWipe').check();
  await this.sharedPage.locator('#syncDisable').click();
 });
