@@ -1670,9 +1670,13 @@ Then('vertical tab titles use {float} pixel text without clipping', async functi
     return { top: rect.top - row.top, bottom: row.bottom - rect.bottom, height: rect.height, lineHeight: parseFloat(getComputedStyle(title).lineHeight) };
   });
   assert.ok(metrics.top >= 0 && metrics.bottom >= 0 && metrics.height >= metrics.lineHeight - 1, JSON.stringify(metrics));
-  for (const header of await page.locator('.vertical-tabs-group-header').all()) {
-    assert.equal(await header.evaluate((el) => parseFloat(getComputedStyle(el).fontSize)), size - 2);
-  }
+  // Read every header in one pass. The rail re-renders on each tab update (a
+  // restored page still loading after a relaunch), so a header found first and
+  // read later can already be replaced, and a detached one has no font size.
+  const headerSizes = await page.evaluate(() => [...document.querySelectorAll('.vertical-tabs-group-header')]
+    .map((el) => parseFloat(getComputedStyle(el).fontSize)));
+  assert.ok(headerSizes.length > 0, 'the rail shows group headers');
+  for (const fontSize of headerSizes) assert.equal(fontSize, size - 2);
   if (process.env.BLANC_TAB_TEXT_CAPTURES) {
     const fs = require('node:fs');
     const path = require('node:path');

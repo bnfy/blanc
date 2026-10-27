@@ -200,6 +200,7 @@ function install(refs) {
     persistedSessionData,
     serializedTabsPayload,
     sleepTab,
+    quietRefusal,
     wakeTab,
     runSleepSweep,
     createSplitFromTabs,
@@ -3918,6 +3919,12 @@ function install(refs) {
     // Every method drives the real main-process implementation; a mirror here
     // would keep the acceptance suite green if the shipping code regressed.
     async sleepTab(id) { return sleepTab(id); },
+    // quietTab refuses whenever anything is uncertain and records why; the
+    // desktop smokes read the reason so a refusal can't fail them silently.
+    async quietTabOutcome(id) {
+      const rested = await sleepTab(id);
+      return { rested, reason: rested ? null : (quietRefusal(id) ?? 'unknown') };
+    },
     async wakeTab(id, navigateTo = null) { return wakeTab(id, { navigateTo }); },
     async wakeTabAtIndex(id, atIndex) { return wakeTab(id, { atIndex }); },
     async sleepBackgroundTabsNow() { return sleepBackgroundTabsNow(); },
@@ -4100,6 +4107,7 @@ function install(refs) {
         tabLayout: 'island',
         newtabLayout: 'billboard',
         verticalTabsWidth: 248,
+        verticalTabsTextSize: 'default',
         appIcon: 'sunrise',
         adblockExceptions: [],
         bangsEnabled: true,

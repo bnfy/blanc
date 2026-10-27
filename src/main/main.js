@@ -15984,6 +15984,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       persistedSessionData: () => JSON.parse(JSON.stringify(ensureSessionStore().data)),
       serializedTabsPayload: () => JSON.parse(JSON.stringify(serializeTabs())),
       sleepTab, wakeTab, runSleepSweep, sleepBackgroundTabsNow,
+      // Why Quiet Tabs last left a tab awake (quietTab's fail-safe refusals).
+      quietRefusal: (id) => quietRefusals.get(id) ?? null,
       // Split View (F53)
       createSplitFromTabs,
       keepGlanceAsSplit,

@@ -140,7 +140,11 @@ before another release.
    sources, or a HEAD that isn't exactly `origin/main`.
 2. Runs `op signin`, then `npm ci` and the **press verification gate**
    (`release:verify:press`): substrate and Windows-icon checks, unit tests,
-   the acceptance dry run and desktop run, the desktop smokes (Favorites
+   the acceptance dry run and desktop run (through
+   `scripts/acceptance-gate.mjs`: if 1–10 scenarios fail, it reruns exactly
+   those once in a fresh Cucumber process and passes only if they all pass,
+   printing an `Acceptance rerun passed: N scenario(s)` block; more than 10
+   failures fail at once), the desktop smokes (Favorites
    picker, wallpaper, cold launch, browser shortcuts, Web Store, OAuth,
    modified links, DNS), the security audit, and the site build.
 3. Preflights the macOS identity and provisioning profile, then builds
@@ -214,7 +218,9 @@ short:
    so rerun just that job.
 4. **Records PR** from a separate clean worktree:
    - a dated incident in `docs/release-incidents/`, linking any evidence the
-     release gate requires;
+     release gate requires, and quoting verbatim any `Acceptance rerun passed`
+     block from the release log (the owner allows a passing rerun only if it
+     is logged);
    - the public baseline in `CLAUDE.md` and `AGENTS.md`, kept byte-identical;
    - the capability boundaries in `docs/marketing-claims.md`;
    - `site/src/data/releases.json` (`npm run site:changelog`), plus the

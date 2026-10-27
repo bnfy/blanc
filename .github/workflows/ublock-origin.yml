@@ -1,21 +1,35 @@
 name: Full uBlock Origin candidate
 on:
+  # Pull requests run it only when they change what its scripts exercise: the
+  # blocking providers, the shield, the inherited document policy, uBO's
+  # payload and the helpers these scripts import. Every other change, including
+  # main.js and the shared chrome renderers, is covered by the nightly run on
+  # main below (October 27, 2026: on almost every desktop PR it added up to 20
+  # minutes and failed about one completed run in five on flakes).
+  # test/unit/ci-ublock-scope.test.js pins this list.
   pull_request:
     paths:
-      - 'src/main/**'
-      - 'src/renderer/renderer.js'
-      - 'src/renderer/overlay*'
-      - 'src/renderer/index.html'
-      - 'src/renderer/styles.css'
-      - 'src/renderer/pages/settings*'
+      - 'src/main/ublock*'
+      - 'src/main/adblock*'
+      - 'src/main/blocking-*'
+      - 'src/main/shield*'
+      - 'src/main/document-policy*'
+      - 'src/main/inert-local-file*'
+      - 'src/main/tab-view.js'
       - 'src/renderer/ublock-*'
       - 'src/renderer/ublock-popup-icons/**'
       - 'ublock/**'
+      - 'adblock/**'
       - 'test/desktop/ublock*'
       - 'test/desktop/shield-provider*'
       - 'test/desktop/document-policy*'
       - 'test/desktop/modified-link-click*'
-      - 'test/desktop/support/**'
+      - 'test/desktop/support/test-hook-call.js'
+      - 'test/desktop/support/poll.js'
+      - 'test/desktop/support/main-turn.js'
+      - 'test/desktop/support/popup-focus-trace.js'
+      - 'test/desktop/support/quiet-rest.js'
+      - 'test/desktop/support/temp-profile.js'
       - 'test/unit/ublock*'
       - 'test/unit/blocking*'
       - 'test/unit/shield*'
@@ -23,7 +37,6 @@ on:
       - 'scripts/*capture-preload*'
       - 'scripts/verify-packaged-*'
       - 'scripts/generate-compliance*'
-      - 'adblock/**'
       - 'compliance/**'
       - '.gitattributes'
       - 'package*.json'
@@ -97,8 +110,12 @@ jobs:
         run: bash scripts/ci-enable-linux-sandbox.sh
       - run: npm ci --no-audit --no-fund
       - run: npm run ublock:check
-      - run: npm run lint
-      - run: npm run test:unit
+      # Parity guards (Linux) and Unit tests (Windows, macOS) run these on every
+      # pull request; nightly and manual runs keep them, the only Intel run.
+      - if: ${{ github.event_name != 'pull_request' }}
+        run: npm run lint
+      - if: ${{ github.event_name != 'pull_request' }}
+        run: npm run test:unit
       # Page-opened tabs keep their opener's sandbox or stay inert on the exact
       # runtime (src/main/document-policy.js), on all four native targets.
       - name: Inherited document policy and modified link clicks

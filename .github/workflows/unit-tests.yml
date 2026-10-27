@@ -2,8 +2,8 @@ name: Unit tests
 
 # Runs the unit suite on Windows and macOS for every pull request. Parity guards
 # already run it on Linux for every pull request; the uBlock Origin workflow
-# runs it on all four desktop targets, but only for the paths it filters on, so
-# a test-only change otherwise never ran on Windows or macOS (#608). No path
+# runs it on all four desktop targets only nightly and on manual runs, so a
+# test-only change otherwise never runs on Windows or macOS (#608). No path
 # filter here on purpose: a platform-specific failure can come from any file.
 # It also runs on every push to main: main doesn't require a pull request to be
 # up to date before merging, so two pull requests that each passed are only
