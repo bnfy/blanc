@@ -14,6 +14,10 @@ const expected = [
   { name: 'The healed app keeps its profile and environment', status: 'passed' },
   { name: 'A main-process exception is attributed even when an After relaunches the app', status: 'failed', message: /synthetic main-process exception/ },
   { name: 'No extra relaunch follows an After that already relaunched', status: 'passed' },
+  { name: 'A renderer crash followed by an After that relaunches', status: 'failed', message: /Target crashed/ },
+  { name: 'No extra relaunch follows a renderer crash an After already dealt with', status: 'passed' },
+  { name: 'An app that dies on a temporary profile is relaunched back onto the main one', status: 'failed', message: /synthetic main-process exception/ },
+  { name: 'The scenario after a death on a temporary profile runs on the main profile', status: 'passed' },
 ];
 const SUMMARY = /^acceptance: the harness relaunched Blanc 2 time\(s\)$/m;
 
@@ -25,15 +29,17 @@ const run = spawnSync('npx', [
 ], { encoding: 'utf8', shell: process.platform === 'win32', maxBuffer: 64 * 1024 * 1024 });
 
 const RANK = { passed: 0, skipped: 1, pending: 2, undefined: 3, ambiguous: 4, failed: 5 };
+// A scenario's status is its worst step or hook; its message is every error
+// it produced, since a tagged After may fail before the attributing one.
 function outcome(element) {
   let status = 'passed';
-  let message = '';
+  const messages = [];
   for (const step of [...(element.before ?? []), ...element.steps, ...(element.after ?? [])]) {
     const s = step.result?.status ?? 'passed';
     if ((RANK[s] ?? 0) > (RANK[status] ?? 0)) status = s;
-    if (!message && step.result?.error_message) message = step.result.error_message;
+    if (step.result?.error_message) messages.push(step.result.error_message);
   }
-  return { name: element.name, status, message };
+  return { name: element.name, status, message: messages.join('\n') };
 }
 
 const problems = [];

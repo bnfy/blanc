@@ -94,10 +94,19 @@ test('an app whose handle Playwright already disposed is unhealthy, not a throw'
   assert.equal(exitCodeOf(fakeApp({ exitCode: 1 })), 1);
 });
 
-test('a late transport error is swallowed and marks the app; anything else reaches Cucumber', () => {
-  const late = new Error('Target crashed');
-  assert.equal(routeUncaught(late, { listeners: 1 }), 'suspect');
-  assert.equal(routeUncaught(late, { listeners: 0 }), 'suspect');
+test('only a late dead-target error thrown by Playwright itself is swallowed; everything else reaches Cucumber', () => {
+  const fromPlaywright = (message) => Object.assign(new Error(message), {
+    stack: `Error: ${message}\n    at assert (/x/node_modules/playwright-core/lib/coreBundle.js:838:11)\n    at _CRSession._onMessage (/x/node_modules/playwright-core/lib/coreBundle.js:35014:11)`,
+  });
+  const fromStep = (message) => Object.assign(new Error(message), {
+    stack: `Error: ${message}\n    at BlancWorld.<anonymous> (/x/test/desktop/steps/glance.steps.js:12:3)`,
+  });
+  assert.equal(routeUncaught(fromPlaywright('Target crashed'), { listeners: 1 }), 'suspect');
+  assert.equal(routeUncaught(fromPlaywright('Target page, context or browser has been closed'), { listeners: 0 }), 'suspect');
+  // A navigation race is not a dead target, wherever it comes from.
+  assert.equal(routeUncaught(fromPlaywright('Execution context was destroyed'), { listeners: 1 }), 'forward');
+  // A floating promise in step code keeps failing its step.
+  assert.equal(routeUncaught(fromStep('Target crashed'), { listeners: 1 }), 'forward');
   assert.equal(routeUncaught(new Error('real bug in a step'), { listeners: 1 }), 'forward');
   assert.equal(routeUncaught(new Error('real bug outside any hook'), { listeners: 0 }), 'fatal');
 });
@@ -118,10 +127,13 @@ test('the healing log summarises nothing when nothing happened, and every relaun
   const log = createHealingLog();
   assert.deepEqual(log.summaryLines(), []);
   log.record({ scenario: 'A', reason: 'process exited (code 1, signal null)' });
-  log.record({ scenario: 'B', reason: 'page x did not answer: Target crashed' });
+  log.record({ scenario: 'B', reason: 'page x did not answer: Target crashed', exception: 'uncaughtException\nError: boom\n    at x' });
   assert.deepEqual(log.summaryLines(), [
     'acceptance: the harness relaunched Blanc 2 time(s)',
     '  before "A": process exited (code 1, signal null)',
     '  before "B": page x did not answer: Target crashed',
+    '    main-process exception: uncaughtException',
+    '    Error: boom',
+    '        at x',
   ]);
 });

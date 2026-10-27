@@ -85,12 +85,15 @@ async function probeApp(electronApp, { timeoutMs = 5000 } = {}) {
 /**
  * What to do with an uncaught exception in the Cucumber process. After a
  * renderer crash, Playwright throws "Target crashed" from its own message
- * handler for each late reply; those mark the app for a relaunch and go no
- * further ('suspect'). Anything else goes to Cucumber's listeners while user
- * code runs ('forward'), or ends the process as Node would ('fatal').
+ * handler for each late reply; those, and only those (a dead-target message
+ * thrown from inside playwright-core), mark the app for a relaunch and go no
+ * further ('suspect'). Anything else, including the same message from a
+ * floating promise in step code, goes to Cucumber's listeners while user code
+ * runs ('forward'), or ends the process as Node would ('fatal').
  */
 function routeUncaught(error, { listeners }) {
-  if (isTransportError(error?.message)) return 'suspect';
+  const dead = PAGE_DEAD.some((needle) => String(error?.message ?? '').includes(needle));
+  if (dead && /playwright-core/.test(String(error?.stack ?? ''))) return 'suspect';
   return listeners > 0 ? 'forward' : 'fatal';
 }
 
@@ -98,12 +101,16 @@ function createHealingLog() {
   const entries = [];
   return {
     entries,
-    record({ scenario, reason }) { entries.push({ scenario, reason }); },
+    record({ scenario, reason, exception = '' }) { entries.push({ scenario, reason, exception }); },
     summaryLines() {
       if (!entries.length) return [];
       return [
         `acceptance: the harness relaunched Blanc ${entries.length} time(s)`,
-        ...entries.map(({ scenario, reason }) => `  before "${scenario}": ${reason}`),
+        ...entries.flatMap(({ scenario, reason, exception }) => [
+          `  before "${scenario}": ${reason}`,
+          ...(exception ? exception.trim().split('\n') : [])
+            .map((line, index) => (index === 0 ? `    main-process exception: ${line}` : `    ${line}`)),
+        ]),
       ];
     },
   };

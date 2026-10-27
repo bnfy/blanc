@@ -26,8 +26,20 @@ const RESETTING_STEPS = [
   'the restored client retries the missing index entry',
 ];
 
+/** Every file under test/desktop, so a caller in another step file or in
+ * the peer driver cannot slip past the count. */
+function desktopSources(dir = path.join(__dirname, '..', 'desktop')) {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) return desktopSources(full);
+    return /\.(c?js|mjs)$/.test(entry.name) ? [full] : [];
+  });
+}
+
 test('only the measured in-scenario budget waits reset the request window', () => {
-  assert.equal(src.split("'resetRequestWindow'").length - 1, RESETTING_STEPS.length);
+  const callers = desktopSources().filter((file) => /resetRequestWindow/.test(fs.readFileSync(file, 'utf8')));
+  assert.deepEqual(callers, [stepsPath]);
+  assert.equal(src.match(/resetRequestWindow/g).length, RESETTING_STEPS.length);
   for (const step of RESETTING_STEPS) assert.ok(stepBody(step).includes('resetRequestWindow'), step);
 });
 

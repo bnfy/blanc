@@ -54,7 +54,25 @@ Then('the app still uses the acceptance profile directory', async function () {
   assert.equal(fs.realpathSync(userData), `${fs.realpathSync(ctx.profileDir)}-Dev`);
 });
 
+Given('the app was relaunched on a fresh profile with the environment mark {string}', async function (mark) {
+  await ctx.relaunch({ BLANC_TEST_HARNESS_MARK: mark }, { freshProfile: true });
+});
+
+Then('the app carries no environment mark', async function () {
+  assert.equal(await ctx.app.evaluate(() => process.env.BLANC_TEST_HARNESS_MARK), undefined);
+});
+
 // Like the @F57 and @glance hooks: an After that relaunches the app.
 After({ tags: '@harness-relaunch-after' }, async function () {
   await ctx.relaunch();
+});
+
+// Like the @F57 After: a call on the app that fails when it is dead, and a
+// relaunch back to the main profile that must happen regardless.
+After({ tags: '@harness-teardown-after-death' }, async function () {
+  try {
+    await this.call('state');
+  } finally {
+    await ctx.relaunch();
+  }
 });

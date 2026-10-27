@@ -35,10 +35,16 @@ const tempProfileDirs = new Set();
 function removeUnusedTempProfiles({ all = false } = {}) {
   for (const directory of tempProfileDirs) {
     if (!all && directory === ctx.profileDir) continue;
-    for (const target of [directory, `${directory}-Dev`]) {
-      fs.rmSync(target, { recursive: true, force: true, maxRetries: 5 });
+    try {
+      for (const target of [directory, `${directory}-Dev`]) {
+        fs.rmSync(target, { recursive: true, force: true, maxRetries: 5 });
+      }
+      tempProfileDirs.delete(directory);
+    } catch (error) {
+      // Best effort: a directory Windows still holds is tried again at the
+      // next relaunch and in AfterAll, and never stops the app coming back.
+      process.stderr.write(`acceptance: could not remove ${directory} yet: ${firstLine(error.message)}\n`);
     }
-    tempProfileDirs.delete(directory);
   }
 }
 
@@ -424,23 +430,33 @@ BeforeAll({ timeout: 120_000 }, async () => {
 // before step files, so this hook (the first After defined) runs after every
 // tagged After, including those that relaunch the app. A main-process
 // exception fails the scenario during which it was logged, once.
-After(function () {
+// A suspicion lives on the app it was raised against: an app a tagged After
+// replaces takes its suspicion with it, so the fresh one is not relaunched too.
+function markSuspect(reason, app = ctx.app) {
+  if (app && !app.__blancSuspect) app.__blancSuspect = reason;
+}
+
+After(function (scenario) {
   const current = ctx.app ? mainProcessExceptionsSinceLaunch(ctx.app) : '';
   const text = ctx.pendingMainProcessException + current;
   ctx.pendingMainProcessException = '';
   if (current) {
     ctx.app.__blancUncaughtOffset = fs.statSync(uncaughtLogPath).size;
-    ctx.appSuspect = 'main-process exception';
+    markSuspect('main-process exception');
+  } else if (ctx.app === ctx.scenarioApp && isTransportError(scenario.result?.message)) {
+    // A tagged After that failed on the app's handle (AfterStep sees steps
+    // only), as long as that is still the app the scenario ran on.
+    markSuspect(firstLine(scenario.result.message));
   }
   if (text) throw new Error(`Electron main-process exception:\n${text}`);
 });
 
-// A step or hook that failed because the app's handle broke (a crashed
-// renderer leaves its page answering every call with "Target crashed") marks
-// the app for a relaunch before the next scenario.
+// A step that failed because the app's handle broke (a crashed renderer
+// leaves its page answering every call with "Target crashed") marks the app
+// for a relaunch before the next scenario.
 AfterStep(function ({ result }) {
   if (result.status === 'FAILED' && isTransportError(result.message)) {
-    ctx.appSuspect = firstLine(result.message);
+    markSuspect(firstLine(result.message));
   }
 });
 
@@ -454,7 +470,7 @@ AfterStep(function ({ result }) {
 process.setUncaughtExceptionCaptureCallback((error) => {
   const route = routeUncaught(error, { listeners: process.listenerCount('uncaughtException') });
   if (route === 'suspect') {
-    ctx.appSuspect = firstLine(error.message);
+    markSuspect(firstLine(error.message));
   } else if (route === 'forward') {
     process.emit('uncaughtException', error, 'uncaughtException');
   } else {
@@ -470,12 +486,13 @@ let healInFlight = null;
 function healApp(scenario, reason) {
   healInFlight ??= (async () => {
     process.stderr.write(`acceptance: relaunching Blanc before "${scenario}" (${reason})\n`);
-    await closeApp(ctx.app).catch(() => {});
-    // Whatever the broken app logged was attributed by the After hook already.
+    // Anything the broken app logged after the After hook read the log would
+    // otherwise be lost; it goes into the healing summary instead.
+    const exception = await closeApp(ctx.app).catch(() => '');
     ctx.pendingMainProcessException = '';
+    if (exception) process.stderr.write(`acceptance: that app also logged: ${firstLine(exception)}\n`);
     ctx.app = await launchApp(relaunchEnv, { profileDir: ctx.profileDir });
-    ctx.healing.record({ scenario, reason });
-    ctx.appSuspect = null;
+    ctx.healing.record({ scenario, reason, exception });
   })().finally(() => { healInFlight = null; });
   return healInFlight;
 }
@@ -491,30 +508,44 @@ Before(async function (scenario) {
   ctx.groupMembers = null;
   ctx.standalonePinnedTabId = null;
   const name = scenario.pickle.name;
-  let reason = ctx.appSuspect;
-  if (!reason) ({ reason } = await probeApp(ctx.app));
-  if (reason) await healApp(name, reason);
+  // At most one relaunch per scenario, in this order: a suspicion left by the
+  // previous scenario; a reset that fails on the app's handle; a probe of what
+  // is left after the reset. The probe runs after the reset on purpose: the
+  // product discards renderers of its own accord (Quiet Tabs, Glance), and
+  // Playwright reports such a page as crashed for good, so probing the tabs a
+  // scenario left behind relaunched a healthy app. Reset closes them first.
+  ctx.scenarioApp = null;
+  const suspect = ctx.app?.__blancSuspect ?? null;
+  let healed = Boolean(suspect);
+  if (healed) await healApp(name, suspect);
   try {
     await callTestHook(ctx.app, 'reset');
   } catch (error) {
-    if (!shouldHealAfterReset({ alreadyHealed: Boolean(reason), error })) throw error;
+    if (!shouldHealAfterReset({ alreadyHealed: healed, error })) throw error;
+    healed = true;
     await healApp(name, `reset: ${firstLine(error.message)}`);
     await callTestHook(ctx.app, 'reset');
   }
+  if (!healed) {
+    const { reason } = await probeApp(ctx.app);
+    if (reason) {
+      await healApp(name, reason);
+      await callTestHook(ctx.app, 'reset');
+    }
+  }
+  ctx.scenarioApp = ctx.app;
 });
 
 // Scenarios tagged @test-platform-linux run in an app that acts as on Linux
 // (main and the chrome renderers alike; BLANC_TEST_PLATFORM is honoured only
 // in the acceptance test mode), then the ordinary app comes back.
 Before({ tags: '@test-platform-linux' }, async function () {
-  if (ctx.app) await closeApp(ctx.app);
-  ctx.app = await launchApp({ BLANC_TEST_PLATFORM: 'linux' });
+  await ctx.relaunch({ BLANC_TEST_PLATFORM: 'linux' });
   await callTestHook(ctx.app, 'reset');
 });
 
 After({ tags: '@test-platform-linux' }, async function () {
-  if (ctx.app) await closeApp(ctx.app);
-  ctx.app = await launchApp();
+  await ctx.relaunch();
 });
 
 // F39 local-certificate scenarios share one fixture server and one exception

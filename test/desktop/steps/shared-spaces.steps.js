@@ -20,7 +20,11 @@ Before({tags:'@F57 and not @peer-driver',timeout:180000},async function(){
 });
 After({tags:'@F57 and not @peer-driver',timeout:180000},async function(scenario){
  if(scenario.result?.message)process.stderr.write(scenario.result.message+'\n');
- try{if(this.sharedPeer){await callTestHook(this.sharedPeer,'sharedSpacesTest',['disable']);await ctx.closePeerApp(this.sharedPeer);}await this.call('sharedSpacesTest','disable');await ctx.relaunch();}finally{await this.sharedFixture?.close();this.sharedKey?.key.fill(0);}
+ // The relaunch back to the main profile runs even when the app died during
+ // the scenario and disable throws; otherwise later scenarios would be healed
+ // onto this temporary profile, with a sync endpoint that is about to close.
+ try{if(this.sharedPeer){await callTestHook(this.sharedPeer,'sharedSpacesTest',['disable']);await ctx.closePeerApp(this.sharedPeer);}await this.call('sharedSpacesTest','disable');}
+ finally{try{await ctx.relaunch();}finally{await this.sharedFixture?.close();this.sharedKey?.key.fill(0);}}
 });
 async function setup(world,shared){
  world.firstTab=await world.call('openTab',world.fixtureUrl('shared-first'));

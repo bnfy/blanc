@@ -3944,13 +3944,6 @@ function install(refs) {
     },
     /** With an id: that tab's redacted state. Without: every tab in tab order.
      * NEVER returns entries: snapshots can contain POST bodies and form data. */
-    /** For the acceptance harness's self-test: an uncaught main-process
-     *  exception, which the BLANC_TEST handler logs before exiting. */
-    raiseMainProcessExceptionForTest() {
-      // Late enough that this call's reply reaches the harness first.
-      setTimeout(() => { throw new Error('acceptance harness: synthetic main-process exception'); }, 100);
-      return true;
-    },
     /** Kill a tab's renderer exactly as Blanc's renderer discard does: a
      *  SIGKILL of the verified own renderer on Linux, where Electron's crash
      *  request is only a request, and forcefullyCrashRenderer() elsewhere. */
@@ -3958,6 +3951,13 @@ function install(refs) {
       const wc = tabs.get(id)?.view?.webContents;
       if (!wc || wc.isDestroyed()) return null;
       return terminateRenderer(wc);
+    },
+    /** For the acceptance harness's self-test: an uncaught main-process
+     *  exception, which the BLANC_TEST handler logs before exiting. */
+    raiseMainProcessExceptionForTest() {
+      // Late enough that this call's reply reaches the harness first.
+      setTimeout(() => { throw new Error('acceptance harness: synthetic main-process exception'); }, 100);
+      return true;
     },
     sleepState(id) {
       const snapshots = getSleepSnapshots();
