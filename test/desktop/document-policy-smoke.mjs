@@ -7,6 +7,9 @@ import { _electron } from 'playwright';
 import testHookCall from './support/test-hook-call.js';
 import poll from './support/poll.js';
 import { inMainTurn } from './support/main-turn.js';
+import tempProfile from './support/temp-profile.js';
+import quietRest from './support/quiet-rest.js';
+import documentPolicy from '../../src/main/document-policy.js';
 
 // Inherited document policy on the exact Electron runtime
 // (src/main/document-policy.js). A page-opened tab keeps its opener's
@@ -16,7 +19,12 @@ import { inMainTurn } from './support/main-turn.js';
 // can't show: forms), a page-opened child of an unsandboxed page, and an
 // ordinary tab as the control that still duplicates, rests and reopens.
 const { callTestHook } = testHookCall;
-const { waitForValue } = poll;
+// Waits for something to happen get 20 s, not poll.js's 5 s: on a busy CI
+// runner a single page load has taken longer than 5 s (October 2026). Waits
+// that prove something does NOT happen keep their own short budget.
+const waitForValue = (read, predicate, label, timeout = 20_000) => poll.waitForValue(read, predicate, label, timeout);
+const { restTab } = quietRest;
+const { removeTempProfile } = tempProfile;
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-document-policy-'));
 const profile = path.join(root, 'profile');
 const userData = `${profile}-Dev`;
@@ -129,6 +137,7 @@ async function stopApp() {
 // Evaluates that navigate, run page script or send input start from their own
 // main-process turn (support/main-turn.js); plain reads of main's state don't.
 const tabsNow = async () => (await callTestHook(app, 'windowRuntimes'))[0].tabs;
+const hook = (method, args) => callTestHook(app, method, args);
 // Read from main: page script can stall while a document is being replaced.
 async function hrefOf(id) {
   const wcId = await callTestHook(app, 'workspacePageIdentity', [id]);
@@ -292,7 +301,31 @@ async function assertInertLocked(id, url, label) {
   checks++;
 }
 
-const restoredWithUrl = async (url, label) => waitForValue(async () => (await tabsNow()).find((tab) => tab.url === url),
+/** The address a tab holds. Once an inert tab's view has loaded, the tab
+ * records Blanc's explanation page, which names that address. */
+const addressOf = (url) => (documentPolicy.isInertPageUrl(url) ? new URL(url).searchParams.get('url') : url);
+// A restored inert tab that is shown at once (the active tab, a split pane)
+// can load its explanation page before the first poll sees its bare address.
+/** On a failure, what main holds for each tab beside what its view shows:
+ * an inert tab's put-back page is built from the stored address. */
+async function printTabRecords() {
+  const running = appProcess?.exitCode === null && appProcess.signalCode === null;
+  if (!running) return;
+  const read = (async () => {
+    const records = (await callTestHook(app, 'state')).tabs.map(({ id, url, loadedUrl, title, isLoading, asleep, webContentsId }) =>
+      ({ id, url, loadedUrl, title, isLoading, asleep, webContentsId }));
+    for (const record of records) {
+      if (!record.webContentsId) continue;
+      record.history = await app.evaluate(({ webContents }, wcId) => webContents.fromId(wcId)?.navigationHistory
+        .getAllEntries().map((entry) => entry.url) ?? null, record.webContentsId);
+    }
+    return records;
+  })();
+  const records = await Promise.race([read, new Promise((resolve) => setTimeout(() => resolve('timed out'), 5_000).unref())]).catch((error) => error.message);
+  console.error('Tab records at failure:', JSON.stringify(records, null, 2));
+}
+
+const restoredWithUrl = async (url, label) => waitForValue(async () => (await tabsNow()).find((tab) => addressOf(tab.url) === url),
   Boolean, `${label} restored`);
 
 try {
@@ -311,7 +344,8 @@ try {
   await assertLoads(copies.find((tab) => tab.id !== ordinary).id, ordinaryUrl, 'ordinary duplicate');
   await callTestHook(app, 'closeTab', [copies.find((tab) => tab.id !== ordinary).id]);
   await callTestHook(app, 'activateTab', [(await callTestHook(app, 'newTab'))]);
-  assert.equal(await callTestHook(app, 'sleepTab', [ordinary]), true, 'ordinary: quiet');
+  const ordinaryRest = await restTab(hook, ordinary, 'ordinary');
+  assert.equal(ordinaryRest.rested, true, `ordinary: quiet (refused: ${ordinaryRest.reasons.join(', ')})`);
   await assertLoads(ordinary, ordinaryUrl, 'ordinary after quiet');
 
   // Positive control for the archive path: an ordinary tab archives and restores.
@@ -369,9 +403,12 @@ try {
     await callTestHook(app, 'activateTab', [ordinary]);
     // quietTab may still refuse (its edit probe fails safe on a sandboxed
     // document); then the live, restricted view simply stays. When it does
-    // rest, waking must show the inert page.
-    const rested = await callTestHook(app, 'sleepTab', [child.id]);
-    if (!variant.sandbox) assert.equal(rested, true, `${variant.name}: forced quiet`);
+    // rest, waking must show the inert page. The unsandboxed child must rest:
+    // it is asked again while a refusal could pass (its form's response still
+    // loading in the iframe, or a probe frame slow to answer on a busy runner).
+    const quiet = await restTab(hook, child.id, variant.name, { required: !variant.sandbox });
+    const { rested } = quiet;
+    if (!variant.sandbox) assert.equal(rested, true, `${variant.name}: forced quiet (refused: ${quiet.reasons.join(', ')})`);
     if (rested) await assertInert(child.id, child.url, `${variant.name} woken`);
     else await assertDocumentPolicy(child.id, variant, `${variant.name} after a refused quiet`);
     await callTestHook(app, 'closeTab', [child.id]);
@@ -487,16 +524,17 @@ try {
   console.log(`document-policy OK on ${process.platform}: ${checks} checks across ${variants.length} page-opened variants and an ordinary control`);
 } catch (error) {
   failed = true;
+  await printTabRecords();
   throw error;
 } finally {
   await stopApp();
   await new Promise((resolve) => server.close(resolve));
   const error = fs.existsSync(uncaught) ? fs.readFileSync(uncaught, 'utf8') : '';
   // Windows can keep a child process's cache file open briefly after Blanc
-  // exits. Cleanup never replaces an earlier failure; it fails only a pass.
-  try {
-    fs.rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
-  } catch (cleanupError) {
+  // exits; a file still held after the retries is left behind (temp-profile.js).
+  // Any other cleanup error never replaces an earlier failure; it fails only a pass.
+  const cleanupError = removeTempProfile(root);
+  if (cleanupError) {
     if (!failed && !error) throw cleanupError;
     console.error(`left ${root} behind: ${cleanupError.code ?? cleanupError.message}`);
   }
