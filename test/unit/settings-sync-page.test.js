@@ -60,9 +60,9 @@ test('the pairing model script loads before settings.js', () => {
 });
 
 test('this device’s name is edited in the on state and reaches main through the Settings bridge', () => {
-  const on = html.slice(at('id="syncActive"'), at('id="syncTabsShare"'));
-  assert.ok(on.includes('id="syncDeviceName"'), 'the field is in the on-state overview card');
-  assert.ok(on.includes('data-i18n="settings.sync.deviceName"'));
+  const on = html.slice(at('id="syncActive"'), at('id="syncDeviceList"') + 4000);
+  assert.ok(on.includes('id="syncDeviceName"'), 'the field leads the Devices list as this device');
+  assert.ok(on.includes('data-i18n-aria-label="settings.sync.deviceName"'));
   assert.ok(on.includes('data-i18n="settings.sync.deviceNameHint"'));
   assert.ok(/id="syncDeviceName"[^>]*data-i18n-ignore="placeholder"/.test(on), 'the placeholder is the computer’s name, not catalog text');
   const preload = fs.readFileSync(path.join(__dirname, '../../src/main/tab-preload.js'), 'utf8');

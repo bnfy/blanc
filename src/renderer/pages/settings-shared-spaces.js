@@ -6,20 +6,24 @@
   if(!api?.sharedSpacesStatus)return;
   const status=await api.sharedSpacesStatus();if(!status.offered)return;
   const {t}=blancI18n,anchor=document.getElementById('syncTabsShareSetting');if(!anchor)return;
-  // A Settings row like its neighbours: label, explanation and live status on
-  // the left, the switch on the right; the pairing question opens below.
-  const row=document.createElement('div');row.className='setting sync-action';row.id='sharedSpacesControl';
-  const text=document.createElement('div');text.className='label';
-  const title=document.createElement('span');title.id='sharedSpacesLabel';title.textContent=t('sharedSpaces.switch');
-  const detail=document.createElement('span');detail.className='hint';detail.id='sharedSpacesHint';detail.textContent=t('sharedSpaces.accountLine')+' '+t('sharedSpaces.offLine');
-  const note=document.createElement('span');note.className='hint sync-row-status';note.setAttribute('role','status');
-  text.append(title,detail,note);
-  const label=document.createElement('label');label.className='toggle';
+  // A tile in What syncs beside Open tabs; its explanation, live status and
+  // pairing question sit under the grid, in #sharedSpacesControl.
+  const svgNs='http://www.w3.org/2000/svg',icon=document.createElementNS(svgNs,'svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('class','sync-what-icon');icon.setAttribute('aria-hidden','true');
+  for(const [x,y] of [[4.5,4.5],[13.5,4.5],[4.5,13.5],[13.5,13.5]]){const r=document.createElementNS(svgNs,'rect');r.setAttribute('x',x);r.setAttribute('y',y);r.setAttribute('width','6');r.setAttribute('height','6');r.setAttribute('rx','1.5');icon.append(r);}
+  const tile=document.createElement('label');tile.className='sync-what sync-what-toggle';tile.id='sharedSpacesTile';tile.setAttribute('role','listitem');
+  const text=document.createElement('span');text.className='sync-what-text';
+  const title=document.createElement('span');title.className='sync-what-label';title.id='sharedSpacesLabel';title.textContent=t('settings.sync.what.spaces');
+  const state=document.createElement('span');state.className='sync-what-state';state.textContent=t('settings.sync.what.spacesHint');
+  text.append(title,state);
+  const label=document.createElement('span');label.className='toggle';
   const toggle=document.createElement('input');toggle.type='checkbox';toggle.checked=!!status.enabled;toggle.id='sharedSpacesToggle';
   toggle.setAttribute('aria-labelledby','sharedSpacesLabel');toggle.setAttribute('aria-describedby','sharedSpacesHint');
   const track=document.createElement('span');track.className='track';
-  label.append(toggle,track);
-  row.append(text,label);anchor.after(row);
+  label.append(toggle,track);tile.append(icon,text,label);anchor.after(tile);
+  const row=document.createElement('div');row.className='sync-what-note';row.id='sharedSpacesControl';
+  const detail=document.createElement('p');detail.id='sharedSpacesHint';detail.textContent=t('sharedSpaces.accountLine')+' '+t('sharedSpaces.offLine');
+  const note=document.createElement('p');note.className='sync-row-status';note.setAttribute('role','status');
+  row.append(detail,note);anchor.parentElement.after(row);
   const dialog=document.createElement('dialog');dialog.className='shared-spaces-dialog';dialog.setAttribute('aria-labelledby','sharedSpacesHeading');
   const heading=document.createElement('h2');heading.id='sharedSpacesHeading';heading.textContent=t('sharedSpaces.title');
   const explanation=document.createElement('p');explanation.textContent=t('sharedSpaces.explanation');

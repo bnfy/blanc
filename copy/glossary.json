@@ -237,7 +237,11 @@
       "reader.sepia",
       "settings.linkRoutes.domainPlaceholder",
       "settings.linkRoutes.containsPlaceholder",
-      "settings.linkRoutes.domainLabel"
+      "settings.linkRoutes.domainLabel",
+      "settings.sync.devices.platform.darwin",
+      "settings.sync.devices.platform.win32",
+      "settings.sync.devices.platform.linux",
+      "settings.sync.devices.platform.ios"
     ],
     "es": [
       "about.chromium",
@@ -289,7 +293,11 @@
       "ios.settings.site",
       "reader.sepia",
       "settings.linkRoutes.domainPlaceholder",
-      "settings.linkRoutes.containsPlaceholder"
+      "settings.linkRoutes.containsPlaceholder",
+      "settings.sync.devices.platform.darwin",
+      "settings.sync.devices.platform.win32",
+      "settings.sync.devices.platform.linux",
+      "settings.sync.devices.platform.ios"
     ],
     "fr": [
       "about.chromium",
@@ -350,7 +358,11 @@
       "ios.settings.source",
       "ios.settings.custom",
       "settings.linkRoutes.domainPlaceholder",
-      "settings.linkRoutes.containsPlaceholder"
+      "settings.linkRoutes.containsPlaceholder",
+      "settings.sync.devices.platform.darwin",
+      "settings.sync.devices.platform.win32",
+      "settings.sync.devices.platform.linux",
+      "settings.sync.devices.platform.ios"
     ],
     "pt-BR": [
       "about.chromium",
@@ -401,7 +413,11 @@
       "ios.settings.site",
       "ios.settings.status",
       "settings.linkRoutes.domainPlaceholder",
-      "settings.linkRoutes.containsPlaceholder"
+      "settings.linkRoutes.containsPlaceholder",
+      "settings.sync.devices.platform.darwin",
+      "settings.sync.devices.platform.win32",
+      "settings.sync.devices.platform.linux",
+      "settings.sync.devices.platform.ios"
     ],
     "it": [
       "about.chromium",
@@ -465,7 +481,11 @@
       "ios.settings.account",
       "ios.settings.passphrase",
       "settings.linkRoutes.domainPlaceholder",
-      "settings.linkRoutes.containsPlaceholder"
+      "settings.linkRoutes.containsPlaceholder",
+      "settings.sync.devices.platform.darwin",
+      "settings.sync.devices.platform.win32",
+      "settings.sync.devices.platform.linux",
+      "settings.sync.devices.platform.ios"
     ]
   }
 }

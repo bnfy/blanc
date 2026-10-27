@@ -4349,10 +4349,6 @@
     "message": "Supprimer aussi les données synchronisées",
     "source": "sha256:d656e0266117b8f6f63022f08364ce32128913465698811095c30de371977178"
   },
-  "settings.sync.syncTabsShare": {
-    "message": "Partager les onglets ouverts de cet appareil avec vos autres appareils",
-    "source": "sha256:f61f16fc35fb7809122a5db9cbcf050b920ddc6a5a0df99a426b8d4929520c6e"
-  },
   "settings.general.newtabDynamicWallpaper.syncedHint": {
     "message": "Le fond suit l’heure locale de cet ordinateur. Le choix activé ou désactivé est synchronisé entre les appareils.",
     "source": "sha256:4842c399c1ded25a44601e14109572df4977ad6336bd7f0b94e10e23ea8f610c"
@@ -4977,13 +4973,81 @@
     "message": "Ajouter un autre appareil",
     "source": "sha256:f2685746e9bb506c73833ba5d1e14e1534854427b3ab01cf38aa9e094bd93e8e"
   },
-  "settings.sync.addAnotherDeviceHint": {
-    "message": "Affiche un code à saisir sur le nouvel appareil. Il est valable dix minutes.",
-    "source": "sha256:a6e0dcdd927e2373044462cc51dcca9ebed92141195b9418bdbc09974b0c5538"
+  "settings.sync.what.title": {
+    "message": "Ce qui est synchronisé",
+    "source": "sha256:c35e03d48e1b6436142c7ce4761409fc3e993026253141848da4541d3fa413a2"
   },
-  "settings.sync.pairing.show": {
-    "message": "Afficher le code",
-    "source": "sha256:6524ea5a60bc93862d86da7b2c1ef7c1e0c195cfde0cb9885b3d6ccd89e97bbf"
+  "settings.sync.what.favorites": {
+    "message": "Favoris",
+    "source": "sha256:eb6de4bf3c91c1517769a63ad4043c11178de070ec60ce3351e593a887fab8e7"
+  },
+  "settings.sync.what.settings": {
+    "message": "Réglages",
+    "source": "sha256:43356a5c105b12917f5ca2d42757ef4b35c162ef61904740a26cc20a591c29eb"
+  },
+  "settings.sync.what.always": {
+    "message": "Toujours activé",
+    "source": "sha256:de249071e6dd03979aea2e62cd96f0403d570be54748ac3e16c9384c25066e2b"
+  },
+  "settings.sync.what.tabs": {
+    "message": "Onglets ouverts",
+    "source": "sha256:cc47e5b9260b5b13a5324712bfe400a816fab37fd50fab315b8eb2ce19dc8d65"
+  },
+  "settings.sync.what.tabsHint": {
+    "message": "De cet appareil",
+    "source": "sha256:ec356845b1c0bd9bad46d3277925331e8d7c0f75e352e8907f13408851f109d5"
+  },
+  "settings.sync.what.spaces": {
+    "message": "Spaces et groupes",
+    "source": "sha256:4cd7c81759578035df9fa327c5a6aa87d99c4f20f9513d494b763b9faed42f23"
+  },
+  "settings.sync.what.spacesHint": {
+    "message": "Sur cet appareil",
+    "source": "sha256:be0f2a3628a8e4debcfc009ba53e43f187c126b190e2363ebb9e23f1933b01e5"
+  },
+  "settings.sync.devices.title": {
+    "message": "Appareils",
+    "source": "sha256:af960101069f8a17a7208c35d2598ee7ecd4929d0ad62db3fdebd823e166dc4f"
+  },
+  "settings.sync.devices.add": {
+    "message": "Ajouter un appareil",
+    "source": "sha256:6fa6276903dfb8d3aa2bb634a0d4725b19a016901c5b90bed83293dc7612b5d2"
+  },
+  "settings.sync.devices.thisDevice": {
+    "message": "Cet appareil",
+    "source": "sha256:b3aef50482ad194b133fec2a0ee2d24aab57a23c42f8a1400a4db5b37e2e4091"
+  },
+  "settings.sync.devices.platform.darwin": {
+    "message": "Mac",
+    "source": "sha256:9c351bad4d6a94f97f6d5806fb7fa3c99aeec905a11c73c35ab5887b373210f0"
+  },
+  "settings.sync.devices.platform.win32": {
+    "message": "Windows",
+    "source": "sha256:33e9b9d7e6881b61b14a94b71a4275616b3adb60bf7050a2d79149c2b5ab14be"
+  },
+  "settings.sync.devices.platform.linux": {
+    "message": "Linux",
+    "source": "sha256:038263045ce82f17006066ff4253e3d1cfec40886079915f92c683a5988a8b35"
+  },
+  "settings.sync.devices.platform.ios": {
+    "message": "iPhone",
+    "source": "sha256:87390a642f0d1037d05d893211bbb455a5d5517caba8f584491f682ec41684b3"
+  },
+  "settings.sync.devices.platform.unknown": {
+    "message": "Appareil",
+    "source": "sha256:a0ae45e0aaf0979a3bd2d4e657c1863339f629e53df153005c838cfb59cb2d4b"
+  },
+  "settings.sync.devices.missing": {
+    "message": "Un appareil manque ? Mettez Blanc à jour dessus ou activez-y « Onglets ouverts ».",
+    "source": "sha256:8849ef9d6a703e40b9956b0fd570615512831aac4e8a1a847c0a94fa929f512f"
+  },
+  "settings.sync.more.title": {
+    "message": "Plus d’options",
+    "source": "sha256:43f8c2e74ba87e0d496afef3bd5f0f70c78379108238cf706237db9bc8429ee2"
+  },
+  "settings.sync.more.hint": {
+    "message": "Code de récupération, rejoindre une autre synchronisation et désactiver la synchronisation",
+    "source": "sha256:79795525f1825fc2d47ca0908364b950b2bc5e3ff665a3754878627604cb5254"
   },
   "settings.sync.pairing.instruction": {
     "message": "Sur votre autre appareil, ouvrez Réglages → Synchronisation, choisissez « Ajouter cet appareil à ma synchronisation » et saisissez ce code.",
@@ -8152,10 +8216,6 @@
   "slash.send.doc": {
     "message": "Envoyer la page de cet onglet vers un autre appareil synchronisé",
     "source": "sha256:1d542be7aafa7207a6c34f1c5e2cf7af7ca4ccfa459231580cb7bd0215988b97"
-  },
-  "sharedSpaces.switch": {
-    "message": "Synchroniser les Spaces et les groupes sur cet appareil",
-    "source": "sha256:c02b1330d0aebe0038d68ab7853e3248ed9c0cb053c485c6d84f21705521d43a"
   },
   "sharedSpaces.title": {
     "message": "Choisir les Spaces à synchroniser",

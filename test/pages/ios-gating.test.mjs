@@ -106,6 +106,8 @@ test('join-only phone hides both creation paths and explains how to start', asyn
 test('desktop retains both remote-wipe checkboxes', async () => {
   const { page } = await open('settings', { desktop: true, active: true });
   try {
+    // Turning sync off and switching syncs live under More options.
+    await page.locator('.sync-more-summary').click();
     assert.equal(await visible(page, '#syncWipe'), true);
     await page.locator('#syncSwitchOpen').click();
     assert.equal(await visible(page, '#syncSwitchWipe'), true);
@@ -114,6 +116,10 @@ test('desktop retains both remote-wipe checkboxes', async () => {
 test('phone hides remote wipe and sends false even if hidden checkboxes are set', async () => {
   const { page } = await open('settings', { active: true });
   try {
+    // Open More options first, so the checkbox is hidden by capability, not by
+    // the closed disclosure.
+    await page.locator('.sync-more-summary').click();
+    assert.equal(await visible(page, '#syncDisable'), true);
     assert.equal(await visible(page, '#syncWipe'), false);
     await page.locator('#syncSwitchOpen').click();
     assert.equal(await visible(page, '#syncSwitchWipe'), false);

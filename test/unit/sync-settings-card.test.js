@@ -53,30 +53,36 @@ test('the setup form follows the selected three-step visual guide', () => {
     'a deep-linked Sync sheet keeps the Sync navigation marker');
 });
 
-test('the on state opens with a summary, then this device, and keeps the error in one conditional callout', () => {
+test('the on state leads with who you are and what syncs, then devices, then more options', () => {
   const html = read('src/renderer/pages/settings.html');
   const on = html.slice(html.indexOf('<div id="syncActive" hidden>'), html.indexOf('id="group-profiles"'));
-  // Two cards in the Settings card-and-row grammar: this sync and this device,
-  // then the actions that add, move or remove devices.
-  assert.match(on, /<div class="settings-card settings-card--mixed sync-overview">[\s\S]*<div class="settings-card settings-card--mixed sync-actions">/);
-  assert.match(on, /<span class="sync-summary-label">Sync name<\/span>\s*<strong class="sync-summary-name" id="syncStatusHandle">/);
-  assert.match(on, /<span class="sync-summary-meta"><span>Favorites and settings<\/span> <span class="sync-summary-when" id="syncStatusData"><\/span><\/span>/);
-  // This device's name follows the summary: the Island never lists the device
-  // you are on, so it is renamed here (island lower-section §7.1).
-  assert.ok(on.indexOf('id="syncStatusHandle"') < on.indexOf('id="syncDeviceName"'));
-  assert.ok(on.indexOf('id="syncDeviceName"') < on.indexOf('id="syncTabsShare"'));
-  assert.match(on, /<label for="syncDeviceName">This device’s name<\/label>\s*<span class="hint" id="syncDeviceNameHint">How your other devices list this one\. Leave empty to use the computer’s name\.<\/span>\s*<\/div>\s*<input id="syncDeviceName" type="text" maxlength="80" autocomplete="off" spellcheck="false" aria-describedby="syncDeviceNameHint" \/>/);
+  // Redesign 2026-10-27: the common path first, rarer actions one level deeper.
+  const order = ['class="settings-card sync-hero"', 'class="settings-card sync-devices-card"', '<details class="settings-card sync-more">', '<dialog class="sync-sheet" id="syncPairingDialog"'];
+  const at = order.map((needle) => on.indexOf(needle));
+  assert.ok(at.every((i) => i >= 0), JSON.stringify(at));
+  assert.deepEqual([...at].sort((a, b) => a - b), at, 'hero, devices, more options, then the Add device sheet');
+  // Identity: monogram, sync name, a status dot and the last sync.
+  assert.match(on, /<span class="sync-avatar" id="syncAvatar" aria-hidden="true"><\/span>/);
+  assert.match(on, /<span class="page-sr-only">Sync name<\/span>\s*<strong class="sync-hero-name" id="syncStatusHandle">/);
+  assert.match(on, /<span class="sync-hero-status" id="syncStatusLine"><span class="sync-status-dot" aria-hidden="true"><\/span><span id="syncStatusData"><\/span><\/span>/);
   // The error and the retry for a pending erasure live in one callout.
   assert.match(on, /<div class="sync-error" id="syncStatusErrorRow" hidden>\s*<p><strong>Last error<\/strong> <span id="syncStatusError"><\/span><\/p>\s*<button id="syncEraseRetry" hidden>Try again<\/button>\s*<\/div>/);
-  // Open-tab sharing is its switch; no status line repeats it.
+  // What syncs: Favorites and Settings always; Open tabs is this device's switch.
+  assert.match(on, /<span class="sync-what-label">Favorites<\/span><span class="sync-what-state">Always on<\/span>/);
+  assert.match(on, /<span class="sync-what-label">Settings<\/span><span class="sync-what-state">Always on<\/span>/);
+  assert.match(on, /<label class="sync-what sync-what-toggle" id="syncTabsShareSetting" role="listitem">[\s\S]*?<span class="toggle"><input id="syncTabsShare" type="checkbox" aria-labelledby="syncTabsShareLabel" aria-describedby="syncTabsShareHint" \/><span class="track"><\/span><\/span>\s*<\/label>/);
   assert.doesNotMatch(html, /id="syncStatusTabs"/);
+  // Devices: this device first, its name the field; others are drawn by settings.js.
+  assert.match(on, /<li class="sync-device sync-device-self">[\s\S]*?<input id="syncDeviceName" class="sync-device-name" type="text" maxlength="80" autocomplete="off" spellcheck="false" aria-label="This device’s name" aria-describedby="syncDeviceNameHint" \/>[\s\S]*?<span class="sync-badge">This device<\/span>/);
+  assert.match(on, /<span class="sync-device-name-hint" id="syncDeviceNameHint">How your other devices list this one\. Leave empty to use the computer’s name\.<\/span>/);
+  assert.match(on, /<p class="sync-devices-missing">Don’t see a device\? Update Blanc on it, or turn on Open tabs there\.<\/p>/);
   const js = read('src/renderer/pages/settings.js');
   // The wording itself is covered behaviourally by relativeSyncTime's tests;
   // this only pins the wiring, including that no absolute timestamp is used.
   assert.match(js, /const lastSynced = relativeSyncTime\(status\.lastSyncedAt\);/);
   assert.match(js, /syncStatusData\.textContent = lastSynced \? t\('settings\.sync\.lastSynced', \{ when: lastSynced \}\) : t\('settings\.sync\.notSynced'\);/);
   assert.doesNotMatch(js, /toLocaleString\(\)[\s\S]{0,80}syncStatusData/);
-  assert.doesNotMatch(js, /syncStatusTabs/);
+  assert.match(js, /statusLine\.dataset\.state = status\.lastError \? 'error' : \(lastSynced \? 'ok' : 'pending'\);/);
   assert.match(js, /syncStatusErrorRow\.hidden = !status\.lastError/);
   assert.match(js, /if \(document\.activeElement !== deviceNameEl\) deviceNameEl\.value = status\.deviceName \|\| '';/,
     'a status refresh never overwrites a name being typed');
@@ -84,21 +90,36 @@ test('the on state opens with a summary, then this device, and keeps the error i
   assert.match(js, /deviceNameEl\.addEventListener\('change',[\s\S]*?settings\.syncDeviceNameSet\(deviceNameEl\.value\)/);
 });
 
+test('the device list renders names as text from the Settings bridge, never ids', () => {
+  const js = read('src/renderer/pages/settings.js');
+  assert.match(js, /listed = await window\.bowserPages\.settings\.syncDevices\(\);/);
+  assert.match(js, /if \(request !== devicesRequest \|\| !listed\) return;/, 'a late reply never overwrites a newer list');
+  assert.match(js, /name\.textContent = device\.name;/);
+  assert.doesNotMatch(js, /innerHTML[\s\S]{0,40}device\.name/);
+  assert.doesNotMatch(js, /device\.(id|deviceId)/);
+  assert.match(js, /drawDeviceIcon\(icon, device\.platform\)/);
+});
+
 test('the visual redesign preserves every established on-state control and handler', () => {
   const html = read('src/renderer/pages/settings.html');
   const js = read('src/renderer/pages/settings.js');
 
   assert.match(html, /<button id="syncNow">Sync now<\/button>/);
-  // Each action is a row: a label and hint, then a short button that a screen
+  assert.match(html, /<button id="syncAddDevice" type="button" class="sync-add">Add device<\/button>/);
+  // More options: each rarer action is a row with a short button that a screen
   // reader announces with the row's label and hint.
-  assert.match(html, /<span id="syncAddDeviceLabel">Add another device<\/span>[\s\S]{0,400}?<button id="syncAddDevice" type="button" aria-describedby="syncAddDeviceLabel syncAddDeviceHint">Show code<\/button>/);
-  assert.match(html, /<span id="syncSwitchLabel">Connect to a different sync with a code<\/span>[\s\S]{0,400}?<button id="syncSwitchOpen" type="button" aria-describedby="syncSwitchLabel syncSwitchHint">Enter code<\/button>/);
-  assert.match(html, /<span id="syncRecoveryLabel">Recovery code<\/span>[\s\S]{0,500}?<button id="syncRecoveryCopy" type="button" aria-describedby="syncRecoveryLabel syncRecoveryHint">Copy<\/button>/);
-  assert.match(html, /<span id="syncTurnOffLabel">Turn off sync<\/span>[\s\S]{0,500}?<input id="syncWipe" type="checkbox" \/> <span>Also delete synced data<\/span><\/label>\s*<\/div>\s*<button id="syncDisable" class="danger" aria-describedby="syncTurnOffLabel syncTurnOffHint">Turn off<\/button>/);
-  assert.match(html, /<span id="syncTabsShareLabel">Share this device’s open tabs with your other devices<\/span>[\s\S]{0,120}?<label class="toggle"><input id="syncTabsShare" type="checkbox" aria-labelledby="syncTabsShareLabel" \/><span class="track"><\/span><\/label>/);
-  // The pairing panel and the switch form open inside their own rows.
-  assert.match(html, /<button id="syncAddDevice"[^>]*>[^<]*<\/button>\s*<div id="syncPairing" class="sync-panel sync-pairing" hidden>/);
-  assert.match(html, /<button id="syncSwitchOpen"[^>]*>[^<]*<\/button>\s*<form id="syncSwitch" class="sync-panel sync-switch" hidden>/);
+  const more = html.slice(html.indexOf('<details class="settings-card sync-more">'), html.indexOf('</details>'));
+  assert.match(more, /<span class="sync-more-title">More options<\/span>/);
+  assert.match(more, /<span id="syncSwitchLabel">Connect to a different sync with a code<\/span>[\s\S]{0,400}?<button id="syncSwitchOpen" type="button" aria-describedby="syncSwitchLabel syncSwitchHint">Enter code<\/button>/);
+  assert.match(more, /<span id="syncRecoveryLabel">Recovery code<\/span>[\s\S]{0,500}?<button id="syncRecoveryCopy" type="button" aria-describedby="syncRecoveryLabel syncRecoveryHint">Copy<\/button>/);
+  assert.match(more, /<span id="syncTurnOffLabel">Turn off sync<\/span>[\s\S]{0,500}?<input id="syncWipe" type="checkbox" \/> <span>Also delete synced data<\/span><\/label>\s*<\/div>\s*<button id="syncDisable" class="danger" aria-describedby="syncTurnOffLabel syncTurnOffHint">Turn off<\/button>/);
+  assert.match(more, /<button id="syncSwitchOpen"[^>]*>[^<]*<\/button>\s*<form id="syncSwitch" class="sync-panel sync-switch" hidden>/);
+  // The pairing code is a modal sheet; its notice stays in the Devices card,
+  // so an expired or failed code is still explained after the sheet closes.
+  assert.match(html, /<dialog class="sync-sheet" id="syncPairingDialog" aria-labelledby="syncPairingTitle">\s*<div id="syncPairing" class="sync-pairing" hidden>/);
+  assert.ok(html.indexOf('id="syncPairingNotice"') < html.indexOf('id="syncPairingDialog"'));
+  assert.match(js, /if \(pv\.showing && !pairingDialog\.open\) pairingDialog\.showModal\(\);\s*if \(!pv\.showing && pairingDialog\.open\) pairingDialog\.close\(\);/);
+  assert.match(js, /pairingDialog\.addEventListener\('cancel', \(event\) => \{ event\.preventDefault\(\); dispatchPairing\(\{ type: 'cancel' \}\); \}\);/);
 
   assert.match(js, /nowBtn\.addEventListener\('click',[\s\S]*?settings\.syncNow\(\)/);
   assert.match(js, /disableBtn\.addEventListener\('click', \(\) => turnOff\(canWipeRemote && wipeEl\.checked\)\)/);
@@ -110,13 +131,15 @@ test('the visual redesign preserves every established on-state control and handl
   assert.match(js, /tabsShareEl\.addEventListener\('change',[\s\S]*?settings\.syncTabsSet\(tabsShareEl\.checked\)/);
 });
 
-test('the shared Spaces control is a Settings row after the open-tabs switch', () => {
+test('the shared Spaces control is a What syncs tile beside Open tabs, its note under the grid', () => {
   const js = read('src/renderer/pages/settings-shared-spaces.js');
   assert.match(js, /anchor=document\.getElementById\('syncTabsShareSetting'\)/);
-  assert.match(js, /row\.className='setting sync-action';row\.id='sharedSpacesControl'/);
-  assert.match(js, /label\.className='toggle'/);
+  assert.match(js, /tile\.className='sync-what sync-what-toggle';tile\.id='sharedSpacesTile'/);
   assert.match(js, /toggle\.id='sharedSpacesToggle'/);
-  assert.match(js, /anchor\.after\(row\)/);
+  assert.match(js, /anchor\.after\(tile\)/);
+  // The acceptance steps read the unavailable notice from #sharedSpacesControl.
+  assert.match(js, /row\.className='sync-what-note';row\.id='sharedSpacesControl'/);
+  assert.match(js, /row\.append\(detail,note\);anchor\.parentElement\.after\(row\)/);
 });
 
 test('settings.js drives the flow through the reducer and performs effects once', () => {
