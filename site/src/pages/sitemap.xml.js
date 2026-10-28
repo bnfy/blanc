@@ -12,7 +12,7 @@ const MANIFEST = ['/', '/download', '/mail', '/mail/privacy', '/mail/terms', '/s
 
 // /whats-new only forwards to the newest page; each release's page is listed
 // from the data, since the route itself is one dynamic file.
-const UNLISTED = new Set(['/404', '/import-tabs', '/[...legacy]', '/whats-new/', '/whats-new/[release]']);
+const UNLISTED = new Set(['/404', '/import-tabs', '/pair', '/[...legacy]', '/whats-new/', '/whats-new/[release]']);
 const WHATS_NEW = publishedPages(whatsNew, releases).filter((page) => !page.upcoming).map((page) => `/whats-new/${page.release}`);
 
 const SITE = SITE_ORIGIN;

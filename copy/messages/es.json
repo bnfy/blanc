@@ -8420,8 +8420,8 @@
     "source": "sha256:d8bd2be940048c55d96cdbc9f7a4435dfeb4378d99187b485c2c84c5f8f49492"
   },
   "sharedSpaces.accountFull": {
-    "message": "El almacenamiento de sincronización de Spaces está lleno. Elimina un Space para liberar el almacenamiento de su contenido. Los Spaces eliminados siguen contando para el límite de Spaces durante 30 días.",
-    "source": "sha256:c87a11a36095c1eb5213b52580475efa30038de980d60bfc19064a336fa6d655"
+    "message": "El almacenamiento de sincronización de Spaces está lleno. Elimina un Space para liberar el almacenamiento de su contenido. Un Space eliminado conserva un pequeño registro en el almacenamiento de sincronización durante 30 días.",
+    "source": "sha256:cff08bd2527d5a9183b5e76c058a03193c110bb5fcc1edc46b6aa41bf6ac1d8f"
   },
   "sharedSpaces.unavailable": {
     "message": "La sincronización de Spaces no está disponible. Los favoritos, los ajustes, las pestañas abiertas y Enviar a dispositivo siguen funcionando.",

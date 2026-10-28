@@ -37,6 +37,29 @@ function canonical(value) {
   return JSON.stringify(value) ?? 'null';
 }
 
+/** The size a width × height source scales to inside a size × size square,
+ * keeping its aspect ratio. A wide or tall favicon is letterboxed rather than
+ * squashed into the square the icon record requires. */
+function fitWithin(width, height, size = ICON_SIZE) {
+  const scale = size / Math.max(width, height);
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+  };
+}
+
+/** Center a 4-byte-per-pixel bitmap on a transparent size × size square. */
+function centerInSquare(bitmap, width, height, size = ICON_SIZE) {
+  if (!bitmap || bitmap.length !== width * height * 4 || width > size || height > size) return null;
+  const square = Buffer.alloc(size * size * 4);
+  const left = Math.floor((size - width) / 2);
+  const top = Math.floor((size - height) / 2);
+  for (let y = 0; y < height; y += 1) {
+    bitmap.copy(square, ((top + y) * size + left) * 4, y * width * 4, (y + 1) * width * 4);
+  }
+  return square;
+}
+
 function validIconData(data) {
   if (
     typeof data !== 'string' ||
@@ -474,6 +497,8 @@ module.exports = {
   PNG_DATA_PREFIX,
   isPublicHttpSource,
   canonical,
+  fitWithin,
+  centerInSquare,
   validIconData,
   validSourcePngBytes,
   validSourceIcoBytes,

@@ -1879,7 +1879,7 @@
     {
       "id": "trust-125-319",
       "source": "site/src/pages/privacy.astro",
-      "exactWording": "Sync content is encrypted on the device with a key derived from the sync name and passphrase. The current v1 server stores ciphertext under an opaque account locator; it cannot read, index, or merge the content. The passphrase is discarded after derivation and never sent or stored. The retained derived key is protected by the operating system credential service as described above. Losing the passphrase and every configured device means Bananify cannot recover the data.",
+      "exactWording": "Sync content is encrypted on the device before it is sent. If you set up Sync with a sync name and passphrase, Blanc derives the key and an opaque account locator from them; the passphrase is discarded after derivation and never sent or stored. The current v1 server stores ciphertext under the opaque account locator; it cannot read, index, or merge the content. The retained key is protected by the operating system credential service as described above.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
