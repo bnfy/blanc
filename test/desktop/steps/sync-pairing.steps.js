@@ -142,6 +142,7 @@ When('I choose Connect your iPhone', async function () {
 Then('the sheet offers to turn on Sync for this computer', { timeout: 30000 }, async function () {
   const dom = await card(this, (value) => value.startShown, 'the start state');
   assert.equal(dom.sheetTitle, 'Connect your iPhone');
+  assert.equal(dom.sheetVisible, true, 'the sheet is on screen, not open inside the hidden on state');
   assert.equal(dom.syncOn, false, 'nothing is created before Continue');
 });
 

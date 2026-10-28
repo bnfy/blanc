@@ -4674,6 +4674,7 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
   .sync-hero { --sync-ok: #5cc488; }
 }
 body.sheet .sync-hero,
+body.sheet .sync-recovery-prompt,
 body.sheet .sync-devices-card { padding: 20px 24px 22px; }
 body.sheet .sync-more { padding: 0 24px; }
 .sync-hero-main {

@@ -3736,6 +3736,8 @@ function install(refs) {
           handle: byId('syncStatusHandle')?.textContent ?? '',
           recoveryPromptVisible: visible(byId('syncRecoveryPrompt')),
           sheetOpen: !!byId('syncPairingDialog')?.open,
+          // Open is not enough: a modal inside a hidden ancestor opens at 0×0.
+          sheetVisible: !!byId('syncPairingDialog')?.open && byId('syncPairingDialog').getBoundingClientRect().width > 0,
           sheetCode: byId('syncPairingDialog')?.open && !byId('syncPairing')?.hidden ? (byId('syncPairingCode')?.textContent ?? '') : '',
           joinedTitle: byId('syncPairingDialog')?.open && !byId('syncPairingJoined')?.hidden ? (byId('syncPairingJoinedTitle')?.textContent ?? '') : '',
           askingSpaces: !!byId('syncPairingDialog')?.open && !byId('syncPairingQuestion')?.hidden && !byId('syncPairingJoined')?.hidden,
@@ -3744,7 +3746,8 @@ function install(refs) {
           connectIphoneVisible: visible(byId('syncConnectIphone')),
           startShown: !!byId('syncPairingDialog')?.open && !byId('syncPairingStart')?.hidden,
           sheetTitle: byId('syncPairingDialog')?.open ? (!byId('syncPairingStart')?.hidden ? byId('syncPairingStartTitle') : byId('syncPairingTitle'))?.textContent ?? '' : '',
-          qrPath: !byId('syncPairingQr')?.hidden ? (byId('syncPairingQr')?.firstElementChild?.getAttribute('d') ?? '') : '',
+          // An <svg> has no .hidden property: judge the QR by what's drawn.
+          qrPath: byId('syncPairingQr')?.getBoundingClientRect().width > 0 ? (byId('syncPairingQr')?.firstElementChild?.getAttribute('d') ?? '') : '',
           qrViewBox: byId('syncPairingQr')?.getAttribute('viewBox') ?? '',
         };
       })()`);

@@ -634,76 +634,78 @@
               </div>
             </details>
 
-            <!-- Add device: a modal sheet, because showing the code is a task
-                 of its own. Esc or Cancel ends it (settings.js). -->
-            <dialog class="sync-sheet" id="syncPairingDialog" aria-labelledby="syncPairingTitle">
-              <!-- Connect your iPhone with Sync off (design 2026-10-28 §6.2):
-                   nothing is created until Continue. -->
-              <div id="syncPairingStart" class="sync-pairing" hidden>
-                <h2 class="sync-sheet-title" id="syncPairingStartTitle" data-i18n="settings.sync.connectIphone">Connect your iPhone</h2>
-                <p class="sync-pairing-instruction" id="syncPairingStartBody" data-i18n-ignore=""></p>
-                <div id="syncPairingNotReady" class="sync-pairing-not-ready" hidden>
-                  <p class="sync-pairing-instruction" data-i18n="settings.sync.sheet.notReady">Sync is on, but couldn’t reach the server yet. Blanc will keep trying.</p>
-                  <span class="sync-panel-actions">
-                    <button id="syncPairingStartRetry" type="button" data-i18n="settings.sync.tryAgain">Try again</button>
-                    <button id="syncPairingNotReadyCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
-                  </span>
-                </div>
-                <p class="sync-panel-notice" id="syncPairingStartNotice" role="status"></p>
-                <div class="sync-panel-actions" id="syncPairingStartActions">
-                  <button id="syncPairingContinue" type="button" data-i18n="settings.sync.sheet.continue">Continue</button>
-                  <button id="syncPairingStartCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
-                </div>
-                <p class="sync-pairing-already" id="syncPairingAlready">
-                  <span data-i18n="settings.sync.sheet.alreadySync">Already sync on another computer?</span>
-                  <button id="syncPairingAddThisFirst" type="button" class="link-button" data-i18n-ignore=""></button>
-                </p>
-              </div>
-              <!-- Connect your iPhone while the code is on its way. -->
-              <div id="syncPairingMaking" class="sync-pairing" hidden>
-                <h2 class="sync-sheet-title" data-i18n="settings.sync.connectIphone">Connect your iPhone</h2>
-                <p class="sync-pairing-instruction" role="status" data-i18n="settings.sync.sheet.makingCode">Making a code…</p>
+          </div>
+          <!-- The sheet sits outside #syncActive: Connect your iPhone opens it
+               with Sync off, and a modal inside a hidden ancestor opens at 0×0. -->
+          <!-- Add device: a modal sheet, because showing the code is a task
+               of its own. Esc or Cancel ends it (settings.js). -->
+          <dialog class="sync-sheet" id="syncPairingDialog" aria-labelledby="syncPairingTitle">
+            <!-- Connect your iPhone with Sync off (design 2026-10-28 §6.2):
+                 nothing is created until Continue. -->
+            <div id="syncPairingStart" class="sync-pairing" hidden>
+              <h2 class="sync-sheet-title" id="syncPairingStartTitle" data-i18n="settings.sync.connectIphone">Connect your iPhone</h2>
+              <p class="sync-pairing-instruction" id="syncPairingStartBody" data-i18n-ignore=""></p>
+              <div id="syncPairingNotReady" class="sync-pairing-not-ready" hidden>
+                <p class="sync-pairing-instruction" data-i18n="settings.sync.sheet.notReady">Sync is on, but couldn’t reach the server yet. Blanc will keep trying.</p>
                 <span class="sync-panel-actions">
-                  <button id="syncPairingMakingCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
+                  <button id="syncPairingStartRetry" type="button" data-i18n="settings.sync.tryAgain">Try again</button>
+                  <button id="syncPairingNotReadyCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
                 </span>
               </div>
-              <div id="syncPairing" class="sync-pairing" hidden>
-                <h2 class="sync-sheet-title" id="syncPairingTitle" data-i18n-ignore="">Add another device</h2>
-                <!-- The same code as a link Blanc for iPhone scans (§6.2); the
-                     code rides in the fragment, which no server sees. -->
-                <svg id="syncPairingQr" class="sync-pairing-qr" hidden aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path></path></svg>
-                <p class="sync-pairing-instruction" id="syncPairingInstruction" data-i18n="settings.sync.pairing.instruction">On your other device, open Settings → Sync, choose Add this device to my sync, and enter this code.</p>
-                <p class="sync-pairing-ortype" id="syncPairingOrType" hidden data-i18n="settings.sync.sheet.orType">Or type it in Settings → Sync:</p>
-                <div class="sync-pairing-code" id="syncPairingCode" data-i18n-ignore="" aria-live="polite"></div>
+              <p class="sync-panel-notice" id="syncPairingStartNotice" role="status"></p>
+              <div class="sync-panel-actions" id="syncPairingStartActions">
+                <button id="syncPairingContinue" type="button" data-i18n="settings.sync.sheet.continue">Continue</button>
+                <button id="syncPairingStartCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
+              </div>
+              <p class="sync-pairing-already" id="syncPairingAlready">
+                <span data-i18n="settings.sync.sheet.alreadySync">Already sync on another computer?</span>
+                <button id="syncPairingAddThisFirst" type="button" class="link-button" data-i18n-ignore=""></button>
+              </p>
+            </div>
+            <!-- Connect your iPhone while the code is on its way. -->
+            <div id="syncPairingMaking" class="sync-pairing" hidden>
+              <h2 class="sync-sheet-title" data-i18n="settings.sync.connectIphone">Connect your iPhone</h2>
+              <p class="sync-pairing-instruction" role="status" data-i18n="settings.sync.sheet.makingCode">Making a code…</p>
+              <span class="sync-panel-actions">
+                <button id="syncPairingMakingCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
+              </span>
+            </div>
+            <div id="syncPairing" class="sync-pairing" hidden>
+              <h2 class="sync-sheet-title" id="syncPairingTitle" data-i18n-ignore="">Add another device</h2>
+              <!-- The same code as a link Blanc for iPhone scans (§6.2); the
+                   code rides in the fragment, which no server sees. -->
+              <svg id="syncPairingQr" class="sync-pairing-qr" hidden aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path></path></svg>
+              <p class="sync-pairing-instruction" id="syncPairingInstruction" data-i18n="settings.sync.pairing.instruction">On your other device, open Settings → Sync, choose Add this device to my sync, and enter this code.</p>
+              <p class="sync-pairing-ortype" id="syncPairingOrType" hidden data-i18n="settings.sync.sheet.orType">Or type it in Settings → Sync:</p>
+              <div class="sync-pairing-code" id="syncPairingCode" data-i18n-ignore="" aria-live="polite"></div>
+              <div class="sync-panel-actions">
+                <span class="sync-pairing-remaining" id="syncPairingRemaining"></span>
+                <button id="syncPairingCopy" type="button" data-i18n="settings.sync.pairing.copy">Copy</button>
+                <button id="syncPairingCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
+              </div>
+            </div>
+            <!-- The same sheet once the device that took the code arrives
+                 (design 2026-10-28 §6.4): its content changes in place. -->
+            <div id="syncPairingJoined" class="sync-pairing sync-pairing-joined" hidden>
+              <h2 class="sync-sheet-title" id="syncPairingJoinedTitle" data-i18n-ignore=""></h2>
+              <p class="sync-pairing-instruction" data-i18n="settings.sync.sheet.joinedBody">Your favorites and settings are on it now. Its open tabs stay private to it until you choose to share them there.</p>
+              <div id="syncPairingQuestion" class="sync-panel" hidden>
+                <strong data-i18n="settings.sync.sheet.spacesQuestion">Keep Spaces and groups in sync with it?</strong>
+                <p class="sync-panel-body" data-i18n="sharedSpaces.pairDetail">Turning this on lets this device change shared Spaces across your sync account.</p>
                 <div class="sync-panel-actions">
-                  <span class="sync-pairing-remaining" id="syncPairingRemaining"></span>
-                  <button id="syncPairingCopy" type="button" data-i18n="settings.sync.pairing.copy">Copy</button>
-                  <button id="syncPairingCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
+                  <button id="syncPairingSpacesOn" type="button" data-i18n="sharedSpaces.confirm">Turn on</button>
+                  <button id="syncPairingSpacesNotNow" type="button" class="quiet" data-i18n="sharedSpaces.notNow">Not now</button>
                 </div>
               </div>
-              <!-- The same sheet once the device that took the code arrives
-                   (design 2026-10-28 §6.4): its content changes in place. -->
-              <div id="syncPairingJoined" class="sync-pairing sync-pairing-joined" hidden>
-                <h2 class="sync-sheet-title" id="syncPairingJoinedTitle" data-i18n-ignore=""></h2>
-                <p class="sync-pairing-instruction" data-i18n="settings.sync.sheet.joinedBody">Your favorites and settings are on it now. Its open tabs stay private to it until you choose to share them there.</p>
-                <div id="syncPairingQuestion" class="sync-panel" hidden>
-                  <strong data-i18n="settings.sync.sheet.spacesQuestion">Keep Spaces and groups in sync with it?</strong>
-                  <p class="sync-panel-body" data-i18n="sharedSpaces.pairDetail">Turning this on lets this device change shared Spaces across your sync account.</p>
-                  <div class="sync-panel-actions">
-                    <button id="syncPairingSpacesOn" type="button" data-i18n="sharedSpaces.confirm">Turn on</button>
-                    <button id="syncPairingSpacesNotNow" type="button" class="quiet" data-i18n="sharedSpaces.notNow">Not now</button>
-                  </div>
-                </div>
-                <p id="syncPairingRecovery" class="sync-pairing-recovery" hidden>
-                  <span data-i18n="settings.sync.recoveryPrompt.title">Keep a way back in</span>
-                  <button id="syncPairingRecoveryCopy" type="button" class="link-button" data-i18n="settings.sync.recoveryPrompt.copy">Copy recovery code</button>
-                </p>
-                <div class="sync-panel-actions">
-                  <button id="syncPairingDone" type="button" data-i18n="settings.sync.sheet.done">Done</button>
-                </div>
+              <p id="syncPairingRecovery" class="sync-pairing-recovery" hidden>
+                <span data-i18n="settings.sync.recoveryPrompt.title">Keep a way back in</span>
+                <button id="syncPairingRecoveryCopy" type="button" class="link-button" data-i18n="settings.sync.recoveryPrompt.copy">Copy recovery code</button>
+              </p>
+              <div class="sync-panel-actions">
+                <button id="syncPairingDone" type="button" data-i18n="settings.sync.sheet.done">Done</button>
               </div>
-            </dialog>
-          </div>
+            </div>
+          </dialog>
         </section>
 
         <section class="settings-group" id="group-profiles">
