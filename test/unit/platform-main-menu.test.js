@@ -226,7 +226,7 @@ test('with vertical tabs the menu button moves into the rail instead of hiding u
   assert.equal(rail.match(/placeMainMenuButton\((?:'island'|layout)\);/g)?.length, 2,
     'every path that sets the layout places the button');
   // In the rail's row it takes the row's own button look.
-  assert.match(styles, /\.vertical-tabs-toolbar #mainMenuButton \{[^}]*position: static;[^}]*width: 28px;[^}]*height: 28px;[^}]*margin-right: auto;/);
+  assert.match(styles, /\.vertical-tabs-toolbar #mainMenuButton \{[^}]*position: static;[^}]*width: 28px;[^}]*height: 28px;/);
   assert.match(styles, /\.vertical-tabs-toolbar #mainMenuButton:hover,\s*\.vertical-tabs-toolbar #mainMenuButton\[aria-expanded="true"\] \{[^}]*background: var\(--surface\);/);
 });
 

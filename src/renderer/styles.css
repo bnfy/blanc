@@ -659,9 +659,33 @@ html { --stage-w: 100vw; }
   padding: 8px 10px 7px 14px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  gap: 6px;
   flex: 0 0 auto;
 }
+.vertical-tabs-toolbar .vertical-tabs-layout-button { margin-left: auto; }
+
+/* The Island's Space mark, moved into this row while tabs are vertical
+   (vertical-tabs.js placeSpaceMark). It names the Space with room to spare and
+   opens the Spaces menu. With no Spaces yet it still shows, as the neutral
+   Spaces glyph, so the row always offers them. */
+.vertical-tabs-toolbar #pillSpace {
+  min-width: 0;
+  max-width: none;
+  height: 28px;
+  font-size: 12px;
+}
+.vertical-tabs-toolbar #pillSpace .space-mark-name { max-width: none; }
+.vertical-tabs-toolbar #pillSpace[data-state="none"] {
+  display: inline-flex;
+  width: 28px;
+  padding: 0;
+  justify-content: center;
+  color: var(--text-dim);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+.vertical-tabs-toolbar #pillSpace[data-state="none"] .space-mark-name { display: none; }
+.vertical-tabs-toolbar #pillSpace[data-state="none"] .space-mark-symbol svg { width: 16px; height: 16px; stroke-width: 2; }
+.vertical-tabs-toolbar #pillSpace[data-state="neutral"] { width: 28px; }
 
 /* The rail background owns the entire left edge. On macOS its first row also
    acts as the title-bar safe area: content starts after the native traffic
@@ -678,7 +702,6 @@ body.mac .vertical-tabs-toolbar {
   position: static;
   width: 28px;
   height: 28px;
-  margin-right: auto;
 }
 .vertical-tabs-toolbar #mainMenuButton:focus-visible {
   background: transparent;
@@ -919,7 +942,8 @@ body.mac .vertical-tabs-toolbar {
 .vertical-tab-close:focus-visible,
 .vertical-tabs-group-header:focus-visible,
 .vertical-tabs-layout-button:focus-visible,
-.vertical-tabs-new:focus-visible {
+.vertical-tabs-new:focus-visible,
+.vertical-tabs-new-group:focus-visible {
   position: relative;
   z-index: 2;
   outline: 2px solid var(--accent);
@@ -1122,10 +1146,39 @@ body > .tab-drag-ghost[aria-hidden="true"] {
   padding: 8px;
   border-top: 1px solid var(--border);
   flex: 0 0 auto;
+  display: flex;
+  gap: 4px;
+}
+
+/* Beside New tab: starts a new group from the current tab, the tab menu's
+   Move to Group → New Group…, so groups are findable from the rail itself. */
+.vertical-tabs-new-group {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: var(--radius);
+  color: var(--text-dim);
+}
+.vertical-tabs-new-group:hover:not(:disabled) {
+  background: var(--surface);
+  color: var(--text);
+}
+.vertical-tabs-new-group:disabled { opacity: 0.4; }
+.vertical-tabs-new-group svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
 }
 
 .vertical-tabs-new {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   height: 34px;
   display: flex;
   align-items: center;

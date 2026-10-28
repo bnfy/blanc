@@ -1287,6 +1287,11 @@ export interface BlancBrowserAPI {
    */
   openIslandCommands(): void;
   /**
+   * Start a new group from the active tab: the panel opens prefilled with /group, bound to that tab (the vertical tabs rail's New group button).
+   * IPC: send `chrome:new-group`.
+   */
+  beginNewGroup(): void;
+  /**
    * Expand the island panel, seeding the input with a typed character.
    * IPC: send `chrome:open-island-typing`.
    */

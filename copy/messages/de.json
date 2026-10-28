@@ -470,6 +470,10 @@
     "message": "Offene Tabs",
     "source": "sha256:4d0ae95789443450dc66977a93c6c9640c5c4c53fc324a69e63a9cd0501f2ea0"
   },
+  "rail.newGroup": {
+    "message": "Diesen Tab in eine neue Gruppe verschieben",
+    "source": "sha256:5d814955b5e6348ed40946ed2f0b9924bf09c270b79de54bdc8c0121532fb1c6"
+  },
   "rail.resize": {
     "message": "Breite der vertikalen Tabs ändern",
     "source": "sha256:41201fdf3e507050d36b3ed5d7bbcfcd7e70fc3649a6f6eb8a1ee816e431f1ef"

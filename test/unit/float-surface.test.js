@@ -91,7 +91,7 @@ test('every anchor the strip sends is measured on the strip stage, in window coo
   assert.match(js, /const stageRect = \(el\) => \{[\s\S]*?document\.getElementById\('chrome'\)\.getBoundingClientRect\(\)/);
   assert.match(js, /const box = stageRect\(el\);/);
   assert.match(js, /const rect = stageRect\(mainMenuButton\);/);
-  assert.match(js, /return \{ left: stageRect\(pillSpace\)\.left, bottom: stageRect\(islandPill\)\.bottom \};/);
+  assert.match(js, /return \{ left: stageRect\(pillSpace\)\.left, bottom: stageRect\(inRail \? pillSpace : islandPill\)\.bottom \};/);
   assert.match(js, /const r = stageRect\(button\);/);
   assert.equal(js.match(/const r = stageRect\(pill(?:Capture|DisplayShare)\);/g)?.length, 2);
 });

@@ -185,7 +185,9 @@ test('vertical rail top chrome is reduced to an accessible sidebar toggle', () =
   );
   assert.match(html, /class="vertical-tabs-layout-icon"/);
   assert.doesNotMatch(html, /vertical-tabs-heading|<span>Island<\/span>/);
-  assert.match(styles, /\.vertical-tabs-toolbar\s*\{[^}]*justify-content: flex-end;/s);
+  // The toggle keeps the row's far end; the Space mark (and on Windows and
+  // Linux the main-menu button) lead it.
+  assert.match(styles, /\.vertical-tabs-toolbar \.vertical-tabs-layout-button \{ margin-left: auto; \}/);
   assert.doesNotMatch(styles, /\.vertical-tabs-toolbar\s*\{[^}]*border-bottom:/s);
   assert.doesNotMatch(styles, /\.vertical-tabs-group-rule\s*\{/);
   assert.doesNotMatch(renderer, /vertical-tabs-group-rule/);
@@ -294,4 +296,29 @@ test('vertical rail scrolls only measured-overflow titles on direct hover', () =
   assert.match(styles, /pointer-events: none;[\s\S]*text-overflow: ellipsis;/);
   assert.match(styles, /transform var\(--vertical-tab-title-duration\) linear 600ms/);
   assert.match(styles, /prefers-reduced-motion: reduce[\s\S]*\.vertical-tab-title\.scrolling \.vertical-tab-title-text[\s\S]*text-overflow: ellipsis;[\s\S]*transition: none;/);
+});
+
+test('the rail\'s first row holds the Space mark and its footer starts a new group (#1178)', () => {
+  const read = (file) => fs.readFileSync(path.join(__dirname, '../..', file), 'utf8');
+  const html = read('src/renderer/index.html');
+  const rail = read('src/renderer/vertical-tabs.js');
+  const renderer = read('src/renderer/renderer.js');
+  const styles = read('src/renderer/styles.css');
+  const main = read('src/main/main.js');
+
+  // The Island's own mark moves (one copy, one set of handlers), on every path
+  // that sets the layout, ahead of the layout toggle; it goes back where it was.
+  assert.match(rail, /function placeSpaceMark\(layout\) \{[\s\S]*?toolbar\.insertBefore\(spaceMark, useIslandButton\)[\s\S]*?spaceMarkHome\.parent\.insertBefore\(spaceMark/);
+  assert.equal(rail.match(/placeSpaceMark\((?:'island'|layout)\);/g)?.length, 2);
+  // From the rail the Spaces menu hangs from the mark, not the Island.
+  assert.match(renderer, /const inRail = !islandPill\.contains\(pillSpace\);\s*return \{ left: stageRect\(pillSpace\)\.left, bottom: stageRect\(inRail \? pillSpace : islandPill\)\.bottom \};/);
+  // With no Spaces yet it still shows, as the Spaces glyph.
+  assert.match(styles, /\.vertical-tabs-toolbar #pillSpace\[data-state="none"\] \{\s*display: inline-flex;/);
+
+  // New group sits beside New tab, named and described for screen readers.
+  assert.match(html, /id="verticalTabsNew"[\s\S]*?<\/button>\s*<button\s+id="verticalTabsNewGroup"[\s\S]*?data-i18n-aria-label="rail\.newGroup"/);
+  assert.match(rail, /newGroupButton\?\.addEventListener\('click', \(\) => \{\s*invokeLeavingRail\('start a new group', \(\) => api\.beginNewGroup\(\)\);/);
+  // It runs the tab menu's New Group… on the current tab, never a private one.
+  assert.match(rail, /newGroupButton\.disabled = !!\(payload\.tabs \|\| \[\]\)\.find\(tab => tab\.id === payload\.activeTabId\)\?\.private;/);
+  assert.match(main, /chromeOn\('chrome:new-group', \(\) => \{\s*const tab = tabs\.get\(rt\(\)\.activeTabId\);\s*if \(tab && !tab\.private\) beginNewGroup\(tab\.id\);/);
 });

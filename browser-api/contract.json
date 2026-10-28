@@ -2866,6 +2866,14 @@
       "doc": "Expand the island panel in slash-command mode."
     },
     {
+      "name": "beginNewGroup",
+      "group": "island",
+      "kind": "send",
+      "channel": "chrome:new-group",
+      "params": [],
+      "doc": "Start a new group from the active tab: the panel opens prefilled with /group, bound to that tab (the vertical tabs rail's New group button)."
+    },
+    {
       "name": "openIslandTyping",
       "group": "island",
       "kind": "send",

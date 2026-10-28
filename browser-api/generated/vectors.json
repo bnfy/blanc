@@ -3044,6 +3044,28 @@
         }
       ]
     },
+    "beginNewGroup": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:new-group",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:new-group",
+              "args": []
+            }
+          ]
+        }
+      ]
+    },
     "openIslandTyping": {
       "kind": "send",
       "platforms": [

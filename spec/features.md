@@ -677,8 +677,13 @@ From the desktop `DEFAULTS`:
   supported 640×480 minimum, the pane is 392px wide and the visible find
   capsule fits within 368px of it without touching the rail. The expanded
   Island footer has an accessible two-way vertical-tabs toggle, while the
-  rail's unlabeled top bar contains a single accessible sidebar icon that turns
-  vertical tabs off. The top bar and group labels use spacing instead of
+  rail's top bar holds the current Space's mark (moved there from the Island,
+  opening the Spaces menu below it; with no Spaces yet it shows the Spaces
+  glyph) and, at its far end, an accessible sidebar icon that turns vertical
+  tabs off. On Windows and Linux the main-menu button leads the row. The rail's
+  footer has **New tab** and, beside it, **New group**, which starts a group
+  from the current tab like the tab menu's Move to Group → New Group… (never
+  for a private tab). The top bar and group labels use spacing instead of
   divider rules. `⌘⌥V` on macOS / `Ctrl+Alt+V` elsewhere toggles the layout
   from anywhere.
 - Settings → General → Island offers **Vertical tab text size**: Default

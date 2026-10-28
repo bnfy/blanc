@@ -1115,9 +1115,11 @@
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
   // The menu lines up with the mark but hangs from the Island's bottom edge,
-  // so it never covers the Island (spec D18).
+  // so it never covers the Island (spec D18). In the vertical tabs rail's first
+  // row (vertical-tabs.js placeSpaceMark) it hangs from the mark itself.
   function spacesAnchor() {
-    return { left: stageRect(pillSpace).left, bottom: stageRect(islandPill).bottom };
+    const inRail = !islandPill.contains(pillSpace);
+    return { left: stageRect(pillSpace).left, bottom: stageRect(inRail ? pillSpace : islandPill).bottom };
   }
   function renderSpaceMark() {
     const items = Array.isArray(spaces.items) ? spaces.items : [];

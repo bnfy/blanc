@@ -12,7 +12,10 @@
   const newTabShortcut = document.getElementById('verticalTabsNewShortcut');
   const resizeHandle = document.getElementById('verticalTabsResizeHandle');
   const announcer = document.getElementById('verticalTabsAnnouncer');
+  const newGroupButton = document.getElementById('verticalTabsNewGroup');
   const mainMenuButton = document.getElementById('mainMenuButton');
+  const spaceMark = document.getElementById('pillSpace');
+  const spaceMarkHome = spaceMark ? { parent: spaceMark.parentElement, next: spaceMark.nextElementSibling } : null;
   if (!api || !rail || !list || !useIslandButton || !newTabButton || !resizeHandle) return;
 
   /** Windows and Linux: the strip's main-menu button sits in the window's
@@ -30,6 +33,21 @@
     if (layout === 'vertical') home.prepend(mainMenuButton);
     else home.insertBefore(mainMenuButton, document.getElementById('islandPill'));
     if (hadFocus) mainMenuButton.focus({ preventScroll: true });
+  }
+
+  /** The Island's Space mark moves into the rail's first row while tabs are
+   * vertical, so the row says which Space this is and opens the Spaces menu,
+   * and the Island keeps one copy. It goes back to its place in the Island
+   * otherwise. renderer.js keeps painting it wherever it is. */
+  function placeSpaceMark(layout) {
+    if (!spaceMark || !spaceMarkHome) return;
+    const toolbar = useIslandButton.parentElement;
+    const inRail = spaceMark.parentElement === toolbar;
+    if ((layout === 'vertical') === inRail) return;
+    const hadFocus = document.activeElement === spaceMark;
+    if (layout === 'vertical') toolbar.insertBefore(spaceMark, useIslandButton);
+    else spaceMarkHome.parent.insertBefore(spaceMark, spaceMarkHome.next?.parentElement === spaceMarkHome.parent ? spaceMarkHome.next : null);
+    if (hadFocus) spaceMark.focus({ preventScroll: true });
   }
 
   const ICONS = {
@@ -682,16 +700,20 @@
       // fail closed to Island instead of inventing renderer geometry.
       document.documentElement.dataset.tabLayout = 'island';
       placeMainMenuButton('island');
+      placeSpaceMark('island');
       rail.hidden = true;
       lastSignature = null;
       return;
     }
     document.documentElement.dataset.tabLayout = layout;
     placeMainMenuButton(layout);
+    placeSpaceMark(layout);
     rail.dataset.textSize = ['large', 'extra-large'].includes(payload.verticalTabsTextSize)
       ? payload.verticalTabsTextSize : 'default';
     rail.hidden = layout !== 'vertical';
     rail.dataset.activeTabId = payload.activeTabId || '';
+    // Private tabs are never grouped (main refuses too).
+    if (newGroupButton) newGroupButton.disabled = !!(payload.tabs || []).find(tab => tab.id === payload.activeTabId)?.private;
     if (layout !== 'vertical') {
       lastSignature = null;
       return;
@@ -811,6 +833,9 @@
   });
   newTabButton.addEventListener('click', () => {
     invokeLeavingRail('create tab', () => api.createTab(null, { focusAddress: true }));
+  });
+  newGroupButton?.addEventListener('click', () => {
+    invokeLeavingRail('start a new group', () => api.beginNewGroup());
   });
   resizeHandle.addEventListener('pointerdown', (event) => {
     if (event.button !== 0) return;

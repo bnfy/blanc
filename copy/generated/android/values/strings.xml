@@ -126,6 +126,7 @@
     <string name="rail_label">Vertical tabs</string>
     <string name="rail_island_layout">Turn vertical tabs off</string>
     <string name="rail_list">Open tabs</string>
+    <string name="rail_new_group">Put this tab in a new group</string>
     <string name="rail_resize">Resize vertical tabs</string>
     <string name="rail_width_value">%1$s pixels</string>
     <string name="rail_width_announce">Vertical tabs width %1$s pixels</string>
