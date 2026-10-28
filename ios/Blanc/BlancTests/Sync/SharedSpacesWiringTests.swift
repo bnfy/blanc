@@ -291,4 +291,44 @@ import XCTest
     XCTAssertEqual(m.savedSet(TabSets.iphoneId)?.tabs.map(\.url), [TabsManager.newTabURL.absoluteString])
     XCTAssertEqual(m.sharingRows().first?.id, id)
   }
+  // MARK: Bring a Space (Task 19)
+
+  func testBringASpaceMakesAnUnlinkedLocalCopyAndShowsIt() throws {
+    try writeSync(enabled: true)
+    let m = TabsManager(settingsDirectory: settingsDir, sessionDirectory: sessionDir)
+    let state = m.syncEngine.sharedState
+    try state.mergeIndex(try indexEntry())
+    let remote = try XCTUnwrap(m.remoteSpaces.first, "the library's Space, switch off")
+    XCTAssertEqual(remote.name, "Work")
+    XCTAssertEqual(remote.deviceId, "mac")
+    var blob = try library(count: 3)
+    blob["active"] = f(.string(id(0x102)))
+    let before = state.data.canonical()
+    let spaceId = try m.bringSpace(remote, blob: blob)
+    XCTAssertEqual(state.data.canonical(), before, "the review copy is never written to the Spaces state")
+    XCTAssertEqual(m.shownSetId, spaceId)
+    let space = try XCTUnwrap(m.shownSpace)
+    XCTAssertNil(space.sharedId)
+    XCTAssertNil(space.link)
+    XCTAssertEqual(m.tabs.map { $0.currentURL.absoluteString }, (1...3).map { "https://example.test/\($0)" })
+    XCTAssertTrue(m.tabs.allSatisfy { $0.sharedTabId == nil })
+    XCTAssertEqual(m.tabs.filter(\.hasWebView).count, 1, "only the saved selection loads")
+    XCTAssertTrue(m.tabs[1].hasWebView)
+    XCTAssertEqual(try m.bringSpace(remote, blob: blob) != spaceId, true)
+    XCTAssertEqual(m.spaces.map(\.name), ["Work", "Work 2"], "a second copy takes a free name")
+  }
+
+  func testBringIsRefusedAt25Spaces() throws {
+    try writeSync(enabled: true)
+    let m = TabsManager(settingsDirectory: settingsDir, sessionDirectory: sessionDir)
+    for n in 1...25 { try m.createSpace(name: "S\(n)", color: "#426c4c", symbol: "book") }
+    let remote = TabsManager.RemoteSpace(id: sid, name: "Work", color: "#426c4c", symbol: "book", deviceId: "mac", deviceName: "Mac")
+    XCTAssertFalse(m.canAddSpace)
+    XCTAssertThrowsError(try m.bringSpace(remote, blob: try library(count: 1)))
+  }
+
+  func testRemoteSpacesAreHiddenWithTheSwitchOn() throws {
+    let m = try sharedOn(1)
+    XCTAssertTrue(m.remoteSpaces.isEmpty, "with the switch on the library is the phone's own")
+  }
 }

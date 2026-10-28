@@ -143,4 +143,13 @@ final class QuickSwitcherTests: XCTestCase {
         XCTAssertEqual(results.last?.localTabID, tab.id)
         XCTAssertEqual(results.first { $0.groupId != nil }?.subtitle, "1 tab")
     }
+
+    /// M17c: another device's Space (switch off) is found by name, labelled
+    /// with its device, and ranks above tabs.
+    func testRemoteSpacesMatchByName() {
+        let results = QuickSwitcher.search(query: "trav", tabs: [], remote: [], favorites: [],
+                                           remoteSpaces: [(id: "s1", name: "Travel", device: "MacBook Pro")])
+        XCTAssertEqual(results.first?.remoteSpaceId, "s1")
+        XCTAssertEqual(results.first?.subtitle, "On MacBook Pro")
+    }
 }

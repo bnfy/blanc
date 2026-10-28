@@ -300,7 +300,8 @@ struct PaletteSheet: View {
         let results = QuickSwitcher.search(
             query: input.trimmingCharacters(in: .whitespacesAndNewlines),
             tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites,
-            history: manager.historyStore.entries, groups: manager.groups, sets: switcherSets
+            history: manager.historyStore.entries, groups: manager.groups, sets: switcherSets,
+            remoteSpaces: switcherRemoteSpaces
         )
         return List {
             if results.isEmpty {
@@ -330,7 +331,16 @@ struct PaletteSheet: View {
         return sets
     }
 
+    /// Other devices' Spaces (switch off), which open their review sheet.
+    private var switcherRemoteSpaces: [(id: String, name: String, device: String)] {
+        manager.remoteSpaces.map { ($0.id, $0.name, $0.deviceName) }
+    }
+
     private func open(_ result: SyncedSwitcherResult) {
+        if let remoteId = result.remoteSpaceId, let remote = manager.remoteSpaces.first(where: { $0.id == remoteId }) {
+            manager.requestBringSpace(remote)
+            return
+        }
         if let groupId = result.groupId { manager.showGroup(groupId) }
         else if let setId = result.setId { manager.show(set: setId) }
         else if let id = result.localTabID { manager.setActive(id) }
@@ -355,7 +365,7 @@ struct PaletteSheet: View {
             return
         }
 
-        let results = QuickSwitcher.search(query: trimmed, tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites, history: manager.historyStore.entries, groups: manager.groups, sets: switcherSets)
+        let results = QuickSwitcher.search(query: trimmed, tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites, history: manager.historyStore.entries, groups: manager.groups, sets: switcherSets, remoteSpaces: switcherRemoteSpaces)
         if let top = QuickSwitcher.goTarget(query: trimmed, results: results) {
             open(top)
             dismiss()

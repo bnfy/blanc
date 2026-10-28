@@ -65,6 +65,10 @@ struct ContentView: View {
         .sheet(item: Binding(get: { manager.spaceEditor }, set: { manager.spaceEditor = $0 })) { target in
             SpaceEditor(manager: manager, target: target)
         }
+        .sheet(item: Binding(get: { manager.bringSpaceTarget }, set: { manager.bringSpaceTarget = $0 }),
+               onDismiss: { manager.presentPendingSettings() }) { remote in
+            BringSpaceSheet(manager: manager, remote: remote)
+        }
         .alert(ReaderCopy.text("reader.title"), isPresented: Binding(get: { manager.readerError }, set: { manager.readerError = $0 })) {
             Button("OK", role: .cancel) {}
         } message: { Text(ReaderCopy.text("reader.unavailable")) }

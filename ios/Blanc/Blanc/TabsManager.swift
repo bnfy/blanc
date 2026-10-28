@@ -67,6 +67,10 @@ final class TabsManager {
             pendingSpacesMenu = false
             isSpacesMenuPresented = true
         }
+        if let space = pendingBringSpace {
+            pendingBringSpace = nil
+            bringSpaceTarget = space
+        }
     }
 
     /// The Space editor sheet (M17), and what waits for the palette to close.
@@ -1582,6 +1586,90 @@ final class TabsManager {
         } else {
             persistSession()
         }
+        persistSession()
+        return id
+    }
+
+    // MARK: Bring a Space (M17c Task 19, design §7)
+
+    /// Another device's Space for the Spaces menu, the Quick Switcher and
+    /// the review sheet, from the merged library index.
+    struct RemoteSpace: Identifiable, Equatable {
+        let id: String
+        let name: String
+        let color: String
+        let symbol: String
+        let deviceId: String
+        let deviceName: String
+    }
+    /// The Space whose review sheet is open, and the one waiting for the palette to close.
+    var bringSpaceTarget: RemoteSpace?
+    @ObservationIgnored private var pendingBringSpace: RemoteSpace?
+
+    /// With sync on and the Spaces switch off: the library's Spaces this
+    /// phone doesn't hold, under the device that made each, read-only.
+    var remoteSpaces: [RemoteSpace] {
+        let engine = syncEngine
+        // The merged index isn't observed itself; its live count is, so the
+        // menu redraws when a preview read lands.
+        _ = engine.libraryCount
+        guard currentSyncAccount != nil, !engine.sharedState.isEnabled,
+              engine.sharedState.accountId == currentSyncAccount else { return [] }
+        let library = SharedSpacesModel.sanitizeIndex(engine.sharedState.data["index"])?["spaces"] ?? .object([])
+        let held = Set(spaces.compactMap(\.sharedId))
+        let own = engine.stateStore.state.deviceId
+        return SharedSpacesModel.orderOf(library).compactMap { (sid: String) -> RemoteSpace? in
+            guard let record = library[sid], !SharedSpacesModel.deleted(record), !held.contains(sid) else { return nil }
+            let device = record["createdBy"]?.string ?? ""
+            guard device != own else { return nil }
+            return RemoteSpace(
+                id: sid, name: record["name"]?["v"]?.string ?? "Space", color: record["color"]?["v"]?.string ?? "#426c4c",
+                symbol: record["symbol"]?["v"]?.string ?? "briefcase", deviceId: device,
+                deviceName: engine.deviceName(for: device) ?? device)
+        }
+    }
+
+    /// Opens a Space's review sheet (after the palette, when it is open).
+    func requestBringSpace(_ space: RemoteSpace) {
+        isSpacesMenuPresented = false
+        if isPalettePresented {
+            pendingBringSpace = space
+            isPalettePresented = false
+        } else {
+            bringSpaceTarget = space
+        }
+    }
+
+    /// Whether another local Space can be made (25, recovery Spaces aside).
+    var canAddSpace: Bool { spaces.filter { $0.recoveredFrom == nil }.count < TabSets.spaceLimit }
+
+    /// Copies another device's Space onto this iPhone as a new local Space
+    /// (fresh ids, no link, so later changes there don't reach it) and shows
+    /// it: its tabs quiet, only the saved selection (or first tab) loading.
+    @discardableResult
+    func bringSpace(_ remote: RemoteSpace, blob: JSONValue) throws -> String {
+        guard canAddSpace else { throw SpaceError.limit }
+        var set = SharedSpacesAdapter.project(blob)
+        guard !set.tabs.isEmpty else { throw SpaceError.invalid }
+        var fresh: [String: String] = [:]
+        for n in set.groups.indices {
+            let id = TabGroup.newId()
+            fresh[set.groups[n].id] = id
+            set.groups[n].id = id
+        }
+        for n in set.tabs.indices {
+            set.tabs[n].tabId = nil
+            set.tabs[n].groupId = set.tabs[n].groupId.flatMap { fresh[$0] }
+        }
+        let base = TabSets.spaceName(remote.name) ?? "Space"
+        var name = base
+        var n = 2
+        while nameTaken(name) { name = TabSets.spaceName("\(base) \(n)") ?? "\(base) \(n)"; n += 1 }
+        let color = SpaceIdentity.normalizeHex(remote.color) ?? SpaceIdentity.presets[0].hex
+        let symbol = SpaceIdentity.isSymbol(remote.symbol) ? remote.symbol : SpaceIdentity.symbolIds[0]
+        let id = TabGroup.newId()
+        spaces.append(SpaceRecord(id: id, name: name, color: color, symbol: symbol, set: set))
+        show(set: id)
         persistSession()
         return id
     }

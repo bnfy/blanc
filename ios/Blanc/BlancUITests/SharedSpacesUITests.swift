@@ -61,4 +61,28 @@ final class SharedSpacesUITests: XCTestCase {
     XCTAssertFalse(element(app, "spaces.syncMark.Archive").exists, "Archive stays local")
     capture(app, "Spaces card with shared Spaces")
   }
+  /// With the switch off, the Spaces card lists MacBook Pro's Space; its
+  /// review sheet brings it here as a local copy, shown with its group.
+  func testBringSpaceCopiesAndShows() {
+    let app = launch("-BlancUITestSharedSpaces")
+    let mark = app.buttons["island.space"]
+    XCTAssertTrue(mark.waitForExistence(timeout: 5))
+    mark.tap()
+    XCTAssertTrue(element(app, "spaces.device.MacBook Pro").waitForExistence(timeout: 15), "On MacBook Pro")
+    let travel = app.buttons["spaces.remote.Travel"]
+    XCTAssertTrue(travel.exists)
+    travel.tap()
+    let bring = app.buttons["bringSpace.bring"]
+    XCTAssertTrue(bring.waitForExistence(timeout: 5))
+    XCTAssertTrue(element(app, "bringSpace.group.Flights").waitForExistence(timeout: 15), "the review lists its groups")
+    XCTAssertTrue(bring.isEnabled)
+    capture(app, "Bring a Space review")
+    bring.tap()
+    XCTAssertTrue(bring.waitForNonExistence(timeout: 5))
+    XCTAssertEqual(mark.label, "Space: Travel", "the copy is shown")
+    let start = app.buttons["pill.palette"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+    start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -250)))
+    XCTAssertTrue(element(app, "group.header.Flights").waitForExistence(timeout: 5), "the grid shows its group")
+    XCTAssertEqual(app.buttons.matching(identifier: "tab.card").count, 3)
+  }
 }

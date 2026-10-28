@@ -40,6 +40,9 @@ struct SpacesCard: View {
         .accessibilityLabel(SyncCopy.text("spaces.menuLabel"))
         .accessibilityIdentifier("spaces.card")
         .accessibilityAction(.escape) { close() }
+        // With the switch off, the library index is read when the menu opens
+        // (at most once a minute), for the other devices' Spaces.
+        .task { _ = await manager.syncEngine.previewIndex() }
     }
 
     private var rows: some View {
@@ -54,6 +57,33 @@ struct SpacesCard: View {
             ForEach(manager.spaces) { space in
                 row(id: space.id, name: space.name, identifier: "spaces.row.\(space.name)", sync: syncMark(space)) {
                     SpaceTile(color: space.color, symbol: space.symbol, size: 30)
+                }
+            }
+            // On other devices (switch off): the library's Spaces, read-only,
+            // under the device that made each; choosing one reviews it.
+            ForEach(remoteGroups, id: \.device) { group in
+                Divider().padding(.top, 4)
+                Text(SyncCopy.text("spaces.onDevice", ["device": group.device]))
+                    .font(BrowserStyle.font(13, semibold: true))
+                    .foregroundStyle(style.secondary)
+                    .padding(.top, 10)
+                    .accessibilityIdentifier("spaces.device.\(group.device)")
+                ForEach(group.spaces) { remote in
+                    Button {
+                        withAnimation(.snappy) { manager.requestBringSpace(remote) }
+                    } label: {
+                        HStack(spacing: 12) {
+                            SpaceTile(color: remote.color, symbol: remote.symbol, size: 30)
+                            Text(remote.name).font(BrowserStyle.font(16, semibold: true)).lineLimit(1)
+                            Spacer(minLength: 0)
+                            Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(style.secondary)
+                        }
+                        .frame(minHeight: 52)
+                        .contentShape(Rectangle())
+                    }
+                    .disabled(editing)
+                    .accessibilityIdentifier("spaces.remote.\(remote.name)")
                 }
             }
             if editing && !manager.recentlyDeleted.isEmpty {
@@ -99,6 +129,18 @@ struct SpacesCard: View {
                 .accessibilityIdentifier("spaces.edit")
             }
         }
+    }
+
+    private var remoteGroups: [(device: String, spaces: [TabsManager.RemoteSpace])] {
+        var out: [(device: String, spaces: [TabsManager.RemoteSpace])] = []
+        for remote in manager.remoteSpaces {
+            if let index = out.firstIndex(where: { $0.device == remote.deviceName }) {
+                out[index].spaces.append(remote)
+            } else {
+                out.append((remote.deviceName, [remote]))
+            }
+        }
+        return out
     }
 
     private func close() {
