@@ -16,6 +16,7 @@ const requests = [];
 const blobs = new Map();
 let busy = false; // the Worker's new-account budget is spent: every PUT is 503
 let offline = false; // every request fails as if there were no network
+let putGate = null; // when set, PUTs wait on it (a pass in flight)
 
 const jsonRes = (status, body) => ({ status, ok: status < 400, json: async () => body });
 
@@ -41,6 +42,7 @@ require.cache[electronId] = {
           const key = `${blob[1]}/${blob[2]}`;
           if (method === 'GET') return blobs.has(key) ? jsonRes(200, { version: 'v', blob: blobs.get(key) }) : jsonRes(404, {});
           if (method === 'PUT') {
+            if (putGate) await putGate;
             if (busy) return jsonRes(503, { error: 'busy' });
             blobs.set(key, JSON.parse(options.body).blob);
             return jsonRes(200, { version: 'v2' });
@@ -177,5 +179,21 @@ test('an offline first pass keeps Sync on and is not-ready', async () => {
     assert.equal((await sync.beginPairing()).error, 'not-ready');
   } finally {
     offline = false;
+  }
+});
+
+test('a pass abandoned by turning Sync off is not reported as synced', async () => {
+  let release;
+  putGate = new Promise((resolve) => { release = resolve; });
+  try {
+    const started = sync.startNew({ handle: 'My Blanc' });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const off = sync.disable();
+    release();
+    const reply = await started;
+    await off;
+    assert.equal(reply.synced, false);
+  } finally {
+    putGate = null;
   }
 });

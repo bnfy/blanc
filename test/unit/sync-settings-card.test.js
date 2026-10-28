@@ -123,7 +123,9 @@ test('the visual redesign preserves every established on-state control and handl
   assert.match(more, /<button id="syncSwitchOpen"[^>]*>[^<]*<\/button>\s*<form id="syncSwitch" class="sync-panel sync-switch" hidden>/);
   // The pairing code is a modal sheet; its notice stays in the Devices card,
   // so an expired or failed code is still explained after the sheet closes.
-  assert.match(html, /<dialog class="sync-sheet" id="syncPairingDialog" aria-labelledby="syncPairingTitle">\s*<div id="syncPairing" class="sync-pairing" hidden>/);
+  // Design 2026-10-28 §6.2: the sheet opens with the Sync-off start state,
+  // then the code; both start hidden.
+  assert.match(html, /<dialog class="sync-sheet" id="syncPairingDialog" aria-labelledby="syncPairingTitle">[\s\S]*?<div id="syncPairingStart" class="sync-pairing" hidden>[\s\S]*?<div id="syncPairing" class="sync-pairing" hidden>/);
   assert.ok(html.indexOf('id="syncPairingNotice"') < html.indexOf('id="syncPairingDialog"'));
   // Design 2026-10-28 §6.4: the sheet stays open from the code through the
   // joined state; Esc is Cancel while a code shows and Done once it's taken.
@@ -153,7 +155,7 @@ test('the shared Spaces control is a What syncs tile beside Open tabs, its note 
 
 test('settings.js drives the flow through the reducer and performs effects once', () => {
   const html = read('src/renderer/pages/settings.html');
-  assert.match(html, /<script src="settings-sync-setup-model\.js"><\/script>\s*<script src="settings-sync-pairing-model\.js"><\/script>\s*<script src="settings\.js"><\/script>/);
+  assert.match(html, /<script src="settings-sync-setup-model\.js"><\/script>\s*<script src="qr-code\.js"><\/script>\s*<script src="settings-sync-pairing-model\.js"><\/script>\s*<script src="settings\.js"><\/script>/);
   const js = read('src/renderer/pages/settings.js');
   assert.match(js, /const \{ createSyncSetupModel, transition, view, relativeSyncTime \} = window\.blancSyncSetupModel/);
   assert.match(js, /function dispatch\(event\) \{[\s\S]*?const \{ state: next, effect \} = transition\(model, event\)/);

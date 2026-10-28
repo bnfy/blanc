@@ -97,3 +97,41 @@ test('turning Spaces on from the sheet also ends the joined record in main', () 
   assert.ok(at >= 0);
   assert.ok(js.slice(at, at + 400).includes('syncPairCancel()'));
 });
+
+// Design 2026-10-28 §6.1–§6.2: the QR and Connect your iPhone.
+test('Connect your iPhone, the start state and the QR are in the page, and only shown when offered', () => {
+  at('id="syncConnectIphone"');
+  const sheet = html.slice(at('id="syncPairingDialog"'), html.indexOf('</dialog>', at('id="syncPairingDialog"')));
+  for (const id of ['syncPairingStart', 'syncPairingContinue', 'syncPairingAddThisFirst', 'syncPairingStartRetry', 'syncPairingQr']) {
+    assert.ok(sheet.includes(`id="${id}"`), `${id} is inside the sheet`);
+  }
+  assert.ok(html.includes('<script src="qr-code.js"></script>'));
+  assert.ok(html.indexOf('<script src="qr-code.js"></script>') < html.indexOf('<script src="settings.js"></script>'));
+  assert.ok(js.includes('status.iphonePairing'), 'the page asks main whether iPhone pairing is offered');
+  assert.ok(js.includes('blancQrCode.encode('));
+});
+
+// Review fixes (design 2026-10-28 §6.2, §9).
+test('every state of the sheet has a visible way out', () => {
+  const sheet = html.slice(at('id="syncPairingDialog"'), html.indexOf('</dialog>', at('id="syncPairingDialog"')));
+  const notReady = sheet.slice(sheet.indexOf('id="syncPairingNotReady"'), sheet.indexOf('</div>', sheet.indexOf('id="syncPairingNotReady"')));
+  assert.ok(notReady.includes('id="syncPairingNotReadyCancel"'), 'not ready has its own Cancel');
+  const making = sheet.slice(sheet.indexOf('id="syncPairingMaking"'), sheet.indexOf('</div>', sheet.indexOf('id="syncPairingMaking"')));
+  assert.ok(making.includes('id="syncPairingMakingCancel"'), 'making a code has Cancel');
+});
+
+test('the iPhone wording and the QR stay hidden unless main offers iPhone pairing', () => {
+  assert.match(html, /<button id="syncConnectIphone" type="button" hidden /);
+  assert.match(html, /<svg id="syncPairingQr" class="sync-pairing-qr" hidden /);
+  assert.match(js, /connectIphoneBtn\.hidden = !iphonePairing \|\| !canCreate;/);
+  assert.match(js, /pairingQr\.hidden = !\(iphonePairing && pv\.showing\);/);
+  assert.match(js, /iphonePairing = status\.iphonePairing === true;/);
+  const pagesJs = fs.readFileSync(path.join(__dirname, '../../src/main/pages.js'), 'utf8');
+  assert.match(pagesJs, /iphonePairing: hooks\.syncPairing\?\.offered\?\.\(\) === true,/, 'false without the hook');
+});
+
+test('the QR keeps its colors in forced-colors mode', () => {
+  const css = fs.readFileSync(path.join(pages, 'pages.css'), 'utf8');
+  const rule = css.slice(css.indexOf('.sync-pairing-qr {'), css.indexOf('}', css.indexOf('.sync-pairing-qr {')));
+  assert.match(rule, /forced-color-adjust: none;/);
+});

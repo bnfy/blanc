@@ -66,12 +66,40 @@ struct SyncedSwitcherResult: Identifiable {
     let strength: Double
     let localTabID: UUID?
     let url: URL?
+    /// A tab group to show (its first tab, unfolded).
+    var groupId: String? = nil
+    /// A tab set to show: This iPhone or a Space.
+    var setId: String? = nil
 }
 
 extension QuickSwitcher {
     /// Open tabs, then Favorites, then other devices' tabs, then History, each
     /// address shown once.
-    static func search(query: String, tabs: [TabModel], remote: [RemoteDevice], favorites: [Favorite], history: [HistoryEntry] = []) -> [SyncedSwitcherResult] {
+    /// Tab groups and Spaces first (desktop ranks them above tabs), then open
+    /// tabs, then Favorites, then other devices' tabs, then History.
+    static func search(query: String, tabs: [TabModel], remote: [RemoteDevice], favorites: [Favorite], history: [HistoryEntry] = [],
+                       groups: [TabGroup] = [], sets: [(id: String, name: String, count: Int)] = []) -> [SyncedSwitcherResult] {
+        let q = query.lowercased()
+        guard !q.isEmpty else { return [] }
+        var named: [SyncedSwitcherResult] = []
+        for group in groups {
+            let score = matchScore(query: q, text: group.name)
+            guard score > 0 else { continue }
+            let count = tabs.filter { $0.groupId == group.id }.count
+            named.append(SyncedSwitcherResult(id: "group:" + group.id, title: group.name, subtitle: SyncCopy.plural("newtab.groups.count", count: count),
+                                              score: score + 6, strength: score, localTabID: nil, url: nil, groupId: group.id))
+        }
+        for set in sets {
+            let score = matchScore(query: q, text: set.name)
+            guard score > 0 else { continue }
+            named.append(SyncedSwitcherResult(id: "set:" + set.id, title: set.name, subtitle: SyncCopy.plural("newtab.groups.count", count: set.count),
+                                              score: score + 6, strength: score, localTabID: nil, url: nil, setId: set.id))
+        }
+        let rest = searchTabsAndPages(query: query, tabs: tabs, remote: remote, favorites: favorites, history: history)
+        return Array((named.sorted { $0.score > $1.score } + rest).prefix(12))
+    }
+
+    private static func searchTabsAndPages(query: String, tabs: [TabModel], remote: [RemoteDevice], favorites: [Favorite], history: [HistoryEntry]) -> [SyncedSwitcherResult] {
         let local = search(query: query, tabs: tabs).map { result in
             SyncedSwitcherResult(id: "local:" + result.tab.id.uuidString, title: result.title, subtitle: result.subtitle,
                                  score: result.score + 4, strength: matchScore(query: query.lowercased(), text: matchableText(title: result.tab.pageTitle, url: result.tab.currentURL)), localTabID: result.tab.id, url: nil)

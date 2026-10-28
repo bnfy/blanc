@@ -7,9 +7,23 @@ struct UndoBanner: View {
     let style: BrowserStyle
 
     var body: some View {
-        if manager.lastClosed != nil {
+        if let deleted = manager.lastDeletedSpaceId.flatMap({ id in manager.recentlyDeleted.first { $0.space.id == id } }) {
             HStack(spacing: 14) {
-                Text(SyncCopy.text("tabs.closedToast")).font(BrowserStyle.font(13))
+                Text(SyncCopy.text("ws.undo.deleted", ["name": deleted.space.name])).font(BrowserStyle.font(13)).lineLimit(1)
+                Button(SyncCopy.text("menu.undo")) { withAnimation { manager.undoDeleteSpace() } }
+                    .font(BrowserStyle.font(13, semibold: true))
+                    .frame(minHeight: 32)
+                    .contentShape(Rectangle())
+                    .accessibilityIdentifier("banner.undo")
+            }
+            .padding(.horizontal, 16).padding(.vertical, 4)
+            .foregroundStyle(style.text)
+            .background(style.raised, in: Capsule())
+            .overlay(Capsule().strokeBorder(style.border, lineWidth: 0.5))
+            .transition(.opacity)
+        } else if let closed = manager.lastClosed {
+            HStack(spacing: 14) {
+                Text(SyncCopy.text(closed.groupClose ? "tabGroups.closedToast" : "tabs.closedToast")).font(BrowserStyle.font(13))
                 Button(SyncCopy.text("menu.undo")) { withAnimation { manager.undoClose() } }
                     .font(BrowserStyle.font(13, semibold: true))
                     .frame(minHeight: 32)

@@ -11,11 +11,19 @@ final class TabModel: Identifiable {
     var canGoBack = false
     var canGoForward = false
     var isLoading = false
+    /// Whether the web view has committed a page yet. Until then it would show
+    /// WebKit's blank white, so the page area keeps the theme's background.
+    var hasCommitted = false
     var pageTitle = ""
     /// Never saved, synced or recorded in History; its web data lives only in
     /// memory (`TabsManager.privateDataStore`).
     let isPrivate: Bool
     var thumbnail: UIImage?
+    /// The group this tab belongs to (M17), nil when ungrouped.
+    var groupId: String?
+    var pinned = false
+    /// The shared record's id while this tab is in a shared Space (M17c).
+    var sharedTabId: String?
     var reader: ReaderController?
     var readerAvailable = false
     var readerGeneration = 0
@@ -24,20 +32,54 @@ final class TabModel: Identifiable {
     @ObservationIgnored private var readerURLObservation: NSKeyValueObservation?
 
     let nativeClock = NativeClockOverlay()
-    let webView: WKWebView
     let navigationDelegate: TabNavigationDelegate
     let uiDelegate = TabUIDelegate()
+    /// M17: a quiet tab holds its address and title and has made no web view
+    /// yet; it loads when it is first shown (`wake()`).
+    private(set) var isQuiet: Bool
+    @ObservationIgnored private let configuration: WKWebViewConfiguration
+    @ObservationIgnored private var storage: WKWebView?
+    var hasWebView: Bool { storage != nil }
+    /// The web view if this tab has made one. Lookups across every tab use
+    /// this, so they never make one for a quiet tab.
+    var existingWebView: WKWebView? { storage }
+    /// The tab's web view, made on first use (without loading anything).
+    var webView: WKWebView {
+        if let storage { return storage }
+        let view = makeWebView()
+        storage = view
+        return view
+    }
 
     /// `load: false` is for a page-opened tab, whose request WebKit loads itself.
-    init(url: URL, configuration: WKWebViewConfiguration, isPrivate: Bool = false, load: Bool = true) {
+    /// `quiet: true` makes no web view until `wake()`.
+    init(url: URL, title: String = "", configuration: WKWebViewConfiguration, isPrivate: Bool = false,
+         quiet: Bool = false, load: Bool = true) {
         self.isPrivate = isPrivate
         self.currentURL = url
         self.addressText = url.absoluteString
-        self.webView = WKWebView(frame: .zero, configuration: configuration)
-        webView.allowsBackForwardNavigationGestures = true
-        webView.isFindInteractionEnabled = true
+        self.pageTitle = title
+        self.configuration = configuration
+        self.isQuiet = quiet
         self.navigationDelegate = TabNavigationDelegate()
         navigationDelegate.tab = self
+        if !quiet {
+            _ = webView
+            if load { navigationDelegate.load(url, in: webView) }
+        }
+    }
+
+    /// Loads a quiet tab's page; nothing for a tab that is already live.
+    func wake() {
+        guard isQuiet else { return }
+        isQuiet = false
+        navigationDelegate.load(currentURL, in: webView)
+    }
+
+    private func makeWebView() -> WKWebView {
+        let webView = WKWebView(frame: .zero, configuration: configuration)
+        webView.allowsBackForwardNavigationGestures = true
+        webView.isFindInteractionEnabled = true
         webView.navigationDelegate = navigationDelegate
         webView.uiDelegate = uiDelegate
         // pushState/replaceState and fragment changes do not consistently
@@ -49,7 +91,7 @@ final class TabModel: Identifiable {
                 self.navigationDelegate.applyURL(url, to: self)
             }
         }
-        if load { navigationDelegate.load(url, in: webView) }
+        return webView
     }
 
     /// Convenience initializer for tests and previews — uses a bare web-view
@@ -76,7 +118,7 @@ final class TabModel: Identifiable {
     /// Never mount or load background tabs just to produce a thumbnail.
     @MainActor
     func captureThumbnail(allowCovered: Bool = false) {
-        guard let window = webView.window, allowCovered || window.rootViewController?.presentedViewController == nil,
+        guard let webView = storage, let window = webView.window, allowCovered || window.rootViewController?.presentedViewController == nil,
               webView.bounds.width > 0, webView.bounds.height > 0 else { return }
         let side: CGFloat = 320
         let scale = side / min(webView.bounds.width, webView.bounds.height)
@@ -99,6 +141,7 @@ final class TabModel: Identifiable {
     @MainActor
     func capturePreparedThumbnail() async {
         let url = currentURL
+        guard let webView = storage else { return }
         if url.scheme == "blanc" {
             captureThumbnail(allowCovered: true)
             return
@@ -117,8 +160,8 @@ final class TabModel: Identifiable {
         }
     }
 
-    func goBack()    { webView.goBack() }
-    func goForward() { webView.goForward() }
-    func reload()    { webView.reload() }
-    func stop()      { webView.stopLoading() }
+    func goBack() { storage?.goBack() }
+    func goForward() { storage?.goForward() }
+    func reload() { storage?.reload() }
+    func stop() { storage?.stopLoading() }
 }

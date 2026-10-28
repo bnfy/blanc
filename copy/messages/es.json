@@ -5163,6 +5163,46 @@
     "message": "Listo",
     "source": "sha256:81ef045e6037eed260af3e8cbdf81f1a837ff04e307a892d2854b7581052a6ca"
   },
+  "settings.sync.connectIphone": {
+    "message": "Conectar tu iPhone",
+    "source": "sha256:03770d3610fc1335f37f37b540f2d905e8b1fb7ffafd8487d76d56b5e5bdfa0e"
+  },
+  "settings.sync.sheet.scanIphone": {
+    "message": "En tu iPhone, abre Blanc y elige «Vincular con tu Blanc». Apunta a este código.",
+    "source": "sha256:fdfb75ff413994792e20e48f33eba71a511e56cd82fd5356b858d8174e4a8c78"
+  },
+  "settings.sync.sheet.orType": {
+    "message": "O escríbelo en Ajustes → Sincronización:",
+    "source": "sha256:157d47ac23c2ab1daca04b124f52c5258f4ee990944adedb728e7cb21557012d"
+  },
+  "settings.sync.sheet.startBody": {
+    "message": "Esto activa la sincronización en este Mac. No necesitarás nombre ni frase de contraseña.",
+    "source": "sha256:8a3c6d5577f831eed2621ff9107f213bd9074b619c8ed91f250ea2c2fb4fa1c3"
+  },
+  "settings.sync.sheet.startBodyGeneric": {
+    "message": "Esto activa la sincronización en este ordenador. No necesitarás nombre ni frase de contraseña.",
+    "source": "sha256:7b360c5daa2d69a5fcce42f9084112de91030356339ef2913a94fb4a6b77c883"
+  },
+  "settings.sync.sheet.continue": {
+    "message": "Continuar",
+    "source": "sha256:14fc281305915e6e6f2d59dd80e081abc3e5abe45962c4ec88a0714106ca0bd8"
+  },
+  "settings.sync.sheet.makingCode": {
+    "message": "Creando un código…",
+    "source": "sha256:347eab3e88dba078b43f28e46b237dc8a2ff93371aa41518ac2bf406f6713f54"
+  },
+  "settings.sync.sheet.alreadySync": {
+    "message": "¿Ya sincronizas en otro ordenador?",
+    "source": "sha256:505577a9919cf0dd4610cc2decf0e3d12ad0199ffa9cfaa3fd8524867fe9f99a"
+  },
+  "settings.sync.sheet.addThisFirst": {
+    "message": "Añade primero este Mac con un código",
+    "source": "sha256:293acfc9903543962c6ef1c6ebd40dadfe9eaff0f3c22e519a845cc904b4adb1"
+  },
+  "settings.sync.sheet.addThisFirstGeneric": {
+    "message": "Añade primero este ordenador con un código",
+    "source": "sha256:3be82e92dda779aa49b1ca18b32ba8c2506164b27482f86ae024688a959cdf9f"
+  },
   "settings.sync.recoveryPrompt.title": {
     "message": "Guarda una forma de volver a entrar",
     "source": "sha256:5ae0359c6628fbea64426a4190c812ae2fd7679f6e247f2934817a1091ea7f91"
@@ -5618,6 +5658,10 @@
   "newtab.checklist.sync": {
     "message": "Configurar la sincronización",
     "source": "sha256:8d1a9026412142cea09277c1e944933ba157f35e0219072d6b29eb88c6cd62fd"
+  },
+  "newtab.checklist.iphone": {
+    "message": "Conectar tu iPhone",
+    "source": "sha256:f5f72a919d120cfac757343a4bd2e1cafb3c72d47b0dcaac6dc5868f785ccafb"
   },
   "newtab.checklist.tabs": {
     "message": "Traer tus pestañas",
@@ -8960,5 +9004,33 @@
   "settings.general.verticalTabsTextSize.extraLarge": {
     "message": "Muy grande",
     "source": "sha256:b190d1a2e4582b543524201e108e5f45e3d03df1164f5ca4ebc3ffb474cd7786"
+  },
+  "spaces.thisIPhone": {
+    "message": "Este iPhone",
+    "source": "sha256:872a9b15efd10d5c23b321f11d4d2d26630ac2b462424389c61a940f04e7887c"
+  },
+  "spaces.menuLabel": {
+    "message": "Spaces",
+    "source": "sha256:8e891bb692010b9fa0e4ac71d8f835de61caa035dce16f05c8933e0618b7924a"
+  },
+  "spaces.menuEdit": {
+    "message": "Editar",
+    "source": "sha256:5c1c1bc5cf089e67cf31b21324d0d1cf2d873e3352edfc6a146ec9af1df35633"
+  },
+  "tabGroups.tucked": {
+    "message": "{count, plural, one {# pestaña contraída} many {# pestañas contraídas} other {# pestañas contraídas}}",
+    "source": "sha256:11b310a3fc8305cd1e2d7918f3e1fdb3e011c51de7e691c65a8767732b695c1b"
+  },
+  "tabGroups.closedToast": {
+    "message": "Grupo cerrado",
+    "source": "sha256:25bd8178da107ebad3440c0640993042d5e10bece585773bd6e310612703c6c0"
+  },
+  "groupMenu.rename": {
+    "message": "Cambiar nombre…",
+    "source": "sha256:03e51c78c49ded9dd48090751e0972998eb6e266e88fe5a4eb3b579d0f458f94"
+  },
+  "tabGroups.create": {
+    "message": "Crear",
+    "source": "sha256:15101ac2f3a2ba0792e1e01b46cd69b8ec3da3c7ed0aa662d99dda58a294944f"
   }
 }

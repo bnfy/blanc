@@ -7,11 +7,35 @@ struct TabGridView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var style: BrowserStyle { BrowserStyle(scheme: colorScheme) }
+    /// The group being renamed, or the tab a new group is being made for.
+    @State private var naming: Naming?
+    /// Kept apart from `naming`: an alert clears its binding before the
+    /// button's action runs.
+    @State private var isNaming = false
+    @State private var nameDraft = ""
+    @State private var nameError: String?
+    @State private var newSpaceTab: UUID?
+
+    private enum Naming: Identifiable {
+        case rename(TabGroup), newGroup(UUID)
+        var id: String {
+            switch self { case .rename(let g): "rename-\(g.id)"; case .newGroup(let t): "new-\(t)" }
+        }
+    }
+
+    private var columns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 16, alignment: .top), count: sizeClass == .regular ? 3 : 2)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Open tabs").font(BrowserStyle.font(24, semibold: true))
+                if let space = manager.shownSpace {
+                    SpaceTile(color: space.color, symbol: space.symbol, size: 28)
+                    Text(space.name).font(BrowserStyle.font(24, semibold: true)).lineLimit(1)
+                } else {
+                    Text("Open tabs").font(BrowserStyle.font(24, semibold: true))
+                }
                 Text("\(manager.tabs.count)").font(.system(size: 14)).foregroundStyle(style.secondary)
                 Spacer()
                 Button("Done") { dismiss() }
@@ -23,14 +47,22 @@ struct TabGridView: View {
 
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16, alignment: .top), count: sizeClass == .regular ? 3 : 2), spacing: 24) {
-                        ForEach(manager.tabs) { tab in
-                            SwipeToClose(reduceMotion: reduceMotion) {
-                                withAnimation { manager.closeTab(tab.id) }
-                            } content: {
-                                card(tab)
+                    VStack(alignment: .leading, spacing: 20) {
+                        ForEach(manager.displaySections, id: \.id) { section in
+                            if let group = section.group {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    GroupHeader(group: group, count: section.tabs.count, manager: manager, style: style) {
+                                        nameDraft = group.name; nameError = nil; naming = .rename(group); isNaming = true
+                                    }
+                                    if group.collapsed {
+                                        tucked(group, count: section.tabs.count)
+                                    } else {
+                                        cards(section.tabs)
+                                    }
+                                }
+                            } else {
+                                cards(section.tabs)
                             }
-                            .id(tab.id)
                         }
                     }
                     .padding(20)
@@ -60,6 +92,92 @@ struct TabGridView: View {
         .background(TabPreviewRenderer(tabs: manager.tabs).allowsHitTesting(false).accessibilityHidden(true))
         .buttonStyle(.plain)
         .accessibilityIdentifier("tabs.grid")
+        .alert(SyncCopy.text("groupMenu.nameLabel"), isPresented: $isNaming) {
+            TextField(SyncCopy.text("groupMenu.nameLabel"), text: $nameDraft)
+                .accessibilityIdentifier("group.nameField")
+            Button(SyncCopy.text("sharedSpaces.cancel"), role: .cancel) {}
+            Button(SyncCopy.text(namingIsNew ? "tabGroups.create" : "ws.editor.done")) { commitName() }
+        } message: {
+            if let nameError { Text(nameError) }
+        }
+        .sheet(item: Binding(get: { newSpaceTab.map(SpaceEditorTarget.newWithTab) }, set: { if $0 == nil { newSpaceTab = nil } })) { target in
+            SpaceEditor(manager: manager, target: target)
+        }
+    }
+
+    private var namingIsNew: Bool { if case .newGroup = naming { true } else { false } }
+
+    private func commitName() {
+        guard let current = naming else { return }
+        do {
+            switch current {
+            case .rename(let group): try manager.renameGroup(group.id, to: nameDraft)
+            case .newGroup(let tab): try withAnimation { _ = try manager.createGroup(named: nameDraft, with: tab) }
+            }
+        } catch GroupNameError.duplicate {
+            nameError = SyncCopy.text("groupMenu.duplicate", ["name": GroupNames.normalize(nameDraft)])
+            reopen(current)
+        } catch {
+            reopen(current)
+        }
+    }
+
+    /// An alert closes on any button; a refused name asks again.
+    private func reopen(_ current: Naming) {
+        DispatchQueue.main.async { naming = current; isNaming = true }
+    }
+
+    private func cards(_ tabs: [TabModel]) -> some View {
+        LazyVGrid(columns: columns, spacing: 24) {
+            ForEach(tabs) { tab in
+                SwipeToClose(reduceMotion: reduceMotion) {
+                    withAnimation { manager.closeTab(tab.id) }
+                } content: {
+                    card(tab)
+                }
+                .id(tab.id)
+            }
+        }
+    }
+
+    private func tucked(_ group: TabGroup, count: Int) -> some View {
+        Button { withAnimation { manager.setGroupCollapsed(group.id, false) } } label: {
+            Text(SyncCopy.plural("tabGroups.tucked", count: count))
+                .font(BrowserStyle.font(14))
+                .foregroundStyle(style.secondary)
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                .padding(.horizontal, 14)
+                .background(style.raised, in: RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(style.border))
+                .contentShape(Rectangle())
+        }
+        .accessibilityIdentifier("group.tucked")
+    }
+
+    /// Move to Group ▸ and Move to Space ▸ for an ordinary tab.
+    @ViewBuilder private func tabMenu(_ tab: TabModel) -> some View {
+        if !tab.isPrivate {
+            Menu(SyncCopy.text("tabMenu.moveToGroup")) {
+                ForEach(manager.groups.filter { $0.id != tab.groupId }) { group in
+                    Button(group.name) { withAnimation { manager.moveTab(tab.id, toGroup: group.id) } }
+                }
+                Button(SyncCopy.text("tabMenu.newGroup")) { nameDraft = ""; nameError = nil; naming = .newGroup(tab.id); isNaming = true }
+                if tab.groupId != nil {
+                    Button(SyncCopy.text("tabMenu.removeFromGroup")) { withAnimation { manager.moveTab(tab.id, toGroup: nil) } }
+                }
+            }
+            if manager.tabs.filter({ !$0.isPrivate }).count > 1 {
+                Menu(SyncCopy.text("tabMenu.moveToSpace")) {
+                    if manager.shownSetId != TabSets.iphoneId {
+                        Button(SyncCopy.text("spaces.thisIPhone")) { withAnimation { manager.moveTab(tab.id, toSpace: TabSets.iphoneId) } }
+                    }
+                    ForEach(manager.spaces.filter { $0.id != manager.shownSetId }) { space in
+                        Button(space.name) { withAnimation { manager.moveTab(tab.id, toSpace: space.id) } }
+                    }
+                    Button(SyncCopy.text("tabMenu.newSpace")) { newSpaceTab = tab.id }
+                }
+            }
+        }
     }
 
     private func card(_ tab: TabModel) -> some View {
@@ -89,6 +207,7 @@ struct TabGridView: View {
             }
             .contentShape(Rectangle())
             .onTapGesture { select(tab) }
+            .contextMenu { tabMenu(tab) }
             .accessibilityElement(children: .ignore)
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { select(tab) }
