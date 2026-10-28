@@ -3678,6 +3678,10 @@ function install(refs) {
     // Settings → Sync device pairing (design 2026-10-16): the off-state code
     // path as the person sees it, and the clicks/typing that drive it. Reads
     // DOM state only; the pairing code itself never appears in this record.
+    // Design 2026-10-28 §6.2: which windows ask to be left out of capture.
+    windowsContentProtected() {
+      return require('electron').BrowserWindow.getAllWindows().filter((win) => !win.isDestroyed() && win.isContentProtected()).length;
+    },
     settingsSyncPairingDom() {
       const wc = getUtilitySheetWebContents();
       if (!wc || !wc.getURL().startsWith('blanc://settings')) return null;

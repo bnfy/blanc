@@ -2280,6 +2280,8 @@
         // Turn on answers the question the way the Settings notice does:
         // acknowledge, then the Spaces switch opens its own sheet.
         if (effect?.type === 'spaces-turn-on') {
+          // The sheet closes for the Spaces one; main forgets the join too.
+          window.bowserPages.settings.syncPairCancel().catch(() => {});
           window.bowserPages.settings.sharedSpacesAcknowledge(effect.deviceId)
             .then(() => document.getElementById('sharedSpacesToggle')?.click())
             .catch(() => {});

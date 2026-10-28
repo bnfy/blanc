@@ -166,8 +166,28 @@ Feature: Tab sync (open tabs from other devices)
     Then Sync is on under the name "My Blanc"
     When I choose Add device
     Then the sheet shows a pairing code
+    And the window asks to be left out of screen capture
     When a new device named "zzz-peer" joins the sync
     Then the sheet says "zzz-peer joined."
     And the sheet asks to keep Spaces and groups in sync
     When I choose Not now in the sheet
     Then the sheet no longer asks and offers Done
+    And no window asks to be left out of screen capture
+
+  # Design 2026-10-28 §6.2–§6.3: closing Settings while a code is still live
+  # ends the capture request and the watch with it.
+  @F27-16 @F27 @desktop @sync-server
+  Scenario: Closing Settings while a code shows lets the window be captured again
+    Given a profile that completed first run
+    When I run the slash command "/sync"
+    Then the Settings sheet is at the "sync" section
+    When I choose Turn on Sync
+    Then Sync is on under the name "My Blanc"
+    When I choose Add device
+    Then the sheet shows a pairing code
+    And the window asks to be left out of screen capture
+    When I close the Settings sheet
+    Then no window asks to be left out of screen capture
+    When I run the slash command "/sync"
+    Then the sheet shows a pairing code
+    And the window asks to be left out of screen capture

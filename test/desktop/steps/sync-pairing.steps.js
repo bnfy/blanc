@@ -121,3 +121,11 @@ When('I choose Not now in the sheet', async function () {
 Then('the sheet no longer asks and offers Done', async function () {
   await card(this, (value) => !value.askingSpaces && value.doneVisible, 'Done without the question');
 });
+
+Then('the window asks to be left out of screen capture', async function () {
+  await waitForValue(() => this.call('windowsContentProtected'), (count) => count === 1, 'one protected window');
+});
+
+Then('no window asks to be left out of screen capture', async function () {
+  await waitForValue(() => this.call('windowsContentProtected'), (count) => count === 0, 'no protected window');
+});

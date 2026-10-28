@@ -422,6 +422,7 @@ function adoptCredentials({ handle, accountId, key, protectedKey }) {
     d.protectedKey = protectedKey; d.key = ''; d.lastError = null; d.erasurePending = false;
     if(previousAccount!==accountId){d.syncSpaces=false;d.lastSyncedAt=0;d.origin='';}
   });
+  if(previousAccount!==accountId)lastJoined=null;
   if (!syncStore.flush()) {
     syncStore.data.enabled = false;
     syncStore.data.handle = '';
@@ -569,8 +570,11 @@ function setPairingWatch(active) {
 function pairingState() {
   if (!pairing) return { active: false, joined: lastJoined };
   if (Date.now() >= pairing.expiresAt) {
+    // The timer may run late (a sleeping Mac): end the code here as it would.
+    clearTimeout(pairing.expiry);
     pairing = null;
     pairWatch.stop();
+    setCodeLive(false);
     return { active: false, joined: null };
   }
   return { active: true, code: pairing.code, expiresAt: pairing.expiresAt, joined: null };
@@ -746,6 +750,7 @@ async function disable({ wipeRemote = false } = {}) {
   clearOptionalMissingRetries();
   tabicons.cancelCaptures();
   if (pairing) cancelPairing().catch(() => {});
+  lastJoined = null; // a join belongs to the sync it happened in
   try {
     await passSettled;
     const d = ensureStore().data;

@@ -6107,6 +6107,7 @@ function showUtilityPage(url) {
   resizeActiveView();
   focusUtilitySheet(runtime, sheet);
   broadcastStartPageUtilitySheetVisibility(runtime, true);
+  if (pairingSheet?.runtime === runtime) updatePairingWatch();
 }
 
 function focusUtilitySheet(runtime, sheet) {
@@ -6144,6 +6145,8 @@ function hideUtilitySheet({ refocusContent = true, discardTabHandoff = true } = 
   }
   if (refocusContent) presentationContents(tabs.get(runtime.activeTabId))?.focus();
   broadcastStartPageUtilitySheetVisibility(runtime, false);
+  // A hidden Settings sheet no longer shows its pairing code (design 2026-10-28 §6.2).
+  if (pairingSheet?.runtime === runtime) updatePairingWatch();
 }
 
 let onePasswordFillController = null;
@@ -8353,20 +8356,28 @@ sync.onPairingShown(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>sharedSharing.ar
 // asks to be left out of screen capture (best effort: some capture paths
 // ignore it), and the desktop watches for the device that takes the code
 // only while that sheet is visible in a focused window.
-let pairingSheet = null; // { runtime, visible }
+// Both follow the sheet actually showing a live code, not the code alone: a
+// code stays live for ten minutes after Settings closes.
+// The page reports whether its sheet shows a live code; main knows whether
+// that Settings sheet is on screen at all (a hidden sheet's page isn't told).
+let pairingSheet = null; // { runtime, sender }: the page's last "showing" report
+let pairingCodeLive = false;
 let pairingProtectedWindow = null;
 function updatePairingWatch() {
-  const win = pairingSheet?.runtime?.window;
-  sync.setPairingWatch(!!pairingSheet?.visible && !!win && !win.isDestroyed() && win.isFocused());
+  const runtime = pairingSheet?.runtime;
+  const shown = !!runtime?.utilitySheetUrl && sameUtilityPage(runtime.utilitySheetUrl, 'blanc://settings/');
+  const win = shown ? runtime.window : null;
+  const target = pairingCodeLive && win && !win.isDestroyed() ? win : null;
+  if (pairingProtectedWindow && pairingProtectedWindow !== target && !pairingProtectedWindow.isDestroyed()) {
+    pairingProtectedWindow.setContentProtection(false);
+  }
+  if (target && pairingProtectedWindow !== target) target.setContentProtection(true);
+  pairingProtectedWindow = target;
+  sync.setPairingWatch(!!target && target.isFocused());
 }
 sync.onPairingCodeLive((live) => {
-  if (pairingProtectedWindow && !pairingProtectedWindow.isDestroyed()) pairingProtectedWindow.setContentProtection(false);
-  pairingProtectedWindow = null;
-  const win = live ? rt()?.window : null;
-  if (win && !win.isDestroyed()) {
-    win.setContentProtection(true);
-    pairingProtectedWindow = win;
-  }
+  pairingCodeLive = live;
+  updatePairingWatch();
 });
 sync.onPairingJoined(({ name, platform }) => {
   for (const runtime of windowRuntimes.all()) {
@@ -15355,8 +15366,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
     syncPairing: {
-      watch: (_sender, visible) => {
-        pairingSheet = visible ? { runtime: rt(), visible } : null;
+      watch: (sender, visible) => {
+        pairingSheet = visible ? { runtime: rt(), sender } : null;
+        // The page can go before its last report does.
+        if (visible) sender.once('destroyed', () => { if (pairingSheet?.sender === sender) { pairingSheet = null; updatePairingWatch(); } });
         updatePairingWatch();
         return true;
       },

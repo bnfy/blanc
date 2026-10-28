@@ -15,6 +15,7 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-sync-start-new-'));
 const requests = [];
 const blobs = new Map();
 let busy = false; // the Worker's new-account budget is spent: every PUT is 503
+let offline = false; // every request fails as if there were no network
 
 const jsonRes = (status, body) => ({ status, ok: status < 400, json: async () => body });
 
@@ -30,6 +31,7 @@ require.cache[electronId] = {
         const method = options.method ?? 'GET';
         const u = String(url);
         requests.push({ url: u, method });
+        if (offline) throw new TypeError('fetch failed');
         if (/\/v1\/pair\/[0-9a-f]{64}$/.test(u)) {
           if (method === 'POST') return jsonRes(201, {});
           return { status: 204, ok: true };
@@ -164,4 +166,16 @@ test('dismissRecoveryPrompt sets it, and copyRecoveryCode marks it dismissed', a
   assert.equal(sync.status().recoveryPromptDismissed, false);
   assert.equal((await sync.copyRecoveryCode()).ok, true);
   assert.equal(sync.status().recoveryPromptDismissed, true);
+});
+
+test('an offline first pass keeps Sync on and is not-ready', async () => {
+  offline = true;
+  try {
+    const reply = await sync.startNew({ handle: 'My Blanc' });
+    assert.equal(reply.ok, true);
+    assert.equal(reply.synced, false);
+    assert.equal((await sync.beginPairing()).error, 'not-ready');
+  } finally {
+    offline = false;
+  }
 });

@@ -136,3 +136,39 @@ test('a new code clears the last join', async () => {
   await sync.beginPairing();
   assert.equal(sync.pairingState().joined, null);
 });
+
+// Review fixes: the live-code signal (which drives capture exclusion) always
+// ends, and a join never outlives the sync it happened in.
+test('an expiry noticed by pairingState ends the live code', async () => {
+  const reply = await sync.beginPairing();
+  const realNow = Date.now;
+  Date.now = () => reply.expiresAt + 1;
+  try {
+    assert.equal(sync.pairingState().active, false);
+  } finally {
+    Date.now = realNow;
+  }
+  assert.deepEqual(live, [true, false]);
+});
+
+test('disable while a code is live ends it', async () => {
+  await sync.beginPairing();
+  await sync.disable();
+  assert.deepEqual(live, [true, false]);
+  const d = JSON.parse(fs.readFileSync(path.join(tmp, 'sync.json'), 'utf8'));
+  d.enabled = true; d.lastSyncedAt = 1;
+  // Re-enable for the tests below the way the fixture started.
+  fs.writeFileSync(path.join(tmp, 'sync.json'), JSON.stringify({ ...d, accountId: 'a'.repeat(64), handle: 'anthony', protectedKey: Buffer.from(Buffer.alloc(32, 5).toString('base64')).toString('base64') }));
+});
+
+test('turning Sync off forgets the last join', async () => {
+  await sync.startNew({ handle: 'My Blanc' }).catch(() => {});
+  if (!sync.status().enabled) return;
+  await sync.resetRequestWindowForTest();
+  await sync.syncNow();
+  assert.equal((await sync.beginPairing()).ok, true);
+  arrive('fresh-phone', { name: 'iPhone', platform: 'ios' });
+  assert.ok(sync.pairingState().joined);
+  await sync.disable();
+  assert.equal(sync.pairingState().joined, null);
+});

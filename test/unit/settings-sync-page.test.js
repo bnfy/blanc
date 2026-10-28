@@ -91,3 +91,9 @@ test('the sheet has a joined state with the Spaces question and Done', () => {
   assert.ok(js.includes('onSyncPairJoined('));
   assert.ok(js.includes('syncPairWatch('));
 });
+
+test('turning Spaces on from the sheet also ends the joined record in main', () => {
+  const at = js.indexOf("effect?.type === 'spaces-turn-on'");
+  assert.ok(at >= 0);
+  assert.ok(js.slice(at, at + 400).includes('syncPairCancel()'));
+});
