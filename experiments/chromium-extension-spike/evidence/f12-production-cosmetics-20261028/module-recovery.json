@@ -1,0 +1,437 @@
+[
+  {
+    "path": "@ghostery/adblocker-extended-selectors/dist/commonjs/eval.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker-extended-selectors/dist/commonjs/extended.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker-extended-selectors/dist/commonjs/index.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker-extended-selectors/dist/commonjs/parse.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker-extended-selectors/dist/commonjs/types.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/codebooks/cosmetic-selector.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/codebooks/network-csp.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/codebooks/network-filter.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/codebooks/network-hostname.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/codebooks/network-redirect.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/codebooks/raw-cosmetic.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/codebooks/raw-network.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/compact-set.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/compression.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/config.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/crc32.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/data-view.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/encoding.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/engine/bucket/cosmetic.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/engine/bucket/filters.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/engine/bucket/html.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/engine/bucket/network.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/engine/bucket/preprocessor.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/engine/domains.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/engine/engine.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/engine/map.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/engine/merger.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/engine/metadata.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/engine/metadata/categories.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/engine/metadata/organizations.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/engine/metadata/patterns.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/engine/optimizer.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/engine/reverse-index.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/events.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/fetch.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/filters/cosmetic.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/filters/dsl.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/filters/network.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/html-filtering.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/index.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/lists.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/preprocessor.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/punycode.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/queue-microtask.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/request.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/resources.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/tokens-buffer.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/adblocker/dist/commonjs/utils.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/url-parser/dist/commonjs/const.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/url-parser/dist/commonjs/immutable-url.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/url-parser/dist/commonjs/index.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/url-parser/dist/commonjs/search-params-wrapper.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/url-parser/dist/commonjs/url-search-params.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/url-parser/dist/commonjs/url.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@ghostery/url-parser/dist/commonjs/utils.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/guess-url-type/dist/commonjs/extensions/documents.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/guess-url-type/dist/commonjs/extensions/fonts.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/guess-url-type/dist/commonjs/extensions/images.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/guess-url-type/dist/commonjs/extensions/medias.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/guess-url-type/dist/commonjs/extensions/scripts.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/guess-url-type/dist/commonjs/extensions/stylesheets.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/guess-url-type/dist/commonjs/extname.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/guess-url-type/dist/commonjs/index.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/flv.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/gif.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/html.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/ico.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/index.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/javascript.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/jpeg.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/json.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/mp3.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/mp4.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/pdf.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/png.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/svg.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/txt.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/types.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/wav.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/webm.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/webp.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/small/dist/commonjs/wmv.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/smaz-compress/dist/commonjs/index.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/smaz-decompress/dist/commonjs/index.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/smaz/dist/commonjs/index.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "@remusao/trie/dist/commonjs/index.js",
+    "exists": true,
+    "matches": true
+  },
+  {
+    "path": "tldts-experimental/dist/cjs/index.js",
+    "exists": true,
+    "matches": true
+  }
+]

@@ -1,3 +1,5 @@
+> October28 concrete production gap: [cosmetic delivery](evidence/f12-production-cosmetics-20261028/README.md) fails two signed regular/private criteria despite a positive embedded-engine oracle. Recovery UI remains qualified separately. Cosmetic/scriptlet research results are not production acceptance.
+
 > October 28 reconciliation: [signed blocker recovery](evidence/blocker-recovery-ui-20261027/README.md) now qualifies the explicit quit/reopen route and visible unavailable state. Native physical input is mapped; 12 signed protocol controls pass. This resolves that bounded UI gap, not full cosmetic/provider parity or aggregate F12. Electron remains paused and latency deferred.
 
 > October 27 signed cross-origin repair: [notarized affected-path evidence](evidence/f12-cross-origin-signed-20261027/README.md) binds source `3d5d46a` and archive `6f533ca0e6d2`. Apple accepted and stapling, strict signature and Gatekeeper checks passed. All 20 affected regular/private checks passed; prior unaffected suites were not repeated. This is not aggregate F12/Decision 2, distribution or launch-gate approval. Google baseline separate, Electron paused, latency deferred.
