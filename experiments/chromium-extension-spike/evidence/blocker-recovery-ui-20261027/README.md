@@ -9,3 +9,9 @@ Regular and private affected protocol schedules each pass six controls: healthy 
 Initial fixture failures are retained: premature title assertion; missing async expression wrapper; status inspected before refresh; restart read stale DevTools endpoint. Corrected fixture waits for exact readiness, asynchronous UI visibility and fresh endpoint content. No product behavior was weakened to pass them. Native observation details and source hashes are adjacent. Raw launch logs/profiles/build output remain in durable Projects/BlancChromium157Recovery/records/20261027. No permanent profile, Google baseline, Electron or latency changes.
 
 **Unsigned native-output acceptance only. Signing/notarization and affected final-artifact checks remain pending. No F12/Decision2 aggregate or launch-gate approval, commit/push, merge or release.**
+
+## Signed replacement October28
+
+Source `d3eddfd2` was packaged with340source-bound compliance components and signed using the retained MacBook Developer ID. Direct SSH signing failed; the established GUI security-session job succeeded and was removed. Apple Accepted `f045a8fe-dd35-433a-b751-de634c078c40`; ticket stapling/validation, strict deep signature and Gatekeeper all pass. Archive SHA256 `6a661b5d54e1270f1a4f39b30dd4d5683ab9014962836fa996784e233eb7ba39`.
+
+All12affected regular/private protocol checks passed against the signed launcher with embedded assets (no external asset override). Every preexisting signed file was unchanged by stapling; hashes are recorded. Native physical-input/quit-veto observations map to the identical native source and tested UI files; they were not repeated. No distribution walkthrough, unrelated suites or new gate approval.
