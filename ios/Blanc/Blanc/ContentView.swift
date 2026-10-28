@@ -3,7 +3,6 @@ import WebKit
 
 struct ContentView: View {
     let manager: TabsManager
-    @State private var sendBanner: String?
     @Environment(\.colorScheme) private var colorScheme
     private var isPrivate: Bool { manager.activeTab?.isPrivate ?? false }
     /// A private tab uses the private (dark) look whatever the appearance setting.
@@ -61,6 +60,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: Binding(get: { manager.isPalettePresented }, set: { manager.isPalettePresented = $0 }), onDismiss: {
             manager.presentPendingSettings()
+            if manager.takeFindRequest(), let tab = manager.activeTab { presentFind(in: tab) }
         }) {
             PaletteSheet(manager: manager)
         }
@@ -80,8 +80,8 @@ struct ContentView: View {
 
     private var islandContainer: some View {
         VStack(spacing: 8) {
-            if let sendBanner {
-                Text(sendBanner).font(BrowserStyle.font(13))
+            if let sendNotice = manager.sendNotice {
+                Text(sendNotice).font(BrowserStyle.font(13))
                     .padding(.horizontal, 14).padding(.vertical, 8)
                     .background(style.raised, in: Capsule())
                     .accessibilityAddTraits(.updatesFrequently)
@@ -296,16 +296,14 @@ struct ContentView: View {
                 guard let tab else { return nil }
                 return UIMenu(title: SyncCopy.text("tabMenu.sendToDevice"), image: UIImage(systemName: "paperplane"),
                               children: manager.syncEngine.sendTargets.map { target in
-                                  UIAction(title: target.name) { _ in send(tab: tab, to: target) }
+                                  UIAction(title: target.name) { _ in manager.send(tab, to: target) }
                               })
             case .share:
                 guard let tab else { return nil }
                 return action("share.picker.share", "square.and.arrow.up") { share(tab.currentURL) }
             case .find:
                 guard let tab else { return nil }
-                return action("menu.findInPage", "magnifyingglass") {
-                    (tab.reader?.webView ?? tab.webView).findInteraction?.presentFindNavigator(showingReplace: false)
-                }
+                return action("menu.findInPage", "magnifyingglass") { presentFind(in: tab) }
             case .newPrivateTab:
                 return UIMenu(options: .displayInline, children: [
                     action("menu.newPrivateTab", "eye.slash") { manager.createTab(isPrivate: true) },
@@ -328,17 +326,8 @@ struct ContentView: View {
         .path(forResource: "sunrise-mark", ofType: "png", inDirectory: "pages")
         .flatMap(UIImage.init(contentsOfFile:))
 
-    private func send(tab: TabModel, to target: SendTarget) {
-        let url = tab.currentURL.absoluteString
-        let title = tab.pageTitle
-        Task {
-            let result = await manager.syncEngine.send(url: url, title: title, to: target.id)
-            let message = SyncCopy.sendResult(result, device: target.name)
-            withAnimation { sendBanner = message }
-            UIAccessibility.post(notification: .announcement, argument: message)
-            try? await Task.sleep(for: .seconds(5))
-            if sendBanner == message { withAnimation { sendBanner = nil } }
-        }
+    private func presentFind(in tab: TabModel) {
+        (tab.reader?.webView ?? tab.webView).findInteraction?.presentFindNavigator(showingReplace: false)
     }
 
     private var displayDomain: String {

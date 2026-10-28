@@ -367,6 +367,65 @@ final class TabsManager {
         !tab.isPrivate && ["http", "https"].contains(tab.currentURL.scheme?.lowercased() ?? "")
     }
 
+    /// What the last send said, shown over the Island for five seconds; the
+    /// Sunrise menu's Send and `/send` share it.
+    private(set) var sendNotice: String?
+
+    /// Sends `tab`'s page to `target` and shows the result.
+    func send(_ tab: TabModel, to target: SendTarget) {
+        let url = tab.currentURL.absoluteString, title = tab.pageTitle
+        Task {
+            let result = await syncEngine.send(url: url, title: title, to: target.id)
+            showSendNotice(SyncCopy.sendResult(result, device: target.name))
+        }
+    }
+
+    /// `/send <device>`: the current page to the device named, without regard
+    /// to case (desktop's `sendActiveTabTo`).
+    func sendActiveTab(toDeviceNamed name: String) {
+        guard let tab = activeTab, !tab.isPrivate else { return }
+        let targets = syncEngine.sendTargets
+        guard !targets.isEmpty else { return showSendNotice(SyncCopy.text("sends.none")) }
+        guard let target = SlashCommand.sendTarget(named: name, in: targets) else {
+            return showSendNotice(SyncCopy.text("sends.noMatch", ["name": name]))
+        }
+        guard canSend(tab) else { return showSendNotice(SyncCopy.text("sends.unavailable")) }
+        send(tab, to: target)
+    }
+
+    private func showSendNotice(_ message: String) {
+        sendNotice = message
+        UIAccessibility.post(notification: .announcement, argument: message)
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(5))
+            if self?.sendNotice == message { self?.sendNotice = nil }
+        }
+    }
+
+    /// `/find` asks for Find in page; the page shows it once the palette has
+    /// closed and the web view can take focus.
+    private(set) var findRequested = false
+    func requestFind() {
+        findRequested = true
+        if isPalettePresented { isPalettePresented = false }
+    }
+    func takeFindRequest() -> Bool {
+        defer { findRequested = false }
+        return findRequested
+    }
+
+    /// `/block-ads`: re-blocks the current site if it is allowed, otherwise
+    /// switches blocking everywhere (desktop's `resolveBlockAdsCommand`).
+    func runBlockAdsCommand() {
+        if let tab = activeTab, let host = AdblockExceptions.host(for: tab.currentURL),
+           settingsStore.adblockExceptions.contains(host) {
+            if !settingsStore.adblockEnabled { applySettingsPatch(["adblockEnabled": true]) }
+            setSiteProtection(tab, on: true)
+        } else {
+            applySettingsPatch(["adblockEnabled": !settingsStore.adblockEnabled])
+        }
+    }
+
     // MARK: Closing, with Undo (M11)
 
     /// The newest close, undoable while its banner shows. The tab itself is

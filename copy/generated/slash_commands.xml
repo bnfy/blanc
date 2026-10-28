@@ -4,7 +4,6 @@
     <string name="slash_bring_tabs">Bring open tabs from another browser</string>
     <string name="slash_save">Save this page to favorites — name a folder to file it</string>
     <string name="slash_history">Open browsing history</string>
-    <string name="slash_archive">See tabs Blanc archived for you</string>
     <string name="slash_downloads">Open downloads</string>
     <string name="slash_settings">Open settings</string>
     <string name="slash_sync">Set up or manage sync</string>
@@ -25,11 +24,9 @@
     <string name="slash_find">Find in page</string>
     <string name="slash_block_ads">Block ads here, or toggle blocking everywhere</string>
     <string name="slash_allow_ads">Allow ads on this site</string>
-    <string name="slash_dark_site">Darken this site, or leave it as drawn</string>
     <string name="slash_route">Open links to this site from other apps here — add &quot;off&quot; to stop</string>
     <string name="slash_theme">Cycle appearance, or choose system / light / dark</string>
     <string name="slash_patron">Support Blanc with a Patron subscription</string>
     <string name="slash_space">Switch to a space, or type a new name to save this window</string>
-    <string name="slash_glance">Look at another open tab without leaving this page</string>
     <string name="slash_invite">Email a friend a link to download Blanc</string>
 </resources>
