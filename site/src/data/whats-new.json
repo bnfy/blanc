@@ -18,9 +18,11 @@
           ],
           "note": "It’s off by default and belongs to the Personal profile. Private tabs, internal pages and local files never sync. Up to 25 Spaces can be shared; a deleted Space still uses sync storage for 30 days.",
           "media": {
-            "kind": "todo",
-            "todo": "Capture: Settings → Sync with Spaces and groups on and the Choose Spaces sheet open (neutral sites, disposable account). Owner sign-off on it and on this text.",
-            "candidates": []
+            "kind": "image",
+            "src": "/feature-captures/shared-spaces-v1.45.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Sync settings with Spaces and groups turned on and the Choose Spaces to sync sheet open: 3 of 25 shared Spaces, with Research (4 tabs), Trip (3 tabs) and Recipes (2 tabs) checked, each to be added as a copy."
           }
         },
         {
@@ -34,9 +36,11 @@
           ],
           "note": "If Sync isn’t on yet, Blanc asks before turning it on. When Sync is on, Add device shows the same code.",
           "media": {
-            "kind": "todo",
-            "todo": "Capture: the Connect your iPhone sheet with its QR (disposable account; the code expires, but blur nothing — use an expired or cancelled code). Owner sign-off on it and on this text.",
-            "candidates": []
+            "kind": "image",
+            "src": "/feature-captures/connect-your-iphone-v1.45.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "The Connect your iPhone sheet over Blanc’s Sync settings: a QR code, the line “On your iPhone, open Blanc and choose Pair with your Blanc. Point it at this code.”, the same code to type in Settings → Sync, and Expires in 10:00 with Copy and Cancel."
           }
         },
         {
@@ -50,9 +54,11 @@
           ],
           "note": "Keep the recovery code Blanc offers in your password manager: without a passphrase, it’s the only way back to your synced data if you lose all your devices. A sync name and passphrase are still under Other ways.",
           "media": {
-            "kind": "todo",
-            "todo": "Capture: Settings → Sync off state with Turn on Sync and Add this device with a code. Owner sign-off on it and on this text.",
-            "candidates": []
+            "kind": "image",
+            "src": "/feature-captures/turn-on-sync-without-a-passphrase-v1.45.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Sync settings with Sync off: Sync your Blanc, with Turn on Sync and Connect your iPhone, and under Already sync on another device?, Add this device with a code."
           }
         },
         {
@@ -66,9 +72,11 @@
           "note": "It’s off by default, set on each device, and skipped when your system reduces motion.",
           "learnMore": "/features/start-page",
           "media": {
-            "kind": "todo",
-            "todo": "Capture: a short video or a mid-animation frame of the Sunrise over the Start Page. Owner sign-off on it and on this text.",
-            "candidates": []
+            "kind": "image",
+            "src": "/feature-captures/play-the-sunrise-when-blanc-opens-v1.45.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc opening with the Sunrise: the golden Sunrise mark, its rays out, on a warm dark sky drawn over the Start Page, below the Island."
           }
         }
       ]
