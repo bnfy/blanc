@@ -16,7 +16,7 @@
             "With Sync on, open Settings, then Sync.",
             "Under What syncs, turn on Spaces and groups and choose your Spaces. Do the same on each computer."
           ],
-          "note": "It’s off by default and belongs to the Personal profile. Private tabs, internal pages and local files never sync. Up to 25 Spaces can be shared.",
+          "note": "It’s off by default and belongs to the Personal profile. Private tabs, internal pages and local files never sync.",
           "media": {
             "kind": "image",
             "src": "/feature-captures/shared-spaces-v1.45.0.webp",
@@ -52,7 +52,7 @@
             "Open Settings → Sync and choose Turn on Sync.",
             "To add a device, choose Add device and enter the code on the other device with Add this device with a code."
           ],
-          "note": "Keep the recovery code Blanc offers in your password manager: without a passphrase, it’s the only way back to your synced data if you lose all your devices. A sync name and passphrase are still under Other ways.",
+          "note": "Keep the recovery code Blanc offers in your password manager: without a passphrase, it’s your only way back if you lose all your devices.",
           "media": {
             "kind": "image",
             "src": "/feature-captures/turn-on-sync-without-a-passphrase-v1.45.0.webp",
