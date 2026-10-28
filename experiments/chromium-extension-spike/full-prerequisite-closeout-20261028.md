@@ -1,0 +1,30 @@
+# Full prerequisite closeout crosswalk — October 28
+
+This is a requirement audit, not a waiver or gate approval. The owner rejected the bounded L12 proposal. Source `4a77b4147663eb4f56e55eb3e1f0b356de4a66ae`, archive `270c0848539fa52a13a676aee8f0e33e6920d3ca9c08206c3a77d186ab36cbb5`, remains the signed candidate. Review head `64a890a56d55a9b4d15760325361aeb82423de04` adds evidence only. Eleven gates are accepted; L12 stays NO-GO.
+
+## Spike A criteria (tranche2-request.md §2 and approved §2.1)
+
+| Requirement | Inspected evidence | Disposition / next action |
+| --- | --- | --- |
+| Full authored request corpus, regular/private, context and response validation | `evidence/f12-loaded-host-latency-20261028/`: warm-up plus five complete repetitions per profile/runtime; 312 pages per runtime | Complete at the accepted authored-corpus scope. No rerun. |
+| Warm native Mojo p99 below 5 ms | Same record: median of five p99 values 1.688 ms regular / 1.461 ms private; one regular repetition 5.592 ms retained | Target met by protocol aggregation under owner-authorized load. Original >=90% idle condition is **not** met. Owner's execution exception is recorded; final acceptance is separate. Reference JS clock is not an equivalent interval. |
+| Pinned CSS, scriptlets and procedural production delivery | `evidence/f12-procedural-prerequisite-20261028/`: 50 signed property/mutation/lifecycle checks; earlier CSS/inherited-frame records retain their original scope | Signed affected checks complete. Seven rejected pinned property patterns repaired; no claim of arbitrary selector completeness. |
+| Four named procedural operators and defused timer through actual native delivery | `evidence/f12-authored-cosmetic-delivery-20261028/`: 40 checks, regular/private, CSP, neutral controls, mutations | Native diagnostic coverage complete, using explicitly added diagnostic rules. These rules do not ship. Normal production output restored and binary verified. |
+| Dynamic insertion, attribute/move/timer reevaluation and cost | Same native delivery record plus `evidence/f12-procedural-prerequisite-20261028/` dynamic evaluator record (16 outcomes; maximum observed evaluation 1.1 ms) | Functional production path and isolated evaluator cost evidence exist. Cost is a fixture observation, not a large-page or end-to-end UI latency guarantee. |
+| Paired DOM assertions and captures for CSS/procedural/scriptlet outcome classes | `evidence/f12-paired-cosmetics-20261028/`: 40 captures, two stable sessions per browser/profile; six case/profile differences retained | **Incomplete:** timer/four-operator diagnostic fixture lacks matching reference observations. Next collect only those missing reference outcomes. Preserve disabled-procedural/early-script differences; do not repair Electron or convert them to parity passes. Native passing cases need not be repeated unless comparison inputs change. |
+| YouTube outcome fixture | Paired pinned :has-selector authored markup above | This proves selector hiding, not media playback. The cited preexisting fixture has not been located as a browser page (the named unit test is not one). Resolve the exact written fixture reference before claiming this item complete. |
+| Every enabled request path and fail-closed recovery | Original audit and subsequent per-path signed repairs, including cross-origin navigation, service-worker identity, redirect replacement and recovery UI | **Currentness crosswalk still required:** map final native source to last affected qualification for each original audit row. Disabled pre-prefetch remains a future-enablement condition, not an enabled-path pass. No blanket rerun. |
+| Patch budget | Current procedural inventory: 79 files / 189 hunks, 151 clean dependencies | Within the recorded amended ceiling; technical A1 review remains separate from owner design acceptance. |
+| Authenticated replacement provenance | `evidence/f12-procedural-authentication-20261028/`: four artifact bindings, pinned identity, 459 files / 5 links, signature/ticket/Gatekeeper | Complete for local archive readback. No new Safari-download or second-machine claim; prior unaffected owner checks remain mapped. |
+
+## Decision 2 minimum (primary plan §2)
+
+The six inputs are measured rebase, A1 design/current count, updated feature-parity disposition, matched Island visual states, Mac VoiceOver, and a staffing/CI cost sheet. Existing visual/VoiceOver owner acceptance is not repeated. The rebase/cost records must retain unmeasured active attention and lack of a measured rebase of today's larger patch set; do not invent historical hours or run a needless cold build. Existing-Mac/no-new-paid-service operating proposal remains an owner decision, not accepted affordability.
+
+Per-site shield counts, allow controls and popover are named in the later feature matrix. The Decision 2 minimum asks for an updated parity disposition, not completion of every Phase 3/4 feature. Their absence must be explicitly carried in that disposition; this interpretation does not waive an independently required F12 behavior. No full production migration, three-platform beta, installed-upgrade cutover or public release is claimed.
+
+Next technical work is the missing paired outcome record and original request-path currentness crosswalk, followed by one consolidated owner review of outstanding differences, loaded-host qualification, A1/cost limitations and the exact candidate. Do not ask for final GO while these evidence gaps remain.
+
+## CI review at 64a890a5
+
+Inspected failure logs: Windows job122958397331 and Ubuntu job122958397301 fail `modified-link-click-smoke.mjs:168` with actual allowed versus expected SecurityError. Substrate job122957829471 fails the Firefox companion addons-linter audit (GHSA-GCQX-W48M-W2H4, GHSA-5P2G-FCMC-QVQQ, GHSA-W3RX-R6R6-PGPR); desktop/site/worker dependency audits pass in that log. These are the known repository merge blockers outside the owner-approved native-preview L11 scope. Other checks remain queued/running; no all-green or latest-head CodeQL acceptance is claimed. Electron remains paused, Google baseline separate.

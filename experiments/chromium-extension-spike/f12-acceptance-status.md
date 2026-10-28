@@ -1,13 +1,14 @@
 ## Current prerequisite status — October 28, 2026
 
-This section supersedes the dated gap descriptions below; those remain as history. Aggregate F12 and Decision 2 are still unaccepted, and L12 remains NO-GO at the owner's direction.
+The [requirement-by-requirement closeout](full-prerequisite-closeout-20261028.md) supersedes the historical entries below. L12 remains NO-GO; no aggregate acceptance is inferred.
 
-- Production CSS and initial scriptlets: implemented and qualified in [signed cosmetic evidence](evidence/f12-cosmetic-implementation-20261028/README.md). The earlier signed delivery failure is superseded.
-- Inherited about:blank/srcdoc and opaque sandbox exclusion: 20 affected checks passed on signed source260f98ff; [combined evidence](evidence/f12-inherited-cosmetics-20261028/README.md) also records scriptlet helper isolation. Current Electron disables extended procedural selectors too, but the approved tranche explicitly requires them. [Procedural prerequisite review](evidence/f12-procedural-prerequisite-20261028/README.md) records the unsigned procedural implementation, including the seven formerly rejected pinned CSS-property rules. Four named operators, dynamic mutations, BFCache and property delivery now have scoped native evidence; signed and full production coverage remain open, not waived by reference parity.
-- Bounded public-page realism sample: [aggregate observations](evidence/f12-private-sanity-20261028/README.md), four completed regular/private observations and126requests. Profiles removed. This satisfies only the limited observation sample, not paired provider parity or signed-candidate qualification.
-- Timing/reference: explicitly authorized bounded exception, implementation built incrementally and decoder controls passed. Formal timing acceptance is still missing; idle admission remains mandatory. Electron builds/repairs remain paused.
-- Remaining broader exception/provider/per-site policy and bounded-collection/concurrency coverage must be matched to the written requirements before aggregate acceptance. Neither the observations nor prior narrow controls waive those requirements.
-- Decision2 cost/capacity disposition and final artifact-specific owner acceptance remain outstanding. The owner declined the earlier bounded deferral proposal. L4 and native-preview L11 acceptance do not authorize merge or publication.
+- Signed procedural qualification and replacement manifest authentication are complete: 50 affected signed checks; pinned identity and four artifact bindings; 459-file/5-symlink readback. See [signed evidence](evidence/f12-procedural-prerequisite-20261028/README.md) and [authentication](evidence/f12-procedural-authentication-20261028/README.md).
+- [Loaded-host full-corpus timing](evidence/f12-loaded-host-latency-20261028/README.md) completed under explicit owner authorization. Native median p99 is 1.688/1.461 ms regular/private. Original >=90% idle condition remains unmet; no equivalent-clock Electron speed comparison.
+- [Paired cosmetics](evidence/f12-paired-cosmetics-20261028/README.md) retains six stable differences. [Forty native diagnostic checks](evidence/f12-authored-cosmetic-delivery-20261028/README.md) cover the timer and four operators; corresponding reference observations are still missing. Existing passing native tests need not be repeated.
+- Current-source mapping for the original request-path rows and the referenced YouTube fixture need explicit reconciliation. Vague broader-coverage labels are not a mandate for an unlimited stress matrix.
+- Decision 2 operating/design limitations and final owner acceptance remain outstanding. Eleven gates accepted does not authorize merge or publication. Electron builds/repairs paused; Google baseline separate.
+
+## Historical checkpoints (superseded where noted above)
 
 > October28 concrete production gap: [cosmetic delivery](evidence/f12-production-cosmetics-20261028/README.md) fails two signed regular/private criteria despite a positive embedded-engine oracle. Recovery UI remains qualified separately. Cosmetic/scriptlet research results are not production acceptance.
 
