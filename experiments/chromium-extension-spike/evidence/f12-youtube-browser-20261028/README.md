@@ -1,0 +1,7 @@
+# Authored YouTube browser outcomes
+
+Eight sessions pass: Chromium157 and authenticated Electron1.36.0 reference, regular/private, two stable runs each. There are56passing grouped assertions plus eight captures. Five ad endpoints from test/unit/adblock-youtube.test.js never reach the local fixture server. Ordinary player API text, external script execution, a one-second authored PCM media response at the normal googlevideo URL, neutral UI and home document load pass in each session. Outcomes match across browsers and repetitions.
+
+No preexisting browser fixture was found in the tracked tree or available filename history; the named unit file tested engine/WebKit rules only. This is an explicitly newly authored browser counterpart, not recovered footage. Origin-preserving local TLS responses have no upstream fallback. Pinned production lists unchanged; no authored filtering rules added. Input response hashes and full observations are retained. The PCM clip validates browser media decoding for the authored response, not real video, live YouTube, DRM, accounts or changing provider behavior. Earlier paired :has cosmetic captures remain separate.
+
+All disposable profiles and certificate keys were removed after normal exits. No native/Electron build, source change to production, signing, permanent-profile or Google-baseline action. This fills the browser outcome evidence gap; final F12/Decision2/L12 acceptance remains an owner decision.

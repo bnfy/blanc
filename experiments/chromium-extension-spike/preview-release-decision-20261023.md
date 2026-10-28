@@ -1,3 +1,5 @@
+> Current owner review: [measured prerequisite closeout](evidence/l12-measured-closeout-20261028/README.md) binds source4a77b414/archive270c0848539f. Missing named fixtures are complete; loaded-host, reference differences and operating limits remain explicit for owner disposition. **11/12; L12 NO-GO pending approval**, no publication/merge. Older pending-work/candidate statements below are historical.
+
 > October28 owner decision: **L12 remains NO-GO pending full prerequisites**. Bounded deferral proposal was declined;11/12accepted. [Completion plan](full-prerequisites-run-plan-20261028.md). No publication or merge.
 
 > Current October28 final review: [exact bounded Mac-preview packet and proposed Decision2 disposition](evidence/l12-final-packet-20261028/README.md). Publisher authentication/readback pass. L4 and explicitly scoped L11 accepted;11/12, only L12 owner decision remains. Older NO-GO identities below are historical; no public release/merge approval.
