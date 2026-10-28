@@ -77,3 +77,28 @@ test('recovery code round-trips, tolerates whitespace, rejects truncation', () =
   assert.equal(p.isRecoveryCode(' blanc-sync:1:x'), true);
   assert.equal(p.isRecoveryCode('K7MR4PX2'), false);
 });
+
+// The QR's link (design 2026-10-28 §7.3): the code rides in the fragment,
+// which no browser sends to a server, and only the exact shape is accepted.
+const PAIR_LINK_CASES = require('./fixtures/pair-link-cases.json').cases;
+
+test('pairLink round-trips through pairLinkCode', () => {
+  for (let i = 0; i < 3; i += 1) {
+    const code = p.generateCode();
+    const link = p.pairLink(code);
+    assert.equal(link, `https://blanc.day/pair#${code}`);
+    assert.equal(p.pairLinkCode(link), code);
+  }
+});
+
+test('pairLink refuses anything but a normalized code', () => {
+  assert.throws(() => p.pairLink('K7MR-4PX2'), /pair-invalid/);
+  assert.throws(() => p.pairLink('k7mr4px2'), /pair-invalid/);
+});
+
+test('pairLinkCode accepts exactly the pair-link shape', () => {
+  for (const { name, input, expected } of PAIR_LINK_CASES) {
+    assert.equal(p.pairLinkCode(input), expected, name);
+  }
+  for (const input of [null, undefined, 42, {}]) assert.equal(p.pairLinkCode(input), null);
+});
