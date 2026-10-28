@@ -1827,6 +1827,7 @@ Then('the Space mark sits in the rail\'s first row, not on the Island', async fu
 When('I click the Space mark in the rail', async function () {
   const page = await chromePage();
   this.railSpaceMarkRect = (await spaceMarkState(page)).rect;
+  this.islandBottom = await page.locator('#islandPill').evaluate((el) => el.getBoundingClientRect().bottom);
   await page.locator('#pillSpace').click();
 });
 
@@ -1835,10 +1836,13 @@ Then('the Spaces menu opens below the rail\'s Space mark', async function () {
   const bounds = await this.call('overlayBounds');
   const rect = this.railSpaceMarkRect;
   // The view pads the menu (chrome-layout.js): the menu itself lines up with
-  // the mark's left edge and hangs a small gap below the mark.
+  // the mark's left edge and hangs a small gap below the mark and the Island,
+  // whichever ends lower, so it never covers the Island.
   const { SPACES_MENU_SIDE, SPACES_MENU_GAP, SPACES_MENU_PAD } = SPACES_GEOMETRY;
-  assert.equal(bounds.x + SPACES_MENU_SIDE, Math.round(rect.x), JSON.stringify({ bounds, rect }));
-  assert.equal(bounds.y + SPACES_MENU_PAD, Math.round(rect.y + rect.height + SPACES_MENU_GAP), JSON.stringify({ bounds, rect }));
+  const bottom = Math.max(rect.y + rect.height, this.islandBottom);
+  const details = JSON.stringify({ bounds, rect, islandBottom: this.islandBottom });
+  assert.equal(bounds.x + SPACES_MENU_SIDE, Math.round(rect.x), details);
+  assert.equal(bounds.y + SPACES_MENU_PAD, Math.round(bottom + SPACES_MENU_GAP), details);
   await this.call('closeOverlay');
   await waitForValue(() => this.call('overlayMode'), (mode) => mode == null, 'the Spaces menu closed');
 });

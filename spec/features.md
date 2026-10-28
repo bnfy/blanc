@@ -682,8 +682,8 @@ From the desktop `DEFAULTS`:
   glyph) and, at its far end, an accessible sidebar icon that turns vertical
   tabs off. On Windows and Linux the main-menu button leads the row. The rail's
   footer has **New tab** and, beside it, **New group**, which starts a group
-  from the current tab like the tab menu's Move to Group → New Group… (never
-  for a private tab). The top bar and group labels use spacing instead of
+  from the current tab (or every selected tab) like the tab menu's Move to
+  Group → New Group…. The top bar and group labels use spacing instead of
   divider rules. `⌘⌥V` on macOS / `Ctrl+Alt+V` elsewhere toggles the layout
   from anywhere.
 - Settings → General → Island offers **Vertical tab text size**: Default

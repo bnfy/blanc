@@ -18,6 +18,16 @@
   const spaceMarkHome = spaceMark ? { parent: spaceMark.parentElement, next: spaceMark.nextElementSibling } : null;
   if (!api || !rail || !list || !useIslandButton || !newTabButton || !resizeHandle) return;
 
+  /** Moves a strip control to `parent` (before `before`, or last), keeping
+   * keyboard focus on it when it had focus. No-op when it is already there. */
+  function moveKeepingFocus(element, parent, before = null) {
+    if (!element || !parent) return;
+    if (element.parentElement === parent && (before === null ? !element.nextElementSibling : element.nextElementSibling === before)) return;
+    const hadFocus = document.activeElement === element;
+    parent.insertBefore(element, before);
+    if (hadFocus) element.focus({ preventScroll: true });
+  }
+
   /** Windows and Linux: the strip's main-menu button sits in the window's
    * top-left corner, which the rail owns in this layout, so the button moves
    * into the rail's first row (as the traffic lights do on macOS) and back to
@@ -25,29 +35,24 @@
    * focus order rather than the strip's tint and auto-hide states. */
   function placeMainMenuButton(layout) {
     if (!mainMenuButton) return;
-    const home = layout === 'vertical'
-      ? useIslandButton.parentElement
-      : document.getElementById('strip');
-    if (!home || mainMenuButton.parentElement === home) return;
-    const hadFocus = document.activeElement === mainMenuButton;
-    if (layout === 'vertical') home.prepend(mainMenuButton);
-    else home.insertBefore(mainMenuButton, document.getElementById('islandPill'));
-    if (hadFocus) mainMenuButton.focus({ preventScroll: true });
+    if (layout === 'vertical') {
+      const toolbar = useIslandButton.parentElement;
+      if (toolbar.firstElementChild !== mainMenuButton) moveKeepingFocus(mainMenuButton, toolbar, toolbar.firstElementChild);
+    } else {
+      moveKeepingFocus(mainMenuButton, document.getElementById('strip'), document.getElementById('islandPill'));
+    }
   }
 
   /** The Island's Space mark moves into the rail's first row while tabs are
    * vertical, so the row says which Space this is and opens the Spaces menu,
    * and the Island keeps one copy. It goes back to its place in the Island
-   * otherwise. renderer.js keeps painting it wherever it is. */
+   * otherwise. renderer.js keeps painting it wherever it is, and is told when
+   * it moves (its visibility depends on where it is). */
   function placeSpaceMark(layout) {
     if (!spaceMark || !spaceMarkHome) return;
-    const toolbar = useIslandButton.parentElement;
-    const inRail = spaceMark.parentElement === toolbar;
-    if ((layout === 'vertical') === inRail) return;
-    const hadFocus = document.activeElement === spaceMark;
-    if (layout === 'vertical') toolbar.insertBefore(spaceMark, useIslandButton);
-    else spaceMarkHome.parent.insertBefore(spaceMark, spaceMarkHome.next?.parentElement === spaceMarkHome.parent ? spaceMarkHome.next : null);
-    if (hadFocus) spaceMark.focus({ preventScroll: true });
+    if (layout === 'vertical') moveKeepingFocus(spaceMark, useIslandButton.parentElement, useIslandButton);
+    else moveKeepingFocus(spaceMark, spaceMarkHome.parent, spaceMarkHome.next?.parentElement === spaceMarkHome.parent ? spaceMarkHome.next : null);
+    window.blancSpaceMark?.placed();
   }
 
   const ICONS = {
@@ -712,8 +717,6 @@
       ? payload.verticalTabsTextSize : 'default';
     rail.hidden = layout !== 'vertical';
     rail.dataset.activeTabId = payload.activeTabId || '';
-    // Private tabs are never grouped (main refuses too).
-    if (newGroupButton) newGroupButton.disabled = !!(payload.tabs || []).find(tab => tab.id === payload.activeTabId)?.private;
     if (layout !== 'vertical') {
       lastSignature = null;
       return;

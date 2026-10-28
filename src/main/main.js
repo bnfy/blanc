@@ -11710,11 +11710,12 @@ function registerIpcHandlers() {
   // that needs validating; it goes through the helper anyway so there is one
   // path that opens the panel with a prefill.
   chromeOn('chrome:open-island-commands', () => openIslandTyping('/'));
-  // The vertical tabs rail's New group button: the active tab's Move to Group →
-  // New Group…, so it takes the same guard (private tabs are never grouped).
+  // The vertical tabs rail's New group button: the tab menu's New Group… for
+  // a multi-tab selection (every selected tab), else for the active tab.
   chromeOn('chrome:new-group', () => {
+    if ((rt().selectedTabIds?.length ?? 0) > 1) return runTabsAction('batch-group-new');
     const tab = tabs.get(rt().activeTabId);
-    if (tab && !tab.private) beginNewGroup(tab.id);
+    if (tab) beginNewGroup(tab.id);
   });
   // The pill's own keydown, when the pill holds keyboard focus.
   chromeOn('chrome:open-island-typing', (_e, char) => openIslandTyping(char));

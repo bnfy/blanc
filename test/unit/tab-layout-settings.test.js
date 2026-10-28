@@ -308,17 +308,24 @@ test('the rail\'s first row holds the Space mark and its footer starts a new gro
 
   // The Island's own mark moves (one copy, one set of handlers), on every path
   // that sets the layout, ahead of the layout toggle; it goes back where it was.
-  assert.match(rail, /function placeSpaceMark\(layout\) \{[\s\S]*?toolbar\.insertBefore\(spaceMark, useIslandButton\)[\s\S]*?spaceMarkHome\.parent\.insertBefore\(spaceMark/);
+  assert.match(rail, /function placeSpaceMark\(layout\) \{[\s\S]*?if \(layout === 'vertical'\) moveKeepingFocus\(spaceMark, useIslandButton\.parentElement, useIslandButton\);\s*else moveKeepingFocus\(spaceMark, spaceMarkHome\.parent,[\s\S]*?window\.blancSpaceMark\?\.placed\(\);/);
   assert.equal(rail.match(/placeSpaceMark\((?:'island'|layout)\);/g)?.length, 2);
-  // From the rail the Spaces menu hangs from the mark, not the Island.
-  assert.match(renderer, /const inRail = !islandPill\.contains\(pillSpace\);\s*return \{ left: stageRect\(pillSpace\)\.left, bottom: stageRect\(inRail \? pillSpace : islandPill\)\.bottom \};/);
-  // With no Spaces yet it still shows, as the Spaces glyph.
-  assert.match(styles, /\.vertical-tabs-toolbar #pillSpace\[data-state="none"\] \{\s*display: inline-flex;/);
+  // Hidden with no Spaces, and the Island's has-space look, apply only on the Island.
+  assert.match(renderer, /pillSpace\.hidden = state === 'none' && spaceMarkOnIsland\(\);\s*islandPill\.classList\.toggle\('has-space', state === 'space' && spaceMarkOnIsland\(\)\);/);
+  assert.match(renderer, /if \(spaceMarkOnIsland\(\)\) \{[\s\S]*?pillDots/);
+  // The Spaces menu hangs below both the mark and the Island, never over it.
+  assert.match(renderer, /const bottom = Math\.max\(stageRect\(pillSpace\)\.bottom, stageRect\(islandPill\)\.bottom\);/);
+  // With no Spaces yet the rail shows the Spaces glyph, like the neutral mark,
+  // and a right-click on the rail's mark opens its menu.
+  assert.match(styles, /\.space-mark:is\(\[data-state="neutral"\], \.vertical-tabs-toolbar \[data-state="none"\]\) \{/);
+  assert.match(styles, /\.vertical-tabs-toolbar #pillSpace:focus-visible \{[^}]*outline: 2px solid var\(--accent\);/);
+  assert.match(renderer, /const railSpaceMark = e\.target\.closest\('\.vertical-tabs-toolbar #pillSpace'\);\s*if \(railSpaceMark\) \{\s*e\.preventDefault\(\);\s*railSpaceMark\.click\(\);\s*return;\s*\}/);
 
   // New group sits beside New tab, named and described for screen readers.
   assert.match(html, /id="verticalTabsNew"[\s\S]*?<\/button>\s*<button\s+id="verticalTabsNewGroup"[\s\S]*?data-i18n-aria-label="rail\.newGroup"/);
   assert.match(rail, /newGroupButton\?\.addEventListener\('click', \(\) => \{\s*invokeLeavingRail\('start a new group', \(\) => api\.beginNewGroup\(\)\);/);
-  // It runs the tab menu's New Group… on the current tab, never a private one.
-  assert.match(rail, /newGroupButton\.disabled = !!\(payload\.tabs \|\| \[\]\)\.find\(tab => tab\.id === payload\.activeTabId\)\?\.private;/);
-  assert.match(main, /chromeOn\('chrome:new-group', \(\) => \{\s*const tab = tabs\.get\(rt\(\)\.activeTabId\);\s*if \(tab && !tab\.private\) beginNewGroup\(tab\.id\);/);
+  // It runs the tab menu's New Group…: for every selected tab, else the current
+  // one (private tabs included, as the menu allows).
+  assert.match(main, /chromeOn\('chrome:new-group', \(\) => \{\s*if \(\(rt\(\)\.selectedTabIds\?\.length \?\? 0\) > 1\) return runTabsAction\('batch-group-new'\);\s*const tab = tabs\.get\(rt\(\)\.activeTabId\);\s*if \(tab\) beginNewGroup\(tab\.id\);/);
+  assert.doesNotMatch(rail, /newGroupButton\.disabled/);
 });

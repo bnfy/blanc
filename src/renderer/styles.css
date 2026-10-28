@@ -665,27 +665,25 @@ html { --stage-w: 100vw; }
 .vertical-tabs-toolbar .vertical-tabs-layout-button { margin-left: auto; }
 
 /* The Island's Space mark, moved into this row while tabs are vertical
-   (vertical-tabs.js placeSpaceMark). It names the Space with room to spare and
-   opens the Spaces menu. With no Spaces yet it still shows, as the neutral
-   Spaces glyph, so the row always offers them. */
+   (vertical-tabs.js placeSpaceMark). It names the Space and opens the Spaces
+   menu. It takes the room the row has and shrinks before anything else, its
+   name ending in an ellipsis, so the layout toggle always stays in the rail.
+   With no Spaces yet it shows the neutral Spaces glyph (renderer.js keeps it
+   visible here), so the row always offers them. */
 .vertical-tabs-toolbar #pillSpace {
+  flex: 0 1 auto;
   min-width: 0;
   max-width: none;
   height: 28px;
   font-size: 12px;
 }
+.vertical-tabs-toolbar #pillSpace .space-mark-symbol { flex: none; }
 .vertical-tabs-toolbar #pillSpace .space-mark-name { max-width: none; }
-.vertical-tabs-toolbar #pillSpace[data-state="none"] {
-  display: inline-flex;
-  width: 28px;
-  padding: 0;
-  justify-content: center;
-  color: var(--text-dim);
-  background: color-mix(in srgb, var(--text) 6%, transparent);
+.vertical-tabs-toolbar #pillSpace:is([data-state="neutral"], [data-state="none"]) { width: 28px; flex: none; }
+.vertical-tabs-toolbar #pillSpace:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
 }
-.vertical-tabs-toolbar #pillSpace[data-state="none"] .space-mark-name { display: none; }
-.vertical-tabs-toolbar #pillSpace[data-state="none"] .space-mark-symbol svg { width: 16px; height: 16px; stroke-width: 2; }
-.vertical-tabs-toolbar #pillSpace[data-state="neutral"] { width: 28px; }
 
 /* The rail background owns the entire left edge. On macOS its first row also
    acts as the title-bar safe area: content starts after the native traffic
@@ -1162,11 +1160,10 @@ body > .tab-drag-ghost[aria-hidden="true"] {
   border-radius: var(--radius);
   color: var(--text-dim);
 }
-.vertical-tabs-new-group:hover:not(:disabled) {
+.vertical-tabs-new-group:hover {
   background: var(--surface);
   color: var(--text);
 }
-.vertical-tabs-new-group:disabled { opacity: 0.4; }
 .vertical-tabs-new-group svg {
   width: 15px;
   height: 15px;
@@ -1200,6 +1197,17 @@ body > .tab-drag-ghost[aria-hidden="true"] {
   width: 14px;
   height: 14px;
 }
+
+/* The footer shares its row with New group, so a long translation ends in an
+   ellipsis instead of wrapping at the rail's narrowest. */
+.vertical-tabs-new > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vertical-tabs-new svg,
+.vertical-tabs-new kbd { flex: none; }
 
 .vertical-tabs-new kbd {
   margin-left: auto;
@@ -4271,9 +4279,11 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 /* A colour this close to the Island (white on light, black on dark) gets a
    hairline so the square still reads; space-identity.js decides (data-edge). */
 .space-mark[data-edge="true"] .space-mark-symbol { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 18%, transparent); }
-.space-mark[data-state="neutral"] { width: 24px; padding: 0; justify-content: center; color: var(--text-dim); background: color-mix(in srgb, var(--text) 6%, transparent); }
-.space-mark[data-state="neutral"] .space-mark-name { display: none; }
-.space-mark[data-state="neutral"] .space-mark-symbol svg { width: 16px; height: 16px; stroke-width: 2; } /* the Spaces planet, as the ⌘L footer's */
+/* The Spaces glyph alone: Spaces exist but none is current, or (only in the
+   vertical tabs rail, where the mark always shows) there are none yet. */
+.space-mark:is([data-state="neutral"], .vertical-tabs-toolbar [data-state="none"]) { width: 24px; padding: 0; justify-content: center; color: var(--text-dim); background: color-mix(in srgb, var(--text) 6%, transparent); }
+.space-mark:is([data-state="neutral"], .vertical-tabs-toolbar [data-state="none"]) .space-mark-name { display: none; }
+.space-mark:is([data-state="neutral"], .vertical-tabs-toolbar [data-state="none"]) .space-mark-symbol svg { width: 16px; height: 16px; stroke-width: 2; } /* the Spaces planet, as the ⌘L footer's */
 #islandPill:has(> .space-mark:not([hidden])) { padding-left: 7px; }
 .island-row .row-space-tile { width: 20px; height: 20px; border-radius: 6px; }
 .island-row .row-space-tile .ws-symbol { width: 12px; height: 12px; }
