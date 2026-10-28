@@ -351,4 +351,63 @@ import Foundation
     data["backoffUntil"] = s.backoffUntil.map { .number(Double($0)) } ?? .null
     save()
   }
+
+  // MARK: - What the sync pass reads (M17c, desktop's `spaceIds` and the sidecar)
+
+  /// Live library Spaces this phone syncs: named by the index or held as a
+  /// blob, not deleted, dormant or a draft, in id order (`spaceIds`).
+  var spaceIds: [String] {
+    let index = Model.sanitizeIndex(data["index"])?["spaces"] ?? .object([])
+    let ids = Set(Model.keys(index)).union(Model.keys(data["blobs"]))
+    return ids.filter { id in
+      index[id]?["deleted"]?["v"] != .bool(true) && !isDormant(id) && !isDraft(id)
+    }.sorted(by: utf16Less)
+  }
+  /// Spaces whose index record is a tombstone (`deletedSpaceIds`).
+  var deletedSpaceIds: [String] {
+    (data["index"]?["spaces"]?.pairs ?? []).filter { $0.1["deleted"]?["v"] == .bool(true) }.map(\.0)
+  }
+  /// Whether Space `id` holds field writes not yet seen stored (the index receipt aside).
+  func hasPendingEdits(_ id: String) -> Bool {
+    (data["pending"]?[id]?.pairs ?? []).contains { $0.0 != "index" }
+  }
+  /// Whether the index names a revision other than the blob last merged here.
+  func revisionDiffers(_ id: String) -> Bool {
+    (data["index"]?["spaces"]?[id]?["rev"] ?? .null).canonical()
+      != (data["blobs"]?[id]?["rev"] ?? .null).canonical()
+  }
+  /// The merged blob held for `id`, as the adapter reads it.
+  func blob(_ id: String) -> JSONValue? { data["blobs"]?[id]?["blob"] }
+  /// A Space push failed (or recovered): desktop's `failedAt` for the status line.
+  func noteSpaceOutcome(id: String, failed: Bool) {
+    guard var entry = data["blobs"]?[id] else { return }
+    entry["failedAt"] = failed ? .number(Double(now())) : nil
+    setIn("blobs", id, entry)
+    save()
+  }
+  /// Merges a fetched `shared` store; false when it is oversized and can't be trusted.
+  @discardableResult func mergeSidecar(_ remote: JSONValue) -> Bool {
+    guard let merged = SharedSidecar.merge(local: data["sidecar"], remote: remote, now: now()) else {
+      return false
+    }
+    data["sidecar"] = merged
+    save()
+    return true
+  }
+  /// This phone's binding for the F27 snapshot it published in the same pass.
+  func setOwnSidecar(_ entry: JSONValue, deviceId: String) {
+    guard let clean = SharedSidecar.entry(entry, now: now()),
+      clean.canonical() != (data["sidecar"]?["devices"]?[deviceId] ?? .null).canonical()
+    else { return }
+    var sidecar = data["sidecar"] ?? .object([("devices", .object([]))])
+    var devices = sidecar["devices"] ?? .object([])
+    devices[deviceId] = clean
+    sidecar["devices"] = devices
+    data["sidecar"] = sidecar
+    save()
+  }
+  /// The `shared` payload to PUT, or nil to hold publication (`exportSidecar`).
+  func exportSidecar(deviceId: String) -> JSONValue? {
+    SharedSidecar.export(data["sidecar"], ownId: deviceId, now: now())
+  }
 }

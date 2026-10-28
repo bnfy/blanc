@@ -2,6 +2,15 @@ import XCTest
 import CryptoKit
 @testable import Blanc
 
+/// A settable clock shared by the engine, its scheduler and the fake Worker.
+final class TestClock: @unchecked Sendable {
+    private let lock = NSLock()
+    private var t: Int64
+    init(_ start: Int64) { t = start }
+    func now() -> Int64 { lock.lock(); defer { lock.unlock() }; return t }
+    func advance(_ ms: Int64) { lock.lock(); t += ms; lock.unlock() }
+}
+
 @MainActor final class InMemorySyncSecretStore: SyncSecretStore {
     var key: SymmetricKey?
     func readKey() throws -> SymmetricKey? { key }
@@ -20,9 +29,22 @@ actor MemorySyncTransport: SyncTransport {
     private var heldMethod: String?
     private var held: CheckedContinuation<Void, Never>?
     private var retired: Set<String> = []
+    private var stampClock: (@Sendable () -> Int64)?
+    private var stamps: [(method: String, path: String, at: Int64)] = []
     func records() -> [Request] { requests }
+    /// Stamp every request with this (simulated) clock, for window checks.
+    func setClock(_ clock: @escaping @Sendable () -> Int64) { stampClock = clock }
+    func getTimes() -> [Int64] { stamps.filter { $0.method == "GET" }.map(\.at) }
     /// An older Worker that doesn't serve `store` at all (M7b's `sends`).
     func retire(_ store: SyncStore) { retired.insert(store.rawValue) }
+    func retire(name: String) { retired.insert(name) }
+    func install(_ account: String, name: String, _ value: JSONValue, key: SymmetricKey) throws {
+        blobs["v1/blob/\(account)/\(name)"] = (1, try SyncCrypto.seal(Data(value.jsStringify().utf8), key: key))
+    }
+    func value(_ account: String, name: String, key: SymmetricKey) throws -> JSONValue? {
+        guard let (_, blob) = blobs["v1/blob/\(account)/\(name)"] else { return nil }
+        return try JSONValue(data: SyncCrypto.open(blob, key: key))
+    }
     func value(_ account: String, _ store: SyncStore, key: SymmetricKey) throws -> JSONValue? {
         guard let (_, blob) = blobs["v1/blob/\(account)/\(store.rawValue)"] else { return nil }
         return try JSONValue(data: SyncCrypto.open(blob, key: key))
@@ -37,6 +59,7 @@ actor MemorySyncTransport: SyncTransport {
     func release() { let continuation = held; held = nil; continuation?.resume() }
     func send(method: String, path: String, body: Data?) async throws -> (status: Int, body: Data) {
         requests.append(Request(method: method, path: path, body: body))
+        if let stampClock { stamps.append((method, path, stampClock())) }
         let response: (status: Int, body: Data)
         let exactKey = method + " " + path
         let failureKey = failures[exactKey] != nil ? exactKey : (failures.keys.first { $0.hasSuffix("/") && exactKey.hasPrefix($0) } ?? exactKey)
@@ -88,7 +111,10 @@ actor MemorySyncTransport: SyncTransport {
             try secrets.writeKey(key)
             try await transport.install(accountA, .settings, settings("light"), key: key)
         }
-        let engine = SyncEngine(state: state, secrets: secrets, client: SyncWorkerClient(transport: transport), clock: { self.now }, settingsSink: { _ in }, tabsSource: { tabs })
+        // A simulated monotonic clock: waiting for the request window advances
+        // it at once, so a test never waits a real minute.
+        let monotonic = TestClock(0)
+        let engine = SyncEngine(state: state, secrets: secrets, client: SyncWorkerClient(transport: transport), clock: { self.now }, monotonic: { monotonic.now() }, sleep: { monotonic.advance($0) }, settingsSink: { _ in }, tabsSource: { tabs })
         return Fixture(directory: directory, state: state, secrets: secrets, transport: transport, key: key, engine: engine)
     }
     private func settings(_ theme: String, at: Int64 = 100) -> JSONValue {
