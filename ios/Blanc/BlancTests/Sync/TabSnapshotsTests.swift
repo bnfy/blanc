@@ -30,6 +30,37 @@ final class TabSnapshotsTests: XCTestCase {
       TabSnapshots.ownEntry(tabs: tabs, previous: first, now: 90_001_000)["updatedAt"]?.intValue,
       90_001_000)
   }
+  /// Desktop's F27 export with groups, the membership clock and sidecar bindings.
+  func testMembershipScriptMatchesDesktop() throws {
+    let steps = try XCTUnwrap(SyncVectors.section("tabSnapshotMembership").first?["input"]?["steps"]).array
+    var previous: JSONValue?
+    var previousMembership: String?
+    for (n, step) in steps.enumerated() {
+      // Private tabs never reach the snapshot: the caller leaves them out.
+      let tabs = step["tabs"]!.array.filter { $0["private"] != .bool(true) }.map { t in
+        SnapshotTab(
+          url: t["url"]!.string!, title: t["customTitle"]?.string ?? t["title"]!.string!,
+          groupId: t["groupId"]?.string, pinned: t["pinned"]?.bool ?? false,
+          sharedSpaceId: t["sharedSpaceId"]?.string)
+      }
+      let groups = step["groups"]!.array.map { (id: $0["id"]!.string!, name: $0["name"]!.string!) }
+      let membership = TabSnapshots.membership(tabs)
+      let entry = TabSnapshots.ownEntry(
+        tabs: tabs, groups: groups, previous: previous, now: step["now"]!.intValue!,
+        membership: membership, previousMembership: previousMembership)
+      let expected = step["expected"]!
+      XCTAssertEqual(entry.canonical(), expected["entry"]!.canonical(), "step \(n)")
+      XCTAssertEqual(entry.canonical(), expected["stored"]!.canonical(), "step \(n)")
+      let bindings = TabSnapshots.bindings(tabs: tabs, entry: entry)
+      let sidecar: JSONValue = .object([
+        ("forUpdatedAt", entry["updatedAt"]!),
+        ("tabs", .array(bindings.map { .object([("i", .number(Double($0.i))), ("spaceId", .string($0.spaceId))]) })),
+      ])
+      XCTAssertEqual(sidecar.canonical(), expected["bindings"]!.canonical(), "step \(n)")
+      previous = entry
+      previousMembership = membership
+    }
+  }
   func testTrimmedForUploadFitsBudget() {
     let tabs = (0..<500).map {
       (url: "https://example.com/\($0)", title: String(repeating: "😀", count: 100))
