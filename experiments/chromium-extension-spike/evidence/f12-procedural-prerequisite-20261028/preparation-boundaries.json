@@ -1,0 +1,25 @@
+{
+  "checks": [
+    {
+      "fault": "engine",
+      "pass": true,
+      "message": "cosmetic engine/renderer provenance mismatch"
+    },
+    {
+      "fault": "renderer",
+      "pass": true,
+      "message": "cosmetic engine/renderer provenance mismatch"
+    },
+    {
+      "fault": "header",
+      "pass": true,
+      "message": "cosmetic bundle header mismatch"
+    },
+    {
+      "fault": "missing-renderer",
+      "pass": true,
+      "message": "ENOENT: no such file or directory, open '/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/cosmetic-preparation-boundaries-20261028/missing-renderer/procedural.js'"
+    }
+  ],
+  "pass": true
+}

@@ -25,6 +25,26 @@ def digest(path):
     return h.hexdigest()
 
 
+def validate_renderer(blocker, source=None):
+    blocker = pathlib.Path(blocker)
+    engine = json.loads((blocker / 'manifest.json').read_text())
+    renderer = engine.get('proceduralRenderer')
+    if renderer is None:
+        return None
+    script = blocker / 'procedural.js'
+    if digest(script) != renderer['bundleSha256']:
+        raise ValueError('Procedural renderer differs from manifest')
+    if source is not None:
+        header = (pathlib.Path(source) / 'chrome/services/blanc_blocker/procedural_renderer.h').read_text()
+        prefix = 'inline constexpr char kBlancProceduralRenderer[] = '
+        if not header.startswith(prefix) or not header.rstrip().endswith(';'):
+            raise ValueError('Unexpected procedural renderer header')
+        embedded = json.loads(header[len(prefix):].rstrip()[:-1])
+        if embedded != script.read_text():
+            raise ValueError('Native procedural renderer differs from asset')
+    return renderer['bundleSha256']
+
+
 def write_json(path, value):
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + '\n')
 
@@ -80,6 +100,9 @@ def validate(payload, assets, blocker, version, revision):
             raise ValueError('Font differs from the licensed input: ' + name)
     if digest(blocker / 'engine.js') != manifest['blockerInput']:
         raise ValueError('Blocker differs from the licensed input')
+    if manifest.get('proceduralRendererInput') is not None:
+        if validate_renderer(blocker) != manifest['proceduralRendererInput']:
+            raise ValueError('Procedural renderer differs from licensed input')
     bom = json.loads((payload / 'runtime-sbom.cdx.json').read_text())
     if (bom['bomFormat'] != 'CycloneDX' or bom['specVersion'] != '1.6'
             or bom['metadata']['component']['version'] != version
@@ -98,6 +121,7 @@ def prepare(repo, source, assets, blocker, output, revision):
     upstream = subprocess.check_output(['git', '-C', str(source), 'rev-parse', 'HEAD'], text=True).strip()
     parts = dict(line.strip().split('=') for line in (source / 'chrome/VERSION').read_text().splitlines())
     version = '.'.join(parts[k] for k in ['MAJOR', 'MINOR', 'BUILD', 'PATCH'])
+    procedural_hash = validate_renderer(blocker, source)
     output.mkdir(parents=True)
     for name in ['LICENSE', 'ASSET-LICENSE.md']:
         shutil.copyfile(repo / name, output / name)
@@ -133,6 +157,11 @@ def prepare(repo, source, assets, blocker, output, revision):
                            'name': package['name'], 'version': package['version'],
                            'purl': 'pkg:npm/' + urllib.parse.quote(package['name'], safe='/') + '@' + package['version'],
                            'licenses': [{'expression': package['license']}]})
+    if procedural_hash is not None:
+        components.append({'type': 'file', 'bom-ref': 'file:procedural-renderer',
+                           'name': 'Blanc isolated procedural renderer',
+                           'hashes': [{'alg': 'SHA-256', 'content': procedural_hash}],
+                           'licenses': [{'expression': 'MPL-2.0 AND MIT'}]})
     pins = json.loads((repo / 'adblock/sources/pinned.json').read_text())
     raw = b'\n'.join((repo / 'adblock/sources' / x['file']).read_bytes() for x in pins['lists'])
     if hashlib.sha256(raw).hexdigest() != engine['filtersSha256']:
@@ -194,6 +223,7 @@ def prepare(repo, source, assets, blocker, output, revision):
         'addedNativeSourceSha256': native_additions,
         'resolvedDependencyPinsSha256': digest(output / 'resolved-dependencies.json'),
         'buildRecord': json.loads((source / 'out/BlancPrototype/.blanc-last-successful-build.json').read_text()),
+        'proceduralRendererInput': procedural_hash,
         'blockerManifestSha256': digest(blocker / 'manifest.json'), 'filterPinsSha256': digest(repo / 'adblock/sources/pinned.json'),
         'upstreamLicenseInventorySha256': digest(output / 'chromium.spdx.json'),
         'provenanceScope': 'Materials observed at packaging; local incremental native build, not a hosted or independent hermetic rebuild. Final signed artifact digest and authenticated distribution manifest are external to avoid a self-hash cycle.'})
@@ -209,6 +239,7 @@ def prepare(repo, source, assets, blocker, output, revision):
     files = {p.relative_to(output).as_posix(): digest(p) for p in output.rglob('*') if p.is_file()}
     write_json(output / 'manifest.json', {'version': version, 'sourceRevision': revision,
         'nativeUpstreamRevision': upstream, 'componentCount': len(components), 'files': files,
+        'proceduralRendererInput': procedural_hash,
         'fontInputs': font_inputs, 'blockerInput': digest(blocker / 'engine.js')})
     validate(output, assets, blocker, version, revision)
     return len(components)

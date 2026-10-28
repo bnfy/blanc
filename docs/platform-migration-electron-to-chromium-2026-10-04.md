@@ -4,6 +4,8 @@ Oct 4, 2026 · Evaluation for owner decision. This file is the canonical
 record; the "Blanc Platform Migration: Electron to Chromium" Claude Doc was the
 drafting copy and may lag behind it.
 
+**October 28 full-prerequisite checkpoint:** 11/12 preview gates are accepted; the owner retained L12 NO-GO pending full prerequisites. The bounded timing/reference exception is authorized, but no timing repetition has passed the CPU-idle admission requirement. Production procedural cosmetics now have unsigned native evidence, including dynamic changes, BFCache and the seven previously unsupported pinned stylesheet-property rules. Signed qualification and the remaining F12 coverage/Decision 2 disposition are still required. See [current F12 status](../experiments/chromium-extension-spike/f12-acceptance-status.md) and [procedural evidence](../experiments/chromium-extension-spike/evidence/f12-procedural-prerequisite-20261028/README.md). Electron builds/repairs remain paused; the Google baseline is separate. No migration, merge or publication approval is inferred.
+
 **Owner decision, updated October 15, 2026: Decision 1 is authorized as a
 time-boxed prototype; shipping Blanc stays on Electron.** The owner declined
 the investigation on October 5 because a Chromium fork needs a near-full build

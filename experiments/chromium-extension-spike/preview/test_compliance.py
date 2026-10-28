@@ -2,7 +2,7 @@ import json
 import pathlib
 import tempfile
 import unittest
-from compliance import FONTS, digest, render_credits, validate, write_json
+from compliance import FONTS, digest, render_credits, validate, validate_renderer, write_json
 
 class ComplianceTests(unittest.TestCase):
     def setUp(self):
@@ -79,3 +79,20 @@ class ComplianceTests(unittest.TestCase):
         self.assertNotIn('<script>', rendered)
 
 if __name__ == '__main__': unittest.main()
+
+class RendererProvenanceTests(unittest.TestCase):
+    def test_renderer_and_native_header_must_match(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            (root / 'procedural.js').write_text('isolated renderer')
+            write_json(root / 'manifest.json', {'proceduralRenderer': {'bundleSha256': digest(root / 'procedural.js')}})
+            header = root / 'chrome/services/blanc_blocker/procedural_renderer.h'
+            header.parent.mkdir(parents=True)
+            header.write_text('inline constexpr char kBlancProceduralRenderer[] = '+json.dumps('isolated renderer')+';\n')
+            self.assertEqual(validate_renderer(root, root), digest(root / 'procedural.js'))
+            header.write_text('inline constexpr char kBlancProceduralRenderer[] = "stale";\n')
+            with self.assertRaisesRegex(ValueError, 'Native procedural'):
+                validate_renderer(root, root)
+            (root / 'procedural.js').write_text('changed')
+            with self.assertRaisesRegex(ValueError, 'differs from manifest'):
+                validate_renderer(root)

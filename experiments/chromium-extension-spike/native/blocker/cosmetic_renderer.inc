@@ -1,9 +1,11 @@
 #include <set>
 #include "base/json/json_reader.h"
+#include "base/json/json_writer.h"
 #include "base/timer/timer.h"
 #include "content/public/renderer/render_frame_observer_tracker.h"
 #include "third_party/blink/public/platform/scheduler/web_agent_group_scheduler.h"
 #include "chrome/services/blanc_blocker/cosmetic_collector.h"
+#include "chrome/services/blanc_blocker/procedural_renderer.h"
 
 class BlancCosmeticFrame final : public content::RenderFrameObserver,
     public content::RenderFrameObserverTracker<BlancCosmeticFrame> {
@@ -40,6 +42,18 @@ class BlancCosmeticFrame final : public content::RenderFrameObserver,
     return true;
   }
  private:
+  bool Procedural(const std::string& operation) {
+    auto* frame = render_frame()->GetWebFrame();
+    auto* isolate = frame->GetAgentGroupScheduler()->Isolate();
+    v8::HandleScope handles(isolate);
+    const std::string source = std::string(kBlancProceduralRenderer) +
+        ";(()=>{try{" + operation + ";return true;}catch{return false;}})()";
+    auto value = frame->ExecuteScriptInIsolatedWorldAndReturnValue(
+        ISOLATED_WORLD_ID_BLANC_COSMETICS,
+        blink::WebScriptSource(blink::WebString::FromUtf8(source)),
+        blink::BackForwardCacheAware::kAllow);
+    return !value.IsEmpty() && value->IsTrue();
+  }
   std::string Collect() {
     auto* frame = render_frame()->GetWebFrame();
     auto* isolate = frame->GetAgentGroupScheduler()->Isolate();
@@ -57,6 +71,7 @@ class BlancCosmeticFrame final : public content::RenderFrameObserver,
   void Update() {
     if (cached_ || pending_ || !remote_.is_connected()) return;
     auto weak = weak_.GetWeakPtr();
+    if (!Procedural("globalThis.__blancProcedural.tick(true)") || !weak) return;
     auto hints = Collect();
     if (!weak || hints.empty() || hints == "{\"ids\":[],\"classes\":[],\"hrefs\":[]}") return;
     pending_ = true;
@@ -76,6 +91,14 @@ class BlancCosmeticFrame final : public content::RenderFrameObserver,
     const auto* scripts = parsed->GetDict().FindList("scripts");
     if (!css || !scripts || scripts->size() > 256) return false;
     auto weak = weak_.GetWeakPtr();
+    if (initial) {
+      const auto* extended = parsed->GetDict().FindList("extended");
+      if (!extended || extended->size() > 256) return false;
+      const auto json = base::WriteJson(*extended);
+      if (!json || !Procedural("globalThis.__blancProcedural.replace(" + *json +
+                              ");globalThis.__blancProcedural.tick(true)") || !weak)
+        return false;
+    }
     if (!css->empty() && !styles_.contains(*css)) {
       if (bytes_ + css->size() > 1024 * 1024) return false;
       bytes_ += css->size(); styles_.insert(*css);

@@ -12,7 +12,7 @@ const pageBodies=pages.map(c=>pageResponse(c,{concurrency:'natural'}));
 const root=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'blanc-f12-latency-'))),certificates=createCertificateSet(path.join(root,'certificates'),[...new Set([...fixtures.keys()].map(u=>new URL(u).hostname))]);
 const report={started:new Date().toISOString(),completed:false,protocol:'one discarded full warm-up then five full repetitions per profile in the same process; nearest-rank percentiles; median-of-five',pageScheduling:'26 sequential page loads per repetition, 200 candidates per page except last; each page issues its resources concurrently without pacing; full corpus unchanged; repeated roots excluded from unique URL floor',nativeClock:'base::TimeTicks from factory entry or redirect receipt through decision application; Mojo included',electronClock:'process.hrtime.bigint at JS provider-observer entry through real provider result; preceding Electron native dispatch excluded; reference only',fullAcceptance:false,sources:{},runs:[],profiles:{},gaps:['Electron native-entry TimeTicks unavailable through this observer','engine-internal timing not exposed separately']};
 report.requireIdle=requireIdle;
-for(const name of ['latency-run.mjs','latency-validate.mjs','session.mjs','page.mjs'])report.sources[name]=sha(fs.readFileSync(new URL(name,import.meta.url)));
+for(const name of ['latency-run.mjs','latency-validate.mjs','session.mjs','page.mjs','native-latency-trace.mjs'])report.sources[name]=sha(fs.readFileSync(new URL(name,import.meta.url)));
 fs.writeFileSync(path.join(evidence,'page-layout.json'),JSON.stringify(pages.map((c,i)=>({index:i,candidateIds:c.map(x=>x.id),responseSha256:sha(pageBodies[i].body)})),null,2));fs.writeFileSync(path.join(evidence,'page-responses.json'),JSON.stringify(pageBodies,null,2));
 report.pageLayoutSha256=sha(fs.readFileSync(path.join(evidence,'page-layout.json')));report.baseFixtureBundleSha256=sha(JSON.stringify([...fixtures]));
 let session,replay;
@@ -34,6 +34,7 @@ try{
     const selected=new Set([pageUrl,...candidates.flatMap(c=>[c.url,...(c.descendantUrl?[c.descendantUrl]:[])])]);const expected=new Map([...expectedAll].filter(([url])=>selected.has(url)));
     const recordStart=session.records().length,arrivalStart=replay.arrivals.length,faultStart=replay.faults.length,failureStart=failures.length;
     await session.page.goto(pageUrl,{waitUntil:'commit',timeout:60000});await session.page.waitForFunction(()=>window.pilot?.done,null,{timeout:180000});await session.page.waitForFunction(()=>(window.blancFixtureChildren||[]).length===(window.blancFixtureExecuted||[]).length,null,{timeout:30000});await pause(200);
+    if(session.captureTiming)await session.captureTiming(expected,reference);
     const dom=await session.page.evaluate(()=>({loads:window.pilot.loads,executed:window.blancFixtureExecuted||[],children:window.blancFixtureChildren||[]})),rows=session.records().slice(recordStart),arrivals=replay.arrivals.slice(arrivalStart),transportFaults=replay.faults.slice(faultStart);
     const result=validateLatencyPage({browserKind,rows,dom,arrivals,expected,reference,fixtures,candidates});
     const services=new Set(['clients2.google.com','www.google.com:443','accounts.google.com:443']);if(transportFaults.some(f=>!(['plaintext-refused','connect-refused'].includes(f.code)&&services.has(f.authority))))result.faults.push('transport-fault');result.valid=result.faults.length===0;
@@ -47,5 +48,5 @@ try{
   await session.close();session=null;await replay.close();replay=null;
  }
  report.completed=true;
-}catch(e){report.error=String(e);process.exitCode=1;if(session)fs.writeFileSync(path.join(evidence,'partial.json'),JSON.stringify({records:session.records().filter(r=>fixtures.has(r.url)),arrivals:replay?.arrivals,faults:replay?.faults},null,2));}
+}catch(e){report.error=String(e);process.exitCode=1;if(session)fs.writeFileSync(path.join(evidence,'partial.json'),JSON.stringify({records:session.records().filter(r=>fixtures.has(r.url)),timingDiagnostics:session.timingDiagnostics?.(),arrivals:replay?.arrivals,faults:replay?.faults},null,2));}
 finally{if(session)await session.close();if(replay)await replay.close();fs.rmSync(root,{recursive:true,force:true});report.cleanup={removed:!fs.existsSync(root)};report.finished=new Date().toISOString();fs.writeFileSync(path.join(evidence,'report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({completed:report.completed,error:report.error}));}

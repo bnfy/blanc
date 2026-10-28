@@ -726,6 +726,30 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
   void Log(int result) {
     const auto elapsed = base::TimeTicks::Now() - start_;
     const auto type = Type(request_);
+    const perfetto::DynamicCategory latency_category("disabled-by-default-blanc.latency");
+    bool timing = false;
+    TRACE_EVENT_CATEGORY_GROUP_ENABLED(latency_category, &timing);
+    if (timing && request_.devtools_request_id) {
+      // Explicit local tracing only. Bind timing to independently observed
+      // context without restoring URL/private-profile diagnostic file logging.
+      base::ListValue context;
+      context.Append(request_.url.spec());
+      context.Append(request_.method);
+      context.Append(type);
+      context.Append(request_.request_initiator ? request_.request_initiator->Serialize() : "absent");
+      context.Append(type == "mainFrame" ? url::Origin::Create(request_.url).Serialize() : top_origin_);
+      context.Append(type == "mainFrame" ? "main" : frame_role_);
+      context.Append(context_.private_profile ? "private" : "regular");
+      context.Append(redirect_index_);
+      context.Append(request_.referrer.spec());
+      const auto serialized = base::WriteJson(context);
+      if (serialized) {
+        TRACE_EVENT_INSTANT(latency_category, "Blanc.DecisionTiming",
+            "request_digest", base::HexEncode(crypto::hash::Sha256(*request_.devtools_request_id)),
+            "context_digest", base::HexEncode(crypto::hash::Sha256(*serialized)),
+            "hook_to_decision_us", elapsed.InMicrosecondsF(), "result", result);
+      }
+    }
     base::DictValue event;
     event.Set("event", "decision"); event.Set("url", request_.url.spec());
     event.Set("method", request_.method); event.Set("resource_type", type);

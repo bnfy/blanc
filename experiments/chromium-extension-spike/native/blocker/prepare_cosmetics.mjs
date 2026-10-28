@@ -1,24 +1,25 @@
+// Build both authenticated cosmetic assets before touching the native checkout.
 import {prepareCosmeticSources} from './prepare_cosmetic_sources.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
-import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-const [src, parent, output] = process.argv.slice(2);
-if (!output) throw Error('usage: prepare_cosmetics.mjs DURABLE_SRC AUTHENTICATED_PARENT_ASSETS NEW_ASSETS');
+const [src, modules, asar, asarModule, output] = process.argv.slice(2);
+if (!output) throw Error('usage: prepare_cosmetics.mjs DURABLE_SRC NODE_MODULES AUTHENTICATED_APP_ASAR ASAR_MODULE NEW_ASSETS');
+if (fs.existsSync(output)) throw Error('new assets directory required');
 const here=path.dirname(fileURLToPath(import.meta.url));
-const sha=data=>createHash('sha256').update(data).digest('hex');
-const original=fs.readFileSync(path.join(parent,'engine.js'),'utf8');
-const manifest=JSON.parse(fs.readFileSync(path.join(parent,'manifest.json')));
-if(sha(original)!==manifest.bundleSha256 || manifest.bundleSha256!=='9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d') throw Error('unexpected authenticated parent');
-const adapter=fs.readFileSync(path.join(here,'cosmetic_adapter.js'),'utf8');
-const marker='globalThis.blancDecide=';
-if(original.split(marker).length!==2)throw Error('engine anchor');
-const script=original.replace(marker,adapter+'\n'+marker);
-if(fs.existsSync(output)) throw Error('new assets directory required');
-fs.mkdirSync(output,{recursive:true});
-fs.cpSync(path.join(parent,'licenses'),path.join(output,'licenses'),{recursive:true});
-fs.writeFileSync(path.join(output,'engine.js'),script);
-fs.writeFileSync(path.join(output,'manifest.json'),JSON.stringify({...manifest,parentBundleSha256:manifest.bundleSha256,bundleSha256:sha(script),cosmeticAdapterSha256:sha(adapter)},null,2)+'\n');
-fs.writeFileSync(path.join(output,'bundle_hash.h'),`inline constexpr char kBlancBlockerBundleSha256[] = "${sha(script)}";\n`);
+function run(script, destination) {
+ const result=spawnSync(process.execPath,[path.join(here,script),modules,asar,asarModule,destination],{stdio:'inherit'});
+ if(result.error) throw result.error;
+ if(result.status!==0) throw Error(script+' failed; incomplete assets retained, native checkout not staged');
+}
+run('bundle.mjs',output);
+const renderer=path.join(output,'renderer-provenance');
+run('bundle_procedural.mjs',renderer);
+const manifest=JSON.parse(fs.readFileSync(path.join(output,'manifest.json')));
+manifest.proceduralRenderer=JSON.parse(fs.readFileSync(path.join(renderer,'manifest.json')));
+fs.copyFileSync(path.join(renderer,'procedural.js'),path.join(output,'procedural.js'));
+fs.copyFileSync(path.join(renderer,'LICENSE-MPL-2.0'),path.join(output,'licenses','procedural-renderer-LICENSE-MPL-2.0'));
+fs.writeFileSync(path.join(output,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
 prepareCosmeticSources(src,output);
-console.log(JSON.stringify({parent:manifest.bundleSha256,bundle:sha(script),adapter:sha(adapter)}));
+console.log(JSON.stringify({bundle:manifest.bundleSha256,renderer:manifest.proceduralRenderer.bundleSha256}));

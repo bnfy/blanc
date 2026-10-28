@@ -1,3 +1,5 @@
+> October28 owner decision: **L12 remains NO-GO pending full prerequisites**. Bounded deferral proposal was declined;11/12accepted. [Completion plan](full-prerequisites-run-plan-20261028.md). No publication or merge.
+
 > Current October28 final review: [exact bounded Mac-preview packet and proposed Decision2 disposition](evidence/l12-final-packet-20261028/README.md). Publisher authentication/readback pass. L4 and explicitly scoped L11 accepted;11/12, only L12 owner decision remains. Older NO-GO identities below are historical; no public release/merge approval.
 
 > October28 reconciliation: L4 now passes using authentic 1Password8.12.41.1→8.12.42.36 in its separate owner-authorized durable fixture. Readiness10/12,delta+1. Current signed candidate source260f98ff/archivea323f660c99beecb2d085acb22f778081a8326474cb44e90b3df1a44e203d31a; Apple76944658-9890-4866-9ef5-f7c076febc65. L11 and L12/Decision2 remain open; older packet identities below are historical. No release/merge authorization.

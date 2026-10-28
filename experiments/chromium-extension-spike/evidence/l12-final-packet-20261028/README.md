@@ -30,3 +30,9 @@ Scope remains AppleSilicon/macOS27 (tested27.2), separate manual-update Preview.
 ## Owner decision required
 
 Approve the bounded Decision2 disposition above and L12 GO for this exact candidate, including explicit reuse of unchanged L2/L5/L6/L8/L9/L10 controls and acceptance of the updated bounded security evidence. This would close the12-gate Mac-preview evaluation only. Any later publication or merge requires separate authorization. If the owner retains the original aggregate latency/full-F12 prerequisites instead, L12 remains NO-GO while those measurements are deferred.
+
+## Owner decision
+
+October28: owner selected “Keep L12 NO-GO pending full prerequisites.” The bounded Decision2/deferral proposal above was NOT approved. L12 remains NO-GO,11/12accepted; latency remains deferred and no Electron comparison is authorized by this answer. Continue the concrete completion plan in ../../full-prerequisites-run-plan-20261028.md.
+
+Subsequent owner authorization: the bounded timing/reference run is now approved under ../../full-prerequisites-run-plan-20261028.md. This does not approve the rejected deferral or L12. Four real-page observations completed; paired parity and formal latency remain unproven.

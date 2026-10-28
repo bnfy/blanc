@@ -5,7 +5,7 @@ globalThis.blancCosmetics = input => {
     ...args,
     getBaseRules: args.initial,
     getInjectionRules: args.initial,
-    getExtendedRules: false,
+    getExtendedRules: args.initial,
     getRulesFromHostname: args.initial,
     getRulesFromDOM: true,
   });
@@ -13,5 +13,5 @@ globalThis.blancCosmetics = input => {
   // Matches the production wrapper in src/main/adblock-scriptlets.js.
   const scripts = result.scripts.map(script =>
     `((scriptletGlobals) => {\n${script}\n})(typeof globalThis.scriptletGlobals === 'undefined' ? (globalThis.scriptletGlobals = {}) : globalThis.scriptletGlobals);`);
-  return JSON.stringify({styles: result.styles, scripts});
+  return JSON.stringify({styles: result.styles, scripts, extended: args.initial ? result.extended.map(rule => ({...rule, properties: procedural.properties.filter(property => JSON.stringify(rule.ast).includes(property.attribute))})) : []});
 };

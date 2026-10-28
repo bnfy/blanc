@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "kind": "private-real-page-observation-only",
+  "started": "2026-10-28T15:25:32.520Z",
+  "expires": "2026-11-04T15:25:32.520Z",
+  "observationLimitSeconds": 60,
+  "attempted": 4,
+  "completed": 4,
+  "profiles": {
+    "regular": {
+      "version": "157.0.8103.15",
+      "offTheRecord": false
+    },
+    "private": {
+      "version": "157.0.8103.15",
+      "offTheRecord": true
+    }
+  },
+  "noParityClaim": true,
+  "interception": "non-GET and authorization requests refused; routing disables cache; metadata-only observations",
+  "excludedFromSyntheticDenominator": true,
+  "records": [
+    {
+      "kind": "regular",
+      "index": 0,
+      "loaded": true,
+      "challengeObserved": false,
+      "requests": 6,
+      "parties": {
+        "first-party": 6
+      },
+      "protocols": {
+        "h2": 6
+      },
+      "resources": {
+        "Document": 1,
+        "Image": 2,
+        "Script": 2,
+        "Other": 1
+      },
+      "refusals": {},
+      "elapsedMs": 12106,
+      "responses": 6
+    },
+    {
+      "kind": "regular",
+      "index": 1,
+      "loaded": true,
+      "challengeObserved": false,
+      "requests": 57,
+      "parties": {
+        "first-party": 26,
+        "third-party": 30,
+        "unknown": 1
+      },
+      "protocols": {
+        "h2": 25,
+        "data": 1,
+        "h3": 3,
+        "http/1.1": 8
+      },
+      "resources": {
+        "Document": 1,
+        "Stylesheet": 4,
+        "Font": 1,
+        "Image": 11,
+        "Script": 11,
+        "Fetch": 2,
+        "Preflight": 7
+      },
+      "refusals": {
+        "other": 11,
+        "non-get": 8,
+        "inspector": 8,
+        "network-failure": 1
+      },
+      "elapsedMs": 12374,
+      "responses": 37
+    },
+    {
+      "kind": "private",
+      "index": 0,
+      "loaded": true,
+      "challengeObserved": false,
+      "requests": 6,
+      "parties": {
+        "first-party": 6
+      },
+      "protocols": {
+        "h2": 6
+      },
+      "resources": {
+        "Document": 1,
+        "Image": 2,
+        "Script": 2,
+        "Other": 1
+      },
+      "refusals": {},
+      "elapsedMs": 12180,
+      "responses": 6
+    },
+    {
+      "kind": "private",
+      "index": 1,
+      "loaded": true,
+      "challengeObserved": false,
+      "requests": 57,
+      "parties": {
+        "first-party": 27,
+        "third-party": 29,
+        "unknown": 1
+      },
+      "protocols": {
+        "h2": 25,
+        "data": 1,
+        "h3": 3,
+        "http/1.1": 8
+      },
+      "resources": {
+        "Document": 1,
+        "Stylesheet": 4,
+        "Font": 1,
+        "Image": 11,
+        "Script": 11,
+        "Fetch": 2,
+        "Preflight": 7
+      },
+      "refusals": {
+        "other": 10,
+        "network-failure": 1,
+        "non-get": 8,
+        "inspector": 8
+      },
+      "elapsedMs": 12652,
+      "responses": 37
+    }
+  ],
+  "cleanup": [
+    {
+      "kind": "regular",
+      "index": 0,
+      "profileRemoved": true,
+      "trustKeysCreated": false
+    },
+    {
+      "kind": "regular",
+      "index": 1,
+      "profileRemoved": true,
+      "trustKeysCreated": false
+    },
+    {
+      "kind": "private",
+      "index": 0,
+      "profileRemoved": true,
+      "trustKeysCreated": false
+    },
+    {
+      "kind": "private",
+      "index": 1,
+      "profileRemoved": true,
+      "trustKeysCreated": false
+    }
+  ],
+  "bundleSha256": "dd2ccfd00be436374867e4254afd82e0e44ba82bfaca4e51c9557d38a0be1deb",
+  "samplerSha256": "5c5b2781eff89f6f6869e875665980b9c840f44c9ce1dd5dc03f618a2ec9f7b9",
+  "signedCandidateAcceptance": false
+}
