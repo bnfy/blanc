@@ -7,6 +7,8 @@
 (() => {
   const page = document.querySelector('.page');
   if (!page || !window.bowserPages?.surface) return;
+  // Blanc for iPhone shows these pages as ordinary tabs (ios-pages.css).
+  if (document.documentElement.dataset.platform === 'ios') return;
 
   page.setAttribute('role', 'dialog');
   page.setAttribute('aria-modal', 'true');

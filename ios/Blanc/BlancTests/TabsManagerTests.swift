@@ -28,12 +28,20 @@ final class TabsManagerTests: XCTestCase {
         XCTAssertFalse(m.isFavorite(tab))
     }
 
+    /// What WebKit reports for one ordinary page load: the commit (the page's
+    /// title isn't known yet), then the finished load with its title.
+    /// (WebKit doesn't let a test make a WKNavigation; nil stands for any
+    /// load that isn't a wake.)
+    @MainActor private func load(_ tab: TabModel, _ address: String, title: String) {
+        tab.navigationDelegate.committed(nil, url: URL(string: address)!, title: "")
+        tab.navigationDelegate.finishedLoad(url: URL(string: address)!, title: title)
+    }
+
     @MainActor func testVisitsRecordHistory() {
         let m = makeManager()
         let tab = m.activeTab!
-        // The delegate's real order at each finished load: title, then address.
-        tab.navigationDelegate.finishedLoad(url: URL(string: "https://news.example/")!, title: "News")
-        tab.navigationDelegate.finishedLoad(url: URL(string: "https://news.example/story")!, title: "Story")
+        load(tab, "https://news.example/", title: "News")
+        load(tab, "https://news.example/story", title: "Story")
         XCTAssertEqual(m.historyStore.entries.map(\.url), ["https://news.example/story", "https://news.example/"])
         XCTAssertEqual(m.historyStore.entries.map(\.title), ["Story", "News"], "each page keeps its own title")
     }
@@ -41,12 +49,78 @@ final class TabsManagerTests: XCTestCase {
     @MainActor func testVisitToTheSameAddressIsRecorded() {
         let m = makeManager()
         let tab = m.activeTab!
-        // A typed address moves currentURL before the load finishes.
+        // A typed address moves currentURL before the load commits.
         let typed = URL(string: "https://search.example/?q=blanc")!
         tab.currentURL = typed
-        tab.navigationDelegate.finishedLoad(url: typed, title: "blanc - Search")
+        load(tab, typed.absoluteString, title: "blanc - Search")
         XCTAssertEqual(m.historyStore.entries.map(\.url), [typed.absoluteString])
         XCTAssertEqual(m.historyStore.entries.first?.title, "blanc - Search")
+    }
+
+    /// The owner's TestFlight History (2026-10-28) listed the same two pages
+    /// four times each: every launch and Space switch wakes the shown tab, and
+    /// each wake was recorded as a new visit. A wake shows a page the tab
+    /// already visited, so, as on desktop, it records nothing.
+    @MainActor func testWakingRestoredTabsRecordsNoNewVisits() throws {
+        let m = makeManager()
+        let nbc = URL(string: "https://www.nbc.com/")!, nintendo = URL(string: "https://www.nintendo.com/us/")!
+        load(m.activeTab!, nbc.absoluteString, title: "NBC")
+        load(m.activeTab!, nintendo.absoluteString, title: "Nintendo")
+        for _ in 0..<2 {
+            for url in [nbc, nintendo] {
+                // The tabs as a relaunch or a Space switch leaves them: quiet
+                // until shown, then woken by being shown.
+                let id = m.createTab(url: url, quiet: true)
+                let tab = try XCTUnwrap(m.tabs.first { $0.id == id })
+                m.setActive(id)
+                let wake = try XCTUnwrap(tab.navigationDelegate.wakeNavigation)
+                tab.navigationDelegate.committed(wake, url: url, title: "")
+                tab.navigationDelegate.applyTitle("Page Loading")
+                tab.navigationDelegate.finishedLoad(wake, url: url, title: "Page Loading")
+                XCTAssertFalse(tab.navigationDelegate.isWaking, "the wake ends with its own load")
+            }
+        }
+        XCTAssertEqual(m.historyStore.entries.map(\.url), [nintendo.absoluteString, nbc.absoluteString])
+        XCTAssertEqual(m.historyStore.entries.map(\.title), ["Nintendo", "NBC"], "a wake renames nothing either")
+
+        // Once woken, the tab's next page is an ordinary visit again.
+        let tab = m.activeTab!
+        load(tab, "https://www.nintendo.com/us/store/", title: "Store")
+        XCTAssertEqual(m.historyStore.entries.first?.url, "https://www.nintendo.com/us/store/")
+        XCTAssertEqual(m.historyStore.entries.count, 3)
+    }
+
+    @MainActor func testLeavingAWakeBeforeItLoadsRecordsTheNextPage() throws {
+        let m = makeManager()
+        let id = m.createTab(url: URL(string: "https://slow.example/")!, quiet: true)
+        let tab = try XCTUnwrap(m.tabs.first { $0.id == id })
+        m.setActive(id)
+        XCTAssertTrue(tab.navigationDelegate.isWaking)
+        // A link tapped before the wake's own load commits supersedes it.
+        load(tab, "https://elsewhere.example/", title: "Elsewhere")
+        XCTAssertFalse(tab.navigationDelegate.isWaking)
+        XCTAssertEqual(m.historyStore.entries.map(\.url), ["https://elsewhere.example/"])
+    }
+
+    /// NBC's page is titled "Page Loading - NBC.com" when it finishes and
+    /// names itself a moment later: one visit, renamed in place.
+    @MainActor func testATitleSetAfterLoadingRenamesTheVisitInPlace() {
+        let m = makeManager()
+        let tab = m.activeTab!
+        load(tab, "https://www.nbc.com/", title: "Page Loading - NBC.com")
+        tab.navigationDelegate.applyTitle("NBC.com - Official Site")
+        XCTAssertEqual(m.historyStore.entries, [HistoryEntry(
+            url: "https://www.nbc.com/", title: "NBC.com - Official Site",
+            visitedAt: m.historyStore.entries.first?.visitedAt ?? 0)])
+        XCTAssertEqual(tab.pageTitle, "NBC.com - Official Site")
+    }
+
+    @MainActor func testAPageWithTheSameTitleAsTheLastStillNamesItsVisit() {
+        let m = makeManager()
+        let tab = m.activeTab!
+        load(tab, "https://docs.example/a", title: "Docs")
+        load(tab, "https://docs.example/b", title: "Docs")
+        XCTAssertEqual(m.historyStore.entries.map(\.title), ["Docs", "Docs"])
     }
 
     @MainActor private func openPrivate(_ m: TabsManager, url: URL? = nil) -> TabModel {
@@ -96,8 +170,9 @@ final class TabsManagerTests: XCTestCase {
     @MainActor func testPrivateTabRecordsNoHistory() {
         let m = makeManager()
         let tab = openPrivate(m)
-        tab.navigationDelegate.finishedLoad(url: URL(string: "https://secret.example/")!, title: "Secret")
-        tab.navigationDelegate.finishedLoad(url: URL(string: "https://secret.example/next")!, title: "Next")
+        load(tab, "https://secret.example/", title: "Secret")
+        load(tab, "https://secret.example/next", title: "Next")
+        tab.navigationDelegate.applyTitle("Renamed")
         XCTAssertTrue(m.historyStore.entries.isEmpty)
     }
 

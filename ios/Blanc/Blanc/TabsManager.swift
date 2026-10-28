@@ -402,8 +402,10 @@ final class TabsManager {
         tab.navigationDelegate.onVisit = { [weak self] url, title in
             if !isPrivate { self?.historyStore.addVisit(url: url, title: title) }
         }
-        tab.navigationDelegate.onTitleChange = { [weak self, weak tab] in
-            if let tab, !isPrivate { self?.historyStore.updateTitle(url: tab.currentURL, title: tab.pageTitle) }
+        tab.navigationDelegate.onPageTitle = { [weak self] url, title in
+            if !isPrivate { self?.historyStore.updateTitle(url: url, title: title) }
+        }
+        tab.navigationDelegate.onTitleChange = { [weak self] in
             self?.syncEngine.tabsChanged()
         }
         tab.navigationDelegate.onWillLoadMainFrame = { [weak self, weak tab] url in

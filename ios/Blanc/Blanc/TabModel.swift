@@ -30,6 +30,7 @@ final class TabModel: Identifiable {
     var readerAllowed = true
     var readerBusy = false
     @ObservationIgnored private var readerURLObservation: NSKeyValueObservation?
+    @ObservationIgnored private var titleObservation: NSKeyValueObservation?
 
     let nativeClock = NativeClockOverlay()
     let navigationDelegate: TabNavigationDelegate
@@ -73,7 +74,7 @@ final class TabModel: Identifiable {
     func wake() {
         guard isQuiet else { return }
         isQuiet = false
-        navigationDelegate.load(currentURL, in: webView)
+        navigationDelegate.wake(currentURL, in: webView)
     }
 
     private func makeWebView() -> WKWebView {
@@ -89,6 +90,13 @@ final class TabModel: Identifiable {
             Task { @MainActor [weak self, weak webView] in
                 guard let self, let url = webView?.url else { return }
                 self.navigationDelegate.applyURL(url, to: self)
+            }
+        }
+        // Many pages set their real title after they finish loading.
+        titleObservation = webView.observe(\.title, options: [.new]) { [weak self] webView, _ in
+            Task { @MainActor [weak self, weak webView] in
+                guard let self, let title = webView?.title else { return }
+                self.navigationDelegate.applyTitle(title)
             }
         }
         return webView
