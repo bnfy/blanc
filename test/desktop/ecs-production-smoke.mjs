@@ -20,8 +20,11 @@ await fs.mkdir(profile);
 await fs.writeFile(path.join(profile, 'settings.json'), JSON.stringify({ onboardingVersion: 1, usagePing: false, searchSuggestions: false }));
 const canary = path.join(root, 'private.html');
 await fs.writeFile(canary, '<p id="secret">PRIVATE_LOCAL_CANARY</p>');
+// The head goes out at once and the body 1.5 s later, so the fixture's target
+// is listed while its document is still parsing, as on a slow runner (#1210).
 const server = http.createServer((_req, res) => {
-  res.setHeader('Content-Type', 'text/html'); res.end('<!doctype html><title>File access boundary</title>Untrusted web page');
+  res.setHeader('Content-Type', 'text/html'); res.write('<!doctype html><title>File access boundary</title>');
+  setTimeout(() => res.end('<body>Untrusted web page</body>'), 1500);
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const url = `http://127.0.0.1:${server.address().port}/`;
@@ -49,6 +52,13 @@ try {
       await chrome.evaluate(url => window.browserAPI.createTab(url), url);
       const target = await waitFor(async () => (await targets(port)).find(p => p.url === url), 'web fixture');
       client = await connect(target);
+      // The target is listed once the tab commits to the fixture, before its
+      // document has parsed: wait for the loaded page before probing (#1210).
+      await waitFor(async () => {
+        try {
+          return await client.evaluate(href => location.href === href && document.readyState === 'complete' && !!document.body, url);
+        } catch { return false; }
+      }, 'web fixture document', 30000);
       const boundary = await client.evaluate(async file => {
         let readable = false, workerStarted = false, serviceWorkerRegistered = false, frameReadable = false;
         try { readable = (await (await fetch(file)).text()).includes('PRIVATE_LOCAL_CANARY'); } catch {}
