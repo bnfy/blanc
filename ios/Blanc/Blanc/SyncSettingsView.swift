@@ -232,6 +232,11 @@ struct SyncSettingsView: View {
             if engine.spacesAvailability == .unavailable {
                 Text(SyncCopy.text("sharedSpaces.unavailable")).foregroundStyle(.secondary)
                     .accessibilityIdentifier("sync.spaces.unavailable")
+            } else if on {
+                ForEach(engine.spacesStatusKeys, id: \.self) { key in
+                    Text(SyncCopy.text(key)).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("sync.spaces.status")
+                }
             } else if !on, engine.libraryCount > 0 {
                 Text(SyncCopy.plural("sharedSpaces.waitingCount", count: engine.libraryCount))
                     .foregroundStyle(.secondary)

@@ -43,6 +43,7 @@ struct SpacesCard: View {
         // With the switch off, the library index is read when the menu opens
         // (at most once a minute), for the other devices' Spaces.
         .task { _ = await manager.syncEngine.previewIndex() }
+        .onDisappear { manager.noteRecoveriesSeen() }
     }
 
     private var rows: some View {
@@ -57,6 +58,13 @@ struct SpacesCard: View {
             ForEach(manager.spaces) { space in
                 row(id: space.id, name: space.name, identifier: "spaces.row.\(space.name)", sync: syncMark(space)) {
                     SpaceTile(color: space.color, symbol: space.symbol, size: 30)
+                }
+                // Said once: where a stale copy's tabs went (M16 §3.9).
+                if space.recoveredFrom != nil, !manager.recoveryNoted.contains(space.id) {
+                    Text(SyncCopy.text("sharedSpaces.recoveryNote"))
+                        .font(BrowserStyle.font(13)).foregroundStyle(style.secondary)
+                        .padding(.bottom, 6)
+                        .accessibilityIdentifier("spaces.recoveryNote")
                 }
             }
             // On other devices (switch off): the library's Spaces, read-only,
@@ -150,8 +158,16 @@ struct SpacesCard: View {
     /// A shared Space's sync mark: a glyph, and accessible text naming its
     /// state (M16 §10, D8); nil for a local Space.
     private func syncMark(_ space: SpaceRecord) -> String? {
-        guard space.sharedId != nil, space.link == .active else { return nil }
-        return SyncCopy.text("sharedSpaces.shared")
+        guard let sid = space.sharedId, space.link == .active else { return nil }
+        switch manager.syncEngine.spaceSyncState(sid) {
+        case .shared: return SyncCopy.text("sharedSpaces.shared")
+        case .waiting: return SyncCopy.text("sharedSpaces.waiting")
+        case .full: return SyncCopy.text("sharedSpaces.fullState")
+        case .unavailable: return SyncCopy.text("sharedSpaces.unavailableState")
+        case .notSynced(let since):
+            let time = since.map { Date(timeIntervalSince1970: Double($0) / 1000).formatted(date: .abbreviated, time: .shortened) } ?? "—"
+            return SyncCopy.text("sharedSpaces.notSynced", ["time": time])
+        }
     }
 
     private func row<Icon: View>(id: String, name: String, identifier: String, sync: String? = nil,

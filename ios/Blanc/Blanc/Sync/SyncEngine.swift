@@ -83,6 +83,9 @@ private final class Box<T> {
   /// how many live Spaces the merged library index holds.
   private(set) var spacesEnabled = false
   private(set) var libraryCount = 0
+  /// Moves whenever the Spaces state may have changed, so marks and status
+  /// lines (which read the unobserved state) redraw.
+  private(set) var spacesRevision = 0
   /// The local `closed` cache: `{devices, dismissed, published}`; only
   /// `devices` is synced, and `published` says this phone's entry reached the Worker.
   private var closed: JSONValue
@@ -1058,8 +1061,9 @@ private final class Box<T> {
       names[id] = entry["name"]?.text ?? ""
     }
     remoteDevices = TabSnapshots.devices(
-      session["devices"] ?? .object([]), excluding: stateStore.state.deviceId, names: names)
+      visibleSessionDevices(), excluding: stateStore.state.deviceId, names: names)
     spacesEnabled = stateStore.state.enabled && sharedState.isEnabled
+    spacesRevision += 1
     libraryCount = SharedSpacesSharing.liveCount(sharedState.data["index"])
     spacesBusy = sharedState.isEnabled && queue.consecutiveRateLimits >= 2
     spacesSlowed = sharedState.isEnabled && queue.snapshot.windowLimit < 10
@@ -1083,6 +1087,73 @@ private final class Box<T> {
       ).filter { (row: ClosedRow) -> Bool in !own.contains(row.id) } : []
   }
 
+  /// The session entries with every tab another device placed in a shared
+  /// Space this phone shows taken out (M16 §8, desktop's `hideOccurrences`),
+  /// so Other devices, the start page and the Quick Switcher list it once.
+  private func visibleSessionDevices() -> JSONValue {
+    let devices = session["devices"] ?? .object([])
+    guard stateStore.state.enabled, sharedState.isEnabled else { return devices }
+    let visible = Set(sharedState.spaceIds.filter { (id: String) -> Bool in sharedState.blob(id) != nil })
+    let hidden = SharedSidecar.hiddenIndices(
+      devices: sharedState.data["sidecar"]?["devices"] ?? .object([]), sessionEntries: devices,
+      visibleSpaceIds: visible)
+    guard !hidden.isEmpty else { return devices }
+    var out = devices
+    for (id, indices) in hidden {
+      guard var entry = out[id], let tabs = entry["tabs"]?.array else { continue }
+      entry["tabs"] = .array(tabs.enumerated().filter { !indices.contains($0.offset) }.map(\.element))
+      out[id] = entry
+    }
+    return out
+  }
+  /// A shared Space's sync state for its mark (M16 §10, desktop's
+  /// `markState`): unavailable, full, not synced (a push failing for over an
+  /// hour, or tabs past the budget), waiting to upload, or shared.
+  enum SpaceSyncState: Equatable {
+    case shared, waiting, full, unavailable
+    case notSynced(since: Int64?)
+  }
+  func spaceSyncState(_ sharedId: String) -> SpaceSyncState {
+    _ = spacesRevision
+    if spacesAvailability == .unavailable { return .unavailable }
+    let entry = sharedState.data["blobs"]?[sharedId]
+    if let reason = entry?["reason"]?.string, Self.fullReasons.contains(reason) { return .full }
+    let published = entry?["lastPublishedAt"]?.integer
+    if let failed = entry?["failedAt"]?.integer, clock() - (published ?? failed) > 3_600_000 {
+      return .notSynced(since: published)
+    }
+    if !unsyncedTabIds(sharedId).isEmpty { return .notSynced(since: published) }
+    if sharedState.hasPendingEdits(sharedId) || sharedState.data["pending"]?[sharedId]?["index"] != nil {
+      return .waiting
+    }
+    return .shared
+  }
+  private static let fullReasons: Set<String> = [
+    "full", "tombstones", "tabs", "remote-over-budget", "required-state-over-budget",
+  ]
+  /// Tabs of a full Space whose records couldn't be uploaded (desktop's `unsyncedTabIds`).
+  func unsyncedTabIds(_ sharedId: String) -> Set<String> {
+    _ = spacesRevision
+    let entry = sharedState.data["blobs"]?[sharedId]
+    return Set(
+      (entry?["unsynced"]?.array ?? []).compactMap { (v: JSONValue) -> String? in
+        guard let id = v.string, SharedSpacesModel.isId(id), entry?["blob"]?["tabs"]?[id] != nil else { return nil }
+        return id
+      })
+  }
+  /// Settings → Sync's status lines (M16 §5, §6.2), as catalog keys.
+  var spacesStatusKeys: [String] {
+    guard spacesEnabled else { return [] }
+    let reasons = (sharedState.data["blobs"]?.pairs ?? []).compactMap { (_: String, entry: JSONValue) -> String? in
+      entry["reason"]?.string
+    }
+    var keys: [String] = []
+    if reasons.contains(where: { Self.fullReasons.contains($0) && $0 != "tombstones" }) { keys.append("sharedSpaces.capacity") }
+    if reasons.contains("tombstones") { keys.append("sharedSpaces.tombstones") }
+    if spacesBusy { keys.append("sharedSpaces.busy") }
+    if spacesSlowed { keys.append("sharedSpaces.slowed") }
+    return keys
+  }
   /// The name a device goes by here: the one chosen for it, else the one it
   /// publishes in Tab Sync, Send to device or Recently closed.
   func deviceName(for id: String) -> String? {

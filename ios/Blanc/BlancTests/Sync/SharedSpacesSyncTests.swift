@@ -281,4 +281,79 @@ import CryptoKit
         let requests = await f.transport.records()
         XCTAssertFalse(requests.contains { isSpacesPath($0.path) }, "no Spaces store with the switch off")
     }
+
+    // MARK: Status and shown-once (Task 21)
+
+    /// The Mac's three tabs (the last two on the same page) and its sidecar
+    /// binding tab 1 to shared Space 1, as the Worker holds them.
+    private func installMac(_ f: Fixture, sidecarAt: Double, sessionAt: Double) async throws {
+        let spaceId = id(1)
+        let remote = blob(spaceId, [])
+        try await f.transport.install(account, name: "space-" + spaceId, remote, key: f.key)
+        try await f.transport.install(account, name: "spaces", .object([("v", .number(1)), ("spaces", .object([(spaceId, try indexEntry(spaceId, rev: SharedSpacesModel.revisionOf(remote)))]))]), key: f.key)
+        func tab(_ url: String) -> JSONValue {
+            .object([("url", .string(url)), ("title", .string(url)), ("groupId", .null), ("pinned", .bool(false))])
+        }
+        try await f.transport.install(account, .session, .object([("devices", .object([("mac", .object([
+            ("name", .string("Mac")), ("platform", .string("darwin")), ("updatedAt", .number(sessionAt)),
+            ("tabs", .array([tab("https://a.example/"), tab("https://b.example/"), tab("https://b.example/")])),
+            ("groups", .array([])),
+        ]))]))]), key: f.key)
+        try await f.transport.install(account, .shared, .object([("devices", .object([("mac", .object([
+            ("forUpdatedAt", .number(sidecarAt)),
+            ("tabs", .array([.object([("i", .number(1)), ("spaceId", .string(spaceId))])])),
+        ]))]))]), key: f.key)
+    }
+
+    func testABoundSidecarHidesExactlyItsTabs() async throws {
+        let f = try await make(spaces: true)
+        let at = Double(start - 1000)
+        try await installMac(f, sidecarAt: at, sessionAt: at)
+        await pass(f)
+        await pass(f)
+        let mac = try XCTUnwrap(f.engine.remoteDevices.first { $0.id == "mac" })
+        XCTAssertEqual(mac.tabs.map(\.url), ["https://a.example/", "https://b.example/"],
+                       "the bound occurrence is shown under the Space; an unbound tab on the same page stays")
+    }
+
+    func testAStaleSidecarHidesNothing() async throws {
+        let f = try await make(spaces: true)
+        let at = Double(start - 1000)
+        try await installMac(f, sidecarAt: at - 1, sessionAt: at)
+        await pass(f)
+        await pass(f)
+        XCTAssertEqual(f.engine.remoteDevices.first { $0.id == "mac" }?.tabs.count, 3)
+    }
+
+    func testASpaceOverItsBudgetReportsFull() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
+        let spaceId = id(2)
+        var tabs: [(String, JSONValue)] = []
+        var left = ""
+        for n in 1...501 {
+            let tid = id(5000 + n)
+            left = try SharedSpacesModel.keyFor(left, "", tid)
+            tabs.append((tid, .object([
+                ("nav", field(.object([("url", .string("https://full.example/\(n)")), ("title", .string("T"))]), 1, "phone")),
+                ("name", field(.null, 1, "phone")), ("pinned", field(.bool(false), 1, "phone")),
+                ("groupId", field(.null, 1, "phone")), ("pos", field(.string(left), 1, "phone")),
+                ("deleted", field(.bool(false), 1, "phone")),
+            ])))
+        }
+        let local = blob(spaceId, tabs)
+        let state = SyncStateStore(directory: directory)
+        try state.update { $0.enabled = true; $0.accountId = account }
+        // The Spaces state stamps its merges with the real clock, so this test does too.
+        let engine = SyncEngine(state: state, secrets: InMemorySyncSecretStore(), client: SyncWorkerClient(transport: MemorySyncTransport()),
+                                settingsSink: { _ in }, tabsSource: { [] })
+        XCTAssertTrue(engine.sharedState.setEnabled(true))
+        try engine.sharedState.noteLocalSpace(id: spaceId, blob: local, edits: local)
+        let key = SymmetricKey(data: Data(repeating: 1, count: 32))
+        _ = try engine.sharedState.mergeSpace(id: spaceId, remote: blob(spaceId, []), version: "1", deviceId: "phone",
+                                              now: Int64(Date().timeIntervalSince1970 * 1000),
+                                              encrypt: { try SyncCrypto.seal(Data($0.utf8), key: key) })
+        XCTAssertEqual(engine.spaceSyncState(spaceId), .full)
+        XCTAssertFalse(engine.unsyncedTabIds(spaceId).isEmpty, "the tabs past the budget carry the dot")
+    }
 }

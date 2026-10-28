@@ -55,6 +55,8 @@ struct SessionState: Codable, Equatable {
     /// The sync account the shared links belong to: another account (or
     /// none) turns every shared Space back into a local copy.
     var sharedAccount: String?
+    /// Recovery Spaces whose one-time note has been shown.
+    var recoveryNoted: [String]?
 }
 
 enum TabSets {

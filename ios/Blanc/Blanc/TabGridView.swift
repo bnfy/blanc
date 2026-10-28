@@ -205,6 +205,15 @@ struct TabGridView: View {
             .accessibilityIdentifier("tab.card")
             .accessibilityLabel("Switch to \(title(tab))")
             .accessibilityAddTraits(manager.activeTabId == tab.id ? .isSelected : [])
+            .overlay(alignment: .topLeading) {
+                if manager.isUnsynced(tab) {
+                    Circle().fill(style.secondary).frame(width: 8, height: 8)
+                        .padding(12)
+                        .accessibilityElement()
+                        .accessibilityLabel(SyncCopy.text("sharedSpaces.unsyncedTab"))
+                        .accessibilityIdentifier("tab.unsynced")
+                }
+            }
             .overlay(alignment: .topTrailing) {
                 Button { manager.closeTab(tab.id) } label: {
                     Image(systemName: "xmark")

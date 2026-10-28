@@ -348,6 +348,7 @@ final class TabsManager {
             sharedBaselines = state.sharedBaselines ?? [:]
             sharedAccepted = state.sharedAccepted ?? [:]
             sharedAccount = state.sharedAccount
+            recoveryNoted = Set(state.recoveryNoted ?? [])
             let now = Int64(Date().timeIntervalSince1970 * 1000)
             recentlyDeleted = state.deleted.filter { now - $0.deletedAt < TabSets.deletedRetentionMs }
             if spaces.contains(where: { $0.id == state.shown }) { shownSetId = state.shown }
@@ -1067,7 +1068,8 @@ final class TabsManager {
         var state = SessionState(shown: shownSetId, iphone: iphoneSet, spaces: spaces, deleted: recentlyDeleted,
                                  sharedBaselines: sharedBaselines.isEmpty ? nil : sharedBaselines,
                                  sharedAccepted: sharedAccepted.isEmpty ? nil : sharedAccepted,
-                                 sharedAccount: sharedAccount)
+                                 sharedAccount: sharedAccount,
+                                 recoveryNoted: recoveryNoted.isEmpty ? nil : recoveryNoted.sorted())
         let shown = captureShown()
         if shownSetId == TabSets.iphoneId { state.iphone = shown }
         else if let index = state.spaces.firstIndex(where: { $0.id == shownSetId }) { state.spaces[index].set = shown }
@@ -1430,6 +1432,24 @@ final class TabsManager {
             recentlyClosed.add(row)
             syncEngine.recordClosed(url: row.url, title: row.title, id: row.id, spaceId: row.spaceId)
         }
+    }
+
+    // MARK: Status (M17c Task 21)
+
+    /// Recovery Spaces whose note was shown in the Spaces menu.
+    private(set) var recoveryNoted: Set<String> = []
+    /// The Spaces menu closed: each recovery Space's note has been said.
+    func noteRecoveriesSeen() {
+        let ids = Set(spaces.filter { $0.recoveredFrom != nil }.map(\.id))
+        guard !ids.isSubset(of: recoveryNoted) else { return }
+        recoveryNoted.formUnion(ids)
+        saveSession()
+    }
+    /// A tab of the shown shared Space past its full budget: open as usual,
+    /// marked "Not synced" (M16 §5).
+    func isUnsynced(_ tab: TabModel) -> Bool {
+        guard let sid = shownSpace?.sharedId, shownSpace?.link == .active, let id = tab.sharedTabId else { return false }
+        return syncEngine.unsyncedTabIds(sid).contains(id)
     }
 
     // MARK: Recently closed band (M17c Task 20, design §11)
