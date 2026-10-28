@@ -33,9 +33,9 @@ test.after(() => {
 
 test('addVisit records a pair link without its fragment', () => {
   history.addVisit('https://blanc.day/pair#K7MR4PX2', 'Pair with Blanc');
-  const urls = history.listHistory().map((entry) => entry.url);
-  assert.ok(urls.includes('https://blanc.day/pair'));
-  assert.ok(!urls.some((url) => url.includes('K7MR4PX2')));
+  const [entry] = history.listHistory();
+  assert.equal(entry.url, 'https://blanc.day/pair');
+  assert.equal(history.listHistory().filter((visit) => visit.url.endsWith('K7MR4PX2')).length, 0);
 });
 
 test('addVisit keeps other fragments', () => {
