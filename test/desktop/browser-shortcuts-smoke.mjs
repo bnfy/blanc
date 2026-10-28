@@ -8,9 +8,11 @@ import hook from './support/test-hook-call.js';
 import polling from './support/poll.js';
 import { inMainTurn } from './support/main-turn.js';
 import { openNativeKeys } from './support/native-keys.mjs';
+import tabSwitcher from '../../src/main/tab-switcher.js';
 import runtime from '../../scripts/preflight-electron-runtime.js';
 const { callTestHook: call } = hook;
 const { waitForValue: wait } = polling;
+const { recentOrderAvailable } = tabSwitcher;
 const expected = runtime.verifyElectronRuntime().locked;
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-shortcuts-'));
 const userData = path.join(root, 'profile');
@@ -265,7 +267,9 @@ try {
   // Ctrl+Tab by most recent use (tab-switcher.js), with real OS keys: a
   // synthetic event skips the native path where a consumed press loses the
   // Control release (spec §3.4, §10; support/native-keys.mjs).
-  const native = await openNativeKeys(app);
+  const native = recentOrderAvailable(process.platform)
+    ? await openNativeKeys(app)
+    : { keys: null, reason: `recent order is not available on ${process.platform}` };
   if (!native.keys) console.log(`Most-recent Ctrl+Tab skipped: ${native.reason}`);
   else {
     const keys = (...steps) => native.keys.run(...steps);

@@ -1759,8 +1759,10 @@ the candidate branch; not shipped in public v1.43.1.
   you used them (default) or in the order of the tab list. Device-local, never
   synced. Ctrl+PageDown / Ctrl+PageUp always go by list position.
 - **Platforms.** Recent order needs Blanc to see the Ctrl release; it ships
-  only where that has been proven (Linux so far). Elsewhere Ctrl+Tab keeps
-  going by position and the setting is hidden.
+  only where that has been proven with real keys (Linux and Windows).
+  Elsewhere Ctrl+Tab keeps going by position and the setting is hidden. On
+  Windows, Ctrl+Esc is the Start menu, so Esc can't cancel; Blanc losing focus
+  cancels the switch.
 - **Card.** From the second step (or 150 ms into a held Ctrl), a row of
   favicon tiles under the Island shows the pick raised, with its title and
   host. It never takes focus; a click on a tile switches at once; Ctrl+W closes

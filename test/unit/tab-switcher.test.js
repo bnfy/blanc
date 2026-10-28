@@ -16,7 +16,7 @@ test('the setting has two orders and defaults to most recent', () => {
 test('recent order ships only where the Ctrl release is proven (D5)', () => {
   assert.equal(recentOrderAvailable('linux'), true);
   assert.equal(recentOrderAvailable('win32'), true);
-  assert.equal(recentOrderAvailable('darwin'), true);
+  assert.equal(recentOrderAvailable('darwin'), false);
   assert.equal(recentOrderAvailable('freebsd'), false);
 });
 
