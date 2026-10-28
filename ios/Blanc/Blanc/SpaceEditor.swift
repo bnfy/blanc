@@ -2,8 +2,8 @@ import SwiftUI
 
 /// What the Space editor is for.
 enum SpaceEditorTarget: Identifiable, Equatable {
-    /// New Space from the Spaces menu: made, then shown.
-    case new
+    /// New Space from the Spaces menu or `/space name`: made, then shown.
+    case new(name: String = "")
     /// New Space… from a tab's menu: made with that tab, without switching.
     case newWithTab(UUID)
     case edit(String)
@@ -99,6 +99,7 @@ struct SpaceEditor: View {
         if let editing {
             name = editing.name; color = editing.color; symbol = editing.symbol
         } else {
+            if case .new(let typed) = target { name = typed }
             let picked = SpaceIdentity.defaults(existing: manager.spaces.map { ($0.color, $0.symbol) })
             color = picked.color; symbol = picked.symbol
         }

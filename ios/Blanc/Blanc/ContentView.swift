@@ -18,7 +18,6 @@ struct ContentView: View {
     @State private var pageWidth: CGFloat = 0
     /// The Island's height with its padding, so the Spaces card rises from it.
     @State private var islandHeight: CGFloat = 0
-    @State private var spaceEditor: SpaceEditorTarget?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isStartPage: Bool {
@@ -55,7 +54,7 @@ struct ContentView: View {
         .overlay(alignment: .bottom) {
             if manager.isSpacesMenuPresented { spacesMenu }
         }
-        .sheet(item: $spaceEditor) { target in
+        .sheet(item: Binding(get: { manager.spaceEditor }, set: { manager.spaceEditor = $0 })) { target in
             SpaceEditor(manager: manager, target: target)
         }
         .alert(ReaderCopy.text("reader.title"), isPresented: Binding(get: { manager.readerError }, set: { manager.readerError = $0 })) {
@@ -130,7 +129,7 @@ struct ContentView: View {
                 get: { nil },
                 set: { target in
                     manager.isSpacesMenuPresented = false
-                    spaceEditor = target
+                    manager.spaceEditor = target
                 }))
                 .frame(maxWidth: 600)
                 .padding(.horizontal, 16)

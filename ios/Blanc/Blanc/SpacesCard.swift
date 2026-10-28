@@ -83,7 +83,7 @@ struct SpacesCard: View {
     private var footer: some View {
         HStack {
             Button {
-                editorTarget = .new
+                editorTarget = .new()
             } label: {
                 Label(SyncCopy.text("ws.new"), systemImage: "plus")
                     .font(BrowserStyle.font(15, semibold: true))

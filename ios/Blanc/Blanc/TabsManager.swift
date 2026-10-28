@@ -59,6 +59,37 @@ final class TabsManager {
             pendingSettingsDestination = nil
             settingsDestination = destination
         }
+        if let target = pendingSpaceEditor {
+            pendingSpaceEditor = nil
+            spaceEditor = target
+        }
+        if pendingSpacesMenu {
+            pendingSpacesMenu = false
+            isSpacesMenuPresented = true
+        }
+    }
+
+    /// The Space editor sheet (M17), and what waits for the palette to close.
+    var spaceEditor: SpaceEditorTarget?
+    @ObservationIgnored private var pendingSpaceEditor: SpaceEditorTarget?
+    @ObservationIgnored private var pendingSpacesMenu = false
+
+    /// `/space`: bare, the Spaces menu; a name, that set (This iPhone too), or
+    /// New Space with the name filled in, as desktop's.
+    func runSpaceCommand(_ name: String) {
+        let wanted = SyncCrypto.lowercaseLikeJavaScript(SyncCrypto.trim(name))
+        let iphone = SyncCrypto.lowercaseLikeJavaScript(SyncCopy.text("spaces.thisIPhone"))
+        if wanted.isEmpty {
+            if isPalettePresented { pendingSpacesMenu = true; isPalettePresented = false } else { isSpacesMenuPresented = true }
+        } else if wanted == iphone {
+            show(set: TabSets.iphoneId)
+        } else if let space = spaces.first(where: { SyncCrypto.lowercaseLikeJavaScript($0.name) == wanted }) {
+            show(set: space.id)
+        } else if isPalettePresented {
+            pendingSpaceEditor = .new(name: SyncCrypto.trim(name)); isPalettePresented = false
+        } else {
+            spaceEditor = .new(name: SyncCrypto.trim(name))
+        }
     }
 
     @discardableResult
@@ -598,6 +629,13 @@ final class TabsManager {
             }
         }
         return out
+    }
+
+    /// `/group name`: the current tab joins that group, made if it's new.
+    func runGroupCommand(_ name: String) {
+        guard let tab = activeTab, !tab.isPrivate else { return }
+        if let group = group(matching: name) { moveTab(tab.id, toGroup: group.id) }
+        else { try? createGroup(named: name, with: tab.id) }
     }
 
     /// Shows a group: unfolds it and makes its first tab current.
