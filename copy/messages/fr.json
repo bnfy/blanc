@@ -3487,6 +3487,14 @@
     "message": "Sombre",
     "source": "sha256:b41d9e243478bf2d60d3d59b40422deee5a9e90cd02e1020c4f289dd2678f98a"
   },
+  "settings.general.launchSunrise.label": {
+    "message": "Afficher le lever de soleil à l’ouverture de Blanc",
+    "source": "sha256:c603d9f86a22aa0c15545c1419ca30df3a433562d6226998c7232879cec13a78"
+  },
+  "settings.general.launchSunrise.hint": {
+    "message": "La première page d’accueil après le lancement affiche une fois le lever de soleil. Ignoré si votre système réduit les animations.",
+    "source": "sha256:2af5d31146b9261a5261151ba2596e956e4c36cbce400dd7512b795192981c94"
+  },
   "settings.general.surfaceStyle.label": {
     "message": "Style des surfaces",
     "source": "sha256:5e57966143767a6d07bf80d17a8f24f3a007e1acb52331eff3df9116e5e82b35"
@@ -5086,6 +5094,90 @@
   "settings.sync.pairing.expired": {
     "message": "Ce code a expiré. Créez-en un nouveau quand vous serez prêt.",
     "source": "sha256:fb765737b44a84b45256841c8eea53f94784d274babbf3ceb07eaf1727245fbd"
+  },
+  "settings.sync.sheet.notReady": {
+    "message": "La synchronisation est activée, mais le serveur n’a pas encore pu être joint. Blanc continuera d’essayer.",
+    "source": "sha256:0ae69718e25a1e5cf96b8e81352e541156aa10f8db296ee2181c3e4cd94d5d1e"
+  },
+  "settings.sync.off.title": {
+    "message": "Synchronisez votre Blanc",
+    "source": "sha256:29b6b34570f33d6d8f8379c4b882cd5b87b2591401ea4b1adfa0e353f9fb1525"
+  },
+  "settings.sync.off.body": {
+    "message": "Favoris, réglages et, si vous le souhaitez, onglets ouverts, chiffrés de bout en bout.",
+    "source": "sha256:88fec416d0ccf8ffec085baadc54f17852a21f15f7002c3dda5a473b8945736e"
+  },
+  "settings.sync.off.turnOn": {
+    "message": "Activer la synchronisation",
+    "source": "sha256:581574ccee47c5a4dd5a56c048228bdbbded1ca2e4f7f35c4760c62c9cbf10d7"
+  },
+  "settings.sync.off.haveCode": {
+    "message": "Vous synchronisez déjà un autre appareil ?",
+    "source": "sha256:3426075d57dc0745205927e7c7f5dce5649626744542b1c676692c362c56b517"
+  },
+  "settings.sync.off.addWithCode": {
+    "message": "Ajouter cet appareil avec un code",
+    "source": "sha256:f4c30ebdc9aa2ddbc3a6c0e576e118baeaf8b192d818b722dcec5e27a49ca33d"
+  },
+  "settings.sync.off.otherWays": {
+    "message": "Autres méthodes",
+    "source": "sha256:6d32322f3c53a09b610468450b2e64ffa4ce3c9ab65cb388a73f47221011f526"
+  },
+  "settings.sync.off.usePassphrase": {
+    "message": "Utiliser un nom de synchronisation et une phrase secrète",
+    "source": "sha256:9618be7b281691c73e4ba3d2874bb4bee11fc098712afd0a6c8f4031c6746972"
+  },
+  "settings.sync.off.startWithPassphrase": {
+    "message": "Commencer avec un nom et une phrase secrète",
+    "source": "sha256:c5a1aa2f5ad83d1f400e00626c8c4cf1d880d52b03a77a798f436322699921ed"
+  },
+  "settings.sync.defaultName": {
+    "message": "Mon Blanc",
+    "source": "sha256:3245562c650b8845846d68eefd6b05831bd68bbea0bcdfa232c8280d14f7a99e"
+  },
+  "settings.sync.startedToast": {
+    "message": "La synchronisation est activée. Ajoutez vos autres appareils ici.",
+    "source": "sha256:4a8493423920747bd1ece41de5e56c6bf8310d99f4f1f64285cce0691fbe974c"
+  },
+  "settings.sync.sheet.joined": {
+    "message": "{device} a rejoint la synchronisation.",
+    "source": "sha256:4d52f6bdf4da00ff1848406d519baef95d75bab9e3006232f1c14e18cc40d6b0"
+  },
+  "settings.sync.sheet.joinedBody": {
+    "message": "Vos favoris et réglages y sont maintenant. Ses onglets ouverts restent privés tant que vous ne choisissez pas de les partager depuis cet appareil.",
+    "source": "sha256:f80922127558730b6673ee392aff66652585c65b9a88a363c4e5c92e67355fd0"
+  },
+  "settings.sync.sheet.yourIphone": {
+    "message": "Votre iPhone",
+    "source": "sha256:cb4e406f63d5d23f974137c1eefeb78272292808d62e7a8a9a39c0f4ac06d44b"
+  },
+  "settings.sync.sheet.yourDevice": {
+    "message": "Votre nouvel appareil",
+    "source": "sha256:9abe459d5cbc7c0a929b319e440d8cc85ecbf4e3985f42af4eca7e3a9989d37f"
+  },
+  "settings.sync.sheet.spacesQuestion": {
+    "message": "Garder les Spaces et les groupes synchronisés avec cet appareil ?",
+    "source": "sha256:5b13c1e62ba1826a0a39ef22704eb54974dca12646001c346d7eb7d21ee1e25c"
+  },
+  "settings.sync.sheet.done": {
+    "message": "Terminé",
+    "source": "sha256:81ef045e6037eed260af3e8cbdf81f1a837ff04e307a892d2854b7581052a6ca"
+  },
+  "settings.sync.recoveryPrompt.title": {
+    "message": "Gardez un moyen de revenir",
+    "source": "sha256:5ae0359c6628fbea64426a4190c812ae2fd7679f6e247f2934817a1091ea7f91"
+  },
+  "settings.sync.recoveryPrompt.body": {
+    "message": "Cette synchronisation n’a pas de phrase secrète. Si vous perdez un jour tous vos appareils, son code de récupération sera le seul moyen d’accéder à vos données synchronisées. Enregistrez-le dans votre gestionnaire de mots de passe.",
+    "source": "sha256:30460c2eb15f761db66a8c79f70bedcca805ca9b1c28b263741e1c79cbf729e5"
+  },
+  "settings.sync.recoveryPrompt.copy": {
+    "message": "Copier le code de récupération",
+    "source": "sha256:d053331eaafbb9fdf560559677e11ac2a63249bbd277a61461fb968411e891d1"
+  },
+  "settings.sync.recoveryPrompt.notNow": {
+    "message": "Pas maintenant",
+    "source": "sha256:48c190708fecd5a49ca1956ed31549febfa3bbc3099840d44b9fe61cdb6462c1"
   },
   "settings.sync.switch.open": {
     "message": "Se connecter à une autre synchronisation avec un code",

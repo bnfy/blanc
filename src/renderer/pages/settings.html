@@ -137,6 +137,14 @@
               </select>
             </div>
 
+            <div class="setting" id="launchSunriseSetting">
+              <div class="label">
+                <span data-i18n="settings.general.launchSunrise.label">Play the Sunrise when Blanc opens</span>
+                <span class="hint" id="launchSunriseHint" data-i18n="settings.general.launchSunrise.hint">The first start page after launch draws the Sunrise once. Skipped when your system reduces motion.</span>
+              </div>
+              <label class="toggle"><input id="launchSunrise" type="checkbox" aria-label="Play the Sunrise when Blanc opens" aria-describedby="launchSunriseHint" data-i18n-aria-label="settings.general.launchSunrise.label"/><span class="track"></span></label>
+            </div>
+
             <div class="setting" id="darkWebsitesSetting">
               <div class="label">
                 <span data-i18n="settings.general.darkWebsites.label">Dark websites</span>
@@ -375,13 +383,17 @@
           <h2 class="group-title" data-i18n="settings.sync.title">Sync</h2>
             <div id="syncSetup" class="settings-card sync-settings-card">
               <header class="sync-setup-header">
-                <h3 id="syncSetupTitle" data-i18n="settings.sync.syncSetupTitle">Set up Sync</h3>
-                <p id="syncSetupIntro" data-i18n="settings.sync.syncSetupIntro">
-                  Sync your favorites, settings and device names across your devices, and, if you choose, open tabs.
-                  Everything is end-to-end encrypted — Blanc can’t read it, and can’t recover it if you forget your passphrase.
-                </p>
+                <h3 id="syncSetupTitle" data-i18n="settings.sync.off.title">Sync your Blanc</h3>
+                <p id="syncSetupIntro" data-i18n="settings.sync.off.body">Favorites, settings and, if you choose, open tabs, end-to-end encrypted.</p>
               </header>
               <div id="syncPaths" class="sync-paths" aria-label="Choose how to set up Sync" data-i18n-aria-label="settings.sync.syncPaths.ariaLabel">
+                <!-- Sync without a passphrase (design 2026-10-28 §5.2): one press
+                     makes a random account; the code path sits right under it. -->
+                <div class="sync-turn-on" id="syncTurnOnRow">
+                  <button id="syncTurnOn" type="button" data-i18n="settings.sync.off.turnOn">Turn on Sync</button>
+                  <p class="section-hint" id="syncTurnOnStatus" role="status"></p>
+                </div>
+                <p class="sync-paths-label" data-i18n="settings.sync.off.haveCode">Already sync on another device?</p>
                 <button id="syncPathCode" class="sync-path" type="button">
                   <svg class="sync-path-icon" viewBox="0 0 48 48" aria-hidden="true">
                     <rect x="5" y="10" width="25" height="19" rx="2"></rect>
@@ -390,23 +402,27 @@
                     <path d="M25 40c6 3 13 1 16-3M40 9c-6-3-13-1-16 3"></path>
                   </svg>
                   <span class="sync-path-copy">
-                    <strong data-i18n="settings.sync.addThisDevice">Add this device to my sync</strong>
+                    <strong data-i18n="settings.sync.off.addWithCode">Add this device with a code</strong>
                     <span data-i18n="settings.sync.addThisDeviceHint">Get a code from a device that already syncs: Settings → Sync → Add another device.</span>
                   </span>
                   <span class="sync-path-arrow" aria-hidden="true">→</span>
                 </button>
-                <button id="syncPathStart" class="sync-path" type="button">
-                  <svg class="sync-path-icon" viewBox="0 0 48 48" aria-hidden="true">
-                    <rect x="7" y="11" width="34" height="23" rx="2"></rect>
-                    <path d="M4 38h40M20 34h8"></path>
-                    <path d="M20 22h8M25 17l5 5-5 5"></path>
-                  </svg>
-                  <span class="sync-path-copy">
-                    <strong data-i18n="settings.sync.startSyncingFromThis">Start syncing from this device</strong>
-                    <span data-i18n="settings.sync.startOnlyFirstDevice">Only for your first device. If you already sync elsewhere, add this device from there instead.</span>
-                  </span>
-                  <span class="sync-path-arrow" aria-hidden="true">→</span>
-                </button>
+                <details class="sync-other-ways" id="syncOtherWays">
+                  <summary data-i18n="settings.sync.off.otherWays">Other ways</summary>
+                  <button id="syncPathJoin" class="sync-path sync-path-plain" type="button">
+                    <span class="sync-path-copy">
+                      <strong data-i18n="settings.sync.off.usePassphrase">Use a sync name and passphrase</strong>
+                    </span>
+                    <span class="sync-path-arrow" aria-hidden="true">→</span>
+                  </button>
+                  <button id="syncPathStart" class="sync-path sync-path-plain" type="button">
+                    <span class="sync-path-copy">
+                      <strong data-i18n="settings.sync.off.startWithPassphrase">Start with a name and passphrase</strong>
+                      <span data-i18n="settings.sync.startOnlyFirstDevice">Only for your first device. If you already sync elsewhere, add this device from there instead.</span>
+                    </span>
+                    <span class="sync-path-arrow" aria-hidden="true">→</span>
+                  </button>
+                </details>
               </div>
               <form id="syncCodeForm" class="sync-form" hidden>
                 <ol class="sync-guide">
@@ -558,6 +574,18 @@
               <p class="sync-devices-missing" data-i18n="settings.sync.devices.missing">Don’t see a device? Update Blanc on it, or turn on Open tabs there.</p>
             </div>
 
+            <!-- Design 2026-10-28 §5.4: only on the device that started a sync
+                 without a passphrase, until its recovery code is saved. -->
+            <div class="settings-card sync-recovery-prompt" id="syncRecoveryPrompt" hidden>
+              <strong data-i18n="settings.sync.recoveryPrompt.title">Keep a way back in</strong>
+              <p data-i18n="settings.sync.recoveryPrompt.body">This sync has no passphrase. If you ever lose all your devices, its recovery code is the only way to reach your synced data. Save it in your password manager.</p>
+              <div class="sync-panel-actions">
+                <button id="syncRecoveryPromptCopy" type="button" data-i18n="settings.sync.recoveryPrompt.copy">Copy recovery code</button>
+                <button id="syncRecoveryPromptNotNow" type="button" class="quiet" data-i18n="settings.sync.recoveryPrompt.notNow">Not now</button>
+              </div>
+              <p class="sync-panel-notice" id="syncRecoveryPromptNote" role="status"></p>
+            </div>
+
             <details class="settings-card sync-more">
               <summary class="sync-more-summary">
                 <span class="sync-more-text"><span class="sync-more-title" data-i18n="settings.sync.more.title">More options</span><span class="sync-more-hint" data-i18n="settings.sync.more.hint">Recovery code, joining another sync, and turning sync off</span></span>
@@ -613,6 +641,27 @@
                   <span class="sync-pairing-remaining" id="syncPairingRemaining"></span>
                   <button id="syncPairingCopy" type="button" data-i18n="settings.sync.pairing.copy">Copy</button>
                   <button id="syncPairingCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
+                </div>
+              </div>
+              <!-- The same sheet once the device that took the code arrives
+                   (design 2026-10-28 §6.4): its content changes in place. -->
+              <div id="syncPairingJoined" class="sync-pairing sync-pairing-joined" hidden>
+                <h2 class="sync-sheet-title" id="syncPairingJoinedTitle" data-i18n-ignore=""></h2>
+                <p class="sync-pairing-instruction" data-i18n="settings.sync.sheet.joinedBody">Your favorites and settings are on it now. Its open tabs stay private to it until you choose to share them there.</p>
+                <div id="syncPairingQuestion" class="sync-panel" hidden>
+                  <strong data-i18n="settings.sync.sheet.spacesQuestion">Keep Spaces and groups in sync with it?</strong>
+                  <p class="sync-panel-body" data-i18n="sharedSpaces.pairDetail">Turning this on lets this device change shared Spaces across your sync account.</p>
+                  <div class="sync-panel-actions">
+                    <button id="syncPairingSpacesOn" type="button" data-i18n="sharedSpaces.confirm">Turn on</button>
+                    <button id="syncPairingSpacesNotNow" type="button" class="quiet" data-i18n="sharedSpaces.notNow">Not now</button>
+                  </div>
+                </div>
+                <p id="syncPairingRecovery" class="sync-pairing-recovery" hidden>
+                  <span data-i18n="settings.sync.recoveryPrompt.title">Keep a way back in</span>
+                  <button id="syncPairingRecoveryCopy" type="button" class="link-button" data-i18n="settings.sync.recoveryPrompt.copy">Copy recovery code</button>
+                </p>
+                <div class="sync-panel-actions">
+                  <button id="syncPairingDone" type="button" data-i18n="settings.sync.sheet.done">Done</button>
                 </div>
               </div>
             </dialog>

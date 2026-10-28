@@ -29,8 +29,13 @@
 
   // ---- Add another device ----
   function createPairingModel() {
-    return { phase: 'idle', code: '', expiresAt: 0, notice: null };
+    return { phase: 'idle', code: '', expiresAt: 0, notice: null, joined: null, questionId: null };
   }
+
+  // The device that took the code (design 2026-10-28 §6.4). Desktop names a
+  // nameless device 'unknown device'; the sheet says what kind it is instead.
+  const joinedDevice = (event) => ({ name: String(event.name ?? ''), platform: String(event.platform ?? '') });
+  const joinedState = (device) => ({ ...createPairingModel(), phase: 'joined', joined: device });
 
   function pairingTransition(state, event) {
     switch (event.type) {
@@ -43,6 +48,7 @@
         return none({ ...state, phase: 'error', code: '', expiresAt: 0, notice: String(event.message ?? '') });
       case 'resume':
         if (state.phase === 'starting') return none(state);
+        if (!event.active && event.joined && state.phase !== 'joined') return none(joinedState(joinedDevice(event.joined)));
         if (!event.active) return none(state.phase === 'showing' ? createPairingModel() : state);
         return none({ ...state, phase: 'showing', code: String(event.code ?? ''), expiresAt: Number(event.expiresAt) || 0, notice: null });
       case 'tick':
@@ -51,6 +57,23 @@
         return none(state);
       case 'cancel':
         if (state.phase !== 'showing') return none(state);
+        return { state: createPairingModel(), effect: { type: 'pair-cancel' } };
+      case 'joined':
+        if (state.phase !== 'showing') return none(state);
+        return none(joinedState(joinedDevice(event)));
+      case 'question':
+        if (state.phase !== 'joined' || !event.deviceId) return none(state);
+        return none({ ...state, questionId: String(event.deviceId) });
+      case 'spaces-answer': {
+        if (state.phase !== 'joined' || !state.questionId) return none(state);
+        const deviceId = state.questionId;
+        if (event.answer === 'on') return { state: createPairingModel(), effect: { type: 'spaces-turn-on', deviceId } };
+        return { state: { ...state, questionId: null }, effect: { type: 'spaces-acknowledge', deviceId } };
+      }
+      case 'done':
+        if (state.phase !== 'joined') return none(state);
+        // Clears main's record of the join; an unanswered question stays
+        // pending for the Settings and start-page notices.
         return { state: createPairingModel(), effect: { type: 'pair-cancel' } };
       case 'dismiss':
         return none(createPairingModel());
@@ -64,15 +87,29 @@
     return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
   }
 
-  function pairingView(state, now) {
+  function joinedName(device) {
+    const name = device?.name && device.name !== 'unknown device' ? device.name : '';
+    const key = name ? null : (device?.platform === 'ios' ? 'settings.sync.sheet.yourIphone' : 'settings.sync.sheet.yourDevice');
+    return { name, key };
+  }
+
+  function pairingView(state, now, { recoveryPrompt = false } = {}) {
     const showing = state.phase === 'showing';
+    const joined = state.phase === 'joined';
+    const named = joinedName(state.joined);
     return {
+      sheetOpen: showing || joined,
+      joined,
+      joinedName: joined ? named.name : '',
+      joinedNameKey: joined ? named.key : null,
+      askingSpaces: joined && !!state.questionId,
+      recoveryLine: joined && !!recoveryPrompt,
       showing,
       codeText: showing ? formatCode(state.code) : '',
       remainingText: showing ? remainingText(state.expiresAt, now) : '',
       expired: state.phase === 'expired',
       noticeText: state.notice ?? '',
-      beginVisible: !showing && state.phase !== 'starting',
+      beginVisible: !showing && !joined && state.phase !== 'starting',
     };
   }
 

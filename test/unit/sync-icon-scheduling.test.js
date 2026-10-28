@@ -51,6 +51,7 @@ test('cosmetic icon churn never postpones the primary session timer', (t) => {
       equalsRemote: () => true,
       onSyncDisabled: () => {},
       onChanged: (fn) => { tabChanged = fn; },
+      onRemoteChanged: () => {},
       heartbeatDue: () => false,
       getRemoteDevices: () => [],
     }),

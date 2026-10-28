@@ -3237,6 +3237,82 @@ body:not([data-layout="ledger"]) .ledger-footer {
 }
 
 
+/* Play the Sunrise when Blanc opens (#1179): the website's opening Sunrise
+   (site/src/styles/home.css, sun-*), cut from the app's own sunrise-mark.png.
+   Its percentages are measured on that file, whose artwork fills more of its
+   canvas than the site's: the horizon runs from 67.1% to 70.4%, and the disc
+   is centred at 49.9% 67.1% with a 24.9% radius. The scene takes no pointer
+   input. Its sky fades in from transparent, so it opens on the page itself;
+   the mark fades while the sky is still warm, then the sky clears onto the
+   page (a wallpaper included). */
+.launch-sunrise {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.launch-sunrise[hidden] { display: none; }
+.launch-sunrise-sky {
+  position: absolute;
+  inset: 0;
+}
+.launch-sunrise-mark {
+  position: relative;
+  width: min(34vmin, 300px);
+  aspect-ratio: 1;
+}
+.launch-sunrise-mark > div {
+  position: absolute;
+  inset: 0;
+}
+.launch-sunrise-mark img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.launch-sunrise-reflect img { clip-path: inset(70.4% 0 0 0); }
+.launch-sunrise-horizon img { clip-path: inset(67.1% 0 29.6% 0); }
+.launch-sunrise-rays img {
+  clip-path: inset(0 0 32.9% 0);
+  mask-image: radial-gradient(ellipse 26.9% 26.9% at 49.9% 67.1%, transparent 97%, #000 100%);
+}
+.launch-sunrise-disc-clip { clip-path: inset(0 0 32.9% 0); }
+.launch-sunrise-mark .launch-sunrise-disc { clip-path: circle(24.9% at 49.9% 67.1%); }
+.launch-sunrise,
+.launch-sunrise-sky,
+.launch-sunrise-mark,
+.launch-sunrise-horizon,
+.launch-sunrise-reflect,
+.launch-sunrise-mark .launch-sunrise-disc,
+.launch-sunrise-rays {
+  animation-duration: 2.6s;
+  animation-delay: 0.15s;
+  animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
+  animation-fill-mode: both;
+}
+.launch-sunrise { animation-name: launch-sunrise-out; }
+.launch-sunrise-sky { animation-name: launch-sunrise-sky; }
+.launch-sunrise-mark { animation-name: launch-sunrise-mark; }
+.launch-sunrise-horizon { animation-name: launch-sunrise-horizon; }
+.launch-sunrise-reflect { animation-name: launch-sunrise-reflect; }
+.launch-sunrise-mark .launch-sunrise-disc { animation-name: launch-sunrise-disc; }
+.launch-sunrise-rays { animation-name: launch-sunrise-rays; }
+@keyframes launch-sunrise-sky { 0% { background-color: rgb(11 10 9 / 0); } 10%, 20% { background-color: #0b0a09; } 48% { background-color: #3a2a17; } 76% { background-color: #a9814f; } 100% { background-color: rgb(248 242 232 / 0); } }
+@keyframes launch-sunrise-mark { 0% { transform: translateY(9vh); } 58%, 74% { transform: none; opacity: 1; } 90%, 100% { transform: none; opacity: 0; } }
+@keyframes launch-sunrise-horizon { 0% { clip-path: inset(0 46% 0 46%); } 14%, 100% { clip-path: inset(0 0 0 0); } }
+@keyframes launch-sunrise-reflect { 0%, 8% { clip-path: inset(0 50% 0 50%); opacity: 0.4; } 28%, 100% { clip-path: inset(0 0 0 0); opacity: 1; } }
+@keyframes launch-sunrise-disc { 0%, 20% { transform: translateY(26%); } 54%, 100% { transform: none; } }
+@keyframes launch-sunrise-rays { 0%, 44% { clip-path: circle(25.5% at 49.9% 67.1%); opacity: 0; } 48% { opacity: 1; } 70%, 100% { clip-path: circle(75% at 49.9% 67.1%); opacity: 1; } }
+/* Its end is the scene's own: animationend removes it from the page. */
+@keyframes launch-sunrise-out { 0%, 96% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .launch-sunrise { display: none; }
+}
+
 /* Ledger: compact reading column on the left, with the landscape allowed to
    remain visible through the lower half of the page. */
 .ledger-section { margin-top: 34px; }
@@ -4784,6 +4860,26 @@ body.sheet .sync-device-list input.sync-device-name:focus { border-color: var(--
 .sync-device-self:focus-within .sync-device-name-hint { display: block; }
 .sync-devices-missing { margin: 10px 0 0; color: var(--text-dim); font-size: 12px; }
 
+/* Off state (design 2026-10-28 §5.2): Turn on Sync leads; the code path
+   sits right under it; the passphrase paths are one level deeper. */
+.sync-turn-on { display: grid; justify-items: start; gap: 8px; padding: 18px 8px; border-bottom: 1px solid var(--border); }
+.sync-turn-on .section-hint:empty { display: none; }
+.sync-paths-label { margin: 0; padding: 14px 8px 0; color: var(--text-dim); font-size: 12px; }
+.sync-other-ways > summary {
+  padding: 14px 8px;
+  color: var(--text-dim);
+  font-size: 13px;
+  cursor: pointer;
+}
+.sync-other-ways > summary:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 0; border-radius: var(--radius-md); }
+.sync-path-plain { grid-template-columns: minmax(0, 1fr) auto; }
+.sync-other-ways > .sync-path-plain:last-child { border-bottom: 0; }
+
+/* The recovery prompt: quiet, never in the way (§5.4). */
+.sync-recovery-prompt { display: grid; gap: 8px; }
+.sync-recovery-prompt > strong { font-size: 13.5px; font-weight: 600; }
+.sync-recovery-prompt > p { margin: 0; color: var(--text-dim); font-size: 12.5px; line-height: 1.5; }
+
 /* More options: one level deeper, a disclosure row like the others. */
 .sync-more-summary {
   display: flex;
@@ -4831,6 +4927,10 @@ body.sheet .sync-device-list input.sync-device-name:focus { border-color: var(--
 .sync-pairing { display: grid; gap: 14px; }
 .sync-sheet .sync-pairing-code { padding: 16px 0; border: 0; background: var(--surface); font-size: 36px; }
 .sync-sheet-title { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+/* The same sheet once the device arrives (§6.4): content changes in place. */
+.sync-pairing-joined { animation: sync-pairing-swap 200ms ease; }
+@keyframes sync-pairing-swap { from { opacity: 0; } }
+.sync-pairing-recovery { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin: 0; color: var(--text-dim); font-size: 12.5px; }
 @media (prefers-reduced-motion: reduce) {
   .sync-sheet[open] { animation: sync-sheet-fade 160ms ease; }
   .sync-more-chevron,

@@ -1033,3 +1033,40 @@ Then('every start-page footer keeps its left group on one line with Customize ce
     await this.call('setWindowContentSize', original.width, original.height);
   }
 });
+
+// Play the Sunrise when Blanc opens (#1179). The hook saves the setting and
+// starts a fresh launch window, as a relaunch would.
+Given('the launch Sunrise is turned {word}', async function (state) {
+  assert.equal(await this.call('setLaunchSunrise', state === 'on'), state === 'on');
+});
+
+Then('the start page plays the Sunrise over its layout, without taking clicks', async function () {
+  const scene = await waitForValue(
+    () => this.call('readLaunchSunrise'),
+    (value) => value?.present && value.shown,
+    'the launch Sunrise to show',
+  );
+  assert.equal(scene.layoutReady, true, 'it starts once the layout has drawn');
+  assert.equal(scene.pointerEvents, 'none');
+  for (const name of ['launch-sunrise-disc', 'launch-sunrise-horizon', 'launch-sunrise-out', 'launch-sunrise-sky']) {
+    assert.ok(scene.animations.includes(name), `${name} runs: ${scene.animations}`);
+  }
+});
+
+Then('the Sunrise removes itself when it ends', async function () {
+  await waitForValue(
+    () => this.call('readLaunchSunrise'),
+    (value) => value && !value.present,
+    'the launch Sunrise to end and remove itself',
+    8000,
+  );
+});
+
+Then('the start page does not play the Sunrise', async function () {
+  const scene = await waitForValue(
+    () => this.call('readLaunchSunrise'),
+    (value) => value?.layoutReady,
+    'the start page to draw its layout',
+  );
+  assert.equal(scene.present, false);
+});

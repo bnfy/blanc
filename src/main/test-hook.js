@@ -63,6 +63,7 @@ function install(refs) {
     // `(fn) => bindWindowRuntime(primaryRuntime, fn)`; every method below is
     // wrapped with it, once, mechanically, at the end of this function.
     bindRoot,
+    rearmLaunchSunrise,
     bangIcons,
     clearRecentBangsAndIcons,
     tabs,
@@ -1163,6 +1164,12 @@ function install(refs) {
     // ---- settings ----
     setAdblock(on) { settings.setSettings({ adblockEnabled: !!on }); },
     setIslandTabIcons(on) { return settings.setSettings({ islandTabIcons: !!on }).islandTabIcons; },
+    // The launch Sunrise plays once per launch; acceptance rearms that launch.
+    setLaunchSunrise(on) {
+      const saved = settings.setSettings({ launchSunrise: !!on }).launchSunrise;
+      rearmLaunchSunrise();
+      return saved;
+    },
     setTabSwitchOrder(order) { settings.setSettings({ tabSwitchOrder: order }); return settings.getSettings().tabSwitchOrder; },
     async probeOnePasswordUtilityProcess() {
       const result = await probeOnePasswordPackage();
@@ -1244,6 +1251,25 @@ function install(refs) {
         visible: ['Ledger', 'Billboard', 'Shelf', 'Tally']
           .filter((name) => getComputedStyle(document.getElementById('layout' + name)).display !== 'none'),
       }))()`);
+    },
+    // The launch Sunrise on the active Start Page: absent once it has ended
+    // (or was never due), else whether it shows and how far it has got.
+    readLaunchSunrise() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const scene = document.getElementById('launchSunrise');
+        if (!scene) return { present: false, layoutReady: document.body.classList.contains('layout-ready') };
+        const style = getComputedStyle(scene);
+        return {
+          present: true,
+          shown: !scene.hidden && style.display !== 'none',
+          pointerEvents: style.pointerEvents,
+          animations: scene.getAnimations({ subtree: true }).map((animation) => animation.animationName).sort(),
+          layoutReady: document.body.classList.contains('layout-ready'),
+        };
+      })()`);
     },
     readMigrationChecklistDom() {
       const tab = tabs.get(getActiveTabId());
@@ -3678,6 +3704,10 @@ function install(refs) {
     // Settings → Sync device pairing (design 2026-10-16): the off-state code
     // path as the person sees it, and the clicks/typing that drive it. Reads
     // DOM state only; the pairing code itself never appears in this record.
+    // Design 2026-10-28 §6.2: which windows ask to be left out of capture.
+    windowsContentProtected() {
+      return require('electron').BrowserWindow.getAllWindows().filter((win) => !win.isDestroyed() && win.isContentProtected()).length;
+    },
     settingsSyncPairingDom() {
       const wc = getUtilitySheetWebContents();
       if (!wc || !wc.getURL().startsWith('blanc://settings')) return null;
@@ -3692,6 +3722,18 @@ function install(refs) {
           connectDisabled: !!byId('syncCodeSubmit')?.disabled,
           codeValue: byId('syncCode')?.value ?? '',
           status: byId('syncCodeStatus')?.textContent ?? '',
+          // Design 2026-10-28: Turn on Sync, Other ways, the on state and the sheet.
+          turnOnVisible: visible(byId('syncTurnOn')),
+          firstPath: document.querySelector('#syncPaths button')?.id ?? '',
+          otherWays: [...document.querySelectorAll('#syncOtherWays .sync-path')].map((b) => b.id),
+          syncOn: visible(byId('syncActive')),
+          handle: byId('syncStatusHandle')?.textContent ?? '',
+          recoveryPromptVisible: visible(byId('syncRecoveryPrompt')),
+          sheetOpen: !!byId('syncPairingDialog')?.open,
+          sheetCode: byId('syncPairingDialog')?.open && !byId('syncPairing')?.hidden ? (byId('syncPairingCode')?.textContent ?? '') : '',
+          joinedTitle: byId('syncPairingDialog')?.open && !byId('syncPairingJoined')?.hidden ? (byId('syncPairingJoinedTitle')?.textContent ?? '') : '',
+          askingSpaces: !!byId('syncPairingDialog')?.open && !byId('syncPairingQuestion')?.hidden && !byId('syncPairingJoined')?.hidden,
+          doneVisible: !!byId('syncPairingDialog')?.open && !byId('syncPairingJoined')?.hidden,
         };
       })()`);
     },
@@ -3704,6 +3746,9 @@ function install(refs) {
         if (action === 'choose-code') { document.getElementById('syncPathCode').click(); return true; }
         if (action === 'use-passphrase') { document.getElementById('syncUsePassphrase').click(); return true; }
         if (action === 'back') { document.getElementById('syncCodeBack').click(); return true; }
+        if (action === 'turn-on') { document.getElementById('syncTurnOn').click(); return true; }
+        if (action === 'add-device') { document.getElementById('syncAddDevice').click(); return true; }
+        if (action === 'spaces-not-now') { document.getElementById('syncPairingSpacesNotNow').click(); return true; }
         if (action === 'type-code') {
           const input = document.getElementById('syncCode');
           input.value = value;
@@ -4118,6 +4163,7 @@ function install(refs) {
         tabArchive: 'off',
         islandHoverOpen: false,
         islandTabIcons: false,
+        launchSunrise: false,
         islandAutoHide: false,
         islandAutoHideStyle: 'float',
         surfaceStyle: 'sunrise',

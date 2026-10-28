@@ -256,7 +256,7 @@ on a phone and gets `N/A`. "Exists" means the prototype already has it.
 | F21 | Telemetry | **1.0**, launch ping only | One `/ping` per app session, behind the privacy step's consent; no product events and no first-day signals (those are desktop's, keyed to desktop versions). Needed for the kill criteria's retention figures. The ping Worker allows only `darwin`, `win32` and `linux` today (`ALLOWED_PLATFORMS`), so M18 adds `ios` with its own version namespace (the app's own version, starting at 1.0.0, counted apart from desktop's); a Worker change the owner deploys, like `sends`. `installId` is a per-install UUID in the app container, reset by a reinstall, as on desktop. |
 | F22 | Distribution & updates | **1.0** | The App Store (D9); TestFlight for the beta. |
 | F23 | Zoom | **1.0** | Native pinch and reflow (D10); nothing to build. |
-| F24 | AutoFill & passkeys | **1.0**, verify | WebKit provides password AutoFill and, with the passkey browser entitlement, passkeys for any site inside `WKWebView`. Apple assigned that entitlement to the account on 2026-09-22 (associated app ID `me.bnfy.bowser`; the iOS App ID `me.bnfy.blanc` needs the capability enabled in the portal). 1.0 verifies both on a real iPhone and claims only what passes. No Blanc code expected. |
+| F24 | AutoFill & passkeys | **1.0**, verify | WebKit provides password AutoFill and, with the default-browser entitlement, passkeys for any site inside `WKWebView`. (Corrected 2026-10-28: the entitlement Apple assigned on 2026-09-22 is the macOS-only passkey entitlement, on the desktop app's `me.bnfy.bowser`; it can't be enabled for `me.bnfy.blanc`. See [docs/ios/app-store-connect.md](../../ios/app-store-connect.md).) 1.0 verifies both on a real iPhone and claims only what passes. No Blanc code expected. |
 | F25 | Encrypted DNS | after | D17: a per-app DNS setting isn't available to a `WKWebView` app; the system setting applies. |
 | F26 | WebRTC privacy | after | D18. |
 | F27 | Tab Sync | **1.0** | M7a shipped it; 1.0 shows other devices' tabs under their groups (the snapshot already carries them) and their Spaces (§4). |
@@ -377,10 +377,11 @@ settled; M18 is last because it depends on everything it introduces.
   With the entitlement, the app may not claim Universal Links for specific
   domains, and managed entitlements need manual signing in Xcode (Apple's
   forum guidance), which the release build setup in M18 accounts for. The passkey browser
-  entitlement (`com.apple.developer.web-browser.public-key-credential`) was
-  assigned to the account on 2026-09-22 (Apple's email; associated app ID
-  `me.bnfy.bowser`): enable the capability on the iOS App ID `me.bnfy.blanc`
-  in the portal, and M18 adds it to `Blanc.entitlements`. The Worker deploys (sync stores and the ping Worker's
+  entitlement (`com.apple.developer.web-browser.public-key-credential`)
+  assigned on 2026-09-22 is macOS-only (the portal's platform list, checked
+  2026-10-28) and belongs to the desktop app's `me.bnfy.bowser`; on iPhone,
+  passkeys come with the default-browser entitlement. The App Store setup and
+  its status are in `docs/ios/app-store-connect.md`. The Worker deploys (sync stores and the ping Worker's
   `ios`). The App Store account, listing and screenshots sign-off.
 
 ## 9. Left to the builder
@@ -417,8 +418,8 @@ settled; M18 is last because it depends on everything it introduces.
     device when the person next comes to that tab (§4.3, §4.6).
 11. iOS telemetry is the launch ping in its own version namespace, after a
     ping Worker change; no first-day signals (§6 F21).
-12. Passkeys are in 1.0, verified on a real iPhone, since the entitlement is
-    granted (§6 F24).
+12. Passkeys are in 1.0, verified on a real iPhone, once the default-browser
+    entitlement is granted (§6 F24).
 
 ## 11. Open questions for the owner
 

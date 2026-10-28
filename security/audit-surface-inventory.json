@@ -251,7 +251,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "07a71b31eaa06f9b88b58dc6a583a10c37d633682d102a7a185c8e939007d683",
+      "sha256": "6eb11c9317a1393aed0f6a3ceef9668dc4d421ce0cfb7cb35c5e2ce5a7037ee1",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -260,6 +260,7 @@
         "before-mouse-event",
         "before-quit",
         "blur",
+        "browser-window-blur",
         "browser-window-focus",
         "capture:permission-changed",
         "capture:permission-query",
@@ -393,6 +394,7 @@
         "pages:blocking:status",
         "pages:pins:changed",
         "pages:settings:appearance",
+        "pages:settings:sync-pair-joined",
         "pages:start:remote-tabs",
         "pages:start:sent-items",
         "pages:start:status",
@@ -503,7 +505,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "95437eb6c406321eb348c2d9de0105b8ab0bc1c107797de43f2097aeac242511",
+      "sha256": "3ef81d28f7b90e4e070cc2af8f019afb9d004d5ccf324de0ee5cc0d26ea2e741",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -584,8 +586,11 @@
         "pages:settings:sync-pair-begin",
         "pages:settings:sync-pair-cancel",
         "pages:settings:sync-pair-state",
+        "pages:settings:sync-pair-watch",
         "pages:settings:sync-preflight",
         "pages:settings:sync-recovery-code-copy",
+        "pages:settings:sync-recovery-prompt-dismiss",
+        "pages:settings:sync-start-new",
         "pages:settings:sync-switch-code",
         "pages:settings:sync-tabs-set",
         "pages:settings:trust-receipt",
@@ -947,7 +952,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "88860b7e66d68c3f8e6d581fe73c7dbcc81f1c6d1138532615fbf4a2b2d536f9",
+      "sha256": "f6d3663bc15e2a36668b7267aec2d25bd2a5eb1f4cd0ca684a11da95f62cb044",
       "literalChannels": [
         "before-quit"
       ],
@@ -961,7 +966,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "b85d8f767aa82c01adaa1410e5af7ca9c29a0fe65ef488a8bd052bfa635c5a36",
+      "sha256": "721f9379baacc433f90c54771f2518d6f32d6e5e066b4c5f3096cf78b9c25ecf",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1043,9 +1048,13 @@
         "pages:settings:sync-now",
         "pages:settings:sync-pair-begin",
         "pages:settings:sync-pair-cancel",
+        "pages:settings:sync-pair-joined",
         "pages:settings:sync-pair-state",
+        "pages:settings:sync-pair-watch",
         "pages:settings:sync-preflight",
         "pages:settings:sync-recovery-code-copy",
+        "pages:settings:sync-recovery-prompt-dismiss",
+        "pages:settings:sync-start-new",
         "pages:settings:sync-switch-code",
         "pages:settings:sync-tabs-set",
         "pages:settings:trust-receipt",

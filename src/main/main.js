@@ -79,6 +79,7 @@ const {
   previousActiveSurvivor,
 } = require('./tab-activation');
 const tabSwitcherModule = require('./tab-switcher');
+const { createLaunchSunrise } = require('./launch-sunrise');
 const {
   shieldChipState, shieldPopoverModel, shieldProviderModel, connectionFor, committedUrlOf, activeConnection,
 } = require('./shield-model');
@@ -6107,6 +6108,7 @@ function showUtilityPage(url) {
   resizeActiveView();
   focusUtilitySheet(runtime, sheet);
   broadcastStartPageUtilitySheetVisibility(runtime, true);
+  if (pairingSheet?.runtime === runtime) updatePairingWatch();
 }
 
 function focusUtilitySheet(runtime, sheet) {
@@ -6144,6 +6146,8 @@ function hideUtilitySheet({ refocusContent = true, discardTabHandoff = true } = 
   }
   if (refocusContent) presentationContents(tabs.get(runtime.activeTabId))?.focus();
   broadcastStartPageUtilitySheetVisibility(runtime, false);
+  // A hidden Settings sheet no longer shows its pairing code (design 2026-10-28 §6.2).
+  if (pairingSheet?.runtime === runtime) updatePairingWatch();
 }
 
 let onePasswordFillController = null;
@@ -8349,6 +8353,40 @@ const sharedSharing=createSharingService({
   changed:()=>broadcastWorkspacesUpdated(),
 });
 sync.onPairingShown(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>sharedSharing.armPairing()));
+// Pairing sheet (design 2026-10-28 §6.2–§6.3). The window showing a live code
+// asks to be left out of screen capture (best effort: some capture paths
+// ignore it), and the desktop watches for the device that takes the code
+// only while that sheet is visible in a focused window.
+// Both follow the sheet actually showing a live code, not the code alone: a
+// code stays live for ten minutes after Settings closes.
+// The page reports whether its sheet shows a live code; main knows whether
+// that Settings sheet is on screen at all (a hidden sheet's page isn't told).
+let pairingSheet = null; // { runtime, sender }: the page's last "showing" report
+let pairingCodeLive = false;
+let pairingProtectedWindow = null;
+function updatePairingWatch() {
+  const runtime = pairingSheet?.runtime;
+  const shown = !!runtime?.utilitySheetUrl && sameUtilityPage(runtime.utilitySheetUrl, 'blanc://settings/');
+  const win = shown ? runtime.window : null;
+  const target = pairingCodeLive && win && !win.isDestroyed() ? win : null;
+  if (pairingProtectedWindow && pairingProtectedWindow !== target && !pairingProtectedWindow.isDestroyed()) {
+    pairingProtectedWindow.setContentProtection(false);
+  }
+  if (target && pairingProtectedWindow !== target) target.setContentProtection(true);
+  pairingProtectedWindow = target;
+  sync.setPairingWatch(!!target && target.isFocused());
+}
+sync.onPairingCodeLive((live) => {
+  pairingCodeLive = live;
+  updatePairingWatch();
+});
+sync.onPairingJoined(({ name, platform }) => {
+  for (const runtime of windowRuntimes.all()) {
+    if (sameUtilityPage(runtime.utilitySheetUrl, 'blanc://settings/')) liveUtilitySheet(runtime)?.wc.send('pages:settings:sync-pair-joined', { name, platform });
+  }
+});
+app.on('browser-window-focus', updatePairingWatch);
+app.on('browser-window-blur', updatePairingWatch);
 sync.setSharedVisibilityProvider(()=>isSharedSpacesOffered()?namedWorkspaces.list().filter(workspace=>workspace.sharedId&&workspace.sharedLink==='active').map(workspace=>workspace.sharedId):[]);
 sync.onAccountChanged(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>{
   namedWorkspaces.clearSharedLinks();
@@ -9484,6 +9522,13 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   if (!isTabCreationBatched()) scheduleMenuRebuild();
   return id;
 }
+
+// Play the Sunrise when Blanc opens (#1179): the launch window starts with the
+// process, so a Start Page opened long after launch never plays it. Only a
+// page's first data request may take it (launchSunriseAsked), so a later
+// refresh of the same page can't spend it without playing.
+const launchSunrise = createLaunchSunrise({ startedAt: Date.now() });
+const launchSunriseAsked = new Set();
 
 // Electron can leave a detached document reporting visible. Send a narrow
 // start-page signal alongside the native view change so its clock can stop.
@@ -15328,6 +15373,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
+    syncPairing: {
+      watch: (sender, visible) => {
+        pairingSheet = visible ? { runtime: rt(), sender } : null;
+        // The page can go before its last report does.
+        if (visible) sender.once('destroyed', () => { if (pairingSheet?.sender === sender) { pairingSheet = null; updatePairingWatch(); } });
+        updatePairingWatch();
+        return true;
+      },
+    },
     sharedSpaces: { acknowledge:id=>sharedSharing.acknowledge(id), open:id=>{if(!isSharedSpacesOffered()||rt().profileId!==DEFAULT_PROFILE_ID)return {ok:false};return switchWindowToWorkspace(rt(),String(id));}, status:()=>{const openSheet=!!rt().sharedShowSheet;rt().sharedShowSheet=false;return {offered:isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID,...sync.sharedStatus(),question:sharedSharing.question(),openSheet};}, preview:()=>sharedSharing.preview(), apply:payload=>sharedSharing.apply(payload) },
     drm: require('./drm-controls').createDrmControls({ support: drmSupport, restart: restartApp }),
     stringsScript: () => mainI18n.stringsScript(),
@@ -15484,6 +15538,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       sharedQuestionAnswer:(wc,id,on)=>{if(startPageSenderIsPrivate(wc))return false;const accepted=sharedSharing.acknowledge(id);if(accepted&&on){rt().sharedShowSheet=true;openSettingsSection('sync');}return accepted;},
       status: startPageStatus,
       visibleFor: (wc) => startPageViewVisible(tabs.get(tabIdByWebContentsId.get(wc.id))),
+      launchSunriseFor: (wc) => {
+        if (launchSunriseAsked.has(wc.id)) return false;
+        launchSunriseAsked.add(wc.id);
+        return launchSunrise.take(Date.now(), () => ({
+          enabled: settings.getSettings().launchSunrise === true,
+          private: startPageSenderIsPrivate(wc),
+          visible: startPageViewVisible(tabs.get(tabIdByWebContentsId.get(wc.id))),
+        }));
+      },
       // The Settings sheet is no tab, so it gets the ordinary (non-private) state.
       wallpaperFor: (wc) => {
         const tab = tabs.get(tabIdByWebContentsId.get(wc.id));
@@ -15647,6 +15710,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // BLANC_TEST=0/false stays off.
   if (acceptanceTestMode) {
     require('./test-hook').install({
+      rearmLaunchSunrise: () => launchSunrise.rearm(Date.now()),
       sharedSpacesTest:async(action,payload)=>{
         if(action==='enable')return sync.enable(payload);
         if(action==='pairingPeer'){sharedSharing.armPairing();require('./tabsync').mergeFromSync({devices:{'pseudo-peer':{name:'zzz-peer',platform:'linux',updatedAt:Date.now(),tabs:[],groups:[]}}},sync.sharedContext());return true;}

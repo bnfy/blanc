@@ -15,6 +15,7 @@ struct BlancApp: App {
     /// UIKit's touch delivery on the first tap on its page when built with the
     /// iOS 26 SDK (CI probe runs 40352397246 to 40365031742, 2026-10-26).
     @State private var manager: TabsManager?
+    @State private var incomingLinks = IncomingLinks()
 
     var body: some Scene {
         WindowGroup {
@@ -27,7 +28,13 @@ struct BlancApp: App {
                 }
             }
             .preferredColorScheme(preferredScheme)
-            .onAppear { if manager == nil { manager = TabsManager() } }
+            .onAppear {
+                guard manager == nil else { return }
+                let made = TabsManager()
+                manager = made
+                incomingLinks.flush(into: made)
+            }
+            .onOpenURL { incomingLinks.receive($0, into: manager) }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active, let manager { Task { await manager.syncEngine.appDidBecomeActive() } }
             }

@@ -127,6 +127,10 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `settings.syncJoinCode` | invoke | `pages:settings:sync-join-code` | settings | Join an existing sync from the off state with a pairing or recovery code; status-only reply. |
 | `settings.syncSwitchCode` | invoke | `pages:settings:sync-switch-code` | settings | Leave the current sync for the one behind a code, optionally erasing the old server copy; status-only reply. |
 | `settings.syncRecoveryCodeCopy` | invoke | `pages:settings:sync-recovery-code-copy` | settings | Copy the recovery code to the clipboard from main behind a native dialog. The reply never carries the code. |
+| `settings.syncStartNew` | invoke | `pages:settings:sync-start-new` | settings | Turn on Sync with a generated account, no name or passphrase; status-only reply with whether the first pass reached the server. |
+| `settings.syncRecoveryPromptDismiss` | invoke | `pages:settings:sync-recovery-prompt-dismiss` | settings | Hide the recovery-code prompt on this device for good. |
+| `settings.syncPairWatch` | invoke | `pages:settings:sync-pair-watch` | settings | Report whether the sheet with a live pairing code is visible, so main watches for the device that takes it. |
+| `settings.onSyncPairJoined` | event | `pages:settings:sync-pair-joined` | settings | The device that took the live pairing code arrived: its name and platform only. |
 | `settings.welcomeTour` | invoke | `pages:settings:welcome-tour` | settings | Replay the welcome tour. |
 | `settings.onePasswordStatus` | invoke | `pages:settings:onepassword-status` | settings | 1Password fill status. Main registers this handler only when 1Password fill is available. |
 | `settings.onePasswordVerify` | invoke | `pages:settings:onepassword-verify` | settings | Verify a 1Password account. Registered only when 1Password fill is available. |
