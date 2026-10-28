@@ -31,6 +31,8 @@ actor MemorySyncTransport: SyncTransport {
     private var retired: Set<String> = []
     private var stampClock: (@Sendable () -> Int64)?
     private var stamps: [(method: String, path: String, at: Int64)] = []
+    /// Spelled out: Xcode 26.6 synthesizes this init as `nonisolated` and rejects it.
+    init() {}
     func records() -> [Request] { requests }
     /// Stamp every request with this (simulated) clock, for window checks.
     func setClock(_ clock: @escaping @Sendable () -> Int64) { stampClock = clock }
