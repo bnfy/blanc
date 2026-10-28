@@ -624,6 +624,9 @@
         "selectedTabIds": {
           "type": "TabId[]"
         },
+        "canStartGroup": {
+          "type": "boolean"
+        },
         "activeTabId": {
           "type": "TabId | null"
         },
@@ -679,6 +682,9 @@
         },
         "selectedTabIds": {
           "type": "TabId[]"
+        },
+        "canStartGroup": {
+          "type": "boolean"
         },
         "activeTabId": {
           "type": "TabId | null"

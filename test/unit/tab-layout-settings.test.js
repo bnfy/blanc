@@ -308,7 +308,7 @@ test('the rail\'s first row holds the Space mark and its footer starts a new gro
 
   // The Island's own mark moves (one copy, one set of handlers), on every path
   // that sets the layout, ahead of the layout toggle; it goes back where it was.
-  assert.match(rail, /function placeSpaceMark\(layout\) \{[\s\S]*?if \(layout === 'vertical'\) moveKeepingFocus\(spaceMark, useIslandButton\.parentElement, useIslandButton\);\s*else moveKeepingFocus\(spaceMark, spaceMarkHome\.parent,[\s\S]*?window\.blancSpaceMark\?\.placed\(\);/);
+  assert.match(rail, /function placeSpaceMark\(layout\) \{[\s\S]*?const moved = layout === 'vertical'\s*\? moveKeepingFocus\(spaceMark, useIslandButton\.parentElement, useIslandButton\)\s*: moveKeepingFocus\(spaceMark, spaceMarkHome\.parent,[\s\S]*?if \(moved\) window\.blancSpaceMark\?\.placed\(\);/);
   assert.equal(rail.match(/placeSpaceMark\((?:'island'|layout)\);/g)?.length, 2);
   // Hidden with no Spaces, and the Island's has-space look, apply only on the Island.
   assert.match(renderer, /pillSpace\.hidden = state === 'none' && spaceMarkOnIsland\(\);\s*islandPill\.classList\.toggle\('has-space', state === 'space' && spaceMarkOnIsland\(\)\);/);
@@ -323,9 +323,17 @@ test('the rail\'s first row holds the Space mark and its footer starts a new gro
 
   // New group sits beside New tab, named and described for screen readers.
   assert.match(html, /id="verticalTabsNew"[\s\S]*?<\/button>\s*<button\s+id="verticalTabsNewGroup"[\s\S]*?data-i18n-aria-label="rail\.newGroup"/);
-  assert.match(rail, /newGroupButton\?\.addEventListener\('click', \(\) => \{\s*invokeLeavingRail\('start a new group', \(\) => api\.beginNewGroup\(\)\);/);
-  // It runs the tab menu's New Group…: for every selected tab, else the current
-  // one (private tabs included, as the menu allows).
-  assert.match(main, /chromeOn\('chrome:new-group', \(\) => \{\s*if \(\(rt\(\)\.selectedTabIds\?\.length \?\? 0\) > 1\) return runTabsAction\('batch-group-new'\);\s*const tab = tabs\.get\(rt\(\)\.activeTabId\);\s*if \(tab\) beginNewGroup\(tab\.id\);/);
+  assert.match(rail, /newGroupButton\?\.addEventListener\('click', \(\) => \{\s*if \(newGroupButton\.getAttribute\('aria-disabled'\) === 'true'\) return;\s*invokeLeavingRail\('start a new group', \(\) => api\.beginNewGroup\(\)\);/);
+  // It runs the tab menu's New Group… behind one gate (newGroupTarget): the
+  // selection, pruned first, when several tabs are selected and each could be
+  // placed, else the active tab; never while the window closes or switches
+  // Space. Main sends the gate's answer so the button reads unavailable.
+  assert.match(main, /function newGroupTarget\(runtime\) \{\s*if \(runtime\.closing \|\| runtime\.workspaceTransition\) return null;[\s\S]*?ids\.every\(id => canMoveTabToSpace\(tabs\.get\(id\), runtime, true\)\)/);
+  assert.match(main, /chromeOn\('chrome:new-group', \(\) => \{\s*const runtime = rt\(\);\s*Object\.assign\(runtime, pruneSelection\(runtime, tabLayoutList\(runtime\)\)\);\s*const target = newGroupTarget\(runtime\);\s*if \(target\?\.ids\) \{\s*runTabsAction\('batch-group-new', \{\}, target\.ids\)\s*\.catch\(/);
+  assert.equal(main.match(/canStartGroup: !!newGroupTarget\((?:runtime|rt\(\))\),/g)?.length, 2, 'both tab payloads carry the gate');
+  // Its label names what it acts on, and it stays focusable when unavailable.
+  assert.match(rail, /blancI18n\.t\(\(payload\.selectedTabIds\?\.length \?\? 0\) > 1 \? 'rail\.newGroupSelection' : 'rail\.newGroup'\)/);
+  assert.match(rail, /newGroupButton\.setAttribute\('aria-disabled', String\(payload\.canStartGroup === false\)\);/);
+  assert.match(rail, /if \(newGroupButton\.getAttribute\('aria-disabled'\) === 'true'\) return;/);
   assert.doesNotMatch(rail, /newGroupButton\.disabled/);
 });

@@ -130,6 +130,7 @@
     <string name="rail_island_layout">Désactiver les onglets verticaux</string>
     <string name="rail_list">Onglets ouverts</string>
     <string name="rail_new_group">Placer cet onglet dans un nouveau groupe</string>
+    <string name="rail_new_group_selection">Placer les onglets sélectionnés dans un nouveau groupe</string>
     <string name="rail_resize">Redimensionner les onglets verticaux</string>
     <string name="rail_width_value">%1$s pixels</string>
     <string name="rail_width_announce">Largeur des onglets verticaux : %1$s pixels</string>

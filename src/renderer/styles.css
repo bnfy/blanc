@@ -679,7 +679,8 @@ html { --stage-w: 100vw; }
 }
 .vertical-tabs-toolbar #pillSpace .space-mark-symbol { flex: none; }
 .vertical-tabs-toolbar #pillSpace .space-mark-name { max-width: none; }
-.vertical-tabs-toolbar #pillSpace:is([data-state="neutral"], [data-state="none"]) { width: 28px; flex: none; }
+.vertical-tabs-toolbar #pillSpace:is([data-state="neutral"], [data-state="none"]),
+:root[data-space-tint="island"] .vertical-tabs-toolbar #pillSpace[data-state="space"] { width: 28px; flex: none; }
 .vertical-tabs-toolbar #pillSpace:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -1px;
@@ -1160,9 +1161,13 @@ body > .tab-drag-ghost[aria-hidden="true"] {
   border-radius: var(--radius);
   color: var(--text-dim);
 }
-.vertical-tabs-new-group:hover {
+.vertical-tabs-new-group:not([aria-disabled="true"]):hover {
   background: var(--surface);
   color: var(--text);
+}
+.vertical-tabs-new-group[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: default;
 }
 .vertical-tabs-new-group svg {
   width: 15px;

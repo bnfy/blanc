@@ -130,6 +130,7 @@
     <string name="rail_island_layout">Desactivar las pestañas verticales</string>
     <string name="rail_list">Pestañas abiertas</string>
     <string name="rail_new_group">Mover esta pestaña a un grupo nuevo</string>
+    <string name="rail_new_group_selection">Mover las pestañas seleccionadas a un grupo nuevo</string>
     <string name="rail_resize">Cambiar el tamaño de las pestañas verticales</string>
     <string name="rail_width_value">%1$s píxeles</string>
     <string name="rail_width_announce">Ancho de las pestañas verticales: %1$s píxeles</string>

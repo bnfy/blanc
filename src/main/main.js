@@ -7125,6 +7125,7 @@ function currentTabsPayload() {
   return {
     tabs: serialized,
     selectedTabIds: [...(runtime.selectedTabIds ?? [])],
+    canStartGroup: !!newGroupTarget(runtime),
     activeTabId: runtime.activeTabId,
     glanceTabId: activeGlanceTab()?.id ?? null,
     groups: runtime.groups,
@@ -10485,6 +10486,19 @@ function beginNewGroup(tabId) {
   showOverlay('panel', { prefill: '/group ', purpose: { beginGroupTabId: tabId } });
 }
 
+/** What New group acts on in `runtime`, with the tab menu's gates: every
+ * selected tab when several are (only if each could be placed, as the menu's
+ * batch Move to Group requires), else the active tab; null while the window
+ * is closing or switching Space. */
+function newGroupTarget(runtime) {
+  if (runtime.closing || runtime.workspaceTransition) return null;
+  const ids = runtime.selectedTabIds ?? [];
+  if (ids.length > 1) {
+    return ids.every(id => canMoveTabToSpace(tabs.get(id), runtime, true)) ? { ids: [...ids] } : null;
+  }
+  return tabs.has(runtime.activeTabId) ? { id: runtime.activeTabId } : null;
+}
+
 /** "Rename Tab…" handoff (F46): the command panel prefilled with /rename and
  * the tab's current label, bound to the right-clicked tab. Same atomic
  * purpose-payload reasoning as beginNewGroup: the target must survive the
@@ -11615,6 +11629,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:get-all', () => (syncTabLayout(rt()), {
     tabs: serializeTabs(),
     selectedTabIds: [...(rt().selectedTabIds ?? [])],
+    canStartGroup: !!newGroupTarget(rt()),
     activeTabId: rt().activeTabId,
     glanceTabId: activeGlanceTab()?.id ?? null,
     groups: rt().groups,
@@ -11710,12 +11725,16 @@ function registerIpcHandlers() {
   // that needs validating; it goes through the helper anyway so there is one
   // path that opens the panel with a prefill.
   chromeOn('chrome:open-island-commands', () => openIslandTyping('/'));
-  // The vertical tabs rail's New group button: the tab menu's New Group… for
-  // a multi-tab selection (every selected tab), else for the active tab.
+  // The vertical tabs rail's New group button: the tab menu's New Group…,
+  // with the same gates (newGroupTarget), for the selection or the active tab.
   chromeOn('chrome:new-group', () => {
-    if ((rt().selectedTabIds?.length ?? 0) > 1) return runTabsAction('batch-group-new');
-    const tab = tabs.get(rt().activeTabId);
-    if (tab) beginNewGroup(tab.id);
+    const runtime = rt();
+    Object.assign(runtime, pruneSelection(runtime, tabLayoutList(runtime)));
+    const target = newGroupTarget(runtime);
+    if (target?.ids) {
+      runTabsAction('batch-group-new', {}, target.ids)
+        .catch(error => console.warn('[tabs] new group failed:', error?.message ?? error));
+    } else if (target) beginNewGroup(target.id);
   });
   // The pill's own keydown, when the pill holds keyboard focus.
   chromeOn('chrome:open-island-typing', (_e, char) => openIslandTyping(char));

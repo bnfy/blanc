@@ -19,13 +19,14 @@
   if (!api || !rail || !list || !useIslandButton || !newTabButton || !resizeHandle) return;
 
   /** Moves a strip control to `parent` (before `before`, or last), keeping
-   * keyboard focus on it when it had focus. No-op when it is already there. */
+   * keyboard focus on it when it had focus. Returns whether it moved. */
   function moveKeepingFocus(element, parent, before = null) {
-    if (!element || !parent) return;
-    if (element.parentElement === parent && (before === null ? !element.nextElementSibling : element.nextElementSibling === before)) return;
+    if (!element || !parent) return false;
+    if (element.parentElement === parent && (before === null ? !element.nextElementSibling : element.nextElementSibling === before)) return false;
     const hadFocus = document.activeElement === element;
     parent.insertBefore(element, before);
     if (hadFocus) element.focus({ preventScroll: true });
+    return true;
   }
 
   /** Windows and Linux: the strip's main-menu button sits in the window's
@@ -50,9 +51,11 @@
    * it moves (its visibility depends on where it is). */
   function placeSpaceMark(layout) {
     if (!spaceMark || !spaceMarkHome) return;
-    if (layout === 'vertical') moveKeepingFocus(spaceMark, useIslandButton.parentElement, useIslandButton);
-    else moveKeepingFocus(spaceMark, spaceMarkHome.parent, spaceMarkHome.next?.parentElement === spaceMarkHome.parent ? spaceMarkHome.next : null);
-    window.blancSpaceMark?.placed();
+    const moved = layout === 'vertical'
+      ? moveKeepingFocus(spaceMark, useIslandButton.parentElement, useIslandButton)
+      : moveKeepingFocus(spaceMark, spaceMarkHome.parent, spaceMarkHome.next?.parentElement === spaceMarkHome.parent ? spaceMarkHome.next : null);
+    // The Island-only states (hidden with no Spaces, has-space) follow a move.
+    if (moved) window.blancSpaceMark?.placed();
   }
 
   const ICONS = {
@@ -682,6 +685,18 @@
 
   // A drag (or a settling drop) freezes only the list: the newest payload
   // waits here and is rendered exactly once when the drag ends.
+  // New group names what it acts on: every selected tab when several are,
+  // else this tab. When main's gates refuse (newGroupTarget), it reads as
+  // unavailable, as the tab menu greys out New Group…, but stays focusable so
+  // keyboard focus isn't dropped.
+  function renderNewGroupButton(payload) {
+    if (!newGroupButton) return;
+    const label = blancI18n.t((payload.selectedTabIds?.length ?? 0) > 1 ? 'rail.newGroupSelection' : 'rail.newGroup');
+    newGroupButton.dataset.tooltip = label;
+    newGroupButton.setAttribute('aria-label', label);
+    newGroupButton.setAttribute('aria-disabled', String(payload.canStartGroup === false));
+  }
+
   function render(payload = {}) {
     if (drag.isActive()) {
       deferredPayload = payload;
@@ -699,6 +714,7 @@
       announce(blancI18n.t(count ? 'tabsSelection.count' : 'tabsSelection.cleared', { count }));
     }
     lastPayload = payload;
+    renderNewGroupButton(payload);
     const layout = payload.tabLayout === 'vertical' ? 'vertical' : 'island';
     if (!applyWidthMetrics(payload)) {
       // A vertical payload without main's authoritative width is incomplete;
@@ -838,6 +854,7 @@
     invokeLeavingRail('create tab', () => api.createTab(null, { focusAddress: true }));
   });
   newGroupButton?.addEventListener('click', () => {
+    if (newGroupButton.getAttribute('aria-disabled') === 'true') return;
     invokeLeavingRail('start a new group', () => api.beginNewGroup());
   });
   resizeHandle.addEventListener('pointerdown', (event) => {

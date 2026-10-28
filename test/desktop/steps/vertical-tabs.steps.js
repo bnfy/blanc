@@ -1875,6 +1875,30 @@ Then('the current tab is in a group named {string}', async function (name) {
   assert.equal(state.activeTabId, this.newGroupTabId);
 });
 
+When('I select two new tabs in the rail', async function () {
+  this.pairTabs = [await openLoadedTab(this, 'Pair one'), await openLoadedTab(this, 'Pair two')];
+  const page = await chromePage();
+  const row = (id) => page.locator(`.vertical-tab-primary[data-tab-id="${id}"]`);
+  await row(this.pairTabs[0]).click({ modifiers: [process.platform === 'darwin' ? 'Meta' : 'Control'] });
+  await row(this.pairTabs[1]).click({ modifiers: ['Shift'] });
+  await waitForValue(() => this.call('selectedTabIds'),
+    (ids) => ids.length === 2 && this.pairTabs.every((id) => ids.includes(id)), 'both new tabs selected');
+});
+
+Then('the rail\'s New group button reads {string}', async function (label) {
+  const button = (await chromePage()).locator('#verticalTabsNewGroup');
+  await waitForValue(() => button.getAttribute('aria-label'), (value) => value === label, `the button labelled ${label}`);
+  assert.equal(await button.getAttribute('data-tooltip'), label);
+  assert.equal(await button.getAttribute('aria-disabled'), 'false');
+});
+
+Then('both selected tabs are in a group named {string}', async function (name) {
+  await waitForValue(() => this.call('state'), (value) => {
+    const group = value.groups.find((candidate) => candidate.name === name);
+    return group && this.pairTabs.every((id) => value.tabs.find((tab) => tab.id === id)?.groupId === group.id);
+  }, `both tabs grouped as ${name}`);
+});
+
 Then('the Space mark is back on the Island', async function () {
   const state = await waitForValue(async () => spaceMarkState(await chromePage()),
     (value) => value.inIsland && !value.inRail, 'the Space mark back on the Island');

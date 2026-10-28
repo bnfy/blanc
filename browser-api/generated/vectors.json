@@ -1611,6 +1611,7 @@
         {
           "tabs": [],
           "selectedTabIds": [],
+          "canStartGroup": true,
           "activeTabId": "tab-id-1",
           "glanceTabId": "tab-id-1",
           "groups": [],
@@ -1687,6 +1688,7 @@
           "selectedTabIds": [
             "tab-id-1"
           ],
+          "canStartGroup": true,
           "activeTabId": "tab-id-1",
           "glanceTabId": "tab-id-1",
           "groups": [
@@ -6824,6 +6826,7 @@
             {
               "tabs": [],
               "selectedTabIds": [],
+              "canStartGroup": true,
               "activeTabId": "tab-id-1",
               "glanceTabId": "tab-id-1",
               "groups": [],
@@ -6884,6 +6887,7 @@
               {
                 "tabs": [],
                 "selectedTabIds": [],
+                "canStartGroup": true,
                 "activeTabId": "tab-id-1",
                 "glanceTabId": "tab-id-1",
                 "groups": [],
@@ -7004,6 +7008,7 @@
               "selectedTabIds": [
                 "tab-id-1"
               ],
+              "canStartGroup": true,
               "activeTabId": "tab-id-1",
               "glanceTabId": "tab-id-1",
               "groups": [
@@ -7171,6 +7176,7 @@
                 "selectedTabIds": [
                   "tab-id-1"
                 ],
+                "canStartGroup": true,
                 "activeTabId": "tab-id-1",
                 "glanceTabId": "tab-id-1",
                 "groups": [

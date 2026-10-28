@@ -559,6 +559,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | --- | --- | --- |
 | `tabs` | `TabEntry[]` |  |
 | `selectedTabIds` | `TabId[]` |  |
+| `canStartGroup` | `boolean` |  |
 | `activeTabId` | `TabId \| null` |  |
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |
@@ -582,6 +583,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | --- | --- | --- |
 | `tabs` | `TabEntry[]` |  |
 | `selectedTabIds` | `TabId[]` |  |
+| `canStartGroup` | `boolean` |  |
 | `activeTabId` | `TabId \| null` |  |
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |

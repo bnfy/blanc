@@ -305,6 +305,7 @@ export interface GroupRenameResult {
 export interface TabsSnapshot {
   tabs: TabEntry[];
   selectedTabIds: TabId[];
+  canStartGroup: boolean;
   activeTabId: TabId | null;
   glanceTabId: TabId | null;
   groups: TabGroup[];
@@ -328,6 +329,7 @@ export interface TabsSnapshot {
 export interface TabsUpdatedPayload {
   tabs: TabEntry[];
   selectedTabIds: TabId[];
+  canStartGroup: boolean;
   activeTabId: TabId | null;
   glanceTabId: TabId | null;
   groups: TabGroup[];

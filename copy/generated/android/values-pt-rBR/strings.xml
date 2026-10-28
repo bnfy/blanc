@@ -130,6 +130,7 @@
     <string name="rail_island_layout">Desativar as abas verticais</string>
     <string name="rail_list">Abas abertas</string>
     <string name="rail_new_group">Mover esta aba para um novo grupo</string>
+    <string name="rail_new_group_selection">Mover as abas selecionadas para um novo grupo</string>
     <string name="rail_resize">Redimensionar as abas verticais</string>
     <string name="rail_width_value">%1$s pixels</string>
     <string name="rail_width_announce">Largura das abas verticais: %1$s pixels</string>

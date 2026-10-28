@@ -256,5 +256,11 @@ Feature: Desktop vertical tabs
     Then the command panel opens with "/group " for the current tab
     When I name the new group "Reading" in the command panel
     Then the current tab is in a group named "Reading"
+    When I select two new tabs in the rail
+    Then the rail's New group button reads "Put the selected tabs in a new group"
+    When I click the rail's New group button
+    Then the command panel opens with "/group " for the current tab
+    When I name the new group "Pair" in the command panel
+    Then both selected tabs are in a group named "Pair"
     When I set the tab layout to "island"
     Then the Space mark is back on the Island
