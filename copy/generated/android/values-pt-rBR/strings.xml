@@ -1419,6 +1419,16 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_sync_sheet_your_device">Seu novo dispositivo</string>
     <string name="settings_sync_sheet_spaces_question">Manter Spaces e grupos sincronizados com ele?</string>
     <string name="settings_sync_sheet_done">OK</string>
+    <string name="settings_sync_connect_iphone">Conectar seu iPhone</string>
+    <string name="settings_sync_sheet_scan_iphone">No seu iPhone, abra o Blanc e escolha “Parear com seu Blanc”. Aponte para este código.</string>
+    <string name="settings_sync_sheet_or_type">Ou digite em Ajustes → Sincronização:</string>
+    <string name="settings_sync_sheet_start_body">Isso ativa a sincronização neste Mac. Você não vai precisar de nome nem frase secreta.</string>
+    <string name="settings_sync_sheet_start_body_generic">Isso ativa a sincronização neste computador. Você não vai precisar de nome nem frase secreta.</string>
+    <string name="settings_sync_sheet_continue">Continuar</string>
+    <string name="settings_sync_sheet_making_code">Criando um código…</string>
+    <string name="settings_sync_sheet_already_sync">Já sincroniza em outro computador?</string>
+    <string name="settings_sync_sheet_add_this_first">Adicione primeiro este Mac com um código</string>
+    <string name="settings_sync_sheet_add_this_first_generic">Adicione primeiro este computador com um código</string>
     <string name="settings_sync_recovery_prompt_title">Guarde um jeito de voltar</string>
     <string name="settings_sync_recovery_prompt_body">Esta sincronização não tem frase secreta. Se você perder todos os seus dispositivos, o código de recuperação é o único jeito de acessar seus dados sincronizados. Guarde-o no seu gerenciador de senhas.</string>
     <string name="settings_sync_recovery_prompt_copy">Copiar código de recuperação</string>
@@ -1573,6 +1583,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="newtab_checklist_title">pronto para se mudar?</string>
     <string name="newtab_checklist_done_title">tudo pronto</string>
     <string name="newtab_checklist_sync">Configurar a sincronização</string>
+    <string name="newtab_checklist_iphone">Conectar seu iPhone</string>
     <string name="newtab_checklist_tabs">Trazer suas abas</string>
     <string name="newtab_checklist_not_completed">Não concluído</string>
     <string name="newtab_checklist_completed">Concluído</string>

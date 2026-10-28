@@ -28,7 +28,7 @@ Feature: Tab sync (open tabs from other devices)
     And the moving-in checklist is incomplete and not hidden
     When I open a new tab
     And I resize the desktop window to 900 by 600
-    Then the moving-in checklist shows "0/3"
+    Then the moving-in checklist shows "0/4"
     When I hide the moving-in checklist
     Then the moving-in checklist remains hidden
     When I open a new tab
@@ -43,7 +43,7 @@ Feature: Tab sync (open tabs from other devices)
     Then the settings page opens in the utility sheet under the blanc scheme
     And the Settings sheet is at the "sync" section
     When I mark Sync complete in the moving-in checklist
-    Then the Sync task stays checked at "1/3"
+    Then the Sync task stays checked at "1/4"
 
   @F27-6 @F27 @desktop
   Scenario: The sync command opens Settings at the Sync section
@@ -57,9 +57,10 @@ Feature: Tab sync (open tabs from other devices)
     Given a profile that completed first run
     And the moving-in checklist is incomplete and not hidden
     When I open a new tab
-    Then the moving-in checklist shows "0/3"
+    Then the moving-in checklist shows "0/4"
     When I mark tab migration complete in the moving-in checklist
     And I mark the first space complete in the moving-in checklist
+    And I mark the iPhone connected in the moving-in checklist
     And I choose Set up Sync from the moving-in checklist
     Then the Settings sheet is at the "sync" section
     When I mark Sync complete in the moving-in checklist
@@ -191,3 +192,28 @@ Feature: Tab sync (open tabs from other devices)
     When I run the slash command "/sync"
     Then the sheet shows a pairing code
     And the window asks to be left out of screen capture
+
+  # Design 2026-10-28 §6.1–§6.2: Connect your iPhone with Sync off creates
+  # nothing until Continue, and offers the code path to someone who syncs.
+  @F27-17 @F27 @desktop @sync-server
+  Scenario: Connect your iPhone with Sync off asks before turning it on
+    Given a profile that completed first run
+    When I run the slash command "/sync"
+    Then the Settings sheet is at the "sync" section
+    When I choose Connect your iPhone
+    Then the sheet offers to turn on Sync for this computer
+    When I choose to add this computer with a code first
+    Then the code field replaces the name and passphrase fields
+    And Sync is still off
+
+  @F27-18 @F27 @desktop @sync-server
+  Scenario: Connect your iPhone shows the code as a QR the iPhone can scan
+    Given a profile that completed first run
+    And the moving-in checklist is incomplete and not hidden
+    When I open a new tab
+    And I choose Connect your iPhone from the moving-in checklist
+    Then the sheet offers to turn on Sync for this computer
+    When I choose Continue in the sheet
+    Then Sync is on under the name "My Blanc"
+    And the sheet shows a pairing code
+    And the sheet's QR encodes the pair link for that code

@@ -169,3 +169,97 @@ test('the pairing view is pure', () => {
   const joined = pairingTransition(shownModel(), { type: 'joined', name: 'iPhone', platform: 'ios' }).state;
   assert.deepEqual(pairingView(joined, NOW), pairingView(joined, NOW));
 });
+
+// Connect your iPhone (design 2026-10-28 §6.1–§6.2): with Sync off the sheet
+// opens in a start state that creates nothing until Continue.
+test('open with Sync off starts in start and creates nothing', () => {
+  const { state, effect } = pairingTransition(createPairingModel(), { type: 'open', syncOn: false });
+  assert.equal(effect, null);
+  const v = pairingView(state, NOW);
+  assert.equal(v.sheetOpen, true);
+  assert.equal(v.startShown, true);
+  assert.equal(v.showing, false);
+  assert.equal(v.titleKey, 'settings.sync.connectIphone');
+});
+
+test('open with Sync on begins a code at once', () => {
+  const { state, effect } = pairingTransition(createPairingModel(), { type: 'open', syncOn: true });
+  assert.deepEqual(effect, { type: 'pair-begin' });
+  const shown = pairingTransition(state, { type: 'began', ok: true, code: 'K7MR4PX2', expiresAt: NOW + 600_000 }).state;
+  assert.equal(pairingView(shown, NOW).titleKey, 'settings.sync.connectIphone');
+  assert.equal(pairingView(shownModel(), NOW).titleKey, 'settings.sync.addAnotherDevice', 'Add device keeps its title');
+});
+
+test('continue emits start-new once', () => {
+  const start = pairingTransition(createPairingModel(), { type: 'open', syncOn: false }).state;
+  const next = pairingTransition(start, { type: 'continue' });
+  assert.deepEqual(next.effect, { type: 'start-new' });
+  assert.equal(pairingTransition(next.state, { type: 'continue' }).effect, null);
+  assert.equal(pairingView(next.state, NOW).startBusy, true);
+});
+
+test('started synced:true emits pair-begin', () => {
+  const start = pairingTransition(createPairingModel(), { type: 'open', syncOn: false }).state;
+  const starting = pairingTransition(start, { type: 'continue' }).state;
+  assert.deepEqual(pairingTransition(starting, { type: 'started', synced: true }).effect, { type: 'pair-begin' });
+});
+
+test('started synced:false goes to notReady and retry tries the sync again', () => {
+  const start = pairingTransition(createPairingModel(), { type: 'open', syncOn: false }).state;
+  const starting = pairingTransition(start, { type: 'continue' }).state;
+  const waiting = pairingTransition(starting, { type: 'started', synced: false }).state;
+  const v = pairingView(waiting, NOW);
+  assert.equal(v.sheetOpen, true);
+  assert.equal(v.notReadyShown, true);
+  assert.deepEqual(pairingTransition(waiting, { type: 'retry' }).effect, { type: 'retry-sync' });
+});
+
+test('a failed start shows its message in the start state', () => {
+  const start = pairingTransition(createPairingModel(), { type: 'open', syncOn: false }).state;
+  const starting = pairingTransition(start, { type: 'continue' }).state;
+  const failed = pairingTransition(starting, { type: 'started', ok: false, message: 'Offline' }).state;
+  assert.equal(pairingView(failed, NOW).startShown, true);
+  assert.equal(pairingView(failed, NOW).noticeText, 'Offline');
+});
+
+test('add-this-first emits open-code-path and creates nothing', () => {
+  const start = pairingTransition(createPairingModel(), { type: 'open', syncOn: false }).state;
+  const next = pairingTransition(start, { type: 'add-this-first' });
+  assert.deepEqual(next.effect, { type: 'open-code-path' });
+  assert.equal(pairingView(next.state, NOW).sheetOpen, false);
+});
+
+test('cancel from the start state closes it without a pair-cancel', () => {
+  const start = pairingTransition(createPairingModel(), { type: 'open', syncOn: false }).state;
+  const next = pairingTransition(start, { type: 'cancel' });
+  assert.equal(next.effect, null);
+  assert.equal(pairingView(next.state, NOW).sheetOpen, false);
+});
+
+// Review fixes: no state of the sheet is a trap.
+test('while a code is requested from Connect your iPhone the sheet says so and Cancel works', () => {
+  const opened = pairingTransition(createPairingModel(), { type: 'open', syncOn: true }).state;
+  assert.equal(pairingView(opened, NOW).makingCode, true);
+  const cancelled = pairingTransition(opened, { type: 'cancel' });
+  assert.deepEqual(cancelled.effect, { type: 'pair-cancel' });
+  assert.equal(pairingView(cancelled.state, NOW).sheetOpen, false);
+});
+
+test('a code that arrives after Cancel is retracted', () => {
+  const opened = pairingTransition(createPairingModel(), { type: 'open', syncOn: true }).state;
+  const cancelled = pairingTransition(opened, { type: 'cancel' }).state;
+  const late = pairingTransition(cancelled, { type: 'began', ok: true, code: 'K7MR4PX2', expiresAt: NOW + 600_000 });
+  assert.deepEqual(late.effect, { type: 'pair-cancel' });
+  assert.equal(pairingView(late.state, NOW).sheetOpen, false);
+});
+
+test('Cancel works while Sync is being turned on and while it is not ready', () => {
+  const start = pairingTransition(createPairingModel(), { type: 'open', syncOn: false }).state;
+  const starting = pairingTransition(start, { type: 'continue' }).state;
+  assert.equal(pairingView(pairingTransition(starting, { type: 'cancel' }).state, NOW).sheetOpen, false);
+  const waiting = pairingTransition(starting, { type: 'started', synced: false }).state;
+  assert.equal(pairingView(pairingTransition(waiting, { type: 'cancel' }).state, NOW).sheetOpen, false);
+  const v = pairingView(waiting, NOW);
+  assert.equal(v.startShown, false, 'not ready no longer says it will turn Sync on');
+  assert.equal(v.notReadyShown, true);
+});

@@ -1389,6 +1389,16 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_sync_sheet_your_device">Dein neues Gerät</string>
     <string name="settings_sync_sheet_spaces_question">Spaces und Gruppen damit synchron halten?</string>
     <string name="settings_sync_sheet_done">Fertig</string>
+    <string name="settings_sync_connect_iphone">iPhone verbinden</string>
+    <string name="settings_sync_sheet_scan_iphone">Öffne Blanc auf deinem iPhone und wähle „Mit deinem Blanc koppeln“. Richte es auf diesen Code.</string>
+    <string name="settings_sync_sheet_or_type">Oder gib ihn unter Einstellungen → Synchronisierung ein:</string>
+    <string name="settings_sync_sheet_start_body">Damit wird die Synchronisierung auf diesem Mac aktiviert. Du brauchst keinen Namen und keine Passphrase.</string>
+    <string name="settings_sync_sheet_start_body_generic">Damit wird die Synchronisierung auf diesem Computer aktiviert. Du brauchst keinen Namen und keine Passphrase.</string>
+    <string name="settings_sync_sheet_continue">Weiter</string>
+    <string name="settings_sync_sheet_making_code">Code wird erstellt …</string>
+    <string name="settings_sync_sheet_already_sync">Synchronisierst du schon auf einem anderen Computer?</string>
+    <string name="settings_sync_sheet_add_this_first">Diesen Mac zuerst mit einem Code hinzufügen</string>
+    <string name="settings_sync_sheet_add_this_first_generic">Diesen Computer zuerst mit einem Code hinzufügen</string>
     <string name="settings_sync_recovery_prompt_title">Behalte einen Weg zurück</string>
     <string name="settings_sync_recovery_prompt_body">Diese Synchronisierung hat keine Passphrase. Wenn du alle deine Geräte verlierst, kommst du nur mit ihrem Wiederherstellungscode an deine synchronisierten Daten. Speichere ihn in deinem Passwortmanager.</string>
     <string name="settings_sync_recovery_prompt_copy">Wiederherstellungscode kopieren</string>
@@ -1533,6 +1543,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="newtab_checklist_title">bereit für den Umzug?</string>
     <string name="newtab_checklist_done_title">alles eingerichtet</string>
     <string name="newtab_checklist_sync">Synchronisierung einrichten</string>
+    <string name="newtab_checklist_iphone">iPhone verbinden</string>
     <string name="newtab_checklist_tabs">Tabs mitbringen</string>
     <string name="newtab_checklist_not_completed">Nicht erledigt</string>
     <string name="newtab_checklist_completed">Erledigt</string>

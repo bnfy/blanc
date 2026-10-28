@@ -129,3 +129,40 @@ Then('the window asks to be left out of screen capture', async function () {
 Then('no window asks to be left out of screen capture', async function () {
   await waitForValue(() => this.call('windowsContentProtected'), (count) => count === 0, 'no protected window');
 });
+
+// Connect your iPhone (design 2026-10-28 §6.1–§6.2). Unpackaged builds offer it.
+const QrCode = require('../../../src/renderer/pages/qr-code');
+const { pairLink } = require('../../../src/main/sync-pairing');
+
+When('I choose Connect your iPhone', async function () {
+  await card(this, (value) => value.connectIphoneVisible, 'Connect your iPhone');
+  assert.equal(await this.call('settingsSyncPairingAct', 'connect-iphone'), true);
+});
+
+Then('the sheet offers to turn on Sync for this computer', { timeout: 30000 }, async function () {
+  const dom = await card(this, (value) => value.startShown, 'the start state');
+  assert.equal(dom.sheetTitle, 'Connect your iPhone');
+  assert.equal(dom.syncOn, false, 'nothing is created before Continue');
+});
+
+When('I choose to add this computer with a code first', async function () {
+  assert.equal(await this.call('settingsSyncPairingAct', 'add-this-first'), true);
+});
+
+Then('Sync is still off', async function () {
+  const dom = await card(this, () => true, 'the Sync card');
+  assert.equal(dom.syncOn, false);
+  assert.equal(dom.sheetOpen, false);
+});
+
+When('I choose Continue in the sheet', async function () {
+  assert.equal(await this.call('settingsSyncPairingAct', 'continue'), true);
+});
+
+Then("the sheet's QR encodes the pair link for that code", async function () {
+  const dom = await card(this, (value) => value.qrPath.length > 0, 'the QR');
+  const code = dom.sheetCode.replace('-', '');
+  const matrix = QrCode.encode(pairLink(code));
+  assert.equal(dom.qrPath, QrCode.svgPath(matrix));
+  assert.equal(dom.qrViewBox, `0 0 ${QrCode.viewBoxSize(matrix)} ${QrCode.viewBoxSize(matrix)}`);
+});
