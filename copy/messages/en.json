@@ -8519,39 +8519,39 @@
   },
   "sharedSpaces.title": {
     "message": "Choose Spaces to sync",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.explanation": {
     "message": "Share these Spaces across devices on this sync account. Open tabs, tab names, groups and pinned tabs will sync.",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.cancel": {
     "message": "Cancel",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.confirm": {
     "message": "Turn on",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.count": {
     "message": "{count} of {limit} shared Spaces",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.tabs": {
     "message": "{count} tabs",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.rejoin": {
     "message": "Rejoin",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.copy": {
     "message": "Add as a copy",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.full": {
     "message": "This Space is too large to sync. Split it into smaller Spaces first.",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.accountFull": {
     "message": "Spaces sync storage is full. Delete a Space to free its content storage. Deleted Spaces still count toward the Space limit for 30 days.",
@@ -8559,87 +8559,87 @@
   },
   "sharedSpaces.unavailable": {
     "message": "Spaces sync is unavailable. Favorites, settings, open-tab sharing and Send to device continue.",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.recoveryName": {
     "message": "{name} · kept on this device",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.shared": {
     "message": "Shared",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.waiting": {
     "message": "Waiting to upload",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.notSynced": {
     "message": "Not synced since {time}",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.fullState": {
     "message": "Full for sync",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.unavailableState": {
     "message": "Spaces sync isn’t available",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.closedOn": {
     "message": "Closed on {device}",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.split": {
     "message": "Open to split…",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.splitHint": {
     "message": "Move tabs to another Space, then try sharing again.",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.accountLine": {
     "message": "Every device that turns this on can change these Spaces.",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.offLine": {
     "message": "Turning this off keeps a local copy. Your other devices keep syncing.",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.tombstones": {
     "message": "Closed tabs still use sync space for 30 days.",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.capacity": {
     "message": "This Space is full for sync. Its local changes are kept.",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.busy": {
     "message": "Sync is busy; retrying.",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.slowed": {
     "message": "Checking for changes is slowed by rate limiting.",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.unsyncedTab": {
     "message": "Not synced",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.pairQuestion": {
     "message": "{name} joined your sync. Turn on Spaces here?",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.pairDetail": {
     "message": "Turning this on lets this device change shared Spaces across your sync account.",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.notNow": {
     "message": "Not now",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.recoveryNote": {
     "message": "A local recovery Space preserves tabs missing from an old shared copy.",
-    "note": "Development-only Shared Spaces controls."
+    "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "ios.settings.privacy": {
     "message": "Privacy",

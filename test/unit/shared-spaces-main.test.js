@@ -4,10 +4,35 @@ const model=require('../../src/main/shared-spaces-model');
 let createRuntimeSync;try{({createRuntimeSync}=require('../../src/main/shared-spaces-runtime'));}catch(e){if(e.code!=='MODULE_NOT_FOUND')throw e;}
 const id=n=>n.toString(16).padStart(32,'0'),f=(v,c=100)=>({v,c,by:'peer'}),sid=id(99);
 const record=(n,left='')=>({nav:f({url:'https://example.test/'+n,title:'T'+n}),name:f(null),pinned:f(false),groupId:f(null),pos:f(model.keyFor(left,'',id(n))),deleted:f(false)});
-test('only development desktop builds offer the Shared Spaces consent flow',()=>{
+test('packaged builds offer the Shared Spaces consent flow from 1.45, development builds always',()=>{
   const fs=require('node:fs'),vm=require('node:vm'),source=fs.readFileSync(require.resolve('../../src/main/main.js'),'utf8');
   const helper=source.match(/function isSharedSpacesOffered\(\) \{[^\n]+\}/)?.[0];assert.ok(helper);
-  for(const isPackaged of [true,false]){const context={app:{isPackaged}};vm.runInNewContext(helper+';this.offered=isSharedSpacesOffered();',context);assert.equal(context.offered,!isPackaged);}
+  const offered=(isPackaged,version)=>{const context={app:{isPackaged,getVersion:()=>version}};vm.runInNewContext(helper+';this.offered=isSharedSpacesOffered();',context);return context.offered;};
+  // A 1.44.x hotfix cut from main after this merges must still hide it.
+  for(const version of ['1.44.1','1.44.9','1.9.0','0.45.0'])assert.equal(offered(true,version),false,version);
+  for(const version of ['1.45.0','1.45.0-rc.1','1.46.2','1.100.0','2.0.0'])assert.equal(offered(true,version),true,version);
+  for(const version of ['1.44.1','1.45.0'])assert.equal(offered(false,version),true,'development '+version);
+});
+// Only the Personal profile syncs: every use of the guard in main.js must sit
+// beside a Personal-profile check, or be listed here with the reason it is safe.
+test('every Shared Spaces guard in main.js is paired with a Personal-profile check',()=>{
+  const source=require('node:fs').readFileSync(require.resolve('../../src/main/main.js'),'utf8');
+  const reviewed=new Map([
+    // `shared` comes from sharedSpaceRuntimeContext, which returns null outside Personal.
+    ['shared&&isSharedSpacesOffered()',1],
+    // Lists only Spaces with a sharedId, which only Personal Spaces can carry.
+    ['setSharedVisibilityProvider(()=>isSharedSpacesOffered()',1],
+  ]);
+  const calls=[...source.matchAll(/isSharedSpacesOffered\(\)/g)].filter(m=>!source.slice(Math.max(0,m.index-9),m.index).endsWith('function '));
+  assert.ok(calls.length>=10,'expected the guard\'s call sites');
+  const seen=new Map();
+  for(const {index} of calls){
+    const exempt=[...reviewed.keys()].find(key=>source.slice(index-key.indexOf('isSharedSpacesOffered()'),index-key.indexOf('isSharedSpacesOffered()')+key.length)===key);
+    if(exempt){seen.set(exempt,(seen.get(exempt)??0)+1);continue;}
+    const clause=source.slice(index,index+140);
+    assert.match(clause,/DEFAULT_PROFILE_ID|isDefaultLocalProfile\(\)/,`guard without a Personal-profile check: ${source.slice(index-40,index+100)}`);
+  }
+  assert.deepEqual(seen,reviewed);
 });
 function harness(override) {
   assert.equal(typeof createRuntimeSync,'function');

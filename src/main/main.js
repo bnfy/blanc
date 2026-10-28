@@ -8172,9 +8172,10 @@ function applySharedSpaceRow(runtime, row) {
 const syncedClosed=require('./synced-closed');
 const { createSharingService } = require('./shared-spaces-service');
 const { isRecoveryPlaceholder } = require('./shared-spaces-sharing');
-// Hidden in packaged builds until the Shared Spaces Worker is deployed and
-// its privacy wording ships (owner, October 26, 2026); dev builds offer it.
-function isSharedSpacesOffered() { return !app.isPackaged; }
+// Offered in packaged builds from 1.45 (Shared Spaces PR E), so a 1.44.x
+// hotfix cut from main still hides it; development builds always offer it.
+// Callers still limit it to the Personal profile.
+function isSharedSpacesOffered() { const [major,minor]=app.getVersion().split('.').map(Number); return !app.isPackaged||major>1||(major===1&&minor>=45); }
 function sharedSidecarSpace(tab,runtime) {
   if(!isSharedSpacesOffered()||runtime.profileId!==DEFAULT_PROFILE_ID)return null;
   const workspace=namedWorkspaces.get(runtime.workspaceId),ctx=sync.sharedContext();
