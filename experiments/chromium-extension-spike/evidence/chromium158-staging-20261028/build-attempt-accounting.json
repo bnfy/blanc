@@ -1,0 +1,48 @@
+{
+  "attempts": [
+    {
+      "receipt": "/Users/anthonyjloria/Projects/BlancChromium158/records/20261028/build-receipt.json",
+      "receiptSha256": "35f63fb794f5bba546d6987a09be03049debf14bd8502d04feecb6d871f820fc",
+      "exitCode": 1,
+      "elapsedWrapperSeconds": 69.36865019798279,
+      "status": "terminal"
+    },
+    {
+      "receipt": "/Users/anthonyjloria/Projects/BlancChromium158/records/20261028/resume1-receipt.json",
+      "receiptSha256": "e6e243c70d3757f8bc85a0d10612055d2b994dc7fa81ef29469b03d3b52a40cd",
+      "exitCode": 1,
+      "elapsedWrapperSeconds": 79.59722232818604,
+      "status": "terminal"
+    },
+    {
+      "receipt": "/Users/anthonyjloria/Projects/BlancChromium158/records/20261028/resume2-receipt.json",
+      "receiptSha256": "f08142b3e4e7ca47badeddb6ce4b6edd8346dbd6ed01e1a52f26ac72eeb6af7b",
+      "exitCode": 1,
+      "elapsedWrapperSeconds": 757.7128231525421,
+      "status": "terminal"
+    },
+    {
+      "receipt": "/Users/anthonyjloria/Projects/BlancChromium158/records/20261028/resume3-receipt.json",
+      "receiptSha256": "a311bacc032d01d012bd367b9d906345d082fd9b38040da48315c2ff1dc4e1b8",
+      "exitCode": 1,
+      "elapsedWrapperSeconds": 8101.706857204437,
+      "status": "terminal"
+    },
+    {
+      "receipt": "/Users/anthonyjloria/Projects/BlancChromium158/records/20261028/resume4-receipt.json",
+      "receiptSha256": "1fc4acf6a116448ebc8986d19b57bf7e2bd99bc9ae99c7a028ed3f8b2308beb3",
+      "exitCode": 1,
+      "elapsedWrapperSeconds": 535.9745678901672,
+      "status": "terminal"
+    },
+    {
+      "receipt": "/Users/anthonyjloria/Projects/BlancChromium158/records/20261028/resume5-receipt.json",
+      "receiptSha256": "3a0787841cf1229ed0eea2b47af2813f4392e81f9154ef94e23b7b62eb729783",
+      "exitCode": 0,
+      "elapsedWrapperSeconds": 835.7704420089722,
+      "status": "terminal"
+    }
+  ],
+  "terminalWrapperSeconds": 10380.130562782288,
+  "scope": "Six approved cached-build wrapper durations. Includes build preparation; excludes source/dependency staging, repair work, isolated compilations, and qualification. Not CPU time, owner attention, cost, or full rebase duration. Build completed; real-keychain acceptance remains unresolved."
+}

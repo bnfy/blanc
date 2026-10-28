@@ -1,0 +1,22 @@
+{
+  "runs": [
+    {
+      "fixture": "recovery-real-unlocked",
+      "checks": 6,
+      "mockKeychain": false,
+      "reportSha256": "4e6724c7bef012aa9d47de6431b5ff6081a63f75909ad021386eb574b7ed2464",
+      "harnessSha256": "f906b751e4b063d30a085899311e832ae1a925fb82d10e3bfd62d2779a053d17"
+    },
+    {
+      "fixture": "splits-real-unlocked",
+      "checks": 5,
+      "mockKeychain": false,
+      "reportSha256": "bf5134c693e233cd85daf7e38fa0b3ec06b6f9f44ccf9ec5c584d7687ac71c73",
+      "harnessSha256": "7a2b5f98255a6ba67700a10f4c846dc57de087da57ed0c2d0c4436f1d2b26cc3"
+    }
+  ],
+  "codeChanged": false,
+  "keychainPermissionsChanged": false,
+  "signedAcceptance": false,
+  "earlierStallRootCause": "unproven"
+}
