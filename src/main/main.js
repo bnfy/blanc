@@ -8244,7 +8244,7 @@ const { isRecoveryPlaceholder } = require('./shared-spaces-sharing');
 // the Finish setup task wait for Blanc for iPhone. Unpackaged builds always
 // show them; packaged builds from IPHONE_PAIRING_FROM ('major.minor'), set in
 // the prep PR of the release that ships with the iPhone app. null = not yet.
-const IPHONE_PAIRING_FROM = null;
+const IPHONE_PAIRING_FROM = '1.45';
 function isIphonePairingOffered() {
   if (!app.isPackaged) return true;
   if (!IPHONE_PAIRING_FROM) return false;
