@@ -4771,6 +4771,18 @@
     "message": "Quand une autre app ouvre un lien dans Blanc, la première règle qui correspond choisit le profil, et éventuellement le Space, où il s’ouvre. Les règles restent sur cet appareil.",
     "source": "sha256:40218d63e7c2480dc5215578160ea9cd79e2ef7e76eeb69bcaa6e7731002dae4"
   },
+  "settings.linkRoutes.inApp.label": {
+    "message": "Aussi pour les liens que j’ouvre dans un nouvel onglet",
+    "source": "sha256:e58ac94adcaaae313e09fa42360bb7ffcc493110256cf715b30fd6cf3e6ca23e"
+  },
+  "settings.linkRoutes.inApp.hint": {
+    "message": "Un lien que vous ouvrez dans un nouvel onglet depuis une page suit la règle qui pointe vers un autre profil ou Space. Les liens des onglets privés et des fenêtres de connexion restent où ils sont.",
+    "source": "sha256:2aa6a2a5fbeb40b917b08d9109388a0126d713237599fde7a26df9dba3670990"
+  },
+  "linkRoutes.announce.opened": {
+    "message": "Règle de liens : ouvert dans {destination}",
+    "source": "sha256:36524f3f2fb10d92deb00dbf13a6fbc457070232d8e360303984bcd07af7fab2"
+  },
   "settings.linkRoutes.fallback": {
     "message": "Tout le reste : la dernière fenêtre utilisée",
     "source": "sha256:50add5e3e37cbc88e614962dbabeff994ef03bd438272d6ac8ee8a17de67605a"

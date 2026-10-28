@@ -52777,6 +52777,132 @@
         }
       }
     },
+    "settings.linkRoutes.inApp.label": {
+      "comment": "Settings → Profiles → Open links from other apps (F60): switch that also applies the rules to links opened in a new tab from a page inside Blanc (#1199).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also for links I open in a new tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auch für Links, die ich in einem neuen Tab öffne"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "También para los enlaces que abro en una pestaña nueva"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aussi pour les liens que j’ouvre dans un nouvel onglet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anche per i link che apro in una nuova scheda"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Também para links que abro em uma nova aba"
+          }
+        }
+      }
+    },
+    "settings.linkRoutes.inApp.hint": {
+      "comment": "Settings → Profiles → Open links from other apps: hint under Also for links I open in a new tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A link you open in a new tab from a page follows a rule that points at another profile or Space. Links in private tabs and sign-in pop-ups stay where they are."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Link, den du von einer Seite aus in einem neuen Tab öffnest, folgt einer Regel, die auf ein anderes Profil oder einen anderen Space zeigt. Links in privaten Tabs und Anmelde-Pop-ups bleiben, wo sie sind."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un enlace que abres en una pestaña nueva desde una página sigue la regla que apunta a otro perfil o Space. Los enlaces de pestañas privadas y de ventanas emergentes de inicio de sesión se quedan donde están."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un lien que vous ouvrez dans un nouvel onglet depuis une page suit la règle qui pointe vers un autre profil ou Space. Les liens des onglets privés et des fenêtres de connexion restent où ils sont."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un link che apri in una nuova scheda da una pagina segue la regola che punta a un altro profilo o Space. I link nelle schede private e nei pop-up di accesso restano dove sono."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um link que você abre em uma nova aba a partir de uma página segue a regra que aponta para outro perfil ou Space. Links em abas privadas e em pop-ups de login ficam onde estão."
+          }
+        }
+      }
+    },
+    "linkRoutes.announce.opened": {
+      "comment": "Read out in the window a link left (#1199): a link rule opened it elsewhere. {destination} is where, as Settings names it (a profile, \"profile, Space\", optionally \", as a private tab\").",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link rule: opened in %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link-Regel: in %1$@ geöffnet"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regla de enlaces: abierto en %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Règle de liens : ouvert dans %1$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regola dei link: aperto in %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regra de links: aberto em %1$@"
+          }
+        }
+      }
+    },
     "settings.linkRoutes.fallback": {
       "comment": "Settings → Profiles → Open links from other apps (F60 link routing): fixed last row describing links no rule matches.",
       "extractionState": "manual",

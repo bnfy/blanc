@@ -1321,6 +1321,9 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_profiles_load_failed">Impossibile caricare i profili.</string>
     <string name="settings_link_routes_title">Apri i link da altre app</string>
     <string name="settings_link_routes_hint">Quando un’altra app apre un link in Blanc, la prima regola che corrisponde decide il profilo, ed eventualmente lo Space, in cui si apre. Le regole restano su questo dispositivo.</string>
+    <string name="settings_link_routes_in_app_label">Anche per i link che apro in una nuova scheda</string>
+    <string name="settings_link_routes_in_app_hint">Un link che apri in una nuova scheda da una pagina segue la regola che punta a un altro profilo o Space. I link nelle schede private e nei pop-up di accesso restano dove sono.</string>
+    <string name="link_routes_announce_opened">Regola dei link: aperto in %1$s</string>
     <string name="settings_link_routes_fallback">Tutto il resto: l’ultima finestra che hai usato</string>
     <string name="settings_link_routes_add">Aggiungi regola</string>
     <string name="settings_link_routes_links_to">Link a</string>

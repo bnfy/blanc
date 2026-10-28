@@ -379,7 +379,7 @@ const { webUrlsFromArgv } = require('./startup-urls');
 const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-activation');
 const { createExternalUrlHandoff } = require('./external-url-handoff');
 const {
-  matchLinkRoute, linkRoutesWithoutProfile, resolveRoutedRuntime,
+  matchLinkRoute, linkRoutesWithoutProfile, resolveRoutedRuntime, inAppRouteDestination,
   siteLinkRouteState, siteRouteSwitchModel, setSiteLinkRoute, removeSiteLinkRoute,
 } = require('./link-routes');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
@@ -1619,9 +1619,9 @@ const externalUrlHandoff = createExternalUrlHandoff({
   application: app,
   isReady: () => externalUrlsFlushable,
   isQuitting: () => isQuitting,
-  getRuntime: (preferred, destination) => destination
-    ? routedExternalRuntime(destination, preferred) : resolveExternalRuntime(preferred),
-  ensureWindow: (runtime) => createMainWindow(runtime, { ensureStartTab: true }),
+  getRuntime: (preferred, destination, placement) => destination
+    ? routedExternalRuntime(destination, preferred, placement) : resolveExternalRuntime(preferred),
+  ensureWindow: (runtime, { background = false } = {}) => createMainWindow(runtime, { ensureStartTab: true, inactive: background }),
   isWindowReady: (runtime) => runtime.chromeReady && !runtime.closing
     && runtime.window && !runtime.window.isDestroyed(),
   withRuntime: withWindowRuntime,
@@ -1893,6 +1893,64 @@ function linkRouteDestination(url) {
   return route ? { ...route.destination } : null;
 }
 
+// Links opened from a page inside Blanc (#1199), with Settings → Profiles →
+// "Also for links I open in a new tab" on. A routed tab is built fresh in the
+// destination's session, so it must never be a child that would have
+// inherited its opener's sandbox (CLAUDE.md, Inherited document policy):
+// a page-opened tab routes only when link-route-preload.js reported, from
+// this tab's own top-level page, a trusted activation of a link to exactly
+// this URL in the last second (linkActivations; used once), and never from a
+// tab that itself carries an inherited policy. A page's own window.open,
+// el.click(), a sandboxed iframe's link, a featureful popup (whose opener an
+// OAuth flow needs) and a form post (whose body a fresh tab would lose) all
+// stay. `fromMenu` opens come from Blanc's native context menu, which opens
+// an ordinary tab either way. Returns true when the rule took the link, which
+// then opens like a link from another app.
+const IN_APP_ROUTE_ACTIVATION_MS = 1000;
+const LINK_ROUTE_ACTIVATED_CHANNEL = 'link-route:activated';
+const linkActivations = new Map();
+ipcMain.on(LINK_ROUTE_ACTIVATED_CHANNEL, (event, url) => {
+  // Only a tab's own top-level page; link-route-preload.js runs nowhere else.
+  if (!event.senderFrame || event.senderFrame.parent) return;
+  if (typeof url !== 'string' || url.length > 8192 || !/^https?:\/\//i.test(url)) return;
+  const tab = tabs.get(tabIdByWebContentsId.get(event.sender.id));
+  if (!tab || tab.private || tab.inheritsDocumentPolicy) return;
+  linkActivations.set(event.sender.id, { url, at: Date.now() });
+});
+
+function routeInAppLink(tab, sourceWc, url, disposition, { fromMenu = false, postBody = null } = {}) {
+  if (settings.getSettings().linkRoutesInApp !== true || !tab || tab.private || tab.inheritsDocumentPolicy) return false;
+  if (disposition !== 'foreground-tab' && disposition !== 'background-tab') return false;
+  if (postBody || typeof url !== 'string' || !/^https?:\/\//i.test(url)) return false;
+  if (!fromMenu) {
+    const activation = sourceWc && liveContents(tab) === sourceWc ? linkActivations.get(sourceWc.id) : null;
+    if (!activation || activation.url !== url || !(Date.now() - activation.at <= IN_APP_ROUTE_ACTIVATION_MS)) return false;
+    linkActivations.delete(sourceWc.id);
+  }
+  const owner = windowRuntimes.runtimeForTab(tab.id);
+  if (!owner) return false;
+  const destination = inAppRouteDestination(linkRouteDestination(url), { ...linkRouteHere(owner), private: tab.private });
+  if (!destination) return false;
+  // Out of the window-open handler first: the destination may need a window.
+  setImmediate(() => externalUrlHandoff.openRouted(url, destination, { activate: disposition === 'foreground-tab' }));
+  // Read out in the window the link left, so it's clear where it went.
+  if (owner.window && !owner.window.isDestroyed()) {
+    const name = linkRouteDestinationName(destination) ?? '';
+    const where = destination.private ? mainI18n.t('settings.linkRoutes.destinationPrivate', { destination: name }) : name;
+    stripSurfaces(owner).send('chrome:glance-status', mainI18n.t('linkRoutes.announce.opened', { destination: where }));
+  }
+  return true;
+}
+
+/** A rule destination's name as Settings writes it: the profile, or
+ * "profile, Space". null when the profile is gone. */
+function linkRouteDestinationName({ profileId, spaceId }) {
+  const profile = localProfiles.getLocalProfile(profileId);
+  if (!profile || !linkRouteLiveness.isLiveProfile(profileId)) return null;
+  const space = spaceId ? withLocalProfile(profileId, () => namedWorkspaces.get(spaceId)?.name) : null;
+  return space ? mainI18n.t('settings.linkRoutes.destinationSpace', { profile: profile.name, space }) : profile.name;
+}
+
 // Window focus order per runtime, for "the profile's most recently focused
 // window". Main-process only.
 const runtimeFocusSerials = new WeakMap();
@@ -1905,16 +1963,18 @@ const isLiveBrowserRuntime = (runtime) => windowRuntimes.all().includes(runtime)
 /** The window a routed link opens in (link-routes.js resolveRoutedRuntime):
  * a Space that isn't showing opens in a new window (D2); if that is refused
  * or fails, a new window of the Space's profile. */
-function routedExternalRuntime(destination, preferred) {
+function routedExternalRuntime(destination, preferred, { background = false } = {}) {
   return resolveRoutedRuntime(destination, preferred, {
     runtimes: windowRuntimes.all().filter(isLiveBrowserRuntime),
     focusOrder: (runtime) => runtimeFocusSerials.get(runtime) ?? 0,
-    openSpace: openSpaceForRoutedLink,
-    openProfileWindow: newRoutedProfileRuntime,
+    openSpace: (target) => openSpaceForRoutedLink(target, { background }),
+    openProfileWindow: (profileId) => newRoutedProfileRuntime(profileId, { background }),
   });
 }
 
-function openSpaceForRoutedLink({ profileId, spaceId }) {
+// `background`: a link routed from a middle-click or Cmd/Ctrl-click (#1199)
+// shows a window it has to open without focusing it.
+function openSpaceForRoutedLink({ profileId, spaceId }, { background = false } = {}) {
   // The controller needs only a profile and a lock id from its caller when
   // opening elsewhere; no window of this profile need exist yet.
   const caller = { id: `link-route-${++linkRouteSpaceSerial}`, profileId };
@@ -1928,20 +1988,20 @@ function openSpaceForRoutedLink({ profileId, spaceId }) {
   broadcastWorkspacesUpdated();
   const target = windowRuntimes.all().find((runtime) => String(runtime.id) === result.windowId);
   if (!target) return null;
-  createMainWindow(target);
+  createMainWindow(target, { inactive: background });
   return isLiveBrowserRuntime(target) && target.profileId === profileId ? target : null;
 }
 
 // A new window of the profile holding just the routed link: no Start Page
 // tab is added beside it (createRoutedTab selects the link). A macOS primary
 // whose window was closed keeps its tabs: reopen it, as an unrouted link does.
-function newRoutedProfileRuntime(profileId) {
+function newRoutedProfileRuntime(profileId, { background = false } = {}) {
   if (primaryRuntime.profileId === profileId && windowRuntimes.all().includes(primaryRuntime)
     && !primaryRuntime.resident && (!primaryRuntime.window || primaryRuntime.window.isDestroyed())) {
     return primaryRuntime;
   }
   const runtime = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId });
-  createMainWindow(runtime, { ensureStartTab: false });
+  createMainWindow(runtime, { ensureStartTab: false, inactive: background });
   return runtime;
 }
 
@@ -2002,6 +2062,9 @@ app.on('web-contents-created', (_event, wc) => {
     if (input.type === 'keyDown' && !input.isAutoRepeat
       && (input.key === 'Enter' || input.key === ' ')) handOffToOs.noteUserGesture();
   });
+  // A link activation (routeInAppLink) never outlives its page.
+  const id = wc.id;
+  wc.once('destroyed', () => linkActivations.delete(id));
 });
 
 function flushExternalUrls() {
@@ -7037,12 +7100,7 @@ function siteRouteSwitch(tab) {
     here: linkRouteHere(rt()),
     privateTab: !!tab.private,
     liveProfileCount: liveProfiles.length,
-    nameFor: ({ profileId, spaceId }) => {
-      const profile = liveProfiles.find((candidate) => candidate.id === profileId)?.name;
-      const space = spaceId ? withLocalProfile(profileId, () => namedWorkspaces.get(spaceId)?.name) : null;
-      if (!profile) return null;
-      return space ? mainI18n.t('settings.linkRoutes.destinationSpace', { profile, space }) : profile;
-    },
+    nameFor: linkRouteDestinationName,
   });
 }
 
@@ -9243,7 +9301,7 @@ initTabView({
   dismissFillStatusForNavigation: (owner, tabId) => fillStatusSurface?.invalidatePending(owner.id, tabId),
   // Optional: the page context menu's Open Link in Glance (runs bound to the
   // opener's window runtime, so createTab and setGlanceTab act there).
-  openLinkInGlance, linkSpaceMenuItems,
+  openLinkInGlance, linkSpaceMenuItems, routeInAppLink,
   // Optional ambient-hint triggers (fill-hint.js owns all revalidation).
   onFillHintLoad: (tab) => fillHintScheduler?.notePageLoad(tab),
   onFillHintInPageNavigation: (tab) => fillHintScheduler?.noteInPageNavigation(tab),
@@ -13071,7 +13129,8 @@ function profileWindowTitle(profile) {
     : `${profile?.name ?? mainI18n.t('profile.unnamed')} — Blanc`;
 }
 
-function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
+// `inactive`: shown without taking focus (a background routed link, #1199).
+function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive = false } = {}) {
   if (runtime.window && !runtime.window.isDestroyed()) return runtime;
   runtime.closing = false;
   runtime.chromeReady = false;
@@ -13093,6 +13152,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     // windows, which is exactly the native persistence API's naming contract.
     ...windowStatePersistenceOptions(runtime.id),
     title: profileWindowTitle(localProfile),
+    show: !inactive,
     backgroundColor: chromeBackgroundColor(),
     frame: false,
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
@@ -13106,6 +13166,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
       ...stripWebPreferences(),
     },
   });
+  if (inactive) newWindow.showInactive();
   windowRuntimes.attachWindow(runtime, { window: newWindow });
   windowRuntimes.registerChromeSurface(runtime, newWindow.webContents.id);
   // The chrome document's static <title> is just its document label. Keep the
@@ -14848,6 +14909,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       browsingSession.registerPreloadScript({
         type: 'frame',
         filePath: path.join(__dirname, 'dark-websites-preload.js'),
+      });
+      // Reports links the person activates in a tab's top-level page, for
+      // link rules on links opened in a new tab (routeInAppLink).
+      browsingSession.registerPreloadScript({
+        type: 'frame',
+        filePath: path.join(__dirname, 'link-route-preload.js'),
       });
       // Capture instrumentation relay (spec §4). Per the §4.1 spike, session
       // preloads only reach MAIN frames on our configuration — subframe grants

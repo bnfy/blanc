@@ -167,3 +167,91 @@ Then('no rule is left for the routed site', async function () {
 Then('the pill says {string}', async function (text) {
   await waitForValue(() => this.call('pillPlaceholderState'), (state) => state?.text === text, `pill notice ${text}`);
 });
+
+// ---- #1199: links opened in a new tab from a page ----
+
+const tabsWithUrl = (runtime, url) => runtime.tabs.filter((tab) => tab.url === url).length;
+
+Given('a saved rule sending addresses containing {string} to Work', async function (value) {
+  const result = await ctx.app.evaluate((_electron, { root, profileId, value: text }) => {
+    const require = process.getBuiltinModule('module').createRequire(`${root}/package.json`);
+    return require('./src/main/settings').setLinkRoutes([
+      { id: 'in-app', match: { kind: 'contains', value: text }, destination: { profileId } },
+    ]);
+  }, { root: process.cwd(), profileId: this.namedProfile.id, value });
+  assert.equal(result.ok, true);
+});
+
+// The fixture's ?blanklink= draws a target=_blank link to /site/<name> on the
+// same server, so only the path tells the rule apart.
+Given('a Personal page has a new-tab link to {string}', async function (name) {
+  await waitForValue(() => this.call('focusWindowRuntime', 'primary'), Boolean, 'Personal window focused');
+  this.inAppSourceUrl = `${this.fixtureUrl('in-app-source')}?blanklink=${name}`;
+  this.inAppTargetUrl = this.fixtureUrl(name);
+  this.inAppSourceId = await this.call('openTab', this.inAppSourceUrl);
+  await waitForValue(() => this.state(), (state) => state.tabs.some((tab) => tab.id === this.inAppSourceId && !tab.loading
+    && tab.url === this.inAppSourceUrl), 'link page loaded');
+});
+
+async function inAppSourcePage(world) {
+  await world.call('activateTab', world.inAppSourceId);
+  return waitForValue(async () => ctx.app.windows().find((page) => page.url() === world.inAppSourceUrl),
+    Boolean, 'the link page');
+}
+
+async function countTargets(world) {
+  const runtimes = await world.call('windowRuntimes');
+  const personal = runtimes.find((runtime) => runtime.id === 'primary');
+  const work = runtimes.filter((runtime) => runtime.profileId === world.namedProfile.id);
+  return {
+    personal: tabsWithUrl(personal, world.inAppTargetUrl),
+    work: work.reduce((sum, runtime) => sum + tabsWithUrl(runtime, world.inAppTargetUrl), 0),
+  };
+}
+
+When('I click the page\'s new-tab link', async function () {
+  this.inAppBefore = await countTargets(this);
+  await (await inAppSourcePage(this)).click('#acceptance-blank');
+});
+
+When('link rules also apply to links opened in a new tab', async function () {
+  const saved = await ctx.app.evaluate((_electron, root) => {
+    const require = process.getBuiltinModule('module').createRequire(`${root}/package.json`);
+    return require('./src/main/settings').setSettings({ linkRoutesInApp: true }).linkRoutesInApp;
+  }, process.cwd());
+  assert.equal(saved, true);
+});
+
+// The page's own script: no link was activated, so nothing routes.
+When('the page opens that link in a new tab on its own', async function () {
+  this.inAppBefore = await countTargets(this);
+  const page = await inAppSourcePage(this);
+  await page.evaluate((url) => { window.open(url); }, this.inAppTargetUrl);
+});
+
+// A child of a sandboxed frame would inherit its sandbox, so a link there
+// never routes: only a tab's own top-level page reports links.
+When('I click the same link inside a sandboxed frame on the page', async function () {
+  this.inAppBefore = await countTargets(this);
+  const page = await inAppSourcePage(this);
+  await page.evaluate((url) => {
+    const frame = document.createElement('iframe');
+    frame.id = 'acceptance-sandboxed';
+    frame.setAttribute('sandbox', 'allow-popups');
+    frame.srcdoc = `<a id="framed" href="${url}" target="_blank" style="display:block;padding:16px">open</a>`;
+    document.body.prepend(frame);
+  }, this.inAppTargetUrl);
+  await page.frameLocator('#acceptance-sandboxed').locator('#framed').click();
+});
+
+Then('the link opens in a new tab of the Personal window', async function () {
+  const after = await waitForValue(() => countTargets(this),
+    (counts) => counts.personal === this.inAppBefore.personal + 1, 'the link in the Personal window');
+  assert.equal(after.work, this.inAppBefore.work);
+});
+
+Then('the link opens in the Work window', async function () {
+  const after = await waitForValue(() => countTargets(this),
+    (counts) => counts.work === this.inAppBefore.work + 1, 'the link in the Work window');
+  assert.equal(after.personal, this.inAppBefore.personal);
+});
