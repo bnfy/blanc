@@ -3746,7 +3746,8 @@ function install(refs) {
           connectIphoneVisible: visible(byId('syncConnectIphone')),
           startShown: !!byId('syncPairingDialog')?.open && !byId('syncPairingStart')?.hidden,
           sheetTitle: byId('syncPairingDialog')?.open ? (!byId('syncPairingStart')?.hidden ? byId('syncPairingStartTitle') : byId('syncPairingTitle'))?.textContent ?? '' : '',
-          qrPath: !byId('syncPairingQr')?.hidden ? (byId('syncPairingQr')?.firstElementChild?.getAttribute('d') ?? '') : '',
+          // An <svg> has no .hidden property: judge the QR by what's drawn.
+          qrPath: byId('syncPairingQr')?.getBoundingClientRect().width > 0 ? (byId('syncPairingQr')?.firstElementChild?.getAttribute('d') ?? '') : '',
           qrViewBox: byId('syncPairingQr')?.getAttribute('viewBox') ?? '',
         };
       })()`);
