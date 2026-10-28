@@ -259,6 +259,12 @@ try {
     return entry(name,{order,list:moved,id,groupId},sections.placeInGroup(order,moved,id,groupId));});
   vectors.groupNames=['Research','  research  ','RESEARCH','ΟΔΟΣ','x'.repeat(50),'😀'.repeat(25),'İstanbul','','   ','eBay']
     .map(raw=>entry(raw,{raw},{normalized:groupNames.normalizeGroupName(raw),key:groupNames.groupNameKey(raw)}));
+  const identity = require('../src/renderer/space-identity.js');
+  vectors.spaceInk=[...identity.PRESETS.map(p=>p.hex),'#ffffff','#000000','#f6f6f6','#1e1e1e','#7f7f7f','#ABCDEF','abc','  #426C4C ']
+    .flatMap(hex=>['light','dark','private'].map(theme=>entry(hex+' '+theme,{hex,theme},identity.paint(hex,theme))));
+  vectors.spaceDefaults=[[],[{color:'#426c4c',symbol:'briefcase'}],identity.PRESETS.map((p,i)=>({color:p.hex,symbol:identity.SYMBOL_IDS[i]})),
+    Array.from({length:17},(_, i)=>({color:identity.PRESETS[i%8].hex,symbol:identity.SYMBOL_IDS[i%16]}))]
+    .map(existing=>entry(existing.length+' existing',{existing},identity.defaultsFor(existing)));
   const output=JSON.stringify(vectors,null,2)+'\n';
   if (process.argv.includes('--write')) { fs.mkdirSync(path.dirname(dest),{recursive:true}); fs.writeFileSync(dest,output); }
   else if (fs.readFileSync(dest,'utf8') !== output) { throw new Error('iOS sync vectors are stale; run npm run ios:sync-vectors:build'); }

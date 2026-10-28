@@ -125,7 +125,7 @@
     "copy:ack": "node copy/build.mjs --ack",
     "browser-api:build": "node browser-api/build.mjs",
     "browser-api:check": "node browser-api/build.mjs --check",
-    "substrate:check": "npm run brand:check && npm run tokens:check && npm run settings:check && npm run copy:check && npm run browser-api:check && npm run adblock:check && npm run darkreader:check && npm run ublock:check && npm run compliance:check && npm run compatibility:check && npm run audit-inventory:check && npm run bangs:check && npm run reader:check",
+    "substrate:check": "npm run brand:check && npm run tokens:check && npm run settings:check && npm run copy:check && npm run browser-api:check && npm run adblock:check && npm run darkreader:check && npm run ublock:check && npm run compliance:check && npm run compatibility:check && npm run audit-inventory:check && npm run bangs:check && npm run reader:check && npm run ios:space-identity:check",
     "lint": "eslint \"src/**/*.js\" \"cloudflare/**/src/**/*.js\" --max-warnings 0",
     "ci:queue": "node scripts/ci-queue-report.mjs",
     "test:ublock-dashboard:desktop": "node test/desktop/ublock-dashboard.mjs",
@@ -183,6 +183,8 @@
     "test:pages": "node --test test/pages/*.test.mjs",
     "ios:sync-vectors:build": "node scripts/build-ios-sync-vectors.cjs --write",
     "ios:sync-vectors:check": "node scripts/build-ios-sync-vectors.cjs --check",
+    "ios:space-identity:build": "node scripts/build-ios-space-identity.cjs",
+    "ios:space-identity:check": "node scripts/build-ios-space-identity.cjs --check",
     "reader:build": "node scripts/build-reader.cjs",
     "reader:check": "node scripts/build-reader.cjs --check",
     "test:reader:desktop": "node test/desktop/reader-mode-smoke.mjs"
