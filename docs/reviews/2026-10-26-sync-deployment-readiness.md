@@ -10,6 +10,13 @@ setting, schedule, alert or billing configuration was changed. Until this record
 merges, main's `cloudflare/sync-worker/wrangler.toml` still has the legacy cron
 and no `preview_urls` setting: don't deploy the Sync Worker from main.
 
+Update, October 28, 2026: the M16 Worker was uploaded to production at
+2026-10-27 00:39 UTC despite this hold (Cloudflare version
+`ec302891-ce5f-4a29-9095-39fb6f305e1f`). It was found during the v1.44.1
+release, and the owner accepted the deployed Worker as it stands; see the
+[v1.44.1 incident](../release-incidents/2026-10-28-v1.44.1.md#the-sync-worker).
+The rest of this record is unchanged.
+
 This record supersedes the open-item list in
 [the October 26 preflight](2026-10-26-sync-retention-preflight.md) ("What remains
 before a deployment decision") as the **current status**. That preflight stays the
