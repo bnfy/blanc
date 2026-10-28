@@ -299,11 +299,14 @@ try {
       await keys(['up', 'ctrl'], settle);
       await wait(state, value => value.activeTabId === used[0], 'the release lands two back');
       assert.equal((await commandState()).overlayMode, null, 'landing closes the card');
-      // Esc cancels: the release then changes nothing.
-      await keys(['down', 'ctrl'], 150, ['key', 'tab'], 250, ['key', 'escape'], 150, ['up', 'ctrl'], settle);
-      assert.equal((await state()).activeTabId, used[0], 'Esc stays where you are');
-      assert.equal((await call(app, 'browserCommandState')).tabSwitchPick, null);
-      assert.equal((await commandState()).overlayMode, null, 'Esc closes the card');
+      // Esc cancels: the release then changes nothing. Not on Windows, where
+      // Ctrl+Esc is the OS's Start menu key and never reaches Blanc.
+      if (process.platform !== 'win32') {
+        await keys(['down', 'ctrl'], 150, ['key', 'tab'], 250, ['key', 'escape'], 150, ['up', 'ctrl'], settle);
+        assert.equal((await state()).activeTabId, used[0], 'Esc stays where you are');
+        assert.equal((await call(app, 'browserCommandState')).tabSwitchPick, null);
+        assert.equal((await commandState()).overlayMode, null, 'Esc closes the card');
+      }
       // Ctrl+W closes the pick, not the current tab; the pick moves one step
       // older and the release still arrives to land on it (D4). macOS closes
       // tabs with ⌘W, so there W simply cancels like any other key.
