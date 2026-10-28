@@ -93,6 +93,8 @@ final class SettingsUITests: XCTestCase {
         let pair = app.buttons["settings.pairWithBlanc"]
         XCTAssertTrue(pair.waitForExistence(timeout: 5))
         XCTAssertFalse(app.descendants(matching: .any)["settings.syncCode"].exists, "other ways wait one level deeper")
+        XCTAssertFalse(app.descendants(matching: .any)["settings.deviceName"].exists, "nothing of the connected state while Sync is off")
+        XCTAssertFalse(app.buttons["settings.syncNow"].exists)
         capture("Native Settings — Sync off, Pair with your Blanc")
         pair.tap()
         XCTAssertTrue(app.descendants(matching: .any)["settings.syncCode"].waitForExistence(timeout: 5))

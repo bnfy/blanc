@@ -66,6 +66,7 @@ struct SyncSettingsView: View {
     @State private var showPairing = false
     // Pair with your Blanc (design 2026-10-28 §7.1): the camera first, every
     // other way one level deeper.
+    @Environment(\.colorScheme) private var colorScheme
     @State private var showOtherWays = false
     @State private var typeCodeHint = false
     @State private var scanSheet: ScanSheet?
@@ -98,7 +99,10 @@ struct SyncSettingsView: View {
                         Text(SettingsCopy.text("syncOffBody")).foregroundStyle(.secondary)
                     }
                     Button(action: startPairing) {
+                        // Settings tints with the text color, so the label takes the
+                        // page's background color to stay readable on that fill.
                         Label(SettingsCopy.text("pairWithBlanc"), systemImage: "qrcode.viewfinder")
+                            .foregroundStyle(BrowserStyle(scheme: colorScheme).background)
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
@@ -140,7 +144,7 @@ struct SyncSettingsView: View {
                 } else {
                     Button(SettingsCopy.text("cancel")) { switching = false; model.clearSecrets() }
                 }
-            } else {
+            } else if status.enabled {
                 Section {
                     TextField(SettingsCopy.text("deviceName"), text: $form.deviceName)
                         .onSubmit(saveName).accessibilityIdentifier("settings.deviceName")
