@@ -137,6 +137,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
 
   openIsland: () => ipcRenderer.send('chrome:open-island'),
   openIslandCommands: () => ipcRenderer.send('chrome:open-island-commands'),
+  beginNewGroup: () => ipcRenderer.send('chrome:new-group'),
   openIslandTyping: (char) => ipcRenderer.send('chrome:open-island-typing', char),
   openFindBar: () => ipcRenderer.send('chrome:open-find'),
   openShieldPopover: (anchor) => ipcRenderer.send('chrome:open-shield', anchor),

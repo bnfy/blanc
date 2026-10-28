@@ -5161,6 +5161,90 @@
         }
       }
     },
+    "rail.newGroup": {
+      "comment": "Rail footer button (icon, tooltip and accessible name) that starts a new group from the current tab, like the tab menu's Move to Group > New Group….",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Put this tab in a new group"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesen Tab in eine neue Gruppe verschieben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover esta pestaña a un grupo nuevo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Placer cet onglet dans un nouveau groupe"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sposta questa scheda in un nuovo gruppo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover esta aba para um novo grupo"
+          }
+        }
+      }
+    },
+    "rail.newGroupSelection": {
+      "comment": "Rail footer button's tooltip and accessible name when several tabs are selected: it starts a new group from all of them, like the tab menu's Move to Group > New Group….",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Put the selected tabs in a new group"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausgewählte Tabs in eine neue Gruppe verschieben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover las pestañas seleccionadas a un grupo nuevo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Placer les onglets sélectionnés dans un nouveau groupe"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sposta le schede selezionate in un nuovo gruppo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover as abas selecionadas para um novo grupo"
+          }
+        }
+      }
+    },
     "rail.resize": {
       "comment": "Accessible name of the rail's resize handle.",
       "extractionState": "manual",

@@ -1800,3 +1800,107 @@ Then('the main-menu button is back in the strip\'s top-left corner', async funct
   assert.equal(state.beforePill, true);
   assert.deepEqual({ x: state.rect.x, y: state.rect.y }, { x: 8, y: 8 });
 });
+
+// F28-20: the rail's first row holds the Space mark; its footer starts a group.
+const SPACES_GEOMETRY = require('../../../src/main/chrome-layout');
+function spaceMarkState(page) {
+  return page.evaluate(() => {
+    const mark = document.getElementById('pillSpace');
+    const r = mark.getBoundingClientRect();
+    const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return {
+      inRail: !!mark.closest('.vertical-tabs-toolbar'),
+      inIsland: !!mark.closest('#islandPill'),
+      shown: getComputedStyle(mark).display !== 'none' && r.width > 0,
+      reachable: !!hit && (hit === mark || mark.contains(hit)),
+      rect: { x: r.left, y: r.top, width: r.width, height: r.height },
+    };
+  });
+}
+
+Then('the Space mark sits in the rail\'s first row, not on the Island', async function () {
+  const state = await waitForValue(async () => spaceMarkState(await chromePage()),
+    (value) => value.inRail && value.shown && value.reachable, 'the Space mark in the rail\'s first row');
+  assert.equal(state.inIsland, false, 'the Island keeps no second copy');
+});
+
+When('I click the Space mark in the rail', async function () {
+  const page = await chromePage();
+  this.railSpaceMarkRect = (await spaceMarkState(page)).rect;
+  this.islandBottom = await page.locator('#islandPill').evaluate((el) => el.getBoundingClientRect().bottom);
+  await page.locator('#pillSpace').click();
+});
+
+Then('the Spaces menu opens below the rail\'s Space mark', async function () {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'spaces', 'the Spaces menu');
+  const bounds = await this.call('overlayBounds');
+  const rect = this.railSpaceMarkRect;
+  // The view pads the menu (chrome-layout.js): the menu itself lines up with
+  // the mark's left edge and hangs a small gap below the mark and the Island,
+  // whichever ends lower, so it never covers the Island.
+  const { SPACES_MENU_SIDE, SPACES_MENU_GAP, SPACES_MENU_PAD } = SPACES_GEOMETRY;
+  const bottom = Math.max(rect.y + rect.height, this.islandBottom);
+  const details = JSON.stringify({ bounds, rect, islandBottom: this.islandBottom });
+  assert.equal(bounds.x + SPACES_MENU_SIDE, Math.round(rect.x), details);
+  assert.equal(bounds.y + SPACES_MENU_PAD, Math.round(bottom + SPACES_MENU_GAP), details);
+  await this.call('closeOverlay');
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode == null, 'the Spaces menu closed');
+});
+
+When('I click the rail\'s New group button', async function () {
+  this.newGroupTabId = (await this.call('state')).activeTabId;
+  await (await chromePage()).locator('#verticalTabsNewGroup').click();
+});
+
+Then('the command panel opens with {string} for the current tab', async function (prefill) {
+  await waitForValue(() => this.call('overlayRendererMode'), (mode) => mode === 'panel', 'the command panel');
+  const overlay = await waitForValue(async () => ctx.app.windows().find((page) => page.url() === 'blanc-chrome://overlay/'),
+    Boolean, 'the overlay document');
+  await waitForValue(() => overlay.locator('#addressInput').inputValue(), (value) => value === prefill, `the panel prefilled with ${prefill}`);
+  this.newGroupOverlay = overlay;
+});
+
+When('I name the new group {string} in the command panel', async function (name) {
+  const input = this.newGroupOverlay.locator('#addressInput');
+  await input.press('End');
+  await input.pressSequentially(name);
+  await input.press('Enter');
+});
+
+Then('the current tab is in a group named {string}', async function (name) {
+  const state = await waitForValue(() => this.call('state'), (value) => {
+    const tab = value.tabs.find((candidate) => candidate.id === this.newGroupTabId);
+    return tab?.groupId && value.groups.find((group) => group.id === tab.groupId)?.name === name;
+  }, `the tab grouped as ${name}`);
+  assert.equal(state.activeTabId, this.newGroupTabId);
+});
+
+When('I select two new tabs in the rail', async function () {
+  this.pairTabs = [await openLoadedTab(this, 'Pair one'), await openLoadedTab(this, 'Pair two')];
+  const page = await chromePage();
+  const row = (id) => page.locator(`.vertical-tab-primary[data-tab-id="${id}"]`);
+  await row(this.pairTabs[0]).click({ modifiers: [process.platform === 'darwin' ? 'Meta' : 'Control'] });
+  await row(this.pairTabs[1]).click({ modifiers: ['Shift'] });
+  await waitForValue(() => this.call('selectedTabIds'),
+    (ids) => ids.length === 2 && this.pairTabs.every((id) => ids.includes(id)), 'both new tabs selected');
+});
+
+Then('the rail\'s New group button reads {string}', async function (label) {
+  const button = (await chromePage()).locator('#verticalTabsNewGroup');
+  await waitForValue(() => button.getAttribute('aria-label'), (value) => value === label, `the button labelled ${label}`);
+  assert.equal(await button.getAttribute('data-tooltip'), label);
+  assert.equal(await button.getAttribute('aria-disabled'), 'false');
+});
+
+Then('both selected tabs are in a group named {string}', async function (name) {
+  await waitForValue(() => this.call('state'), (value) => {
+    const group = value.groups.find((candidate) => candidate.name === name);
+    return group && this.pairTabs.every((id) => value.tabs.find((tab) => tab.id === id)?.groupId === group.id);
+  }, `both tabs grouped as ${name}`);
+});
+
+Then('the Space mark is back on the Island', async function () {
+  const state = await waitForValue(async () => spaceMarkState(await chromePage()),
+    (value) => value.inIsland && !value.inRail, 'the Space mark back on the Island');
+  assert.equal(state.inRail, false);
+});

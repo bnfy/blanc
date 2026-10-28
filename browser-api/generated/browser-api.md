@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-155 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+156 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -76,6 +76,7 @@
 | `onPillNotice` | island | event | `chrome:pill-notice` | `(payload: PillNotice) => void` | all |
 | `openIsland` | island | send | `chrome:open-island` | `()` | all |
 | `openIslandCommands` | island | send | `chrome:open-island-commands` | `()` | all |
+| `beginNewGroup` | island | send | `chrome:new-group` | `()` | all |
 | `openIslandTyping` | island | send | `chrome:open-island-typing` | `(char: string)` | all |
 | `openFindBar` | island | send | `chrome:open-find` | `()` | all |
 | `openShieldPopover` | blocking | send | `chrome:open-shield` | `(anchor: ShieldAnchor)` | all |
@@ -558,6 +559,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | --- | --- | --- |
 | `tabs` | `TabEntry[]` |  |
 | `selectedTabIds` | `TabId[]` |  |
+| `canStartGroup` | `boolean` |  |
 | `activeTabId` | `TabId \| null` |  |
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |
@@ -581,6 +583,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | --- | --- | --- |
 | `tabs` | `TabEntry[]` |  |
 | `selectedTabIds` | `TabId[]` |  |
+| `canStartGroup` | `boolean` |  |
 | `activeTabId` | `TabId \| null` |  |
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |

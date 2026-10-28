@@ -133,6 +133,14 @@
       window.blancRailGroupMenu?.open(groupHeader.dataset.groupId);
       return;
     }
+    // The Space mark in the rail's first row opens the Spaces menu, as a
+    // click does; on the Island it is part of the pill and its menu.
+    const railSpaceMark = e.target.closest('.vertical-tabs-toolbar #pillSpace');
+    if (railSpaceMark) {
+      e.preventDefault();
+      railSpaceMark.click();
+      return;
+    }
     if (!e.target.closest('#islandPill') && window.__blancCtxRowTabId == null) {
       e.preventDefault();
     }
@@ -1115,19 +1123,32 @@
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
   // The menu lines up with the mark but hangs from the Island's bottom edge,
-  // so it never covers the Island (spec D18).
+  // so it never covers the Island (spec D18). In the vertical tabs rail's first
+  // row (vertical-tabs.js placeSpaceMark) it hangs from whichever is lower, the
+  // mark or the Island, so it covers neither.
   function spacesAnchor() {
-    return { left: stageRect(pillSpace).left, bottom: stageRect(islandPill).bottom };
+    const bottom = Math.max(stageRect(pillSpace).bottom, stageRect(islandPill).bottom);
+    return { left: stageRect(pillSpace).left, bottom };
   }
+  const spaceMarkOnIsland = () => islandPill.contains(pillSpace);
+  // What depends on where the mark is. On the Island it hides with no Spaces
+  // and marks the Island as carrying one; in the rail's first row it always
+  // shows (with no Spaces, the Spaces glyph offers them) and leaves the Island
+  // alone. vertical-tabs.js calls placed() whenever it moves the mark.
+  function placeSpaceMarkState() {
+    const state = pillSpace.dataset.state || 'none';
+    pillSpace.hidden = state === 'none' && spaceMarkOnIsland();
+    islandPill.classList.toggle('has-space', state === 'space' && spaceMarkOnIsland());
+  }
+  window.blancSpaceMark = Object.freeze({ placed: placeSpaceMarkState });
   function renderSpaceMark() {
     const items = Array.isArray(spaces.items) ? spaces.items : [];
     const index = items.findIndex((w) => w.active);
     const bound = index >= 0 ? items[index] : null;
     const state = bound ? 'space' : items.length ? 'neutral' : 'none';
     const widthBefore = pillSpace.hidden ? 0 : pillSpace.getBoundingClientRect().width;
-    pillSpace.hidden = state === 'none';
     pillSpace.dataset.state = state;
-    islandPill.classList.toggle('has-space', state === 'space');
+    placeSpaceMarkState();
     document.documentElement.dataset.spaceTint = spaces.tint || 'mark';
     if (bound) {
       // The quiet mark: the space's exact colour fills the square behind its
@@ -1173,8 +1194,11 @@
     for (const node of [pillSpaceSymbol, pillSpaceName]) {
       node.animate([{ transform: `translateY(${7 * dir}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, easing });
     }
-    for (const node of [pillDots, pillFavicon, pillDomain]) {
-      node.animate([{ transform: `translateX(${10 * dir}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, easing });
+    // The Island's page cluster follows the mark only when the mark is on it.
+    if (spaceMarkOnIsland()) {
+      for (const node of [pillDots, pillFavicon, pillDomain]) {
+        node.animate([{ transform: `translateX(${10 * dir}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, easing });
+      }
     }
     const widthAfter = pillSpace.hidden ? 0 : pillSpace.getBoundingClientRect().width;
     if (widthBefore && widthAfter && widthBefore !== widthAfter) {
