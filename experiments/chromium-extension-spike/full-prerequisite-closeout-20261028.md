@@ -1,10 +1,12 @@
+> Current signed replacement: source73217ee5, archiveSHA256c788b98acc46637fedcfe69c72159561471d569e12f3a8191a7b5c2b5182adfd. [Grouped-property repair](evidence/f12-grouped-properties-20261028/README.md):52affected signed checks, Apple acceptance, fresh Sigstore authentication and local archive readback pass. Older evidence below retains its original source/scope; these checks do not resolve literal reference differences, original idle admission or missing measured operating inputs. L12 remains NO-GO.
+
 > October 28 original-criteria follow-up: [fresh admission and operating evidence](evidence/l12-original-criteria-20261028/README.md). Neither Mac currently meets timing admission; current completed CI workload is67m02s with six macOS jobs queued. No benchmark rerun, reference repair, new build, or gate credit. Original unmet criteria remain in force.
 
 > October 28 owner decision: **“Keep NO-GO; retain original unmet criteria.”** The measured-packet qualifications were not accepted. F12/Decision 2 remain unaccepted and L12 remains NO-GO (11/12). The loaded-host execution authorization does not waive the original idle criterion. Do not request the same qualified approval again without new evidence or an owner-directed change.
 
 # Full prerequisite closeout crosswalk — October 28
 
-This is a requirement audit, not a waiver or gate approval. The owner rejected the bounded L12 proposal. Source `4a77b4147663eb4f56e55eb3e1f0b356de4a66ae`, archive `270c0848539fa52a13a676aee8f0e33e6920d3ca9c08206c3a77d186ab36cbb5`, remains the signed candidate. Review head `64a890a56d55a9b4d15760325361aeb82423de04` adds evidence only. Eleven gates are accepted; L12 stays NO-GO.
+This is a requirement audit, not a waiver or gate approval. The owner rejected the bounded L12 proposal. Source `4a77b4147663eb4f56e55eb3e1f0b356de4a66ae`, archive `270c0848539fa52a13a676aee8f0e33e6920d3ca9c08206c3a77d186ab36cbb5`, is the earlier signed candidate retained for its original evidence. Review head `64a890a56d55a9b4d15760325361aeb82423de04` adds evidence only. Eleven gates are accepted; L12 stays NO-GO.
 
 ## Spike A criteria (tranche2-request.md §2 and approved §2.1)
 

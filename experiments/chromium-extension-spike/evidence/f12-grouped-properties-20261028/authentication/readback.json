@@ -1,0 +1,13 @@
+{
+  "source": "73217ee50b6f2e4eaa8eb8b27f75df8c2cff9bd2",
+  "archiveSha256": "c788b98acc46637fedcfe69c72159561471d569e12f3a8191a7b5c2b5182adfd",
+  "files": 459,
+  "symlinks": 5,
+  "checksums": true,
+  "metadataBinding": true,
+  "sbomBinding": true,
+  "strictSignature": true,
+  "stapledTicket": true,
+  "gatekeeper": true,
+  "scope": "Local fresh archive readback only; no new download or browser runtime claim"
+}
