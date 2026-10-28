@@ -29,6 +29,18 @@ export async function openSession({config,browserKind,kind,label,root,transport,
   bootstrap=bootstrap.replace(scrubAnchor,`const scrub = require('./frame-observer-scrub.cjs').frameObserverScrub(require('./scrub.cjs'),require('./authored-data-urls.json'));`);
   fs.copyFileSync(new URL('./frame-observer-scrub.cjs',import.meta.url),path.join(appPath,'frame-observer-scrub.cjs'));
   fs.writeFileSync(path.join(appPath,'authored-data-urls.json'),JSON.stringify(authoredDataUrls));
+  if (config.authoredCosmeticRules) bootstrap += `
+// Diagnostic selection only; not present for normal corpus/reference sessions.
+globalThis.__blancAuthoredCosmeticDiagnostic = rules => {
+  if (!Array.isArray(rules) || rules.length !== 5 || rules.some(r => !r.startsWith('operator.blanc-fixture.test##'))) throw Error('Diagnostic rule scope');
+  const blocker = require('./src/main/adblock.js').getBlocker();
+  const {CosmeticFilter} = require('@ghostery/adblocker');
+  const filters = rules.map(rule => CosmeticFilter.parse(rule));
+  if (!blocker || filters.some(filter => !filter)) throw Error('Invalid diagnostic rule setup');
+  blocker.update({newCosmeticFilters: filters});
+  return {rulesAdded: filters.length, loadExtendedSelectors: blocker.config.loadExtendedSelectors};
+};
+`;
   fs.writeFileSync(path.join(appPath,'capture-bootstrap.cjs'),bootstrap);source.bootstrapSha256=sha(bootstrap);source.asarSha256=sha(fs.readFileSync(config.asar));
   for(const [src,dst] of [['../pipeline/scrub.cjs','scrub.cjs'],['../pilot/fixture-trust.cjs','single-fixture-trust.cjs'],['./fixture-trust.cjs','fixture-trust.cjs']])fs.copyFileSync(new URL(src,import.meta.url),path.join(appPath,dst));
   fs.writeFileSync(path.join(appPath,'package.json'),JSON.stringify({...pkg,main:'capture-bootstrap.cjs'}));fs.mkdirSync(profile+'-Dev');
@@ -37,6 +49,13 @@ export async function openSession({config,browserKind,kind,label,root,transport,
   const env={...process.env,BLANC_TEST:'0',BLANC_UBLOCK_TEST:'0',BLANC_F12_PROFILE:profile,BLANC_F12_LOG:log,BLANC_F12_TRUST:trust,BLANC_F12_TRUST_LOG:path.join(dir,'trust.jsonl')};delete env.ELECTRON_RUN_AS_NODE;delete env.NODE_OPTIONS;
   app=await pw._electron.launch({executablePath:config.electron,args:[appPath,`--user-data-dir=${profile}`,...args],env,chromiumSandbox:true,timeout:60000});
   const state=await until(async()=>{const s=await app.evaluate(()=>globalThis.__blancF12Capture.state());assert.equal(fs.realpathSync(s.userData),fs.realpathSync(profile+'-Dev'));return s.activeGates===0&&s.providers.some(p=>p.status.id===provider&&p.status.phase==='ready')&&s;});source.versions=state.versions;
+  // Explicit diagnostic fixtures only: never used by corpus/timing acceptance.
+  if (config.authoredCosmeticRules) {
+    assert(Array.isArray(config.authoredCosmeticRules) && config.authoredCosmeticRules.length === 5);
+    assert(config.authoredCosmeticRules.every(rule => rule.startsWith('operator.blanc-fixture.test##')));
+    source.authoredCosmeticRules = config.authoredCosmeticRules;
+    source.diagnosticSelection = await app.evaluate((_, rules) => globalThis.__blancAuthoredCosmeticDiagnostic(rules), config.authoredCosmeticRules);
+  }
   const island=await until(async()=>(await app.windows()).find(p=>p.url()==='blanc-chrome://index/'));await island.waitForFunction(()=>!!window.browserAPI);
   const isPrivate=kind==='private';createElectronPage=async()=>{const before=new Set(await app.windows());await island.evaluate(privateTab=>window.browserAPI.createTab('about:blank',{private:privateTab}),isPrivate);return until(async()=>(await app.windows()).find(candidate=>candidate.url()==='about:blank'&&!before.has(candidate)));};
   await island.evaluate(privateTab=>window.browserAPI.createTab('about:blank',{private:privateTab}),isPrivate);
