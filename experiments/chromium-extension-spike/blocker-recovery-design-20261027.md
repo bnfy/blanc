@@ -1,4 +1,4 @@
-> Current outcome October28: baseline and UI native acceptance complete; finalguard0. See [affected evidence](evidence/blocker-recovery-ui-20261027/README.md). Earlier pending/draft entries below are historical. Signed qualification remains pending; no gate credit.
+> Current outcome October28: baseline and UI native acceptance complete; finalguard0. See [affected evidence](evidence/blocker-recovery-ui-20261027/README.md). Earlier pending/draft entries below are historical. Signed qualification completed on source d3eddfd2: Apple accepted, 12 affected signed protocol controls passed and native input evidence mapped. No gate credit.
 
 > Draft lifecycle review: Quit is posted to the next UI task so owner teardown cannot destroy the delegate inline. Automatic dialog request is one-shot; failure leaves a manual button rather than retrying every snapshot. Syntax/diff checks pass; native/runtime validation still pending.
 

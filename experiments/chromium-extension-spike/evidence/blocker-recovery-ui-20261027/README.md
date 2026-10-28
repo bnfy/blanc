@@ -8,7 +8,7 @@ Regular and private affected protocol schedules each pass six controls: healthy 
 
 Initial fixture failures are retained: premature title assertion; missing async expression wrapper; status inspected before refresh; restart read stale DevTools endpoint. Corrected fixture waits for exact readiness, asynchronous UI visibility and fresh endpoint content. No product behavior was weakened to pass them. Native observation details and source hashes are adjacent. Raw launch logs/profiles/build output remain in durable Projects/BlancChromium157Recovery/records/20261027. No permanent profile, Google baseline, Electron or latency changes.
 
-**Unsigned native-output acceptance only. Signing/notarization and affected final-artifact checks remain pending. No F12/Decision2 aggregate or launch-gate approval, commit/push, merge or release.**
+**The preceding section records the native checkpoint. The signed qualification below supersedes its former signing-pending status. Neither checkpoint grants aggregate F12/Decision2, launch-gate, merge or release approval.**
 
 ## Signed replacement October28
 
