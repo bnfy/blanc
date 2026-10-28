@@ -5324,6 +5324,46 @@
     "message": "Done",
     "note": "Settings → Sync → Add device sheet: closes the sheet after a device joined."
   },
+  "settings.sync.connectIphone": {
+    "message": "Connect your iPhone",
+    "note": "Settings → Sync: the button (Sync off) and the sheet title that pair Blanc for iPhone with this computer. Shown only where iPhone pairing is offered."
+  },
+  "settings.sync.sheet.scanIphone": {
+    "message": "On your iPhone, open Blanc and choose Pair with your Blanc. Point it at this code.",
+    "note": "Settings → Sync → pairing sheet: the instruction under the QR code."
+  },
+  "settings.sync.sheet.orType": {
+    "message": "Or type it in Settings → Sync:",
+    "note": "Settings → Sync → pairing sheet: introduces the typed code under the QR."
+  },
+  "settings.sync.sheet.startBody": {
+    "message": "This turns on Sync for this Mac. You won’t need a name or passphrase.",
+    "note": "Settings → Sync → Connect your iPhone with Sync off, on a Mac: what Continue does."
+  },
+  "settings.sync.sheet.startBodyGeneric": {
+    "message": "This turns on Sync for this computer. You won’t need a name or passphrase.",
+    "note": "Settings → Sync → Connect your iPhone with Sync off, on Windows or Linux: what Continue does."
+  },
+  "settings.sync.sheet.continue": {
+    "message": "Continue",
+    "note": "Settings → Sync → Connect your iPhone with Sync off: turns Sync on and shows the code."
+  },
+  "settings.sync.sheet.makingCode": {
+    "message": "Making a code…",
+    "note": "Settings → Sync → Connect your iPhone: shown while the pairing code is being made."
+  },
+  "settings.sync.sheet.alreadySync": {
+    "message": "Already sync on another computer?",
+    "note": "Settings → Sync → Connect your iPhone with Sync off: the guard against starting a second sync by accident."
+  },
+  "settings.sync.sheet.addThisFirst": {
+    "message": "Add this Mac with a code first",
+    "note": "Settings → Sync → Connect your iPhone with Sync off, on a Mac: opens the add-with-a-code path instead."
+  },
+  "settings.sync.sheet.addThisFirstGeneric": {
+    "message": "Add this computer with a code first",
+    "note": "Settings → Sync → Connect your iPhone with Sync off, on Windows or Linux: opens the add-with-a-code path instead."
+  },
   "settings.sync.recoveryPrompt.title": {
     "message": "Keep a way back in",
     "note": "Settings → Sync, on state: card shown on the device that started a sync without a passphrase, until its recovery code is saved."
@@ -5790,6 +5830,10 @@
   "newtab.checklist.sync": {
     "message": "Set up Sync",
     "note": "Start page footer → “Finish setup” checklist: task that opens Sync setup."
+  },
+  "newtab.checklist.iphone": {
+    "message": "Connect your iPhone",
+    "note": "Start page → Finish setup: the task that opens Settings → Sync with the pairing sheet. Shown only where iPhone pairing is offered."
   },
   "newtab.checklist.tabs": {
     "message": "Bring your tabs",

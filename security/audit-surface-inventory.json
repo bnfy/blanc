@@ -3,7 +3,7 @@
   "reviewedAt": "2026-10-02",
   "publicDesktopBaseline": "ff55d5948f5c71e802ba2ac464659ef96e055ca9",
   "implementationCommit": "90cdccebbf0ca2bd0d12c7d312c1be506183a527",
-  "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered. Help/Settings and page-tint boundary entries updated on the codex/blanc-trust-app source preview; implementationCommit remains the original inventory baseline, not a claim that this branch has completed an independent audit. The Linux sandbox refusal entries (linux-sandbox-launch.js and its main.js call site) were updated for setup-guide dialog buttons; no IPC channels changed. The feat/drag-reorder-tabs-groups branch updated only the drag-reorder channel deltas for main.js and preload.js (removed tabs:reorder and tabs:reorder-within-bucket; added tabs:move, groups:reorder and overlay:drag-state); their sha256 values and a broader reconciliation of older unlisted channels remain pending. Since October 7, 2026 every boundary entry's sha256 and literalChannels follow the current file, and scripts/audit-surface-inventory.mjs (npm run audit-inventory:check, also run by the unit suite) fails on drift; that script documents the extraction rule. A matching hash records which source an entry describes, not that it was reviewed: reviewedAt and implementationCommit still name the original review. The same change added the uBO bridge and popup preloads, the Dark websites preload and the three scoped capture wrappers that sessions actually register to preloads, plus scoped-session-preload.js, the main-process helper that verifies a wrapper against its pinned capture preload before registration; none of these new entries has been through the original review. Reader Mode adds a dedicated sandbox and sender-bound reader IPC plus a bounded image broker; its inventory records implementation inputs, not independent security review or platform release acceptance. Link routing for links opened in a new tab (#1199) adds link-route-preload.js, a main-frame-only session preload that sends one link-activation channel to main; it has not been through the original review.",
+  "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered. Help/Settings and page-tint boundary entries updated on the codex/blanc-trust-app source preview; implementationCommit remains the original inventory baseline, not a claim that this branch has completed an independent audit. The Linux sandbox refusal entries (linux-sandbox-launch.js and its main.js call site) were updated for setup-guide dialog buttons; no IPC channels changed. The feat/drag-reorder-tabs-groups branch updated only the drag-reorder channel deltas for main.js and preload.js (removed tabs:reorder and tabs:reorder-within-bucket; added tabs:move, groups:reorder and overlay:drag-state); their sha256 values and a broader reconciliation of older unlisted channels remain pending. Since October 7, 2026 every boundary entry's sha256 and literalChannels follow the current file, and scripts/audit-surface-inventory.mjs (npm run audit-inventory:check, also run by the unit suite) fails on drift; that script documents the extraction rule. A matching hash records which source an entry describes, not that it was reviewed: reviewedAt and implementationCommit still name the original review. The same change added the uBO bridge and popup preloads, the Dark websites preload and the three scoped capture wrappers that sessions actually register to preloads, plus scoped-session-preload.js, the main-process helper that verifies a wrapper against its pinned capture preload before registration; none of these new entries has been through the original review. Reader Mode adds a dedicated sandbox and sender-bound reader IPC plus a bounded image broker; its inventory records implementation inputs, not independent security review or platform release acceptance.",
   "preloads": [
     "src/main/badge-api-preload.js",
     "src/main/capture-preload-linux.js",
@@ -13,7 +13,6 @@
     "src/main/dark-websites-preload.js",
     "src/main/display-capture-helper-preload.js",
     "src/main/fill-status-preload.js",
-    "src/main/link-route-preload.js",
     "src/main/preload.js",
     "src/main/reader-preload.js",
     "src/main/scoped-capture-preload-linux.js",
@@ -239,14 +238,6 @@
       "role": "privileged implementation or service"
     },
     {
-      "file": "src/main/link-route-preload.js",
-      "sha256": "e282fa7e7049edf6bf00834cb92a50273a5cfd4e5708ba0f00c59ec52bbe36a4",
-      "literalChannels": [
-        "link-route:activated"
-      ],
-      "role": "preload"
-    },
-    {
       "file": "src/main/linux-sandbox-launch.js",
       "sha256": "36a99069340d4391567e020e686b918978878a2e6b14bb1ab4b43f7c495dc3ea",
       "literalChannels": [],
@@ -260,7 +251,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "6d05b0362d30e89fb815a5d26acc3da969cbc5e57c91248a53336b25eeab5d04",
+      "sha256": "a9bd6242316d1b885a4930ee012b639d37f46dd21829de9ee8642ecf8153c1dd",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -386,7 +377,6 @@
         "groups:space-menu",
         "groups:ungroup",
         "input-event",
-        "link-route:activated",
         "login",
         "open-file",
         "open-url",
@@ -515,7 +505,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "3ef81d28f7b90e4e070cc2af8f019afb9d004d5ccf324de0ee5cc0d26ea2e741",
+      "sha256": "4a800fa2d59f4d324875c068b83cba6439fb5cfc1fc28a057cdb4ee5c55245b1",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -962,7 +952,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "f6d3663bc15e2a36668b7267aec2d25bd2a5eb1f4cd0ca684a11da95f62cb044",
+      "sha256": "4132d370ad00c9a114ca75faeef4e48b05ffd5c30cf81cc6ac4620be37901a06",
       "literalChannels": [
         "before-quit"
       ],
@@ -1133,7 +1123,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "83cf296d7abda8e716a350defc5521474ca5bb491bcd3dd9cd6a2f4524e3f441",
+      "sha256": "c799204b031e988e7fade2145941fe28746a7a69bc0403bf7e69b128f4ab11d9",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

@@ -100,6 +100,8 @@ const CHECKLIST_FLAGS = [
   'defaultBrowserMigrationCompleted',
   'defaultChecklistIntroduced',
   'defaultBrowserReminderShown',
+  'iphoneMigrationCompleted',
+  'iphoneChecklistIntroduced',
 ];
 
 // Keys that sync across devices (see the profile-sync spec). Deliberately
@@ -334,6 +336,10 @@ const DEFAULTS = {
   defaultBrowserMigrationCompleted: false,
   defaultChecklistIntroduced: false,
   defaultBrowserReminderShown: false,
+  // "Connect your iPhone" completed (an iPhone was seen in this sync) and the
+  // one-time introduction of that task (design 2026-10-28 §6.1).
+  iphoneMigrationCompleted: false,
+  iphoneChecklistIntroduced: false,
   // When the start page's Patron upgrade pill was last closed (ms since the
   // epoch; 0 = never). It stays hidden for 90 days (patron-callout.js).
   // Device-local, never Profile Synced.

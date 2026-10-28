@@ -373,8 +373,9 @@ async function startNew({ handle } = {}) {
   if (ensureStore().data.enabled) return { ok: false, error: 'sync-on', status: status() };
   const name = String(handle ?? '').trim();
   const key = crypto.randomBytes(32);
+  const accountId = crypto.randomBytes(32).toString('hex');
   try {
-    const adopted = adoptCredentials({ handle: name.length >= 2 ? name : 'My Blanc', accountId: crypto.randomBytes(32).toString('hex'), key });
+    const adopted = adoptCredentials({ handle: name.length >= 2 ? name : 'My Blanc', accountId, key });
     if (!adopted.ok) return { ...adopted, status: status() };
   } finally {
     key.fill(0);
@@ -383,7 +384,11 @@ async function startNew({ handle } = {}) {
   syncStore.update((d) => { d.origin = 'generated'; d.recoveryPromptDismissed = false; });
   syncStore.flush();
   const res = await syncNow();
-  return { ok: true, synced: !!res.ok, error: res.error, status: status() };
+  // A pass a disable or switch abandoned returns ok without stamping; only a
+  // stamp on this account means the Worker holds it.
+  const now = ensureStore().data;
+  const synced = !!res.ok && now.enabled && now.accountId === accountId && now.lastSyncedAt > 0;
+  return { ok: true, synced, error: res.error, status: status() };
 }
 
 function dismissRecoveryPrompt() {
