@@ -9,6 +9,7 @@ const { nativeImage, session } = require('electron');
 const { JsonStore } = require('./store');
 const model = require('./tabicons-model');
 const iconRaster = require('./icon-raster');
+const { squarePngData } = require('./icon-square');
 
 // Mixed-version seam: current tab records contain sanitized PNG data, while
 // older/direct callers may still supply a remote source for this module's own
@@ -138,14 +139,6 @@ async function readBounded(response) {
   return Buffer.concat(chunks, total);
 }
 
-function pngData(image) {
-  if (!image || image.isEmpty()) return null;
-  const resized = image.resize({ width: model.ICON_SIZE, height: model.ICON_SIZE, quality: 'best' });
-  if (resized.isEmpty()) return null;
-  const data = `data:image/png;base64,${resized.toPNG().toString('base64')}`;
-  return model.validIconData(data);
-}
-
 async function rasterizeSource(source, browsingSession, signal) {
   try {
     if (signal?.aborted) return null;
@@ -154,7 +147,7 @@ async function rasterizeSource(source, browsingSession, signal) {
       // other image type (svg, gif, …) is rasterized in the sandboxed renderer.
       if (/^data:image\/png[;,]/i.test(source)) {
         const bytes = model.sourcePngFromDataUrl(source);
-        return bytes ? pngData(nativeImage.createFromBuffer(bytes)) : null;
+        return bytes ? squarePngData(nativeImage.createFromBuffer(bytes)) : null;
       }
       const dataUrl = model.boundedImageDataUrl(source);
       return dataUrl ? model.validIconData(await raster(dataUrl, signal)) : null;
@@ -194,7 +187,7 @@ async function rasterizeSource(source, browsingSession, signal) {
       if (isPng) {
         // PNG: cheap header/dimension guard, then decode natively — unchanged.
         const png = model.validSourcePngBytes(bytes);
-        return png ? pngData(nativeImage.createFromBuffer(png)) : null;
+        return png ? squarePngData(nativeImage.createFromBuffer(png)) : null;
       }
       // ICO/SVG/GIF/…: hand the bounded bytes to the renderer canvas. The fetch
       // guards above (public-only, cookie/referrer-free, redirect-off) still

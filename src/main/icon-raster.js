@@ -57,7 +57,14 @@ function drawInPage(dataUrl, size, timeoutMs) {
           const ctx = canvas.getContext('2d');
           if (!ctx) return done(null);
           ctx.clearRect(0, 0, size, size);
-          ctx.drawImage(img, 0, 0, size, size);
+          // Keep the icon's shape: a wide or tall source is letterboxed on
+          // transparency. A vector without intrinsic size fills the square.
+          const w = img.naturalWidth || size;
+          const h = img.naturalHeight || size;
+          const scale = size / Math.max(w, h);
+          const dw = Math.max(1, Math.round(w * scale));
+          const dh = Math.max(1, Math.round(h * scale));
+          ctx.drawImage(img, Math.floor((size - dw) / 2), Math.floor((size - dh) / 2), dw, dh);
           const { data } = ctx.getImageData(0, 0, size, size);
           let opaque = false;
           for (let i = 3; i < data.length; i += 4) {

@@ -32,6 +32,7 @@ const ICO_BYTES = (() => {
 
 const image = {
   isEmpty: () => false,
+  getSize: () => ({ width: 32, height: 32 }),
   resize: () => image,
   toPNG: () => pngBytes,
 };
