@@ -17,6 +17,22 @@ enum UITestSeed {
   /// `-BlancUITestTwoTabs`: sync off, example.com (current) and example.org.
   static var twoTabs: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestTwoTabs") }
   static let pageURL = URL(string: "https://example.com/")!
+  /// `-BlancUITestGroups`: sync off; This iPhone has example.com and
+  /// example.org loose and a "Research" group of two example.net pages, and
+  /// a "Work" Space holds example.edu (M17).
+  static var groups: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestGroups") }
+  static func groupsState() -> SessionState {
+    let research = TabGroup(id: String(repeating: "a", count: 32), name: "Research", color: "#376694")
+    let iphone = SavedSet(tabs: [
+      SavedTab(url: "https://example.com/", title: "Example Domain"),
+      SavedTab(url: "https://example.org/", title: "Example Org"),
+      SavedTab(url: "https://example.net/one", title: "Net one", groupId: research.id),
+      SavedTab(url: "https://example.net/two", title: "Net two", groupId: research.id),
+    ], groups: [research], activeIndex: 0)
+    let work = SpaceRecord(id: String(repeating: "b", count: 32), name: "Work", color: "#426c4c", symbol: "briefcase",
+                           set: SavedSet(tabs: [SavedTab(url: "https://example.edu/", title: "Example Edu")]))
+    return SessionState(shown: TabSets.iphoneId, iphone: iphone, spaces: [work])
+  }
 
   static func seedSends(into directory: URL) {
     let now = Int64(Date().timeIntervalSince1970 * 1000)

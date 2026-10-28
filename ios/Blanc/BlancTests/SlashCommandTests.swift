@@ -149,4 +149,53 @@ final class SlashCommandTests: XCTestCase {
         XCTAssertEqual(SlashCommand.sendTarget(named: "IPHONE", in: targets)?.id, "b")
         XCTAssertNil(SlashCommand.sendTarget(named: "iPad", in: targets))
     }
+
+    // MARK: M17: groups and Spaces
+
+    @MainActor func testGroupFindsOrMakesTheGroupForTheCurrentTab() {
+        let m = manager()
+        XCTAssertEqual(run("/group", in: m), .prompt("/group "), "a bare /group asks for a name")
+        XCTAssertEqual(run("/group Research", in: m), .done)
+        let group = m.groups.first
+        XCTAssertEqual(group?.name, "Research")
+        XCTAssertEqual(m.activeTab?.groupId, group?.id)
+        m.createTab(url: URL(string: "https://b.test/")!)
+        _ = run("/gr research", in: m)
+        XCTAssertEqual(m.groups.count, 1, "an existing name is found without regard to case")
+        XCTAssertEqual(m.activeTab?.groupId, group?.id)
+    }
+
+    @MainActor func testUngroupAndCloseGroupNeedAGroupedTab() {
+        let m = manager()
+        XCTAssertNil(run("/ungroup", in: m), "not offered for an ungrouped tab")
+        _ = run("/group G", in: m)
+        _ = run("/ungroup", in: m)
+        XCTAssertNil(m.activeTab?.groupId)
+        _ = run("/group G", in: m)
+        m.createTab(url: URL(string: "https://b.test/")!)
+        _ = run("/group G", in: m)
+        _ = run("/close-group", in: m)
+        XCTAssertTrue(m.groups.isEmpty)
+        XCTAssertEqual(m.lastClosed?.groupClose, true)
+    }
+
+    @MainActor func testGroupIsNotOfferedInAPrivateTab() {
+        let m = manager()
+        m.createTab(isPrivate: true)
+        XCTAssertFalse(SlashCommand.filter(prefix: "/group", in: m).contains { $0.command == "/group" })
+    }
+
+    @MainActor func testSpaceSwitchesByNameOrOpensNewSpace() throws {
+        let m = manager()
+        let work = try m.createSpace(name: "Work", color: "#426c4c", symbol: "briefcase")
+        _ = run("/space work", in: m)
+        XCTAssertEqual(m.shownSetId, work)
+        _ = run("/space This iPhone", in: m)
+        XCTAssertEqual(m.shownSetId, TabSets.iphoneId)
+        _ = run("/space Reading", in: m)
+        XCTAssertEqual(m.spaceEditor, .new(name: "Reading"))
+        m.spaceEditor = nil
+        _ = run("/space", in: m)
+        XCTAssertTrue(m.isSpacesMenuPresented)
+    }
 }

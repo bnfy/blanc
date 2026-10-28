@@ -2450,4 +2450,14 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_vertical_tabs_text_size_default">Standard</string>
     <string name="settings_general_vertical_tabs_text_size_large">Groß</string>
     <string name="settings_general_vertical_tabs_text_size_extra_large">Sehr groß</string>
+    <string name="spaces_this_i_phone">Dieses iPhone</string>
+    <string name="spaces_menu_label">Spaces</string>
+    <string name="spaces_menu_edit">Bearbeiten</string>
+    <plurals name="tab_groups_tucked">
+        <item quantity="one">%1$d Tab eingeklappt</item>
+        <item quantity="other">%1$d Tabs eingeklappt</item>
+    </plurals>
+    <string name="tab_groups_closed_toast">Gruppe geschlossen</string>
+    <string name="group_menu_rename">Umbenennen…</string>
+    <string name="tab_groups_create">Erstellen</string>
 </resources>

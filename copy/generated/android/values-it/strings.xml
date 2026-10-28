@@ -2523,4 +2523,15 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_vertical_tabs_text_size_default">Predefinita</string>
     <string name="settings_general_vertical_tabs_text_size_large">Grande</string>
     <string name="settings_general_vertical_tabs_text_size_extra_large">Molto grande</string>
+    <string name="spaces_this_i_phone">Questo iPhone</string>
+    <string name="spaces_menu_label">Spaces</string>
+    <string name="spaces_menu_edit">Modifica</string>
+    <plurals name="tab_groups_tucked">
+        <item quantity="one">%1$d scheda compressa</item>
+        <item quantity="many">%1$d schede compresse</item>
+        <item quantity="other">%1$d schede compresse</item>
+    </plurals>
+    <string name="tab_groups_closed_toast">Gruppo chiuso</string>
+    <string name="group_menu_rename">Rinomina…</string>
+    <string name="tab_groups_create">Crea</string>
 </resources>

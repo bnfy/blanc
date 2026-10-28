@@ -9181,5 +9181,33 @@
   "settings.general.verticalTabsTextSize.extraLarge": {
     "message": "Extra large",
     "note": "Desktop Settings, General → Island. Vertical-tab sidebar text-size extraLarge. Applies on this device; tab titles and group names grow together."
+  },
+  "spaces.thisIPhone": {
+    "message": "This iPhone",
+    "note": "iPhone: the phone's own tabs that are in no Space, first row of the Spaces menu (M17)."
+  },
+  "spaces.menuLabel": {
+    "message": "Spaces",
+    "note": "iPhone: accessible name of the Island's Space mark and the Spaces menu it opens (M17)."
+  },
+  "spaces.menuEdit": {
+    "message": "Edit",
+    "note": "iPhone: footer button of the Spaces menu that turns its rows into editors (M17)."
+  },
+  "tabGroups.tucked": {
+    "message": "{count, plural, one {# tab tucked away} other {# tabs tucked away}}",
+    "note": "iPhone tab grid: the row a folded group shows instead of its tabs (M17)."
+  },
+  "tabGroups.closedToast": {
+    "message": "Group closed",
+    "note": "iPhone: the Undo banner after Close Group (M17)."
+  },
+  "groupMenu.rename": {
+    "message": "Rename…",
+    "note": "iPhone: group header menu item that asks for a new name (M17)."
+  },
+  "tabGroups.create": {
+    "message": "Create",
+    "note": "iPhone: confirms the name of a new tab group (M17)."
   }
 }

@@ -2523,4 +2523,15 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_vertical_tabs_text_size_default">Par défaut</string>
     <string name="settings_general_vertical_tabs_text_size_large">Grande</string>
     <string name="settings_general_vertical_tabs_text_size_extra_large">Très grande</string>
+    <string name="spaces_this_i_phone">Cet iPhone</string>
+    <string name="spaces_menu_label">Spaces</string>
+    <string name="spaces_menu_edit">Modifier</string>
+    <plurals name="tab_groups_tucked">
+        <item quantity="one">%1$d onglet replié</item>
+        <item quantity="many">%1$d onglets repliés</item>
+        <item quantity="other">%1$d onglets repliés</item>
+    </plurals>
+    <string name="tab_groups_closed_toast">Groupe fermé</string>
+    <string name="group_menu_rename">Renommer…</string>
+    <string name="tab_groups_create">Créer</string>
 </resources>

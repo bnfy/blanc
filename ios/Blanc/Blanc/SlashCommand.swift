@@ -26,9 +26,8 @@ struct SlashCommand: Identifiable {
         action(manager, argument)
     }
 
-    /// The commands the phone offers. The shared set (F7) minus what waits for
-    /// M17 (`/group`, `/ungroup`, `/close-group`, `/space`), `/sleep` (iOS frees
-    /// a background page's memory itself, D8) and `/bangs` (after 1.0).
+    /// The commands the phone offers: the shared set (F7) minus `/sleep` (iOS
+    /// frees a background page's memory itself, D8) and `/bangs` (after 1.0).
     static let available: [SlashCommand] = [
         SlashCommand(command: "/favorites", hintKey: "slash_favorites") { manager, _ in
             manager.createTab(url: URL(string: "blanc://bookmarks/")!)
@@ -57,6 +56,23 @@ struct SlashCommand: Identifiable {
         SlashCommand(command: "/reopen", hintKey: "slash_reopen") { manager, _ in
             manager.reopenLast(); return .done
         },
+        // Groups (M17): a private tab is never grouped.
+        SlashCommand(command: "/group", hintKey: "slash_group",
+                     isAvailable: { $0.activeTab?.isPrivate != true }) { manager, argument in
+            guard !argument.isEmpty else { return .prompt("/group ") }
+            manager.runGroupCommand(argument)
+            return .done
+        },
+        SlashCommand(command: "/ungroup", hintKey: "slash_ungroup",
+                     isAvailable: { $0.activeTab?.groupId != nil }) { manager, _ in
+            if let id = manager.activeTabId { manager.moveTab(id, toGroup: nil) }
+            return .done
+        },
+        SlashCommand(command: "/close-group", hintKey: "slash_close_group",
+                     isAvailable: { $0.activeTab?.groupId != nil }) { manager, _ in
+            if let group = manager.activeTab?.groupId { manager.closeGroup(group) }
+            return .done
+        },
         // Never offered in a private tab, as on desktop.
         SlashCommand(command: "/send", hintKey: "slash_send",
                      isAvailable: { $0.activeTab?.isPrivate != true }) { manager, argument in
@@ -80,6 +96,11 @@ struct SlashCommand: Identifiable {
         SlashCommand(command: "/theme", hintKey: "slash_theme") { manager, argument in
             let next = nextTheme(after: manager.settingsStore.theme, argument: argument)
             manager.applySettingsPatch(["theme": next.rawValue])
+            return .done
+        },
+        // Bare: the Spaces menu. A name: that Space, or New Space with it.
+        SlashCommand(command: "/space", hintKey: "slash_space") { manager, argument in
+            manager.runSpaceCommand(argument)
             return .done
         },
     ]

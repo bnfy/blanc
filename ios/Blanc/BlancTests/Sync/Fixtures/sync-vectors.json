@@ -21200,6 +21200,1494 @@
       }
     }
   ],
+  "tabSections": [
+    {
+      "name": "ungrouped only",
+      "input": {
+        "list": [
+          {
+            "id": "a",
+            "groupId": null,
+            "pinned": false
+          },
+          {
+            "id": "b",
+            "groupId": null,
+            "pinned": false
+          }
+        ]
+      },
+      "expected": {
+        "sections": [
+          {
+            "key": "run:a",
+            "groupId": null,
+            "tabIds": [
+              "a",
+              "b"
+            ]
+          }
+        ],
+        "order": [
+          "a",
+          "b"
+        ]
+      }
+    },
+    {
+      "name": "run, group, run",
+      "input": {
+        "list": [
+          {
+            "id": "a",
+            "groupId": null,
+            "pinned": false
+          },
+          {
+            "id": "b",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "c",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "d",
+            "groupId": null,
+            "pinned": false
+          }
+        ]
+      },
+      "expected": {
+        "sections": [
+          {
+            "key": "run:a",
+            "groupId": null,
+            "tabIds": [
+              "a"
+            ]
+          },
+          {
+            "key": "g",
+            "groupId": "g",
+            "tabIds": [
+              "b",
+              "c"
+            ]
+          },
+          {
+            "key": "run:d",
+            "groupId": null,
+            "tabIds": [
+              "d"
+            ]
+          }
+        ],
+        "order": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ]
+      }
+    },
+    {
+      "name": "group split by a loose tab",
+      "input": {
+        "list": [
+          {
+            "id": "a",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "b",
+            "groupId": null,
+            "pinned": false
+          },
+          {
+            "id": "c",
+            "groupId": "g",
+            "pinned": false
+          }
+        ]
+      },
+      "expected": {
+        "sections": [
+          {
+            "key": "g",
+            "groupId": "g",
+            "tabIds": [
+              "a",
+              "c"
+            ]
+          },
+          {
+            "key": "run:b",
+            "groupId": null,
+            "tabIds": [
+              "b"
+            ]
+          }
+        ],
+        "order": [
+          "a",
+          "c",
+          "b"
+        ]
+      }
+    },
+    {
+      "name": "two groups interleaved",
+      "input": {
+        "list": [
+          {
+            "id": "a",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "b",
+            "groupId": "h",
+            "pinned": false
+          },
+          {
+            "id": "c",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "d",
+            "groupId": "h",
+            "pinned": false
+          }
+        ]
+      },
+      "expected": {
+        "sections": [
+          {
+            "key": "g",
+            "groupId": "g",
+            "tabIds": [
+              "a",
+              "c"
+            ]
+          },
+          {
+            "key": "h",
+            "groupId": "h",
+            "tabIds": [
+              "b",
+              "d"
+            ]
+          }
+        ],
+        "order": [
+          "a",
+          "c",
+          "b",
+          "d"
+        ]
+      }
+    },
+    {
+      "name": "grouped pin leads its group",
+      "input": {
+        "list": [
+          {
+            "id": "a",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "b",
+            "groupId": "g",
+            "pinned": true
+          },
+          {
+            "id": "c",
+            "groupId": null,
+            "pinned": false
+          }
+        ]
+      },
+      "expected": {
+        "sections": [
+          {
+            "key": "g",
+            "groupId": "g",
+            "tabIds": [
+              "b",
+              "a"
+            ]
+          },
+          {
+            "key": "run:c",
+            "groupId": null,
+            "tabIds": [
+              "c"
+            ]
+          }
+        ],
+        "order": [
+          "b",
+          "a",
+          "c"
+        ]
+      }
+    },
+    {
+      "name": "shelf pins first",
+      "input": {
+        "list": [
+          {
+            "id": "a",
+            "groupId": null,
+            "pinned": false
+          },
+          {
+            "id": "b",
+            "groupId": null,
+            "pinned": true
+          },
+          {
+            "id": "c",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "d",
+            "groupId": null,
+            "pinned": true
+          }
+        ]
+      },
+      "expected": {
+        "sections": [
+          {
+            "key": "run:a",
+            "groupId": null,
+            "tabIds": [
+              "a"
+            ]
+          },
+          {
+            "key": "g",
+            "groupId": "g",
+            "tabIds": [
+              "c"
+            ]
+          }
+        ],
+        "order": [
+          "b",
+          "d",
+          "a",
+          "c"
+        ]
+      }
+    },
+    {
+      "name": "runs between groups",
+      "input": {
+        "list": [
+          {
+            "id": "a",
+            "groupId": null,
+            "pinned": false
+          },
+          {
+            "id": "b",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "c",
+            "groupId": null,
+            "pinned": false
+          },
+          {
+            "id": "d",
+            "groupId": null,
+            "pinned": false
+          },
+          {
+            "id": "e",
+            "groupId": "h",
+            "pinned": false
+          },
+          {
+            "id": "f",
+            "groupId": null,
+            "pinned": false
+          }
+        ]
+      },
+      "expected": {
+        "sections": [
+          {
+            "key": "run:a",
+            "groupId": null,
+            "tabIds": [
+              "a"
+            ]
+          },
+          {
+            "key": "g",
+            "groupId": "g",
+            "tabIds": [
+              "b"
+            ]
+          },
+          {
+            "key": "run:c",
+            "groupId": null,
+            "tabIds": [
+              "c",
+              "d"
+            ]
+          },
+          {
+            "key": "h",
+            "groupId": "h",
+            "tabIds": [
+              "e"
+            ]
+          },
+          {
+            "key": "run:f",
+            "groupId": null,
+            "tabIds": [
+              "f"
+            ]
+          }
+        ],
+        "order": [
+          "a",
+          "b",
+          "c",
+          "d",
+          "e",
+          "f"
+        ]
+      }
+    },
+    {
+      "name": "only pins",
+      "input": {
+        "list": [
+          {
+            "id": "a",
+            "groupId": null,
+            "pinned": true
+          },
+          {
+            "id": "b",
+            "groupId": null,
+            "pinned": true
+          }
+        ]
+      },
+      "expected": {
+        "sections": [],
+        "order": [
+          "a",
+          "b"
+        ]
+      }
+    },
+    {
+      "name": "empty",
+      "input": {
+        "list": []
+      },
+      "expected": {
+        "sections": [],
+        "order": []
+      }
+    },
+    {
+      "name": "group first",
+      "input": {
+        "list": [
+          {
+            "id": "a",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "b",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "c",
+            "groupId": null,
+            "pinned": false
+          }
+        ]
+      },
+      "expected": {
+        "sections": [
+          {
+            "key": "g",
+            "groupId": "g",
+            "tabIds": [
+              "a",
+              "b"
+            ]
+          },
+          {
+            "key": "run:c",
+            "groupId": null,
+            "tabIds": [
+              "c"
+            ]
+          }
+        ],
+        "order": [
+          "a",
+          "b",
+          "c"
+        ]
+      }
+    },
+    {
+      "name": "loose tab after its group member",
+      "input": {
+        "list": [
+          {
+            "id": "a",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "b",
+            "groupId": null,
+            "pinned": false
+          },
+          {
+            "id": "c",
+            "groupId": "h",
+            "pinned": false
+          },
+          {
+            "id": "d",
+            "groupId": "g",
+            "pinned": false
+          }
+        ]
+      },
+      "expected": {
+        "sections": [
+          {
+            "key": "g",
+            "groupId": "g",
+            "tabIds": [
+              "a",
+              "d"
+            ]
+          },
+          {
+            "key": "run:b",
+            "groupId": null,
+            "tabIds": [
+              "b"
+            ]
+          },
+          {
+            "key": "h",
+            "groupId": "h",
+            "tabIds": [
+              "c"
+            ]
+          }
+        ],
+        "order": [
+          "a",
+          "d",
+          "b",
+          "c"
+        ]
+      }
+    },
+    {
+      "name": "pinned and unpinned in two groups",
+      "input": {
+        "list": [
+          {
+            "id": "a",
+            "groupId": "h",
+            "pinned": true
+          },
+          {
+            "id": "b",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "c",
+            "groupId": "h",
+            "pinned": false
+          },
+          {
+            "id": "d",
+            "groupId": "g",
+            "pinned": true
+          }
+        ]
+      },
+      "expected": {
+        "sections": [
+          {
+            "key": "h",
+            "groupId": "h",
+            "tabIds": [
+              "a",
+              "c"
+            ]
+          },
+          {
+            "key": "g",
+            "groupId": "g",
+            "tabIds": [
+              "d",
+              "b"
+            ]
+          }
+        ],
+        "order": [
+          "a",
+          "c",
+          "d",
+          "b"
+        ]
+      }
+    }
+  ],
+  "tabPlaceInGroup": [
+    {
+      "name": "join after last member",
+      "input": {
+        "order": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "list": [
+          {
+            "id": "a",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "b",
+            "groupId": null,
+            "pinned": false
+          },
+          {
+            "id": "c",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "d",
+            "groupId": "g",
+            "pinned": false
+          }
+        ],
+        "id": "d",
+        "groupId": "g"
+      },
+      "expected": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ]
+    },
+    {
+      "name": "no other member",
+      "input": {
+        "order": [
+          "a",
+          "b"
+        ],
+        "list": [
+          {
+            "id": "a",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "b",
+            "groupId": null,
+            "pinned": false
+          }
+        ],
+        "id": "a",
+        "groupId": "g"
+      },
+      "expected": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "name": "move within",
+      "input": {
+        "order": [
+          "a",
+          "b",
+          "c"
+        ],
+        "list": [
+          {
+            "id": "a",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "b",
+            "groupId": "g",
+            "pinned": false
+          },
+          {
+            "id": "c",
+            "groupId": null,
+            "pinned": false
+          }
+        ],
+        "id": "a",
+        "groupId": "g"
+      },
+      "expected": [
+        "b",
+        "a",
+        "c"
+      ]
+    }
+  ],
+  "groupNames": [
+    {
+      "name": "Research",
+      "input": {
+        "raw": "Research"
+      },
+      "expected": {
+        "normalized": "Research",
+        "key": "research"
+      }
+    },
+    {
+      "name": "  research  ",
+      "input": {
+        "raw": "  research  "
+      },
+      "expected": {
+        "normalized": "research",
+        "key": "research"
+      }
+    },
+    {
+      "name": "RESEARCH",
+      "input": {
+        "raw": "RESEARCH"
+      },
+      "expected": {
+        "normalized": "RESEARCH",
+        "key": "research"
+      }
+    },
+    {
+      "name": "ΟΔΟΣ",
+      "input": {
+        "raw": "ΟΔΟΣ"
+      },
+      "expected": {
+        "normalized": "ΟΔΟΣ",
+        "key": "οδος"
+      }
+    },
+    {
+      "name": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "input": {
+        "raw": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      },
+      "expected": {
+        "normalized": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      }
+    },
+    {
+      "name": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "input": {
+        "raw": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+      },
+      "expected": {
+        "normalized": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+        "key": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+      }
+    },
+    {
+      "name": "İstanbul",
+      "input": {
+        "raw": "İstanbul"
+      },
+      "expected": {
+        "normalized": "İstanbul",
+        "key": "i̇stanbul"
+      }
+    },
+    {
+      "name": "",
+      "input": {
+        "raw": ""
+      },
+      "expected": {
+        "normalized": "",
+        "key": ""
+      }
+    },
+    {
+      "name": "   ",
+      "input": {
+        "raw": "   "
+      },
+      "expected": {
+        "normalized": "",
+        "key": ""
+      }
+    },
+    {
+      "name": "eBay",
+      "input": {
+        "raw": "eBay"
+      },
+      "expected": {
+        "normalized": "eBay",
+        "key": "ebay"
+      }
+    }
+  ],
+  "spaceInk": [
+    {
+      "name": "#426c4c light",
+      "input": {
+        "hex": "#426c4c",
+        "theme": "light"
+      },
+      "expected": {
+        "fill": "#426c4c",
+        "on": "#ffffff",
+        "edge": false
+      }
+    },
+    {
+      "name": "#426c4c dark",
+      "input": {
+        "hex": "#426c4c",
+        "theme": "dark"
+      },
+      "expected": {
+        "fill": "#426c4c",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#426c4c private",
+      "input": {
+        "hex": "#426c4c",
+        "theme": "private"
+      },
+      "expected": {
+        "fill": "#426c4c",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#376694 light",
+      "input": {
+        "hex": "#376694",
+        "theme": "light"
+      },
+      "expected": {
+        "fill": "#376694",
+        "on": "#ffffff",
+        "edge": false
+      }
+    },
+    {
+      "name": "#376694 dark",
+      "input": {
+        "hex": "#376694",
+        "theme": "dark"
+      },
+      "expected": {
+        "fill": "#376694",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#376694 private",
+      "input": {
+        "hex": "#376694",
+        "theme": "private"
+      },
+      "expected": {
+        "fill": "#376694",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#6757a3 light",
+      "input": {
+        "hex": "#6757a3",
+        "theme": "light"
+      },
+      "expected": {
+        "fill": "#6757a3",
+        "on": "#ffffff",
+        "edge": false
+      }
+    },
+    {
+      "name": "#6757a3 dark",
+      "input": {
+        "hex": "#6757a3",
+        "theme": "dark"
+      },
+      "expected": {
+        "fill": "#6757a3",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#6757a3 private",
+      "input": {
+        "hex": "#6757a3",
+        "theme": "private"
+      },
+      "expected": {
+        "fill": "#6757a3",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#9b4761 light",
+      "input": {
+        "hex": "#9b4761",
+        "theme": "light"
+      },
+      "expected": {
+        "fill": "#9b4761",
+        "on": "#ffffff",
+        "edge": false
+      }
+    },
+    {
+      "name": "#9b4761 dark",
+      "input": {
+        "hex": "#9b4761",
+        "theme": "dark"
+      },
+      "expected": {
+        "fill": "#9b4761",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#9b4761 private",
+      "input": {
+        "hex": "#9b4761",
+        "theme": "private"
+      },
+      "expected": {
+        "fill": "#9b4761",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#974f2a light",
+      "input": {
+        "hex": "#974f2a",
+        "theme": "light"
+      },
+      "expected": {
+        "fill": "#974f2a",
+        "on": "#ffffff",
+        "edge": false
+      }
+    },
+    {
+      "name": "#974f2a dark",
+      "input": {
+        "hex": "#974f2a",
+        "theme": "dark"
+      },
+      "expected": {
+        "fill": "#974f2a",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#974f2a private",
+      "input": {
+        "hex": "#974f2a",
+        "theme": "private"
+      },
+      "expected": {
+        "fill": "#974f2a",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#815c02 light",
+      "input": {
+        "hex": "#815c02",
+        "theme": "light"
+      },
+      "expected": {
+        "fill": "#815c02",
+        "on": "#ffffff",
+        "edge": false
+      }
+    },
+    {
+      "name": "#815c02 dark",
+      "input": {
+        "hex": "#815c02",
+        "theme": "dark"
+      },
+      "expected": {
+        "fill": "#815c02",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#815c02 private",
+      "input": {
+        "hex": "#815c02",
+        "theme": "private"
+      },
+      "expected": {
+        "fill": "#815c02",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#576471 light",
+      "input": {
+        "hex": "#576471",
+        "theme": "light"
+      },
+      "expected": {
+        "fill": "#576471",
+        "on": "#ffffff",
+        "edge": false
+      }
+    },
+    {
+      "name": "#576471 dark",
+      "input": {
+        "hex": "#576471",
+        "theme": "dark"
+      },
+      "expected": {
+        "fill": "#576471",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#576471 private",
+      "input": {
+        "hex": "#576471",
+        "theme": "private"
+      },
+      "expected": {
+        "fill": "#576471",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#3a3a3a light",
+      "input": {
+        "hex": "#3a3a3a",
+        "theme": "light"
+      },
+      "expected": {
+        "fill": "#3a3a3a",
+        "on": "#ffffff",
+        "edge": false
+      }
+    },
+    {
+      "name": "#3a3a3a dark",
+      "input": {
+        "hex": "#3a3a3a",
+        "theme": "dark"
+      },
+      "expected": {
+        "fill": "#3a3a3a",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#3a3a3a private",
+      "input": {
+        "hex": "#3a3a3a",
+        "theme": "private"
+      },
+      "expected": {
+        "fill": "#3a3a3a",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#ffffff light",
+      "input": {
+        "hex": "#ffffff",
+        "theme": "light"
+      },
+      "expected": {
+        "fill": "#ffffff",
+        "on": "#000000",
+        "edge": true
+      }
+    },
+    {
+      "name": "#ffffff dark",
+      "input": {
+        "hex": "#ffffff",
+        "theme": "dark"
+      },
+      "expected": {
+        "fill": "#ffffff",
+        "on": "#000000",
+        "edge": false
+      }
+    },
+    {
+      "name": "#ffffff private",
+      "input": {
+        "hex": "#ffffff",
+        "theme": "private"
+      },
+      "expected": {
+        "fill": "#ffffff",
+        "on": "#000000",
+        "edge": false
+      }
+    },
+    {
+      "name": "#000000 light",
+      "input": {
+        "hex": "#000000",
+        "theme": "light"
+      },
+      "expected": {
+        "fill": "#000000",
+        "on": "#ffffff",
+        "edge": false
+      }
+    },
+    {
+      "name": "#000000 dark",
+      "input": {
+        "hex": "#000000",
+        "theme": "dark"
+      },
+      "expected": {
+        "fill": "#000000",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#000000 private",
+      "input": {
+        "hex": "#000000",
+        "theme": "private"
+      },
+      "expected": {
+        "fill": "#000000",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#f6f6f6 light",
+      "input": {
+        "hex": "#f6f6f6",
+        "theme": "light"
+      },
+      "expected": {
+        "fill": "#f6f6f6",
+        "on": "#000000",
+        "edge": true
+      }
+    },
+    {
+      "name": "#f6f6f6 dark",
+      "input": {
+        "hex": "#f6f6f6",
+        "theme": "dark"
+      },
+      "expected": {
+        "fill": "#f6f6f6",
+        "on": "#000000",
+        "edge": false
+      }
+    },
+    {
+      "name": "#f6f6f6 private",
+      "input": {
+        "hex": "#f6f6f6",
+        "theme": "private"
+      },
+      "expected": {
+        "fill": "#f6f6f6",
+        "on": "#000000",
+        "edge": false
+      }
+    },
+    {
+      "name": "#1e1e1e light",
+      "input": {
+        "hex": "#1e1e1e",
+        "theme": "light"
+      },
+      "expected": {
+        "fill": "#1e1e1e",
+        "on": "#ffffff",
+        "edge": false
+      }
+    },
+    {
+      "name": "#1e1e1e dark",
+      "input": {
+        "hex": "#1e1e1e",
+        "theme": "dark"
+      },
+      "expected": {
+        "fill": "#1e1e1e",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#1e1e1e private",
+      "input": {
+        "hex": "#1e1e1e",
+        "theme": "private"
+      },
+      "expected": {
+        "fill": "#1e1e1e",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "#7f7f7f light",
+      "input": {
+        "hex": "#7f7f7f",
+        "theme": "light"
+      },
+      "expected": {
+        "fill": "#7f7f7f",
+        "on": "#000000",
+        "edge": false
+      }
+    },
+    {
+      "name": "#7f7f7f dark",
+      "input": {
+        "hex": "#7f7f7f",
+        "theme": "dark"
+      },
+      "expected": {
+        "fill": "#7f7f7f",
+        "on": "#000000",
+        "edge": false
+      }
+    },
+    {
+      "name": "#7f7f7f private",
+      "input": {
+        "hex": "#7f7f7f",
+        "theme": "private"
+      },
+      "expected": {
+        "fill": "#7f7f7f",
+        "on": "#000000",
+        "edge": false
+      }
+    },
+    {
+      "name": "#ABCDEF light",
+      "input": {
+        "hex": "#ABCDEF",
+        "theme": "light"
+      },
+      "expected": {
+        "fill": "#abcdef",
+        "on": "#000000",
+        "edge": true
+      }
+    },
+    {
+      "name": "#ABCDEF dark",
+      "input": {
+        "hex": "#ABCDEF",
+        "theme": "dark"
+      },
+      "expected": {
+        "fill": "#abcdef",
+        "on": "#000000",
+        "edge": false
+      }
+    },
+    {
+      "name": "#ABCDEF private",
+      "input": {
+        "hex": "#ABCDEF",
+        "theme": "private"
+      },
+      "expected": {
+        "fill": "#abcdef",
+        "on": "#000000",
+        "edge": false
+      }
+    },
+    {
+      "name": "abc light",
+      "input": {
+        "hex": "abc",
+        "theme": "light"
+      },
+      "expected": null
+    },
+    {
+      "name": "abc dark",
+      "input": {
+        "hex": "abc",
+        "theme": "dark"
+      },
+      "expected": null
+    },
+    {
+      "name": "abc private",
+      "input": {
+        "hex": "abc",
+        "theme": "private"
+      },
+      "expected": null
+    },
+    {
+      "name": "  #426C4C  light",
+      "input": {
+        "hex": "  #426C4C ",
+        "theme": "light"
+      },
+      "expected": {
+        "fill": "#426c4c",
+        "on": "#ffffff",
+        "edge": false
+      }
+    },
+    {
+      "name": "  #426C4C  dark",
+      "input": {
+        "hex": "  #426C4C ",
+        "theme": "dark"
+      },
+      "expected": {
+        "fill": "#426c4c",
+        "on": "#ffffff",
+        "edge": true
+      }
+    },
+    {
+      "name": "  #426C4C  private",
+      "input": {
+        "hex": "  #426C4C ",
+        "theme": "private"
+      },
+      "expected": {
+        "fill": "#426c4c",
+        "on": "#ffffff",
+        "edge": true
+      }
+    }
+  ],
+  "spaceDefaults": [
+    {
+      "name": "0 existing",
+      "input": {
+        "existing": []
+      },
+      "expected": {
+        "color": "#426c4c",
+        "symbol": "briefcase"
+      }
+    },
+    {
+      "name": "1 existing",
+      "input": {
+        "existing": [
+          {
+            "color": "#426c4c",
+            "symbol": "briefcase"
+          }
+        ]
+      },
+      "expected": {
+        "color": "#376694",
+        "symbol": "house"
+      }
+    },
+    {
+      "name": "8 existing",
+      "input": {
+        "existing": [
+          {
+            "color": "#426c4c",
+            "symbol": "briefcase"
+          },
+          {
+            "color": "#376694",
+            "symbol": "house"
+          },
+          {
+            "color": "#6757a3",
+            "symbol": "code"
+          },
+          {
+            "color": "#9b4761",
+            "symbol": "flask"
+          },
+          {
+            "color": "#974f2a",
+            "symbol": "book"
+          },
+          {
+            "color": "#815c02",
+            "symbol": "music"
+          },
+          {
+            "color": "#576471",
+            "symbol": "camera"
+          },
+          {
+            "color": "#3a3a3a",
+            "symbol": "plane"
+          }
+        ]
+      },
+      "expected": {
+        "color": "#426c4c",
+        "symbol": "heart"
+      }
+    },
+    {
+      "name": "17 existing",
+      "input": {
+        "existing": [
+          {
+            "color": "#426c4c",
+            "symbol": "briefcase"
+          },
+          {
+            "color": "#376694",
+            "symbol": "house"
+          },
+          {
+            "color": "#6757a3",
+            "symbol": "code"
+          },
+          {
+            "color": "#9b4761",
+            "symbol": "flask"
+          },
+          {
+            "color": "#974f2a",
+            "symbol": "book"
+          },
+          {
+            "color": "#815c02",
+            "symbol": "music"
+          },
+          {
+            "color": "#576471",
+            "symbol": "camera"
+          },
+          {
+            "color": "#3a3a3a",
+            "symbol": "plane"
+          },
+          {
+            "color": "#426c4c",
+            "symbol": "heart"
+          },
+          {
+            "color": "#376694",
+            "symbol": "star"
+          },
+          {
+            "color": "#6757a3",
+            "symbol": "leaf"
+          },
+          {
+            "color": "#9b4761",
+            "symbol": "coffee"
+          },
+          {
+            "color": "#974f2a",
+            "symbol": "cap"
+          },
+          {
+            "color": "#815c02",
+            "symbol": "gamepad"
+          },
+          {
+            "color": "#576471",
+            "symbol": "wallet"
+          },
+          {
+            "color": "#3a3a3a",
+            "symbol": "sun"
+          },
+          {
+            "color": "#426c4c",
+            "symbol": "briefcase"
+          }
+        ]
+      },
+      "expected": {
+        "color": "#376694",
+        "symbol": "house"
+      }
+    }
+  ],
   "pairLinks": [
     {
       "name": "canonical",

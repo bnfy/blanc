@@ -124,6 +124,32 @@ struct PaletteSheet: View {
         .accessibilityIdentifier("palette." + page)
     }
 
+    private func tabRow(_ tab: TabModel) -> some View {
+        HStack(spacing: 0) {
+            Button {
+                manager.setActive(tab.id)
+                dismiss()
+            } label: {
+                row(icon: tab.currentURL.scheme == "blanc" ? "sun.horizon" : "globe",
+                    title: tab.currentURL == TabsManager.newTabURL ? "Start Page" : tab.pageTitle.isEmpty ? tab.currentURL.host ?? "Tab" : tab.pageTitle,
+                    subtitle: tab.currentURL.scheme == "blanc" ? "Blanc" : tab.currentURL.host ?? tab.currentURL.absoluteString,
+                    selected: tab.id == manager.activeTabId)
+            }
+            .accessibilityAddTraits(tab.id == manager.activeTabId ? .isSelected : [])
+            Button { manager.closeTab(tab.id) } label: {
+                Image(systemName: "xmark").font(.system(size: 12)).foregroundStyle(style.secondary)
+                    .frame(width: 44, height: 48)
+            }
+            .accessibilityLabel("Close \(tab.pageTitle.isEmpty ? "tab" : tab.pageTitle)")
+        }
+        .padding(.leading, 10)
+        .background(tab.id == manager.activeTabId ? style.selection : .clear, in: RoundedRectangle(cornerRadius: 10))
+        .listRowSeparator(.hidden)
+        .listRowBackground(Color.clear)
+        .listRowInsets(EdgeInsets(top: 2, leading: 12, bottom: 2, trailing: 12))
+        .swipeActions { Button(role: .destructive) { manager.closeTab(tab.id) } label: { Image(systemName: "xmark") } }
+    }
+
     private func groupHeading(_ title: String, count: Int? = nil) -> some View {
         HStack(spacing: 6) {
             Text(title).font(BrowserStyle.font(11, semibold: true))
@@ -171,33 +197,33 @@ struct PaletteSheet: View {
     private var tabList: some View {
         List {
             Section {
-                ForEach(manager.tabs) { tab in
-                    HStack(spacing: 0) {
+                ForEach(manager.displaySections, id: \.id) { section in
+                    if let group = section.group {
                         Button {
-                            manager.setActive(tab.id)
-                            dismiss()
+                            withAnimation { manager.setGroupCollapsed(group.id, !group.collapsed) }
                         } label: {
-                            row(icon: tab.currentURL.scheme == "blanc" ? "sun.horizon" : "globe",
-                                title: tab.currentURL == TabsManager.newTabURL ? "Start Page" : tab.pageTitle.isEmpty ? tab.currentURL.host ?? "Tab" : tab.pageTitle,
-                                subtitle: tab.currentURL.scheme == "blanc" ? "Blanc" : tab.currentURL.host ?? tab.currentURL.absoluteString,
-                                selected: tab.id == manager.activeTabId)
+                            HStack(spacing: 8) {
+                                GroupDot(color: group.color, style: style)
+                                Text(group.name).font(BrowserStyle.font(13, semibold: true)).lineLimit(1)
+                                Text("\(section.tabs.count)").font(.system(size: 12)).foregroundStyle(style.secondary)
+                                Spacer()
+                                Image(systemName: group.collapsed ? "chevron.right" : "chevron.down")
+                                    .font(.system(size: 11, weight: .semibold)).foregroundStyle(style.secondary)
+                            }
+                            .frame(minHeight: 36)
+                            .contentShape(Rectangle())
                         }
-                        .accessibilityAddTraits(tab.id == manager.activeTabId ? .isSelected : [])
-                        Button { manager.closeTab(tab.id) } label: {
-                            Image(systemName: "xmark").font(.system(size: 12)).foregroundStyle(style.secondary)
-                                .frame(width: 44, height: 48)
+                        .accessibilityLabel(group.name)
+                        .accessibilityHint(SyncCopy.text(group.collapsed ? "group.unfold" : "group.fold"))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 6, leading: 22, bottom: 0, trailing: 12))
+                        if !group.collapsed {
+                            ForEach(section.tabs) { tab in tabRow(tab) }
                         }
-                        .accessibilityLabel("Close \(tab.pageTitle.isEmpty ? "tab" : tab.pageTitle)")
+                    } else {
+                        ForEach(section.tabs) { tab in tabRow(tab) }
                     }
-                    .padding(.leading, 10)
-                    .background(tab.id == manager.activeTabId ? style.selection : .clear, in: RoundedRectangle(cornerRadius: 10))
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets(top: 2, leading: 12, bottom: 2, trailing: 12))
-                }
-                .onDelete { offsets in
-                    let ids = offsets.map { manager.tabs[$0].id }
-                    for id in ids { manager.closeTab(id) }
                 }
             } header: { groupHeading("Open tabs", count: manager.tabs.count) }
 
@@ -274,7 +300,7 @@ struct PaletteSheet: View {
         let results = QuickSwitcher.search(
             query: input.trimmingCharacters(in: .whitespacesAndNewlines),
             tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites,
-            history: manager.historyStore.entries
+            history: manager.historyStore.entries, groups: manager.groups, sets: switcherSets
         )
         return List {
             if results.isEmpty {
@@ -286,15 +312,28 @@ struct PaletteSheet: View {
                         open(result)
                         dismiss()
                     } label: {
-                        row(icon: result.localTabID == nil ? "magnifyingglass" : "globe", title: result.title, subtitle: result.subtitle)
+                        row(icon: result.groupId != nil ? "rectangle.stack" : result.setId != nil ? "square.on.square" : result.localTabID == nil ? "magnifyingglass" : "globe",
+                            title: result.title, subtitle: result.subtitle)
                     }
                 }
             }
         }
     }
 
+    /// The sets the Quick Switcher can show: every Space but the shown one,
+    /// and This iPhone while a Space is shown.
+    private var switcherSets: [(id: String, name: String, count: Int)] {
+        var sets = manager.spaces.filter { $0.id != manager.shownSetId }.map { ($0.id, $0.name, manager.tabCount($0.id)) }
+        if manager.shownSetId != TabSets.iphoneId {
+            sets.insert((TabSets.iphoneId, SyncCopy.text("spaces.thisIPhone"), manager.tabCount(TabSets.iphoneId)), at: 0)
+        }
+        return sets
+    }
+
     private func open(_ result: SyncedSwitcherResult) {
-        if let id = result.localTabID { manager.setActive(id) }
+        if let groupId = result.groupId { manager.showGroup(groupId) }
+        else if let setId = result.setId { manager.show(set: setId) }
+        else if let id = result.localTabID { manager.setActive(id) }
         else if let url = result.url { manager.openFromSwitcher(url) }
     }
 
@@ -316,7 +355,7 @@ struct PaletteSheet: View {
             return
         }
 
-        let results = QuickSwitcher.search(query: trimmed, tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites, history: manager.historyStore.entries)
+        let results = QuickSwitcher.search(query: trimmed, tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites, history: manager.historyStore.entries, groups: manager.groups, sets: switcherSets)
         if let top = QuickSwitcher.goTarget(query: trimmed, results: results) {
             open(top)
             dismiss()
