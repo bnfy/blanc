@@ -30,6 +30,11 @@ struct ContentView: View {
             if let tab = manager.activeTab {
                 WebView(tab: tab)
                     .id(tab.id)
+                    .overlay {
+                        // Until its first page commits, a web view is WebKit's
+                        // blank white: keep the theme's background instead.
+                        if !tab.hasCommitted { style.background.allowsHitTesting(false) }
+                    }
                     .opacity(tab.reader == nil ? 1 : 0)
                     .allowsHitTesting(tab.reader == nil)
                     .accessibilityHidden(tab.reader != nil)

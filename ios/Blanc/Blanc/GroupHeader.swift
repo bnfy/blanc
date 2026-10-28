@@ -62,7 +62,12 @@ struct GroupDot: View {
     var body: some View {
         Group {
             if let color, let fill = Color(blancHex: color) {
-                Circle().fill(fill)
+                Circle().fill(fill).overlay {
+                    // A colour too close to the surface gets a hairline, as desktop's.
+                    if SpaceIdentity.paint(color, theme: style.scheme == .dark ? "dark" : "light")?.edge == true {
+                        Circle().strokeBorder(style.secondary.opacity(0.6), lineWidth: 1)
+                    }
+                }
             } else {
                 Circle().strokeBorder(style.secondary, lineWidth: 1.5)
             }

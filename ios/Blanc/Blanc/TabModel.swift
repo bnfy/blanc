@@ -11,6 +11,9 @@ final class TabModel: Identifiable {
     var canGoBack = false
     var canGoForward = false
     var isLoading = false
+    /// Whether the web view has committed a page yet. Until then it would show
+    /// WebKit's blank white, so the page area keeps the theme's background.
+    var hasCommitted = false
     var pageTitle = ""
     /// Never saved, synced or recorded in History; its web data lives only in
     /// memory (`TabsManager.privateDataStore`).

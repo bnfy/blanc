@@ -47,6 +47,11 @@ struct SpaceEditor: View {
                         ForEach(SpaceIdentity.presets, id: \.hex) { preset in
                             Button { color = preset.hex } label: {
                                 Circle().fill(Color(blancHex: preset.hex) ?? .gray)
+                                    .overlay {
+                                        if SpaceIdentity.paint(preset.hex, theme: colorScheme == .dark ? "dark" : "light")?.edge == true {
+                                            Circle().strokeBorder(style.secondary.opacity(0.6), lineWidth: 1)
+                                        }
+                                    }
                                     .frame(width: 36, height: 36)
                                     .overlay(Circle().strokeBorder(style.text, lineWidth: color == preset.hex ? 2.5 : 0).padding(-4))
                                     .frame(width: 48, height: 48)
