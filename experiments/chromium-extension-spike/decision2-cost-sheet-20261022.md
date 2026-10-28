@@ -1,11 +1,11 @@
 # Decision 2 — staffing and CI cost sheet
 
-Updated October 26, 2026. Planning sheet, not a budget approval. See the [bounded operating proposal](decision2-operating-proposal-20261026.md) and [completed CI/usage evidence](evidence/decision2-operations-20261026/README.md). Source: [measured rebase ledger](rebase-ledger.md) and dated evidence in the [primary plan](../../docs/chromium-migration-implementation-plan-2026-10-16.md).
+Updated October 28, 2026. Planning sheet, not a budget approval. See the [bounded operating proposal](decision2-operating-proposal-20261026.md) and [completed CI/usage evidence](evidence/decision2-operations-20261026/README.md). Source: [measured rebase ledger](rebase-ledger.md) and dated evidence in the [primary plan](../../docs/chromium-migration-implementation-plan-2026-10-16.md).
 
 | Cost item | Evidence / proposed commitment |
 | --- | --- |
 | One measured cold build | 9,587.120 s (2h39m47.120s), accumulated across two invocations; 57,664 reported steps. Mixed repair/unfinished-cold work is included, not counted again as incremental. |
-| Rebase friction | One broken anchor, one API change; 21 upstream files at the historical rebase. Current repair footprint is75files/184hunks ([recorded inventory](evidence/f12-redirect-repair-20261025/README.md)), so this is not a measured rebase of today's larger patch set. |
+| Rebase friction | One broken anchor, one API change; 21 upstream files at the historical rebase. Current signed procedural footprint is79files/189hunks ([recorded evidence](evidence/f12-procedural-prerequisite-20261028/README.md)), so this is not a measured rebase of today's larger patch set. |
 | Human effort | Owner attention and agent editing time were not measured. Cannot establish the two-owner-day kill threshold from build logs. Next deliberate rebase records active attention separately. |
 | Incremental development | Recent private-only prefetch fixture builds recorded 38.82/40.13 s, then zero-action guard. Illustrative local runs only; no routine rebase or fleet estimate. |
 | CI compute/storage | Verified public repository and standard hosted labels; GitHub policy makes this compute free. Four completed exact-head workflows:26non-skipped jobs,69m16s summed job intervals, zero uploaded Actions artifacts. This is not an invoice or $0-total-cost claim. Account-wide cache/storage, signing, hardware/power and owner time remain unpriced; see [evidence](evidence/decision2-operations-20261026/README.md). |
@@ -13,7 +13,11 @@ Updated October 26, 2026. Planning sheet, not a budget approval. See the [bounde
 | Release operations | Reserve operator availability for signing/notarization, clean-Mac acceptance, update/rollback rehearsal and incident withdrawal. Anthony Loria is the named sole maintainer; L3/L8/L9 acceptance is already recorded. Final release approval remains separate. |
 | Capacity decision | Owner must accept measured limitations and staffing commitment or reject expansion. Calendar estimates in the original plan are not a release ETA. |
 
-No paid service, runner, release or staffing commitment is made here. Latency remains deferred; Electron work remains paused. Proposed maintenance policy is reviewable now; actual cost acceptance remains open.
+No paid service, runner, release or staffing commitment is made here. Loaded-host timing is measured but does not satisfy the original idle condition; Electron work remains paused. Proposed maintenance policy is reviewable now; actual cost acceptance remains open.
+
+## October 28 current workload
+
+[Original-criteria follow-up](evidence/l12-original-criteria-20261028/README.md) records20completed jobs on8c0fcb75 totaling67m02s, with six macOS jobs still queued and two skipped. This is an incomplete lower bound, not owner attention or a bill. All four current run artifact totals are zero; public-standard-runner compute policy was rechecked. Account-wide storage and hardware/signing/time allocations remain unknown. The owner rejected the qualified closeout; original unmet criteria remain.
 
 ## Decision inputs still needed
 

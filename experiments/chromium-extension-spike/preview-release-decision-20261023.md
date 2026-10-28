@@ -1,3 +1,5 @@
+> October 28 owner decision: **“Keep NO-GO; retain original unmet criteria.”** The measured-packet qualifications were not accepted. F12/Decision 2 remain unaccepted and L12 remains NO-GO (11/12). The loaded-host execution authorization does not waive the original idle criterion. Do not request the same qualified approval again without new evidence or an owner-directed change.
+
 > Current owner review: [measured prerequisite closeout](evidence/l12-measured-closeout-20261028/README.md) binds source4a77b414/archive270c0848539f. Missing named fixtures are complete; loaded-host, reference differences and operating limits remain explicit for owner disposition. **11/12; L12 NO-GO pending approval**, no publication/merge. Older pending-work/candidate statements below are historical.
 
 > October28 owner decision: **L12 remains NO-GO pending full prerequisites**. Bounded deferral proposal was declined;11/12accepted. [Completion plan](full-prerequisites-run-plan-20261028.md). No publication or merge.

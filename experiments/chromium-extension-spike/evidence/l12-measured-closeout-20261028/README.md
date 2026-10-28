@@ -1,3 +1,5 @@
+> October 28 owner decision: **“Keep NO-GO; retain original unmet criteria.”** The measured-packet qualifications were not accepted. F12/Decision 2 remain unaccepted and L12 remains NO-GO (11/12). The loaded-host execution authorization does not waive the original idle criterion. Do not request the same qualified approval again without new evidence or an owner-directed change.
+
 # Measured prerequisite closeout for owner review
 
 **Prepared, not approved. Eleven of twelve gates accepted; L12 NO-GO.** This replaces the earlier proposal to defer missing timing/cosmetic evidence. It does not erase the owner's rejection of that proposal.

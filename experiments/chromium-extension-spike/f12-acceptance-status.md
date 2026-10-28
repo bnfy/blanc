@@ -1,3 +1,5 @@
+> October 28 owner decision: **“Keep NO-GO; retain original unmet criteria.”** The measured-packet qualifications were not accepted. F12/Decision 2 remain unaccepted and L12 remains NO-GO (11/12). The loaded-host execution authorization does not waive the original idle criterion. Do not request the same qualified approval again without new evidence or an owner-directed change.
+
 ## Current prerequisite status — October 28, 2026
 
 The [requirement-by-requirement closeout](full-prerequisite-closeout-20261028.md) supersedes the historical entries below. L12 remains NO-GO; no aggregate acceptance is inferred.
