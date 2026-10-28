@@ -1,22 +1,19 @@
 # Unreleased notes
 
-Changes merged since v1.43.1 are included in the prepared
-[v1.44.1 release notes](v1.44.1.md). No additional release changes are
-recorded here.
+v1.44.1 is the current public release ([notes](v1.44.1.md)). Changes merged
+since then aren't recorded here yet.
 
-## Before publishing 1.44.1
+## Still open from 1.44.1
 
-- **Send to Device:** the production `blanc-sync` Worker already serves the
-  `sends` store. Its deployed source, read through the Cloudflare API on
-  October 26, 2026, has the store list `bookmarks, settings, session, icons,
-  sends`, as in commit `97088934` (#1087). The M16 Space stores aren't in it,
-  and they stay on hold for the owner's decision in
-  `cloudflare/sync-worker/README.md`. Re-read the deployed source before
-  publishing: a later `wrangler deploy` from `main` would ship M16 too.
 - **Link routing:** check it with real apps on each platform (spec §8: Slack
   or Mail on macOS, the Windows default-browser handoff, `xdg-open` on
   Linux), cold and warm. So far it has been tested on Linux only, in CI and
   under xvfb.
-- Leave out what these notes don't cover on purpose: Shared Spaces is offered
-  only in development builds, the iOS changes belong to the iPhone app's
+- **Sync Worker:** production `blanc-sync` serves `sends` (Send to Device),
+  and since 2026-10-27 00:39 UTC the M16 Space stores too, uploaded while the
+  owner's record and `cloudflare/sync-worker/README.md` said deployment was on
+  hold. The owner records approval or rolls it back; see the
+  [1.44.1 incident](../../release-incidents/2026-10-28-v1.44.1.md#the-sync-worker).
+- Leave out what notes don't cover on purpose: Shared Spaces is offered only
+  in development builds until PR E, the iOS changes belong to the iPhone app's
   notes, and the CI, test, website and spec changes aren't user-visible.
