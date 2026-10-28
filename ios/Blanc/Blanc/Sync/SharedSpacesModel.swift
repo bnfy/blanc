@@ -629,6 +629,11 @@ nonisolated struct PushPlan: Sendable {
   var indexEntry: JSONValue?
   var reason: String?
   var nextLastMergeAt: Int64
+  /// Set by `SharedSpacesState.mergeSpace`: the pending writes the plan was
+  /// built from and the account it belongs to, so a settlement can tell later
+  /// writes apart and never lands in another account.
+  var pendingBefore: JSONValue? = nil
+  var accountId: String? = nil
 }
 
 extension SharedSpacesModel {
