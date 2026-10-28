@@ -1,5 +1,7 @@
+#include "base/task/single_thread_task_runner.h"
 #include "ui/views/window/dialog_delegate.h"
 #include "chrome/browser/lifetime/application_lifetime.h"
+#include "chrome/services/blanc_blocker/blocker_proxy.h"
 #include "ui/views/controls/label.h"
 #include "ui/views/border.h"
 #include "chrome/browser/extensions/extension_uninstall_dialog.h"
@@ -569,6 +571,7 @@ class Owner : public base::SupportsUserData::Data,
   int initial_window_save_failures = 0;
   base::TimeTicks initial_window_retry_at;
   bool recovery_checked = false;
+  base::ScopedClosureRunner blocker_recovery_dialog;
   bool space_busy = false;
   std::string space_name;
   std::vector<int> space_pending_ids;
@@ -1699,6 +1702,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       ? browser_view->toolbar()->extensions_container_for_testing() : nullptr;
   const int extension_width = extensions ? 26 : 0;
   return base::DictValue()
+      .Set("blockerHealth", blanc::BlockerHealth())
       .Set("installedTheme", InstalledTheme(browser->GetProfile()))
       .Set("splitGeometry", owner->split_geometry.Clone())
       .Set("spaceName", owner->space_name)
@@ -2923,6 +2927,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
       reply(true, base::Value(false)); return;
     }
+    if (method == "blockerRecovery" && args.empty()) {
+      if (std::string_view(blanc::BlockerHealth()) != "unavailable") {
+        reply(true, base::Value(false)); return;
+      }
+      owner->blocker_recovery_dialog.RunAndReset();
+      owner->blocker_recovery_dialog.ReplaceClosure(ShowBlockerRecovery());
+      reply(true, base::Value(true)); return;
+    }
     if (method == "snapshot") {
       RecoverRatios(owner);
       MaybeRollback(owner);
@@ -3814,6 +3826,37 @@ Config::Config() : DefaultWebUIConfig("chrome", kHost) {}
 
 bool Config::IsWebUIEnabled(content::BrowserContext*) {
   return IsEnabled();
+}
+
+base::OnceClosure ShowBlockerRecovery() {
+  auto dialog = std::make_unique<views::DialogDelegate>();
+  dialog->SetTitle(u"Blocking is unavailable");
+  dialog->SetButtons(static_cast<int>(ui::mojom::DialogButton::kOk) |
+                     static_cast<int>(ui::mojom::DialogButton::kCancel));
+  dialog->SetButtonLabel(ui::mojom::DialogButton::kOk, u"Quit Blanc");
+  dialog->SetButtonLabel(ui::mojom::DialogButton::kCancel, u"Keep open");
+  dialog->SetAcceptCallbackWithClose(base::BindRepeating([] {
+    // Defer shutdown until this callback returns: closing the owner destroys
+    // its dialog closure, so an inline quit could delete this delegate here.
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE, base::BindOnce(&chrome::AttemptExit));
+    return false;
+  }));
+  dialog->set_fixed_width(440);
+  auto label = std::make_unique<views::Label>(
+      u"Requests are blocked to protect your browsing. "
+      u"Quit and reopen Blanc to restore blocking.");
+  label->SetMultiLine(true);
+  label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+  label->SetBorder(views::CreateEmptyBorder(gfx::Insets(24)));
+  dialog->SetContentsView(std::move(label));
+  auto* widget = views::DialogDelegate::CreateDialogWidget(
+      dialog.get(), gfx::NativeWindow(), gfx::NativeView());
+  widget->Show();
+  return base::BindOnce([](std::unique_ptr<views::DialogDelegate> owned_dialog,
+                           base::WeakPtr<views::Widget> weak) {
+    if (weak) weak->CloseNow();
+  }, std::move(dialog), widget->GetWeakPtr());
 }
 
 base::OnceClosure ShowSessionRecovery() {

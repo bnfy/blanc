@@ -20,6 +20,7 @@ class WebView;
 }
 
 namespace blanc_prototype {
+base::OnceClosure ShowBlockerRecovery();
 inline constexpr char kAssetsSwitch[] = "blanc-prototype-assets";
 inline constexpr char kHost[] = "blanc-prototype";
 

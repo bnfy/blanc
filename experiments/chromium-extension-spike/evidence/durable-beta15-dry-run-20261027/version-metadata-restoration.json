@@ -1,0 +1,12 @@
+{
+  "root": "1aa07b638799e59656559ae6c6649d4b197f555e",
+  "timestamp": "1792611903",
+  "skia": "ac947b5f02facc8237e889c3977c3a670d9d4664",
+  "files": [
+    "build/util/LASTCHANGE",
+    "build/util/LASTCHANGE.committime",
+    "skia/ext/skia_commit_hash.h",
+    "gpu/config/gpu_lists_version.h"
+  ],
+  "method": "pinned Git metadata and existing generated-header templates; no hooks"
+}

@@ -10,6 +10,7 @@
   let refreshing = false;
   let extensionsOpened = false;
   let geometry = "";
+  let blockerRecoveryShown = false;
   let layout = localStorage.getItem('blanc.prototype.tabLayout') === 'vertical' ? 'vertical' : 'island';
   let railWidth = Math.max(200, Math.min(360, Number(localStorage.getItem('blanc.prototype.railWidth')) || 248));
   let closedBefore = localStorage.getItem('blanc.prototype.closedBefore');
@@ -303,6 +304,30 @@
     refreshing = true;
     try {
       snapshot = await request('snapshot');
+      const pill = strip.contentDocument?.getElementById('islandPill');
+      let recovery = strip.contentDocument?.getElementById('blockerRecovery');
+      if (pill && !recovery) {
+        recovery = strip.contentDocument.createElement('button');
+        recovery.id = 'blockerRecovery';
+        recovery.type = 'button';
+        recovery.textContent = 'Blocking unavailable';
+        recovery.setAttribute('aria-label', 'Blocking unavailable. Open recovery options');
+        recovery.style.cssText = 'color:inherit;background:transparent;border:1px solid currentColor;border-radius:6px;padding:4px 8px;font:inherit;white-space:nowrap';
+        recovery.addEventListener('click', event => {
+          event.stopPropagation();
+          request('blockerRecovery').catch(error => notice(error.message));
+        });
+        recovery.addEventListener('keydown', event => event.stopPropagation());
+        pill.append(recovery);
+      }
+      if (recovery) recovery.hidden = snapshot.blockerHealth !== 'unavailable';
+      if (pill && snapshot.blockerHealth === 'unavailable' && !blockerRecoveryShown) {
+        blockerRecoveryShown = true;
+        // Do not reopen a failed dialog request on every 300ms snapshot.
+        // The visible button remains available for an explicit retry.
+        request('blockerRecovery').catch(error => notice(error.message));
+      }
+
       // The contract's TabId is an opaque string, and the copied renderers
       // round-trip ids through DOM datasets (drag intents, keyboard moves,
       // context rows), so native integer ids become strings here and go

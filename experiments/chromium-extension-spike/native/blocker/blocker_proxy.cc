@@ -86,6 +86,11 @@ class Engine {
  public:
   static Engine& Get() { static base::NoDestructor<Engine> engine; return *engine; }
   Engine() = default;
+  const char* Health() const {
+    if (failed_) return "unavailable";
+    if (ready_) return "ready";
+    return started_ ? "initializing" : "not-started";
+  }
   void Decide(std::string url, std::string type, std::string referrer, DecisionCallback callback) {
     if (failed_) { std::move(callback).Run(-1); return; }
     if (!started_) Start();
@@ -791,6 +796,7 @@ class Factory : public network::SelfDeletingURLLoaderFactory {
   scoped_refptr<network::SharedURLLoaderFactory> target_;
 };
 }
+const char* BlockerHealth() { return Engine::Get().Health(); }
 content::ContentBrowserClient::WebSocketFactory WrapWebSocketFactory(
     int process_id, int frame_routing_id, const url::Origin& initiator_origin,
     content::ContentBrowserClient::WebSocketFactory factory) {

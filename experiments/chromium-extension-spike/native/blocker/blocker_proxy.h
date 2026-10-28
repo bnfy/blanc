@@ -7,6 +7,8 @@ namespace content { class NavigationThrottleRegistry; class MojoBinderPolicyMap;
 namespace network { class URLLoaderFactoryBuilder; }
 namespace net { class IsolationInfo; }
 namespace blanc {
+// Read-only process-wide health; never starts or resets the engine.
+const char* BlockerHealth();
 void AddNavigationResponseGate(content::NavigationThrottleRegistry& registry);
 std::unique_ptr<content::CommitDeferringCondition> MaybeCreateActivationGate(
     content::NavigationHandle& navigation,

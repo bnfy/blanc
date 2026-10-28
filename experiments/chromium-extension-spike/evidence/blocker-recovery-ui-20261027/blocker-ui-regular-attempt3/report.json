@@ -1,0 +1,68 @@
+{
+  "kind": "regular",
+  "binary": "/Users/anthonyjloria/Projects/BlancChromium157Recovery/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+  "args": [
+    "--user-data-dir=/Users/anthonyjloria/Projects/BlancChromium157Recovery/records/20261027/blocker-ui-regular-attempt3/profile",
+    "--remote-debugging-port=0",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--use-mock-keychain",
+    "--blanc-prototype-assets=/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/generated",
+    "--blanc-blocker-assets=/Users/anthonyjloria/Projects/BlancPreviewArtifacts/candidate-20261027/Blanc Chromium Preview.app/Contents/Resources/BlancBlocker",
+    "http://127.0.0.1:58697/start"
+  ],
+  "checks": [
+    {
+      "name": "healthy request reaches fixture",
+      "pass": true
+    },
+    {
+      "name": "health is ready",
+      "pass": true
+    },
+    {
+      "name": "one owned blocker utility",
+      "pass": true,
+      "detail": [
+        {
+          "pid": 41954,
+          "ppid": 41926
+        }
+      ]
+    },
+    {
+      "name": "health unavailable after owned utility loss",
+      "pass": true
+    },
+    {
+      "name": "fresh request refuses with no arrival",
+      "pass": true,
+      "detail": {
+        "refused": true,
+        "hits": [
+          "/start",
+          "/favicon.ico"
+        ]
+      }
+    },
+    {
+      "name": "recovery button visible and labelled",
+      "pass": false,
+      "detail": {
+        "hidden": true,
+        "label": "Blocking unavailable. Open recovery options",
+        "width": 0
+      }
+    }
+  ],
+  "complete": false,
+  "error": "AssertionError [ERR_ASSERTION]: recovery button visible and labelled\n    at check (file:///Users/anthonyjloria/Documents/ChatGPT/Blanc%20Browser/Chromium%20Preview/repo/experiments/chromium-extension-spike/evidence/blocker-recovery-ui-20261027/run.mjs:10:144)\n    at file:///Users/anthonyjloria/Documents/ChatGPT/Blanc%20Browser/Chromium%20Preview/repo/experiments/chromium-extension-spike/evidence/blocker-recovery-ui-20261027/run.mjs:25:237",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "hits": [
+    "/start",
+    "/favicon.ico"
+  ]
+}
