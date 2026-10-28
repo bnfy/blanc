@@ -2842,3 +2842,5 @@ October 27 isolation repair in progress: [draft and authorized recovery-build ev
 ## October28 production Blanc Blocker integration
 
 Owner selected the existing Blanc Blocker for CSS/scriptlet integration. [Affected native evidence](evidence/f12-cosmetic-implementation-20261028/README.md) passes20regular/private checks with finalguard0; signed replacement pending. Fresh inventory79files/189hunks with151clean Git dependencies. Updated ceiling79/189 under existing standing authorization; raw prior-ceiling failure retained, counting rules unchanged. Electron paused, Google separate, latency deferred; no aggregate F12 or launch-gate credit.
+
+October28 signed cosmetic follow-up: source569d830d notarized/stapled, Gatekeeperpass,20affected signed checks pass,457tested files unchanged. [Signed evidence](evidence/f12-cosmetic-implementation-20261028/README.md). Broader cosmetic/provider coverage and aggregate F12/Decision2 remain open; no unaffected suites repeated.
