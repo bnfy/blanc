@@ -254,6 +254,39 @@ for (const exit of ['quit','window close']) for(const inFlight of [false,true]) 
   assert.equal(restored.saved.accepted.length,0);
   restored.controller.local(restored.runtime);assert.ok(restored.writes.every(edit=>!edit.tabs?.[id(1)]?.nav),'replayed navigation must not echo');
 });
+// Gate D B1. Shutdown destroys every loaded page, and each page's 'destroyed'
+// handler runs closeTab, which captures the window after removing the tab. A
+// held change made that capture reach disk (its receipt save flushes), so the
+// quitting device published closes for tabs nobody closed.
+function sharedCapture(h,{isQuitting=false}={}) {
+  const fs=require('node:fs'),vm=require('node:vm');
+  const source=fs.readFileSync(require.resolve('../../src/main/main.js'),'utf8');
+  const code=source.match(/function captureSharedSpaceEdits\(runtime\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(code,'main needs captureSharedSpaceEdits');
+  const sandbox={isQuitting,sharedSpaceRuntimeContext:()=>({window:h.saved}),sharedRuntimeSync:h.controller};
+  vm.runInNewContext(code+'\nthis.capture=captureSharedSpaceEdits;',sandbox);
+  return sandbox.capture;
+}
+for (const teardown of ['quit','window close']) for (const held of [false,true]) test(`${teardown} teardown records no close for the tabs it removes (${held?'a change held':'nothing held'})`,async()=>{
+  const h=harness();
+  if(held) {
+    const next=structuredClone(h.blob);next.tabs[id(1)].nav=f({url:'https://held.test/',title:'Held'},500);h.remote(next);
+    await h.controller.apply(h.runtime);assert.equal(h.saved.accepted.length,1,'the active tab holds the remote navigation');
+  }
+  // The last Windows/Linux window tears its pages down before the quit begins,
+  // so a closing window is teardown even while isQuitting is still false.
+  if(teardown==='window close')h.runtime.closing=true;
+  const capture=sharedCapture(h,{isQuitting:teardown==='quit'}),receipt=structuredClone(h.saved),writes=h.writes.length;
+  for(const tabId of [id(1),id(2)]){h.tabs.delete(tabId);capture(h.runtime);}
+  assert.deepEqual(h.writes.slice(writes),[],'teardown must not publish a close');
+  assert.deepEqual(h.saved,receipt,'the held change stays saved for the next launch');
+});
+test('a person closing a shared tab still publishes that close',()=>{
+  const h=harness(),capture=sharedCapture(h);
+  h.tabs.delete(id(2));capture(h.runtime);
+  assert.deepEqual(h.writes.map(edit=>Object.keys(edit.tabs??{})),[[id(2)]]);
+  assert.equal(h.writes[0].tabs[id(2)].deleted.v,true);
+});
 test('a Space tombstone leaves an open window unsaved and disposes a set-aside runtime',async()=>{
   const fs=require('node:fs'),vm=require('node:vm');
   const source=fs.readFileSync(require.resolve('../../src/main/main.js'),'utf8');

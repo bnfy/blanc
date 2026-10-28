@@ -420,6 +420,14 @@ BeforeAll({ timeout: 120_000 }, async () => {
     }
     ctx.app = await launchApp(relaunchEnv, { recoveryChoice: 'restore', profileDir: ctx.profileDir });
   };
+  // An ordinary quit, not a crash: before-quit and every shutdown teardown
+  // run, then the app launches again on the same profile and environment.
+  // whileQuit, when given, reads what reached disk while nothing is running.
+  ctx.quitAndRelaunch = async (whileQuit = null) => {
+    if (ctx.app) await closeApp(ctx.app);
+    try { if (whileQuit) await whileQuit(ctx.profileDir); }
+    finally { ctx.app = await launchApp(relaunchEnv, { profileDir: ctx.profileDir }); }
+  };
 
   // The F19 scenarios write the REAL system clipboard — save the developer's
   // clipboard now and restore it in AfterAll so a local run doesn't clobber it.
@@ -577,6 +585,7 @@ AfterAll(async () => {
   ctx.app = null;
   ctx.relaunch = null;
   ctx.crashAndRelaunch = null;
+  ctx.quitAndRelaunch = null;
   removeUnusedTempProfiles({ all: true });
   if (fixturesHandle) await fixturesHandle.close();
   if (secureFixturesHandle) await secureFixturesHandle.close();
