@@ -1766,6 +1766,55 @@
         "doc": "Copy the recovery code to the clipboard from main behind a native dialog. The reply never carries the code."
       },
       {
+        "name": "settings.syncStartNew",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-start-new",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Turn on Sync with a generated account, no name or passphrase; status-only reply with whether the first pass reached the server."
+      },
+      {
+        "name": "settings.syncRecoveryPromptDismiss",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-recovery-prompt-dismiss",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Hide the recovery-code prompt on this device for good."
+      },
+      {
+        "name": "settings.syncPairWatch",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-pair-watch",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "visible",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Report whether the sheet with a live pairing code is visible, so main watches for the device that takes it."
+      },
+      {
+        "name": "settings.onSyncPairJoined",
+        "kind": "event",
+        "channel": "pages:settings:sync-pair-joined",
+        "hosts": [
+          "settings"
+        ],
+        "payload": "unknown",
+        "doc": "The device that took the live pairing code arrived: its name and platform only.",
+        "unsubscribe": false
+      },
+      {
         "name": "settings.welcomeTour",
         "kind": "invoke",
         "channel": "pages:settings:welcome-tour",

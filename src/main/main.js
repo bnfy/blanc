@@ -8349,6 +8349,32 @@ const sharedSharing=createSharingService({
   changed:()=>broadcastWorkspacesUpdated(),
 });
 sync.onPairingShown(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>sharedSharing.armPairing()));
+// Pairing sheet (design 2026-10-28 §6.2–§6.3). The window showing a live code
+// asks to be left out of screen capture (best effort: some capture paths
+// ignore it), and the desktop watches for the device that takes the code
+// only while that sheet is visible in a focused window.
+let pairingSheet = null; // { runtime, visible }
+let pairingProtectedWindow = null;
+function updatePairingWatch() {
+  const win = pairingSheet?.runtime?.window;
+  sync.setPairingWatch(!!pairingSheet?.visible && !!win && !win.isDestroyed() && win.isFocused());
+}
+sync.onPairingCodeLive((live) => {
+  if (pairingProtectedWindow && !pairingProtectedWindow.isDestroyed()) pairingProtectedWindow.setContentProtection(false);
+  pairingProtectedWindow = null;
+  const win = live ? rt()?.window : null;
+  if (win && !win.isDestroyed()) {
+    win.setContentProtection(true);
+    pairingProtectedWindow = win;
+  }
+});
+sync.onPairingJoined(({ name, platform }) => {
+  for (const runtime of windowRuntimes.all()) {
+    if (sameUtilityPage(runtime.utilitySheetUrl, 'blanc://settings/')) liveUtilitySheet(runtime)?.wc.send('pages:settings:sync-pair-joined', { name, platform });
+  }
+});
+app.on('browser-window-focus', updatePairingWatch);
+app.on('browser-window-blur', updatePairingWatch);
 sync.setSharedVisibilityProvider(()=>isSharedSpacesOffered()?namedWorkspaces.list().filter(workspace=>workspace.sharedId&&workspace.sharedLink==='active').map(workspace=>workspace.sharedId):[]);
 sync.onAccountChanged(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>{
   namedWorkspaces.clearSharedLinks();
@@ -15328,6 +15354,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
+    syncPairing: {
+      watch: (_sender, visible) => {
+        pairingSheet = visible ? { runtime: rt(), visible } : null;
+        updatePairingWatch();
+        return true;
+      },
+    },
     sharedSpaces: { acknowledge:id=>sharedSharing.acknowledge(id), open:id=>{if(!isSharedSpacesOffered()||rt().profileId!==DEFAULT_PROFILE_ID)return {ok:false};return switchWindowToWorkspace(rt(),String(id));}, status:()=>{const openSheet=!!rt().sharedShowSheet;rt().sharedShowSheet=false;return {offered:isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID,...sync.sharedStatus(),question:sharedSharing.question(),openSheet};}, preview:()=>sharedSharing.preview(), apply:payload=>sharedSharing.apply(payload) },
     drm: require('./drm-controls').createDrmControls({ support: drmSupport, restart: restartApp }),
     stringsScript: () => mainI18n.stringsScript(),

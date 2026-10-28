@@ -307,6 +307,14 @@ export interface SettingsPagesAPI {
     syncSwitchCode: (payload: unknown) => Promise<unknown>;
     /** Copy the recovery code to the clipboard from main behind a native dialog. The reply never carries the code. IPC: invoke `pages:settings:sync-recovery-code-copy`. */
     syncRecoveryCodeCopy: () => Promise<unknown>;
+    /** Turn on Sync with a generated account, no name or passphrase; status-only reply with whether the first pass reached the server. IPC: invoke `pages:settings:sync-start-new`. */
+    syncStartNew: () => Promise<unknown>;
+    /** Hide the recovery-code prompt on this device for good. IPC: invoke `pages:settings:sync-recovery-prompt-dismiss`. */
+    syncRecoveryPromptDismiss: () => Promise<unknown>;
+    /** Report whether the sheet with a live pairing code is visible, so main watches for the device that takes it. IPC: invoke `pages:settings:sync-pair-watch`. */
+    syncPairWatch: (visible: unknown) => Promise<unknown>;
+    /** The device that took the live pairing code arrived: its name and platform only. IPC: event `pages:settings:sync-pair-joined`. */
+    onSyncPairJoined: (callback: (payload: unknown) => void) => void;
     /** Replay the welcome tour. IPC: invoke `pages:settings:welcome-tour`. */
     welcomeTour: () => Promise<unknown>;
     /** 1Password fill status. Main registers this handler only when 1Password fill is available. IPC: invoke `pages:settings:onepassword-status`. */

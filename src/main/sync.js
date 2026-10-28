@@ -16,6 +16,7 @@ const { deviceName } = require('./device-name');
 const { resolveDeviceName } = require('./device-names');
 const { deriveKeys, encrypt, decrypt } = require('./sync-crypto');
 const pairingCodes = require('./sync-pairing');
+const { createPairWatch } = require('./sync-pair-watch');
 const { wipeDecision, responseCode } = require('./sync-wipe');
 const {
   SyncKeyStorageError,
@@ -441,7 +442,30 @@ function adoptCredentials({ handle, accountId, key, protectedKey }) {
 // beyond the Settings page that displays it.
 const PAIR_ATTEMPTS = 3;
 const pairingShownListeners=new Set();
-let pairing = null; // { code, pairId, expiresAt }
+const pairingJoinedListeners = new Set();
+const pairingLiveListeners = new Set();
+let pairing = null; // { code, pairId, expiresAt, expiry }
+let lastJoined = null; // { name, platform } of the device that took the last code
+const setCodeLive = (live) => { for (const listener of pairingLiveListeners) listener(live); };
+
+// The device that takes the code announces itself (design 2026-10-28 §6.3).
+const pairWatch = createPairWatch({
+  read: () => syncNow(['session']),
+  devices: () => listSendTargets(),
+  onJoined: ({ id, name, platform }) => {
+    const current = pairing;
+    if (!current) return;
+    pairing = null;
+    clearTimeout(current.expiry);
+    lastJoined = { name, platform };
+    // The claim already consumed the entry; a stale read could have missed that.
+    net.fetch(pairUrl(current.pairId), { method: 'DELETE' }).catch(() => {});
+    setCodeLive(false);
+    for (const listener of pairingJoinedListeners) listener({ deviceId: id, name, platform });
+  },
+});
+tabsync.onRemoteChanged(() => pairWatch.check());
+sends.onChanged(() => pairWatch.check());
 
 const pairUrl = (pairId) => `${ACTIVE_SYNC_ENDPOINT}/v1/pair/${pairId}`;
 
@@ -501,7 +525,18 @@ async function beginPairing() {
         return { ok: false, error: 'sync-off' };
       }
       const expiresAt = Date.now() + pairingCodes.PAIR_TTL_MS;
-      pairing = { code, pairId, expiresAt };
+      const current = { code, pairId, expiresAt, expiry: null };
+      current.expiry = setTimeout(() => {
+        if (pairing !== current) return;
+        pairing = null;
+        pairWatch.stop();
+        setCodeLive(false);
+      }, pairingCodes.PAIR_TTL_MS);
+      current.expiry.unref?.();
+      pairing = current;
+      lastJoined = null;
+      pairWatch.start({ expiresAt });
+      setCodeLive(true);
       for(const listener of pairingShownListeners)listener();
       return { ok: true, code, expiresAt };
     }
@@ -515,19 +550,30 @@ async function cancelPairing() {
   if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, cancelPairing);
   const current = pairing;
   pairing = null;
+  lastJoined = null;
   if (current) {
+    clearTimeout(current.expiry);
+    pairWatch.stop();
+    setCodeLive(false);
     try { await net.fetch(pairUrl(current.pairId), { method: 'DELETE' }); } catch { /* it expires on its own */ }
   }
   return { ok: true };
 }
 
+/** Settings reports whether the sheet with a live code is visible in a
+ * focused window; the watch reads only then. */
+function setPairingWatch(active) {
+  pairWatch.setActive(active);
+}
+
 function pairingState() {
-  if (!pairing) return { active: false };
+  if (!pairing) return { active: false, joined: lastJoined };
   if (Date.now() >= pairing.expiresAt) {
     pairing = null;
-    return { active: false };
+    pairWatch.stop();
+    return { active: false, joined: null };
   }
-  return { active: true, code: pairing.code, expiresAt: pairing.expiresAt };
+  return { active: true, code: pairing.code, expiresAt: pairing.expiresAt, joined: null };
 }
 
 /** The secret behind a code: fetched once from the Worker for a pairing code,
@@ -1307,6 +1353,9 @@ module.exports = {
   setTabStateReady,
   refreshSession,
   onPairingShown:listener=>pairingShownListeners.add(listener),
+  onPairingJoined: (listener) => pairingJoinedListeners.add(listener),
+  onPairingCodeLive: (listener) => pairingLiveListeners.add(listener),
+  setPairingWatch,
   pairingDevices:()=>listSendTargets().map(({id,name})=>({deviceId:id,name})),
   setSharedVisibilityProvider:provider=>{sharedVisibility=provider;},
   listRemoteDevices,

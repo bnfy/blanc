@@ -103,7 +103,8 @@ const OWN_ACCOUNT = 'a'.repeat(64);
 fs.writeFileSync(path.join(tmp, 'sync.json'), JSON.stringify({
   enabled: true, handle: 'anthony', accountId: OWN_ACCOUNT,
   protectedKey: Buffer.from(OWN_KEY.toString('base64')).toString('base64'), key: '',
-  lastSyncedAt: 0, lastError: null, deviceId: 'this-device', syncTabs: true,
+  // Synced once: a code is issued only for an account the Worker holds.
+  lastSyncedAt: 1, lastError: null, deviceId: 'this-device', syncTabs: true,
 }));
 fs.writeFileSync(path.join(tmp, 'tab-sync.json'), JSON.stringify({
   accountId: OWN_ACCOUNT,
@@ -143,7 +144,7 @@ test('beginPairing posts a wrapped secret under the code-derived pairId and keep
   const secret = pairing.unwrapSecret(wrapKey, JSON.parse(post.body).blob);
   assert.deepEqual(secret, { v: 1, handle: 'anthony', accountId: OWN_ACCOUNT, key: OWN_KEY.toString('base64') });
   assert.equal(JSON.stringify(readSync()).includes(res.code), false, 'the code never reaches sync.json');
-  assert.deepEqual(sync.pairingState(), { active: true, code: res.code, expiresAt: res.expiresAt });
+  assert.deepEqual(sync.pairingState(), { active: true, code: res.code, expiresAt: res.expiresAt, joined: null });
 });
 
 test('pairingState resumes the live code and expiresAt; cancelPairing DELETEs and clears it', async () => {
@@ -152,7 +153,7 @@ test('pairingState resumes the live code and expiresAt; cancelPairing DELETEs an
   const res = await sync.cancelPairing();
   assert.deepEqual(res, { ok: true });
   assert.ok(pairRequests('DELETE').at(-1).url.endsWith(pairing.pairingMaterial(before.code).pairId));
-  assert.deepEqual(sync.pairingState(), { active: false });
+  assert.deepEqual(sync.pairingState(), { active: false, joined: null });
   assert.equal(kv.size, 0);
 });
 
@@ -181,7 +182,7 @@ test('beginPairing on an older Worker is pair-unavailable and leaves no pairing 
   try {
     const res = await sync.beginPairing();
     assert.deepEqual(res, { ok: false, error: 'pair-unavailable' });
-    assert.deepEqual(sync.pairingState(), { active: false });
+    assert.deepEqual(sync.pairingState(), { active: false, joined: null });
   } finally { olderWorker = false; }
 });
 
@@ -334,7 +335,7 @@ test('quitting retracts a live pairing code', async () => {
   for (const fn of quit) fn();
   await settleRequests();
   assert.ok(pairRequests('DELETE').some((r) => r.url.endsWith(id)), 'the entry is deleted on quit');
-  assert.deepEqual(sync.pairingState(), { active: false });
+  assert.deepEqual(sync.pairingState(), { active: false, joined: null });
 });
 
 test('a code still being parked when Sync is turned off is retracted, not left for a dead sync', async () => {
@@ -353,7 +354,7 @@ test('a code still being parked when Sync is turned off is retracted, not left f
   assert.equal(res.ok, false);
   await settleRequests();
   assert.equal(kv.size, 0, 'nothing stays parked for the sync that was turned off');
-  assert.deepEqual(sync.pairingState(), { active: false });
+  assert.deepEqual(sync.pairingState(), { active: false, joined: null });
   await waitForJson(path.join(tmp, 'sync.json'), (json) => json.enabled === false);
 });
 
