@@ -1,3 +1,7 @@
+> Pre-push972e4bf4 update:16passed/8pending/3reviewed non-Chromium failures/2skipped; CodeQL now passes with no new alerts. See the latest dated snapshot in its CI evidence directory.
+
+> CI972e4bf4: [durable review](evidence/l12-ci-972e4bf4-20261028/README.md),9passed/15pending/2reviewed non-Chromium failures/2skipped. No current-head CodeQL completion yet. No repeated tests or Chromium fix indicated.
+
 > Follow-up on44aebf00: [exact-head CI evidence](evidence/l12-ci-44aebf00-20261028/README.md) records13success/6running/5queued/3reviewed non-Chromium failures/2skip; CodeQL no new alerts. No fix or test rerun indicated by completed checks.
 
 # L12 remaining work — original criteria retained
