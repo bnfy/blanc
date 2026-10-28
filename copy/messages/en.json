@@ -4927,17 +4927,9 @@
     "message": "A link you open in a new tab from a page follows a rule that points at another profile or Space. Links in private tabs and sign-in pop-ups stay where they are.",
     "note": "Settings → Profiles → Open links from other apps: hint under Also for links I open in a new tab."
   },
-  "linkRoutes.announce.profile": {
-    "message": "Link rule: opened in {profile}",
-    "note": "Read out in the window a link left (#1199): a link rule opened it in another profile. {profile} is the profile's name."
-  },
-  "linkRoutes.announce.space": {
-    "message": "Link rule: opened in {space}",
-    "note": "Read out in the window a link left (#1199): a link rule opened it in a Space. {space} is the Space's name."
-  },
-  "linkRoutes.announce.private": {
-    "message": "Link rule: opened in a private tab",
-    "note": "Read out in the window a link left (#1199): a link rule opened it as a private tab of the same profile."
+  "linkRoutes.announce.opened": {
+    "message": "Link rule: opened in {destination}",
+    "note": "Read out in the window a link left (#1199): a link rule opened it elsewhere. {destination} is where, as Settings names it (a profile, \"profile, Space\", optionally \", as a private tab\")."
   },
   "settings.linkRoutes.fallback": {
     "message": "Everything else: the window you used last",

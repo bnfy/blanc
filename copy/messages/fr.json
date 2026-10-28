@@ -4779,17 +4779,9 @@
     "message": "Un lien que vous ouvrez dans un nouvel onglet depuis une page suit la règle qui pointe vers un autre profil ou Space. Les liens des onglets privés et des fenêtres de connexion restent où ils sont.",
     "source": "sha256:2aa6a2a5fbeb40b917b08d9109388a0126d713237599fde7a26df9dba3670990"
   },
-  "linkRoutes.announce.profile": {
-    "message": "Règle de liens : ouvert dans {profile}",
-    "source": "sha256:6165e1d6c00d03373f989866dcfede49ac74558147a63a4ac0304bace4704319"
-  },
-  "linkRoutes.announce.space": {
-    "message": "Règle de liens : ouvert dans {space}",
-    "source": "sha256:449c22cf42f344eba4e64256bf0e63e6d3ae38b531904e1cc8e32630c6a68446"
-  },
-  "linkRoutes.announce.private": {
-    "message": "Règle de liens : ouvert dans un onglet privé",
-    "source": "sha256:450782e08cc7fe206dd701ee0d469d01f7118e3616847384f337a36b6ece8e88"
+  "linkRoutes.announce.opened": {
+    "message": "Règle de liens : ouvert dans {destination}",
+    "source": "sha256:36524f3f2fb10d92deb00dbf13a6fbc457070232d8e360303984bcd07af7fab2"
   },
   "settings.linkRoutes.fallback": {
     "message": "Tout le reste : la dernière fenêtre utilisée",

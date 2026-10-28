@@ -1323,9 +1323,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_link_routes_hint">Quando outro app abre um link no Blanc, a primeira regra que corresponder decide o perfil, e opcionalmente o Space, em que ele abre. As regras ficam neste dispositivo.</string>
     <string name="settings_link_routes_in_app_label">Também para links que abro em uma nova aba</string>
     <string name="settings_link_routes_in_app_hint">Um link que você abre em uma nova aba a partir de uma página segue a regra que aponta para outro perfil ou Space. Links em abas privadas e em pop-ups de login ficam onde estão.</string>
-    <string name="link_routes_announce_profile">Regra de links: aberto em %1$s</string>
-    <string name="link_routes_announce_space">Regra de links: aberto em %1$s</string>
-    <string name="link_routes_announce_private">Regra de links: aberto em uma aba privada</string>
+    <string name="link_routes_announce_opened">Regra de links: aberto em %1$s</string>
     <string name="settings_link_routes_fallback">Todo o resto: a última janela que você usou</string>
     <string name="settings_link_routes_add">Adicionar regra</string>
     <string name="settings_link_routes_links_to">Links para</string>

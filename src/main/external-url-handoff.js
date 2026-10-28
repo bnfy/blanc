@@ -23,8 +23,10 @@ function createExternalUrlHandoff({
 
   // Cancellation must start at delivery, including the wait for new chrome.
   // Cancel only foreground intent: every delivered URL still gets its tab.
-  function createRevealIntent() {
-    activeIntent?.cancel();
+  // `supersede: false` (a link routed from inside Blanc) leaves a pending
+  // reveal for a link from another app alone.
+  function createRevealIntent({ supersede = true } = {}) {
+    if (supersede) activeIntent?.cancel();
     const initiallyHidden = application.isHidden?.() === true;
     const listeners = [];
     // Windows receiving this handoff's earlier URLs. A routed URL can open a
@@ -73,7 +75,7 @@ function createExternalUrlHandoff({
     listen(application, 'browser-window-focus', (_event, focused) => {
       if (window && focused !== window && !companions.has(focused)) cancel();
     });
-    activeIntent = intent;
+    if (supersede) activeIntent = intent;
     return intent;
   }
 
@@ -85,9 +87,12 @@ function createExternalUrlHandoff({
       pending = [];
       for (const entry of entries) {
         if (entry.destination === undefined) entry.destination = entry.localFile ? null : (routeFor(entry.url) ?? null);
-        const runtime = getRuntime(entry.runtime, entry.destination);
+        // A background routed link never brings a window forward, even one
+        // it has to open (openRouted).
+        const placement = { background: entry.background === true };
+        const runtime = getRuntime(entry.runtime, entry.destination, placement);
         entry.runtime = runtime;
-        ensureWindow(runtime);
+        ensureWindow(runtime, placement);
         if (entry.activate) entry.intent?.trackWindow(runtime.window);
         else entry.intent?.allowWindow(runtime.window);
         if (!isWindowReady(runtime)) {
@@ -102,6 +107,9 @@ function createExternalUrlHandoff({
           const shouldReveal = entry.intent?.consume();
           if (id == null || !shouldReveal) return;
           activateTab(id);
+          // A routed in-app link's window taking focus isn't the user moving
+          // away from a link another app is still waiting to show.
+          if (entry.intent !== activeIntent) activeIntent?.allowWindow(runtime.window);
           revealWindow(runtime.window);
         });
       }
@@ -133,8 +141,9 @@ function createExternalUrlHandoff({
 
   /** A link clicked inside Blanc that a rule sends elsewhere (#1199): one
    * web URL with its destination already decided, opened in the background
-   * or, with `activate`, selected and brought to the front like a link from
-   * another app. */
+   * (in a window shown without focus if it needs a new one) or, with
+   * `activate`, selected and brought to the front like a link from another
+   * app. */
   function openRouted(url, destination, { activate = true } = {}) {
     if (isQuitting() || !destination) return;
     const [accepted] = webUrlsFromArgv([url]);
@@ -145,7 +154,8 @@ function createExternalUrlHandoff({
       localFile: false,
       destination,
       activate,
-      intent: activate ? createRevealIntent() : undefined,
+      background: !activate,
+      intent: activate ? createRevealIntent({ supersede: false }) : undefined,
     });
     flush();
   }

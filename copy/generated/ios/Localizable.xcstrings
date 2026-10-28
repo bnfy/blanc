@@ -52861,8 +52861,8 @@
         }
       }
     },
-    "linkRoutes.announce.profile": {
-      "comment": "Read out in the window a link left (#1199): a link rule opened it in another profile. {profile} is the profile's name.",
+    "linkRoutes.announce.opened": {
+      "comment": "Read out in the window a link left (#1199): a link rule opened it elsewhere. {destination} is where, as Settings names it (a profile, \"profile, Space\", optionally \", as a private tab\").",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -52899,90 +52899,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Regra de links: aberto em %1$@"
-          }
-        }
-      }
-    },
-    "linkRoutes.announce.space": {
-      "comment": "Read out in the window a link left (#1199): a link rule opened it in a Space. {space} is the Space's name.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Link rule: opened in %1$@"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Link-Regel: in %1$@ geöffnet"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Regla de enlaces: abierto en %1$@"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Règle de liens : ouvert dans %1$@"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Regola dei link: aperto in %1$@"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Regra de links: aberto em %1$@"
-          }
-        }
-      }
-    },
-    "linkRoutes.announce.private": {
-      "comment": "Read out in the window a link left (#1199): a link rule opened it as a private tab of the same profile.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Link rule: opened in a private tab"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Link-Regel: in einem privaten Tab geöffnet"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Regla de enlaces: abierto en una pestaña privada"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Règle de liens : ouvert dans un onglet privé"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Regola dei link: aperto in una scheda privata"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Regra de links: aberto em uma aba privada"
           }
         }
       }

@@ -374,9 +374,12 @@ test('openRouted opens a decided destination, revealing it only for a foreground
     isReady: () => true,
     isQuitting: () => f.state.quitting,
     routeFor: () => { throw new Error('openRouted never asks the rules again'); },
-    getRuntime: (preferred, destination) => destination
-      ? resolveRoutedRuntime(destination, preferred, { runtimes: f.runtimes, focusOrder: () => 0, openSpace: () => null, openProfileWindow: () => null })
-      : externalWindowRuntime(f.runtimes, preferred ?? f.state.focused, f.primary, f.state.focused),
+    getRuntime: (preferred, destination, placement) => {
+      placements.push(placement);
+      return destination
+        ? resolveRoutedRuntime(destination, preferred, { runtimes: f.runtimes, focusOrder: () => 0, openSpace: () => null, openProfileWindow: () => null })
+        : externalWindowRuntime(f.runtimes, preferred ?? f.state.focused, f.primary, f.state.focused);
+    },
     ensureWindow() {},
     isWindowReady: (runtime) => runtime.chromeReady,
     withRuntime(runtime, fn) { f.state.current = runtime; try { fn(); } finally { f.state.current = null; } },
@@ -389,14 +392,17 @@ test('openRouted opens a decided destination, revealing it only for a foreground
     revealWindow(window) { f.revealed.push(window); },
   });
   const work = { profileId: 'work', spaceId: null, private: false };
+  const placements = [];
 
   handler.openRouted('https://x.test/background', work, { activate: false });
+  assert.deepEqual(placements.at(-1), { background: true }, 'a window it opens is shown without focus');
   assert.deepEqual(f.created.map((tab) => [tab.url, tab.profileId]), [['https://x.test/background', 'work']]);
   assert.deepEqual(options[0], { destination: work });
   assert.deepEqual(f.activated, []);
   assert.deepEqual(f.revealed, []);
 
   handler.openRouted('https://x.test/foreground', work);
+  assert.deepEqual(placements.at(-1), { background: false });
   assert.deepEqual(f.created.at(-1), { id: 2, url: 'https://x.test/foreground', profileId: 'work' });
   assert.deepEqual(f.activated, [2]);
   assert.deepEqual(f.revealed, [f.work.window]);
@@ -407,5 +413,32 @@ test('openRouted opens a decided destination, revealing it only for a foreground
   f.state.quitting = true;
   handler.openRouted('https://x.test/quitting', work);
   assert.equal(f.created.length, 2);
+  f.noListeners();
+});
+
+test('a link routed from inside Blanc leaves a pending reveal for a link from another app alone', () => {
+  const f = harness();
+  const handler = createExternalUrlHandoff({
+    application: f.application,
+    isReady: () => true,
+    isQuitting: () => false,
+    getRuntime: (preferred, destination) => (destination ? f.work : preferred ?? f.primary),
+    ensureWindow() {},
+    isWindowReady: (runtime) => runtime.chromeReady,
+    withRuntime(runtime, fn) { f.state.current = runtime; try { fn(); } finally { f.state.current = null; } },
+    createTab(url) { f.created.push({ url, profileId: f.state.current.profileId }); return f.created.length; },
+    activateTab(id) { f.activated.push(id); },
+    revealWindow(window) { f.revealed.push(window); },
+  });
+  // Another app's link waits for its window's chrome.
+  f.primary.chromeReady = false;
+  handler.open(['https://from-app.test/']);
+  handler.openRouted('https://x.test/', { profileId: 'work', spaceId: null, private: false });
+  // Its window coming forward isn't the user moving away.
+  f.application.emit('browser-window-focus', {}, f.work.window);
+  f.primary.chromeReady = true;
+  handler.flush();
+  assert.deepEqual(f.created.map((tab) => tab.url), ['https://x.test/', 'https://from-app.test/']);
+  assert.deepEqual(f.revealed, [f.work.window, f.primary.window], 'both still come forward');
   f.noListeners();
 });

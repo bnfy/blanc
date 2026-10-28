@@ -70,3 +70,5 @@ Feature: open links from other apps where they belong
     Then the link opens in the Work window
     When the page opens that link in a new tab on its own
     Then the link opens in a new tab of the Personal window
+    When I click the same link inside a sandboxed frame on the page
+    Then the link opens in a new tab of the Personal window

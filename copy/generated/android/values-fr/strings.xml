@@ -1323,9 +1323,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_link_routes_hint">Quand une autre app ouvre un lien dans Blanc, la première règle qui correspond choisit le profil, et éventuellement le Space, où il s’ouvre. Les règles restent sur cet appareil.</string>
     <string name="settings_link_routes_in_app_label">Aussi pour les liens que j’ouvre dans un nouvel onglet</string>
     <string name="settings_link_routes_in_app_hint">Un lien que vous ouvrez dans un nouvel onglet depuis une page suit la règle qui pointe vers un autre profil ou Space. Les liens des onglets privés et des fenêtres de connexion restent où ils sont.</string>
-    <string name="link_routes_announce_profile">Règle de liens : ouvert dans %1$s</string>
-    <string name="link_routes_announce_space">Règle de liens : ouvert dans %1$s</string>
-    <string name="link_routes_announce_private">Règle de liens : ouvert dans un onglet privé</string>
+    <string name="link_routes_announce_opened">Règle de liens : ouvert dans %1$s</string>
     <string name="settings_link_routes_fallback">Tout le reste : la dernière fenêtre utilisée</string>
     <string name="settings_link_routes_add">Ajouter une règle</string>
     <string name="settings_link_routes_links_to">Liens vers</string>

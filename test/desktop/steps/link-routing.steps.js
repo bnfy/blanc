@@ -222,13 +222,26 @@ When('link rules also apply to links opened in a new tab', async function () {
   assert.equal(saved, true);
 });
 
-// Script on the page, with no press on it: the last click is over a second
-// old, so the page can't borrow it.
+// The page's own script: no link was activated, so nothing routes.
 When('the page opens that link in a new tab on its own', async function () {
   this.inAppBefore = await countTargets(this);
   const page = await inAppSourcePage(this);
-  await new Promise((resolve) => setTimeout(resolve, 1200));
   await page.evaluate((url) => { window.open(url); }, this.inAppTargetUrl);
+});
+
+// A child of a sandboxed frame would inherit its sandbox, so a link there
+// never routes: only a tab's own top-level page reports links.
+When('I click the same link inside a sandboxed frame on the page', async function () {
+  this.inAppBefore = await countTargets(this);
+  const page = await inAppSourcePage(this);
+  await page.evaluate((url) => {
+    const frame = document.createElement('iframe');
+    frame.id = 'acceptance-sandboxed';
+    frame.setAttribute('sandbox', 'allow-popups');
+    frame.srcdoc = `<a id="framed" href="${url}" target="_blank" style="display:block;padding:16px">open</a>`;
+    document.body.prepend(frame);
+  }, this.inAppTargetUrl);
+  await page.frameLocator('#acceptance-sandboxed').locator('#framed').click();
 });
 
 Then('the link opens in a new tab of the Personal window', async function () {
