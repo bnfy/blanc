@@ -244,7 +244,11 @@ final class TabsManager {
         }
 
         var savedURLs = sessionStore.urls.compactMap { URL(string: $0) }
+        var restoredState = sessionStore.state
         #if DEBUG
+        if UITestSeed.sends || UITestSeed.twoTabs || UITestSeed.startPage || UITestSeed.favorites || UITestSeed.privateTab {
+            restoredState = nil
+        }
         if UITestSeed.sends {
             UITestSeed.seedSends(into: syncDirectory)
             savedURLs = [UITestSeed.pageURL]
@@ -264,19 +268,20 @@ final class TabsManager {
         defer { if UITestSeed.privateTab { createTab(url: UITestSeed.pageURL, isPrivate: true) } }
         defer { if UITestSeed.twoTabs { activeTabId = tabs.first?.id } }
         #endif
-        if savedURLs.isEmpty {
+        if let state = restoredState {
+            iphoneSet = state.iphone
+            spaces = state.spaces
+            let now = Int64(Date().timeIntervalSince1970 * 1000)
+            recentlyDeleted = state.deleted.filter { now - $0.deletedAt < TabSets.deletedRetentionMs }
+            if spaces.contains(where: { $0.id == state.shown }) { shownSetId = state.shown }
+            show(shownSetId == TabSets.iphoneId ? iphoneSet : spaces.first { $0.id == shownSetId }!.set)
+            persistSession()
+        } else if savedURLs.isEmpty {
             createTab()
         } else {
-            // Rebuild tabs without persisting each intermediate state, then set the
-            // active tab (clamped to range) and write the session once.
-            // Every saved tab comes back quiet; making one current loads it.
-            isRestoringSession = true
-            for url in savedURLs {
-                createTab(url: url, quiet: true)
-            }
-            let clampedIndex = min(max(sessionStore.activeIndex, 0), tabs.count - 1)
-            activeTabId = tabs[clampedIndex].id
-            isRestoringSession = false
+            // A file from before M17: its tabs are This iPhone's.
+            show(SavedSet(tabs: savedURLs.map { SavedTab(url: $0.absoluteString, title: "") },
+                          activeIndex: sessionStore.activeIndex))
             persistSession()
         }
     }
@@ -692,6 +697,181 @@ final class TabsManager {
         persistSession()
     }
 
+    // MARK: Tab sets: This iPhone and Spaces (M17)
+
+    /// "iphone" or the shown Space's id.
+    private(set) var shownSetId = TabSets.iphoneId
+    /// The phone's Spaces in their order. The shown Space's saved tabs are
+    /// stale while it shows; `tabs` is the truth.
+    private(set) var spaces: [SpaceRecord] = []
+    private(set) var recentlyDeleted: [DeletedSpace] = []
+    /// The Space whose deletion Undo can still take back.
+    private(set) var lastDeletedSpaceId: String?
+    @ObservationIgnored private var deletedSpaceWasShown = false
+    @ObservationIgnored private var spaceUndoExpiry: Task<Void, Never>?
+    @ObservationIgnored private var iphoneSet = SavedSet()
+
+    var shownSpace: SpaceRecord? { spaces.first { $0.id == shownSetId } }
+
+    /// The shown set as it would be put away.
+    func captureShown() -> SavedSet {
+        let saved = tabs.filter { !$0.isPrivate }
+        return SavedSet(
+            tabs: saved.map { SavedTab(url: $0.currentURL.absoluteString, title: $0.pageTitle, pinned: $0.pinned,
+                                       groupId: $0.groupId, tabId: $0.sharedTabId) },
+            groups: groups,
+            activeIndex: saved.firstIndex { $0.id == activeTabId } ?? 0)
+    }
+
+    /// A set's saved tabs, for one that isn't shown (the shown one: `captureShown`).
+    func savedSet(_ id: String) -> SavedSet? {
+        if id == shownSetId { return captureShown() }
+        return id == TabSets.iphoneId ? iphoneSet : spaces.first { $0.id == id }?.set
+    }
+
+    private func storeShown() {
+        let set = captureShown()
+        if shownSetId == TabSets.iphoneId { iphoneSet = set }
+        else if let index = spaces.firstIndex(where: { $0.id == shownSetId }) { spaces[index].set = set }
+    }
+
+    /// Replaces the ordinary tabs with `set`'s, all quiet but the selected
+    /// one. Private tabs stay open; they belong to no set.
+    private func show(_ set: SavedSet) {
+        let privates = tabs.filter(\.isPrivate)
+        for tab in tabs where !tab.isPrivate {
+            tab.exitReader()
+            if let view = tab.existingWebView { contentBlocker.cancelPending(for: view) }
+        }
+        let wasRestoring = isRestoringSession
+        isRestoringSession = true
+        activeTabId = nil
+        tabs = []
+        groups = set.groups
+        for saved in set.tabs {
+            createTab(url: URL(string: saved.url) ?? Self.newTabURL, title: saved.title, quiet: true)
+            tabs.last?.pinned = saved.pinned
+            tabs.last?.groupId = saved.groupId
+            tabs.last?.sharedTabId = saved.tabId
+        }
+        if tabs.isEmpty { createTab(quiet: true) }
+        let count = tabs.count
+        tabs.append(contentsOf: privates)
+        normalizeLayout()
+        isRestoringSession = wasRestoring
+        let ordinary = tabs.filter { !$0.isPrivate }
+        activeTabId = ordinary[min(max(set.activeIndex, 0), count - 1)].id
+    }
+
+    /// Puts the shown set away and shows This iPhone or a Space.
+    func show(set id: String) {
+        guard id != shownSetId, let set = savedSet(id) else { return }
+        expireUndo()
+        storeShown()
+        shownSetId = id
+        show(set)
+        persistSession()
+    }
+
+    private func validIdentity(color: String, symbol: String) throws -> String {
+        guard let hex = SpaceIdentity.normalizeHex(color), SpaceIdentity.isSymbol(symbol) else { throw SpaceError.invalid }
+        return hex
+    }
+
+    /// A new Space. With `withTab`, that tab moves into it.
+    @discardableResult
+    func createSpace(name raw: String, color: String, symbol: String, withTab tabId: UUID? = nil) throws -> String {
+        guard let name = TabSets.spaceName(raw) else { throw SpaceError.emptyName }
+        guard spaces.filter({ $0.recoveredFrom == nil }).count < TabSets.spaceLimit else { throw SpaceError.limit }
+        let hex = try validIdentity(color: color, symbol: symbol)
+        let id = TabGroup.newId()
+        // A new Space starts with a Start Page, or with the tab it was made from.
+        let start = tabId == nil ? [SavedTab(url: Self.newTabURL.absoluteString, title: "")] : []
+        spaces.append(SpaceRecord(id: id, name: name, color: hex, symbol: symbol, set: SavedSet(tabs: start)))
+        if let tabId { moveTab(tabId, toSpace: id) }
+        persistSession()
+        return id
+    }
+
+    func updateSpace(_ id: String, name raw: String?, color: String?, symbol: String?) throws {
+        guard let index = spaces.firstIndex(where: { $0.id == id }) else { return }
+        var space = spaces[index]
+        if let raw {
+            guard let name = TabSets.spaceName(raw) else { throw SpaceError.emptyName }
+            space.name = name
+        }
+        space.color = try validIdentity(color: color ?? space.color, symbol: symbol ?? space.symbol)
+        space.symbol = symbol ?? space.symbol
+        spaces[index] = space
+        persistSession()
+    }
+
+    func moveSpace(_ id: String, by offset: Int) {
+        guard let index = spaces.firstIndex(where: { $0.id == id }) else { return }
+        let target = min(max(index + offset, 0), spaces.count - 1)
+        guard target != index else { return }
+        spaces.insert(spaces.remove(at: index), at: target)
+        persistSession()
+    }
+
+    /// Moves an ordinary tab, ungrouped, to the end of another set. The
+    /// shown set's only tab stays.
+    func moveTab(_ tabId: UUID, toSpace id: String) {
+        guard id != shownSetId, savedSet(id) != nil,
+              let index = tabs.firstIndex(where: { $0.id == tabId }), !tabs[index].isPrivate,
+              tabs.filter({ !$0.isPrivate }).count > 1 else { return }
+        let tab = tabs[index]
+        let saved = SavedTab(url: tab.currentURL.absoluteString, title: tab.pageTitle, pinned: tab.pinned)
+        if id == TabSets.iphoneId { iphoneSet.tabs.append(saved) }
+        else if let target = spaces.firstIndex(where: { $0.id == id }) { spaces[target].set.tabs.append(saved) }
+        tab.exitReader()
+        if let view = tab.existingWebView { contentBlocker.cancelPending(for: view) }
+        let wasActive = tab.id == activeTabId
+        tabs.remove(at: index)
+        normalizeLayout()
+        if wasActive {
+            let ordinary = tabs.filter { !$0.isPrivate }
+            activeTabId = ordinary[min(index, ordinary.count - 1)].id
+        }
+        persistSession()
+    }
+
+    /// Deletes a Space into Recently deleted (7 days), with Undo. Deleting
+    /// the shown Space shows This iPhone.
+    func deleteSpace(_ id: String, now: Int64 = Int64(Date().timeIntervalSince1970 * 1000)) {
+        guard spaces.contains(where: { $0.id == id }) else { return }
+        let wasShown = id == shownSetId
+        if wasShown { show(set: TabSets.iphoneId) }
+        guard let index = spaces.firstIndex(where: { $0.id == id }) else { return }
+        recentlyDeleted.insert(DeletedSpace(space: spaces.remove(at: index), deletedAt: now, index: index), at: 0)
+        lastDeletedSpaceId = id
+        deletedSpaceWasShown = wasShown
+        spaceUndoExpiry?.cancel()
+        let window = undoWindow
+        spaceUndoExpiry = Task { [weak self] in
+            do { try await Task.sleep(for: window) } catch { return }
+            guard let self, self.lastDeletedSpaceId == id else { return }
+            self.lastDeletedSpaceId = nil
+        }
+        persistSession()
+    }
+
+    func undoDeleteSpace() {
+        guard let id = lastDeletedSpaceId else { return }
+        spaceUndoExpiry?.cancel()
+        lastDeletedSpaceId = nil
+        restoreDeleted(id, show: deletedSpaceWasShown)
+    }
+
+    /// Brings a Space back from Recently deleted, where it was.
+    func restoreDeleted(_ id: String, show showIt: Bool = false) {
+        guard let index = recentlyDeleted.firstIndex(where: { $0.space.id == id }) else { return }
+        let entry = recentlyDeleted.remove(at: index)
+        spaces.insert(entry.space, at: min(entry.index, spaces.count))
+        if showIt { show(set: id) }
+        persistSession()
+    }
+
     /// Snapshots the open tabs' URLs + active index to the session store
     /// (debounced). Suppressed while restoring so intermediate createTab calls
     /// don't overwrite the saved session mid-rebuild.
@@ -702,7 +882,11 @@ final class TabsManager {
         let saved = tabs.filter { !$0.isPrivate }
         let urls = saved.isEmpty ? [Self.newTabURL.absoluteString] : saved.map { $0.currentURL.absoluteString }
         let activeIdx = saved.firstIndex(where: { $0.id == activeTabId }) ?? 0
-        sessionStore.save(urls: urls, activeIndex: activeIdx)
+        var state = SessionState(shown: shownSetId, iphone: iphoneSet, spaces: spaces, deleted: recentlyDeleted)
+        let shown = captureShown()
+        if shownSetId == TabSets.iphoneId { state.iphone = shown }
+        else if let index = state.spaces.firstIndex(where: { $0.id == shownSetId }) { state.spaces[index].set = shown }
+        sessionStore.save(urls: urls, activeIndex: activeIdx, state: state)
         syncEngine.tabsChanged()
     }
 
