@@ -178,3 +178,22 @@ test('settings.js drives the flow through the reducer and performs effects once'
 test('user-facing settings copy no longer says Profile Sync', () => {
   assert.doesNotMatch(read('src/renderer/pages/settings.html'), /Profile Sync/);
 });
+
+// Connect your iPhone opens the sheet with Sync off, while #syncActive is
+// hidden: a modal inside a hidden ancestor opens at 0×0 and blocks the page.
+test('the pairing sheet is not inside the on state, so it shows with Sync off', () => {
+  const html = read('src/renderer/pages/settings.html');
+  const start = html.indexOf('<div id="syncActive"');
+  const dialog = html.indexOf('id="syncPairingDialog"');
+  assert.ok(start > 0 && dialog > 0);
+  let depth = 0;
+  const tags = /<(\/?)div\b[^>]*>/g;
+  tags.lastIndex = start;
+  let end = -1;
+  for (let m; (m = tags.exec(html));) {
+    depth += m[1] ? -1 : 1;
+    if (depth === 0) { end = m.index; break; }
+  }
+  assert.ok(end > start, '#syncActive closes');
+  assert.ok(dialog > end, 'the sheet comes after #syncActive closes');
+});
