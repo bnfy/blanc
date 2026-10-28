@@ -25,7 +25,7 @@ final class TabsManager {
     }
 
     func makeStartPreview(layout: BlancStartPageLayout? = nil) -> TabModel {
-        let configuration = WebViewConfiguration.make(schemeHandler: schemeHandler, bridge: bridge)
+        let configuration = WebViewConfiguration.make(schemeHandler: schemeHandler, bridge: bridge, dataStore: siteDataStore)
         configuration.userContentController.addUserScript(WKUserScript(source: """
             document.getElementById('customizeButton')?.style.setProperty('display', 'none', 'important');
             """, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
@@ -181,6 +181,31 @@ final class TabsManager {
         return store
     }
 
+    /// Settings → Privacy's Clear cookies, cache & site data, as on the computer:
+    /// signs every site out, in normal and private tabs, then reloads the open
+    /// pages so none stays signed in from memory. History, Favorites and Sync stay.
+    func clearSiteData() async {
+        let stores = [siteDataStore, privateStore].compactMap { $0 }
+        await withTaskGroup(of: Void.self) { group in
+            for store in stores { group.addTask { await Self.clearWebsites(in: store) } }
+        }
+        pagesToReloadAfterClearing.forEach { $0.reload() }
+    }
+
+    /// Open web pages; quiet tabs load fresh when shown, and Blanc's own pages
+    /// keep their storage.
+    var pagesToReloadAfterClearing: [TabModel] {
+        tabs.filter { $0.existingWebView != nil && ReaderController.isWebURL($0.currentURL) }
+    }
+
+    /// Removes by data record rather than by date: WebKit lists only web sites'
+    /// records, so Blanc's own blanc:// pages (Mahjong saves, hidden top sites)
+    /// keep their storage.
+    private static func clearWebsites(in store: WKWebsiteDataStore) async {
+        let types = WKWebsiteDataStore.allWebsiteDataTypes()
+        await store.removeData(ofTypes: types, for: await store.dataRecords(ofTypes: types))
+    }
+
     /// The open tabs other devices may see; private tabs never leave the phone.
     var syncedTabs: [(url: String, title: String)] {
         tabs.filter { !$0.isPrivate }.map { ($0.currentURL.absoluteString, $0.pageTitle) }
@@ -246,7 +271,11 @@ final class TabsManager {
         contentBlocker.isReady && contentBlocker.enabled
     }
 
-    init(settingsDirectory: URL? = nil, sessionDirectory: URL? = nil) {
+    /// The web store normal tabs share; tests pass their own.
+    @ObservationIgnored let siteDataStore: WKWebsiteDataStore
+
+    init(settingsDirectory: URL? = nil, sessionDirectory: URL? = nil, siteDataStore: WKWebsiteDataStore = .default()) {
+        self.siteDataStore = siteDataStore
         #if DEBUG
         if UITestSeed.settings { UITestSeed.prepareSettings() }
         let settingsDirectory = UITestSeed.settings ? UITestSeed.settingsDirectory : settingsDirectory
@@ -349,7 +378,7 @@ final class TabsManager {
         if !isRestoringSession, !quiet, activeTabId != nil, routeSettings(url) { return activeTabId! }
         let config = WebViewConfiguration.make(
             schemeHandler: schemeHandler, bridge: bridge,
-            dataStore: isPrivate ? privateDataStore : .default(),
+            dataStore: isPrivate ? privateDataStore : siteDataStore,
             startPageHold: startPageHold)
         if contentBlocker.enabled, !AdblockExceptions.isExcepted(url, in: settingsStore.adblockExceptions),
            let ruleList = contentBlocker.compiledRuleList {

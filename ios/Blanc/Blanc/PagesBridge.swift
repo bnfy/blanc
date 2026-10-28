@@ -29,7 +29,6 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         // top-level methods) to avoid optional-literal pattern ambiguity.
         switch (group ?? "", method) {
         case ("", "appVersion"): return .value(.string(appVersion))
-        case ("", "clearBrowsingData"): return .value(.null)
 
         case ("bookmarks", "list"): return .value(.array([]))
         // Favorites edit on the phone; importing (F30) and Start Page pins stay on the computer.
@@ -98,7 +97,8 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
     /// values track `BlancSettingsDefaults`. `theme`/`searchEngine`/`adblockEnabled`
     /// are parameterized so the live store can override the defaults;
     /// `capabilities` lists the features this platform actually implements, so
-    /// `settings.js` hides the rest (iOS ships only theme/searchEngine/adblock).
+    /// `settings.js` hides the rest (iOS ships theme, search engine, blocker, Sync
+    /// and Clear cookies, cache & site data).
     private static func settingsBootstrap(
         theme: BlancThemePreference = BlancSettingsDefaults.theme,
         searchEngine: BlancSearchEngine = BlancSettingsDefaults.searchEngine,
@@ -129,6 +129,7 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
                 .string("searchEngine"),
                 .string("adblockEnabled"),
                 .string("sync"),
+                .string("clearBrowsingData"),
             ])),
         ])
     }
@@ -382,12 +383,28 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
             }
             return
         }
+        if group == nil, method == "clearBrowsingData" {
+            Task { [weak self, weak webView] in
+                guard let self else { return }
+                let result = await self.clearBrowsingData()
+                guard let webView, webView.url == documentURL else { return }
+                self.resolve(id, result: result, in: webView, host: host)
+            }
+            return
+        }
         var result = liveResponse(group: group, method: method, args: args, appVersion: version)
         if group == "start", method == "data", let layout = manager?.previewLayout(for: webView), case .value(var data) = result {
             data["layout"] = .string(layout.rawValue)
             result = .value(data)
         }
         resolve(id, result: result, in: webView, host: host)
+    }
+
+    /// The web Settings page's Clear button, answered once the clearing is done
+    /// so the page never says "Cleared." early.
+    func clearBrowsingData() async -> BridgeResult {
+        await manager?.clearSiteData()
+        return .value(.null)
     }
 
     /// The answer to a call the sender checks above allowed, using live app state.
