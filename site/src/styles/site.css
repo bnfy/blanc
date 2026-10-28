@@ -539,6 +539,10 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .download-columns h3 { margin: 0; font-size: 15px; font-weight: 600; }
 .download-columns p { margin: 8px 0 0; color: var(--site-text-dim); font-size: 14px; line-height: 1.6; }
 .download-columns .text-link { margin-top: 12px; font-size: 13px; }
+.download-iphone { grid-template-columns: minmax(0, 1fr) auto; column-gap: 48px; align-items: center; }
+.download-iphone article { max-width: 34rem; }
+.download-iphone-shot { margin: 24px 0 0; justify-self: end; }
+.download-iphone-shot img { display: block; width: 280px; height: auto; border: 1px solid var(--site-border); border-radius: 40px; box-shadow: 0 1px 2px rgba(17, 17, 17, 0.08), 0 22px 48px rgba(17, 17, 17, 0.16); }
 
 /* ---------- changelog ---------- */
 .changelog-page { max-width: 880px; margin: 0 auto; padding: 112px 24px 96px; }
@@ -842,6 +846,9 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .download-columns { grid-template-columns: 1fr; margin-top: 28px; }
   .download-columns article, .download-columns article + article { padding: 22px 0; border-left: 0; }
   .download-columns article + article { border-top: 1px solid var(--site-border); }
+  .download-iphone { grid-template-columns: 1fr; }
+  .download-iphone-shot { justify-self: center; margin-top: 8px; }
+  .download-iphone-shot img { width: min(260px, 72vw); border-radius: 36px; }
   .download-options.has-preferred > .platform-card[data-preferred] { min-height: 0; padding: 26px 24px; }
   .download-options.has-preferred > .platform-card[data-preferred]::after { top: 22px; right: 24px; }
   /* Stacked on one column, the tall bottom-aligned cards become mostly-empty
