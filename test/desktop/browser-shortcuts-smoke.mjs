@@ -310,6 +310,7 @@ try {
         assert.equal((await state()).activeTabId, used[0], 'Esc stays where you are');
         assert.equal((await call(app, 'browserCommandState')).tabSwitchPick, null);
         assert.equal((await commandState()).overlayMode, null, 'Esc closes the card');
+        steps++;
       }
       // Ctrl+W closes the pick, not the current tab; the pick moves one step
       // older and the release still arrives to land on it (D4). macOS closes
@@ -328,6 +329,7 @@ try {
         assert.equal(held.overlayMode, 'switcher', 'the card stays open');
         await keys(['up', 'ctrl'], settle);
         await wait(state, value => value.activeTabId === after, 'the release after Ctrl+W lands on the new pick');
+        steps++;
       }
       // A click on a tile lands on it at once; the release then changes nothing.
       await keys(['down', 'ctrl'], 150, ['key', 'tab'], 250, ['key', 'tab'], 250);
@@ -349,7 +351,8 @@ try {
       await keys(['up', 'ctrl'], settle);
       assert.equal((await state()).activeTabId, target, 'the release after a click changes nothing');
       assert.equal((await commandState()).overlayMode, null);
-      steps += 7;
+      // Tap, second tap, held step, landing on release, click; Esc and Ctrl+W count above.
+      steps += 5;
       assert.equal(await call(app, 'setTabSwitchOrder', ['list']), 'list');
       const open = used.filter(id => id !== closing);
       for (const id of open) await call(app, 'closeTab', [id]);

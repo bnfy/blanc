@@ -7501,23 +7501,35 @@ function closeSwitcherPick(runtime) {
 
 function stepTabSwitch(runtime, direction, sender) {
   if (!recentTabOrder()) return cycleTab(direction);
-  tabSwitcher.step(runtime, direction);
+  const stepped = tabSwitcher.step(runtime, direction);
   // A menu click has no key to release: it is a whole tap.
   if (!sender) tabSwitcher.release(runtime);
+  return stepped;
 }
 
 // macOS: Ctrl+Tab is a native menu key equivalent there, and
 // registerAccelerator is Windows/Linux only, so one key press can reach Blanc
-// twice: as a surface's before-input-event and as the menu's accelerator
-// click. Whichever arrives first steps the switch as a held key (the Control
-// release lands it); the other is dropped.
-const MAC_TAB_SWITCH_KEY_MS = 80;
+// twice. Chromium offers a Control key equivalent to the page first, so a
+// surface's before-input-event comes first and the menu's accelerator click
+// follows only if the page left the key unhandled, however long that takes.
+// Each surface press therefore leaves one pending accelerator click to drop.
+// An accelerator click with none pending came from a surface without these
+// listeners (DevTools, a native dialog), where no Control release would
+// arrive, so it is a whole tap. Pending clicks expire, so a press the menu
+// never saw can't swallow a later one.
+const MAC_TAB_SWITCH_ACCELERATOR_MS = 1000;
 function stepMacTabSwitchKey(runtime, id, sender) {
+  const direction = id === 'next-tab' ? 1 : -1;
   const now = performance.now();
-  if (now - (runtime.macTabSwitchKeyAt ?? -Infinity) < MAC_TAB_SWITCH_KEY_MS) return;
-  runtime.macTabSwitchKeyAt = now;
-  stepTabSwitch(runtime, id === 'next-tab' ? 1 : -1, sender ?? 'menu-key');
-  observeBrowserCommand({ id, runtimeId: runtime.id, webContentsId: sender?.id ?? null, handled: true });
+  if (sender) {
+    runtime.macTabSwitchPending = [...(runtime.macTabSwitchPending ?? []), now];
+  } else {
+    const pending = (runtime.macTabSwitchPending ?? []).filter(at => now - at < MAC_TAB_SWITCH_ACCELERATOR_MS);
+    runtime.macTabSwitchPending = pending.slice(1);
+    if (pending.length) return;
+  }
+  const handled = stepTabSwitch(runtime, direction, sender) === true;
+  observeBrowserCommand({ id, runtimeId: runtime.id, webContentsId: sender?.id ?? null, handled });
 }
 
 /** macOS in most-recent order: Ctrl+Tab and Ctrl+Shift+Tab step the switch

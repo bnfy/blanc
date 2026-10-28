@@ -11,6 +11,7 @@
 // of milliseconds to wait, or ['click', x, y] in window content coordinates.
 // Keys: ctrl, shift, tab, escape, w.
 import { execFileSync, spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -23,7 +24,15 @@ const X11_KEYS = { ctrl: 'ctrl', shift: 'shift', tab: 'Tab', escape: 'Escape', w
 function lineHelper(command, args, label) {
   const child = spawn(command, args, { stdio: ['pipe', 'pipe', 'inherit'] });
   let buffered = '';
+  let failure = null;
   const waiters = [];
+  const failAll = (error) => {
+    failure ??= error;
+    for (const waiter of waiters.splice(0)) waiter.reject(failure);
+  };
+  child.on('error', error => failAll(new Error(`${label} could not run: ${error.message}`)));
+  child.on('exit', code => failAll(new Error(`${label} exited (${code})`)));
+  child.stdin.on('error', error => failAll(new Error(`${label} stopped reading input: ${error.message}`)));
   child.stdout.setEncoding('utf8');
   child.stdout.on('data', chunk => {
     buffered += chunk;
@@ -34,15 +43,22 @@ function lineHelper(command, args, label) {
       waiters.shift()?.resolve(line);
     }
   });
-  child.on('exit', code => {
-    for (const waiter of waiters.splice(0)) waiter.reject(new Error(`${label} exited (${code})`));
-  });
   const nextLine = (timeout = 60_000) => new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`${label} did not answer`)), timeout);
-    waiters.push({ resolve: line => { clearTimeout(timer); resolve(line); }, reject: error => { clearTimeout(timer); reject(error); } });
+    if (failure) return reject(failure);
+    const waiter = {};
+    const timer = setTimeout(() => {
+      // A late answer would otherwise go to the next waiter and leave every
+      // later exchange one line out of step, so a timeout ends the helper.
+      waiters.splice(waiters.indexOf(waiter), 1);
+      failAll(new Error(`${label} did not answer within ${timeout} ms`));
+      child.kill();
+      reject(failure);
+    }, timeout);
+    waiter.resolve = line => { clearTimeout(timer); resolve(line); };
+    waiter.reject = error => { clearTimeout(timer); reject(error); };
+    waiters.push(waiter);
   });
   return {
-    child,
     nextLine,
     async send(lines) {
       const done = nextLine();
@@ -78,17 +94,18 @@ export async function openNativeKeys(app) {
     if (process.env.GITHUB_ACTIONS) throw new Error(`Real key input is required on CI: ${reason}`);
     return { keys: null, reason };
   };
-  const windowInfo = () => app.evaluate(({ BrowserWindow, screen }) => {
+  const windowInfo = () => app.evaluate(({ BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows().find(w => w.webContents.getURL() === 'blanc-chrome://index/');
     const handle = win.getNativeWindowHandle();
-    const bounds = win.getContentBounds();
-    const scale = screen.getDisplayMatching(bounds).scaleFactor;
     return {
       xid: process.platform === 'linux' ? String(handle.length >= 8 ? handle.readBigUInt64LE(0) : handle.readUInt32LE(0)) : null,
-      bounds,
-      scale,
+      bounds: win.getContentBounds(),
     };
   });
+  // Window content coordinates (DIPs) to the physical screen pixels the
+  // DPI-aware Windows helper clicks in; Electron accounts for each display's
+  // own origin and scale.
+  const toPhysical = (points) => app.evaluate(({ screen }, list) => list.map(point => screen.dipToScreenPoint(point)), points);
   // Win/macOS: Electron raises its own window (it knows the OS rules for
   // taking focus), then the helper's keys go to whatever is focused.
   const focusApp = async () => {
@@ -127,15 +144,20 @@ export async function openNativeKeys(app) {
 
   if (platform === 'win32') {
     const helper = lineHelper('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', path.join(here, 'native-keys-win.ps1')], 'native-keys-win.ps1');
-    const first = await helper.nextLine();
+    const first = await helper.nextLine().catch(error => error.message);
     if (first !== 'ready') { helper.close(); return unavailable(`native-keys-win.ps1 answered ${first}`); }
     return {
       keys: {
         async run(...steps) {
           await focusApp();
-          const { bounds, scale } = await windowInfo();
-          // The helper is DPI-aware, so it clicks in physical pixels.
-          await helper.send(expand(steps, (x, y) => ({ x: Math.round((bounds.x + x) * scale), y: Math.round((bounds.y + y) * scale) })));
+          const { bounds } = await windowInfo();
+          const clicks = steps.filter(step => Array.isArray(step) && step[0] === 'click');
+          const physical = await toPhysical(clicks.map(([, x, y]) => ({ x: bounds.x + x, y: bounds.y + y })));
+          let next = 0;
+          await helper.send(expand(steps, () => {
+            const point = physical[next++];
+            return { x: Math.round(point.x), y: Math.round(point.y) };
+          }));
         },
         close: () => helper.close(),
       },
@@ -143,14 +165,23 @@ export async function openNativeKeys(app) {
   }
 
   if (platform === 'darwin') {
-    const binary = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-native-keys-')), 'native-keys-mac');
-    try {
-      execFileSync('xcrun', ['swiftc', '-O', '-o', binary, path.join(here, 'native-keys-mac.swift')], { stdio: 'inherit' });
-    } catch (error) {
-      return unavailable(`could not compile native-keys-mac.swift (${error.message})`);
+    // Compiled once per version of the source, into one cache folder.
+    const source = path.join(here, 'native-keys-mac.swift');
+    const digest = createHash('sha256').update(fs.readFileSync(source)).digest('hex').slice(0, 16);
+    const cache = path.join(os.tmpdir(), 'blanc-native-keys');
+    const binary = path.join(cache, `native-keys-mac-${digest}`);
+    if (!fs.existsSync(binary)) {
+      fs.rmSync(cache, { recursive: true, force: true });
+      fs.mkdirSync(cache, { recursive: true });
+      try {
+        execFileSync('xcrun', ['swiftc', '-O', '-o', `${binary}.partial`, source], { stdio: 'inherit' });
+        fs.renameSync(`${binary}.partial`, binary);
+      } catch (error) {
+        return unavailable(`could not compile native-keys-mac.swift (${error.message})`);
+      }
     }
     const helper = lineHelper(binary, [], 'native-keys-mac');
-    const first = await helper.nextLine();
+    const first = await helper.nextLine().catch(error => error.message);
     if (first !== 'ready') {
       helper.close();
       return unavailable(first === 'untrusted'
