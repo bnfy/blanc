@@ -84,3 +84,88 @@ test('switch: a stale reply is ignored; a failed one keeps the panel open with t
   assert.equal(done.code, '');
   assert.equal(done.wipeRemote, false);
 });
+
+// The sheet after the code is taken (design 2026-10-28 §6.3–§6.4).
+function shownModel() {
+  const begun = pairingTransition(createPairingModel(), { type: 'begin' }).state;
+  return pairingTransition(begun, { type: 'began', ok: true, code: 'K7MR4PX2', expiresAt: NOW + 600_000 }).state;
+}
+
+test('a not-ready begin shows its message and Add device can begin again', () => {
+  const begun = pairingTransition(createPairingModel(), { type: 'begin' }).state;
+  const failed = pairingTransition(begun, { type: 'began', ok: false, message: 'Sync is on, but couldn’t reach the server yet. Blanc will keep trying.' }).state;
+  const v = pairingView(failed, NOW);
+  assert.equal(v.showing, false);
+  assert.match(v.noticeText, /couldn’t reach the server/);
+  assert.equal(v.beginVisible, true);
+  assert.deepEqual(pairingTransition(failed, { type: 'begin' }).effect, { type: 'pair-begin' });
+});
+
+test('joined keeps the sheet open, without the code, and names the device', () => {
+  const joined = pairingTransition(shownModel(), { type: 'joined', name: 'iPhone', platform: 'ios' });
+  assert.equal(joined.effect, null);
+  const v = pairingView(joined.state, NOW);
+  assert.equal(v.sheetOpen, true);
+  assert.equal(v.showing, false);
+  assert.equal(v.codeText, '');
+  assert.equal(v.joined, true);
+  assert.equal(v.joinedName, 'iPhone');
+  assert.equal(v.joinedNameKey, null);
+  assert.equal(v.askingSpaces, false);
+});
+
+test('joined only counts while a code is showing', () => {
+  assert.equal(pairingTransition(createPairingModel(), { type: 'joined', name: 'iPhone', platform: 'ios' }).state.phase, 'idle');
+});
+
+test('the empty-name fallbacks', () => {
+  const unknown = pairingView(pairingTransition(shownModel(), { type: 'joined', name: 'unknown device', platform: 'ios' }).state, NOW);
+  assert.equal(unknown.joinedName, '');
+  assert.equal(unknown.joinedNameKey, 'settings.sync.sheet.yourIphone');
+  const blank = pairingView(pairingTransition(shownModel(), { type: 'joined', name: '', platform: 'linux' }).state, NOW);
+  assert.equal(blank.joinedNameKey, 'settings.sync.sheet.yourDevice');
+});
+
+test('a pending question asks, Turn on opens the Spaces sheet, Not now acknowledges', () => {
+  const joined = pairingTransition(shownModel(), { type: 'joined', name: 'iPhone', platform: 'ios' }).state;
+  const asking = pairingTransition(joined, { type: 'question', deviceId: 'phone' }).state;
+  assert.equal(pairingView(asking, NOW).askingSpaces, true);
+  const on = pairingTransition(asking, { type: 'spaces-answer', answer: 'on' });
+  assert.deepEqual(on.effect, { type: 'spaces-turn-on', deviceId: 'phone' });
+  assert.equal(pairingView(on.state, NOW).sheetOpen, false, 'the Spaces sheet replaces this one');
+  const notNow = pairingTransition(asking, { type: 'spaces-answer', answer: 'not-now' });
+  assert.deepEqual(notNow.effect, { type: 'spaces-acknowledge', deviceId: 'phone' });
+  assert.equal(pairingView(notNow.state, NOW).askingSpaces, false);
+  assert.equal(pairingView(notNow.state, NOW).joined, true);
+});
+
+test('no question, or a question about another stage, does not ask', () => {
+  const joined = pairingTransition(shownModel(), { type: 'joined', name: 'iPhone', platform: 'ios' }).state;
+  assert.equal(pairingView(pairingTransition(joined, { type: 'question', deviceId: null }).state, NOW).askingSpaces, false);
+  assert.equal(pairingTransition(shownModel(), { type: 'question', deviceId: 'phone' }).state.phase, 'showing');
+});
+
+test('done without answering emits only pair-cancel, never an acknowledge', () => {
+  const joined = pairingTransition(shownModel(), { type: 'joined', name: 'iPhone', platform: 'ios' }).state;
+  const asking = pairingTransition(joined, { type: 'question', deviceId: 'phone' }).state;
+  const done = pairingTransition(asking, { type: 'done' });
+  assert.deepEqual(done.effect, { type: 'pair-cancel' });
+  assert.equal(pairingView(done.state, NOW).sheetOpen, false);
+});
+
+test('a reopened page resumes into the joined state', () => {
+  const resumed = pairingTransition(createPairingModel(), { type: 'resume', active: false, joined: { name: 'iPhone', platform: 'ios' } }).state;
+  assert.equal(pairingView(resumed, NOW).joined, true);
+});
+
+test('done shows the recovery line only for a generated sync whose prompt is not dismissed', () => {
+  const joined = pairingTransition(shownModel(), { type: 'joined', name: 'iPhone', platform: 'ios' }).state;
+  assert.equal(pairingView(joined, NOW, { recoveryPrompt: true }).recoveryLine, true);
+  assert.equal(pairingView(joined, NOW, { recoveryPrompt: false }).recoveryLine, false);
+  assert.equal(pairingView(shownModel(), NOW, { recoveryPrompt: true }).recoveryLine, false);
+});
+
+test('the pairing view is pure', () => {
+  const joined = pairingTransition(shownModel(), { type: 'joined', name: 'iPhone', platform: 'ios' }).state;
+  assert.deepEqual(pairingView(joined, NOW), pairingView(joined, NOW));
+});

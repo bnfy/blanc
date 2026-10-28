@@ -16,6 +16,7 @@ const { deviceName } = require('./device-name');
 const { resolveDeviceName } = require('./device-names');
 const { deriveKeys, encrypt, decrypt } = require('./sync-crypto');
 const pairingCodes = require('./sync-pairing');
+const { createPairWatch } = require('./sync-pair-watch');
 const { wipeDecision, responseCode } = require('./sync-wipe');
 const {
   SyncKeyStorageError,
@@ -70,6 +71,7 @@ function ensureStore() {
     enabled: false, handle: '', accountId: '', protectedKey: '', key: '',
     lastSyncedAt: 0, lastError: null, erasurePending: false,
     deviceId: '', syncTabs: false, syncSpaces: false,
+    origin: '', recoveryPromptDismissed: false,
   });
   // One-time migration from pre-hardening profiles. The old field is erased
   // only after the wrapped replacement has reached disk; otherwise sync stays
@@ -305,6 +307,9 @@ function status() {
     // What this device is called on the others ('' = no chosen name) and the
     // name it publishes, which stays the computer's (device-name.js).
     deviceName: chosen?.name ?? '', deviceNamePublished: deviceName(),
+    // 'generated' only on the device that started a sync without a passphrase
+    // (design 2026-10-28 §5.4); never synced.
+    origin: d.origin === 'generated' ? 'generated' : '', recoveryPromptDismissed: !!d.recoveryPromptDismissed,
   };
 }
 
@@ -360,6 +365,33 @@ async function enable({ handle, passphrase }) {
   return { ok: res.ok, error: res.error, created, status: status() };
 }
 
+/** A sync without a passphrase (design 2026-10-28 §5.1): the account is
+ * random, so nothing ever derives it. The recovery code is the way back in. */
+async function startNew({ handle } = {}) {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, () => startNew({ handle }));
+  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE, status: status() };
+  if (ensureStore().data.enabled) return { ok: false, error: 'sync-on', status: status() };
+  const name = String(handle ?? '').trim();
+  const key = crypto.randomBytes(32);
+  try {
+    const adopted = adoptCredentials({ handle: name.length >= 2 ? name : 'My Blanc', accountId: crypto.randomBytes(32).toString('hex'), key });
+    if (!adopted.ok) return { ...adopted, status: status() };
+  } finally {
+    key.fill(0);
+  }
+  const syncStore = ensureStore();
+  syncStore.update((d) => { d.origin = 'generated'; d.recoveryPromptDismissed = false; });
+  syncStore.flush();
+  const res = await syncNow();
+  return { ok: true, synced: !!res.ok, error: res.error, status: status() };
+}
+
+function dismissRecoveryPrompt() {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, dismissRecoveryPrompt);
+  ensureStore().update((d) => { d.recoveryPromptDismissed = true; });
+  return { ok: true };
+}
+
 /** The part of enable() every credential source shares — the passphrase
  * path, a pairing code, a recovery code: protect the key, become this
  * identity, persist, and refresh icons. The caller still owns `key` and
@@ -388,8 +420,9 @@ function adoptCredentials({ handle, accountId, key, protectedKey }) {
   syncStore.update((d) => {
     d.enabled = true; d.handle = handle; d.accountId = accountId;
     d.protectedKey = protectedKey; d.key = ''; d.lastError = null; d.erasurePending = false;
-    if(previousAccount!==accountId)d.syncSpaces=false;
+    if(previousAccount!==accountId){d.syncSpaces=false;d.lastSyncedAt=0;d.origin='';}
   });
+  if(previousAccount!==accountId)lastJoined=null;
   if (!syncStore.flush()) {
     syncStore.data.enabled = false;
     syncStore.data.handle = '';
@@ -410,7 +443,30 @@ function adoptCredentials({ handle, accountId, key, protectedKey }) {
 // beyond the Settings page that displays it.
 const PAIR_ATTEMPTS = 3;
 const pairingShownListeners=new Set();
-let pairing = null; // { code, pairId, expiresAt }
+const pairingJoinedListeners = new Set();
+const pairingLiveListeners = new Set();
+let pairing = null; // { code, pairId, expiresAt, expiry }
+let lastJoined = null; // { name, platform } of the device that took the last code
+const setCodeLive = (live) => { for (const listener of pairingLiveListeners) listener(live); };
+
+// The device that takes the code announces itself (design 2026-10-28 §6.3).
+const pairWatch = createPairWatch({
+  read: () => syncNow(['session']),
+  devices: () => listSendTargets(),
+  onJoined: ({ id, name, platform }) => {
+    const current = pairing;
+    if (!current) return;
+    pairing = null;
+    clearTimeout(current.expiry);
+    lastJoined = { name, platform };
+    // The claim already consumed the entry; a stale read could have missed that.
+    net.fetch(pairUrl(current.pairId), { method: 'DELETE' }).catch(() => {});
+    setCodeLive(false);
+    for (const listener of pairingJoinedListeners) listener({ deviceId: id, name, platform });
+  },
+});
+tabsync.onRemoteChanged(() => pairWatch.check());
+sends.onChanged(() => pairWatch.check());
 
 const pairUrl = (pairId) => `${ACTIVE_SYNC_ENDPOINT}/v1/pair/${pairId}`;
 
@@ -430,6 +486,9 @@ async function beginPairing() {
   const d = ensureStore().data;
   if (!d.enabled || !d.accountId || !d.protectedKey) return { ok: false, error: keyProtectionError || 'sync-off' };
   if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE };
+  // A code for an account the Worker doesn't hold yet would be consumed by a
+  // device that then can't join (design 2026-10-28 §5.1).
+  if (!d.lastSyncedAt) return { ok: false, error: 'not-ready' };
   // One live code at a time: a previous entry is retracted before another is parked.
   if (pairing) await cancelPairing();
   const gen = syncGen;
@@ -467,7 +526,18 @@ async function beginPairing() {
         return { ok: false, error: 'sync-off' };
       }
       const expiresAt = Date.now() + pairingCodes.PAIR_TTL_MS;
-      pairing = { code, pairId, expiresAt };
+      const current = { code, pairId, expiresAt, expiry: null };
+      current.expiry = setTimeout(() => {
+        if (pairing !== current) return;
+        pairing = null;
+        pairWatch.stop();
+        setCodeLive(false);
+      }, pairingCodes.PAIR_TTL_MS);
+      current.expiry.unref?.();
+      pairing = current;
+      lastJoined = null;
+      pairWatch.start({ expiresAt });
+      setCodeLive(true);
       for(const listener of pairingShownListeners)listener();
       return { ok: true, code, expiresAt };
     }
@@ -481,19 +551,33 @@ async function cancelPairing() {
   if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, cancelPairing);
   const current = pairing;
   pairing = null;
+  lastJoined = null;
   if (current) {
+    clearTimeout(current.expiry);
+    pairWatch.stop();
+    setCodeLive(false);
     try { await net.fetch(pairUrl(current.pairId), { method: 'DELETE' }); } catch { /* it expires on its own */ }
   }
   return { ok: true };
 }
 
+/** Settings reports whether the sheet with a live code is visible in a
+ * focused window; the watch reads only then. */
+function setPairingWatch(active) {
+  pairWatch.setActive(active);
+}
+
 function pairingState() {
-  if (!pairing) return { active: false };
+  if (!pairing) return { active: false, joined: lastJoined };
   if (Date.now() >= pairing.expiresAt) {
+    // The timer may run late (a sleeping Mac): end the code here as it would.
+    clearTimeout(pairing.expiry);
     pairing = null;
-    return { active: false };
+    pairWatch.stop();
+    setCodeLive(false);
+    return { active: false, joined: null };
   }
-  return { active: true, code: pairing.code, expiresAt: pairing.expiresAt };
+  return { active: true, code: pairing.code, expiresAt: pairing.expiresAt, joined: null };
 }
 
 /** The secret behind a code: fetched once from the Worker for a pairing code,
@@ -606,6 +690,7 @@ async function copyRecoveryCode({ texts } = {}) {
     });
     if (response !== 0) return { ok: false, error: 'cancelled' };
     clipboard.writeText(pairingCodes.encodeRecoveryCode({ v: 1, handle: d.handle, accountId: d.accountId, key: key.toString('base64') }));
+    ensureStore().update((data) => { data.recoveryPromptDismissed = true; });
     return { ok: true };
   } finally {
     key?.fill(0);
@@ -665,6 +750,7 @@ async function disable({ wipeRemote = false } = {}) {
   clearOptionalMissingRetries();
   tabicons.cancelCaptures();
   if (pairing) cancelPairing().catch(() => {});
+  lastJoined = null; // a join belongs to the sync it happened in
   try {
     await passSettled;
     const d = ensureStore().data;
@@ -1254,6 +1340,8 @@ module.exports = {
   enable,
   preflight,
   disable,
+  startNew,
+  dismissRecoveryPrompt,
   beginPairing,
   cancelPairing,
   pairingState,
@@ -1270,6 +1358,9 @@ module.exports = {
   setTabStateReady,
   refreshSession,
   onPairingShown:listener=>pairingShownListeners.add(listener),
+  onPairingJoined: (listener) => pairingJoinedListeners.add(listener),
+  onPairingCodeLive: (listener) => pairingLiveListeners.add(listener),
+  setPairingWatch,
   pairingDevices:()=>listSendTargets().map(({id,name})=>({deviceId:id,name})),
   setSharedVisibilityProvider:provider=>{sharedVisibility=provider;},
   listRemoteDevices,

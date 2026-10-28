@@ -87,6 +87,6 @@ test('unknown ledger schema fails closed without mutating customer data',async()
  assert.equal((await h.put(sid(1))).status,503);assert.equal(h.records.size,0);
 });
 test('rollout configuration closes alternate version writers and leaves cleanup unscheduled',()=>{
- const config=fs.readFileSync('cloudflare/sync-worker/wrangler.toml','utf8');assert.match(config,/CLEANUP_ENABLED = "false"/);assert.match(config,/NEW_ACCOUNT_DAILY_LIMIT = "10"/);
+ const config=fs.readFileSync('cloudflare/sync-worker/wrangler.toml','utf8');assert.match(config,/CLEANUP_ENABLED = "false"/);assert.match(config,/NEW_ACCOUNT_DAILY_LIMIT = "100"/);
  assert.match(config,/^workers_dev = true$/m);assert.match(config,/^preview_urls = false$/m);assert.match(config,/^crons = \[\]$/m);
 });

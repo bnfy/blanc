@@ -265,6 +265,8 @@ try {
   vectors.spaceDefaults=[[],[{color:'#426c4c',symbol:'briefcase'}],identity.PRESETS.map((p,i)=>({color:p.hex,symbol:identity.SYMBOL_IDS[i]})),
     Array.from({length:17},(_, i)=>({color:identity.PRESETS[i%8].hex,symbol:identity.SYMBOL_IDS[i%16]}))]
     .map(existing=>entry(existing.length+' existing',{existing},identity.defaultsFor(existing)));
+  // Pair links (design 2026-10-28 §7.3): one case table for both platforms.
+  vectors.pairLinks=require('../test/unit/fixtures/pair-link-cases.json').cases.map(({name,input})=>entry(name,input,pair.pairLinkCode(input)));
   const output=JSON.stringify(vectors,null,2)+'\n';
   if (process.argv.includes('--write')) { fs.mkdirSync(path.dirname(dest),{recursive:true}); fs.writeFileSync(dest,output); }
   else if (fs.readFileSync(dest,'utf8') !== output) { throw new Error('iOS sync vectors are stale; run npm run ios:sync-vectors:build'); }

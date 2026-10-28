@@ -3704,6 +3704,10 @@ function install(refs) {
     // Settings → Sync device pairing (design 2026-10-16): the off-state code
     // path as the person sees it, and the clicks/typing that drive it. Reads
     // DOM state only; the pairing code itself never appears in this record.
+    // Design 2026-10-28 §6.2: which windows ask to be left out of capture.
+    windowsContentProtected() {
+      return require('electron').BrowserWindow.getAllWindows().filter((win) => !win.isDestroyed() && win.isContentProtected()).length;
+    },
     settingsSyncPairingDom() {
       const wc = getUtilitySheetWebContents();
       if (!wc || !wc.getURL().startsWith('blanc://settings')) return null;
@@ -3718,6 +3722,18 @@ function install(refs) {
           connectDisabled: !!byId('syncCodeSubmit')?.disabled,
           codeValue: byId('syncCode')?.value ?? '',
           status: byId('syncCodeStatus')?.textContent ?? '',
+          // Design 2026-10-28: Turn on Sync, Other ways, the on state and the sheet.
+          turnOnVisible: visible(byId('syncTurnOn')),
+          firstPath: document.querySelector('#syncPaths button')?.id ?? '',
+          otherWays: [...document.querySelectorAll('#syncOtherWays .sync-path')].map((b) => b.id),
+          syncOn: visible(byId('syncActive')),
+          handle: byId('syncStatusHandle')?.textContent ?? '',
+          recoveryPromptVisible: visible(byId('syncRecoveryPrompt')),
+          sheetOpen: !!byId('syncPairingDialog')?.open,
+          sheetCode: byId('syncPairingDialog')?.open && !byId('syncPairing')?.hidden ? (byId('syncPairingCode')?.textContent ?? '') : '',
+          joinedTitle: byId('syncPairingDialog')?.open && !byId('syncPairingJoined')?.hidden ? (byId('syncPairingJoinedTitle')?.textContent ?? '') : '',
+          askingSpaces: !!byId('syncPairingDialog')?.open && !byId('syncPairingQuestion')?.hidden && !byId('syncPairingJoined')?.hidden,
+          doneVisible: !!byId('syncPairingDialog')?.open && !byId('syncPairingJoined')?.hidden,
         };
       })()`);
     },
@@ -3730,6 +3746,9 @@ function install(refs) {
         if (action === 'choose-code') { document.getElementById('syncPathCode').click(); return true; }
         if (action === 'use-passphrase') { document.getElementById('syncUsePassphrase').click(); return true; }
         if (action === 'back') { document.getElementById('syncCodeBack').click(); return true; }
+        if (action === 'turn-on') { document.getElementById('syncTurnOn').click(); return true; }
+        if (action === 'add-device') { document.getElementById('syncAddDevice').click(); return true; }
+        if (action === 'spaces-not-now') { document.getElementById('syncPairingSpacesNotNow').click(); return true; }
         if (action === 'type-code') {
           const input = document.getElementById('syncCode');
           input.value = value;
