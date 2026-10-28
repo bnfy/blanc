@@ -60,8 +60,8 @@ function reconcileCapture(previous,blob) {
   const groups=new Map(projected.groups.map(group=>[group.id,group]));
   for(const group of previous.groups??[])if(rows.some(row=>row.local&&row.group===group.id))groups.set(group.id,group);
   return {...previous,urls:rows.map(row=>row.url),tabIds:rows.map(row=>row.id),meta:rows.map(row=>row.meta),pinned:rows.map(row=>row.pinned),groupIds:rows.map(row=>row.group),groups:[...groups.values()],
-    localFiles:rows.map(row=>row.local&&previous.localFiles?.[row.old]===true),documentPolicy:DOCUMENT_POLICY_VERSION,
-    inheritsDocumentPolicy:rows.map(row=>row.local&&restoredMarker(previous,row.old)),
+    localFiles:rows.map(row=>row.local===true&&previous.localFiles?.[row.old]===true),documentPolicy:DOCUMENT_POLICY_VERSION,
+    inheritsDocumentPolicy:rows.map(row=>row.local===true&&restoredMarker(previous,row.old)),
     ...(previous.splitIds?.length===previous.urls.length?{splitIds:rows.map(row=>row.old===undefined?null:previous.splitIds[row.old])}:{}),
     activeIndex:active<0?Math.max(0,rows.findIndex(row=>row.id===projected.tabIds[projected.activeIndex])):active};
 }

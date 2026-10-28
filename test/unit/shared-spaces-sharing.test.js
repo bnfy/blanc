@@ -102,3 +102,25 @@ test('recovery normalizes missing legacy columns without shifting appended tab i
  assert.deepEqual(result.tabIds,[null,Object.keys(remote.tabs)[0]]);
  assert.deepEqual(result.inheritsDocumentPolicy,[false,false]);assert.equal(result.meta.length,2);
 });
+test('repeated reconciliation keeps shared tabs reopenable after persistence',()=>{
+  const plan=sharing.planSharing({v:1,spaces:{}},[workspace()],[{id:'local',mode:'copy'}],options());
+  const blob=plan.items[0].blob,policy=require('../../src/main/document-policy');
+  let capture=sharing.projectSpace(blob);
+  for(let pass=0;pass<3;pass++) {
+    capture=JSON.parse(JSON.stringify(sharing.reconcileCapture(capture,blob)));
+    assert.deepEqual(capture.inheritsDocumentPolicy,[false]);
+    assert.deepEqual(capture.localFiles,[false]);
+    const normalized=require('../../src/main/session-workspace').entryFrom(capture);
+    assert.equal(policy.restoredMarker(normalized,0),false);
+  }
+});
+test('new remote rows get explicit false policy flags beside restricted local rows',()=>{
+  const plan=sharing.planSharing({v:1,spaces:{}},[workspace()],[{id:'local',mode:'copy'}],options());
+  const previous={...workspace(),urls:['file:///tmp/local.html'],tabIds:[null],documentPolicy:1,inheritsDocumentPolicy:[true],localFiles:[true]};
+  const capture=JSON.parse(JSON.stringify(sharing.reconcileCapture(previous,plan.items[0].blob)));
+  assert.deepEqual(capture.inheritsDocumentPolicy,[true,false]);
+  assert.deepEqual(capture.localFiles,[true,false]);
+  const policy=require('../../src/main/document-policy');
+  assert.equal(policy.restoredMarker(capture,0),true);
+  assert.equal(policy.restoredMarker(capture,1),false);
+});
