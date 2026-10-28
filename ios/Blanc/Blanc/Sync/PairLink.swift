@@ -20,6 +20,9 @@ nonisolated enum PairLink {
         guard !string.unicodeScalars.contains(where: {
             $0.value <= 0x20 || $0.value == 0x7f || CharacterSet.whitespacesAndNewlines.contains($0)
         }) else { return nil }
+        // URLComponents reads "blanc.day:" as no port; the raw authority must be the host alone.
+        let afterScheme = string.range(of: "://").map { string[$0.upperBound...] } ?? ""
+        guard afterScheme.prefix(while: { !"/?#".contains($0) }).lowercased() == "blanc.day" else { return nil }
         guard let parts = URLComponents(string: string),
               parts.scheme?.lowercased() == "https",
               parts.percentEncodedHost?.lowercased() == "blanc.day",

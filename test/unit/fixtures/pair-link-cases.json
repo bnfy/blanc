@@ -160,6 +160,26 @@
       "name": "space inside the fragment",
       "input": "https://blanc.day/pair#K7MR 4PX2",
       "expected": null
+    },
+    {
+      "name": "empty port",
+      "input": "https://blanc.day:/pair#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "dot segment",
+      "input": "https://blanc.day/./pair#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "dot-dot segment",
+      "input": "https://blanc.day/x/../pair#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "empty user info",
+      "input": "https://@blanc.day/pair#K7MR4PX2",
+      "expected": null
     }
   ]
 }

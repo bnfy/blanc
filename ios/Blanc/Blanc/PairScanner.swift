@@ -168,15 +168,26 @@ enum PairQR {
 
 /// A pair link that reached Blanc from another app (design 2026-10-28 §7.3).
 /// Reading a code uses it up, so nothing is fetched until the person says Pair.
+/// The question is fixed when it opens: a phone that already syncs is asked
+/// to switch, and either way it says where the code must come from.
 @Observable final class PairLinkConfirmModel {
     let code: String
+    let switching: Bool
+    private let syncName: () -> String
     private let join: (String) async -> JSONValue
     private(set) var busy = false
     private(set) var done = false
     private(set) var error: String?
+    /// "Connected to “{name}”." — the sign of which sync this phone joined.
+    private(set) var doneMessage: String?
 
-    init(code: String, join: @escaping (String) async -> JSONValue) {
+    var messageKeys: [String] { switching ? ["ios.pair.linkConfirmBody", "ios.settings.switchHelp"] : ["ios.pair.linkConfirmBody"] }
+    var canCancel: Bool { !busy }
+
+    init(code: String, switching: Bool, syncName: @escaping () -> String, join: @escaping (String) async -> JSONValue) {
         self.code = code
+        self.switching = switching
+        self.syncName = syncName
         self.join = join
     }
 
@@ -189,6 +200,7 @@ enum PairQR {
             error = result["message"]?.text ?? SyncCopy.error(result["error"]?.text ?? "server")
         } else {
             done = true
+            doneMessage = SyncCopy.text("settings.sync.connectedTo", ["name": syncName()])
         }
     }
 }
@@ -202,13 +214,13 @@ struct PairLinkConfirmView: View {
     let engine: SyncEngine
     @State private var model: PairLinkConfirmModel
     @Environment(\.dismiss) private var dismiss
-    private var switching: Bool { SettingsSyncStatus(engine.status).enabled }
 
     init(engine: SyncEngine, code: String) {
         self.engine = engine
-        let enabled = SettingsSyncStatus(engine.status).enabled
-        _model = State(initialValue: PairLinkConfirmModel(code: code) { code in
-            enabled ? await engine.switchWithCode(code) : await engine.joinWithCode(code)
+        let switching = SettingsSyncStatus(engine.status).enabled
+        _model = State(initialValue: PairLinkConfirmModel(code: code, switching: switching,
+            syncName: { SettingsSyncStatus(engine.status).handle }) { code in
+            switching ? await engine.switchWithCode(code) : await engine.joinWithCode(code)
         })
     }
 
@@ -216,16 +228,15 @@ struct PairLinkConfirmView: View {
         NavigationStack {
             Form {
                 Section {
-                    Text(SyncCopy.text(switching ? "ios.settings.switchHelp" : "ios.pair.linkConfirmBody"))
-                        .accessibilityIdentifier("pair.linkConfirmBody")
-                    if model.done {
-                        Text(SettingsCopy.text("connected")).accessibilityIdentifier("pair.linkConnected")
+                    ForEach(model.messageKeys, id: \.self) { key in Text(SyncCopy.text(key)) }
+                    if let message = model.doneMessage {
+                        Text(message).accessibilityIdentifier("pair.linkConnected")
                     } else {
-                        Button(SyncCopy.text(switching ? "ios.settings.switchAccount" : "ios.pair.pair"), role: switching ? .destructive : nil) {
+                        Button(SyncCopy.text(model.switching ? "ios.settings.switchAccount" : "ios.pair.pair"), role: model.switching ? .destructive : nil) {
                             Task { await model.pair() }
                         }.disabled(model.busy).accessibilityIdentifier("pair.linkPair")
                     }
-                    if model.busy { ProgressView() }
+                    if model.busy { ProgressView().accessibilityLabel(SettingsCopy.text("working")) }
                     if let error = model.error { Text(error).foregroundStyle(.red) }
                 }
             }
@@ -233,7 +244,7 @@ struct PairLinkConfirmView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(SettingsCopy.text(model.done ? "done" : "cancel")) { dismiss() }
+                    Button(SettingsCopy.text(model.done ? "done" : "cancel")) { dismiss() }.disabled(!model.canCancel)
                 }
             }
         }

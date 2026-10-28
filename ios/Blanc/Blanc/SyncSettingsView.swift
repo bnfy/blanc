@@ -34,7 +34,8 @@ struct SettingsSyncStatus: Equatable {
     var canJoin: Bool { SyncPairing.isRecoveryCode(code.trimmingCharacters(in: .whitespacesAndNewlines)) || SyncPairing.normalize(code) != nil }
     var canSignIn: Bool { SyncCrypto.validHandle(handle) && SyncCrypto.passphraseStrong(passphrase) }
 
-    func run(successMessage: String? = nil, _ operation: () async -> JSONValue) async {
+    /// `successMessage` is read after the operation, so it can describe its result.
+    func run(successMessage: @autoclosure () -> String? = nil, _ operation: () async -> JSONValue) async {
         guard !busy else { return }
         let token = generation
         busy = true; error = nil; notice = nil
@@ -44,7 +45,7 @@ struct SettingsSyncStatus: Equatable {
         if result["ok"]?.bool == false {
             error = result["message"]?.text ?? SyncCopy.error(result["error"]?.text ?? "server")
         } else {
-            notice = successMessage ?? SettingsCopy.text("saved")
+            notice = successMessage() ?? SettingsCopy.text("saved")
             clearSecrets()
         }
     }
@@ -212,7 +213,10 @@ struct SyncSettingsView: View {
     }
     private func join() {
         let code = model.code.trimmingCharacters(in: .whitespacesAndNewlines)
-        Task { await model.run(successMessage: SettingsCopy.text("connected")) { status.enabled ? await engine.switchWithCode(code) : await engine.joinWithCode(code) } }
+        // The success line names the sync joined (design 2026-10-28 §7.3).
+        Task { await model.run(successMessage: SyncCopy.text("settings.sync.connectedTo", ["name": SettingsSyncStatus(engine.status).handle])) {
+            status.enabled ? await engine.switchWithCode(code) : await engine.joinWithCode(code)
+        } }
     }
     private func signIn() {
         let handle = model.handle, passphrase = model.passphrase

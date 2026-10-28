@@ -23,7 +23,7 @@ struct BlancApp: App {
         WindowGroup {
             Group {
                 if let manager {
-                    ContentView(manager: manager)
+                    ContentView(manager: manager, pairLink: $pairLink)
                         .task { await manager.syncEngine.appDidBecomeActive() }
                 } else {
                     Color(uiColor: .systemBackground).ignoresSafeArea()
@@ -41,9 +41,7 @@ struct BlancApp: App {
                 incomingLinks.receive($0, into: manager)
                 if manager != nil, let code = incomingLinks.takePairCode() { pairLink = PairLinkRequest(code: code) }
             }
-            .sheet(item: $pairLink) { request in
-                if let manager { PairLinkConfirmView(engine: manager.syncEngine, code: request.code) }
-            }
+
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active, let manager { Task { await manager.syncEngine.appDidBecomeActive() } }
             }

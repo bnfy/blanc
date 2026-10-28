@@ -66,11 +66,45 @@ import CoreImage
 
     func testOutsideLinkAsksBeforeAnyNetwork() async {
         var joins: [String] = []
-        let model = PairLinkConfirmModel(code: "K7MR4PX2") { code in joins.append(code); return .object([("ok", .bool(true))]) }
+        let model = PairLinkConfirmModel(code: "K7MR4PX2", switching: false, syncName: { "" }) { code in joins.append(code); return .object([("ok", .bool(true))]) }
         XCTAssertEqual(joins, [], "showing the question makes no call")
         await model.pair()
         await model.pair()
         XCTAssertEqual(joins, ["K7MR4PX2"], "Pair joins once")
         XCTAssertTrue(model.done)
+    }
+
+    /// Review fixes: the question never changes under the person, always says
+    /// where the code must come from, names the sync on success, and can't be
+    /// cancelled halfway through a join.
+    func testTheQuestionIsFixedWhenItOpensAndAlwaysWarns() async {
+        let first = PairLinkConfirmModel(code: "K7MR4PX2", switching: false, syncName: { "My Blanc" }) { _ in .object([("ok", .bool(true))]) }
+        XCTAssertEqual(first.messageKeys, ["ios.pair.linkConfirmBody"])
+        await first.pair()
+        XCTAssertEqual(first.messageKeys, ["ios.pair.linkConfirmBody"], "joining doesn't turn it into the switch question")
+        let switching = PairLinkConfirmModel(code: "K7MR4PX2", switching: true, syncName: { "" }) { _ in .object([("ok", .bool(true))]) }
+        XCTAssertEqual(switching.messageKeys, ["ios.pair.linkConfirmBody", "ios.settings.switchHelp"])
+    }
+
+    func testSuccessNamesTheSync() async {
+        let model = PairLinkConfirmModel(code: "K7MR4PX2", switching: false, syncName: { "My Blanc" }) { _ in .object([("ok", .bool(true))]) }
+        await model.pair()
+        XCTAssertEqual(model.doneMessage, SyncCopy.text("settings.sync.connectedTo", ["name": "My Blanc"]))
+        XCTAssertTrue(model.doneMessage?.contains("My Blanc") == true)
+    }
+
+    func testCancelIsOffWhileJoining() async {
+        var release: CheckedContinuation<Void, Never>?
+        let model = PairLinkConfirmModel(code: "K7MR4PX2", switching: false, syncName: { "" }) { _ in
+            await withCheckedContinuation { release = $0 }
+            return .object([("ok", .bool(true))])
+        }
+        XCTAssertTrue(model.canCancel)
+        let joining = Task { await model.pair() }
+        while release == nil { await Task.yield() }
+        XCTAssertFalse(model.canCancel)
+        release?.resume()
+        await joining.value
+        XCTAssertTrue(model.canCancel)
     }
 }

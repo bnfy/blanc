@@ -92,7 +92,10 @@ function pairLinkCode(input) {
   } catch {
     return null;
   }
-  const authority = input.replace(/^https:\/\//i, '').split(/[/?#]/)[0];
+  const afterScheme = input.replace(/^https:\/\//i, '');
+  const authority = afterScheme.split(/[/?#]/)[0];
+  // URL parsing also resolves dot segments (/./pair, /x/../pair): the raw path must be /pair.
+  if (!afterScheme.slice(authority.length).startsWith('/pair#')) return null;
   if (url.protocol !== 'https:' || authority.toLowerCase() !== 'blanc.day' || url.pathname !== '/pair'
     || url.search !== '' || input.includes('?') || !url.hash) return null;
   return normalizeCode(url.hash.slice(1));
