@@ -1,31 +1,165 @@
 {
   "note": "Pair-link parser cases (design 2026-10-28 §7.3), shared by desktop's pairLinkCode and, through scripts/build-ios-sync-vectors.cjs, iOS's PairLink. expected is the normalized code or null.",
   "cases": [
-    { "name": "canonical", "input": "https://blanc.day/pair#K7MR4PX2", "expected": "K7MR4PX2" },
-    { "name": "hyphenated fragment", "input": "https://blanc.day/pair#K7MR-4PX2", "expected": "K7MR4PX2" },
-    { "name": "lowercase fragment", "input": "https://blanc.day/pair#k7mr4px2", "expected": "K7MR4PX2" },
-    { "name": "uppercase host", "input": "https://BLANC.DAY/pair#K7MR4PX2", "expected": "K7MR4PX2" },
-    { "name": "http", "input": "http://blanc.day/pair#K7MR4PX2", "expected": null },
-    { "name": "www host", "input": "https://www.blanc.day/pair#K7MR4PX2", "expected": null },
-    { "name": "other host", "input": "https://blanc.day.example/pair#K7MR4PX2", "expected": null },
-    { "name": "explicit port", "input": "https://blanc.day:443/pair#K7MR4PX2", "expected": null },
-    { "name": "other port", "input": "https://blanc.day:8443/pair#K7MR4PX2", "expected": null },
-    { "name": "user info", "input": "https://user@blanc.day/pair#K7MR4PX2", "expected": null },
-    { "name": "trailing slash", "input": "https://blanc.day/pair/#K7MR4PX2", "expected": null },
-    { "name": "capitalized path", "input": "https://blanc.day/Pair#K7MR4PX2", "expected": null },
-    { "name": "query", "input": "https://blanc.day/pair?x=1#K7MR4PX2", "expected": null },
-    { "name": "empty query", "input": "https://blanc.day/pair?#K7MR4PX2", "expected": null },
-    { "name": "seven symbols", "input": "https://blanc.day/pair#K7MR4PX", "expected": null },
-    { "name": "nine symbols", "input": "https://blanc.day/pair#K7MR4PX22", "expected": null },
-    { "name": "ambiguous zero", "input": "https://blanc.day/pair#K7MR4P02", "expected": null },
-    { "name": "ambiguous O", "input": "https://blanc.day/pair#K7MR4PO2", "expected": null },
-    { "name": "ambiguous one", "input": "https://blanc.day/pair#K7MR4P12", "expected": null },
-    { "name": "ambiguous I", "input": "https://blanc.day/pair#K7MR4PI2", "expected": null },
-    { "name": "ambiguous L", "input": "https://blanc.day/pair#K7MR4PL2", "expected": null },
-    { "name": "no fragment", "input": "https://blanc.day/pair", "expected": null },
-    { "name": "empty fragment", "input": "https://blanc.day/pair#", "expected": null },
-    { "name": "bare code", "input": "K7MR4PX2", "expected": null },
-    { "name": "custom scheme", "input": "blanc://pair#K7MR4PX2", "expected": null },
-    { "name": "empty", "input": "", "expected": null }
+    {
+      "name": "canonical",
+      "input": "https://blanc.day/pair#K7MR4PX2",
+      "expected": "K7MR4PX2"
+    },
+    {
+      "name": "hyphenated fragment",
+      "input": "https://blanc.day/pair#K7MR-4PX2",
+      "expected": "K7MR4PX2"
+    },
+    {
+      "name": "lowercase fragment",
+      "input": "https://blanc.day/pair#k7mr4px2",
+      "expected": "K7MR4PX2"
+    },
+    {
+      "name": "uppercase host",
+      "input": "https://BLANC.DAY/pair#K7MR4PX2",
+      "expected": "K7MR4PX2"
+    },
+    {
+      "name": "http",
+      "input": "http://blanc.day/pair#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "www host",
+      "input": "https://www.blanc.day/pair#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "other host",
+      "input": "https://blanc.day.example/pair#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "explicit port",
+      "input": "https://blanc.day:443/pair#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "other port",
+      "input": "https://blanc.day:8443/pair#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "user info",
+      "input": "https://user@blanc.day/pair#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "trailing slash",
+      "input": "https://blanc.day/pair/#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "capitalized path",
+      "input": "https://blanc.day/Pair#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "query",
+      "input": "https://blanc.day/pair?x=1#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "empty query",
+      "input": "https://blanc.day/pair?#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "seven symbols",
+      "input": "https://blanc.day/pair#K7MR4PX",
+      "expected": null
+    },
+    {
+      "name": "nine symbols",
+      "input": "https://blanc.day/pair#K7MR4PX22",
+      "expected": null
+    },
+    {
+      "name": "ambiguous zero",
+      "input": "https://blanc.day/pair#K7MR4P02",
+      "expected": null
+    },
+    {
+      "name": "ambiguous O",
+      "input": "https://blanc.day/pair#K7MR4PO2",
+      "expected": null
+    },
+    {
+      "name": "ambiguous one",
+      "input": "https://blanc.day/pair#K7MR4P12",
+      "expected": null
+    },
+    {
+      "name": "ambiguous I",
+      "input": "https://blanc.day/pair#K7MR4PI2",
+      "expected": null
+    },
+    {
+      "name": "ambiguous L",
+      "input": "https://blanc.day/pair#K7MR4PL2",
+      "expected": null
+    },
+    {
+      "name": "no fragment",
+      "input": "https://blanc.day/pair",
+      "expected": null
+    },
+    {
+      "name": "empty fragment",
+      "input": "https://blanc.day/pair#",
+      "expected": null
+    },
+    {
+      "name": "bare code",
+      "input": "K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "custom scheme",
+      "input": "blanc://pair#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "empty",
+      "input": "",
+      "expected": null
+    },
+    {
+      "name": "tab inside the path",
+      "input": "https://blanc.day/pa\tir#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "newline inside the fragment",
+      "input": "https://blanc.day/pair#K7MR\n4PX2",
+      "expected": null
+    },
+    {
+      "name": "carriage return inside the host",
+      "input": "https://blanc.\rday/pair#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "leading space",
+      "input": " https://blanc.day/pair#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "trailing newline",
+      "input": "https://blanc.day/pair#K7MR4PX2\n",
+      "expected": null
+    },
+    {
+      "name": "space inside the fragment",
+      "input": "https://blanc.day/pair#K7MR 4PX2",
+      "expected": null
+    }
   ]
 }

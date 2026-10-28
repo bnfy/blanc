@@ -21330,6 +21330,36 @@
       "name": "empty",
       "input": "",
       "expected": null
+    },
+    {
+      "name": "tab inside the path",
+      "input": "https://blanc.day/pa\tir#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "newline inside the fragment",
+      "input": "https://blanc.day/pair#K7MR\n4PX2",
+      "expected": null
+    },
+    {
+      "name": "carriage return inside the host",
+      "input": "https://blanc.\rday/pair#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "leading space",
+      "input": " https://blanc.day/pair#K7MR4PX2",
+      "expected": null
+    },
+    {
+      "name": "trailing newline",
+      "input": "https://blanc.day/pair#K7MR4PX2\n",
+      "expected": null
+    },
+    {
+      "name": "space inside the fragment",
+      "input": "https://blanc.day/pair#K7MR 4PX2",
+      "expected": null
     }
   ]
 }
