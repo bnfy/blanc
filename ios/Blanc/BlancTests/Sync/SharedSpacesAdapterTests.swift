@@ -277,4 +277,135 @@ import XCTest
       now: now)
     XCTAssertEqual(applied.set.tabs.map(\.url), ["https://example.test/1", "blanc://newtab/", "https://example.test/x"])
   }
+
+  // MARK: The library
+
+  func indexEntry(_ name: String, pos: String, deleted: Bool = false, at: Int64 = 100) -> JSONValue {
+    .object([
+      ("name", M.field(.string(name), at, "mac")), ("color", M.field(.string("#426c4c"), at, "mac")),
+      ("symbol", M.field(.string("book"), at, "mac")), ("pos", M.field(.string(pos), at, "mac")),
+      ("deleted", M.field(.bool(deleted), at, "mac")), ("createdAt", .number(Double(at))),
+      ("createdBy", .string("mac")),
+    ])
+  }
+  func library(_ entries: [(String, JSONValue)]) -> JSONValue {
+    .object([("v", .number(1)), ("spaces", .object(entries))])
+  }
+  func spaceBlob(_ sid: String, _ count: Int, from: Int = 1) throws -> JSONValue {
+    var tabs: [(String, JSONValue)] = []
+    var left = ""
+    for n in from..<(from + count) {
+      let tid = id(0x1000 + n)
+      left = try M.keyFor(left, "", tid)
+      let f: (JSONValue) -> JSONValue = { (v: JSONValue) -> JSONValue in M.field(v, 100, "mac") }
+      tabs.append(
+        (
+          tid,
+          .object([
+            ("nav", f(nav("https://example.test/\(n)", "Tab \(n)"))), ("name", f(.null)), ("pinned", f(.bool(false))),
+            ("groupId", f(.null)), ("pos", f(.string(left))), ("deleted", f(.bool(false))),
+          ])
+        ))
+    }
+    return .object([("v", .number(1)), ("spaceId", .string(sid)), ("groups", .object([])), ("tabs", .object(tabs))])
+  }
+  func reconcile(
+    _ spaces: [SpaceRecord], shown: String = "iphone", index: JSONValue, blobs: [String: JSONValue],
+    dormant: Set<String> = [], drafts: Set<String> = [], recoveries: JSONValue? = nil, done: JSONValue? = nil,
+    baselines: [String: JSONValue] = [:]
+  ) -> A.Library {
+    A.reconcileLibrary(
+      spaces: spaces, shownSetId: shown, index: index, blobs: blobs, dormant: dormant, drafts: drafts,
+      recoveries: recoveries, recoveryDone: done, baselines: baselines, newId: counter(from: 0x3000),
+      recoveryName: { (name: String) -> String in "\(name) · kept on this iPhone" })
+  }
+
+  func testReconcileAddsLiveLibrarySpacesInTheIndexOrder() throws {
+    let work = id(0xa1), home = id(0xa2), sleepy = id(0xa3), draft = id(0xa4), empty = id(0xa5)
+    let k1 = try M.keyFor("", "", home), k2 = try M.keyFor(k1, "", work)
+    let k3 = try M.keyFor(k2, "", sleepy), k4 = try M.keyFor(k3, "", draft), k5 = try M.keyFor(k4, "", empty)
+    let index = library([
+      (work, indexEntry("Work", pos: k2)), (home, indexEntry("Home", pos: k1)),
+      (sleepy, indexEntry("Sleepy", pos: k3)), (draft, indexEntry("Draft", pos: k4)),
+      (empty, indexEntry("No blob", pos: k5)),
+    ])
+    let local = SpaceRecord(id: "local", name: "Mine", color: "#426c4c", symbol: "book")
+    let blobs: [String: JSONValue] = [
+      work: try spaceBlob(work, 2), home: try spaceBlob(home, 1), sleepy: try spaceBlob(sleepy, 1),
+      draft: try spaceBlob(draft, 1),
+    ]
+    let result = reconcile([local], index: index, blobs: blobs, dormant: [sleepy], drafts: [draft])
+    XCTAssertEqual(result.spaces.map(\.name), ["Mine", "Home", "Work"])
+    let added = try XCTUnwrap(result.spaces.first { $0.sharedId == work })
+    XCTAssertEqual(added.link, .active)
+    XCTAssertEqual(added.set.tabs.map(\.url), ["https://example.test/1", "https://example.test/2"])
+    XCTAssertEqual(added.set.tabs.map(\.tabId), [id(0x1001), id(0x1002)])
+    XCTAssertNotNil(result.baselines[work])
+    // Projected straight from the record, the new Space publishes nothing back.
+    let edits = A.localEdits(
+      set: added.set, spaceId: work, baseline: result.baselines[work], accepted: nil, deviceId: "phone", now: now)
+    XCTAssertNil(edits.edits["tabs"])
+    XCTAssertNil(edits.edits["groups"])
+  }
+
+  func testADeletedLibrarySpaceIsRemovedUnlessShown() throws {
+    let gone = id(0xb1), shownGone = id(0xb2)
+    let index = library([
+      (gone, indexEntry("Gone", pos: try M.keyFor("", "", gone), deleted: true)),
+      (shownGone, indexEntry("Shown", pos: try M.keyFor("", "", shownGone), deleted: true)),
+    ])
+    let a = SpaceRecord(id: "a", name: "Gone", color: "#426c4c", symbol: "book", sharedId: gone, link: .active)
+    let b = SpaceRecord(id: "b", name: "Shown", color: "#426c4c", symbol: "book", sharedId: shownGone, link: .active)
+    let result = reconcile([a, b], shown: "b", index: index, blobs: [:], baselines: [gone: A.emptyBlob(gone)])
+    XCTAssertEqual(result.spaces.map(\.id), ["b"])
+    XCTAssertEqual(result.spaces.first?.link, .dormant, "the shown one stays as a copy")
+    XCTAssertEqual(result.dormant, [shownGone])
+    XCTAssertNil(result.baselines[gone])
+  }
+
+  func testRecoveryMakesOneKeptSpaceAndIsIdempotent() throws {
+    let sid = id(0xc1)
+    let index = library([(sid, indexEntry("Work", pos: try M.keyFor("", "", sid)))])
+    let blob = try spaceBlob(sid, 3)
+    let lost = try spaceBlob(sid, 2, from: 7)
+    let recoveries: JSONValue = .object([(sid, .object([("tabs", lost["tabs"]!), ("groups", .object([]))]))])
+    var work = SpaceRecord(
+      id: "w", name: "Work", color: "#426c4c", symbol: "book", set: A.project(blob), sharedId: sid, link: .active)
+    work.set.tabs += A.project(lost).tabs
+    let first = reconcile([work], index: index, blobs: [sid: blob], recoveries: recoveries, baselines: [sid: blob])
+    let kept = try XCTUnwrap(first.spaces.first { $0.recoveredFrom == sid })
+    XCTAssertEqual(kept.name, "Work · kept on this iPhone")
+    XCTAssertEqual(kept.set.tabs.map(\.url), ["https://example.test/7", "https://example.test/8"])
+    XCTAssertEqual(first.spaces.first { $0.sharedId == sid }?.set.tabs.count, 3, "they left the shared Space")
+    XCTAssertEqual(Set(first.recoveryDone[sid] ?? []), [id(0x1007), id(0x1008)])
+    // Again, after a crash before recoveryDone was saved: no tab twice.
+    let again = reconcile(
+      first.spaces, index: index, blobs: [sid: blob], recoveries: recoveries, baselines: first.baselines)
+    XCTAssertEqual(again.spaces.filter { $0.recoveredFrom == sid }.count, 1)
+    XCTAssertEqual(again.spaces.first { $0.recoveredFrom == sid }?.set.tabs.count, 2)
+    // With recoveryDone saved, a recovery Space the person deleted isn't made again.
+    let done: JSONValue = .object([(sid, .array((first.recoveryDone[sid] ?? []).map(JSONValue.string)))])
+    let later = reconcile(
+      first.spaces.filter { $0.recoveredFrom == nil }, index: index, blobs: [sid: blob], recoveries: recoveries,
+      done: done, baselines: first.baselines)
+    XCTAssertFalse(later.spaces.contains { $0.recoveredFrom == sid })
+  }
+
+  func testIdentityEditsGoToTheIndexEntry() throws {
+    let a = id(0xd1), b = id(0xd2)
+    let ka = try M.keyFor("", "", a), kb = try M.keyFor(ka, "", b)
+    let index = library([(a, indexEntry("Work", pos: ka)), (b, indexEntry("Home", pos: kb))])
+    var spaces = [
+      SpaceRecord(id: "1", name: "Work", color: "#426c4c", symbol: "book", sharedId: a, link: .active),
+      SpaceRecord(id: "2", name: "Home", color: "#426c4c", symbol: "book", sharedId: b, link: .active),
+    ]
+    XCTAssertNil(A.indexEdits(spaces: spaces, index: index, deviceId: "phone", now: now))
+    spaces[0].name = "Office"
+    spaces.swapAt(0, 1)
+    let payload = try XCTUnwrap(A.indexEdits(spaces: spaces, index: index, deviceId: "phone", now: now))
+    XCTAssertEqual(payload["spaces"]?[a]?["name"]?["v"], .string("Office"))
+    let merged = try M.mergeIndex(index, payload)
+    XCTAssertEqual(M.orderOf(merged["spaces"]!), [b, a])
+    XCTAssertNil(A.indexEdits(spaces: spaces, index: merged, deviceId: "phone", now: now + 1))
+  }
 }

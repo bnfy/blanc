@@ -373,4 +373,160 @@ enum SharedSpacesAdapter {
     let active = Model.activeTabId(clean).flatMap { id in tabs.firstIndex { $0.tabId == id } } ?? 0
     return SavedSet(tabs: tabs, groups: groups, activeIndex: active)
   }
+
+  // MARK: - The library (desktop's reconcile)
+
+  struct Library {
+    var spaces: [SpaceRecord]
+    var baselines: [String: JSONValue]
+    /// Shared ids to mark dormant: a deleted Space that is shown stays as a copy.
+    var dormant: [String]
+    /// Tab ids per shared Space now held by its recovery Space.
+    var recoveryDone: [String: [String]]
+    /// Tabs of the shown set that moved to a recovery Space.
+    var recoveredFromShown: Set<String>
+  }
+
+  /// With the switch on: every live library Space that isn't dormant, a
+  /// draft or missing its blob becomes a Space with `sharedId` and an active
+  /// link; a deleted one is removed unless shown (then a copy with a dormant
+  /// link); shared Spaces follow the index's order, local ones keep their
+  /// places. A stale replica's recovered records (M16 §3.9) go to one
+  /// "{name} · kept on this iPhone" Space per shared Space, never twice.
+  static func reconcileLibrary(
+    spaces input: [SpaceRecord], shownSetId: String, index: JSONValue?, blobs: [String: JSONValue],
+    dormant: Set<String>, drafts: Set<String>, recoveries: JSONValue?, recoveryDone: JSONValue?,
+    baselines current: [String: JSONValue], newId: () -> String = SharedSpacesAdapter.freshId,
+    recoveryName: (String) -> String
+  ) -> Library {
+    var spaces = input
+    var baselines = current
+    var done: [String: [String]] = [:]
+    var fromShown = Set<String>()
+    var marked: [String] = []
+    let library = Model.sanitizeIndex(index)?["spaces"] ?? .object([])
+
+    for (sid, records) in recoveries?.pairs ?? [] where Model.isId(sid) {
+      let already = Set((recoveryDone?[sid]?.array ?? []).compactMap(\.string))
+      let fresh = (records["tabs"]?.pairs ?? []).filter { !already.contains($0.0) }
+      guard !fresh.isEmpty else { continue }
+      let original = spaces.first { $0.sharedId == sid }
+      let projected = project(
+        .object([
+          ("v", .number(1)), ("spaceId", .string(sid)), ("groups", records["groups"] ?? .object([])),
+          ("tabs", .object(fresh)),
+        ]))
+      if let r = spaces.firstIndex(where: { $0.recoveredFrom == sid }) {
+        let held = Set(spaces[r].set.tabs.compactMap(\.tabId))
+        spaces[r].set.tabs += projected.tabs.filter { !held.contains($0.tabId ?? "") }
+        spaces[r].set.groups += projected.groups.filter { g in !spaces[r].set.groups.contains { $0.id == g.id } }
+      } else if !projected.tabs.isEmpty {
+        let entry = library[sid]
+        spaces.append(
+          SpaceRecord(
+            id: newId(),
+            name: recoveryName(original?.name ?? entry?["name"]?["v"]?.string ?? "Space"),
+            color: original?.color ?? entry?["color"]?["v"]?.string ?? "#426c4c",
+            symbol: original?.symbol ?? entry?["symbol"]?["v"]?.string ?? "briefcase",
+            set: SavedSet(tabs: projected.tabs, groups: projected.groups), recoveredFrom: sid))
+      }
+      let ids = fresh.map(\.0)
+      done[sid] = ids
+      // The records left the shared Space: drop them from its set and its
+      // baseline (so they are never published as closes).
+      let moved = Set(ids)
+      if var base = baselines[sid] {
+        var tabs = base["tabs"] ?? .object([])
+        for id in ids { tabs[id] = nil }
+        base["tabs"] = tabs
+        baselines[sid] = base
+      }
+      if let o = spaces.firstIndex(where: { $0.sharedId == sid }) {
+        if spaces[o].id == shownSetId {
+          fromShown.formUnion(moved)
+        } else {
+          spaces[o].set.tabs.removeAll { moved.contains($0.tabId ?? "") }
+        }
+      }
+    }
+
+    for (sid, record) in library.pairs {
+      let existing = spaces.firstIndex { $0.sharedId == sid }
+      if Model.deleted(record) {
+        guard let i = existing else { continue }
+        if spaces[i].id == shownSetId {
+          if spaces[i].link != .dormant { marked.append(sid) }
+          spaces[i].link = .dormant
+        } else {
+          spaces.remove(at: i)
+          baselines[sid] = nil
+        }
+        continue
+      }
+      guard !dormant.contains(sid), !drafts.contains(sid), let raw = blobs[sid] else { continue }
+      let name = record["name"]?["v"]?.string ?? "Space"
+      let color = record["color"]?["v"]?.string ?? "#426c4c"
+      let symbol = record["symbol"]?["v"]?.string ?? "briefcase"
+      if let i = existing {
+        spaces[i].name = name
+        spaces[i].color = color
+        spaces[i].symbol = symbol
+        spaces[i].link = .active
+      } else {
+        spaces.append(
+          SpaceRecord(
+            id: newId(), name: name, color: color, symbol: symbol, set: project(raw), sharedId: sid, link: .active))
+        baselines[sid] = blob(raw, sid)
+      }
+    }
+
+    let rank = ranks(Model.orderOf(library))
+    func ranked(_ space: SpaceRecord) -> Int? { space.sharedId.flatMap { rank[$0] } }
+    var shared = spaces.filter { ranked($0) != nil }.sorted { ranked($0)! < ranked($1)! }
+    spaces = spaces.map { (space: SpaceRecord) -> SpaceRecord in
+      ranked(space) == nil ? space : shared.removeFirst()
+    }
+    return Library(
+      spaces: spaces, baselines: baselines, dormant: marked, recoveryDone: done, recoveredFromShown: fromShown)
+  }
+
+  /// A Space's identity edits as an index payload for
+  /// `SharedSpacesState.setIndex`: name, colour, symbol and, from the phone's
+  /// order, position; nil when the index already says the same.
+  static func indexEdits(spaces: [SpaceRecord], index: JSONValue?, deviceId: String, now: Int64) -> JSONValue? {
+    let library = Model.sanitizeIndex(index)?["spaces"] ?? .object([])
+    var out: [(String, JSONValue)] = []
+    var left = ""
+    let shared = spaces.compactMap { space -> (SpaceRecord, String, JSONValue)? in
+      guard let sid = space.sharedId, let record = library[sid], !Model.deleted(record) else { return nil }
+      return (space, sid, record)
+    }
+    for (n, item) in shared.enumerated() {
+      let (space, sid, record) = item
+      var updated = record
+      var dirty = false
+      func write(_ name: String, _ value: JSONValue) {
+        updated[name] = Model.field(value, max(now, (record[name]?["c"]?.intValue ?? 0) + 1), deviceId)
+        dirty = true
+      }
+      for (name, value) in [("name", space.name), ("color", space.color), ("symbol", space.symbol)]
+      where record[name]?["v"]?.string != value {
+        write(name, .string(value))
+      }
+      let current = record["pos"]?["v"]?.string
+      let right =
+        shared[(n + 1)...].lazy.compactMap { next -> String? in
+          guard let key = next.2["pos"]?["v"]?.string, Model.validKey(key, next.1), Model.less(left, key) else { return nil }
+          return key
+        }.first ?? ""
+      var key = current ?? ""
+      if !(current.map { Model.validKey($0, sid) && Model.less(left, $0) && (right.isEmpty || Model.less($0, right)) } ?? false) {
+        key = (try? Model.keyFor(left, right, sid)) ?? key
+        write("pos", .string(key))
+      }
+      left = key
+      if dirty { out.append((sid, updated)) }
+    }
+    return out.isEmpty ? nil : .object([("v", .number(1)), ("spaces", .object(out))])
+  }
 }
