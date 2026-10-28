@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  The part of Blanc for iPhone's Info.plist that build settings can't express;
+  Xcode merges it with the generated keys (GENERATE_INFOPLIST_FILE). Blanc
+  declares http and https so it can be chosen as the default browser
+  (com.apple.developer.web-browser); BlancApp opens each link in a new tab.
+  Add no privacy usage keys: Apple's default-browser requirements forbid them.
+  See docs/ios/app-store-connect.md.
+-->
+<plist version="1.0">
+<dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleURLName</key>
+			<string>me.bnfy.blanc.web</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>http</string>
+				<string>https</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>
