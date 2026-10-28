@@ -1,0 +1,16 @@
+{
+  "source": "4a77b4147663eb4f56e55eb3e1f0b356de4a66ae",
+  "notarization": {
+    "id": "37dc0efb-a353-41e8-bd17-2fb3dc8c0e74",
+    "status": "Accepted",
+    "message": "Processing complete"
+  },
+  "archive": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/procedural-20261028/Blanc-Chromium-Preview-157.0.8103.15-4a77b414-arm64.zip",
+  "sha256": "270c0848539fa52a13a676aee8f0e33e6920d3ca9c08206c3a77d186ab36cbb5",
+  "tested_files_unchanged": 458,
+  "added_files": [
+    "Contents/CodeResources"
+  ],
+  "signed_affected_checks": 50,
+  "release_approval": false
+}
