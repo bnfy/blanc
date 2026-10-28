@@ -3487,6 +3487,14 @@
     "message": "Scuro",
     "source": "sha256:b41d9e243478bf2d60d3d59b40422deee5a9e90cd02e1020c4f289dd2678f98a"
   },
+  "settings.general.launchSunrise.label": {
+    "message": "Mostra l’alba all’apertura di Blanc",
+    "source": "sha256:c603d9f86a22aa0c15545c1419ca30df3a433562d6226998c7232879cec13a78"
+  },
+  "settings.general.launchSunrise.hint": {
+    "message": "La prima pagina iniziale dopo l’avvio mostra l’alba una volta. Saltata se il sistema riduce il movimento.",
+    "source": "sha256:2af5d31146b9261a5261151ba2596e956e4c36cbce400dd7512b795192981c94"
+  },
   "settings.general.surfaceStyle.label": {
     "message": "Stile delle superfici",
     "source": "sha256:5e57966143767a6d07bf80d17a8f24f3a007e1acb52331eff3df9116e5e82b35"

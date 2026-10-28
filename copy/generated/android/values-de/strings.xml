@@ -973,6 +973,8 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_theme_system">System</string>
     <string name="settings_general_theme_light">Hell</string>
     <string name="settings_general_theme_dark">Dunkel</string>
+    <string name="settings_general_launch_sunrise_label">Beim Öffnen von Blanc den Sonnenaufgang zeigen</string>
+    <string name="settings_general_launch_sunrise_hint">Die erste Startseite nach dem Start zeigt einmal den Sonnenaufgang. Entfällt, wenn dein System Bewegungen reduziert.</string>
     <string name="settings_general_surface_style_label">Oberflächenstil</string>
     <string name="settings_general_surface_style_hint">Das Aussehen der eigenen Seiten von Blanc. „Neutral“ ersetzt Creme und Gold durch schlichtes Schwarz und Grau.</string>
     <string name="settings_general_surface_style_sunrise">Sunrise</string>

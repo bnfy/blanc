@@ -183,6 +183,7 @@
     "test:pages": "node --test test/pages/*.test.mjs",
     "ios:sync-vectors:build": "node scripts/build-ios-sync-vectors.cjs --write",
     "ios:sync-vectors:check": "node scripts/build-ios-sync-vectors.cjs --check",
+    "ios:testflight": "bash scripts/ios-testflight.sh",
     "reader:build": "node scripts/build-reader.cjs",
     "reader:check": "node scripts/build-reader.cjs --check",
     "test:reader:desktop": "node test/desktop/reader-mode-smoke.mjs"

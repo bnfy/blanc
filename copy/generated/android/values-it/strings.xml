@@ -1003,6 +1003,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_theme_system">Sistema</string>
     <string name="settings_general_theme_light">Chiaro</string>
     <string name="settings_general_theme_dark">Scuro</string>
+    <string name="settings_general_launch_sunrise_label">Mostra l’alba all’apertura di Blanc</string>
+    <string name="settings_general_launch_sunrise_hint">La prima pagina iniziale dopo l’avvio mostra l’alba una volta. Saltata se il sistema riduce il movimento.</string>
     <string name="settings_general_surface_style_label">Stile delle superfici</string>
     <string name="settings_general_surface_style_hint">L’aspetto delle pagine di Blanc. «Neutro» sostituisce crema e oro con inchiostro e grigio semplici.</string>
     <string name="settings_general_surface_style_sunrise">Sunrise</string>

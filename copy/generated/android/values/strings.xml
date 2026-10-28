@@ -973,6 +973,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_theme_system">System</string>
     <string name="settings_general_theme_light">Light</string>
     <string name="settings_general_theme_dark">Dark</string>
+    <string name="settings_general_launch_sunrise_label">Play the Sunrise when Blanc opens</string>
+    <string name="settings_general_launch_sunrise_hint">The first start page after launch draws the Sunrise once. Skipped when your system reduces motion.</string>
     <string name="settings_general_surface_style_label">Surface style</string>
     <string name="settings_general_surface_style_hint">The look of Blanc’s own pages. Neutral swaps the cream and gold for plain ink and gray.</string>
     <string name="settings_general_surface_style_sunrise">Sunrise</string>

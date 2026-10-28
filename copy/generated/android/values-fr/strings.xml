@@ -1003,6 +1003,8 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_theme_system">Système</string>
     <string name="settings_general_theme_light">Clair</string>
     <string name="settings_general_theme_dark">Sombre</string>
+    <string name="settings_general_launch_sunrise_label">Afficher le lever de soleil à l’ouverture de Blanc</string>
+    <string name="settings_general_launch_sunrise_hint">La première page d’accueil après le lancement affiche une fois le lever de soleil. Ignoré si votre système réduit les animations.</string>
     <string name="settings_general_surface_style_label">Style des surfaces</string>
     <string name="settings_general_surface_style_hint">L’apparence des pages propres à Blanc. « Neutre » remplace la crème et l’or par de l’encre et du gris unis.</string>
     <string name="settings_general_surface_style_sunrise">Sunrise</string>

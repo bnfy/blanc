@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Blanc for iPhone's entitlements. Empty until Apple grants the default-browser
+  entitlement for me.bnfy.blanc; then add
+    <key>com.apple.developer.web-browser</key><true/>
+  in the same change that turns it on for the App ID in the portal, or signing
+  fails. See docs/ios/app-store-connect.md.
+-->
+<plist version="1.0">
+<dict/>
+</plist>
