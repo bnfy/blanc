@@ -1,3 +1,4 @@
+import {prepareCosmeticSources} from './prepare_cosmetic_sources.mjs';
 import { prepareFinalFactory } from './prepare_final_factory.mjs';
 import { writeResearchPolicy, guardResearchHooks } from '../../research-build.mjs';
 // Separate, explicit opt-in to the experimental blocker in the preserved 157 output.
@@ -71,3 +72,5 @@ patch('chrome/browser/chrome_content_browser_client.cc', 'blanc::MaybeCreateActi
 
 writeResearchPolicy(src, options.includes('--research-hooks'));
 guardResearchHooks(src);
+
+if (JSON.parse(fs.readFileSync(path.join(assets, "manifest.json"))).cosmeticAdapterSha256) prepareCosmeticSources(src, assets);

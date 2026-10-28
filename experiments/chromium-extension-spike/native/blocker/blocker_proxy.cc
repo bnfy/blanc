@@ -6,6 +6,7 @@
 #include "content/public/browser/navigation_handle.h"
 #include "third_party/blink/public/mojom/loader/referrer.mojom.h"
 #include <deque>
+#include "net/base/registry_controlled_domains/registry_controlled_domain.h"
 #include <map>
 #include "base/json/json_reader.h"
 #include "base/task/single_thread_task_runner.h"
@@ -107,6 +108,22 @@ class Engine {
         --self->inflight_; std::move(cb).Run(result);
       }, base::Unretained(this), std::move(callback)), -1));
   }
+  void Cosmetics(std::string input, base::OnceCallback<void(bool, const std::string&)> callback) {
+    if (failed_) { std::move(callback).Run(false, ""); return; }
+    if (!started_) Start();
+    if (!ready_) {
+      if (waiting_.size() >= 4096) { std::move(callback).Run(false, ""); return; }
+      waiting_.push_back(base::BindOnce(&Engine::Cosmetics, base::Unretained(this), std::move(input), std::move(callback)));
+      return;
+    }
+    if (inflight_ >= 256) { std::move(callback).Run(false, ""); return; }
+    ++inflight_;
+    service_->Cosmetics(input, mojo::WrapCallbackWithDefaultInvokeIfNotRun(
+      base::BindOnce([](Engine* self, base::OnceCallback<void(bool, const std::string&)> cb,
+                       bool ready, const std::string& output) {
+        --self->inflight_; std::move(cb).Run(ready && !self->failed_, output);
+      }, base::Unretained(this), std::move(callback)), false, std::string()));
+  }
   void Fail() {
     failed_ = true; ready_ = false; startup_.Stop(); service_.reset();
     auto pending = std::move(waiting_);
@@ -148,6 +165,8 @@ class Engine {
   mojo::Remote<mojom::Blocker> service_;
   base::OneShotTimer startup_;
 };
+#include "chrome/services/blanc_blocker/cosmetic_document.inc"
+
 // Prerender activation skips NavigationThrottle, including the response gate.
 // Its earlier allow cannot authorize a commit after the engine becomes unavailable.
 class ActivationGate : public content::CommitDeferringCondition {
@@ -862,7 +881,13 @@ content::ContentBrowserClient::WillCreateWebTransportCallback WrapWebTransportCa
       frame_routing_id != IPC::mojom::kRoutingIdNone, url,
       initiator_origin.Serialize(), std::move(callback));
 }
+void BindCosmetics(content::RenderFrameHost* frame, mojo::PendingReceiver<mojom::Cosmetics> receiver) {
+  new CosmeticDocument(*frame, std::move(receiver));
+}
 void SetDocumentStartPrerenderPolicy(content::MojoBinderPolicyMap& policy_map) {
+  // Read-only engine selection, bound to this prerender document. Existing
+  // activation protection still rejects activation after utility loss.
+  policy_map.SetNonAssociatedPolicy<mojom::Cosmetics>(content::MojoBinderNonAssociatedPolicy::kGrant);
 #if BLANC_RESEARCH_HOOKS
   if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start")) return;
   // A deferred binder would deadlock the synchronous document-start request.

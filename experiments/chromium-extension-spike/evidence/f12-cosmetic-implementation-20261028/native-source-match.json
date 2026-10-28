@@ -1,0 +1,9 @@
+{
+  "blocker.mojom": "de4fa2897a1e9376b343e4eeab303df27cbf5652be3b8d836f42d60fa02e67f7",
+  "blocker_service.h": "601b1e0d82d694a01be19a381c239852699768ec78e9b07248347eec23f7e3d2",
+  "blocker_service.cc": "2c2be29ca3c1150ffa28f472a8bcb6fcede85a8250f164b13e9b691a3ef8a884",
+  "blocker_proxy.h": "d55e793b5a44672527fc68e460f16fac0c5edf708e483a5cdf234e308a889607",
+  "blocker_proxy.cc": "cc4995c12c8fa256f26555e11def52795b7ea8d5a48430ea9ead55cff5b95aed",
+  "cosmetic_document.inc": "5a29d0f4f92d67526331bd245c155f3d3df678ba98488b257673e195b7029036",
+  "cosmetic_renderer.inc": "7796ee468a1c8a77dba04f40c03fd41d2c52b59ca04a09cb6835953f4ddca970"
+}

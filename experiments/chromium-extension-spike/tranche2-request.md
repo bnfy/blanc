@@ -2838,3 +2838,7 @@ October 26 signed navigation repair: [notarized affected-path evidence](evidence
 ### October27 main-frame isolation repair / recovery exception
 
 October 27 isolation repair in progress: [draft and authorized recovery-build evidence](evidence/f12-navigation-isolation-20261027/README.md). Existing trusted main-frame isolation is derived with CreateForRedirect, retaining nonce/partition; six preparation checks pass. Missing workspace inputs required source/package recovery. The guard stopped a53,938-action plan, and the owner approved one isolated recovery-build exception with unchanged compiler/SDK/arguments and caches preserved. The first attempt stopped on missing pinned Go; the resumed build is running. Affected runtime checks and final guard remain pending; no fix/gate pass claimed. Fresh77files/186hunks,151clean dependencies. Electron paused, Google baseline separate, latency deferred.
+
+## October28 production Blanc Blocker integration
+
+Owner selected the existing Blanc Blocker for CSS/scriptlet integration. [Affected native evidence](evidence/f12-cosmetic-implementation-20261028/README.md) passes20regular/private checks with finalguard0; signed replacement pending. Fresh inventory79files/189hunks with151clean Git dependencies. Updated ceiling79/189 under existing standing authorization; raw prior-ceiling failure retained, counting rules unchanged. Electron paused, Google separate, latency deferred; no aggregate F12 or launch-gate credit.

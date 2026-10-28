@@ -74,6 +74,7 @@ BlockerService::BlockerService(mojo::PendingReceiver<mojom::Blocker> receiver)
 BlockerService::~BlockerService() {
   if (task_runner_) task_runner_->Cancel();
   decide_.Reset();
+  cosmetics_.Reset();
   context_.Reset();
   isolate_.reset();
 }
@@ -114,6 +115,9 @@ void BlockerService::Initialize(const std::string& script, InitializeCallback ca
       compiled->Run(context).ToLocal(&result) &&
       context->Global()->Get(context, Str(isolate, "blancDecide")).ToLocal(&fn) && fn->IsFunction();
   if (ready) { context_.Reset(isolate, context); decide_.Reset(isolate, fn.As<v8::Function>()); }
+  if (ready && context->Global()->Get(context, Str(isolate, "blancCosmetics")).ToLocal(&fn) && fn->IsFunction())
+    cosmetics_.Reset(isolate, fn.As<v8::Function>());
+  else ready = false;
   std::move(callback).Run(ready);
 }
 void BlockerService::Decide(const std::string& url, const std::string& resource_type,
@@ -132,4 +136,26 @@ void BlockerService::Decide(const std::string& url, const std::string& resource_
     decision = result.As<v8::Int32>()->Value();
   std::move(callback).Run(decision);
 }
+void BlockerService::Cosmetics(const std::string& input, CosmeticsCallback callback) {
+  if (cosmetics_.IsEmpty() || input.size() > 256 * 1024) {
+    std::move(callback).Run(false, ""); return;
+  }
+  auto* isolate = isolate_->isolate();
+  v8::Locker locker(isolate);
+  v8::Isolate::Scope scope(isolate);
+  v8::HandleScope handles(isolate);
+  v8::TryCatch caught(isolate);
+  auto context = context_.Get(isolate);
+  v8::Context::Scope context_scope(context);
+  v8::Local<v8::Value> args[] = {Str(isolate, input)}, result;
+  if (!cosmetics_.Get(isolate)->Call(context, context->Global(), 1, args).ToLocal(&result) || !result->IsString()) {
+    std::move(callback).Run(false, ""); return;
+  }
+  v8::String::Utf8Value text(isolate, result);
+  if (!*text || text.length() > 1024 * 1024) {
+    std::move(callback).Run(false, ""); return;
+  }
+  std::move(callback).Run(true, std::string(*text, text.length()));
+}
+
 }
