@@ -18,10 +18,9 @@ const at = (needle) => {
   return i;
 };
 
-test('the off state offers Add this device first and warns on Start syncing', () => {
+test('the off state offers Add this device before the passphrase start, which keeps its warning', () => {
   assert.ok(at('id="syncPathCode"') < at('id="syncPathStart"'), 'Add this device comes before Start syncing');
-  assert.ok(!html.includes('id="syncPathJoin"'), 'the passphrase path is reached from the code step, not a third button');
-  assert.ok(html.includes('data-i18n="settings.sync.addThisDevice"'));
+  assert.ok(html.includes('data-i18n="settings.sync.off.addWithCode"'));
   assert.ok(html.includes('data-i18n="settings.sync.startOnlyFirstDevice"'), 'the start path carries the first-device warning');
 });
 
@@ -67,4 +66,28 @@ test('this device’s name is edited in the on state and reaches main through th
   assert.ok(/id="syncDeviceName"[^>]*data-i18n-ignore="placeholder"/.test(on), 'the placeholder is the computer’s name, not catalog text');
   const preload = fs.readFileSync(path.join(__dirname, '../../src/main/tab-preload.js'), 'utf8');
   assert.ok(preload.includes("syncDeviceNameSet: (name) => invoke('pages:settings:sync-device-name-set', name)"));
+});
+
+// Design 2026-10-28 §5.2, §5.4, §6.4.
+test('the off state leads with Turn on Sync and keeps the passphrase paths under Other ways', () => {
+  assert.ok(at('id="syncTurnOn"') < at('id="syncPathCode"'), 'Turn on Sync comes first');
+  assert.ok(html.includes('data-i18n="settings.sync.off.haveCode"'));
+  const other = html.slice(at('id="syncOtherWays"'), at('id="syncCodeForm"'));
+  assert.ok(other.includes('id="syncPathStart"'), 'the passphrase start is under Other ways');
+  assert.ok(other.includes('id="syncPathJoin"'), 'joining with a passphrase is under Other ways too');
+});
+
+test('the recovery prompt card and its buttons exist, and Not now calls the dismiss channel', () => {
+  for (const id of ['syncRecoveryPrompt', 'syncRecoveryPromptCopy', 'syncRecoveryPromptNotNow']) at(`id="${id}"`);
+  assert.ok(js.includes('syncRecoveryPromptDismiss()'));
+  assert.ok(/origin\s*===\s*'generated'/.test(js), 'shown only on the device that started the sync');
+});
+
+test('the sheet has a joined state with the Spaces question and Done', () => {
+  const sheet = html.slice(at('id="syncPairingDialog"'), html.indexOf('</dialog>', at('id="syncPairingDialog"')));
+  for (const id of ['syncPairingJoined', 'syncPairingJoinedTitle', 'syncPairingQuestion', 'syncPairingSpacesOn', 'syncPairingSpacesNotNow', 'syncPairingRecovery', 'syncPairingDone']) {
+    assert.ok(sheet.includes(`id="${id}"`), `${id} is inside the sheet`);
+  }
+  assert.ok(js.includes('onSyncPairJoined('));
+  assert.ok(js.includes('syncPairWatch('));
 });

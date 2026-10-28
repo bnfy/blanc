@@ -4784,6 +4784,26 @@ body.sheet .sync-device-list input.sync-device-name:focus { border-color: var(--
 .sync-device-self:focus-within .sync-device-name-hint { display: block; }
 .sync-devices-missing { margin: 10px 0 0; color: var(--text-dim); font-size: 12px; }
 
+/* Off state (design 2026-10-28 §5.2): Turn on Sync leads; the code path
+   sits right under it; the passphrase paths are one level deeper. */
+.sync-turn-on { display: grid; justify-items: start; gap: 8px; padding: 18px 8px; border-bottom: 1px solid var(--border); }
+.sync-turn-on .section-hint:empty { display: none; }
+.sync-paths-label { margin: 0; padding: 14px 8px 0; color: var(--text-dim); font-size: 12px; }
+.sync-other-ways > summary {
+  padding: 14px 8px;
+  color: var(--text-dim);
+  font-size: 13px;
+  cursor: pointer;
+}
+.sync-other-ways > summary:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 0; border-radius: var(--radius-md); }
+.sync-path-plain { grid-template-columns: minmax(0, 1fr) auto; }
+.sync-other-ways > .sync-path-plain:last-child { border-bottom: 0; }
+
+/* The recovery prompt: quiet, never in the way (§5.4). */
+.sync-recovery-prompt { display: grid; gap: 8px; }
+.sync-recovery-prompt > strong { font-size: 13.5px; font-weight: 600; }
+.sync-recovery-prompt > p { margin: 0; color: var(--text-dim); font-size: 12.5px; line-height: 1.5; }
+
 /* More options: one level deeper, a disclosure row like the others. */
 .sync-more-summary {
   display: flex;
@@ -4831,6 +4851,10 @@ body.sheet .sync-device-list input.sync-device-name:focus { border-color: var(--
 .sync-pairing { display: grid; gap: 14px; }
 .sync-sheet .sync-pairing-code { padding: 16px 0; border: 0; background: var(--surface); font-size: 36px; }
 .sync-sheet-title { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+/* The same sheet once the device arrives (§6.4): content changes in place. */
+.sync-pairing-joined { animation: sync-pairing-swap 200ms ease; }
+@keyframes sync-pairing-swap { from { opacity: 0; } }
+.sync-pairing-recovery { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin: 0; color: var(--text-dim); font-size: 12.5px; }
 @media (prefers-reduced-motion: reduce) {
   .sync-sheet[open] { animation: sync-sheet-fade 160ms ease; }
   .sync-more-chevron,

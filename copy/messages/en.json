@@ -5240,6 +5240,86 @@
     "message": "Sync is on, but couldn’t reach the server yet. Blanc will keep trying.",
     "note": "Settings → Sync → Add a device: Sync is on but its new account hasn't reached the server yet, so no pairing code is shown. Also the 'not-ready' error."
   },
+  "settings.sync.off.title": {
+    "message": "Sync your Blanc",
+    "note": "Settings → Sync, off state: the card title."
+  },
+  "settings.sync.off.body": {
+    "message": "Favorites, settings and, if you choose, open tabs, end-to-end encrypted.",
+    "note": "Settings → Sync, off state: one line under the title."
+  },
+  "settings.sync.off.turnOn": {
+    "message": "Turn on Sync",
+    "note": "Settings → Sync, off state: the primary button. Turns Sync on with no name or passphrase."
+  },
+  "settings.sync.off.haveCode": {
+    "message": "Already sync on another device?",
+    "note": "Settings → Sync, off state: the question above the Add with a code card."
+  },
+  "settings.sync.off.addWithCode": {
+    "message": "Add this device with a code",
+    "note": "Settings → Sync, off state: the card that joins this device with a pairing code."
+  },
+  "settings.sync.off.otherWays": {
+    "message": "Other ways",
+    "note": "Settings → Sync, off state: disclosure holding the name-and-passphrase paths."
+  },
+  "settings.sync.off.usePassphrase": {
+    "message": "Use a sync name and passphrase",
+    "note": "Settings → Sync, off state, Other ways: join an existing sync with its name and passphrase."
+  },
+  "settings.sync.off.startWithPassphrase": {
+    "message": "Start with a name and passphrase",
+    "note": "Settings → Sync, off state, Other ways: start a new sync with a chosen name and passphrase."
+  },
+  "settings.sync.defaultName": {
+    "message": "My Blanc",
+    "note": "The name of a sync started without a passphrase. Shown as the sync's name on every device; never used to derive anything."
+  },
+  "settings.sync.startedToast": {
+    "message": "Sync is on. Add your other devices from here.",
+    "note": "Settings → Sync: shown after Turn on Sync succeeds."
+  },
+  "settings.sync.sheet.joined": {
+    "message": "{device} joined.",
+    "note": "Settings → Sync → Add device sheet: the device that took the code arrived. {device} is its name."
+  },
+  "settings.sync.sheet.joinedBody": {
+    "message": "Your favorites and settings are on it now. Its open tabs stay private to it until you choose to share them there.",
+    "note": "Settings → Sync → Add device sheet: under the joined line."
+  },
+  "settings.sync.sheet.yourIphone": {
+    "message": "Your iPhone",
+    "note": "Settings → Sync → Add device sheet: the name used when a joining iPhone has none."
+  },
+  "settings.sync.sheet.yourDevice": {
+    "message": "Your new device",
+    "note": "Settings → Sync → Add device sheet: the name used when a joining device has none."
+  },
+  "settings.sync.sheet.spacesQuestion": {
+    "message": "Keep Spaces and groups in sync with it?",
+    "note": "Settings → Sync → Add device sheet: asks whether this computer turns on Spaces sync now that the device joined (the Spaces pairing question)."
+  },
+  "settings.sync.sheet.done": {
+    "message": "Done",
+    "note": "Settings → Sync → Add device sheet: closes the sheet after a device joined."
+  },
+  "settings.sync.recoveryPrompt.title": {
+    "message": "Keep a way back in",
+    "note": "Settings → Sync, on state: card shown on the device that started a sync without a passphrase, until its recovery code is saved."
+  },
+  "settings.sync.recoveryPrompt.body": {
+    "message": "This sync has no passphrase. If you ever lose all your devices, its recovery code is the only way to reach your synced data. Save it in your password manager.",
+    "note": "Settings → Sync, on state: the recovery prompt card's text."
+  },
+  "settings.sync.recoveryPrompt.copy": {
+    "message": "Copy recovery code",
+    "note": "Settings → Sync: the recovery prompt's button; opens the recovery-code confirmation."
+  },
+  "settings.sync.recoveryPrompt.notNow": {
+    "message": "Not now",
+    "note": "Settings → Sync: hides the recovery prompt on this device for good."
+  },
   "settings.sync.switch.open": {
     "message": "Connect to a different sync with a code",
     "note": "Settings → Sync (on): opens the panel that moves this device to another sync."
