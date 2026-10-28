@@ -7596,7 +7596,7 @@ function ownsBrowserShortcutSurface(runtime, wc) {
  * Esc, any other key and a click cancel it. Every surface of the window
  * listens, because the release arrives wherever focus is. */
 function installTabSwitchRelease(webContents, getRuntime) {
-  webContents.on('before-input-event', (event, input) => {
+  webContents.on('before-input-event', (_event, input) => {
     const runtime = getRuntime();
     if (!runtime || !tabSwitcher.isSwitching(runtime)) return;
     if (input.type === 'keyUp' && input.key === 'Control') {
@@ -7606,8 +7606,10 @@ function installTabSwitchRelease(webContents, getRuntime) {
     if (input.type !== 'keyDown' || ['Tab', 'Control', 'Shift'].includes(input.key)) return;
     // Ctrl+W closes the pick and keeps the switch going (the close-tab command).
     if (matchBrowserShortcut(input) === 'close-tab') return;
+    // Esc and any other key cancel. None is consumed: on Windows a consumed
+    // press lost the next Ctrl+Tab press with its releases (spec §3.4), so
+    // the page sees the Esc too.
     tabSwitcher.cancel(runtime);
-    if (input.key === 'Escape') event.preventDefault();
   });
   webContents.on('before-mouse-event', (_event, mouse) => {
     if (mouse.type !== 'mouseDown') return;
