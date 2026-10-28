@@ -6139,6 +6139,7 @@ function hideUtilitySheet({ refocusContent = true, discardTabHandoff = true } = 
   bumpSurfaceGeneration(runtime);
   runtime.utilitySheetUrl = null;
   runtime.utilitySheetEscapeArmed = false;
+  runtime.syncPairSheetPending = false;
   cancelUtilitySheetNavigation(runtime.utilitySheetView);
   const sheet = liveUtilitySheet(runtime);
   if (hasLiveWindow() && sheet) {
@@ -10934,8 +10935,11 @@ const SETTINGS_SECTION_FRAGMENTS = Object.freeze({
 function openSettingsSection(section) {
   // Finish setup's Connect your iPhone: Sync, with the pairing sheet open.
   if (section === 'sync-pair') {
+    openSettingsSection('sync');
+    // Set after the open: the page asks for it once it has loaded, and a
+    // hidden Settings sheet drops it (hideUtilitySheet).
     if (isIphonePairingOffered()) rt().syncPairSheetPending = true;
-    section = 'sync';
+    return;
   }
   const fragment = Object.prototype.hasOwnProperty.call(SETTINGS_SECTION_FRAGMENTS, section)
     ? SETTINGS_SECTION_FRAGMENTS[section]

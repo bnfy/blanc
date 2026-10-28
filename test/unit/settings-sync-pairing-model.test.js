@@ -235,3 +235,31 @@ test('cancel from the start state closes it without a pair-cancel', () => {
   assert.equal(next.effect, null);
   assert.equal(pairingView(next.state, NOW).sheetOpen, false);
 });
+
+// Review fixes: no state of the sheet is a trap.
+test('while a code is requested from Connect your iPhone the sheet says so and Cancel works', () => {
+  const opened = pairingTransition(createPairingModel(), { type: 'open', syncOn: true }).state;
+  assert.equal(pairingView(opened, NOW).makingCode, true);
+  const cancelled = pairingTransition(opened, { type: 'cancel' });
+  assert.deepEqual(cancelled.effect, { type: 'pair-cancel' });
+  assert.equal(pairingView(cancelled.state, NOW).sheetOpen, false);
+});
+
+test('a code that arrives after Cancel is retracted', () => {
+  const opened = pairingTransition(createPairingModel(), { type: 'open', syncOn: true }).state;
+  const cancelled = pairingTransition(opened, { type: 'cancel' }).state;
+  const late = pairingTransition(cancelled, { type: 'began', ok: true, code: 'K7MR4PX2', expiresAt: NOW + 600_000 });
+  assert.deepEqual(late.effect, { type: 'pair-cancel' });
+  assert.equal(pairingView(late.state, NOW).sheetOpen, false);
+});
+
+test('Cancel works while Sync is being turned on and while it is not ready', () => {
+  const start = pairingTransition(createPairingModel(), { type: 'open', syncOn: false }).state;
+  const starting = pairingTransition(start, { type: 'continue' }).state;
+  assert.equal(pairingView(pairingTransition(starting, { type: 'cancel' }).state, NOW).sheetOpen, false);
+  const waiting = pairingTransition(starting, { type: 'started', synced: false }).state;
+  assert.equal(pairingView(pairingTransition(waiting, { type: 'cancel' }).state, NOW).sheetOpen, false);
+  const v = pairingView(waiting, NOW);
+  assert.equal(v.startShown, false, 'not ready no longer says it will turn Sync on');
+  assert.equal(v.notReadyShown, true);
+});

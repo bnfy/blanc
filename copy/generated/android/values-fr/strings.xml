@@ -1425,6 +1425,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_sync_sheet_start_body">Cela active la synchronisation sur ce Mac. Aucun nom ni phrase secrète n’est nécessaire.</string>
     <string name="settings_sync_sheet_start_body_generic">Cela active la synchronisation sur cet ordinateur. Aucun nom ni phrase secrète n’est nécessaire.</string>
     <string name="settings_sync_sheet_continue">Continuer</string>
+    <string name="settings_sync_sheet_making_code">Création du code…</string>
     <string name="settings_sync_sheet_already_sync">Vous synchronisez déjà un autre ordinateur ?</string>
     <string name="settings_sync_sheet_add_this_first">Ajoutez d’abord ce Mac avec un code</string>
     <string name="settings_sync_sheet_add_this_first_generic">Ajoutez d’abord cet ordinateur avec un code</string>

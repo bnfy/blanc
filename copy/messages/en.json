@@ -5336,6 +5336,10 @@
     "message": "Continue",
     "note": "Settings → Sync → Connect your iPhone with Sync off: turns Sync on and shows the code."
   },
+  "settings.sync.sheet.makingCode": {
+    "message": "Making a code…",
+    "note": "Settings → Sync → Connect your iPhone: shown while the pairing code is being made."
+  },
   "settings.sync.sheet.alreadySync": {
     "message": "Already sync on another computer?",
     "note": "Settings → Sync → Connect your iPhone with Sync off: the guard against starting a second sync by accident."

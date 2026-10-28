@@ -1425,6 +1425,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_sync_sheet_start_body">Isso ativa a sincronização neste Mac. Você não vai precisar de nome nem frase secreta.</string>
     <string name="settings_sync_sheet_start_body_generic">Isso ativa a sincronização neste computador. Você não vai precisar de nome nem frase secreta.</string>
     <string name="settings_sync_sheet_continue">Continuar</string>
+    <string name="settings_sync_sheet_making_code">Criando um código…</string>
     <string name="settings_sync_sheet_already_sync">Já sincroniza em outro computador?</string>
     <string name="settings_sync_sheet_add_this_first">Adicione primeiro este Mac com um código</string>
     <string name="settings_sync_sheet_add_this_first_generic">Adicione primeiro este computador com um código</string>

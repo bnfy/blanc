@@ -2024,6 +2024,9 @@
       const pairingStartRetry = document.getElementById('syncPairingStartRetry');
       const pairingAlready = document.getElementById('syncPairingAlready');
       const pairingAddThisFirst = document.getElementById('syncPairingAddThisFirst');
+      const pairingNotReadyCancel = document.getElementById('syncPairingNotReadyCancel');
+      const pairingMaking = document.getElementById('syncPairingMaking');
+      const pairingMakingCancel = document.getElementById('syncPairingMakingCancel');
       // Whether this build offers iPhone pairing (main decides, design §9),
       // and whether this is a Mac, for the start state's wording.
       let iphonePairing = false;
@@ -2285,7 +2288,10 @@
         pairingDialog.setAttribute('aria-labelledby', pv.joined ? 'syncPairingJoinedTitle' : 'syncPairingTitle');
         setWatch(pv.showing);
         pairingStart.hidden = !(pv.startShown || pv.notReadyShown);
+        pairingMaking.hidden = !pv.makingCode;
         if (pv.startShown || pv.notReadyShown) {
+          // Not ready: Sync is already on, so only the wait and its ways out.
+          pairingStartBody.hidden = pv.notReadyShown;
           pairingStartBody.textContent = onMac ? t('settings.sync.sheet.startBody') : t('settings.sync.sheet.startBodyGeneric');
           pairingAddThisFirst.textContent = onMac ? t('settings.sync.sheet.addThisFirst') : t('settings.sync.sheet.addThisFirstGeneric');
           pairingNotReady.hidden = !pv.notReadyShown;
@@ -2385,6 +2391,8 @@
       pairingContinue.addEventListener('click', () => dispatchPairing({ type: 'continue' }));
       pairingStartCancel.addEventListener('click', () => dispatchPairing({ type: 'cancel' }));
       pairingStartRetry.addEventListener('click', () => dispatchPairing({ type: 'retry' }));
+      pairingNotReadyCancel.addEventListener('click', () => dispatchPairing({ type: 'cancel' }));
+      pairingMakingCancel.addEventListener('click', () => dispatchPairing({ type: 'cancel' }));
       pairingAddThisFirst.addEventListener('click', () => dispatchPairing({ type: 'add-this-first' }));
       connectIphoneBtn.addEventListener('click', () => dispatchPairing({ type: 'open', syncOn: false }));
       pairingSpacesOn.addEventListener('click', () => dispatchPairing({ type: 'spaces-answer', answer: 'on' }));

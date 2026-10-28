@@ -39,3 +39,9 @@ test('the packaged default is not offered while the iPhone app is unreleased', (
   if (fs.existsSync(path.join(root, 'site/src/data/ios-availability.json'))) return;
   assert.equal(constant(), null);
 });
+
+test('a pending open-the-sheet request never outlives the Settings sheet it was for', () => {
+  const at = main.indexOf('function hideUtilitySheet(');
+  const body = main.slice(at, main.indexOf('\n}', at));
+  assert.match(body, /runtime\.syncPairSheetPending = false;/);
+});

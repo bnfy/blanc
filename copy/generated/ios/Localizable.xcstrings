@@ -57145,6 +57145,48 @@
         }
       }
     },
+    "settings.sync.sheet.makingCode": {
+      "comment": "Settings → Sync → Connect your iPhone: shown while the pairing code is being made.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Making a code…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code wird erstellt …"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creando un código…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Création du code…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creazione del codice…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Criando um código…"
+          }
+        }
+      }
+    },
     "settings.sync.sheet.alreadySync": {
       "comment": "Settings → Sync → Connect your iPhone with Sync off: the guard against starting a second sync by accident.",
       "extractionState": "manual",

@@ -5187,6 +5187,10 @@
     "message": "Weiter",
     "source": "sha256:14fc281305915e6e6f2d59dd80e081abc3e5abe45962c4ec88a0714106ca0bd8"
   },
+  "settings.sync.sheet.makingCode": {
+    "message": "Code wird erstellt …",
+    "source": "sha256:347eab3e88dba078b43f28e46b237dc8a2ff93371aa41518ac2bf406f6713f54"
+  },
   "settings.sync.sheet.alreadySync": {
     "message": "Synchronisierst du schon auf einem anderen Computer?",
     "source": "sha256:505577a9919cf0dd4610cc2decf0e3d12ad0199ffa9cfaa3fd8524867fe9f99a"

@@ -1395,6 +1395,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_sync_sheet_start_body">This turns on Sync for this Mac. You won’t need a name or passphrase.</string>
     <string name="settings_sync_sheet_start_body_generic">This turns on Sync for this computer. You won’t need a name or passphrase.</string>
     <string name="settings_sync_sheet_continue">Continue</string>
+    <string name="settings_sync_sheet_making_code">Making a code…</string>
     <string name="settings_sync_sheet_already_sync">Already sync on another computer?</string>
     <string name="settings_sync_sheet_add_this_first">Add this Mac with a code first</string>
     <string name="settings_sync_sheet_add_this_first_generic">Add this computer with a code first</string>

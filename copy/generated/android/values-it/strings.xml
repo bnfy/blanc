@@ -1425,6 +1425,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_sync_sheet_start_body">Così attivi la sincronizzazione su questo Mac. Non servono nome né passphrase.</string>
     <string name="settings_sync_sheet_start_body_generic">Così attivi la sincronizzazione su questo computer. Non servono nome né passphrase.</string>
     <string name="settings_sync_sheet_continue">Continua</string>
+    <string name="settings_sync_sheet_making_code">Creazione del codice…</string>
     <string name="settings_sync_sheet_already_sync">Sincronizzi già su un altro computer?</string>
     <string name="settings_sync_sheet_add_this_first">Aggiungi prima questo Mac con un codice</string>
     <string name="settings_sync_sheet_add_this_first_generic">Aggiungi prima questo computer con un codice</string>

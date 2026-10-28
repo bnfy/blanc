@@ -63,7 +63,8 @@
         if (state.phase === 'starting' || state.phase === 'showing') return none(state);
         return { state: { ...state, phase: 'starting', notice: null, viaIphone: false }, effect: { type: 'pair-begin' } };
       case 'began':
-        if (state.phase !== 'starting') return none(state);
+        // A code that lands after Cancel would stay live for ten minutes: retract it.
+        if (state.phase !== 'starting') return { state, effect: event.ok ? { type: 'pair-cancel' } : null };
         if (event.ok) return none({ ...state, phase: 'showing', code: String(event.code ?? ''), expiresAt: Number(event.expiresAt) || 0, notice: null });
         return none({ ...state, phase: 'error', code: '', expiresAt: 0, notice: String(event.message ?? '') });
       case 'resume':
@@ -76,7 +77,8 @@
         if (event.now >= state.expiresAt) return none({ ...state, phase: 'expired', code: '', expiresAt: 0 });
         return none(state);
       case 'cancel':
-        if (state.phase === 'start' || state.phase === 'not-ready') return none(createPairingModel());
+        if (state.phase === 'start' || state.phase === 'not-ready' || state.phase === 'starting-new') return none(createPairingModel());
+        if (state.phase === 'starting' && state.viaIphone) return { state: createPairingModel(), effect: { type: 'pair-cancel' } };
         if (state.phase !== 'showing') return none(state);
         return { state: createPairingModel(), effect: { type: 'pair-cancel' } };
       case 'joined':
@@ -125,6 +127,7 @@
     return {
       sheetOpen: showing || joined || starting || notReady || (viaIphone && state.phase === 'starting'),
       startShown: starting,
+      makingCode: state.viaIphone && state.phase === 'starting',
       startBusy: state.phase === 'starting-new',
       notReadyShown: notReady,
       titleKey: viaIphone ? 'settings.sync.connectIphone' : 'settings.sync.addAnotherDevice',

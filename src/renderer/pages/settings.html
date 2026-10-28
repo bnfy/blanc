@@ -644,7 +644,10 @@
                 <p class="sync-pairing-instruction" id="syncPairingStartBody" data-i18n-ignore=""></p>
                 <div id="syncPairingNotReady" class="sync-pairing-not-ready" hidden>
                   <p class="sync-pairing-instruction" data-i18n="settings.sync.sheet.notReady">Sync is on, but couldn’t reach the server yet. Blanc will keep trying.</p>
-                  <button id="syncPairingStartRetry" type="button" data-i18n="settings.sync.tryAgain">Try again</button>
+                  <span class="sync-panel-actions">
+                    <button id="syncPairingStartRetry" type="button" data-i18n="settings.sync.tryAgain">Try again</button>
+                    <button id="syncPairingNotReadyCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
+                  </span>
                 </div>
                 <p class="sync-panel-notice" id="syncPairingStartNotice" role="status"></p>
                 <div class="sync-panel-actions" id="syncPairingStartActions">
@@ -655,6 +658,14 @@
                   <span data-i18n="settings.sync.sheet.alreadySync">Already sync on another computer?</span>
                   <button id="syncPairingAddThisFirst" type="button" class="link-button" data-i18n-ignore=""></button>
                 </p>
+              </div>
+              <!-- Connect your iPhone while the code is on its way. -->
+              <div id="syncPairingMaking" class="sync-pairing" hidden>
+                <h2 class="sync-sheet-title" data-i18n="settings.sync.connectIphone">Connect your iPhone</h2>
+                <p class="sync-pairing-instruction" role="status" data-i18n="settings.sync.sheet.makingCode">Making a code…</p>
+                <span class="sync-panel-actions">
+                  <button id="syncPairingMakingCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
+                </span>
               </div>
               <div id="syncPairing" class="sync-pairing" hidden>
                 <h2 class="sync-sheet-title" id="syncPairingTitle" data-i18n-ignore="">Add another device</h2>
