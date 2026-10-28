@@ -62,4 +62,4 @@ enum TabSets {
     }
 }
 
-enum SpaceError: Error, Equatable { case limit, emptyName, invalid }
+enum SpaceError: Error, Equatable { case limit, emptyName, duplicateName, invalid }

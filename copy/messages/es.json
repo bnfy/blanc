@@ -8800,5 +8800,33 @@
   "settings.general.verticalTabsTextSize.extraLarge": {
     "message": "Muy grande",
     "source": "sha256:b190d1a2e4582b543524201e108e5f45e3d03df1164f5ca4ebc3ffb474cd7786"
+  },
+  "spaces.thisIPhone": {
+    "message": "Este iPhone",
+    "source": "sha256:872a9b15efd10d5c23b321f11d4d2d26630ac2b462424389c61a940f04e7887c"
+  },
+  "spaces.menuLabel": {
+    "message": "Spaces",
+    "source": "sha256:8e891bb692010b9fa0e4ac71d8f835de61caa035dce16f05c8933e0618b7924a"
+  },
+  "spaces.menuEdit": {
+    "message": "Editar",
+    "source": "sha256:5c1c1bc5cf089e67cf31b21324d0d1cf2d873e3352edfc6a146ec9af1df35633"
+  },
+  "tabGroups.tucked": {
+    "message": "{count, plural, one {# pestaña contraída} many {# pestañas contraídas} other {# pestañas contraídas}}",
+    "source": "sha256:11b310a3fc8305cd1e2d7918f3e1fdb3e011c51de7e691c65a8767732b695c1b"
+  },
+  "tabGroups.closedToast": {
+    "message": "Grupo cerrado",
+    "source": "sha256:25bd8178da107ebad3440c0640993042d5e10bece585773bd6e310612703c6c0"
+  },
+  "groupMenu.rename": {
+    "message": "Cambiar nombre…",
+    "source": "sha256:03e51c78c49ded9dd48090751e0972998eb6e266e88fe5a4eb3b579d0f458f94"
+  },
+  "tabGroups.create": {
+    "message": "Crear",
+    "source": "sha256:15101ac2f3a2ba0792e1e01b46cd69b8ec3da3c7ed0aa662d99dda58a294944f"
   }
 }

@@ -61,7 +61,11 @@ import XCTest
 
     func testTwentySixthSpaceAndEmptyNamesAreRefused() throws {
         let m = manager()
-        for i in 0..<25 { _ = try m.createSpace(name: "S\(i)", color: "#426c4c", symbol: "star") }
+        _ = try m.createSpace(name: "S0", color: "#426c4c", symbol: "star")
+        XCTAssertThrowsError(try m.createSpace(name: "s0", color: "#426c4c", symbol: "star")) {
+            XCTAssertEqual($0 as? SpaceError, .duplicateName, "names compare without case, as desktop's")
+        }
+        for i in 1..<25 { _ = try m.createSpace(name: "S\(i)", color: "#426c4c", symbol: "star") }
         XCTAssertThrowsError(try m.createSpace(name: "One more", color: "#426c4c", symbol: "star")) {
             XCTAssertEqual($0 as? SpaceError, .limit)
         }
@@ -81,6 +85,24 @@ import XCTest
         XCTAssertEqual(m.shownSetId, work, "Undo also puts the person back in the Space")
         XCTAssertEqual(hosts(m), ["a.test"])
         XCTAssertTrue(m.recentlyDeleted.isEmpty)
+    }
+
+    func testRestoreIsRefusedWhenTheNameIsTaken() throws {
+        let m = manager()
+        let work = try m.createSpace(name: "Work", color: "#426c4c", symbol: "briefcase")
+        m.deleteSpace(work)
+        _ = try m.createSpace(name: "work", color: "#376694", symbol: "star")
+        XCTAssertFalse(m.restoreDeleted(work))
+        XCTAssertEqual(m.recentlyDeleted.count, 1)
+    }
+
+    func testSpaceMarkShowsOnceASpaceExistsAndNeverOnAPrivateTab() throws {
+        let m = manager()
+        XCTAssertFalse(m.showsSpaceMark, "nothing before the first Space")
+        _ = try m.createSpace(name: "Work", color: "#426c4c", symbol: "briefcase")
+        XCTAssertTrue(m.showsSpaceMark)
+        m.createTab(isPrivate: true)
+        XCTAssertFalse(m.showsSpaceMark)
     }
 
     func testEditAndReorderSpaces() throws {

@@ -2427,4 +2427,14 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_vertical_tabs_text_size_default">Default</string>
     <string name="settings_general_vertical_tabs_text_size_large">Large</string>
     <string name="settings_general_vertical_tabs_text_size_extra_large">Extra large</string>
+    <string name="spaces_this_i_phone">This iPhone</string>
+    <string name="spaces_menu_label">Spaces</string>
+    <string name="spaces_menu_edit">Edit</string>
+    <plurals name="tab_groups_tucked">
+        <item quantity="one">%1$d tab tucked away</item>
+        <item quantity="other">%1$d tabs tucked away</item>
+    </plurals>
+    <string name="tab_groups_closed_toast">Group closed</string>
+    <string name="group_menu_rename">Rename…</string>
+    <string name="tab_groups_create">Create</string>
 </resources>

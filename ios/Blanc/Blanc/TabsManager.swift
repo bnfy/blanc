@@ -249,6 +249,10 @@ final class TabsManager {
         if UITestSeed.sends || UITestSeed.twoTabs || UITestSeed.startPage || UITestSeed.favorites || UITestSeed.privateTab {
             restoredState = nil
         }
+        if UITestSeed.groups {
+            UITestSeed.seedFavorites(into: syncDirectory)
+            restoredState = UITestSeed.groupsState()
+        }
         if UITestSeed.sends {
             UITestSeed.seedSends(into: syncDirectory)
             savedURLs = [UITestSeed.pageURL]
@@ -577,6 +581,32 @@ final class TabsManager {
         return name
     }
 
+    /// The tab grid's and palette's sections in display order: ungrouped pins, then each group
+    /// and each run of ungrouped tabs as `TabSections` lays them out.
+    var displaySections: [(id: String, group: TabGroup?, tabs: [TabModel])] {
+        let byId = Dictionary(uniqueKeysWithValues: tabs.map { ($0.id.uuidString, $0) })
+        let items = tabs.map { TabSections.Item(id: $0.id.uuidString, groupId: $0.groupId, pinned: $0.pinned) }
+        var out: [(id: String, group: TabGroup?, tabs: [TabModel])] = []
+        let shelf = tabs.filter { $0.groupId == nil && $0.pinned }
+        if !shelf.isEmpty { out.append(("pins", nil, shelf)) }
+        for section in TabSections.sections(items) {
+            let tabs = section.tabIds.compactMap { byId[$0] }
+            if let groupId = section.groupId, let group = groups.first(where: { $0.id == groupId }) {
+                out.append((groupId, group, tabs))
+            } else {
+                out.append(("run-\(section.tabIds.first ?? "")", nil, tabs))
+            }
+        }
+        return out
+    }
+
+    /// Shows a group: unfolds it and makes its first tab current.
+    func showGroup(_ id: String) {
+        guard let first = displaySections.first(where: { $0.group?.id == id })?.tabs.first else { return }
+        setGroupCollapsed(id, false)
+        setActive(first.id)
+    }
+
     /// The group named `name`, compared without regard to case (`/group`).
     func group(matching name: String) -> TabGroup? {
         groups.first { GroupNames.same($0.name, name) }
@@ -666,7 +696,7 @@ final class TabsManager {
         tabs.removeAll { $0.groupId == id }
         expireUndo()
         lastClosed = ClosedTab(tab: first.element, index: first.offset, blankId: nil,
-                               others: members.dropFirst().map { ($0.element, $0.offset) }, group: group)
+                               others: members.dropFirst().map { ($0.element, $0.offset) }, group: group, groupClose: true)
         let closing = first.element
         let window = undoWindow
         undoExpiry = Task { [weak self] in
@@ -712,6 +742,14 @@ final class TabsManager {
     @ObservationIgnored private var iphoneSet = SavedSet()
 
     var shownSpace: SpaceRecord? { spaces.first { $0.id == shownSetId } }
+    /// The Spaces menu over the Island (M17).
+    var isSpacesMenuPresented = false
+    /// The Island shows a Space mark once a Space exists, never on a private tab.
+    var showsSpaceMark: Bool { activeTab?.isPrivate != true && !spaces.isEmpty }
+    /// Tabs in a set, for the Spaces menu's counts.
+    func tabCount(_ id: String) -> Int {
+        id == shownSetId ? tabs.filter { !$0.isPrivate }.count : (savedSet(id)?.tabs.count ?? 0)
+    }
 
     /// The shown set as it would be put away.
     func captureShown() -> SavedSet {
@@ -773,6 +811,12 @@ final class TabsManager {
         persistSession()
     }
 
+    /// Space names compare without regard to case, as desktop's.
+    private func nameTaken(_ name: String, except id: String? = nil) -> Bool {
+        let wanted = SyncCrypto.lowercaseLikeJavaScript(name)
+        return spaces.contains { $0.id != id && SyncCrypto.lowercaseLikeJavaScript($0.name) == wanted }
+    }
+
     private func validIdentity(color: String, symbol: String) throws -> String {
         guard let hex = SpaceIdentity.normalizeHex(color), SpaceIdentity.isSymbol(symbol) else { throw SpaceError.invalid }
         return hex
@@ -783,6 +827,7 @@ final class TabsManager {
     func createSpace(name raw: String, color: String, symbol: String, withTab tabId: UUID? = nil) throws -> String {
         guard let name = TabSets.spaceName(raw) else { throw SpaceError.emptyName }
         guard spaces.filter({ $0.recoveredFrom == nil }).count < TabSets.spaceLimit else { throw SpaceError.limit }
+        guard !nameTaken(name) else { throw SpaceError.duplicateName }
         let hex = try validIdentity(color: color, symbol: symbol)
         let id = TabGroup.newId()
         // A new Space starts with a Start Page, or with the tab it was made from.
@@ -798,6 +843,7 @@ final class TabsManager {
         var space = spaces[index]
         if let raw {
             guard let name = TabSets.spaceName(raw) else { throw SpaceError.emptyName }
+            guard !nameTaken(name, except: id) else { throw SpaceError.duplicateName }
             space.name = name
         }
         space.color = try validIdentity(color: color ?? space.color, symbol: symbol ?? space.symbol)
@@ -863,13 +909,18 @@ final class TabsManager {
         restoreDeleted(id, show: deletedSpaceWasShown)
     }
 
-    /// Brings a Space back from Recently deleted, where it was.
-    func restoreDeleted(_ id: String, show showIt: Bool = false) {
-        guard let index = recentlyDeleted.firstIndex(where: { $0.space.id == id }) else { return }
+    /// Brings a Space back from Recently deleted, where it was. Refused, as
+    /// on desktop, at 25 Spaces or when another Space now has its name.
+    @discardableResult
+    func restoreDeleted(_ id: String, show showIt: Bool = false) -> Bool {
+        guard let index = recentlyDeleted.firstIndex(where: { $0.space.id == id }),
+              spaces.filter({ $0.recoveredFrom == nil }).count < TabSets.spaceLimit,
+              !nameTaken(recentlyDeleted[index].space.name) else { return false }
         let entry = recentlyDeleted.remove(at: index)
         spaces.insert(entry.space, at: min(entry.index, spaces.count))
         if showIt { show(set: id) }
         persistSession()
+        return true
     }
 
     /// Snapshots the open tabs' URLs + active index to the session store
@@ -1002,6 +1053,8 @@ struct ClosedTab {
     var others: [(tab: TabModel, index: Int)] = []
     /// The closed group, put back by Undo.
     var group: TabGroup?
+    /// Close Group, rather than one tab: the banner says so.
+    var groupClose = false
 }
 
 enum GroupNameError: Error, Equatable { case empty, duplicate }

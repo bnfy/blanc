@@ -16,6 +16,9 @@ struct ContentView: View {
     /// Resets on its own when the drag ends or is cancelled.
     @GestureState private var isDragging = false
     @State private var pageWidth: CGFloat = 0
+    /// The Island's height with its padding, so the Spaces card rises from it.
+    @State private var islandHeight: CGFloat = 0
+    @State private var spaceEditor: SpaceEditorTarget?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isStartPage: Bool {
@@ -48,6 +51,12 @@ struct ContentView: View {
         }
         .overlay(alignment: .bottom) {
             if isStartPage { islandContainer }
+        }
+        .overlay(alignment: .bottom) {
+            if manager.isSpacesMenuPresented { spacesMenu }
+        }
+        .sheet(item: $spaceEditor) { target in
+            SpaceEditor(manager: manager, target: target)
         }
         .alert(ReaderCopy.text("reader.title"), isPresented: Binding(get: { manager.readerError }, set: { manager.readerError = $0 })) {
             Button("OK", role: .cancel) {}
@@ -106,6 +115,32 @@ struct ContentView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { islandHeight = $0 }
+    }
+
+    /// The Spaces card over the page, lined up with the Island, which stays
+    /// visible and usable below it.
+    private var spacesMenu: some View {
+        ZStack(alignment: .bottom) {
+            Color.black.opacity(0.001)
+                .ignoresSafeArea()
+                .onTapGesture { withAnimation(.snappy) { manager.isSpacesMenuPresented = false } }
+                .accessibilityHidden(true)
+            SpacesCard(manager: manager, style: style, editorTarget: Binding(
+                get: { nil },
+                set: { target in
+                    manager.isSpacesMenuPresented = false
+                    spaceEditor = target
+                }))
+                .frame(maxWidth: 600)
+                .padding(.horizontal, 16)
+                .padding(.bottom, islandHeight - 4)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            Button("") { withAnimation(.snappy) { manager.isSpacesMenuPresented = false } }
+                .keyboardShortcut(.cancelAction)
+                .opacity(0)
+                .accessibilityHidden(true)
+        }
     }
 
     /// The neighbor's last picture beside the page while it follows the finger,
@@ -197,6 +232,7 @@ struct ContentView: View {
 
     private var addressPill: some View {
         HStack(spacing: 0) {
+            SpaceMarkButton(manager: manager, style: style)
             islandMark
             Rectangle().fill(style.border).frame(width: 1, height: 18)
 
