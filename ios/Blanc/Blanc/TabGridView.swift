@@ -9,11 +9,6 @@ struct TabGridView: View {
     private var style: BrowserStyle { BrowserStyle(scheme: colorScheme) }
     /// The group being renamed, or the tab a new group is being made for.
     @State private var naming: Naming?
-    /// Kept apart from `naming`: an alert clears its binding before the
-    /// button's action runs.
-    @State private var isNaming = false
-    @State private var nameDraft = ""
-    @State private var nameError: String?
     @State private var newSpaceTab: UUID?
 
     private enum Naming: Identifiable {
@@ -52,7 +47,7 @@ struct TabGridView: View {
                             if let group = section.group {
                                 VStack(alignment: .leading, spacing: 12) {
                                     GroupHeader(group: group, count: section.tabs.count, manager: manager, style: style) {
-                                        nameDraft = group.name; nameError = nil; naming = .rename(group); isNaming = true
+                                        naming = .rename(group)
                                     }
                                     if group.collapsed {
                                         tucked(group, count: section.tabs.count)
@@ -92,39 +87,32 @@ struct TabGridView: View {
         .background(TabPreviewRenderer(tabs: manager.tabs).allowsHitTesting(false).accessibilityHidden(true))
         .buttonStyle(.plain)
         .accessibilityIdentifier("tabs.grid")
-        .alert(SyncCopy.text("groupMenu.nameLabel"), isPresented: $isNaming) {
-            TextField(SyncCopy.text("groupMenu.nameLabel"), text: $nameDraft)
-                .accessibilityIdentifier("group.nameField")
-            Button(SyncCopy.text("sharedSpaces.cancel"), role: .cancel) {}
-            Button(SyncCopy.text(namingIsNew ? "tabGroups.create" : "ws.editor.done")) { commitName() }
-        } message: {
-            if let nameError { Text(nameError) }
+        .sheet(item: $naming) { current in
+            switch current {
+            case .rename(let group):
+                GroupNameSheet(title: SyncCopy.text("groupMenu.nameLabel"), confirm: SyncCopy.text("ws.editor.done"),
+                               initial: group.name) { name in nameError(name) { try manager.renameGroup(group.id, to: name) } }
+            case .newGroup(let tab):
+                GroupNameSheet(title: SyncCopy.text("tabMenu.newGroup"), confirm: SyncCopy.text("tabGroups.create"),
+                               initial: "") { name in
+                    nameError(name) { _ = try withAnimation { try manager.createGroup(named: name, with: tab) } }
+                }
+            }
         }
         .sheet(item: Binding(get: { newSpaceTab.map(SpaceEditorTarget.newWithTab) }, set: { if $0 == nil { newSpaceTab = nil } })) { target in
             SpaceEditor(manager: manager, target: target)
         }
     }
 
-    private var namingIsNew: Bool { if case .newGroup = naming { true } else { false } }
-
-    private func commitName() {
-        guard let current = naming else { return }
+    /// nil when `apply` took the name, else what to tell the person.
+    private func nameError(_ name: String, _ apply: () throws -> Void) -> String? {
         do {
-            switch current {
-            case .rename(let group): try manager.renameGroup(group.id, to: nameDraft)
-            case .newGroup(let tab): try withAnimation { _ = try manager.createGroup(named: nameDraft, with: tab) }
-            }
-        } catch GroupNameError.duplicate {
-            nameError = SyncCopy.text("groupMenu.duplicate", ["name": GroupNames.normalize(nameDraft)])
-            reopen(current)
+            try apply()
+            return nil
         } catch {
-            reopen(current)
+            // Empty names can't be submitted, so a refusal is a duplicate.
+            return SyncCopy.text("groupMenu.duplicate", ["name": GroupNames.normalize(name)])
         }
-    }
-
-    /// An alert closes on any button; a refused name asks again.
-    private func reopen(_ current: Naming) {
-        DispatchQueue.main.async { naming = current; isNaming = true }
     }
 
     private func cards(_ tabs: [TabModel]) -> some View {
@@ -161,7 +149,7 @@ struct TabGridView: View {
                 ForEach(manager.groups.filter { $0.id != tab.groupId }) { group in
                     Button(group.name) { withAnimation { manager.moveTab(tab.id, toGroup: group.id) } }
                 }
-                Button(SyncCopy.text("tabMenu.newGroup")) { nameDraft = ""; nameError = nil; naming = .newGroup(tab.id); isNaming = true }
+                Button(SyncCopy.text("tabMenu.newGroup")) { naming = .newGroup(tab.id) }
                 if tab.groupId != nil {
                     Button(SyncCopy.text("tabMenu.removeFromGroup")) { withAnimation { manager.moveTab(tab.id, toGroup: nil) } }
                 }
