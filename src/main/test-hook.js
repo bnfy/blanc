@@ -63,6 +63,7 @@ function install(refs) {
     // `(fn) => bindWindowRuntime(primaryRuntime, fn)`; every method below is
     // wrapped with it, once, mechanically, at the end of this function.
     bindRoot,
+    rearmLaunchSunrise,
     bangIcons,
     clearRecentBangsAndIcons,
     tabs,
@@ -1163,6 +1164,12 @@ function install(refs) {
     // ---- settings ----
     setAdblock(on) { settings.setSettings({ adblockEnabled: !!on }); },
     setIslandTabIcons(on) { return settings.setSettings({ islandTabIcons: !!on }).islandTabIcons; },
+    // The launch Sunrise plays once per launch; acceptance rearms that launch.
+    setLaunchSunrise(on) {
+      const saved = settings.setSettings({ launchSunrise: !!on }).launchSunrise;
+      rearmLaunchSunrise();
+      return saved;
+    },
     setTabSwitchOrder(order) { settings.setSettings({ tabSwitchOrder: order }); return settings.getSettings().tabSwitchOrder; },
     async probeOnePasswordUtilityProcess() {
       const result = await probeOnePasswordPackage();
@@ -1244,6 +1251,25 @@ function install(refs) {
         visible: ['Ledger', 'Billboard', 'Shelf', 'Tally']
           .filter((name) => getComputedStyle(document.getElementById('layout' + name)).display !== 'none'),
       }))()`);
+    },
+    // The launch Sunrise on the active Start Page: absent once it has ended
+    // (or was never due), else whether it shows and how far it has got.
+    readLaunchSunrise() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const scene = document.getElementById('launchSunrise');
+        if (!scene) return { present: false, layoutReady: document.body.classList.contains('layout-ready') };
+        const style = getComputedStyle(scene);
+        return {
+          present: true,
+          shown: !scene.hidden && style.display !== 'none',
+          pointerEvents: style.pointerEvents,
+          animations: scene.getAnimations({ subtree: true }).map((animation) => animation.animationName).sort(),
+          layoutReady: document.body.classList.contains('layout-ready'),
+        };
+      })()`);
     },
     readMigrationChecklistDom() {
       const tab = tabs.get(getActiveTabId());
@@ -4118,6 +4144,7 @@ function install(refs) {
         tabArchive: 'off',
         islandHoverOpen: false,
         islandTabIcons: false,
+        launchSunrise: false,
         islandAutoHide: false,
         islandAutoHideStyle: 'float',
         surfaceStyle: 'sunrise',

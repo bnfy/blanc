@@ -318,6 +318,16 @@
   });
   newtabLayout.addEventListener('change', () =>
     window.bowserPages.settings.set({ newtabLayout: newtabLayout.value }));
+  if (supports('launchSunrise')) {
+    const launchSunrise = document.getElementById('launchSunrise');
+    launchSunrise.checked = settings.launchSunrise === true;
+    launchSunrise.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ launchSunrise: launchSunrise.checked });
+      launchSunrise.checked = saved.launchSunrise === true;
+    });
+  } else {
+    document.getElementById('launchSunriseSetting')?.remove();
+  }
   // The tour opens as a real tab in the sheet's window — main creates and
   // activates it (the sheet's own navigation is default-deny for blanc://).
   showWelcomeTour.addEventListener('click', () =>

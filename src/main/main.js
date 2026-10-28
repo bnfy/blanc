@@ -79,6 +79,7 @@ const {
   previousActiveSurvivor,
 } = require('./tab-activation');
 const tabSwitcherModule = require('./tab-switcher');
+const { createLaunchSunrise } = require('./launch-sunrise');
 const {
   shieldChipState, shieldPopoverModel, shieldProviderModel, connectionFor, committedUrlOf, activeConnection,
 } = require('./shield-model');
@@ -9487,6 +9488,10 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 
 // Electron can leave a detached document reporting visible. Send a narrow
 // start-page signal alongside the native view change so its clock can stop.
+// Play the Sunrise when Blanc opens (#1179): the launch window starts with the
+// process, so a Start Page opened long after launch never plays it.
+const launchSunrise = createLaunchSunrise({ startedAt: Date.now() });
+
 function startPageViewVisible(tab) {
   if (!tab || !liveContents(tab)) return false;
   const owner = windowRuntimes.runtimeForTab(tab.id);
@@ -15484,6 +15489,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       sharedQuestionAnswer:(wc,id,on)=>{if(startPageSenderIsPrivate(wc))return false;const accepted=sharedSharing.acknowledge(id);if(accepted&&on){rt().sharedShowSheet=true;openSettingsSection('sync');}return accepted;},
       status: startPageStatus,
       visibleFor: (wc) => startPageViewVisible(tabs.get(tabIdByWebContentsId.get(wc.id))),
+      launchSunriseFor: (wc) => {
+        const tab = tabs.get(tabIdByWebContentsId.get(wc.id));
+        return launchSunrise.take({
+          enabled: settings.getSettings().launchSunrise === true,
+          private: !!tab?.private,
+          visible: startPageViewVisible(tab),
+          now: Date.now(),
+        });
+      },
       // The Settings sheet is no tab, so it gets the ordinary (non-private) state.
       wallpaperFor: (wc) => {
         const tab = tabs.get(tabIdByWebContentsId.get(wc.id));
@@ -15647,6 +15661,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // BLANC_TEST=0/false stays off.
   if (acceptanceTestMode) {
     require('./test-hook').install({
+      rearmLaunchSunrise: () => launchSunrise.rearm(Date.now()),
       sharedSpacesTest:async(action,payload)=>{
         if(action==='enable')return sync.enable(payload);
         if(action==='pairingPeer'){sharedSharing.armPairing();require('./tabsync').mergeFromSync({devices:{'pseudo-peer':{name:'zzz-peer',platform:'linux',updatedAt:Date.now(),tabs:[],groups:[]}}},sync.sharedContext());return true;}

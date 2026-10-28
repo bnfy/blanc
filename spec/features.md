@@ -1031,6 +1031,16 @@ From the desktop `DEFAULTS`:
   Favorites: ledger, shelf, and tally show "Favorite a page with ♥ to pin it
   here" when there are none. Billboard, which shows recent sites, shows no
   hint. Private start pages show no Patron pill and no blocked counts.
+- **Play the Sunrise when Blanc opens** (desktop, Settings → Appearance; off
+  by default, device-local, never synced). When on, the first visible,
+  non-private Start Page within 30 seconds of launch draws the website's
+  opening Sunrise once over its finished layout: the sky warms, the horizon
+  draws in, the disc rises and the rays open, then the scene fades onto the
+  page (about 2.7 seconds). It is cut from the app's own Sunrise mark and
+  never uses the website's files or wordmark font. It takes no pointer
+  input, ends at the first key or click, never delays startup or a link
+  opened at launch, and is skipped entirely when the system asks for reduced
+  motion.
 - Billboard centres whatever it shows (clock, blocked line, groups, recent
   sites) vertically between the window top and the footer; on a short window
   it stops just below the brand row rather than sliding under it.
