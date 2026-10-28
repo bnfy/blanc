@@ -323,17 +323,28 @@ test('the rail\'s first row holds the Space mark and its footer starts a new gro
 
   // New group sits beside New tab, named and described for screen readers.
   assert.match(html, /id="verticalTabsNew"[\s\S]*?<\/button>\s*<button\s+id="verticalTabsNewGroup"[\s\S]*?data-i18n-aria-label="rail\.newGroup"/);
-  assert.match(rail, /newGroupButton\?\.addEventListener\('click', \(\) => \{\s*if \(newGroupButton\.getAttribute\('aria-disabled'\) === 'true'\) return;\s*invokeLeavingRail\('start a new group', \(\) => api\.beginNewGroup\(\)\);/);
+  assert.match(rail, /newGroupButton\?\.addEventListener\('click', \(\) => \{\s*invokeLeavingRail\('start a new group', \(\) => api\.beginNewGroup\(\)\);/);
   // It runs the tab menu's New Group… behind one gate (newGroupTarget): the
-  // selection, pruned first, when several tabs are selected and each could be
-  // placed, else the active tab; never while the window closes or switches
-  // Space. Main sends the gate's answer so the button reads unavailable.
-  assert.match(main, /function newGroupTarget\(runtime\) \{\s*if \(runtime\.closing \|\| runtime\.workspaceTransition\) return null;[\s\S]*?ids\.every\(id => canMoveTabToSpace\(tabs\.get\(id\), runtime, true\)\)/);
-  assert.match(main, /chromeOn\('chrome:new-group', \(\) => \{\s*const runtime = rt\(\);\s*Object\.assign\(runtime, pruneSelection\(runtime, tabLayoutList\(runtime\)\)\);\s*const target = newGroupTarget\(runtime\);\s*if \(target\?\.ids\) \{\s*runTabsAction\('batch-group-new', \{\}, target\.ids\)\s*\.catch\(/);
+  // selection when several tabs are selected and batchCanPlace allows (the
+  // tab menu's canPlace and the batch actions use the same helper), else the
+  // active tab; never while the window closes or switches Space.
+  assert.match(main, /function batchCanPlace\(owner, ids\) \{\s*return ids\.every\(id => canMoveTabToSpace\(tabs\.get\(id\), owner, true\)\);/);
+  assert.match(main, /function newGroupTarget\(runtime\) \{\s*if \(runtime\.closing \|\| runtime\.workspaceTransition\) return null;[\s\S]*?if \(ids\.length > 1\) return batchCanPlace\(runtime, ids\)/);
+  assert.match(main, /const place = batchCanPlace\(source, ids\);/);
+  assert.match(main, /canPlace: batchCanPlace\(owner, ids\),/);
+  // The click prunes the selection; one that changed under it is shown first
+  // instead of acted on.
+  assert.match(main, /chromeOn\('chrome:new-group', \(\) => \{\s*const runtime = rt\(\);\s*const before = runtime\.selectedTabIds \?\? \[\];\s*Object\.assign\(runtime, pruneSelection\(runtime, tabLayoutList\(runtime\)\)\);[\s\S]*?if \(before\.length > 1 && JSON\.stringify\(before\) !== JSON\.stringify\(runtime\.selectedTabIds \?\? \[\]\)\) \{\s*broadcastTabs\(\);\s*return;\s*\}\s*const target = newGroupTarget\(runtime\);\s*if \(target\?\.ids\) \{\s*runTabsAction\('batch-group-new', \{\}, target\.ids\)\s*\.catch\(/);
+  // Both tab payloads carry the gate's answer, from a pruned selection.
   assert.equal(main.match(/canStartGroup: !!newGroupTarget\((?:runtime|rt\(\))\),/g)?.length, 2, 'both tab payloads carry the gate');
-  // Its label names what it acts on, and it stays focusable when unavailable.
+  assert.match(main, /chromeHandle\('tabs:get-all', \(\) => \(syncTabLayout\(rt\(\)\),\s*Object\.assign\(rt\(\), pruneSelection\(rt\(\), tabLayoutList\(rt\(\)\)\)\), \{/);
+  // Its label names what it acts on; unavailable is display only (the click
+  // always asks main) and attributes are written only when they change.
   assert.match(rail, /blancI18n\.t\(\(payload\.selectedTabIds\?\.length \?\? 0\) > 1 \? 'rail\.newGroupSelection' : 'rail\.newGroup'\)/);
-  assert.match(rail, /newGroupButton\.setAttribute\('aria-disabled', String\(payload\.canStartGroup === false\)\);/);
-  assert.match(rail, /if \(newGroupButton\.getAttribute\('aria-disabled'\) === 'true'\) return;/);
+  assert.match(rail, /if \(newGroupButton\.dataset\.tooltip !== label\) newGroupButton\.dataset\.tooltip = label;/);
+  assert.match(rail, /if \(newGroupButton\.getAttribute\('aria-disabled'\) !== unavailable\) newGroupButton\.setAttribute\('aria-disabled', unavailable\);/);
+  assert.doesNotMatch(rail, /getAttribute\('aria-disabled'\) === 'true'\) return/);
   assert.doesNotMatch(rail, /newGroupButton\.disabled/);
+  // The drag-deferral comment stays on render().
+  assert.match(rail, /rendered exactly once when the drag ends\.\n  function render\(payload = \{\}\) \{/);
 });

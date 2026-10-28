@@ -27,7 +27,7 @@ function setup({ refusedClose = null, pinFault = false, quiet = null } = {}) {
     shownMuted: tab => tab.muted, pinnedHomeFor: () => { if (pinFault) throw new Error('failed while planning'); return null; },
     pruneEmptyGroups() {}, liveContents: () => null,
   };
-  vm.runInNewContext(`${fn('batchMembers')}\n${fn('runTabsAction')}\nthis.run = runTabsAction`, sandbox);
+  vm.runInNewContext(`${fn('batchMembers')}\n${fn('batchCanPlace')}\n${fn('runTabsAction')}\nthis.run = runTabsAction`, sandbox);
   return { runtime, tabs, entries, run: action => sandbox.run(action), get broadcasts() { return broadcasts; } };
 }
 test('a simulated refusal on the second close records only actual closes and keeps the refused tab selected', async () => {
@@ -93,7 +93,7 @@ test('right-clicking an unselected row replaces selection and opens the ordinary
     tabContextData: tab => ({ tab, groups: [], spaces: [], canCreateSpace: true }),
     tabLayoutList: () => list, broadcastTabs() {}, explicitSleepEligible: () => false,
     liveContents: () => null, canMoveTabToSpace: () => true };
-  vm.runInNewContext(`${fn('tabRowContextData')}\nthis.context = tabRowContextData`, sandbox);
+  vm.runInNewContext(`${fn('batchCanPlace')}\n${fn('tabRowContextData')}\nthis.context = tabRowContextData`, sandbox);
   assert.equal(sandbox.context(list[1], runtime).batch.ids.length, 3);
   assert.equal(sandbox.context(list[3], runtime).batch, undefined);
   assert.deepEqual([...runtime.selectedTabIds], ['d']); assert.equal(runtime.activeTabId, 'c');

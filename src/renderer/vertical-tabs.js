@@ -683,20 +683,24 @@
     }
   }
 
-  // A drag (or a settling drop) freezes only the list: the newest payload
-  // waits here and is rendered exactly once when the drag ends.
   // New group names what it acts on: every selected tab when several are,
-  // else this tab. When main's gates refuse (newGroupTarget), it reads as
+  // else this tab. When main's gate refuses (newGroupTarget), it reads as
   // unavailable, as the tab menu greys out New Group…, but stays focusable so
-  // keyboard focus isn't dropped.
+  // keyboard focus isn't dropped. That is display only: a click always asks
+  // main, which re-checks, because not every change to the gate is broadcast.
+  // Attributes are written only when they change, so a shown tooltip isn't
+  // redrawn on every tab update.
   function renderNewGroupButton(payload) {
     if (!newGroupButton) return;
     const label = blancI18n.t((payload.selectedTabIds?.length ?? 0) > 1 ? 'rail.newGroupSelection' : 'rail.newGroup');
-    newGroupButton.dataset.tooltip = label;
-    newGroupButton.setAttribute('aria-label', label);
-    newGroupButton.setAttribute('aria-disabled', String(payload.canStartGroup === false));
+    const unavailable = String(payload.canStartGroup === false);
+    if (newGroupButton.dataset.tooltip !== label) newGroupButton.dataset.tooltip = label;
+    if (newGroupButton.getAttribute('aria-label') !== label) newGroupButton.setAttribute('aria-label', label);
+    if (newGroupButton.getAttribute('aria-disabled') !== unavailable) newGroupButton.setAttribute('aria-disabled', unavailable);
   }
 
+  // A drag (or a settling drop) freezes only the list: the newest payload
+  // waits here and is rendered exactly once when the drag ends.
   function render(payload = {}) {
     if (drag.isActive()) {
       deferredPayload = payload;
@@ -854,7 +858,6 @@
     invokeLeavingRail('create tab', () => api.createTab(null, { focusAddress: true }));
   });
   newGroupButton?.addEventListener('click', () => {
-    if (newGroupButton.getAttribute('aria-disabled') === 'true') return;
     invokeLeavingRail('start a new group', () => api.beginNewGroup());
   });
   resizeHandle.addEventListener('pointerdown', (event) => {

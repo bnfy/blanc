@@ -10486,16 +10486,21 @@ function beginNewGroup(tabId) {
   showOverlay('panel', { prefill: '/group ', purpose: { beginGroupTabId: tabId } });
 }
 
-/** What New group acts on in `runtime`, with the tab menu's gates: every
- * selected tab when several are (only if each could be placed, as the menu's
- * batch Move to Group requires), else the active tab; null while the window
- * is closing or switching Space. */
+/** Whether every tab in `ids` can leave `owner` together, for a group, a
+ * Space or a window: the one gate the tab menu (canPlace), the batch actions
+ * and the rail's New group share. canMoveTabToSpace also refuses while the
+ * window closes or switches Space, or a tab is going quiet or waking. */
+function batchCanPlace(owner, ids) {
+  return ids.every(id => canMoveTabToSpace(tabs.get(id), owner, true));
+}
+
+/** What New group acts on in `runtime`: every selected tab when several are
+ * (only if batchCanPlace allows, as the menu's batch Move to Group requires),
+ * else the active tab; null while the window is closing or switching Space. */
 function newGroupTarget(runtime) {
   if (runtime.closing || runtime.workspaceTransition) return null;
   const ids = runtime.selectedTabIds ?? [];
-  if (ids.length > 1) {
-    return ids.every(id => canMoveTabToSpace(tabs.get(id), runtime, true)) ? { ids: [...ids] } : null;
-  }
+  if (ids.length > 1) return batchCanPlace(runtime, ids) ? { ids: [...ids] } : null;
   return tabs.has(runtime.activeTabId) ? { id: runtime.activeTabId } : null;
 }
 
@@ -11626,7 +11631,8 @@ function registerIpcHandlers() {
     closeSplit(split.id);
     return true;
   });
-  chromeHandle('tabs:get-all', () => (syncTabLayout(rt()), {
+  chromeHandle('tabs:get-all', () => (syncTabLayout(rt()),
+    Object.assign(rt(), pruneSelection(rt(), tabLayoutList(rt()))), {
     tabs: serializeTabs(),
     selectedTabIds: [...(rt().selectedTabIds ?? [])],
     canStartGroup: !!newGroupTarget(rt()),
@@ -11729,7 +11735,15 @@ function registerIpcHandlers() {
   // with the same gates (newGroupTarget), for the selection or the active tab.
   chromeOn('chrome:new-group', () => {
     const runtime = rt();
+    const before = runtime.selectedTabIds ?? [];
     Object.assign(runtime, pruneSelection(runtime, tabLayoutList(runtime)));
+    // A selection that changed under the click (a tab closed, or joined or
+    // left a split) is shown first, so the button never acts on tabs the rail
+    // doesn't show selected or on fewer than it promised.
+    if (before.length > 1 && JSON.stringify(before) !== JSON.stringify(runtime.selectedTabIds ?? [])) {
+      broadcastTabs();
+      return;
+    }
     const target = newGroupTarget(runtime);
     if (target?.ids) {
       runTabsAction('batch-group-new', {}, target.ids)
@@ -12742,7 +12756,7 @@ async function runTabsAction(action, args = {}, ids = rt().selectedTabIds) {
   if (!members || source.closing || source.workspaceTransition) return false;
   ids = source.tabOrder.filter(id => ids.includes(id));
   const stable = members.every(tab => !tab.sleeping && !tab.waking);
-  const place = stable && members.every(tab => canMoveTabToSpace(tab, source, true));
+  const place = batchCanPlace(source, ids);
   const revision = source.selectionRevision ?? 0;
   const finish = (remaining = []) => {
     // Quiet/wake can await a page. Do not overwrite a newer user selection.
@@ -12889,7 +12903,7 @@ function tabRowContextData(tab, owner) {
   const stable = !owner.closing && !owner.workspaceTransition && !ids.some(id => tabs.get(id)?.sleeping || tabs.get(id)?.waking);
   return { ...context, batch: { ids, members: members.map(tab => ({ ...tabContextData(tab, owner).tab,
     canQuiet: explicitSleepEligible(tab, owner), canReload: !!tab.asleep || !!liveContents(tab) })),
-    groups: context.groups, spaces: context.spaces, canPlace: stable && members.every(tab => canMoveTabToSpace(tab, owner, true)),
+    groups: context.groups, spaces: context.spaces, canPlace: batchCanPlace(owner, ids),
     canMutate: stable, canCreateSpace: context.canCreateSpace } };
 }
 
