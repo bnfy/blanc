@@ -265,6 +265,282 @@ try {
   vectors.spaceDefaults=[[],[{color:'#426c4c',symbol:'briefcase'}],identity.PRESETS.map((p,i)=>({color:p.hex,symbol:identity.SYMBOL_IDS[i]})),
     Array.from({length:17},(_, i)=>({color:identity.PRESETS[i%8].hex,symbol:identity.SYMBOL_IDS[i%16]}))]
     .map(existing=>entry(existing.length+' existing',{existing},identity.defaultsFor(existing)));
+  // M17b: the rest of the Shared Spaces protocol iOS ports.
+  const zeroKey=Buffer.alloc(32), F=(v,c=100,by='a')=>spaces.field(v,c,by), S=pipeSpace;
+  const tabRec=(n,over={})=>({nav:F({url:`https://example.test/${n}`,title:`Tab ${n}`}),name:F(null),pinned:F(false),
+    groupId:F(null),pos:F(spaces.keyFor('','',sid(n))),deleted:F(false),...over});
+  const groupRec=(n,over={})=>({name:F(`Group ${n}`),color:F(null),collapsed:F(false),pos:F(spaces.keyFor('','',sid(n))),deleted:F(false),...over});
+  const spaceRec=(n,over={})=>({name:F('Work'),color:F('#426c4c'),symbol:F('briefcase'),pos:F(spaces.keyFor('','',sid(n))),deleted:F(false),...over});
+  const blob=(tabsMap={},groupsMap={},extra={})=>({v:1,spaceId:S,groups:groupsMap,tabs:tabsMap,...extra});
+  const allOrders=(merge,a,b,c)=>{
+    const expected=merge(merge(a,b),c);
+    for(const [x,y,z] of [[a,b,c],[a,c,b],[b,a,c],[b,c,a],[c,a,b],[c,b,a]]) {
+      assert.deepEqual(merge(merge(x,y),z),expected); assert.deepEqual(merge(x,merge(y,z)),expected);
+    }
+    return expected;
+  };
+  vectors.spacesMergeBlob=[
+    ['field conflicts across three devices',
+      blob({[sid(1)]:tabRec(1)},{[sid(50)]:groupRec(50,{name:F('Alpha',300,'a')})}),
+      blob({[sid(1)]:tabRec(1,{nav:F({url:'https://example.test/one',title:'One'},200,'b')})},{[sid(50)]:groupRec(50,{name:F('Beta',300,'b')})}),
+      blob({[sid(1)]:tabRec(1,{pinned:F(true,300,'c')}),[sid(2)]:tabRec(2,{groupId:F(sid(50),150,'c')})})],
+    ['a tombstone wins over a newer live write',
+      blob({[sid(1)]:{deleted:F(true,100,'a')}}),
+      blob({[sid(1)]:tabRec(1,{deleted:F(false,500,'b'),nav:F({url:'https://example.test/later',title:'Later'},500,'b')})}),
+      blob({[sid(1)]:tabRec(1,{name:F('Custom',300,'c')})})],
+    ['equal clock and writer: the smaller canonical value',
+      blob({[sid(1)]:tabRec(1,{nav:F({url:'https://example.test/b',title:'B'})})}),
+      blob({[sid(1)]:tabRec(1,{nav:F({url:'https://example.test/a',title:'A'})})}),
+      blob({[sid(1)]:tabRec(1,{nav:F({url:'https://example.test/a',title:'Z'})})})],
+    ['writer ids compare by UTF-16 code units',
+      blob({[sid(1)]:tabRec(1,{name:F('first',100,'￿')})}),
+      blob({[sid(1)]:tabRec(1,{name:F('second',100,'😀')})}),
+      blob({[sid(1)]:tabRec(1,{name:F('third',100,'\ue000')})})],
+    ['unknown fields are dropped and a missing side is ignored',
+      blob({[sid(1)]:tabRec(1,{muted:F(true,900,'z')})}),
+      null,
+      blob({[sid(3)]:tabRec(3)},{},{active:F(sid(3),50,'c')})],
+    ['groups, selection and a deleted target',
+      blob({[sid(1)]:tabRec(1),[sid(2)]:tabRec(2)},{[sid(50)]:groupRec(50)},{active:F(sid(1),400,'a')}),
+      blob({[sid(1)]:tabRec(1,{deleted:F(true,450,'b')})},{[sid(50)]:groupRec(50,{collapsed:F(true,200,'b'),color:F('#9b4761',200,'b')})},{active:F(sid(2),300,'b')}),
+      blob({[sid(2)]:tabRec(2,{groupId:F(sid(50),250,'c')})},{[sid(51)]:{deleted:F(true,10,'c')}},{active:F(sid(2),400,'b')})],
+  ].map(([name,a,b,c])=>entry(name,{a,b,c},allOrders(spaces.mergeBlob,a,b,c)));
+  const index=(map)=>({v:1,spaces:map});
+  vectors.spacesMergeIndex=[
+    ['identity fields and revision hints',
+      index({[sid(60)]:{...spaceRec(60,{name:F('Home',200,'a')}),rev:'1111111111111111',revAt:10,revBy:'a',createdAt:1000,createdBy:'a'}}),
+      index({[sid(60)]:{...spaceRec(60,{color:F('#376694',300,'b')}),rev:'2222222222222222',revAt:20,revBy:'b',createdAt:999,createdBy:'b'}}),
+      index({[sid(60)]:{...spaceRec(60,{symbol:F('code',300,'c')}),rev:'3333333333333333',revAt:20,revBy:'a'},[sid(61)]:spaceRec(61)})],
+    ['a deleted Space and an unclocked hint',
+      index({[sid(60)]:{...spaceRec(60),rev:'aaaaaaaaaaaaaaaa'}}),
+      index({[sid(60)]:{...spaceRec(60),deleted:F(true,50,'b'),createdBy:'x'.repeat(200)}}),
+      index({[sid(62)]:{...spaceRec(62,{pos:F(spaces.keyFor('','',sid(62)),500,'c')}),createdAt:'soon',revAt:7}})],
+  ].map(([name,a,b,c])=>entry(name,{a,b,c},allOrders(spaces.mergeIndex,a,b,c)));
+  const long=n=>'n'.repeat(n);
+  vectors.spacesSanitize=[
+    ['junk ids are skipped',{kind:'blob',raw:blob({[sid(1)]:tabRec(1),ABCDEF:tabRec(2),[sid(3).toUpperCase()]:tabRec(3),[sid(4).slice(1)]:tabRec(4)},{'not-an-id':groupRec(5)})}],
+    ['bad colours',{kind:'blob',raw:blob({},{[sid(1)]:groupRec(1,{color:F('red')}),[sid(2)]:groupRec(2,{color:F('  #ABCDEF ')}),[sid(3)]:groupRec(3,{color:F(null)}),[sid(4)]:groupRec(4,{color:F(42)})})}],
+    ['long names',{kind:'blob',raw:blob({[sid(1)]:tabRec(1,{name:F('  a\u0085b\t\tc\u0007 '+'😀'.repeat(120))}),[sid(2)]:tabRec(2,{name:F('   ')}),[sid(3)]:tabRec(3,{nav:F({url:'https://example.test/3',title:long(250)})})},
+      {[sid(4)]:groupRec(4,{name:F(long(61)+'😀')}),[sid(5)]:groupRec(5,{name:F(null)})})}],
+    ['foreign scheme and oversized URLs',{kind:'blob',raw:blob({[sid(1)]:tabRec(1,{nav:F({url:'javascript:alert(1)',title:'x'})}),[sid(2)]:tabRec(2,{nav:F({url:'ftp://example.test/',title:'x'})}),
+      [sid(3)]:tabRec(3,{nav:F({url:'data:text/html,hi',title:'x'})}),[sid(4)]:tabRec(4,{nav:F({url:'https://example.test/'+'x'.repeat(2030),title:'x'})}),[sid(5)]:tabRec(5,{nav:F({url:'HTTPS://Example.TEST/Up',title:7})}),
+      [sid(6)]:tabRec(6,{nav:F({url:'not a url',title:'x'})}),[sid(7)]:{deleted:F(true),nav:F({url:'mailto:x@example.test',title:'x'})}})}],
+    ['malformed fields',{kind:'blob',raw:blob({[sid(1)]:tabRec(1,{pinned:F(true,-1)}),[sid(2)]:tabRec(2,{pinned:F(true,1.5)}),[sid(3)]:tabRec(3,{pinned:F(true,100,'')}),
+      [sid(4)]:tabRec(4,{pinned:F(true,100,'w'.repeat(129))}),[sid(5)]:tabRec(5,{pinned:{c:100,by:'a'}}),[sid(6)]:tabRec(6,{groupId:F('nope')}),[sid(7)]:tabRec(7,{pos:F(12)}),
+      [sid(8)]:tabRec(8,{deleted:F('yes')}),[sid(9)]:{deleted:F(false)},[sid(10)]:{deleted:F(true,100,'w'.repeat(128))},[sid(11)]:tabRec(11,{pinned:F(true,9007199254740992)})})}],
+    ['selection cleared or dropped',{kind:'blob',raw:blob({[sid(1)]:tabRec(1,{deleted:F(true)})},{},{active:F(sid(1),5,'a')})}],
+    ['selection that is not an id',{kind:'blob',raw:blob({[sid(1)]:tabRec(1)},{},{active:F('first',5,'a')})}],
+    ['selection already cleared',{kind:'blob',raw:blob({[sid(1)]:tabRec(1)},{},{active:{...F(sid(1),5,'a'),cleared:true}})}],
+    ['unsupported version',{kind:'blob',raw:{...blob(),v:2}}],
+    ['bad Space id',{kind:'blob',raw:{...blob(),spaceId:'space'}}],
+    ['tabs not a map',{kind:'blob',raw:{...blob(),tabs:[]}}],
+    ['not an object',{kind:'blob',raw:'blob'}],
+    ['index repairs',{kind:'index',raw:index({[sid(1)]:spaceRec(1,{name:F('   '),color:F('teal'),symbol:F('rocket')}),[sid(2)]:{...spaceRec(2,{name:F(long(70))}),rev:'ABCDEFABCDEFABCD',revAt:4},
+      [sid(3)]:{...spaceRec(3),rev:'0123456789abcdef',revAt:-1,revBy:'',createdAt:1.5,createdBy:'z'.repeat(130)},[sid(4)]:spaceRec(4,{symbol:F('constructor')}),[sid(5)]:spaceRec(5,{color:F(null)})})}],
+    ['index unsupported',{kind:'index',raw:{v:1,spaces:[]}}],
+  ].map(([name,input])=>entry(name,input,input.kind==='blob'?spaces.sanitizeBlob(input.raw):spaces.sanitizeIndex(input.raw)));
+  const expNow=spaces.LIMITS.tombstoneMs+10000;
+  vectors.spacesExpire=[
+    ['tab and group tombstones at the edge',{blob:blob({[sid(1)]:{deleted:F(true,10000,'a')},[sid(2)]:{deleted:F(true,10001,'a')},[sid(3)]:tabRec(3,{deleted:F(false,1,'a')})},
+      {[sid(4)]:{deleted:F(true,9999,'a')},[sid(5)]:groupRec(5,{deleted:F(true,10001,'a')})},{active:F(sid(1),20000,'a')}),now:expNow}],
+    ['index tombstones',{blob:index({[sid(1)]:{...spaceRec(1),deleted:F(true,10000,'a')},[sid(2)]:{...spaceRec(2),deleted:F(true,20000,'a')},[sid(3)]:spaceRec(3)}),now:expNow}],
+  ].map(([name,input])=>entry(name,input,spaces.expireTombstones(input.blob,input.now)));
+  const setOut=({keep,recover})=>({keep:[...keep].sort(),recover:[...recover].sort()});
+  vectors.spacesRecovery=[
+    ['a recent merge keeps everything',{localBlob:blob({[sid(1)]:tabRec(1)},{[sid(2)]:groupRec(2)}),fetchedBlob:blob(),lastMergeAt:1000,now:2000}],
+    ['stale: records missing remotely are recovered',{localBlob:blob({[sid(1)]:tabRec(1),[sid(3)]:tabRec(3)},{[sid(2)]:groupRec(2)}),fetchedBlob:blob({[sid(3)]:tabRec(3)}),lastMergeAt:1,now:spaces.LIMITS.tombstoneMs+2}],
+    ['exactly thirty days is not stale',{localBlob:blob({[sid(1)]:tabRec(1)}),fetchedBlob:blob({[sid(3)]:tabRec(3)}),lastMergeAt:1,now:spaces.LIMITS.tombstoneMs+1}],
+    ['never merged, remote empty',{localBlob:blob({[sid(1)]:tabRec(1)}),fetchedBlob:blob(),lastMergeAt:null,now:2000}],
+    ['never merged, remote has content',{localBlob:blob({[sid(1)]:tabRec(1)}),fetchedBlob:blob({},{[sid(9)]:groupRec(9)}),lastMergeAt:null,now:2000}],
+    ['never merged, no remote blob',{localBlob:blob({[sid(1)]:tabRec(1)}),fetchedBlob:null,lastMergeAt:null,now:2000}],
+    ['expired local tombstones are neither',{localBlob:blob({[sid(1)]:{deleted:F(true,100,'a')},[sid(2)]:tabRec(2)}),fetchedBlob:blob({[sid(3)]:tabRec(3)}),lastMergeAt:1,now:spaces.LIMITS.tombstoneMs+200}],
+  ].map(([name,input])=>entry(name,input,setOut(spaces.recoveryDecision(input))));
+  const padEncrypt=pad=>t=>crypt.encrypt(zeroKey,t+' '.repeat(pad));
+  // The largest padding at which `fits` still fits, so one more change does not.
+  const padFor=fits=>{let lo=0,hi=spaces.LIMITS.blobBytes;while(lo<hi){const m=Math.ceil((lo+hi)/2);if(spaces.blobFits(fits,padEncrypt(m)))lo=m;else hi=m-1;}return lo;};
+  const unit=(kind,id,after,over={})=>({kind,id,key:kind+':'+id,before:null,after,required:false,clock:100,dependencies:[],...over});
+  const admitBase=blob({[sid(1)]:tabRec(1),[sid(2)]:tabRec(2)});
+  const admitCases=[
+    ['fits',admitBase,[unit('tabs',sid(2),tabRec(2))],admitBase],
+    ['the newest change is held back',blob({[sid(1)]:tabRec(1),[sid(2)]:tabRec(2,{nav:F({url:'https://example.test/'+'q'.repeat(400),title:'Q'},300,'a')}),[sid(3)]:tabRec(3)}),
+      [unit('tabs',sid(2),tabRec(2,{nav:F({url:'https://example.test/'+'q'.repeat(400),title:'Q'},300,'a')}),{before:tabRec(2),clock:300}),unit('tabs',sid(3),tabRec(3),{clock:200})],blob({[sid(1)]:tabRec(1),[sid(2)]:tabRec(2),[sid(3)]:tabRec(3)})],
+    ['closed tabs would free the room',blob({[sid(1)]:tabRec(1),[sid(2)]:tabRec(2),[sid(4)]:tabRec(4),[sid(5)]:{deleted:F(true,50,'b')}}),
+      [unit('tabs',sid(4),tabRec(4))],blob({[sid(1)]:tabRec(1),[sid(2)]:tabRec(2),[sid(4)]:tabRec(4)})],
+    ['a tab in a new group is held with its group',blob({[sid(1)]:tabRec(1),[sid(2)]:tabRec(2),[sid(7)]:tabRec(7,{groupId:F(sid(50),300,'a')})},{[sid(50)]:groupRec(50)}),
+      [unit('groups',sid(50),groupRec(50),{clock:400}),unit('tabs',sid(7),tabRec(7,{groupId:F(sid(50),300,'a')}),{clock:300,dependencies:['groups:'+sid(50)]})],admitBase],
+    ['required state over budget',blob({[sid(1)]:tabRec(1),[sid(2)]:tabRec(2),[sid(3)]:tabRec(3)}),[unit('tabs',sid(3),tabRec(3),{required:true})],admitBase],
+    ['retry order outranks clocks',blob({[sid(1)]:tabRec(1),[sid(2)]:tabRec(2),[sid(3)]:tabRec(3),[sid(4)]:tabRec(4)}),
+      [unit('tabs',sid(3),tabRec(3),{clock:900,admissionRank:0}),unit('tabs',sid(4),tabRec(4),{clock:100,admissionRank:1})],blob({[sid(1)]:tabRec(1),[sid(2)]:tabRec(2),[sid(3)]:tabRec(3)})],
+  ];
+  vectors.spacesAdmit=admitCases.map(([name,candidate,changes,fitting])=>{
+    const pad=padFor(fitting),r=spaces.admit({candidate,changes,encryptFn:padEncrypt(pad)});
+    return entry(name,{candidate,changes,pad},{blob:r.blob,unsynced:[...r.unsynced].sort(),reason:r.reason});
+  });
+  {
+    const relay=blob({[sid(1)]:tabRec(1,{muted:F(true,100,'b')}),[sid(9)]:{deleted:F(true,1,'b')}});
+    const candidate=blob({[sid(1)]:tabRec(1),[sid(2)]:tabRec(2)});
+    const finish=b=>spaces.relayInto(b,relay,spaces.LIMITS.tombstoneMs+2,{tabs:[],groups:[]});
+    const pad=padFor(finish(blob({[sid(1)]:tabRec(1)})));
+    const r=spaces.admit({candidate,changes:[unit('tabs',sid(2),tabRec(2))],encryptFn:padEncrypt(pad),finish});
+    vectors.spacesAdmit.push(entry('limits apply to the relayed upload',{candidate,changes:[unit('tabs',sid(2),tabRec(2))],pad,relay,now:spaces.LIMITS.tombstoneMs+2,retired:{tabs:[],groups:[]}},
+      {blob:r.blob,unsynced:[...r.unsynced].sort(),reason:r.reason}));
+  }
+  const badKey='0'+spaces.tagOf(sid(3));
+  vectors.spacesOrder=[
+    ['positions, then invalid keys by id',{records:{[sid(3)]:tabRec(3,{pos:F(badKey)}),[sid(1)]:tabRec(1,{pos:F(spaces.keyFor('a','',sid(1)))}),[sid(2)]:tabRec(2,{pos:F(spaces.keyFor('','a',sid(2)))}),
+      [sid(4)]:tabRec(4,{pos:F(spaces.keyFor('','',sid(5)))}),[sid(5)]:tabRec(5,{pos:F('')}),[sid(6)]:tabRec(6,{deleted:F(true)}),junk:tabRec(7),[sid(8)]:tabRec(8,{pos:F(spaces.keyFor('','',sid(8)).toUpperCase())})}}],
+    ['equal keys fall back to ids',{records:{[sid(2)]:tabRec(2,{pos:F('i'+spaces.tagOf(sid(2)))}),[sid(1)]:tabRec(1,{pos:F('i'+spaces.tagOf(sid(1)))}),[sid(9)]:{pos:F(12)}}}],
+  ].map(([name,input])=>entry(name,input,spaces.orderOf(input.records)));
+  const pend=(tabsMap,extra={})=>({tabs:tabsMap,...extra});
+  vectors.spacesLocalEdits=[
+    ['apply merges per field',{op:'apply',pending:pend({[sid(1)]:{nav:F({url:'https://example.test/1',title:'Old'},100,'a')}}),edits:pend({[sid(1)]:{nav:F({url:'https://example.test/1',title:'New'},200,'a'),pinned:F(true,200,'a')},[sid(2)]:{deleted:F(true,200,'a')}})}],
+    ['apply drops invalid writes',{op:'apply',pending:{},edits:{tabs:{[sid(1)]:{pos:F('a1'),groupId:F('g'),name:F(null),pinned:F('x'),nav:F({url:'ftp://x.test/',title:''})},bogus:{deleted:F(true)}},
+      groups:{[sid(2)]:{color:F(null),name:F(null),collapsed:F(null),pos:F(spaces.keyFor('','',sid(2)))}},spaces:{[sid(3)]:{name:F('x')}}}}],
+    ['apply merges the selection and keeps a receipt',{op:'apply',pending:{active:F(sid(1),100,'a'),index:{id:sid(99),rev:'0123456789abcdef',at:5,by:'a'}},edits:{active:F(sid(2),200,'a')}}],
+    ['apply sanitizes the receipt',{op:'apply',pending:{index:{id:sid(99),rev:'0123456789ABCDEF'},active:{...F(sid(1)),cleared:true}},edits:{}}],
+    ['apply keeps a valid receipt without its clock',{op:'apply',pending:{index:{id:sid(99),rev:'0123456789abcdef',at:-3,by:''}},edits:{}}],
+    ['settle clears acknowledged fields only',{op:'settle',pending:pend({[sid(1)]:{nav:F({url:'https://example.test/1',title:'Mine'},200,'a'),pinned:F(true,200,'a')},[sid(2)]:{deleted:F(true,200,'a')}},{active:F(sid(1),300,'a')}),
+      fetched:blob({[sid(1)]:tabRec(1,{nav:F({url:'https://example.test/1',title:'Mine'},200,'a'),pinned:F(false,100,'a')}),[sid(2)]:tabRec(2,{deleted:F(true,250,'b')})},{},{active:F(sid(1),300,'a')})}],
+    ['settle against a missing blob keeps everything',{op:'settle',pending:pend({[sid(1)]:{pinned:F(true,200,'a')}}),fetched:{}}],
+    ['settle: a newer remote write acknowledges ours',{op:'settle',pending:pend({[sid(1)]:{pinned:F(true,200,'a')}}),fetched:blob({[sid(1)]:tabRec(1,{pinned:F(false,300,'b')})})}],
+  ].map(([name,input])=>entry(name,input,input.op==='apply'?spaces.applyLocalEdits(input.pending,input.edits):spaces.settlePending(input.pending,input.fetched)));
+  // A scripted hour of the request scheduler: clocks set before each step.
+  {
+    const { createScheduler } = require('../src/main/sync-scheduler');
+    let wall=fixedNow, mono=5000;
+    const steps=[];let scheduler=createScheduler({now:()=>wall,monotonic:()=>mono});
+    steps.push({op:'start',wall,mono,options:{},expected:scheduler.snapshot()});
+    const events=[];let rate=0;
+    const work=n=>({I:n%7===0,S:n%3===0?[sid(1),sid(2)]:n%5===0?[sid(2)]:[],F:n%2===0?['shared','session','bookmarks','zeta','settings']:['icons'],R:n%11===0?[sid(3)]:[]});
+    for(let n=0;n<720;n++) {
+      const minute=Math.floor(n/12);
+      if(n===360) {
+        const snap=scheduler.snapshot(); mono=1000;
+        const options={log:snap.log,nextClass:snap.nextClass,cursors:snap.cursors,windowLimit:snap.windowLimit,backoffUntil:snap.backoffUntil};
+        scheduler=createScheduler({...options,now:()=>wall,monotonic:()=>mono});events.length=0;
+        steps.push({op:'start',wall,mono,options,expected:scheduler.snapshot()});
+      }
+      if(n===540) wall-=600000;
+      if(n%40===0){steps.push({op:'markIndexDue',wall,mono});scheduler.markIndexDue();}
+      const w=work(n);
+      steps.push({op:'canRequest',wall,mono,expected:scheduler.canRequest()});
+      steps.push({op:'windowFreesAt',wall,mono,expected:scheduler.windowFreesAt()});
+      const pick=scheduler.next(w);
+      steps.push({op:'next',wall,mono,work:w,expected:pick?{class:pick.class,item:pick.item}:null});
+      if(pick) {
+        const e=scheduler.record();events.push(e);
+        steps.push({op:'record',wall,mono,event:events.length-1,expected:{wall:e.wall,at:e.at}});
+        wall+=150;mono+=150;
+        scheduler.settle(e);steps.push({op:'settle',wall,mono,event:events.length-1,expected:{wall:e.wall,at:e.at}});
+        if((minute===12||minute===13||minute===40)&&rate++%2===0){wall+=10;mono+=10;scheduler.onRateLimited();steps.push({op:'rateLimited',wall,mono});}
+      }
+      if(n%12===11) steps.push({op:'snapshot',wall,mono,expected:scheduler.snapshot()});
+      wall+=5000-(pick?150:0);mono+=5000-(pick?150:0);
+    }
+    vectors.schedulerScript=[entry('a scripted hour',{limit:10,windowMs:60000,steps},null)];
+  }
+  // Recently closed, synced (M16 §7).
+  {
+    const closed=require('../src/main/synced-closed-model');
+    const ci=(id,over={})=>({id,url:`https://example.test/${id}`,title:id,closedAt:fixedNow-1000,spaceId:null,...over});
+    const ce=(name,updatedAt,items=[],platform='darwin')=>({name,platform,updatedAt,items});
+    const H=closed.ITEM_TTL_MS, E=closed.ENTRY_TTL_MS;
+    vectors.closedModel=[];
+    for(const [name,previous,args,force] of [
+      ['first entry',null,{name:'iPhone',platform:'ios'},false],
+      ['heartbeat not due',ce('iPhone',fixedNow-closed.HEARTBEAT_MS+1,[ci('a')],'ios'),{name:'iPhone',platform:'ios'},false],
+      ['heartbeat due',ce('iPhone',fixedNow-closed.HEARTBEAT_MS,[],'ios'),{name:'iPhone',platform:'ios'},false],
+      ['forced',ce('iPhone',fixedNow-1000,[],'ios'),{name:'iPhone',platform:'ios'},true],
+      ['renamed and long',ce('iPhone',fixedNow-1000,[],'ios'),{name:'P'.repeat(90),platform:'ios'},false],
+      ['unknown platform, empty name',null,{name:'',platform:'beos'},false],
+      ['after a retraction',{retracted:true,updatedAt:fixedNow-1000},{name:'iPhone',platform:'ios'},false],
+      ['expired and invalid items dropped',ce('iPhone',fixedNow-1000,[ci('old',{closedAt:fixedNow-H}),ci('ok',{closedAt:fixedNow-H+1}),ci('ftp',{url:'ftp://x.test/'}),ci('priv',{private:true}),ci('',{}),ci('z'.repeat(65)),ci('dup',{closedAt:fixedNow-10}),ci('dup',{closedAt:fixedNow-5}),ci('t',{title:'T'.repeat(250),spaceId:sid(4)}),ci('s',{spaceId:'nope'})],'ios'),{name:'iPhone',platform:'ios'},false],
+    ]) vectors.closedModel.push(entry(name,{op:'own',previous,...args,now:fixedNow,force},closed.ownEntry(previous,args,fixedNow,{force})));
+    const many=Array.from({length:30},(_,i)=>ci(`i${String(i).padStart(2,'0')}`,{closedAt:fixedNow-(30-i)*1000}));
+    for(const [name,local,remote] of [
+      ['own wins tie',{own:ce('local',fixedNow)},{own:ce('remote',fixedNow)}],
+      ['smaller canonical wins tie',{mac:ce('😀',fixedNow)},{mac:ce('￿',fixedNow)}],
+      ['remote newer',{mac:ce('old',fixedNow-2000)},{mac:ce('new',fixedNow-1000)}],
+      ['retraction wins tie',{mac:ce('Mac',fixedNow)},{mac:{retracted:true,updatedAt:fixedNow}}],
+      ['thirty day prune, own kept',{own:ce('own',fixedNow-E)},{old:ce('old',fixedNow-E),edge:ce('edge',fixedNow-E+1)}],
+      ['thirty items keep newest 25',{},{mac:ce('Mac',fixedNow,many)}],
+      ['invalid entries dropped',{bad:{updatedAt:0},worse:{name:'x'},odd:ce(5,fixedNow,[],'plan9')},{}],
+    ]) vectors.closedModel.push(entry(name,{op:'merge',local,remote,ownId:'own',now:fixedNow},closed.mergeDevices(local,remote,'own',fixedNow)));
+    const fat=id=>ce(id,fixedNow-({own:5000,a:4000,b:3000,c:2000})[id],many.slice(0,25).map(i=>({...i,id:`${id}${i.id}`,title:'x'.repeat(40)})));
+    const budgetDevices={own:fat('own'),a:fat('a'),b:fat('b'),c:fat('c')};
+    for(const maxBytes of [8000,2500,100]) vectors.closedModel.push(entry(`budget ${maxBytes}`,{op:'budget',devices:budgetDevices,ownId:'own',maxBytes},closed.applyBudget(budgetDevices,'own',{maxBytes})));
+    const inboxDevices={mac:ce('Mac',fixedNow,[ci('a',{closedAt:fixedNow-3000}),ci('c',{closedAt:fixedNow-2000}),ci('b',{closedAt:fixedNow-2000}),ci('old',{closedAt:fixedNow-H})]),
+      phone:ce('iPhone',fixedNow,[ci('self')],'ios'),pc:ce('PC',fixedNow,[ci('d',{spaceId:sid(4)})],'win32'),gone:{retracted:true,updatedAt:fixedNow}};
+    vectors.closedModel.push(entry('inbox',{op:'inbox',devices:inboxDevices,ownId:'phone',dismissed:{c:fixedNow},now:fixedNow},closed.inbox(inboxDevices,'phone',{c:fixedNow},fixedNow)));
+    const dismissed={a:fixedNow-2*closed.ITEM_TTL_MS,b:fixedNow-2*closed.ITEM_TTL_MS+1,['z'.repeat(65)]:fixedNow,c:'soon'};
+    vectors.closedModel.push(entry('prune dismissed',{op:'prune',dismissed,now:fixedNow},closed.pruneDismissed(dismissed,fixedNow)));
+    for(const [name,previous,raw] of [
+      ['add to an empty entry',null,ci('n1',{closedAt:fixedNow,spaceId:sid(4)})],
+      ['add prepends and dedupes',ce('iPhone',fixedNow-1000,[ci('n1',{closedAt:fixedNow-500}),...many.slice(0,24)],'ios'),ci('n1',{closedAt:fixedNow})],
+      ['an invalid item is refused',ce('iPhone',fixedNow-1000,[],'ios'),ci('n2',{url:'about:blank'})],
+    ]) {
+      const mod=moduleInProfile('synced-closed',{accountId:'acct',devices:previous?{phone:previous}:{},dismissed:{}});
+      const ctx={accountId:'acct',deviceId:'phone',deviceName:'iPhone',platform:'ios'};
+      const added=mod.addOwnItem(ctx,raw);
+      vectors.closedModel.push(entry(name,{op:'add',previous,item:raw,name:'iPhone',platform:'ios',now:fixedNow},{added,entry:mod.rebind('acct').data.devices.phone??null}));
+    }
+  }
+  // The shared sidecar: this device's binding, the merge and the hide rule.
+  {
+    const surfaces=require('../src/main/shared-spaces-surfaces');
+    const ctx={accountId:'acct',deviceId:'phone'};
+    const T=tabs.PRUNE_MS;
+    vectors.sidecar=[];
+    for(const [name,binding] of [
+      ['valid binding',{forUpdatedAt:fixedNow-5,tabs:[{i:0,spaceId:sid(4)},{i:3,spaceId:sid(5),extra:true}]}],
+      ['junk rows dropped',{forUpdatedAt:fixedNow-5,tabs:[{i:-1,spaceId:sid(4)},{i:1.5,spaceId:sid(4)},{i:2,spaceId:'x'},{i:'3',spaceId:sid(4)},{i:4,spaceId:sid(4)}]}],
+      ['stale binding refused',{forUpdatedAt:fixedNow-T,tabs:[]}],
+      ['unclocked binding refused',{forUpdatedAt:0,tabs:[]}],
+      ['tabs missing',{forUpdatedAt:fixedNow-5}],
+    ]) {
+      const mod=moduleInProfile('shared-spaces',{accountId:'acct'});mod.setOwnSidecar(binding,ctx);
+      vectors.sidecar.push(entry(name,{op:'own',binding,now:fixedNow},mod.snapshot(ctx).sidecar.devices.phone??null));
+    }
+    const sess=(updatedAt,n,name='Mac')=>({name,platform:'darwin',updatedAt,tabs:Array.from({length:n},(_,i)=>({url:`https://example.test/${name}/${i}`,title:`${i}`,groupId:null,pinned:false})),groups:[]});
+    const session={mac:sess(fixedNow-100,4),pc:sess(fixedNow-200,3,'PC'),old:sess(fixedNow-300,2,'Old'),tie:sess(fixedNow-400,2,'Tie')};
+    const local={devices:{tie:{forUpdatedAt:fixedNow-400,tabs:[{i:0,spaceId:sid(4)}]},mac:{forUpdatedAt:fixedNow-100,tabs:[{i:3,spaceId:sid(4)}]}}};
+    const remote={devices:{mac:{forUpdatedAt:fixedNow-100,tabs:[{i:1,spaceId:sid(4)},{i:2,spaceId:sid(5)},{i:9,spaceId:sid(4)}]},pc:{forUpdatedAt:fixedNow-200,tabs:[{i:0,spaceId:sid(4)}]},
+      old:{forUpdatedAt:fixedNow-301,tabs:[{i:0,spaceId:sid(4)}]},tie:{forUpdatedAt:fixedNow-400,tabs:[{i:1,spaceId:sid(4)}]},stale:{forUpdatedAt:fixedNow-T,tabs:[]}}};
+    for(const [name,visible] of [['only visible Spaces hide',[sid(4)]],['every Space visible',[sid(4),sid(5)]],['no Space visible',[]]]) {
+      const mod=moduleInProfile('shared-spaces',{accountId:'acct',sidecar:local});mod.mergeSidecar(remote,ctx);
+      const sidecar=mod.snapshot(ctx).sidecar,devices=tabs.displayDevices(session,'phone',{now:fixedNow});
+      const shown=surfaces.hideOccurrences(devices,sidecar,new Set(visible)),hidden={};
+      devices.forEach((device,n)=>{const kept=new Set(shown[n].tabs),h=device.tabs.map((t,i)=>kept.has(t)?null:i).filter(i=>i!==null);if(h.length)hidden[device.deviceId]=h;});
+      vectors.sidecar.push(entry(name,{op:'merge',local,remote,session,visible,now:fixedNow},{sidecar,hidden}));
+    }
+  }
+  // F27 membership: a fresh clock when the tabs sitting in shared Spaces change.
+  {
+    const tt=(n,over={})=>({url:`https://example.test/${n}`,title:`Tab ${n}`,groupId:null,pinned:false,sharedSpaceId:null,...over});
+    const script=[
+      [fixedNow,[tt(1),tt(2,{sharedSpaceId:sid(4)})],[]],
+      [fixedNow+1000,[tt(1),tt(2,{sharedSpaceId:sid(4)})],[]],
+      [fixedNow+2000,[tt(1,{sharedSpaceId:sid(4)}),tt(2,{sharedSpaceId:sid(4)})],[]],
+      [fixedNow+2000,[tt(1),tt(2,{sharedSpaceId:sid(4)})],[]],
+      [fixedNow+3000,[tt(0,{private:true,sharedSpaceId:sid(4)}),{...tt(9),url:'ftp://example.test/'},tt(1,{groupId:'g1',pinned:true}),tt(2,{sharedSpaceId:sid(4),customTitle:'Mine'}),tt(3,{sharedSpaceId:sid(5),title:'x'.repeat(250)})],[{id:'g1',name:'G'.repeat(90),collapsed:true},{id:'g2',name:'Empty'}]],
+      [fixedNow+4000,[tt(1,{groupId:'g1',pinned:true}),tt(2,{sharedSpaceId:sid(4),customTitle:'Mine'}),tt(3,{sharedSpaceId:sid(5),title:'x'.repeat(250)})],[{id:'g1',name:'G'.repeat(90)}]],
+    ];
+    activeDir=fs.mkdtempSync(path.join(tmp,'tab-sync'));fs.writeFileSync(path.join(activeDir,'tab-sync.json'),JSON.stringify({accountId:'acct',devices:{}}));
+    for(const mod of ['store','tabsync'])delete require.cache[require.resolve(`../src/main/${mod}`)];
+    const tabsync=require('../src/main/tabsync');
+    let current={tabList:[],groups:[]};tabsync.setSnapshotProvider(()=>current);
+    const ctx={accountId:'acct',deviceId:'phone',syncTabs:true,deviceName:'iPhone',platform:'ios'};
+    const steps=[];
+    try {
+      for(const [now,tabList,groups] of script) {
+        current={tabList,groups};Date.now=()=>now;
+        const payload=tabsync.exportForSync(ctx);
+        steps.push({now,tabs:tabList,groups,expected:{entry:payload.devices.phone,bindings:tabsync.publishedSidecar(payload),
+          stored:tabsync.getDeviceEntries(ctx).phone}});
+      }
+    } finally { Date.now=()=>fixedNow; }
+    vectors.tabSnapshotMembership=[entry('membership script',{steps},null)];
+  }
   // Pair links (design 2026-10-28 §7.3): one case table for both platforms.
   vectors.pairLinks=require('../test/unit/fixtures/pair-link-cases.json').cases.map(({name,input})=>entry(name,input,pair.pairLinkCode(input)));
   const output=JSON.stringify(vectors,null,2)+'\n';

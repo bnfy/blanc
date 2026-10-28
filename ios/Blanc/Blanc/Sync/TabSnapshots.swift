@@ -13,6 +13,17 @@ nonisolated struct RemoteDevice: Equatable, Sendable, Identifiable {
   let updatedAt: Int64
   let tabs: [RemoteTab]
 }
+/// One open tab as F27 publishes it: `title` is what the tab is labelled with
+/// here; `sharedSpaceId` is the shared Space it sits in, if any (never published
+/// in the snapshot itself, only in the `shared` sidecar). Private tabs are left
+/// out by the caller.
+nonisolated struct SnapshotTab: Equatable, Sendable {
+  var url: String
+  var title: String
+  var groupId: String? = nil
+  var pinned = false
+  var sharedSpaceId: String? = nil
+}
 nonisolated enum TabSnapshots {
   static let pruneMs: Int64 = 2_592_000_000, heartbeatMs: Int64 = 86_400_000
   static let budgetBytes = 327_680
@@ -76,12 +87,47 @@ nonisolated enum TabSnapshots {
   static func ownEntry(tabs: [(url: String, title: String)], previous: JSONValue?, now: Int64)
     -> JSONValue
   {
-    let valid = Array(
-      tabs.compactMap { tab(.object([("url", .string($0.url)), ("title", .string($0.title))])) }
-        .prefix(500))
+    ownEntry(
+      tabs: tabs.map { SnapshotTab(url: $0.url, title: $0.title) }, groups: [], previous: previous,
+      now: now)
+  }
+  private static func snapshotTab(_ t: SnapshotTab) -> JSONValue? {
+    tab(
+      .object([
+        ("url", .string(t.url)), ("title", .string(t.title)),
+        ("groupId", t.groupId.map(JSONValue.string) ?? .null), ("pinned", .bool(t.pinned)),
+      ]))
+  }
+  /// The tabs F27 can publish, in order (http(s), at most 500).
+  static func publishable(_ tabs: [SnapshotTab]) -> [SnapshotTab] {
+    Array(tabs.filter { snapshotTab($0) != nil }.prefix(500))
+  }
+  /// Desktop's membership fingerprint (`src/main/tabsync.js`): which shared
+  /// Space each publishable tab sits in.
+  static func membership(_ tabs: [SnapshotTab]) -> String {
+    JSONValue.array(publishable(tabs).map { $0.sharedSpaceId.map(JSONValue.string) ?? .null }).canonical()
+  }
+  /// This phone's F27 entry. The clock holds while the content is unchanged
+  /// and the heartbeat isn't due; when `membership` differs from
+  /// `previousMembership` it moves past the previous entry's, so an older
+  /// sidecar binding can't tie and win.
+  static func ownEntry(tabs: [SnapshotTab], groups: [(id: String, name: String)], previous: JSONValue?,
+    now: Int64, membership: String? = nil, previousMembership: String? = nil) -> JSONValue
+  {
+    let valid = Array(tabs.compactMap(snapshotTab).prefix(500))
+    let referenced = Set(valid.compactMap { $0["groupId"]?.string })
+    let shown = groups.filter { referenced.contains($0.id) }
+    func groupList(_ limit: Int) -> JSONValue {
+      .array(
+        shown.map { (g: (id: String, name: String)) -> JSONValue in
+          .object([("id", .string(g.id)), ("name", .stringFromUTF16(Array(g.name.utf16.prefix(limit))))])
+        })
+    }
+    // Desktop compares the stored (sanitized) entry with the fresh snapshot,
+    // whose group names are not yet cut to 80; the published entry is sanitized.
     var next: JSONValue = .object([
       ("name", .string("iPhone")), ("platform", .string("ios")),
-      ("updatedAt", .number(Double(now))), ("tabs", .array(valid)), ("groups", .array([])),
+      ("updatedAt", .number(Double(now))), ("tabs", .array(valid)), ("groups", groupList(.max)),
     ])
     if let previous, previous["retracted"]?.isTruthy != true,
       let at = previous["updatedAt"]?.number,
@@ -93,7 +139,24 @@ nonisolated enum TabSnapshots {
       b["updatedAt"] = nil
       if a.canonical() == b.canonical() { next["updatedAt"] = .number(at) }
     }
+    next["groups"] = groupList(80)
+    if let membership, let previousMembership, membership != previousMembership {
+      next["updatedAt"] = .number(max(Double(now), (previous?["updatedAt"]?.number ?? 0) + 1))
+    }
     return next
+  }
+  /// The sidecar rows for `entry`: `i` indexes the same filtered list the
+  /// entry was built from, bound only where the entry's tab is canonically
+  /// the tab it describes.
+  static func bindings(tabs: [SnapshotTab], entry: JSONValue) -> [(i: Int, spaceId: String)] {
+    let candidates = publishable(tabs)
+    let published = entry["tabs"]?.array ?? []
+    return published.indices.compactMap { i in
+      guard i < candidates.count, let space = candidates[i].sharedSpaceId,
+        snapshotTab(candidates[i])?.canonical() == published[i].canonical()
+      else { return nil }
+      return (i, space)
+    }
   }
   static func retraction(now: Int64) -> JSONValue {
     .object([("retracted", .bool(true)), ("updatedAt", .number(Double(now)))])

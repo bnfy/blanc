@@ -1291,6 +1291,9 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_profiles_load_failed">Couldn’t load profiles.</string>
     <string name="settings_link_routes_title">Open links from other apps</string>
     <string name="settings_link_routes_hint">When another app opens a link in Blanc, the first rule that matches decides the profile, and optionally the Space, it opens in. Rules stay on this device.</string>
+    <string name="settings_link_routes_in_app_label">Also for links I open in a new tab</string>
+    <string name="settings_link_routes_in_app_hint">A link you open in a new tab from a page follows a rule that points at another profile or Space. Links in private tabs and sign-in pop-ups stay where they are.</string>
+    <string name="link_routes_announce_opened">Link rule: opened in %1$s</string>
     <string name="settings_link_routes_fallback">Everything else: the window you used last</string>
     <string name="settings_link_routes_add">Add rule</string>
     <string name="settings_link_routes_links_to">Links to</string>

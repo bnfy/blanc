@@ -57,3 +57,18 @@ Feature: open links from other apps where they belong
     And I run the slash command "/route"
     Then no rule is left for the routed site
     And the pill says "Can’t route this page"
+
+  @F60-6 @F60
+  Scenario: with the switch on, a link opened in a new tab follows a rule to another profile
+    Given a local profile named "Work" and Personal profile settings
+    And a saved rule sending addresses containing "/site/in-app-target" to Work
+    And a Personal page has a new-tab link to "in-app-target"
+    When I click the page's new-tab link
+    Then the link opens in a new tab of the Personal window
+    When link rules also apply to links opened in a new tab
+    And I click the page's new-tab link
+    Then the link opens in the Work window
+    When the page opens that link in a new tab on its own
+    Then the link opens in a new tab of the Personal window
+    When I click the same link inside a sandboxed frame on the page
+    Then the link opens in a new tab of the Personal window

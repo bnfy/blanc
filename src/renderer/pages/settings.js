@@ -1438,6 +1438,19 @@
     }));
     let loadSerial = 0;
     let saving = Promise.resolve();
+    // Links opened in a new tab from a page follow the rules too (#1199).
+    const inApp = document.getElementById('linkRoutesInApp');
+    inApp.checked = settings.linkRoutesInApp === true;
+    inApp.addEventListener('change', async () => {
+      try {
+        const saved = await window.bowserPages.settings.set({ linkRoutesInApp: inApp.checked });
+        inApp.checked = saved.linkRoutesInApp === true;
+      } catch {
+        window.bowserPages.settings.get().then(({ settings: saved }) => {
+          inApp.checked = saved.linkRoutesInApp === true;
+        }, () => {});
+      }
+    });
 
     const newId = () => `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
     const isIp = (host) => /^\d{1,3}(?:\.\d{1,3}){3}$/.test(host) || host.startsWith('[');

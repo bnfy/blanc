@@ -171,6 +171,20 @@ function resolveRoutedRuntime(destination, preferred, { runtimes, focusOrder, op
   return openProfileWindow(destination.profileId);
 }
 
+/** Links opened from a page inside Blanc (#1199, opt-in): where a matched
+ * rule's `destination` sends a new-tab link from a tab in `source`
+ * ({ profileId, spaceId, private }), or null to open it where it was
+ * clicked. Never out of a private tab. A rule that points where the link
+ * already is changes nothing, so a tab a rule opened never routes its own
+ * links again: same profile, and the rule names no Space or this Space,
+ * and it doesn't ask for a private tab. */
+function inAppRouteDestination(destination, source) {
+  if (!destination || !source || source.private === true) return null;
+  if (destination.profileId !== source.profileId) return destination;
+  if (destination.spaceId && destination.spaceId !== (source.spaceId ?? null)) return destination;
+  return destination.private === true ? destination : null;
+}
+
 /** The rule host for a page: its parsed host with a leading `www.` dropped,
  * or null when the page has no web host. */
 function siteRouteHost(url) {
@@ -236,6 +250,7 @@ function linkRoutesWithoutProfile(routes, profileId) {
 }
 
 module.exports = {
+  inAppRouteDestination,
   MAX_LINK_ROUTES,
   MAX_LINK_ROUTE_VALUE,
   LINK_ROUTE_KINDS,
