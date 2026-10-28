@@ -9266,7 +9266,7 @@ initTabView({
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, lastViewedAt = null, adoptView = null, allowLocalFile = false, inheritsDocumentPolicy = false, httpReferrer = null, managedExtension = false } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, openedInBackground = false, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, lastViewedAt = null, adoptView = null, allowLocalFile = false, inheritsDocumentPolicy = false, httpReferrer = null, managedExtension = false } = {}) {
   if (/^chrome-extension:/i.test(url) && (isPrivate || !managedExtension)) return null;
   // Official builds load a granted local HTML file; a DRM build keeps a
   // granted local-file record as an inert placeholder (src/main/inert-local-file.js).
@@ -9405,6 +9405,9 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     splitId: null,
     adopted,                  // an adopted window.open child is never quietable
     openerTabId,              // family-awareness for sleepCandidates
+    // A Cmd/Ctrl+click or middle-click child: page-opened, yet never holds a
+    // space switch (space-switch-guard.js). Never serialized or persisted.
+    openedInBackground,
     usedMedia: false,         // 'media-started-playing'; cleared ONLY on main-frame nav
     // --- Capture indicator (spec §3). Projection + record; never serialized
     // beyond the explicit `capture` allowlist entry, never persisted. ---

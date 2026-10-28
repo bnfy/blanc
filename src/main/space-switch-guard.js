@@ -17,6 +17,10 @@ const MAX_REPORTED = 20;
  *   quiet or waking up. Loading inside a frame (ads, chat widgets) never counts.
  * - opener: a page-opened tab still connected to the live page that opened it
  *   (a sign-in hand-off). Once the opener is closed or quiet the link is gone.
+ *   A tab the person opened in the background (Cmd/Ctrl+click, middle-click)
+ *   never counts, even when the site's own script opened it with window.open
+ *   and left window.opener connected, as GitHub and YouTube do: nothing is
+ *   handing off to a page the person set aside to read later (#1140).
  * @param {object} tab
  * @param {{ popupCount(id): number, mainFrameLoading(tab): boolean, openerConnected(tab): boolean }} facts
  */
@@ -25,7 +29,7 @@ function blockingReason(tab, facts) {
   if (facts.popupCount(tab.id) > 0) return 'popup';
   if (tab.sleeping || tab.waking) return 'loading';
   if (tab.isLoading && facts.mainFrameLoading(tab)) return 'loading';
-  if (tab.openerTabId && facts.openerConnected(tab)) return 'opener';
+  if (tab.openerTabId && !tab.openedInBackground && facts.openerConnected(tab)) return 'opener';
   return null;
 }
 
