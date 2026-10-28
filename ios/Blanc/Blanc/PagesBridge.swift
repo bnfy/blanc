@@ -337,7 +337,7 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         let args = body["args"] as? [Any] ?? []
         let documentURL = webView.url
         if group == "start", method == "renderNativeClock" {
-            let tab = ((manager?.tabs ?? []) + (manager?.startPreviews ?? [])).first { $0.webView === webView }
+            let tab = ((manager?.tabs ?? []) + (manager?.startPreviews ?? [])).first { $0.existingWebView === webView }
             let rendered = tab?.nativeClock.render(args.first as? [String: Any], in: webView) ?? false
             resolve(id, result: .value(.bool(rendered)), in: webView, host: host)
             return

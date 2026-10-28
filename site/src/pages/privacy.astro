@@ -12,15 +12,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 >
 <main id="main-content" class="legal-doc">
   <h1>Privacy Policy</h1>
-  <p class="legal-updated">Last updated October 24, 2026</p>
+  <p class="legal-updated">Last updated October 28, 2026</p>
 
   <div class="legal-tldr">
     <p><strong>The short version.</strong> Blanc keeps browsing data on your device unless you enable end-to-end-encrypted Sync for eligible data or explicitly create a one-time tab handoff. A fresh install asks before search suggestions or pseudonymous usage measurement can send anything; both choices are presented on and can be turned off before continuing. Usage measurement counts launches and a small allowlist of local feature actions, never browsing activity, and excludes private tabs from feature-use events. The blocker ships with the app instead of downloading filter code at first launch. This website counts page views with Cloudflare's cookieless Web Analytics. Optional Google analytics and ad-conversion measurement stay off until you explicitly allow them through footer Privacy choices, or an existing saved grant applies.</p>
   </div>
 
   <h2>Who is responsible</h2>
-  <p>This policy covers the Blanc desktop browser for macOS, Windows, and Linux and its website, blanc.day (formerly blancbrowser.com). The data controller is <strong>Bananify</strong>, an independent software studio in Rochester, New York, United States. Contact <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off--> for privacy questions or requests.</p>
-  <p>A mobile version is in development and is not covered until it is released.</p>
+  <p>This policy covers the Blanc desktop browser for macOS, Windows, and Linux, the Blanc for iPhone beta, and its website, blanc.day (formerly blancbrowser.com). The data controller is <strong>Bananify</strong>, an independent software studio in Rochester, New York, United States. Contact <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off--> for privacy questions or requests.</p>
 
   <h2 id="what-stays-on-your-device">What stays on your device</h2>
   <p>Blanc stores these records locally and does not send them to Bananify unless an optional feature below explicitly says otherwise:</p>
@@ -87,6 +86,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <li><strong>Secure DNS.</strong> If you choose a named or custom secure-DNS provider, DNS queries go to that provider under its policy. “Automatic” and “Off” use the platform/browser resolver behavior described in Settings.</li>
     <li><strong>Downloads.</strong> A website serving a download observes that request. Blanc does not upload the resulting file or download record to Bananify.</li>
   </ul>
+
+  <h2 id="blanc-for-iphone">Blanc for iPhone (beta)</h2>
+  <p>Blanc for iPhone is in beta through Apple's TestFlight. It keeps history, favorites, settings, open tabs, and website data on the phone; private tabs are never saved to history or synced. The iPhone app sends Bananify nothing unless you turn on Sync: it sends no usage measurement and offers no search suggestions. Sync joins a sync you started in Blanc on a computer, uses the same end-to-end encryption described under Sync, keeps its key in the iPhone's Keychain, and shares this device's open tabs only if you turn that on. Its blocker uses the same bundled EasyList and EasyPrivacy rules through Apple's content-blocking system. Apple operates TestFlight; if you install the beta, Apple may share with Bananify crash reports, the feedback and screenshots you choose to send, and basic device information, under Apple's terms.</p>
 
   <h2>This website</h2>
   <ul>

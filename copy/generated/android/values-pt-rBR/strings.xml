@@ -2526,4 +2526,15 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_vertical_tabs_text_size_default">Padrão</string>
     <string name="settings_general_vertical_tabs_text_size_large">Grande</string>
     <string name="settings_general_vertical_tabs_text_size_extra_large">Muito grande</string>
+    <string name="spaces_this_i_phone">Este iPhone</string>
+    <string name="spaces_menu_label">Spaces</string>
+    <string name="spaces_menu_edit">Editar</string>
+    <plurals name="tab_groups_tucked">
+        <item quantity="one">%1$d aba recolhida</item>
+        <item quantity="many">%1$d abas recolhidas</item>
+        <item quantity="other">%1$d abas recolhidas</item>
+    </plurals>
+    <string name="tab_groups_closed_toast">Grupo fechado</string>
+    <string name="group_menu_rename">Renomear…</string>
+    <string name="tab_groups_create">Criar</string>
 </resources>
