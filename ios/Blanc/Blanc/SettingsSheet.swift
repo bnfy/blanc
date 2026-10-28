@@ -79,7 +79,7 @@ enum SettingsCopy {
         "clearSiteData": "settings.privacy.clearBrowsingData",
         "clearSiteDataConfirm": "settings.privacy.clearBrowsingData.confirm",
         "clearSiteDataDone": "settings.privacy.clearBrowsingData.done",
-        "commonCancel": "common.cancel",
+        "clearSiteDataHelp": "settings.privacy.removesCookiesCacheAnd",
     ]
     static func text(_ key: String) -> String { SyncCopy.text(aliases[key] ?? "ios.settings." + key) }
     static let searchEngines = BlancSearchEngine.allCases.filter { $0 != .custom }
@@ -220,6 +220,7 @@ struct PrivacySettingsView: View {
     @State private var site = ""
     @State private var error: String?
     @State private var confirmingClear = false
+    @State private var clearing = false
     @State private var cleared = false
     var body: some View {
         Form {
@@ -247,20 +248,28 @@ struct PrivacySettingsView: View {
             } header: { Text(SettingsCopy.text("exceptions")) }
               footer: { Text(SettingsCopy.text("exceptionsHelp")) }
             Section {
-                Button(SettingsCopy.text("clearSiteData"), role: .destructive) { confirmingClear = true }
+                Button(SettingsCopy.text("clearSiteData"), role: .destructive) { cleared = false; confirmingClear = true }
+                    .disabled(clearing)
                     .accessibilityIdentifier("settings.clearSiteData")
                 if cleared {
                     Text(SettingsCopy.text("clearSiteDataDone")).foregroundStyle(.secondary)
                         .accessibilityIdentifier("settings.clearSiteData.done")
                 }
-            }
+            } footer: { Text(SettingsCopy.text("clearSiteDataHelp")) }
         }
         .settingsFormStyle().settingsTitle(SettingsCopy.text("privacy"))
         .alert(SettingsCopy.text("clearSiteDataConfirm"), isPresented: $confirmingClear) {
-            Button(SettingsCopy.text("clearSiteData"), role: .destructive) {
-                Task { await manager.clearSiteData(); cleared = true }
-            }
-            Button(SettingsCopy.text("commonCancel"), role: .cancel) {}
+            Button(SettingsCopy.text("clearSiteData"), role: .destructive, action: clearSiteData)
+            Button(SettingsCopy.text("cancel"), role: .cancel) {}
+        }
+    }
+    private func clearSiteData() {
+        clearing = true
+        Task {
+            await manager.clearSiteData()
+            clearing = false
+            cleared = true
+            AccessibilityNotification.Announcement(SettingsCopy.text("clearSiteDataDone")).post()
         }
     }
     private func addSite() {

@@ -93,11 +93,17 @@ final class SettingsUITests: XCTestCase {
         XCTAssertTrue(alert.waitForExistence(timeout: 5))
         alert.buttons["Cancel"].tap()
         XCTAssertFalse(app.staticTexts["settings.clearSiteData.done"].exists)
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH 'Removes cookies, cache, and site data'")).firstMatch.waitForExistence(timeout: 5))
         tap("settings.clearSiteData")
         XCTAssertTrue(alert.waitForExistence(timeout: 5))
         capture("Native Settings — clear site data")
         alert.buttons["Clear cookies, cache & site data"].tap()
         XCTAssertTrue(app.staticTexts["settings.clearSiteData.done"].waitForExistence(timeout: 5))
+        // A second clear starts fresh: the old "Cleared." goes when it is asked for.
+        tap("settings.clearSiteData")
+        XCTAssertTrue(alert.waitForExistence(timeout: 5))
+        alert.buttons["Cancel"].tap()
+        XCTAssertFalse(app.staticTexts["settings.clearSiteData.done"].exists)
     }
     /// Pair with your Blanc leads (design 2026-10-28 §7.1); a simulator has no
     /// camera to scan with, so it lands on the code field with a hint.
