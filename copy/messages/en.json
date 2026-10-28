@@ -481,6 +481,14 @@
     "message": "Open tabs",
     "note": "Accessible name of the rail's tab list."
   },
+  "rail.newGroup": {
+    "message": "Put this tab in a new group",
+    "note": "Rail footer button (icon, tooltip and accessible name) that starts a new group from the current tab, like the tab menu's Move to Group > New Group…."
+  },
+  "rail.newGroupSelection": {
+    "message": "Put the selected tabs in a new group",
+    "note": "Rail footer button's tooltip and accessible name when several tabs are selected: it starts a new group from all of them, like the tab menu's Move to Group > New Group…."
+  },
   "rail.resize": {
     "message": "Resize vertical tabs",
     "note": "Accessible name of the rail's resize handle."

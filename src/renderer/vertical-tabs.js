@@ -12,8 +12,22 @@
   const newTabShortcut = document.getElementById('verticalTabsNewShortcut');
   const resizeHandle = document.getElementById('verticalTabsResizeHandle');
   const announcer = document.getElementById('verticalTabsAnnouncer');
+  const newGroupButton = document.getElementById('verticalTabsNewGroup');
   const mainMenuButton = document.getElementById('mainMenuButton');
+  const spaceMark = document.getElementById('pillSpace');
+  const spaceMarkHome = spaceMark ? { parent: spaceMark.parentElement, next: spaceMark.nextElementSibling } : null;
   if (!api || !rail || !list || !useIslandButton || !newTabButton || !resizeHandle) return;
+
+  /** Moves a strip control to `parent` (before `before`, or last), keeping
+   * keyboard focus on it when it had focus. Returns whether it moved. */
+  function moveKeepingFocus(element, parent, before = null) {
+    if (!element || !parent) return false;
+    if (element.parentElement === parent && (before === null ? !element.nextElementSibling : element.nextElementSibling === before)) return false;
+    const hadFocus = document.activeElement === element;
+    parent.insertBefore(element, before);
+    if (hadFocus) element.focus({ preventScroll: true });
+    return true;
+  }
 
   /** Windows and Linux: the strip's main-menu button sits in the window's
    * top-left corner, which the rail owns in this layout, so the button moves
@@ -22,14 +36,26 @@
    * focus order rather than the strip's tint and auto-hide states. */
   function placeMainMenuButton(layout) {
     if (!mainMenuButton) return;
-    const home = layout === 'vertical'
-      ? useIslandButton.parentElement
-      : document.getElementById('strip');
-    if (!home || mainMenuButton.parentElement === home) return;
-    const hadFocus = document.activeElement === mainMenuButton;
-    if (layout === 'vertical') home.prepend(mainMenuButton);
-    else home.insertBefore(mainMenuButton, document.getElementById('islandPill'));
-    if (hadFocus) mainMenuButton.focus({ preventScroll: true });
+    if (layout === 'vertical') {
+      const toolbar = useIslandButton.parentElement;
+      if (toolbar.firstElementChild !== mainMenuButton) moveKeepingFocus(mainMenuButton, toolbar, toolbar.firstElementChild);
+    } else {
+      moveKeepingFocus(mainMenuButton, document.getElementById('strip'), document.getElementById('islandPill'));
+    }
+  }
+
+  /** The Island's Space mark moves into the rail's first row while tabs are
+   * vertical, so the row says which Space this is and opens the Spaces menu,
+   * and the Island keeps one copy. It goes back to its place in the Island
+   * otherwise. renderer.js keeps painting it wherever it is, and is told when
+   * it moves (its visibility depends on where it is). */
+  function placeSpaceMark(layout) {
+    if (!spaceMark || !spaceMarkHome) return;
+    const moved = layout === 'vertical'
+      ? moveKeepingFocus(spaceMark, useIslandButton.parentElement, useIslandButton)
+      : moveKeepingFocus(spaceMark, spaceMarkHome.parent, spaceMarkHome.next?.parentElement === spaceMarkHome.parent ? spaceMarkHome.next : null);
+    // The Island-only states (hidden with no Spaces, has-space) follow a move.
+    if (moved) window.blancSpaceMark?.placed();
   }
 
   const ICONS = {
@@ -657,6 +683,22 @@
     }
   }
 
+  // New group names what it acts on: every selected tab when several are,
+  // else this tab. When main's gate refuses (newGroupTarget), it reads as
+  // unavailable, as the tab menu greys out New Group…, but stays focusable so
+  // keyboard focus isn't dropped. That is display only: a click always asks
+  // main, which re-checks, because not every change to the gate is broadcast.
+  // Attributes are written only when they change, so a shown tooltip isn't
+  // redrawn on every tab update.
+  function renderNewGroupButton(payload) {
+    if (!newGroupButton) return;
+    const label = blancI18n.t((payload.selectedTabIds?.length ?? 0) > 1 ? 'rail.newGroupSelection' : 'rail.newGroup');
+    const unavailable = String(payload.canStartGroup === false);
+    if (newGroupButton.dataset.tooltip !== label) newGroupButton.dataset.tooltip = label;
+    if (newGroupButton.getAttribute('aria-label') !== label) newGroupButton.setAttribute('aria-label', label);
+    if (newGroupButton.getAttribute('aria-disabled') !== unavailable) newGroupButton.setAttribute('aria-disabled', unavailable);
+  }
+
   // A drag (or a settling drop) freezes only the list: the newest payload
   // waits here and is rendered exactly once when the drag ends.
   function render(payload = {}) {
@@ -676,18 +718,21 @@
       announce(blancI18n.t(count ? 'tabsSelection.count' : 'tabsSelection.cleared', { count }));
     }
     lastPayload = payload;
+    renderNewGroupButton(payload);
     const layout = payload.tabLayout === 'vertical' ? 'vertical' : 'island';
     if (!applyWidthMetrics(payload)) {
       // A vertical payload without main's authoritative width is incomplete;
       // fail closed to Island instead of inventing renderer geometry.
       document.documentElement.dataset.tabLayout = 'island';
       placeMainMenuButton('island');
+      placeSpaceMark('island');
       rail.hidden = true;
       lastSignature = null;
       return;
     }
     document.documentElement.dataset.tabLayout = layout;
     placeMainMenuButton(layout);
+    placeSpaceMark(layout);
     rail.dataset.textSize = ['large', 'extra-large'].includes(payload.verticalTabsTextSize)
       ? payload.verticalTabsTextSize : 'default';
     rail.hidden = layout !== 'vertical';
@@ -811,6 +856,9 @@
   });
   newTabButton.addEventListener('click', () => {
     invokeLeavingRail('create tab', () => api.createTab(null, { focusAddress: true }));
+  });
+  newGroupButton?.addEventListener('click', () => {
+    invokeLeavingRail('start a new group', () => api.beginNewGroup());
   });
   resizeHandle.addEventListener('pointerdown', (event) => {
     if (event.button !== 0) return;

@@ -659,8 +659,31 @@ html { --stage-w: 100vw; }
   padding: 8px 10px 7px 14px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  gap: 6px;
   flex: 0 0 auto;
+}
+.vertical-tabs-toolbar .vertical-tabs-layout-button { margin-left: auto; }
+
+/* The Island's Space mark, moved into this row while tabs are vertical
+   (vertical-tabs.js placeSpaceMark). It names the Space and opens the Spaces
+   menu. It takes the room the row has and shrinks before anything else, its
+   name ending in an ellipsis, so the layout toggle always stays in the rail.
+   With no Spaces yet it shows the neutral Spaces glyph (renderer.js keeps it
+   visible here), so the row always offers them. */
+.vertical-tabs-toolbar #pillSpace {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: none;
+  height: 28px;
+  font-size: 12px;
+}
+.vertical-tabs-toolbar #pillSpace .space-mark-symbol { flex: none; }
+.vertical-tabs-toolbar #pillSpace .space-mark-name { max-width: none; }
+.vertical-tabs-toolbar #pillSpace:is([data-state="neutral"], [data-state="none"]),
+:root[data-space-tint="island"] .vertical-tabs-toolbar #pillSpace[data-state="space"] { width: 28px; flex: none; }
+.vertical-tabs-toolbar #pillSpace:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
 }
 
 /* The rail background owns the entire left edge. On macOS its first row also
@@ -678,7 +701,6 @@ body.mac .vertical-tabs-toolbar {
   position: static;
   width: 28px;
   height: 28px;
-  margin-right: auto;
 }
 .vertical-tabs-toolbar #mainMenuButton:focus-visible {
   background: transparent;
@@ -919,7 +941,8 @@ body.mac .vertical-tabs-toolbar {
 .vertical-tab-close:focus-visible,
 .vertical-tabs-group-header:focus-visible,
 .vertical-tabs-layout-button:focus-visible,
-.vertical-tabs-new:focus-visible {
+.vertical-tabs-new:focus-visible,
+.vertical-tabs-new-group:focus-visible {
   position: relative;
   z-index: 2;
   outline: 2px solid var(--accent);
@@ -1122,10 +1145,42 @@ body > .tab-drag-ghost[aria-hidden="true"] {
   padding: 8px;
   border-top: 1px solid var(--border);
   flex: 0 0 auto;
+  display: flex;
+  gap: 4px;
+}
+
+/* Beside New tab: starts a new group from the current tab, the tab menu's
+   Move to Group → New Group…, so groups are findable from the rail itself. */
+.vertical-tabs-new-group {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: var(--radius);
+  color: var(--text-dim);
+}
+.vertical-tabs-new-group:not([aria-disabled="true"]):hover {
+  background: var(--surface);
+  color: var(--text);
+}
+.vertical-tabs-new-group[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: default;
+}
+.vertical-tabs-new-group svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
 }
 
 .vertical-tabs-new {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   height: 34px;
   display: flex;
   align-items: center;
@@ -1147,6 +1202,17 @@ body > .tab-drag-ghost[aria-hidden="true"] {
   width: 14px;
   height: 14px;
 }
+
+/* The footer shares its row with New group, so a long translation ends in an
+   ellipsis instead of wrapping at the rail's narrowest. */
+.vertical-tabs-new > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vertical-tabs-new svg,
+.vertical-tabs-new kbd { flex: none; }
 
 .vertical-tabs-new kbd {
   margin-left: auto;
@@ -4218,9 +4284,11 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 /* A colour this close to the Island (white on light, black on dark) gets a
    hairline so the square still reads; space-identity.js decides (data-edge). */
 .space-mark[data-edge="true"] .space-mark-symbol { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 18%, transparent); }
-.space-mark[data-state="neutral"] { width: 24px; padding: 0; justify-content: center; color: var(--text-dim); background: color-mix(in srgb, var(--text) 6%, transparent); }
-.space-mark[data-state="neutral"] .space-mark-name { display: none; }
-.space-mark[data-state="neutral"] .space-mark-symbol svg { width: 16px; height: 16px; stroke-width: 2; } /* the Spaces planet, as the ⌘L footer's */
+/* The Spaces glyph alone: Spaces exist but none is current, or (only in the
+   vertical tabs rail, where the mark always shows) there are none yet. */
+.space-mark:is([data-state="neutral"], .vertical-tabs-toolbar [data-state="none"]) { width: 24px; padding: 0; justify-content: center; color: var(--text-dim); background: color-mix(in srgb, var(--text) 6%, transparent); }
+.space-mark:is([data-state="neutral"], .vertical-tabs-toolbar [data-state="none"]) .space-mark-name { display: none; }
+.space-mark:is([data-state="neutral"], .vertical-tabs-toolbar [data-state="none"]) .space-mark-symbol svg { width: 16px; height: 16px; stroke-width: 2; } /* the Spaces planet, as the ⌘L footer's */
 #islandPill:has(> .space-mark:not([hidden])) { padding-left: 7px; }
 .island-row .row-space-tile { width: 20px; height: 20px; border-radius: 6px; }
 .island-row .row-space-tile .ws-symbol { width: 12px; height: 12px; }

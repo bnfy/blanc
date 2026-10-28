@@ -129,6 +129,8 @@
     <string name="rail_label">Schede verticali</string>
     <string name="rail_island_layout">Disattiva le schede verticali</string>
     <string name="rail_list">Schede aperte</string>
+    <string name="rail_new_group">Sposta questa scheda in un nuovo gruppo</string>
+    <string name="rail_new_group_selection">Sposta le schede selezionate in un nuovo gruppo</string>
     <string name="rail_resize">Ridimensiona le schede verticali</string>
     <string name="rail_width_value">%1$s pixel</string>
     <string name="rail_width_announce">Larghezza delle schede verticali: %1$s pixel</string>

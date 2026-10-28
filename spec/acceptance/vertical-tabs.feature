@@ -244,3 +244,23 @@ Feature: Desktop vertical tabs
     Then the main menu opens below the main-menu button
     When I set the tab layout to "island"
     Then the main-menu button is back in the strip's top-left corner
+
+  @F28-20 @F28 @desktop
+  Scenario: The rail's first row holds the Space mark and its footer starts a new group
+    Given a fresh desktop settings profile
+    When I set the tab layout to "vertical"
+    Then the Space mark sits in the rail's first row, not on the Island
+    When I click the Space mark in the rail
+    Then the Spaces menu opens below the rail's Space mark
+    When I click the rail's New group button
+    Then the command panel opens with "/group " for the current tab
+    When I name the new group "Reading" in the command panel
+    Then the current tab is in a group named "Reading"
+    When I select two new tabs in the rail
+    Then the rail's New group button reads "Put the selected tabs in a new group"
+    When I click the rail's New group button
+    Then the command panel opens with "/group " for the current tab
+    When I name the new group "Pair" in the command panel
+    Then both selected tabs are in a group named "Pair"
+    When I set the tab layout to "island"
+    Then the Space mark is back on the Island

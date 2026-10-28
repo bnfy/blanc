@@ -1611,6 +1611,7 @@
         {
           "tabs": [],
           "selectedTabIds": [],
+          "canStartGroup": true,
           "activeTabId": "tab-id-1",
           "glanceTabId": "tab-id-1",
           "groups": [],
@@ -1687,6 +1688,7 @@
           "selectedTabIds": [
             "tab-id-1"
           ],
+          "canStartGroup": true,
           "activeTabId": "tab-id-1",
           "glanceTabId": "tab-id-1",
           "groups": [
@@ -3038,6 +3040,28 @@
             {
               "kind": "send",
               "channel": "chrome:open-island-commands",
+              "args": []
+            }
+          ]
+        }
+      ]
+    },
+    "beginNewGroup": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:new-group",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:new-group",
               "args": []
             }
           ]
@@ -6802,6 +6826,7 @@
             {
               "tabs": [],
               "selectedTabIds": [],
+              "canStartGroup": true,
               "activeTabId": "tab-id-1",
               "glanceTabId": "tab-id-1",
               "groups": [],
@@ -6862,6 +6887,7 @@
               {
                 "tabs": [],
                 "selectedTabIds": [],
+                "canStartGroup": true,
                 "activeTabId": "tab-id-1",
                 "glanceTabId": "tab-id-1",
                 "groups": [],
@@ -6982,6 +7008,7 @@
               "selectedTabIds": [
                 "tab-id-1"
               ],
+              "canStartGroup": true,
               "activeTabId": "tab-id-1",
               "glanceTabId": "tab-id-1",
               "groups": [
@@ -7149,6 +7176,7 @@
                 "selectedTabIds": [
                   "tab-id-1"
                 ],
+                "canStartGroup": true,
                 "activeTabId": "tab-id-1",
                 "glanceTabId": "tab-id-1",
                 "groups": [

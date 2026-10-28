@@ -126,6 +126,8 @@
     <string name="rail_label">Vertikale Tabs</string>
     <string name="rail_island_layout">Vertikale Tabs ausschalten</string>
     <string name="rail_list">Offene Tabs</string>
+    <string name="rail_new_group">Diesen Tab in eine neue Gruppe verschieben</string>
+    <string name="rail_new_group_selection">Ausgewählte Tabs in eine neue Gruppe verschieben</string>
     <string name="rail_resize">Breite der vertikalen Tabs ändern</string>
     <string name="rail_width_value">%1$s Pixel</string>
     <string name="rail_width_announce">Breite der vertikalen Tabs: %1$s Pixel</string>
