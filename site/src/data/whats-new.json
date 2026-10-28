@@ -11,12 +11,12 @@
           "id": "shared-spaces",
           "tile": "Shared Spaces",
           "title": "Keep your Spaces the same on every computer",
-          "body": "Choose Spaces to share, and their open tabs, tab names, groups and pinned tabs match on each computer that has it turned on. A change on one appears on the others, end-to-end encrypted like the rest of Sync. The page you’re looking at never changes under you: a change from another device waits until you leave that tab. A tab you close in a shared Space closes on your other computers too, and their Recently closed says which computer it was closed on.",
+          "body": "Choose Spaces to share, and their open tabs, tab names, groups and pinned tabs match on each computer that has it turned on. A change on one appears on the others, end-to-end encrypted like the rest of Sync.",
           "steps": [
             "With Sync on, open Settings, then Sync.",
             "Under What syncs, turn on Spaces and groups and choose your Spaces. Do the same on each computer."
           ],
-          "note": "It’s off by default and belongs to the Personal profile. Private tabs, internal pages and local files never sync. Up to 25 Spaces can be shared; a deleted Space still uses sync storage for 30 days.",
+          "note": "It’s off by default and belongs to the Personal profile. Private tabs, internal pages and local files never sync. Up to 25 Spaces can be shared.",
           "media": {
             "kind": "image",
             "src": "/feature-captures/shared-spaces-v1.45.0.webp",
