@@ -1,0 +1,179 @@
+diff --git a/experiments/chromium-extension-spike/native/blocker/blocker.mojom b/experiments/chromium-extension-spike/native/blocker/blocker.mojom
+index 5b50b1b5..203821de 100644
+--- a/experiments/chromium-extension-spike/native/blocker/blocker.mojom
++++ b/experiments/chromium-extension-spike/native/blocker/blocker.mojom
+@@ -6,9 +6,16 @@ import "sandbox/policy/mojom/sandbox.mojom";
+ interface Blocker {
+   Initialize(string script) => (bool ready);
+   Decide(string url, string resource_type, string referrer) => (int32 decision);
++  Cosmetics(string input) => (bool ready, string output);
+ };
+ // Explicit prototype switch only; the browser binds this to the current document.
+ interface DocumentStart {
+   [Sync] GetScript(string url) => (bool ready, string code, string token);
+   [Sync] Complete(string token) => (bool accepted);
+ };
++
++// Bound by the browser to the requesting document. The renderer supplies only
++// bounded DOM hints; URL and ancestor authority remain in the browser.
++interface Cosmetics {
++  [Sync] Get(bool initial, string hints) => (bool ready, string output);
++};
+diff --git a/experiments/chromium-extension-spike/native/blocker/blocker_proxy.cc b/experiments/chromium-extension-spike/native/blocker/blocker_proxy.cc
+index d985a561..bb53bd02 100644
+--- a/experiments/chromium-extension-spike/native/blocker/blocker_proxy.cc
++++ b/experiments/chromium-extension-spike/native/blocker/blocker_proxy.cc
+@@ -6,6 +6,7 @@
+ #include "content/public/browser/navigation_handle.h"
+ #include "third_party/blink/public/mojom/loader/referrer.mojom.h"
+ #include <deque>
++#include "net/base/registry_controlled_domains/registry_controlled_domain.h"
+ #include <map>
+ #include "base/json/json_reader.h"
+ #include "base/task/single_thread_task_runner.h"
+@@ -86,6 +87,11 @@ class Engine {
+  public:
+   static Engine& Get() { static base::NoDestructor<Engine> engine; return *engine; }
+   Engine() = default;
++  const char* Health() const {
++    if (failed_) return "unavailable";
++    if (ready_) return "ready";
++    return started_ ? "initializing" : "not-started";
++  }
+   void Decide(std::string url, std::string type, std::string referrer, DecisionCallback callback) {
+     if (failed_) { std::move(callback).Run(-1); return; }
+     if (!started_) Start();
+@@ -102,6 +108,22 @@ class Engine {
+         --self->inflight_; std::move(cb).Run(result);
+       }, base::Unretained(this), std::move(callback)), -1));
+   }
++  void Cosmetics(std::string input, base::OnceCallback<void(bool, const std::string&)> callback) {
++    if (failed_) { std::move(callback).Run(false, ""); return; }
++    if (!started_) Start();
++    if (!ready_) {
++      if (waiting_.size() >= 4096) { std::move(callback).Run(false, ""); return; }
++      waiting_.push_back(base::BindOnce(&Engine::Cosmetics, base::Unretained(this), std::move(input), std::move(callback)));
++      return;
++    }
++    if (inflight_ >= 256) { std::move(callback).Run(false, ""); return; }
++    ++inflight_;
++    service_->Cosmetics(input, mojo::WrapCallbackWithDefaultInvokeIfNotRun(
++      base::BindOnce([](Engine* self, base::OnceCallback<void(bool, const std::string&)> cb,
++                       bool ready, const std::string& output) {
++        --self->inflight_; std::move(cb).Run(ready && !self->failed_, output);
++      }, base::Unretained(this), std::move(callback)), false, std::string()));
++  }
+   void Fail() {
+     failed_ = true; ready_ = false; startup_.Stop(); service_.reset();
+     auto pending = std::move(waiting_);
+@@ -143,6 +165,8 @@ class Engine {
+   mojo::Remote<mojom::Blocker> service_;
+   base::OneShotTimer startup_;
+ };
++#include "chrome/services/blanc_blocker/cosmetic_document.inc"
++
+ // Prerender activation skips NavigationThrottle, including the response gate.
+ // Its earlier allow cannot authorize a commit after the engine becomes unavailable.
+ class ActivationGate : public content::CommitDeferringCondition {
+@@ -702,6 +726,30 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
+   void Log(int result) {
+     const auto elapsed = base::TimeTicks::Now() - start_;
+     const auto type = Type(request_);
++    const perfetto::DynamicCategory latency_category("disabled-by-default-blanc.latency");
++    bool timing = false;
++    TRACE_EVENT_CATEGORY_GROUP_ENABLED(latency_category, &timing);
++    if (timing && request_.devtools_request_id) {
++      // Explicit local tracing only. Bind timing to independently observed
++      // context without restoring URL/private-profile diagnostic file logging.
++      base::ListValue context;
++      context.Append(request_.url.spec());
++      context.Append(request_.method);
++      context.Append(type);
++      context.Append(request_.request_initiator ? request_.request_initiator->Serialize() : "absent");
++      context.Append(type == "mainFrame" ? url::Origin::Create(request_.url).Serialize() : top_origin_);
++      context.Append(type == "mainFrame" ? "main" : frame_role_);
++      context.Append(context_.private_profile ? "private" : "regular");
++      context.Append(redirect_index_);
++      context.Append(request_.referrer.spec());
++      const auto serialized = base::WriteJson(context);
++      if (serialized) {
++        TRACE_EVENT_INSTANT(latency_category, "Blanc.DecisionTiming",
++            "request_digest", base::HexEncode(crypto::hash::Sha256(*request_.devtools_request_id)),
++            "context_digest", base::HexEncode(crypto::hash::Sha256(*serialized)),
++            "hook_to_decision_us", elapsed.InMicrosecondsF(), "result", result);
++      }
++    }
+     base::DictValue event;
+     event.Set("event", "decision"); event.Set("url", request_.url.spec());
+     event.Set("method", request_.method); event.Set("resource_type", type);
+@@ -791,6 +839,7 @@ class Factory : public network::SelfDeletingURLLoaderFactory {
+   scoped_refptr<network::SharedURLLoaderFactory> target_;
+ };
+ }
++const char* BlockerHealth() { return Engine::Get().Health(); }
+ content::ContentBrowserClient::WebSocketFactory WrapWebSocketFactory(
+     int process_id, int frame_routing_id, const url::Origin& initiator_origin,
+     content::ContentBrowserClient::WebSocketFactory factory) {
+@@ -856,7 +905,13 @@ content::ContentBrowserClient::WillCreateWebTransportCallback WrapWebTransportCa
+       frame_routing_id != IPC::mojom::kRoutingIdNone, url,
+       initiator_origin.Serialize(), std::move(callback));
+ }
++void BindCosmetics(content::RenderFrameHost* frame, mojo::PendingReceiver<mojom::Cosmetics> receiver) {
++  new CosmeticDocument(*frame, std::move(receiver));
++}
+ void SetDocumentStartPrerenderPolicy(content::MojoBinderPolicyMap& policy_map) {
++  // Read-only engine selection, bound to this prerender document. Existing
++  // activation protection still rejects activation after utility loss.
++  policy_map.SetNonAssociatedPolicy<mojom::Cosmetics>(content::MojoBinderNonAssociatedPolicy::kGrant);
+ #if BLANC_RESEARCH_HOOKS
+   if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start")) return;
+   // A deferred binder would deadlock the synchronous document-start request.
+diff --git a/experiments/chromium-extension-spike/native/blocker/blocker_service.cc b/experiments/chromium-extension-spike/native/blocker/blocker_service.cc
+index d3af1295..7fa4f528 100644
+--- a/experiments/chromium-extension-spike/native/blocker/blocker_service.cc
++++ b/experiments/chromium-extension-spike/native/blocker/blocker_service.cc
+@@ -74,6 +74,7 @@ BlockerService::BlockerService(mojo::PendingReceiver<mojom::Blocker> receiver)
+ BlockerService::~BlockerService() {
+   if (task_runner_) task_runner_->Cancel();
+   decide_.Reset();
++  cosmetics_.Reset();
+   context_.Reset();
+   isolate_.reset();
+ }
+@@ -114,6 +115,9 @@ void BlockerService::Initialize(const std::string& script, InitializeCallback ca
+       compiled->Run(context).ToLocal(&result) &&
+       context->Global()->Get(context, Str(isolate, "blancDecide")).ToLocal(&fn) && fn->IsFunction();
+   if (ready) { context_.Reset(isolate, context); decide_.Reset(isolate, fn.As<v8::Function>()); }
++  if (ready && context->Global()->Get(context, Str(isolate, "blancCosmetics")).ToLocal(&fn) && fn->IsFunction())
++    cosmetics_.Reset(isolate, fn.As<v8::Function>());
++  else ready = false;
+   std::move(callback).Run(ready);
+ }
+ void BlockerService::Decide(const std::string& url, const std::string& resource_type,
+@@ -132,4 +136,26 @@ void BlockerService::Decide(const std::string& url, const std::string& resource_
+     decision = result.As<v8::Int32>()->Value();
+   std::move(callback).Run(decision);
+ }
++void BlockerService::Cosmetics(const std::string& input, CosmeticsCallback callback) {
++  if (cosmetics_.IsEmpty() || input.size() > 256 * 1024) {
++    std::move(callback).Run(false, ""); return;
++  }
++  auto* isolate = isolate_->isolate();
++  v8::Locker locker(isolate);
++  v8::Isolate::Scope scope(isolate);
++  v8::HandleScope handles(isolate);
++  v8::TryCatch caught(isolate);
++  auto context = context_.Get(isolate);
++  v8::Context::Scope context_scope(context);
++  v8::Local<v8::Value> args[] = {Str(isolate, input)}, result;
++  if (!cosmetics_.Get(isolate)->Call(context, context->Global(), 1, args).ToLocal(&result) || !result->IsString()) {
++    std::move(callback).Run(false, ""); return;
++  }
++  v8::String::Utf8Value text(isolate, result);
++  if (!*text || text.length() > 1024 * 1024) {
++    std::move(callback).Run(false, ""); return;
++  }
++  std::move(callback).Run(true, std::string(*text, text.length()));
++}
++
+ }
