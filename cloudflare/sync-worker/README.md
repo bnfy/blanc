@@ -9,10 +9,16 @@ verification separately.
 
 ## Deploy
 
-**M16 deployment is on hold for the owner's separate approval.** Merging the
-protocol PR does not authorize a production deployment. Before deployment,
+**M16 is deployed, and the owner has accepted it as it stands.** Production
+`blanc-sync` has served the M16 stores since 2026-10-27 00:39 UTC (Cloudflare
+version `ec302891-ce5f-4a29-9095-39fb6f305e1f`, uploaded under the owner's
+account while this section still said deployment was on hold). The deploy was
+found during the v1.44.1 release, and on October 28, 2026 the owner chose to
+keep it ([v1.44.1 incident](../../docs/release-incidents/2026-10-28-v1.44.1.md#the-sync-worker)).
+Every later production deployment still needs the owner's separate approval:
 record the storage-exposure decision below and verify the approved client and
-Worker order. Never enable or change cleanup as part of this protocol update.
+Worker order first. Never enable or change cleanup as part of a protocol
+update.
 
 The approved reservation plan is [#1134 at a303b55f6](https://github.com/bnfy/blanc/pull/1134).
 Its implementation is a separate review; approval of that plan is not deployment

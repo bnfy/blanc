@@ -94,6 +94,11 @@ Feature: Named workspace preservation and recovery
     Given a named workspace whose page keeps loading a frame
     Then switching workspaces is accepted
 
+  @F41-82
+  Scenario: A tab opened in the background with a modifier click does not block a space switch
+    Given a named workspace with a sign-in tab opened in the background
+    Then switching workspaces is accepted
+
   @F41-15
   Scenario: Anyone can save a window as a space
     Given there is no active supporter license

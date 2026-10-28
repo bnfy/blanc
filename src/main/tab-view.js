@@ -719,6 +719,11 @@ function wireTabView(tab, view, { owner, adopted }) {
           const newId = createTab(targetUrl, {
             private: tab.private, view: childView, managedExtension,
             openerTabId: childView ? tab.id : null,
+            // Chromium reads the disposition from the click's modifiers even
+            // when the page's own script calls window.open, so a background
+            // child is one the person asked for, not a hand-off: it keeps
+            // its opener for Quiet Tabs but never holds a space switch.
+            openedInBackground: disposition === 'background-tab',
             // Every page-opened child may carry its opener's HTML/CSP sandbox.
             // Electron applies it to the WebContents it built and tells Blanc
             // nothing about it, so the record is marked from birth and Blanc
