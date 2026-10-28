@@ -310,3 +310,20 @@ test('attachIcons exposes safe data only in the renderer projection', () => {
   assert.equal(projected[0].tabs.every((tab) => !/^https?:/.test(tab.favicon ?? '')), true);
   assert.equal('favicon' in remote[0].tabs[0], false, 'wire/session object is not mutated');
 });
+
+test('fitWithin keeps a non-square favicon shape inside the icon square', () => {
+  assert.deepEqual(m.fitWithin(64, 64), { width: 32, height: 32 });
+  assert.deepEqual(m.fitWithin(48, 32), { width: 32, height: 21 });
+  assert.deepEqual(m.fitWithin(20, 80), { width: 8, height: 32 });
+  assert.deepEqual(m.fitWithin(1000, 1), { width: 32, height: 1 });
+});
+
+test('centerInSquare letterboxes a bitmap on transparency', () => {
+  const bitmap = Buffer.alloc(4 * 2 * 4, 0xff); // 4 wide, 2 tall, opaque
+  const square = m.centerInSquare(bitmap, 4, 2, 4);
+  const rows = [0, 1, 2, 3].map((y) => square.subarray(y * 16, (y + 1) * 16).every((b) => b === 0xff));
+  assert.deepEqual(rows, [false, true, true, false]);
+  assert.ok(square.subarray(0, 16).every((b) => b === 0));
+  assert.equal(m.centerInSquare(Buffer.alloc(3), 4, 2, 4), null);
+  assert.equal(m.centerInSquare(Buffer.alloc(5 * 4 * 4), 5, 4, 4), null);
+});

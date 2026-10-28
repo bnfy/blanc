@@ -2,6 +2,7 @@
 
 const { nativeImage } = require('electron');
 const iconRaster = require('./icon-raster');
+const { squarePngData } = require('./icon-square');
 const model = require('./tabicons-model');
 const { readIconBytes } = require('./favicon-network');
 
@@ -9,19 +10,12 @@ const MAX_CACHE = 512;
 const SESSION_FETCH_TIMEOUT_MS = 5000;
 const cache = new Map();
 
-function pngData(image) {
-  if (!image || image.isEmpty()) return null;
-  const resized = image.resize({ width: model.ICON_SIZE, height: model.ICON_SIZE, quality: 'best' });
-  if (resized.isEmpty()) return null;
-  return model.validIconData(`data:image/png;base64,${resized.toPNG().toString('base64')}`);
-}
-
 async function sanitizeFetched(contentType, bytes, signal) {
   if (!bytes || signal?.aborted) return null;
   // Trust the validated byte signature over a stale/mistaken server label.
   // Google, for example, serves real PNG bytes as image/x-icon.
   const png = model.validSourcePngBytes(bytes);
-  if (png) return pngData(nativeImage.createFromBuffer(png));
+  if (png) return squarePngData(nativeImage.createFromBuffer(png));
   if (contentType === 'image/png') return null;
   const dataUrl = model.imageSourceToDataUrl(contentType, bytes);
   return dataUrl ? model.validIconData(await iconRaster.rasterize(dataUrl, signal)) : null;
@@ -107,7 +101,7 @@ async function sanitizeUncached(source, signal, { browsingSession, pageUrl } = {
     if (!bounded) return null;
     if (/^data:image\/png[;,]/i.test(source)) {
       const png = model.sourcePngFromDataUrl(source);
-      return png ? pngData(nativeImage.createFromBuffer(png)) : null;
+      return png ? squarePngData(nativeImage.createFromBuffer(png)) : null;
     }
     return model.validIconData(await iconRaster.rasterize(bounded, signal));
   }
