@@ -5087,6 +5087,10 @@
     "message": "Esse código expirou. Crie um novo quando quiser.",
     "source": "sha256:fb765737b44a84b45256841c8eea53f94784d274babbf3ceb07eaf1727245fbd"
   },
+  "settings.sync.sheet.notReady": {
+    "message": "A sincronização está ativada, mas ainda não deu para alcançar o servidor. O Blanc vai continuar tentando.",
+    "source": "sha256:0ae69718e25a1e5cf96b8e81352e541156aa10f8db296ee2181c3e4cd94d5d1e"
+  },
   "settings.sync.switch.open": {
     "message": "Conectar a outra sincronização com um código",
     "source": "sha256:a8f93780fed5e33ab8a57b5f836c7f471ca6d2b2c04d7f1a88a0628dbb93dbf4"

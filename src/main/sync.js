@@ -70,6 +70,7 @@ function ensureStore() {
     enabled: false, handle: '', accountId: '', protectedKey: '', key: '',
     lastSyncedAt: 0, lastError: null, erasurePending: false,
     deviceId: '', syncTabs: false, syncSpaces: false,
+    origin: '', recoveryPromptDismissed: false,
   });
   // One-time migration from pre-hardening profiles. The old field is erased
   // only after the wrapped replacement has reached disk; otherwise sync stays
@@ -305,6 +306,9 @@ function status() {
     // What this device is called on the others ('' = no chosen name) and the
     // name it publishes, which stays the computer's (device-name.js).
     deviceName: chosen?.name ?? '', deviceNamePublished: deviceName(),
+    // 'generated' only on the device that started a sync without a passphrase
+    // (design 2026-10-28 §5.4); never synced.
+    origin: d.origin === 'generated' ? 'generated' : '', recoveryPromptDismissed: !!d.recoveryPromptDismissed,
   };
 }
 
@@ -360,6 +364,33 @@ async function enable({ handle, passphrase }) {
   return { ok: res.ok, error: res.error, created, status: status() };
 }
 
+/** A sync without a passphrase (design 2026-10-28 §5.1): the account is
+ * random, so nothing ever derives it. The recovery code is the way back in. */
+async function startNew({ handle } = {}) {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, () => startNew({ handle }));
+  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE, status: status() };
+  if (ensureStore().data.enabled) return { ok: false, error: 'sync-on', status: status() };
+  const name = String(handle ?? '').trim();
+  const key = crypto.randomBytes(32);
+  try {
+    const adopted = adoptCredentials({ handle: name.length >= 2 ? name : 'My Blanc', accountId: crypto.randomBytes(32).toString('hex'), key });
+    if (!adopted.ok) return { ...adopted, status: status() };
+  } finally {
+    key.fill(0);
+  }
+  const syncStore = ensureStore();
+  syncStore.update((d) => { d.origin = 'generated'; d.recoveryPromptDismissed = false; });
+  syncStore.flush();
+  const res = await syncNow();
+  return { ok: true, synced: !!res.ok, error: res.error, status: status() };
+}
+
+function dismissRecoveryPrompt() {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, dismissRecoveryPrompt);
+  ensureStore().update((d) => { d.recoveryPromptDismissed = true; });
+  return { ok: true };
+}
+
 /** The part of enable() every credential source shares — the passphrase
  * path, a pairing code, a recovery code: protect the key, become this
  * identity, persist, and refresh icons. The caller still owns `key` and
@@ -388,7 +419,7 @@ function adoptCredentials({ handle, accountId, key, protectedKey }) {
   syncStore.update((d) => {
     d.enabled = true; d.handle = handle; d.accountId = accountId;
     d.protectedKey = protectedKey; d.key = ''; d.lastError = null; d.erasurePending = false;
-    if(previousAccount!==accountId)d.syncSpaces=false;
+    if(previousAccount!==accountId){d.syncSpaces=false;d.lastSyncedAt=0;d.origin='';}
   });
   if (!syncStore.flush()) {
     syncStore.data.enabled = false;
@@ -430,6 +461,9 @@ async function beginPairing() {
   const d = ensureStore().data;
   if (!d.enabled || !d.accountId || !d.protectedKey) return { ok: false, error: keyProtectionError || 'sync-off' };
   if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE };
+  // A code for an account the Worker doesn't hold yet would be consumed by a
+  // device that then can't join (design 2026-10-28 §5.1).
+  if (!d.lastSyncedAt) return { ok: false, error: 'not-ready' };
   // One live code at a time: a previous entry is retracted before another is parked.
   if (pairing) await cancelPairing();
   const gen = syncGen;
@@ -606,6 +640,7 @@ async function copyRecoveryCode({ texts } = {}) {
     });
     if (response !== 0) return { ok: false, error: 'cancelled' };
     clipboard.writeText(pairingCodes.encodeRecoveryCode({ v: 1, handle: d.handle, accountId: d.accountId, key: key.toString('base64') }));
+    ensureStore().update((data) => { data.recoveryPromptDismissed = true; });
     return { ok: true };
   } finally {
     key?.fill(0);
@@ -1254,6 +1289,8 @@ module.exports = {
   enable,
   preflight,
   disable,
+  startNew,
+  dismissRecoveryPrompt,
   beginPairing,
   cancelPairing,
   pairingState,

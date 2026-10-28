@@ -1400,6 +1400,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_sync_pairing_copy">Copier</string>
     <string name="settings_sync_pairing_cancel">Annuler</string>
     <string name="settings_sync_pairing_expired">Ce code a expiré. Créez-en un nouveau quand vous serez prêt.</string>
+    <string name="settings_sync_sheet_not_ready">La synchronisation est activée, mais le serveur n’a pas encore pu être joint. Blanc continuera d’essayer.</string>
     <string name="settings_sync_switch_open">Se connecter à une autre synchronisation avec un code</string>
     <string name="settings_sync_switch_hint">Déplace cet appareil vers une autre synchronisation, avec un code provenant de l’un de ses appareils.</string>
     <string name="settings_sync_switch_enter_code">Saisir un code</string>

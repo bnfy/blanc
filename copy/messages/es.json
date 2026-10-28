@@ -5087,6 +5087,10 @@
     "message": "Ese código ha caducado. Crea uno nuevo cuando quieras.",
     "source": "sha256:fb765737b44a84b45256841c8eea53f94784d274babbf3ceb07eaf1727245fbd"
   },
+  "settings.sync.sheet.notReady": {
+    "message": "La sincronización está activada, pero aún no se ha podido conectar con el servidor. Blanc seguirá intentándolo.",
+    "source": "sha256:0ae69718e25a1e5cf96b8e81352e541156aa10f8db296ee2181c3e4cd94d5d1e"
+  },
   "settings.sync.switch.open": {
     "message": "Conectar con otra sincronización mediante un código",
     "source": "sha256:a8f93780fed5e33ab8a57b5f836c7f471ca6d2b2c04d7f1a88a0628dbb93dbf4"

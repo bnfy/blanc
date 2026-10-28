@@ -5236,6 +5236,10 @@
     "message": "That code expired. Make a new one when you’re ready.",
     "note": "Settings → Sync → Add another device: shown when the ten minutes run out."
   },
+  "settings.sync.sheet.notReady": {
+    "message": "Sync is on, but couldn’t reach the server yet. Blanc will keep trying.",
+    "note": "Settings → Sync → Add a device: Sync is on but its new account hasn't reached the server yet, so no pairing code is shown. Also the 'not-ready' error."
+  },
   "settings.sync.switch.open": {
     "message": "Connect to a different sync with a code",
     "note": "Settings → Sync (on): opens the panel that moves this device to another sync."

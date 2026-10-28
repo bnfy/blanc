@@ -56095,6 +56095,48 @@
         }
       }
     },
+    "settings.sync.sheet.notReady": {
+      "comment": "Settings → Sync → Add a device: Sync is on but its new account hasn't reached the server yet, so no pairing code is shown. Also the 'not-ready' error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync is on, but couldn’t reach the server yet. Blanc will keep trying."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Synchronisierung ist aktiv, aber der Server war noch nicht erreichbar. Blanc versucht es weiter."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sincronización está activada, pero aún no se ha podido conectar con el servidor. Blanc seguirá intentándolo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La synchronisation est activée, mais le serveur n’a pas encore pu être joint. Blanc continuera d’essayer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sincronizzazione è attiva, ma il server non è ancora raggiungibile. Blanc continuerà a provare."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A sincronização está ativada, mas ainda não deu para alcançar o servidor. O Blanc vai continuar tentando."
+          }
+        }
+      }
+    },
     "settings.sync.switch.open": {
       "comment": "Settings → Sync (on): opens the panel that moves this device to another sync.",
       "extractionState": "manual",
