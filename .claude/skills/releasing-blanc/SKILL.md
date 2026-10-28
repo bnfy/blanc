@@ -87,15 +87,36 @@ BLANC_RELEASE_OPERATOR=terminal \
 BLANC_COSIGN_IDENTITY='anthony@bnfy.me' \
 BLANC_COSIGN_OIDC_ISSUER='https://github.com/login/oauth' \
 BLANC_RELEASE_MODE=stable \
+BLANC_RELEASE_RUNTIME=ecs \
+BLANC_EVS_PYTHON="$HOME/.config/evs/venv/bin/python" \
+EVS_CONFIG_FILE="$HOME/.config/evs/config.json" \
+EVS_CACHE_FILE="$HOME/.config/evs/cache.json" \
 BLANC_RELEASE_PLATFORMS=mac,windows,linux \
 BLANC_MAC_ARCHES=arm64,x64 \
 npm run release
 ```
 
 - **Required:** `BLANC_RELEASE_MODE` (`stable`, or `candidate` for an
-  `X.Y.Z-rc.N` version, published with `--prerelease`), `BLANC_MAC_ARCHES`,
-  `BLANC_COSIGN_IDENTITY` and `BLANC_COSIGN_OIDC_ISSUER`. The script exits
-  immediately without any of them.
+  `X.Y.Z-rc.N` version, published with `--prerelease`),
+  `BLANC_RELEASE_RUNTIME`, `BLANC_MAC_ARCHES`, `BLANC_COSIGN_IDENTITY` and
+  `BLANC_COSIGN_OIDC_ISSUER`. The script exits immediately without any of
+  them.
+- **Runtime:** every public release since 1.43.0 is `ecs` (castLabs
+  Electron for Content Security, with Widevine). Shipping `official` would
+  drop DRM playback for everyone who updates, so it needs the owner's
+  explicit decision. There is no default: 1.44.0 was built on official
+  Electron because the runtime was left unset, and was never published.
+  Check that the log's `==> Preparing` line says `runtime=ecs` before the
+  press gate gets far.
+- **EVS (ECS only):** `BLANC_EVS_PYTHON`, `EVS_CONFIG_FILE` and
+  `EVS_CACHE_FILE` name the EVS client and account. They live in
+  `~/.config/evs/`, not `/tmp`, which macOS clears. The client is
+  `python3 -m venv ~/.config/evs/venv`, then
+  `~/.config/evs/venv/bin/pip install castlabs-evs==1.3.2` (the version CI
+  pins). If the saved sign-in has lapsed, the owner runs
+  `~/.config/evs/venv/bin/python -m castlabs_evs.account reauth` in
+  Terminal; never read or copy the account files. An empty `{}`
+  `cache.json` is valid.
 - **Both Mac architectures ship in every release.** Apple Silicon is the
   default build and the one smoke-tested locally; Intel ships alongside it.
   A single architecture is refused unless `BLANC_MAC_ARCH_WAIVER` gives the

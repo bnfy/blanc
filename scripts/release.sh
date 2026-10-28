@@ -146,11 +146,14 @@ fi
 
 # Empty arrays below use ${A[@]+"${A[@]}"}: macOS bash 3.2 aborts on an
 # empty "${A[@]}" under set -u.
-# Runtime: official Electron (default) or castLabs' Electron for Content
-# Security (Widevine DRM). ECS builds every platform from the pinned, hashed
-# archives in build/ecs-runtime.json, VMP-signs them through the existing EVS
-# account, and enables uBO only through its reviewed ECS runtime record.
-RELEASE_RUNTIME="${BLANC_RELEASE_RUNTIME:-official}"
+# Runtime: official Electron or castLabs' Electron for Content Security
+# (Widevine DRM). ECS builds every platform from the pinned, hashed archives
+# in build/ecs-runtime.json, VMP-signs them through the existing EVS account,
+# and enables uBO only through its reviewed ECS runtime record. There is no
+# default: since 1.43.0 public releases are ECS, and a 1.44.0 build that
+# silently defaulted to official Electron would have dropped Widevine for
+# every updater.
+RELEASE_RUNTIME="${BLANC_RELEASE_RUNTIME:-}"
 case "$RELEASE_RUNTIME" in
   official) ;;
   ecs)
@@ -195,7 +198,7 @@ case "$RELEASE_RUNTIME" in
     fi
     ;;
   *)
-    echo "BLANC_RELEASE_RUNTIME must be official or ecs." >&2
+    echo "BLANC_RELEASE_RUNTIME must be explicitly set to ecs or official." >&2
     exit 1
     ;;
 esac
