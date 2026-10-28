@@ -1,3 +1,5 @@
+> Current L12 review: [Chromium 158 final packet](../experiments/chromium-extension-spike/evidence/l12-chromium158-closeout-20261028/README.md). Native available-load median p99 passes at 4.544ms regular / 3.367ms private; corrected, authenticated reference passes 112 browser checks, four ownership checks and its full corpus. Genuine 158 rebase and signed qualification are complete; owner confirms no outside hands-on work or new infrastructure charge. **11/12 accepted; L12 awaits the exact-artifact owner decision.** No publish/merge approval. Broad Electron builds remain paused; Google baseline stays separate.
+
 ## Current Chromium158 rebase result — October 28, 2026
 
 The owner-approved158.0.8127.2 rebase is built, Developer ID–signed, notarized and manifest-authenticated. Source [0353d3e3](https://github.com/bnfy/blanc/commit/0353d3e33443fc54fbc75dea0bbe0bd1d009e374) preserves the exact pinned source bundle. Archive SHA256: `08e34d602a46a6c381421850eb09ed5c05e73b1ac5221f8cc69054677b717f8e`.

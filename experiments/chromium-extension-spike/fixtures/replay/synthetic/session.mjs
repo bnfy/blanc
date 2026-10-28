@@ -1,3 +1,4 @@
+import {applyReferenceCosmeticRepair} from './reference-cosmetic-repair.mjs';
 import {startNativeTiming} from './native-latency-trace.mjs';
 // Disposable real-browser sessions shared by path and latency probes.
 import fs from 'node:fs';import path from 'node:path';import {pathToFileURL} from 'node:url';import assert from 'node:assert/strict';
@@ -19,6 +20,7 @@ export async function openSession({config,browserKind,kind,label,root,transport,
   assert.equal(sha(fs.readFileSync(config.asar)),'5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab');
   const asar=await import(pathToFileURL(config.asarModule));const appPath=path.join(dir,'app');asar.extractAll(config.asar,appPath);
   const pkg=JSON.parse(fs.readFileSync(path.join(appPath,'package.json')));assert.equal(pkg.version,'1.36.0');
+  if(config.referenceCosmeticRepair === true) source.referenceRepair=applyReferenceCosmeticRepair(appPath);
   let bootstrap=fs.readFileSync(new URL('../pipeline/bootstrap.cjs',import.meta.url),'utf8');
   // A monotonic JS observer reference, not an invented Electron base::TimeTicks hook.
   for(const [a,b] of [["observer.decide = async function(event, details) {","observer.decide = async function(event, details) { const entered=process.hrtime.bigint();"],["saveDecision({ ...observed, result: result ?? {} });","saveDecision({ ...observed, result: result ?? {}, observer_to_result_us: Number(process.hrtime.bigint()-entered)/1000 });"]]){assert.equal(bootstrap.split(a).length,2);bootstrap=bootstrap.replace(a,b);}
@@ -63,7 +65,7 @@ globalThis.__blancAuthoredCosmeticDiagnostic = rules => {
  }else{
   const uboArgs=provider==='ublock-origin'?[`--blanc-ubo-component-probe=${uboPayload}`,`--blanc-ubo-component-manifest=${fs.readFileSync(path.join(uboPayload,'manifest.json'),'utf8').replace(/[\u007f-\uffff]/g,c=>'\\u'+c.charCodeAt(0).toString(16).padStart(4,'0'))}`,'--blanc-ubo-offline-probe','--blanc-ubo-reload-probe']:[];
   context=await pw.chromium.launchPersistentContext(profile,{executablePath:config.chromium,headless:false,chromiumSandbox:true,ignoreDefaultArgs:[...(provider==='ublock-origin'?['--disable-extensions','--disable-component-extensions-with-background-pages']:[]),...(config.lifecycleProbe?['--disable-back-forward-cache']:[])],args:[...args,...uboArgs,...(config.fetchRetryProbe?['--enable-features=FetchRetry','--enable-blink-features=FetchRetry']:[]),...(config.rendererTokenMismatchProbe?['--blanc-renderer-token-mismatch-probe']:[]),...(config.documentStart&&provider==='ublock-origin'?['--blanc-ubo-document-start']:[]),...(config.workerUpdateIdentity?[`--blanc-worker-update-log=${updateLog}`]:[]),`--blanc-blocker-assets=${config.engine}`,`--blanc-blocker-log=${log}`,`--blanc-prototype-assets=${config.ui}`,'--no-first-run','--no-default-browser-check','--disable-component-update','--disable-domain-reliability','--disable-sync'],timeout:60000});
-  const browser=context.browser();assert(browser.version().startsWith('157.'));active=context;
+  const browser=context.browser();if(config.expectedChromiumVersion) assert.equal(browser.version(),config.expectedChromiumVersion); else assert(browser.version().startsWith('157.'));active=context;
   if(kind==='private'){privateContext=await browser.newContext();active=privateContext;}
   page=await active.newPage();const cdp=await active.newCDPSession(page),session=await browser.newBrowserCDPSession();
   const info=await cdp.send('Target.getTargetInfo'),contexts=await session.send('Target.getBrowserContexts');source.isOffTheRecord=contexts.browserContextIds.includes(info.targetInfo.browserContextId);assert.equal(source.isOffTheRecord,kind==='private');source.version=browser.version();if(config.lifecycleProbe){await cdp.detach();await session.detach();}

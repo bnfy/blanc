@@ -1,0 +1,11 @@
+{
+  "syntheticAccountingChecks": [
+    "owner and machine separated",
+    "invalid interval rejected",
+    "invalid interval rejected",
+    "reboot duration not inferred",
+    "open interval not counted"
+  ],
+  "actualRebaseMeasured": false,
+  "ownerTimeInvented": false
+}

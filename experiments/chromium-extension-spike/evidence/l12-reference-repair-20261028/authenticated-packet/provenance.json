@@ -1,0 +1,65 @@
+{
+  "kind": "isolated corrected comparator; not shipped Electron application",
+  "originalAsarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+  "versions": {
+    "node": "24.22.0",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.8",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.2",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "149",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "0.0.0",
+    "simdjson": "4.6.11",
+    "simdutf": "7.7.0",
+    "sqlite": "3.53.4",
+    "tz": "2026d",
+    "undici": "7.29.1",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "15.2.124.43-electron.0",
+    "zlib": "1.3.2.1-motley",
+    "zstd": "1.6.0",
+    "electron": "44.8.0",
+    "chrome": "152.0.7977.167"
+  },
+  "repair": {
+    "kind": "isolated-reference-correction",
+    "originalVersion": "1.36.0",
+    "changes": [
+      {
+        "name": "src/main/adblock.js",
+        "before": "b196eae6a33e28b101aeab01b63f0d08cdd68771eff2df54c79c4e6811e535d5",
+        "after": "c842eaa0958fd1f9a296781a042a51b3162e370b1710b339b538f5f8384783f7"
+      },
+      {
+        "name": "src/main/adblock-owned-css.js",
+        "before": "25675654f81c55f66df52a6d70def5e0e5753d4aba06cd6b56a4121afa9ff870",
+        "after": "c6ffe7422da74ddae0438380e7e778e379a21f5cd83e3297ef74afbcecbd3c43"
+      },
+      {
+        "name": "node_modules/@ghostery/adblocker-electron-preload/dist/index.cjs",
+        "before": "a3cf09716cadd00c1e1a699d7a5bf0324e3d8ab73ec00e0202f5dead36e0a8e0",
+        "after": "6c39f30c978c39c358fc42009be8380bb2b2b98e387617c70e036a636c5c0d6a"
+      }
+    ],
+    "preloadSourceSha256": "a75b88bdf6f93773001d0f93566a7d21be88d385c5296aeec7849672b383ea04",
+    "repairSourceSha256": "21aa20f52d3f0f72d63518c59d6e3e3f1a59a804921da51f6716072b76f98687"
+  },
+  "frameworkSha256": "2c29be7c3190385094788dd04cd7d73f1d990b52c425d4e33ce0f5e7b86303a2",
+  "nativeCandidateSource": "0353d3e33443fc54fbc75dea0bbe0bd1d009e374",
+  "policyChecks": 56,
+  "policyFailures": 0,
+  "timing": "Separate follow-up evidence; this packet authenticates the exact corrected source and policy checks, not pending measurements."
+}

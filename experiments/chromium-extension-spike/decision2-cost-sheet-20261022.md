@@ -1,3 +1,9 @@
+## Chromium 158 measured update and owner confirmation
+
+The owner directly confirmed **no hands-on work outside this chat and no new paid runner, service, or hardware charge** for this rebase. The durable staging-to-successful-build window was **14,792.704 seconds (4h06m32.704s)**; six build wrappers account for **10,380.131 seconds (2h53m00.131s)** inside it. These are elapsed/machine measurements, not active labor. [Receipt and confirmation](evidence/l12-cost-reconciliation-20261028/chromium158-observed-window.json).
+
+The 158 candidate subsequently passed 75 native affected checks and 11 signed checks, Apple notarization, manifest authentication and local archive readback. The earlier statement that real-keychain qualification remained unresolved is superseded. No new purchased resource was needed. Existing hardware/power and signing renewal allocations remain unpriced; do not call total operations free. Chat approval time was not separately timed. The original staffing sheet asks for measurements where available; distinguish missing allocations from a newly incurred cash charge.
+
 # Decision 2 — staffing and CI cost sheet
 
 Updated October 28, 2026. Planning sheet, not a budget approval. See the [bounded operating proposal](decision2-operating-proposal-20261026.md) and [completed CI/usage evidence](evidence/decision2-operations-20261026/README.md). Source: [measured rebase ledger](rebase-ledger.md) and dated evidence in the [primary plan](../../docs/chromium-migration-implementation-plan-2026-10-16.md).
@@ -34,3 +40,9 @@ A ceiling is a budget decision, not evidence that the current implementation fit
 ### Owner response and conservative proposal
 
 The owner could not reasonably supply cash/hour limits without a quantified workload. Do not ask again for a guess. The [operating proposal](decision2-operating-proposal-20261026.md) is now concrete: existing Macs/signing, current standard public CI, no new paid services, affected-only checks and prospective active-time/cash recording on the next necessary update. It retains the primary plan stop rules. Actual operator hours and remaining cash allocations are unknown, so affordability and cost/capacity acceptance remain open. No new benchmark/rebase is authorized merely to collect these numbers.
+
+## Reconciliation of available measurements
+
+[October28 cost reconciliation](evidence/l12-cost-reconciliation-20261028/README.md) independently recomputes the retained CI intervals and separates historical cold-build work from unmeasured active effort. Machine time is not labor. The machine-readable worksheet keeps unavailable costs null and identifies the specific source required for each; no invented total or gate credit.
+
+[Actual-record search and verified158 scope](evidence/l12-cost-reconciliation-20261028/search-and-rebase-scope.md): no attributable invoices recovered; unrelated cloud charges excluded. Official158.0.8127.2 tag verified at681cd621e82e606d7536eae8ea2576afb3c7d65c. The genuine major-version update finished compiling in the separate durable workspace, with a zero-action guard. Owner approved the 57,943-action dry run, eight workers and subsequent live-scope expansion. All six build wrappers are terminal: five encountered preserved narrow failures, and the sixth succeeded. Their accumulated wall time is 10,380.131 seconds (2h53m00.131s). This excludes dependency/source preparation, isolated repair compilations and qualification; it is neither total rebase elapsed time nor active owner effort. [Attempt accounting](evidence/chromium158-staging-20261028/build-attempt-accounting.json) preserves receipt hashes and measurement limits. This is machine time, not owner effort. The later signed qualification passed; see the current measured-update section above.
