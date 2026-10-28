@@ -50,6 +50,15 @@
     ]
   },
   {
+    "id": "shared-spaces",
+    "q": "What does Shared Spaces sync?",
+    "a": [
+      "Starting with Blanc 1.45, Shared Spaces can keep Blanc Spaces you choose the same on each device where you turn it on. It is off by default, a separate choice under Settings → Sync on each device, and only the Personal profile offers it. It uses the same end-to-end encryption as the rest of Sync: the server stores ciphertext it cannot read and sees only that each shared Space exists under a random ID, its size, and when it changes.",
+      "For each chosen Space it carries the Space’s name, color and symbol, and for each web tab the address, page title, any name you gave the tab, whether it is pinned, its group and its place in the order. Private tabs, Blanc’s internal pages and local files never sync; if a shared tab moves to one of them, your other devices keep the last web page it shared. A tab you close in a shared Space appears in your other devices’ Recently closed for up to a day, with its address, title and the name of the device it was closed on, and its encrypted record stays in sync storage for 30 days.",
+      "Turning Shared Spaces off on a device keeps its Spaces there as local copies; your other devices keep syncing, and the server copy stays until you erase Sync. A deleted Space’s contents are emptied, but its encrypted deletion record uses sync storage for 30 days. Each Sync account has a 20 MiB server allowance that also covers favorites, settings and the other Sync data, and up to 25 Spaces can be shared."
+    ]
+  },
+  {
     "id": "open-source",
     "q": "Is Blanc open source?",
     "a": [
