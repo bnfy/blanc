@@ -7506,6 +7506,34 @@ function stepTabSwitch(runtime, direction, sender) {
   if (!sender) tabSwitcher.release(runtime);
 }
 
+// macOS: Ctrl+Tab is a native menu key equivalent there, and
+// registerAccelerator is Windows/Linux only, so one key press can reach Blanc
+// twice: as a surface's before-input-event and as the menu's accelerator
+// click. Whichever arrives first steps the switch as a held key (the Control
+// release lands it); the other is dropped.
+const MAC_TAB_SWITCH_KEY_MS = 80;
+function stepMacTabSwitchKey(runtime, id, sender) {
+  const now = performance.now();
+  if (now - (runtime.macTabSwitchKeyAt ?? -Infinity) < MAC_TAB_SWITCH_KEY_MS) return;
+  runtime.macTabSwitchKeyAt = now;
+  stepTabSwitch(runtime, id === 'next-tab' ? 1 : -1, sender ?? 'menu-key');
+  observeBrowserCommand({ id, runtimeId: runtime.id, webContentsId: sender?.id ?? null, handled: true });
+}
+
+/** macOS in most-recent order: Ctrl+Tab and Ctrl+Shift+Tab step the switch
+ * from whichever surface has focus. The press is not consumed, for the same
+ * reason as on Windows and Linux: a consumed press loses the Control release. */
+function installMacTabSwitchKeys(webContents, getRuntime) {
+  webContents.on('before-input-event', (_event, input) => {
+    if (!recentTabOrder()) return;
+    const id = matchBrowserShortcut(input, 'darwin');
+    if (id !== 'next-tab' && id !== 'previous-tab') return;
+    const runtime = getRuntime();
+    if (!runtime || webContents.isDestroyed() || !ownsBrowserShortcutSurface(runtime, webContents)) return;
+    bindWindowRuntime(runtime, () => stepMacTabSwitchKey(runtime, id, webContents))();
+  });
+}
+
 const executeBrowserCommand = createBrowserCommandExecutor({
   'new-window': runtime => openNewWindow({ profileId: runtime.profileId }),
   'new-tab': () => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true }),
@@ -7607,6 +7635,7 @@ function installChromeShortcuts(webContents, owner = rt()) {
   });
   // Only where most-recent order can run; elsewhere no surface carries these.
   if (RECENT_TAB_ORDER_AVAILABLE) installTabSwitchRelease(webContents, getRuntime);
+  if (RECENT_TAB_ORDER_AVAILABLE && process.platform === 'darwin') installMacTabSwitchKeys(webContents, getRuntime);
   installVerticalTabsShortcut(webContents, owner);
   installIslandAutoHideShortcut(webContents, owner);
   installGlanceShortcut(webContents, owner);
@@ -12302,12 +12331,16 @@ function buildMenuForRuntime(runtime) {
       // In most-recent order the press must reach the page unconsumed, so the
       // menu shows Ctrl+Tab without registering it (or every Tab steps twice).
       ...(recentTabOrder() && (id === 'next-tab' || id === 'previous-tab') ? { registerAccelerator: false } : {}),
-      click: (_item, window) => {
+      click: (_item, window, event) => {
         const target = window
           ? windowRuntimes.all().find(candidate => candidate.window === window)
           : focusedRuntime ?? runtime;
         if (!target) return;
         bindWindowRuntime(target, () => {
+          if (isMac && event?.triggeredByAccelerator && recentTabOrder() && (id === 'next-tab' || id === 'previous-tab')) {
+            stepMacTabSwitchKey(target, id, null);
+            return;
+          }
           const handled = executeBrowserCommand(id, target);
           observeBrowserCommand({ id, runtimeId: target.id, webContentsId: null, handled });
         })();

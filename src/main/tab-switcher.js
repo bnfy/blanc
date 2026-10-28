@@ -18,10 +18,12 @@ function normalizeTabSwitchOrder(value) {
   return TAB_SWITCH_ORDERS.includes(value) ? value : 'recent';
 }
 
-/** Where the Ctrl release is proven to reach Blanc (spec §10, D5). Other
- * platforms keep switching by position until the manual probe clears them. */
+/** Where the Ctrl release is proven to reach Blanc with real keys (spec §10,
+ * D5): browser-shortcuts-smoke.mjs drives each of these with native input. */
+const RECENT_ORDER_PLATFORMS = Object.freeze(['linux', 'win32', 'darwin']);
+
 function recentOrderAvailable(platform) {
-  return platform === 'linux';
+  return RECENT_ORDER_PLATFORMS.includes(platform);
 }
 
 /** The candidates, most recent first: the current tab, then the activation

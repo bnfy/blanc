@@ -3,11 +3,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
-import { execFileSync } from 'node:child_process';
 import { _electron } from 'playwright';
 import hook from './support/test-hook-call.js';
 import polling from './support/poll.js';
 import { inMainTurn } from './support/main-turn.js';
+import { openNativeKeys } from './support/native-keys.mjs';
 import runtime from '../../scripts/preflight-electron-runtime.js';
 const { callTestHook: call } = hook;
 const { waitForValue: wait } = polling;
@@ -16,7 +16,7 @@ const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-shortcuts-'));
 const userData = path.join(root, 'profile');
 fs.mkdirSync(`${userData}-Dev`);
 // List order keeps synthetic Ctrl+Tab presses switching at once; the
-// most-recent order is exercised below with real keys (Linux).
+// most-recent order is exercised below with real OS keys.
 fs.writeFileSync(path.join(`${userData}-Dev`, 'settings.json'), JSON.stringify({ onboardingVersion: 1, adblockEnabled: false, searchSuggestions: false, usagePing: false, tabSwitchOrder: 'list' }));
 const uncaught = path.join(root, 'uncaught.log');
 const server = http.createServer((_req, res) => {
@@ -262,29 +262,15 @@ try {
     wc.sendInputEvent({ type: 'keyUp', keyCode: 'W', modifiers: ['control'] });
   }, { id: heldContentsId, inputCount });
   assert.equal((await call(app, 'browserCommandState')).deliveries.length, priorDeliveries);
-  // Ctrl+Tab by most recent use, on Linux where it ships (tab-switcher.js).
-  // Real X11 keys: a synthetic event skips the native path where a consumed
-  // press loses the Control release (spec §3.4, §10).
-  if (process.platform === 'linux') {
-    let xdotool = true;
-    try { execFileSync('xdotool', ['version'], { stdio: 'ignore' }); } catch { xdotool = false; }
-    if (!xdotool && process.env.GITHUB_ACTIONS) throw new Error('xdotool is required for the most-recent Ctrl+Tab scenario on Linux CI');
-    if (!xdotool) console.log('Most-recent Ctrl+Tab skipped: xdotool is not installed');
-    else {
+  // Ctrl+Tab by most recent use (tab-switcher.js), with real OS keys: a
+  // synthetic event skips the native path where a consumed press loses the
+  // Control release (spec §3.4, §10; support/native-keys.mjs).
+  const native = await openNativeKeys(app);
+  if (!native.keys) console.log(`Most-recent Ctrl+Tab skipped: ${native.reason}`);
+  else {
+    const keys = (...steps) => native.keys.run(...steps);
+    try {
       assert.equal(await call(app, 'setTabSwitchOrder', ['recent']), 'recent');
-      const xid = await app.evaluate(({ BrowserWindow }) => {
-        const win = BrowserWindow.getAllWindows().find(w => w.webContents.getURL() === 'blanc-chrome://index/');
-        const handle = win.getNativeWindowHandle();
-        return String(handle.length >= 8 ? handle.readBigUInt64LE(0) : handle.readUInt32LE(0));
-      });
-      const keys = async (...steps) => {
-        try { execFileSync('xdotool', ['windowfocus', '--sync', xid]); } catch { execFileSync('xdotool', ['windowfocus', xid]); }
-        await new Promise(resolve => setTimeout(resolve, 200));
-        for (const step of steps) {
-          if (typeof step === 'number') await new Promise(resolve => setTimeout(resolve, step));
-          else execFileSync('xdotool', step);
-        }
-      };
       const used = [];
       for (const name of ['recent-1', 'recent-2', 'recent-3']) {
         const id = await call(app, 'openTab', [`${origin}/${name}`]);
@@ -296,13 +282,13 @@ try {
       const commandState = () => call(app, 'browserCommandState');
       const cardsBefore = (await commandState()).switcherCardShows;
       // A tap goes to the previous tab, and tapping again comes back.
-      await keys(['keydown', 'ctrl'], ['key', 'Tab'], ['keyup', 'ctrl'], settle);
+      await keys(['down', 'ctrl'], ['key', 'tab'], ['up', 'ctrl'], settle);
       await wait(state, value => value.activeTabId === used[1], 'a tap lands on the previous tab');
-      await keys(['keydown', 'ctrl'], ['key', 'Tab'], ['keyup', 'ctrl'], settle);
+      await keys(['down', 'ctrl'], ['key', 'tab'], ['up', 'ctrl'], settle);
       await wait(state, value => value.activeTabId === used[2], 'a second tap comes back');
       assert.equal((await commandState()).switcherCardShows, cardsBefore, 'a tap never shows the card');
       // Held Ctrl: two Tabs step two back, and nothing changes before the release.
-      await keys(['keydown', 'ctrl'], 150, ['key', 'Tab'], 250, ['key', 'Tab'], 250);
+      await keys(['down', 'ctrl'], 150, ['key', 'tab'], 250, ['key', 'tab'], 250);
       assert.equal((await state()).activeTabId, used[2], 'stepping never switches before the release');
       let held = await commandState();
       assert.equal(held.tabSwitchPick, used[0]);
@@ -310,30 +296,34 @@ try {
       assert.equal(held.switcherCardShows, cardsBefore + 1);
       assert.notEqual(held.focusedWebContentsId, await app.evaluate(({ webContents }) =>
         webContents.getAllWebContents().find(wc => wc.getURL() === 'blanc-chrome://overlay/')?.id ?? -1), 'the card never takes focus');
-      await keys(['keyup', 'ctrl'], settle);
+      await keys(['up', 'ctrl'], settle);
       await wait(state, value => value.activeTabId === used[0], 'the release lands two back');
       assert.equal((await commandState()).overlayMode, null, 'landing closes the card');
       // Esc cancels: the release then changes nothing.
-      await keys(['keydown', 'ctrl'], 150, ['key', 'Tab'], 250, ['key', 'Escape'], 150, ['keyup', 'ctrl'], settle);
+      await keys(['down', 'ctrl'], 150, ['key', 'tab'], 250, ['key', 'escape'], 150, ['up', 'ctrl'], settle);
       assert.equal((await state()).activeTabId, used[0], 'Esc stays where you are');
       assert.equal((await call(app, 'browserCommandState')).tabSwitchPick, null);
       assert.equal((await commandState()).overlayMode, null, 'Esc closes the card');
       // Ctrl+W closes the pick, not the current tab; the pick moves one step
-      // older and the release still arrives to land on it (D4).
-      await keys(['keydown', 'ctrl'], 150, ['key', 'Tab'], 250);
-      held = await commandState();
-      const closing = held.tabSwitchPick;
-      const after = held.tabSwitchOrder[held.tabSwitchOrder.indexOf(closing) + 1] ?? held.tabSwitchOrder[1];
-      await keys(['key', 'w'], 400);
-      await wait(state, value => !value.tabOrder.includes(closing), 'Ctrl+W closes the picked tab');
-      held = await commandState();
-      assert.equal(held.activeTabId, used[0], 'Ctrl+W leaves the current tab open and current');
-      assert.equal(held.tabSwitchPick, after, 'the pick moves one step older');
-      assert.equal(held.overlayMode, 'switcher', 'the card stays open');
-      await keys(['keyup', 'ctrl'], settle);
-      await wait(state, value => value.activeTabId === after, 'the release after Ctrl+W lands on the new pick');
+      // older and the release still arrives to land on it (D4). macOS closes
+      // tabs with ⌘W, so there W simply cancels like any other key.
+      let closing = null;
+      if (process.platform !== 'darwin') {
+        await keys(['down', 'ctrl'], 150, ['key', 'tab'], 250);
+        held = await commandState();
+        closing = held.tabSwitchPick;
+        const after = held.tabSwitchOrder[held.tabSwitchOrder.indexOf(closing) + 1] ?? held.tabSwitchOrder[1];
+        await keys(['key', 'w'], 400);
+        await wait(state, value => !value.tabOrder.includes(closing), 'Ctrl+W closes the picked tab');
+        held = await commandState();
+        assert.equal(held.activeTabId, used[0], 'Ctrl+W leaves the current tab open and current');
+        assert.equal(held.tabSwitchPick, after, 'the pick moves one step older');
+        assert.equal(held.overlayMode, 'switcher', 'the card stays open');
+        await keys(['up', 'ctrl'], settle);
+        await wait(state, value => value.activeTabId === after, 'the release after Ctrl+W lands on the new pick');
+      }
       // A click on a tile lands on it at once; the release then changes nothing.
-      await keys(['keydown', 'ctrl'], 150, ['key', 'Tab'], 250, ['key', 'Tab'], 250);
+      await keys(['down', 'ctrl'], 150, ['key', 'tab'], 250, ['key', 'tab'], 250);
       held = await commandState();
       assert.equal(held.overlayMode, 'switcher');
       // Click the current tab's neighbour in the order, not the pick, so the
@@ -347,9 +337,9 @@ try {
       }, tile);
       const view = held.overlayBounds;
       assert.ok(view, 'overlay bounds');
-      execFileSync('xdotool', ['mousemove', '--window', xid, String(Math.round(view.x + rect.x)), String(Math.round(view.y + rect.y)), 'click', '1']);
+      await keys(['click', view.x + rect.x, view.y + rect.y]);
       await wait(state, value => value.activeTabId === target, 'a click on a tile lands on it');
-      await keys(['keyup', 'ctrl'], settle);
+      await keys(['up', 'ctrl'], settle);
       assert.equal((await state()).activeTabId, target, 'the release after a click changes nothing');
       assert.equal((await commandState()).overlayMode, null);
       steps += 7;
@@ -357,6 +347,8 @@ try {
       const open = used.filter(id => id !== closing);
       for (const id of open) await call(app, 'closeTab', [id]);
       await wait(state, value => used.every(id => !value.tabOrder.includes(id)), 'most-recent fixtures closed');
+    } finally {
+      native.keys.close();
     }
   }
   const primaryBefore = (await call(app, 'windowRuntimes'))[0];
