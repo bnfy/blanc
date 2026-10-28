@@ -1,3 +1,5 @@
+> October 28 current action plan: [original-criteria closure steps](l12-no-waiver-work-plan-20261028.md). Exact0b962d7e CodeQL passes; reviewed Ubuntu failure is paused Electron sandbox duplication. Other CI pending. L12 stays NO-GO; no waiver or new gate credit. Historical status below retains its dated scope.
+
 > Current signed replacement: source73217ee5, archiveSHA256c788b98acc46637fedcfe69c72159561471d569e12f3a8191a7b5c2b5182adfd. [Grouped-property repair](evidence/f12-grouped-properties-20261028/README.md):52affected signed checks, Apple acceptance, fresh Sigstore authentication and local archive readback pass. Older evidence below retains its original source/scope; these checks do not resolve literal reference differences, original idle admission or missing measured operating inputs. L12 remains NO-GO.
 
 > October 28 original-criteria follow-up: [fresh admission and operating evidence](evidence/l12-original-criteria-20261028/README.md). Neither Mac currently meets timing admission; current completed CI workload is67m02s with six macOS jobs queued. No benchmark rerun, reference repair, new build, or gate credit. Original unmet criteria remain in force.
