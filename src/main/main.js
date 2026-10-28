@@ -8172,6 +8172,8 @@ function applySharedSpaceRow(runtime, row) {
 const syncedClosed=require('./synced-closed');
 const { createSharingService } = require('./shared-spaces-service');
 const { isRecoveryPlaceholder } = require('./shared-spaces-sharing');
+// Offered in packaged builds from 1.45 (Shared Spaces PR E). Callers still
+// limit it to the Personal profile; returning !app.isPackaged hides it again.
 function isSharedSpacesOffered() { return true; }
 function sharedSidecarSpace(tab,runtime) {
   if(!isSharedSpacesOffered()||runtime.profileId!==DEFAULT_PROFILE_ID)return null;
