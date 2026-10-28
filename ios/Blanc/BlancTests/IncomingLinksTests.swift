@@ -9,6 +9,23 @@ final class IncomingLinksTests: XCTestCase {
         return TabsManager(settingsDirectory: dir, sessionDirectory: dir)
     }
 
+    /// The desktop's pairing QR scanned with the Camera app (design
+    /// 2026-10-28 §7.3): never loaded, never a tab; Blanc asks first.
+    @MainActor func testPairLinkNeverOpensATabAndWaitsToBeAsked() {
+        let m = makeManager()
+        let before = m.tabs.count
+        var links = IncomingLinks()
+        links.receive(URL(string: "https://blanc.day/pair#K7MR-4PX2")!, into: m)
+        XCTAssertEqual(m.tabs.count, before)
+        XCTAssertTrue(links.pending.isEmpty)
+        XCTAssertEqual(links.takePairCode(), "K7MR4PX2")
+        XCTAssertNil(links.takePairCode(), "asked once")
+        links.receive(URL(string: "https://blanc.day/pair#K7MR4PX2")!, into: nil)
+        XCTAssertTrue(links.pending.isEmpty, "a pair link doesn't wait for the manager either")
+        links.receive(URL(string: "https://blanc.day/pair")!, into: m)
+        XCTAssertEqual(m.tabs.count, before + 1, "the page without a code is an ordinary link")
+    }
+
     @MainActor func testLinkBeforeTheManagerWaitsThenOpens() {
         var links = IncomingLinks()
         let first = URL(string: "https://example.com/a")!, second = URL(string: "http://example.org/b")!

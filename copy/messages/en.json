@@ -8977,6 +8977,74 @@
     "message": "On a device that already syncs, open Settings → Sync → Add another device. Enter its code here, or paste your recovery code.",
     "note": "Native iOS Settings sheet: pairingHelp."
   },
+  "ios.settings.syncOffTitle": {
+    "message": "Sync with your Blanc",
+    "note": "Native iOS Settings → Sync, off state: title."
+  },
+  "ios.settings.syncOffBody": {
+    "message": "Bring your favorites, settings and open tabs from your computer.",
+    "note": "Native iOS Settings → Sync, off state: one line under the title."
+  },
+  "ios.settings.pairWithBlanc": {
+    "message": "Pair with your Blanc",
+    "note": "Native iOS Settings → Sync, off state: the main button; opens the camera to scan the computer's pairing code."
+  },
+  "ios.settings.otherWays": {
+    "message": "Other ways to join",
+    "note": "Native iOS Settings → Sync, off state: shows the code field and the name-and-passphrase fields."
+  },
+  "ios.settings.enterCode": {
+    "message": "Enter a pairing code",
+    "note": "Native iOS Settings → Sync: header of the field for a pairing or recovery code."
+  },
+  "ios.settings.usePassphrase": {
+    "message": "Use a sync name and passphrase",
+    "note": "Native iOS Settings → Sync: header of the sync name and passphrase fields."
+  },
+  "ios.settings.typeCodeShown": {
+    "message": "Type the code shown on your computer.",
+    "note": "Native iOS Settings → Sync: shown under the code field when the device can't scan."
+  },
+  "ios.pair.scanTitle": {
+    "message": "Point at the code on your computer",
+    "note": "iOS pairing scanner: the sheet's title."
+  },
+  "ios.pair.typeInstead": {
+    "message": "Type the code instead",
+    "note": "iOS pairing scanner: closes the camera and shows the code field."
+  },
+  "ios.pair.notBlanc": {
+    "message": "That’s not a Blanc pairing code.",
+    "note": "iOS pairing scanner: a QR code that isn't a Blanc pairing code was seen."
+  },
+  "ios.pair.connecting": {
+    "message": "Connecting…",
+    "note": "iOS pairing scanner: the code was read and the iPhone is joining."
+  },
+  "ios.pair.cameraOff": {
+    "message": "Camera access is off for Blanc.",
+    "note": "iOS pairing scanner: camera access was denied or is restricted."
+  },
+  "ios.pair.openSettings": {
+    "message": "Open Settings",
+    "note": "iOS pairing scanner: opens iOS Settings for Blanc so the camera can be allowed."
+  },
+  "ios.pair.linkConfirmTitle": {
+    "message": "Pair with the Blanc on your computer?",
+    "note": "iOS: a pairing link arrived from another app (e.g. the Camera app); the sheet's title."
+  },
+  "ios.pair.linkConfirmBody": {
+    "message": "Continue only if you just scanned a code on your own computer.",
+    "note": "iOS: a pairing link arrived from another app; nothing is fetched until Pair."
+  },
+  "ios.pair.pair": {
+    "message": "Pair",
+    "note": "iOS: joins the sync from a pairing link that arrived from another app."
+  },
+  "ios.pair.cameraUsage": {
+    "message": "Blanc uses the camera only to scan the pairing code on your computer.",
+    "note": "iOS camera permission prompt (NSCameraUsageDescription). Generated into ios/Blanc/Blanc/InfoPlist.xcstrings."
+  },
   "ios.settings.shareTabsHelp": {
     "message": "Share this phone’s regular open tabs with your other devices. Private tabs are never shared.",
     "note": "Native iOS Settings sheet: shareTabsHelp."

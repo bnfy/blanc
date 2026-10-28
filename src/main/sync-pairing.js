@@ -82,14 +82,20 @@ function pairLink(code) {
 /** The normalized code a pair link carries, or null. URL parsing hides an
  * explicit default port and an empty query, so the raw text is checked too. */
 function pairLinkCode(input) {
-  if (typeof input !== 'string') return null;
+  // URL parsing also strips tabs, newlines and surrounding spaces, which other
+  // parsers (iOS's) refuse; refuse them here too so both platforms agree.
+  if (typeof input !== 'string' || /\s/.test(input)) return null;
+  for (const ch of input) if (ch < ' ' || ch === '\u007f') return null;
   let url;
   try {
     url = new URL(input);
   } catch {
     return null;
   }
-  const authority = input.trim().replace(/^https:\/\//i, '').split(/[/?#]/)[0];
+  const afterScheme = input.replace(/^https:\/\//i, '');
+  const authority = afterScheme.split(/[/?#]/)[0];
+  // URL parsing also resolves dot segments (/./pair, /x/../pair): the raw path must be /pair.
+  if (!afterScheme.slice(authority.length).startsWith('/pair#')) return null;
   if (url.protocol !== 'https:' || authority.toLowerCase() !== 'blanc.day' || url.pathname !== '/pair'
     || url.search !== '' || input.includes('?') || !url.hash) return null;
   return normalizeCode(url.hash.slice(1));

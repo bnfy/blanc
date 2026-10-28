@@ -1,0 +1,48 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSCameraUsageDescription": {
+      "comment": "iOS camera permission prompt (NSCameraUsageDescription). Generated into ios/Blanc/Blanc/InfoPlist.xcstrings.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc uses the camera only to scan the pairing code on your computer."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc verwendet die Kamera nur, um den Kopplungscode auf deinem Computer zu scannen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc usa la cámara solo para escanear el código de vinculación de tu ordenador."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc utilise l’appareil photo uniquement pour scanner le code de jumelage sur votre ordinateur."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc usa la fotocamera solo per scansionare il codice di abbinamento sul computer."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Blanc usa a câmera só para escanear o código de pareamento do seu computador."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

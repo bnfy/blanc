@@ -8687,6 +8687,74 @@
     "message": "Em um dispositivo já sincronizado, abra Ajustes → Sync → Adicionar outro dispositivo. Digite o código aqui ou cole seu código de recuperação.",
     "source": "sha256:d432e4a3c44c6419df05bb640405f1c5bd48d3ee06af09fa36d7b4b61e9fc824"
   },
+  "ios.settings.syncOffTitle": {
+    "message": "Sincronizar com seu Blanc",
+    "source": "sha256:ee3de7257cd08fbdc824482c49797b8926da917b8690e9f2bddc0565c1b5dded"
+  },
+  "ios.settings.syncOffBody": {
+    "message": "Traga seus favoritos, ajustes e abas abertas do seu computador.",
+    "source": "sha256:fe55388bda49ae7e2a1948ad03ede009f05d3077218347f03c6af7a91be925ec"
+  },
+  "ios.settings.pairWithBlanc": {
+    "message": "Parear com seu Blanc",
+    "source": "sha256:f4ff507108240b130e35c0d09e4a9e365f97ae91750be478393ca843c5acd495"
+  },
+  "ios.settings.otherWays": {
+    "message": "Outras formas de entrar",
+    "source": "sha256:fdd3f5f9dfe163c36cfb370bce2e23a81f747534b1eaa7e022af6194a6c66681"
+  },
+  "ios.settings.enterCode": {
+    "message": "Digitar um código de pareamento",
+    "source": "sha256:63dff747e37b247c82d4923709ea60ff8b6c9d4ac9e9fe1e96bfa72d4ef73b35"
+  },
+  "ios.settings.usePassphrase": {
+    "message": "Usar um nome de sincronização e uma frase secreta",
+    "source": "sha256:f3778d6a90e9dc418885ff74604ede5514de434088e59d1cb24ff18f85e43295"
+  },
+  "ios.settings.typeCodeShown": {
+    "message": "Digite o código mostrado no seu computador.",
+    "source": "sha256:2418162f6865cf8d2e69a356c2535cd3fc30dff6a750c07c4a0f12b8680f5e61"
+  },
+  "ios.pair.scanTitle": {
+    "message": "Aponte para o código no seu computador",
+    "source": "sha256:d81ee175a6cc5f02a68cb9c99e752a3ef52e37201dbf2cecab7d7bc8b962f40b"
+  },
+  "ios.pair.typeInstead": {
+    "message": "Digitar o código",
+    "source": "sha256:a889bfb18ca87f91907f04ce21ed63feb5904a79099de382514974c05fe222f9"
+  },
+  "ios.pair.notBlanc": {
+    "message": "Esse não é um código de pareamento do Blanc.",
+    "source": "sha256:6170429eeee9968fcaa2b8f878a35a1b1e936ea7db7d1211d9a9cba89d4e2848"
+  },
+  "ios.pair.connecting": {
+    "message": "Conectando…",
+    "source": "sha256:d9d0f872008c34e33c93ece64f47a19319d6aca2005ffc13fc61f353fb675e67"
+  },
+  "ios.pair.cameraOff": {
+    "message": "O acesso à câmera está desativado para o Blanc.",
+    "source": "sha256:20549cc694a477e263a2dd47ac6bef032c4b5f8c00363905109ca7dfdf9741ec"
+  },
+  "ios.pair.openSettings": {
+    "message": "Abrir Ajustes",
+    "source": "sha256:c5668046f4a0243154a64c88e068fc709363345c327c7740bbe1f4bbd2b2d8ef"
+  },
+  "ios.pair.linkConfirmTitle": {
+    "message": "Parear com o Blanc do seu computador?",
+    "source": "sha256:4410234c39cd5375a352e6ddf93a4bba2b8b9cbe9ff4ba6af6aaa24f41d96c0c"
+  },
+  "ios.pair.linkConfirmBody": {
+    "message": "Continue só se você acabou de escanear um código no seu próprio computador.",
+    "source": "sha256:fa075f9baf1ae566eb20beb9840c78333daa26eebd61e659154c007cc958899b"
+  },
+  "ios.pair.pair": {
+    "message": "Parear",
+    "source": "sha256:098181ed9c612ac6f5819debdd1329eec49a9b5f90f59a5588ae3b846a0d3e14"
+  },
+  "ios.pair.cameraUsage": {
+    "message": "O Blanc usa a câmera só para escanear o código de pareamento do seu computador.",
+    "source": "sha256:33e35780a5c9513b300cffeade91be31baeffbcf50c12f4bba2e3d7a8f710519"
+  },
   "ios.settings.shareTabsHelp": {
     "message": "Compartilhe as abas abertas normais deste iPhone com seus outros dispositivos. Abas privadas nunca são compartilhadas.",
     "source": "sha256:83d7996fbe9b9d874ba434cbe43221a9fd2799fc25d6f692d05310d6844e087b"

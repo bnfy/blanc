@@ -34,7 +34,8 @@ struct SettingsSyncStatus: Equatable {
     var canJoin: Bool { SyncPairing.isRecoveryCode(code.trimmingCharacters(in: .whitespacesAndNewlines)) || SyncPairing.normalize(code) != nil }
     var canSignIn: Bool { SyncCrypto.validHandle(handle) && SyncCrypto.passphraseStrong(passphrase) }
 
-    func run(successMessage: String? = nil, _ operation: () async -> JSONValue) async {
+    /// `successMessage` is read after the operation, so it can describe its result.
+    func run(successMessage: @autoclosure () -> String? = nil, _ operation: () async -> JSONValue) async {
         guard !busy else { return }
         let token = generation
         busy = true; error = nil; notice = nil
@@ -44,7 +45,7 @@ struct SettingsSyncStatus: Equatable {
         if result["ok"]?.bool == false {
             error = result["message"]?.text ?? SyncCopy.error(result["error"]?.text ?? "server")
         } else {
-            notice = successMessage ?? SettingsCopy.text("saved")
+            notice = successMessage() ?? SettingsCopy.text("saved")
             clearSecrets()
         }
     }
@@ -63,6 +64,17 @@ struct SyncSettingsView: View {
     @State private var confirm: Confirmation?
     @State private var switching = false
     @State private var showPairing = false
+    // Pair with your Blanc (design 2026-10-28 §7.1): the camera first, every
+    // other way one level deeper.
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var showOtherWays = false
+    @State private var typeCodeHint = false
+    @State private var scanSheet: ScanSheet?
+    private struct ScanSheet: Identifiable {
+        let route: PairScanCoordinator.Route
+        let scan: PairScanCoordinator
+        var id: String { "\(route)" }
+    }
     private enum Confirmation: String, Identifiable { case disconnect, switchAccount, recovery; var id: String { rawValue } }
     private var status: SettingsSyncStatus { SettingsSyncStatus(engine.status) }
 
@@ -80,7 +92,27 @@ struct SyncSettingsView: View {
                 }
             } footer: { Text(SettingsCopy.text("syncHelp")) }
 
-            if !status.enabled || switching {
+            if !status.enabled && !switching {
+                Section {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(SettingsCopy.text("syncOffTitle")).font(.headline)
+                        Text(SettingsCopy.text("syncOffBody")).foregroundStyle(.secondary)
+                    }
+                    Button(action: startPairing) {
+                        // Settings tints with the text color, so the label takes the
+                        // page's background color to stay readable on that fill.
+                        Label(SettingsCopy.text("pairWithBlanc"), systemImage: "qrcode.viewfinder")
+                            .foregroundStyle(BrowserStyle(scheme: colorScheme).background)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("settings.pairWithBlanc")
+                    Button(SettingsCopy.text("otherWays")) {
+                        withAnimation { showOtherWays.toggle() }
+                    }.accessibilityIdentifier("settings.otherWays")
+                }
+            }
+            if (!status.enabled && showOtherWays) || switching {
                 Section {
                     TextField(SettingsCopy.text("pairingCode"), text: $form.code, axis: .vertical)
                         .textInputAutocapitalization(.never).autocorrectionDisabled()
@@ -88,7 +120,10 @@ struct SyncSettingsView: View {
                     Button(SettingsCopy.text(switching ? "switchAccount" : "connect")) {
                         if switching { confirm = .switchAccount } else { join() }
                     }.disabled(!model.canJoin).accessibilityIdentifier("settings.connect")
-                } header: { Text(SettingsCopy.text(switching ? "switchAccount" : "connect")) }
+                    if typeCodeHint && !switching {
+                        Text(SettingsCopy.text("typeCodeShown")).foregroundStyle(.secondary)
+                    }
+                } header: { Text(SettingsCopy.text(switching ? "switchAccount" : "enterCode")) }
                   footer: { Text(SettingsCopy.text("pairingHelp")) }
                 if !switching {
                     Section {
@@ -104,12 +139,12 @@ struct SyncSettingsView: View {
                             Text(SyncCopy.text("sync.error.weakPassphrase")).foregroundStyle(.secondary)
                         }
                         Button(SettingsCopy.text("signIn")) { signIn() }.disabled(!model.canSignIn)
-                    } header: { Text(SettingsCopy.text("existingAccount")) }
+                    } header: { Text(SettingsCopy.text("usePassphrase")) }
                       footer: { Text(SettingsCopy.text("desktopAccount")) }
                 } else {
                     Button(SettingsCopy.text("cancel")) { switching = false; model.clearSecrets() }
                 }
-            } else {
+            } else if status.enabled {
                 Section {
                     TextField(SettingsCopy.text("deviceName"), text: $form.deviceName)
                         .onSubmit(saveName).accessibilityIdentifier("settings.deviceName")
@@ -143,6 +178,13 @@ struct SyncSettingsView: View {
         .onChange(of: status.enabled) { _, enabled in if enabled { switching = false } }
         .onDisappear { model.dismiss() }
         .navigationDestination(isPresented: $showPairing) { PairDeviceSettingsView(engine: engine) }
+        .sheet(item: $scanSheet) { sheet in
+            PairScannerSheet(route: sheet.route, scan: sheet.scan, onCode: { code in
+                scanSheet = nil
+                model.code = code
+                join()
+            }, onTypeInstead: { showCodeField() })
+        }
         .alert(item: $confirm) { confirmation in
             switch confirmation {
             case .disconnect:
@@ -162,9 +204,23 @@ struct SyncSettingsView: View {
             }
         }
     }
+    private func startPairing() {
+        let scan = PairScanCoordinator()
+        Task {
+            let route = await scan.start()
+            if route == .codeField { showCodeField() } else { scanSheet = ScanSheet(route: route, scan: scan) }
+        }
+    }
+    private func showCodeField() {
+        typeCodeHint = true
+        withAnimation { showOtherWays = true }
+    }
     private func join() {
         let code = model.code.trimmingCharacters(in: .whitespacesAndNewlines)
-        Task { await model.run(successMessage: SettingsCopy.text("connected")) { status.enabled ? await engine.switchWithCode(code) : await engine.joinWithCode(code) } }
+        // The success line names the sync joined (design 2026-10-28 §7.3).
+        Task { await model.run(successMessage: SyncCopy.text("settings.sync.connectedTo", ["name": SettingsSyncStatus(engine.status).handle])) {
+            status.enabled ? await engine.switchWithCode(code) : await engine.joinWithCode(code)
+        } }
     }
     private func signIn() {
         let handle = model.handle, passphrase = model.passphrase
@@ -191,6 +247,11 @@ private struct PairDeviceSettingsView: View {
             Section {
                 TimelineView(.periodic(from: .now, by: 1)) { context in
                     if let pairing = engine.pairing, Double(pairing.expiresAt) / 1000 > context.date.timeIntervalSince1970 {
+                        // The same QR as the desktop's sheet (design 2026-10-28 §7.1).
+                        if let qr = PairQR.image(for: pairing.code) {
+                            Image(uiImage: qr).interpolation(.none).resizable().scaledToFit()
+                                .frame(maxWidth: 200).frame(maxWidth: .infinity).accessibilityHidden(true)
+                        }
                         Text(SyncPairing.format(pairing.code)).font(.system(.largeTitle, design: .monospaced))
                             .textSelection(.enabled).privacySensitive().accessibilityIdentifier("settings.pairCode")
                         Text(Date(timeIntervalSince1970: Double(pairing.expiresAt) / 1000), style: .timer)
