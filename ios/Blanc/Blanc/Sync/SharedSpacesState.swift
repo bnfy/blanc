@@ -151,6 +151,16 @@ import Foundation
     save()
   }
 
+  /// Recovered tab ids a recovery Space now holds, so a recovery Space the
+  /// person deleted isn't made again from the same records (desktop's
+  /// `recoveryDone`).
+  func markRecoveryDone(_ id: String, tabIds: [String]) {
+    var ids = (data["recoveryDone"]?[id]?.array ?? []).compactMap(\.string)
+    for tabId in tabIds where !ids.contains(tabId) { ids.append(tabId) }
+    setIn("recoveryDone", id, .array(ids.map(JSONValue.string)))
+    save()
+  }
+
   func setIndex(_ index: JSONValue) throws {
     data["index"] = try Model.mergeIndex(data["index"], index)
     save()
