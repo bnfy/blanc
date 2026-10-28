@@ -26,10 +26,11 @@ After({tags:'@F57 and not @peer-driver',timeout:180000},async function(scenario)
  try{if(this.sharedPeer){await callTestHook(this.sharedPeer,'sharedSpacesTest',['disable']);await ctx.closePeerApp(this.sharedPeer);}await this.call('sharedSpacesTest','disable');}
  finally{try{await ctx.relaunch();}finally{await this.sharedFixture?.close();this.sharedKey?.key.fill(0);}}
 });
-async function setup(world,shared){
+async function setup(world,shared,{beforeSave=null}={}){
  world.firstTab=await world.call('openTab',world.fixtureUrl('shared-first'));
  world.secondTab=await world.call('openTab',world.fixtureUrl('shared-second'));
  await world.waitForState(s=>s.tabs.filter(t=>[world.firstTab,world.secondTab].includes(t.id)).every(t=>!t.isLoading));
+ if(beforeSave)await beforeSave();
  const saved=await world.call('workspaceAction','save','Work');assert.equal(saved.ok,true);
  const listing=await world.call('workspaceAction','list'),workspace=listing.items.find(row=>row.name==='Work');
  world.expectedSharedTabCount=(await world.call('workspaceAction','saved-urls',workspace.id)).filter(url=>/^https?:/.test(url)).length;
@@ -260,4 +261,49 @@ When('its input is cleared and Shared Spaces applies again',{timeout:180000},asy
 });
 Then('the background tab follows the remote navigation',{timeout:60000},async function(){
  await this.waitForState(s=>s.tabs.some(t=>t.id===this.firstTab&&t.url===this.fixtureUrl('remote-navigation')),{timeout:30000});
+});
+// Gate D B1: a quit while a change is held must close no tab. Like Gate D's
+// iana.org, the background tab is loaded, untouched and alone in a group that
+// existed before the Space was shared.
+Given('a Shared Spaces fixture whose shared Work Space has a tab alone in a group',{timeout:180000},async function(){
+ await setup(this,true,{beforeSave:async()=>{
+  await this.call('groupTabByName',this.firstTab,'Held');
+  await this.waitForState(s=>s.tabs.some(t=>t.id===this.firstTab&&t.groupId));
+ }});
+ assert.notEqual((await this.state()).activeTabId,this.firstTab,'the grouped Work tab is in the background');
+ const state=await this.call('sharedSpacesTest','state'),blob=Object.values(state.shared.blobs)[0].blob;
+ const record=Object.values(blob.tabs).find(r=>r.nav.v.url===this.fixtureUrl('shared-first'));
+ assert.ok(record?.groupId.v&&blob.groups[record.groupId.v]?.deleted.v===false,'the group is shared');
+});
+// An unpackaged Blanc keeps its data in "<profile>-Dev".
+const sharedStoreOnDisk=profileDir=>JSON.parse(require('node:fs').readFileSync(require('node:path').join(profileDir+'-Dev','shared-spaces.json'),'utf8'));
+When('the Shared Spaces client quits normally and relaunches',{timeout:180000},async function(){
+ const state=await this.call('sharedSpacesTest','state');
+ assert.ok(Object.values(state.shared.windows).some(w=>w.accepted.some(row=>row.op==='nav'&&row.id===this.navigated)),'the active navigation is held before the quit');
+ this.deviceId=state.context.deviceId;
+ await ctx.quitAndRelaunch(profileDir=>{this.storeAtQuit=sharedStoreOnDisk(profileDir);});
+});
+Then('the quit saved no closed Work tab and kept the held navigation',function(){
+ const saved=this.storeAtQuit,blob=saved.blobs[this.sid].blob;
+ const closed=Object.values(blob.tabs).filter(r=>r.deleted.v===true).map(r=>`${r.nav.v.url} (by ${r.deleted.by===this.deviceId?'this device':r.deleted.by})`);
+ assert.deepEqual(closed,[],'the quit must not close a Work tab');
+ assert.deepEqual(Object.entries(saved.pending[this.sid]?.tabs??{}).filter(([,edit])=>edit.deleted).map(([id])=>id),[],'no close is queued to send');
+ assert.equal(Object.values(blob.groups).some(g=>g.deleted.v===true),false,'the group stays');
+ assert.ok(Object.values(saved.windows).some(w=>w.spaceId===this.sid&&w.accepted.some(row=>row.op==='nav'&&row.id===this.navigated)),'the held navigation is still saved for the next launch');
+});
+Then('the relaunched client applies the held navigation and keeps every Work tab',{timeout:180000},async function(){
+ const remote=this.fixtureUrl('remote-navigation');
+ const state=await this.waitForState(s=>s.tabs.some(t=>t.url===remote),{timeout:30000});
+ const first=state.tabs.filter(t=>t.url===this.fixtureUrl('shared-first'));
+ assert.equal(first.length,1,'the grouped Work tab is still open');assert.ok(first[0].groupId,'and still grouped');
+ assert.equal(state.tabs.filter(t=>t.url===remote).length,1);
+ assert.equal(state.tabs.some(t=>t.url===this.oldUrl),false,'the held navigation replaced the old page');
+ const shared=await this.call('sharedSpacesTest','state');
+ assert.equal(Object.values(shared.shared.windows).some(w=>w.accepted.length),false,'nothing is still held');
+ await this.call('sharedSpacesTest','pull',['space-'+this.sid]);
+ const response=await fetch(`${this.sharedFixture.url}/v1/blob/${this.sharedKey.accountId}/space-${this.sid}`);assert.equal(response.status,200);
+ const blob=JSON.parse(decrypt(this.sharedKey.key,(await response.json()).blob));
+ assert.deepEqual(Object.values(blob.tabs).filter(r=>r.deleted.v===true).map(r=>r.nav.v.url),[],'the other device keeps every Work tab');
+ assert.equal(blob.tabs[this.navigated].nav.v.url,remote);
+ assert.equal(Object.values(blob.groups).some(g=>g.deleted.v===true),false,'the other device keeps the group');
 });

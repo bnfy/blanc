@@ -8324,6 +8324,11 @@ function wakeRestoredTarget(runtime,target) {
   setActiveTab(target,{focusContent:true});
 }
 function captureSharedSpaceEdits(runtime) {
+  // Teardown is not an edit (Gate D B1). A quit, a closing window or a
+  // released set-aside Space destroys each loaded page, whose 'destroyed'
+  // handler runs closeTab; capturing then would publish every one as a close.
+  // The window's tabs are already saved and the next capture starts from them.
+  if(isQuitting||runtime.closing)return;
   const context=sharedSpaceRuntimeContext(runtime);
   if(!context?.window)return;
   sharedRuntimeSync.local(runtime);

@@ -106,3 +106,11 @@ Feature: Shared Spaces
     Then Settings keeps the credentials and offers an erasure retry
     When I retry erasing the server copy
     Then the erasure completes and sync turns off
+
+  @F57-15
+  Scenario: Quitting while a change is held closes no tab on any device
+    Given a Shared Spaces fixture whose shared Work Space has a tab alone in a group
+    When device B navigates the active Work tab
+    And the Shared Spaces client quits normally and relaunches
+    Then the quit saved no closed Work tab and kept the held navigation
+    And the relaunched client applies the held navigation and keeps every Work tab
