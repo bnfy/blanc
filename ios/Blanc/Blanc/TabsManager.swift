@@ -308,6 +308,10 @@ final class TabsManager {
         var savedURLs = sessionStore.urls.compactMap { URL(string: $0) }
         var restoredState = sessionStore.state
         #if DEBUG
+        // Every UI test starts with an empty Recently closed.
+        if ProcessInfo.processInfo.arguments.contains(where: { $0.hasPrefix("-BlancUITest") }) {
+            try? FileManager.default.removeItem(at: syncDirectory.appendingPathComponent("recently-closed.json"))
+        }
         if UITestSeed.sends || UITestSeed.twoTabs || UITestSeed.startPage || UITestSeed.favorites || UITestSeed.privateTab {
             restoredState = nil
         }
@@ -567,6 +571,8 @@ final class TabsManager {
         guard let closed = lastClosed else { return }
         undoExpiry?.cancel()
         lastClosed = nil
+        // Back open: no longer recently closed here.
+        for id in closed.closedIds { recentlyClosed.remove(id) }
         if let blankId = closed.blankId, let blank = tabs.first(where: { $0.id == blankId }),
            blank.currentURL == Self.newTabURL, !blank.canGoBack {
             tabs.removeAll { $0.id == blankId }
@@ -613,7 +619,7 @@ final class TabsManager {
         if let view = tabs[index].existingWebView { contentBlocker.cancelPending(for: view) }
         let closingGroup = groups.first { $0.id == closing.groupId }
         tabs.remove(at: index)
-        recordLocalClose(closing)
+        let recorded = recordLocalClose(closing)
         normalizeLayout()
         if !tabs.contains(where: \.isPrivate) { privateStore = nil; readerPreferences.clearPrivate() }
         // Only the newest close is undoable. A private tab's close is final, as
@@ -621,7 +627,8 @@ final class TabsManager {
         expireUndo()
         if !closing.isPrivate {
             lastClosed = ClosedTab(tab: closing, index: index, blankId: nil,
-                                   group: closingGroup.flatMap { g in groups.contains { $0.id == g.id } ? nil : g })
+                                   group: closingGroup.flatMap { g in groups.contains { $0.id == g.id } ? nil : g },
+                                   closedIds: recorded.map { [$0] } ?? [])
             let window = undoWindow
             undoExpiry = Task { [weak self] in
                 do { try await Task.sleep(for: window) } catch { return }
@@ -800,10 +807,11 @@ final class TabsManager {
             if let view = member.element.existingWebView { contentBlocker.cancelPending(for: view) }
         }
         tabs.removeAll { $0.groupId == id }
-        for member in members { recordLocalClose(member.element) }
+        let recorded = members.compactMap { recordLocalClose($0.element) }
         expireUndo()
         lastClosed = ClosedTab(tab: first.element, index: first.offset, blankId: nil,
-                               others: members.dropFirst().map { ($0.element, $0.offset) }, group: group, groupClose: true)
+                               others: members.dropFirst().map { ($0.element, $0.offset) }, group: group, groupClose: true,
+                               closedIds: recorded)
         let closing = first.element
         let window = undoWindow
         undoExpiry = Task { [weak self] in
@@ -1338,6 +1346,8 @@ final class TabsManager {
     // MARK: Shared Spaces wiring (M17c Task 18)
 
     @ObservationIgnored private var sharedAccount: String?
+    /// The phone's own Recently closed (Task 20).
+    @ObservationIgnored private(set) lazy var recentlyClosed = RecentlyClosedStore(directory: syncDirectory)
     @ObservationIgnored private var sharedPublishTask: Task<Void, Never>?
     /// How long tab changes gather before their records are written.
     @ObservationIgnored var sharedPublishDelay: Duration = .milliseconds(300)
@@ -1417,8 +1427,43 @@ final class TabsManager {
     /// named after the device that closed them.
     func sharedRemoteCloses(_ rows: [ClosedRow]) {
         for row in rows {
+            recentlyClosed.add(row)
             syncEngine.recordClosed(url: row.url, title: row.title, id: row.id, spaceId: row.spaceId)
         }
+    }
+
+    // MARK: Recently closed band (M17c Task 20, design §11)
+
+    /// Newest first, each page once: this phone's closes (its own, and pages
+    /// another device closed here), then, with the Spaces switch on, other
+    /// devices' closes.
+    var closedBand: [ClosedRow] {
+        let local = recentlyClosed.current
+        let ids = Set(local.map(\.id))
+        let remote = syncEngine.closedInbox.filter { !ids.contains($0.id) }
+        return (local + remote).sorted { $0.closedAt > $1.closedAt }
+    }
+    /// The device a row was closed on, when not this phone.
+    func closedDeviceName(_ row: ClosedRow) -> String? {
+        guard let from = row.fromId else { return nil }
+        return row.fromName ?? syncEngine.deviceName(for: from) ?? from
+    }
+    /// Reopens the page as a new tab in the shown set (a new record in a
+    /// shared Space); the row leaves the band.
+    func reopenClosed(_ row: ClosedRow) {
+        guard let url = URL(string: row.url) else { return }
+        forgetClosed(row)
+        createTab(url: url, title: row.title)
+    }
+    /// Forget: hides the row on this phone.
+    func forgetClosed(_ row: ClosedRow) {
+        if recentlyClosed.rows.contains(where: { $0.id == row.id }) { recentlyClosed.remove(row.id) }
+        else { syncEngine.forgetClosed(id: row.id) }
+    }
+    /// Clear all: this phone's closes, its synced entry, and every remote row.
+    func clearClosedBand() {
+        recentlyClosed.clear()
+        syncEngine.clearClosed()
     }
 
     private func scheduleSharedPublish() {
@@ -1455,12 +1500,16 @@ final class TabsManager {
     /// A tab the person closed here: into Recently closed, unless private or
     /// not a web page. In a shared Space its id is the shared record's, so
     /// every device lists the page once.
-    private func recordLocalClose(_ tab: TabModel) {
-        guard !tab.isPrivate, SharedSpacesAdapter.isHTTP(tab.currentURL.absoluteString) else { return }
+    @discardableResult
+    private func recordLocalClose(_ tab: TabModel) -> String? {
+        guard !tab.isPrivate, SharedSpacesAdapter.isHTTP(tab.currentURL.absoluteString) else { return nil }
         let space = shownSpace?.sharedId
         let id = space != nil ? (tab.sharedTabId ?? UUID().uuidString.lowercased()) : UUID().uuidString.lowercased()
-        syncEngine.recordClosed(url: tab.currentURL.absoluteString, title: tab.pageTitle, id: id,
-                                spaceId: tab.sharedTabId != nil ? space : nil)
+        let spaceId = tab.sharedTabId != nil ? space : nil
+        recentlyClosed.add(ClosedRow(id: id, url: tab.currentURL.absoluteString, title: tab.pageTitle,
+                                     closedAt: Self.nowMs(), spaceId: spaceId, fromId: nil, fromName: nil))
+        syncEngine.recordClosed(url: tab.currentURL.absoluteString, title: tab.pageTitle, id: id, spaceId: spaceId)
+        return id
     }
 
     /// Deleting a shared Space (switch on) writes its index tombstone at
@@ -1788,6 +1837,8 @@ struct ClosedTab {
     var group: TabGroup?
     /// Close Group, rather than one tab: the banner says so.
     var groupClose = false
+    /// Its Recently closed rows, which Undo takes back.
+    var closedIds: [String] = []
 }
 
 enum GroupNameError: Error, Equatable { case empty, duplicate }

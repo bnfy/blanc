@@ -227,6 +227,8 @@ struct PaletteSheet: View {
                 }
             } header: { groupHeading("Open tabs", count: manager.tabs.count) }
 
+            RecentlyClosedSection(manager: manager, style: style, onOpen: { dismiss() })
+
             if !manager.syncEngine.inbox.isEmpty {
                 Section {
                     ForEach(manager.syncEngine.inbox) { item in

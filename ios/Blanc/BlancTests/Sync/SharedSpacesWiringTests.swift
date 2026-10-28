@@ -331,4 +331,31 @@ import XCTest
     let m = try sharedOn(1)
     XCTAssertTrue(m.remoteSpaces.isEmpty, "with the switch on the library is the phone's own")
   }
+
+  // MARK: Recently closed (Task 20)
+
+  func testAPageClosedHereAndListedByAnotherDeviceShowsOnce() throws {
+    let m = try sharedOn(2)
+    let closing = try XCTUnwrap(m.tabs.last)
+    m.closeTab(closing.id)
+    let id = id(0x102)
+    let other = ClosedRow(id: id, url: "https://example.test/2", title: "Tab 2", closedAt: Int64(Date().timeIntervalSince1970 * 1000),
+                          spaceId: sid, fromId: "mac", fromName: "Mac")
+    m.recentlyClosed.add(other)
+    XCTAssertEqual(m.closedBand.filter { $0.id == id }.count, 1)
+  }
+
+  func testARemoteCloseIsLabelledWithTheClosingDevice() throws {
+    let m = try sharedOn(2)
+    let state = m.syncEngine.sharedState
+    var blob = try XCTUnwrap(state.blob(sid))
+    var record = try XCTUnwrap(blob["tabs"]?[id(0x102)])
+    record["deleted"] = f(.bool(true), now, "macbook")
+    blob["tabs"]?[id(0x102)] = record
+    try state.noteLocalSpace(id: sid, blob: blob, edits: nil)
+    m.sharedSpacesMerged([sid])
+    let row = try XCTUnwrap(m.closedBand.first)
+    XCTAssertEqual(row.id, id(0x102))
+    XCTAssertEqual(m.closedDeviceName(row), "macbook")
+  }
 }

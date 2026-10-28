@@ -86,3 +86,17 @@ final class SharedSpacesUITests: XCTestCase {
     XCTAssertEqual(app.buttons.matching(identifier: "tab.card").count, 3)
   }
 }
+
+extension SharedSpacesUITests {
+  /// MacBook Pro closed the shared Space's background tab: once merged here
+  /// the tab is gone and the palette's Recently closed says where it closed.
+  func testRemoteCloseLandsInRecentlyClosed() {
+    let app = launch("-BlancUITestSharedSpacesOn")
+    XCTAssertEqual(app.buttons["island.space"].label, "Space: Work")
+    app.buttons["pill.palette"].tap()
+    let row = app.buttons["closed.row." + String(format: "%032x", 0x772)]
+    XCTAssertTrue(row.waitForExistence(timeout: 30), "the remote close lands in Recently closed")
+    XCTAssertEqual(row.value as? String, "Closed on MacBook Pro")
+    capture(app, "Recently closed with a remote close")
+  }
+}

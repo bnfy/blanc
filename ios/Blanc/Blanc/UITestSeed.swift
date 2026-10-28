@@ -159,7 +159,7 @@ extension UITestSeed {
         for (tid, url, title, group) in tabs {
             left = (try? SharedSpacesModel.keyFor(left, "", tid)) ?? left
             records.append((tid, tabRecord(url, title, pos: left, group: group, deleted: closed.contains(tid),
-                                           c: closed.contains(tid) ? 200 : 100)))
+                                           c: closed.contains(tid) ? Int64(Date().timeIntervalSince1970 * 1000) : 100)))
         }
         var groupLeft = ""
         let groupRecords: [(String, JSONValue)] = groups.map { (gid, name) in
