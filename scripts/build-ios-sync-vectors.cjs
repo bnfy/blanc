@@ -233,6 +233,38 @@ try {
   const relayResult=spaces.pushPlan({...relayInput,encryptFn:t=>crypt.encrypt(Buffer.alloc(32),t)});
   vectors.spacesRelay=[entry('unknown field, incomplete record and uninterpretable newer value are relayed',relayInput,
     {...relayResult,recover:[...relayResult.recover],unsynced:[...relayResult.unsynced]})];
+  // M17: groups on the phone follow desktop's section and naming rules.
+  const sections = require('../src/renderer/tab-sections.js');
+  const groupNames = require('../src/main/group-name-case.js');
+  const t=(id,groupId=null,pinned=false)=>({id,groupId,pinned});
+  vectors.tabSections=[
+    ['ungrouped only',[t('a'),t('b')]],
+    ['run, group, run',[t('a'),t('b','g'),t('c','g'),t('d')]],
+    ['group split by a loose tab',[t('a','g'),t('b'),t('c','g')]],
+    ['two groups interleaved',[t('a','g'),t('b','h'),t('c','g'),t('d','h')]],
+    ['grouped pin leads its group',[t('a','g'),t('b','g',true),t('c')]],
+    ['shelf pins first',[t('a'),t('b',null,true),t('c','g'),t('d',null,true)]],
+    ['runs between groups',[t('a'),t('b','g'),t('c'),t('d'),t('e','h'),t('f')]],
+    ['only pins',[t('a',null,true),t('b',null,true)]],
+    ['empty',[]],
+    ['group first',[t('a','g'),t('b','g'),t('c')]],
+    ['loose tab after its group member',[t('a','g'),t('b'),t('c','h'),t('d','g')]],
+    ['pinned and unpinned in two groups',[t('a','h',true),t('b','g'),t('c','h'),t('d','g',true)]],
+  ].map(([name,list])=>entry(name,{list},{sections:sections.sectionsOf(list),order:sections.normalizeOrder(list)}));
+  vectors.tabPlaceInGroup=[
+    ['join after last member',[t('a','g'),t('b'),t('c','g'),t('d')],'d','g'],
+    ['no other member',[t('a'),t('b')],'a','g'],
+    ['move within',[t('a','g'),t('b','g'),t('c')],'a','g'],
+  ].map(([name,list,id,groupId])=>{const order=list.map(x=>x.id);const moved=list.map(x=>x.id===id?{...x,groupId}:x);
+    return entry(name,{order,list:moved,id,groupId},sections.placeInGroup(order,moved,id,groupId));});
+  vectors.groupNames=['Research','  research  ','RESEARCH','ΟΔΟΣ','x'.repeat(50),'😀'.repeat(25),'İstanbul','','   ','eBay']
+    .map(raw=>entry(raw,{raw},{normalized:groupNames.normalizeGroupName(raw),key:groupNames.groupNameKey(raw)}));
+  const identity = require('../src/renderer/space-identity.js');
+  vectors.spaceInk=[...identity.PRESETS.map(p=>p.hex),'#ffffff','#000000','#f6f6f6','#1e1e1e','#7f7f7f','#ABCDEF','abc','  #426C4C ']
+    .flatMap(hex=>['light','dark','private'].map(theme=>entry(hex+' '+theme,{hex,theme},identity.paint(hex,theme))));
+  vectors.spaceDefaults=[[],[{color:'#426c4c',symbol:'briefcase'}],identity.PRESETS.map((p,i)=>({color:p.hex,symbol:identity.SYMBOL_IDS[i]})),
+    Array.from({length:17},(_, i)=>({color:identity.PRESETS[i%8].hex,symbol:identity.SYMBOL_IDS[i%16]}))]
+    .map(existing=>entry(existing.length+' existing',{existing},identity.defaultsFor(existing)));
   // Pair links (design 2026-10-28 §7.3): one case table for both platforms.
   vectors.pairLinks=require('../test/unit/fixtures/pair-link-cases.json').cases.map(({name,input})=>entry(name,input,pair.pairLinkCode(input)));
   const output=JSON.stringify(vectors,null,2)+'\n';

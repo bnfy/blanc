@@ -29,6 +29,10 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         tab?.isLoading = true
     }
 
+    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        tab?.hasCommitted = true
+    }
+
     func webView(_ webView: WKWebView,
                  didFinish navigation: WKNavigation!) {
         sync(webView, finished: true)
@@ -48,6 +52,7 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     func webView(_ webView: WKWebView,
                  didFailProvisionalNavigation navigation: WKNavigation!,
                  withError error: Error) {
+        tab?.hasCommitted = true
         sync(webView)
     }
 

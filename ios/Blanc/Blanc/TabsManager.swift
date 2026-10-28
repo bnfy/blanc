@@ -6,6 +6,8 @@ import UIKit
 @Observable
 final class TabsManager {
     private(set) var tabs: [TabModel] = []
+    /// The shown set's tab groups, in the order their sections draw (M17).
+    private(set) var groups: [TabGroup] = []
     var isWallpaperPickerPresented = false
     var wallpaperSelectionCompletion: ((UIImage?) -> Void)?
     let startAppearance: StartAppearanceStore
@@ -19,7 +21,7 @@ final class TabsManager {
     var startPreviews: [TabModel] { previews.compactMap(\.tab) }
 
     func previewLayout(for webView: WKWebView) -> BlancStartPageLayout? {
-        previews.first { $0.tab?.webView === webView }?.layout
+        previews.first { $0.tab?.existingWebView === webView }?.layout
     }
 
     func makeStartPreview(layout: BlancStartPageLayout? = nil) -> TabModel {
@@ -57,6 +59,37 @@ final class TabsManager {
             pendingSettingsDestination = nil
             settingsDestination = destination
         }
+        if let target = pendingSpaceEditor {
+            pendingSpaceEditor = nil
+            spaceEditor = target
+        }
+        if pendingSpacesMenu {
+            pendingSpacesMenu = false
+            isSpacesMenuPresented = true
+        }
+    }
+
+    /// The Space editor sheet (M17), and what waits for the palette to close.
+    var spaceEditor: SpaceEditorTarget?
+    @ObservationIgnored private var pendingSpaceEditor: SpaceEditorTarget?
+    @ObservationIgnored private var pendingSpacesMenu = false
+
+    /// `/space`: bare, the Spaces menu; a name, that set (This iPhone too), or
+    /// New Space with the name filled in, as desktop's.
+    func runSpaceCommand(_ name: String) {
+        let wanted = SyncCrypto.lowercaseLikeJavaScript(SyncCrypto.trim(name))
+        let iphone = SyncCrypto.lowercaseLikeJavaScript(SyncCopy.text("spaces.thisIPhone"))
+        if wanted.isEmpty {
+            if isPalettePresented { pendingSpacesMenu = true; isPalettePresented = false } else { isSpacesMenuPresented = true }
+        } else if wanted == iphone {
+            show(set: TabSets.iphoneId)
+        } else if let space = spaces.first(where: { SyncCrypto.lowercaseLikeJavaScript($0.name) == wanted }) {
+            show(set: space.id)
+        } else if isPalettePresented {
+            pendingSpaceEditor = .new(name: SyncCrypto.trim(name)); isPalettePresented = false
+        } else {
+            spaceEditor = .new(name: SyncCrypto.trim(name))
+        }
     }
 
     @discardableResult
@@ -86,14 +119,17 @@ final class TabsManager {
     func setAdblockExceptions(_ exceptions: [String]) {
         let old = settingsStore.adblockExceptions
         settingsStore.update(adblockExceptions: exceptions)
-        for tab in tabs where AdblockExceptions.isExcepted(tab.currentURL, in: old) != AdblockExceptions.isExcepted(tab.currentURL, in: settingsStore.adblockExceptions) {
+        for tab in tabs where tab.hasWebView && AdblockExceptions.isExcepted(tab.currentURL, in: old) != AdblockExceptions.isExcepted(tab.currentURL, in: settingsStore.adblockExceptions) {
             applyBlocking(to: tab, for: tab.currentURL)
             tab.webView.reload()
         }
     }
     let readerPreferences: ReaderPreferences
     var readerError = false
-    var activeTabId: UUID?
+    /// The shown tab. Whatever makes a tab current also wakes it if quiet.
+    var activeTabId: UUID? {
+        didSet { if let tab = activeTab, tab.isQuiet { wake(tab) } }
+    }
 
     let settingsStore: SettingsStore
     let historyStore: HistoryStore
@@ -239,7 +275,15 @@ final class TabsManager {
         }
 
         var savedURLs = sessionStore.urls.compactMap { URL(string: $0) }
+        var restoredState = sessionStore.state
         #if DEBUG
+        if UITestSeed.sends || UITestSeed.twoTabs || UITestSeed.startPage || UITestSeed.favorites || UITestSeed.privateTab {
+            restoredState = nil
+        }
+        if UITestSeed.groups {
+            UITestSeed.seedFavorites(into: syncDirectory)
+            restoredState = UITestSeed.groupsState()
+        }
         if UITestSeed.sends {
             UITestSeed.seedSends(into: syncDirectory)
             savedURLs = [UITestSeed.pageURL]
@@ -259,18 +303,20 @@ final class TabsManager {
         defer { if UITestSeed.privateTab { createTab(url: UITestSeed.pageURL, isPrivate: true) } }
         defer { if UITestSeed.twoTabs { activeTabId = tabs.first?.id } }
         #endif
-        if savedURLs.isEmpty {
+        if let state = restoredState {
+            iphoneSet = state.iphone
+            spaces = state.spaces
+            let now = Int64(Date().timeIntervalSince1970 * 1000)
+            recentlyDeleted = state.deleted.filter { now - $0.deletedAt < TabSets.deletedRetentionMs }
+            if spaces.contains(where: { $0.id == state.shown }) { shownSetId = state.shown }
+            show(shownSetId == TabSets.iphoneId ? iphoneSet : spaces.first { $0.id == shownSetId }!.set)
+            persistSession()
+        } else if savedURLs.isEmpty {
             createTab()
         } else {
-            // Rebuild tabs without persisting each intermediate state, then set the
-            // active tab (clamped to range) and write the session once.
-            isRestoringSession = true
-            for url in savedURLs {
-                createTab(url: url)
-            }
-            let clampedIndex = min(max(sessionStore.activeIndex, 0), tabs.count - 1)
-            activeTabId = tabs[clampedIndex].id
-            isRestoringSession = false
+            // A file from before M17: its tabs are This iPhone's.
+            show(SavedSet(tabs: savedURLs.map { SavedTab(url: $0.absoluteString, title: "") },
+                          activeIndex: sessionStore.activeIndex))
             persistSession()
         }
     }
@@ -295,10 +341,12 @@ final class TabsManager {
         }
     }
 
+    /// A new tab. `quiet: true` opens it in the background with no web view
+    /// until it is shown (M17); otherwise it becomes current and loads.
     @discardableResult
-    func createTab(url: URL? = nil, isPrivate: Bool = false) -> UUID {
+    func createTab(url: URL? = nil, title: String = "", isPrivate: Bool = false, quiet: Bool = false) -> UUID {
         let url = url ?? (isPrivate ? Self.privateNewTabURL : Self.newTabURL)
-        if !isRestoringSession, activeTabId != nil, routeSettings(url) { return activeTabId! }
+        if !isRestoringSession, !quiet, activeTabId != nil, routeSettings(url) { return activeTabId! }
         let config = WebViewConfiguration.make(
             schemeHandler: schemeHandler, bridge: bridge,
             dataStore: isPrivate ? privateDataStore : .default(),
@@ -307,8 +355,20 @@ final class TabsManager {
            let ruleList = contentBlocker.compiledRuleList {
             config.userContentController.add(ruleList)
         }
-        let tab = TabModel(url: url, configuration: config, isPrivate: isPrivate)
+        let tab = TabModel(url: url, title: title, configuration: config, isPrivate: isPrivate, quiet: quiet)
         return add(tab)
+    }
+
+    /// Makes a quiet tab's web view with today's blocking rules, then loads it.
+    private func wake(_ tab: TabModel) {
+        guard tab.isQuiet else { return }
+        if contentBlocker.enabled && !contentBlocker.isReady
+            && !AdblockExceptions.isExcepted(tab.currentURL, in: settingsStore.adblockExceptions) {
+            contentBlocker.attach(to: tab.webView)
+        } else {
+            applyBlocking(to: tab, for: tab.currentURL)
+        }
+        tab.wake()
     }
 
     /// A tab a page opened: last in the list and current, private when its
@@ -324,13 +384,13 @@ final class TabsManager {
 
     @discardableResult
     private func add(_ tab: TabModel) -> UUID {
-        activeTab?.captureThumbnail()
+        if !tab.isQuiet { activeTab?.captureThumbnail() }
         let isPrivate = tab.isPrivate
         tab.uiDelegate.onOpenChild = { [weak self, weak tab] configuration, url in
             guard let self, let tab else { return nil }
             return self.openChild(of: tab, configuration: configuration, url: url)
         }
-        if contentBlocker.enabled && !contentBlocker.isReady
+        if !tab.isQuiet, contentBlocker.enabled && !contentBlocker.isReady
             && !AdblockExceptions.isExcepted(tab.currentURL, in: settingsStore.adblockExceptions) {
             contentBlocker.attach(to: tab.webView)
         }
@@ -350,7 +410,7 @@ final class TabsManager {
             if let self, let tab { self.applyBlocking(to: tab, for: url) }
         }
         tabs.append(tab)
-        activeTabId = tab.id
+        if !tab.isQuiet || (activeTabId == nil && !isRestoringSession) { activeTabId = tab.id }
         persistSession()
         return tab.id
     }
@@ -461,8 +521,12 @@ final class TabsManager {
            blank.currentURL == Self.newTabURL, !blank.canGoBack {
             tabs.removeAll { $0.id == blankId }
         }
-        tabs.insert(closed.tab, at: min(closed.index, tabs.count))
+        for (tab, index) in ([(closed.tab, closed.index)] + closed.others).sorted(by: { $0.1 < $1.1 }) {
+            tabs.insert(tab, at: min(index, tabs.count))
+        }
+        if let group = closed.group, !groups.contains(where: { $0.id == group.id }) { groups.append(group) }
         activeTabId = closed.tab.id
+        normalizeLayout()
         persistSession()
     }
 
@@ -472,7 +536,9 @@ final class TabsManager {
         undoExpiry?.cancel()
         guard let closed = lastClosed else { return }
         lastClosed = nil
-        reopenList.insert(ReopenEntry(url: closed.tab.currentURL, title: closed.tab.pageTitle), at: 0)
+        for tab in [closed.tab] + closed.others.map(\.tab) {
+            reopenList.insert(ReopenEntry(url: tab.currentURL, title: tab.pageTitle), at: 0)
+        }
         if reopenList.count > 10 { reopenList.removeLast(reopenList.count - 10) }
     }
 
@@ -494,14 +560,17 @@ final class TabsManager {
         let closing = tabs[index]
         // If the tab is still queued for a cold-compile drain, drop it so its web view
         // isn't reloaded after it's gone (and isn't kept alive by the pending queue).
-        contentBlocker.cancelPending(for: tabs[index].webView)
+        if let view = tabs[index].existingWebView { contentBlocker.cancelPending(for: view) }
+        let closingGroup = groups.first { $0.id == closing.groupId }
         tabs.remove(at: index)
+        normalizeLayout()
         if !tabs.contains(where: \.isPrivate) { privateStore = nil; readerPreferences.clearPrivate() }
         // Only the newest close is undoable. A private tab's close is final, as
         // on desktop: no Undo, never in the reopen list.
         expireUndo()
         if !closing.isPrivate {
-            lastClosed = ClosedTab(tab: closing, index: index, blankId: nil)
+            lastClosed = ClosedTab(tab: closing, index: index, blankId: nil,
+                                   group: closingGroup.flatMap { g in groups.contains { $0.id == g.id } ? nil : g })
             let window = undoWindow
             undoExpiry = Task { [weak self] in
                 do { try await Task.sleep(for: window) } catch { return }
@@ -512,7 +581,7 @@ final class TabsManager {
 
         if tabs.isEmpty {
             let blank = createTab()
-            if lastClosed != nil { lastClosed = ClosedTab(tab: closing, index: index, blankId: blank) }
+            lastClosed?.blankId = blank
             return
         }
 
@@ -531,6 +600,172 @@ final class TabsManager {
         persistSession()
     }
 
+    // MARK: Tab groups (M17)
+
+    /// Puts the tabs in section order (each group contiguous, its pins
+    /// first) and drops groups that hold no tab, as desktop's `syncTabLayout`.
+    private func normalizeLayout() {
+        let known = Set(groups.map(\.id))
+        for tab in tabs where tab.groupId.map({ !known.contains($0) }) ?? false { tab.groupId = nil }
+        let items = tabs.map { TabSections.Item(id: $0.id.uuidString, groupId: $0.groupId, pinned: $0.pinned) }
+        let byId = Dictionary(uniqueKeysWithValues: tabs.map { ($0.id.uuidString, $0) })
+        tabs = TabSections.normalizeOrder(items).compactMap { byId[$0] }
+        let order = TabSections.sections(items).compactMap(\.groupId)
+        groups = order.compactMap { id in groups.first { $0.id == id } }
+    }
+
+    private func reorder(_ ids: [String]) {
+        let byId = Dictionary(uniqueKeysWithValues: tabs.map { ($0.id.uuidString, $0) })
+        tabs = ids.compactMap { byId[$0] }
+    }
+
+    private func validName(_ raw: String, excluding id: String? = nil) throws -> String {
+        let name = GroupNames.normalize(raw)
+        guard !name.isEmpty else { throw GroupNameError.empty }
+        if groups.contains(where: { $0.id != id && GroupNames.same($0.name, name) }) { throw GroupNameError.duplicate }
+        return name
+    }
+
+    /// The tab grid's and palette's sections in display order: ungrouped pins, then each group
+    /// and each run of ungrouped tabs as `TabSections` lays them out.
+    var displaySections: [(id: String, group: TabGroup?, tabs: [TabModel])] {
+        let byId = Dictionary(uniqueKeysWithValues: tabs.map { ($0.id.uuidString, $0) })
+        let items = tabs.map { TabSections.Item(id: $0.id.uuidString, groupId: $0.groupId, pinned: $0.pinned) }
+        var out: [(id: String, group: TabGroup?, tabs: [TabModel])] = []
+        let shelf = tabs.filter { $0.groupId == nil && $0.pinned }
+        if !shelf.isEmpty { out.append(("pins", nil, shelf)) }
+        for section in TabSections.sections(items) {
+            let tabs = section.tabIds.compactMap { byId[$0] }
+            if let groupId = section.groupId, let group = groups.first(where: { $0.id == groupId }) {
+                out.append((groupId, group, tabs))
+            } else {
+                out.append(("run-\(section.tabIds.first ?? "")", nil, tabs))
+            }
+        }
+        return out
+    }
+
+    /// `/group name`: the current tab joins that group, made if it's new.
+    func runGroupCommand(_ name: String) {
+        guard let tab = activeTab, !tab.isPrivate else { return }
+        if let group = group(matching: name) { moveTab(tab.id, toGroup: group.id) }
+        else { try? createGroup(named: name, with: tab.id) }
+    }
+
+    /// Shows a group: unfolds it and makes its first tab current.
+    func showGroup(_ id: String) {
+        guard let first = displaySections.first(where: { $0.group?.id == id })?.tabs.first else { return }
+        setGroupCollapsed(id, false)
+        setActive(first.id)
+    }
+
+    /// The group named `name`, compared without regard to case (`/group`).
+    func group(matching name: String) -> TabGroup? {
+        groups.first { GroupNames.same($0.name, name) }
+    }
+
+    /// Makes a group holding `tabId`, where that tab is. Private tabs can't.
+    @discardableResult
+    func createGroup(named raw: String, with tabId: UUID) throws -> String {
+        let name = try validName(raw)
+        guard let tab = tabs.first(where: { $0.id == tabId }), !tab.isPrivate else { throw GroupNameError.empty }
+        let group = TabGroup(id: TabGroup.newId(), name: name)
+        groups.append(group)
+        tab.groupId = group.id
+        normalizeLayout()
+        persistSession()
+        return group.id
+    }
+
+    func renameGroup(_ id: String, to raw: String) throws {
+        let name = try validName(raw, excluding: id)
+        guard let index = groups.firstIndex(where: { $0.id == id }) else { return }
+        groups[index].name = name
+        persistSession()
+    }
+
+    /// One of the eight Space presets, or nil for no colour.
+    func setGroupColor(_ id: String, _ hex: String?) {
+        guard let index = groups.firstIndex(where: { $0.id == id }) else { return }
+        if let hex, !SpaceIdentity.presets.contains(where: { $0.hex == hex }) { return }
+        groups[index].color = hex
+        persistSession()
+    }
+
+    func setGroupCollapsed(_ id: String, _ collapsed: Bool) {
+        guard let index = groups.firstIndex(where: { $0.id == id }) else { return }
+        groups[index].collapsed = collapsed
+        persistSession()
+    }
+
+    /// Moves a tab into a group (after its last member), or with nil out of
+    /// its group to just below it.
+    func moveTab(_ tabId: UUID, toGroup groupId: String?) {
+        guard let tab = tabs.first(where: { $0.id == tabId }), !tab.isPrivate, tab.groupId != groupId else { return }
+        let key = tab.id.uuidString
+        if let groupId {
+            guard groups.contains(where: { $0.id == groupId }) else { return }
+            tab.groupId = groupId
+            let items = tabs.map { TabSections.Item(id: $0.id.uuidString, groupId: $0.groupId, pinned: $0.pinned) }
+            reorder(TabSections.placeInGroup(order: tabs.map { $0.id.uuidString }, items: items, id: key, groupId: groupId))
+        } else if let old = tab.groupId {
+            tab.groupId = nil
+            if let last = tabs.last(where: { $0.groupId == old }) {
+                var ids = tabs.map { $0.id.uuidString }.filter { $0 != key }
+                ids.insert(key, at: ids.firstIndex(of: last.id.uuidString)! + 1)
+                reorder(ids)
+            }
+        }
+        normalizeLayout()
+        persistSession()
+    }
+
+    /// The group's tabs stay, ungrouped, where they are.
+    func ungroup(_ id: String) {
+        for tab in tabs where tab.groupId == id { tab.groupId = nil }
+        normalizeLayout()
+        persistSession()
+    }
+
+    /// A new current tab at the end of the group.
+    @discardableResult
+    func newTab(inGroup id: String) -> UUID {
+        let tabId = createTab()
+        moveTab(tabId, toGroup: id)
+        return tabId
+    }
+
+    /// Closes every tab in the group as one Undo.
+    func closeGroup(_ id: String) {
+        guard let group = groups.first(where: { $0.id == id }) else { return }
+        let members = tabs.enumerated().filter { $0.element.groupId == id }
+        guard let first = members.first else { return }
+        let wasActive = members.contains { $0.element.id == activeTabId }
+        for member in members {
+            member.element.exitReader()
+            if let view = member.element.existingWebView { contentBlocker.cancelPending(for: view) }
+        }
+        tabs.removeAll { $0.groupId == id }
+        expireUndo()
+        lastClosed = ClosedTab(tab: first.element, index: first.offset, blankId: nil,
+                               others: members.dropFirst().map { ($0.element, $0.offset) }, group: group, groupClose: true)
+        let closing = first.element
+        let window = undoWindow
+        undoExpiry = Task { [weak self] in
+            do { try await Task.sleep(for: window) } catch { return }
+            guard let self, self.lastClosed?.tab === closing else { return }
+            self.expireUndo()
+        }
+        normalizeLayout()
+        if tabs.isEmpty {
+            let blank = createTab()
+            lastClosed?.blankId = blank
+            return
+        }
+        if wasActive { activeTabId = tabs[min(first.offset, tabs.count - 1)].id }
+        persistSession()
+    }
+
     func submitActiveTabAddress() {
         if let tab = activeTab, routeSettings(normalizer.normalize(tab.addressText)) {
             tab.addressText = tab.currentURL.absoluteString
@@ -544,6 +779,202 @@ final class TabsManager {
         persistSession()
     }
 
+    // MARK: Tab sets: This iPhone and Spaces (M17)
+
+    /// "iphone" or the shown Space's id.
+    private(set) var shownSetId = TabSets.iphoneId
+    /// The phone's Spaces in their order. The shown Space's saved tabs are
+    /// stale while it shows; `tabs` is the truth.
+    private(set) var spaces: [SpaceRecord] = []
+    private(set) var recentlyDeleted: [DeletedSpace] = []
+    /// The Space whose deletion Undo can still take back.
+    private(set) var lastDeletedSpaceId: String?
+    @ObservationIgnored private var deletedSpaceWasShown = false
+    @ObservationIgnored private var spaceUndoExpiry: Task<Void, Never>?
+    @ObservationIgnored private var iphoneSet = SavedSet()
+
+    var shownSpace: SpaceRecord? { spaces.first { $0.id == shownSetId } }
+    /// The Spaces menu over the Island (M17).
+    var isSpacesMenuPresented = false
+    /// The Island shows a Space mark once a Space exists, never on a private tab.
+    var showsSpaceMark: Bool { activeTab?.isPrivate != true && !spaces.isEmpty }
+    /// Tabs in a set, for the Spaces menu's counts.
+    func tabCount(_ id: String) -> Int {
+        id == shownSetId ? tabs.filter { !$0.isPrivate }.count : (savedSet(id)?.tabs.count ?? 0)
+    }
+
+    /// The shown set as it would be put away.
+    func captureShown() -> SavedSet {
+        let saved = tabs.filter { !$0.isPrivate }
+        return SavedSet(
+            tabs: saved.map { SavedTab(url: $0.currentURL.absoluteString, title: $0.pageTitle, pinned: $0.pinned,
+                                       groupId: $0.groupId, tabId: $0.sharedTabId) },
+            groups: groups,
+            activeIndex: saved.firstIndex { $0.id == activeTabId } ?? 0)
+    }
+
+    /// A set's saved tabs, for one that isn't shown (the shown one: `captureShown`).
+    func savedSet(_ id: String) -> SavedSet? {
+        if id == shownSetId { return captureShown() }
+        return id == TabSets.iphoneId ? iphoneSet : spaces.first { $0.id == id }?.set
+    }
+
+    private func storeShown() {
+        let set = captureShown()
+        if shownSetId == TabSets.iphoneId { iphoneSet = set }
+        else if let index = spaces.firstIndex(where: { $0.id == shownSetId }) { spaces[index].set = set }
+    }
+
+    /// Replaces the ordinary tabs with `set`'s, all quiet but the selected
+    /// one. Private tabs stay open; they belong to no set.
+    private func show(_ set: SavedSet) {
+        let privates = tabs.filter(\.isPrivate)
+        for tab in tabs where !tab.isPrivate {
+            tab.exitReader()
+            if let view = tab.existingWebView { contentBlocker.cancelPending(for: view) }
+        }
+        let wasRestoring = isRestoringSession
+        isRestoringSession = true
+        activeTabId = nil
+        tabs = []
+        groups = set.groups
+        for saved in set.tabs {
+            createTab(url: URL(string: saved.url) ?? Self.newTabURL, title: saved.title, quiet: true)
+            tabs.last?.pinned = saved.pinned
+            tabs.last?.groupId = saved.groupId
+            tabs.last?.sharedTabId = saved.tabId
+        }
+        if tabs.isEmpty { createTab(quiet: true) }
+        let count = tabs.count
+        tabs.append(contentsOf: privates)
+        normalizeLayout()
+        isRestoringSession = wasRestoring
+        let ordinary = tabs.filter { !$0.isPrivate }
+        activeTabId = ordinary[min(max(set.activeIndex, 0), count - 1)].id
+    }
+
+    /// Puts the shown set away and shows This iPhone or a Space.
+    func show(set id: String) {
+        guard id != shownSetId, let set = savedSet(id) else { return }
+        expireUndo()
+        storeShown()
+        shownSetId = id
+        show(set)
+        persistSession()
+    }
+
+    /// Space names compare without regard to case, as desktop's.
+    private func nameTaken(_ name: String, except id: String? = nil) -> Bool {
+        let wanted = SyncCrypto.lowercaseLikeJavaScript(name)
+        return spaces.contains { $0.id != id && SyncCrypto.lowercaseLikeJavaScript($0.name) == wanted }
+    }
+
+    private func validIdentity(color: String, symbol: String) throws -> String {
+        guard let hex = SpaceIdentity.normalizeHex(color), SpaceIdentity.isSymbol(symbol) else { throw SpaceError.invalid }
+        return hex
+    }
+
+    /// A new Space. With `withTab`, that tab moves into it.
+    @discardableResult
+    func createSpace(name raw: String, color: String, symbol: String, withTab tabId: UUID? = nil) throws -> String {
+        guard let name = TabSets.spaceName(raw) else { throw SpaceError.emptyName }
+        guard spaces.filter({ $0.recoveredFrom == nil }).count < TabSets.spaceLimit else { throw SpaceError.limit }
+        guard !nameTaken(name) else { throw SpaceError.duplicateName }
+        let hex = try validIdentity(color: color, symbol: symbol)
+        let id = TabGroup.newId()
+        // A new Space starts with a Start Page, or with the tab it was made from.
+        let start = tabId == nil ? [SavedTab(url: Self.newTabURL.absoluteString, title: "")] : []
+        spaces.append(SpaceRecord(id: id, name: name, color: hex, symbol: symbol, set: SavedSet(tabs: start)))
+        if let tabId { moveTab(tabId, toSpace: id) }
+        persistSession()
+        return id
+    }
+
+    func updateSpace(_ id: String, name raw: String?, color: String?, symbol: String?) throws {
+        guard let index = spaces.firstIndex(where: { $0.id == id }) else { return }
+        var space = spaces[index]
+        if let raw {
+            guard let name = TabSets.spaceName(raw) else { throw SpaceError.emptyName }
+            guard !nameTaken(name, except: id) else { throw SpaceError.duplicateName }
+            space.name = name
+        }
+        space.color = try validIdentity(color: color ?? space.color, symbol: symbol ?? space.symbol)
+        space.symbol = symbol ?? space.symbol
+        spaces[index] = space
+        persistSession()
+    }
+
+    func moveSpace(_ id: String, by offset: Int) {
+        guard let index = spaces.firstIndex(where: { $0.id == id }) else { return }
+        let target = min(max(index + offset, 0), spaces.count - 1)
+        guard target != index else { return }
+        spaces.insert(spaces.remove(at: index), at: target)
+        persistSession()
+    }
+
+    /// Moves an ordinary tab, ungrouped, to the end of another set. The
+    /// shown set's only tab stays.
+    func moveTab(_ tabId: UUID, toSpace id: String) {
+        guard id != shownSetId, savedSet(id) != nil,
+              let index = tabs.firstIndex(where: { $0.id == tabId }), !tabs[index].isPrivate,
+              tabs.filter({ !$0.isPrivate }).count > 1 else { return }
+        let tab = tabs[index]
+        let saved = SavedTab(url: tab.currentURL.absoluteString, title: tab.pageTitle, pinned: tab.pinned)
+        if id == TabSets.iphoneId { iphoneSet.tabs.append(saved) }
+        else if let target = spaces.firstIndex(where: { $0.id == id }) { spaces[target].set.tabs.append(saved) }
+        tab.exitReader()
+        if let view = tab.existingWebView { contentBlocker.cancelPending(for: view) }
+        let wasActive = tab.id == activeTabId
+        tabs.remove(at: index)
+        normalizeLayout()
+        if wasActive {
+            let ordinary = tabs.filter { !$0.isPrivate }
+            activeTabId = ordinary[min(index, ordinary.count - 1)].id
+        }
+        persistSession()
+    }
+
+    /// Deletes a Space into Recently deleted (7 days), with Undo. Deleting
+    /// the shown Space shows This iPhone.
+    func deleteSpace(_ id: String, now: Int64 = Int64(Date().timeIntervalSince1970 * 1000)) {
+        guard spaces.contains(where: { $0.id == id }) else { return }
+        let wasShown = id == shownSetId
+        if wasShown { show(set: TabSets.iphoneId) }
+        guard let index = spaces.firstIndex(where: { $0.id == id }) else { return }
+        recentlyDeleted.insert(DeletedSpace(space: spaces.remove(at: index), deletedAt: now, index: index), at: 0)
+        lastDeletedSpaceId = id
+        deletedSpaceWasShown = wasShown
+        spaceUndoExpiry?.cancel()
+        let window = undoWindow
+        spaceUndoExpiry = Task { [weak self] in
+            do { try await Task.sleep(for: window) } catch { return }
+            guard let self, self.lastDeletedSpaceId == id else { return }
+            self.lastDeletedSpaceId = nil
+        }
+        persistSession()
+    }
+
+    func undoDeleteSpace() {
+        guard let id = lastDeletedSpaceId else { return }
+        spaceUndoExpiry?.cancel()
+        lastDeletedSpaceId = nil
+        restoreDeleted(id, show: deletedSpaceWasShown)
+    }
+
+    /// Brings a Space back from Recently deleted, where it was. Refused, as
+    /// on desktop, at 25 Spaces or when another Space now has its name.
+    @discardableResult
+    func restoreDeleted(_ id: String, show showIt: Bool = false) -> Bool {
+        guard let index = recentlyDeleted.firstIndex(where: { $0.space.id == id }),
+              spaces.filter({ $0.recoveredFrom == nil }).count < TabSets.spaceLimit,
+              !nameTaken(recentlyDeleted[index].space.name) else { return false }
+        let entry = recentlyDeleted.remove(at: index)
+        spaces.insert(entry.space, at: min(entry.index, spaces.count))
+        if showIt { show(set: id) }
+        persistSession()
+        return true
+    }
+
     /// Snapshots the open tabs' URLs + active index to the session store
     /// (debounced). Suppressed while restoring so intermediate createTab calls
     /// don't overwrite the saved session mid-rebuild.
@@ -554,7 +985,11 @@ final class TabsManager {
         let saved = tabs.filter { !$0.isPrivate }
         let urls = saved.isEmpty ? [Self.newTabURL.absoluteString] : saved.map { $0.currentURL.absoluteString }
         let activeIdx = saved.firstIndex(where: { $0.id == activeTabId }) ?? 0
-        sessionStore.save(urls: urls, activeIndex: activeIdx)
+        var state = SessionState(shown: shownSetId, iphone: iphoneSet, spaces: spaces, deleted: recentlyDeleted)
+        let shown = captureShown()
+        if shownSetId == TabSets.iphoneId { state.iphone = shown }
+        else if let index = state.spaces.firstIndex(where: { $0.id == shownSetId }) { state.spaces[index].set = shown }
+        sessionStore.save(urls: urls, activeIndex: activeIdx, state: state)
         syncEngine.tabsChanged()
     }
 
@@ -610,19 +1045,19 @@ final class TabsManager {
         contentBlocker.setEnabled(enabled)
         if enabled {
             if contentBlocker.isReady {
-                for tab in tabs {
+                for tab in tabs where tab.hasWebView {
                     applyBlocking(to: tab, for: tab.currentURL)
                     tab.webView.reload()
                 }
             } else {
                 // Cold-compile still in flight: queue each tab; drainPending attaches
                 // once the list is ready (setEnabled(true) re-opened attachment).
-                for tab in tabs {
+                for tab in tabs where tab.hasWebView {
                     applyBlocking(to: tab, for: tab.currentURL)
                 }
             }
         } else {
-            for tab in tabs {
+            for tab in tabs where tab.hasWebView {
                 tab.webView.configuration.userContentController.removeAllContentRuleLists()
                 tab.webView.reload()
             }
@@ -665,8 +1100,16 @@ struct ClosedTab {
     let tab: TabModel
     let index: Int
     /// The blank tab closing the last tab opened, if any.
-    let blankId: UUID?
+    var blankId: UUID?
+    /// The rest of a group closed in one go, each with its index (M17).
+    var others: [(tab: TabModel, index: Int)] = []
+    /// The closed group, put back by Undo.
+    var group: TabGroup?
+    /// Close Group, rather than one tab: the banner says so.
+    var groupClose = false
 }
+
+enum GroupNameError: Error, Equatable { case empty, duplicate }
 
 struct ReopenEntry: Equatable {
     let url: URL
