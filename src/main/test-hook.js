@@ -1470,6 +1470,7 @@ function install(refs) {
         sync: 'migrationSyncAction',
         tabs: 'migrationTabsAction',
         space: 'migrationSpaceAction',
+        iphone: 'migrationIphoneAction',
         hide: 'migrationChecklistHide',
         compact: 'migrationChecklistCompact',
       };
@@ -1501,6 +1502,7 @@ function install(refs) {
         syncMigrationCompleted: false,
         tabImportCompleted: false,
         spaceMigrationCompleted: false,
+        iphoneMigrationCompleted: false,
       });
       const current = settings.getSettings();
       return {
@@ -1526,8 +1528,12 @@ function install(refs) {
         return document.getElementById('patronCallout').hidden;
       })()`);
     },
-    setMigrationChecklistProgress(syncComplete, tabsComplete, spaceComplete = false) {
-      settings.setSettings({ syncMigrationCompleted: !!syncComplete, tabImportCompleted: !!tabsComplete, spaceMigrationCompleted: !!spaceComplete });
+    // iphoneComplete undefined keeps the stored value (design 2026-10-28 §6.1).
+    setMigrationChecklistProgress(syncComplete, tabsComplete, spaceComplete = false, iphoneComplete) {
+      settings.setSettings({
+        syncMigrationCompleted: !!syncComplete, tabImportCompleted: !!tabsComplete, spaceMigrationCompleted: !!spaceComplete,
+        ...(iphoneComplete === undefined ? {} : { iphoneMigrationCompleted: !!iphoneComplete }),
+      });
       return true;
     },
     migrationChecklistSettings() {
@@ -3734,6 +3740,12 @@ function install(refs) {
           joinedTitle: byId('syncPairingDialog')?.open && !byId('syncPairingJoined')?.hidden ? (byId('syncPairingJoinedTitle')?.textContent ?? '') : '',
           askingSpaces: !!byId('syncPairingDialog')?.open && !byId('syncPairingQuestion')?.hidden && !byId('syncPairingJoined')?.hidden,
           doneVisible: !!byId('syncPairingDialog')?.open && !byId('syncPairingJoined')?.hidden,
+          // Connect your iPhone (design 2026-10-28 §6.1–§6.2).
+          connectIphoneVisible: visible(byId('syncConnectIphone')),
+          startShown: !!byId('syncPairingDialog')?.open && !byId('syncPairingStart')?.hidden,
+          sheetTitle: byId('syncPairingDialog')?.open ? (!byId('syncPairingStart')?.hidden ? byId('syncPairingStartTitle') : byId('syncPairingTitle'))?.textContent ?? '' : '',
+          qrPath: !byId('syncPairingQr')?.hidden ? (byId('syncPairingQr')?.firstElementChild?.getAttribute('d') ?? '') : '',
+          qrViewBox: byId('syncPairingQr')?.getAttribute('viewBox') ?? '',
         };
       })()`);
     },
@@ -3749,6 +3761,9 @@ function install(refs) {
         if (action === 'turn-on') { document.getElementById('syncTurnOn').click(); return true; }
         if (action === 'add-device') { document.getElementById('syncAddDevice').click(); return true; }
         if (action === 'spaces-not-now') { document.getElementById('syncPairingSpacesNotNow').click(); return true; }
+        if (action === 'connect-iphone') { document.getElementById('syncConnectIphone').click(); return true; }
+        if (action === 'continue') { document.getElementById('syncPairingContinue').click(); return true; }
+        if (action === 'add-this-first') { document.getElementById('syncPairingAddThisFirst').click(); return true; }
         if (action === 'type-code') {
           const input = document.getElementById('syncCode');
           input.value = value;
@@ -4164,6 +4179,7 @@ function install(refs) {
         islandHoverOpen: false,
         islandTabIcons: false,
         launchSunrise: false,
+        linkRoutesInApp: false,
         islandAutoHide: false,
         islandAutoHideStyle: 'float',
         surfaceStyle: 'sunrise',

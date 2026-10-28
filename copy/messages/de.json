@@ -4771,6 +4771,18 @@
     "message": "Wenn eine andere App einen Link in Blanc öffnet, bestimmt die erste passende Regel das Profil und optional den Space, in dem er geöffnet wird. Regeln bleiben auf diesem Gerät.",
     "source": "sha256:40218d63e7c2480dc5215578160ea9cd79e2ef7e76eeb69bcaa6e7731002dae4"
   },
+  "settings.linkRoutes.inApp.label": {
+    "message": "Auch für Links, die ich in einem neuen Tab öffne",
+    "source": "sha256:e58ac94adcaaae313e09fa42360bb7ffcc493110256cf715b30fd6cf3e6ca23e"
+  },
+  "settings.linkRoutes.inApp.hint": {
+    "message": "Ein Link, den du von einer Seite aus in einem neuen Tab öffnest, folgt einer Regel, die auf ein anderes Profil oder einen anderen Space zeigt. Links in privaten Tabs und Anmelde-Pop-ups bleiben, wo sie sind.",
+    "source": "sha256:2aa6a2a5fbeb40b917b08d9109388a0126d713237599fde7a26df9dba3670990"
+  },
+  "linkRoutes.announce.opened": {
+    "message": "Link-Regel: in {destination} geöffnet",
+    "source": "sha256:36524f3f2fb10d92deb00dbf13a6fbc457070232d8e360303984bcd07af7fab2"
+  },
   "settings.linkRoutes.fallback": {
     "message": "Alles andere: das zuletzt verwendete Fenster",
     "source": "sha256:50add5e3e37cbc88e614962dbabeff994ef03bd438272d6ac8ee8a17de67605a"
@@ -5162,6 +5174,46 @@
   "settings.sync.sheet.done": {
     "message": "Fertig",
     "source": "sha256:81ef045e6037eed260af3e8cbdf81f1a837ff04e307a892d2854b7581052a6ca"
+  },
+  "settings.sync.connectIphone": {
+    "message": "iPhone verbinden",
+    "source": "sha256:03770d3610fc1335f37f37b540f2d905e8b1fb7ffafd8487d76d56b5e5bdfa0e"
+  },
+  "settings.sync.sheet.scanIphone": {
+    "message": "Öffne Blanc auf deinem iPhone und wähle „Mit deinem Blanc koppeln“. Richte es auf diesen Code.",
+    "source": "sha256:fdfb75ff413994792e20e48f33eba71a511e56cd82fd5356b858d8174e4a8c78"
+  },
+  "settings.sync.sheet.orType": {
+    "message": "Oder gib ihn unter Einstellungen → Synchronisierung ein:",
+    "source": "sha256:157d47ac23c2ab1daca04b124f52c5258f4ee990944adedb728e7cb21557012d"
+  },
+  "settings.sync.sheet.startBody": {
+    "message": "Damit wird die Synchronisierung auf diesem Mac aktiviert. Du brauchst keinen Namen und keine Passphrase.",
+    "source": "sha256:8a3c6d5577f831eed2621ff9107f213bd9074b619c8ed91f250ea2c2fb4fa1c3"
+  },
+  "settings.sync.sheet.startBodyGeneric": {
+    "message": "Damit wird die Synchronisierung auf diesem Computer aktiviert. Du brauchst keinen Namen und keine Passphrase.",
+    "source": "sha256:7b360c5daa2d69a5fcce42f9084112de91030356339ef2913a94fb4a6b77c883"
+  },
+  "settings.sync.sheet.continue": {
+    "message": "Weiter",
+    "source": "sha256:14fc281305915e6e6f2d59dd80e081abc3e5abe45962c4ec88a0714106ca0bd8"
+  },
+  "settings.sync.sheet.makingCode": {
+    "message": "Code wird erstellt …",
+    "source": "sha256:347eab3e88dba078b43f28e46b237dc8a2ff93371aa41518ac2bf406f6713f54"
+  },
+  "settings.sync.sheet.alreadySync": {
+    "message": "Synchronisierst du schon auf einem anderen Computer?",
+    "source": "sha256:505577a9919cf0dd4610cc2decf0e3d12ad0199ffa9cfaa3fd8524867fe9f99a"
+  },
+  "settings.sync.sheet.addThisFirst": {
+    "message": "Diesen Mac zuerst mit einem Code hinzufügen",
+    "source": "sha256:293acfc9903543962c6ef1c6ebd40dadfe9eaff0f3c22e519a845cc904b4adb1"
+  },
+  "settings.sync.sheet.addThisFirstGeneric": {
+    "message": "Diesen Computer zuerst mit einem Code hinzufügen",
+    "source": "sha256:3be82e92dda779aa49b1ca18b32ba8c2506164b27482f86ae024688a959cdf9f"
   },
   "settings.sync.recoveryPrompt.title": {
     "message": "Behalte einen Weg zurück",
@@ -5618,6 +5670,10 @@
   "newtab.checklist.sync": {
     "message": "Synchronisierung einrichten",
     "source": "sha256:8d1a9026412142cea09277c1e944933ba157f35e0219072d6b29eb88c6cd62fd"
+  },
+  "newtab.checklist.iphone": {
+    "message": "iPhone verbinden",
+    "source": "sha256:f5f72a919d120cfac757343a4bd2e1cafb3c72d47b0dcaac6dc5868f785ccafb"
   },
   "newtab.checklist.tabs": {
     "message": "Tabs mitbringen",
@@ -8630,6 +8686,74 @@
   "ios.settings.pairingHelp": {
     "message": "Öffne auf einem bereits synchronisierten Gerät Einstellungen → Sync → Weiteres Gerät hinzufügen. Gib den Code hier ein oder füge deinen Wiederherstellungscode ein.",
     "source": "sha256:d432e4a3c44c6419df05bb640405f1c5bd48d3ee06af09fa36d7b4b61e9fc824"
+  },
+  "ios.settings.syncOffTitle": {
+    "message": "Mit deinem Blanc synchronisieren",
+    "source": "sha256:ee3de7257cd08fbdc824482c49797b8926da917b8690e9f2bddc0565c1b5dded"
+  },
+  "ios.settings.syncOffBody": {
+    "message": "Hol dir deine Favoriten, Einstellungen und offenen Tabs von deinem Computer.",
+    "source": "sha256:fe55388bda49ae7e2a1948ad03ede009f05d3077218347f03c6af7a91be925ec"
+  },
+  "ios.settings.pairWithBlanc": {
+    "message": "Mit deinem Blanc koppeln",
+    "source": "sha256:f4ff507108240b130e35c0d09e4a9e365f97ae91750be478393ca843c5acd495"
+  },
+  "ios.settings.otherWays": {
+    "message": "Andere Wege zum Beitreten",
+    "source": "sha256:fdd3f5f9dfe163c36cfb370bce2e23a81f747534b1eaa7e022af6194a6c66681"
+  },
+  "ios.settings.enterCode": {
+    "message": "Kopplungscode eingeben",
+    "source": "sha256:63dff747e37b247c82d4923709ea60ff8b6c9d4ac9e9fe1e96bfa72d4ef73b35"
+  },
+  "ios.settings.usePassphrase": {
+    "message": "Synchronisierungsname und Passphrase verwenden",
+    "source": "sha256:f3778d6a90e9dc418885ff74604ede5514de434088e59d1cb24ff18f85e43295"
+  },
+  "ios.settings.typeCodeShown": {
+    "message": "Gib den Code ein, der auf deinem Computer angezeigt wird.",
+    "source": "sha256:2418162f6865cf8d2e69a356c2535cd3fc30dff6a750c07c4a0f12b8680f5e61"
+  },
+  "ios.pair.scanTitle": {
+    "message": "Richte die Kamera auf den Code auf deinem Computer",
+    "source": "sha256:d81ee175a6cc5f02a68cb9c99e752a3ef52e37201dbf2cecab7d7bc8b962f40b"
+  },
+  "ios.pair.typeInstead": {
+    "message": "Code stattdessen eingeben",
+    "source": "sha256:a889bfb18ca87f91907f04ce21ed63feb5904a79099de382514974c05fe222f9"
+  },
+  "ios.pair.notBlanc": {
+    "message": "Das ist kein Blanc-Kopplungscode.",
+    "source": "sha256:6170429eeee9968fcaa2b8f878a35a1b1e936ea7db7d1211d9a9cba89d4e2848"
+  },
+  "ios.pair.connecting": {
+    "message": "Verbinde …",
+    "source": "sha256:d9d0f872008c34e33c93ece64f47a19319d6aca2005ffc13fc61f353fb675e67"
+  },
+  "ios.pair.cameraOff": {
+    "message": "Der Kamerazugriff ist für Blanc deaktiviert.",
+    "source": "sha256:20549cc694a477e263a2dd47ac6bef032c4b5f8c00363905109ca7dfdf9741ec"
+  },
+  "ios.pair.openSettings": {
+    "message": "Einstellungen öffnen",
+    "source": "sha256:c5668046f4a0243154a64c88e068fc709363345c327c7740bbe1f4bbd2b2d8ef"
+  },
+  "ios.pair.linkConfirmTitle": {
+    "message": "Mit dem Blanc auf deinem Computer koppeln?",
+    "source": "sha256:4410234c39cd5375a352e6ddf93a4bba2b8b9cbe9ff4ba6af6aaa24f41d96c0c"
+  },
+  "ios.pair.linkConfirmBody": {
+    "message": "Fahre nur fort, wenn du gerade einen Code auf deinem eigenen Computer gescannt hast.",
+    "source": "sha256:fa075f9baf1ae566eb20beb9840c78333daa26eebd61e659154c007cc958899b"
+  },
+  "ios.pair.pair": {
+    "message": "Koppeln",
+    "source": "sha256:098181ed9c612ac6f5819debdd1329eec49a9b5f90f59a5588ae3b846a0d3e14"
+  },
+  "ios.pair.cameraUsage": {
+    "message": "Blanc verwendet die Kamera nur, um den Kopplungscode auf deinem Computer zu scannen.",
+    "source": "sha256:33e35780a5c9513b300cffeade91be31baeffbcf50c12f4bba2e3d7a8f710519"
   },
   "ios.settings.shareTabsHelp": {
     "message": "Teile die normalen offenen Tabs dieses iPhones mit deinen anderen Geräten. Private Tabs werden nie geteilt.",

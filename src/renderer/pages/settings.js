@@ -1438,6 +1438,19 @@
     }));
     let loadSerial = 0;
     let saving = Promise.resolve();
+    // Links opened in a new tab from a page follow the rules too (#1199).
+    const inApp = document.getElementById('linkRoutesInApp');
+    inApp.checked = settings.linkRoutesInApp === true;
+    inApp.addEventListener('change', async () => {
+      try {
+        const saved = await window.bowserPages.settings.set({ linkRoutesInApp: inApp.checked });
+        inApp.checked = saved.linkRoutesInApp === true;
+      } catch {
+        window.bowserPages.settings.get().then(({ settings: saved }) => {
+          inApp.checked = saved.linkRoutesInApp === true;
+        }, () => {});
+      }
+    });
 
     const newId = () => `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
     const isIp = (host) => /^\d{1,3}(?:\.\d{1,3}){3}$/.test(host) || host.startsWith('[');
@@ -1938,6 +1951,7 @@
       const turnOnRow = document.getElementById('syncTurnOnRow');
       const turnOnBtn = document.getElementById('syncTurnOn');
       const turnOnStatus = document.getElementById('syncTurnOnStatus');
+      const connectIphoneBtn = document.getElementById('syncConnectIphone');
       const form = document.getElementById('syncForm');
       const handleEl = document.getElementById('syncHandle');
       const passEl = document.getElementById('syncPassphrase');
@@ -2008,6 +2022,28 @@
       const pairingRecovery = document.getElementById('syncPairingRecovery');
       const pairingRecoveryCopy = document.getElementById('syncPairingRecoveryCopy');
       const pairingDone = document.getElementById('syncPairingDone');
+      // Connect your iPhone (design 2026-10-28 §6.1–§6.2): the start state and the QR.
+      const pairingTitle = document.getElementById('syncPairingTitle');
+      const pairingInstruction = document.getElementById('syncPairingInstruction');
+      const pairingOrType = document.getElementById('syncPairingOrType');
+      const pairingQr = document.getElementById('syncPairingQr');
+      const pairingStart = document.getElementById('syncPairingStart');
+      const pairingStartBody = document.getElementById('syncPairingStartBody');
+      const pairingNotReady = document.getElementById('syncPairingNotReady');
+      const pairingStartNotice = document.getElementById('syncPairingStartNotice');
+      const pairingStartActions = document.getElementById('syncPairingStartActions');
+      const pairingContinue = document.getElementById('syncPairingContinue');
+      const pairingStartCancel = document.getElementById('syncPairingStartCancel');
+      const pairingStartRetry = document.getElementById('syncPairingStartRetry');
+      const pairingAlready = document.getElementById('syncPairingAlready');
+      const pairingAddThisFirst = document.getElementById('syncPairingAddThisFirst');
+      const pairingNotReadyCancel = document.getElementById('syncPairingNotReadyCancel');
+      const pairingMaking = document.getElementById('syncPairingMaking');
+      const pairingMakingCancel = document.getElementById('syncPairingMakingCancel');
+      // Whether this build offers iPhone pairing (main decides, design §9),
+      // and whether this is a Mac, for the start state's wording.
+      let iphonePairing = false;
+      let onMac = false;
       // Redesign 2026-10-27: identity, status colour, the device list and the
       // Add device sheet.
       const avatar = document.getElementById('syncAvatar');
@@ -2264,6 +2300,32 @@
         }
         pairingDialog.setAttribute('aria-labelledby', pv.joined ? 'syncPairingJoinedTitle' : 'syncPairingTitle');
         setWatch(pv.showing);
+        pairingStart.hidden = !(pv.startShown || pv.notReadyShown);
+        pairingMaking.hidden = !pv.makingCode;
+        if (pv.startShown || pv.notReadyShown) {
+          // Not ready: Sync is already on, so only the wait and its ways out.
+          pairingStartBody.hidden = pv.notReadyShown;
+          pairingStartBody.textContent = onMac ? t('settings.sync.sheet.startBody') : t('settings.sync.sheet.startBodyGeneric');
+          pairingAddThisFirst.textContent = onMac ? t('settings.sync.sheet.addThisFirst') : t('settings.sync.sheet.addThisFirstGeneric');
+          pairingNotReady.hidden = !pv.notReadyShown;
+          pairingStartActions.hidden = pv.notReadyShown;
+          pairingAlready.hidden = pv.notReadyShown;
+          pairingContinue.disabled = pv.startBusy;
+          pairingStartNotice.textContent = pv.startBusy ? t('settings.sync.turningOn') : pv.noticeText;
+        }
+        pairingTitle.textContent = t(pv.titleKey);
+        // The QR and the iPhone wording only where iPhone pairing is offered.
+        pairingQr.hidden = !(iphonePairing && pv.showing);
+        pairingOrType.hidden = pairingQr.hidden;
+        pairingInstruction.textContent = iphonePairing ? t('settings.sync.sheet.scanIphone') : t('settings.sync.pairing.instruction');
+        if (!pairingQr.hidden) {
+          const matrix = window.blancQrCode.encode(`https://blanc.day/pair#${pairingModel.code}`);
+          const box = window.blancQrCode.viewBoxSize(matrix);
+          pairingQr.setAttribute('viewBox', `0 0 ${box} ${box}`);
+          pairingQr.firstElementChild.setAttribute('d', window.blancQrCode.svgPath(matrix));
+        } else {
+          pairingQr.firstElementChild.removeAttribute('d');
+        }
         addDeviceBtn.hidden = !pv.beginVisible;
         addDeviceBtn.disabled = pairingModel.phase === 'starting';
         pairingCodeEl.textContent = pv.codeText;
@@ -2276,6 +2338,24 @@
         if (!pv.sheetOpen && pairingDialog.open) pairingDialog.close();
         if (pv.showing && !pairingTimer) pairingTimer = setInterval(() => dispatchPairing({ type: 'tick', now: Date.now() }), 1000);
         if (!pv.showing && pairingTimer) { clearInterval(pairingTimer); pairingTimer = null; }
+      }
+      // The sheet's Continue: Sync on without a passphrase, then a code once
+      // the new account has reached the server (design 2026-10-28 §5.1).
+      async function performSheetStartNew() {
+        let res;
+        try {
+          res = await window.bowserPages.settings.syncStartNew();
+        } catch {
+          res = { ok: false, message: t('settings.sync.checkFailed') };
+        }
+        if (res.status) renderStatus(res.status);
+        dispatchPairing({ type: 'started', ok: res.ok, synced: res.synced === true, message: res.message });
+      }
+      async function performSheetRetry() {
+        let status = null;
+        try { status = await window.bowserPages.settings.syncNow(); } catch { /* still not ready */ }
+        if (status) renderStatus(status);
+        dispatchPairing({ type: 'started', ok: true, synced: (status?.lastSyncedAt ?? 0) > 0 });
       }
       async function performPairBegin() {
         let res;
@@ -2292,6 +2372,9 @@
         renderPairing();
         if (effect?.type === 'pair-begin') performPairBegin();
         if (effect?.type === 'pair-cancel') window.bowserPages.settings.syncPairCancel().catch(() => {});
+        if (effect?.type === 'start-new') performSheetStartNew();
+        if (effect?.type === 'retry-sync') performSheetRetry();
+        if (effect?.type === 'open-code-path') { dispatch({ type: 'choose', path: 'code' }); codeEl.focus(); }
         if (effect?.type === 'spaces-acknowledge') window.bowserPages.settings.sharedSpacesAcknowledge(effect.deviceId).catch(() => {});
         // Turn on answers the question the way the Settings notice does:
         // acknowledge, then the Spaces switch opens its own sheet.
@@ -2318,6 +2401,13 @@
       document.addEventListener('visibilitychange', () => setWatch(pairingModel.phase === 'showing'));
       window.addEventListener('pagehide', () => setWatch(false));
       pairingDone.addEventListener('click', () => dispatchPairing({ type: 'done' }));
+      pairingContinue.addEventListener('click', () => dispatchPairing({ type: 'continue' }));
+      pairingStartCancel.addEventListener('click', () => dispatchPairing({ type: 'cancel' }));
+      pairingStartRetry.addEventListener('click', () => dispatchPairing({ type: 'retry' }));
+      pairingNotReadyCancel.addEventListener('click', () => dispatchPairing({ type: 'cancel' }));
+      pairingMakingCancel.addEventListener('click', () => dispatchPairing({ type: 'cancel' }));
+      pairingAddThisFirst.addEventListener('click', () => dispatchPairing({ type: 'add-this-first' }));
+      connectIphoneBtn.addEventListener('click', () => dispatchPairing({ type: 'open', syncOn: false }));
       pairingSpacesOn.addEventListener('click', () => dispatchPairing({ type: 'spaces-answer', answer: 'on' }));
       pairingSpacesNotNow.addEventListener('click', () => dispatchPairing({ type: 'spaces-answer', answer: 'not-now' }));
       addDeviceBtn.addEventListener('click', () => dispatchPairing({ type: 'begin' }));
@@ -2422,11 +2512,16 @@
       startNewBtn.addEventListener('click', () => { if (canCreate) dispatch({ type: 'start-new' }); });
 
       window.bowserPages.settings.syncGet().then((status) => {
+        iphonePairing = status.iphonePairing === true;
+        onMac = status.platform === 'darwin';
+        connectIphoneBtn.hidden = !iphonePairing || !canCreate;
         renderStatus(status);
         renderSetup();
         renderPairing();
         renderSwitch();
-        if (status.enabled) resumePairing();
+        // Finish setup's Connect your iPhone opens the sheet directly.
+        if (status.openPairSheet) dispatchPairing({ type: 'open', syncOn: !!status.enabled });
+        else if (status.enabled) resumePairing();
       }).catch(() => {});
 
       nowBtn.addEventListener('click', async () => {

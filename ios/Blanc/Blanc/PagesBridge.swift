@@ -292,6 +292,19 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         };
       }
       window.bowserPages = api;
+      // The utility pages open as ordinary tabs above the Island, not as
+      // desktop's card over a scrim. Marked before any page script runs:
+      // sheet.js and history.js read the mark, ios-pages.css draws the page.
+      if (typeof document !== 'undefined' && ['history', 'bookmarks', 'shortcuts', 'downloads'].indexOf(host) !== -1) {
+        const root = document.documentElement;
+        root.dataset.platform = 'ios';
+        const viewport = document.createElement('meta');
+        viewport.name = 'viewport';
+        viewport.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
+        const style = document.createElement('link');
+        style.rel = 'stylesheet'; style.href = 'ios-pages.css';
+        root.append(viewport, style);
+      }
       if (typeof document !== 'undefined' && location.hostname === 'newtab') {
         document.addEventListener('DOMContentLoaded', function () {
           const viewport = document.createElement('meta');

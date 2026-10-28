@@ -3,6 +3,9 @@ import WebKit
 
 struct ContentView: View {
     let manager: TabsManager
+    /// A pairing QR scanned with the Camera app (design 2026-10-28 §7.3).
+    var pairLink: Binding<PairLinkRequest?> = .constant(nil)
+    @State private var askingPair: PairLinkRequest?
     @Environment(\.colorScheme) private var colorScheme
     private var isPrivate: Bool { manager.activeTab?.isPrivate ?? false }
     /// A private tab uses the private (dark) look whatever the appearance setting.
@@ -69,6 +72,26 @@ struct ContentView: View {
             TabGridView(manager: manager)
         }
         .onChange(of: manager.incomingLinkCount) { showTabGrid = false }
+        // Like an ordinary incoming link, the pair question closes whatever is
+        // open first; it's asked once that has gone, so the code is never lost.
+        .onChange(of: pairLink.wrappedValue?.id, initial: true) {
+            guard let request = pairLink.wrappedValue else { return }
+            pairLink.wrappedValue = nil
+            let covered = showTabGrid || manager.isPalettePresented || manager.isWallpaperPickerPresented
+                || manager.settingsDestination != nil || manager.spaceEditor != nil
+            showTabGrid = false
+            manager.isPalettePresented = false
+            manager.isWallpaperPickerPresented = false
+            manager.settingsDestination = nil
+            manager.spaceEditor = nil
+            Task {
+                if covered { try? await Task.sleep(for: .milliseconds(600)) }
+                askingPair = request
+            }
+        }
+        .sheet(item: $askingPair) { request in
+            PairLinkConfirmView(engine: manager.syncEngine, code: request.code)
+        }
         .sheet(item: Binding(get: { manager.settingsDestination }, set: { manager.settingsDestination = $0 })) { destination in
             SettingsSheet(manager: manager, destination: destination)
         }

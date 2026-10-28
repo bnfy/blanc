@@ -1805,7 +1805,19 @@ candidate branch (PR 1); not shipped in public v1.43.1.
 - **What is routed.** Only web URLs the OS hands Blanc: macOS `open-url`, and
   http(s) URLs on the command line at startup or through a second launch.
   Local HTML files, tab handoff, links clicked inside Blanc and typed
-  addresses are never routed.
+  addresses are never routed, except as below.
+- **Links opened in a new tab from a page** (#1199, opt-in: *Also for links I
+  open in a new tab*, off by default, device-local). With it on, a link the
+  person activates in a tab's own top-level page that opens a new tab (a
+  `target=_blank` or modified click, a middle-click) or Open Link in New Tab
+  follows a rule that points at another profile, a Space this window isn't
+  showing, or a private tab, and opens there like a link from another app.
+  A link in a sandboxed frame, a page's own `window.open`, a featureful pop-up
+  (OAuth, payments, which keep their opener), a form post, a private tab and
+  a same-tab click never route, and a rule pointing where the link already is
+  changes nothing, so nothing loops. A background open never brings a window
+  forward. The window the link left reads out where it went. Rules can't
+  match by the sending app: Electron passes only the URL (spec §3.8).
 - **Rules.** *Links to example.com open in Work*: a `domain` rule matches the
   URL's parsed host (ASCII, lowercase, a leading `www.` dropped from the rule)
   and its subdomains; IP addresses match only exactly; userinfo never counts,

@@ -55,6 +55,19 @@ export function generate(root) {
     mobileLocales[code] = runtimeCatalog({ locale: code, dir: tr.$meta.dir, en, tr }).messages;
   }
   files['copy/generated/ios/Localizable.xcstrings'] = xcstrings({ en, locales: mobileLocales });
+  // The iPhone camera prompt (design 2026-10-28 §7.2): iOS reads Info.plist
+  // text from the app bundle, so it gets a string catalog of its own there.
+  const infoPlistKeys = Object.fromEntries(Object.entries({ NSCameraUsageDescription: 'ios.pair.cameraUsage' })
+    .filter(([, key]) => en[key]));
+  if (Object.keys(infoPlistKeys).length) files['ios/Blanc/Blanc/InfoPlist.xcstrings'] = JSON.stringify({
+    sourceLanguage: 'en',
+    strings: Object.fromEntries(Object.entries(infoPlistKeys).map(([plistKey, key]) => [plistKey, {
+      comment: en[key].note,
+      extractionState: 'manual',
+      localizations: Object.fromEntries(Object.entries(mobileLocales).map(([code, messages]) => [code, { stringUnit: { state: 'translated', value: messages[key] } }])),
+    }])),
+    version: '1.0',
+  }, null, 2) + '\n';
   for (const [code, messages] of Object.entries(mobileLocales)) {
     // Android writes a region as -r<REGION> (values-pt-rBR).
     files[`copy/generated/android/values${code === 'en' ? '' : `-${code.replace(/-([A-Z]{2})$/, '-r$1')}`}/strings.xml`] = androidStrings({ en, messages });

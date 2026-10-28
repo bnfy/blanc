@@ -7,7 +7,9 @@
   const viewVisits = document.getElementById('viewVisits');
   const viewArchived = document.getElementById('viewArchived');
   // F52: /archive opens this sheet on the Archived view.
-  let archivedView = new URLSearchParams(location.search).get('view') === 'archived';
+  // Tab Archive is desktop-only; Blanc for iPhone always shows the visits.
+  let archivedView = document.documentElement.dataset.platform !== 'ios'
+    && new URLSearchParams(location.search).get('view') === 'archived';
 
   function historyRow(e) {
     const row = document.createElement('div');
