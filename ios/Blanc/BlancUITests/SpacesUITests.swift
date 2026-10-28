@@ -37,10 +37,10 @@ final class SpacesUITests: XCTestCase {
 
     app.buttons["group.menu"].tap()
     app.buttons["Rename…"].tap()
-    let field = app.alerts.textFields.firstMatch
+    let field = app.textFields["group.nameField"]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
     field.clearAndType("Reading")
-    app.alerts.buttons["Done"].tap()
+    app.buttons["group.nameSave"].tap()
     XCTAssertTrue(app.descendants(matching: .any)["group.header.Reading"].waitForExistence(timeout: 5))
 
     app.buttons["group.menu"].tap()
@@ -59,10 +59,10 @@ final class SpacesUITests: XCTestCase {
     cards.element(boundBy: 1).press(forDuration: 1.2)
     app.buttons["Move to Group"].tap()
     app.buttons["New Group…"].tap()
-    let field = app.alerts.textFields.firstMatch
+    let field = app.textFields["group.nameField"]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
     field.typeText("Later")
-    app.alerts.buttons["Create"].tap()
+    app.buttons["group.nameSave"].tap()
     XCTAssertTrue(app.descendants(matching: .any)["group.header.Later"].waitForExistence(timeout: 5))
   }
 
