@@ -90,6 +90,24 @@ Feature: Tabs and tab groups
     Then the island shows 4 direct tab dots
     And the island shows 2 more tabs
 
+  @F3-34 @F3 @desktop
+  Scenario: A pinned tab inside a group stays first on the Island, whichever section is active
+    Given a group "work" with 3 tabs
+    And the first tab in group "work" is pinned
+    And a group "play" with 2 tabs
+    When I activate a tab in group "play"
+    Then the island shows 3 direct tab dots
+    And the island shows the pinned tab in group "work" first, once
+    And the island shows 3 more tabs
+    When I activate an unpinned tab in group "work"
+    Then the island shows 3 direct tab dots
+    And the island shows the pinned tab in group "work" first, once
+    And the island shows 3 more tabs
+    When I activate the pinned tab in group "work"
+    Then the island shows 3 direct tab dots
+    And the island shows the pinned tab in group "work" first, once
+    And the island shows 3 more tabs
+
   @F3-3 @F3 @all
   Scenario: Collapsing a group tucks its tabs away in the panel
     Given a group "work" with 3 tabs

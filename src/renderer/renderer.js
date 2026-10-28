@@ -927,27 +927,30 @@
    * narrow for its controls (fitIslandDots). */
   let dotBudget = DOT_CAP;
   let dotFitKey = '';
-  /** The last non-pinned tab that was active, so an active standalone pin
-   * can keep showing the section the person came from (#1174). */
+  /** The last non-pinned tab that was active, so an active pin can keep
+   * showing the section the person came from (#1174). */
   let lastSectionTabId = null;
 
   /** The resting Island is current context, not a false total-tab map:
-   * standalone pins stay globally reachable, followed by the active section
-   * (named group or loose tabs; with a standalone pin active, the section
-   * the person was last on). Every node remains
-   * one real tab. A window-wide +N accounts for everything not directly shown.
+   * every pinned tab stays reachable, grouped or not, in tab order, followed
+   * by the active section (named group or loose tabs) without its pins, so
+   * no tab is drawn twice. With a pin active, the section is its own group
+   * when that has other tabs, else the section the person was last on.
+   * Every node remains one real tab. A window-wide +N accounts for
+   * everything not directly shown.
    *
    * Eight is a hard total budget. When pins + the active section exceed it,
-   * retain the active tab, then as many standalone pins as fit, then use the
-   * remaining slots for an active-containing window of the current section.
-   * Quiet state is deliberately irrelevant: discarding a renderer must not
-   * make its tab disappear, move, or churn the dot DOM. */
+   * retain the active tab, then as many pins as fit, then use the remaining
+   * slots for an active-containing window of the current section. Quiet
+   * state is deliberately irrelevant: discarding a renderer must not make
+   * its tab disappear, move, or churn the dot DOM. */
   function islandTabPresentation() {
     const tab = activeTab();
     if (!tab) return { pinned: [], section: [], shown: [], hidden: 0 };
 
-    const standalonePins = state.tabs.filter((t) => t.pinned && !t.groupId);
-    const activeIsStandalonePin = tab.pinned && !tab.groupId;
+    // Every pin, grouped or not, leads the Island; a pin keeps its group's
+    // tint, so its group stays recognizable there.
+    const pins = state.tabs.filter((t) => t.pinned);
 
     const activeWindow = (members, capacity, focus = tab) => {
       if (members.length <= capacity) return members;
@@ -959,18 +962,22 @@
     };
 
     const byId = new Map(state.tabs.map((t) => [t.id, t]));
-    const sections = TabSections.sectionsOf(state.tabs);
-    const membersOf = (entry) => entry.tabIds.map((id) => byId.get(id));
+    // A section's tabs without its pins, which the shelf already shows.
+    const membersOf = (entry) => entry.tabIds.map((id) => byId.get(id)).filter((t) => t && !t.pinned);
+    const sections = TabSections.sectionsOf(state.tabs).filter((entry) => membersOf(entry).length);
 
-    // An active standalone pin keeps the pins and the section the person was
-    // last on (the first section when none is known yet), so a pinned tab
-    // doesn't push every other tab into +N. With only pins, the shelf is the
-    // whole set: no section gap and no duplicate active dot.
-    if (activeIsStandalonePin) {
-      const entry = sections.find((e) => e.tabIds.includes(lastSectionTabId)) ?? sections[0];
-      const pinned = activeWindow(standalonePins, entry ? Math.max(1, dotBudget - 1) : dotBudget);
-      const anchor = entry && byId.get(entry.tabIds.includes(lastSectionTabId) ? lastSectionTabId : entry.tabIds[0]);
-      const section = entry ? activeWindow(membersOf(entry), dotBudget - pinned.length, anchor) : [];
+    // An active pin keeps the pins and a section, so a pinned tab doesn't
+    // push every other tab into +N: its own group when that has other tabs,
+    // else the section the person was last on (the first when none is known
+    // yet). With only pins, the shelf is the whole set: no section gap and
+    // no duplicate active dot.
+    if (tab.pinned) {
+      const entry = (tab.groupId && sections.find((e) => e.groupId === tab.groupId))
+        ?? sections.find((e) => e.tabIds.includes(lastSectionTabId)) ?? sections[0];
+      const pinned = activeWindow(pins, entry ? Math.max(1, dotBudget - 1) : dotBudget);
+      const members = entry ? membersOf(entry) : [];
+      const anchor = members.find((t) => t.id === lastSectionTabId) ?? members[0];
+      const section = entry ? activeWindow(members, dotBudget - pinned.length, anchor) : [];
       const shown = [...pinned, ...section];
       return {
         pinned,
@@ -982,8 +989,8 @@
     lastSectionTabId = tab.id;
 
     // Reserve one slot for the active tab before applying pinned-first
-    // priority. Any additional standalone pins remain included in +N.
-    const pinned = standalonePins.slice(0, Math.max(0, dotBudget - 1));
+    // priority. Any additional pins remain included in +N.
+    const pinned = pins.slice(0, Math.max(0, dotBudget - 1));
     // The active tab's group, or its run of ungrouped tabs (tab-sections.js:
     // ungrouped tabs between groups form separate runs, spec 2026-10-17).
     const sectionMembers = membersOf(sections.find((entry) => entry.tabIds.includes(tab.id)) ?? { tabIds: [tab.id] });
