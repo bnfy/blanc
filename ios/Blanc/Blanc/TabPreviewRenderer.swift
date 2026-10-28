@@ -37,7 +37,7 @@ struct TabPreviewRenderer: UIViewRepresentable {
 
         func prepare(_ tabs: [TabModel], in view: UIView) {
             guard task == nil else { return }
-            let missing = tabs.filter { $0.thumbnail == nil && !attempted.contains($0.id) }
+            let missing = tabs.filter { $0.thumbnail == nil && $0.hasWebView && !attempted.contains($0.id) }
             guard !missing.isEmpty else { return }
             task = Task { @MainActor [weak self, weak view] in
                 guard let self, let view else { return }

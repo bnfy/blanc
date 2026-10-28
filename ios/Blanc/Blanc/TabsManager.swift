@@ -19,7 +19,7 @@ final class TabsManager {
     var startPreviews: [TabModel] { previews.compactMap(\.tab) }
 
     func previewLayout(for webView: WKWebView) -> BlancStartPageLayout? {
-        previews.first { $0.tab?.webView === webView }?.layout
+        previews.first { $0.tab?.existingWebView === webView }?.layout
     }
 
     func makeStartPreview(layout: BlancStartPageLayout? = nil) -> TabModel {
@@ -86,14 +86,17 @@ final class TabsManager {
     func setAdblockExceptions(_ exceptions: [String]) {
         let old = settingsStore.adblockExceptions
         settingsStore.update(adblockExceptions: exceptions)
-        for tab in tabs where AdblockExceptions.isExcepted(tab.currentURL, in: old) != AdblockExceptions.isExcepted(tab.currentURL, in: settingsStore.adblockExceptions) {
+        for tab in tabs where tab.hasWebView && AdblockExceptions.isExcepted(tab.currentURL, in: old) != AdblockExceptions.isExcepted(tab.currentURL, in: settingsStore.adblockExceptions) {
             applyBlocking(to: tab, for: tab.currentURL)
             tab.webView.reload()
         }
     }
     let readerPreferences: ReaderPreferences
     var readerError = false
-    var activeTabId: UUID?
+    /// The shown tab. Whatever makes a tab current also wakes it if quiet.
+    var activeTabId: UUID? {
+        didSet { if let tab = activeTab, tab.isQuiet { wake(tab) } }
+    }
 
     let settingsStore: SettingsStore
     let historyStore: HistoryStore
@@ -264,9 +267,10 @@ final class TabsManager {
         } else {
             // Rebuild tabs without persisting each intermediate state, then set the
             // active tab (clamped to range) and write the session once.
+            // Every saved tab comes back quiet; making one current loads it.
             isRestoringSession = true
             for url in savedURLs {
-                createTab(url: url)
+                createTab(url: url, quiet: true)
             }
             let clampedIndex = min(max(sessionStore.activeIndex, 0), tabs.count - 1)
             activeTabId = tabs[clampedIndex].id
@@ -295,10 +299,12 @@ final class TabsManager {
         }
     }
 
+    /// A new tab. `quiet: true` opens it in the background with no web view
+    /// until it is shown (M17); otherwise it becomes current and loads.
     @discardableResult
-    func createTab(url: URL? = nil, isPrivate: Bool = false) -> UUID {
+    func createTab(url: URL? = nil, title: String = "", isPrivate: Bool = false, quiet: Bool = false) -> UUID {
         let url = url ?? (isPrivate ? Self.privateNewTabURL : Self.newTabURL)
-        if !isRestoringSession, activeTabId != nil, routeSettings(url) { return activeTabId! }
+        if !isRestoringSession, !quiet, activeTabId != nil, routeSettings(url) { return activeTabId! }
         let config = WebViewConfiguration.make(
             schemeHandler: schemeHandler, bridge: bridge,
             dataStore: isPrivate ? privateDataStore : .default(),
@@ -307,8 +313,20 @@ final class TabsManager {
            let ruleList = contentBlocker.compiledRuleList {
             config.userContentController.add(ruleList)
         }
-        let tab = TabModel(url: url, configuration: config, isPrivate: isPrivate)
+        let tab = TabModel(url: url, title: title, configuration: config, isPrivate: isPrivate, quiet: quiet)
         return add(tab)
+    }
+
+    /// Makes a quiet tab's web view with today's blocking rules, then loads it.
+    private func wake(_ tab: TabModel) {
+        guard tab.isQuiet else { return }
+        if contentBlocker.enabled && !contentBlocker.isReady
+            && !AdblockExceptions.isExcepted(tab.currentURL, in: settingsStore.adblockExceptions) {
+            contentBlocker.attach(to: tab.webView)
+        } else {
+            applyBlocking(to: tab, for: tab.currentURL)
+        }
+        tab.wake()
     }
 
     /// A tab a page opened: last in the list and current, private when its
@@ -324,13 +342,13 @@ final class TabsManager {
 
     @discardableResult
     private func add(_ tab: TabModel) -> UUID {
-        activeTab?.captureThumbnail()
+        if !tab.isQuiet { activeTab?.captureThumbnail() }
         let isPrivate = tab.isPrivate
         tab.uiDelegate.onOpenChild = { [weak self, weak tab] configuration, url in
             guard let self, let tab else { return nil }
             return self.openChild(of: tab, configuration: configuration, url: url)
         }
-        if contentBlocker.enabled && !contentBlocker.isReady
+        if !tab.isQuiet, contentBlocker.enabled && !contentBlocker.isReady
             && !AdblockExceptions.isExcepted(tab.currentURL, in: settingsStore.adblockExceptions) {
             contentBlocker.attach(to: tab.webView)
         }
@@ -350,7 +368,7 @@ final class TabsManager {
             if let self, let tab { self.applyBlocking(to: tab, for: url) }
         }
         tabs.append(tab)
-        activeTabId = tab.id
+        if !tab.isQuiet || (activeTabId == nil && !isRestoringSession) { activeTabId = tab.id }
         persistSession()
         return tab.id
     }
@@ -480,7 +498,7 @@ final class TabsManager {
         let closing = tabs[index]
         // If the tab is still queued for a cold-compile drain, drop it so its web view
         // isn't reloaded after it's gone (and isn't kept alive by the pending queue).
-        contentBlocker.cancelPending(for: tabs[index].webView)
+        if let view = tabs[index].existingWebView { contentBlocker.cancelPending(for: view) }
         tabs.remove(at: index)
         if !tabs.contains(where: \.isPrivate) { privateStore = nil; readerPreferences.clearPrivate() }
         // Only the newest close is undoable. A private tab's close is final, as
@@ -596,19 +614,19 @@ final class TabsManager {
         contentBlocker.setEnabled(enabled)
         if enabled {
             if contentBlocker.isReady {
-                for tab in tabs {
+                for tab in tabs where tab.hasWebView {
                     applyBlocking(to: tab, for: tab.currentURL)
                     tab.webView.reload()
                 }
             } else {
                 // Cold-compile still in flight: queue each tab; drainPending attaches
                 // once the list is ready (setEnabled(true) re-opened attachment).
-                for tab in tabs {
+                for tab in tabs where tab.hasWebView {
                     applyBlocking(to: tab, for: tab.currentURL)
                 }
             }
         } else {
-            for tab in tabs {
+            for tab in tabs where tab.hasWebView {
                 tab.webView.configuration.userContentController.removeAllContentRuleLists()
                 tab.webView.reload()
             }
