@@ -390,7 +390,11 @@
                 <!-- Sync without a passphrase (design 2026-10-28 §5.2): one press
                      makes a random account; the code path sits right under it. -->
                 <div class="sync-turn-on" id="syncTurnOnRow">
-                  <button id="syncTurnOn" type="button" data-i18n="settings.sync.off.turnOn">Turn on Sync</button>
+                  <div class="sync-turn-on-actions">
+                    <button id="syncTurnOn" type="button" data-i18n="settings.sync.off.turnOn">Turn on Sync</button>
+                    <!-- Design 2026-10-28 §6.1: shown only where iPhone pairing is offered. -->
+                    <button id="syncConnectIphone" type="button" hidden data-i18n="settings.sync.connectIphone">Connect your iPhone</button>
+                  </div>
                   <p class="section-hint" id="syncTurnOnStatus" role="status"></p>
                 </div>
                 <p class="sync-paths-label" data-i18n="settings.sync.off.haveCode">Already sync on another device?</p>
@@ -633,9 +637,32 @@
             <!-- Add device: a modal sheet, because showing the code is a task
                  of its own. Esc or Cancel ends it (settings.js). -->
             <dialog class="sync-sheet" id="syncPairingDialog" aria-labelledby="syncPairingTitle">
+              <!-- Connect your iPhone with Sync off (design 2026-10-28 §6.2):
+                   nothing is created until Continue. -->
+              <div id="syncPairingStart" class="sync-pairing" hidden>
+                <h2 class="sync-sheet-title" id="syncPairingStartTitle" data-i18n="settings.sync.connectIphone">Connect your iPhone</h2>
+                <p class="sync-pairing-instruction" id="syncPairingStartBody" data-i18n-ignore=""></p>
+                <div id="syncPairingNotReady" class="sync-pairing-not-ready" hidden>
+                  <p class="sync-pairing-instruction" data-i18n="settings.sync.sheet.notReady">Sync is on, but couldn’t reach the server yet. Blanc will keep trying.</p>
+                  <button id="syncPairingStartRetry" type="button" data-i18n="settings.sync.tryAgain">Try again</button>
+                </div>
+                <p class="sync-panel-notice" id="syncPairingStartNotice" role="status"></p>
+                <div class="sync-panel-actions" id="syncPairingStartActions">
+                  <button id="syncPairingContinue" type="button" data-i18n="settings.sync.sheet.continue">Continue</button>
+                  <button id="syncPairingStartCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
+                </div>
+                <p class="sync-pairing-already" id="syncPairingAlready">
+                  <span data-i18n="settings.sync.sheet.alreadySync">Already sync on another computer?</span>
+                  <button id="syncPairingAddThisFirst" type="button" class="link-button" data-i18n-ignore=""></button>
+                </p>
+              </div>
               <div id="syncPairing" class="sync-pairing" hidden>
-                <h2 class="sync-sheet-title" id="syncPairingTitle" data-i18n="settings.sync.addAnotherDevice">Add another device</h2>
-                <p class="sync-pairing-instruction" data-i18n="settings.sync.pairing.instruction">On your other device, open Settings → Sync, choose Add this device to my sync, and enter this code.</p>
+                <h2 class="sync-sheet-title" id="syncPairingTitle" data-i18n-ignore="">Add another device</h2>
+                <!-- The same code as a link Blanc for iPhone scans (§6.2); the
+                     code rides in the fragment, which no server sees. -->
+                <svg id="syncPairingQr" class="sync-pairing-qr" hidden aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path></path></svg>
+                <p class="sync-pairing-instruction" id="syncPairingInstruction" data-i18n="settings.sync.pairing.instruction">On your other device, open Settings → Sync, choose Add this device to my sync, and enter this code.</p>
+                <p class="sync-pairing-ortype" id="syncPairingOrType" hidden data-i18n="settings.sync.sheet.orType">Or type it in Settings → Sync:</p>
                 <div class="sync-pairing-code" id="syncPairingCode" data-i18n-ignore="" aria-live="polite"></div>
                 <div class="sync-panel-actions">
                   <span class="sync-pairing-remaining" id="syncPairingRemaining"></span>
@@ -972,6 +999,7 @@
   <script src="settings-nav-model.js"></script>
   <script src="settings-language-model.js"></script>
   <script src="settings-sync-setup-model.js"></script>
+  <script src="qr-code.js"></script>
   <script src="settings-sync-pairing-model.js"></script>
   <script src="settings.js"></script>
   <script src="settings-shared-spaces.js"></script>

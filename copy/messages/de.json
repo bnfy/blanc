@@ -5163,6 +5163,42 @@
     "message": "Fertig",
     "source": "sha256:81ef045e6037eed260af3e8cbdf81f1a837ff04e307a892d2854b7581052a6ca"
   },
+  "settings.sync.connectIphone": {
+    "message": "iPhone verbinden",
+    "source": "sha256:03770d3610fc1335f37f37b540f2d905e8b1fb7ffafd8487d76d56b5e5bdfa0e"
+  },
+  "settings.sync.sheet.scanIphone": {
+    "message": "Öffne Blanc auf deinem iPhone und wähle „Mit deinem Blanc koppeln“. Richte es auf diesen Code.",
+    "source": "sha256:fdfb75ff413994792e20e48f33eba71a511e56cd82fd5356b858d8174e4a8c78"
+  },
+  "settings.sync.sheet.orType": {
+    "message": "Oder gib ihn unter Einstellungen → Synchronisierung ein:",
+    "source": "sha256:157d47ac23c2ab1daca04b124f52c5258f4ee990944adedb728e7cb21557012d"
+  },
+  "settings.sync.sheet.startBody": {
+    "message": "Damit wird die Synchronisierung auf diesem Mac aktiviert. Du brauchst keinen Namen und keine Passphrase.",
+    "source": "sha256:8a3c6d5577f831eed2621ff9107f213bd9074b619c8ed91f250ea2c2fb4fa1c3"
+  },
+  "settings.sync.sheet.startBodyGeneric": {
+    "message": "Damit wird die Synchronisierung auf diesem Computer aktiviert. Du brauchst keinen Namen und keine Passphrase.",
+    "source": "sha256:7b360c5daa2d69a5fcce42f9084112de91030356339ef2913a94fb4a6b77c883"
+  },
+  "settings.sync.sheet.continue": {
+    "message": "Weiter",
+    "source": "sha256:14fc281305915e6e6f2d59dd80e081abc3e5abe45962c4ec88a0714106ca0bd8"
+  },
+  "settings.sync.sheet.alreadySync": {
+    "message": "Synchronisierst du schon auf einem anderen Computer?",
+    "source": "sha256:505577a9919cf0dd4610cc2decf0e3d12ad0199ffa9cfaa3fd8524867fe9f99a"
+  },
+  "settings.sync.sheet.addThisFirst": {
+    "message": "Diesen Mac zuerst mit einem Code hinzufügen",
+    "source": "sha256:293acfc9903543962c6ef1c6ebd40dadfe9eaff0f3c22e519a845cc904b4adb1"
+  },
+  "settings.sync.sheet.addThisFirstGeneric": {
+    "message": "Diesen Computer zuerst mit einem Code hinzufügen",
+    "source": "sha256:3be82e92dda779aa49b1ca18b32ba8c2506164b27482f86ae024688a959cdf9f"
+  },
   "settings.sync.recoveryPrompt.title": {
     "message": "Behalte einen Weg zurück",
     "source": "sha256:5ae0359c6628fbea64426a4190c812ae2fd7679f6e247f2934817a1091ea7f91"
@@ -5618,6 +5654,10 @@
   "newtab.checklist.sync": {
     "message": "Synchronisierung einrichten",
     "source": "sha256:8d1a9026412142cea09277c1e944933ba157f35e0219072d6b29eb88c6cd62fd"
+  },
+  "newtab.checklist.iphone": {
+    "message": "iPhone verbinden",
+    "source": "sha256:f5f72a919d120cfac757343a4bd2e1cafb3c72d47b0dcaac6dc5868f785ccafb"
   },
   "newtab.checklist.tabs": {
     "message": "Tabs mitbringen",

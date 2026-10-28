@@ -97,3 +97,16 @@ test('turning Spaces on from the sheet also ends the joined record in main', () 
   assert.ok(at >= 0);
   assert.ok(js.slice(at, at + 400).includes('syncPairCancel()'));
 });
+
+// Design 2026-10-28 §6.1–§6.2: the QR and Connect your iPhone.
+test('Connect your iPhone, the start state and the QR are in the page, and only shown when offered', () => {
+  at('id="syncConnectIphone"');
+  const sheet = html.slice(at('id="syncPairingDialog"'), html.indexOf('</dialog>', at('id="syncPairingDialog"')));
+  for (const id of ['syncPairingStart', 'syncPairingContinue', 'syncPairingAddThisFirst', 'syncPairingStartRetry', 'syncPairingQr']) {
+    assert.ok(sheet.includes(`id="${id}"`), `${id} is inside the sheet`);
+  }
+  assert.ok(html.includes('<script src="qr-code.js"></script>'));
+  assert.ok(html.indexOf('<script src="qr-code.js"></script>') < html.indexOf('<script src="settings.js"></script>'));
+  assert.ok(js.includes('status.iphonePairing'), 'the page asks main whether iPhone pairing is offered');
+  assert.ok(js.includes('blancQrCode.encode('));
+});

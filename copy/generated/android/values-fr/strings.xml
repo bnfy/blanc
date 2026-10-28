@@ -1419,6 +1419,15 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_sync_sheet_your_device">Votre nouvel appareil</string>
     <string name="settings_sync_sheet_spaces_question">Garder les Spaces et les groupes synchronisés avec cet appareil ?</string>
     <string name="settings_sync_sheet_done">Terminé</string>
+    <string name="settings_sync_connect_iphone">Connecter votre iPhone</string>
+    <string name="settings_sync_sheet_scan_iphone">Sur votre iPhone, ouvrez Blanc et choisissez « Jumeler avec votre Blanc ». Visez ce code.</string>
+    <string name="settings_sync_sheet_or_type">Ou saisissez-le dans Réglages → Synchronisation :</string>
+    <string name="settings_sync_sheet_start_body">Cela active la synchronisation sur ce Mac. Aucun nom ni phrase secrète n’est nécessaire.</string>
+    <string name="settings_sync_sheet_start_body_generic">Cela active la synchronisation sur cet ordinateur. Aucun nom ni phrase secrète n’est nécessaire.</string>
+    <string name="settings_sync_sheet_continue">Continuer</string>
+    <string name="settings_sync_sheet_already_sync">Vous synchronisez déjà un autre ordinateur ?</string>
+    <string name="settings_sync_sheet_add_this_first">Ajoutez d’abord ce Mac avec un code</string>
+    <string name="settings_sync_sheet_add_this_first_generic">Ajoutez d’abord cet ordinateur avec un code</string>
     <string name="settings_sync_recovery_prompt_title">Gardez un moyen de revenir</string>
     <string name="settings_sync_recovery_prompt_body">Cette synchronisation n’a pas de phrase secrète. Si vous perdez un jour tous vos appareils, son code de récupération sera le seul moyen d’accéder à vos données synchronisées. Enregistrez-le dans votre gestionnaire de mots de passe.</string>
     <string name="settings_sync_recovery_prompt_copy">Copier le code de récupération</string>
@@ -1573,6 +1582,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="newtab_checklist_title">prêt à emménager ?</string>
     <string name="newtab_checklist_done_title">tout est prêt</string>
     <string name="newtab_checklist_sync">Configurer la synchronisation</string>
+    <string name="newtab_checklist_iphone">Connecter votre iPhone</string>
     <string name="newtab_checklist_tabs">Récupérer vos onglets</string>
     <string name="newtab_checklist_not_completed">Non terminé</string>
     <string name="newtab_checklist_completed">Terminé</string>

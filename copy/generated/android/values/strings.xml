@@ -1389,6 +1389,15 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_sync_sheet_your_device">Your new device</string>
     <string name="settings_sync_sheet_spaces_question">Keep Spaces and groups in sync with it?</string>
     <string name="settings_sync_sheet_done">Done</string>
+    <string name="settings_sync_connect_iphone">Connect your iPhone</string>
+    <string name="settings_sync_sheet_scan_iphone">On your iPhone, open Blanc and choose Pair with your Blanc. Point it at this code.</string>
+    <string name="settings_sync_sheet_or_type">Or type it in Settings → Sync:</string>
+    <string name="settings_sync_sheet_start_body">This turns on Sync for this Mac. You won’t need a name or passphrase.</string>
+    <string name="settings_sync_sheet_start_body_generic">This turns on Sync for this computer. You won’t need a name or passphrase.</string>
+    <string name="settings_sync_sheet_continue">Continue</string>
+    <string name="settings_sync_sheet_already_sync">Already sync on another computer?</string>
+    <string name="settings_sync_sheet_add_this_first">Add this Mac with a code first</string>
+    <string name="settings_sync_sheet_add_this_first_generic">Add this computer with a code first</string>
     <string name="settings_sync_recovery_prompt_title">Keep a way back in</string>
     <string name="settings_sync_recovery_prompt_body">This sync has no passphrase. If you ever lose all your devices, its recovery code is the only way to reach your synced data. Save it in your password manager.</string>
     <string name="settings_sync_recovery_prompt_copy">Copy recovery code</string>
@@ -1533,6 +1542,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="newtab_checklist_title">ready to move in?</string>
     <string name="newtab_checklist_done_title">all moved in</string>
     <string name="newtab_checklist_sync">Set up Sync</string>
+    <string name="newtab_checklist_iphone">Connect your iPhone</string>
     <string name="newtab_checklist_tabs">Bring your tabs</string>
     <string name="newtab_checklist_not_completed">Not completed</string>
     <string name="newtab_checklist_completed">Completed</string>

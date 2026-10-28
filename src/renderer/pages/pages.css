@@ -4864,6 +4864,7 @@ body.sheet .sync-device-list input.sync-device-name:focus { border-color: var(--
    sits right under it; the passphrase paths are one level deeper. */
 .sync-turn-on { display: grid; justify-items: start; gap: 8px; padding: 18px 8px; border-bottom: 1px solid var(--border); }
 .sync-turn-on .section-hint:empty { display: none; }
+.sync-turn-on-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .sync-paths-label { margin: 0; padding: 14px 8px 0; color: var(--text-dim); font-size: 12px; }
 .sync-other-ways > summary {
   padding: 14px 8px;
@@ -4930,6 +4931,25 @@ body.sheet .sync-device-list input.sync-device-name:focus { border-color: var(--
 /* The same sheet once the device arrives (§6.4): content changes in place. */
 .sync-pairing-joined { animation: sync-pairing-swap 200ms ease; }
 @keyframes sync-pairing-swap { from { opacity: 0; } }
+/* Connect your iPhone (§6.2). The QR is dark on white in both themes:
+   scanners read inverted (light-on-dark) codes unreliably. Its quiet zone is
+   part of the drawing (qr-code.js). Then the Sync-off start state. */
+.sync-pairing-qr {
+  justify-self: center;
+  width: 168px;
+  height: 168px;
+  border-radius: var(--radius-md);
+  background: #fff;
+  fill: #000;
+  shape-rendering: crispEdges;
+}
+.sync-pairing-qr[hidden] { display: none; }
+.sync-pairing-ortype { margin: 0; color: var(--text-dim); font-size: 12.5px; }
+.sync-pairing-ortype[hidden] { display: none; }
+.sync-pairing-not-ready { display: grid; justify-items: start; gap: 8px; }
+.sync-pairing-not-ready[hidden] { display: none; }
+.sync-pairing-already { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin: 0; color: var(--text-dim); font-size: 12.5px; }
+.sync-pairing-already[hidden] { display: none; }
 .sync-pairing-recovery { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin: 0; color: var(--text-dim); font-size: 12.5px; }
 @media (prefers-reduced-motion: reduce) {
   .sync-sheet[open] { animation: sync-sheet-fade 160ms ease; }

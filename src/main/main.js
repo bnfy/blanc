@@ -264,6 +264,7 @@ const {
   migrationChecklistForTab,
   spaceTaskIntroduction,
   defaultTaskIntroduction,
+  iphoneTaskIntroduction,
 } = require('./migration-checklist');
 const { patronCalloutSnoozedUntil } = require('./patron-callout');
 const { whatsNewOnLaunch, whatsNewState, whatsNewCheckDue, whatsNewAfterCheck, whatsNewPageUrl } = require('./whats-new');
@@ -8180,6 +8181,18 @@ const { isRecoveryPlaceholder } = require('./shared-spaces-sharing');
 // Offered in packaged builds from 1.45 (Shared Spaces PR E), so a 1.44.x
 // hotfix cut from main still hides it; development builds always offer it.
 // Callers still limit it to the Personal profile.
+// Connect your iPhone (design 2026-10-28 §9): the QR, the iPhone wording and
+// the Finish setup task wait for Blanc for iPhone. Unpackaged builds always
+// show them; packaged builds from IPHONE_PAIRING_FROM ('major.minor'), set in
+// the prep PR of the release that ships with the iPhone app. null = not yet.
+const IPHONE_PAIRING_FROM = null;
+function isIphonePairingOffered() {
+  if (!app.isPackaged) return true;
+  if (!IPHONE_PAIRING_FROM) return false;
+  const [major, minor] = app.getVersion().split('.').map(Number);
+  const [fromMajor, fromMinor] = IPHONE_PAIRING_FROM.split('.').map(Number);
+  return major > fromMajor || (major === fromMajor && minor >= fromMinor);
+}
 function isSharedSpacesOffered() { const [major,minor]=app.getVersion().split('.').map(Number); return !app.isPackaged||major>1||(major===1&&minor>=45); }
 function sharedSidecarSpace(tab,runtime) {
   if(!isSharedSpacesOffered()||runtime.profileId!==DEFAULT_PROFILE_ID)return null;
@@ -10919,6 +10932,11 @@ const SETTINGS_SECTION_FRAGMENTS = Object.freeze({
   onepassword: '#onePasswordSettings',
 });
 function openSettingsSection(section) {
+  // Finish setup's Connect your iPhone: Sync, with the pairing sheet open.
+  if (section === 'sync-pair') {
+    if (isIphonePairingOffered()) rt().syncPairSheetPending = true;
+    section = 'sync';
+  }
   const fragment = Object.prototype.hasOwnProperty.call(SETTINGS_SECTION_FRAGMENTS, section)
     ? SETTINGS_SECTION_FRAGMENTS[section]
     : '';
@@ -14767,6 +14785,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   if (defaultTaskPatch) settings.setSettings(defaultTaskPatch);
   noteDefaultBrowser();
   app.on('browser-window-focus', noteDefaultBrowserOnFocus);
+  // And "Connect your iPhone", only where iPhone pairing is offered.
+  const iphoneTaskPatch = isIphonePairingOffered() && iphoneTaskIntroduction(settings.getSettings(), { defaultAvailable: defaultBrowserSettable() });
+  if (iphoneTaskPatch) settings.setSettings(iphoneTaskPatch);
   // Baseline for the settings fan-out's Match site colors re-projection.
   lastIslandSiteColors = settings.getSettings().islandSiteColors;
   lastDarkWebsitesKey = JSON.stringify([
@@ -15339,6 +15360,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         spaceComplete: current.spaceMigrationCompleted,
         defaultAvailable: defaultBrowserSettable(),
         defaultComplete: current.defaultBrowserMigrationCompleted,
+        iphoneAvailable: isIphonePairingOffered(),
+        iphoneComplete: current.iphoneMigrationCompleted,
       }),
     };
   };
@@ -15374,6 +15397,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
     syncPairing: {
+      offered: () => isIphonePairingOffered(),
+      // Finish setup asked for the sheet; the page opens it once.
+      takeOpenSheet: () => { const pending = !!rt().syncPairSheetPending; rt().syncPairSheetPending = false; return pending; },
       watch: (sender, visible) => {
         pairingSheet = visible ? { runtime: rt(), sender } : null;
         // The page can go before its last report does.
@@ -16475,6 +16501,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     };
     tabsync.onRemoteChanged(pushRemoteDevices);
     tabicons.onRemoteChanged(pushRemoteDevices);
+    // Connect your iPhone is done once an iPhone shows up in this sync.
+    const noteIphoneJoined = () => {
+      if (!isIphonePairingOffered() || settings.getSettings().iphoneMigrationCompleted) return;
+      if (sync.listSendTargets().some((device) => device.platform === 'ios')) settings.setSettings({ iphoneMigrationCompleted: true });
+    };
+    tabsync.onRemoteChanged(noteIphoneJoined);
+    sync.onSendsChanged(noteIphoneJoined);
+    noteIphoneJoined();
     // Pages sent here arrived, or one was opened or dismissed: same surfaces.
     const pushSentItems = () => {
       forEachWindowRuntime((runtime) => {
