@@ -599,3 +599,410 @@ nonisolated enum SharedSpacesModel {
     return out["tabs"] != nil ? clearInvalidActive(out) : out
   }
 }
+
+// MARK: - Pending writes and upload plans
+
+/// One record an upload may hold back to fit the budget (desktop's admission unit).
+nonisolated struct AdmissionUnit: Sendable {
+  var kind: String
+  var id: String
+  var key: String
+  var before: JSONValue?
+  var after: JSONValue
+  var required: Bool
+  var clock: Double
+  var dependencies: [String]
+  var admissionRank: Int?
+  var rank: Double { admissionRank.map(Double.init) ?? clock }
+}
+
+/// What one merge of a Space proposes (desktop's `pushPlan` result).
+nonisolated struct PushPlan: Sendable {
+  var mergedBlob: JSONValue
+  /// `{blob, rev, ifVersion}` when the merged state differs from what the Worker holds.
+  var upload: JSONValue?
+  var pendingAfter: JSONValue
+  var recover: Set<String>
+  var unsynced: Set<String>
+  /// Ids this pass expired, per kind (`tabs`, `groups`).
+  var expiredRecords: [String: [String]]
+  var indexEntry: JSONValue?
+  var reason: String?
+  var nextLastMergeAt: Int64
+}
+
+extension SharedSpacesModel {
+  private static let pendingKinds = ["tabs", "groups"]
+
+  /// Pending writes are namespaced by record kind, id and field; the index
+  /// receipt is a separate caller-owned entry. Never mutates its input.
+  static func sanitizePending(_ pending: JSONValue?) -> JSONValue {
+    var out: JSONValue = .object([])
+    copyActive(pending, into: &out)
+    for kind in pendingKinds {
+      for (id, record) in pending?[kind]?.pairs ?? [] {
+        guard isId(id), isMap(record) else { continue }
+        for (name, normalize) in schemas[kind] ?? [] {
+          guard let raw = record[name], isField(raw), let rv = raw["v"], let v = normalize(rv),
+            v != .null || nullableFields.contains(name)
+          else { continue }
+          if name == "pos", !validKey(v, id) { continue }
+          var map = out[kind] ?? .object([])
+          var rec = map[id] ?? .object([])
+          rec[name] = field(v, from: raw)
+          map[id] = rec
+          out[kind] = map
+        }
+      }
+    }
+    if let index = pending?["index"], isId(index["id"]), isRev(index["rev"]) {
+      var receipt: JSONValue = .object([("id", index["id"]!), ("rev", index["rev"]!)])
+      if let at = safeInteger(index["at"]), at >= 0 { receipt["at"] = index["at"] }
+      if let by = index["by"]?.utf16Units, !by.isEmpty, by.count <= 128 { receipt["by"] = index["by"] }
+      out["index"] = receipt
+    }
+    return out
+  }
+  static func applyLocalEdits(_ pending: JSONValue?, _ edits: JSONValue?) -> JSONValue {
+    var out = sanitizePending(pending)
+    let clean = sanitizePending(edits)
+    if let active = mergeField(out["active"], clean["active"], name: "active") { out["active"] = active }
+    for kind in pendingKinds {
+      for (id, record) in clean[kind]?.pairs ?? [] {
+        var map = out[kind] ?? .object([])
+        map[id] = mergeRecord(map[id], record)
+        out[kind] = map
+      }
+    }
+    return out
+  }
+  /// Clears every pending field a fetched value acknowledges.
+  static func settlePending(_ pending: JSONValue?, _ fetched: JSONValue?) -> JSONValue {
+    var out = sanitizePending(pending)
+    if let active = out["active"], acknowledged(fetched?["active"], active, name: "active") {
+      out["active"] = nil
+    }
+    for kind in pendingKinds {
+      guard let map = out[kind] else { continue }
+      let kept: [(String, JSONValue)] = map.pairs.compactMap { id, record in
+        let fields = record.pairs.filter { name, value in
+          !acknowledged(fetched?[kind]?[id]?[name], value, name: name)
+        }
+        return fields.isEmpty ? nil : (id, .object(fields))
+      }
+      out[kind] = kept.isEmpty ? nil : .object(kept)
+    }
+    return out
+  }
+
+  /// M16 §3.9: after more than 30 days without a merge, local records the
+  /// Worker no longer has are recovered rather than republished.
+  static func recoveryDecision(localBlob: JSONValue?, fetchedBlob: JSONValue?, lastMergeAt: Int64?,
+    now: Int64) -> (keep: Set<String>, recover: Set<String>)
+  {
+    var keep = Set<String>()
+    var recover = Set<String>()
+    let hasRemote = keys(fetchedBlob?["tabs"]).count + keys(fetchedBlob?["groups"]).count > 0
+    let stale = lastMergeAt.map { Double(now) - Double($0) > Double(limits.tombstoneMs) } ?? hasRemote
+    for kind in pendingKinds {
+      for (id, record) in localBlob?[kind]?.pairs ?? [] {
+        if expiredRecord(record, now: now) { continue }
+        if stale && fetchedBlob?[kind]?[id] == nil { recover.insert(id) } else { keep.insert(id) }
+      }
+    }
+    return (keep, recover)
+  }
+  private static func withoutRecords(_ blob: JSONValue, _ ids: Set<String>) -> JSONValue {
+    var out = blob
+    for kind in pendingKinds {
+      guard let map = out[kind], isMap(map) else { continue }
+      out[kind] = .object(map.pairs.filter { !ids.contains($0.0) })
+    }
+    return out
+  }
+  private static func replayPending(_ blob: JSONValue, _ pending: JSONValue) -> JSONValue {
+    var out = blob
+    if let active = mergeField(out["active"], pending["active"], name: "active") { out["active"] = active }
+    for kind in pendingKinds {
+      var map = out[kind] ?? .object([])
+      for (id, record) in pending[kind]?.pairs ?? [] { map[id] = mergeRecord(map[id], record) }
+      out[kind] = map
+    }
+    return out
+  }
+  /// Historical values fill only missing fetched fields, and only when the
+  /// candidate supersedes them; fetched fields stay authoritative in the base.
+  static func admissionUnits(_ candidate: JSONValue, fetched: JSONValue, deviceId: String,
+    lastPublishable: JSONValue?) -> [AdmissionUnit]
+  {
+    var units: [AdmissionUnit] = []
+    for kind in ["groups", "tabs"] {
+      for (id, after) in candidate[kind]?.pairs ?? [] {
+        let fetchedRecord = fetched[kind]?[id]
+        var before = fetchedRecord ?? .object([])
+        for (name, value) in lastPublishable?[kind]?[id]?.pairs ?? [] {
+          if before[name] == nil, acknowledged(after[name], value, name: name) { before[name] = value }
+        }
+        for (name, value) in after.pairs where !strictEqual(value["by"], .string(deviceId)) {
+          before[name] = value
+        }
+        let mine: (JSONValue) -> Bool = { strictEqual($0["by"], .string(deviceId)) }
+        let sameAsBase = before.canonical() == after.canonical()
+        let hasLocalContribution = after.pairs.contains { name, value in
+          mine(value) && value.canonical() != canon(fetchedRecord?[name])
+        }
+        if sameAsBase && !hasLocalContribution { continue }
+        let base: JSONValue? = before.pairs.isEmpty ? nil : before
+        let required = sameAsBase || (base != nil && sanitizeRecord(base, kind: kind) == nil)
+        let clocks: [Double] = after.pairs.compactMap { name, value in
+          isField(value) && mine(value) && value.canonical() != canon(before[name])
+            ? value["c"]?.number : nil
+        }
+        units.append(
+          AdmissionUnit(
+            kind: kind, id: id, key: kind + ":" + id, before: base, after: after, required: required,
+            clock: max(0, clocks.max() ?? 0), dependencies: [], admissionRank: nil))
+      }
+    }
+    let newGroups = Set(units.filter { $0.kind == "groups" && $0.before == nil }.map(\.id))
+    for n in units.indices where units[n].kind == "tabs" {
+      if let g = units[n].after["groupId"]?["v"]?.string, newGroups.contains(g) {
+        units[n].dependencies.append("groups:" + g)
+      }
+    }
+    return units
+  }
+
+  /// Fits the candidate within M16 §5's limits by holding back the newest
+  /// local changes, never a required one; limits apply to `finish(candidate)`,
+  /// what is actually PUT.
+  static func admit(candidate: JSONValue, changes: [AdmissionUnit],
+    encrypt: (String) throws -> SyncEnvelope, finish: (JSONValue) -> JSONValue = { $0 })
+    -> (blob: JSONValue?, unsynced: Set<String>, reason: String?)
+  {
+    var out = clearInvalidActive(candidate)
+    var held = Set<String>()
+    var unsynced = Set<String>()
+    func fitsBlob(_ blob: JSONValue) -> Bool {
+      liveTabCount(blob) <= limits.tabsPerSpace && blobFits(blob, encrypt: encrypt)
+    }
+    func fits() -> Bool { fitsBlob(finish(out)) }
+    func complete() -> Bool {
+      if canon(sanitizeBlob(out)) != out.canonical() { return false }
+      return changes.allSatisfy { unit in
+        guard let record = out[unit.kind]?[unit.id], !deleted(record) else { return true }
+        if canon(record["pos"]) != canon(unit.before?["pos"]), !validKey(record["pos"]?["v"], unit.id) {
+          return false
+        }
+        let group = record["groupId"]?["v"]?.string ?? ""
+        return unit.kind != "tabs" || group.isEmpty || out["groups"]?[group] != nil
+          || unit.before?["groupId"]?["v"]?.string == group
+      }
+    }
+    // "Closed tabs free their room after 30 days" is true only when their
+    // expiry alone would let this change fit.
+    func withoutTombstones(_ blob: JSONValue) -> JSONValue {
+      var t = blob
+      for kind in pendingKinds {
+        t[kind] = .object((t[kind]?.pairs ?? []).filter { !deleted($0.1) })
+      }
+      return clearInvalidActive(t)
+    }
+    let finished = finish(out)
+    let hasTombstones = pendingKinds.contains { kind in
+      (finished[kind]?.pairs ?? []).contains { deleted($0.1) }
+    }
+    let initialReason =
+      liveTabCount(finished) > limits.tabsPerSpace
+      ? "tabs" : hasTombstones && fitsBlob(withoutTombstones(finished)) ? "tombstones" : "full"
+    if fits() && complete() { return (finish(out), unsynced, nil) }
+    var byKey: [String: AdmissionUnit] = [:]
+    var keyOrder: [String] = []
+    for unit in changes {
+      if byKey[unit.key] == nil { keyOrder.append(unit.key) }
+      byKey[unit.key] = unit
+    }
+    func hold(_ unit: AdmissionUnit) -> Bool {
+      if held.contains(unit.key) || unit.required { return false }
+      // A required dependent prevents withholding its dependency as well.
+      let dependents = changes.filter { $0.dependencies.contains(unit.key) && !held.contains($0.key) }
+      if dependents.contains(where: \.required) { return false }
+      for dependent in dependents where !hold(dependent) { return false }
+      var map = out[unit.kind] ?? .object([])
+      map[unit.id] = unit.before
+      out[unit.kind] = map
+      out = clearInvalidActive(out)
+      held.insert(unit.key)
+      unsynced.insert(unit.id)
+      return true
+    }
+    let ordered = keyOrder.compactMap { byKey[$0] }.sorted { a, b in
+      a.rank != b.rank ? a.rank > b.rank : less(a.key, b.key)
+    }
+    for unit in ordered {
+      _ = hold(unit)
+      if fits() && complete() { return (finish(out), unsynced, initialReason) }
+    }
+    for unit in changes { unsynced.insert(unit.id) }
+    return (
+      nil, unsynced,
+      changes.contains(where: \.required) ? "required-state-over-budget" : "remote-over-budget"
+    )
+  }
+
+  static func pushPlan(fetchedBlob: JSONValue?, fetchedVersion: String?, localBlob: JSONValue?,
+    pending: JSONValue?, lastMergeAt: Int64?, now: Int64, deviceId: String,
+    encrypt: (String) throws -> SyncEnvelope, lastPublishable: JSONValue?,
+    admissionOrder: [String] = []) throws -> PushPlan
+  {
+    let local = sanitizeBlob(localBlob)
+    let remote = sanitizeBlob(fetchedBlob)
+    let relay = relayBlob(fetchedBlob)
+    // Only an actual missing blob may start an empty remote. An unreadable
+    // response must not be overwritten with a locally understood older schema.
+    if (isPresent(fetchedBlob) && remote == nil) || (!isPresent(fetchedBlob) && fetchedVersion != nil) {
+      throw ModelError.invalidRemoteBlob
+    }
+    guard let spaceId = (local ?? remote)?["spaceId"] else { throw ModelError.noValidSpace }
+    if let local, let remote, local["spaceId"] != remote["spaceId"] { throw ModelError.identityMismatch }
+    let empty: JSONValue = .object([
+      ("v", .number(1)), ("spaceId", spaceId), ("tabs", .object([])), ("groups", .object([])),
+    ])
+    let fetched = remote ?? empty
+    let published = sanitizeBlob(lastPublishable)
+    if isPresent(lastPublishable) && published == nil { throw ModelError.invalidPublishedBlob }
+    if let published, published["spaceId"] != fetched["spaceId"] {
+      throw ModelError.publishedIdentityMismatch
+    }
+    // What the Worker holds, including records this version can't display:
+    // presence and acknowledgement are judged against it, never the strict view.
+    let held = relay ?? empty
+    let recover = recoveryDecision(
+      localBlob: local ?? empty, fetchedBlob: relay, lastMergeAt: lastMergeAt, now: now
+    ).recover
+    let retained = withoutRecords(local ?? empty, recover)
+    var eligiblePending = withoutRecords(sanitizePending(pending), recover)
+    if !strictEqual(eligiblePending["index"]?["id"], fetched["spaceId"]) { eligiblePending["index"] = nil }
+    guard let baseMerged = try mergeBlob(fetched, retained) else { throw ModelError.noValidSpace }
+    var retainedOwn: JSONValue = .object([])
+    if let active = retained["active"], strictEqual(active["by"], .string(deviceId)),
+      !acknowledged(held["active"], active, name: "active")
+    {
+      retainedOwn["active"] = active
+    }
+    for kind in pendingKinds {
+      for (id, record) in retained[kind]?.pairs ?? [] {
+        for (name, value) in record.pairs
+        where strictEqual(value["by"], .string(deviceId))
+          && !acknowledged(held[kind]?[id]?[name], value, name: name)
+        {
+          var map = retainedOwn[kind] ?? .object([])
+          var rec = map[id] ?? .object([])
+          rec[name] = value
+          map[id] = rec
+          retainedOwn[kind] = map
+        }
+      }
+    }
+    var pendingAfter = settlePending(applyLocalEdits(eligiblePending, retainedOwn), held)
+    let replayed = replayPending(baseMerged, pendingAfter)
+    var expiredRecords: [String: [String]] = ["tabs": [], "groups": []]
+    // Expiry is a retention decision for persisted state too: remove every
+    // field of retired records from pending so a later pass cannot recreate
+    // the tombstone or wait forever for its receipt.
+    for kind in pendingKinds {
+      for (id, record) in replayed[kind]?.pairs ?? [] where expiredRecord(record, now: now) {
+        expiredRecords[kind, default: []].append(id)
+        if var map = pendingAfter[kind] {
+          map[id] = nil
+          pendingAfter[kind] = map
+        }
+      }
+      if let map = pendingAfter[kind], map.pairs.isEmpty { pendingAfter[kind] = nil }
+    }
+    let mergedBlob = expireTombstones(replayed, now: now)
+    if pendingAfter["active"] != nil {
+      let checked = clearInvalidActive(
+        .object([("tabs", mergedBlob["tabs"] ?? .object([])), ("active", pendingAfter["active"]!)]))
+      pendingAfter["active"] = checked["active"]
+    }
+    var changes = admissionUnits(
+      mergedBlob, fetched: fetched, deviceId: deviceId,
+      lastPublishable: published.map { expireTombstones($0, now: now) })
+    if !admissionOrder.isEmpty {
+      var ranks: [String: Int] = [:]
+      for (n, key) in admissionOrder.enumerated() { ranks[key] = n }  // a repeat keeps its last place, like a JS Map
+      var next = ranks.count
+      let byClock = changes.indices.sorted { a, b in
+        changes[a].clock != changes[b].clock
+          ? changes[a].clock < changes[b].clock : less(changes[a].key, changes[b].key)
+      }
+      for n in byClock {
+        if let rank = ranks[changes[n].key] {
+          changes[n].admissionRank = rank
+        } else {
+          changes[n].admissionRank = next
+          next += 1
+        }
+      }
+    }
+    let retired = expiredRecords
+    let admission = admit(
+      candidate: mergedBlob, changes: changes, encrypt: encrypt,
+      finish: { (blob: JSONValue) -> JSONValue in relayInto(blob, relay, now: now, retired: retired) })
+    var upload: JSONValue?
+    if let blob = admission.blob, blob.canonical() != (relay ?? fetched).canonical() {
+      upload = .object([
+        ("blob", blob), ("rev", .string(revisionOf(blob))),
+        ("ifVersion", fetchedVersion.map(JSONValue.string) ?? .null),
+      ])
+    }
+    // Proposal only: the caller may publish this revision after the blob PUT
+    // succeeds. It is of what the Worker holds afterwards, relayed content included.
+    var indexEntry: JSONValue?
+    if let upload {
+      indexEntry = .object([
+        ("id", upload["blob"]!["spaceId"]!), ("rev", upload["rev"]!), ("at", .number(Double(now))),
+        ("by", .string(deviceId)),
+      ])
+    } else if admission.reason == nil, pendingAfter["index"] != nil {
+      indexEntry = .object([
+        ("id", fetched["spaceId"]!), ("rev", .string(revisionOf(relay ?? fetched))),
+        ("at", .number(Double(now))), ("by", .string(deviceId)),
+      ])
+    }
+    return PushPlan(
+      mergedBlob: mergedBlob, upload: upload, pendingAfter: pendingAfter, recover: recover,
+      unsynced: admission.unsynced, expiredRecords: expiredRecords, indexEntry: indexEntry,
+      reason: admission.reason, nextLastMergeAt: now)
+  }
+
+  /// Called only after observing the real PUT result. Index receipts come
+  /// from successful blob writes, never from planning.
+  static func settleUpload(_ plan: PushPlan, _ originalPending: JSONValue?, blobStored: Bool,
+    indexStored: Bool) -> (pending: JSONValue, indexEntry: JSONValue?)
+  {
+    if plan.upload != nil && !blobStored {
+      // Retention doesn't depend on an upload acknowledgement: apply only the
+      // plan's expiry and recovery to the caller's pending snapshot.
+      var pending = originalPending ?? .object([])
+      for kind in pendingKinds {
+        let gone = Set((plan.expiredRecords[kind] ?? []) + plan.recover)
+        guard let map = pending[kind] else { continue }
+        let kept = map.pairs.filter { !gone.contains($0.0) }
+        pending[kind] = kept.isEmpty ? nil : .object(kept)
+      }
+      let goneTabs = Set((plan.expiredRecords["tabs"] ?? []) + plan.recover)
+      if var active = pending["active"], let v = active["v"]?.string, goneTabs.contains(v) {
+        active["cleared"] = .bool(true)
+        pending["active"] = active
+      }
+      return (pending, nil)
+    }
+    var pending = plan.pendingAfter
+    if let entry = plan.indexEntry {
+      pending["index"] = indexStored ? nil : entry
+    }
+    return (pending, plan.indexEntry)
+  }
+}

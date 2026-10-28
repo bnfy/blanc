@@ -156,3 +156,169 @@ final class SharedSpacesModelTests: XCTestCase {
     XCTAssertNil(M.effectiveGroup(blob, tab))
   }
 }
+
+/// Pending writes, admission and upload plans (`shared-spaces-model.js` lines 286–520).
+final class SharedSpacesPlanTests: XCTestCase {
+  typealias M = SharedSpacesModel
+  func canon(_ v: JSONValue?) -> String { v?.canonical() ?? "null" }
+  func sortedStrings(_ v: JSONValue?) -> JSONValue {
+    .array((v?.array ?? []).compactMap(\.string).sorted(by: utf16Less).map(JSONValue.string))
+  }
+  func sortedStrings<S: Sequence<String>>(_ v: S) -> JSONValue {
+    .array(v.sorted(by: utf16Less).map(JSONValue.string))
+  }
+  /// The plan as the vectors print it, every id list sorted.
+  func json(_ plan: PushPlan) -> JSONValue {
+    .object([
+      ("upload", plan.upload ?? .null), ("pendingAfter", plan.pendingAfter),
+      (
+        "expiredRecords",
+        .object([
+          ("tabs", sortedStrings(plan.expiredRecords["tabs"] ?? [])),
+          ("groups", sortedStrings(plan.expiredRecords["groups"] ?? [])),
+        ])
+      ),
+      ("recover", sortedStrings(plan.recover)), ("unsynced", sortedStrings(plan.unsynced)),
+      ("mergedBlob", plan.mergedBlob), ("nextLastMergeAt", .number(Double(plan.nextLastMergeAt))),
+      ("indexEntry", plan.indexEntry ?? .null), ("reason", plan.reason.map(JSONValue.string) ?? .null),
+    ])
+  }
+  func normalized(_ expected: JSONValue) -> JSONValue {
+    var e = expected
+    for key in ["recover", "unsynced"] { e[key] = sortedStrings(e[key]) }
+    e["expiredRecords"] = .object([
+      ("tabs", sortedStrings(e["expiredRecords"]?["tabs"])),
+      ("groups", sortedStrings(e["expiredRecords"]?["groups"])),
+    ])
+    return e
+  }
+  func plan(from j: JSONValue) -> PushPlan {
+    PushPlan(
+      mergedBlob: j["mergedBlob"]!, upload: j["upload"] == .null ? nil : j["upload"],
+      pendingAfter: j["pendingAfter"]!, recover: Set(j["recover"]!.array.compactMap(\.string)),
+      unsynced: Set(j["unsynced"]!.array.compactMap(\.string)),
+      expiredRecords: [
+        "tabs": j["expiredRecords"]?["tabs"]?.array.compactMap(\.string) ?? [],
+        "groups": j["expiredRecords"]?["groups"]?.array.compactMap(\.string) ?? [],
+      ], indexEntry: j["indexEntry"] == .null ? nil : j["indexEntry"],
+      reason: j["reason"]?.string, nextLastMergeAt: j["nextLastMergeAt"]!.intValue!)
+  }
+  func runPlan(_ i: JSONValue) throws -> PushPlan {
+    func opt(_ v: JSONValue?) -> JSONValue? { v == .null ? nil : v }
+    return try M.pushPlan(
+      fetchedBlob: opt(i["fetchedBlob"]), fetchedVersion: i["fetchedVersion"]?.string,
+      localBlob: opt(i["localBlob"]), pending: opt(i["pending"]),
+      lastMergeAt: i["lastMergeAt"]?.intValue, now: i["now"]!.intValue!,
+      deviceId: i["deviceId"]!.string!, encrypt: SharedSpacesModelTests.encrypt(),
+      lastPublishable: opt(i["lastPublishable"]),
+      admissionOrder: i["admissionOrder"]?.array.compactMap(\.string) ?? [])
+  }
+
+  func testPipelineMatchesVectors() throws {
+    for v in try SyncVectors.section("spacesPipeline") {
+      XCTAssertEqual(
+        json(try runPlan(v["input"]!)).canonical(), normalized(v["expected"]!).canonical(),
+        v["name"]!.string!)
+    }
+  }
+  func testRelayMatchesVectors() throws {
+    for v in try SyncVectors.section("spacesRelay") {
+      XCTAssertEqual(
+        json(try runPlan(v["input"]!)).canonical(), normalized(v["expected"]!).canonical(),
+        v["name"]!.string!)
+    }
+  }
+  func testSettlementsMatchVectors() throws {
+    for v in try SyncVectors.section("spacesSettlements") {
+      let i = v["input"]!
+      let result = M.settleUpload(
+        plan(from: i["plan"]!), i["originalPending"], blobStored: i["outcome"]?["blobStored"]?.bool ?? false,
+        indexStored: i["outcome"]?["indexStored"]?.bool ?? false)
+      XCTAssertEqual(
+        JSONValue.object([("pending", result.pending), ("indexEntry", result.indexEntry ?? .null)]).canonical(),
+        canon(v["expected"]))
+    }
+  }
+  func testSettleUploadAfterAStoredBlob() throws {
+    let v = try XCTUnwrap(SyncVectors.section("spacesPipeline").first)
+    let p = try runPlan(v["input"]!)
+    let stored = M.settleUpload(p, v["input"]!["pending"], blobStored: true, indexStored: false)
+    XCTAssertEqual(stored.pending["index"]?.canonical(), p.indexEntry?.canonical())
+    let both = M.settleUpload(p, v["input"]!["pending"], blobStored: true, indexStored: true)
+    XCTAssertNil(both.pending["index"])
+  }
+  func testRecoveryMatchesVectors() throws {
+    for v in try SyncVectors.section("spacesRecovery") {
+      let i = v["input"]!
+      let r = M.recoveryDecision(
+        localBlob: i["localBlob"], fetchedBlob: i["fetchedBlob"] == .null ? nil : i["fetchedBlob"],
+        lastMergeAt: i["lastMergeAt"]?.intValue, now: i["now"]!.intValue!)
+      XCTAssertEqual(
+        JSONValue.object([("keep", sortedStrings(r.keep)), ("recover", sortedStrings(r.recover))]).canonical(),
+        canon(v["expected"]), v["name"]!.string!)
+    }
+  }
+  func testAdmitMatchesVectors() throws {
+    for v in try SyncVectors.section("spacesAdmit") {
+      let i = v["input"]!
+      let changes = i["changes"]!.array.map { u in
+        AdmissionUnit(
+          kind: u["kind"]!.string!, id: u["id"]!.string!, key: u["key"]!.string!,
+          before: u["before"] == .null ? nil : u["before"], after: u["after"]!,
+          required: u["required"]?.bool ?? false, clock: u["clock"]?.number ?? 0,
+          dependencies: u["dependencies"]?.array.compactMap(\.string) ?? [],
+          admissionRank: u["admissionRank"]?.intValue.map(Int.init))
+      }
+      let relay = i["relay"]
+      let now = i["now"]?.intValue ?? 0
+      let retired: [String: [String]] = [
+        "tabs": i["retired"]?["tabs"]?.array.compactMap(\.string) ?? [],
+        "groups": i["retired"]?["groups"]?.array.compactMap(\.string) ?? [],
+      ]
+      let finish: (JSONValue) -> JSONValue = { (blob: JSONValue) -> JSONValue in
+        relay == nil ? blob : M.relayInto(blob, relay, now: now, retired: retired)
+      }
+      let r = M.admit(
+        candidate: i["candidate"]!, changes: changes,
+        encrypt: SharedSpacesModelTests.encrypt(pad: Int(i["pad"]!.intValue!)), finish: finish)
+      XCTAssertEqual(
+        JSONValue.object([
+          ("blob", r.blob ?? .null), ("unsynced", sortedStrings(r.unsynced)),
+          ("reason", r.reason.map(JSONValue.string) ?? .null),
+        ]).canonical(), canon(v["expected"]), v["name"]!.string!)
+    }
+  }
+  func testLocalEditsMatchVectors() throws {
+    for v in try SyncVectors.section("spacesLocalEdits") {
+      let i = v["input"]!
+      let actual =
+        i["op"]?.string == "apply"
+        ? M.applyLocalEdits(i["pending"], i["edits"]) : M.settlePending(i["pending"], i["fetched"])
+      XCTAssertEqual(actual.canonical(), canon(v["expected"]), v["name"]!.string!)
+    }
+  }
+  /// A remote `deleted: false`, however new, never acknowledges a pending close.
+  func testFetchedFalseNeverClearsPendingDelete() throws {
+    let id = String(repeating: "0", count: 31) + "1"
+    let space = String(repeating: "0", count: 30) + "99"
+    let pending: JSONValue = .object([
+      ("tabs", .object([(id, .object([("deleted", M.field(.bool(true), 100, "phone"))]))]))
+    ])
+    var tab: JSONValue = .object([
+      ("nav", M.field(.object([("url", .string("https://example.test/")), ("title", .string("E"))]), 900, "mac")),
+      ("name", M.field(.null, 900, "mac")), ("pinned", M.field(.bool(false), 900, "mac")),
+      ("groupId", M.field(.null, 900, "mac")), ("pos", M.field(.string(try M.keyFor("", "", id)), 900, "mac")),
+    ])
+    tab["deleted"] = M.field(.bool(false), 900, "mac")
+    let fetched: JSONValue = .object([
+      ("v", .number(1)), ("spaceId", .string(space)), ("groups", .object([])),
+      ("tabs", .object([(id, tab)])),
+    ])
+    XCTAssertEqual(M.settlePending(pending, fetched).canonical(), pending.canonical())
+    let p = try M.pushPlan(
+      fetchedBlob: fetched, fetchedVersion: "v1", localBlob: fetched, pending: pending, lastMergeAt: 1000,
+      now: 2000, deviceId: "phone", encrypt: SharedSpacesModelTests.encrypt(), lastPublishable: nil)
+    XCTAssertEqual(p.pendingAfter["tabs"]?[id]?["deleted"]?["v"], .bool(true))
+    XCTAssertEqual(p.upload?["blob"]?["tabs"]?[id]?["deleted"]?["v"], .bool(true))
+  }
+}
