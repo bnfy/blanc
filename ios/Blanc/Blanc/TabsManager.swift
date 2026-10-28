@@ -181,6 +181,15 @@ final class TabsManager {
         return store
     }
 
+    /// Settings → Privacy's Clear cookies, cache & site data, as on the computer:
+    /// signs every site out. History, Favorites and Sync stay.
+    func clearSiteData() async {
+        let types = WKWebsiteDataStore.allWebsiteDataTypes()
+        for store in [WKWebsiteDataStore.default(), privateStore].compactMap({ $0 }) {
+            await store.removeData(ofTypes: types, modifiedSince: .distantPast)
+        }
+    }
+
     /// The open tabs other devices may see; private tabs never leave the phone.
     var syncedTabs: [(url: String, title: String)] {
         tabs.filter { !$0.isPrivate }.map { ($0.currentURL.absoluteString, $0.pageTitle) }

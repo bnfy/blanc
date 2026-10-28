@@ -18,6 +18,26 @@ import WebKit
         XCTAssertNil(SettingsDestination.resolve(URL(string: "blanc://history/")!))
     }
 
+    /// Settings → Privacy's Clear cookies, cache & site data empties the normal
+    /// web store and the private one, as on the computer.
+    func testClearSiteDataRemovesCookies() async {
+        let manager = manager()
+        func cookie(_ name: String) -> HTTPCookie {
+            HTTPCookie(properties: [.domain: "example.com", .path: "/", .name: name, .value: "1",
+                                    .expires: Date().addingTimeInterval(3600)])!
+        }
+        let normal = WKWebsiteDataStore.default().httpCookieStore
+        let privateStore = manager.privateDataStore.httpCookieStore
+        await normal.setCookie(cookie("blanc-normal"))
+        await privateStore.setCookie(cookie("blanc-private"))
+        let before = await normal.allCookies().map(\.name) + privateStore.allCookies().map(\.name)
+        XCTAssertTrue(before.contains("blanc-normal") && before.contains("blanc-private"))
+        await manager.clearSiteData()
+        let after = await normal.allCookies().map(\.name) + privateStore.allCookies().map(\.name)
+        XCTAssertFalse(after.contains("blanc-normal"))
+        XCTAssertFalse(after.contains("blanc-private"))
+    }
+
     func testPaletteWaitsForDismissalAndPreservesTabs() {
         let manager = manager(), id = manager.activeTabId, count = manager.tabs.count
         manager.isPalettePresented = true

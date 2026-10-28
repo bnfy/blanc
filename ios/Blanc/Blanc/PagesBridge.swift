@@ -29,7 +29,6 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         // top-level methods) to avoid optional-literal pattern ambiguity.
         switch (group ?? "", method) {
         case ("", "appVersion"): return .value(.string(appVersion))
-        case ("", "clearBrowsingData"): return .value(.null)
 
         case ("bookmarks", "list"): return .value(.array([]))
         // Favorites edit on the phone; importing (F30) and Start Page pins stay on the computer.
@@ -441,6 +440,8 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
             manager?.historyStore.remove(url: url, visitedAt: visitedAt.int64Value)
         case ("history", "clear"):
             manager?.historyStore.clear()
+        case ("", "clearBrowsingData"):
+            Task { await manager?.clearSiteData() }
         case ("bookmarks", "remove"):
             guard let id = text(0) else { return .value(.null) }
             editFavorites { SyncedFavorites.remove($0, id: id, now: now) }

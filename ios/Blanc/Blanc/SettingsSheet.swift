@@ -76,6 +76,10 @@ enum SettingsCopy {
         "pairExpired": "settings.sync.pairing.expired",
         "desktopAccount": "settings.sync.createOnComputer",
         "pairDeviceHelp": "settings.sync.pairing.instruction",
+        "clearSiteData": "settings.privacy.clearBrowsingData",
+        "clearSiteDataConfirm": "settings.privacy.clearBrowsingData.confirm",
+        "clearSiteDataDone": "settings.privacy.clearBrowsingData.done",
+        "commonCancel": "common.cancel",
     ]
     static func text(_ key: String) -> String { SyncCopy.text(aliases[key] ?? "ios.settings." + key) }
     static let searchEngines = BlancSearchEngine.allCases.filter { $0 != .custom }
@@ -215,6 +219,8 @@ struct PrivacySettingsView: View {
     let manager: TabsManager
     @State private var site = ""
     @State private var error: String?
+    @State private var confirmingClear = false
+    @State private var cleared = false
     var body: some View {
         Form {
             Section {
@@ -240,8 +246,22 @@ struct PrivacySettingsView: View {
                 if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("settings.error") }
             } header: { Text(SettingsCopy.text("exceptions")) }
               footer: { Text(SettingsCopy.text("exceptionsHelp")) }
+            Section {
+                Button(SettingsCopy.text("clearSiteData"), role: .destructive) { confirmingClear = true }
+                    .accessibilityIdentifier("settings.clearSiteData")
+                if cleared {
+                    Text(SettingsCopy.text("clearSiteDataDone")).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("settings.clearSiteData.done")
+                }
+            }
         }
         .settingsFormStyle().settingsTitle(SettingsCopy.text("privacy"))
+        .alert(SettingsCopy.text("clearSiteDataConfirm"), isPresented: $confirmingClear) {
+            Button(SettingsCopy.text("clearSiteData"), role: .destructive) {
+                Task { await manager.clearSiteData(); cleared = true }
+            }
+            Button(SettingsCopy.text("commonCancel"), role: .cancel) {}
+        }
     }
     private func addSite() {
         guard let host = SettingsSiteInput.normalize(site) else {
