@@ -93002,7 +93002,7 @@
       }
     },
     "sharedSpaces.title": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93044,7 +93044,7 @@
       }
     },
     "sharedSpaces.explanation": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93086,7 +93086,7 @@
       }
     },
     "sharedSpaces.cancel": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93128,7 +93128,7 @@
       }
     },
     "sharedSpaces.confirm": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93170,7 +93170,7 @@
       }
     },
     "sharedSpaces.count": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93212,7 +93212,7 @@
       }
     },
     "sharedSpaces.tabs": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93254,7 +93254,7 @@
       }
     },
     "sharedSpaces.rejoin": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93296,7 +93296,7 @@
       }
     },
     "sharedSpaces.copy": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93338,7 +93338,7 @@
       }
     },
     "sharedSpaces.full": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93422,7 +93422,7 @@
       }
     },
     "sharedSpaces.unavailable": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93464,7 +93464,7 @@
       }
     },
     "sharedSpaces.recoveryName": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93506,7 +93506,7 @@
       }
     },
     "sharedSpaces.shared": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93548,7 +93548,7 @@
       }
     },
     "sharedSpaces.waiting": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93590,7 +93590,7 @@
       }
     },
     "sharedSpaces.notSynced": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93632,7 +93632,7 @@
       }
     },
     "sharedSpaces.fullState": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93674,7 +93674,7 @@
       }
     },
     "sharedSpaces.unavailableState": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93716,7 +93716,7 @@
       }
     },
     "sharedSpaces.closedOn": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93758,7 +93758,7 @@
       }
     },
     "sharedSpaces.split": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93800,7 +93800,7 @@
       }
     },
     "sharedSpaces.splitHint": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93842,7 +93842,7 @@
       }
     },
     "sharedSpaces.accountLine": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93884,7 +93884,7 @@
       }
     },
     "sharedSpaces.offLine": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93926,7 +93926,7 @@
       }
     },
     "sharedSpaces.tombstones": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -93968,7 +93968,7 @@
       }
     },
     "sharedSpaces.capacity": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -94010,7 +94010,7 @@
       }
     },
     "sharedSpaces.busy": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -94052,7 +94052,7 @@
       }
     },
     "sharedSpaces.slowed": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -94094,7 +94094,7 @@
       }
     },
     "sharedSpaces.unsyncedTab": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -94136,7 +94136,7 @@
       }
     },
     "sharedSpaces.pairQuestion": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -94178,7 +94178,7 @@
       }
     },
     "sharedSpaces.pairDetail": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -94220,7 +94220,7 @@
       }
     },
     "sharedSpaces.notNow": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -94262,7 +94262,7 @@
       }
     },
     "sharedSpaces.recoveryNote": {
-      "comment": "Development-only Shared Spaces controls.",
+      "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
       "localizations": {
         "en": {

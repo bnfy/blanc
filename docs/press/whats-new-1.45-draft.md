@@ -40,8 +40,7 @@ bullet whole. The tighter page text below is proposed in place of that.
         "With Sync on, open Settings, then Sync.",
         "Under What syncs, turn on Spaces and groups, choose your Spaces and press Turn on. Do the same on each computer."
       ],
-      "note": "It's off by default and belongs to the Personal profile. Private tabs, internal pages and local files never sync. Up to 25 Spaces can be shared.",
-      "learnMore": "/features/workspaces",
+      "note": "It's off by default and belongs to the Personal profile. Private tabs, internal pages and local files never sync. Up to 25 Spaces can be shared; a deleted Space still counts for 30 days.",
       "media": {
         "kind": "todo",
         "todo": "Capture 1 below. Owner sign-off on it and on this text.",
@@ -54,7 +53,6 @@ bullet whole. The tighter page text below is proposed in place of that.
       "title": "Bring back a tab closed on another computer",
       "body": "A tab you close in a shared Space closes on your other computers too, and their Recently closed lists it with the name of the computer it was closed on, so you can bring it back from any of them.",
       "note": "Closed tabs still use sync storage for 30 days.",
-      "learnMore": "/features/reopen-closed-tabs",
       "media": {
         "kind": "todo",
         "todo": "Capture 2 below. Owner sign-off on it and on this text.",
@@ -65,9 +63,14 @@ bullet whole. The tighter page text below is proposed in place of that.
 }
 ```
 
-`learnMore: /features/workspaces` only makes sense once that page stops saying
-Spaces never sync (see the claims inventory). Until then, use `/features/sync`
-or no link.
+Neither highlight has a `learnMore`, on purpose. The page goes live
+before the release, while `/features/workspaces` still says Spaces never sync
+and `/features/sync` says nothing merges; both change only after 1.45.0 ships
+(see the claims inventory). `/features/reopen-closed-tabs` says closed-tab
+snapshots "never go to disk or sync", which reads as a contradiction of the
+second highlight even though the synced entry carries only the address and
+title. Add `/features/workspaces` and `/features/reopen-closed-tabs` in the
+post-release records, once those pages describe Shared Spaces.
 
 ## Captures needed
 
@@ -113,6 +116,11 @@ page).
   markers and the 20 MiB per-account allowance
   (`docs/reviews/2026-10-26-sync-sqlite-cost-retention.md:222–227`).
 - `site/src/data/support-questions.json`: a new Shared Spaces FAQ entry.
+- `site/src/pages/features/reopen-closed-tabs.astro:44` and
+  `site/src/components/guides/reopen-closed-tabs.astro:87` ("closed-tab
+  snapshots never go to disk or sync"): say that a tab closed in a shared
+  Space reaches your other devices' Recently closed as its address and title,
+  while the snapshot itself still never syncs.
 - `site/src/pages/features/security.astro:42`,
   `site/src/components/guides/security.astro:61`,
   `site/src/components/guides/foundations.astro:29`: add Spaces to the list of
