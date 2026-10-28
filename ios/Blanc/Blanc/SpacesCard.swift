@@ -69,7 +69,7 @@ struct SpacesCard: View {
                         SpaceTile(color: entry.space.color, symbol: entry.space.symbol, size: 30).opacity(0.6)
                         Text(entry.space.name).font(BrowserStyle.font(16)).lineLimit(1)
                         Spacer(minLength: 0)
-                        Button(SyncCopy.text("ws.recovery.restore")) { withAnimation { manager.restoreDeleted(entry.space.id) } }
+                        Button(SyncCopy.text("ws.recovery.restore")) { withAnimation { _ = manager.restoreDeleted(entry.space.id) } }
                             .font(BrowserStyle.font(15, semibold: true))
                             .frame(minWidth: 44, minHeight: 44)
                             .disabled(manager.spaces.filter { $0.recoveredFrom == nil }.count >= TabSets.spaceLimit)

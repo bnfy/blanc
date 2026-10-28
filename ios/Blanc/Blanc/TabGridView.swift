@@ -112,7 +112,7 @@ struct TabGridView: View {
         do {
             switch current {
             case .rename(let group): try manager.renameGroup(group.id, to: nameDraft)
-            case .newGroup(let tab): try withAnimation { try manager.createGroup(named: nameDraft, with: tab) }
+            case .newGroup(let tab): try withAnimation { _ = try manager.createGroup(named: nameDraft, with: tab) }
             }
         } catch GroupNameError.duplicate {
             nameError = SyncCopy.text("groupMenu.duplicate", ["name": GroupNames.normalize(nameDraft)])
