@@ -9,69 +9,18 @@ struct SpacesCard: View {
     @Binding var editorTarget: SpaceEditorTarget?
     @State private var editing = false
     @State private var dragY: CGFloat = 0
+    @State private var rowsHeight: CGFloat = 120
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            // As tall as its rows, scrolling only once they pass 420 pt.
             ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    row(id: TabSets.iphoneId, name: SyncCopy.text("spaces.thisIPhone")) {
-                        Image(systemName: "iphone")
-                            .font(.system(size: 15))
-                            .frame(width: 30, height: 30)
-                            .background(style.surface, in: RoundedRectangle(cornerRadius: 9))
-                    }
-                    .accessibilityIdentifier("spaces.iphone")
-                    if !manager.spaces.isEmpty { Divider() }
-                    ForEach(manager.spaces) { space in
-                        row(id: space.id, name: space.name) {
-                            SpaceTile(color: space.color, symbol: space.symbol, size: 30)
-                        }
-                        .accessibilityIdentifier("spaces.row.\(space.name)")
-                    }
-                    if editing && !manager.recentlyDeleted.isEmpty {
-                        Divider().padding(.top, 4)
-                        Text(SyncCopy.plural("ws.list.recentlyDeleted", count: manager.recentlyDeleted.count))
-                            .font(BrowserStyle.font(13, semibold: true))
-                            .foregroundStyle(style.secondary)
-                            .padding(.top, 10)
-                        ForEach(manager.recentlyDeleted, id: \.space.id) { entry in
-                            HStack(spacing: 12) {
-                                SpaceTile(color: entry.space.color, symbol: entry.space.symbol, size: 30).opacity(0.6)
-                                Text(entry.space.name).font(BrowserStyle.font(16)).lineLimit(1)
-                                Spacer(minLength: 0)
-                                Button(SyncCopy.text("ws.recovery.restore")) { withAnimation { manager.restoreDeleted(entry.space.id) } }
-                                    .font(BrowserStyle.font(15, semibold: true))
-                                    .frame(minWidth: 44, minHeight: 44)
-                                    .disabled(manager.spaces.filter { $0.recoveredFrom == nil }.count >= TabSets.spaceLimit)
-                            }
-                            .frame(minHeight: 52)
-                        }
-                    }
-                }
+                rows.onGeometryChange(for: CGFloat.self) { $0.size.height } action: { rowsHeight = $0 }
             }
             .scrollBounceBehavior(.basedOnSize)
-            .frame(maxHeight: 420)
+            .frame(height: min(rowsHeight, 420))
             Divider().padding(.top, 4)
-            HStack {
-                Button {
-                    editorTarget = .new
-                } label: {
-                    Label(SyncCopy.text("ws.new"), systemImage: "plus")
-                        .font(BrowserStyle.font(15, semibold: true))
-                        .frame(minHeight: 44)
-                        .contentShape(Rectangle())
-                }
-                .accessibilityIdentifier("spaces.new")
-                Spacer()
-                if !manager.spaces.isEmpty {
-                    Button(SyncCopy.text(editing ? "ws.editor.done" : "spaces.menuEdit")) {
-                        withAnimation(.snappy) { editing.toggle() }
-                    }
-                    .font(BrowserStyle.font(15, semibold: true))
-                    .frame(minWidth: 44, minHeight: 44)
-                    .accessibilityIdentifier("spaces.edit")
-                }
-            }
+            footer
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 6)
@@ -91,6 +40,67 @@ struct SpacesCard: View {
         .accessibilityLabel(SyncCopy.text("spaces.menuLabel"))
         .accessibilityIdentifier("spaces.card")
         .accessibilityAction(.escape) { close() }
+    }
+
+    private var rows: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            row(id: TabSets.iphoneId, name: SyncCopy.text("spaces.thisIPhone")) {
+                Image(systemName: "iphone")
+                    .font(.system(size: 15))
+                    .frame(width: 30, height: 30)
+                    .background(style.surface, in: RoundedRectangle(cornerRadius: 9))
+            }
+            .accessibilityIdentifier("spaces.iphone")
+            if !manager.spaces.isEmpty { Divider() }
+            ForEach(manager.spaces) { space in
+                row(id: space.id, name: space.name) {
+                    SpaceTile(color: space.color, symbol: space.symbol, size: 30)
+                }
+                .accessibilityIdentifier("spaces.row.\(space.name)")
+            }
+            if editing && !manager.recentlyDeleted.isEmpty {
+                Divider().padding(.top, 4)
+                Text(SyncCopy.plural("ws.list.recentlyDeleted", count: manager.recentlyDeleted.count))
+                    .font(BrowserStyle.font(13, semibold: true))
+                    .foregroundStyle(style.secondary)
+                    .padding(.top, 10)
+                ForEach(manager.recentlyDeleted, id: \.space.id) { entry in
+                    HStack(spacing: 12) {
+                        SpaceTile(color: entry.space.color, symbol: entry.space.symbol, size: 30).opacity(0.6)
+                        Text(entry.space.name).font(BrowserStyle.font(16)).lineLimit(1)
+                        Spacer(minLength: 0)
+                        Button(SyncCopy.text("ws.recovery.restore")) { withAnimation { manager.restoreDeleted(entry.space.id) } }
+                            .font(BrowserStyle.font(15, semibold: true))
+                            .frame(minWidth: 44, minHeight: 44)
+                            .disabled(manager.spaces.filter { $0.recoveredFrom == nil }.count >= TabSets.spaceLimit)
+                    }
+                    .frame(minHeight: 52)
+                }
+            }
+        }
+    }
+
+    private var footer: some View {
+        HStack {
+            Button {
+                editorTarget = .new
+            } label: {
+                Label(SyncCopy.text("ws.new"), systemImage: "plus")
+                    .font(BrowserStyle.font(15, semibold: true))
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .accessibilityIdentifier("spaces.new")
+            Spacer()
+            if !manager.spaces.isEmpty {
+                Button(SyncCopy.text(editing ? "ws.editor.done" : "spaces.menuEdit")) {
+                    withAnimation(.snappy) { editing.toggle() }
+                }
+                .font(BrowserStyle.font(15, semibold: true))
+                .frame(minWidth: 44, minHeight: 44)
+                .accessibilityIdentifier("spaces.edit")
+            }
+        }
     }
 
     private func close() {
