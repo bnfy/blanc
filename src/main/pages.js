@@ -632,6 +632,9 @@ function setupPages(hooks = {}) {
     // later pages:start:status push, so initial load and live updates agree.
     ...hooks.startPage?.status?.(),
     wallpaperVisible: hooks.startPage?.visibleFor?.(event.sender) === true,
+    // Play the Sunrise when Blanc opens (#1179): true for one Start Page per
+    // launch, decided in main (launch-sunrise.js).
+    launchSunrise: hooks.startPage?.launchSunriseFor?.(event.sender) === true,
     // Per-tab: a private Start Page never receives the custom image.
     wallpaper: hooks.startPage?.wallpaperFor?.(event.sender) ?? null,
     // Per-tab guard: the shared status never carries profile or privacy.

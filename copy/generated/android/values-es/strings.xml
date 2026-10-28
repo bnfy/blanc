@@ -1003,6 +1003,8 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="settings_general_theme_system">Sistema</string>
     <string name="settings_general_theme_light">Claro</string>
     <string name="settings_general_theme_dark">Oscuro</string>
+    <string name="settings_general_launch_sunrise_label">Mostrar el amanecer al abrir Blanc</string>
+    <string name="settings_general_launch_sunrise_hint">La primera página de inicio tras abrir Blanc muestra el amanecer una vez. Se omite si tu sistema reduce el movimiento.</string>
     <string name="settings_general_surface_style_label">Estilo de superficie</string>
     <string name="settings_general_surface_style_hint">El aspecto de las páginas propias de Blanc. «Neutro» cambia el crema y el dorado por tinta y gris lisos.</string>
     <string name="settings_general_surface_style_sunrise">Sunrise</string>

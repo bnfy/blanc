@@ -39421,6 +39421,90 @@
         }
       }
     },
+    "settings.general.launchSunrise.label": {
+      "comment": "Settings → General → Appearance: label of the switch that plays the Sunrise animation (the Blanc logo rising, as on the website) on the first start page after launch.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play the Sunrise when Blanc opens"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beim Öffnen von Blanc den Sonnenaufgang zeigen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar el amanecer al abrir Blanc"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher le lever de soleil à l’ouverture de Blanc"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra l’alba all’apertura di Blanc"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar o nascer do sol ao abrir o Blanc"
+          }
+        }
+      }
+    },
+    "settings.general.launchSunrise.hint": {
+      "comment": "Settings → General → Appearance: hint under Play the Sunrise when Blanc opens.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The first start page after launch draws the Sunrise once. Skipped when your system reduces motion."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die erste Startseite nach dem Start zeigt einmal den Sonnenaufgang. Entfällt, wenn dein System Bewegungen reduziert."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La primera página de inicio tras abrir Blanc muestra el amanecer una vez. Se omite si tu sistema reduce el movimiento."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La première page d’accueil après le lancement affiche une fois le lever de soleil. Ignoré si votre système réduit les animations."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La prima pagina iniziale dopo l’avvio mostra l’alba una volta. Saltata se il sistema riduce il movimento."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A primeira página inicial depois de abrir o Blanc mostra o nascer do sol uma vez. É pulado quando o sistema reduz o movimento."
+          }
+        }
+      }
+    },
     "settings.general.surfaceStyle.label": {
       "comment": "Settings → General: label of the dropdown choosing the palette of Blanc's own pages.",
       "extractionState": "manual",

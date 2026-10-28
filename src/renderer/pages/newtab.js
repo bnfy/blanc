@@ -1740,6 +1740,28 @@ customWallpaperRemove.addEventListener('click', () => updateWallpaper(async () =
   showWallpaperError(null);
   applyWallpaper(await window.bowserPages.start.removeWallpaper());
 }));
+// Play the Sunrise when Blanc opens (#1179). Main grants it to one Start Page
+// per launch; the page draws it over the finished layout. It takes no pointer
+// input, ends at the first click or the first key the page receives (browser
+// shortcuts go to main instead), and never plays with reduced motion.
+let launchSunriseDue = false;
+function playLaunchSunrise() {
+  const scene = document.getElementById('launchSunrise');
+  if (!scene || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    scene?.remove();
+    return;
+  }
+  const end = () => {
+    removeEventListener('keydown', end, true);
+    removeEventListener('pointerdown', end, true);
+    scene.remove();
+  };
+  addEventListener('keydown', end, true);
+  addEventListener('pointerdown', end, true);
+  scene.addEventListener('animationend', (event) => { if (event.target === scene) end(); });
+  scene.hidden = false;
+}
+
 const dataReady = window.bowserPages?.start.data().then((data) => {
   wallpaper.setVisible(data.wallpaperVisible === true);
   // The projection first, so the switch below cannot paint a frame the
@@ -1763,6 +1785,7 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
   renderLaunchStatus({ startup: data.startup, recovery: data.recovery, privacy: data.privacy });
   applyPatronStatus(data);
   renderMigrationChecklist(data.migrationChecklist ?? null);
+  launchSunriseDue = data.launchSunrise === true;
   if (!isPrivate) {
     document.getElementById('footerLeft').textContent = t('newtab.footer.blocked', { count: state.blockedThisWeek });
   }
@@ -1774,8 +1797,13 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
 
 Promise.all([favoritesReady, dataReady, pinsReady]).then(() => {
   applyLayout(state.layout);
-  // Layout changes fade in from now on; the first paint never does.
-  requestAnimationFrame(() => document.body.classList.add('layout-ready'));
+  // Layout changes fade in from now on; the first paint never does. The
+  // launch Sunrise starts in the same frame, over the drawn layout.
+  requestAnimationFrame(() => {
+    document.body.classList.add('layout-ready');
+    if (launchSunriseDue) playLaunchSunrise();
+    else document.getElementById('launchSunrise')?.remove();
+  });
 });
 
 window.bowserPages?.start.onVisibility((visible) => wallpaper.setVisible(visible));
