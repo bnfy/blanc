@@ -363,3 +363,49 @@ test('a multi-URL handoff routes each URL, keeps order per window and reveals on
   assert.deepEqual(f.revealed, [f.primary.window]);
   f.noListeners();
 });
+
+// #1199: a link opened in a new tab from a page, whose rule sent it elsewhere.
+test('openRouted opens a decided destination, revealing it only for a foreground link', () => {
+  const { resolveRoutedRuntime } = require('../../src/main/link-routes');
+  const f = harness();
+  const options = [];
+  const handler = createExternalUrlHandoff({
+    application: f.application,
+    isReady: () => true,
+    isQuitting: () => f.state.quitting,
+    routeFor: () => { throw new Error('openRouted never asks the rules again'); },
+    getRuntime: (preferred, destination) => destination
+      ? resolveRoutedRuntime(destination, preferred, { runtimes: f.runtimes, focusOrder: () => 0, openSpace: () => null, openProfileWindow: () => null })
+      : externalWindowRuntime(f.runtimes, preferred ?? f.state.focused, f.primary, f.state.focused),
+    ensureWindow() {},
+    isWindowReady: (runtime) => runtime.chromeReady,
+    withRuntime(runtime, fn) { f.state.current = runtime; try { fn(); } finally { f.state.current = null; } },
+    createTab(url, tabOptions) {
+      options.push(tabOptions);
+      f.created.push({ id: f.created.length + 1, url, profileId: f.state.current.profileId });
+      return f.created.length;
+    },
+    activateTab(id) { f.activated.push(id); },
+    revealWindow(window) { f.revealed.push(window); },
+  });
+  const work = { profileId: 'work', spaceId: null, private: false };
+
+  handler.openRouted('https://x.test/background', work, { activate: false });
+  assert.deepEqual(f.created.map((tab) => [tab.url, tab.profileId]), [['https://x.test/background', 'work']]);
+  assert.deepEqual(options[0], { destination: work });
+  assert.deepEqual(f.activated, []);
+  assert.deepEqual(f.revealed, []);
+
+  handler.openRouted('https://x.test/foreground', work);
+  assert.deepEqual(f.created.at(-1), { id: 2, url: 'https://x.test/foreground', profileId: 'work' });
+  assert.deepEqual(f.activated, [2]);
+  assert.deepEqual(f.revealed, [f.work.window]);
+
+  // Only web URLs, only with a destination, never while quitting.
+  handler.openRouted('file:///etc/passwd', work);
+  handler.openRouted('https://x.test/none', null);
+  f.state.quitting = true;
+  handler.openRouted('https://x.test/quitting', work);
+  assert.equal(f.created.length, 2);
+  f.noListeners();
+});

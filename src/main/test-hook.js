@@ -4145,6 +4145,7 @@ function install(refs) {
         islandHoverOpen: false,
         islandTabIcons: false,
         launchSunrise: false,
+        linkRoutesInApp: false,
         islandAutoHide: false,
         islandAutoHideStyle: 'float',
         surfaceStyle: 'sunrise',

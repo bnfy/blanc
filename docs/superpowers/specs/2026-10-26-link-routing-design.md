@@ -21,7 +21,7 @@ A short, ordered list of rules in Settings → Profiles: **"Links to *jira.examp
 - **Not routed:**
   - local HTML files (`open-file`), which keep their own trust boundary;
   - tab handoff URLs (`queueTabHandoff`), which name their own destination;
-  - links clicked inside Blanc (D3);
+  - links clicked inside Blanc (D3), unless the person turns on §3.7;
   - URLs typed into the Island.
 - A multi-URL handoff (several URLs on one command line) routes each URL on its own. URLs going to the same window keep their order, and only the last URL of the whole handoff is selected and brought to the front, as `externalUrlActivationPlan` does today.
 
@@ -72,6 +72,21 @@ Settings → Profiles gets an **Open links from other apps** group, shown only w
 - `/route` in the Island does the same for the active tab. `/route off` removes the rule for its host.
 
 These are conveniences; Settings stays the full editor.
+
+### 3.7 Links opened in a new tab from a page (#1199, opt-in)
+
+Settings → Profiles → Open links from other apps has a switch, **Also for links I open in a new tab** (`linkRoutesInApp`, off by default, device-local, never synced). With it on, a link opened in a new tab from a page follows the same rules, but only when all of these hold:
+
+- **It is a new tab the person opened:** a `target=_blank` or modified click, a middle-click, or the page context menu's Open Link in New Tab (foreground or background). Electron reports no user-gesture bit, so Blanc stamps each WebContents with its last native mouse press or Enter/Space key press (input a page cannot synthesize; the same signal the OS-handoff prompt uses) and requires one within the last second. A page calling `window.open` on its own, a redirect, a subframe navigation or a same-tab click never routes.
+- **It is not a popup:** a featureful `window.open` (disposition `new-window`) keeps its real window and its `window.opener`, which OAuth and payment flows need.
+- **It is not from a private tab.**
+- **The rule points somewhere else:** another profile, a Space this window isn't showing, or a private tab. A rule that points where the link already is changes nothing, so a tab a rule opened never routes its own links again (no loops).
+
+The link then opens exactly like a link from another app (§3.3), through the same handoff (`openRouted`): a foreground open selects the tab and brings its window to the front; a background open adds the tab without raising anything. The window the link left reads out *Link rule: opened in {profile or Space}* for screen readers.
+
+### 3.8 Matching by the app that sent a link (#1199, not feasible)
+
+Rules can't name the sending app ("links from WhatsApp"). Electron's `open-url` and `second-instance` pass only the URL. On macOS the sender is in the Apple event (`keySenderPIDAttr`), which Electron doesn't expose, so it would need a native addon reading the current Apple event during `open-url`; Windows and Linux start Blanc through the default-browser registration or `xdg-open` and don't report the caller at all. It stays excluded (§9) until there's a cross-platform signal.
 
 ## 4. Interactions with existing features
 
@@ -140,7 +155,7 @@ These are conveniences; Settings stays the full editor.
 - **Routing by source app** ("links from Slack"). Electron doesn't say which app sent an `open-url` or started a second instance, and the platforms disagree on whether it can be known at all.
 - **Regular expressions and wildcards.** Domain and contains cover the cases people describe, and a regex field is easy to get subtly wrong for little gain.
 - **Following redirects before matching** (a `t.co` or tracker link). That would make a network request before the user sees anything. Rules match the link as handed over.
-- **Routing links clicked inside Blanc** (D3). This version only routes links from outside.
+- **Routing links clicked inside Blanc** (D3). The first version routed only links from outside; §3.7 (#1199) adds new-tab links, opt-in. Same-tab clicks still never route.
 - **A Little Arc–style mini window** for unmatched links. That's a separate feature.
 - **Mobile.** iOS hands links to the default browser with no profiles to route between yet. This is N/A until it has them (D-register entry).
 
@@ -171,6 +186,7 @@ The owner took the recommendation on all seven.
 - **D1 — Destination.** A profile with an optional Space (§3.3), not profiles only. Spaces are what Arc users mean, and profiles are what keeps sign-ins apart.
 - **D2 — A Space that isn't open.** It opens in a new window. The user's current window is never switched to it: that would rearrange a window they may be looking at, and the Space switch guard can refuse it for a busy page.
 - **D3 — Links clicked inside Blanc.** These are left alone; only links from other apps are routed. Routing them would move a page between profiles mid-browse, along with the cookies it was opened with.
+  *Revised 2026-10-28 (#1199, owner request):* an opt-in switch also routes links the person opens in a **new tab** from a page (§3.7). Same-tab navigation still never moves, so a page is never moved mid-browse; only a fresh tab opens elsewhere, with the destination profile's own cookies.
 - **D4 — Matching.** Domain plus contains (§3.2). Contains covers "this one Notion workspace" or "this GitHub org".
 - **D5 — Private destination.** "As a private tab" is offered in the first version.
 - **D6 — Unmatched links.** These keep today's behavior, the window used last. A fixed-profile choice can come later.

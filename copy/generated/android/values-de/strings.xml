@@ -1291,6 +1291,11 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_profiles_load_failed">Profile konnten nicht geladen werden.</string>
     <string name="settings_link_routes_title">Links aus anderen Apps öffnen</string>
     <string name="settings_link_routes_hint">Wenn eine andere App einen Link in Blanc öffnet, bestimmt die erste passende Regel das Profil und optional den Space, in dem er geöffnet wird. Regeln bleiben auf diesem Gerät.</string>
+    <string name="settings_link_routes_in_app_label">Auch für Links, die ich in einem neuen Tab öffne</string>
+    <string name="settings_link_routes_in_app_hint">Ein Link, den du von einer Seite aus in einem neuen Tab öffnest, folgt einer Regel, die auf ein anderes Profil oder einen anderen Space zeigt. Links in privaten Tabs und Anmelde-Pop-ups bleiben, wo sie sind.</string>
+    <string name="link_routes_announce_profile">Link-Regel: in %1$s geöffnet</string>
+    <string name="link_routes_announce_space">Link-Regel: in %1$s geöffnet</string>
+    <string name="link_routes_announce_private">Link-Regel: in einem privaten Tab geöffnet</string>
     <string name="settings_link_routes_fallback">Alles andere: das zuletzt verwendete Fenster</string>
     <string name="settings_link_routes_add">Regel hinzufügen</string>
     <string name="settings_link_routes_links_to">Links zu</string>

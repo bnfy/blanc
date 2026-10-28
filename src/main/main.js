@@ -378,7 +378,7 @@ const { webUrlsFromArgv } = require('./startup-urls');
 const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-activation');
 const { createExternalUrlHandoff } = require('./external-url-handoff');
 const {
-  matchLinkRoute, linkRoutesWithoutProfile, resolveRoutedRuntime,
+  matchLinkRoute, linkRoutesWithoutProfile, resolveRoutedRuntime, inAppRouteDestination,
   siteLinkRouteState, siteRouteSwitchModel, setSiteLinkRoute, removeSiteLinkRoute,
 } = require('./link-routes');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
@@ -1892,6 +1892,44 @@ function linkRouteDestination(url) {
   return route ? { ...route.destination } : null;
 }
 
+// Links opened from a page inside Blanc (#1199), with Settings → Profiles →
+// "Also for links I open in a new tab" on. Only new-tab opens qualify (a
+// target=_blank or modified click, middle-click, the context menu's Open Link
+// in New Tab), never a page's own navigation or a featureful popup, whose
+// opener an OAuth flow needs. `fromMenu` opens come from Blanc's native menu;
+// any other needs a native press on the page in the last second, so a page
+// can't send itself into another profile. Returns true when the rule took
+// the link, which then opens like a link from another app.
+const IN_APP_ROUTE_GESTURE_MS = 1000;
+function routeInAppLink(tab, sourceWc, url, disposition, { fromMenu = false } = {}) {
+  if (settings.getSettings().linkRoutesInApp !== true || tab?.private) return false;
+  if (disposition !== 'foreground-tab' && disposition !== 'background-tab') return false;
+  if (!fromMenu && !(Date.now() - (nativeGestureAt.get(sourceWc?.id) ?? -Infinity) <= IN_APP_ROUTE_GESTURE_MS)) return false;
+  const owner = windowRuntimes.runtimeForTab(tab.id);
+  if (!owner) return false;
+  const destination = inAppRouteDestination(linkRouteDestination(url), {
+    profileId: owner.profileId, spaceId: owner.workspaceId ?? null, private: tab.private,
+  });
+  if (!destination) return false;
+  // Out of the window-open handler first: the destination may need a window.
+  setImmediate(() => externalUrlHandoff.openRouted(url, destination, { activate: disposition === 'foreground-tab' }));
+  // Read out in the window the link left, so it's clear where it went.
+  if (owner.window && !owner.window.isDestroyed()) {
+    stripSurfaces(owner).send('chrome:glance-status', inAppRouteAnnouncement(destination, owner));
+  }
+  return true;
+}
+
+function inAppRouteAnnouncement(destination, owner) {
+  const space = destination.spaceId && destination.spaceId !== (owner.workspaceId ?? null)
+    ? withLocalProfile(destination.profileId, () => namedWorkspaces.get(destination.spaceId)?.name) : null;
+  if (space) return mainI18n.t('linkRoutes.announce.space', { space });
+  if (destination.profileId !== owner.profileId) {
+    return mainI18n.t('linkRoutes.announce.profile', { profile: localProfiles.getLocalProfile(destination.profileId)?.name ?? '' });
+  }
+  return mainI18n.t('linkRoutes.announce.private');
+}
+
 // Window focus order per runtime, for "the profile's most recently focused
 // window". Main-process only.
 const runtimeFocusSerials = new WeakMap();
@@ -1993,14 +2031,25 @@ const handOffToOs = createExternalHandoff({
 // Electron navigation events do not expose a user-gesture bit. Native input
 // events do, and unlike DOM events they cannot be synthesized by a web page.
 // A fresh click or activation key permits one more page-initiated app prompt.
+// The same input, stamped per WebContents, lets a link rule route a link the
+// person opened from a page (routeInAppLink) but never one a page opened on
+// its own.
+const nativeGestureAt = new Map();
 app.on('web-contents-created', (_event, wc) => {
+  const id = wc.id;
   wc.on('before-mouse-event', (_inputEvent, mouse) => {
-    if (mouse.type === 'mouseDown') handOffToOs.noteUserGesture();
+    if (mouse.type !== 'mouseDown') return;
+    handOffToOs.noteUserGesture();
+    nativeGestureAt.set(id, Date.now());
   });
   wc.on('before-input-event', (_inputEvent, input) => {
     if (input.type === 'keyDown' && !input.isAutoRepeat
-      && (input.key === 'Enter' || input.key === ' ')) handOffToOs.noteUserGesture();
+      && (input.key === 'Enter' || input.key === ' ')) {
+      handOffToOs.noteUserGesture();
+      nativeGestureAt.set(id, Date.now());
+    }
   });
+  wc.once('destroyed', () => nativeGestureAt.delete(id));
 });
 
 function flushExternalUrls() {
@@ -9192,7 +9241,7 @@ initTabView({
   dismissFillStatusForNavigation: (owner, tabId) => fillStatusSurface?.invalidatePending(owner.id, tabId),
   // Optional: the page context menu's Open Link in Glance (runs bound to the
   // opener's window runtime, so createTab and setGlanceTab act there).
-  openLinkInGlance, linkSpaceMenuItems,
+  openLinkInGlance, linkSpaceMenuItems, routeInAppLink,
   // Optional ambient-hint triggers (fill-hint.js owns all revalidation).
   onFillHintLoad: (tab) => fillHintScheduler?.notePageLoad(tab),
   onFillHintInPageNavigation: (tab) => fillHintScheduler?.noteInPageNavigation(tab),

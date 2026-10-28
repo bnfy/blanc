@@ -262,3 +262,20 @@ test('the shield switch is offered with two profiles, never in a private tab', (
   assert.deepEqual(siteRouteSwitchModel({ ...base, here: { profileId: 'default', spaceId: null } }), { on: true, scope: 'profile', elsewhere: null });
   assert.deepEqual(siteRouteSwitchModel({ ...base, routes: [], here: { profileId: 'work', spaceId: 'space-1' } }), { on: false, scope: 'space', elsewhere: null });
 });
+
+// #1199: links opened in a new tab from a page inside Blanc.
+test('an in-app link leaves only for somewhere else, and never a private tab', () => {
+  const { inAppRouteDestination } = require('../../src/main/link-routes');
+  const work = { profileId: 'work', spaceId: null, private: false };
+  const here = { profileId: 'default', spaceId: null, private: false };
+  assert.deepEqual(inAppRouteDestination(work, here), work, 'another profile');
+  assert.equal(inAppRouteDestination(null, here), null, 'no rule');
+  assert.equal(inAppRouteDestination(work, { ...here, private: true }), null, 'never out of a private tab');
+  // A rule pointing where the link already is changes nothing, so a tab a
+  // rule opened never routes its own links again.
+  assert.equal(inAppRouteDestination(work, { ...work }), null);
+  assert.equal(inAppRouteDestination({ ...work, spaceId: 's1' }, { ...work, spaceId: 's1' }), null);
+  assert.deepEqual(inAppRouteDestination({ ...work, spaceId: 's1' }, work), { ...work, spaceId: 's1' }, 'a Space not showing here');
+  assert.equal(inAppRouteDestination(work, { ...work, spaceId: 's2' }), null, 'a rule with no Space is any window of the profile');
+  assert.deepEqual(inAppRouteDestination({ ...work, private: true }, work), { ...work, private: true }, 'a private tab of this profile');
+});

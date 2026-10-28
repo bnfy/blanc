@@ -4771,6 +4771,26 @@
     "message": "Wenn eine andere App einen Link in Blanc öffnet, bestimmt die erste passende Regel das Profil und optional den Space, in dem er geöffnet wird. Regeln bleiben auf diesem Gerät.",
     "source": "sha256:40218d63e7c2480dc5215578160ea9cd79e2ef7e76eeb69bcaa6e7731002dae4"
   },
+  "settings.linkRoutes.inApp.label": {
+    "message": "Auch für Links, die ich in einem neuen Tab öffne",
+    "source": "sha256:e58ac94adcaaae313e09fa42360bb7ffcc493110256cf715b30fd6cf3e6ca23e"
+  },
+  "settings.linkRoutes.inApp.hint": {
+    "message": "Ein Link, den du von einer Seite aus in einem neuen Tab öffnest, folgt einer Regel, die auf ein anderes Profil oder einen anderen Space zeigt. Links in privaten Tabs und Anmelde-Pop-ups bleiben, wo sie sind.",
+    "source": "sha256:2aa6a2a5fbeb40b917b08d9109388a0126d713237599fde7a26df9dba3670990"
+  },
+  "linkRoutes.announce.profile": {
+    "message": "Link-Regel: in {profile} geöffnet",
+    "source": "sha256:6165e1d6c00d03373f989866dcfede49ac74558147a63a4ac0304bace4704319"
+  },
+  "linkRoutes.announce.space": {
+    "message": "Link-Regel: in {space} geöffnet",
+    "source": "sha256:449c22cf42f344eba4e64256bf0e63e6d3ae38b531904e1cc8e32630c6a68446"
+  },
+  "linkRoutes.announce.private": {
+    "message": "Link-Regel: in einem privaten Tab geöffnet",
+    "source": "sha256:450782e08cc7fe206dd701ee0d469d01f7118e3616847384f337a36b6ece8e88"
+  },
   "settings.linkRoutes.fallback": {
     "message": "Alles andere: das zuletzt verwendete Fenster",
     "source": "sha256:50add5e3e37cbc88e614962dbabeff994ef03bd438272d6ac8ee8a17de67605a"

@@ -4919,6 +4919,26 @@
     "message": "When another app opens a link in Blanc, the first rule that matches decides the profile, and optionally the Space, it opens in. Rules stay on this device.",
     "note": "Settings → Profiles → Open links from other apps (F60 link routing): explanation under the title."
   },
+  "settings.linkRoutes.inApp.label": {
+    "message": "Also for links I open in a new tab",
+    "note": "Settings → Profiles → Open links from other apps (F60): switch that also applies the rules to links opened in a new tab from a page inside Blanc (#1199)."
+  },
+  "settings.linkRoutes.inApp.hint": {
+    "message": "A link you open in a new tab from a page follows a rule that points at another profile or Space. Links in private tabs and sign-in pop-ups stay where they are.",
+    "note": "Settings → Profiles → Open links from other apps: hint under Also for links I open in a new tab."
+  },
+  "linkRoutes.announce.profile": {
+    "message": "Link rule: opened in {profile}",
+    "note": "Read out in the window a link left (#1199): a link rule opened it in another profile. {profile} is the profile's name."
+  },
+  "linkRoutes.announce.space": {
+    "message": "Link rule: opened in {space}",
+    "note": "Read out in the window a link left (#1199): a link rule opened it in a Space. {space} is the Space's name."
+  },
+  "linkRoutes.announce.private": {
+    "message": "Link rule: opened in a private tab",
+    "note": "Read out in the window a link left (#1199): a link rule opened it as a private tab of the same profile."
+  },
   "settings.linkRoutes.fallback": {
     "message": "Everything else: the window you used last",
     "note": "Settings → Profiles → Open links from other apps (F60 link routing): fixed last row describing links no rule matches."

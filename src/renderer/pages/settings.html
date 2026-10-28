@@ -648,6 +648,13 @@
             <div class="toolbar-row link-route-toolbar">
               <button type="button" id="linkRouteAdd" data-i18n="settings.linkRoutes.add">Add rule</button>
             </div>
+            <div class="setting link-route-in-app">
+              <div class="label">
+                <span data-i18n="settings.linkRoutes.inApp.label">Also for links I open in a new tab</span>
+                <span class="hint" id="linkRoutesInAppHint" data-i18n="settings.linkRoutes.inApp.hint">A link you open in a new tab from a page follows a rule that points at another profile or Space. Links in private tabs and sign-in pop-ups stay where they are.</span>
+              </div>
+              <label class="toggle"><input id="linkRoutesInApp" type="checkbox" aria-label="Also for links I open in a new tab" aria-describedby="linkRoutesInAppHint" data-i18n-aria-label="settings.linkRoutes.inApp.label"/><span class="track"></span></label>
+            </div>
             <p class="section-hint" id="linkRoutesStatus" role="status" aria-live="polite"></p>
           </div>
         </section>

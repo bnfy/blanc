@@ -131,7 +131,26 @@ function createExternalUrlHandoff({
   const open = (urls) => enqueue(urls);
   const openLocalFiles = (paths) => enqueue(paths, { localFiles: true });
 
-  return { open, openLocalFiles, flush };
+  /** A link clicked inside Blanc that a rule sends elsewhere (#1199): one
+   * web URL with its destination already decided, opened in the background
+   * or, with `activate`, selected and brought to the front like a link from
+   * another app. */
+  function openRouted(url, destination, { activate = true } = {}) {
+    if (isQuitting() || !destination) return;
+    const [accepted] = webUrlsFromArgv([url]);
+    if (!accepted) return;
+    pending.push({
+      url: accepted,
+      runtime: null,
+      localFile: false,
+      destination,
+      activate,
+      intent: activate ? createRevealIntent() : undefined,
+    });
+    flush();
+  }
+
+  return { open, openLocalFiles, openRouted, flush };
 }
 
 module.exports = { createExternalUrlHandoff };

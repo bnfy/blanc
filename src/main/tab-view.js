@@ -686,6 +686,9 @@ function wireTabView(tab, view, { owner, adopted }) {
       const source = targetWc.getURL();
       const managedExtension = /^chrome-extension:/i.test(targetUrl) && deps.allowManagedExtensionNavigation?.(tab, targetWc, targetUrl, source, { isMainFrame: true }) === true;
       if (!managedExtension && handOffToOs(targetUrl, { source })) return { action: 'deny' };
+      // A link rule may send a new-tab link to another profile or Space
+      // (#1199); popups ('new-window') always stay, opener intact.
+      if (!managedExtension && deps.routeInAppLink?.(tab, targetWc, targetUrl, disposition)) return { action: 'deny' };
       if (disposition === 'new-window') {
         return {
           action: 'allow',
@@ -762,11 +765,13 @@ function wireTabView(tab, view, { owner, adopted }) {
     openBackgroundTab: boundToTab((targetUrl) => {
       if (handOffToOs(targetUrl)) return;
       if (isForbiddenTopLevelUrl(targetUrl)) return;
+      if (deps.routeInAppLink?.(tab, null, targetUrl, 'background-tab', { fromMenu: true })) return;
       createTab(targetUrl, { private: tab.private });
     }),
     openTab: boundToTab((targetUrl) => {
       if (handOffToOs(targetUrl)) return;
       if (isForbiddenTopLevelUrl(targetUrl)) return;
+      if (deps.routeInAppLink?.(tab, null, targetUrl, 'foreground-tab', { fromMenu: true })) return;
       const role = foregroundOpenRole(getOwner(), tab.id);
       showOpenedTab(createTab(targetUrl, { private: tab.private }), role);
     }),
