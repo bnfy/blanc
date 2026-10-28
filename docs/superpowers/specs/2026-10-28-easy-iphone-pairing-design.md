@@ -1,7 +1,7 @@
 # Connect your iPhone: pairing in under a minute
 
 **Date:** 2026-10-28
-**Status:** draft for the owner's approval. The owner made the seven decisions marked *(owner)* on 2026-10-28 (four before the draft, three after its builder check); everything marked *(call)* is the author's, listed in §12 for checking.
+**Status:** approved by the owner on 2026-10-28; implementation plan in `docs/superpowers/plans/2026-10-28-easy-iphone-pairing.md`. The owner made the seven decisions marked *(owner)* on 2026-10-28 (four before the draft, three after its builder check); everything marked *(call)* is the author's, listed in §12 for checking.
 **Builds on:** [2026-10-16-sync-device-pairing-design.md](2026-10-16-sync-device-pairing-design.md) (the pairing code, the Worker's `/v1/pair` route, the recovery code), [2026-10-24-ios-v1-companion-release-design.md](2026-10-24-ios-v1-companion-release-design.md) (the iOS 1.0 contract: §3 the first minute, §8 the constraints), [2026-10-25-shared-spaces-sync-design.md](2026-10-25-shared-spaces-sync-design.md) §4.7 (the desktop's Spaces question after a device joins).
 **Replaces:** the iOS contract's "a camera QR scan of the same code may be added here and is a builder's call" (§3 step 2, §9). This document makes that call.
 
