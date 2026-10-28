@@ -252,7 +252,7 @@ struct PaletteSheet: View {
     private var slashList: some View {
         let slashWord = String(input.trimmingCharacters(in: .whitespaces)
             .split(separator: " ").first ?? Substring(input))
-        let matches = SlashCommand.filter(prefix: slashWord)
+        let matches = SlashCommand.filter(prefix: slashWord, in: manager)
         return List {
             if matches.isEmpty {
                 Text("No matching command")
@@ -260,8 +260,8 @@ struct PaletteSheet: View {
             } else {
                 ForEach(matches) { cmd in
                     Button {
-                        cmd.execute(manager)
-                        dismiss()
+                        // A tapped row runs with what's typed after its name.
+                        finish(cmd.execute(manager, argument: SlashCommand.argument(from: input)))
                     } label: {
                         row(icon: "command", title: cmd.command, subtitle: cmd.hint)
                     }
@@ -298,17 +298,21 @@ struct PaletteSheet: View {
         else if let url = result.url { manager.openFromSwitcher(url) }
     }
 
+    /// Closes the palette after a command, or keeps it open with the text a
+    /// command asked for (a bare `/send` waits for a device name).
+    private func finish(_ outcome: SlashOutcome) {
+        switch outcome {
+        case .done: dismiss()
+        case .prompt(let text): input = text
+        }
+    }
+
     private func handleSubmit() {
         let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
         if trimmed.hasPrefix("/") {
-            let slashWord = String(trimmed.split(separator: " ").first ?? Substring(trimmed))
-            let matches = SlashCommand.filter(prefix: slashWord)
-            if let first = matches.first {
-                first.execute(manager)
-                dismiss()
-            }
+            if let outcome = SlashCommand.run(trimmed, in: manager) { finish(outcome) }
             return
         }
 

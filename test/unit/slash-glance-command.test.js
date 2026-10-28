@@ -34,7 +34,13 @@ test('/glance opens the picker with the typed text as the filter', () => {
 test('/glance is registered everywhere a slash command lives', () => {
   const registry = JSON.parse(fs.readFileSync(path.join(root, 'copy/slash-commands.json'), 'utf8'));
   const entry = registry.commands.find((command) => command.command === '/glance');
-  assert.deepEqual(entry, { command: '/glance', doc: { command: '/glance <text>' } });
+  // Desktop only: Glance has no phone counterpart in iOS 1.0, so the mobile
+  // strings leave it out (docs/superpowers/specs/2026-10-24-ios-v1-companion-release-design.md, F7).
+  assert.deepEqual(entry, {
+    command: '/glance',
+    doc: { command: '/glance <text>' },
+    platforms: ['macos', 'windows', 'linux'],
+  });
   // Commands with an argument are listed with it and their doc text, as
   // /group <name> and /rename [name] are, on the Shortcuts page and in the
   // Help menu's reference list in main.
