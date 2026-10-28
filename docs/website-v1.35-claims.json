@@ -151,7 +151,7 @@
     {
       "id": "v135-010",
       "source": "site/src/pages/privacy.astro",
-      "exactWording": "Last updated October 24, 2026",
+      "exactWording": "Last updated October 28, 2026",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "privacyRevision"
