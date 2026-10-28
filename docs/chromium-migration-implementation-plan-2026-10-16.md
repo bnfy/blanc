@@ -1,3 +1,13 @@
+## Current Chromium158 rebase result — October 28, 2026
+
+The owner-approved158.0.8127.2 rebase is built, Developer ID–signed, notarized and manifest-authenticated. Source [0353d3e3](https://github.com/bnfy/blanc/commit/0353d3e33443fc54fbc75dea0bbe0bd1d009e374) preserves the exact pinned source bundle. Archive SHA256: `08e34d602a46a6c381421850eb09ed5c05e73b1ac5221f8cc69054677b717f8e`.
+
+[Signed-candidate evidence](../experiments/chromium-extension-spike/evidence/chromium158-staging-20261028/signed-candidate/README.md) records75affected native checks and11focused signed-launcher recovery/Split View checks. The native64protocol checks were not repeated. All459tested files remained unchanged after stapling; the ticket brings the archive to460files/5symlinks. Fresh local extraction, strict signature, ticket, Gatekeeper, pinned Sigstore identity and four-artifact bindings passed. This is not fresh network-download or owner UI acceptance.
+
+The [rebase record](../experiments/chromium-extension-spike/chromium158-staging-20261028.md) retains all failures and narrow repairs. Six cached build wrappers total10380.131seconds; source preparation, isolated compilations, qualification and owner attention are not included in that figure. The earlier Keychain stall remains unexplained despite successful real-keychain follow-ups; its evidence is retained.
+
+**L12 remains NO-GO.** Original reference-parity, idle-host timing and actual operating-cost/owner-capacity criteria are not waived by this candidate. Electron stays paused, latency deferred, Google baseline separate. The signed157fallback remains preserved. No merge, public release or migration approval is implied. Historical checkpoints below retain their original scope and are not current process status.
+
 > Latest CI review: [44aebf00 evidence](../experiments/chromium-extension-spike/evidence/l12-ci-44aebf00-20261028/README.md). CodeQL passes; three reviewed failures remain Electron/companion-tool repository blockers. Eleven checks still pending; no Chromium failure identified or passed test repeated.
 
 > October 28 current action plan: [original-criteria closure steps](../experiments/chromium-extension-spike/l12-no-waiver-work-plan-20261028.md). Exact0b962d7e CodeQL passes; reviewed Ubuntu failure is paused Electron sandbox duplication. Other CI pending. L12 stays NO-GO; no waiver or new gate credit. Historical status below retains its dated scope.

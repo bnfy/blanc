@@ -4,7 +4,7 @@
 
 Build completed successfully on the sixth cached invocation with eight workers, followed by zero scheduled actions. The current checkout matches the durable completed snapshot:78 modified upstream files/170 tracked hunks plus23 added source files; these counts describe different categories and must not be compared to an older tracked-only footprint as if equivalent. [Snapshot verification](evidence/chromium158-staging-20261028/source-snapshot-verification.json) validates both artifact hashes and current file contents.
 
-64 affected protocol checks pass. Separate mock-keychain recovery6/6 and Split View5/5 pass diagnostically. Real-keychain follow-up passed all6recovery and5split checks; the earlier stall remains unexplained. No signed158 or gate acceptance is claimed. Six build wrappers total10380.131seconds, excluding staging/isolated repairs/qualification and owner attention.157fallback remains intact, Electron paused, Google baseline separate and latency deferred.
+64 affected protocol checks pass. Separate mock-keychain recovery6/6 and Split View5/5 pass diagnostically. Real-keychain follow-up passed all6recovery and5split checks; the earlier stall remains unexplained. Developer ID signing, notarization, pinned manifest authentication and11focused signed checks now pass; no new launch-gate acceptance is claimed. Six build wrappers total10380.131seconds, excluding staging/isolated repairs/qualification and owner attention.157fallback remains intact, Electron paused, Google baseline separate and latency deferred.
 
 ## Historical checkpoints (superseded by current status above)
 
@@ -85,3 +85,6 @@ Owner reported this Mac unlocked and no visible Keychain prompt. An unsandboxed 
 Using the same completed158 app, fresh isolated fixtures passed all6real-keychain recovery checks and all5real-keychain Split View checks. Recovery explicitly enables encrypted-session storage and verifies encrypted-only restart; split uses the native default feature configuration. No app code, signing, stored key, access permissions or build cache changed. The earlier stall's root cause remains unproven; retain all earlier failures and the stack sample. This demonstrates successful affected native runs, not a diagnosed permanent fix for every possible Keychain stall or signed-candidate acceptance.
 
 Together with the existing64protocol passes, all75prepared affected checks now have passing results. The64were not repeated.111certificate-entry retention remains a separate static/native-byte check. No new gate credit, signed158acceptance, or L12GO. Next review/package the158rebase evidence and assess remaining original Decision2 inputs;157signedfallback preserved, Electronpaused, Googleseparate, latencydeferred.
+
+
+Signed qualification completed: see [candidate evidence](evidence/chromium158-staging-20261028/signed-candidate/README.md). Archive08e34d602a46a6c381421850eb09ed5c05e73b1ac5221f8cc69054677b717f8e. Local readback and authentication passed; original L12 requirements remain.
