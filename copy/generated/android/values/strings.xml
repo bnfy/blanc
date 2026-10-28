@@ -2460,4 +2460,16 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="tab_groups_closed_toast">Group closed</string>
     <string name="group_menu_rename">Rename…</string>
     <string name="tab_groups_create">Create</string>
+    <string name="shared_spaces_switch_iphone">Keep Spaces and groups in sync on this iPhone</string>
+    <string name="shared_spaces_switch_line_iphone">Tabs in your shared Spaces are synced from this iPhone.</string>
+    <plurals name="shared_spaces_waiting_count">
+        <item quantity="one">%1$d shared Space is waiting</item>
+        <item quantity="other">%1$d shared Spaces are waiting</item>
+    </plurals>
+    <string name="shared_spaces_save_this_i_phone">Save This iPhone as a Space</string>
+    <string name="shared_spaces_recovery_name_iphone">%1$s · kept on this iPhone</string>
+    <string name="shared_spaces_deleted_everywhere">Deleted everywhere. Undo keeps a copy on this iPhone.</string>
+    <string name="spaces_on_device">On %1$s</string>
+    <string name="bring_space_action">Bring to iPhone</string>
+    <string name="bring_space_copy_note">This copy won’t change when the Space changes on %1$s. Turn on Spaces sync to keep them together.</string>
 </resources>

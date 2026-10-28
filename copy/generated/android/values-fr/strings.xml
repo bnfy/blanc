@@ -2534,4 +2534,17 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="tab_groups_closed_toast">Groupe fermé</string>
     <string name="group_menu_rename">Renommer…</string>
     <string name="tab_groups_create">Créer</string>
+    <string name="shared_spaces_switch_iphone">Garder les Spaces et les groupes synchronisés sur cet iPhone</string>
+    <string name="shared_spaces_switch_line_iphone">Les onglets de vos Spaces partagés sont synchronisés depuis cet iPhone.</string>
+    <plurals name="shared_spaces_waiting_count">
+        <item quantity="one">%1$d Space partagé vous attend</item>
+        <item quantity="many">%1$d Spaces partagés vous attendent</item>
+        <item quantity="other">%1$d Spaces partagés vous attendent</item>
+    </plurals>
+    <string name="shared_spaces_save_this_i_phone">Enregistrer Cet iPhone comme Space</string>
+    <string name="shared_spaces_recovery_name_iphone">%1$s · conservé sur cet iPhone</string>
+    <string name="shared_spaces_deleted_everywhere">Supprimé partout. Annuler garde une copie sur cet iPhone.</string>
+    <string name="spaces_on_device">Sur %1$s</string>
+    <string name="bring_space_action">Copier sur l’iPhone</string>
+    <string name="bring_space_copy_note">Cette copie ne changera pas quand le Space changera sur %1$s. Activez la synchronisation des Spaces pour les garder identiques.</string>
 </resources>

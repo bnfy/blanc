@@ -100554,6 +100554,480 @@
           }
         }
       }
+    },
+    "sharedSpaces.switch.iphone": {
+      "comment": "iPhone Settings → Sync: the per-device switch for Shared Spaces (M17).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep Spaces and groups in sync on this iPhone"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spaces und Gruppen auf diesem iPhone synchron halten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantener Spaces y grupos sincronizados en este iPhone"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garder les Spaces et les groupes synchronisés sur cet iPhone"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantieni Spaces e gruppi sincronizzati su questo iPhone"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter Spaces e grupos sincronizados neste iPhone"
+          }
+        }
+      }
+    },
+    "sharedSpaces.switch.line.iphone": {
+      "comment": "iPhone Settings → Sync: the consent line under the Shared Spaces switch (M17).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs in your shared Spaces are synced from this iPhone."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs in deinen geteilten Spaces werden von diesem iPhone synchronisiert."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las pestañas de tus Spaces compartidos se sincronizan desde este iPhone."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les onglets de vos Spaces partagés sont synchronisés depuis cet iPhone."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le schede dei tuoi Spaces condivisi vengono sincronizzate da questo iPhone."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As abas dos seus Spaces compartilhados são sincronizadas a partir deste iPhone."
+          }
+        }
+      }
+    },
+    "sharedSpaces.waitingCount": {
+      "comment": "iPhone Settings → Sync, with the Spaces switch off: how many shared Spaces the account already has (M17).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld shared Space is waiting"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld shared Spaces are waiting"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld geteilter Space wartet"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld geteilte Spaces warten"
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Space compartido está esperando"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Spaces compartidos están esperando"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Spaces compartidos están esperando"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Space partagé vous attend"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Spaces partagés vous attendent"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Spaces partagés vous attendent"
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Space condiviso è in attesa"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Spaces condivisi sono in attesa"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Spaces condivisi sono in attesa"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Space compartilhado está esperando"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Spaces compartilhados estão esperando"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Spaces compartilhados estão esperando"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "sharedSpaces.saveThisIPhone": {
+      "comment": "iPhone: first-time Shared Spaces sheet, a row that saves the loose tabs (This iPhone) as a Space before sharing (M17).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save This iPhone as a Space"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses iPhone als Space sichern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar Este iPhone como Space"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer Cet iPhone comme Space"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva Questo iPhone come Space"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar Este iPhone como Space"
+          }
+        }
+      }
+    },
+    "sharedSpaces.recoveryName.iphone": {
+      "comment": "iPhone: name of the local Space that keeps tabs a long-stale phone could not publish (M17).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · kept on this iPhone"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · auf diesem iPhone behalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · guardado en este iPhone"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · conservé sur cet iPhone"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · conservato su questo iPhone"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · mantido neste iPhone"
+          }
+        }
+      }
+    },
+    "sharedSpaces.deletedEverywhere": {
+      "comment": "iPhone: Undo banner after deleting a shared Space; Undo restores only a local copy because the deletion reached every device (M17).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted everywhere. Undo keeps a copy on this iPhone."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überall gelöscht. Rückgängig behält eine Kopie auf diesem iPhone."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminado en todas partes. Deshacer conserva una copia en este iPhone."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimé partout. Annuler garde une copie sur cet iPhone."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminato ovunque. Annulla ne conserva una copia su questo iPhone."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Excluído em todos os lugares. Desfazer mantém uma cópia neste iPhone."
+          }
+        }
+      }
+    },
+    "spaces.onDevice": {
+      "comment": "iPhone Spaces menu: heading above another device's Spaces (M17).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf %1$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sur %1$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Su %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Em %1$@"
+          }
+        }
+      }
+    },
+    "bringSpace.action": {
+      "comment": "iPhone: primary button of the Bring a Space review sheet, with the Spaces switch off (M17).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring to iPhone"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf das iPhone holen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traer al iPhone"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier sur l’iPhone"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porta su iPhone"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trazer para o iPhone"
+          }
+        }
+      }
+    },
+    "bringSpace.copyNote": {
+      "comment": "iPhone: Bring a Space review sheet, explaining the copy is not linked (M17).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This copy won’t change when the Space changes on %1$@. Turn on Spaces sync to keep them together."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Kopie ändert sich nicht, wenn sich der Space auf %1$@ ändert. Schalte die Synchronisierung von Spaces ein, um sie gleich zu halten."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta copia no cambiará cuando el Space cambie en %1$@. Activa la sincronización de Spaces para mantenerlos iguales."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette copie ne changera pas quand le Space changera sur %1$@. Activez la synchronisation des Spaces pour les garder identiques."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa copia non cambierà quando lo Space cambia su %1$@. Attiva la sincronizzazione degli Spaces per tenerli allineati."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta cópia não muda quando o Space mudar em %1$@. Ative a sincronização de Spaces para mantê-los iguais."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

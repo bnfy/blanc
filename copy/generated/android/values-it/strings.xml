@@ -2534,4 +2534,17 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="tab_groups_closed_toast">Gruppo chiuso</string>
     <string name="group_menu_rename">Rinomina…</string>
     <string name="tab_groups_create">Crea</string>
+    <string name="shared_spaces_switch_iphone">Mantieni Spaces e gruppi sincronizzati su questo iPhone</string>
+    <string name="shared_spaces_switch_line_iphone">Le schede dei tuoi Spaces condivisi vengono sincronizzate da questo iPhone.</string>
+    <plurals name="shared_spaces_waiting_count">
+        <item quantity="one">%1$d Space condiviso è in attesa</item>
+        <item quantity="many">%1$d Spaces condivisi sono in attesa</item>
+        <item quantity="other">%1$d Spaces condivisi sono in attesa</item>
+    </plurals>
+    <string name="shared_spaces_save_this_i_phone">Salva Questo iPhone come Space</string>
+    <string name="shared_spaces_recovery_name_iphone">%1$s · conservato su questo iPhone</string>
+    <string name="shared_spaces_deleted_everywhere">Eliminato ovunque. Annulla ne conserva una copia su questo iPhone.</string>
+    <string name="spaces_on_device">Su %1$s</string>
+    <string name="bring_space_action">Porta su iPhone</string>
+    <string name="bring_space_copy_note">Questa copia non cambierà quando lo Space cambia su %1$s. Attiva la sincronizzazione degli Spaces per tenerli allineati.</string>
 </resources>

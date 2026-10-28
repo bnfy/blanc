@@ -9209,5 +9209,41 @@
   "tabGroups.create": {
     "message": "Create",
     "note": "iPhone: confirms the name of a new tab group (M17)."
+  },
+  "sharedSpaces.switch.iphone": {
+    "message": "Keep Spaces and groups in sync on this iPhone",
+    "note": "iPhone Settings → Sync: the per-device switch for Shared Spaces (M17)."
+  },
+  "sharedSpaces.switch.line.iphone": {
+    "message": "Tabs in your shared Spaces are synced from this iPhone.",
+    "note": "iPhone Settings → Sync: the consent line under the Shared Spaces switch (M17)."
+  },
+  "sharedSpaces.waitingCount": {
+    "message": "{count, plural, one {# shared Space is waiting} other {# shared Spaces are waiting}}",
+    "note": "iPhone Settings → Sync, with the Spaces switch off: how many shared Spaces the account already has (M17)."
+  },
+  "sharedSpaces.saveThisIPhone": {
+    "message": "Save This iPhone as a Space",
+    "note": "iPhone: first-time Shared Spaces sheet, a row that saves the loose tabs (This iPhone) as a Space before sharing (M17)."
+  },
+  "sharedSpaces.recoveryName.iphone": {
+    "message": "{name} · kept on this iPhone",
+    "note": "iPhone: name of the local Space that keeps tabs a long-stale phone could not publish (M17)."
+  },
+  "sharedSpaces.deletedEverywhere": {
+    "message": "Deleted everywhere. Undo keeps a copy on this iPhone.",
+    "note": "iPhone: Undo banner after deleting a shared Space; Undo restores only a local copy because the deletion reached every device (M17)."
+  },
+  "spaces.onDevice": {
+    "message": "On {device}",
+    "note": "iPhone Spaces menu: heading above another device's Spaces (M17)."
+  },
+  "bringSpace.action": {
+    "message": "Bring to iPhone",
+    "note": "iPhone: primary button of the Bring a Space review sheet, with the Spaces switch off (M17)."
+  },
+  "bringSpace.copyNote": {
+    "message": "This copy won’t change when the Space changes on {device}. Turn on Spaces sync to keep them together.",
+    "note": "iPhone: Bring a Space review sheet, explaining the copy is not linked (M17)."
   }
 }
