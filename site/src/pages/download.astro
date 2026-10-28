@@ -79,6 +79,11 @@ const latest = releases[0];
       <strong>Download for Linux</strong>
       <span>AppImage · signed checksum manifest</span>
     </a>
+    <a class="platform-card" href="#iphone">
+      <span class="platform-label platform-label--macos"><PlatformLogo platform="apple" />iPhone · Beta</span>
+      <strong>Blanc for iPhone</strong>
+      <span>TestFlight beta · iOS 18.4 or later</span>
+    </a>
   </section>
 
   <p class="download-whatsnew">Version {latest.version} · {latest.humanDate} · <a href="/changelog" data-track="feature_cta_click" data-feature="changelog" data-cta-position="download-options">See what changed in the latest release</a></p>
@@ -142,16 +147,17 @@ const latest = releases[0];
   </section>
 
   <section class="download-block" id="iphone" aria-labelledby="iphone-title">
-    <div class="download-section-head">
-      <h2 id="iphone-title">Blanc for iPhone, in beta.</h2>
-    </div>
-    <div class="download-columns download-iphone">
-      <article>
+    <div class="iphone-band">
+      <div class="iphone-band-copy">
+        <p class="iphone-band-label">iPhone · Beta</p>
+        <div class="download-section-head">
+          <h2 id="iphone-title">Blanc for iPhone, in beta.</h2>
+        </div>
         <p>An early build of Blanc for iPhone is open for testing through Apple's TestFlight. It joins the Sync you set up in Blanc on your computer, so your other devices' tabs and your Favorites come with you, and it blocks ads and trackers. Expect rough edges, and tell us what breaks.</p>
-        <a class="text-link" href="https://testflight.apple.com/join/AfczdZne" target="_blank" rel="noopener">Join the beta on TestFlight <span aria-hidden="true">↗</span></a>
-        <p class="install-requirement">Needs iOS 18.4 or later and Apple's free TestFlight app.</p>
-      </article>
-      <figure class="download-iphone-shot">
+        <a class="iphone-band-cta" href="https://testflight.apple.com/join/AfczdZne" target="_blank" rel="noopener">Join the beta on TestFlight <span aria-hidden="true">↗</span></a>
+        <p class="iphone-band-note">Needs iOS 18.4 or later and Apple's free TestFlight app.</p>
+      </div>
+      <figure class="iphone-band-shot">
         <img src="/iphone/blanc-day-on-iphone.webp" width="921" height="2000" alt="Blanc for iPhone showing blanc.day, with the Island at the bottom" loading="lazy" decoding="async" />
       </figure>
     </div>
