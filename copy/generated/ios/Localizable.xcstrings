@@ -95024,37 +95024,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Spaces sync storage is full. Delete a Space to free its content storage. Deleted Spaces still count toward the Space limit for 30 days."
+            "value": "Spaces sync storage is full. Delete a Space to free its content storage. A deleted Space keeps a small record in sync storage for 30 days."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der Speicher für die Spaces-Synchronisierung ist voll. Lösche einen Space, um seinen Inhaltsspeicher freizugeben. Gelöschte Spaces zählen noch 30 Tage zum Space-Limit."
+            "value": "Der Speicher für die Spaces-Synchronisierung ist voll. Lösche einen Space, um seinen Inhaltsspeicher freizugeben. Ein gelöschter Space behält 30 Tage lang einen kleinen Eintrag im Sync-Speicher."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El almacenamiento de sincronización de Spaces está lleno. Elimina un Space para liberar el almacenamiento de su contenido. Los Spaces eliminados siguen contando para el límite de Spaces durante 30 días."
+            "value": "El almacenamiento de sincronización de Spaces está lleno. Elimina un Space para liberar el almacenamiento de su contenido. Un Space eliminado conserva un pequeño registro en el almacenamiento de sincronización durante 30 días."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le stockage de synchronisation des Spaces est plein. Supprimez un Space pour libérer le stockage de son contenu. Les Spaces supprimés comptent encore dans la limite des Spaces pendant 30 jours."
+            "value": "Le stockage de synchronisation des Spaces est plein. Supprimez un Space pour libérer le stockage de son contenu. Un Space supprimé conserve un petit enregistrement dans le stockage de synchronisation pendant 30 jours."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lo spazio di archiviazione per la sincronizzazione degli Spaces è pieno. Elimina uno Space per liberare lo spazio occupato dai suoi contenuti. Gli Spaces eliminati continuano a contare nel limite per 30 giorni."
+            "value": "Lo spazio di archiviazione per la sincronizzazione degli Spaces è pieno. Elimina uno Space per liberare lo spazio occupato dai suoi contenuti. Uno Space eliminato conserva un piccolo record nello spazio di sincronizzazione per 30 giorni."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O armazenamento da sincronização de Spaces está cheio. Exclua um Space para liberar o armazenamento do seu conteúdo. Spaces excluídos continuam contando para o limite por 30 dias."
+            "value": "O armazenamento da sincronização de Spaces está cheio. Exclua um Space para liberar o armazenamento do seu conteúdo. Um Space excluído mantém um pequeno registro no armazenamento da sincronização por 30 dias."
           }
         }
       }

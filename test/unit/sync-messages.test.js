@@ -16,7 +16,7 @@ test('sync error codes read as the English Settings showed before codes', () => 
     conflict: 'Sync kept getting interrupted — try again in a moment.',
     server: 'Sync sent an unexpected response — try again later.',
     'server-error': 'Sync server error — try again later.',
-    'account-quota': 'Spaces sync storage is full. Delete a Space to free its content storage. Deleted Spaces still count toward the Space limit for 30 days.',
+    'account-quota': 'Spaces sync storage is full. Delete a Space to free its content storage. A deleted Space keeps a small record in sync storage for 30 days.',
     offline: 'Couldn’t reach sync — check your connection.',
     'sync-off': 'Sync is off.',
     'local-key-protect': 'Could not protect the local sync key',

@@ -8420,8 +8420,8 @@
     "source": "sha256:d8bd2be940048c55d96cdbc9f7a4435dfeb4378d99187b485c2c84c5f8f49492"
   },
   "sharedSpaces.accountFull": {
-    "message": "Der Speicher für die Spaces-Synchronisierung ist voll. Lösche einen Space, um seinen Inhaltsspeicher freizugeben. Gelöschte Spaces zählen noch 30 Tage zum Space-Limit.",
-    "source": "sha256:c87a11a36095c1eb5213b52580475efa30038de980d60bfc19064a336fa6d655"
+    "message": "Der Speicher für die Spaces-Synchronisierung ist voll. Lösche einen Space, um seinen Inhaltsspeicher freizugeben. Ein gelöschter Space behält 30 Tage lang einen kleinen Eintrag im Sync-Speicher.",
+    "source": "sha256:cff08bd2527d5a9183b5e76c058a03193c110bb5fcc1edc46b6aa41bf6ac1d8f"
   },
   "sharedSpaces.unavailable": {
     "message": "Spaces-Synchronisierung ist nicht verfügbar. Favoriten, Einstellungen, offene Tabs und An Gerät senden funktionieren weiterhin.",
