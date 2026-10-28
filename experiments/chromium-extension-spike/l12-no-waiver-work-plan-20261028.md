@@ -1,3 +1,5 @@
+> Follow-up on44aebf00: [exact-head CI evidence](evidence/l12-ci-44aebf00-20261028/README.md) records13success/6running/5queued/3reviewed non-Chromium failures/2skip; CodeQL no new alerts. No fix or test rerun indicated by completed checks.
+
 # L12 remaining work — original criteria retained
 
 October 28, 2026. L12 remains NO-GO, 11/12 gates accepted. This plan does not change the acceptance criteria or authorize paused work. Google baseline stays separate. All source, artifacts, measurements and failed attempts remain durable. No unaffected accepted test is scheduled again.
