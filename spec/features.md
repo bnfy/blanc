@@ -1037,10 +1037,12 @@ From the desktop `DEFAULTS`:
   opening Sunrise once over its finished layout: the sky warms, the horizon
   draws in, the disc rises and the rays open, then the scene fades onto the
   page (about 2.7 seconds). It is cut from the app's own Sunrise mark and
-  never uses the website's files or wordmark font. It takes no pointer
-  input, ends at the first key or click, never delays startup or a link
-  opened at launch, and is skipped entirely when the system asks for reduced
-  motion.
+  never uses the website's files or wordmark font. Its sky fades in from and
+  back out to the page itself, wallpaper included. It takes no pointer
+  input, ends at the first click or the first key the page receives
+  (browser shortcuts such as ⌘L go to the browser and let it finish), never
+  delays startup or a link opened at launch, and is skipped entirely when
+  the system asks for reduced motion.
 - Billboard centres whatever it shows (clock, blocked line, groups, recent
   sites) vertically between the window top and the footer; on a short window
   it stops just below the brand row rather than sliding under it.

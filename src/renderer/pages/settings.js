@@ -322,8 +322,14 @@
     const launchSunrise = document.getElementById('launchSunrise');
     launchSunrise.checked = settings.launchSunrise === true;
     launchSunrise.addEventListener('change', async () => {
-      const saved = await window.bowserPages.settings.set({ launchSunrise: launchSunrise.checked });
-      launchSunrise.checked = saved.launchSunrise === true;
+      try {
+        const saved = await window.bowserPages.settings.set({ launchSunrise: launchSunrise.checked });
+        launchSunrise.checked = saved.launchSunrise === true;
+      } catch {
+        window.bowserPages.settings.get().then(({ settings: saved }) => {
+          launchSunrise.checked = saved.launchSunrise === true;
+        }, () => {});
+      }
     });
   } else {
     document.getElementById('launchSunriseSetting')?.remove();

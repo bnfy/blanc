@@ -3242,7 +3242,9 @@ body:not([data-layout="ledger"]) .ledger-footer {
    Its percentages are measured on that file, whose artwork fills more of its
    canvas than the site's: the horizon runs from 67.1% to 70.4%, and the disc
    is centred at 49.9% 67.1% with a 24.9% radius. The scene takes no pointer
-   input and fades out to the page it was drawn over. */
+   input. Its sky fades in from transparent, so it opens on the page itself;
+   the mark fades while the sky is still warm, then the sky clears onto the
+   page (a wallpaper included). */
 .launch-sunrise {
   position: fixed;
   inset: 0;
@@ -3299,15 +3301,14 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .launch-sunrise-reflect { animation-name: launch-sunrise-reflect; }
 .launch-sunrise-mark .launch-sunrise-disc { animation-name: launch-sunrise-disc; }
 .launch-sunrise-rays { animation-name: launch-sunrise-rays; }
-/* The sky ends on the page's own background, so the fade is seamless in
-   either theme. */
-@keyframes launch-sunrise-sky { 0%, 20% { background-color: #0b0a09; } 48% { background-color: #3a2a17; } 72%, 100% { background-color: var(--bg); } }
-@keyframes launch-sunrise-mark { 0% { transform: translateY(9vh); } 58%, 100% { transform: none; } }
+@keyframes launch-sunrise-sky { 0% { background-color: rgb(11 10 9 / 0); } 10%, 20% { background-color: #0b0a09; } 48% { background-color: #3a2a17; } 76% { background-color: #a9814f; } 100% { background-color: rgb(248 242 232 / 0); } }
+@keyframes launch-sunrise-mark { 0% { transform: translateY(9vh); } 58%, 74% { transform: none; opacity: 1; } 90%, 100% { transform: none; opacity: 0; } }
 @keyframes launch-sunrise-horizon { 0% { clip-path: inset(0 46% 0 46%); } 14%, 100% { clip-path: inset(0 0 0 0); } }
 @keyframes launch-sunrise-reflect { 0%, 8% { clip-path: inset(0 50% 0 50%); opacity: 0.4; } 28%, 100% { clip-path: inset(0 0 0 0); opacity: 1; } }
 @keyframes launch-sunrise-disc { 0%, 20% { transform: translateY(26%); } 54%, 100% { transform: none; } }
 @keyframes launch-sunrise-rays { 0%, 44% { clip-path: circle(25.5% at 49.9% 67.1%); opacity: 0; } 48% { opacity: 1; } 70%, 100% { clip-path: circle(75% at 49.9% 67.1%); opacity: 1; } }
-@keyframes launch-sunrise-out { 0%, 78% { opacity: 1; } 100% { opacity: 0; } }
+/* Its end is the scene's own: animationend removes it from the page. */
+@keyframes launch-sunrise-out { 0%, 96% { opacity: 1; } 100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
   .launch-sunrise { display: none; }
 }

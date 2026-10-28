@@ -1742,7 +1742,8 @@ customWallpaperRemove.addEventListener('click', () => updateWallpaper(async () =
 }));
 // Play the Sunrise when Blanc opens (#1179). Main grants it to one Start Page
 // per launch; the page draws it over the finished layout. It takes no pointer
-// input, ends at the first key or click, and never plays with reduced motion.
+// input, ends at the first click or the first key the page receives (browser
+// shortcuts go to main instead), and never plays with reduced motion.
 let launchSunriseDue = false;
 function playLaunchSunrise() {
   const scene = document.getElementById('launchSunrise');
@@ -1796,10 +1797,13 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
 
 Promise.all([favoritesReady, dataReady, pinsReady]).then(() => {
   applyLayout(state.layout);
-  // Layout changes fade in from now on; the first paint never does.
-  requestAnimationFrame(() => document.body.classList.add('layout-ready'));
-  if (launchSunriseDue) playLaunchSunrise();
-  else document.getElementById('launchSunrise')?.remove();
+  // Layout changes fade in from now on; the first paint never does. The
+  // launch Sunrise starts in the same frame, over the drawn layout.
+  requestAnimationFrame(() => {
+    document.body.classList.add('layout-ready');
+    if (launchSunriseDue) playLaunchSunrise();
+    else document.getElementById('launchSunrise')?.remove();
+  });
 });
 
 window.bowserPages?.start.onVisibility((visible) => wallpaper.setVisible(visible));

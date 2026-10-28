@@ -17,14 +17,17 @@ function createLaunchSunrise({ startedAt, windowMs = LAUNCH_SUNRISE_WINDOW_MS })
     /** Whether this Start Page plays it: true at most once per launch, and
      * only for a visible, non-private page inside the launch window. A page
      * that can't play it (private, or behind another tab) leaves it for the
-     * next one; the window closing spends it. */
-    take({ enabled, private: isPrivate, visible, now }) {
-      if (spent || enabled !== true) return false;
+     * next one; the window closing spends it. `describe()` reports the page
+     * ({ enabled, private, visible }) and runs only while the Sunrise is still
+     * to play, so later Start Pages cost nothing. */
+    take(now, describe) {
+      if (spent) return false;
       if (!(now - start <= windowMs)) {
         spent = true;
         return false;
       }
-      if (isPrivate || !visible) return false;
+      const { enabled, private: isPrivate, visible } = describe();
+      if (enabled !== true || isPrivate || !visible) return false;
       spent = true;
       return true;
     },
