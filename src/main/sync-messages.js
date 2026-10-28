@@ -30,6 +30,7 @@ const ERROR_KEYS = {
   'pair-unavailable': 'sync.error.pairUnavailable',
   'pair-invalid': 'sync.error.pairInvalid',
   'sync-on': 'sync.error.syncOn',
+  'not-ready': 'settings.sync.sheet.notReady',
 };
 
 // SyncKeyStorageError codes (sync-key-storage.js, sync.js).
