@@ -1,3 +1,5 @@
+> October 28 Chromium property grouping repair: [new baseline failure and affected verification](evidence/f12-grouped-properties-20261028/README.md). Active media/supports/layer property rules now work; six evaluator cases and52regular/private production checks pass after a39.95s incremental build/zero-action guard. Signed qualification pending. Existing reference differences remain unresolved; F12/L12 receive no credit. Electron paused; Google separate.
+
 > October 28 owner decision: **“Keep NO-GO; retain original unmet criteria.”** The measured-packet qualifications were not accepted. F12/Decision 2 remain unaccepted and L12 remains NO-GO (11/12). The loaded-host execution authorization does not waive the original idle criterion. Do not request the same qualified approval again without new evidence or an owner-directed change.
 
 ## Current prerequisite status — October 28, 2026

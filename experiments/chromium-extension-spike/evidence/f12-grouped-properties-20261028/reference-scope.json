@@ -1,0 +1,7 @@
+{
+  "sourceHead": "89004538",
+  "referenceDiagnosticNativeFailures": 0,
+  "referenceDiagnosticDifferences": 44,
+  "pinnedPairedNativeFailedAssertions": 0,
+  "disposition": "Recorded comparison differences remain on the reference side. CSS grouping bug is a new Chromium property coverage finding, not a repair of those reference failures. No parity closure."
+}

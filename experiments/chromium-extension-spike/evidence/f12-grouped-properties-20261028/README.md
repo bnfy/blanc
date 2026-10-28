@@ -1,0 +1,25 @@
+# Chromium property-rule grouping repair
+
+October 28, 2026. **Native repair verified; signed qualification pending. F12 and L12 remain open.**
+
+## Reference comparison audit
+
+The retained paired pinned outcomes contain zero failed Chromium assertions. The diagnostic comparison contains zero native failures and44 reference differences. `reference-scope.json` derives those counts directly from the existing records without replay. The authenticated Electron reference disables extended selectors and misses some first-inline scriptlets. This repair does not change Electron, suppress the native protections, or reclassify those differences as parity passes.
+
+## New Chromium defect and repair
+
+Source review found that the property predicate implementation inspected only top-level CSS style rules. A new isolated-world probe of the exact production renderer bundle `1eaa47ff71302f3eff0b56f9d9e2d4a702ff6c565dc655e0dc2dd7fe40f829ee` failed all three active grouping cases: media, supports and cascade layer (`baseline.json`). Neutral content and marker cleanup passed. These are new property-delivery cases, not repeated acceptance suites or claimed reference regressions.
+
+The renderer now visits style rules within matching `@media`, supported `@supports`, and cascade-layer groups, including nested combinations. It retains the same-origin stylesheet boundary. It does not flatten container/scope rules or nested selectors into document-wide queries, which would lose their matching context. This is not complete support for every CSS grouping or import form.
+
+The repaired authenticated renderer bundle is `03c7e11627648bc85ac33e949906796ee0916036a302bb3876b0e43be1a75b4f`; the engine remains `6f5947ad20511daf0defd7ee1d01981b01af200f709ccc746b48a7df6855d797`. All six focused evaluator cases pass: four active/nested cases and two inactive-condition controls, each with neutral-content, temporary-marker cleanup and reveal-after-removal checks. Original failed results are retained.
+
+## Affected production verification
+
+The same durable workspace and unchanged compiler/SDK/build arguments were used. Guarded preflight scheduled one action; incremental build used eight workers and completed seven steps in39.95seconds. Final normal guard reports zero actions. Inventory remains79upstream files/189hunks within the approved ceiling. Full logs and combined manifest are retained here; no cold output or cache deletion.
+
+`property-groups-production.mjs` exercises the actual pinned `gamepadla.com` parent/property rule through the native broker and renderer. Regular and private each pass26checks: ready health/request, four active/nested grouping outcomes, two inactive conditions, neutral and foreign-sheet exclusion, and reveal after removing each grouped rule. Both browser processes exit0. This is52affected production assertions; no existing direct/subframe/distribution/timing suite was repeated.
+
+Reproduction fixtures are `../../fixtures/replay/synthetic/property-groups.mjs` and `property-groups-production.mjs`. Raw process logs and owned fixture profiles remain in the durable task evidence directory; no permanent profile or Google baseline was used. No third-party implementation code was imported.
+
+The previously signed source4a77b414/archive270c0848539f remains untouched and does **not** contain this repair. New signing/notarization and affected signed qualification remain outstanding. The original reference-parity differences, idle-host timing and measured operating inputs remain unresolved; no waiver or gate credit is requested.

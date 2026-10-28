@@ -37,7 +37,21 @@ export function installProceduralRenderer(scope = globalThis) {
     for(const sheet of document.styleSheets) {
       if(sheet.href && new URL(sheet.href,document.baseURI).origin!==scope.location.origin)continue;
       let entries;try{entries=sheet.cssRules}catch{continue}
-      for(const entry of entries) {
+      // Style rules may be nested in conditional groups or cascade layers.
+      // Do not flatten container/scope/nested-selector rules: their matching
+      // context cannot be represented by a document-wide selector query.
+      function* styleRules(list) {
+        for (const entry of list) {
+          if (entry.type === 1) yield entry;
+          else if (entry.type === 4 && scope.matchMedia(entry.conditionText).matches)
+            yield* styleRules(entry.cssRules);
+          else if (entry.type === 12 && scope.CSS.supports(entry.conditionText))
+            yield* styleRules(entry.cssRules);
+          else if (scope.CSSLayerBlockRule && entry instanceof scope.CSSLayerBlockRule)
+            yield* styleRules(entry.cssRules);
+        }
+      }
+      for(const entry of styleRules(entries)) {
         if(entry.type!==1)continue;
         const declarations=Array.from(entry.style,property=>property+': '+entry.style.getPropertyValue(property)+(entry.style.getPropertyPriority(property)?' !'+entry.style.getPropertyPriority(property):'')+';').sort().join(' ');
         const selected=patterns.filter(item=>item.regex.test(declarations));
