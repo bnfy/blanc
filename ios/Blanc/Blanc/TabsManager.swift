@@ -6,6 +6,8 @@ import UIKit
 @Observable
 final class TabsManager {
     private(set) var tabs: [TabModel] = []
+    /// The shown set's tab groups, in the order their sections draw (M17).
+    private(set) var groups: [TabGroup] = []
     var isWallpaperPickerPresented = false
     var wallpaperSelectionCompletion: ((UIImage?) -> Void)?
     let startAppearance: StartAppearanceStore
@@ -465,8 +467,12 @@ final class TabsManager {
            blank.currentURL == Self.newTabURL, !blank.canGoBack {
             tabs.removeAll { $0.id == blankId }
         }
-        tabs.insert(closed.tab, at: min(closed.index, tabs.count))
+        for (tab, index) in ([(closed.tab, closed.index)] + closed.others).sorted(by: { $0.1 < $1.1 }) {
+            tabs.insert(tab, at: min(index, tabs.count))
+        }
+        if let group = closed.group, !groups.contains(where: { $0.id == group.id }) { groups.append(group) }
         activeTabId = closed.tab.id
+        normalizeLayout()
         persistSession()
     }
 
@@ -476,7 +482,9 @@ final class TabsManager {
         undoExpiry?.cancel()
         guard let closed = lastClosed else { return }
         lastClosed = nil
-        reopenList.insert(ReopenEntry(url: closed.tab.currentURL, title: closed.tab.pageTitle), at: 0)
+        for tab in [closed.tab] + closed.others.map(\.tab) {
+            reopenList.insert(ReopenEntry(url: tab.currentURL, title: tab.pageTitle), at: 0)
+        }
         if reopenList.count > 10 { reopenList.removeLast(reopenList.count - 10) }
     }
 
@@ -499,13 +507,16 @@ final class TabsManager {
         // If the tab is still queued for a cold-compile drain, drop it so its web view
         // isn't reloaded after it's gone (and isn't kept alive by the pending queue).
         if let view = tabs[index].existingWebView { contentBlocker.cancelPending(for: view) }
+        let closingGroup = groups.first { $0.id == closing.groupId }
         tabs.remove(at: index)
+        normalizeLayout()
         if !tabs.contains(where: \.isPrivate) { privateStore = nil; readerPreferences.clearPrivate() }
         // Only the newest close is undoable. A private tab's close is final, as
         // on desktop: no Undo, never in the reopen list.
         expireUndo()
         if !closing.isPrivate {
-            lastClosed = ClosedTab(tab: closing, index: index, blankId: nil)
+            lastClosed = ClosedTab(tab: closing, index: index, blankId: nil,
+                                   group: closingGroup.flatMap { g in groups.contains { $0.id == g.id } ? nil : g })
             let window = undoWindow
             undoExpiry = Task { [weak self] in
                 do { try await Task.sleep(for: window) } catch { return }
@@ -516,7 +527,7 @@ final class TabsManager {
 
         if tabs.isEmpty {
             let blank = createTab()
-            if lastClosed != nil { lastClosed = ClosedTab(tab: closing, index: index, blankId: blank) }
+            lastClosed?.blankId = blank
             return
         }
 
@@ -532,6 +543,139 @@ final class TabsManager {
         guard tabs.contains(where: { $0.id == id }) else { return }
         activeTabId = id
         activeTab?.probeReader()
+        persistSession()
+    }
+
+    // MARK: Tab groups (M17)
+
+    /// Puts the tabs in section order (each group contiguous, its pins
+    /// first) and drops groups that hold no tab, as desktop's `syncTabLayout`.
+    private func normalizeLayout() {
+        let known = Set(groups.map(\.id))
+        for tab in tabs where tab.groupId.map({ !known.contains($0) }) ?? false { tab.groupId = nil }
+        let items = tabs.map { TabSections.Item(id: $0.id.uuidString, groupId: $0.groupId, pinned: $0.pinned) }
+        let byId = Dictionary(uniqueKeysWithValues: tabs.map { ($0.id.uuidString, $0) })
+        tabs = TabSections.normalizeOrder(items).compactMap { byId[$0] }
+        let order = TabSections.sections(items).compactMap(\.groupId)
+        groups = order.compactMap { id in groups.first { $0.id == id } }
+    }
+
+    private func reorder(_ ids: [String]) {
+        let byId = Dictionary(uniqueKeysWithValues: tabs.map { ($0.id.uuidString, $0) })
+        tabs = ids.compactMap { byId[$0] }
+    }
+
+    private func validName(_ raw: String, excluding id: String? = nil) throws -> String {
+        let name = GroupNames.normalize(raw)
+        guard !name.isEmpty else { throw GroupNameError.empty }
+        if groups.contains(where: { $0.id != id && GroupNames.same($0.name, name) }) { throw GroupNameError.duplicate }
+        return name
+    }
+
+    /// The group named `name`, compared without regard to case (`/group`).
+    func group(matching name: String) -> TabGroup? {
+        groups.first { GroupNames.same($0.name, name) }
+    }
+
+    /// Makes a group holding `tabId`, where that tab is. Private tabs can't.
+    @discardableResult
+    func createGroup(named raw: String, with tabId: UUID) throws -> String {
+        let name = try validName(raw)
+        guard let tab = tabs.first(where: { $0.id == tabId }), !tab.isPrivate else { throw GroupNameError.empty }
+        let group = TabGroup(id: TabGroup.newId(), name: name)
+        groups.append(group)
+        tab.groupId = group.id
+        normalizeLayout()
+        persistSession()
+        return group.id
+    }
+
+    func renameGroup(_ id: String, to raw: String) throws {
+        let name = try validName(raw, excluding: id)
+        guard let index = groups.firstIndex(where: { $0.id == id }) else { return }
+        groups[index].name = name
+        persistSession()
+    }
+
+    /// One of the eight Space presets, or nil for no colour.
+    func setGroupColor(_ id: String, _ hex: String?) {
+        guard let index = groups.firstIndex(where: { $0.id == id }) else { return }
+        if let hex, !SpaceIdentity.presets.contains(where: { $0.hex == hex }) { return }
+        groups[index].color = hex
+        persistSession()
+    }
+
+    func setGroupCollapsed(_ id: String, _ collapsed: Bool) {
+        guard let index = groups.firstIndex(where: { $0.id == id }) else { return }
+        groups[index].collapsed = collapsed
+        persistSession()
+    }
+
+    /// Moves a tab into a group (after its last member), or with nil out of
+    /// its group to just below it.
+    func moveTab(_ tabId: UUID, toGroup groupId: String?) {
+        guard let tab = tabs.first(where: { $0.id == tabId }), !tab.isPrivate, tab.groupId != groupId else { return }
+        let key = tab.id.uuidString
+        if let groupId {
+            guard groups.contains(where: { $0.id == groupId }) else { return }
+            tab.groupId = groupId
+            let items = tabs.map { TabSections.Item(id: $0.id.uuidString, groupId: $0.groupId, pinned: $0.pinned) }
+            reorder(TabSections.placeInGroup(order: tabs.map { $0.id.uuidString }, items: items, id: key, groupId: groupId))
+        } else if let old = tab.groupId {
+            tab.groupId = nil
+            if let last = tabs.last(where: { $0.groupId == old }) {
+                var ids = tabs.map { $0.id.uuidString }.filter { $0 != key }
+                ids.insert(key, at: ids.firstIndex(of: last.id.uuidString)! + 1)
+                reorder(ids)
+            }
+        }
+        normalizeLayout()
+        persistSession()
+    }
+
+    /// The group's tabs stay, ungrouped, where they are.
+    func ungroup(_ id: String) {
+        for tab in tabs where tab.groupId == id { tab.groupId = nil }
+        normalizeLayout()
+        persistSession()
+    }
+
+    /// A new current tab at the end of the group.
+    @discardableResult
+    func newTab(inGroup id: String) -> UUID {
+        let tabId = createTab()
+        moveTab(tabId, toGroup: id)
+        return tabId
+    }
+
+    /// Closes every tab in the group as one Undo.
+    func closeGroup(_ id: String) {
+        guard let group = groups.first(where: { $0.id == id }) else { return }
+        let members = tabs.enumerated().filter { $0.element.groupId == id }
+        guard let first = members.first else { return }
+        let wasActive = members.contains { $0.element.id == activeTabId }
+        for member in members {
+            member.element.exitReader()
+            if let view = member.element.existingWebView { contentBlocker.cancelPending(for: view) }
+        }
+        tabs.removeAll { $0.groupId == id }
+        expireUndo()
+        lastClosed = ClosedTab(tab: first.element, index: first.offset, blankId: nil,
+                               others: members.dropFirst().map { ($0.element, $0.offset) }, group: group)
+        let closing = first.element
+        let window = undoWindow
+        undoExpiry = Task { [weak self] in
+            do { try await Task.sleep(for: window) } catch { return }
+            guard let self, self.lastClosed?.tab === closing else { return }
+            self.expireUndo()
+        }
+        normalizeLayout()
+        if tabs.isEmpty {
+            let blank = createTab()
+            lastClosed?.blankId = blank
+            return
+        }
+        if wasActive { activeTabId = tabs[min(first.offset, tabs.count - 1)].id }
         persistSession()
     }
 
@@ -669,8 +813,14 @@ struct ClosedTab {
     let tab: TabModel
     let index: Int
     /// The blank tab closing the last tab opened, if any.
-    let blankId: UUID?
+    var blankId: UUID?
+    /// The rest of a group closed in one go, each with its index (M17).
+    var others: [(tab: TabModel, index: Int)] = []
+    /// The closed group, put back by Undo.
+    var group: TabGroup?
 }
+
+enum GroupNameError: Error, Equatable { case empty, duplicate }
 
 struct ReopenEntry: Equatable {
     let url: URL
