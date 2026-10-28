@@ -1,0 +1,7 @@
+{
+  "complete": false,
+  "scope": "experimental FetchRetry explicitly enabled only in isolated fixtures; post-close GET retry after connection reset",
+  "runs": [],
+  "error": "Error: Probe wait timed out",
+  "cleanup": true
+}

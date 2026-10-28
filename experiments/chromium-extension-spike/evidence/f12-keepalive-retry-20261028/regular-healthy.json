@@ -1,0 +1,288 @@
+{
+  "label": "regular-healthy",
+  "feature": true,
+  "events": [
+    {
+      "name": "sender-destroyed",
+      "at": 1793206862158
+    },
+    {
+      "name": "reset-first-connection",
+      "at": 1793206862258
+    },
+    {
+      "name": "reset-first-connection",
+      "at": 1793206862260
+    }
+  ],
+  "attempts": [
+    {
+      "url": "https://retry.blanc-fixture.test/retry",
+      "at": 1793206862054,
+      "headers": {
+        "host": "retry.blanc-fixture.test",
+        "connection": "keep-alive",
+        "sec-ch-ua-platform": "\"macOS\"",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0",
+        "accept": "*/*",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-dest": "empty",
+        "referer": "https://retry.blanc-fixture.test/page",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "en-US,en;q=0.9"
+      }
+    },
+    {
+      "url": "https://retry.blanc-fixture.test/retry",
+      "at": 1793206862260,
+      "headers": {
+        "host": "retry.blanc-fixture.test",
+        "connection": "keep-alive",
+        "sec-ch-ua-platform": "\"macOS\"",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0",
+        "accept": "*/*",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-dest": "empty",
+        "referer": "https://retry.blanc-fixture.test/page",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "en-US,en;q=0.9"
+      }
+    },
+    {
+      "url": "https://retry.blanc-fixture.test/retry",
+      "at": 1793206863266,
+      "headers": {
+        "host": "retry.blanc-fixture.test",
+        "connection": "keep-alive",
+        "sec-ch-ua-platform": "\"macOS\"",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0",
+        "accept": "*/*",
+        "retry-attempts": "1",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-dest": "empty",
+        "referer": "https://retry.blanc-fixture.test/page",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "en-US,en;q=0.9"
+      }
+    }
+  ],
+  "traces": [
+    {
+      "args": {
+        "request_id": 63943
+      },
+      "cat": "loading",
+      "dur": 220,
+      "name": "KeepAliveURLLoaderFactories::CreateLoaderAndStart",
+      "ph": "X",
+      "pid": 57530,
+      "tdur": 200,
+      "tid": 2359541,
+      "ts": 62903237004,
+      "tts": 796219
+    },
+    {
+      "args": {
+        "request_id": 63943,
+        "url": "https://retry.blanc-fixture.test/retry"
+      },
+      "cat": "loading",
+      "dur": 19,
+      "name": "KeepAliveURLLoader::KeepAliveURLLoader",
+      "ph": "X",
+      "pid": 57530,
+      "tdur": 19,
+      "tid": 2359541,
+      "ts": 62903237132,
+      "tts": 796332
+    },
+    {
+      "args": {
+        "request_id": 63943
+      },
+      "cat": "loading",
+      "dur": 64,
+      "name": "KeepAliveURLLoader::Start",
+      "ph": "X",
+      "pid": 57530,
+      "tdur": 60,
+      "tid": 2359541,
+      "ts": 62903237160,
+      "tts": 796359
+    },
+    {
+      "args": {
+        "context_digest": "8E007C43325784B8245E3D62A6E6BC554FED08D909D9196210A55C8BCB092AF7",
+        "hook_to_decision_us": 1965,
+        "request_digest": "F9AC39354050AD452344FB6D511AD9096F24D31F10E6921FB52F1681AD9ED1FF",
+        "result": 0
+      },
+      "cat": "disabled-by-default-blanc.latency",
+      "name": "Blanc.DecisionTiming",
+      "ph": "I",
+      "pid": 57530,
+      "s": "t",
+      "tid": 2359541,
+      "ts": 62903239292,
+      "tts": 796616
+    },
+    {
+      "args": {
+        "request_id": 63943
+      },
+      "cat": "loading",
+      "dur": 6,
+      "name": "KeepAliveURLLoader::OnURLLoaderDisconnected",
+      "ph": "X",
+      "pid": 57530,
+      "tdur": 5,
+      "tid": 2359541,
+      "ts": 62903345778,
+      "tts": 807481
+    },
+    {
+      "args": {
+        "request_id": 63943
+      },
+      "cat": "loading",
+      "dur": 3,
+      "name": "KeepAliveURLLoader::ForwardingClient::OnDisconnected",
+      "ph": "X",
+      "pid": 57530,
+      "tdur": 3,
+      "tid": 2359541,
+      "ts": 62903345888,
+      "tts": 807590
+    },
+    {
+      "args": {
+        "request_id": 63943
+      },
+      "cat": "loading",
+      "dur": 55,
+      "name": "KeepAliveURLLoader::OnComplete",
+      "ph": "X",
+      "pid": 57530,
+      "tdur": 52,
+      "tid": 2359541,
+      "ts": 62903446584,
+      "tts": 823511
+    },
+    {
+      "args": {
+        "request_id": -8
+      },
+      "cat": "loading",
+      "dur": 187,
+      "name": "KeepAliveURLLoader::Start",
+      "ph": "X",
+      "pid": 57530,
+      "tdur": 182,
+      "tid": 2359541,
+      "ts": 62904447292,
+      "tts": 910289
+    },
+    {
+      "args": {
+        "context_digest": "70CF6005F9B177F39A2E61A4FD61F07D2C342EEF63CC436CBB1133D91E48C24E",
+        "hook_to_decision_us": 947,
+        "request_digest": "F9AC39354050AD452344FB6D511AD9096F24D31F10E6921FB52F1681AD9ED1FF",
+        "result": 0
+      },
+      "cat": "disabled-by-default-blanc.latency",
+      "name": "Blanc.DecisionTiming",
+      "ph": "I",
+      "pid": 57530,
+      "s": "t",
+      "tid": 2359541,
+      "ts": 62904448522,
+      "tts": 910848
+    },
+    {
+      "args": {
+        "request_id": -8,
+        "url": "https://retry.blanc-fixture.test/retry"
+      },
+      "cat": "loading",
+      "dur": 212,
+      "name": "KeepAliveURLLoader::OnReceiveResponse",
+      "ph": "X",
+      "pid": 57530,
+      "tdur": 210,
+      "tid": 2359541,
+      "ts": 62904452950,
+      "tts": 911559
+    },
+    {
+      "args": {
+        "loader_id": 1
+      },
+      "cat": "loading",
+      "dur": 187,
+      "name": "KeepAliveURLLoaderFactoriesBase::RemoveLoader",
+      "ph": "X",
+      "pid": 57530,
+      "tdur": 186,
+      "tid": 2359541,
+      "ts": 62904452973,
+      "tts": 911582
+    },
+    {
+      "args": {
+        "request_id": -8
+      },
+      "cat": "loading",
+      "dur": 19,
+      "name": "KeepAliveURLLoader::~KeepAliveURLLoader",
+      "ph": "X",
+      "pid": 57530,
+      "tdur": 18,
+      "tid": 2359541,
+      "ts": 62904452977,
+      "tts": 911586
+    },
+    {
+      "args": {
+        "url": "https://retry.blanc-fixture.test/retry"
+      },
+      "cat": "loading",
+      "id2": {
+        "local": "0x15"
+      },
+      "name": "KeepAliveURLLoader",
+      "ph": "b",
+      "pid": 57530,
+      "tid": 2359541,
+      "ts": 62903237137
+    }
+  ],
+  "decisions": [
+    {
+      "context_digest": "8E007C43325784B8245E3D62A6E6BC554FED08D909D9196210A55C8BCB092AF7",
+      "hook_to_decision_us": 1965,
+      "request_digest": "F9AC39354050AD452344FB6D511AD9096F24D31F10E6921FB52F1681AD9ED1FF",
+      "result": 0
+    },
+    {
+      "context_digest": "70CF6005F9B177F39A2E61A4FD61F07D2C342EEF63CC436CBB1133D91E48C24E",
+      "hook_to_decision_us": 947,
+      "request_digest": "F9AC39354050AD452344FB6D511AD9096F24D31F10E6921FB52F1681AD9ED1FF",
+      "result": 0
+    }
+  ],
+  "source": {
+    "browserKind": "chromium",
+    "kind": "regular",
+    "isOffTheRecord": false,
+    "version": "157.0.8103.15"
+  }
+}
