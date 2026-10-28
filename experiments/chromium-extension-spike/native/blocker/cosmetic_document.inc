@@ -30,10 +30,13 @@ void CosmeticDocument::Get(bool initial, const std::string& hints, GetCallback c
       std::move(callback).Run(false, ""); return;
     }
     auto& frame = render_frame_host();
-    GURL url = frame.GetLastCommittedURL();
+    const GURL document_url = frame.GetLastCommittedURL();
+    GURL url = document_url;
+    if ((url.IsAboutBlank() || url.IsAboutSrcdoc()) &&
+        !frame.GetLastCommittedOrigin().opaque())
+      url = frame.GetLastCommittedOrigin().GetURL();
     if (!url.SchemeIsHTTPOrHTTPS()) {
-      // Opaque and browser-owned documents receive no injected code. Broader
-      // inherited-origin support requires separate qualification.
+      // Opaque, non-web and browser-owned documents receive no injected code.
       std::move(callback).Run(true, "{\"styles\":\"\",\"scripts\":[]}"); return;
     }
     auto parsed = base::JSONReader::Read(hints, base::JSON_PARSE_RFC);
@@ -69,7 +72,7 @@ void CosmeticDocument::Get(bool initial, const std::string& hints, GetCallback c
     input.Set("initial", initial);
     auto json = base::WriteJson(input);
     if (!json) { std::move(callback).Run(false, ""); return; }
-    expected_url_ = url;
+    expected_url_ = document_url;
     initialized_ = true;
     pending_ = std::move(callback);
     timer_.Start(FROM_HERE, base::Seconds(35), base::BindOnce(

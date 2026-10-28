@@ -1,0 +1,35 @@
+{
+  "kind": "regular",
+  "binary": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/cosmetic-20261028/Blanc Chromium Preview.app/Contents/MacOS/Blanc Preview Launcher",
+  "args": [
+    "--host-resolver-rules=MAP cosmetic.example 127.0.0.1, MAP accuweather.com 127.0.0.1, MAP neutral.example 127.0.0.1",
+    "--no-proxy-server",
+    "--user-data-dir=/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/cosmetic-inherited-baseline-01/profile",
+    "--remote-debugging-port=55780",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--use-mock-keychain",
+    "http://cosmetic.example:55781/start"
+  ],
+  "checks": [
+    {
+      "name": "healthy request reaches fixture",
+      "pass": true
+    },
+    {
+      "name": "health is ready",
+      "pass": true
+    },
+    {
+      "name": "srcdoc inherited origin selects parent scriptlet",
+      "pass": false
+    }
+  ],
+  "complete": false,
+  "error": "Fixture failed; inspect captured stderr and launch.log",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "requestCount": 4
+}

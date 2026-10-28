@@ -16,7 +16,12 @@ class BlancCosmeticFrame final : public content::RenderFrameObserver,
   bool Begin() {
     DidCreateNewDocument();
     auto* frame = render_frame()->GetWebFrame();
-    if (!GURL(frame->GetDocument().Url()).SchemeIsHTTPOrHTTPS()) return true;
+    const GURL document_url(frame->GetDocument().Url());
+    const auto origin = frame->GetSecurityOrigin();
+    const bool inherited = document_url.IsAboutBlank() || document_url.IsAboutSrcdoc();
+    if (!document_url.SchemeIsHTTPOrHTTPS() &&
+        !(inherited && !origin.IsOpaque() &&
+          (origin.Protocol() == "http" || origin.Protocol() == "https"))) return true;
     auto weak = weak_.GetWeakPtr();
     mojo::Remote<blanc::mojom::Cosmetics> remote;
     render_frame()->GetBrowserInterfaceBroker().GetInterface(remote.BindNewPipeAndPassReceiver());
