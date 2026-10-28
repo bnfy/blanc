@@ -16,6 +16,11 @@ final class TabModel: Identifiable {
     /// memory (`TabsManager.privateDataStore`).
     let isPrivate: Bool
     var thumbnail: UIImage?
+    /// The group this tab belongs to (M17), nil when ungrouped.
+    var groupId: String?
+    var pinned = false
+    /// The shared record's id while this tab is in a shared Space (M17c).
+    var sharedTabId: String?
     var reader: ReaderController?
     var readerAvailable = false
     var readerGeneration = 0
