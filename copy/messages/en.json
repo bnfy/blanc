@@ -3570,6 +3570,14 @@
     "note": "Settings → General: choice in a dropdown.",
     "maxLength": 12
   },
+  "settings.general.launchSunrise.label": {
+    "message": "Play the Sunrise when Blanc opens",
+    "note": "Settings → General → Appearance: label of the switch that plays the Sunrise animation (the Blanc logo rising, as on the website) on the first start page after launch."
+  },
+  "settings.general.launchSunrise.hint": {
+    "message": "The first start page after launch draws the Sunrise once. Skipped when your system reduces motion.",
+    "note": "Settings → General → Appearance: hint under Play the Sunrise when Blanc opens."
+  },
   "settings.general.surfaceStyle.label": {
     "message": "Surface style",
     "note": "Settings → General: label of the dropdown choosing the palette of Blanc's own pages."

@@ -242,6 +242,9 @@ const DEFAULTS = {
   // Draw each direct tab on the Island as its site icon instead of a dot
   // (#1175). Device-local, not Profile Synced.
   islandTabIcons: false,
+  // Play the Sunrise when Blanc opens (#1179): the first Start Page after
+  // launch draws it once. Off by default; device-local, not Profile Synced.
+  launchSunrise: false,
   // Search suggestions lead the Island's typed results instead of a strong
   // local match. Device-local, not Profile Synced.
   searchPriorityResults: false,
@@ -531,6 +534,7 @@ function getSettings() {
   if (typeof data.islandSiteColors !== 'boolean') data.islandSiteColors = DEFAULTS.islandSiteColors;
   if (typeof data.islandHoverOpen !== 'boolean') data.islandHoverOpen = DEFAULTS.islandHoverOpen;
   if (typeof data.islandTabIcons !== 'boolean') data.islandTabIcons = DEFAULTS.islandTabIcons;
+  if (typeof data.launchSunrise !== 'boolean') data.launchSunrise = DEFAULTS.launchSunrise;
   if (typeof data.searchPriorityResults !== 'boolean') data.searchPriorityResults = DEFAULTS.searchPriorityResults;
   if (typeof data.islandAutoHide !== 'boolean') data.islandAutoHide = DEFAULTS.islandAutoHide;
   data.islandAutoHideStyle = normalizeAutoHideStyle(data.islandAutoHideStyle);
@@ -659,6 +663,7 @@ function sanitize(partial) {
   if (typeof partial.islandSiteColors === 'boolean') clean.islandSiteColors = partial.islandSiteColors;
   if (typeof partial.islandHoverOpen === 'boolean') clean.islandHoverOpen = partial.islandHoverOpen;
   if (typeof partial.islandTabIcons === 'boolean') clean.islandTabIcons = partial.islandTabIcons;
+  if (typeof partial.launchSunrise === 'boolean') clean.launchSunrise = partial.launchSunrise;
   if (typeof partial.searchPriorityResults === 'boolean') clean.searchPriorityResults = partial.searchPriorityResults;
   if (typeof partial.islandAutoHide === 'boolean') clean.islandAutoHide = partial.islandAutoHide;
   if (AUTO_HIDE_STYLES.includes(partial.islandAutoHideStyle)) clean.islandAutoHideStyle = partial.islandAutoHideStyle;
