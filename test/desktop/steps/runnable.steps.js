@@ -60,6 +60,16 @@ Given('a group {string} with {int} tabs', async function (name, count) {
   }
 });
 
+// F3-34: a pin inside a group stays on the Island whichever section is active.
+Given('the first tab in group {string} is pinned', async function (name) {
+  const id = ctx.groupMembers?.[name]?.[0];
+  assert.ok(id, `group ${name} should have a test member`);
+  await this.call('pinTab', id);
+  await this.waitForState((state) => state.tabs.some((t) => t.id === id && t.pinned && t.groupId));
+  ctx.groupPinnedTabId ??= {};
+  ctx.groupPinnedTabId[name] = id;
+});
+
 Given('history has at least one entry', async function () { await this.call('seedHistory'); });
 
 Given('there is no active supporter license', async function () { await this.call('clearSupporter'); });
@@ -93,6 +103,20 @@ When('I activate a tab in group {string}', async function (name) {
 When('I activate the standalone pinned tab', async function () {
   const id = ctx.standalonePinnedTabId;
   assert.ok(id, 'the scenario should have a standalone pinned tab');
+  await this.call('activateTab', id);
+  await this.waitForState((state) => state.activeTabId === id);
+});
+
+When('I activate an unpinned tab in group {string}', async function (name) {
+  const id = ctx.groupMembers?.[name]?.find((member) => member !== ctx.groupPinnedTabId?.[name]);
+  assert.ok(id, `group ${name} should have an unpinned test member`);
+  await this.call('activateTab', id);
+  await this.waitForState((state) => state.activeTabId === id);
+});
+
+When('I activate the pinned tab in group {string}', async function (name) {
+  const id = ctx.groupPinnedTabId?.[name];
+  assert.ok(id, `group ${name} should have a pinned tab`);
   await this.call('activateTab', id);
   await this.waitForState((state) => state.activeTabId === id);
 });
@@ -321,6 +345,14 @@ Then('the island shows {int} more tabs', async function (count) {
   const dots = await this.call('islandDotsState');
   assert.strictEqual(dots.overflowText, `+${count}`, JSON.stringify(dots));
   assert.match(dots.overflowLabel, new RegExp(`^${count} more tabs? — open the list$`));
+});
+
+Then('the island shows the pinned tab in group {string} first, once', async function (name) {
+  const id = ctx.groupPinnedTabId?.[name];
+  assert.ok(id, `group ${name} should have a pinned tab`);
+  const dots = await this.call('islandDotsState');
+  assert.strictEqual(dots.directIds[0], id, JSON.stringify(dots));
+  assert.strictEqual(dots.directIds.filter((tabId) => tabId === id).length, 1, JSON.stringify(dots));
 });
 
 Then('{string} is shown inside the group {string}', async function (tabName, groupName) {

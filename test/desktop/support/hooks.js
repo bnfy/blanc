@@ -506,6 +506,7 @@ Before(async function (scenario) {
   ctx.addressMenuItems = null;
   ctx.addressMenuFieldText = null;
   ctx.groupMembers = null;
+  ctx.groupPinnedTabId = null;
   ctx.standalonePinnedTabId = null;
   const name = scenario.pickle.name;
   // At most one relaunch per scenario, in this order: a suspicion left by the

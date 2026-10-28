@@ -16,9 +16,10 @@ The single custom command surface that replaces a traditional tab strip +
 toolbar (Bowser Design System "Island Chrome").
 
 - **Resting pill** shows, left→right: back/forward (desktop; mobile uses edge-swipe
-  gestures per D7), direct dots for standalone pinned tabs followed by the
-  active section (named group or loose tabs; with a standalone pin active, the
-  section last visited), capped at 8 total,
+  gestures per D7), direct dots for every pinned tab, grouped or not, followed
+  by the active section without its pins (named group or loose tabs; with a pin
+  active, its own group when that has other tabs, else the section last
+  visited), capped at 8 total,
   with a quiet window-wide `+N` for every omitted tab that opens the panel; on
   a pointer platform, hovering/focusing a dot reveals that tab's favicon so it
   can be identified before switching; a device-local setting, off by default,
@@ -116,14 +117,17 @@ toolbar (Bowser Design System "Island Chrome").
   before its name, and the Island's dots take it. Right-clicking a group header
   or its ⋮ opens the group menu: the name, the colors, New Tab in Group, Move
   Group to New Window, Ungroup and Close Group.
-- The pill's direct dots show standalone pins followed by the active section:
-  the active named group or the active tab's run of ungrouped tabs. When a
-  standalone pin is active, the section is the one the person was last on
-  (the first section if none is known yet), so a pinned tab never hides every
-  other tab behind `+N`; with only pins, the shelf is the whole set.
+- The pill's direct dots show every pinned tab, grouped or not, in tab order,
+  followed by the active section: the active named group or the active tab's
+  run of ungrouped tabs, without its pins, so no tab is drawn twice. A pinned
+  dot keeps its group's color. When a pin is active, the section is its own
+  group if that has other tabs, else the one the person was last on (the first
+  section if none is known yet), so a pinned tab never hides every other tab
+  behind `+N`; with only pins, the shelf is the whole set.
   They share an eight-dot budget, always retain the active tab, and use `+N` to
-  count every other tab in the window. A group's pinned tabs stay inside it and
-  lead its rows/dots; only ungrouped pins use the standalone pinned section.
+  count every other tab in the window. In the panel, a group's pinned tabs stay
+  inside it and lead its rows; only ungrouped pins use the standalone pinned
+  section.
   Other groups live in the palette panel (per-group headers, foldable;
   collapsed group shows an "N tabs tucked away" row).
 - The Quick Switcher (F6) matches group names, ranked above tabs; picking a group
@@ -153,7 +157,9 @@ toolbar (Bowser Design System "Island Chrome").
   over page content does nothing and gives the page no data.
 - **Acceptance:** With one standalone pin, 2 tabs in `work`, and 3 tabs in
   `play`, activating `work` shows 3 direct dots and `+3`; activating `play`
-  shows 4 direct dots and `+2`. Collapse `work` → its tabs show as "N tabs
+  shows 4 direct dots and `+2`. Pin the first tab of a 3-tab `work` beside a
+  2-tab `play` → that pin leads the dots once whichever of `work`, `play` or the
+  pin itself is active (3 dots, `+3`). Collapse `work` → its tabs show as "N tabs
   tucked away" in the panel. Delete the last tab in `play` → `play` disappears.
 
 ## F4 — Private tabs
