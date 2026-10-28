@@ -1,3 +1,7 @@
+## Owner acceptance — L12 GO
+
+The owner explicitly approved the measured operating plan, F12/Decision 2 and L12 GO for signed Chromium158.0.8127.2 source0353d3e33443fc54fbc75dea0bbe0bd1d009e374, archive SHA-25608e34d602a46a6c381421850eb09ed5c05e73b1ac5221f8cc69054677b717f8e. All12 Mac-preview evaluation gates are accepted in their documented scopes. The approved available-load timing policy applies; existing-resource allocations and active chat minutes remain unpriced/unmeasured as disclosed. This authorizes neither merge nor public publication or full migration. Next: Chromium visual and feature parity against shippingv1.44.1, preserving157fallback and the separate Google baseline.
+
 > October 28 current status: **11/12 accepted; L12 owner decision pending** for the [qualified Chromium158 packet](evidence/l12-chromium158-closeout-20261028/README.md). Earlier dated counts below are historical. Available-load timing and authenticated reference repair are now complete; Google baseline remains separate. No release/merge approval.
 
 > October 23 current acceptance: [L8 replacement distribution](evidence/l8-replacement-20261023/README.md) is accepted after native MacBook Safari/download/two-restart/Shelf/Bitwarden-popup and Shipping checks, supported by exact running-app hashes. **9/12 (75%), delta +1 L8.** L4/L11/L12 and Decision 2 remain open. Historical rows below retain their dates/scope; no public release/merge approval. Google separate; latency/Electron pending.

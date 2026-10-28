@@ -1,0 +1,391 @@
+{
+  "referenceHead": "8e1a75acd665cd802f66683446f9ec3313fb4eb3",
+  "source": "spec/parity-matrix.md",
+  "purpose": "Preparation only; no runtime acceptance inferred from desktop status. Compare latest shipping Electron before implementation.",
+  "features": [
+    {
+      "id": "F1",
+      "feature": "Island chrome (pill + command bar)",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Resting pill shows back/forward (desktop; mobile uses edge-swipe per D7), standalone-pin + active-section dots (cap 8 + window-wide `+N`; pointer platforms reveal a dot's favicon on hover/focus), favicon, domain, shield count (clickable \u2192 site-protection popover on desktop), private chip, action cluster. Expanded states: panel / palette / find. Desktop has opt-in 300 ms hover-open and an opt-in auto-hiding strip; touch-only mobile has no hover equivalent.",
+      "divergence": "D7, D11, D15, D28, D29",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F2",
+      "feature": "Tabs (create/close/switch/reopen/duplicate/pin/mute)",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Same lifecycle + same reopen-closed and pin/mute semantics. Desktop recovery is scoped to the native workspace that closed the tab (D11). Pins remain in their current group and lead it; ungrouped pins use a standalone shelf. Plain new tab is always ungrouped. An inactive tab may have its renderer discarded and rebuilt (D8, F31) without losing identity, title, address, or back-history.",
+      "divergence": "D8, D11",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F3",
+      "feature": "Tab groups",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Names (with an optional Spaces preset color), kept in the case typed and matched in any case; renamable from the header. Group exists only while non-empty. Pill renders standalone pins + the active section and counts every omitted tab in `+N`. Same create/move/ungroup/close-group actions.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F4",
+      "feature": "Private tabs",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Never in history/session/reopen; inherited by child tabs; isolated non-persistent web session; private theme + quick-exit chip.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F5",
+      "feature": "Address input & search",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Same normalization heuristic + engine choice (DuckDuckGo/Google/Bing/Brave/Kagi, or a custom address). Best-effort autocomplete follows the current default; opt-out, private tabs, pasted/dropped text, local paths, URL-like input, and credential-like prefixes stay local. OS hand-off for `mailto:`/`tel:`/etc.; desktop additionally confirms reviewed app/OAuth callback schemes.",
+      "divergence": "D4, D20",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F6",
+      "feature": "Command palette & Quick Switcher",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "\u2318L-equivalent summons it; loose/in-order match across tabs, favorites, history, group names; groups ranked above tabs.",
+      "divergence": "D7",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F7",
+      "feature": "Slash commands",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Shared commands keep identical names + hints; `/1password` is available only on desktop under D26.",
+      "divergence": "D7, D26",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F8",
+      "feature": "Find in page",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Capsule over content, match nav, page stays interactive.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F9",
+      "feature": "Favorites",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Heart toggle, \"Add all open tabs\", favorites page + newtab favorites. Internal id stays `bookmarks`.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F10",
+      "feature": "History",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Per-visit record + title update, capped 5000, clearable, excluded for private tabs.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F11",
+      "feature": "Downloads",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Downloads list UI + progress, capped 200.",
+      "divergence": "D3",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F12",
+      "feature": "Ad/tracker blocking",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Ads/trackers blocked by default; per-tab shield count; per-site allow and re-block from the same command; shield chip opens a site-protection popover (desktop); global toggle. Filter data shared.",
+      "divergence": "D1, D2, D13, D14",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F13",
+      "feature": "Permissions",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Explicit per-permission prompts with the same policy/copy.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F14",
+      "feature": "Settings",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Same shared keys, defaults, and validation (search engine, device-local `searchSuggestions`, adblock, home page, theme, app icon, exceptions, usage measurement, supporter); desktop alone exposes F38's device-local 1Password toggle/account routing value.",
+      "divergence": "D5, D6, D26",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F15",
+      "feature": "Theming",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "system/light/dark + private scope; propagates to chrome, internal pages, web content live, no restart.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F16",
+      "feature": "Internal `blanc://` pages",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "newtab ledger, favorites, history, downloads, settings, shortcuts, error \u2014 same content/copy; utility pages present as a transient chrome surface (desktop: sheet), never tabs.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F17",
+      "feature": "Patron & app icons",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Three current colorways (Sunrise, Sunrise Dark, Sunrise Gold); Patron is optional support and unlocks nothing; Blanc Spaces (F41) is free.",
+      "divergence": "D5, D6",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F18",
+      "feature": "Session persistence & restore",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Restore tabs + groups; private tabs excluded; same `session.json` shape (adapted per platform store). Plus an optional per-tab title/favicon `meta` column so restored tabs are scannable before they load.",
+      "divergence": "D8",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F19",
+      "feature": "Context menu (link/page actions)",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Same actions (open in new/background tab, copy link, etc.); OS hand-off honored.",
+      "divergence": "D4, D7, D20",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F20",
+      "feature": "HTTP authentication policy",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "No platform shows its own credentials dialog for HTTP Basic/Digest or proxy challenges; the challenged request fails, and the page can observe the 401/407 response where the browser permits.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F21",
+      "feature": "Telemetry (bounded usage measurement)",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "A fresh profile must commit its on/off choice before any event; the choice is presented on by default and remains device-local. When enabled, packaged desktop builds send one launch event plus once-per-session fixed metrics for the first Mahjong move and each rendered start-page layout. Desktop 1.31.0+ also sends two once-per-install first-day signals (default browser; three web pages opened) used only for next-day return. Private tabs and browsing/game content are excluded.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F22",
+      "feature": "Distribution & updates",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "User gets updates; no in-app updater fighting the OS store.",
+      "divergence": "D9",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F23",
+      "feature": "Zoom / page scaling",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Page can be scaled; desktop discrete zoom vs mobile pinch/native reflow.",
+      "divergence": "D10",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F24",
+      "feature": "Password AutoFill / passkeys",
+      "desktopReferenceStatus": "N/A",
+      "contract": "On mobile, native credential provider + platform passkeys work in-webview.",
+      "divergence": "D12",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F27",
+      "feature": "Tab Sync (other-device tab list)",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Per-device opt-in, off by default, publish-only gating; read-only browsing in panel/switcher/start page; http(s)-only bounded snapshots plus a separately-budgeted E2EE icon sidecar; retraction + 30-day prune + 24 h heartbeat. Optional favicons are inert bounded PNG bytes\u2014never remote URLs loaded by a receiving device. Desktop adds device pairing with a ten-minute code (one-shot Worker route) and a clipboard recovery code, and synced device names (Rename Device\u2026, Settings \u2192 Sync); mobile pending.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F28",
+      "feature": "Vertical tabs",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "The logical tabs/groups and their identity, lifecycle, private/media state, and organization remain available. Desktop may present them in an optional persistent rail without replacing the Island or reloading content; mobile uses its native tab overview.",
+      "divergence": "D19",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F30",
+      "feature": "Browser Favorites migration",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Explicit, bounded, add-only import of supported web Favorites; folders preserved where available, retries deduplicated, and no implicit import of passwords/history/cookies/sessions.",
+      "divergence": "D22",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F31",
+      "feature": "Quiet Tabs (idle renderer discard)",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "An idle background tab may have its renderer discarded and rebuilt on return with identity, title, address, and back-history intact; the page is reloaded, never resumed. Never applied to the active tab, media-bearing or muted tabs, pins, unsaved input, non-refetchable commits, pending permission prompts, opener families, or deep-scrolled pages. Restored sessions come back quiet. The state is called \"quiet\" in every user-visible and assistive string.",
+      "divergence": "D8, D23",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F32",
+      "feature": "Independent desktop windows",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Each desktop native window owns an isolated tab/group/surface workspace; close removes only that secondary workspace, and relaunch restores all persisted windows without mixing tabs.",
+      "divergence": "D11",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F33",
+      "feature": "Local desktop profiles",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Personal retains every existing root record; each named desktop profile isolates site storage, Favorites/history/download metadata/permissions, normal browsing, and private browsing. Device settings stay shared and Profile Sync remains Personal-only.",
+      "divergence": "D25",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F34",
+      "feature": "Glance reference pane",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "A desktop window can show one explicitly chosen local tab as a temporary reference; dismissal leaves the tab open, and ownership never crosses a window or profile. Unreleased on main since v1.39.0: the reference is a movable, resizable card floating over the page (Open as tab replaces Make main's swap; a tab switch closes it).",
+      "divergence": "D11",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F35",
+      "feature": "Start page layouts",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Four layouts (ledger/billboard/shelf/tally), chosen by a synced setting with an in-page Customize popover; Billboard ranks local history by hostname, shows short site names (full titles as tooltips), reuses locally captured favicon pixels, and keeps dismissals in localStorage only; per-day blocked counts feed the tally chart; every footer opens Mahjong in its own managed tab; no horizontal overflow at any width.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F36",
+      "feature": "First-run onboarding",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "A six-step walkthrough shown once to fresh profiles (default browser, import, island, blocking, privacy, theme); privacy consent gates its network features, import keeps F30's explicit discovery, and both successful-import and skip paths can hand off to F40 without making full import a prerequisite. Replayable from Settings. Default-browser registration and live profile import are desktop surfaces (D22).",
+      "divergence": "D22",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F37",
+      "feature": "Blank tab shows where to type",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "A blank tab's island reads as a text field (prompt in placeholder ink, plus a commands affordance that opens the command list) and typing on the blank tab begins entry in the island. The *contract* is product-level and portable; its desktop expression \u2014 a caret, a `/` chip, and a hardware-keyboard type-to-open path \u2014 is not. Mobile satisfies it with a tap target and the platform keyboard; there is no physical-keyboard gate to port.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F38",
+      "feature": "Fill a login from 1Password",
+      "desktopReferenceStatus": "PARTIAL",
+      "contract": "Desktop (macOS, Windows, Linux), off-by-default explicit bridge to the user's installed 1Password app/account; Windows/Linux real-account validation pending; saved-website behavior and a revalidated login form bound the fill; no Blanc credential store, background lookup, renderer IPC, persistence, sync, or telemetry.",
+      "divergence": "D26",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F40",
+      "feature": "Bring Your Tabs (direct open-tab migration)",
+      "desktopReferenceStatus": "PLANNED",
+      "contract": "A selected Chromium-family profile's newest verified restorable open-tab session becomes reviewed, ordered quiet tabs and editable Named Groups. Duplicate tabs, pins, source windows, and eligible named source groups are preserved; Favorites remain separate. Any quit request is normal, user-initiated, and gated by recoverability preflight plus exact newest-session verification.",
+      "divergence": "D22",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F41",
+      "feature": "Blanc Spaces",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Desktop only. Named, profile-scoped sets of a window's tabs and groups that swap in place and autosave; each has a colour and symbol shown as the Island's space mark; free for everyone; at most 25 per profile; never synced.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F42",
+      "feature": "Dark websites",
+      "desktopReferenceStatus": "PARTIAL",
+      "contract": "Off by default, device-local. While Blanc is dark, http(s) pages without their own dark mode are darkened from first paint by the pinned Dark Reader engine in an isolated world; per-site opt-out via Settings, `/dark-site` or the shield popover switch (memory-only in private tabs). Desktop is PARTIAL: main frames only, iframes stay as drawn.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F44",
+      "feature": "Interface language",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "All Blanc-authored UI text from the shared catalog; fixed brand/command terms; English fallback; user may pin a supported language other than the OS's; web-facing language signals unaffected. Desktop: in-app picker + relaunch; mobile: OS per-app language.",
+      "divergence": "D27",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F45",
+      "feature": "Arc Spaces import",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Desktop only. Arc's StorableSidebar.json (found on macOS/Windows, or a chosen file anywhere) becomes one Blanc space per Arc Space, in one all-or-nothing write; folders become groups, tabs stay quiet, top-row Favorites join an Arc folder. The page sees only names and counts.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F46",
+      "feature": "Custom tab names",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "Desktop only. A tab may carry the person's own name instead of its page title; it survives navigation, relaunch, Spaces and reopen, never reaches History or Favorites, and is memory-only for private tabs.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F47",
+      "feature": "Bangs",
+      "desktopReferenceStatus": "SHIPPED",
+      "contract": "`!code words` searches one site directly for every search engine, from Kagi's pinned open list; a hint row and a `!` picker in the command bar; a synced switch and the person's own bangs in Settings; no suggestion request for bang-shaped text; recents device-local and never from private tabs. The pure module and catalog under `bangs/` are the shared substrate.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F48",
+      "feature": "Pinned homes",
+      "desktopReferenceStatus": "PARTIAL",
+      "contract": "Desktop only. A pinned tab keeps browsing normally for the session, returns to the page where it was pinned after a clean relaunch, restores the last page after a crash, and changes home only through explicit pin or menu actions. Homes stay local and private-tab homes are memory-only.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F49",
+      "feature": "Start Page wallpaper image",
+      "desktopReferenceStatus": "PARTIAL",
+      "contract": "Desktop only. A JPEG or PNG the person chooses is downscaled, stripped of metadata except orientation, stored on this device only (never synced, never in private tabs) and served at an unguessable per-launch address.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F50",
+      "feature": "Start Page color wallpaper",
+      "desktopReferenceStatus": "PARTIAL",
+      "contract": "Desktop only. Soft, solid or gradient from the eight Spaces presets, synced; optionally follows the window's Space color; never in private tabs; inks checked at 4.5:1 in a pure paint module.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F51",
+      "feature": "What's New page",
+      "desktopReferenceStatus": "PARTIAL",
+      "contract": "Desktop only. Opens blanc.day's page for a feature release once after the update, only when the page exists; the Start Page pill links to it.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F52",
+      "feature": "Tab Archive",
+      "desktopReferenceStatus": "PARTIAL",
+      "contract": "Desktop only. Off by default, device-local. Idle ungrouped, unpinned tabs close into a per-profile Archive kept 30 days, restorable from the Quick Switcher and History; never private tabs, never synced, cleared with history.",
+      "divergence": "\u2014",
+      "chromiumParity": "unverified by this inventory"
+    },
+    {
+      "id": "F53",
+      "feature": "Split View",
+      "desktopReferenceStatus": "PARTIAL",
+      "contract": "Desktop only (D11). Two to four tabs side by side, one row in the tab list, saved with the session and Spaces; grown out of Glance; one Island plus a header per pane.",
+      "divergence": "D11",
+      "chromiumParity": "unverified by this inventory"
+    }
+  ]
+}

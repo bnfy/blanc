@@ -1,3 +1,7 @@
+## Owner acceptance — L12 GO
+
+The owner explicitly approved the measured operating plan, F12/Decision 2 and L12 GO for signed Chromium158.0.8127.2 source0353d3e33443fc54fbc75dea0bbe0bd1d009e374, archive SHA-25608e34d602a46a6c381421850eb09ed5c05e73b1ac5221f8cc69054677b717f8e. All12 Mac-preview evaluation gates are accepted in their documented scopes. The approved available-load timing policy applies; existing-resource allocations and active chat minutes remain unpriced/unmeasured as disclosed. This authorizes neither merge nor public publication or full migration. Next: Chromium visual and feature parity against shippingv1.44.1, preserving157fallback and the separate Google baseline.
+
 # Chromium 158 launch-gate closeout for owner decision
 
 **L12 remains NO-GO pending final review and owner decision.** This packet follows the owner's explicit authorization to repair the isolated reference and to run timing under available load without a 90% idle admission threshold. It does not rewrite historical results or request a new waiver.
