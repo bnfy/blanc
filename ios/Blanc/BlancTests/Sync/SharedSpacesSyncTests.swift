@@ -266,4 +266,19 @@ import CryptoKit
         XCTAssertEqual(sidecar?["forUpdatedAt"], session?["updatedAt"])
         XCTAssertEqual(sidecar?["tabs"]?.array.count, 2)
     }
+    func testTheSnapshotPublishesGroupsAndNoSpaceWithTheSwitchOff() async throws {
+        let f = try await make(spaces: false, sharing: true)
+        try await f.transport.install(account, .session, .object([("devices", .object([]))]), key: f.key)
+        let group = id(9)
+        f.engine.sharedTabsSource = {
+            [SnapshotTab(url: "https://grouped.example/", title: "Grouped", groupId: group, sharedSpaceId: self.id(1))]
+        }
+        f.engine.sharedGroupsSource = { [(id: group, name: "Reading")] }
+        await pass(f)
+        let session = try await f.transport.value(account, .session, key: f.key)?["devices"]?[f.own]
+        XCTAssertEqual(session?["tabs"]?.array.first?["groupId"], .string(group))
+        XCTAssertEqual(session?["groups"], .array([.object([("id", .string(group)), ("name", .string("Reading"))])]))
+        let requests = await f.transport.records()
+        XCTAssertFalse(requests.contains { isSpacesPath($0.path) }, "no Spaces store with the switch off")
+    }
 }

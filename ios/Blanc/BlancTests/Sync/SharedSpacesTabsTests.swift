@@ -51,11 +51,18 @@ import XCTest
   }
 
   /// A phone showing shared Space "Work" with `count` tabs, the first selected.
+  /// Sync on for "account" (not a Worker locator, so no pass can reach a network).
+  func writeSyncOn() throws {
+    try FileManager.default.createDirectory(at: settingsDir, withIntermediateDirectories: true)
+    try Data(#"{"enabled":true,"accountId":"account","deviceId":"phone","syncTabs":false}"#.utf8)
+      .write(to: settingsDir.appendingPathComponent("sync.json"))
+  }
   func showShared(_ count: Int = 3) throws -> TabsManager {
+    try writeSyncOn()
     let m = TabsManager(settingsDirectory: settingsDir, sessionDirectory: sessionDir)
     m.sharedAdapterEnabled = true
     XCTAssertTrue(m.applyAcceptedOnColdStart().isEmpty, "launch: nothing waits yet")
-    let state = SharedSpacesState(directory: syncDir)
+    let state = m.syncEngine.sharedState
     state.rebind(accountId: "account")
     state.setEnabled(true)
     try state.setIndex(
@@ -139,13 +146,29 @@ import XCTest
     XCTAssertEqual(m.activeTab?.currentURL.absoluteString, "https://example.test/1")
     m.flushSession()
 
+    XCTAssertNotNil(m.sharedAcceptedSet(sid)?["tabs"]?[a], "the waiting change is saved")
+
+    // The launch applies it while every tab is quiet, then loads the
+    // selection at its new address: the old page never loads.
     let relaunched = TabsManager(settingsDirectory: settingsDir, sessionDirectory: sessionDir)
-    relaunched.sharedAdapterEnabled = true
-    XCTAssertNotNil(relaunched.sharedAcceptedSet(sid)?["tabs"]?[a], "the waiting change is saved")
+    XCTAssertTrue(relaunched.sharedAdapterEnabled, "sync and the Spaces switch are on")
     XCTAssertEqual(relaunched.activeTab?.sharedTabId, a)
-    relaunched.applyAcceptedOnColdStart()
     XCTAssertEqual(relaunched.activeTab?.currentURL.absoluteString, "https://example.test/remote")
+    XCTAssertEqual(relaunched.wokenURLs.map(\.absoluteString), ["https://example.test/remote"])
     XCTAssertNil(relaunched.sharedAcceptedSet(sid))
+    XCTAssertTrue(relaunched.applyAcceptedOnColdStart().isEmpty, "once per launch")
+  }
+
+  func testAColdStartCloseOfTheSelectedTabLoadsOnlyTheSurvivor() throws {
+    let m = try showShared()
+    let a = id(0x101)
+    m.applyMergedSpaces([sid: try remote(m, a, [("deleted", .bool(true))])], deviceId: "phone")
+    XCTAssertEqual(m.activeTab?.sharedTabId, a, "the person's page stays")
+    m.flushSession()
+    let relaunched = TabsManager(settingsDirectory: settingsDir, sessionDirectory: sessionDir)
+    XCTAssertEqual(relaunched.tabs.map(\.sharedTabId), [id(0x102), id(0x103)])
+    XCTAssertEqual(relaunched.wokenURLs.map(\.absoluteString), ["https://example.test/2"])
+    XCTAssertEqual(relaunched.tabs.filter(\.hasWebView).count, 1)
   }
 
   func testAnUnrelatedLocalCloseDuringADeferralPublishesOnlyThatClose() throws {

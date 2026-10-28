@@ -60,7 +60,10 @@ struct SettingsSyncStatus: Equatable {
 
 struct SyncSettingsView: View {
     let engine: SyncEngine
+    /// The tab sets, for Keep Spaces and groups in sync (M17c).
+    var manager: TabsManager?
     @State private var model = SyncSettingsModel()
+    @State private var showSpacesSheet = false
     @State private var confirm: Confirmation?
     @State private var switching = false
     @State private var showPairing = false
@@ -159,6 +162,7 @@ struct SyncSettingsView: View {
                         } }
                     }.accessibilityIdentifier("settings.syncNow")
                 } footer: { Text(SettingsCopy.text("shareTabsHelp")) }
+                if let manager { spacesSection(manager) }
                 Section {
                     Button(SettingsCopy.text("pairDevice")) { showPairing = true }
                     Button(SettingsCopy.text("copyRecovery")) { confirm = .recovery }
@@ -178,6 +182,13 @@ struct SyncSettingsView: View {
         .onChange(of: status.enabled) { _, enabled in if enabled { switching = false } }
         .onDisappear { model.dismiss() }
         .navigationDestination(isPresented: $showPairing) { PairDeviceSettingsView(engine: engine) }
+        .sheet(isPresented: $showSpacesSheet) {
+            if let manager { SharedSpacesSheet(manager: manager) }
+        }
+        .task(id: status.enabled) {
+            // With the switch off, how many shared Spaces wait (design §9).
+            if status.enabled && !engine.spacesEnabled { _ = await engine.previewIndex() }
+        }
         .sheet(item: $scanSheet) { sheet in
             PairScannerSheet(route: sheet.route, scan: sheet.scan, onCode: { code in
                 scanSheet = nil
@@ -203,6 +214,30 @@ struct SyncSettingsView: View {
                 }, secondaryButton: .cancel(Text(SettingsCopy.text("cancel"))))
             }
         }
+    }
+    /// Keep Spaces and groups in sync on this iPhone (design §9): off by
+    /// default; on asks which Spaces to share; off keeps dormant copies.
+    @ViewBuilder private func spacesSection(_ manager: TabsManager) -> some View {
+        let on = engine.spacesEnabled
+        Section {
+            Toggle(SyncCopy.text("sharedSpaces.switch.iphone"), isOn: Binding(get: { engine.spacesEnabled }, set: { value in
+                if value { showSpacesSheet = true } else { manager.turnOffSharedSpaces() }
+            }))
+            .accessibilityIdentifier("sync.spaces")
+            Text(SyncCopy.text("sharedSpaces.switch.line.iphone")).font(.footnote).foregroundStyle(.secondary)
+            if on {
+                Button(SyncCopy.text("sharedSpaces.title")) { showSpacesSheet = true }
+                    .accessibilityIdentifier("sync.spaces.choose")
+            }
+            if engine.spacesAvailability == .unavailable {
+                Text(SyncCopy.text("sharedSpaces.unavailable")).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("sync.spaces.unavailable")
+            } else if !on, engine.libraryCount > 0 {
+                Text(SyncCopy.plural("sharedSpaces.waitingCount", count: engine.libraryCount))
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("sync.spaces.waiting")
+            }
+        } footer: { Text(SyncCopy.text(on ? "sharedSpaces.accountLine" : "sharedSpaces.offLine")) }
     }
     private func startPairing() {
         let scan = PairScanCoordinator()

@@ -67,6 +67,9 @@ import Foundation
 
   var canRequest: Bool { scheduler.canRequest() }
   var snapshot: SyncScheduler.Snapshot { scheduler.snapshot() }
+  /// 429s in a row with no request between them succeeding (M16 §6.2's
+  /// "Sync is busy; retrying" after two).
+  private(set) var consecutiveRateLimits = 0
   func markIndexDue() { scheduler.markIndexDue() }
   /// A 429 seen outside a queued GET (a PUT): back off as for a GET.
   func noteRateLimited() {
@@ -163,7 +166,12 @@ import Foundation
       var step = Step.done
       do { step = try await op.run(op.attempt) } catch { failure = error }
       scheduler.settle(event)
-      if (failure as? SyncError) == .rateLimited { scheduler.onRateLimited() }
+      if (failure as? SyncError) == .rateLimited {
+        scheduler.onRateLimited()
+        consecutiveRateLimits += 1
+      } else if failure == nil {
+        consecutiveRateLimits = 0
+      }
       persist(scheduler.snapshot())
       if failure == nil, let reason = op.cancelled() { failure = reason }
       if failure == nil, step == .retry {

@@ -69,9 +69,20 @@ private final class Box<T> {
   /// Called with the Space ids whose merged blob changed, and `"index"` when
   /// the index did, as each fetch is merged.
   var onSpacesMerged: (([String]) -> Void)?
-  /// The tabs as F27 publishes them with their shared Space, used while the
-  /// Spaces switch is on (otherwise `tabsSource`).
+  /// The tabs as F27 publishes them, with their group, pin and shared Space;
+  /// used instead of `tabsSource` when set. Shared Spaces are left out of the
+  /// snapshot (and its membership) while the Spaces switch is off.
   var sharedTabsSource: (() -> [SnapshotTab])?
+  /// The groups the snapshot's tabs refer to (desktop publishes them, F27).
+  var sharedGroupsSource: (() -> [(id: String, name: String)])?
+  /// "Sync is busy; retrying" (two 429s in a row) and "Checking for changes
+  /// is slowed by rate limiting" (the request window is reduced), M16 §6.2.
+  private(set) var spacesBusy = false
+  private(set) var spacesSlowed = false
+  /// Observable mirrors of the Spaces state for Settings: the switch, and
+  /// how many live Spaces the merged library index holds.
+  private(set) var spacesEnabled = false
+  private(set) var libraryCount = 0
   /// The local `closed` cache: `{devices, dismissed, published}`; only
   /// `devices` is synced, and `published` says this phone's entry reached the Worker.
   private var closed: JSONValue
@@ -362,6 +373,8 @@ private final class Box<T> {
     closedInbox = []
     spacesAvailability = .unknown
     lastPreview = nil
+    spacesEnabled = false
+    libraryCount = 0
   }
   func beginPairing() async -> JSONValue {
     guard !transitioning else { return reply(SyncError.stale) }
@@ -600,21 +613,26 @@ private final class Box<T> {
       // With the Spaces switch on the snapshot's tabs carry their shared Space,
       // and a change of membership alone gives the entry a fresh clock
       // (desktop's tabsync), so an older sidecar binding can't tie and win.
-      let sharedSource = consent ? sharedTabsSource : nil
+      let sharedSource = sharedTabsSource
       let snapshotTabs: [SnapshotTab] =
         stateStore.state.syncTabs
-        ? (sharedSource?()
+        ? (sharedSource?().map { (t: SnapshotTab) -> SnapshotTab in
+          var tab = t
+          if !consent { tab.sharedSpaceId = nil }
+          return tab
+        }
           ?? tabsSource().map { (t: (url: String, title: String)) -> SnapshotTab in
             SnapshotTab(url: t.url, title: t.title)
           }) : []
+      let snapshotGroups = stateStore.state.syncTabs ? (sharedGroupsSource?() ?? []) : []
       let membership: String? =
-        sharedSource != nil && stateStore.state.syncTabs ? TabSnapshots.membership(snapshotTabs) : nil
+        consent && sharedSource != nil && stateStore.state.syncTabs ? TabSnapshots.membership(snapshotTabs) : nil
       if stateStore.state.syncTabs || announcesPresence {
         let previous = mergedSession["devices"]?[stateStore.state.deviceId]
         mergedSession = replacingOwn(
           in: mergedSession,
           entry: TabSnapshots.ownEntry(
-            tabs: snapshotTabs, groups: [], previous: previous, now: clock(), membership: membership,
+            tabs: snapshotTabs, groups: snapshotGroups, previous: previous, now: clock(), membership: membership,
             previousMembership: session["membership"]?.string))
       }
       let mergedIcons: JSONValue =
@@ -1041,6 +1059,10 @@ private final class Box<T> {
     }
     remoteDevices = TabSnapshots.devices(
       session["devices"] ?? .object([]), excluding: stateStore.state.deviceId, names: names)
+    spacesEnabled = stateStore.state.enabled && sharedState.isEnabled
+    libraryCount = SharedSpacesSharing.liveCount(sharedState.data["index"])
+    spacesBusy = sharedState.isEnabled && queue.consecutiveRateLimits >= 2
+    spacesSlowed = sharedState.isEnabled && queue.snapshot.windowLimit < 10
     favorites = SyncedFavorites.list(stateStore.load(.bookmarks) ?? .object([]))
     let ownId = stateStore.state.deviceId
     inbox = SyncSends.inbox(
@@ -1059,6 +1081,18 @@ private final class Box<T> {
         closed["devices"] ?? .object([]), ownId: ownId, dismissed: closed["dismissed"] ?? .object([]),
         now: Double(clock())
       ).filter { (row: ClosedRow) -> Bool in !own.contains(row.id) } : []
+  }
+
+  /// The name a device goes by here: the one chosen for it, else the one it
+  /// publishes in Tab Sync, Send to device or Recently closed.
+  func deviceName(for id: String) -> String? {
+    if let chosen = settings.payload()["values"]?["deviceNames"]?[id]?["name"]?.text, !chosen.isEmpty {
+      return chosen
+    }
+    for store in [session, sends, closed] {
+      if let name = store["devices"]?[id]?["name"]?.text, !name.isEmpty { return name }
+    }
+    return nil
   }
 
   // MARK: Send to device (M7b)

@@ -124,3 +124,178 @@ actor SettingsUITestTransport: SyncTransport {
     func deleteKey() throws { key = nil }
 }
 #endif
+
+#if DEBUG
+/// `-BlancUITestSharedSpaces` (M17c): sync on with the Spaces switch off.
+/// This iPhone holds example.com; the phone's Spaces are "Reading" (two tabs)
+/// and "Archive" (501 tabs, too many to share). The account's library, served
+/// by an in-process fake Worker (no network), holds "Travel", made on
+/// "MacBook Pro", with a "Flights" group.
+/// `-BlancUITestSharedSpacesOn`: sync and the switch on, showing the shared
+/// Space "Work" (example.com selected, example.org/b behind it); the fake
+/// Worker's copy has MacBook Pro's close of example.org/b, not yet merged here.
+extension UITestSeed {
+    static var sharedSpaces: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestSharedSpaces") }
+    static var sharedSpacesOn: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestSharedSpacesOn") }
+    static var sharedSeed: Bool { sharedSpaces || sharedSpacesOn }
+    static let sharedAccount = String(repeating: "d", count: 64)
+    static let sharedKey = SymmetricKey(data: Data(repeating: 7, count: 32))
+    static func hex(_ n: Int) -> String { String(format: "%032x", n) }
+    static let travelId = hex(0x71), workId = hex(0x77)
+
+    private static func field(_ v: JSONValue, _ c: Int64 = 100) -> JSONValue { SharedSpacesModel.field(v, c, "mac") }
+    private static func tabRecord(_ url: String, _ title: String, pos: String, group: String? = nil,
+                                  deleted: Bool = false, c: Int64 = 100) -> JSONValue {
+        .object([
+            ("nav", field(.object([("url", .string(url)), ("title", .string(title))]))), ("name", field(.null)),
+            ("pinned", field(.bool(false))), ("groupId", field(group.map(JSONValue.string) ?? .null)),
+            ("pos", field(.string(pos))), ("deleted", field(.bool(deleted), c)),
+        ])
+    }
+    private static func blob(_ id: String, tabs: [(String, String, String, String?)], groups: [(String, String)] = [],
+                             closed: Set<String> = []) -> JSONValue {
+        var left = ""
+        var records: [(String, JSONValue)] = []
+        for (tid, url, title, group) in tabs {
+            left = (try? SharedSpacesModel.keyFor(left, "", tid)) ?? left
+            records.append((tid, tabRecord(url, title, pos: left, group: group, deleted: closed.contains(tid),
+                                           c: closed.contains(tid) ? 200 : 100)))
+        }
+        var groupLeft = ""
+        let groupRecords: [(String, JSONValue)] = groups.map { (gid, name) in
+            groupLeft = (try? SharedSpacesModel.keyFor(groupLeft, "", gid)) ?? groupLeft
+            return (gid, .object([("name", field(.string(name))), ("color", field(.string("#376694"))),
+                                  ("collapsed", field(.bool(false))), ("pos", field(.string(groupLeft))),
+                                  ("deleted", field(.bool(false)))]))
+        }
+        return .object([("v", .number(1)), ("spaceId", .string(id)), ("groups", .object(groupRecords)),
+                        ("tabs", .object(records)), ("active", field(.string(tabs.first?.0 ?? "")))])
+    }
+    static func travelBlob() -> JSONValue {
+        blob(travelId, tabs: [(hex(0x701), "https://example.net/flight1", "Flight one", hex(0x791)),
+                              (hex(0x702), "https://example.net/flight2", "Flight two", hex(0x791)),
+                              (hex(0x703), "https://example.net/hotel", "Hotel", nil)],
+             groups: [(hex(0x791), "Flights")])
+    }
+    static func workBlob(closed: Bool) -> JSONValue {
+        blob(workId, tabs: [(hex(0x771), "https://example.com/", "Example Domain", nil),
+                            (hex(0x772), "https://example.org/b", "Example B", nil)],
+             closed: closed ? [hex(0x772)] : [])
+    }
+    private static func index(_ entries: [(id: String, name: String, blob: JSONValue)]) -> JSONValue {
+        var left = ""
+        return .object([("v", .number(1)), ("spaces", .object(entries.map { entry in
+            left = (try? SharedSpacesModel.keyFor(left, "", entry.id)) ?? left
+            return (entry.id, .object([
+                ("name", field(.string(entry.name))), ("color", field(.string("#376694"))),
+                ("symbol", field(.string("plane"))), ("pos", field(.string(left))), ("deleted", field(.bool(false))),
+                ("createdAt", .number(100)), ("createdBy", .string("mac")),
+                ("rev", .string(SharedSpacesModel.revisionOf(entry.blob))), ("revAt", .number(100)),
+                ("revBy", .string("mac")),
+            ]))
+        }))])
+    }
+    private static func macSession() -> JSONValue {
+        let now = Double(Int64(Date().timeIntervalSince1970 * 1000))
+        return .object([("devices", .object([("mac", .object([
+            ("name", .string("MacBook Pro")), ("platform", .string("darwin")), ("updatedAt", .number(now)),
+            ("tabs", .array([.object([("url", .string("https://example.edu/")), ("title", .string("Example Edu")),
+                                       ("groupId", .null), ("pinned", .bool(false))])])),
+            ("groups", .array([])),
+        ]))]))])
+    }
+    /// What the fake Worker serves, by store name.
+    static func workerStores() -> [String: JSONValue] {
+        var stores: [String: JSONValue] = [
+            "settings": .object([("values", .object([])), ("clocks", .object([]))]),
+            "session": macSession(),
+        ]
+        if sharedSpacesOn {
+            stores["spaces"] = index([(workId, "Work", workBlob(closed: true))])
+            stores["space-" + workId] = workBlob(closed: true)
+        } else {
+            stores["spaces"] = index([(travelId, "Travel", travelBlob())])
+            stores["space-" + travelId] = travelBlob()
+        }
+        return stores
+    }
+
+    static func seedSharedSpaces(into directory: URL) {
+        let state = #"{"enabled":true,"handle":"UI test","accountId":"\#(sharedAccount)","deviceId":"phone-test","syncTabs":false}"#
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        for name in ["shared-spaces.json", "sync-closed.json", "sync-sends.json", "sync-favorites.json",
+                     "recently-closed.json", "sync-settings.json", "sync-icons.json"] {
+            try? FileManager.default.removeItem(at: directory.appendingPathComponent(name))
+        }
+        try? Data(state.utf8).write(to: directory.appendingPathComponent("sync.json"))
+        try? Data(macSession().jsStringify().utf8).write(to: directory.appendingPathComponent("sync-session.json"))
+        guard sharedSpacesOn else { return }
+        let shared = SharedSpacesState(directory: directory)
+        shared.rebind(accountId: sharedAccount)
+        shared.setEnabled(true)
+        let old = workBlob(closed: false)
+        try? shared.setIndex(index([(workId, "Work", old)]))
+        try? shared.noteLocalSpace(id: workId, blob: old, edits: nil)
+    }
+
+    static func sharedSpacesState() -> SessionState {
+        if sharedSpacesOn {
+            let work = SpaceRecord(
+                id: hex(0xa1), name: "Work", color: "#376694", symbol: "plane",
+                set: SavedSet(tabs: [SavedTab(url: "https://example.com/", title: "Example Domain", tabId: hex(0x771)),
+                                     SavedTab(url: "https://example.org/b", title: "Example B", tabId: hex(0x772))]),
+                sharedId: workId, link: .active)
+            return SessionState(shown: work.id, iphone: SavedSet(tabs: [SavedTab(url: pageURL.absoluteString, title: "")]),
+                                spaces: [work], sharedBaselines: [workId: workBlob(closed: false)],
+                                sharedAccount: sharedAccount)
+        }
+        let reading = SpaceRecord(
+            id: hex(0xb1), name: "Reading", color: "#426c4c", symbol: "book",
+            set: SavedSet(tabs: [SavedTab(url: "https://example.org/r1", title: "Read one"),
+                                 SavedTab(url: "https://example.org/r2", title: "Read two")]))
+        let archive = SpaceRecord(
+            id: hex(0xb2), name: "Archive", color: "#6b6f76", symbol: "briefcase",
+            set: SavedSet(tabs: (1...501).map { SavedTab(url: "https://example.net/a\($0)", title: "Archived \($0)") }))
+        return SessionState(shown: TabSets.iphoneId,
+                            iphone: SavedSet(tabs: [SavedTab(url: pageURL.absoluteString, title: "Example Domain")]),
+                            spaces: [reading, archive])
+    }
+}
+
+/// The fake Worker for the Shared Spaces seeds: real encrypted payloads in
+/// memory, nothing over the network.
+actor SharedSpacesUITestTransport: SyncTransport {
+    private var blobs: [String: (Int, SyncEnvelope)] = [:]
+    init(stores: [String: JSONValue], account: String, key: SymmetricKey) {
+        for (name, value) in stores {
+            if let sealed = try? SyncCrypto.seal(Data(value.jsStringify().utf8), key: key) {
+                blobs["v1/blob/\(account)/\(name)"] = (1, sealed)
+            }
+        }
+    }
+    func send(method: String, path: String, body: Data?) async throws -> (status: Int, body: Data) {
+        if method == "GET", let (version, blob) = blobs[path] {
+            struct Response: Encodable { let version: String; let blob: SyncEnvelope }
+            return (200, try JSONEncoder().encode(Response(version: String(version), blob: blob)))
+        }
+        if method == "PUT", let body {
+            struct Put: Decodable { let ifVersion: String?; let blob: SyncEnvelope }
+            let put = try JSONDecoder().decode(Put.self, from: body)
+            let current = blobs[path]?.0
+            if let current, put.ifVersion != String(current) { return (409, Data("{\"version\":\"\(current)\"}".utf8)) }
+            let version = (current ?? 0) + 1
+            blobs[path] = (version, put.blob)
+            return (200, Data("{\"version\":\"\(version)\"}".utf8))
+        }
+        if method == "DELETE" { return (200, Data("{}".utf8)) }
+        return (404, Data("{}".utf8))
+    }
+}
+
+@MainActor final class SharedSpacesUITestSecrets: SyncSecretStore {
+    private var key: SymmetricKey? = UITestSeed.sharedKey
+    func readKey() throws -> SymmetricKey? { key }
+    func writeKey(_ key: SymmetricKey) throws { self.key = key }
+    func deleteKey() throws { key = nil }
+}
+#endif

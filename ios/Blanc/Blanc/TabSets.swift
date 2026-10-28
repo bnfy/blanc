@@ -52,6 +52,9 @@ struct SessionState: Codable, Equatable {
     /// that wait (its accepted set). Absent in older files.
     var sharedBaselines: [String: JSONValue]?
     var sharedAccepted: [String: JSONValue]?
+    /// The sync account the shared links belong to: another account (or
+    /// none) turns every shared Space back into a local copy.
+    var sharedAccount: String?
 }
 
 enum TabSets {

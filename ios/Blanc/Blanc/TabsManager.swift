@@ -128,8 +128,13 @@ final class TabsManager {
     var readerError = false
     /// The shown tab. Whatever makes a tab current also wakes it if quiet.
     var activeTabId: UUID? {
-        didSet { if let tab = activeTab, tab.isQuiet { wake(tab) } }
+        didSet { if !holdingWake, let tab = activeTab, tab.isQuiet { wake(tab) } }
     }
+    /// The addresses quiet tabs last woke at, newest last (a test seam).
+    @ObservationIgnored private(set) var wokenURLs: [URL] = []
+    /// At launch, while waiting changes for the selected tab apply: every
+    /// restored tab stays quiet until they have (M16 §4.4).
+    @ObservationIgnored private var holdingWake = false
 
     let settingsStore: SettingsStore
     let historyStore: HistoryStore
@@ -142,6 +147,11 @@ final class TabsManager {
         if UITestSeed.settings {
             client = SyncWorkerClient(transport: SettingsUITestTransport())
             secrets = SettingsUITestSecrets()
+        }
+        if UITestSeed.sharedSeed {
+            client = SyncWorkerClient(transport: SharedSpacesUITestTransport(
+                stores: UITestSeed.workerStores(), account: UITestSeed.sharedAccount, key: UITestSeed.sharedKey))
+            secrets = SharedSpacesUITestSecrets()
         }
         #endif
         let engine = SyncEngine(state: SyncStateStore(directory: syncDirectory), secrets: secrets, client: client,
@@ -156,7 +166,15 @@ final class TabsManager {
                 if let enabled = values?["adblockEnabled"]?.boolean { patch["adblockEnabled"] = enabled }
                 self.applySettingsPatch(patch)
             }, tabsSource: { [weak self] in self?.syncedTabs ?? [] })
-        engine.onChanged = { [weak self] in self?.bridge.emitSyncChanges() }
+        engine.onChanged = { [weak self] in
+            self?.bridge.emitSyncChanges()
+            self?.sharedSyncChanged()
+        }
+        engine.onSpacesMerged = { [weak self] (ids: [String]) in self?.sharedSpacesMerged(ids) }
+        engine.sharedTabsSource = { [weak self] in self?.snapshotTabs ?? [] }
+        engine.sharedGroupsSource = { [weak self] in
+            self?.groups.map { (g: TabGroup) -> (id: String, name: String) in (g.id, g.name) } ?? []
+        }
         return engine
     }()
     var normalizer: AddressNormalizer
@@ -184,6 +202,15 @@ final class TabsManager {
     /// The open tabs other devices may see; private tabs never leave the phone.
     var syncedTabs: [(url: String, title: String)] {
         tabs.filter { !$0.isPrivate }.map { ($0.currentURL.absoluteString, $0.pageTitle) }
+    }
+    /// The same tabs as F27 publishes them (M17c): with their group and pin,
+    /// and the shared Space a shared record sits in, for the `shared` sidecar.
+    var snapshotTabs: [SnapshotTab] {
+        let space = shownSpace?.link == .active ? shownSpace?.sharedId : nil
+        return tabs.filter { !$0.isPrivate }.map { (tab: TabModel) -> SnapshotTab in
+            SnapshotTab(url: tab.currentURL.absoluteString, title: tab.pageTitle, groupId: tab.groupId,
+                        pinned: tab.pinned, sharedSpaceId: tab.sharedTabId == nil ? nil : space)
+        }
     }
 
     func toggleReaderMode() {
@@ -284,6 +311,10 @@ final class TabsManager {
             UITestSeed.seedFavorites(into: syncDirectory)
             restoredState = UITestSeed.groupsState()
         }
+        if UITestSeed.sharedSeed {
+            UITestSeed.seedSharedSpaces(into: syncDirectory)
+            restoredState = UITestSeed.sharedSpacesState()
+        }
         if UITestSeed.sends {
             UITestSeed.seedSends(into: syncDirectory)
             savedURLs = [UITestSeed.pageURL]
@@ -308,10 +339,19 @@ final class TabsManager {
             spaces = state.spaces
             sharedBaselines = state.sharedBaselines ?? [:]
             sharedAccepted = state.sharedAccepted ?? [:]
+            sharedAccount = state.sharedAccount
             let now = Int64(Date().timeIntervalSince1970 * 1000)
             recentlyDeleted = state.deleted.filter { now - $0.deletedAt < TabSets.deletedRetentionMs }
             if spaces.contains(where: { $0.id == state.shown }) { shownSetId = state.shown }
+            // Changes that waited for the selected tab when Blanc last ran
+            // apply first, while every tab is still quiet; only then does the
+            // surviving selection load, at its resulting address.
+            holdingWake = true
             show(shownSetId == TabSets.iphoneId ? iphoneSet : spaces.first { $0.id == shownSetId }!.set)
+            sharedSyncChanged()
+            sharedRemoteCloses(applyAcceptedOnColdStart())
+            holdingWake = false
+            if let tab = activeTab, tab.isQuiet { wake(tab) }
             persistSession()
         } else if savedURLs.isEmpty {
             createTab()
@@ -321,6 +361,7 @@ final class TabsManager {
                           activeIndex: sessionStore.activeIndex))
             persistSession()
         }
+        sharedSyncChanged()
     }
 
     /// Only web pages can be Favorites; Blanc's own pages can't.
@@ -364,6 +405,7 @@ final class TabsManager {
     /// Makes a quiet tab's web view with today's blocking rules, then loads it.
     private func wake(_ tab: TabModel) {
         guard tab.isQuiet else { return }
+        wokenURLs = Array((wokenURLs + [tab.currentURL]).suffix(20))
         if contentBlocker.enabled && !contentBlocker.isReady
             && !AdblockExceptions.isExcepted(tab.currentURL, in: settingsStore.adblockExceptions) {
             contentBlocker.attach(to: tab.webView)
@@ -567,6 +609,7 @@ final class TabsManager {
         if let view = tabs[index].existingWebView { contentBlocker.cancelPending(for: view) }
         let closingGroup = groups.first { $0.id == closing.groupId }
         tabs.remove(at: index)
+        recordLocalClose(closing)
         normalizeLayout()
         if !tabs.contains(where: \.isPrivate) { privateStore = nil; readerPreferences.clearPrivate() }
         // Only the newest close is undoable. A private tab's close is final, as
@@ -753,6 +796,7 @@ final class TabsManager {
             if let view = member.element.existingWebView { contentBlocker.cancelPending(for: view) }
         }
         tabs.removeAll { $0.groupId == id }
+        for member in members { recordLocalClose(member.element) }
         expireUndo()
         lastClosed = ClosedTab(tab: first.element, index: first.offset, blankId: nil,
                                others: members.dropFirst().map { ($0.element, $0.offset) }, group: group, groupClose: true)
@@ -796,6 +840,8 @@ final class TabsManager {
     private(set) var recentlyDeleted: [DeletedSpace] = []
     /// The Space whose deletion Undo can still take back.
     private(set) var lastDeletedSpaceId: String?
+    /// Whether that Space was deleted everywhere (it was shared).
+    private(set) var lastDeletedSpaceWasShared = false
     @ObservationIgnored private var deletedSpaceWasShown = false
     @ObservationIgnored private var spaceUndoExpiry: Task<Void, Never>?
     @ObservationIgnored private var iphoneSet = SavedSet()
@@ -950,7 +996,11 @@ final class TabsManager {
         let wasShown = id == shownSetId
         if wasShown { show(set: TabSets.iphoneId) }
         guard let index = spaces.firstIndex(where: { $0.id == id }) else { return }
-        recentlyDeleted.insert(DeletedSpace(space: spaces.remove(at: index), deletedAt: now, index: index), at: 0)
+        // A shared Space is deleted everywhere at once; what Undo or Recently
+        // deleted bring back is a copy on this iPhone (design §6).
+        let removed = spaces.remove(at: index)
+        lastDeletedSpaceWasShared = deleteSharedEverywhere(removed, now: now)
+        recentlyDeleted.insert(DeletedSpace(space: Self.localCopy(removed), deletedAt: now, index: index), at: 0)
         lastDeletedSpaceId = id
         deletedSpaceWasShown = wasShown
         spaceUndoExpiry?.cancel()
@@ -991,6 +1041,7 @@ final class TabsManager {
         guard !isRestoringSession else { return }
         saveSession()
         syncEngine.tabsChanged()
+        scheduleSharedPublish()
     }
 
     /// Writes session.json (debounced) without telling sync the tabs changed.
@@ -1003,7 +1054,8 @@ final class TabsManager {
         let activeIdx = saved.firstIndex(where: { $0.id == activeTabId }) ?? 0
         var state = SessionState(shown: shownSetId, iphone: iphoneSet, spaces: spaces, deleted: recentlyDeleted,
                                  sharedBaselines: sharedBaselines.isEmpty ? nil : sharedBaselines,
-                                 sharedAccepted: sharedAccepted.isEmpty ? nil : sharedAccepted)
+                                 sharedAccepted: sharedAccepted.isEmpty ? nil : sharedAccepted,
+                                 sharedAccount: sharedAccount)
         let shown = captureShown()
         if shownSetId == TabSets.iphoneId { state.iphone = shown }
         else if let index = state.spaces.firstIndex(where: { $0.id == shownSetId }) { state.spaces[index].set = shown }
@@ -1130,6 +1182,7 @@ final class TabsManager {
             baselines: sharedBaselines, recoveryName: { (name: String) -> String in TabsManager.sharedRecoveryName(name) })
         spaces = result.spaces
         sharedBaselines = result.baselines
+        if !state.accountId.isEmpty { sharedAccount = state.accountId }
         for sid in Array(sharedAccepted.keys) where !spaces.contains(where: { $0.sharedId == sid }) {
             sharedAccepted[sid] = nil
         }
@@ -1210,7 +1263,10 @@ final class TabsManager {
         guard sharedAccepted[sid] != nil else { return }
         let closed = applyToShown(nil, spaceId: sid, protectedTabId: protectedTabId, now: now)
         saveSession()
-        if !closed.isEmpty { sharedClosedSink?(closed) }
+        if !closed.isEmpty {
+            sharedRemoteCloses(closed)
+            sharedClosedSink?(closed)
+        }
     }
 
     private func applyToShown(_ merged: JSONValue?, spaceId sid: String, protectedTabId: String?, now: Int64) -> [ClosedRow] {
@@ -1273,6 +1329,261 @@ final class TabsManager {
         tab.currentURL = url
         tab.addressText = url.absoluteString
         if tab.hasWebView && !tab.isQuiet { tab.navigationDelegate.load(url, in: tab.webView) }
+    }
+
+    // MARK: Shared Spaces wiring (M17c Task 18)
+
+    @ObservationIgnored private var sharedAccount: String?
+    @ObservationIgnored private var sharedPublishTask: Task<Void, Never>?
+    /// How long tab changes gather before their records are written.
+    @ObservationIgnored var sharedPublishDelay: Duration = .milliseconds(300)
+
+    private var currentSyncAccount: String? {
+        let state = syncEngine.stateStore.state
+        return state.enabled ? state.accountId : nil
+    }
+
+    /// Follows the sync and Spaces switches: the adapter runs while sync is
+    /// on and the switch is on (or a dormant copy keeps its records); another
+    /// account, or none, turns every shared Space back into a local copy; a
+    /// switch that went off leaves each shared Space a dormant copy.
+    func sharedSyncChanged() {
+        let account = currentSyncAccount
+        let linked = spaces.contains { $0.sharedId != nil }
+        if linked, account == nil || account != sharedAccount { unlinkSharedSpaces() }
+        let state = syncEngine.sharedState
+        let on = account != nil && state.isEnabled && state.accountId == account
+        if !on, spaces.contains(where: { $0.sharedId != nil && $0.link == .active }) {
+            let ids = spaces.compactMap { $0.link == .active ? $0.sharedId : nil }
+            for index in spaces.indices where spaces[index].link == .active { spaces[index].link = .dormant }
+            if account != nil {
+                state.setDormant((state.data["dormantIds"]?.array ?? []).compactMap(\.string) + ids)
+            }
+            saveSession()
+        }
+        let wasEnabled = sharedAdapterEnabled
+        sharedAdapterEnabled = account != nil && (on || spaces.contains { $0.link == .dormant && $0.sharedId != nil })
+        if on {
+            sharedAccount = account
+            if !wasEnabled { sharedSpacesMerged(["index"]) }
+        }
+    }
+
+    /// Every shared link is dropped: the Spaces stay as local copies.
+    private func unlinkSharedSpaces() {
+        for index in spaces.indices { spaces[index] = Self.localCopy(spaces[index]) }
+        iphoneSet.tabs = iphoneSet.tabs.map { (tab: SavedTab) -> SavedTab in var t = tab; t.tabId = nil; return t }
+        for tab in tabs { tab.sharedTabId = nil }
+        sharedBaselines = [:]
+        sharedAccepted = [:]
+        sharedOutbox = [:]
+        sharedAccount = nil
+        saveSession()
+    }
+
+    /// A Space with no shared link and no record ids.
+    static func localCopy(_ space: SpaceRecord) -> SpaceRecord {
+        var copy = space
+        copy.sharedId = nil
+        copy.link = nil
+        copy.set.tabs = copy.set.tabs.map { (tab: SavedTab) -> SavedTab in var t = tab; t.tabId = nil; return t }
+        return copy
+    }
+
+    /// Merged index or Space blobs arrived: the library joins the phone's
+    /// Spaces, each changed blob applies to its set, and pages other devices
+    /// closed go to Recently closed.
+    func sharedSpacesMerged(_ ids: [String]) {
+        guard sharedAdapterEnabled else { return }
+        let engine = syncEngine
+        let state = engine.sharedState
+        guard state.isEnabled else { return }
+        let deviceId = engine.stateStore.state.deviceId
+        let now = Self.nowMs()
+        sharedAccount = currentSyncAccount
+        reconcileSharedLibrary(state, deviceId: deviceId, now: now)
+        var blobs: [String: JSONValue] = [:]
+        for id in ids where id != "index" { if let blob = state.blob(id) { blobs[id] = blob } }
+        let closed = blobs.isEmpty ? [] : applyMergedSpaces(blobs, deviceId: deviceId)
+        sharedRemoteCloses(closed)
+        publishSharedEdits()
+    }
+
+    /// Pages another device closed, now closed here: into Recently closed,
+    /// named after the device that closed them.
+    func sharedRemoteCloses(_ rows: [ClosedRow]) {
+        for row in rows {
+            syncEngine.recordClosed(url: row.url, title: row.title, id: row.id, spaceId: row.spaceId)
+        }
+    }
+
+    private func scheduleSharedPublish() {
+        guard sharedAdapterEnabled else { return }
+        sharedPublishTask?.cancel()
+        let delay = sharedPublishDelay
+        sharedPublishTask = Task { [weak self] in
+            do { try await Task.sleep(for: delay) } catch { return }
+            self?.publishSharedEdits()
+        }
+    }
+
+    /// Writes what the shown and put-away shared Spaces changed here into
+    /// the Spaces state (records and identity), then asks for an upload.
+    func publishSharedEdits() {
+        sharedPublishTask?.cancel()
+        sharedPublishTask = nil
+        guard sharedAdapterEnabled, let account = currentSyncAccount else { return }
+        let engine = syncEngine
+        let state = engine.sharedState
+        guard state.accountId == account else { return }
+        let deviceId = engine.stateStore.state.deviceId
+        let now = Self.nowMs()
+        var changed = false
+        for edit in sharedSpaceEdits(deviceId: deviceId, now: now) {
+            if (try? state.noteLocalSpace(id: edit.spaceId, blob: edit.blob, edits: edit.edits)) != nil { changed = true }
+        }
+        if state.isEnabled, let edits = sharedIndexEdits(index: state.data["index"], deviceId: deviceId, now: now) {
+            if (try? state.setIndex(edits)) != nil { changed = true }
+        }
+        if changed { engine.spacesChanged() }
+    }
+
+    /// A tab the person closed here: into Recently closed, unless private or
+    /// not a web page. In a shared Space its id is the shared record's, so
+    /// every device lists the page once.
+    private func recordLocalClose(_ tab: TabModel) {
+        guard !tab.isPrivate, SharedSpacesAdapter.isHTTP(tab.currentURL.absoluteString) else { return }
+        let space = shownSpace?.sharedId
+        let id = space != nil ? (tab.sharedTabId ?? UUID().uuidString.lowercased()) : UUID().uuidString.lowercased()
+        syncEngine.recordClosed(url: tab.currentURL.absoluteString, title: tab.pageTitle, id: id,
+                                spaceId: tab.sharedTabId != nil ? space : nil)
+    }
+
+    /// Deleting a shared Space (switch on) writes its index tombstone at
+    /// once, as desktop does; returns whether it did.
+    private func deleteSharedEverywhere(_ space: SpaceRecord, now: Int64) -> Bool {
+        guard let sid = space.sharedId, space.link == .active, sharedAdapterEnabled else { return false }
+        let engine = syncEngine
+        let state = engine.sharedState
+        guard state.isEnabled, var record = state.data["index"]?["spaces"]?[sid] else { return false }
+        record["deleted"] = SharedSpacesModel.field(
+            .bool(true), max(now, (record["deleted"]?["c"]?.intValue ?? 0) + 1), engine.stateStore.state.deviceId)
+        guard (try? state.setIndex(.object([("v", .number(1)), ("spaces", .object([(sid, record)]))]))) != nil
+        else { return false }
+        sharedBaselines[sid] = nil
+        sharedAccepted[sid] = nil
+        sharedOutbox[sid] = nil
+        engine.spacesChanged()
+        return true
+    }
+
+    // MARK: The Spaces switch (M17c Task 18, M16 §4.6)
+
+    /// The switch-on sheet's rows, from the merged index.
+    func sharingRows() -> [SharedSpacesSharing.Row] {
+        storeShown()
+        let engine = syncEngine
+        return SharedSpacesSharing.rows(
+            spaces: spaces, index: engine.sharedState.data["index"], deviceId: engine.stateStore.state.deviceId,
+            now: Self.nowMs())
+    }
+
+    /// Turns the switch on with `choices`: each copy joins the library as a
+    /// new Space (blob first, then its index entry), each Rejoin resumes its
+    /// kept records, then the switch goes on and a pass uploads them.
+    func turnOnSharedSpaces(_ choices: [(id: String, mode: SharedSpacesSharing.Mode)]) -> SharedSpacesSharing.PlanError? {
+        let engine = syncEngine
+        guard let account = currentSyncAccount else { return .notFound }
+        let state = engine.sharedState
+        state.rebind(accountId: account)
+        storeShown()
+        let deviceId = engine.stateStore.state.deviceId
+        let now = Self.nowMs()
+        let items: [SharedSpacesSharing.Item]
+        switch SharedSpacesSharing.plan(
+            spaces: spaces, choices: choices, index: state.data["index"], deviceId: deviceId, now: now) {
+        case .failure(let error): return error
+        case .success(let planned): items = planned
+        }
+        var dormant = (state.data["dormantIds"]?.array ?? []).compactMap(\.string)
+        for item in items {
+            guard let index = spaces.firstIndex(where: { $0.id == item.spaceId }) else { continue }
+            if item.mode == .copy, let blob = item.blob, let entry = item.indexEntry {
+                guard (try? state.noteLocalSpace(id: item.sharedId, blob: blob, edits: item.edits)) != nil,
+                      (try? state.setIndex(.object([("v", .number(1)), ("spaces", .object([(item.sharedId, entry)]))]))) != nil
+                else { return .tooLarge }
+                if let old = spaces[index].sharedId { dormant.removeAll { $0 == old }; sharedBaselines[old] = nil; sharedAccepted[old] = nil }
+                bindSharedCopy(at: index, item)
+                sharedBaselines[item.sharedId] = blob
+            } else {
+                spaces[index].link = .active
+                dormant.removeAll { $0 == item.sharedId }
+            }
+        }
+        state.setDormant(dormant)
+        sharedAccount = account
+        saveSession()
+        if state.isEnabled {
+            sharedAdapterEnabled = true
+            sharedSpacesMerged(["index"])
+            engine.spacesChanged()
+        } else {
+            engine.setSpacesEnabled(true)
+        }
+        return nil
+    }
+
+    /// A Space now in the library: its record ids on its saved tabs (and on
+    /// the live tabs when it is shown), its groups under their record ids.
+    private func bindSharedCopy(at index: Int, _ item: SharedSpacesSharing.Item) {
+        spaces[index].sharedId = item.sharedId
+        spaces[index].link = .active
+        var set = spaces[index].set
+        for (n, id) in item.tabIds.enumerated() where set.tabs.indices.contains(n) { set.tabs[n].tabId = id }
+        for (old, new) in item.groupIds {
+            for n in set.groups.indices where set.groups[n].id == old { set.groups[n].id = new }
+            for n in set.tabs.indices where set.tabs[n].groupId == old { set.tabs[n].groupId = new }
+        }
+        spaces[index].set = set
+        guard spaces[index].id == shownSetId else { return }
+        let ordinary = tabs.filter { !$0.isPrivate }
+        for (n, id) in item.tabIds.enumerated() where ordinary.indices.contains(n) { ordinary[n].sharedTabId = id }
+        for (old, new) in item.groupIds {
+            for n in groups.indices where groups[n].id == old { groups[n].id = new }
+            for tab in tabs where tab.groupId == old { tab.groupId = new }
+        }
+    }
+
+    /// Off: every shared Space stays here as a dormant copy that keeps its
+    /// records; nothing is deleted or taken back anywhere.
+    func turnOffSharedSpaces() {
+        syncEngine.setSpacesEnabled(false)
+        sharedSyncChanged()
+    }
+
+    /// "Save This iPhone as a Space": This iPhone's tabs become a new Space,
+    /// shown now; This iPhone keeps a Start Page. Returns the Space's id.
+    @discardableResult
+    func saveIPhoneAsSpace() throws -> String {
+        let base = syncEngine.status["deviceName"]?.text.flatMap { $0.isEmpty ? nil : $0 } ?? "iPhone"
+        var name = TabSets.spaceName(base) ?? "iPhone"
+        var n = 2
+        while nameTaken(name) { name = TabSets.spaceName("\(base) \(n)") ?? "\(base) \(n)"; n += 1 }
+        let preset = SpaceIdentity.presets[spaces.count % SpaceIdentity.presets.count]
+        let id = try createSpace(name: name, color: preset.hex, symbol: SpaceIdentity.symbolIds[0])
+        storeShown()
+        let saved = shownSetId == TabSets.iphoneId ? iphoneSet : (savedSet(TabSets.iphoneId) ?? SavedSet())
+        guard let index = spaces.firstIndex(where: { $0.id == id }) else { return id }
+        spaces[index].set = saved.tabs.isEmpty ? spaces[index].set : saved
+        iphoneSet = SavedSet(tabs: [SavedTab(url: Self.newTabURL.absoluteString, title: "")])
+        if shownSetId == TabSets.iphoneId {
+            shownSetId = id
+            for tab in tabs where !tab.isPrivate { tab.sharedTabId = nil }
+        } else {
+            persistSession()
+        }
+        persistSession()
+        return id
     }
 
     /// Test seam: collapse the 250ms session-save debounce to disk immediately.

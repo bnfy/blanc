@@ -9,7 +9,10 @@ struct UndoBanner: View {
     var body: some View {
         if let deleted = manager.lastDeletedSpaceId.flatMap({ id in manager.recentlyDeleted.first { $0.space.id == id } }) {
             HStack(spacing: 14) {
-                Text(SyncCopy.text("ws.undo.deleted", ["name": deleted.space.name])).font(BrowserStyle.font(13)).lineLimit(1)
+                Text(manager.lastDeletedSpaceWasShared
+                     ? SyncCopy.text("sharedSpaces.deletedEverywhere")
+                     : SyncCopy.text("ws.undo.deleted", ["name": deleted.space.name]))
+                    .font(BrowserStyle.font(13)).lineLimit(1)
                 Button(SyncCopy.text("menu.undo")) { withAnimation { manager.undoDeleteSpace() } }
                     .font(BrowserStyle.font(13, semibold: true))
                     .frame(minHeight: 32)
