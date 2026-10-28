@@ -1,5 +1,424 @@
 [
   {
+    "tag": "v1.44.1",
+    "version": "1.44.1",
+    "name": "1.44.1",
+    "publishedAt": "2026-10-28T02:32:21.000Z",
+    "humanDate": "October 27, 2026",
+    "machineDate": "2026-10-27",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.44.1",
+    "anchor": "v1-44-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Reader Mode."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Read an article without the clutter around it. Type "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/reader"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", or choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Enter Reader Mode"
+                  },
+                  {
+                    "type": "text",
+                    "value": " when the expanded Island offers it. Blanc lifts the article out of the page you've already loaded, on your computer, and keeps its headings, links, images with captions, tables and code. Choose System, Light, Dark or Sepia, one of four typefaces, a text size from 16 to 28 pixels and one of three widths; Blanc remembers your choice on this device. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Exit Reader Mode"
+                  },
+                  {
+                    "type": "text",
+                    "value": " returns to the page as you left it, without reloading. Reader Mode is free. Some pages aren't articles, and on those Blanc says so and leaves the page as it was."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Move to Space."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Once you have a space, a tab's menu has "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Move to Space ▸"
+                  },
+                  {
+                    "type": "text",
+                    "value": ": it moves the tab, as it is, to the end of another space without leaving the window you're in. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "New Space…"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in the same menu makes a space that starts with that tab. A tab group's menu has "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Move Group to Space ▸"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", which moves the whole group with its name and colour, and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open Link in Space ▸"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in a link's menu opens the link in another space. Private tabs don't offer these."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Select several tabs."
+                  },
+                  {
+                    "type": "text",
+                    "value": " In the ⌘L panel and in vertical tabs, ⌘-click (Ctrl-click on Windows and Linux) adds or removes a tab, Shift-click selects a range, and Shift with the arrow keys extends the selection. Right-click a selected tab to move, group, pin, mute, reload, quiet, copy the links of or close them all at once. Closing them is one entry in Recently closed."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Send to Device."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Send the page you're on to another of your synced Blanc devices from the tab menu's "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Send to Device ▸"
+                  },
+                  {
+                    "type": "text",
+                    "value": " or with "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/send <device>"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". It waits for you in "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Sent to this device"
+                  },
+                  {
+                    "type": "text",
+                    "value": " at the top of the Other devices drawer and on the Ledger start page; nothing opens by itself. Pages stay up to 7 days. Private tabs and internal pages can't be sent. Sending needs Profile Sync on both devices."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Open links from other apps where they belong."
+                  },
+                  {
+                    "type": "text",
+                    "value": " When another app opens a link in Blanc (a link you click in Slack, Mail or a terminal, say), rules in Settings → Profiles → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open links from other apps"
+                  },
+                  {
+                    "type": "text",
+                    "value": " decide which profile, and optionally which Space, it opens in. A rule reads \"Links to jira.example.com open in Work\". It matches that domain and its subdomains, or, from the rule's ⋮ menu, any address that contains text you choose. The first matching rule wins. A Space that isn't open opens in a new window of its profile, and a rule can open its links as private tabs. Links no rule matches open where they always have, in the window you used last. The group appears once you have two profiles or a Space. Rules stay on this device and aren't synced."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Make a rule from the page you're on."
+                  },
+                  {
+                    "type": "text",
+                    "value": " With two or more profiles, the shield popover has "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open links to this site in this profile"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (or "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "…in this Space"
+                  },
+                  {
+                    "type": "text",
+                    "value": " when the window shows one); click it again to remove the rule. "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/route"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in the ⌘L panel does the same for the current page, and "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/route off"
+                  },
+                  {
+                    "type": "text",
+                    "value": " removes its rule. Neither is available in a private tab."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Copy Link (⇧⌘C, Ctrl+Shift+C on Windows and Linux)."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Copies the current page's address without selecting the address first, from the keyboard or Edit → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Copy Link"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". The Island briefly says \"Link copied\". On macOS, ⌥⇧⌘C copies the address without tracking parameters (Edit → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Copy Clean Link"
+                  },
+                  {
+                    "type": "text",
+                    "value": "). Blank and internal pages copy nothing."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "`/copy` and `/copy clean`."
+                  },
+                  {
+                    "type": "text",
+                    "value": " The same two copies from the ⌘L panel, so the clean copy has a keyboard path on Windows and Linux too."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Ctrl+Tab by most recent use (Linux and Windows)."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Ctrl+Tab goes back to the tab you used before, and a second tap comes back. Hold Ctrl and press Tab again to step further back; a row of tab icons under the Island shows where you'll land, and letting go of Ctrl switches there. Esc stays put (on Windows, Ctrl+Esc opens the Start menu, which also leaves you where you were), a click on a tile switches at once, and Ctrl+W closes the picked tab. Ctrl+PageDown and Ctrl+PageUp still go by position. Turn it off in Settings → General → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Switch tabs with Ctrl+Tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". On macOS, Ctrl+Tab still goes by position for now."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Vertical tab text size."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Settings → General → Island → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Vertical tab text size"
+                  },
+                  {
+                    "type": "text",
+                    "value": ": Default, Large or Extra large. Titles and group names grow together, in every open window at once."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Site icons on the Island."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Settings → General → Island → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Show site icons on the Island"
+                  },
+                  {
+                    "type": "text",
+                    "value": " draws each tab on the Island as its site’s icon instead of a dot, so you can tell which tab is which without hovering. A small dot under an icon marks the current tab. Icons take more room, so fewer tabs fit before the rest go into a count. It’s off by default and stays on this device."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Switching spaces says which tab is in the way, and is in the way less often."
+                  },
+                  {
+                    "type": "text",
+                    "value": " When a page has to stay open during a switch, the switch box names up to three of them with the reason (still loading, using your camera, microphone or screen, a pop-up open, or connected to the page that opened it, as during a sign-in) and a "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Show tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": " button. A tab another page opened no longer holds the window once that page has closed, and a page whose ad or chat frame keeps reloading no longer counts as loading."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Settings → Sync shows your devices."
+                  },
+                  {
+                    "type": "text",
+                    "value": " This device comes first, with a name you can edit in place, followed by your other synced devices and their platforms. What syncs is shown as tiles. The recovery code, joining with a code and turning sync off are now under "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "More options"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Pinned tabs always lead the Island's dots, including pinned tabs inside a group, and show as rounded squares (on a tile with site icons on). While a pinned tab is active, the Island keeps showing its group, or the last section you were in."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Open in Glance"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in a tab's menu now works on either page of a two-page split: that page leaves the split and floats over the other."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With vertical tabs on Windows and Linux, the main-menu button moves into the rail, so it stays reachable."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.43.1",
     "version": "1.43.1",
     "name": "1.43.1",

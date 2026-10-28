@@ -453,6 +453,41 @@ original reports:
   for ink and gray. Sunrise stays the default.
 - **Pinned splits:** Since v1.43.0 a Split View is pinned or unpinned as a
   whole, and pinned tabs can join a split.
+- **1.44 is v1.44.1:** v1.44.0 was tagged but never published (it was built
+  on official Electron, not ECS). Every 1.44 claim says "since v1.44.1" and
+  never names 1.44.0 as a public release.
+- **Reader Mode:** Since v1.44.1, `/reader` or **Enter Reader Mode** lifts the
+  article out of the page already loaded, on the device. It's free. Pages that
+  aren't articles are refused, so never promise it works on every page.
+- **Move to Space, several tabs at once:** Since v1.44.1 a tab's menu moves it
+  to another Space (or a new one) without leaving the window, and ⌘/Ctrl-click,
+  Shift-click and Shift+arrows select several tabs in the ⌘L panel and
+  vertical tabs for one action. Private tabs can't be moved to a Space.
+- **Send to Device:** Since v1.44.1, to another of the person's synced Blanc
+  devices, through Profile Sync on both; pages wait in **Sent to this device**
+  for 7 days and nothing opens by itself. Private tabs and internal pages can't
+  be sent. Never describe it as working without Profile Sync.
+- **Open links from other apps in a chosen profile or Space:** Since v1.44.1,
+  rules in Settings → Profiles (and `/route`, and the shield popover) send
+  links from other apps to a profile, a Space or a private tab. Device-local,
+  never synced. Tested on Linux in CI and under xvfb; the real-app checks on
+  macOS and Windows (Slack or Mail, the Windows default-browser handoff) are
+  still pending, so don't show or promise a named app or platform.
+- **Copy Link:** Since v1.44.1, ⇧⌘C / Ctrl+Shift+C and `/copy` copy the page's
+  address; ⌥⇧⌘C (macOS) and `/copy clean` copy it without tracking
+  parameters.
+- **Ctrl+Tab by most recent use:** Since v1.44.1 on Linux and Windows only,
+  proven with real OS key input in CI; a hand check on a real Windows keyboard
+  is still pending. On macOS Ctrl+Tab still goes by position: never claim it
+  there. On Windows, Ctrl+Esc opens the Start menu (the switch cancels).
+- **Vertical tab text size and site icons on the Island:** Since v1.44.1, two
+  device-local settings: Default, Large or Extra large vertical tab text, and
+  site icons instead of dots on the Island (off by default; fewer tabs fit).
+- **Pinned tabs on the Island:** Since v1.44.1 every pinned tab, grouped or
+  not, leads the Island's dots, as a rounded square (or a tile with site
+  icons). In the ⌘L panel a grouped pin stays inside its group.
+- **Shared Spaces:** in the v1.44.1 source but hidden in packaged builds; never
+  describe it as available until a release enables it.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,

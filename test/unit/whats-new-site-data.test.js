@@ -78,6 +78,26 @@ test('an upcoming page builds without a date, unlisted until its release is publ
   assert.match(read('site/src/pages/sitemap.xml.js'), /!page\.upcoming/, 'the sitemap lists only released pages');
 });
 
+// 1.44.0 was tagged but never published (it was built on the wrong
+// runtime), so the 1.44 line went public at 1.44.1. A feature line counts as
+// released from its first published version, whose date and anchor its page
+// takes.
+test('a feature line first published at X.Y.1 is released from that version', async () => {
+  const { validateWhatsNew, publishedPages } = await lib();
+  const later = [
+    { version: '1.39.2', humanDate: 'October 29, 2026', anchor: 'v1-39-2' },
+    { version: '1.39.1', humanDate: 'October 28, 2026', anchor: 'v1-39-1' },
+    ...RELEASES,
+  ];
+  const pages = fixture([named('1.38', 3), named('1.39', 3)]);
+  assert.deepEqual(validateWhatsNew(pages, later, await options()), []);
+  const released = publishedPages(pages, later).find((p) => p.release === '1.39');
+  assert.equal(released.upcoming, false);
+  assert.equal(released.version, '1.39.1');
+  assert.equal(released.humanDate, 'October 28, 2026');
+  assert.equal(released.anchor, 'v1-39-1');
+});
+
 test('a page holds two to five highlights of its own', async () => {
   const { validateWhatsNew } = await lib();
   assert.equal(validateWhatsNew(fixture([page('1.38', 1)]), RELEASES, await options()).length, 1);
