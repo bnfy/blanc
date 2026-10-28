@@ -1,0 +1,26 @@
+{
+  "head": "0d7967df8fe4dee614e1473de725be798ea3f4dd",
+  "codeql": {
+    "job": 122944396819,
+    "conclusion": "success",
+    "title": "No new alerts in code changed by this pull request"
+  },
+  "reviewedFailures": [
+    {
+      "job": 122941188889,
+      "name": "modified-link-clicks (ubuntu-latest)",
+      "cause": "Electron sandbox duplication: allowed vs SecurityError at modified-link-click-smoke.mjs:168"
+    },
+    {
+      "job": 122941188790,
+      "name": "modified-link-clicks (windows-latest)",
+      "cause": "Electron sandbox duplication: allowed vs SecurityError at modified-link-click-smoke.mjs:168"
+    },
+    {
+      "job": 122940934641,
+      "name": "substrate",
+      "cause": "tab-import-companions addons-linter high GHSA-GCQX-W48M-W2H4, GHSA-5P2G-FCMC-QVQQ, GHSA-W3RX-R6R6-PGPR"
+    }
+  ],
+  "disposition": "Known repository merge blockers outside owner-approved native-preview L11 scope; not fixed or waived for merge. Five other checks were queued/in-progress at snapshot; no all-green claim."
+}

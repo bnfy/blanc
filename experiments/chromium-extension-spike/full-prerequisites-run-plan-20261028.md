@@ -24,3 +24,15 @@ L12 remains NO-GO until full prerequisites and final artifact-specific owner acc
 ## Current execution checkpoint
 
 The guarded timing hook built in six incremental actions and the final normal guard reports zero actions. Ten timing-decoder controls pass. The first formal native attempt stopped before warm-up because its five idle samples were below 90%; no timings count. The owner will make this Mac quiet. A subsequent read-only check reached 81.91% idle, still ineligible; no user workload was stopped. The current engine source returns empty styles/scripts when cosmetic filtering is inactive, so the adapter active flag omission is not a demonstrated delivery failure. Full-prerequisite acceptance remains open.
+
+## Owner-authorized loaded-host measurement
+
+The owner subsequently instructed: “We’re not going to get to 90% so run it under.” The next run therefore omits strict idle admission, records the actual pre-session and per-repetition CPU samples, and retains the original idle-condition fields rather than relabeling them as satisfied. The full corpus, warm-up, five measured repetitions, context/response/child validation and native p99 <5 ms target are unchanged. Electron remains an existing authenticated reference only, with no build or repair. Results will be reported under observed host load; they cannot establish the original >=90%-idle condition. This changes execution authorization, not final L12 approval.
+
+## Remaining evidence crosswalk after procedural qualification
+
+The authoritative Spike A outcome requirement is tranche2 §2: matched DOM assertions **and captures** in both browsers, separated into CSS, procedural and scriptlet outcomes, including the existing YouTube fixture and patched-fetch/defused-timer behavior. The new 50 signed native assertions prove the listed property/mutation/BFCache paths, but do not supply a paired Electron outcome capture. That comparison is an unmet written criterion, not a reason to rerun unrelated native suites. Next prepare missing paired outcome fixtures with the authenticated reference and same pinned lists, after the timing process exits; retain differences where the reference disables procedural evaluation instead of inventing an expected pass.
+
+The production implementation plan additionally names per-tab shield counts, per-site allow and a Blanc popover. Targeted inspection of native/blanc_prototype_ui.cc and prototype/host.js found no shield/block-ads/allow-ads wiring. This is a scope/implementation finding, not an exhaustive runtime failure. Determine its applicability to the complete F12 preview requirement before importing the entire later migration feature matrix. Existing accepted L5/L10 physical-input checks remain accepted in their stated scope.
+
+The notarized procedural archive is complete; its new manifest authentication remains pending. Do not reuse the prior260f98ff authenticated packet as evidence for4a77b414. Existing cost/attention unknowns and final owner Decision2/L12 acceptance remain explicit.

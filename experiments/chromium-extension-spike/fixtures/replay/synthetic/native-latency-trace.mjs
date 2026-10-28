@@ -22,7 +22,7 @@ export async function startNativeTiming(browser,page){
  network.on('Network.requestWillBeSent',p=>{requests.set(digest(p.requestId),{requestId:p.requestId,url:p.request.url});});
  await network.send('Network.enable');
  tracing.on('Tracing.dataCollected',p=>events.push(...p.value.filter(e=>e.name==='Blanc.DecisionTiming')));
- const start=()=>tracing.send('Tracing.start',{transferMode:'ReportEvents',traceConfig:{recordMode:'recordUntilFull',traceBufferSizeInKb:32768,includedCategories:['disabled-by-default-blanc.latency']}});
+ const start=()=>tracing.send('Tracing.start',{transferMode:'ReportEvents',traceConfig:{recordMode:'recordUntilFull',traceBufferSizeInKb:32768,includedCategories:['disabled-by-default-blanc.latency'],excludedCategories:['*']}});
  await start();
  return {rows:()=>rows,diagnostics:()=>diagnostics,async capture(expected,reference){
   const done=new Promise(resolve=>tracing.once('Tracing.tracingComplete',resolve));await tracing.send('Tracing.end');const completion=await done;assert(!completion.dataLossOccurred,'Native timing trace lost events');

@@ -1,0 +1,1467 @@
+{
+  "complete": true,
+  "scope": "paired pinned-list authored outcomes; not arbitrary-page completeness or all procedural operators",
+  "runs": [
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 0,
+      "name": "css-important",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "electron-regular-0-css-important.png",
+      "arrivals": [
+        {
+          "url": "https://cosmetic.example/blanc-outcome",
+          "sha256": "a60a694964a30b36fe5601e0f04b7d0c6c4da89b2d70c5428eb15133b47de603",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 0,
+      "name": "youtube-has",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "electron-regular-0-youtube-has.png",
+      "arrivals": [
+        {
+          "url": "https://youtube.com/blanc-outcome",
+          "sha256": "e535bf573b581c2b550a1c7e01e648080a150ed8a3ba9c808f4a78ba967ea2fc",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 0,
+      "name": "procedural-text",
+      "outcome": {
+        "hidden": false,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": false,
+        "neutralVisible": true
+      },
+      "capture": "electron-regular-0-procedural-text.png",
+      "arrivals": [
+        {
+          "url": "https://character.ai/blanc-outcome",
+          "sha256": "1fcb48773cf9322121f3ccc0a49d18b492b595ab2b87938c8b642f596f18999c",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 0,
+      "name": "scriptlet-first-script",
+      "outcome": {
+        "firstScriptGPC": false,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "firstScriptPatched": false,
+        "neutralVisible": true
+      },
+      "capture": "electron-regular-0-scriptlet-first-script.png",
+      "arrivals": [
+        {
+          "url": "https://accuweather.com/blanc-outcome",
+          "sha256": "91e47544725e7c96770e9aa03eba53bf9945039b038691903704755ef4935878",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 0,
+      "name": "scriptlet-fetch",
+      "outcome": {
+        "target": "stella-response",
+        "neutral": "ordinary-response",
+        "done": true
+      },
+      "assertions": {
+        "targetDefused": false,
+        "neutralReturned": true,
+        "targetNotSent": false
+      },
+      "capture": "electron-regular-0-scriptlet-fetch.png",
+      "arrivals": [
+        {
+          "url": "https://nicovideo.jp/blanc-outcome",
+          "sha256": "0d2001bf1ba5dfd40c6543e48d0818f26976fff0d8abe1dac79a2f54d1ea59ba",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://nicovideo.jp/stella-fixture",
+          "sha256": "33e15ea2aebe8ebdd316d16b70309341c21b9fb5387cbe89475ae37801e73839",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://nicovideo.jp/ordinary-fixture",
+          "sha256": "8578890a1d127920aa01e6f62ac5aa36ffa8aa1047ba27590ed7431d8a24b609",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 1,
+      "name": "css-important",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "electron-regular-1-css-important.png",
+      "arrivals": [
+        {
+          "url": "https://cosmetic.example/blanc-outcome",
+          "sha256": "a60a694964a30b36fe5601e0f04b7d0c6c4da89b2d70c5428eb15133b47de603",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 1,
+      "name": "youtube-has",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "electron-regular-1-youtube-has.png",
+      "arrivals": [
+        {
+          "url": "https://youtube.com/blanc-outcome",
+          "sha256": "e535bf573b581c2b550a1c7e01e648080a150ed8a3ba9c808f4a78ba967ea2fc",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 1,
+      "name": "procedural-text",
+      "outcome": {
+        "hidden": false,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": false,
+        "neutralVisible": true
+      },
+      "capture": "electron-regular-1-procedural-text.png",
+      "arrivals": [
+        {
+          "url": "https://character.ai/blanc-outcome",
+          "sha256": "1fcb48773cf9322121f3ccc0a49d18b492b595ab2b87938c8b642f596f18999c",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 1,
+      "name": "scriptlet-first-script",
+      "outcome": {
+        "firstScriptGPC": false,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "firstScriptPatched": false,
+        "neutralVisible": true
+      },
+      "capture": "electron-regular-1-scriptlet-first-script.png",
+      "arrivals": [
+        {
+          "url": "https://accuweather.com/blanc-outcome",
+          "sha256": "91e47544725e7c96770e9aa03eba53bf9945039b038691903704755ef4935878",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 1,
+      "name": "scriptlet-fetch",
+      "outcome": {
+        "target": "stella-response",
+        "neutral": "ordinary-response",
+        "done": true
+      },
+      "assertions": {
+        "targetDefused": false,
+        "neutralReturned": true,
+        "targetNotSent": false
+      },
+      "capture": "electron-regular-1-scriptlet-fetch.png",
+      "arrivals": [
+        {
+          "url": "https://nicovideo.jp/blanc-outcome",
+          "sha256": "0d2001bf1ba5dfd40c6543e48d0818f26976fff0d8abe1dac79a2f54d1ea59ba",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://nicovideo.jp/stella-fixture",
+          "sha256": "33e15ea2aebe8ebdd316d16b70309341c21b9fb5387cbe89475ae37801e73839",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://nicovideo.jp/ordinary-fixture",
+          "sha256": "8578890a1d127920aa01e6f62ac5aa36ffa8aa1047ba27590ed7431d8a24b609",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 0,
+      "name": "css-important",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "electron-private-0-css-important.png",
+      "arrivals": [
+        {
+          "url": "https://cosmetic.example/blanc-outcome",
+          "sha256": "a60a694964a30b36fe5601e0f04b7d0c6c4da89b2d70c5428eb15133b47de603",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 0,
+      "name": "youtube-has",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "electron-private-0-youtube-has.png",
+      "arrivals": [
+        {
+          "url": "https://youtube.com/blanc-outcome",
+          "sha256": "e535bf573b581c2b550a1c7e01e648080a150ed8a3ba9c808f4a78ba967ea2fc",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 0,
+      "name": "procedural-text",
+      "outcome": {
+        "hidden": false,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": false,
+        "neutralVisible": true
+      },
+      "capture": "electron-private-0-procedural-text.png",
+      "arrivals": [
+        {
+          "url": "https://character.ai/blanc-outcome",
+          "sha256": "1fcb48773cf9322121f3ccc0a49d18b492b595ab2b87938c8b642f596f18999c",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 0,
+      "name": "scriptlet-first-script",
+      "outcome": {
+        "firstScriptGPC": false,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "firstScriptPatched": false,
+        "neutralVisible": true
+      },
+      "capture": "electron-private-0-scriptlet-first-script.png",
+      "arrivals": [
+        {
+          "url": "https://accuweather.com/blanc-outcome",
+          "sha256": "91e47544725e7c96770e9aa03eba53bf9945039b038691903704755ef4935878",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 0,
+      "name": "scriptlet-fetch",
+      "outcome": {
+        "target": "stella-response",
+        "neutral": "ordinary-response",
+        "done": true
+      },
+      "assertions": {
+        "targetDefused": false,
+        "neutralReturned": true,
+        "targetNotSent": false
+      },
+      "capture": "electron-private-0-scriptlet-fetch.png",
+      "arrivals": [
+        {
+          "url": "https://nicovideo.jp/blanc-outcome",
+          "sha256": "0d2001bf1ba5dfd40c6543e48d0818f26976fff0d8abe1dac79a2f54d1ea59ba",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://nicovideo.jp/stella-fixture",
+          "sha256": "33e15ea2aebe8ebdd316d16b70309341c21b9fb5387cbe89475ae37801e73839",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://nicovideo.jp/ordinary-fixture",
+          "sha256": "8578890a1d127920aa01e6f62ac5aa36ffa8aa1047ba27590ed7431d8a24b609",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 1,
+      "name": "css-important",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "electron-private-1-css-important.png",
+      "arrivals": [
+        {
+          "url": "https://cosmetic.example/blanc-outcome",
+          "sha256": "a60a694964a30b36fe5601e0f04b7d0c6c4da89b2d70c5428eb15133b47de603",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 1,
+      "name": "youtube-has",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "electron-private-1-youtube-has.png",
+      "arrivals": [
+        {
+          "url": "https://youtube.com/blanc-outcome",
+          "sha256": "e535bf573b581c2b550a1c7e01e648080a150ed8a3ba9c808f4a78ba967ea2fc",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 1,
+      "name": "procedural-text",
+      "outcome": {
+        "hidden": false,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": false,
+        "neutralVisible": true
+      },
+      "capture": "electron-private-1-procedural-text.png",
+      "arrivals": [
+        {
+          "url": "https://character.ai/blanc-outcome",
+          "sha256": "1fcb48773cf9322121f3ccc0a49d18b492b595ab2b87938c8b642f596f18999c",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 1,
+      "name": "scriptlet-first-script",
+      "outcome": {
+        "firstScriptGPC": false,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "firstScriptPatched": false,
+        "neutralVisible": true
+      },
+      "capture": "electron-private-1-scriptlet-first-script.png",
+      "arrivals": [
+        {
+          "url": "https://accuweather.com/blanc-outcome",
+          "sha256": "91e47544725e7c96770e9aa03eba53bf9945039b038691903704755ef4935878",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 1,
+      "name": "scriptlet-fetch",
+      "outcome": {
+        "target": "stella-response",
+        "neutral": "ordinary-response",
+        "done": true
+      },
+      "assertions": {
+        "targetDefused": false,
+        "neutralReturned": true,
+        "targetNotSent": false
+      },
+      "capture": "electron-private-1-scriptlet-fetch.png",
+      "arrivals": [
+        {
+          "url": "https://nicovideo.jp/blanc-outcome",
+          "sha256": "0d2001bf1ba5dfd40c6543e48d0818f26976fff0d8abe1dac79a2f54d1ea59ba",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://nicovideo.jp/stella-fixture",
+          "sha256": "33e15ea2aebe8ebdd316d16b70309341c21b9fb5387cbe89475ae37801e73839",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://nicovideo.jp/ordinary-fixture",
+          "sha256": "8578890a1d127920aa01e6f62ac5aa36ffa8aa1047ba27590ed7431d8a24b609",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "regular",
+      "repetition": 0,
+      "name": "css-important",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "chromium-regular-0-css-important.png",
+      "arrivals": [
+        {
+          "url": "https://cosmetic.example/blanc-outcome",
+          "sha256": "a60a694964a30b36fe5601e0f04b7d0c6c4da89b2d70c5428eb15133b47de603",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "regular",
+      "repetition": 0,
+      "name": "youtube-has",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "chromium-regular-0-youtube-has.png",
+      "arrivals": [
+        {
+          "url": "https://youtube.com/blanc-outcome",
+          "sha256": "e535bf573b581c2b550a1c7e01e648080a150ed8a3ba9c808f4a78ba967ea2fc",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "regular",
+      "repetition": 0,
+      "name": "procedural-text",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "chromium-regular-0-procedural-text.png",
+      "arrivals": [
+        {
+          "url": "https://character.ai/blanc-outcome",
+          "sha256": "1fcb48773cf9322121f3ccc0a49d18b492b595ab2b87938c8b642f596f18999c",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "regular",
+      "repetition": 0,
+      "name": "scriptlet-first-script",
+      "outcome": {
+        "firstScriptGPC": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "firstScriptPatched": true,
+        "neutralVisible": true
+      },
+      "capture": "chromium-regular-0-scriptlet-first-script.png",
+      "arrivals": [
+        {
+          "url": "https://accuweather.com/blanc-outcome",
+          "sha256": "91e47544725e7c96770e9aa03eba53bf9945039b038691903704755ef4935878",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "regular",
+      "repetition": 0,
+      "name": "scriptlet-fetch",
+      "outcome": {
+        "target": "",
+        "neutral": "ordinary-response",
+        "done": true
+      },
+      "assertions": {
+        "targetDefused": true,
+        "neutralReturned": true,
+        "targetNotSent": true
+      },
+      "capture": "chromium-regular-0-scriptlet-fetch.png",
+      "arrivals": [
+        {
+          "url": "https://nicovideo.jp/blanc-outcome",
+          "sha256": "0d2001bf1ba5dfd40c6543e48d0818f26976fff0d8abe1dac79a2f54d1ea59ba",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://nicovideo.jp/ordinary-fixture",
+          "sha256": "8578890a1d127920aa01e6f62ac5aa36ffa8aa1047ba27590ed7431d8a24b609",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "regular",
+      "repetition": 1,
+      "name": "css-important",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "chromium-regular-1-css-important.png",
+      "arrivals": [
+        {
+          "url": "https://cosmetic.example/blanc-outcome",
+          "sha256": "a60a694964a30b36fe5601e0f04b7d0c6c4da89b2d70c5428eb15133b47de603",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "regular",
+      "repetition": 1,
+      "name": "youtube-has",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "chromium-regular-1-youtube-has.png",
+      "arrivals": [
+        {
+          "url": "https://youtube.com/blanc-outcome",
+          "sha256": "e535bf573b581c2b550a1c7e01e648080a150ed8a3ba9c808f4a78ba967ea2fc",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "regular",
+      "repetition": 1,
+      "name": "procedural-text",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "chromium-regular-1-procedural-text.png",
+      "arrivals": [
+        {
+          "url": "https://character.ai/blanc-outcome",
+          "sha256": "1fcb48773cf9322121f3ccc0a49d18b492b595ab2b87938c8b642f596f18999c",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "regular",
+      "repetition": 1,
+      "name": "scriptlet-first-script",
+      "outcome": {
+        "firstScriptGPC": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "firstScriptPatched": true,
+        "neutralVisible": true
+      },
+      "capture": "chromium-regular-1-scriptlet-first-script.png",
+      "arrivals": [
+        {
+          "url": "https://accuweather.com/blanc-outcome",
+          "sha256": "91e47544725e7c96770e9aa03eba53bf9945039b038691903704755ef4935878",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "regular",
+      "repetition": 1,
+      "name": "scriptlet-fetch",
+      "outcome": {
+        "target": "",
+        "neutral": "ordinary-response",
+        "done": true
+      },
+      "assertions": {
+        "targetDefused": true,
+        "neutralReturned": true,
+        "targetNotSent": true
+      },
+      "capture": "chromium-regular-1-scriptlet-fetch.png",
+      "arrivals": [
+        {
+          "url": "https://nicovideo.jp/blanc-outcome",
+          "sha256": "0d2001bf1ba5dfd40c6543e48d0818f26976fff0d8abe1dac79a2f54d1ea59ba",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://nicovideo.jp/ordinary-fixture",
+          "sha256": "8578890a1d127920aa01e6f62ac5aa36ffa8aa1047ba27590ed7431d8a24b609",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "private",
+      "repetition": 0,
+      "name": "css-important",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "chromium-private-0-css-important.png",
+      "arrivals": [
+        {
+          "url": "https://cosmetic.example/blanc-outcome",
+          "sha256": "a60a694964a30b36fe5601e0f04b7d0c6c4da89b2d70c5428eb15133b47de603",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "private",
+      "repetition": 0,
+      "name": "youtube-has",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "chromium-private-0-youtube-has.png",
+      "arrivals": [
+        {
+          "url": "https://youtube.com/blanc-outcome",
+          "sha256": "e535bf573b581c2b550a1c7e01e648080a150ed8a3ba9c808f4a78ba967ea2fc",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "private",
+      "repetition": 0,
+      "name": "procedural-text",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "chromium-private-0-procedural-text.png",
+      "arrivals": [
+        {
+          "url": "https://character.ai/blanc-outcome",
+          "sha256": "1fcb48773cf9322121f3ccc0a49d18b492b595ab2b87938c8b642f596f18999c",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "private",
+      "repetition": 0,
+      "name": "scriptlet-first-script",
+      "outcome": {
+        "firstScriptGPC": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "firstScriptPatched": true,
+        "neutralVisible": true
+      },
+      "capture": "chromium-private-0-scriptlet-first-script.png",
+      "arrivals": [
+        {
+          "url": "https://accuweather.com/blanc-outcome",
+          "sha256": "91e47544725e7c96770e9aa03eba53bf9945039b038691903704755ef4935878",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "private",
+      "repetition": 0,
+      "name": "scriptlet-fetch",
+      "outcome": {
+        "target": "",
+        "neutral": "ordinary-response",
+        "done": true
+      },
+      "assertions": {
+        "targetDefused": true,
+        "neutralReturned": true,
+        "targetNotSent": true
+      },
+      "capture": "chromium-private-0-scriptlet-fetch.png",
+      "arrivals": [
+        {
+          "url": "https://nicovideo.jp/blanc-outcome",
+          "sha256": "0d2001bf1ba5dfd40c6543e48d0818f26976fff0d8abe1dac79a2f54d1ea59ba",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://nicovideo.jp/ordinary-fixture",
+          "sha256": "8578890a1d127920aa01e6f62ac5aa36ffa8aa1047ba27590ed7431d8a24b609",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "private",
+      "repetition": 1,
+      "name": "css-important",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "chromium-private-1-css-important.png",
+      "arrivals": [
+        {
+          "url": "https://cosmetic.example/blanc-outcome",
+          "sha256": "a60a694964a30b36fe5601e0f04b7d0c6c4da89b2d70c5428eb15133b47de603",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "private",
+      "repetition": 1,
+      "name": "youtube-has",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "chromium-private-1-youtube-has.png",
+      "arrivals": [
+        {
+          "url": "https://youtube.com/blanc-outcome",
+          "sha256": "e535bf573b581c2b550a1c7e01e648080a150ed8a3ba9c808f4a78ba967ea2fc",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "private",
+      "repetition": 1,
+      "name": "procedural-text",
+      "outcome": {
+        "hidden": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "targetHidden": true,
+        "neutralVisible": true
+      },
+      "capture": "chromium-private-1-procedural-text.png",
+      "arrivals": [
+        {
+          "url": "https://character.ai/blanc-outcome",
+          "sha256": "1fcb48773cf9322121f3ccc0a49d18b492b595ab2b87938c8b642f596f18999c",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "private",
+      "repetition": 1,
+      "name": "scriptlet-first-script",
+      "outcome": {
+        "firstScriptGPC": true,
+        "neutralVisible": true
+      },
+      "assertions": {
+        "firstScriptPatched": true,
+        "neutralVisible": true
+      },
+      "capture": "chromium-private-1-scriptlet-first-script.png",
+      "arrivals": [
+        {
+          "url": "https://accuweather.com/blanc-outcome",
+          "sha256": "91e47544725e7c96770e9aa03eba53bf9945039b038691903704755ef4935878",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    },
+    {
+      "browserKind": "chromium",
+      "kind": "private",
+      "repetition": 1,
+      "name": "scriptlet-fetch",
+      "outcome": {
+        "target": "",
+        "neutral": "ordinary-response",
+        "done": true
+      },
+      "assertions": {
+        "targetDefused": true,
+        "neutralReturned": true,
+        "targetNotSent": true
+      },
+      "capture": "chromium-private-1-scriptlet-fetch.png",
+      "arrivals": [
+        {
+          "url": "https://nicovideo.jp/blanc-outcome",
+          "sha256": "0d2001bf1ba5dfd40c6543e48d0818f26976fff0d8abe1dac79a2f54d1ea59ba",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://nicovideo.jp/ordinary-fixture",
+          "sha256": "8578890a1d127920aa01e6f62ac5aa36ffa8aa1047ba27590ed7431d8a24b609",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ]
+    }
+  ],
+  "differences": [
+    {
+      "kind": "regular",
+      "name": "procedural-text",
+      "electron": {
+        "hidden": false,
+        "neutralVisible": true
+      },
+      "chromium": {
+        "hidden": true,
+        "neutralVisible": true
+      }
+    },
+    {
+      "kind": "regular",
+      "name": "scriptlet-first-script",
+      "electron": {
+        "firstScriptGPC": false,
+        "neutralVisible": true
+      },
+      "chromium": {
+        "firstScriptGPC": true,
+        "neutralVisible": true
+      }
+    },
+    {
+      "kind": "regular",
+      "name": "scriptlet-fetch",
+      "electron": {
+        "target": "stella-response",
+        "neutral": "ordinary-response",
+        "done": true
+      },
+      "chromium": {
+        "target": "",
+        "neutral": "ordinary-response",
+        "done": true
+      }
+    },
+    {
+      "kind": "private",
+      "name": "procedural-text",
+      "electron": {
+        "hidden": false,
+        "neutralVisible": true
+      },
+      "chromium": {
+        "hidden": true,
+        "neutralVisible": true
+      }
+    },
+    {
+      "kind": "private",
+      "name": "scriptlet-first-script",
+      "electron": {
+        "firstScriptGPC": false,
+        "neutralVisible": true
+      },
+      "chromium": {
+        "firstScriptGPC": true,
+        "neutralVisible": true
+      }
+    },
+    {
+      "kind": "private",
+      "name": "scriptlet-fetch",
+      "electron": {
+        "target": "stella-response",
+        "neutral": "ordinary-response",
+        "done": true
+      },
+      "chromium": {
+        "target": "",
+        "neutral": "ordinary-response",
+        "done": true
+      }
+    }
+  ],
+  "failedAssertions": [
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 0,
+      "case": "procedural-text",
+      "assertion": "targetHidden"
+    },
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 0,
+      "case": "scriptlet-first-script",
+      "assertion": "firstScriptPatched"
+    },
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 0,
+      "case": "scriptlet-fetch",
+      "assertion": "targetDefused"
+    },
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 0,
+      "case": "scriptlet-fetch",
+      "assertion": "targetNotSent"
+    },
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 1,
+      "case": "procedural-text",
+      "assertion": "targetHidden"
+    },
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 1,
+      "case": "scriptlet-first-script",
+      "assertion": "firstScriptPatched"
+    },
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 1,
+      "case": "scriptlet-fetch",
+      "assertion": "targetDefused"
+    },
+    {
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 1,
+      "case": "scriptlet-fetch",
+      "assertion": "targetNotSent"
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 0,
+      "case": "procedural-text",
+      "assertion": "targetHidden"
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 0,
+      "case": "scriptlet-first-script",
+      "assertion": "firstScriptPatched"
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 0,
+      "case": "scriptlet-fetch",
+      "assertion": "targetDefused"
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 0,
+      "case": "scriptlet-fetch",
+      "assertion": "targetNotSent"
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 1,
+      "case": "procedural-text",
+      "assertion": "targetHidden"
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 1,
+      "case": "scriptlet-first-script",
+      "assertion": "firstScriptPatched"
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 1,
+      "case": "scriptlet-fetch",
+      "assertion": "targetDefused"
+    },
+    {
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 1,
+      "case": "scriptlet-fetch",
+      "assertion": "targetNotSent"
+    }
+  ],
+  "cleanup": true
+}
