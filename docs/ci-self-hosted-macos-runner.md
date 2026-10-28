@@ -58,6 +58,8 @@ Each job then starts from a clean macOS image and leaves nothing behind for the 
 4. **Labels:** `self-hosted`, `macOS`, `ARM64` and `blanc-ci`, the same as the direct install, so `MAC_RUNNER_LABELS` doesn't change.
 5. **Switching over.** Once a VM runner is online, the script retires a direct-install runner left by `scripts/ci-mac-runner-setup.sh`, waiting for it to finish any job it's running, and sets `MAC_RUNNER_LABELS` if it isn't set. If GitHub won't unregister it yet, `retire-direct` finishes the job later.
 
+**Accessibility for real key input.** The browser-shortcuts smoke drives Ctrl+Tab with real key events (`test/desktop/support/native-keys-mac.swift`, `CGEvent`), which macOS delivers only for processes allowed under System Settings → Privacy & Security → Accessibility. The runner starts every job's processes, so allow the runner itself: in the golden image, open System Settings (boot it with a display, `tart run blanc-ci-golden`), and add `~/actions-runner/bin/Runner.Listener` and `~/actions-runner/bin/Runner.Worker` under Accessibility. Then shut the VM down so the change is saved in the image. `rebuild-image` starts from the base image again, so repeat this after it. Without it the smoke fails on CI with *posting key events needs Accessibility permission*, and macOS can't join recent-order Ctrl+Tab (`recentOrderAvailable()` in `src/main/tab-switcher.js`).
+
 Day to day: `status` shows the loop, the VMs and the runners GitHub sees. `rebuild-image` refreshes the image with a newer macOS image or runner. `stop` and `start` pause the loop; jobs wait meanwhile. `uninstall` deletes the variable first, then the loop, the VMs and their runners. Logs are in `~/blanc-ci-vms`.
 
 ## Simpler but weaker: the runner directly on the Mac

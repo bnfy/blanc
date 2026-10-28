@@ -15,8 +15,9 @@ test('the setting has two orders and defaults to most recent', () => {
 
 test('recent order ships only where the Ctrl release is proven (D5)', () => {
   assert.equal(recentOrderAvailable('linux'), true);
-  assert.equal(recentOrderAvailable('win32'), false);
+  assert.equal(recentOrderAvailable('win32'), true);
   assert.equal(recentOrderAvailable('darwin'), false);
+  assert.equal(recentOrderAvailable('freebsd'), false);
 });
 
 test('order: current first, then history newest-first, then never-activated tabs in list order', () => {
