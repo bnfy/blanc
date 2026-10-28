@@ -1,6 +1,6 @@
 # Chromium property-rule grouping repair
 
-October 28, 2026. **Native repair verified; signed qualification pending. F12 and L12 remain open.**
+October 28, 2026. **Native repair and affected signed qualification verified. F12 and L12 remain open.**
 
 ## Reference comparison audit
 
@@ -22,4 +22,14 @@ The same durable workspace and unchanged compiler/SDK/build arguments were used.
 
 Reproduction fixtures are `../../fixtures/replay/synthetic/property-groups.mjs` and `property-groups-production.mjs`. Raw process logs and owned fixture profiles remain in the durable task evidence directory; no permanent profile or Google baseline was used. No third-party implementation code was imported.
 
-The previously signed source4a77b414/archive270c0848539f remains untouched and does **not** contain this repair. New signing/notarization and affected signed qualification remain outstanding. The original reference-parity differences, idle-host timing and measured operating inputs remain unresolved; no waiver or gate credit is requested.
+The previously signed source4a77b414/archive270c0848539f remains untouched and does **not** contain this repair. Replacement source `73217ee50b6f2e4eaa8eb8b27f75df8c2cff9bd2` is now signed and notarized; see below. The original reference-parity differences, idle-host timing and measured operating inputs remain unresolved; no waiver or gate credit is requested.
+
+## Signed replacement qualification
+
+Apple accepted submission `76253399-8a8f-4e06-8ef6-0ffea5422977`. The declared `Blanc Preview Launcher` passed all 26 regular and 26 private affected assertions; both browser exits were zero. Stapling, ticket validation, strict deep signature verification and Gatekeeper passed. All 458 frozen tested files remain unchanged; stapling added `Contents/CodeResources`.
+
+Archive: `Blanc-Chromium-Preview-157.0.8103.15-73217ee5-arm64.zip`, SHA-256 `c788b98acc46637fedcfe69c72159561471d569e12f3a8191a7b5c2b5182adfd`. The final report and raw validation log bind this archive to the signed source. Fresh checksum-manifest authentication is still outstanding; the older archive's Sigstore signature does not authenticate this replacement.
+
+Failed diagnostic attempts are retained in `harness-failed-attempts.json` and the durable raw directories it identifies. Initial runs incorrectly launched the internal Chromium executable, bypassing Preview initialization. Another diagnostic attempt observed health before readiness. Neither establishes a product regression. The fixture now checks CFBundleExecutable before launching, retains failure diagnostics, and uses the original readiness-before-health ordering. No assertion or protection was relaxed. The final 52 checks were not repeated after success.
+
+This closes the newly found grouped-property defect only. Literal reference outcome differences, the original idle-host timing requirement and measured rebase/cost inputs remain unresolved. L12 stays NO-GO; Electron remains paused and the Google baseline separate.
