@@ -1947,6 +1947,10 @@
       const setupIntro = document.getElementById('syncSetupIntro');
       const paths = document.getElementById('syncPaths');
       const pathStart = document.getElementById('syncPathStart');
+      const pathJoin = document.getElementById('syncPathJoin');
+      const turnOnRow = document.getElementById('syncTurnOnRow');
+      const turnOnBtn = document.getElementById('syncTurnOn');
+      const turnOnStatus = document.getElementById('syncTurnOnStatus');
       const form = document.getElementById('syncForm');
       const handleEl = document.getElementById('syncHandle');
       const passEl = document.getElementById('syncPassphrase');
@@ -2004,6 +2008,19 @@
       const switchNotice = document.getElementById('syncSwitchNotice');
       const recoveryCopy = document.getElementById('syncRecoveryCopy');
       const recoveryNote = document.getElementById('syncRecoveryNote');
+      const recoveryPrompt = document.getElementById('syncRecoveryPrompt');
+      const recoveryPromptCopy = document.getElementById('syncRecoveryPromptCopy');
+      const recoveryPromptNotNow = document.getElementById('syncRecoveryPromptNotNow');
+      const recoveryPromptNote = document.getElementById('syncRecoveryPromptNote');
+      // The sheet after the code is taken (design 2026-10-28 §6.4).
+      const pairingJoined = document.getElementById('syncPairingJoined');
+      const pairingJoinedTitle = document.getElementById('syncPairingJoinedTitle');
+      const pairingQuestion = document.getElementById('syncPairingQuestion');
+      const pairingSpacesOn = document.getElementById('syncPairingSpacesOn');
+      const pairingSpacesNotNow = document.getElementById('syncPairingSpacesNotNow');
+      const pairingRecovery = document.getElementById('syncPairingRecovery');
+      const pairingRecoveryCopy = document.getElementById('syncPairingRecoveryCopy');
+      const pairingDone = document.getElementById('syncPairingDone');
       // Redesign 2026-10-27: identity, status colour, the device list and the
       // Add device sheet.
       const avatar = document.getElementById('syncAvatar');
@@ -2016,6 +2033,7 @@
       const canWipeRemote = supports('syncWipeRemote');
       pathStart.hidden = !canCreate;
       startNewBtn.hidden = !canCreate;
+      turnOnRow.hidden = !canCreate;
       for (const anchor of [pathStart, startNewBtn]) {
         if (canCreate) continue;
         const note = document.createElement('p');
@@ -2028,6 +2046,9 @@
       switchWipe.closest('label').hidden = !canWipeRemote;
       const eraseRetry = document.getElementById('syncEraseRetry');
       let currentHandle = '';
+      // Shown on the device that started this sync without a passphrase until
+      // its recovery code is saved or the prompt dismissed (design 2026-10-28 §5.4).
+      let recoveryPromptWanted = false;
 
       // Devices are drawn, not named: a phone for iOS, a computer otherwise.
       const DEVICE_ICON_PATHS = {
@@ -2113,6 +2134,9 @@
           statusLine.dataset.state = status.lastError ? 'error' : (lastSynced ? 'ok' : 'pending');
           refreshDevices();
         }
+        recoveryPromptWanted = on && status.origin === 'generated' && !status.recoveryPromptDismissed;
+        recoveryPrompt.hidden = !recoveryPromptWanted;
+        renderPairing();
       }
 
       window.bowserPages.settings.onAppearance?.((state) => {
@@ -2151,6 +2175,8 @@
         submitRow.hidden = v.showNotFound;
         notFound.hidden = !v.showNotFound;
         setupStatus.textContent = v.noticeText;
+        turnOnBtn.disabled = v.turnOnDisabled;
+        turnOnStatus.textContent = model.phase === 'turning-on' ? t('settings.sync.turningOn') : v.turnOnNotice;
         if (handleEl.value !== model.handle) handleEl.value = model.handle;
         if (passEl.value !== model.passphrase) passEl.value = model.passphrase;
       }
@@ -2206,10 +2232,25 @@
         }
       }
 
+      async function performTurnOn(effect) {
+        let res;
+        try {
+          res = await window.bowserPages.settings.syncStartNew();
+        } catch {
+          res = { ok: false, message: t('settings.sync.checkFailed') };
+        }
+        const current = model.phase === 'turning-on' && model.token === effect.token;
+        dispatch({ type: 'turn-on-reply', token: effect.token, ok: res.ok, message: res.message });
+        // A first pass that didn't reach the server still leaves Sync on; its
+        // error is the status line's, not repeated here.
+        if (res.status) renderStatus(res.status, current && res.ok ? t('settings.sync.startedToast') : null);
+      }
+
       function dispatch(event) {
         const { state: next, effect } = transition(model, event);
         model = next;
         renderSetup();
+        if (effect?.type === 'turn-on') performTurnOn(effect);
         if (effect?.type === 'preflight') performPreflight(effect);
         if (effect?.type === 'enable') performEnable(effect);
         if (effect?.type === 'join-code') performJoinCode(effect);
@@ -2218,9 +2259,24 @@
       // --- On state: Add another device ---
       let pairingModel = createPairingModel();
       let pairingTimer = null;
+      let watching = false;
+      function setWatch(visible) {
+        const next = visible && document.visibilityState === 'visible';
+        if (next === watching) return;
+        watching = next;
+        window.bowserPages.settings.syncPairWatch(next).catch(() => {});
+      }
       function renderPairing() {
-        const pv = pairingView(pairingModel, Date.now());
+        const pv = pairingView(pairingModel, Date.now(), { recoveryPrompt: recoveryPromptWanted });
         pairingPanel.hidden = !pv.showing;
+        pairingJoined.hidden = !pv.joined;
+        if (pv.joined) {
+          pairingJoinedTitle.textContent = t('settings.sync.sheet.joined', { device: pv.joinedName || t(pv.joinedNameKey) });
+          pairingQuestion.hidden = !pv.askingSpaces;
+          pairingRecovery.hidden = !pv.recoveryLine;
+        }
+        pairingDialog.setAttribute('aria-labelledby', pv.joined ? 'syncPairingJoinedTitle' : 'syncPairingTitle');
+        setWatch(pv.showing);
         addDeviceBtn.hidden = !pv.beginVisible;
         addDeviceBtn.disabled = pairingModel.phase === 'starting';
         pairingCodeEl.textContent = pv.codeText;
@@ -2229,8 +2285,8 @@
         pairingNotice.hidden = !pairingNotice.textContent;
         // The code shows in a modal sheet; its notice (expired, failed) stays
         // in the Devices card, where it is still visible once the sheet closes.
-        if (pv.showing && !pairingDialog.open) pairingDialog.showModal();
-        if (!pv.showing && pairingDialog.open) pairingDialog.close();
+        if (pv.sheetOpen && !pairingDialog.open) pairingDialog.showModal();
+        if (!pv.sheetOpen && pairingDialog.open) pairingDialog.close();
         if (pv.showing && !pairingTimer) pairingTimer = setInterval(() => dispatchPairing({ type: 'tick', now: Date.now() }), 1000);
         if (!pv.showing && pairingTimer) { clearInterval(pairingTimer); pairingTimer = null; }
       }
@@ -2249,11 +2305,41 @@
         renderPairing();
         if (effect?.type === 'pair-begin') performPairBegin();
         if (effect?.type === 'pair-cancel') window.bowserPages.settings.syncPairCancel().catch(() => {});
+        if (effect?.type === 'spaces-acknowledge') window.bowserPages.settings.sharedSpacesAcknowledge(effect.deviceId).catch(() => {});
+        // Turn on answers the question the way the Settings notice does:
+        // acknowledge, then the Spaces switch opens its own sheet.
+        if (effect?.type === 'spaces-turn-on') {
+          // The sheet closes for the Spaces one; main forgets the join too.
+          window.bowserPages.settings.syncPairCancel().catch(() => {});
+          window.bowserPages.settings.sharedSpacesAcknowledge(effect.deviceId)
+            .then(() => document.getElementById('sharedSpacesToggle')?.click())
+            .catch(() => {});
+        }
       }
+      // The device that took the code arrived; ask the Spaces question only
+      // when M16 would (this desktop's switch off, the question still open).
+      window.bowserPages.settings.onSyncPairJoined(async (device) => {
+        dispatchPairing({ type: 'joined', name: device?.name, platform: device?.platform });
+        refreshDevices();
+        let question = null;
+        try {
+          const shared = await window.bowserPages.settings.sharedSpacesStatus?.();
+          if (shared?.offered && !shared.enabled) question = shared.question?.deviceId ?? null;
+        } catch { /* no question */ }
+        dispatchPairing({ type: 'question', deviceId: question });
+      });
+      document.addEventListener('visibilitychange', () => setWatch(pairingModel.phase === 'showing'));
+      window.addEventListener('pagehide', () => setWatch(false));
+      pairingDone.addEventListener('click', () => dispatchPairing({ type: 'done' }));
+      pairingSpacesOn.addEventListener('click', () => dispatchPairing({ type: 'spaces-answer', answer: 'on' }));
+      pairingSpacesNotNow.addEventListener('click', () => dispatchPairing({ type: 'spaces-answer', answer: 'not-now' }));
       addDeviceBtn.addEventListener('click', () => dispatchPairing({ type: 'begin' }));
       pairingCancel.addEventListener('click', () => dispatchPairing({ type: 'cancel' }));
       // Esc on the sheet is Cancel: the model ends the code and closes it.
-      pairingDialog.addEventListener('cancel', (event) => { event.preventDefault(); dispatchPairing({ type: 'cancel' }); });
+      pairingDialog.addEventListener('cancel', (event) => {
+        event.preventDefault();
+        dispatchPairing({ type: pairingModel.phase === 'joined' ? 'done' : 'cancel' });
+      });
       pairingCopy.addEventListener('click', () => {
         // The pairing code is the one secret meant to travel; the recovery
         // code never passes through this page.
@@ -2309,19 +2395,32 @@
       switchForm.addEventListener('submit', (e) => { e.preventDefault(); dispatchSwitch({ type: 'submit' }); });
 
       // --- On state: Copy recovery code (main shows the dialog and writes the clipboard) ---
-      recoveryCopy.addEventListener('click', async () => {
-        recoveryCopy.disabled = true;
+      async function copyRecovery(button, note) {
+        button.disabled = true;
         let res;
         try {
           res = await window.bowserPages.settings.syncRecoveryCodeCopy();
         } catch {
           res = { ok: false };
         }
-        recoveryCopy.disabled = false;
-        recoveryNote.textContent = res.ok ? t('settings.sync.recovery.copied') : (res.error === 'cancelled' ? '' : (res.message ?? ''));
+        button.disabled = false;
+        note.textContent = res.ok ? t('settings.sync.recovery.copied') : (res.error === 'cancelled' ? '' : (res.message ?? ''));
+        // A saved code retires the prompt (main records it).
+        if (res.ok) window.bowserPages.settings.syncGet().then((status) => renderStatus(status)).catch(() => {});
+      }
+      recoveryCopy.addEventListener('click', () => copyRecovery(recoveryCopy, recoveryNote));
+      recoveryPromptCopy.addEventListener('click', () => copyRecovery(recoveryPromptCopy, recoveryPromptNote));
+      pairingRecoveryCopy.addEventListener('click', () => copyRecovery(pairingRecoveryCopy, recoveryNote));
+      recoveryPromptNotNow.addEventListener('click', async () => {
+        await window.bowserPages.settings.syncRecoveryPromptDismiss().catch(() => {});
+        recoveryPromptWanted = false;
+        recoveryPrompt.hidden = true;
+        renderPairing();
       });
 
       pathStart.addEventListener('click', () => { if (!canCreate) return; dispatch({ type: 'choose', path: 'start' }); handleEl.focus(); });
+      pathJoin.addEventListener('click', () => { dispatch({ type: 'choose', path: 'join' }); handleEl.focus(); });
+      turnOnBtn.addEventListener('click', () => { if (canCreate) dispatch({ type: 'turn-on' }); });
       pathCode.addEventListener('click', () => { dispatch({ type: 'choose', path: 'code' }); codeEl.focus(); });
       backBtn.addEventListener('click', () => dispatch({ type: 'back' }));
       codeBack.addEventListener('click', () => dispatch({ type: 'back' }));

@@ -55,6 +55,7 @@ struct ContentView: View {
         .fullScreenCover(isPresented: $showTabGrid) {
             TabGridView(manager: manager)
         }
+        .onChange(of: manager.incomingLinkCount) { showTabGrid = false }
         .sheet(item: Binding(get: { manager.settingsDestination }, set: { manager.settingsDestination = $0 })) { destination in
             SettingsSheet(manager: manager, destination: destination)
         }

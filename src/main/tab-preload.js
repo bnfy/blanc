@@ -283,6 +283,12 @@ if (window.location.protocol === 'blanc:') {
         syncJoinCode: (code) => invoke('pages:settings:sync-join-code', code),
         syncSwitchCode: (payload) => invoke('pages:settings:sync-switch-code', payload),
         syncRecoveryCodeCopy: () => invoke('pages:settings:sync-recovery-code-copy'),
+        syncStartNew: () => invoke('pages:settings:sync-start-new'),
+        syncRecoveryPromptDismiss: () => invoke('pages:settings:sync-recovery-prompt-dismiss'),
+        syncPairWatch: (visible) => invoke('pages:settings:sync-pair-watch', visible),
+        onSyncPairJoined: (callback) => {
+          ipcRenderer.on('pages:settings:sync-pair-joined', (_event, device) => callback(device));
+        },
         welcomeTour: () => invoke('pages:settings:welcome-tour'),
         onePasswordStatus: () => invoke('pages:settings:onepassword-status'),
         onePasswordVerify: (account) => invoke('pages:settings:onepassword-verify', account),

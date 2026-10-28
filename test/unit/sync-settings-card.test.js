@@ -17,19 +17,25 @@ test('Sync is the second Settings group in nav and content order', () => {
   assert.deepEqual(sectionOrder.slice(0, 2), ['general', 'sync']);
 });
 
-test('the off state offers two explicit paths and a not-found choice', () => {
+test('the off state leads with Turn on Sync, then the code path, then Other ways, and keeps the not-found choice', () => {
   const html = read('src/renderer/pages/settings.html');
-  // Design 2026-10-16 §4.2: adding a device with a code comes first; the
-  // name-and-passphrase join path is reached from inside that step.
-  assert.match(html, /id="syncPathCode"[\s\S]{0,900}?Add this device to my sync/);
-  assert.match(html, /id="syncPathStart"[\s\S]{0,900}?Start syncing from this device/);
+  // Design 2026-10-28 §5.2: Turn on Sync needs no name or passphrase; adding
+  // a device with a code sits right under it; both name-and-passphrase paths
+  // are one level deeper, under Other ways.
+  assert.match(html, /<button id="syncTurnOn" type="button">Turn on Sync<\/button>/);
+  assert.ok(html.indexOf('id="syncTurnOn"') < html.indexOf('id="syncPathCode"'));
+  assert.match(html, /Already sync on another device\?[\s\S]{0,200}?id="syncPathCode"[\s\S]{0,900}?Add this device with a code/);
+  const other = html.slice(html.indexOf('<details class="sync-other-ways" id="syncOtherWays">'), html.indexOf('</details>', html.indexOf('id="syncOtherWays"')));
+  assert.match(other, /<summary>Other ways<\/summary>/);
+  assert.match(other, /id="syncPathJoin"[\s\S]{0,300}?Use a sync name and passphrase/);
+  assert.match(other, /id="syncPathStart"[\s\S]{0,300}?Start with a name and passphrase[\s\S]{0,300}?Only for your first device/);
   assert.ok(html.indexOf('id="syncPathCode"') < html.indexOf('id="syncPathStart"'));
   assert.match(html, /id="syncUsePassphrase"[\s\S]{0,200}?Use my sync name and passphrase instead/);
   assert.match(html, /<button id="syncTryAgain" type="button">Try again<\/button>/);
   assert.match(html, /<button id="syncStartNew" type="button" class="quiet">Start a new sync with these<\/button>/);
   assert.match(html, /Nothing was found under that name and passphrase\. Check for typos, including capital letters, then try again\./);
-  assert.match(html, /Sync your favorites, settings and device names across your devices, and, if you choose, open tabs\.\s+Everything is end-to-end encrypted/);
-  assert.match(html, /Blanc can’t read it/);
+  assert.match(html, /<h3 id="syncSetupTitle">Sync your Blanc<\/h3>/);
+  assert.match(html, /Favorites, settings and, if you choose, open tabs, end-to-end encrypted\./);
   assert.doesNotMatch(html, /can recover|tamper|never lose/i);
 });
 
@@ -108,7 +114,8 @@ test('the visual redesign preserves every established on-state control and handl
   assert.match(html, /<button id="syncAddDevice" type="button" class="sync-add">Add device<\/button>/);
   // More options: each rarer action is a row with a short button that a screen
   // reader announces with the row's label and hint.
-  const more = html.slice(html.indexOf('<details class="settings-card sync-more">'), html.indexOf('</details>'));
+  const moreAt = html.indexOf('<details class="settings-card sync-more">');
+  const more = html.slice(moreAt, html.indexOf('</details>', moreAt));
   assert.match(more, /<span class="sync-more-title">More options<\/span>/);
   assert.match(more, /<span id="syncSwitchLabel">Connect to a different sync with a code<\/span>[\s\S]{0,400}?<button id="syncSwitchOpen" type="button" aria-describedby="syncSwitchLabel syncSwitchHint">Enter code<\/button>/);
   assert.match(more, /<span id="syncRecoveryLabel">Recovery code<\/span>[\s\S]{0,500}?<button id="syncRecoveryCopy" type="button" aria-describedby="syncRecoveryLabel syncRecoveryHint">Copy<\/button>/);
@@ -118,8 +125,10 @@ test('the visual redesign preserves every established on-state control and handl
   // so an expired or failed code is still explained after the sheet closes.
   assert.match(html, /<dialog class="sync-sheet" id="syncPairingDialog" aria-labelledby="syncPairingTitle">\s*<div id="syncPairing" class="sync-pairing" hidden>/);
   assert.ok(html.indexOf('id="syncPairingNotice"') < html.indexOf('id="syncPairingDialog"'));
-  assert.match(js, /if \(pv\.showing && !pairingDialog\.open\) pairingDialog\.showModal\(\);\s*if \(!pv\.showing && pairingDialog\.open\) pairingDialog\.close\(\);/);
-  assert.match(js, /pairingDialog\.addEventListener\('cancel', \(event\) => \{ event\.preventDefault\(\); dispatchPairing\(\{ type: 'cancel' \}\); \}\);/);
+  // Design 2026-10-28 §6.4: the sheet stays open from the code through the
+  // joined state; Esc is Cancel while a code shows and Done once it's taken.
+  assert.match(js, /if \(pv\.sheetOpen && !pairingDialog\.open\) pairingDialog\.showModal\(\);\s*if \(!pv\.sheetOpen && pairingDialog\.open\) pairingDialog\.close\(\);/);
+  assert.match(js, /pairingDialog\.addEventListener\('cancel', \(event\) => \{\s*event\.preventDefault\(\);\s*dispatchPairing\(\{ type: pairingModel\.phase === 'joined' \? 'done' : 'cancel' \}\);\s*\}\);/);
 
   assert.match(js, /nowBtn\.addEventListener\('click',[\s\S]*?settings\.syncNow\(\)/);
   assert.match(js, /disableBtn\.addEventListener\('click', \(\) => turnOff\(canWipeRemote && wipeEl\.checked\)\)/);

@@ -69,6 +69,32 @@ function unwrapSecret(wrapKey, blob) {
   return validatePayload(parsed);
 }
 
+// The QR's link (design 2026-10-28 §7.3). The code rides in the fragment,
+// which no browser sends to a server; Blanc reads it locally and never loads
+// the link. Exactly this shape, so a near miss is never mistaken for a code.
+const PAIR_LINK = 'https://blanc.day/pair#';
+
+function pairLink(code) {
+  if (normalizeCode(code) !== code) throw INVALID();
+  return PAIR_LINK + code;
+}
+
+/** The normalized code a pair link carries, or null. URL parsing hides an
+ * explicit default port and an empty query, so the raw text is checked too. */
+function pairLinkCode(input) {
+  if (typeof input !== 'string') return null;
+  let url;
+  try {
+    url = new URL(input);
+  } catch {
+    return null;
+  }
+  const authority = input.trim().replace(/^https:\/\//i, '').split(/[/?#]/)[0];
+  if (url.protocol !== 'https:' || authority.toLowerCase() !== 'blanc.day' || url.pathname !== '/pair'
+    || url.search !== '' || input.includes('?') || !url.hash) return null;
+  return normalizeCode(url.hash.slice(1));
+}
+
 const isRecoveryCode = (input) => typeof input === 'string' && input.trim().startsWith('blanc-sync:');
 
 const encodeRecoveryCode = (payload) =>
@@ -91,4 +117,5 @@ module.exports = {
   generateCode, normalizeCode, formatCode, pairingMaterial,
   validatePayload, wrapSecret, unwrapSecret,
   isRecoveryCode, encodeRecoveryCode, decodeRecoveryCode,
+  pairLink, pairLinkCode,
 };

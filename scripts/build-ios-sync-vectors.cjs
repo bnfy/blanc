@@ -233,6 +233,8 @@ try {
   const relayResult=spaces.pushPlan({...relayInput,encryptFn:t=>crypt.encrypt(Buffer.alloc(32),t)});
   vectors.spacesRelay=[entry('unknown field, incomplete record and uninterpretable newer value are relayed',relayInput,
     {...relayResult,recover:[...relayResult.recover],unsynced:[...relayResult.unsynced]})];
+  // Pair links (design 2026-10-28 §7.3): one case table for both platforms.
+  vectors.pairLinks=require('../test/unit/fixtures/pair-link-cases.json').cases.map(({name,input})=>entry(name,input,pair.pairLinkCode(input)));
   const output=JSON.stringify(vectors,null,2)+'\n';
   if (process.argv.includes('--write')) { fs.mkdirSync(path.dirname(dest),{recursive:true}); fs.writeFileSync(dest,output); }
   else if (fs.readFileSync(dest,'utf8') !== output) { throw new Error('iOS sync vectors are stale; run npm run ios:sync-vectors:build'); }

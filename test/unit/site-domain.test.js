@@ -108,6 +108,12 @@ test('current docs and the tab-import companions name blanc.day', async () => {
   assert.deepEqual(manifest.host_permissions, ['https://tabs.blancbrowser.com/*']);
 });
 
+// A link the browser only parses until its page ships. /pair is the QR's
+// link (design 2026-10-28 §7.3): Blanc reads the code from its fragment and
+// never loads it. Nothing shows the QR while IPHONE_PAIRING_FROM is null, and
+// the website PR that builds site/src/pages/pair.astro removes this entry.
+const NOT_YET_BUILT = new Set(['/pair']);
+
 test('every blanc.day link in the browser opens a page the site builds, not a legacy redirect', () => {
   const legacy = JSON.parse(read('site/src/data/legacy-routes.json'));
   const links = new Set();
@@ -118,6 +124,10 @@ test('every blanc.day link in the browser opens a page the site builds, not a le
   for (const pathname of links) {
     const page = pathname === '/' ? 'index' : pathname.replace(/^\/|\/$/g, '');
     const built = ['.astro', '/index.astro'].some((ext) => fs.existsSync(path.join(ROOT, 'site/src/pages', page + ext)));
+    if (NOT_YET_BUILT.has(pathname)) {
+      assert.equal(built, false, `${pathname} is built now: remove it from NOT_YET_BUILT`);
+      continue;
+    }
     assert.ok(built, `${pathname} is not a site page`);
     assert.equal(legacy[pathname.replace(/\/$/, '')], undefined, `${pathname} is a legacy redirect`);
   }

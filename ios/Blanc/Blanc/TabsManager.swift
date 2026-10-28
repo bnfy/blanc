@@ -361,6 +361,20 @@ final class TabsManager {
         createTab(url: url, isPrivate: activeTab?.isPrivate ?? false)
     }
 
+    /// Counts links opened from other apps; ContentView closes the tab grid on
+    /// each, so the page shows.
+    private(set) var incomingLinkCount = 0
+
+    /// A link from another app (`IncomingLinks`): a new ordinary tab, never
+    /// private, made current over whatever sheet was open.
+    func openIncomingLink(_ url: URL) {
+        isPalettePresented = false
+        isWallpaperPickerPresented = false
+        settingsDestination = nil
+        createTab(url: url, isPrivate: false)
+        incomingLinkCount += 1
+    }
+
     /// Only an ordinary web page can be sent to another device (desktop's
     /// `canSendTab`).
     func canSend(_ tab: TabModel) -> Bool {
