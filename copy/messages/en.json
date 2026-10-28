@@ -8710,7 +8710,7 @@
     "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
   "sharedSpaces.accountFull": {
-    "message": "Spaces sync storage is full. Delete a Space to free its content storage. Deleted Spaces still count toward the Space limit for 30 days.",
+    "message": "Spaces sync storage is full. Delete a Space to free its content storage. A deleted Space keeps a small record in sync storage for 30 days.",
     "note": "Explains the account-wide encrypted storage quota and a recovery action."
   },
   "sharedSpaces.unavailable": {

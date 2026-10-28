@@ -2397,7 +2397,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="shared_spaces_rejoin">Rejoindre à nouveau</string>
     <string name="shared_spaces_copy">Ajouter une copie</string>
     <string name="shared_spaces_full">Ce Space est trop volumineux. Divisez-le d’abord en Spaces plus petits.</string>
-    <string name="shared_spaces_account_full">Le stockage de synchronisation des Spaces est plein. Supprimez un Space pour libérer le stockage de son contenu. Les Spaces supprimés comptent encore dans la limite des Spaces pendant 30 jours.</string>
+    <string name="shared_spaces_account_full">Le stockage de synchronisation des Spaces est plein. Supprimez un Space pour libérer le stockage de son contenu. Un Space supprimé conserve un petit enregistrement dans le stockage de synchronisation pendant 30 jours.</string>
     <string name="shared_spaces_unavailable">La synchronisation des Spaces est indisponible. Les favoris, les réglages, les onglets ouverts et Envoyer à un appareil restent disponibles.</string>
     <string name="shared_spaces_recovery_name">%1$s · conservé sur cet appareil</string>
     <string name="shared_spaces_shared">Partagé</string>
