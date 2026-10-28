@@ -5,6 +5,75 @@
   ],
   "pages": [
     {
+      "release": "1.45",
+      "highlights": [
+        {
+          "id": "shared-spaces",
+          "tile": "Shared Spaces",
+          "title": "Keep your Spaces the same on every computer",
+          "body": "Choose Spaces to share, and their open tabs, tab names, groups and pinned tabs match on each computer that has it turned on. A change on one appears on the others, end-to-end encrypted like the rest of Sync. The page you’re looking at never changes under you: a change from another device waits until you leave that tab. A tab you close in a shared Space closes on your other computers too, and their Recently closed says which computer it was closed on.",
+          "steps": [
+            "With Sync on, open Settings, then Sync.",
+            "Under What syncs, turn on Spaces and groups and choose your Spaces. Do the same on each computer."
+          ],
+          "note": "It’s off by default and belongs to the Personal profile. Private tabs, internal pages and local files never sync. Up to 25 Spaces can be shared; a deleted Space still uses sync storage for 30 days.",
+          "media": {
+            "kind": "todo",
+            "todo": "Capture: Settings → Sync with Spaces and groups on and the Choose Spaces sheet open (neutral sites, disposable account). Owner sign-off on it and on this text.",
+            "candidates": []
+          }
+        },
+        {
+          "id": "connect-your-iphone",
+          "tile": "iPhone pairing",
+          "title": "Pair Blanc for iPhone by scanning a code",
+          "body": "Blanc for iPhone is in a public beta on TestFlight. Your computer shows a code, your iPhone scans it, and it joins your Sync, so your Favorites and your other devices’ tabs come with you.",
+          "steps": [
+            "In Settings → Sync, choose Connect your iPhone. It’s also in the Start Page’s Finish setup list.",
+            "On your iPhone, open Blanc, choose Pair with your Blanc and point it at the code."
+          ],
+          "note": "If Sync isn’t on yet, Blanc asks before turning it on. When Sync is on, Add device shows the same code.",
+          "media": {
+            "kind": "todo",
+            "todo": "Capture: the Connect your iPhone sheet with its QR (disposable account; the code expires, but blur nothing — use an expired or cancelled code). Owner sign-off on it and on this text.",
+            "candidates": []
+          }
+        },
+        {
+          "id": "turn-on-sync-without-a-passphrase",
+          "tile": "Easy Sync",
+          "title": "Turn on Sync with nothing to remember",
+          "body": "Turn on Sync starts syncing this computer straight away, with no name or passphrase to make up. Add your other devices with a short code, and the sheet tells you when one has joined.",
+          "steps": [
+            "Open Settings → Sync and choose Turn on Sync.",
+            "To add a device, choose Add device and enter the code on the other device with Add this device with a code."
+          ],
+          "note": "Keep the recovery code Blanc offers in your password manager: without a passphrase, it’s the only way back to your synced data if you lose all your devices. A sync name and passphrase are still under Other ways.",
+          "media": {
+            "kind": "todo",
+            "todo": "Capture: Settings → Sync off state with Turn on Sync and Add this device with a code. Owner sign-off on it and on this text.",
+            "candidates": []
+          }
+        },
+        {
+          "id": "play-the-sunrise-when-blanc-opens",
+          "tile": "Sunrise",
+          "title": "Start the day with the Sunrise",
+          "body": "Turn it on, and the first Start Page after Blanc opens plays the Sunrise once, over the page as it already looks. Any click or key ends it.",
+          "steps": [
+            "Open Settings → Appearance and turn on Play the Sunrise when Blanc opens."
+          ],
+          "note": "It’s off by default, set on each device, and skipped when your system reduces motion.",
+          "learnMore": "/features/start-page",
+          "media": {
+            "kind": "todo",
+            "todo": "Capture: a short video or a mid-animation frame of the Sunrise over the Start Page. Owner sign-off on it and on this text.",
+            "candidates": []
+          }
+        }
+      ]
+    },
+    {
       "release": "1.44",
       "highlights": [
         {
