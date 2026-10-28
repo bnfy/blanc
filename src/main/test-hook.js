@@ -3692,6 +3692,18 @@ function install(refs) {
           connectDisabled: !!byId('syncCodeSubmit')?.disabled,
           codeValue: byId('syncCode')?.value ?? '',
           status: byId('syncCodeStatus')?.textContent ?? '',
+          // Design 2026-10-28: Turn on Sync, Other ways, the on state and the sheet.
+          turnOnVisible: visible(byId('syncTurnOn')),
+          firstPath: document.querySelector('#syncPaths button')?.id ?? '',
+          otherWays: [...document.querySelectorAll('#syncOtherWays .sync-path')].map((b) => b.id),
+          syncOn: visible(byId('syncActive')),
+          handle: byId('syncStatusHandle')?.textContent ?? '',
+          recoveryPromptVisible: visible(byId('syncRecoveryPrompt')),
+          sheetOpen: !!byId('syncPairingDialog')?.open,
+          sheetCode: byId('syncPairingDialog')?.open && !byId('syncPairing')?.hidden ? (byId('syncPairingCode')?.textContent ?? '') : '',
+          joinedTitle: byId('syncPairingDialog')?.open && !byId('syncPairingJoined')?.hidden ? (byId('syncPairingJoinedTitle')?.textContent ?? '') : '',
+          askingSpaces: !!byId('syncPairingDialog')?.open && !byId('syncPairingQuestion')?.hidden && !byId('syncPairingJoined')?.hidden,
+          doneVisible: !!byId('syncPairingDialog')?.open && !byId('syncPairingJoined')?.hidden,
         };
       })()`);
     },
@@ -3704,6 +3716,9 @@ function install(refs) {
         if (action === 'choose-code') { document.getElementById('syncPathCode').click(); return true; }
         if (action === 'use-passphrase') { document.getElementById('syncUsePassphrase').click(); return true; }
         if (action === 'back') { document.getElementById('syncCodeBack').click(); return true; }
+        if (action === 'turn-on') { document.getElementById('syncTurnOn').click(); return true; }
+        if (action === 'add-device') { document.getElementById('syncAddDevice').click(); return true; }
+        if (action === 'spaces-not-now') { document.getElementById('syncPairingSpacesNotNow').click(); return true; }
         if (action === 'type-code') {
           const input = document.getElementById('syncCode');
           input.value = value;
