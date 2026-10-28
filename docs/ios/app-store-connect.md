@@ -16,7 +16,7 @@ account or decision; the exact next step is given).
 | 1 | Apple Developer Program membership | done | Team `XYGUCY4498` (Anthony Loria), active. The updated Program License Agreement (deadline 2026-10-28) was accepted by the owner on 2026-10-28. |
 | 2 | Paid Applications Schedule | **owner** | App Store Connect → Business shows the updated schedule waiting for the Account Holder. Not needed for a free app on TestFlight, but App Store Connect says new apps can't be *submitted* to the App Store (and existing apps can't be updated) until it's accepted. Next step: accept it in Business before the 1.0 submission. |
 | 3 | Explicit App ID | done | `me.bnfy.blanc`, description "Blanc", registered 2026-10-28 (portal id `AH26QN742H`). Only the default In-App Purchase capability is on. Development builds still use Xcode's wildcard team profile; App Store builds use the explicit ID. |
-| 4 | Default-browser entitlement (`com.apple.developer.web-browser`) | **owner**, after a **missing** change | Not requested yet. Apple's form asks the developer to confirm the app declares the `http` and `https` schemes in Info.plist, which it doesn't yet, and the app doesn't open links from other apps yet. The owner chose (2026-10-28) to land that small change first, then file. Next step: after that PR merges, submit the form at <https://developer.apple.com/contact/request/default-browser-entitlement/> with the answers and text below. 1.0 ships only once Apple grants it (§8). When granted: turn on Default Web Browser for `me.bnfy.blanc` in the portal and add the key to `ios/Blanc/Blanc.entitlements` in the same change. |
+| 4 | Default-browser entitlement (`com.apple.developer.web-browser`) | **owner** (waiting on Apple) | Requested 2026-10-28 by the owner, Request ID `8P7TL5BJK4`, with the answers and text below; Apple says it will reply by email. It was filed while TestFlight held only build 0.1.0 (202610281506), which predates this change, so upload a new build once it merges. The prerequisites Apple's form asks the developer to confirm are met: `ios/Blanc/Info.plist` declares the `http` and `https` URL schemes (role Viewer, merged into the generated Info.plist through `INFOPLIST_FILE`), and the app opens a link from another app in a new, ordinary tab that becomes current (`IncomingLinks`; a link that arrives on a cold launch before the tabs exist waits and then opens). Checked on the simulator on 2026-10-28 with `xcrun simctl openurl`, from a cold launch and from the background (a local-only simulator build carrying the entitlement, so Blanc could be picked under Settings → Apps → Default Apps; `simctl openurl` otherwise goes to Safari), and by `IncomingLinkUITests` in CI. Next step: wait for Apple's reply. 1.0 ships only once Apple grants it (§8). When granted: turn on Default Web Browser for `me.bnfy.blanc` in the portal and add the key to `ios/Blanc/Blanc.entitlements` in the same change. |
 | 5 | Passkeys | done (correction) | The entitlement Apple assigned on 2026-09-22 is **Web Browser Public Key Credential Requests** (`com.apple.developer.web-browser.public-key-credential`). The portal lists it as **macOS only**, enabled on `me.bnfy.bowser`, the desktop app's ID. It doesn't apply to the iPhone app and can't be enabled on `me.bnfy.blanc`. On iOS, passkeys for any site inside `WKWebView` come with the default-browser entitlement (item 4), so F24 depends on that grant. Verify on a real iPhone once it's granted. |
 | 6 | Entitlements file | done | `ios/Blanc/Blanc.entitlements`, wired as `CODE_SIGN_ENTITLEMENTS` for Debug and Release. Empty until item 4 is granted: a managed entitlement that the App ID doesn't carry makes signing fail. |
 | 7 | Distribution certificate | done | Signing uses Apple's cloud-managed **Apple Distribution** certificate (exists on the team, expires 2027-06-07); nothing is installed on this Mac. The two older "iOS Distribution" certificates belong to Expo builds of other apps; leave them. |
@@ -61,8 +61,8 @@ different sync with a code**.
 
 Apple's form at <https://developer.apple.com/contact/request/default-browser-entitlement/>,
 read on 2026-10-28 (it needs the latest Program License Agreement accepted,
-which it now is). File it only once the app declares `http` and `https` and
-opens links from other apps (item 4).
+which it now is). Filed on 2026-10-28 with exactly these answers (Request ID
+`8P7TL5BJK4`).
 
 - **Requirement checkboxes:** all true at that point. No `UIWebView`
   (`WKWebView` only). The Island's address and search field is there at
@@ -71,7 +71,11 @@ opens links from other apps (item 4).
   it as served.
 - **App Name:** Blanc · **Bundle ID:** `me.bnfy.blanc`
 - **Built for iOS, iPadOS, or visionOS:** I confirm
+- **Website:** <https://blanc.day> (name, email and team come prefilled from
+  the account)
 - **Already available in the App Store or elsewhere:** No (TestFlight only)
+- **Available on TestFlight with a public link:** No (it then asks; only the
+  internal group exists)
 - **Browser App Installation (EU):** No
 - **Other details:**
 
