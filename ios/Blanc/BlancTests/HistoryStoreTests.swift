@@ -31,6 +31,14 @@ import XCTest
     h.updateTitle(url: url("https://a.test/"), title: "A, renamed")
     XCTAssertEqual(h.entries.first?.title, "A, renamed")
   }
+  /// A pair link's fragment is a live pairing code (design 2026-10-28 §7.3).
+  func testPairLinkRecordedWithoutFragment() {
+    let h = store()
+    h.addVisit(url: url("https://blanc.day/pair#K7MR4PX2"), title: "Pair")
+    XCTAssertEqual(h.entries.map(\.url), ["https://blanc.day/pair"])
+    h.addVisit(url: url("https://example.com/a#b"), title: "A")
+    XCTAssertEqual(h.entries.first?.url, "https://example.com/a#b", "other fragments stay")
+  }
   func testIgnoresNonHTTP() {
     let h = store()
     h.addVisit(url: url("blanc://newtab/"), title: "New Tab")

@@ -86,8 +86,23 @@ final class SettingsUITests: XCTestCase {
         app.buttons["Remove site: example.com"].tap()
         XCTAssertFalse(app.buttons["Remove site: example.com"].exists)
     }
+    /// Pair with your Blanc leads (design 2026-10-28 §7.1); a simulator has no
+    /// camera to scan with, so it lands on the code field with a hint.
+    func testPairWithBlancLeadsAndFallsBackToTheCodeField() {
+        open("/sync")
+        let pair = app.buttons["settings.pairWithBlanc"]
+        XCTAssertTrue(pair.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.descendants(matching: .any)["settings.syncCode"].exists, "other ways wait one level deeper")
+        capture("Native Settings — Sync off, Pair with your Blanc")
+        pair.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["settings.syncCode"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Type the code shown on your computer."].exists)
+        app.swipeUp()
+        XCTAssertTrue(app.descendants(matching: .any)["settings.syncHandle"].waitForExistence(timeout: 5), "the passphrase path is there too")
+    }
     func testSyncPairingAndDisconnectConfirmation() {
         open("/sync")
+        tap("settings.otherWays")
         let code = app.textViews["settings.syncCode"]
         // TextField(axis: .vertical) is exposed as a text view on current iOS.
         let input = code.exists ? code : app.textFields["settings.syncCode"]
@@ -102,7 +117,7 @@ final class SettingsUITests: XCTestCase {
         app.alerts.buttons["Cancel"].tap()
         XCTAssertTrue(app.switches["settings.shareTabs"].exists)
         tap("settings.disconnect"); app.alerts.buttons["Disconnect"].tap()
-        XCTAssertTrue(app.descendants(matching: .any)["settings.syncCode"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["settings.pairWithBlanc"].waitForExistence(timeout: 10))
     }
     func testBlockingPopoverOpensNativePrivacySheet() {
         open(); tap("settings.privacy")
@@ -149,6 +164,7 @@ final class SettingsUITests: XCTestCase {
     func testSyncFailureRemainsRetryable() {
         app.terminate(); launch(reset: true, extra: ["-BlancUITestSettingsOffline"])
         open("/sync")
+        tap("settings.otherWays")
         let code = app.textViews["settings.syncCode"]
         let input = code.exists ? code : app.textFields["settings.syncCode"]
         input.tap(); input.typeText("K7MR-4PX2")

@@ -16,6 +16,8 @@ struct BlancApp: App {
     /// iOS 26 SDK (CI probe runs 40352397246 to 40365031742, 2026-10-26).
     @State private var manager: TabsManager?
     @State private var incomingLinks = IncomingLinks()
+    /// A pairing QR scanned with the Camera app: Blanc asks before joining.
+    @State private var pairLink: PairLinkRequest?
 
     var body: some Scene {
         WindowGroup {
@@ -33,8 +35,15 @@ struct BlancApp: App {
                 let made = TabsManager()
                 manager = made
                 incomingLinks.flush(into: made)
+                if let code = incomingLinks.takePairCode() { pairLink = PairLinkRequest(code: code) }
             }
-            .onOpenURL { incomingLinks.receive($0, into: manager) }
+            .onOpenURL {
+                incomingLinks.receive($0, into: manager)
+                if manager != nil, let code = incomingLinks.takePairCode() { pairLink = PairLinkRequest(code: code) }
+            }
+            .sheet(item: $pairLink) { request in
+                if let manager { PairLinkConfirmView(engine: manager.syncEngine, code: request.code) }
+            }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active, let manager { Task { await manager.syncEngine.appDidBecomeActive() } }
             }

@@ -84,7 +84,8 @@ function pairLink(code) {
 function pairLinkCode(input) {
   // URL parsing also strips tabs, newlines and surrounding spaces, which other
   // parsers (iOS's) refuse; refuse them here too so both platforms agree.
-  if (typeof input !== 'string' || /[\s\u0000-\u001f\u007f]/.test(input)) return null;
+  if (typeof input !== 'string' || /\s/.test(input)) return null;
+  for (const ch of input) if (ch < ' ' || ch === '\u007f') return null;
   let url;
   try {
     url = new URL(input);
