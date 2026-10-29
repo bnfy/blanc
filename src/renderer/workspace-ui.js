@@ -378,8 +378,11 @@
       main.title = t('ws.row.title', { name: workspace.name, context, count: workspace.tabCount });
       main.setAttribute('aria-label', main.title);
       if (workspace.active) main.setAttribute('aria-current', 'true');
-      main.append(tile(workspace), dataEl('span', 'ws-row-name', workspace.name), el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
-      if(workspace.sharedSync){const mark=dataEl('span','ws-sync-mark',t('sharedSpaces.'+({full:'fullState',unavailable:'unavailableState'}[workspace.sharedSync.state]??workspace.sharedSync.state),{time:new Date(workspace.sharedSync.lastSyncedAt??0).toLocaleString()}));mark.setAttribute('role','status');main.querySelector('.ws-row-count').before(mark);if(workspace.sharedSync.reason)mark.title=t(workspace.sharedSync.reason==='tombstones'?'sharedSpaces.tombstones':'sharedSpaces.capacity');}
+      // A shared Space's sync status is a second line under its name, so the
+      // name keeps the row's width beside the count or Show window.
+      let label = dataEl('span', 'ws-row-name', workspace.name);
+      if(workspace.sharedSync){const mark=dataEl('span','ws-sync-mark',t('sharedSpaces.'+({full:'fullState',unavailable:'unavailableState'}[workspace.sharedSync.state]??workspace.sharedSync.state),{time:new Date(workspace.sharedSync.lastSyncedAt??0).toLocaleString()}));mark.setAttribute('role','status');if(workspace.sharedSync.reason)mark.title=t(workspace.sharedSync.reason==='tombstones'?'sharedSpaces.tombstones':'sharedSpaces.capacity');const text=el('span','ws-row-text');text.append(label,mark);label=text;}
+      main.append(tile(workspace), label, el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
       main.addEventListener('keydown', (event) => {
         if (!event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
         event.preventDefault(); event.stopPropagation();

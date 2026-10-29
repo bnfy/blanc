@@ -28,6 +28,20 @@ test('rows show a painted symbol tile, the name, the count and the current space
   assert.equal(h.byKey('recently-deleted'), undefined, 'Recently deleted only appears when non-empty');
 });
 
+test('a shared Space shows its sync status on a line under its name, so the name keeps the row', () => {
+  const shared = { id: 'a', name: 'iPhone Air', active: false, openElsewhere: true, tabCount: 2, color: '#426c4c', symbol: 'briefcase',
+    sharedSync: { state: 'waiting', unsyncedTabIds: [], reason: null } };
+  const h = harness({}, { items: [shared, TWO.items[1]] }); h.ui.open();
+  const [row, local] = h.list.children.filter((n) => n.className.includes('ws-row'));
+  const main = row.children[0];
+  const text = main.children[1];
+  assert.equal(text.className, 'ws-row-text');
+  assert.deepEqual(text.children.map((n) => [n.className, n.textContent]), [['ws-row-name', 'iPhone Air'], ['ws-sync-mark', 'Waiting to upload']]);
+  assert.equal(text.children[1].attrs.role, 'status');
+  assert.deepEqual([main.children.length, main.children[2].className, main.children[2].textContent], [3, 'ws-row-count', 'Show window'], 'the count, or Show window, stays on the right');
+  assert.equal(local.children[0].children[1].className, 'ws-row-name', 'a local Space keeps its one line');
+});
+
 test('with no spaces the menu explains itself and offers the Arc import', () => {
   const h = harness({}, { items: [] }); h.ui.open();
   assert.match(h.text(), /Save a set of tabs and switch back to it any time\./);
