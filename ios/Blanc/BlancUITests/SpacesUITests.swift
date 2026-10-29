@@ -66,6 +66,16 @@ final class SpacesUITests: XCTestCase {
     XCTAssertTrue(app.descendants(matching: .any)["group.header.Later"].waitForExistence(timeout: 5))
   }
 
+  /// The Island's tabs button shows the count and opens the grid (owner, 2026-10-29).
+  func testTheIslandsTabsButtonOpensTheGrid() {
+    let app = launch()
+    let tabs = app.buttons["pill.tabs"]
+    XCTAssertTrue(tabs.waitForExistence(timeout: 5))
+    XCTAssertEqual(tabs.value as? String, "4 tabs")
+    tabs.tap()
+    XCTAssertTrue(app.buttons.matching(identifier: "tab.card").firstMatch.waitForExistence(timeout: 5))
+  }
+
   /// The palette's tab rows offer the grid's menu on a press and hold (owner, 2026-10-29).
   private func pressPaletteRow(_ app: XCUIApplication, _ index: Int) -> XCUIElementQuery {
     app.buttons["pill.palette"].tap()

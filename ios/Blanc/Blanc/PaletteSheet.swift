@@ -138,7 +138,8 @@ struct PaletteSheet: View {
         .accessibilityIdentifier("palette." + page)
     }
 
-    private func tabRow(_ tab: TabModel) -> some View {
+    /// A tab's row; in a group, `last` closes the group's block under it.
+    private func tabRow(_ tab: TabModel, in group: TabGroup? = nil, last: Bool = false) -> some View {
         HStack(spacing: 0) {
             Button {
                 manager.setActive(tab.id)
@@ -164,9 +165,27 @@ struct PaletteSheet: View {
             TabMoveMenu(manager: manager, tab: tab, newGroup: { newGroupTab = NewGroupTab(id: tab.id) }, newSpace: { newSpaceTab = tab.id })
         }
         .listRowSeparator(.hidden)
-        .listRowBackground(Color.clear)
-        .listRowInsets(EdgeInsets(top: 2, leading: 12, bottom: 2, trailing: 12))
+        .listRowBackground(Group {
+            if let group { groupBlock(group, top: false, bottom: last) } else { Color.clear }
+        })
+        .listRowInsets(EdgeInsets(top: 2, leading: group == nil ? 12 : 16, bottom: last ? 6 : 2, trailing: group == nil ? 12 : 16))
         .swipeActions { Button(role: .destructive) { manager.closeTab(tab.id) } label: { Image(systemName: "xmark") } }
+    }
+
+    /// A group's header and tabs share one shaded block, as desktop's ⌘L
+    /// panel draws a group, so loose tabs after it never read as its members.
+    /// Its colour tints the block; lighter than a selected row either way.
+    /// Inside, 4pt on every side: rows inset 16 against the block's 12.
+    private func groupBlock(_ group: TabGroup, top: Bool, bottom: Bool) -> some View {
+        let wash = group.color.flatMap { Color(blancHex: $0) }?.opacity(style.scheme == .dark ? 0.16 : 0.10)
+            ?? style.text.opacity(style.scheme == .dark ? 0.07 : 0.035)
+        return UnevenRoundedRectangle(
+            topLeadingRadius: top ? 10 : 0, bottomLeadingRadius: bottom ? 10 : 0,
+            bottomTrailingRadius: bottom ? 10 : 0, topTrailingRadius: top ? 10 : 0)
+            .fill(wash)
+            .padding(.horizontal, 12)
+            .padding(.top, top ? 4 : 0)
+            .padding(.bottom, bottom ? 2 : 0)
     }
 
     private func groupHeading(_ title: String, count: Int? = nil) -> some View {
@@ -222,12 +241,15 @@ struct PaletteSheet: View {
                             withAnimation { manager.setGroupCollapsed(group.id, !group.collapsed) }
                         } label: {
                             HStack(spacing: 8) {
-                                GroupDot(color: group.color, style: style)
+                                // The dot sits in the tabs' icon column and the chevron in
+                                // their close column, so the block's contents line up.
+                                GroupDot(color: group.color, style: style).frame(width: 24).padding(.trailing, 2)
                                 Text(group.name).font(BrowserStyle.font(13, semibold: true)).lineLimit(1)
                                 Text("\(section.tabs.count)").font(.system(size: 12)).foregroundStyle(style.secondary)
                                 Spacer()
                                 Image(systemName: group.collapsed ? "chevron.right" : "chevron.down")
                                     .font(.system(size: 11, weight: .semibold)).foregroundStyle(style.secondary)
+                                    .frame(width: 44)
                             }
                             .frame(minHeight: 36)
                             .contentShape(Rectangle())
@@ -235,10 +257,10 @@ struct PaletteSheet: View {
                         .accessibilityLabel(group.name)
                         .accessibilityHint(SyncCopy.text(group.collapsed ? "group.unfold" : "group.fold"))
                         .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: 6, leading: 22, bottom: 0, trailing: 12))
+                        .listRowBackground(groupBlock(group, top: true, bottom: group.collapsed || section.tabs.isEmpty))
+                        .listRowInsets(EdgeInsets(top: 6, leading: 26, bottom: group.collapsed ? 4 : 0, trailing: 16))
                         if !group.collapsed {
-                            ForEach(section.tabs) { tab in tabRow(tab) }
+                            ForEach(section.tabs) { tab in tabRow(tab, in: group, last: tab.id == section.tabs.last?.id) }
                         }
                     } else {
                         ForEach(section.tabs) { tab in tabRow(tab) }

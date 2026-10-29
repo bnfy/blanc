@@ -316,6 +316,22 @@ struct ContentView: View {
             }
             .accessibilityLabel(manager.activeTab?.isLoading == true ? "Stop loading" : "Reload page")
 
+            // The tab grid, as other browsers' tab buttons open theirs: the
+            // swipe up on the Island still works, but nothing showed it.
+            Button { openTabGrid() } label: {
+                Text("\(manager.tabs.count)")
+                    .font(.system(size: 12, weight: .semibold))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .frame(width: 21, height: 21)
+                    .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(style.text, lineWidth: 1.6))
+                    .frame(width: 44, height: 48)
+            }
+            .accessibilityLabel("Show all tabs")
+            .accessibilityValue("\(manager.tabs.count) tabs")
+            .accessibilityIdentifier("pill.tabs")
+
             Rectangle().fill(style.border).frame(width: 1, height: 18)
             Button { manager.createTab() } label: {
                 Image(systemName: "plus").frame(width: 44, height: 48)
