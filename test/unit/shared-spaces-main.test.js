@@ -254,6 +254,39 @@ for (const exit of ['quit','window close']) for(const inFlight of [false,true]) 
   assert.equal(restored.saved.accepted.length,0);
   restored.controller.local(restored.runtime);assert.ok(restored.writes.every(edit=>!edit.tabs?.[id(1)]?.nav),'replayed navigation must not echo');
 });
+// Gate D B1. Shutdown destroys every loaded page, and each page's 'destroyed'
+// handler runs closeTab, which captures the window after removing the tab. A
+// held change made that capture reach disk (its receipt save flushes), so the
+// quitting device published closes for tabs nobody closed.
+function sharedCapture(h,{isQuitting=false}={}) {
+  const fs=require('node:fs'),vm=require('node:vm');
+  const source=fs.readFileSync(require.resolve('../../src/main/main.js'),'utf8');
+  const code=source.match(/function captureSharedSpaceEdits\(runtime\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(code,'main needs captureSharedSpaceEdits');
+  const sandbox={isQuitting,sharedSpaceRuntimeContext:()=>({window:h.saved}),sharedRuntimeSync:h.controller};
+  vm.runInNewContext(code+'\nthis.capture=captureSharedSpaceEdits;',sandbox);
+  return sandbox.capture;
+}
+for (const teardown of ['quit','window close']) for (const held of [false,true]) test(`${teardown} teardown records no close for the tabs it removes (${held?'a change held':'nothing held'})`,async()=>{
+  const h=harness();
+  if(held) {
+    const next=structuredClone(h.blob);next.tabs[id(1)].nav=f({url:'https://held.test/',title:'Held'},500);h.remote(next);
+    await h.controller.apply(h.runtime);assert.equal(h.saved.accepted.length,1,'the active tab holds the remote navigation');
+  }
+  // The last Windows/Linux window tears its pages down before the quit begins,
+  // so a closing window is teardown even while isQuitting is still false.
+  if(teardown==='window close')h.runtime.closing=true;
+  const capture=sharedCapture(h,{isQuitting:teardown==='quit'}),receipt=structuredClone(h.saved),writes=h.writes.length;
+  for(const tabId of [id(1),id(2)]){h.tabs.delete(tabId);capture(h.runtime);}
+  assert.deepEqual(h.writes.slice(writes),[],'teardown must not publish a close');
+  assert.deepEqual(h.saved,receipt,'the held change stays saved for the next launch');
+});
+test('a person closing a shared tab still publishes that close',()=>{
+  const h=harness(),capture=sharedCapture(h);
+  h.tabs.delete(id(2));capture(h.runtime);
+  assert.deepEqual(h.writes.map(edit=>Object.keys(edit.tabs??{})),[[id(2)]]);
+  assert.equal(h.writes[0].tabs[id(2)].deleted.v,true);
+});
 test('a Space tombstone leaves an open window unsaved and disposes a set-aside runtime',async()=>{
   const fs=require('node:fs'),vm=require('node:vm');
   const source=fs.readFileSync(require.resolve('../../src/main/main.js'),'utf8');
@@ -316,4 +349,53 @@ test('checkpoint retries preserve intervening local edits without echoing applie
   assert.equal(physical.nav.v.url,'https://local.test/');assert.equal(actions,1);
   controller.local(runtime);assert.equal(writes.length,1);
  }
+});
+// A group made after its Space was shared has a local id; the first capture
+// binds it to a fresh shared id. Every remote pass addresses groups by that
+// shared id (layout here, applySharedSpaceRow too), so a window that kept the
+// local id lost the tab from the group and then published the group deleted.
+// This runs main's own sharedRuntimeSync wiring over the real runtime module.
+function mainSharedSync() {
+  const fs=require('node:fs'),vm=require('node:vm');
+  const source=fs.readFileSync(require.resolve('../../src/main/main.js'),'utf8');
+  const wiring=source.match(/const sharedRuntimeSync=createRuntimeSync\(\{[\s\S]*?\n\}\);/)?.[0];
+  assert.ok(wiring,'main needs its sharedRuntimeSync wiring');
+  const helper=source.match(/function adoptSharedGroupIds\(runtime,bindings\) \{[\s\S]*?\n\}/)?.[0]??'';
+  const one=record(1),two=record(2,one.pos.v),base={v:1,spaceId:sid,groups:{},tabs:{[id(1)]:one,[id(2)]:two}};
+  const tabs=new Map([['t1',{id:'t1',url:one.nav.v.url,title:'T1',sharedTabId:id(1),groupId:null}],['t2',{id:'t2',url:two.nav.v.url,title:'T2',sharedTabId:id(2),groupId:null}]]);
+  const runtime={id:'window',workspaceId:'work',tabOrder:['t1','t2'],groups:[],activeTabId:'t2'};
+  const data={windows:{['window:'+sid]:{spaceId:sid,displayed:structuredClone(base),accepted:[],groupBindings:{}}}};
+  let blob=structuredClone(base);const writes=[],broadcasts=[];
+  const sandbox={createRuntimeSync,sharedSpaceModel:model,tabs,NEW_TAB_URL:'blanc://newtab/',
+    sharedSpaceRuntimeContext:()=>({spaceId:sid,accountId:'a',deviceId:'desktop',blob,window:Object.values(data.windows).find(w=>w.spaceId===sid),protectedIds:[],ctx:{},
+      store:{data,update:fn=>fn(data),flush:()=>true}}),
+    withWindowRuntime:(_r,fn)=>fn(),
+    // The groups a capture writes are the ones its tabs use (captureWindowEntry).
+    workspaceCapture:r=>{const list=r.tabOrder.map(id=>tabs.get(id)),used=new Set(list.map(t=>t.groupId));
+      return {urls:list.map(t=>t.url),meta:list.map(t=>({title:t.title})),pinned:list.map(()=>false),groupIds:list.map(t=>t.groupId),
+        groups:r.groups.filter(g=>used.has(g.id)).map(g=>({...g})),tabIds:list.map(t=>t.sharedTabId),activeIndex:r.tabOrder.indexOf(r.activeTabId)};},
+    namedWorkspaces:{saveCapture:()=>({ok:true})},flushWorkspaceSession:()=>({ok:true}),
+    persistableEntries:list=>list.filter(Boolean).map(t=>({id:t.id})),
+    sharedSpaceState:{noteLocalSpace:(_sid,next,edits)=>{writes.push(edits);blob=model.mergeBlob(blob,next);}},
+    applySharedSpaceRow:()=>true,syncTabLayout:()=>{},createTab:()=>null,selectSharedLayoutFallback:()=>{},
+    scheduleBroadcastTabs:()=>broadcasts.push(runtime.groups.map(g=>g.id))};
+  vm.runInNewContext(helper+'\n'+wiring+'\nthis.sync=sharedRuntimeSync;',sandbox);
+  return {sync:sandbox.sync,runtime,tabs,writes,broadcasts,get blob(){return blob;}};
+}
+test('a group made after sharing keeps its tab through a remote pass',async()=>{
+  const h=mainSharedSync();
+  // /group, the rail's New group and the tab menu all create a local id.
+  h.runtime.groups.push({id:'0d5e1f2a-3b4c-4d5e-8f60-718293a4b5c6',name:'Later',collapsed:false,color:null});
+  h.tabs.get('t1').groupId='0d5e1f2a-3b4c-4d5e-8f60-718293a4b5c6';
+  h.sync.local(h.runtime);
+  const shared=Object.keys(h.writes.at(-1).groups??{})[0];
+  assert.ok(shared&&h.writes.at(-1).groups[shared].deleted.v===false,'the capture publishes the new group');
+  // A sync or a tab switch runs this pass; its layout places tabs by record.
+  await h.sync.apply(h.runtime);
+  const group=h.runtime.groups.find(g=>g.id===h.tabs.get('t1').groupId);
+  assert.equal(group?.name,'Later','the tab is still in its group after the remote pass');
+  const writes=h.writes.length;h.sync.local(h.runtime);
+  assert.deepEqual(h.writes.slice(writes).flatMap(edit=>Object.entries(edit.groups??{}).filter(([,g])=>g.deleted?.v===true).map(([gid])=>gid)),[],'no capture deletes the group');
+  assert.equal(h.blob.groups[shared].deleted.v,false);assert.equal(h.blob.tabs[id(1)].groupId.v,shared);
+  assert.deepEqual(h.broadcasts,[[shared]],'the chrome hears the adopted id once');
 });

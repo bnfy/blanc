@@ -64,6 +64,7 @@ function install(refs) {
     // wrapped with it, once, mechanically, at the end of this function.
     bindRoot,
     rearmLaunchSunrise,
+    pairingProtectedWindow,
     bangIcons,
     clearRecentBangsAndIcons,
     tabs,
@@ -3712,7 +3713,10 @@ function install(refs) {
     // DOM state only; the pairing code itself never appears in this record.
     // Design 2026-10-28 §6.2: which windows ask to be left out of capture.
     windowsContentProtected() {
-      return require('electron').BrowserWindow.getAllWindows().filter((win) => !win.isDestroyed() && win.isContentProtected()).length;
+      // Blanc's own record of the window it protected: macOS 27 keeps
+      // isContentProtected() true after protection is lifted (see main.js).
+      const win = pairingProtectedWindow?.();
+      return win && !win.isDestroyed() ? 1 : 0;
     },
     settingsSyncPairingDom() {
       const wc = getUtilitySheetWebContents();
@@ -3736,6 +3740,8 @@ function install(refs) {
           handle: byId('syncStatusHandle')?.textContent ?? '',
           recoveryPromptVisible: visible(byId('syncRecoveryPrompt')),
           sheetOpen: !!byId('syncPairingDialog')?.open,
+          // Open is not enough: a modal inside a hidden ancestor opens at 0×0.
+          sheetVisible: !!byId('syncPairingDialog')?.open && byId('syncPairingDialog').getBoundingClientRect().width > 0,
           sheetCode: byId('syncPairingDialog')?.open && !byId('syncPairing')?.hidden ? (byId('syncPairingCode')?.textContent ?? '') : '',
           joinedTitle: byId('syncPairingDialog')?.open && !byId('syncPairingJoined')?.hidden ? (byId('syncPairingJoinedTitle')?.textContent ?? '') : '',
           askingSpaces: !!byId('syncPairingDialog')?.open && !byId('syncPairingQuestion')?.hidden && !byId('syncPairingJoined')?.hidden,
@@ -3744,7 +3750,8 @@ function install(refs) {
           connectIphoneVisible: visible(byId('syncConnectIphone')),
           startShown: !!byId('syncPairingDialog')?.open && !byId('syncPairingStart')?.hidden,
           sheetTitle: byId('syncPairingDialog')?.open ? (!byId('syncPairingStart')?.hidden ? byId('syncPairingStartTitle') : byId('syncPairingTitle'))?.textContent ?? '' : '',
-          qrPath: !byId('syncPairingQr')?.hidden ? (byId('syncPairingQr')?.firstElementChild?.getAttribute('d') ?? '') : '',
+          // An <svg> has no .hidden property: judge the QR by what's drawn.
+          qrPath: byId('syncPairingQr')?.getBoundingClientRect().width > 0 ? (byId('syncPairingQr')?.firstElementChild?.getAttribute('d') ?? '') : '',
           qrViewBox: byId('syncPairingQr')?.getAttribute('viewBox') ?? '',
         };
       })()`);

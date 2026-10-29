@@ -124,7 +124,9 @@ test('the iPhone wording and the QR stay hidden unless main offers iPhone pairin
   assert.match(html, /<button id="syncConnectIphone" type="button" hidden /);
   assert.match(html, /<svg id="syncPairingQr" class="sync-pairing-qr" hidden /);
   assert.match(js, /connectIphoneBtn\.hidden = !iphonePairing \|\| !canCreate;/);
-  assert.match(js, /pairingQr\.hidden = !\(iphonePairing && pv\.showing\);/);
+  assert.match(js, /const qrHidden = !\(iphonePairing && pv\.showing\);\n\s*pairingQr\.toggleAttribute\('hidden', qrHidden\);/);
+  // An <svg> has no .hidden property, so assigning it never showed the QR.
+  assert.doesNotMatch(js, /pairingQr\.hidden\s*=/);
   assert.match(js, /iphonePairing = status\.iphonePairing === true;/);
   const pagesJs = fs.readFileSync(path.join(__dirname, '../../src/main/pages.js'), 'utf8');
   assert.match(pagesJs, /iphonePairing: hooks\.syncPairing\?\.offered\?\.\(\) === true,/, 'false without the hook');

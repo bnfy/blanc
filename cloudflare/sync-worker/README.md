@@ -15,6 +15,11 @@ version `ec302891-ce5f-4a29-9095-39fb6f305e1f`, uploaded under the owner's
 account while this section still said deployment was on hold). The deploy was
 found during the v1.44.1 release, and on October 28, 2026 the owner chose to
 keep it ([v1.44.1 incident](../../docs/release-incidents/2026-10-28-v1.44.1.md#the-sync-worker)).
+The current production version is `9f7efb3a-dad5-45eb-960c-bd2a7e3fd906`,
+deployed October 28, 2026 at 20:03 UTC with the owner's approval: it raises
+`NEW_ACCOUNT_DAILY_LIMIT` from 10 to 100 for Sync without a passphrase, and
+its code is unchanged from `ec302891`. Public v1.45.0 uses the M16 stores for
+Shared Spaces ([v1.45.0 incident](../../docs/release-incidents/2026-10-29-v1.45.0.md#the-sync-worker)).
 Every later production deployment still needs the owner's separate approval:
 record the storage-exposure decision below and verify the approved client and
 Worker order first. Never enable or change cleanup as part of a protocol

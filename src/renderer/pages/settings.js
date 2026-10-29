@@ -2315,10 +2315,13 @@
         }
         pairingTitle.textContent = t(pv.titleKey);
         // The QR and the iPhone wording only where iPhone pairing is offered.
-        pairingQr.hidden = !(iphonePairing && pv.showing);
-        pairingOrType.hidden = pairingQr.hidden;
+        // An <svg> has no .hidden property: assigning one never touched the
+        // attribute, so the QR stayed hidden. Set the attribute itself.
+        const qrHidden = !(iphonePairing && pv.showing);
+        pairingQr.toggleAttribute('hidden', qrHidden);
+        pairingOrType.hidden = qrHidden;
         pairingInstruction.textContent = iphonePairing ? t('settings.sync.sheet.scanIphone') : t('settings.sync.pairing.instruction');
-        if (!pairingQr.hidden) {
+        if (!qrHidden) {
           const matrix = window.blancQrCode.encode(`https://blanc.day/pair#${pairingModel.code}`);
           const box = window.blancQrCode.viewBoxSize(matrix);
           pairingQr.setAttribute('viewBox', `0 0 ${box} ${box}`);

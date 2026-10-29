@@ -106,3 +106,47 @@ Feature: Shared Spaces
     Then Settings keeps the credentials and offers an erasure retry
     When I retry erasing the server copy
     Then the erasure completes and sync turns off
+
+  @F57-15
+  Scenario: Quitting while a change is held closes no tab on any device
+    Given a Shared Spaces fixture whose shared Work Space has a tab alone in a group
+    When device B navigates the active Work tab
+    And the Shared Spaces client quits normally and relaunches
+    Then the quit saved no closed Work tab and kept the held navigation
+    And the relaunched client applies the held navigation and keeps every Work tab
+
+  @F57-16
+  Scenario: A group made after sharing keeps its tabs on every device
+    Given a Shared Spaces fixture with the Work Space shared
+    When I put the first Work tab in a new group "Later" with the group command
+    And I switch to the second Work tab
+    Then the "Later" group keeps the first Work tab here and in the shared copy
+    When I rename the group "Later" to "Read later" and color it "sky"
+    Then the shared copy has the group "Read later" colored "sky" holding the first Work tab
+    When device B renames the group "Read later" to "Reading list" and colors it "sage"
+    Then this device shows the group "Reading list" colored "sage" holding the first Work tab
+    When I move the second Work tab into "Reading list"
+    Then the shared copy has the group "Reading list" colored "sage" holding both Work tabs
+
+  @F57-17
+  Scenario: The rail's New group button in a shared Space keeps its tab
+    Given a Shared Spaces fixture with the Work Space shared
+    When I set the tab layout to "vertical"
+    And I click the rail's New group button
+    Then the command panel opens with "/group " for the current tab
+    When I name the new group "Reading" in the command panel
+    Then the current tab is in a group named "Reading"
+    When I switch to the first Work tab
+    Then the "Reading" group keeps the second Work tab here and in the shared copy
+
+  @F57-18
+  Scenario: A group shared with its Space follows renames, colors and new tabs both ways
+    Given a Shared Spaces fixture whose shared Work Space has the first Work tab in a group "Research"
+    When I rename the group "Research" to "Sources" and color it "iris"
+    Then the shared copy has the group "Sources" colored "iris" holding the first Work tab
+    When device B renames the group "Sources" to "References" and colors it "rose"
+    Then this device shows the group "References" colored "rose" holding the first Work tab
+    When I move the second Work tab into "References"
+    Then the shared copy has the group "References" colored "rose" holding both Work tabs
+    When I switch to the first Work tab
+    Then the "References" group keeps the second Work tab here and in the shared copy

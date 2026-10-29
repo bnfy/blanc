@@ -122,16 +122,6 @@
       "verdict": "verified"
     },
     {
-      "id": "site-133-workspaces-08",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Your spaces stay on this device, in this profile, and keep updating as you browse. Nothing about them depends on a subscription.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "freeSpaces"
-      ],
-      "verdict": "verified"
-    },
-    {
       "id": "site-133-workspaces-09",
       "source": "site/src/pages/features/workspaces.astro",
       "exactWording": "Work, home and side projects, each in its own space.",
@@ -210,16 +200,6 @@
       "evidenceGroups": [
         "freeSpaces",
         "patron"
-      ],
-      "verdict": "verified"
-    },
-    {
-      "id": "site-133-guide-workspaces-06",
-      "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "Your spaces stay on this device, in this profile, and keep updating as you browse. Nothing about them depends on a subscription.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "freeSpaces"
       ],
       "verdict": "verified"
     },
@@ -481,6 +461,28 @@
       ],
       "verdict": "verified",
       "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages. The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "site-133-guide-workspaces-06",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Your spaces stay on this device, in this profile, and keep updating as you browse. Nothing about them depends on a subscription.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified",
+      "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
+    },
+    {
+      "id": "site-133-workspaces-08",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Your spaces stay on this device, in this profile, and keep updating as you browse. Nothing about them depends on a subscription.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified",
+      "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
     }
   ]
 }

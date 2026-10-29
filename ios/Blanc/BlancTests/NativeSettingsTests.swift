@@ -4,10 +4,26 @@ import WebKit
 @testable import Blanc
 
 @MainActor final class NativeSettingsTests: XCTestCase {
-    private func manager() -> TabsManager {
+    private func manager(siteDataStore: WKWebsiteDataStore = .nonPersistent()) -> TabsManager {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         addTeardownBlock { try? FileManager.default.removeItem(at: dir) }
-        return TabsManager(settingsDirectory: dir, sessionDirectory: dir)
+        return TabsManager(settingsDirectory: dir, sessionDirectory: dir, siteDataStore: siteDataStore)
+    }
+    private func cookie(_ name: String) -> HTTPCookie {
+        HTTPCookie(properties: [.domain: "example.com", .path: "/", .name: name, .value: "1",
+                                .expires: Date().addingTimeInterval(3600)])!
+    }
+    private func cookieNames(_ store: WKWebsiteDataStore) async -> [String] {
+        await store.httpCookieStore.allCookies().map(\.name)
+    }
+    /// Waits for a web view's document to finish loading.
+    private func loaded(_ webView: WKWebView) async throws {
+        for _ in 0..<100 {
+            if webView.url != nil, !webView.isLoading,
+               (try? await webView.evaluateJavaScript("document.readyState")) as? String == "complete" { return }
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        XCTFail("page never finished loading")
     }
 
     func testInternalSettingsRoutes() {
@@ -16,6 +32,71 @@ import WebKit
         XCTAssertEqual(SettingsDestination.resolve(URL(string: "blanc://settings/")!), .root)
         XCTAssertNil(SettingsDestination.resolve(URL(string: "https://settings/")!))
         XCTAssertNil(SettingsDestination.resolve(URL(string: "blanc://history/")!))
+    }
+
+    /// Settings → Privacy's Clear cookies, cache & site data empties the normal
+    /// web store and the private one, as on the computer.
+    func testClearSiteDataRemovesCookies() async {
+        let store = WKWebsiteDataStore.nonPersistent()
+        let manager = manager(siteDataStore: store)
+        await store.httpCookieStore.setCookie(cookie("blanc-normal"))
+        await manager.privateDataStore.httpCookieStore.setCookie(cookie("blanc-private"))
+        await manager.clearSiteData()
+        let normal = await cookieNames(store), privateNames = await cookieNames(manager.privateDataStore)
+        XCTAssertFalse(normal.contains("blanc-normal"))
+        XCTAssertFalse(privateNames.contains("blanc-private"))
+    }
+
+    /// The usual case: no private tab has ever opened.
+    func testClearSiteDataWithoutPrivateTabs() async {
+        let store = WKWebsiteDataStore.nonPersistent()
+        let manager = manager(siteDataStore: store)
+        await store.httpCookieStore.setCookie(cookie("blanc-normal"))
+        await manager.clearSiteData()
+        let names = await cookieNames(store)
+        XCTAssertFalse(names.contains("blanc-normal"))
+    }
+
+    /// Websites lose their storage; Blanc's own pages (Mahjong saves, the Start
+    /// Page's hidden sites) keep theirs.
+    func testClearSiteDataKeepsBlancPageStorage() async throws {
+        let store = WKWebsiteDataStore.nonPersistent()
+        let manager = manager(siteDataStore: store)
+        let site = WKWebView(frame: .zero, configuration: {
+            let configuration = WKWebViewConfiguration()
+            configuration.websiteDataStore = store
+            return configuration
+        }())
+        site.loadHTMLString("<p>site</p>", baseURL: URL(string: "https://example.com/")!)
+        try await loaded(site)
+        _ = try await site.evaluateJavaScript("localStorage.setItem('site-key', '1'); 'ok'")
+        manager.createTab(url: URL(string: "blanc://mahjong/")!)
+        let blanc = try XCTUnwrap(manager.activeTab).webView
+        try await loaded(blanc)
+        _ = try await blanc.evaluateJavaScript("localStorage.setItem('blanc-key', '1'); 'ok'")
+
+        await manager.clearSiteData()
+
+        blanc.reload()
+        try await loaded(blanc)
+        let kept = try await blanc.evaluateJavaScript("String(localStorage.getItem('blanc-key'))") as? String
+        XCTAssertEqual(kept, "1")
+        site.loadHTMLString("<p>site again</p>", baseURL: URL(string: "https://example.com/")!)
+        try await loaded(site)
+        let gone = try await site.evaluateJavaScript("String(localStorage.getItem('site-key'))") as? String
+        XCTAssertEqual(gone, "null")
+    }
+
+    /// Clearing reloads the open web pages so none stays signed in from memory;
+    /// quiet tabs (no page yet) and Blanc's own pages are left alone.
+    func testClearSiteDataReloadsOpenWebPages() {
+        let manager = manager()
+        manager.createTab(url: URL(string: "https://quiet.example/")!, quiet: true)
+        manager.createTab(url: URL(string: "https://open.example/")!)
+        _ = manager.activeTab?.webView
+        manager.createTab(url: URL(string: "blanc://mahjong/")!)
+        _ = manager.activeTab?.webView
+        XCTAssertEqual(manager.pagesToReloadAfterClearing.map(\.currentURL.host), ["open.example"])
     }
 
     func testPaletteWaitsForDismissalAndPreservesTabs() {

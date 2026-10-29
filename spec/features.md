@@ -1765,6 +1765,11 @@ not delete its shared record: other devices retain the last shareable web page.
 Only an actual close publishes deletion. The switch is off by default and is
 local to each device. See `acceptance/shared-spaces.feature` and the M16 design.
 
+Shipped in public v1.45.0 (October 29, 2026), Personal profile only, up to 25
+shared Spaces, after the Gate D device rerun passed Mac↔Windows and Mac↔Linux
+(`docs/reviews/2026-10-28-shared-spaces-gate-d-1.45.0.md`); evidence in
+`docs/release-incidents/2026-10-29-v1.45.0.md`.
+
 **iOS (M17c, unreleased):** Settings → Sync → **Keep Spaces and groups in
 sync on this iPhone** (off by default) with the same first-time sheet,
 dormant copies, Rejoin / Add as a copy, sync marks, full-Space dot, status

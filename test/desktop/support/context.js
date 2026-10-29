@@ -17,6 +17,7 @@ module.exports = {
   healing: null,
   relaunch: null,
   crashAndRelaunch: null,
+  quitAndRelaunch: null,
   launchPeerApp: null,
   closePeerApp: null,
   fixturesBase: null,

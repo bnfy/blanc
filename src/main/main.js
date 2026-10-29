@@ -8272,6 +8272,18 @@ function sharedSpaceRuntimeContext(runtime) {
   const protectedIds=runtime.resident?[]:[runtime.activeTabId,...visibleSplitTabIds(runtime)].map(id=>tabs.get(id)?.sharedTabId).filter(Boolean);
   return {spaceId:workspace.sharedId,accountId:ctx.accountId,deviceId:ctx.deviceId,blob:entry.blob,window:state,protectedIds,ctx,store,workspace};
 }
+// A shared window's groups carry their shared ids, as its tabs carry
+// sharedTabId: layout and every remote row find a group by that id. A capture
+// binds a group made after sharing to a fresh one, and the window adopts it.
+function adoptSharedGroupIds(runtime,bindings) {
+  let changed=false;
+  for(const group of runtime.groups) {
+    const shared=bindings[group.id];if(!shared||shared===group.id)continue;
+    const oldId=group.id;group.id=shared;changed=true;
+    for(const id of runtime.tabOrder){const tab=tabs.get(id);if(tab?.groupId===oldId)tab.groupId=shared;}
+  }
+  return changed;
+}
 const sharedRuntimeSync=createRuntimeSync({
   read:sharedSpaceRuntimeContext,
   capture:runtime=>withWindowRuntime(runtime,()=>workspaceCapture(runtime)),
@@ -8291,6 +8303,8 @@ const sharedRuntimeSync=createRuntimeSync({
     const context=sharedSpaceRuntimeContext(runtime);if(!context)return;
     const entries=persistableEntries(runtime.tabOrder.map(id=>tabs.get(id)));
     for(let i=0;i<entries.length;i++){const tab=tabs.get(entries[i].id);if(tab)tab.sharedTabId=diff.tabIds[i];}
+    // The chrome must name the group by its new id before anyone acts on it.
+    if(adoptSharedGroupIds(runtime,diff.groupBindings))withWindowRuntime(runtime,()=>scheduleBroadcastTabs());
     sharedSpaceState.noteLocalSpace(context.spaceId,blob,edits,context.ctx);
   },
   applyRow:applySharedSpaceRow,
@@ -8324,6 +8338,11 @@ function wakeRestoredTarget(runtime,target) {
   setActiveTab(target,{focusContent:true});
 }
 function captureSharedSpaceEdits(runtime) {
+  // Teardown is not an edit (Gate D B1). A quit, a closing window or a
+  // released set-aside Space destroys each loaded page, whose 'destroyed'
+  // handler runs closeTab; capturing then would publish every one as a close.
+  // The window's tabs are already saved and the next capture starts from them.
+  if(isQuitting||runtime.closing)return;
   const context=sharedSpaceRuntimeContext(runtime);
   if(!context?.window)return;
   sharedRuntimeSync.local(runtime);
@@ -8374,7 +8393,7 @@ const sharedSharing=createSharingService({
     const ids=item.tabIds;
     const entries=persistableEntries(runtime.tabOrder.map(id=>tabs.get(id)));
     for(let i=0;i<entries.length;i++)tabs.get(entries[i].id).sharedTabId=ids[i];
-    for(const group of runtime.groups)if(item.groupBindings[group.id]){const oldId=group.id;group.id=item.groupBindings[oldId];for(const id of runtime.tabOrder){const tab=tabs.get(id);if(tab?.groupId===oldId)tab.groupId=group.id;}}
+    adoptSharedGroupIds(runtime,item.groupBindings);
     // The window already displays this exact snapshot: seed its receipt
     // without replaying creates into the existing native views.
     const ctx=sync.sharedContext(),store=sharedSpaceState.rebind(ctx.accountId);
@@ -15808,6 +15827,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   if (acceptanceTestMode) {
     require('./test-hook').install({
       rearmLaunchSunrise: () => launchSunrise.rearm(Date.now()),
+      // The window Blanc last asked to be left out of capture. Electron 44's
+      // isContentProtected() keeps reporting true after setContentProtection(false)
+      // on macOS 27 for apps launched by LaunchServices or Terminal, though
+      // the window captures normally again.
+      pairingProtectedWindow: () => pairingProtectedWindow,
       sharedSpacesTest:async(action,payload)=>{
         if(action==='enable')return sync.enable(payload);
         if(action==='pairingPeer'){sharedSharing.armPairing();require('./tabsync').mergeFromSync({devices:{'pseudo-peer':{name:'zzz-peer',platform:'linux',updatedAt:Date.now(),tabs:[],groups:[]}}},sync.sharedContext());return true;}
