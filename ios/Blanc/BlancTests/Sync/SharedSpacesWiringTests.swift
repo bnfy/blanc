@@ -259,6 +259,27 @@ import XCTest
     XCTAssertFalse(m.sharedAdapterEnabled)
     XCTAssertNil(m.sharedBaseline(sid))
   }
+  /// A build that didn't save `sharedAccount` (iPhone builds before M17c's
+  /// wiring) ran in between: its session.json has the links but no account.
+  /// The same account is still signed in, so the links stay and the library
+  /// adds no second copy of the Space.
+  func testALinkSavedWithoutItsAccountStaysLinkedForTheSameAccount() throws {
+    let m = try sharedOn(2)
+    m.flushSession()
+    let file = sessionDir.appendingPathComponent("session.json")
+    var saved = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: file)) as? [String: Any])
+    var state = try XCTUnwrap(saved["state"] as? [String: Any])
+    XCTAssertNotNil(state.removeValue(forKey: "sharedAccount"))
+    saved["state"] = state
+    try JSONSerialization.data(withJSONObject: saved).write(to: file)
+
+    let reopened = TabsManager(settingsDirectory: settingsDir, sessionDirectory: sessionDir)
+    XCTAssertEqual(reopened.spaces.map(\.name), ["Work"], "no second Work")
+    XCTAssertEqual(reopened.spaces.first?.sharedId, sid)
+    XCTAssertEqual(reopened.spaces.first?.link, .active)
+    XCTAssertTrue(reopened.tabs.allSatisfy { $0.sharedTabId != nil }, "the tabs keep their records")
+  }
+
   // MARK: The switch (Task 18)
 
   /// Sync on, the switch off, and two local Spaces: "Reading" and an

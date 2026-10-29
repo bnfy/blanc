@@ -1413,8 +1413,12 @@ final class TabsManager {
     func sharedSyncChanged() {
         let account = currentSyncAccount
         let linked = spaces.contains { $0.sharedId != nil }
-        if linked, account == nil || account != sharedAccount { unlinkSharedSpaces() }
         let state = syncEngine.sharedState
+        // A build that didn't save the account (before M17c's wiring) may have
+        // rewritten session.json: links with no account, still the Spaces
+        // state's, are this account's, not another's.
+        if linked, sharedAccount == nil, let account, state.accountId == account { sharedAccount = account }
+        if linked, account == nil || account != sharedAccount { unlinkSharedSpaces() }
         let on = account != nil && state.isEnabled && state.accountId == account
         if !on, spaces.contains(where: { $0.sharedId != nil && $0.link == .active }) {
             let ids = spaces.compactMap { $0.link == .active ? $0.sharedId : nil }
