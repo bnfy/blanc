@@ -36,6 +36,7 @@ const IOS_APP_ICONS = Object.freeze([
 ].map(([id, nativeName, label = SCHEMA_LABELS.get(id)]) => Object.freeze({ id, nativeName, label })));
 
 const SHARED_PLATFORMS = { circles: ['watchOS'], squares: 'shared' };
+const NATIVE_LAYER = 'build/app-icons/Icon.icon/Assets/sunrise-mark.png';
 const CANVAS = 1024;
 const PNG = { compressionLevel: 9, adaptiveFiltering: true };
 
@@ -237,12 +238,14 @@ function macPackage(definition) {
 }
 
 /**
- * Every file of the six packages, keyed by repository-relative path.
- * `nativeLayer` is the Sunrise on the 1024 Icon Composer canvas, as
- * build-brand-assets.js writes it to build/app-icons/Icon.icon/Assets.
+ * Every file of the six packages, keyed by repository-relative path. The mark
+ * is cut from the committed native layer (written earlier in the same
+ * brand:build run), never from the in-memory copy: brand:check accepts a
+ * native layer one rounding level off on another platform, and the grow ramp
+ * would multiply that into stale iPhone layers.
  */
-async function iosAppIconFiles(nativeLayer) {
-  const split = await splitMark(nativeLayer);
+async function iosAppIconFiles() {
+  const split = await splitMark(fs.readFileSync(path.join(ROOT, NATIVE_LAYER)));
   const parts = {
     sun: await grow(split.sun, GROW.sun),
     rays: await grow(split.rays, GROW.rays),
@@ -266,11 +269,15 @@ async function iosAppIconFiles(nativeLayer) {
   return files;
 }
 
-/** sha256 over a package's files: sorted relative paths, each with its bytes. */
+/**
+ * sha256 over a package's files: sorted relative paths, each with its bytes.
+ * Dotfiles (Finder's .DS_Store) are skipped.
+ */
 function packageDigest(packageDir) {
   const hash = crypto.createHash('sha256');
   const files = fs.readdirSync(packageDir, { recursive: true })
     .map((name) => name.split(path.sep).join('/'))
+    .filter((name) => !name.split('/').some((part) => part.startsWith('.')))
     .filter((name) => fs.statSync(path.join(packageDir, name)).isFile())
     .sort();
   for (const name of files) hash.update(`${name}\0`).update(fs.readFileSync(path.join(packageDir, name)));

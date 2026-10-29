@@ -65,7 +65,9 @@ extension UIApplication: AlternateIconSwitching {}
 
     /// iOS confirms a change with its own alert. On failure nothing changes.
     func choose(_ choice: AppIconChoice) async {
-        guard choice != current else { return }
+        // Compared by name, not by choice: a name from an earlier build shows
+        // as the primary, and choosing the primary must still clear it.
+        guard switcher.alternateIconName != choice.alternateIconName else { return refresh() }
         do {
             try await switcher.setAlternateIconName(choice.alternateIconName)
             current = choice

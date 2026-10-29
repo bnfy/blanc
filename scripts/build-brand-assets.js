@@ -750,7 +750,7 @@ async function main() {
   }
 
   // The iPhone's Icon Composer packages, after the Mac layers they reuse.
-  for (const [file, contents] of Object.entries(await iosAppIconFiles(sunrise.nativeLayer))) {
+  for (const [file, contents] of Object.entries(await iosAppIconFiles())) {
     await emit(file, contents);
   }
 

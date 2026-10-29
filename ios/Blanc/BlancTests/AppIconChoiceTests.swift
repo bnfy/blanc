@@ -77,6 +77,18 @@ final class AppIconChoiceTests: XCTestCase {
         XCTAssertEqual(model.current, .sunrise)
     }
 
+    func testChoosingPrimaryClearsAStaleName() async {
+        // iOS still reports an icon name an earlier build had (SunriseGold),
+        // which this build shows as the primary; choosing it must clear it.
+        let switcher = FakeIconSwitcher()
+        switcher.alternateIconName = "SunriseGold"
+        let model = AppIconModel(switcher: switcher)
+        XCTAssertEqual(model.current, .sunriseGold)
+        await model.choose(.sunriseGold)
+        XCTAssertEqual(switcher.requested, [nil])
+        XCTAssertNil(switcher.alternateIconName)
+    }
+
     func testRefreshReadsTheSystem() {
         let switcher = FakeIconSwitcher()
         let model = AppIconModel(switcher: switcher)

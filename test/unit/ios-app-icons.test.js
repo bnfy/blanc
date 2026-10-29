@@ -33,7 +33,7 @@ test('every package exists and names only images it contains', () => {
     assert.deepEqual(doc['supported-platforms'], SHARED_PLATFORMS, icon.nativeName);
     assert.ok(doc.groups.length >= 1 && doc.groups.length <= 4, `${icon.nativeName} has 1–4 groups`);
     const named = doc.groups.flatMap((group) => group.layers.map((layer) => layer['image-name'])).sort();
-    const present = fs.readdirSync(path.join(packageDir(icon), 'Assets')).sort();
+    const present = fs.readdirSync(path.join(packageDir(icon), 'Assets')).filter((name) => !name.startsWith('.')).sort();
     assert.deepEqual(present, [...new Set(named)].sort(), `${icon.nativeName} assets`);
   }
 });
@@ -121,4 +121,35 @@ test('the Swift catalog and Xcode settings match the brand catalog', () => {
   const count = (needle) => project.split(needle).length - 1;
   assert.equal(count(`ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "${alternates}";`), 2, 'both app configurations');
   assert.equal(count('ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;'), 2);
+});
+
+test('the iPhone icons are cut from the committed native layer, not an in-memory copy', () => {
+  // brand:check tolerates one level of platform rounding in the native layer;
+  // the grow ramp would multiply that into a stale iPhone package on Linux.
+  const { iosAppIconFiles } = require('../../scripts/ios-app-icons');
+  assert.equal(iosAppIconFiles.length, 0, 'iosAppIconFiles takes no layer argument');
+  assert.match(fs.readFileSync(path.join(ROOT, 'scripts/ios-app-icons.js'), 'utf8'),
+    /build\/app-icons\/Icon\.icon\/Assets\/sunrise-mark\.png/);
+  assert.match(fs.readFileSync(path.join(ROOT, 'scripts/build-brand-assets.js'), 'utf8'), /iosAppIconFiles\(\)/);
+});
+
+test('ASSET-LICENSE.md reserves the iPhone icon artwork', () => {
+  const license = fs.readFileSync(path.join(ROOT, 'ASSET-LICENSE.md'), 'utf8');
+  assert.match(license, /`ios\/Blanc\/Blanc\/AppIcons\/`/);
+  assert.match(license, /`ios\/Blanc\/Blanc\/Assets\.xcassets\/AppIconPreview-\*\.imageset\/`/);
+  assert.doesNotMatch(license, /AppIcon\.appiconset/);
+});
+
+test('package digests ignore dotfiles such as Finder\'s .DS_Store', () => {
+  const os = require('node:os');
+  const copy = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-icon-digest-'));
+  try {
+    fs.cpSync(packageDir(byName('Sunrise')), copy, { recursive: true });
+    const before = packageDigest(copy);
+    fs.writeFileSync(path.join(copy, '.DS_Store'), 'finder');
+    fs.writeFileSync(path.join(copy, 'Assets', '.DS_Store'), 'finder');
+    assert.equal(packageDigest(copy), before);
+  } finally {
+    fs.rmSync(copy, { recursive: true, force: true });
+  }
 });
