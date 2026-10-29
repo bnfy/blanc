@@ -390,6 +390,7 @@
 		502D58172FFEBF0D00B5B1DE /* Debug configuration for PBXNativeTarget "Blanc" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "Sunrise SunriseDark SunriseGold SunriseSpectrum SunriseAmber";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Blanc.entitlements;
@@ -430,6 +431,7 @@
 		502D58182FFEBF0D00B5B1DE /* Release configuration for PBXNativeTarget "Blanc" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "Sunrise SunriseDark SunriseGold SunriseSpectrum SunriseAmber";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Blanc.entitlements;

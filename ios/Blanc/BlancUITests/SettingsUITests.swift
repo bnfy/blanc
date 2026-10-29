@@ -195,4 +195,43 @@ final class SettingsUITests: XCTestCase {
         XCTAssertTrue(app.buttons["settings.connect"].isEnabled)
         capture("Native Settings — Sync error")
     }
+    /// iOS confirms every icon change with its own alert, shown by SpringBoard.
+    private func dismissIconChangedNotice() {
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        for alerts in [springboard.alerts, app.alerts] {
+            let ok = alerts.buttons["OK"]
+            if ok.waitForExistence(timeout: 5) { ok.tap(); return }
+        }
+        XCTFail("iOS did not confirm the icon change")
+    }
+    private func appIcon(_ id: String) -> XCUIElement { app.buttons["appIcon.\(id)"] }
+    func testAppIconPicker() {
+        let ids = ["sunrise-dawn", "sunrise", "sunrise-dark", "sunrise-gold", "sunrise-spectrum", "sunrise-amber"]
+        open()
+        tap("settings.appIcon")
+        for id in ids { XCTAssertTrue(appIcon(id).waitForExistence(timeout: 5), id) }
+        XCTAssertEqual(ids.filter { appIcon($0).isSelected }, ["sunrise-dawn"])
+        capture("Native Settings — App icon")
+        appIcon("sunrise-gold").tap()
+        dismissIconChangedNotice()
+        XCTAssertTrue(appIcon("sunrise-gold").waitForSelection())
+        app.terminate(); launch(reset: false)
+        open(); tap("settings.appIcon")
+        XCTAssertTrue(appIcon("sunrise-gold").waitForSelection(), "the choice survives a relaunch")
+        appIcon("sunrise-dawn").tap()
+        dismissIconChangedNotice()
+        XCTAssertTrue(appIcon("sunrise-dawn").waitForSelection())
+        XCTAssertFalse(appIcon("sunrise-gold").isSelected)
+    }
+}
+
+private extension XCUIElement {
+    func waitForSelection(timeout: TimeInterval = 5) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if isSelected { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
+        return isSelected
+    }
 }

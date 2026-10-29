@@ -105,3 +105,17 @@ test('reused packages match their Mac layers byte for byte', () => {
     for (const file of fs.readdirSync(assets)) same(path.join(assets, file), `build/app-icons/colorways/${file}`);
   }
 });
+
+test('the Swift catalog and Xcode settings match the brand catalog', () => {
+  const swift = fs.readFileSync(path.join(ROOT, 'ios/Blanc/Blanc/AppIconChoice.swift'), 'utf8');
+  const rawValues = [...swift.matchAll(/^\s*case (\w+)(?: = "([^"]+)")?$/gm)]
+    .map(([, name, raw]) => raw ?? name);
+  assert.deepEqual(rawValues, IOS_APP_ICONS.map((icon) => icon.id), 'AppIconChoice cases in catalog order');
+  for (const icon of IOS_APP_ICONS.slice(1)) assert.match(swift, new RegExp(`"${icon.nativeName}"`), icon.nativeName);
+
+  const project = fs.readFileSync(path.join(ROOT, 'ios/Blanc/Blanc.xcodeproj/project.pbxproj'), 'utf8');
+  const alternates = IOS_APP_ICONS.slice(1).map((icon) => icon.nativeName).join(' ');
+  const count = (needle) => project.split(needle).length - 1;
+  assert.equal(count(`ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "${alternates}";`), 2, 'both app configurations');
+  assert.equal(count('ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;'), 2);
+});
