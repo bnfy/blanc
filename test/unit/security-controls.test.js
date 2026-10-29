@@ -136,7 +136,7 @@ test('privacy-facing defaults, hardened Electron fuses, and dependency surface d
   assert.match(read('src/main/onepassword-client.js'), /stdio:\s*'ignore'/);
 });
 
-test('public claims describe explicit website consent, 1Password boundaries, bundled blocker inputs, private downloads, and double opt-in', () => {
+test('public claims describe regional website consent, 1Password boundaries, bundled blocker inputs, private downloads, and double opt-in', () => {
   const privacy = read('site/src/pages/privacy.astro');
   const siteScript = read('site/src/scripts/site.js');
   assert.match(privacy, /<h3>Usage measurement<\/h3>/);
@@ -151,8 +151,9 @@ test('public claims describe explicit website consent, 1Password boundaries, bun
   assert.match(privacy, /double opt-in/);
   assert.match(privacy, /private tab remains only in memory/i);
   assert.match(privacy, /hash-pinned EasyList and EasyPrivacy snapshots ship inside/);
-  assert.match(privacy, /load no Google Analytics script.*until you explicitly choose Allow/is);
-  assert.match(privacy, /No thanks stops event dispatch.*reloads the page/is);
+  assert.match(privacy, /require opt-in in the EEA, UK and Switzerland and are on by default elsewhere/i);
+  assert.match(privacy, /location cannot be determined.*stay off until you turn them on/i);
+  assert.match(privacy, /Turn off stops future Google and OpenAI measurement.*reloads the page/is);
   // Every platform since the October 16, 2026 announcement of v1.34.0's support.
   assert.match(privacy, /1Password login fill \(off by default\)/);
   assert.match(privacy, /bounded check in an isolated world/i);
