@@ -1,0 +1,73 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const { IOS_APP_ICONS, IOS_APP_ICON_DIR } = require('../../scripts/ios-app-icons');
+
+const ROOT = path.resolve(__dirname, '..', '..');
+const SHARED_PLATFORMS = { circles: ['watchOS'], squares: 'shared' };
+
+const packageDir = (icon) => path.join(ROOT, IOS_APP_ICON_DIR, `${icon.nativeName}.icon`);
+const iconDocument = (icon) => JSON.parse(fs.readFileSync(path.join(packageDir(icon), 'icon.json'), 'utf8'));
+const byName = (name) => IOS_APP_ICONS.find((icon) => icon.nativeName === name);
+
+test('the iPhone catalog is Dawn first, then the Mac icons', () => {
+  assert.deepEqual(IOS_APP_ICONS.map((icon) => icon.id), [
+    'sunrise-dawn', 'sunrise', 'sunrise-dark', 'sunrise-gold', 'sunrise-spectrum', 'sunrise-amber',
+  ]);
+  assert.deepEqual(IOS_APP_ICONS.map((icon) => icon.nativeName), [
+    'AppIcon', 'Sunrise', 'SunriseDark', 'SunriseGold', 'SunriseSpectrum', 'SunriseAmber',
+  ]);
+  assert.equal(IOS_APP_ICONS[0].label, 'Sunrise Dawn');
+  const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'settings-schema/schema.json'), 'utf8'));
+  const labels = new Map(schema.appIcons.map((icon) => [icon.id, icon.label]));
+  for (const icon of IOS_APP_ICONS.slice(1)) assert.equal(icon.label, labels.get(icon.id), icon.id);
+  assert.equal(labels.has('sunrise-dawn'), false, 'Dawn is iPhone-only and stays out of the shared schema');
+});
+
+test('every package exists and names only images it contains', () => {
+  for (const icon of IOS_APP_ICONS) {
+    const doc = iconDocument(icon);
+    assert.deepEqual(doc['supported-platforms'], SHARED_PLATFORMS, icon.nativeName);
+    assert.ok(doc.groups.length >= 1 && doc.groups.length <= 4, `${icon.nativeName} has 1–4 groups`);
+    const named = doc.groups.flatMap((group) => group.layers.map((layer) => layer['image-name'])).sort();
+    const present = fs.readdirSync(path.join(packageDir(icon), 'Assets')).sort();
+    assert.deepEqual(present, [...new Set(named)].sort(), `${icon.nativeName} assets`);
+  }
+});
+
+test('Dawn and Gold glass groups match the spec appendix', () => {
+  const layerNames = (doc) => doc.groups.map((group) => group.layers.map((layer) => layer.name));
+  const dawn = iconDocument(byName('AppIcon'));
+  assert.deepEqual(layerNames(dawn), [['Water'], ['Sun'], ['Rays'], ['Glow', 'Night', 'Sky']]);
+  assert.deepEqual(dawn.groups[0].translucency, { enabled: true, value: 0.35 });
+  assert.equal(dawn.groups[0]['blur-material'], 0.6);
+  const gold = iconDocument(byName('SunriseGold'));
+  assert.deepEqual(layerNames(gold), [['Water'], ['Sun'], ['Rays'], ['Reflection', 'Glow', 'Tile']]);
+});
+
+test('Dawn and Gold glass layers are silhouettes of the mark, not full-canvas paint', async () => {
+  const sharp = require('sharp');
+  for (const name of ['AppIcon', 'SunriseGold']) {
+    const doc = iconDocument(byName(name));
+    for (const layer of doc.groups.flatMap((group) => group.layers).filter((layer) => layer.glass)) {
+      const file = path.join(packageDir(byName(name)), 'Assets', layer['image-name']);
+      const { channels } = await sharp(file).metadata();
+      assert.equal(channels, 4, `${name}/${layer.name} keeps its alpha`);
+      const { channels: [, , , alpha] } = await sharp(file).stats();
+      assert.ok(alpha.mean > 0 && alpha.mean < 0.15 * 255, `${name}/${layer.name} covers only the mark (alpha mean ${alpha.mean})`);
+    }
+  }
+});
+
+test('reused packages match their Mac layers byte for byte', () => {
+  const same = (packaged, source) => assert.deepEqual(
+    fs.readFileSync(packaged), fs.readFileSync(path.join(ROOT, source)), path.relative(ROOT, packaged));
+  for (const name of ['Sunrise', 'SunriseDark']) {
+    same(path.join(packageDir(byName(name)), 'Assets/sunrise-mark.png'), 'build/app-icons/Icon.icon/Assets/sunrise-mark.png');
+  }
+  for (const name of ['SunriseSpectrum', 'SunriseAmber']) {
+    const assets = path.join(packageDir(byName(name)), 'Assets');
+    for (const file of fs.readdirSync(assets)) same(path.join(assets, file), `build/app-icons/colorways/${file}`);
+  }
+});

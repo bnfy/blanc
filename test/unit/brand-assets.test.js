@@ -110,12 +110,10 @@ test('current and archived icon artwork retain their canonical identity sources'
   const platformSource = fs.readFileSync(path.join(ROOT, 'assets/sunrise-app-icon.png'));
   const platformIcon = fs.readFileSync(path.join(ROOT, 'build/icon.png'));
   assert.deepEqual(platformIcon, platformSource);
-  assert.deepEqual(
-    fs.readFileSync(path.join(ROOT, 'ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/icon-sunrise.png')),
-    platformIcon,
-  );
-  const appIconCatalog = JSON.parse(source('ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/Contents.json'));
-  assert.equal(appIconCatalog.images[0].filename, 'icon-sunrise.png');
+  // The iPhone icon is the Icon Composer package (ios-app-icons.test.js); the
+  // flat asset-catalog icon it replaced must not come back beside it.
+  assert.equal(fs.existsSync(path.join(ROOT, 'ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset')), false);
+  assert.equal(fs.existsSync(path.join(ROOT, 'ios/Blanc/Blanc/AppIcons/AppIcon.icon/icon.json')), true);
   assert.ok(fs.statSync(path.join(ROOT, 'build/windows-icons/icon-sunrise.ico')).size > 10_000);
 });
 
