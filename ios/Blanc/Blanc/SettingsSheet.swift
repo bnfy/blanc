@@ -100,7 +100,7 @@ struct SettingsSheet: View {
                 .settingsTitle(SettingsCopy.text("title"))
                 .navigationDestination(for: SettingsDestination.self) { destination in
                     switch destination {
-                    case .sync: SyncSettingsView(engine: manager.syncEngine)
+                    case .sync: SyncSettingsView(engine: manager.syncEngine, manager: manager)
                     case .privacy: PrivacySettingsView(manager: manager)
                     case .startPage: StartSettingsView(manager: manager)
                     case .root: root

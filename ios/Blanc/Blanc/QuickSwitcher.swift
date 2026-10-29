@@ -70,6 +70,8 @@ struct SyncedSwitcherResult: Identifiable {
     var groupId: String? = nil
     /// A tab set to show: This iPhone or a Space.
     var setId: String? = nil
+    /// Another device's Space to review (Bring a Space).
+    var remoteSpaceId: String? = nil
 }
 
 extension QuickSwitcher {
@@ -78,7 +80,8 @@ extension QuickSwitcher {
     /// Tab groups and Spaces first (desktop ranks them above tabs), then open
     /// tabs, then Favorites, then other devices' tabs, then History.
     static func search(query: String, tabs: [TabModel], remote: [RemoteDevice], favorites: [Favorite], history: [HistoryEntry] = [],
-                       groups: [TabGroup] = [], sets: [(id: String, name: String, count: Int)] = []) -> [SyncedSwitcherResult] {
+                       groups: [TabGroup] = [], sets: [(id: String, name: String, count: Int)] = [],
+                       remoteSpaces: [(id: String, name: String, device: String)] = []) -> [SyncedSwitcherResult] {
         let q = query.lowercased()
         guard !q.isEmpty else { return [] }
         var named: [SyncedSwitcherResult] = []
@@ -94,6 +97,13 @@ extension QuickSwitcher {
             guard score > 0 else { continue }
             named.append(SyncedSwitcherResult(id: "set:" + set.id, title: set.name, subtitle: SyncCopy.plural("newtab.groups.count", count: set.count),
                                               score: score + 6, strength: score, localTabID: nil, url: nil, setId: set.id))
+        }
+        for space in remoteSpaces {
+            let score = matchScore(query: q, text: space.name)
+            guard score > 0 else { continue }
+            named.append(SyncedSwitcherResult(id: "remoteSpace:" + space.id, title: space.name,
+                                              subtitle: SyncCopy.text("spaces.onDevice", ["device": space.device]),
+                                              score: score + 5, strength: score, localTabID: nil, url: nil, remoteSpaceId: space.id))
         }
         let rest = searchTabsAndPages(query: query, tabs: tabs, remote: remote, favorites: favorites, history: history)
         return Array((named.sorted { $0.score > $1.score } + rest).prefix(12))

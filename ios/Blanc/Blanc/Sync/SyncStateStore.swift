@@ -14,6 +14,8 @@ nonisolated struct SyncState: Codable, Equatable, Sendable {
 @MainActor @Observable final class SyncStateStore {
   private(set) var state: SyncState
   private let directory: URL
+  /// Where the sync files live; `shared-spaces.json` sits beside them.
+  var directoryURL: URL { directory }
   init(directory: URL) {
     self.directory = directory
     let file = directory.appendingPathComponent("sync.json")

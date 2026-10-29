@@ -2565,4 +2565,17 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="tab_groups_closed_toast">Grupo fechado</string>
     <string name="group_menu_rename">Renomear…</string>
     <string name="tab_groups_create">Criar</string>
+    <string name="shared_spaces_switch_iphone">Manter Spaces e grupos sincronizados neste iPhone</string>
+    <string name="shared_spaces_switch_line_iphone">As abas dos seus Spaces compartilhados são sincronizadas a partir deste iPhone.</string>
+    <plurals name="shared_spaces_waiting_count">
+        <item quantity="one">%1$d Space compartilhado está esperando</item>
+        <item quantity="many">%1$d Spaces compartilhados estão esperando</item>
+        <item quantity="other">%1$d Spaces compartilhados estão esperando</item>
+    </plurals>
+    <string name="shared_spaces_save_this_i_phone">Salvar Este iPhone como Space</string>
+    <string name="shared_spaces_recovery_name_iphone">%1$s · mantido neste iPhone</string>
+    <string name="shared_spaces_deleted_everywhere">Excluído em todos os lugares. Desfazer mantém uma cópia neste iPhone.</string>
+    <string name="spaces_on_device">Em %1$s</string>
+    <string name="bring_space_action">Trazer para o iPhone</string>
+    <string name="bring_space_copy_note">Esta cópia não muda quando o Space mudar em %1$s. Ative a sincronização de Spaces para mantê-los iguais.</string>
 </resources>
