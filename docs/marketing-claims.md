@@ -261,7 +261,8 @@ original reports:
   Switching between spaces is never refused for a limit; to keep memory in
   check Blanc may free up memory from tabs in spaces left a while ago, and
   those tabs reload on return. This is not automatic task detection, an AI
-  workspace, or an agent session, and spaces are not synced.
+  workspace, or an agent session. Spaces aren't synced unless the person
+  turns on Shared Spaces (since v1.45.0, below) and chooses them.
 - **Quiet Tabs:** Eligible inactive background tabs may give back their
   renderer memory and are rebuilt or reloaded when revisited. Dirty,
   uncertain, active, recording, or otherwise ineligible tabs remain awake.
@@ -284,9 +285,11 @@ original reports:
   The sync service holds the wrapped sync secret under an identifier derived
   from the code for at most ten minutes and deletes it when it is read or
   cancelled; it cannot unwrap it without the code. Copy recovery code puts a
-  code on the clipboard only after a native confirmation. Do not claim QR
-  codes, nearby or Bluetooth pairing, accounts or sign-in, or that the service
-  never stores anything.
+  code on the clipboard only after a native confirmation. Do not claim nearby
+  or Bluetooth pairing, accounts or sign-in, or that the service never stores
+  anything. Since v1.45.0 the code is also shown as a QR code, for Blanc for
+  iPhone only (Connect your iPhone, below); don't claim a desktop device can
+  scan it.
 - **Device names:** Since v1.36.0 the user can rename a synced device from the
   Other devices drawer (Rename Device…) or name the current device in Settings
   → Sync; names sync with the settings and show in the drawer, the Quick
@@ -486,8 +489,50 @@ original reports:
 - **Pinned tabs on the Island:** Since v1.44.1 every pinned tab, grouped or
   not, leads the Island's dots, as a rounded square (or a tile with site
   icons). In the ⌘L panel a grouped pin stays inside its group.
-- **Shared Spaces:** in the v1.44.1 source but hidden in packaged builds; never
-  describe it as available until a release enables it.
+- **Shared Spaces:** Since v1.45.0. With Sync on, Settings → Sync → What
+  syncs → **Spaces and groups** shares the Spaces the person chooses, up to
+  25; their open tabs, tab names, groups and pinned tabs, in the same order,
+  match on every computer that has it turned on, and any of them can change
+  them. Off by default, set on each device, and in the Personal profile only.
+  End-to-end encrypted like the rest of Sync; private tabs, internal pages
+  and local files never sync. The page on screen never changes under the
+  person: a change from another device waits until they leave that tab.
+  Turning it off keeps a local copy. A deleted Space leaves the 25 at once,
+  and its emptied record stays in sync storage for 30 days. Device-validated
+  Mac↔Windows and Mac↔Linux (Gate D rerun, Linux from the AppImage's
+  extracted payload), not on Intel Macs, x64 Linux or X11, and not with local
+  files. Never say it syncs to the iPhone, between local profiles, or that
+  all Spaces sync automatically.
+- **Recently closed on every device:** Since v1.45.0, only for tabs in a
+  shared Space: closing one closes it on the person's other computers, and
+  their Recently closed lists it for up to a day with the device it was
+  closed on. Only its
+  address and title travel; the closed tab's snapshot never syncs. Closed
+  tabs use sync storage for 30 days.
+- **Turn on Sync without a passphrase:** Since v1.45.0 **Turn on Sync** starts
+  a sync with a random key and account, nothing to name or remember. Devices
+  join with **Add device** and **Add this device with a code**. The device
+  that started it offers a recovery code (copied to the clipboard only after
+  a confirmation), the only way back in if every device is lost. The sync
+  name and passphrase are still under **Other ways**. Never say Blanc can
+  recover a lost sync, and never claim the screen-capture exclusion of the
+  code window: it's best effort and unverified.
+- **Connect your iPhone:** Since v1.45.0, Settings → Sync → **Connect your
+  iPhone** (and the Start Page's Finish setup list) shows a QR code that
+  Blanc for iPhone scans with **Pair with your Blanc** to join the same Sync.
+  Blanc for iPhone is a public beta on TestFlight, not on the App Store: say
+  so wherever it's named. If Sync is off, Blanc asks before turning it on.
+- **Play the Sunrise when Blanc opens:** Since v1.45.0, opt-in in Settings →
+  Appearance and set on each device: the Sunrise plays once on the first
+  Start Page after launch, ends on any click or key and is skipped when the
+  system reduces motion.
+- **Link rules for links opened in a new tab:** Since v1.45.0, opt-in
+  (Settings → Profiles → Open links from other apps → **Also for links I open
+  in a new tab**), set on each device. Links a page opens by itself and links
+  in private tabs stay where they are. Tested in CI only; the real-app checks
+  for link rules are still pending (above).
+- **Vertical tabs show your Space:** Since v1.45.0 the rail's top row shows the
+  current Space's mark, and its footer has a new-group button.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,

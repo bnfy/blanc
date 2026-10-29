@@ -93,7 +93,7 @@
         "src/main/session-workspace.js",
         "docs/marketing-claims.md"
       ],
-      "qualification": "Named groups and Blanc Spaces are user-directed: Blanc never groups or organizes tabs by itself. Spaces are free for everyone since October 2026 and are not synced."
+      "qualification": "Named groups and Blanc Spaces are user-directed: Blanc never groups or organizes tabs by itself. Spaces are free for everyone since October 2026; since v1.45.0 they sync only when the person turns on Shared Spaces and chooses them."
     },
     "privateTabs": {
       "evidence": [
@@ -871,17 +871,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "cinema-data-30",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "No. Blanc is a desktop browser. Optional sync keeps Favorites, settings and open tabs in step across your computers, end-to-end encrypted with a passphrase only you know. History and passwords never sync.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "sync",
-        "platforms"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "cinema-data-31",
       "source": "site/src/pages/index.astro",
       "exactWording": "On a Mac with Touch ID, Blanc creates passkeys that stay on that Mac, in Apple’s Secure Enclave. It can’t use passkeys saved in other password managers.",
@@ -1142,6 +1131,18 @@
       ],
       "verdict": "qualified",
       "reason": "October 24, 2026, after public v1.43.0 moved Blanc to castLabs’ Electron for Content Security: protected streaming plays since Blanc 1.43, and on Windows it needs an x64 PC. The replacement wording is recorded in docs/website-v1.43-claims.json (v143-005)."
+    },
+    {
+      "id": "cinema-data-30",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "No. Blanc is a desktop browser. Optional sync keeps Favorites, settings and open tabs in step across your computers, end-to-end encrypted with a passphrase only you know. History and passwords never sync.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "platforms"
+      ],
+      "verdict": "qualified",
+      "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
     }
   ]
 }

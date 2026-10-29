@@ -18,6 +18,7 @@ const arcSwitchingLedger = JSON.parse(read('docs/website-arc-switching-claims-v1
 const v134Ledger = JSON.parse(read('docs/website-v1.34-claims.json'));
 const cinemaLedger = JSON.parse(read('docs/website-cinematic-homepage-claims-v1.34.json'));
 const v140Ledger = JSON.parse(read('docs/website-v1.40-claims.json'));
+const v145Ledger = JSON.parse(read('docs/website-v1.45-claims.json'));
 const arcWelcomeLedger = JSON.parse(read('docs/website-arc-welcome-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
@@ -60,7 +61,7 @@ test('the v1.15 claim ledger remains paired with its immutable release evidence'
 test('new guide benefit and qualification paragraphs remain covered by the exact-wording ledger', () => {
   for (const slug of ['start-page', 'glance', 'workspaces', 'profiles', 'reopen-closed-tabs', '1password']) {
     const file = `site/src/components/guides/${slug}.astro`;
-    const claims = new Set([...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v140Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording));
+    const claims = new Set([...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v140Ledger.claims, ...v145Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording));
     for (const match of read(file).matchAll(/<(h[123]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
       const wording = normalize(match[2]);
       if (wording.length > 20) assert.ok(claims.has(wording), `${slug}: unrecorded wording: ${wording}`);
@@ -279,7 +280,7 @@ test('every sentence on the homepage is recorded in a claims ledger or named as 
   const file = 'site/src/pages/index.astro';
   const source = read(file);
   const recorded = [cinemaLedger, ledger, v132Ledger, v133Ledger, v134Ledger, JSON.parse(read('docs/website-reorder-claims-v1.30.json')),
-    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json')), v140Ledger, JSON.parse(read('docs/website-v1.43-claims.json')), JSON.parse(read('docs/website-homepage-measurement-claims.json'))]
+    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json')), v140Ledger, JSON.parse(read('docs/website-v1.43-claims.json')), v145Ledger, JSON.parse(read('docs/website-homepage-measurement-claims.json'))]
     .flatMap(item => [...item.claims, ...(item.externalClaims || [])])
     .filter(claim => claim.source === file)
     .map(claim => claim.exactWording)
@@ -601,6 +602,32 @@ test('v1.43 runtime copy resolves to verified public v1.43.1 evidence', () => {
   }
   const runtime = JSON.parse(execFileSync('git', ['show', `${v143.publicRelease}:build/ecs-runtime.json`], { cwd: root, encoding: 'utf8' }));
   assert.match(runtime.version, /\+wvcus$/);
+});
+
+// Shared Spaces, Recently closed for shared Spaces, Sync without a
+// passphrase and iPhone pairing, recorded once public v1.45.0 shipped them.
+test('v1.45.0 Shared Spaces and Sync copy resolves to verified public v1.45.0 evidence', () => {
+  assert.equal(v145Ledger.publicRelease, 'v1.45.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${v145Ledger.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v145Ledger.sourceSha);
+  assert.ok(read(v145Ledger.releaseEvidence).includes(v145Ledger.sourceSha));
+  for (const claim of v145Ledger.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    assert.ok(claim.evidenceGroups.length, `${claim.id}: no release evidence`);
+    for (const key of claim.evidenceGroups) {
+      const group = v145Ledger.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${v145Ledger.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  for (const file of new Set(v145Ledger.claims.map(claim => claim.source))) {
+    const text = normalize(read(file));
+    for (const retired of v145Ledger.prohibitedClaims) assert.ok(!text.includes(retired), `${file}: still says “${retired}”`);
+  }
+  const notes = execFileSync('git', ['show', `${v145Ledger.publicRelease}:docs/press/release-notes/v1.45.0.md`], { cwd: root, encoding: 'utf8' });
+  assert.match(notes, /\*\*Shared Spaces\.\*\*/);
+  assert.match(notes, /\*\*Turn on Sync without a passphrase\.\*\*/);
+  assert.match(notes, /\*\*Connect your iPhone\.\*\*/);
 });
 
 // The clock's Font & color (F54) and the hero gallery of customized Start

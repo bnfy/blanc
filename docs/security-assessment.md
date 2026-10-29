@@ -95,8 +95,17 @@ transitions rather than trusting data because it originated inside the app.
 
 Source review completed by Codex for the PR D candidate. The checks below
 cover source and local fixtures; production deployment, real-device candidate
-validation and the owner's platform confirmations remain blocked. This is
+validation and the owner's platform confirmations were then still open. This is
 not release evidence or a decision to close R3/R5.
+
+**Update, October 29, 2026:** Shared Spaces shipped in public v1.45.0. The
+production Worker serves the M16 stores (accepted by the owner October 28;
+current version `9f7efb3a-dad5-45eb-960c-bd2a7e3fd906`, which raised
+`NEW_ACCOUNT_DAILY_LIMIT` to 100 with unchanged code), the Gate D device
+rerun passed Mac↔Windows and Mac↔Linux, and the owner gave written platform
+confirmations ([Gate D](reviews/2026-10-28-shared-spaces-gate-d-1.45.0.md),
+[v1.45.0 incident](release-incidents/2026-10-29-v1.45.0.md)). R3 and R5 stay
+open.
 
 | Boundary | Reviewed control and evidence |
 | --- | --- |

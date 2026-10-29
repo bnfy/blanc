@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-28",
+  "updated": "2026-10-29",
   "stages": [
     { "id": "now", "label": "Now", "summary": "In the works" },
     { "id": "next", "label": "Next", "summary": "On the horizon" },
@@ -31,10 +31,10 @@
     },
     {
       "id": "iphone",
-      "stage": "later",
+      "stage": "now",
       "product": "Mobile",
       "title": "Blanc on iPhone",
-      "line": "An early version runs in development. It isn’t ready for testers yet."
+      "line": "A public beta is on TestFlight. Pair it with Blanc on your computer by scanning a code."
     },
     {
       "id": "page-translation",

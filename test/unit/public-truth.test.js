@@ -20,8 +20,8 @@ test('expanded feature guides retain release limitations beside their benefits',
   assert.match(workspaces, /free for everyone/);
   assert.match(workspaces, /doesn’t unlock any feature/);
   assert.doesNotMatch(workspaces, /requires an active Patron|Active Patrons can/);
-  assert.match(workspaces, /device-local and profile-scoped/);
-  assert.match(workspaces, /do not sync across devices/);
+  assert.match(workspaces, /profile-scoped and stay on this device unless you share them/);
+  assert.match(workspaces, /Spaces never move tabs between local profiles/);
   assert.match(guide('profiles'), /Sync is available only to Personal/);
   assert.match(guide('profiles'), /Files you downloaded remain on disk/);
   assert.match(guide('glance'), /never written to session restore or sync/);
