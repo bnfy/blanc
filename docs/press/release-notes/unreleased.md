@@ -1,14 +1,8 @@
 # Unreleased notes
 
-v1.45.0 is the current public release ([notes](v1.45.0.md)). Changes merged
-since then are below as they're recorded.
-
-## Fixed
-
-- With **Also for links I open in a new tab** on, a link you open in the
-  background (middle-click, ⌘-click or Ctrl-click) whose rule needs a new
-  window now opens that window behind the one you're using, instead of in
-  front.
+Changes merged since v1.45.0 are included in the prepared
+[v1.45.1 release notes](v1.45.1.md). No additional release changes are
+recorded here.
 
 ## Still open from 1.45.0
 
@@ -19,7 +13,7 @@ since then are below as they're recorded.
   the OpenURI portal) and Windows (the registered protocol command). The
   new-tab option passes on macOS and Linux. Still open:
   - The new-tab option's background-window focus bug the checks found is
-    fixed on main (see Fixed above); recheck it on Linux's window manager.
+    fixed in the prepared 1.45.1; recheck it on Linux's window manager.
   - **Windows default-browser handoff:** `start` and clicks in other apps
     weren't proven. The test VM can't hand links to any default browser but
     Edge (see the record).
