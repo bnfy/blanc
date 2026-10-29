@@ -255,3 +255,26 @@ Then('the link opens in the Work window', async function () {
     (counts) => counts.work === this.inAppBefore.work + 1, 'the link in the Work window');
   assert.equal(after.personal, this.inAppBefore.personal);
 });
+
+// The OS's own focus, not the chrome's: BrowserWindow.getFocusedWindow().
+const focusedTitle = () => ctx.app.evaluate(({ BrowserWindow }) => BrowserWindow.getFocusedWindow()?.getTitle() ?? null);
+const personalTitle = async (world) => (await world.call('windowRuntimes')).find((runtime) => runtime.id === 'primary').title;
+
+Given('the Personal window has the focus', async function () {
+  await ctx.app.evaluate(({ app }) => app.focus({ steal: true }));
+  await waitForValue(() => this.call('focusWindowRuntime', 'primary'), Boolean, 'Personal window focused');
+  this.personalTitle = await personalTitle(this);
+  await waitForValue(focusedTitle, (title) => title === this.personalTitle, 'the Personal window focused by the OS');
+});
+
+When('I middle-click the page\'s new-tab link', async function () {
+  this.inAppBefore = await countTargets(this);
+  await (await inAppSourcePage(this)).click('#acceptance-blank', { button: 'middle' });
+});
+
+Then('the Personal window still has the focus', async function () {
+  // Give a late focus call (the new window's start tab, its chrome loading)
+  // time to land before reading the OS's answer.
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  assert.equal(await focusedTitle(), this.personalTitle, 'the window that opened in the background took the focus');
+});

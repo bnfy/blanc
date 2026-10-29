@@ -72,3 +72,16 @@ Feature: open links from other apps where they belong
     Then the link opens in a new tab of the Personal window
     When I click the same link inside a sandboxed frame on the page
     Then the link opens in a new tab of the Personal window
+
+  # Spec §3.7: a background open (middle-click, Cmd/Ctrl-click) never brings a
+  # window forward, even one it has to open (Gate D-style check, 2026-10-29).
+  @F60-7 @F60
+  Scenario: a link opened in the background into a new window leaves the current window in front
+    Given a second local profile whose window is closed
+    And a saved rule sending addresses containing "/site/in-app-target" to Work
+    And link rules also apply to links opened in a new tab
+    And a Personal page has a new-tab link to "in-app-target"
+    And the Personal window has the focus
+    When I middle-click the page's new-tab link
+    Then the link opens in the Work window
+    And the Personal window still has the focus
