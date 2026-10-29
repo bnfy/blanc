@@ -64,6 +64,7 @@ function install(refs) {
     // wrapped with it, once, mechanically, at the end of this function.
     bindRoot,
     rearmLaunchSunrise,
+    pairingProtectedWindow,
     bangIcons,
     clearRecentBangsAndIcons,
     tabs,
@@ -3712,7 +3713,10 @@ function install(refs) {
     // DOM state only; the pairing code itself never appears in this record.
     // Design 2026-10-28 §6.2: which windows ask to be left out of capture.
     windowsContentProtected() {
-      return require('electron').BrowserWindow.getAllWindows().filter((win) => !win.isDestroyed() && win.isContentProtected()).length;
+      // Blanc's own record of the window it protected: macOS 27 keeps
+      // isContentProtected() true after protection is lifted (see main.js).
+      const win = pairingProtectedWindow?.();
+      return win && !win.isDestroyed() ? 1 : 0;
     },
     settingsSyncPairingDom() {
       const wc = getUtilitySheetWebContents();

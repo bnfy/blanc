@@ -15827,6 +15827,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   if (acceptanceTestMode) {
     require('./test-hook').install({
       rearmLaunchSunrise: () => launchSunrise.rearm(Date.now()),
+      // The window Blanc last asked to be left out of capture. Electron 44's
+      // isContentProtected() keeps reporting true after setContentProtection(false)
+      // on macOS 27 for apps launched by LaunchServices or Terminal, though
+      // the window captures normally again.
+      pairingProtectedWindow: () => pairingProtectedWindow,
       sharedSpacesTest:async(action,payload)=>{
         if(action==='enable')return sync.enable(payload);
         if(action==='pairingPeer'){sharedSharing.armPairing();require('./tabsync').mergeFromSync({devices:{'pseudo-peer':{name:'zzz-peer',platform:'linux',updatedAt:Date.now(),tabs:[],groups:[]}}},sync.sharedContext());return true;}
