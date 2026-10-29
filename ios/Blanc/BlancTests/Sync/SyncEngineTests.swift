@@ -20,8 +20,12 @@ final class TestClock: @unchecked Sendable {
 
 /// Real encrypted payloads, version checks, and controllable response suspension.
 /// Capture the response before suspending so an old-account reply stays old.
-actor MemorySyncTransport: SyncTransport {
+/// A lock-guarded class rather than an actor: Xcode 26.6 rejects this type
+/// as an actor (it marks the declaration `nonisolated`); main's copy compiled.
+final class MemorySyncTransport: SyncTransport, @unchecked Sendable {
     struct Request: Sendable { let method: String; let path: String; let body: Data? }
+    struct Stamp: Sendable { let method: String; let at: Int64 }
+    private let lock = NSLock()
     private var blobs: [String: (Int, SyncEnvelope)] = [:]
     private var requests: [Request] = []
     private var failures: [String: [Int]] = [:]
@@ -29,38 +33,42 @@ actor MemorySyncTransport: SyncTransport {
     private var heldMethod: String?
     private var held: CheckedContinuation<Void, Never>?
     private var retired: Set<String> = []
-    // A class and a struct, not an optional closure and a tuple array:
-    // Xcode 26.6 rejects this actor's declaration with those.
-    struct Stamp: Sendable { let method: String; let at: Int64 }
     private var stampClock: TestClock?
     private var stamps: [Stamp] = []
-    func records() -> [Request] { requests }
+    private func locked<T>(_ body: () throws -> T) rethrows -> T { lock.lock(); defer { lock.unlock() }; return try body() }
+    func records() -> [Request] { locked { requests } }
     /// Stamp every request with this (simulated) clock, for window checks.
-    func setClock(_ clock: TestClock) { stampClock = clock }
-    func getTimes() -> [Int64] { stamps.filter { $0.method == "GET" }.map(\.at) }
+    func setClock(_ clock: TestClock) { locked { stampClock = clock } }
+    func getTimes() -> [Int64] { locked { stamps.filter { $0.method == "GET" }.map(\.at) } }
     /// An older Worker that doesn't serve `store` at all (M7b's `sends`).
-    func retire(_ store: SyncStore) { retired.insert(store.rawValue) }
-    func retire(name: String) { retired.insert(name) }
+    func retire(_ store: SyncStore) { _ = locked { retired.insert(store.rawValue) } }
+    func retire(name: String) { _ = locked { retired.insert(name) } }
     func install(_ account: String, name: String, _ value: JSONValue, key: SymmetricKey) throws {
-        blobs["v1/blob/\(account)/\(name)"] = (1, try SyncCrypto.seal(Data(value.jsStringify().utf8), key: key))
+        let sealed = try SyncCrypto.seal(Data(value.jsStringify().utf8), key: key)
+        locked { blobs["v1/blob/\(account)/\(name)"] = (1, sealed) }
     }
     func value(_ account: String, name: String, key: SymmetricKey) throws -> JSONValue? {
-        guard let (_, blob) = blobs["v1/blob/\(account)/\(name)"] else { return nil }
+        guard let (_, blob) = locked({ blobs["v1/blob/\(account)/\(name)"] }) else { return nil }
         return try JSONValue(data: SyncCrypto.open(blob, key: key))
     }
     func value(_ account: String, _ store: SyncStore, key: SymmetricKey) throws -> JSONValue? {
-        guard let (_, blob) = blobs["v1/blob/\(account)/\(store.rawValue)"] else { return nil }
-        return try JSONValue(data: SyncCrypto.open(blob, key: key))
+        try value(account, name: store.rawValue, key: key)
     }
     func install(_ account: String, _ store: SyncStore, _ value: JSONValue, key: SymmetricKey) throws {
-        blobs["v1/blob/\(account)/\(store.rawValue)"] = (1, try SyncCrypto.seal(Data(value.jsStringify().utf8), key: key))
+        try install(account, name: store.rawValue, value, key: key)
     }
-    func remove(_ account: String, _ store: SyncStore) { blobs["v1/blob/\(account)/\(store.rawValue)"] = nil }
-    func fail(_ method: String, _ path: String, statuses: [Int]) { failures[method + " " + path] = statuses }
-    func suspendNext(_ method: String, _ path: String) { heldMethod = method; heldPath = path }
-    func isSuspended() -> Bool { held != nil }
-    func release() { let continuation = held; held = nil; continuation?.resume() }
+    func remove(_ account: String, _ store: SyncStore) { locked { blobs["v1/blob/\(account)/\(store.rawValue)"] = nil } }
+    func fail(_ method: String, _ path: String, statuses: [Int]) { locked { failures[method + " " + path] = statuses } }
+    func suspendNext(_ method: String, _ path: String) { locked { heldMethod = method; heldPath = path } }
+    func isSuspended() -> Bool { locked { held != nil } }
+    func release() { let continuation = locked { let c = held; held = nil; return c }; continuation?.resume() }
     func send(method: String, path: String, body: Data?) async throws -> (status: Int, body: Data) {
+        let (response, hold) = try locked { try respond(method: method, path: path, body: body) }
+        if hold { await withCheckedContinuation { continuation in locked { held = continuation } } }
+        return response
+    }
+    /// The Worker's answer, and whether to suspend before returning it. Called under the lock.
+    private func respond(method: String, path: String, body: Data?) throws -> ((status: Int, body: Data), Bool) {
         requests.append(Request(method: method, path: path, body: body))
         if let stampClock { stamps.append(Stamp(method: method, at: stampClock.now())) }
         let response: (status: Int, body: Data)
@@ -88,11 +96,11 @@ actor MemorySyncTransport: SyncTransport {
         } else if method == "DELETE" { response = (200, Data("{}".utf8)) }
         else if method == "POST" { response = (201, Data("{}".utf8)) }
         else { response = (404, Data("{\"error\":\"not-found\"}".utf8)) }
+        var hold = false
         if heldMethod == method, let requestedPath = heldPath, path == requestedPath || (requestedPath.hasSuffix("/") && path.hasPrefix(requestedPath)) {
-            heldMethod = nil; heldPath = nil
-            await withCheckedContinuation { held = $0 }
+            heldMethod = nil; heldPath = nil; hold = true
         }
-        return response
+        return (response, hold)
     }
 }
 
