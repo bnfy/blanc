@@ -118,8 +118,11 @@ final class SettingsUITests: XCTestCase {
         pair.tap()
         XCTAssertTrue(app.descendants(matching: .any)["settings.syncCode"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Type the code shown on your computer."].exists)
-        app.swipeUp()
-        XCTAssertTrue(app.descendants(matching: .any)["settings.syncHandle"].waitForExistence(timeout: 5), "the passphrase path is there too")
+        // A List builds rows only as they scroll in; on a shorter screen one
+        // swipe may stop short of the passphrase section.
+        let handle = app.descendants(matching: .any)["settings.syncHandle"]
+        for _ in 0..<4 where !handle.exists { app.swipeUp() }
+        XCTAssertTrue(handle.waitForExistence(timeout: 5), "the passphrase path is there too")
     }
     func testSyncPairingAndDisconnectConfirmation() {
         open("/sync")

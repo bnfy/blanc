@@ -40,7 +40,9 @@ concurrency:
 jobs:
   xctest:
     runs-on: macos-26
-    timeout-minutes: 30
+    # The build and full suite took 29 minutes on October 29, 2026, after
+    # M17c and the icon picker added UI tests; 30 cancelled runs mid-suite.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # The pill's Liquid Glass branch needs at least the iOS 26 SDK, so use
