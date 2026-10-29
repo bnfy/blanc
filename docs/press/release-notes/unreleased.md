@@ -1,7 +1,14 @@
 # Unreleased notes
 
 v1.45.0 is the current public release ([notes](v1.45.0.md)). Changes merged
-since then aren't recorded here yet.
+since then are below as they're recorded.
+
+## Fixed
+
+- With **Also for links I open in a new tab** on, a link you open in the
+  background (middle-click, ⌘-click or Ctrl-click) whose rule needs a new
+  window now opens that window behind the one you're using, instead of in
+  front.
 
 ## Still open from 1.45.0
 
@@ -11,9 +18,8 @@ since then aren't recorded here yet.
   warm, on macOS (`open -a`), Linux (`xdg-open` as the default browser, and
   the OpenURI portal) and Windows (the registered protocol command). The
   new-tab option passes on macOS and Linux. Still open:
-  - **Bug:** with **Also for links I open in a new tab** on, a middle-clicked
-    link whose rule needs a new window opens that window with focus, not
-    behind (macOS; Blanc's own focus record shows the same on Linux).
+  - The new-tab option's background-window focus bug the checks found is
+    fixed on main (see Fixed above); recheck it on Linux's window manager.
   - **Windows default-browser handoff:** `start` and clicks in other apps
     weren't proven. The test VM can't hand links to any default browser but
     Edge (see the record).
