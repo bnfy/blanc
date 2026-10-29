@@ -76,13 +76,14 @@ test('privacy copy accounts for suggestions, telemetry, ad measurement, tab/icon
   assert.match(privacy, /OpenAI receives the limited ChatGPT-ad conversion event/);
 });
 
-test('ChatGPT ad attribution is consent-gated and server-side only', () => {
+test('ChatGPT ad attribution respects regional measurement choices and is server-side only', () => {
   const siteScript = read('site/src/scripts/site.js');
   const worker = read('cloudflare/ping-worker/src/index.js');
   const conversion = read('cloudflare/ping-worker/src/dl.js');
   const workerConfig = read('cloudflare/ping-worker/wrangler.toml');
 
-  assert.match(siteScript, /localStorage\.getItem\(CONSENT_KEY\) !== 'granted'/);
+  assert.match(siteScript, /if \(disabled \|\| !measurementEnabled\(\)\) return/);
+  assert.match(siteScript, /choice === 'granted' \|\| \(choice === null && !measurementOptInRequired\)/);
   assert.match(siteScript, /measurement-consent-v2/);
   assert.match(siteScript, /sessionStorage\.setItem\(STORAGE_KEY, pendingOppref\)/);
   assert.match(siteScript, /url\.searchParams\.set\('oppref', oppref\)/);
