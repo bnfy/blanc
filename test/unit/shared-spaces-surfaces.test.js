@@ -11,8 +11,15 @@ test('matching sidecar hides only listed occurrences in a visible Space',()=>{
 test('marks distinguish unavailable, full, waiting and shared',()=>{
  assert.equal(markState({available:false},{}),'unavailable');
  assert.equal(markState({available:true},{reason:'tombstones'}),'full');
- assert.equal(markState({available:true,waiting:1},{}),'waiting');
+ assert.equal(markState({available:true},{pending:true}),'waiting');
  assert.equal(markState({available:true},{}),'shared');
+});
+test('routine sync requests never mark a Space as waiting to upload',()=>{
+ // The 60-second pass keeps the request window busy almost all the time;
+ // only this Space's own unacknowledged edits mean something waits (M16 §3.8).
+ assert.equal(markState({available:true,waiting:9,running:1},{}),'shared');
+ assert.equal(markState({available:true,waiting:9,running:1},{pending:false}),'shared');
+ assert.equal(markState({available:true,waiting:0,running:0},{pending:true}),'waiting');
 });
 test('one closed band keeps local live recovery and does not duplicate matching remote ids',()=>{
  assert.deepEqual(closedBand([{id:'same',title:'local'}],[{id:'same',title:'remote'},{id:'new',title:'new',fromName:'B'}]).map(x=>x.id),['same','new']);

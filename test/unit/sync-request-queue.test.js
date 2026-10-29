@@ -61,6 +61,21 @@ test('a request-log persistence failure prevents the GET and leaves the queue dr
   const result=await Promise.race([op,new Promise(r=>setTimeout(()=>r({error:new Error('queue wedged')}),30))]);
   assert.equal(result.error.message,'disk full');assert.equal(ran,false);assert.equal(queue.status().running,0);
 });
+test('rate limits count only in a row: another error keeps the count, an answered request clears it',async()=>{
+  const {queue,advance}=setup();const fail=message=>()=>{throw new Error(message);};
+  assert.equal(queue.status().consecutiveRateLimits,0);
+  await queue.enqueue({class:'F',item:'settings',run:fail('http-429')});
+  assert.equal(queue.status().consecutiveRateLimits,1);
+  await queue.enqueue({class:'F',item:'bookmarks',run:fail('rate-limited')});
+  assert.equal(queue.status().consecutiveRateLimits,2);
+  await queue.enqueue({class:'F',item:'session',run:fail('http-500')});
+  assert.equal(queue.status().consecutiveRateLimits,2);
+  // Two 429s shrank the window to three requests: the answered one waits for it.
+  const answered=queue.enqueue({class:'S',item:'s1',run:async()=>'stored'});
+  await advance(60000);assert.equal((await answered).outcome,'stored');
+  assert.equal(queue.status().consecutiveRateLimits,0);
+  await queue.settled();
+});
 test('failed persistence of a 429 backoff still completes every caller and drains',async()=>{
   const scheduler=createScheduler();let writes=0,callbacks=0;
   const queue=createRequestQueue({scheduler,persist:()=>{if(++writes===3)throw new Error('disk full during backoff');}});

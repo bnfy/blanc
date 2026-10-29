@@ -3,7 +3,10 @@
 // to re-enter the rotation, releasing its turn without completing its callers.
 function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setTimeout,clearTimer=clearTimeout,makeError=message=>new Error(message)}={}) {
   const waiting=[];let running=null,timer=null,scheduled=false,drain=[];
-  const status=()=>({waiting:waiting.length,running:running?1:0,windowFreesAt:scheduler.windowFreesAt(),backoff:scheduler.snapshot().windowLimit<10});
+  // 429s with no answered request between them (M16 §6.2: "Sync is busy;
+  // retrying" after two). Other failures leave the count as it is.
+  let consecutiveRateLimits=0;
+  const status=()=>({waiting:waiting.length,running:running?1:0,windowFreesAt:scheduler.windowFreesAt(),backoff:scheduler.snapshot().windowLimit<10,consecutiveRateLimits});
   function complete(op,outcome,error) {
     op.state=error?.message?.startsWith('cancelled:')?'cancelled':'done';
     for(const waiter of op.waiters) {
@@ -47,6 +50,7 @@ function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setT
       let outcome;
       try {outcome=await op.run({attempt:op.attempt});}
       finally {scheduler.settle(reservation);persist(scheduler.snapshot());}
+      consecutiveRateLimits=0;
       const cancelled=op.cancelled?.();
       if(cancelled)complete(op,null,makeError('cancelled:'+cancelled));
       else if(outcome?.retry){op.attempt++;op.state='waiting';waiting.push(op);}
@@ -54,6 +58,7 @@ function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setT
     } catch(error) {
       let failure=error;
       if(['rate-limited','http-429'].includes(error.message)) {
+        consecutiveRateLimits++;
         scheduler.onRateLimited();
         try {persist(scheduler.snapshot());}catch(persistError){failure=persistError;}
       }

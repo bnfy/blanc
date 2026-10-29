@@ -4569,6 +4569,9 @@ html[data-surface="glance"] .glance-header {
 }
 .island-row.selected .row-sub { color: var(--text); }
 .ws-sync-mark { font-size: 11px; opacity: .72; margin-inline-start: .4rem; }
+/* The mark sits before the count, and the count is wide enough that the row's
+   ••• (26px, 6px from the edge) covers only the count on hover, never the mark. */
+.ws-sync-mark + .ws-row-count { min-width: 18px; text-align: end; }
 .ws-sync-status { font-size: 12px; margin: .5rem; }
 .sync-not-synced { margin-inline-start: .35rem; color: var(--accent, currentColor); }
 
