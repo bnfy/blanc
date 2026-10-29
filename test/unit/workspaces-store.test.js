@@ -500,12 +500,15 @@ test('reconciling an unchanged shared Space writes nothing and keeps its revisio
   // change must not rewrite workspaces.json or bump its revision each time.
   const sid='f'.repeat(32),file=path.join(userData,'profiles','shared_unchanged','workspaces.json');
   const shared=capture=>workspaces.upsertShared({sharedId:sid,name:'Remote',color:'#426c4c',symbol:'briefcase',capture});
+  // One open file gives both the write time and the bytes, so a rewrite with
+  // identical content still shows.
+  const onDisk=()=>{const fd=fs.openSync(file,'r');try{return {mtime:fs.fstatSync(fd,{bigint:true}).mtimeNs,bytes:fs.readFileSync(fd,'utf8')};}finally{fs.closeSync(fd);}};
   const first=shared({...CAPTURE(),tabIds:['a'.repeat(32)]});assert.equal(first.ok,true);
-  const written=fs.statSync(file,{bigint:true}).mtimeNs,bytes=fs.readFileSync(file,'utf8');
+  const written=onDisk();
   const again=shared({...CAPTURE(),tabIds:['a'.repeat(32)]});
   assert.equal(again.ok,true);assert.equal(again.workspace.revision,first.workspace.revision);assert.equal(again.workspace.updatedAt,first.workspace.updatedAt);
   assert.equal(workspaces.reorderShared([sid]).ok,true);
-  assert.equal(fs.statSync(file,{bigint:true}).mtimeNs,written);assert.equal(fs.readFileSync(file,'utf8'),bytes);
+  assert.deepEqual(onDisk(),written);
   const moved=shared({...CAPTURE(['https://b.test/']),tabIds:['a'.repeat(32)]});
   assert.equal(moved.workspace.revision,first.workspace.revision+1);assert.equal(workspaces.list()[0].urls[0],'https://b.test/');
   const renamed=workspaces.upsertShared({sharedId:sid,name:'Renamed',color:'#426c4c',symbol:'briefcase',capture:{...CAPTURE(['https://b.test/']),tabIds:['a'.repeat(32)]}});
