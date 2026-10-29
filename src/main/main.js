@@ -2019,8 +2019,11 @@ function linkRouteTargets() {
 function createRoutedTab(url, destination, options) {
   const id = createTab(url, { ...options, private: destination?.private === true });
   // A window opened for a routed link starts empty; an earlier URL of a
-  // multi-URL handoff must still leave it showing a tab.
-  if (id && rt().activeTabId == null) setActiveTab(id);
+  // multi-URL handoff must still leave it showing a tab. Focusing the page
+  // would make a window opened in the background the key window (macOS), so
+  // only a focused window's page takes focus; a foreground link is activated
+  // and its window revealed by the handoff afterwards.
+  if (id && rt().activeTabId == null) setActiveTab(id, { focusContent: rt().window?.isFocused() === true });
   if (!id && !rt().tabOrder.length) {
     const start = createTab(newTabUrl());
     if (start) setActiveTab(start, { focusContent: false });
