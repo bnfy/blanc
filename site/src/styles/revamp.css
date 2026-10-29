@@ -260,6 +260,16 @@ main .section-kicker {
   stroke: var(--site-gold);
   stroke-width: 1.5;
 }
+.site-browser-beta {
+  padding: 1px 7px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: var(--site-gold);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
 .site-browser-more {
   margin-top: 6px;
   padding-top: 6px;
