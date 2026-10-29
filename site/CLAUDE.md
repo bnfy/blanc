@@ -62,7 +62,7 @@ heading display; `test/site/blubird-reach.test.mjs` and
 Newsreader is no longer loaded by any page; its condensed build
 (`scripts/build-condensed-newsreader.py`, `src/fonts/`) is unused and can be
 removed. These files are NOT under the root `tokens/` substrate guard.
-`src/scripts/site.js` (release-link resolution + consent-gated GA, all pages
+`src/scripts/site.js` (release-link resolution + region-dependent website measurement with an opt-out, all pages
 except legal) is Astro-processed. Anything needing a **stable URL** — favicons,
 `og-image.png`, `logo.png`, `feature-*.png` (OG images), `robots.txt`,
 `shots/**` (the Island figures' page captures) — lives in `public/`; never hash or
