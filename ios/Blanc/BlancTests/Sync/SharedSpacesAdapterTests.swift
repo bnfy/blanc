@@ -391,7 +391,21 @@ import XCTest
     XCTAssertFalse(later.spaces.contains { $0.recoveredFrom == sid })
   }
 
-  func testIdentityEditsGoToTheIndexEntry() throws {
+  func testIdentityEditsWriteOnlyTheFieldsChangedHere() throws {
+    let a = id(0xd1)
+    let index = library([(a, indexEntry("Work", pos: try M.keyFor("", "", a)))])
+    var space = SpaceRecord(id: "1", name: "Work", color: "#426c4c", symbol: "book", sharedId: a, link: .active)
+    XCTAssertNil(A.identityEdits(space, fields: ["name"], index: index, deviceId: "phone", now: now), "nothing changed")
+    space.name = "Office"
+    space.color = "#376694"
+    let payload = try XCTUnwrap(A.identityEdits(space, fields: ["name"], index: index, deviceId: "phone", now: now))
+    XCTAssertEqual(payload["spaces"]?[a]?["name"]?["v"], .string("Office"))
+    XCTAssertEqual(payload["spaces"]?[a]?["name"]?["by"], .string("phone"))
+    XCTAssertEqual(payload["spaces"]?[a]?["color"], index["spaces"]?[a]?["color"], "a field not named is left as it is")
+    XCTAssertNil(A.identityEdits(space, fields: [], index: index, deviceId: "phone", now: now))
+  }
+
+  func testOrderEditsFollowAMoveMadeHere() throws {
     let a = id(0xd1), b = id(0xd2)
     let ka = try M.keyFor("", "", a), kb = try M.keyFor(ka, "", b)
     let index = library([(a, indexEntry("Work", pos: ka)), (b, indexEntry("Home", pos: kb))])
@@ -399,13 +413,12 @@ import XCTest
       SpaceRecord(id: "1", name: "Work", color: "#426c4c", symbol: "book", sharedId: a, link: .active),
       SpaceRecord(id: "2", name: "Home", color: "#426c4c", symbol: "book", sharedId: b, link: .active),
     ]
-    XCTAssertNil(A.indexEdits(spaces: spaces, index: index, deviceId: "phone", now: now))
-    spaces[0].name = "Office"
+    XCTAssertNil(A.orderEdits(spaces: spaces, index: index, deviceId: "phone", now: now))
     spaces.swapAt(0, 1)
-    let payload = try XCTUnwrap(A.indexEdits(spaces: spaces, index: index, deviceId: "phone", now: now))
-    XCTAssertEqual(payload["spaces"]?[a]?["name"]?["v"], .string("Office"))
+    let payload = try XCTUnwrap(A.orderEdits(spaces: spaces, index: index, deviceId: "phone", now: now))
     let merged = try M.mergeIndex(index, payload)
     XCTAssertEqual(M.orderOf(merged["spaces"]!), [b, a])
-    XCTAssertNil(A.indexEdits(spaces: spaces, index: merged, deviceId: "phone", now: now + 1))
+    XCTAssertEqual(merged["spaces"]?[a]?["name"], index["spaces"]?[a]?["name"], "a move writes positions only")
+    XCTAssertNil(A.orderEdits(spaces: spaces, index: merged, deviceId: "phone", now: now + 1))
   }
 }

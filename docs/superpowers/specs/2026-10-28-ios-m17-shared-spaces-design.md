@@ -339,10 +339,14 @@ only then, as before. Background App Refresh stays in M18.
 **Record ↔ tab set.** A Swift adapter does for the shown set what desktop's
 `shared-spaces-adapter.js` does for a window: diff the shown tabs against the
 displayed baseline into field edits (new tab, `nav`, pin, group, position,
-close as `deleted`; groups and Space identity likewise), and apply merged
-changes to the shown set in one pass, marking them applied so they produce no
-echo. A set that isn't shown has no protected tab and takes every change at
-once.
+close as `deleted`; groups likewise), and apply merged changes to the shown
+set in one pass, marking them applied so they produce no echo. A set that
+isn't shown has no protected tab and takes every change at once. A Space's
+name, colour, symbol and place in the order are written to the index when the
+person changes them, as desktop's `sharedSharing.metadata(…)` does, never
+found by comparing at sync time: the two-device check (October 29, 2026)
+caught such a comparison against the merged index writing the phone's old
+name back over a rename made on the Mac.
 
 **The protected tab** is the shown set's selected tab while the app is in the
 foreground or background. A remote `nav` or tombstone for it goes to the

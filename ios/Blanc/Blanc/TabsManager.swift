@@ -997,7 +997,15 @@ final class TabsManager {
         }
         space.color = try validIdentity(color: color ?? space.color, symbol: symbol ?? space.symbol)
         space.symbol = symbol ?? space.symbol
+        let before = spaces[index]
+        let changed = Set([
+            ("name", before.name != space.name), ("color", before.color != space.color),
+            ("symbol", before.symbol != space.symbol),
+        ].filter(\.1).map(\.0))
         spaces[index] = space
+        writeSharedIndex { index, deviceId, now in
+            SharedSpacesAdapter.identityEdits(space, fields: changed, index: index, deviceId: deviceId, now: now)
+        }
         persistSession()
     }
 
@@ -1006,6 +1014,9 @@ final class TabsManager {
         let target = min(max(index + offset, 0), spaces.count - 1)
         guard target != index else { return }
         spaces.insert(spaces.remove(at: index), at: target)
+        writeSharedIndex { index, deviceId, now in
+            SharedSpacesAdapter.orderEdits(spaces: spaces, index: index, deviceId: deviceId, now: now)
+        }
         persistSession()
     }
 
@@ -1147,11 +1158,19 @@ final class TabsManager {
         return out
     }
 
-    /// The index writes for renamed, recoloured or moved shared Spaces, for
-    /// `SharedSpacesState.setIndex(_:)`; nil when there are none.
-    func sharedIndexEdits(index: JSONValue?, deviceId: String, now: Int64) -> JSONValue? {
-        guard sharedAdapterEnabled else { return nil }
-        return SharedSpacesAdapter.indexEdits(spaces: spaces, index: index, deviceId: deviceId, now: now)
+    /// Writes a rename, recolour, new symbol or move of a shared Space into
+    /// the index as it's made here, switch on or off, as desktop does. Never
+    /// at sync time: a comparison then takes another device's newer rename,
+    /// merged but not yet applied, for an edit made here.
+    private func writeSharedIndex(_ edits: (JSONValue?, String, Int64) -> JSONValue?) {
+        guard sharedAdapterEnabled, let account = currentSyncAccount else { return }
+        let engine = syncEngine
+        let state = engine.sharedState
+        guard state.accountId == account,
+              let payload = edits(state.data["index"], engine.stateStore.state.deviceId, Self.nowMs()),
+              (try? state.setIndex(payload)) != nil
+        else { return }
+        engine.spacesChanged()
     }
 
     /// Applies merged Space blobs (by shared id) to their sets in one pass.
@@ -1214,7 +1233,6 @@ final class TabsManager {
     /// ones leave, and a stale replica's records go to a recovery Space.
     func reconcileSharedLibrary(_ state: SharedSpacesState, deviceId: String, now: Int64) {
         guard sharedAdapterEnabled, state.isEnabled else { return }
-        if let edits = sharedIndexEdits(index: state.data["index"], deviceId: deviceId, now: now) { try? state.setIndex(edits) }
         var blobs: [String: JSONValue] = [:]
         for (sid, entry) in state.data["blobs"]?.pairs ?? [] { if let blob = entry["blob"] { blobs[sid] = blob } }
         let dormant = (state.data["dormantIds"]?.array ?? []).compactMap(\.string)
@@ -1525,8 +1543,9 @@ final class TabsManager {
         }
     }
 
-    /// Writes what the shown and put-away shared Spaces changed here into
-    /// the Spaces state (records and identity), then asks for an upload.
+    /// Writes the tab and group records the shown and put-away shared Spaces
+    /// changed here into the Spaces state, then asks for an upload. Renames
+    /// and moves are written as they're made (`writeSharedIndex`).
     func publishSharedEdits() {
         sharedPublishTask?.cancel()
         sharedPublishTask = nil
@@ -1539,9 +1558,6 @@ final class TabsManager {
         var changed = false
         for edit in sharedSpaceEdits(deviceId: deviceId, now: now) {
             if (try? state.noteLocalSpace(id: edit.spaceId, blob: edit.blob, edits: edit.edits)) != nil { changed = true }
-        }
-        if state.isEnabled, let edits = sharedIndexEdits(index: state.data["index"], deviceId: deviceId, now: now) {
-            if (try? state.setIndex(edits)) != nil { changed = true }
         }
         if changed { engine.spacesChanged() }
     }

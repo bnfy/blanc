@@ -490,42 +490,53 @@ enum SharedSpacesAdapter {
       spaces: spaces, baselines: baselines, dormant: marked, recoveryDone: done, recoveredFromShown: fromShown)
   }
 
-  /// A Space's identity edits as an index payload for
-  /// `SharedSpacesState.setIndex`: name, colour, symbol and, from the phone's
-  /// order, position; nil when the index already says the same.
-  static func indexEdits(spaces: [SpaceRecord], index: JSONValue?, deviceId: String, now: Int64) -> JSONValue? {
+  /// A rename, recolour or new symbol made on this phone, as an index payload
+  /// for `SharedSpacesState.setIndex`: only `fields`, and only where the index
+  /// says otherwise; nil when there's nothing to write. Written as the edit is
+  /// made, as desktop does, never from a comparison at sync time, which takes
+  /// another device's newer rename (merged, not yet applied here) for an edit
+  /// made here and writes the old name back.
+  static func identityEdits(
+    _ space: SpaceRecord, fields: Set<String>, index: JSONValue?, deviceId: String, now: Int64
+  ) -> JSONValue? {
+    guard let sid = space.sharedId, let record = Model.sanitizeIndex(index)?["spaces"]?[sid], !Model.deleted(record)
+    else { return nil }
+    var updated = record
+    var dirty = false
+    for (name, value) in [("name", space.name), ("color", space.color), ("symbol", space.symbol)]
+    where fields.contains(name) && record[name]?["v"]?.string != value {
+      updated[name] = Model.field(.string(value), max(now, (record[name]?["c"]?.intValue ?? 0) + 1), deviceId)
+      dirty = true
+    }
+    return dirty ? .object([("v", .number(1)), ("spaces", .object([(sid, updated)]))]) : nil
+  }
+
+  /// After a move made on this phone: new positions for the shared Spaces its
+  /// order puts out of place, as an index payload; nil when the index already
+  /// agrees.
+  static func orderEdits(spaces: [SpaceRecord], index: JSONValue?, deviceId: String, now: Int64) -> JSONValue? {
     let library = Model.sanitizeIndex(index)?["spaces"] ?? .object([])
     var out: [(String, JSONValue)] = []
     var left = ""
-    let shared = spaces.compactMap { space -> (SpaceRecord, String, JSONValue)? in
+    let shared = spaces.compactMap { space -> (String, JSONValue)? in
       guard let sid = space.sharedId, let record = library[sid], !Model.deleted(record) else { return nil }
-      return (space, sid, record)
+      return (sid, record)
     }
-    for (n, item) in shared.enumerated() {
-      let (space, sid, record) = item
-      var updated = record
-      var dirty = false
-      func write(_ name: String, _ value: JSONValue) {
-        updated[name] = Model.field(value, max(now, (record[name]?["c"]?.intValue ?? 0) + 1), deviceId)
-        dirty = true
-      }
-      for (name, value) in [("name", space.name), ("color", space.color), ("symbol", space.symbol)]
-      where record[name]?["v"]?.string != value {
-        write(name, .string(value))
-      }
+    for (n, (sid, record)) in shared.enumerated() {
       let current = record["pos"]?["v"]?.string
       let right =
         shared[(n + 1)...].lazy.compactMap { next -> String? in
-          guard let key = next.2["pos"]?["v"]?.string, Model.validKey(key, next.1), Model.less(left, key) else { return nil }
+          guard let key = next.1["pos"]?["v"]?.string, Model.validKey(key, next.0), Model.less(left, key) else { return nil }
           return key
         }.first ?? ""
       var key = current ?? ""
       if !(current.map { Model.validKey($0, sid) && Model.less(left, $0) && (right.isEmpty || Model.less($0, right)) } ?? false) {
         key = (try? Model.keyFor(left, right, sid)) ?? key
-        write("pos", .string(key))
+        var updated = record
+        updated["pos"] = Model.field(.string(key), max(now, (record["pos"]?["c"]?.intValue ?? 0) + 1), deviceId)
+        out.append((sid, updated))
       }
       left = key
-      if dirty { out.append((sid, updated)) }
     }
     return out.isEmpty ? nil : .object([("v", .number(1)), ("spaces", .object(out))])
   }

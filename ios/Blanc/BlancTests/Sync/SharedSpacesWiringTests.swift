@@ -106,12 +106,75 @@ import XCTest
     XCTAssertNotNil(m.syncEngine.sharedState.data["pending"]?[sid]?["tabs"]?[tid]?["nav"])
   }
 
-  func testSpaceIdentityEditsReachTheIndex() throws {
+  func testSpaceIdentityEditsReachTheIndexAsTheyAreMade() throws {
     let m = try sharedOn()
     let space = try XCTUnwrap(m.shownSpace)
     try m.updateSpace(space.id, name: "Studio", color: nil, symbol: nil)
+    let record = try XCTUnwrap(m.syncEngine.sharedState.data["index"]?["spaces"]?[sid])
+    XCTAssertEqual(record["name"]?["v"], .string("Studio"))
+    XCTAssertEqual(record["name"]?["by"], .string("phone"))
+    XCTAssertEqual(record["color"], f(.string("#426c4c")), "only the field changed here is written")
+  }
+
+  /// Another shared Space, "Home", after "Work" in the library and on the phone.
+  func addHome(_ m: TabsManager) throws -> String {
+    let state = m.syncEngine.sharedState
+    let home = id(0x88), tab = id(0x201)
+    let after = try XCTUnwrap(state.data["index"]?["spaces"]?[sid]?["pos"]?["v"]?.string)
+    try state.setIndex(.object([("v", .number(1)), ("spaces", .object([(home, .object([
+      ("name", f(.string("Home"))), ("color", f(.string("#376694"))), ("symbol", f(.string("book"))),
+      ("pos", f(.string(try M.keyFor(after, "", home)))), ("deleted", f(.bool(false))),
+      ("createdAt", .number(100)), ("createdBy", .string("mac")),
+    ]))]))]))
+    try state.noteLocalSpace(id: home, blob: .object([
+      ("v", .number(1)), ("spaceId", .string(home)), ("groups", .object([])),
+      ("tabs", .object([(tab, .object([
+        ("nav", f(.object([("url", .string("https://example.test/home")), ("title", .string("Home"))]))),
+        ("name", f(.null)), ("pinned", f(.bool(false))), ("groupId", f(.null)),
+        ("pos", f(.string(try M.keyFor("", "", tab)))), ("deleted", f(.bool(false))),
+      ]))])),
+    ]), edits: nil)
+    m.reconcileSharedLibrary(state, deviceId: "phone", now: now)
+    XCTAssertEqual(m.spaces.compactMap(\.sharedId), [sid, home])
+    return home
+  }
+
+  func testMovingASharedSpaceReachesTheIndexOrder() throws {
+    let m = try sharedOn()
+    let home = try addHome(m)
+    let homeId = try XCTUnwrap(m.spaces.first { $0.sharedId == home }?.id)
+    m.moveSpace(homeId, by: -1)
+    XCTAssertEqual(M.orderOf(try XCTUnwrap(m.syncEngine.sharedState.data["index"]?["spaces"])), [home, sid])
+  }
+
+  /// The two-device check (2026-10-29): a rename made on the Mac reached the
+  /// phone, which compared its own copy with the merged index and wrote its
+  /// old name back with a newer clock, undoing the rename everywhere.
+  func testAnotherDevicesRenameIsAppliedAndNotWrittenBack() throws {
+    let m = try sharedOn()
+    let state = m.syncEngine.sharedState
+    var renamed = try XCTUnwrap(state.data["index"]?["spaces"]?[sid])
+    renamed["name"] = f(.string("Douglas"), 200, "mac")
+    XCTAssertTrue(try state.mergeIndex(.object([("v", .number(1)), ("spaces", .object([(sid, renamed)]))])))
+    m.reconcileSharedLibrary(state, deviceId: "phone", now: now)
     m.publishSharedEdits()
-    XCTAssertEqual(m.syncEngine.sharedState.data["index"]?["spaces"]?[sid]?["name"]?["v"], .string("Studio"))
+    XCTAssertEqual(m.spaces.first { $0.sharedId == sid }?.name, "Douglas")
+    XCTAssertEqual(state.data["index"]?["spaces"]?[sid]?["name"], f(.string("Douglas"), 200, "mac"), "the Mac's rename stands")
+  }
+
+  func testAnotherDevicesReorderIsAppliedAndNotWrittenBack() throws {
+    let m = try sharedOn()
+    let state = m.syncEngine.sharedState
+    let home = try addHome(m)
+    let first = try XCTUnwrap(state.data["index"]?["spaces"]?[sid]?["pos"]?["v"]?.string)
+    var moved = try XCTUnwrap(state.data["index"]?["spaces"]?[home])
+    moved["pos"] = f(.string(try M.keyFor("", first, home)), 200, "mac")
+    XCTAssertTrue(try state.mergeIndex(.object([("v", .number(1)), ("spaces", .object([(home, moved)]))])))
+    m.reconcileSharedLibrary(state, deviceId: "phone", now: now)
+    m.publishSharedEdits()
+    XCTAssertEqual(m.spaces.compactMap(\.sharedId), [home, sid])
+    XCTAssertEqual(M.orderOf(try XCTUnwrap(state.data["index"]?["spaces"])), [home, sid], "the Mac's order stands")
+    XCTAssertEqual(state.data["index"]?["spaces"]?[home]?["pos"], moved["pos"])
   }
 
   func testMergedBlobsReachTheShownTabs() throws {
