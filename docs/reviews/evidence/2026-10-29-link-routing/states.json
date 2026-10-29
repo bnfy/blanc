@@ -1,0 +1,918 @@
+{
+ "note": "Where each window was after each check: profile, Space, whether it was the focused window in session.json (activeWindowId), and its tab addresses. Read from each test profile's session.json, profiles.json and workspaces.json.",
+ "states": {
+  "mac-cold-com": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "blanc://newtab/"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.com/?lr=mac-cold"
+    ]
+   }
+  ],
+  "mac-cold-iana": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "blanc://newtab/"
+    ]
+   },
+   {
+    "profile": "Personal",
+    "space": "Research",
+    "focused": true,
+    "urls": [
+     "blanc://newtab/",
+     "https://www.iana.org/help/example-domains?lr=mac-cold"
+    ]
+   }
+  ],
+  "mac-cold-org": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "blanc://newtab/",
+     "https://example.org/?lr=mac-cold"
+    ]
+   }
+  ],
+  "mac-inapp-bg-newwindow": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286431731-1",
+     "https://example.org/?lr=mac-cold",
+     "https://example.org/?lr=mac-warm-1",
+     "http://127.0.0.1:8765/",
+     "https://example.com/?lr=inapp-off",
+     "http://127.0.0.1:8765/",
+     "http://127.0.0.1:8765/?run=on",
+     "http://127.0.0.1:8765/?run=focus",
+     "http://127.0.0.1:8765/?run=focus2"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.com/?lr=inapp-on-2"
+    ]
+   }
+  ],
+  "mac-inapp-off": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "blanc://newtab/",
+     "https://example.org/?lr=mac-cold",
+     "https://example.org/?lr=mac-warm-1",
+     "http://127.0.0.1:8765/",
+     "https://example.com/?lr=inapp-off"
+    ]
+   }
+  ],
+  "mac-inapp-on-later": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "blanc://newtab/",
+     "https://example.org/?lr=mac-cold",
+     "https://example.org/?lr=mac-warm-1",
+     "http://127.0.0.1:8765/",
+     "https://example.com/?lr=inapp-off",
+     "http://127.0.0.1:8765/"
+    ]
+   }
+  ],
+  "mac-inapp-on-probe": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "blanc://newtab/",
+     "https://example.org/?lr=mac-cold",
+     "https://example.org/?lr=mac-warm-1",
+     "http://127.0.0.1:8765/",
+     "https://example.com/?lr=inapp-off",
+     "http://127.0.0.1:8765/",
+     "http://127.0.0.1:8765/?run=on"
+    ]
+   }
+  ],
+  "mac-inapp-on": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "blanc://newtab/",
+     "https://example.org/?lr=mac-cold",
+     "https://example.org/?lr=mac-warm-1",
+     "http://127.0.0.1:8765/",
+     "https://example.com/?lr=inapp-off",
+     "http://127.0.0.1:8765/",
+     "http://127.0.0.1:8765/?run=on"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.com/?lr=inapp-on"
+    ]
+   }
+  ],
+  "mac-setup": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "blanc://newtab/"
+    ]
+   }
+  ],
+  "mac-warm-com1": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "blanc://newtab/",
+     "https://example.org/?lr=mac-cold",
+     "https://example.org/?lr=mac-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.com/?lr=mac-warm-1"
+    ]
+   }
+  ],
+  "mac-warm-com2": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "blanc://newtab/",
+     "https://example.org/?lr=mac-cold",
+     "https://example.org/?lr=mac-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.com/?lr=mac-warm-1",
+     "https://example.com/?lr=mac-warm-2"
+    ]
+   }
+  ],
+  "mac-warm-iana1": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "blanc://newtab/",
+     "https://example.org/?lr=mac-cold",
+     "https://example.org/?lr=mac-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.com/?lr=mac-warm-1",
+     "https://example.com/?lr=mac-warm-2"
+    ]
+   },
+   {
+    "profile": "Personal",
+    "space": "Research",
+    "focused": true,
+    "urls": [
+     "blanc://newtab/",
+     "https://www.iana.org/help/example-domains?lr=mac-cold",
+     "https://www.iana.org/help/example-domains?lr=mac-warm-1"
+    ]
+   }
+  ],
+  "mac-warm-iana2": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "blanc://newtab/",
+     "https://example.org/?lr=mac-cold",
+     "https://example.org/?lr=mac-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.com/?lr=mac-warm-1",
+     "https://example.com/?lr=mac-warm-2"
+    ]
+   },
+   {
+    "profile": "Personal",
+    "space": "Research",
+    "focused": true,
+    "urls": [
+     "blanc://newtab/",
+     "https://www.iana.org/help/example-domains?lr=mac-cold",
+     "https://www.iana.org/help/example-domains?lr=mac-warm-1",
+     "https://www.iana.org/help/example-domains?lr=mac-warm-2"
+    ]
+   }
+  ],
+  "mac-warm-org1": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "blanc://newtab/",
+     "https://example.org/?lr=mac-cold",
+     "https://example.org/?lr=mac-warm-1"
+    ]
+   }
+  ],
+  "mac-warm-org2": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "blanc://newtab/",
+     "https://example.org/?lr=mac-cold",
+     "https://example.org/?lr=mac-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.com/?lr=mac-warm-1",
+     "https://example.com/?lr=mac-warm-2"
+    ]
+   },
+   {
+    "profile": "Personal",
+    "space": "Research",
+    "focused": true,
+    "urls": [
+     "blanc://newtab/",
+     "https://www.iana.org/help/example-domains?lr=mac-cold",
+     "https://www.iana.org/help/example-domains?lr=mac-warm-1",
+     "https://www.iana.org/help/example-domains?lr=mac-warm-2",
+     "https://example.org/?lr=mac-warm-2"
+    ]
+   }
+  ],
+  "linux-cold-com": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286605764-0"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.com/?lr=linux-cold"
+    ]
+   }
+  ],
+  "linux-cold-iana": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286648961-1"
+    ]
+   },
+   {
+    "profile": "Personal",
+    "space": "Research",
+    "focused": true,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286600582-0",
+     "https://www.iana.org/help/example-domains?lr=linux-cold"
+    ]
+   }
+  ],
+  "linux-cold-org-first": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286648961-1"
+    ]
+   },
+   {
+    "profile": "Personal",
+    "space": "Research",
+    "focused": true,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286600582-0",
+     "https://www.iana.org/help/example-domains?lr=linux-cold",
+     "https://example.org/?lr=linux-cold"
+    ]
+   }
+  ],
+  "linux-cold-org": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286680735-1",
+     "https://example.org/?lr=linux-cold-2"
+    ]
+   }
+  ],
+  "linux-inapp-off": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286827512-1",
+     "https://example.org/?lr=linux-cold-2",
+     "https://example.org/?lr=linux-warm-1",
+     "http://127.0.0.1:8765/?run=off",
+     "https://example.com/?lr=inapp-off"
+    ]
+   }
+  ],
+  "linux-inapp-on": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286827512-1",
+     "https://example.org/?lr=linux-cold-2",
+     "https://example.org/?lr=linux-warm-1",
+     "http://127.0.0.1:8765/?run=off",
+     "https://example.com/?lr=inapp-off",
+     "http://127.0.0.1:8765/?run=on"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.com/?lr=inapp-on"
+    ]
+   }
+  ],
+  "linux-portal-cold-com": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286775847-2",
+     "https://example.org/?lr=linux-cold-2",
+     "https://example.org/?lr=linux-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.com/?lr=linux-portal-cold"
+    ]
+   }
+  ],
+  "linux-portal-cold-iana": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286806898-1",
+     "https://example.org/?lr=linux-cold-2",
+     "https://example.org/?lr=linux-warm-1"
+    ]
+   },
+   {
+    "profile": "Personal",
+    "space": "Research",
+    "focused": true,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286775464-0",
+     "https://www.iana.org/help/example-domains?lr=linux-cold",
+     "https://example.org/?lr=linux-cold",
+     "https://www.iana.org/help/example-domains?lr=linux-warm-1",
+     "https://www.iana.org/help/example-domains?lr=linux-warm-2",
+     "https://example.org/?lr=linux-warm-2",
+     "https://www.iana.org/help/example-domains?lr=linux-portal-warm",
+     "https://example.org/?lr=linux-portal-warm",
+     "https://www.iana.org/help/example-domains?lr=linux-portal-cold"
+    ]
+   }
+  ],
+  "linux-portal-warm-com": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286744540-2",
+     "https://example.org/?lr=linux-cold-2",
+     "https://example.org/?lr=linux-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.com/?lr=linux-portal-warm"
+    ]
+   }
+  ],
+  "linux-portal-warm-iana": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286744540-2",
+     "https://example.org/?lr=linux-cold-2",
+     "https://example.org/?lr=linux-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.com/?lr=linux-portal-warm"
+    ]
+   },
+   {
+    "profile": "Personal",
+    "space": "Research",
+    "focused": true,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286744295-0",
+     "https://www.iana.org/help/example-domains?lr=linux-cold",
+     "https://example.org/?lr=linux-cold",
+     "https://www.iana.org/help/example-domains?lr=linux-warm-1",
+     "https://www.iana.org/help/example-domains?lr=linux-warm-2",
+     "https://example.org/?lr=linux-warm-2",
+     "https://www.iana.org/help/example-domains?lr=linux-portal-warm"
+    ]
+   }
+  ],
+  "linux-portal-warm-org": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286744540-2",
+     "https://example.org/?lr=linux-cold-2",
+     "https://example.org/?lr=linux-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.com/?lr=linux-portal-warm"
+    ]
+   },
+   {
+    "profile": "Personal",
+    "space": "Research",
+    "focused": true,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286744295-0",
+     "https://www.iana.org/help/example-domains?lr=linux-cold",
+     "https://example.org/?lr=linux-cold",
+     "https://www.iana.org/help/example-domains?lr=linux-warm-1",
+     "https://www.iana.org/help/example-domains?lr=linux-warm-2",
+     "https://example.org/?lr=linux-warm-2",
+     "https://www.iana.org/help/example-domains?lr=linux-portal-warm",
+     "https://example.org/?lr=linux-portal-warm"
+    ]
+   }
+  ],
+  "linux-setup": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286605764-0"
+    ]
+   }
+  ],
+  "linux-warm-com1": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286680735-1",
+     "https://example.org/?lr=linux-cold-2",
+     "https://example.org/?lr=linux-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.com/?lr=linux-warm-1"
+    ]
+   }
+  ],
+  "linux-warm-com2": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286680735-1",
+     "https://example.org/?lr=linux-cold-2",
+     "https://example.org/?lr=linux-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.com/?lr=linux-warm-1",
+     "https://example.com/?lr=linux-warm-2"
+    ]
+   }
+  ],
+  "linux-warm-iana1": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286680735-1",
+     "https://example.org/?lr=linux-cold-2",
+     "https://example.org/?lr=linux-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.com/?lr=linux-warm-1",
+     "https://example.com/?lr=linux-warm-2"
+    ]
+   },
+   {
+    "profile": "Personal",
+    "space": "Research",
+    "focused": true,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286680693-0",
+     "https://www.iana.org/help/example-domains?lr=linux-cold",
+     "https://example.org/?lr=linux-cold",
+     "https://www.iana.org/help/example-domains?lr=linux-warm-1"
+    ]
+   }
+  ],
+  "linux-warm-iana2": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286680735-1",
+     "https://example.org/?lr=linux-cold-2",
+     "https://example.org/?lr=linux-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.com/?lr=linux-warm-1",
+     "https://example.com/?lr=linux-warm-2"
+    ]
+   },
+   {
+    "profile": "Personal",
+    "space": "Research",
+    "focused": true,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286680693-0",
+     "https://www.iana.org/help/example-domains?lr=linux-cold",
+     "https://example.org/?lr=linux-cold",
+     "https://www.iana.org/help/example-domains?lr=linux-warm-1",
+     "https://www.iana.org/help/example-domains?lr=linux-warm-2"
+    ]
+   }
+  ],
+  "linux-warm-org1": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286680735-1",
+     "https://example.org/?lr=linux-cold-2",
+     "https://example.org/?lr=linux-warm-1"
+    ]
+   }
+  ],
+  "linux-warm-org2": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286680735-1",
+     "https://example.org/?lr=linux-cold-2",
+     "https://example.org/?lr=linux-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.com/?lr=linux-warm-1",
+     "https://example.com/?lr=linux-warm-2"
+    ]
+   },
+   {
+    "profile": "Personal",
+    "space": "Research",
+    "focused": true,
+    "urls": [
+     "http://127.0.0.1:8765/?lrstrip=1793286680693-0",
+     "https://www.iana.org/help/example-domains?lr=linux-cold",
+     "https://example.org/?lr=linux-cold",
+     "https://www.iana.org/help/example-domains?lr=linux-warm-1",
+     "https://www.iana.org/help/example-domains?lr=linux-warm-2",
+     "https://example.org/?lr=linux-warm-2"
+    ]
+   }
+  ],
+  "win-cold-com": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.net/?lrstrip=1793287171056-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.com/?lr=win-cold"
+    ]
+   }
+  ],
+  "win-cold-iana": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.net/?lrstrip=1793288183756-1"
+    ]
+   },
+   {
+    "profile": "Personal",
+    "space": "Research",
+    "focused": true,
+    "urls": [
+     "https://example.net/?lrstrip=1793287166480-0",
+     "https://www.iana.org/help/example-domains?lr=win-cold"
+    ]
+   }
+  ],
+  "win-cold-org": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.net/?lrstrip=1793288209441-1",
+     "https://example.org/?lr=win-cold"
+    ]
+   }
+  ],
+  "win-setup": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.net/?lrstrip=1793287171056-1"
+    ]
+   }
+  ],
+  "win-warm-com1": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.net/?lrstrip=1793288209441-1",
+     "https://example.org/?lr=win-cold",
+     "https://example.org/?lr=win-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.com/?lr=win-warm-1"
+    ]
+   }
+  ],
+  "win-warm-com2": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.net/?lrstrip=1793288209441-1",
+     "https://example.org/?lr=win-cold",
+     "https://example.org/?lr=win-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.com/?lr=win-warm-1",
+     "https://example.com/?lr=win-warm-2"
+    ]
+   }
+  ],
+  "win-warm-iana1": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.net/?lrstrip=1793288209441-1",
+     "https://example.org/?lr=win-cold",
+     "https://example.org/?lr=win-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.com/?lr=win-warm-1",
+     "https://example.com/?lr=win-warm-2"
+    ]
+   },
+   {
+    "profile": "Personal",
+    "space": "Research",
+    "focused": true,
+    "urls": [
+     "https://example.net/?lrstrip=1793288208862-0",
+     "https://www.iana.org/help/example-domains?lr=win-cold",
+     "https://www.iana.org/help/example-domains?lr=win-warm-1"
+    ]
+   }
+  ],
+  "win-warm-iana2": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.net/?lrstrip=1793288209441-1",
+     "https://example.org/?lr=win-cold",
+     "https://example.org/?lr=win-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.com/?lr=win-warm-1",
+     "https://example.com/?lr=win-warm-2"
+    ]
+   },
+   {
+    "profile": "Personal",
+    "space": "Research",
+    "focused": true,
+    "urls": [
+     "https://example.net/?lrstrip=1793288208862-0",
+     "https://www.iana.org/help/example-domains?lr=win-cold",
+     "https://www.iana.org/help/example-domains?lr=win-warm-1",
+     "https://www.iana.org/help/example-domains?lr=win-warm-2"
+    ]
+   }
+  ],
+  "win-warm-org1": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": true,
+    "urls": [
+     "https://example.net/?lrstrip=1793288209441-1",
+     "https://example.org/?lr=win-cold",
+     "https://example.org/?lr=win-warm-1"
+    ]
+   }
+  ],
+  "win-warm-org2": [
+   {
+    "profile": "Personal",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.net/?lrstrip=1793288209441-1",
+     "https://example.org/?lr=win-cold",
+     "https://example.org/?lr=win-warm-1"
+    ]
+   },
+   {
+    "profile": "Work",
+    "space": null,
+    "focused": false,
+    "urls": [
+     "https://example.com/?lr=win-warm-1",
+     "https://example.com/?lr=win-warm-2"
+    ]
+   },
+   {
+    "profile": "Personal",
+    "space": "Research",
+    "focused": true,
+    "urls": [
+     "https://example.net/?lrstrip=1793288208862-0",
+     "https://www.iana.org/help/example-domains?lr=win-cold",
+     "https://www.iana.org/help/example-domains?lr=win-warm-1",
+     "https://www.iana.org/help/example-domains?lr=win-warm-2",
+     "https://example.org/?lr=win-warm-2"
+    ]
+   }
+  ]
+ }
+}
