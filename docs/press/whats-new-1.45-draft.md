@@ -1,6 +1,11 @@
 # What's New 1.45 and Shared Spaces launch copy: draft
 
-Status: **draft for the owner's review; not approved and not for deployment.**
+Status: **superseded.** The owner-approved What's New 1.45 page in
+`site/src/data/whats-new.json` (#1252) went live before v1.45.0 published, and
+the "Claims to change" list below was carried out in the v1.45.0 records PR.
+Kept as history; don't reuse its proposed text.
+
+Original status: draft for the owner's review; not approved and not for deployment.
 Prepared with Shared Spaces PR E on October 27, 2026. Nothing here describes
 Shared Spaces as shipped. Public copy changes only after 1.45.0 publishes with
 its release evidence (`docs/marketing-claims.md`), except the What's New page,
@@ -40,7 +45,7 @@ bullet whole. The tighter page text below is proposed in place of that.
         "With Sync on, open Settings, then Sync.",
         "Under What syncs, turn on Spaces and groups, choose your Spaces and press Turn on. Do the same on each computer."
       ],
-      "note": "It's off by default and belongs to the Personal profile. Private tabs, internal pages and local files never sync. Up to 25 Spaces can be shared; a deleted Space still counts for 30 days.",
+      "note": "It's off by default and belongs to the Personal profile. Private tabs, internal pages and local files never sync. Up to 25 Spaces can be shared; a deleted Space stops counting at once, and only its emptied record stays in sync storage for 30 days.",
       "media": {
         "kind": "todo",
         "todo": "Capture 1 below. Owner sign-off on it and on this text.",

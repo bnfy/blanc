@@ -688,28 +688,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-144",
-      "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "Saved on this device, within this profile.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces",
-        "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-145",
-      "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "Blanc Spaces are device-local and profile-scoped. They do not sync across devices or move tabs between local profiles. Saving a space preserves its tab setup, not every page’s running state.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces",
-        "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-153",
       "source": "site/src/components/guides/profiles.astro",
       "exactWording": "Sign into the same site in different profiles.",
@@ -1018,17 +996,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-191",
-      "source": "site/src/components/guides/reopen-closed-tabs.astro",
-      "exactWording": "Closed-tab recovery is not a permanent archive or a promise to recover every tab exactly. Private tabs are never recorded, and closed-tab snapshots never go to disk or sync.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "reopening",
-        "security"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-197",
       "source": "site/src/components/guides/island.astro",
       "exactWording": "Get to a new page with one click.",
@@ -1326,17 +1293,6 @@
       "id": "website-115-248",
       "source": "site/src/components/guides/sync.astro",
       "exactWording": "Open tabs, per device.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "sync",
-        "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-249",
-      "source": "site/src/components/guides/sync.astro",
-      "exactWording": "Off until you turn it on. Each machine publishes its own open tabs; nothing merges or rearranges.",
       "subject": "Blanc",
       "evidenceGroups": [
         "sync",
@@ -2427,16 +2383,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "trust-125-378",
-      "source": "site/src/components/guides/foundations.astro",
-      "exactWording": "If you enable Sync, eligible Favorites, settings and optional open-tab snapshots are encrypted before reaching Blanc’s Cloudflare-hosted service. Cookies, passwords and browsing history are not synced.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "trust-125-379",
       "source": "site/src/components/guides/foundations.astro",
       "exactWording": "Optional Patron and 1Password",
@@ -2773,16 +2719,6 @@
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-463",
-      "source": "site/src/components/guides/security.astro",
-      "exactWording": "Sync is off by default. Favorites, eligible settings, and optional open-tab snapshots are encrypted on your device. The current v1 server stores ciphertext under an opaque account locator and cannot read or merge it. The passphrase is never stored or sent, and the retained key is wrapped by the operating system credential service.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "process"
       ],
       "verdict": "qualified"
     },
@@ -3850,16 +3786,6 @@
       "id": "revamp-copy-085",
       "source": "site/src/components/guides/sync.astro",
       "exactWording": "The sync server stores ciphertext it cannot read.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "sync"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-086",
-      "source": "site/src/components/guides/sync.astro",
-      "exactWording": "Tab snapshots ride the same end-to-end encryption as the rest of Blanc sync: encrypted on your device with a key derived from your passphrase, stored server-side as unreadable blobs. A separate bounded encrypted sidecar can carry source-rasterized PNG favicons, so the receiving device does not contact a remote tab's site merely to draw its row. Private tabs never enter a snapshot, and idle devices age out on their own.",
       "subject": "Blanc",
       "evidenceGroups": [
         "sync"
@@ -5082,28 +5008,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "feature-retained-website-115-144",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Saved on this device, within this profile.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces",
-        "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-website-115-145",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Blanc Spaces are device-local and profile-scoped. They do not sync across devices or move tabs between local profiles. Saving a space preserves its tab setup, not every page’s running state.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces",
-        "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-website-115-153",
       "source": "site/src/pages/features/profiles.astro",
       "exactWording": "Sign into the same site in different profiles.",
@@ -5398,17 +5302,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-website-115-191",
-      "source": "site/src/pages/features/reopen-closed-tabs.astro",
-      "exactWording": "Closed-tab recovery is not a permanent archive or a promise to recover every tab exactly. Private tabs are never recorded, and closed-tab snapshots never go to disk or sync.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "reopening",
-        "security"
       ],
       "verdict": "qualified"
     },
@@ -5718,17 +5611,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "feature-retained-website-115-249",
-      "source": "site/src/pages/features/sync.astro",
-      "exactWording": "Off until you turn it on. Each machine publishes its own open tabs; nothing merges or rearranges.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "sync",
-        "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-website-115-250",
       "source": "site/src/pages/features/sync.astro",
       "exactWording": "History, downloads, permissions, cookies, site data, and private tabs stay on the device.",
@@ -5856,16 +5738,6 @@
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-reddit-463",
-      "source": "site/src/pages/features/security.astro",
-      "exactWording": "Sync is off by default. Favorites, eligible settings, and optional open-tab snapshots are encrypted on your device. The current v1 server stores ciphertext under an opaque account locator and cannot read or merge it. The passphrase is never stored or sent, and the retained key is wrapped by the operating system credential service.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "process"
       ],
       "verdict": "qualified"
     },
@@ -6483,16 +6355,6 @@
       "id": "feature-retained-revamp-copy-085",
       "source": "site/src/pages/features/sync.astro",
       "exactWording": "The sync server stores ciphertext it cannot read.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "sync"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-revamp-copy-086",
-      "source": "site/src/pages/features/sync.astro",
-      "exactWording": "Tab snapshots ride the same end-to-end encryption as the rest of Blanc sync: encrypted on your device with a key derived from your passphrase, stored server-side as unreadable blobs. A separate bounded encrypted sidecar can carry source-rasterized PNG favicons, so the receiving device does not contact a remote tab's site merely to draw its row. Private tabs never enter a snapshot, and idle devices age out on their own.",
       "subject": "Blanc",
       "evidenceGroups": [
         "sync"
@@ -10314,6 +10176,157 @@
       ],
       "verdict": "qualified",
       "reason": "October 24, 2026, after public v1.43.0 and v1.43.1: Blanc moved from official Electron 44.8.0 to castLabs’ Electron for Content Security 44.9.3 (44.9.3+wvcus, Chromium 152.0.7977.167) for Widevine playback, so “official Electron” is no longer true. The replacement wording is recorded in docs/website-v1.43-claims.json."
+    },
+    {
+      "id": "website-115-144",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Saved on this device, within this profile.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces",
+        "profiles"
+      ],
+      "verdict": "qualified",
+      "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
+    },
+    {
+      "id": "website-115-145",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Blanc Spaces are device-local and profile-scoped. They do not sync across devices or move tabs between local profiles. Saving a space preserves its tab setup, not every page’s running state.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces",
+        "profiles"
+      ],
+      "verdict": "qualified",
+      "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-144",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Saved on this device, within this profile.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces",
+        "profiles"
+      ],
+      "verdict": "qualified",
+      "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-145",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Blanc Spaces are device-local and profile-scoped. They do not sync across devices or move tabs between local profiles. Saving a space preserves its tab setup, not every page’s running state.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces",
+        "profiles"
+      ],
+      "verdict": "qualified",
+      "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
+    },
+    {
+      "id": "website-115-249",
+      "source": "site/src/components/guides/sync.astro",
+      "exactWording": "Off until you turn it on. Each machine publishes its own open tabs; nothing merges or rearranges.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "profiles"
+      ],
+      "verdict": "qualified",
+      "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
+    },
+    {
+      "id": "revamp-copy-086",
+      "source": "site/src/components/guides/sync.astro",
+      "exactWording": "Tab snapshots ride the same end-to-end encryption as the rest of Blanc sync: encrypted on your device with a key derived from your passphrase, stored server-side as unreadable blobs. A separate bounded encrypted sidecar can carry source-rasterized PNG favicons, so the receiving device does not contact a remote tab's site merely to draw its row. Private tabs never enter a snapshot, and idle devices age out on their own.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync"
+      ],
+      "verdict": "qualified",
+      "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-249",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Off until you turn it on. Each machine publishes its own open tabs; nothing merges or rearranges.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "profiles"
+      ],
+      "verdict": "qualified",
+      "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
+    },
+    {
+      "id": "feature-retained-revamp-copy-086",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Tab snapshots ride the same end-to-end encryption as the rest of Blanc sync: encrypted on your device with a key derived from your passphrase, stored server-side as unreadable blobs. A separate bounded encrypted sidecar can carry source-rasterized PNG favicons, so the receiving device does not contact a remote tab's site merely to draw its row. Private tabs never enter a snapshot, and idle devices age out on their own.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync"
+      ],
+      "verdict": "qualified",
+      "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
+    },
+    {
+      "id": "website-115-191",
+      "source": "site/src/components/guides/reopen-closed-tabs.astro",
+      "exactWording": "Closed-tab recovery is not a permanent archive or a promise to recover every tab exactly. Private tabs are never recorded, and closed-tab snapshots never go to disk or sync.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening",
+        "security"
+      ],
+      "verdict": "qualified",
+      "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-191",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Closed-tab recovery is not a permanent archive or a promise to recover every tab exactly. Private tabs are never recorded, and closed-tab snapshots never go to disk or sync.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening",
+        "security"
+      ],
+      "verdict": "qualified",
+      "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
+    },
+    {
+      "id": "reddit-463",
+      "source": "site/src/components/guides/security.astro",
+      "exactWording": "Sync is off by default. Favorites, eligible settings, and optional open-tab snapshots are encrypted on your device. The current v1 server stores ciphertext under an opaque account locator and cannot read or merge it. The passphrase is never stored or sent, and the retained key is wrapped by the operating system credential service.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "process"
+      ],
+      "verdict": "qualified",
+      "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
+    },
+    {
+      "id": "feature-retained-reddit-463",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Sync is off by default. Favorites, eligible settings, and optional open-tab snapshots are encrypted on your device. The current v1 server stores ciphertext under an opaque account locator and cannot read or merge it. The passphrase is never stored or sent, and the retained key is wrapped by the operating system credential service.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "process"
+      ],
+      "verdict": "qualified",
+      "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
+    },
+    {
+      "id": "trust-125-378",
+      "source": "site/src/components/guides/foundations.astro",
+      "exactWording": "If you enable Sync, eligible Favorites, settings and optional open-tab snapshots are encrypted before reaching Blanc’s Cloudflare-hosted service. Cookies, passwords and browsing history are not synced.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
     }
   ],
   "supersededCandidateClaims": [
@@ -13210,6 +13223,58 @@
           {
             "before": "<figcaption>Standalone Mahjong — Daily Turtle / Burst</figcaption>",
             "after": "<figcaption>Standalone Mahjong — Daily Pyramid / Burst</figcaption>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/workspaces.astro",
+        "reason": "October 29, 2026 records for public v1.45.0, which shipped Shared Spaces (chosen Spaces kept the same on each computer through Sync, off by default, Personal profile only), Recently closed for shared Spaces, and Turn on Sync without a passphrase (a random key). Wording that said Spaces never sync, that nothing merges, that the key always comes from a passphrase, or that closed tabs never reach another device is qualified. The new wording is recorded in docs/website-v1.45-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Your spaces stay on this device, in this profile, and keep updating as you browse. Nothing about them depends on a subscription.</p>",
+            "after": "<p>Your spaces stay in this profile and keep updating as you browse. Nothing about them depends on a subscription.</p>"
+          },
+          {
+            "before": ">Saved on this device, within this profile.</h2>",
+            "after": ">Saved in this profile. Shared only if you choose.</h2>"
+          },
+          {
+            "before": "<p>Blanc Spaces are device-local and profile-scoped. They do not sync across devices or move tabs between local profiles. Saving a space preserves its tab setup, not every page’s running state.</p>",
+            "after": "<p>Blanc Spaces are profile-scoped and stay on this device unless you share them. Since Blanc 1.45, with Sync on in the Personal profile, you can choose Spaces to keep the same on your other computers. Spaces never move tabs between local profiles. Saving a space preserves its tab setup, not every page’s running state.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/sync.astro",
+        "reason": "October 29, 2026 records for public v1.45.0, which shipped Shared Spaces (chosen Spaces kept the same on each computer through Sync, off by default, Personal profile only), Recently closed for shared Spaces, and Turn on Sync without a passphrase (a random key). Wording that said Spaces never sync, that nothing merges, that the key always comes from a passphrase, or that closed tabs never reach another device is qualified. The new wording is recorded in docs/website-v1.45-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Off until you turn it on. Each machine publishes its own open tabs; nothing merges or rearranges.</p></article>",
+            "after": "<p>Off until you turn it on. Each machine publishes its own open tabs, and they never merge with another device’s tabs or rearrange them.</p></article>\n      <article><h3>Spaces, if you share them.</h3><p>Since Blanc 1.45, Spaces you choose to share stay the same on each computer that turns on Spaces and groups: their tabs, tab names, groups and pins merge, and a tab closed in one closes on the others. Off by default, on each device.</p></article>"
+          },
+          {
+            "before": "<p>Tab snapshots ride the same end-to-end encryption as the rest of Blanc sync: encrypted on your device with a key derived from your passphrase, stored server-side as unreadable blobs. A separate bounded encrypted sidecar can carry source-rasterized PNG favicons, so the receiving device does not contact a remote tab's site merely to draw its row. Private tabs never enter a snapshot, and idle devices age out on their own.</p>",
+            "after": "<p>Tab snapshots ride the same end-to-end encryption as the rest of Blanc sync: encrypted on your device with a key derived from your passphrase, or a random key if you turned on Sync without one, and stored server-side as unreadable blobs. A separate bounded encrypted sidecar can carry source-rasterized PNG favicons, so the receiving device does not contact a remote tab's site merely to draw its row. Private tabs never enter a snapshot, and idle devices age out on their own.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/reopen-closed-tabs.astro",
+        "reason": "October 29, 2026 records for public v1.45.0, which shipped Shared Spaces (chosen Spaces kept the same on each computer through Sync, off by default, Personal profile only), Recently closed for shared Spaces, and Turn on Sync without a passphrase (a random key). Wording that said Spaces never sync, that nothing merges, that the key always comes from a passphrase, or that closed tabs never reach another device is qualified. The new wording is recorded in docs/website-v1.45-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Closed-tab recovery is not a permanent archive or a promise to recover every tab exactly. Private tabs are never recorded, and closed-tab snapshots never go to disk or sync.</p>",
+            "after": "<p>Closed-tab recovery is not a permanent archive or a promise to recover every tab exactly. Private tabs are never recorded, and closed-tab snapshots never go to disk or sync. Since Blanc 1.45, a tab closed in a shared Space reaches your other computers’ Recently closed as its address and title only.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/security.astro",
+        "reason": "October 29, 2026 records for public v1.45.0, which shipped Shared Spaces (chosen Spaces kept the same on each computer through Sync, off by default, Personal profile only), Recently closed for shared Spaces, and Turn on Sync without a passphrase (a random key). Wording that said Spaces never sync, that nothing merges, that the key always comes from a passphrase, or that closed tabs never reach another device is qualified. The new wording is recorded in docs/website-v1.45-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Sync is off by default. Favorites, eligible settings, and optional <a href=\"/features/sync\">open-tab snapshots</a> are encrypted on your device.",
+            "after": "<p>Sync is off by default. Favorites, eligible settings, optional <a href=\"/features/sync\">open-tab snapshots</a> and, since Blanc 1.45, Spaces you choose to share are encrypted on your device."
           }
         ]
       }
