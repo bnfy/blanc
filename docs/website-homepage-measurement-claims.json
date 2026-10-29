@@ -1,5 +1,5 @@
 {
-  "scope": "Website-only measurement explanation beside the homepage installer CTA; not a claim about a desktop release or a measured consent rate.",
+  "scope": "Website-only measurement explanation in the homepage footer notes; not a claim about a desktop release or a measured consent rate.",
   "verified": "2026-10-29",
   "websiteSourceSha": "3a3f8455c",
   "evidence": [
@@ -12,7 +12,7 @@
     {
       "id": "home-measurement-001",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Google analytics and ad measurement are on by default outside the EEA, UK and Switzerland. You can change your choice here.",
+      "exactWording": "Google analytics and ad measurement are on by default outside the EEA, UK and Switzerland.",
       "subject": "Blanc website",
       "verdict": "verified"
     }

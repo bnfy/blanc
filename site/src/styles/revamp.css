@@ -460,9 +460,18 @@ main .section-kicker {
   margin: 0;
   padding-left: 18px;
 }
-.website-footer-notes a {
+.website-footer-notes a,
+.website-footer-notes button {
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+.website-footer-notes button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
 }
 .website-footer-grid {
   display: grid;
