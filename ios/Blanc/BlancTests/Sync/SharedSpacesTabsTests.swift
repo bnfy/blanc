@@ -171,6 +171,30 @@ import XCTest
     XCTAssertEqual(relaunched.tabs.filter(\.hasWebView).count, 1)
   }
 
+  /// Two-device check (2026-10-29): a close made on the Mac that waited for
+  /// the selected tab still says it was closed on the Mac once it applies.
+  func testAWaitingRemoteCloseKeepsItsDeviceWhenASwitchAppliesIt() throws {
+    let m = try showShared()
+    let a = id(0x101)
+    m.applyMergedSpaces([sid: try remote(m, a, [("deleted", .bool(true))])], deviceId: "phone")
+    let other = try XCTUnwrap(m.tabs.first { $0.sharedTabId == id(0x102) })
+    m.setActive(other.id)
+    let row = try XCTUnwrap(m.closedBand.first { $0.id == a }, "the close lands in Recently closed")
+    XCTAssertEqual(row.fromId, "mac")
+    XCTAssertEqual(m.closedDeviceName(row), "mac")
+  }
+
+  func testAWaitingRemoteCloseKeepsItsDeviceWhenAColdStartAppliesIt() throws {
+    let m = try showShared()
+    let a = id(0x101)
+    m.applyMergedSpaces([sid: try remote(m, a, [("deleted", .bool(true))])], deviceId: "phone")
+    m.flushSession()
+    let relaunched = TabsManager(settingsDirectory: settingsDir, sessionDirectory: sessionDir)
+    let row = try XCTUnwrap(relaunched.closedBand.first { $0.id == a }, "the close lands in Recently closed")
+    XCTAssertEqual(row.fromId, "mac")
+    XCTAssertEqual(relaunched.closedDeviceName(row), "mac")
+  }
+
   func testAnUnrelatedLocalCloseDuringADeferralPublishesOnlyThatClose() throws {
     let m = try showShared()
     let a = id(0x101), c = id(0x103)
