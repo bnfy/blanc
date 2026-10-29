@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { IOS_APP_ICONS, IOS_APP_ICON_DIR } = require('../../scripts/ios-app-icons');
+const { IOS_APP_ICONS, IOS_APP_ICON_DIR, packageDigest } = require('../../scripts/ios-app-icons');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const SHARED_PLATFORMS = { circles: ['watchOS'], squares: 'shared' };
@@ -57,6 +57,40 @@ test('Dawn and Gold glass layers are silhouettes of the mark, not full-canvas pa
       const { channels: [, , , alpha] } = await sharp(file).stats();
       assert.ok(alpha.mean > 0 && alpha.mean < 0.15 * 255, `${name}/${layer.name} covers only the mark (alpha mean ${alpha.mean})`);
     }
+  }
+});
+
+const PREVIEWS = path.join(ROOT, 'ios/Blanc/Blanc/Assets.xcassets');
+const PREVIEW_LOCK = path.join(ROOT, 'ios/Blanc/app-icon-previews.lock.json');
+const previewSet = (icon) => path.join(PREVIEWS, `AppIconPreview-${icon.nativeName}.imageset`);
+const sha256 = (file) => require('node:crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+
+test('every preview imageset has a dark-appearance image', async () => {
+  const sharp = require('sharp');
+  for (const icon of IOS_APP_ICONS) {
+    const { images } = JSON.parse(fs.readFileSync(path.join(previewSet(icon), 'Contents.json'), 'utf8'));
+    const light = images.filter((image) => !image.appearances);
+    const dark = images.filter((image) => JSON.stringify(image.appearances) === JSON.stringify([{ appearance: 'luminosity', value: 'dark' }]));
+    assert.equal(light.length, 1, `${icon.nativeName} light`);
+    assert.equal(dark.length, 1, `${icon.nativeName} dark`);
+    for (const image of [...light, ...dark]) {
+      assert.equal(image.idiom, 'universal');
+      assert.equal(image.scale, '3x');
+      const { width, height } = await sharp(path.join(previewSet(icon), image.filename)).metadata();
+      assert.deepEqual([width, height], [180, 180], image.filename);
+    }
+  }
+});
+
+test('the previews lock matches every package', () => {
+  const lock = JSON.parse(fs.readFileSync(PREVIEW_LOCK, 'utf8'));
+  assert.deepEqual(Object.keys(lock.icons), IOS_APP_ICONS.map((icon) => icon.nativeName));
+  for (const icon of IOS_APP_ICONS) {
+    const entry = lock.icons[icon.nativeName];
+    assert.equal(entry.package, packageDigest(packageDir(icon)),
+      `${icon.nativeName} changed since its previews were rendered: run npm run ios:icon-previews on a Mac`);
+    assert.equal(entry.light, sha256(path.join(previewSet(icon), `${icon.nativeName}.png`)), `${icon.nativeName} light preview`);
+    assert.equal(entry.dark, sha256(path.join(previewSet(icon), `${icon.nativeName}-dark.png`)), `${icon.nativeName} dark preview`);
   }
 });
 

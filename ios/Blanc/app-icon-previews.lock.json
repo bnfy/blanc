@@ -1,0 +1,34 @@
+{
+  "icons": {
+    "AppIcon": {
+      "package": "120ad91bc98bea2a871a1b36d0f44444002bd85d44827932b5439c60d2219e12",
+      "light": "058647b4b4fe0ce45c4bf54d596ed1f82d1689a7453b550db80018cc33118994",
+      "dark": "99cd1e3a02afcf6bce4221389ed22daf72dde32faf4316107ea8291535de6717"
+    },
+    "Sunrise": {
+      "package": "6c4d9f4bfb1c604c289108b846221ff8015ec77ac10ab86b4c2fd5c7d0b2d1bd",
+      "light": "b67e79451349c1a359f32ebea662a790773a31291af0e2ee1fafc372f00b27b9",
+      "dark": "8a3c4fd5a0b762b7364ca6402dbdb2572b3a7bb69ec7ff5ef8744e4302ae0d0d"
+    },
+    "SunriseDark": {
+      "package": "799ecc3384faed5d2ef23f5f561a38019d5e4e7cb58250d46d03de40cce7c1ed",
+      "light": "2cc6d91d309c9da133db40b8e9d53ca5b0728f9a260d73e50da368badafcb54c",
+      "dark": "8a3c4fd5a0b762b7364ca6402dbdb2572b3a7bb69ec7ff5ef8744e4302ae0d0d"
+    },
+    "SunriseGold": {
+      "package": "49f81d6235571b25bf20e18be4e6ff500ddab83defeb557ad97453bcccafce24",
+      "light": "9e36012a3aa57e4459ab474cf4b79eb8a4742a2561ea31e67ba5ba23b7230325",
+      "dark": "4cef523e4698bcca306b51c5aba160877f9ab778940a5e8de65f88c52c868539"
+    },
+    "SunriseSpectrum": {
+      "package": "14e45c1c1ae5258a62f26e866d53e165a9a640ef0dd32a43ae61befa182c0e93",
+      "light": "73d891efe6b2f3694d88798cda766f4c8280e2179e48165202f0b46302a07b02",
+      "dark": "74ec71d84a65dd6960e8b829d217ba46f9e87bf481c2eff349189c366cce1fdd"
+    },
+    "SunriseAmber": {
+      "package": "c45e550397f79f859d689eff152e23a91abda8488dab8bb778c92f741b9a6fbf",
+      "light": "514ac524a00d99f4f83403eed738b783b9735b95c4880c01a793ad52fdfe0c4d",
+      "dark": "6bbe67a07351fb138d605a0e325af70816c25447a243beb596832b2a21dcefa6"
+    }
+  }
+}
