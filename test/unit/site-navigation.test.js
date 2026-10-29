@@ -64,7 +64,7 @@ test('primary navigation and footer keep supporting pages and trust one click aw
  const {browserMenu,directLinks}=await import(pathToFileURL(path.join(ROOT,'site/src/data/navigation.mjs')).href);
  assert.deepEqual([browserMenu,...directLinks].map(link=>link.label),['Browser','Privacy & Security','Patron','About','Support','Mail']);
  // The Browser menu keeps Download and the main feature pages one click away.
- assert.deepEqual(browserMenu.downloads.map(link=>link.label),['macOS','Windows','Linux']);
+ assert.deepEqual(browserMenu.downloads.map(link=>link.label),['macOS','Windows','Linux','iPhone']);
  for(const link of browserMenu.features){const id=link.href.replace('/features/','');assert.ok(topics.some(topic=>topic.id===id),link.href);}
  assert.equal(browserMenu.more[0].href,'/features');
  const footer=read('site/src/components/Footer.astro');
