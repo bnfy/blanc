@@ -7,6 +7,11 @@ struct PaletteSheet: View {
     private var style: BrowserStyle { BrowserStyle(scheme: colorScheme) }
     @State private var input = ""
     @FocusState private var inputFocused: Bool
+    /// The tab a row's New Group… or New Space… is for.
+    @State private var newGroupTab: NewGroupTab?
+    @State private var newSpaceTab: UUID?
+
+    private struct NewGroupTab: Identifiable { let id: UUID }
 
     private enum Mode {
         case tabs, slash, switcher
@@ -43,6 +48,15 @@ struct PaletteSheet: View {
         .presentationDragIndicator(.hidden)
         .presentationDetents([.height(420), .large])
         .onAppear { inputFocused = true }
+        .sheet(item: $newGroupTab) { tab in
+            GroupNameSheet(title: SyncCopy.text("tabMenu.newGroup"), confirm: SyncCopy.text("tabGroups.create"),
+                           initial: "") { name in
+                GroupNameSheet.refusal(name) { _ = try withAnimation { try manager.createGroup(named: name, with: tab.id) } }
+            }
+        }
+        .sheet(item: Binding(get: { newSpaceTab.map(SpaceEditorTarget.newWithTab) }, set: { if $0 == nil { newSpaceTab = nil } })) { target in
+            SpaceEditor(manager: manager, target: target)
+        }
     }
 
     private var addressRow: some View {
@@ -136,6 +150,7 @@ struct PaletteSheet: View {
                     selected: tab.id == manager.activeTabId)
             }
             .accessibilityAddTraits(tab.id == manager.activeTabId ? .isSelected : [])
+            .accessibilityIdentifier("palette.tab")
             Button { manager.closeTab(tab.id) } label: {
                 Image(systemName: "xmark").font(.system(size: 12)).foregroundStyle(style.secondary)
                     .frame(width: 44, height: 48)
@@ -144,6 +159,10 @@ struct PaletteSheet: View {
         }
         .padding(.leading, 10)
         .background(tab.id == manager.activeTabId ? style.selection : .clear, in: RoundedRectangle(cornerRadius: 10))
+        .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 10))
+        .contextMenu {
+            TabMoveMenu(manager: manager, tab: tab, newGroup: { newGroupTab = NewGroupTab(id: tab.id) }, newSpace: { newSpaceTab = tab.id })
+        }
         .listRowSeparator(.hidden)
         .listRowBackground(Color.clear)
         .listRowInsets(EdgeInsets(top: 2, leading: 12, bottom: 2, trailing: 12))

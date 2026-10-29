@@ -66,6 +66,35 @@ final class SpacesUITests: XCTestCase {
     XCTAssertTrue(app.descendants(matching: .any)["group.header.Later"].waitForExistence(timeout: 5))
   }
 
+  /// The palette's tab rows offer the grid's menu on a press and hold (owner, 2026-10-29).
+  private func pressPaletteRow(_ app: XCUIApplication, _ index: Int) -> XCUIElementQuery {
+    app.buttons["pill.palette"].tap()
+    let rows = app.buttons.matching(identifier: "palette.tab")
+    waitCount(rows, 4, "This iPhone's four tabs")
+    rows.element(boundBy: index).press(forDuration: 1.2)
+    return rows
+  }
+
+  func testMoveATabToANewGroupFromItsPaletteRow() {
+    let app = launch()
+    _ = pressPaletteRow(app, 1)
+    app.buttons["Move to Group"].tap()
+    app.buttons["New Group…"].tap()
+    let field = app.textFields["group.nameField"]
+    XCTAssertTrue(field.waitForExistence(timeout: 5))
+    field.typeText("Later")
+    app.buttons["group.nameSave"].tap()
+    XCTAssertTrue(app.buttons["Later"].waitForExistence(timeout: 5), "the palette shows the tab under its new group")
+  }
+
+  func testMoveATabToASpaceFromItsPaletteRow() {
+    let app = launch()
+    let rows = pressPaletteRow(app, 1)
+    app.buttons["Move to Space"].tap()
+    app.buttons["Work"].tap()
+    waitCount(rows, 3, "the tab left This iPhone for Work")
+  }
+
   func testSwitchToASpaceAndBackToThisIPhone() {
     let app = launch()
     let mark = app.buttons["island.space"]
