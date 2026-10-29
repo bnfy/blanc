@@ -2,8 +2,8 @@
 
 // Blanc for iPhone's app icons: six Icon Composer packages, so iOS 26 and
 // later draw them in Liquid Glass with their Light, Dark, Clear and Tinted
-// styles, and Xcode generates flat copies for older iOS. Sunrise Dawn is the
-// primary icon (iPhone only); the others are the Mac's icons, offered as
+// styles, and Xcode generates flat copies for older iOS. Sunrise Gold is the
+// primary icon; Sunrise Dawn (iPhone only) and the Mac's other icons are
 // alternates in Settings → Appearance → App icon. Spec:
 // docs/superpowers/specs/2026-10-29-ios-liquid-glass-app-icons-design.md.
 //
@@ -24,13 +24,13 @@ const ROOT = path.join(__dirname, '..');
 const IOS_APP_ICON_DIR = 'ios/Blanc/Blanc/AppIcons';
 const SCHEMA_LABELS = new Map(SCHEMA_ICONS.map((icon) => [icon.id, icon.label]));
 
-// In picker order. Every id but Dawn's is shared with the Mac, so its label
-// comes from the settings schema.
+// In picker order, the primary (standard) icon first. Every id but Dawn's is
+// shared with the Mac, so its label comes from the settings schema.
 const IOS_APP_ICONS = Object.freeze([
-  ['sunrise-dawn', 'AppIcon', 'Sunrise Dawn'],
+  ['sunrise-gold', 'AppIcon'],
+  ['sunrise-dawn', 'SunriseDawn', 'Sunrise Dawn'],
   ['sunrise', 'Sunrise'],
   ['sunrise-dark', 'SunriseDark'],
-  ['sunrise-gold', 'SunriseGold'],
   ['sunrise-spectrum', 'SunriseSpectrum'],
   ['sunrise-amber', 'SunriseAmber'],
 ].map(([id, nativeName, label = SCHEMA_LABELS.get(id)]) => Object.freeze({ id, nativeName, label })));
@@ -249,10 +249,10 @@ async function iosAppIconFiles(nativeLayer) {
     water: await grow(split.water, GROW.water),
   };
   const packages = {
-    AppIcon: await dawnPackage(parts),
+    AppIcon: await goldPackage(parts),
+    SunriseDawn: await dawnPackage(parts),
     Sunrise: macPackage(APP_ICON_ASSETS.sunrise),
     SunriseDark: macPackage(APP_ICON_ASSETS['sunrise-dark']),
-    SunriseGold: await goldPackage(parts),
     SunriseSpectrum: macPackage(APP_ICON_ASSETS['sunrise-spectrum']),
     SunriseAmber: macPackage(APP_ICON_ASSETS['sunrise-amber']),
   };

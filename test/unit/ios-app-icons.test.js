@@ -11,17 +11,19 @@ const packageDir = (icon) => path.join(ROOT, IOS_APP_ICON_DIR, `${icon.nativeNam
 const iconDocument = (icon) => JSON.parse(fs.readFileSync(path.join(packageDir(icon), 'icon.json'), 'utf8'));
 const byName = (name) => IOS_APP_ICONS.find((icon) => icon.nativeName === name);
 
-test('the iPhone catalog is Dawn first, then the Mac icons', () => {
+test('the iPhone catalog is Gold (the standard icon) first, then Dawn, then the Mac icons', () => {
   assert.deepEqual(IOS_APP_ICONS.map((icon) => icon.id), [
-    'sunrise-dawn', 'sunrise', 'sunrise-dark', 'sunrise-gold', 'sunrise-spectrum', 'sunrise-amber',
+    'sunrise-gold', 'sunrise-dawn', 'sunrise', 'sunrise-dark', 'sunrise-spectrum', 'sunrise-amber',
   ]);
   assert.deepEqual(IOS_APP_ICONS.map((icon) => icon.nativeName), [
-    'AppIcon', 'Sunrise', 'SunriseDark', 'SunriseGold', 'SunriseSpectrum', 'SunriseAmber',
+    'AppIcon', 'SunriseDawn', 'Sunrise', 'SunriseDark', 'SunriseSpectrum', 'SunriseAmber',
   ]);
-  assert.equal(IOS_APP_ICONS[0].label, 'Sunrise Dawn');
+  assert.equal(IOS_APP_ICONS[1].label, 'Sunrise Dawn');
   const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'settings-schema/schema.json'), 'utf8'));
   const labels = new Map(schema.appIcons.map((icon) => [icon.id, icon.label]));
-  for (const icon of IOS_APP_ICONS.slice(1)) assert.equal(icon.label, labels.get(icon.id), icon.id);
+  for (const icon of IOS_APP_ICONS.filter((icon) => icon.id !== 'sunrise-dawn')) {
+    assert.equal(icon.label, labels.get(icon.id), icon.id);
+  }
   assert.equal(labels.has('sunrise-dawn'), false, 'Dawn is iPhone-only and stays out of the shared schema');
 });
 
@@ -38,17 +40,17 @@ test('every package exists and names only images it contains', () => {
 
 test('Dawn and Gold glass groups match the spec appendix', () => {
   const layerNames = (doc) => doc.groups.map((group) => group.layers.map((layer) => layer.name));
-  const dawn = iconDocument(byName('AppIcon'));
+  const dawn = iconDocument(byName('SunriseDawn'));
   assert.deepEqual(layerNames(dawn), [['Water'], ['Sun'], ['Rays'], ['Glow', 'Night', 'Sky']]);
   assert.deepEqual(dawn.groups[0].translucency, { enabled: true, value: 0.35 });
   assert.equal(dawn.groups[0]['blur-material'], 0.6);
-  const gold = iconDocument(byName('SunriseGold'));
+  const gold = iconDocument(byName('AppIcon'));
   assert.deepEqual(layerNames(gold), [['Water'], ['Sun'], ['Rays'], ['Reflection', 'Glow', 'Tile']]);
 });
 
 test('Dawn and Gold glass layers are silhouettes of the mark, not full-canvas paint', async () => {
   const sharp = require('sharp');
-  for (const name of ['AppIcon', 'SunriseGold']) {
+  for (const name of ['AppIcon', 'SunriseDawn']) {
     const doc = iconDocument(byName(name));
     for (const layer of doc.groups.flatMap((group) => group.layers).filter((layer) => layer.glass)) {
       const file = path.join(packageDir(byName(name)), 'Assets', layer['image-name']);
@@ -115,6 +117,7 @@ test('the Swift catalog and Xcode settings match the brand catalog', () => {
 
   const project = fs.readFileSync(path.join(ROOT, 'ios/Blanc/Blanc.xcodeproj/project.pbxproj'), 'utf8');
   const alternates = IOS_APP_ICONS.slice(1).map((icon) => icon.nativeName).join(' ');
+  assert.equal(IOS_APP_ICONS[0].nativeName, 'AppIcon', 'the standard icon is the primary');
   const count = (needle) => project.split(needle).length - 1;
   assert.equal(count(`ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "${alternates}";`), 2, 'both app configurations');
   assert.equal(count('ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;'), 2);

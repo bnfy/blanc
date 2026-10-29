@@ -789,15 +789,15 @@ public v1.43.1. Revisit when a mobile Blanc has profiles.
 **Features:** F17
 
 **Why:** The owner asked for a layered, reflective iPhone icon in the
-standard Light style (2026-10-29), chose Sunrise Dawn as the iPhone's
-standard icon, and kept it off the Mac for now. iOS 26 and later draw Icon
+standard Light style (2026-10-29). They chose the iPhone's Sunrise Gold as
+its standard icon and added Sunrise Dawn, which is kept off the Mac for now. iOS 26 and later draw Icon
 Composer packages in Liquid Glass and store the chosen alternate icon
 themselves.
 
 - **Desktop (macOS):** five icons, `sunrise` standard, chosen in Settings →
   General → App icon and stored as the device-local `appIcon` setting.
-- **iOS:** six icons, the Mac's five plus `sunrise-dawn` (Sunrise Dawn), the
-  primary icon. They're chosen in Settings → Appearance → App icon and
+- **iOS:** six icons, the Mac's five plus `sunrise-dawn` (Sunrise Dawn).
+  `sunrise-gold` is the primary icon. They're chosen in Settings → Appearance → App icon and
   switched with `setAlternateIconName`. iOS remembers the choice, so there's
   no `appIcon` value in iPhone settings. The iPhone's Sunrise Gold is drawn for
   the phone: the same cream glass Sunrise on gold, plus a reflection under

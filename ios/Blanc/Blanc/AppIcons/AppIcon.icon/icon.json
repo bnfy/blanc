@@ -1,8 +1,8 @@
 {
   "fill": {
     "linear-gradient": [
-      "extended-srgb:0.66275,0.77647,0.90196,1.00000",
-      "extended-srgb:0.96471,0.80392,0.65882,1.00000"
+      "extended-srgb:0.95294,0.80392,0.50980,1.00000",
+      "extended-srgb:0.78824,0.54510,0.22745,1.00000"
     ],
     "orientation": {
       "start": {
@@ -20,8 +20,8 @@
       "appearance": "dark",
       "value": {
         "linear-gradient": [
-          "extended-srgb:0.07059,0.10196,0.20000,1.00000",
-          "extended-srgb:0.23137,0.14118,0.20000,1.00000"
+          "extended-srgb:0.16471,0.13333,0.09412,1.00000",
+          "extended-srgb:0.07843,0.06667,0.05098,1.00000"
         ],
         "orientation": {
           "start": {
@@ -42,19 +42,26 @@
         {
           "glass": true,
           "image-name": "water.png",
-          "name": "Water"
+          "name": "Water",
+          "fill-specializations": [
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "extended-srgb:0.91373,0.72157,0.37647,1.00000"
+              }
+            }
+          ]
         }
       ],
       "specular": true,
       "shadow": {
-        "kind": "neutral",
-        "opacity": 0.3
+        "kind": "layer-color",
+        "opacity": 0.55
       },
       "translucency": {
         "enabled": true,
-        "value": 0.35
+        "value": 0.45
       },
-      "blur-material": 0.6,
       "lighting": "individual"
     },
     {
@@ -62,76 +69,89 @@
         {
           "glass": true,
           "image-name": "sun.png",
-          "name": "Sun"
+          "name": "Sun",
+          "fill-specializations": [
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "extended-srgb:0.94118,0.76863,0.43137,1.00000"
+              }
+            }
+          ]
         }
       ],
       "specular": true,
       "shadow": {
         "kind": "layer-color",
-        "opacity": 0.6
+        "opacity": 0.55
       },
       "translucency": {
         "enabled": true,
-        "value": 0.2
-      }
+        "value": 0.35
+      },
+      "lighting": "individual"
     },
     {
       "layers": [
         {
           "glass": true,
           "image-name": "rays.png",
-          "name": "Rays"
+          "name": "Rays",
+          "fill-specializations": [
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "extended-srgb:0.91373,0.72157,0.37647,1.00000"
+              }
+            }
+          ]
         }
       ],
       "specular": true,
       "shadow": {
-        "kind": "neutral",
-        "opacity": 0.3
+        "kind": "layer-color",
+        "opacity": 0.55
       },
       "translucency": {
         "enabled": true,
         "value": 0.35
-      }
+      },
+      "lighting": "individual"
     },
     {
       "layers": [
+        {
+          "glass": false,
+          "image-name": "reflection.png",
+          "name": "Reflection",
+          "hidden-specializations": [
+            {
+              "appearance": "tinted",
+              "value": true
+            }
+          ]
+        },
         {
           "glass": false,
           "image-name": "glow.png",
           "name": "Glow",
           "hidden-specializations": [
             {
-              "appearance": "dark",
-              "value": true
-            },
-            {
               "appearance": "tinted",
               "value": true
+            }
+          ],
+          "opacity-specializations": [
+            {
+              "appearance": "dark",
+              "value": 0.35
             }
           ]
         },
         {
           "glass": false,
-          "image-name": "night.png",
-          "name": "Night",
-          "hidden-specializations": [
-            {
-              "value": true
-            },
-            {
-              "appearance": "dark",
-              "value": false
-            },
-            {
-              "appearance": "tinted",
-              "value": true
-            }
-          ]
-        },
-        {
-          "glass": false,
-          "image-name": "sky.png",
-          "name": "Sky",
+          "image-name": "tile.png",
+          "name": "Tile",
           "hidden-specializations": [
             {
               "appearance": "dark",

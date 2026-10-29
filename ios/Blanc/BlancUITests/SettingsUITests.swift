@@ -206,22 +206,22 @@ final class SettingsUITests: XCTestCase {
     }
     private func appIcon(_ id: String) -> XCUIElement { app.buttons["appIcon.\(id)"] }
     func testAppIconPicker() {
-        let ids = ["sunrise-dawn", "sunrise", "sunrise-dark", "sunrise-gold", "sunrise-spectrum", "sunrise-amber"]
+        let ids = ["sunrise-gold", "sunrise-dawn", "sunrise", "sunrise-dark", "sunrise-spectrum", "sunrise-amber"]
         open()
         tap("settings.appIcon")
         for id in ids { XCTAssertTrue(appIcon(id).waitForExistence(timeout: 5), id) }
-        XCTAssertEqual(ids.filter { appIcon($0).isSelected }, ["sunrise-dawn"])
+        XCTAssertEqual(ids.filter { appIcon($0).isSelected }, ["sunrise-gold"])
         capture("Native Settings — App icon")
-        appIcon("sunrise-gold").tap()
-        dismissIconChangedNotice()
-        XCTAssertTrue(appIcon("sunrise-gold").waitForSelection())
-        app.terminate(); launch(reset: false)
-        open(); tap("settings.appIcon")
-        XCTAssertTrue(appIcon("sunrise-gold").waitForSelection(), "the choice survives a relaunch")
         appIcon("sunrise-dawn").tap()
         dismissIconChangedNotice()
         XCTAssertTrue(appIcon("sunrise-dawn").waitForSelection())
-        XCTAssertFalse(appIcon("sunrise-gold").isSelected)
+        app.terminate(); launch(reset: false)
+        open(); tap("settings.appIcon")
+        XCTAssertTrue(appIcon("sunrise-dawn").waitForSelection(), "the choice survives a relaunch")
+        appIcon("sunrise-gold").tap()
+        dismissIconChangedNotice()
+        XCTAssertTrue(appIcon("sunrise-gold").waitForSelection())
+        XCTAssertFalse(appIcon("sunrise-dawn").isSelected)
     }
 }
 

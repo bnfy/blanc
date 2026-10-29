@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-29-ios-liquid-glass-app-icons-design.md` (the appendix holds every artwork value).
 
+**Changed after Task 4:** the owner made Sunrise Gold the standard icon. `sunrise-gold` is now `AppIcon` and first in the picker, Dawn is the alternate `SunriseDawn` and second, and the tests below were updated to match. The spec is current; this plan's catalog is the original.
+
 ## Global Constraints
 
 - **Catalog.** The order, ids, `.icon` names and labels are exactly these:
