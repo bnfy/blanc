@@ -2,6 +2,15 @@ import XCTest
 import CryptoKit
 @testable import Blanc
 
+/// A settable clock shared by the engine, its scheduler and the fake Worker.
+final class TestClock: @unchecked Sendable {
+    private let lock = NSLock()
+    private var t: Int64
+    init(_ start: Int64) { t = start }
+    func now() -> Int64 { lock.lock(); defer { lock.unlock() }; return t }
+    func advance(_ ms: Int64) { lock.lock(); t += ms; lock.unlock() }
+}
+
 @MainActor final class InMemorySyncSecretStore: SyncSecretStore {
     var key: SymmetricKey?
     func readKey() throws -> SymmetricKey? { key }
@@ -11,8 +20,12 @@ import CryptoKit
 
 /// Real encrypted payloads, version checks, and controllable response suspension.
 /// Capture the response before suspending so an old-account reply stays old.
-actor MemorySyncTransport: SyncTransport {
+/// A lock-guarded class rather than an actor: Xcode 26.6 rejects this type
+/// as an actor (it marks the declaration `nonisolated`); main's copy compiled.
+final class MemorySyncTransport: SyncTransport, @unchecked Sendable {
     struct Request: Sendable { let method: String; let path: String; let body: Data? }
+    struct Stamp: Sendable { let method: String; let at: Int64 }
+    private let lock = NSLock()
     private var blobs: [String: (Int, SyncEnvelope)] = [:]
     private var requests: [Request] = []
     private var failures: [String: [Int]] = [:]
@@ -20,23 +33,44 @@ actor MemorySyncTransport: SyncTransport {
     private var heldMethod: String?
     private var held: CheckedContinuation<Void, Never>?
     private var retired: Set<String> = []
-    func records() -> [Request] { requests }
+    private var stampClock: TestClock?
+    private var stamps: [Stamp] = []
+    private func locked<T>(_ body: () throws -> T) rethrows -> T { lock.lock(); defer { lock.unlock() }; return try body() }
+    func records() -> [Request] { locked { requests } }
+    /// Stamp every request with this (simulated) clock, for window checks.
+    func setClock(_ clock: TestClock) { locked { stampClock = clock } }
+    func getTimes() -> [Int64] { locked { stamps.filter { $0.method == "GET" }.map(\.at) } }
     /// An older Worker that doesn't serve `store` at all (M7b's `sends`).
-    func retire(_ store: SyncStore) { retired.insert(store.rawValue) }
-    func value(_ account: String, _ store: SyncStore, key: SymmetricKey) throws -> JSONValue? {
-        guard let (_, blob) = blobs["v1/blob/\(account)/\(store.rawValue)"] else { return nil }
+    func retire(_ store: SyncStore) { _ = locked { retired.insert(store.rawValue) } }
+    func retire(name: String) { _ = locked { retired.insert(name) } }
+    func install(_ account: String, name: String, _ value: JSONValue, key: SymmetricKey) throws {
+        let sealed = try SyncCrypto.seal(Data(value.jsStringify().utf8), key: key)
+        locked { blobs["v1/blob/\(account)/\(name)"] = (1, sealed) }
+    }
+    func value(_ account: String, name: String, key: SymmetricKey) throws -> JSONValue? {
+        guard let (_, blob) = locked({ blobs["v1/blob/\(account)/\(name)"] }) else { return nil }
         return try JSONValue(data: SyncCrypto.open(blob, key: key))
     }
-    func install(_ account: String, _ store: SyncStore, _ value: JSONValue, key: SymmetricKey) throws {
-        blobs["v1/blob/\(account)/\(store.rawValue)"] = (1, try SyncCrypto.seal(Data(value.jsStringify().utf8), key: key))
+    func value(_ account: String, _ store: SyncStore, key: SymmetricKey) throws -> JSONValue? {
+        try value(account, name: store.rawValue, key: key)
     }
-    func remove(_ account: String, _ store: SyncStore) { blobs["v1/blob/\(account)/\(store.rawValue)"] = nil }
-    func fail(_ method: String, _ path: String, statuses: [Int]) { failures[method + " " + path] = statuses }
-    func suspendNext(_ method: String, _ path: String) { heldMethod = method; heldPath = path }
-    func isSuspended() -> Bool { held != nil }
-    func release() { let continuation = held; held = nil; continuation?.resume() }
+    func install(_ account: String, _ store: SyncStore, _ value: JSONValue, key: SymmetricKey) throws {
+        try install(account, name: store.rawValue, value, key: key)
+    }
+    func remove(_ account: String, _ store: SyncStore) { locked { blobs["v1/blob/\(account)/\(store.rawValue)"] = nil } }
+    func fail(_ method: String, _ path: String, statuses: [Int]) { locked { failures[method + " " + path] = statuses } }
+    func suspendNext(_ method: String, _ path: String) { locked { heldMethod = method; heldPath = path } }
+    func isSuspended() -> Bool { locked { held != nil } }
+    func release() { let continuation = locked { let c = held; held = nil; return c }; continuation?.resume() }
     func send(method: String, path: String, body: Data?) async throws -> (status: Int, body: Data) {
+        let (response, hold) = try locked { try respond(method: method, path: path, body: body) }
+        if hold { await withCheckedContinuation { continuation in locked { held = continuation } } }
+        return response
+    }
+    /// The Worker's answer, and whether to suspend before returning it. Called under the lock.
+    private func respond(method: String, path: String, body: Data?) throws -> ((status: Int, body: Data), Bool) {
         requests.append(Request(method: method, path: path, body: body))
+        if let stampClock { stamps.append(Stamp(method: method, at: stampClock.now())) }
         let response: (status: Int, body: Data)
         let exactKey = method + " " + path
         let failureKey = failures[exactKey] != nil ? exactKey : (failures.keys.first { $0.hasSuffix("/") && exactKey.hasPrefix($0) } ?? exactKey)
@@ -62,11 +96,11 @@ actor MemorySyncTransport: SyncTransport {
         } else if method == "DELETE" { response = (200, Data("{}".utf8)) }
         else if method == "POST" { response = (201, Data("{}".utf8)) }
         else { response = (404, Data("{\"error\":\"not-found\"}".utf8)) }
+        var hold = false
         if heldMethod == method, let requestedPath = heldPath, path == requestedPath || (requestedPath.hasSuffix("/") && path.hasPrefix(requestedPath)) {
-            heldMethod = nil; heldPath = nil
-            await withCheckedContinuation { held = $0 }
+            heldMethod = nil; heldPath = nil; hold = true
         }
-        return response
+        return (response, hold)
     }
 }
 
@@ -88,7 +122,10 @@ actor MemorySyncTransport: SyncTransport {
             try secrets.writeKey(key)
             try await transport.install(accountA, .settings, settings("light"), key: key)
         }
-        let engine = SyncEngine(state: state, secrets: secrets, client: SyncWorkerClient(transport: transport), clock: { self.now }, settingsSink: { _ in }, tabsSource: { tabs })
+        // A simulated monotonic clock: waiting for the request window advances
+        // it at once, so a test never waits a real minute.
+        let monotonic = TestClock(0)
+        let engine = SyncEngine(state: state, secrets: secrets, client: SyncWorkerClient(transport: transport), clock: { self.now }, monotonic: { monotonic.now() }, sleep: { monotonic.advance($0) }, settingsSink: { _ in }, tabsSource: { tabs })
         return Fixture(directory: directory, state: state, secrets: secrets, transport: transport, key: key, engine: engine)
     }
     private func settings(_ theme: String, at: Int64 = 100) -> JSONValue {

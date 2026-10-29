@@ -2491,4 +2491,16 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="tab_groups_closed_toast">Gruppe geschlossen</string>
     <string name="group_menu_rename">Umbenennen…</string>
     <string name="tab_groups_create">Erstellen</string>
+    <string name="shared_spaces_switch_iphone">Spaces und Gruppen auf diesem iPhone synchron halten</string>
+    <string name="shared_spaces_switch_line_iphone">Tabs in deinen geteilten Spaces werden von diesem iPhone synchronisiert.</string>
+    <plurals name="shared_spaces_waiting_count">
+        <item quantity="one">%1$d geteilter Space wartet</item>
+        <item quantity="other">%1$d geteilte Spaces warten</item>
+    </plurals>
+    <string name="shared_spaces_save_this_i_phone">Dieses iPhone als Space sichern</string>
+    <string name="shared_spaces_recovery_name_iphone">%1$s · auf diesem iPhone behalten</string>
+    <string name="shared_spaces_deleted_everywhere">Überall gelöscht. Rückgängig behält eine Kopie auf diesem iPhone.</string>
+    <string name="spaces_on_device">Auf %1$s</string>
+    <string name="bring_space_action">Auf das iPhone holen</string>
+    <string name="bring_space_copy_note">Diese Kopie ändert sich nicht, wenn sich der Space auf %1$s ändert. Schalte die Synchronisierung von Spaces ein, um sie gleich zu halten.</string>
 </resources>

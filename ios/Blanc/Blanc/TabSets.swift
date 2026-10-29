@@ -47,6 +47,16 @@ struct SessionState: Codable, Equatable {
     var iphone = SavedSet()
     var spaces: [SpaceRecord] = []
     var deleted: [DeletedSpace] = []
+    /// M17c, by shared Space id: the records exactly as each shared set shows
+    /// them (its displayed baseline), and remote changes to the selected tab
+    /// that wait (its accepted set). Absent in older files.
+    var sharedBaselines: [String: JSONValue]?
+    var sharedAccepted: [String: JSONValue]?
+    /// The sync account the shared links belong to: another account (or
+    /// none) turns every shared Space back into a local copy.
+    var sharedAccount: String?
+    /// Recovery Spaces whose one-time note has been shown.
+    var recoveryNoted: [String]?
 }
 
 enum TabSets {

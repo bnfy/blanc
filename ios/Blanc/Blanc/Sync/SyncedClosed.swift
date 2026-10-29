@@ -1,7 +1,7 @@
 import Foundation
 
 /// A Recently closed row from another device (or this one), as the palette shows it.
-nonisolated struct ClosedRow: Identifiable, Equatable, Sendable {
+nonisolated struct ClosedRow: Identifiable, Equatable, Sendable, Codable {
   let id: String
   let url: String
   let title: String

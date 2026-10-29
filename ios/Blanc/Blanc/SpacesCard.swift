@@ -40,23 +40,59 @@ struct SpacesCard: View {
         .accessibilityLabel(SyncCopy.text("spaces.menuLabel"))
         .accessibilityIdentifier("spaces.card")
         .accessibilityAction(.escape) { close() }
+        // With the switch off, the library index is read when the menu opens
+        // (at most once a minute), for the other devices' Spaces.
+        .task { _ = await manager.syncEngine.previewIndex() }
+        .onDisappear { manager.noteRecoveriesSeen() }
     }
 
     private var rows: some View {
         VStack(alignment: .leading, spacing: 0) {
-            row(id: TabSets.iphoneId, name: SyncCopy.text("spaces.thisIPhone")) {
+            row(id: TabSets.iphoneId, name: SyncCopy.text("spaces.thisIPhone"), identifier: "spaces.iphone") {
                 Image(systemName: "iphone")
                     .font(.system(size: 15))
                     .frame(width: 30, height: 30)
                     .background(style.surface, in: RoundedRectangle(cornerRadius: 9))
             }
-            .accessibilityIdentifier("spaces.iphone")
             if !manager.spaces.isEmpty { Divider() }
             ForEach(manager.spaces) { space in
-                row(id: space.id, name: space.name) {
+                row(id: space.id, name: space.name, identifier: "spaces.row.\(space.name)", sync: syncMark(space)) {
                     SpaceTile(color: space.color, symbol: space.symbol, size: 30)
                 }
-                .accessibilityIdentifier("spaces.row.\(space.name)")
+                // Said once: where a stale copy's tabs went (M16 §3.9).
+                if space.recoveredFrom != nil, !manager.recoveryNoted.contains(space.id) {
+                    Text(SyncCopy.text("sharedSpaces.recoveryNote"))
+                        .font(BrowserStyle.font(13)).foregroundStyle(style.secondary)
+                        .padding(.bottom, 6)
+                        .accessibilityIdentifier("spaces.recoveryNote")
+                }
+            }
+            // On other devices (switch off): the library's Spaces, read-only,
+            // under the device that made each; choosing one reviews it.
+            ForEach(remoteGroups, id: \.device) { group in
+                Divider().padding(.top, 4)
+                Text(SyncCopy.text("spaces.onDevice", ["device": group.device]))
+                    .font(BrowserStyle.font(13, semibold: true))
+                    .foregroundStyle(style.secondary)
+                    .padding(.top, 10)
+                    .accessibilityIdentifier("spaces.device.\(group.device)")
+                ForEach(group.spaces) { remote in
+                    Button {
+                        withAnimation(.snappy) { manager.requestBringSpace(remote) }
+                    } label: {
+                        HStack(spacing: 12) {
+                            SpaceTile(color: remote.color, symbol: remote.symbol, size: 30)
+                            Text(remote.name).font(BrowserStyle.font(16, semibold: true)).lineLimit(1)
+                            Spacer(minLength: 0)
+                            Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(style.secondary)
+                        }
+                        .frame(minHeight: 52)
+                        .contentShape(Rectangle())
+                    }
+                    .disabled(editing)
+                    .accessibilityIdentifier("spaces.remote.\(remote.name)")
+                }
             }
             if editing && !manager.recentlyDeleted.isEmpty {
                 Divider().padding(.top, 4)
@@ -103,11 +139,39 @@ struct SpacesCard: View {
         }
     }
 
+    private var remoteGroups: [(device: String, spaces: [TabsManager.RemoteSpace])] {
+        var out: [(device: String, spaces: [TabsManager.RemoteSpace])] = []
+        for remote in manager.remoteSpaces {
+            if let index = out.firstIndex(where: { $0.device == remote.deviceName }) {
+                out[index].spaces.append(remote)
+            } else {
+                out.append((remote.deviceName, [remote]))
+            }
+        }
+        return out
+    }
+
     private func close() {
         withAnimation(.snappy) { manager.isSpacesMenuPresented = false }
     }
 
-    private func row<Icon: View>(id: String, name: String, @ViewBuilder icon: () -> Icon) -> some View {
+    /// A shared Space's sync mark: a glyph, and accessible text naming its
+    /// state (M16 §10, D8); nil for a local Space.
+    private func syncMark(_ space: SpaceRecord) -> String? {
+        guard let sid = space.sharedId, space.link == .active else { return nil }
+        switch manager.syncEngine.spaceSyncState(sid) {
+        case .shared: return SyncCopy.text("sharedSpaces.shared")
+        case .waiting: return SyncCopy.text("sharedSpaces.waiting")
+        case .full: return SyncCopy.text("sharedSpaces.fullState")
+        case .unavailable: return SyncCopy.text("sharedSpaces.unavailableState")
+        case .notSynced(let since):
+            let time = since.map { Date(timeIntervalSince1970: Double($0) / 1000).formatted(date: .abbreviated, time: .shortened) } ?? "—"
+            return SyncCopy.text("sharedSpaces.notSynced", ["time": time])
+        }
+    }
+
+    private func row<Icon: View>(id: String, name: String, identifier: String, sync: String? = nil,
+                                 @ViewBuilder icon: () -> Icon) -> some View {
         let shown = manager.shownSetId == id
         let count = manager.tabCount(id)
         return HStack(spacing: 12) {
@@ -133,6 +197,16 @@ struct SpacesCard: View {
                 .contentShape(Rectangle())
             }
             .accessibilityAddTraits(shown ? .isSelected : [])
+            .accessibilityIdentifier(identifier)
+            if let sync {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(style.secondary)
+                    .frame(width: 24, height: 44)
+                    .accessibilityElement()
+                    .accessibilityLabel(sync)
+                    .accessibilityIdentifier("spaces.syncMark.\(name)")
+            }
             if editing && id != TabSets.iphoneId {
                 editControls(id)
             }

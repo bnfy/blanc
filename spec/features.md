@@ -162,6 +162,12 @@ toolbar (Bowser Design System "Island Chrome").
   pin itself is active (3 dots, `+3`). Collapse `work` → its tabs show as "N tabs
   tucked away" in the panel. Delete the last tab in `play` → `play` disappears.
 
+- **iOS (M17, unreleased):** groups are sections of the tab grid (colour dot,
+  name, count, fold, ⋯ menu) and of the palette's tab list, with the same
+  naming, colour and empty-group rules; a tab's long-press menu moves it into
+  or out of a group. With Spaces sync on, a shared Space's groups sync as
+  records. Dragging tabs into groups is after M17.
+
 ## F4 — Private tabs
 
 - Opened via `/private` or the new-private-tab shortcut, to the private newtab
@@ -655,6 +661,12 @@ From the desktop `DEFAULTS`:
   with a code stops at an invalid code and offers the passphrase fallback.
   Renaming A on B shows the new name in B's drawer, Quick Switcher and start
   page; renaming it to empty shows A's published name again.
+
+- **iOS (M17, unreleased):** the phone's snapshot publishes its groups, and,
+  with Spaces sync on, its `shared` sidecar bound to the snapshot it publishes
+  (a membership change gives the snapshot a fresh clock). Another device's
+  tabs bound to a shared Space the phone holds are left out of Other devices,
+  the start page and the Quick Switcher; a stale binding hides nothing.
 
 ## F28 — Vertical tabs
 
@@ -1215,6 +1227,14 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   opaque renderer projection, transactional apply, ownership/cancellation,
   onboarding, and the separate workspace handoff.
 
+- **iOS (M17, unreleased): Bring a Space.** The phone has no other browser
+  to read; F40 there means bringing another device's Space. With Spaces sync
+  off, the Spaces menu and Quick Switcher list the library's Spaces under the
+  device that made each; a review sheet (one read, never merged or saved)
+  shows its groups and tabs, and **Bring to iPhone** copies it as an unlinked
+  local Space with quiet tabs. With Spaces sync on, every library Space is
+  already on the phone.
+
 ## F41 — Blanc Spaces (desktop)
 
 - A **space** is a named, saved set of one window's tabs and groups in the
@@ -1292,6 +1312,12 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
 - **Open Link in Space:** the page link menu offers other spaces and New Space… for normal web links. A space shown in another window loads a background tab there; a set-aside space receives a quiet tab; a closed space receives only a saved record. Deferred writes are checked before adding a tab. New Space fixes its start to “With this link” and saves without loading. Private tabs and non-web links do not offer it. Failures open the existing Spaces error surface; success is announced to screen readers. F41-51–57 cover destinations, restart, write failures and quiet-tab rollback.
 
 - **Several-tab selection (desktop):** ⌘/Ctrl-click toggles rows, Shift-click selects a visible range, and Shift-arrow extends from a focused row in the panel or side list. Splits are selected whole. The current row joins a new selection; plain activation, Escape and a space switch clear it. Selection is owned by main and never saved or synced. The separate menu moves, groups, pins, mutes, reloads, quiets, copies or closes selected tabs. Space moves write the full capture first and retain unmoved tabs after partial failure; other placement edits apply in one pass. Close Tabs records one batch, including split layouts. A drag still moves only its starting row.
+
+- **iOS (M17, unreleased):** the phone's tabs outside any Space are **This
+  iPhone**; local Spaces, the Space mark and the Spaces card, Move to Space,
+  delete with Undo and Recently deleted (7 days) follow desktop. A shared
+  Space deleted on the phone is deleted everywhere at once; Undo keeps a copy
+  on the phone.
 
 ## F42 — Dark websites
 
@@ -1747,6 +1773,20 @@ Shipped in public v1.45.0 (October 29, 2026), Personal profile only, up to 25
 shared Spaces, after the Gate D device rerun passed Mac↔Windows and Mac↔Linux
 (`docs/reviews/2026-10-28-shared-spaces-gate-d-1.45.0.md`); evidence in
 `docs/release-incidents/2026-10-29-v1.45.0.md`.
+
+**iOS (M17c, unreleased):** Settings → Sync → **Keep Spaces and groups in
+sync on this iPhone** (off by default) with the same first-time sheet,
+dormant copies, Rejoin / Add as a copy, sync marks, full-Space dot, status
+lines and "kept on this iPhone" recovery Spaces. The selected tab defers
+remote closes and navigations; a deferred change applies at the next cold
+start while every tab is still quiet. The palette's Recently closed band
+merges the phone's closes with other devices' ("Closed on {device}"); with
+the switch off it is the phone's own, kept 24 hours. While Blanc is open
+with the switch on, the phone checks for changes every minute, as desktop
+does. A Space's name, colour, symbol and order are written when changed on
+the phone, never by comparison at sync time. The two-device check against
+the deployed Worker passed on October 29, 2026 (desktop v1.45.0 on macOS
+and an iPhone Air on iOS 27.2).
 
 ## F58 — Reader Mode (desktop and iOS candidate)
 

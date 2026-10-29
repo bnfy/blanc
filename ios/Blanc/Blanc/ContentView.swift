@@ -65,6 +65,10 @@ struct ContentView: View {
         .sheet(item: Binding(get: { manager.spaceEditor }, set: { manager.spaceEditor = $0 })) { target in
             SpaceEditor(manager: manager, target: target)
         }
+        .sheet(item: Binding(get: { manager.bringSpaceTarget }, set: { manager.bringSpaceTarget = $0 }),
+               onDismiss: { manager.presentPendingSettings() }) { remote in
+            BringSpaceSheet(manager: manager, remote: remote)
+        }
         .alert(ReaderCopy.text("reader.title"), isPresented: Binding(get: { manager.readerError }, set: { manager.readerError = $0 })) {
             Button("OK", role: .cancel) {}
         } message: { Text(ReaderCopy.text("reader.unavailable")) }
@@ -311,6 +315,22 @@ struct ContentView: View {
                     .frame(width: 44, height: 48)
             }
             .accessibilityLabel(manager.activeTab?.isLoading == true ? "Stop loading" : "Reload page")
+
+            // The tab grid, as other browsers' tab buttons open theirs: the
+            // swipe up on the Island still works, but nothing showed it.
+            Button { openTabGrid() } label: {
+                Text("\(manager.tabs.count)")
+                    .font(.system(size: 12, weight: .semibold))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .frame(width: 21, height: 21)
+                    .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(style.text, lineWidth: 1.6))
+                    .frame(width: 44, height: 48)
+            }
+            .accessibilityLabel("Show all tabs")
+            .accessibilityValue("\(manager.tabs.count) tabs")
+            .accessibilityIdentifier("pill.tabs")
 
             Rectangle().fill(style.border).frame(width: 1, height: 18)
             Button { manager.createTab() } label: {

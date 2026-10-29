@@ -9044,5 +9044,41 @@
   "tabGroups.create": {
     "message": "Crear",
     "source": "sha256:15101ac2f3a2ba0792e1e01b46cd69b8ec3da3c7ed0aa662d99dda58a294944f"
+  },
+  "sharedSpaces.switch.iphone": {
+    "message": "Mantener Spaces y grupos sincronizados en este iPhone",
+    "source": "sha256:37f571fc1dc4b0a7299b0c4062eee63119c24848a52820fa96405910b0ea0683"
+  },
+  "sharedSpaces.switch.line.iphone": {
+    "message": "Las pestañas de tus Spaces compartidos se sincronizan desde este iPhone.",
+    "source": "sha256:3a52ae761ef984f6537ac718ef7cedb34fe1f6b59d01620d9daeb0218cb6c242"
+  },
+  "sharedSpaces.waitingCount": {
+    "message": "{count, plural, one {# Space compartido está esperando} many {# Spaces compartidos están esperando} other {# Spaces compartidos están esperando}}",
+    "source": "sha256:2e30e9b95bb7ab71904d864a6c45ebecfd63d96ba2d49b4de07d12b34fd4640a"
+  },
+  "sharedSpaces.saveThisIPhone": {
+    "message": "Guardar Este iPhone como Space",
+    "source": "sha256:29322ed63d9fca7aca123a8d29dc57c0a922a43fb008c9200098b0b7ae357249"
+  },
+  "sharedSpaces.recoveryName.iphone": {
+    "message": "{name} · guardado en este iPhone",
+    "source": "sha256:4fc90d0e3a8eda549190a942e5b17c1a84a1ce47c17803da49681e2132c32c38"
+  },
+  "sharedSpaces.deletedEverywhere": {
+    "message": "Eliminado en todas partes. Deshacer conserva una copia en este iPhone.",
+    "source": "sha256:8321dabd3f5afe88f2cecd37514c421fa323e4e7f662a13e0a34b282c1f484ec"
+  },
+  "spaces.onDevice": {
+    "message": "En {device}",
+    "source": "sha256:f96f089a83e4896dadf5b98e8940db57c21ba031def7a2c1f7c207babb2f1a04"
+  },
+  "bringSpace.action": {
+    "message": "Traer al iPhone",
+    "source": "sha256:ea5b99999b3b68bd5611ae0e535c7372be51f0cdc24fdf62fef0d03d1dd70d3e"
+  },
+  "bringSpace.copyNote": {
+    "message": "Esta copia no cambiará cuando el Space cambie en {device}. Activa la sincronización de Spaces para mantenerlos iguales.",
+    "source": "sha256:324eb708aca4bbb9df8e37cc1bd44c53f147f99bf019a882f8471286d3417b2b"
   }
 }

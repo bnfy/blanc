@@ -91,27 +91,18 @@ struct TabGridView: View {
             switch current {
             case .rename(let group):
                 GroupNameSheet(title: SyncCopy.text("groupMenu.nameLabel"), confirm: SyncCopy.text("ws.editor.done"),
-                               initial: group.name) { name in nameError(name) { try manager.renameGroup(group.id, to: name) } }
+                               initial: group.name) { name in
+                    GroupNameSheet.refusal(name) { try manager.renameGroup(group.id, to: name) }
+                }
             case .newGroup(let tab):
                 GroupNameSheet(title: SyncCopy.text("tabMenu.newGroup"), confirm: SyncCopy.text("tabGroups.create"),
                                initial: "") { name in
-                    nameError(name) { _ = try withAnimation { try manager.createGroup(named: name, with: tab) } }
+                    GroupNameSheet.refusal(name) { _ = try withAnimation { try manager.createGroup(named: name, with: tab) } }
                 }
             }
         }
         .sheet(item: Binding(get: { newSpaceTab.map(SpaceEditorTarget.newWithTab) }, set: { if $0 == nil { newSpaceTab = nil } })) { target in
             SpaceEditor(manager: manager, target: target)
-        }
-    }
-
-    /// nil when `apply` took the name, else what to tell the person.
-    private func nameError(_ name: String, _ apply: () throws -> Void) -> String? {
-        do {
-            try apply()
-            return nil
-        } catch {
-            // Empty names can't be submitted, so a refusal is a duplicate.
-            return SyncCopy.text("groupMenu.duplicate", ["name": GroupNames.normalize(name)])
         }
     }
 
@@ -142,32 +133,6 @@ struct TabGridView: View {
         .accessibilityIdentifier("group.tucked")
     }
 
-    /// Move to Group ▸ and Move to Space ▸ for an ordinary tab.
-    @ViewBuilder private func tabMenu(_ tab: TabModel) -> some View {
-        if !tab.isPrivate {
-            Menu(SyncCopy.text("tabMenu.moveToGroup")) {
-                ForEach(manager.groups.filter { $0.id != tab.groupId }) { group in
-                    Button(group.name) { withAnimation { manager.moveTab(tab.id, toGroup: group.id) } }
-                }
-                Button(SyncCopy.text("tabMenu.newGroup")) { naming = .newGroup(tab.id) }
-                if tab.groupId != nil {
-                    Button(SyncCopy.text("tabMenu.removeFromGroup")) { withAnimation { manager.moveTab(tab.id, toGroup: nil) } }
-                }
-            }
-            if manager.tabs.filter({ !$0.isPrivate }).count > 1 {
-                Menu(SyncCopy.text("tabMenu.moveToSpace")) {
-                    if manager.shownSetId != TabSets.iphoneId {
-                        Button(SyncCopy.text("spaces.thisIPhone")) { withAnimation { manager.moveTab(tab.id, toSpace: TabSets.iphoneId) } }
-                    }
-                    ForEach(manager.spaces.filter { $0.id != manager.shownSetId }) { space in
-                        Button(space.name) { withAnimation { manager.moveTab(tab.id, toSpace: space.id) } }
-                    }
-                    Button(SyncCopy.text("tabMenu.newSpace")) { newSpaceTab = tab.id }
-                }
-            }
-        }
-    }
-
     private func card(_ tab: TabModel) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             // A tap rather than a Button: a Button also fires when a sideways
@@ -195,7 +160,9 @@ struct TabGridView: View {
             }
             .contentShape(Rectangle())
             .onTapGesture { select(tab) }
-            .contextMenu { tabMenu(tab) }
+            .contextMenu {
+                TabMoveMenu(manager: manager, tab: tab, newGroup: { naming = .newGroup(tab.id) }, newSpace: { newSpaceTab = tab.id })
+            }
             .accessibilityElement(children: .ignore)
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { select(tab) }
@@ -205,6 +172,15 @@ struct TabGridView: View {
             .accessibilityIdentifier("tab.card")
             .accessibilityLabel("Switch to \(title(tab))")
             .accessibilityAddTraits(manager.activeTabId == tab.id ? .isSelected : [])
+            .overlay(alignment: .topLeading) {
+                if manager.isUnsynced(tab) {
+                    Circle().fill(style.secondary).frame(width: 8, height: 8)
+                        .padding(12)
+                        .accessibilityElement()
+                        .accessibilityLabel(SyncCopy.text("sharedSpaces.unsyncedTab"))
+                        .accessibilityIdentifier("tab.unsynced")
+                }
+            }
             .overlay(alignment: .topTrailing) {
                 Button { manager.closeTab(tab.id) } label: {
                     Image(systemName: "xmark")

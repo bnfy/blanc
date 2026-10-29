@@ -328,13 +328,25 @@ per-device budget. `closed` and `shared` are added as optional stores, the way
 `sends` was, with `hasPublishableContent` so presence alone never creates a
 store.
 
+*A pass every minute while Blanc is open (added after the two-device check,
+October 29, 2026, owner's decision).* With the switch on, the phone runs a
+pass every 60 s while it is in the foreground, as desktop's timer does, and
+stops when it leaves the foreground. The check found that a phone left open
+never saw a rename made on the Mac: passes ran only after a change on the
+phone or on returning to Blanc. Without Shared Spaces the phone keeps syncing
+only then, as before. Background App Refresh stays in M18.
+
 **Record ↔ tab set.** A Swift adapter does for the shown set what desktop's
 `shared-spaces-adapter.js` does for a window: diff the shown tabs against the
 displayed baseline into field edits (new tab, `nav`, pin, group, position,
-close as `deleted`; groups and Space identity likewise), and apply merged
-changes to the shown set in one pass, marking them applied so they produce no
-echo. A set that isn't shown has no protected tab and takes every change at
-once.
+close as `deleted`; groups likewise), and apply merged changes to the shown
+set in one pass, marking them applied so they produce no echo. A set that
+isn't shown has no protected tab and takes every change at once. A Space's
+name, colour, symbol and place in the order are written to the index when the
+person changes them, as desktop's `sharedSharing.metadata(…)` does, never
+found by comparing at sync time: the two-device check (October 29, 2026)
+caught such a comparison against the merged index writing the phone's old
+name back over a rename made on the Mac.
 
 **The protected tab** is the shown set's selected tab while the app is in the
 foreground or background. A remote `nav` or tombstone for it goes to the

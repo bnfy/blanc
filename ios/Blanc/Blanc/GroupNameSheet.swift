@@ -46,4 +46,15 @@ struct GroupNameSheet: View {
         guard !GroupNames.normalize(name).isEmpty else { return }
         if let message = commit(name) { error = message } else { dismiss() }
     }
+
+    /// For `commit`: nil when `apply` took the name, else what to tell the
+    /// person. Empty names can't be submitted, so a refusal is a duplicate.
+    static func refusal(_ name: String, _ apply: () throws -> Void) -> String? {
+        do {
+            try apply()
+            return nil
+        } catch {
+            return SyncCopy.text("groupMenu.duplicate", ["name": GroupNames.normalize(name)])
+        }
+    }
 }
