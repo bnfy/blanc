@@ -91,7 +91,7 @@
           "body": "Reader Mode lifts the article out of the page you’ve already loaded, on your computer, and keeps its headings, links, images, tables and code. It’s free, and leaving it returns to the page as you left it, without reloading.",
           "steps": [
             "Type /reader, or choose Enter Reader Mode when the expanded Island offers it.",
-            "Pick System, Light, Dark or Sepia, a typeface, a text size and a width. Blanc remembers them on this device."
+            "Pick a theme, typeface, text size and width. Blanc remembers them on this device."
           ],
           "note": "Some pages aren’t articles. On those, Blanc says so and leaves the page as it was.",
           "media": {
