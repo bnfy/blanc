@@ -4568,10 +4568,10 @@ html[data-surface="glance"] .glance-header {
   color: var(--text);
 }
 .island-row.selected .row-sub { color: var(--text); }
-.ws-sync-mark { font-size: 11px; opacity: .72; margin-inline-start: .4rem; }
-/* The mark sits before the count, and the count is wide enough that the row's
-   ••• (26px, 6px from the edge) covers only the count on hover, never the mark. */
-.ws-sync-mark + .ws-row-count { min-width: 18px; text-align: end; }
+/* A shared Space's name, with its sync status on a line under it. */
+.ws-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ws-row-text .ws-row-name { flex: none; }
+.ws-sync-mark { font: 500 11px/1.2 var(--font-text); color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ws-sync-status { font-size: 12px; margin: .5rem; }
 .sync-not-synced { margin-inline-start: .35rem; color: var(--accent, currentColor); }
 
