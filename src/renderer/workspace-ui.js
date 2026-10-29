@@ -379,7 +379,7 @@
       main.setAttribute('aria-label', main.title);
       if (workspace.active) main.setAttribute('aria-current', 'true');
       main.append(tile(workspace), dataEl('span', 'ws-row-name', workspace.name), el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
-      if(workspace.sharedSync){const mark=dataEl('span','ws-sync-mark',t('sharedSpaces.'+({full:'fullState',unavailable:'unavailableState'}[workspace.sharedSync.state]??workspace.sharedSync.state),{time:new Date(workspace.sharedSync.lastSyncedAt??0).toLocaleString()}));mark.setAttribute('role','status');main.append(mark);if(workspace.sharedSync.reason)mark.title=t(workspace.sharedSync.reason==='tombstones'?'sharedSpaces.tombstones':'sharedSpaces.capacity');}
+      if(workspace.sharedSync){const mark=dataEl('span','ws-sync-mark',t('sharedSpaces.'+({full:'fullState',unavailable:'unavailableState'}[workspace.sharedSync.state]??workspace.sharedSync.state),{time:new Date(workspace.sharedSync.lastSyncedAt??0).toLocaleString()}));mark.setAttribute('role','status');main.querySelector('.ws-row-count').before(mark);if(workspace.sharedSync.reason)mark.title=t(workspace.sharedSync.reason==='tombstones'?'sharedSpaces.tombstones':'sharedSpaces.capacity');}
       main.addEventListener('keydown', (event) => {
         if (!event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
         event.preventDefault(); event.stopPropagation();
@@ -443,7 +443,7 @@
     }
     function renderList() {
       const nodes = [];
-      if(data.sharedSync){nodes.push(el('p','ws-sync-status',t('sharedSpaces.count',data.sharedSync)));if(data.sharedSync.slowed)nodes.push(el('p','ws-sync-status',t('sharedSpaces.slowed')));else if(data.sharedSync.busy)nodes.push(el('p','ws-sync-status',t('sharedSpaces.busy')));}
+      if(data.sharedSync){nodes.push(el('p','ws-sync-status',t('sharedSpaces.count',data.sharedSync)));if(data.sharedSync.busy)nodes.push(el('p','ws-sync-status',t('sharedSpaces.busy')));else if(data.sharedSync.slowed)nodes.push(el('p','ws-sync-status',t('sharedSpaces.slowed')));}
       if(data.recoveryNotice){nodes.push(el('p','ws-sync-status',t('sharedSpaces.recoveryNote')));nodes.push(button(t('sharedSpaces.cancel'),'dismiss-recovery',()=>run(()=>api.updateWorkspace('',{ackRecovery:true}),()=>{})));}
       if (!data.items.length) nodes.push(el('p', 'ws-empty', t('ws.list.emptyHint')));
       data.items.forEach((workspace, index) => nodes.push(spaceRow(workspace, index)));

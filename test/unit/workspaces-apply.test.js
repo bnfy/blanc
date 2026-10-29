@@ -47,6 +47,21 @@ test('the Space projection carries admission status only in the Personal profile
   assert.deepEqual(result.sharedSync,{count:26,limit:25,canAdd:false,busy:false});assert.deepEqual(result.items[0].sharedSync,{reason:'tabs',unsyncedTabIds:[sharedId],state:'full'});
   offered=false;assert.equal(context.project().items[0].sharedSync,undefined);offered=true;runtime.profileId='named';const other=context.project();assert.equal(other.sharedSync,undefined);assert.equal(other.items[0].sharedSync,undefined);
 });
+test('a busy request window alone shows neither the busy line nor a waiting mark',()=>{
+  const source=slice('function workspacesProjection() {','\n/** Freshness:');
+  const runtime={profileId:'default',workspaceId:'ws',tabOrder:[]},sharedId='a'.repeat(32);
+  let queue={waiting:8,running:1,backoff:false,consecutiveRateLimits:0},pending=false;
+  const context={isSharedSpacesOffered:()=>true,require:()=>require('../../src/main/shared-spaces-surfaces'),sharedSpaceState:{snapshot:()=>({recoveryNoticeSeen:false})},rt:()=>runtime,DEFAULT_PROFILE_ID:'default',spaceTint:'mark',tabs:new Map(),workspaceOwner:()=>null,
+    namedWorkspaces:{status:()=> 'ready',deleted:()=>[],list:()=>[{id:'ws',sharedId,sharedLink:'active',name:'Work',revision:0,urls:['https://example.test/'],color:'#426c4c',symbol:'briefcase'}]},
+    sync:{sharedContext:()=>({}),sharedStatus:()=>({enabled:true,available:true,spaces:1,spaceLimit:25,canAdd:true,...queue}),spaceStatus:()=>({unsyncedTabIds:[],reason:null,pending})}};
+  vm.runInNewContext(source+'\nthis.project=workspacesProjection;',context);
+  let result=JSON.parse(JSON.stringify(context.project()));
+  assert.deepEqual([result.sharedSync.busy,result.sharedSync.slowed,result.items[0].sharedSync.state],[false,false,'shared']);
+  pending=true;result=JSON.parse(JSON.stringify(context.project()));
+  assert.equal(result.items[0].sharedSync.state,'waiting');
+  queue={waiting:3,running:0,backoff:true,consecutiveRateLimits:2};result=JSON.parse(JSON.stringify(context.project()));
+  assert.deepEqual([result.sharedSync.busy,result.sharedSync.slowed],[true,true]);
+});
 
 const applySource = slice(
   'function applyWorkspaceToWindow(runtime, workspace) {',

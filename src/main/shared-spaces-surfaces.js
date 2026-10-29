@@ -8,11 +8,13 @@ function hideOccurrences(devices,sidecar,visible) {
     return {...device,tabs:device.tabs.filter((_tab,index)=>!hidden.has(index))};
   });
 }
+// "Waiting to upload" is this Space's own unacknowledged edits (M16 §3.8),
+// never the request queue: the 60-second pass keeps it busy almost always.
 function markState(queue,entry) {
   if(!queue.available)return 'unavailable';
   if(entry.reason)return 'full';
   if(entry.failed||entry.unsyncedTabIds?.length)return 'notSynced';
-  if(entry.pending||queue.waiting||queue.running)return 'waiting';
+  if(entry.pending)return 'waiting';
   return 'shared';
 }
 function closedBand(local,remote) {
