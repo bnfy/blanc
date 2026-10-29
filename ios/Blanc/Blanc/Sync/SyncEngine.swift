@@ -1055,6 +1055,26 @@ private final class Box<T> {
     if spacesConsent { queue.markIndexDue() }
     await syncNow()
   }
+  /// While Blanc is open with the Spaces switch on, a pass every minute, as
+  /// desktop's: another device's changes arrive without a change here or a
+  /// trip through the background. Background App Refresh is M18.
+  var foregroundWait: (Int64) async -> Bool = { (ms: Int64) async -> Bool in
+    (try? await Task.sleep(for: .milliseconds(ms))) != nil
+  }
+  private var foregroundChecks: Task<Void, Never>?
+  func startForegroundChecks() {
+    guard foregroundChecks == nil else { return }
+    foregroundChecks = Task { [weak self] in
+      while let wait = self?.foregroundWait, await wait(60_000), !Task.isCancelled {
+        guard let self, self.spacesConsent else { continue }
+        await self.syncNow()
+      }
+    }
+  }
+  func stopForegroundChecks() {
+    foregroundChecks?.cancel()
+    foregroundChecks = nil
+  }
   private func refreshViews() {
     var names: [String: String] = [:]
     for (id, entry) in settings.payload()["values"]?["deviceNames"]?.pairs ?? [] {

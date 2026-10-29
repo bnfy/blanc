@@ -77,6 +77,69 @@ import CryptoKit
         await f.engine.requestsSettled()
     }
 
+    // MARK: Checks while Blanc is open
+
+    /// Holds each minute between checks until the test lets it end.
+    @MainActor private final class Minutes {
+        private var waiter: CheckedContinuation<Bool, Never>?
+        private(set) var started = 0
+        var isWaiting: Bool { waiter != nil }
+        func wait() async -> Bool { started += 1; return await withCheckedContinuation { waiter = $0 } }
+        func end(_ goOn: Bool = true) { let w = waiter; waiter = nil; w?.resume(returning: goOn) }
+    }
+    private func untilWaiting(_ minutes: Minutes, _ f: Fixture) async throws {
+        for _ in 0..<5000 where !minutes.isWaiting { try await Task.sleep(for: .milliseconds(1)) }
+        XCTAssertTrue(minutes.isWaiting, "the checks wait for the next minute")
+        await f.engine.requestsSettled()
+    }
+    private func indexReads(_ f: Fixture) -> Int {
+        f.transport.records().filter { $0.method == "GET" && $0.path.hasSuffix("/spaces") }.count
+    }
+
+    func testWhileOpenTheSpacesSwitchChecksEveryMinute() async throws {
+        let f = try await make(spaces: true)
+        let minutes = Minutes()
+        f.engine.foregroundWait = { _ in await minutes.wait() }
+        f.engine.startForegroundChecks()
+        f.engine.startForegroundChecks()
+        try await untilWaiting(minutes, f)
+        XCTAssertEqual(minutes.started, 1, "a second start doesn't add a second loop")
+        XCTAssertEqual(indexReads(f), 0, "the first check comes a minute after Blanc opens")
+        minutes.end(); try await untilWaiting(minutes, f)
+        XCTAssertEqual(indexReads(f), 1)
+        minutes.end(); try await untilWaiting(minutes, f)
+        XCTAssertEqual(indexReads(f), 2)
+        f.engine.stopForegroundChecks(); minutes.end(false)
+    }
+    func testLeavingTheForegroundStopsTheChecks() async throws {
+        let f = try await make(spaces: true)
+        let minutes = Minutes()
+        f.engine.foregroundWait = { _ in await minutes.wait() }
+        f.engine.startForegroundChecks()
+        try await untilWaiting(minutes, f)
+        f.engine.stopForegroundChecks()
+        minutes.end()
+        for _ in 0..<50 { await Task.yield() }
+        await f.engine.requestsSettled()
+        XCTAssertEqual(indexReads(f), 0, "no check runs once Blanc leaves the foreground")
+        XCTAssertFalse(minutes.isWaiting, "and the checks stop waiting")
+        f.engine.startForegroundChecks()
+        try await untilWaiting(minutes, f)
+        minutes.end(); try await untilWaiting(minutes, f)
+        XCTAssertEqual(indexReads(f), 1, "coming back starts them again")
+        f.engine.stopForegroundChecks(); minutes.end(false)
+    }
+    func testWithTheSpacesSwitchOffTheChecksDoNothing() async throws {
+        let f = try await make(spaces: false)
+        let minutes = Minutes()
+        f.engine.foregroundWait = { _ in await minutes.wait() }
+        f.engine.startForegroundChecks()
+        try await untilWaiting(minutes, f)
+        minutes.end(); try await untilWaiting(minutes, f)
+        XCTAssertTrue(f.transport.records().isEmpty, "without Shared Spaces the phone syncs on changes and on coming back, as before")
+        f.engine.stopForegroundChecks(); minutes.end(false)
+    }
+
     // MARK: The window
 
     func testFixedStoresAndTwentyFiveSpacesNeverExceedTenGetsInAnyMinute() async throws {

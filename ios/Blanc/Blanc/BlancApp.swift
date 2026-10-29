@@ -24,7 +24,10 @@ struct BlancApp: App {
             Group {
                 if let manager {
                     ContentView(manager: manager, pairLink: $pairLink)
-                        .task { await manager.syncEngine.appDidBecomeActive() }
+                        .task {
+                            manager.syncEngine.startForegroundChecks()
+                            await manager.syncEngine.appDidBecomeActive()
+                        }
                 } else {
                     Color(uiColor: .systemBackground).ignoresSafeArea()
                 }
@@ -43,7 +46,13 @@ struct BlancApp: App {
             }
 
             .onChange(of: scenePhase) { _, phase in
-                if phase == .active, let manager { Task { await manager.syncEngine.appDidBecomeActive() } }
+                guard let manager else { return }
+                if phase == .active {
+                    manager.syncEngine.startForegroundChecks()
+                    Task { await manager.syncEngine.appDidBecomeActive() }
+                } else {
+                    manager.syncEngine.stopForegroundChecks()
+                }
             }
         }
     }

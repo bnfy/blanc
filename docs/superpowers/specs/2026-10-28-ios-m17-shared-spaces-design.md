@@ -328,6 +328,14 @@ per-device budget. `closed` and `shared` are added as optional stores, the way
 `sends` was, with `hasPublishableContent` so presence alone never creates a
 store.
 
+*A pass every minute while Blanc is open (added after the two-device check,
+October 29, 2026, owner's decision).* With the switch on, the phone runs a
+pass every 60 s while it is in the foreground, as desktop's timer does, and
+stops when it leaves the foreground. The check found that a phone left open
+never saw a rename made on the Mac: passes ran only after a change on the
+phone or on returning to Blanc. Without Shared Spaces the phone keeps syncing
+only then, as before. Background App Refresh stays in M18.
+
 **Record ↔ tab set.** A Swift adapter does for the shown set what desktop's
 `shared-spaces-adapter.js` does for a window: diff the shown tabs against the
 displayed baseline into field edits (new tab, `nav`, pin, group, position,
