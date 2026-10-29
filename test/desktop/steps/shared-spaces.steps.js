@@ -301,6 +301,7 @@ Then('the relaunched client applies the held navigation and keeps every Work tab
  assert.equal(state.tabs.some(t=>t.url===this.oldUrl),false,'the held navigation replaced the old page');
  const shared=await this.call('sharedSpacesTest','state');
  assert.equal(Object.values(shared.shared.windows).some(w=>w.accepted.length),false,'nothing is still held');
+ await this.call('sharedSpacesTest','resetRequestWindow');
  await this.call('sharedSpacesTest','pull',['space-'+this.sid]);
  const response=await fetch(`${this.sharedFixture.url}/v1/blob/${this.sharedKey.accountId}/space-${this.sid}`);assert.equal(response.status,200);
  const blob=JSON.parse(decrypt(this.sharedKey.key,(await response.json()).blob));
@@ -316,7 +317,10 @@ const presetHex=id=>{const preset=PRESETS.find(p=>p.id===id);assert.ok(preset,`a
 const workTab=(world,which)=>({first:world.firstTab,second:world.secondTab})[which];
 const workUrl=(world,which)=>world.fixtureUrl({first:'shared-first',second:'shared-second'}[which]);
 async function sharedCopy(world){
- // Send this device's edits, then read what device B would receive.
+ // Send this device's edits, then read what device B would receive. Sharing
+ // the Space fills the request window, so free it rather than wait it out:
+ // these steps check what the copy holds, not the budget.
+ await world.call('sharedSpacesTest','resetRequestWindow');
  await world.call('sharedSpacesTest','capture');
  const state=await world.call('sharedSpacesTest','state');world.sid??=Object.keys(state.shared.blobs)[0];
  await world.call('sharedSpacesTest','pull',['space-'+world.sid]);
