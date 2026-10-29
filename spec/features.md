@@ -1777,8 +1777,12 @@ lines and "kept on this iPhone" recovery Spaces. The selected tab defers
 remote closes and navigations; a deferred change applies at the next cold
 start while every tab is still quiet. The palette's Recently closed band
 merges the phone's closes with other devices' ("Closed on {device}"); with
-the switch off it is the phone's own, kept 24 hours. The two-device check
-against the deployed Worker is pending.
+the switch off it is the phone's own, kept 24 hours. While Blanc is open
+with the switch on, the phone checks for changes every minute, as desktop
+does. A Space's name, colour, symbol and order are written when changed on
+the phone, never by comparison at sync time. The two-device check against
+the deployed Worker passed on October 29, 2026 (desktop v1.45.0 on macOS
+and an iPhone Air on iOS 27.2).
 
 ## F58 — Reader Mode (desktop and iOS candidate)
 
