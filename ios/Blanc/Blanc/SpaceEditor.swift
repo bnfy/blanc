@@ -92,7 +92,9 @@ struct SpaceEditor: View {
                     Button(SyncCopy.text("sharedSpaces.cancel")) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(SyncCopy.text(editing == nil ? "ws.editor.createButton" : "ws.editor.done"), action: save)
+                    // "Create", not desktop's "Create space": a wider button than
+                    // Cancel pushes the inline title off centre.
+                    Button(SyncCopy.text(editing == nil ? "tabGroups.create" : "ws.editor.done"), action: save)
                         .accessibilityIdentifier("space.save")
                 }
             }
