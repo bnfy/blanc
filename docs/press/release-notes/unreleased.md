@@ -5,10 +5,20 @@ since then aren't recorded here yet.
 
 ## Still open from 1.45.0
 
-- **Link routing:** check it with real apps on each platform (spec §8: Slack
-  or Mail on macOS, the Windows default-browser handoff, `xdg-open` on
-  Linux), cold and warm. So far it has been tested on Linux only, in CI and
-  under xvfb, and the new-tab option (F60-6) in CI only.
+- **Link routing:** the published 1.45.0 was checked on October 29
+  ([record](../../reviews/2026-10-29-link-routing-real-app-checks.md)).
+  Links handed over by the OS open in the rule's profile or Space, cold and
+  warm, on macOS (`open -a`), Linux (`xdg-open` as the default browser, and
+  the OpenURI portal) and Windows (the registered protocol command). The
+  new-tab option passes on macOS and Linux. Still open:
+  - **Bug:** with **Also for links I open in a new tab** on, a middle-clicked
+    link whose rule needs a new window opens that window with focus, not
+    behind (macOS; Blanc's own focus record shows the same on Linux).
+  - **Windows default-browser handoff:** `start` and clicks in other apps
+    weren't proven. The test VM can't hand links to any default browser but
+    Edge (see the record).
+  - **A click in Mail or Slack on macOS:** not tried, because it needs Blanc
+    to be the default browser.
 - Leave out what notes don't cover on purpose: the iOS changes belong to the
   iPhone app's notes, and the CI, test, website and spec changes aren't
   user-visible.
