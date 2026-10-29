@@ -95,7 +95,11 @@ extension SharedSpacesUITests {
     XCTAssertEqual(app.buttons["island.space"].label, "Space: Work")
     app.buttons["pill.palette"].tap()
     let row = app.buttons["closed.row." + String(format: "%032x", 0x772)]
-    XCTAssertTrue(row.waitForExistence(timeout: 30), "the remote close lands in Recently closed")
+    let toggle = app.buttons["closed.toggle"]
+    XCTAssertTrue(toggle.waitForExistence(timeout: 30), "the remote close lands in Recently closed")
+    XCTAssertFalse(row.exists, "the band starts folded, as desktop's does")
+    toggle.tap()
+    XCTAssertTrue(row.waitForExistence(timeout: 5))
     XCTAssertEqual(row.value as? String, "Closed on MacBook Pro")
     capture(app, "Recently closed with a remote close")
   }
