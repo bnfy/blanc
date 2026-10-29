@@ -7,6 +7,7 @@ const model=require('../../../src/main/shared-spaces-model');
 const ctx=require('../support/context');
 const {waitForValue}=require('../support/poll');
 const {callTestHook}=require('../support/test-hook-call');
+const {overlayPage,runSlashCommand}=require('../support/overlay');
 const handle='Shared Spaces acceptance',passphrase='correct horse battery staple Shared Spaces';
 Before({tags:'@F57 and not @peer-driver',timeout:180000},async function(){
  this.sharedFixture=await createSyncFixture();await ctx.relaunch({BLANC_TEST_SYNC_ENDPOINT:this.sharedFixture.url},{freshProfile:true});
@@ -306,4 +307,80 @@ Then('the relaunched client applies the held navigation and keeps every Work tab
  assert.deepEqual(Object.values(blob.tabs).filter(r=>r.deleted.v===true).map(r=>r.nav.v.url),[],'the other device keeps every Work tab');
  assert.equal(blob.tabs[this.navigated].nav.v.url,remote);
  assert.equal(Object.values(blob.groups).some(g=>g.deleted.v===true),false,'the other device keeps the group');
+});
+// A group made after the Space was shared: by the group command, the rail's
+// New group button, a rename and color here or on device B, and a tab moved
+// into it. Remote passes (a tab switch, a sync) must leave it intact.
+const {PRESETS}=require('../../../src/renderer/space-identity');
+const presetHex=id=>{const preset=PRESETS.find(p=>p.id===id);assert.ok(preset,`a group color named ${id}`);return preset.hex;};
+const workTab=(world,which)=>({first:world.firstTab,second:world.secondTab})[which];
+const workUrl=(world,which)=>world.fixtureUrl({first:'shared-first',second:'shared-second'}[which]);
+async function sharedCopy(world){
+ // Send this device's edits, then read what device B would receive.
+ await world.call('sharedSpacesTest','capture');
+ const state=await world.call('sharedSpacesTest','state');world.sid??=Object.keys(state.shared.blobs)[0];
+ await world.call('sharedSpacesTest','pull',['space-'+world.sid]);
+ const response=await fetch(`${world.sharedFixture.url}/v1/blob/${world.sharedKey.accountId}/space-${world.sid}`);assert.equal(response.status,200);
+ return JSON.parse(decrypt(world.sharedKey.key,(await response.json()).blob));
+}
+function sharedGroupOf(blob,url){
+ const record=Object.values(blob.tabs).find(r=>r.nav.v.url===url&&r.deleted.v!==true);assert.ok(record,`the shared copy has ${url}`);
+ const group=blob.groups[record.groupId.v];
+ return group&&group.deleted.v!==true?group:null;
+}
+async function localGroupOf(world,which){
+ const state=await world.state(),tab=state.tabs.find(t=>t.id===workTab(world,which));
+ return state.groups.find(g=>g.id===tab?.groupId)??null;
+}
+When('I put the first Work tab in a new group {string} with the group command',{timeout:60000},async function(name){
+ await this.call('activateTab',this.firstTab);await this.waitForState(s=>s.activeTabId===this.firstTab);
+ await runSlashCommand(this,`/group ${name}`);
+ await this.waitForState(s=>{const tab=s.tabs.find(t=>t.id===this.firstTab);return s.groups.some(g=>g.id===tab?.groupId&&g.name===name);});
+});
+When('I switch to the {word} Work tab',{timeout:60000},async function(which){
+ const id=workTab(this,which);await this.call('activateTab',id);await this.waitForState(s=>s.activeTabId===id);
+});
+Then('the {string} group keeps the {word} Work tab here and in the shared copy',{timeout:180000},async function(name,which){
+ const blob=await sharedCopy(this);
+ assert.equal((await localGroupOf(this,which))?.name,name,'the tab is still in the group on this device');
+ assert.equal(sharedGroupOf(blob,workUrl(this,which))?.name.v,name,'device B sees the tab in the group');
+});
+When('I rename the group {string} to {string} and color it {string}',{timeout:60000},async function(from,to,color){
+ assert.equal(await this.call('beginRenameGroupByName',from),true,`a group named ${from}`);
+ await waitForValue(()=>this.call('overlayRendererMode'),m=>m==='panel','the rename prompt');
+ const page=await overlayPage();await page.fill('#addressInput',to);await page.press('#addressInput','Enter');
+ await this.waitForState(s=>s.groups.some(g=>g.name===to));
+ assert.equal(await this.call('setGroupColorByName',to,presetHex(color)),true);
+});
+Then('the shared copy has the group {string} colored {string} holding the first Work tab',{timeout:180000},async function(name,color){
+ const group=sharedGroupOf(await sharedCopy(this),workUrl(this,'first'));
+ assert.deepEqual(group&&{name:group.name.v,color:group.color.v},{name,color:presetHex(color)});
+});
+When('device B renames the group {string} to {string} and colors it {string}',{timeout:180000},async function(from,to,color){
+ await editPeer(this,blob=>{
+  const id=Object.keys(blob.groups).find(id=>blob.groups[id].name.v===from&&blob.groups[id].deleted.v!==true);assert.ok(id,`device B has the group ${from}`);
+  const f=v=>model.field(v,Date.now()+1,'device-b');blob.groups[id].name=f(to);blob.groups[id].color=f(presetHex(color));
+ });
+});
+Then('this device shows the group {string} colored {string} holding the first Work tab',{timeout:60000},async function(name,color){
+ await this.waitForState(s=>{const tab=s.tabs.find(t=>t.id===this.firstTab),group=s.groups.find(g=>g.id===tab?.groupId);return group?.name===name&&group.color===presetHex(color);},{timeout:30000});
+});
+When('I move the second Work tab into {string}',async function(name){
+ await this.call('groupTabByName',this.secondTab,name);
+ await this.waitForState(s=>{const tab=s.tabs.find(t=>t.id===this.secondTab);return s.groups.some(g=>g.id===tab?.groupId&&g.name===name);});
+});
+Then('the shared copy has the group {string} colored {string} holding both Work tabs',{timeout:180000},async function(name,color){
+ const blob=await sharedCopy(this);
+ for(const which of ['first','second']) {
+  const group=sharedGroupOf(blob,workUrl(this,which));
+  assert.deepEqual(group&&{name:group.name.v,color:group.color.v},{name,color:presetHex(color)},`the ${which} Work tab`);
+ }
+ assert.equal((await localGroupOf(this,'first'))?.id,(await localGroupOf(this,'second'))?.id,'one group here');
+});
+Given('a Shared Spaces fixture whose shared Work Space has the first Work tab in a group {string}',{timeout:180000},async function(name){
+ await setup(this,true,{beforeSave:async()=>{
+  await this.call('groupTabByName',this.firstTab,name);
+  await this.waitForState(s=>s.tabs.some(t=>t.id===this.firstTab&&t.groupId));
+ }});
+ assert.equal(sharedGroupOf(await sharedCopy(this),workUrl(this,'first'))?.name.v,name,'the group is shared with its Space');
 });
