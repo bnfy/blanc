@@ -533,6 +533,12 @@ original reports:
   for link rules are still pending (above).
 - **Vertical tabs show your Space:** Since v1.45.0 the rail's top row shows the
   current Space's mark, and its footer has a new-group button.
+- **1.45.1 is fixes only:** Since v1.45.1 a shared Space's sync status sits on
+  its own line under its name in the Spaces menu, routine sync no longer shows
+  "Sync is busy; retrying." or "Waiting to upload", and a background-opened
+  link whose rule needs a new window opens that window behind the current one.
+  It adds no feature: describe new capabilities as since v1.45.0, never
+  v1.45.1.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,

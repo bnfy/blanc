@@ -1,10 +1,9 @@
 # Unreleased notes
 
-Changes merged since v1.45.0 are included in the prepared
-[v1.45.1 release notes](v1.45.1.md). No additional release changes are
-recorded here.
+v1.45.1 is the current public release ([notes](v1.45.1.md)). Changes merged
+since then are below as they're recorded.
 
-## Still open from 1.45.0
+## Still open from 1.45
 
 - **Link routing:** the published 1.45.0 was checked on October 29
   ([record](../../reviews/2026-10-29-link-routing-real-app-checks.md)).
@@ -13,7 +12,7 @@ recorded here.
   the OpenURI portal) and Windows (the registered protocol command). The
   new-tab option passes on macOS and Linux. Still open:
   - The new-tab option's background-window focus bug the checks found is
-    fixed in the prepared 1.45.1; recheck it on Linux's window manager.
+    fixed in v1.45.1; recheck it on Linux's window manager.
   - **Windows default-browser handoff:** `start` and clicks in other apps
     weren't proven. The test VM can't hand links to any default browser but
     Edge (see the record).

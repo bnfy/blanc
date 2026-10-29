@@ -1,5 +1,73 @@
 [
   {
+    "tag": "v1.45.1",
+    "version": "1.45.1",
+    "name": "1.45.1",
+    "publishedAt": "2026-10-29T22:38:24.000Z",
+    "humanDate": "October 29, 2026",
+    "machineDate": "2026-10-29",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.45.1",
+    "anchor": "v1-45-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "In the Spaces menu, a shared Space's sync status now sits on its own line under the Space's name, so a long name is no longer cut short."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With Shared Spaces on, the Spaces menu no longer keeps saying \"Sync is busy; retrying.\" or marks shared Spaces \"Waiting to upload\" during routine sync. They now appear only when sync is actually being held back or a Space has changes it hasn't uploaded yet."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Also for links I open in a new tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on, a link you open in the background (middle-click, ⌘-click or Ctrl-click) whose rule needs a new window now opens that window behind the one you're using, instead of in front."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.45.0",
     "version": "1.45.0",
     "name": "1.45.0",
