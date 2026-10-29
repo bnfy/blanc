@@ -29,13 +29,14 @@ actor MemorySyncTransport: SyncTransport {
     private var heldMethod: String?
     private var held: CheckedContinuation<Void, Never>?
     private var retired: Set<String> = []
-    private var stampClock: (@Sendable () -> Int64)?
-    private var stamps: [(method: String, path: String, at: Int64)] = []
-    /// Spelled out: Xcode 26.6 synthesizes this init as `nonisolated` and rejects it.
-    init() {}
+    // A class and a struct, not an optional closure and a tuple array:
+    // Xcode 26.6 rejects this actor's declaration with those.
+    struct Stamp: Sendable { let method: String; let at: Int64 }
+    private var stampClock: TestClock?
+    private var stamps: [Stamp] = []
     func records() -> [Request] { requests }
     /// Stamp every request with this (simulated) clock, for window checks.
-    func setClock(_ clock: @escaping @Sendable () -> Int64) { stampClock = clock }
+    func setClock(_ clock: TestClock) { stampClock = clock }
     func getTimes() -> [Int64] { stamps.filter { $0.method == "GET" }.map(\.at) }
     /// An older Worker that doesn't serve `store` at all (M7b's `sends`).
     func retire(_ store: SyncStore) { retired.insert(store.rawValue) }
@@ -61,7 +62,7 @@ actor MemorySyncTransport: SyncTransport {
     func release() { let continuation = held; held = nil; continuation?.resume() }
     func send(method: String, path: String, body: Data?) async throws -> (status: Int, body: Data) {
         requests.append(Request(method: method, path: path, body: body))
-        if let stampClock { stamps.append((method, path, stampClock())) }
+        if let stampClock { stamps.append(Stamp(method: method, at: stampClock.now())) }
         let response: (status: Int, body: Data)
         let exactKey = method + " " + path
         let failureKey = failures[exactKey] != nil ? exactKey : (failures.keys.first { $0.hasSuffix("/") && exactKey.hasPrefix($0) } ?? exactKey)

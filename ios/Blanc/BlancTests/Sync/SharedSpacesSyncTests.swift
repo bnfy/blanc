@@ -19,7 +19,7 @@ import CryptoKit
         let clock = TestClock(start)
         try state.update { $0.enabled = true; $0.accountId = account; $0.handle = "Account"; $0.syncTabs = sharing }
         try secrets.writeKey(key)
-        await transport.setClock { clock.now() }
+        await transport.setClock(clock)
         try await transport.install(account, .settings, .object([("values", .object([("theme", .string("light"))])), ("meta", .object([("theme", .number(100))])), ("tieBreakers", .object([]))]), key: key)
         let engine = SyncEngine(
             state: state, secrets: secrets, client: SyncWorkerClient(transport: transport),
