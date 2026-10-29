@@ -26,6 +26,8 @@ enum SettingsCopy {
         "searchEngine": "settings.general.searchEngine.label",
         "appearance": "settings.general.cards.appearance",
         "theme": "settings.general.theme.label",
+        "appIcon": "settings.general.appIconSetting.label",
+        "appIconHint": "settings.general.appIconSetting.hint",
         "system": "settings.general.theme.system",
         "light": "settings.general.theme.light",
         "dark": "settings.general.theme.dark",
@@ -92,6 +94,7 @@ struct SettingsSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var scheme
     @State private var path: [SettingsDestination] = []
+    @StateObject private var appIcons = AppIconModel()
     private var style: BrowserStyle { BrowserStyle(scheme: scheme) }
 
     var body: some View {
@@ -131,6 +134,9 @@ struct SettingsSheet: View {
                 Picker(SettingsCopy.text("theme"), selection: Binding(get: { manager.settingsStore.theme }, set: { manager.applySettingsPatch(["theme": $0.rawValue]) })) {
                     ForEach(BlancThemePreference.allCases, id: \.self) { Text(SettingsCopy.text($0.rawValue)).tag($0) }
                 }.accessibilityIdentifier("settings.theme")
+                NavigationLink { AppIconSettingsView(model: appIcons) } label: {
+                    summary("appIcon", value: appIcons.current.label)
+                }.accessibilityIdentifier("settings.appIcon")
                 NavigationLink(value: SettingsDestination.startPage) {
                     summary("startPage", value: SettingsCopy.text(manager.settingsStore.newtabLayout.rawValue))
                 }.accessibilityIdentifier("settings.startPage")
