@@ -11,10 +11,21 @@
   computer's pairing code (design 2026-10-28 §3, §7.2). Its prompt text is
   generated into Blanc/InfoPlist.xcstrings from copy/messages; the English
   base below must match it (test/unit/ios-camera-usage.test.js).
+  CFBundleLocalizations lists the six interface languages (F44) so iOS offers
+  Blanc's own Language setting; Swift reads the matching catalog (M18 §4).
   See docs/ios/app-store-connect.md.
 -->
 <plist version="1.0">
 <dict>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>de</string>
+		<string>es</string>
+		<string>fr</string>
+		<string>it</string>
+		<string>pt-BR</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Blanc uses the camera only to scan the pairing code on your computer.</string>
 	<key>CFBundleURLTypes</key>

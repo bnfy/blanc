@@ -9080,5 +9080,69 @@
   "bringSpace.copyNote": {
     "message": "Esta cópia não muda quando o Space mudar em {device}. Ative a sincronização de Spaces para mantê-los iguais.",
     "source": "sha256:324eb708aca4bbb9df8e37cc1bd44c53f147f99bf019a882f8471286d3417b2b"
+  },
+  "ios.island.searchOrSwitch": {
+    "message": "Pesquisar ou trocar de aba, {domain}",
+    "source": "sha256:6a4e9accf21d0aafff517e4db3902c4801972392afd84ed77006a88d1248d7da"
+  },
+  "ios.island.showAllTabs": {
+    "message": "Mostrar todas as abas",
+    "source": "sha256:e2efa8d586ca74d46ebbc79c602d0acc0d90df79d36c13e5de34d4c55e450ba7"
+  },
+  "ios.island.reload": {
+    "message": "Recarregar a página",
+    "source": "sha256:a97b578f423dbbb6a41916f986dab254f7855930346ab81e04fe955ed8fd29ed"
+  },
+  "ios.island.stop": {
+    "message": "Parar de carregar",
+    "source": "sha256:7afd60900cf4554c372a6974840bee623d3a7ad10fa18559cd951051493b6ba8"
+  },
+  "ios.island.pageActions": {
+    "message": "Ações da página",
+    "source": "sha256:0b926606bca19deecf9e0d633786f8643b649905978b53d66a1453980a9215f7"
+  },
+  "ios.island.collapse": {
+    "message": "Recolher a Island",
+    "source": "sha256:ab5674348d6cbc0f0e6397f7be9b29a93ebebdff3030e6407f5bb74b573a381b"
+  },
+  "ios.palette.placeholder": {
+    "message": "Pesquise, digite um endereço ou um /comando",
+    "source": "sha256:e0ba598be2d25b91629b28568d437a2bf5cfc137f9adda1e32015dc3c6ad766c"
+  },
+  "ios.palette.clear": {
+    "message": "Limpar a pesquisa",
+    "source": "sha256:7dc3e0f52e8780622c64687b25f32d4e77e0bf76d0e87fdc893604d6393947c5"
+  },
+  "ios.palette.noCommand": {
+    "message": "Nenhum comando corresponde",
+    "source": "sha256:46f9241e122af9ca6ed4da4c5cce2318315350f01562f5d908c625f7a9d38008"
+  },
+  "ios.palette.noMatches": {
+    "message": "Nenhum resultado. Toque em Ir para abrir como endereço ou pesquisa.",
+    "source": "sha256:6d2b630170c57cec6b423c57bab0affbd61313b5a2efcb7a525eed61abf9f90c"
+  },
+  "ios.tabs.openTabs": {
+    "message": "Abas abertas",
+    "source": "sha256:89493dd0e4a5f4bb1e277a1821982fe52cd694db0d06e69eecdddbbb74ed1fce"
+  },
+  "ios.tabs.switchTo": {
+    "message": "Mudar para {title}",
+    "source": "sha256:eff16f99e05eb28baf7b54a215f7612bf6f576bd23c9f9e07cc5a00925e5153b"
+  },
+  "ios.tabs.close": {
+    "message": "Fechar {title}",
+    "source": "sha256:04158d21da4cbc8e28ee2921408f8bb38ca24995cac5ef4dc9a2c164a2301a5f"
+  },
+  "ios.tabs.startPage": {
+    "message": "Página inicial",
+    "source": "sha256:4e8ae1c7ee2f2179b161c4e72ecd4359cadcb7773ec464d2b419ae8c54873b37"
+  },
+  "ios.pages.syncUnavailable": {
+    "message": "A sincronização ainda não está disponível nesta versão.",
+    "source": "sha256:a8737dd7c1add2a3aaf1880f00867467b0de9d4cdb92cf6bf248626545ff7bcd"
+  },
+  "ios.pages.supporterUnavailable": {
+    "message": "A ativação de Supporter ainda não está disponível nesta versão.",
+    "source": "sha256:90821821255f3f0c6fe3394872eaf70c7fe37daf295f702bb71ad107749bcad4"
   }
 }

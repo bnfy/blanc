@@ -29,11 +29,11 @@ struct TabGridView: View {
                     SpaceTile(color: space.color, symbol: space.symbol, size: 28)
                     Text(space.name).font(BrowserStyle.font(24, semibold: true)).lineLimit(1)
                 } else {
-                    Text("Open tabs").font(BrowserStyle.font(24, semibold: true))
+                    Text(SyncCopy.text("ios.tabs.openTabs")).font(BrowserStyle.font(24, semibold: true))
                 }
                 Text("\(manager.tabs.count)").font(.system(size: 14)).foregroundStyle(style.secondary)
                 Spacer()
-                Button("Done") { dismiss() }
+                Button(SettingsCopy.text("done")) { dismiss() }
                     .font(BrowserStyle.font(16, semibold: true))
                     .frame(minWidth: 44, minHeight: 44)
             }
@@ -70,7 +70,7 @@ struct TabGridView: View {
                 manager.createTab()
                 dismiss()
             } label: {
-                Label("New tab", systemImage: "plus")
+                Label(SyncCopy.text("tab.new"), systemImage: "plus")
                     .font(BrowserStyle.font(16, semibold: true))
                     .frame(maxWidth: .infinity, minHeight: 48)
                     .background(style.raised, in: RoundedRectangle(cornerRadius: 16))
@@ -170,7 +170,7 @@ struct TabGridView: View {
                 withAnimation { manager.closeTab(tab.id) }
             }
             .accessibilityIdentifier("tab.card")
-            .accessibilityLabel("Switch to \(title(tab))")
+            .accessibilityLabel(SyncCopy.text("ios.tabs.switchTo", ["title": title(tab)]))
             .accessibilityAddTraits(manager.activeTabId == tab.id ? .isSelected : [])
             .overlay(alignment: .topLeading) {
                 if manager.isUnsynced(tab) {
@@ -191,7 +191,7 @@ struct TabGridView: View {
                         .frame(width: 44, height: 44)
                         .contentShape(Rectangle())
                 }
-                .accessibilityLabel("Close \(title(tab))")
+                .accessibilityLabel(SyncCopy.text("ios.tabs.close", ["title": title(tab)]))
             }
             Text(title(tab)).font(BrowserStyle.font(14, semibold: true)).lineLimit(1)
             if let host = tab.currentURL.host, tab.currentURL.scheme != "blanc" {
@@ -205,10 +205,7 @@ struct TabGridView: View {
         dismiss()
     }
 
-    private func title(_ tab: TabModel) -> String {
-        if tab.currentURL == TabsManager.newTabURL { return "Start Page" }
-        return tab.pageTitle.isEmpty ? (tab.currentURL.host ?? tab.currentURL.absoluteString) : tab.pageTitle
-    }
+    private func title(_ tab: TabModel) -> String { TabTitle.display(tab) }
 }
 
 /// M11: swiping a tab's card sideways closes the tab, the card following the

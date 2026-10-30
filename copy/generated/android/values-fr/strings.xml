@@ -2578,4 +2578,20 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="spaces_on_device">Sur %1$s</string>
     <string name="bring_space_action">Copier sur l’iPhone</string>
     <string name="bring_space_copy_note">Cette copie ne changera pas quand le Space changera sur %1$s. Activez la synchronisation des Spaces pour les garder identiques.</string>
+    <string name="ios_island_search_or_switch">Rechercher ou changer d’onglet, %1$s</string>
+    <string name="ios_island_show_all_tabs">Afficher tous les onglets</string>
+    <string name="ios_island_reload">Actualiser la page</string>
+    <string name="ios_island_stop">Arrêter le chargement</string>
+    <string name="ios_island_page_actions">Actions de la page</string>
+    <string name="ios_island_collapse">Réduire l’Island</string>
+    <string name="ios_palette_placeholder">Rechercher, saisir une adresse ou une /commande</string>
+    <string name="ios_palette_clear">Effacer la recherche</string>
+    <string name="ios_palette_no_command">Aucune commande correspondante</string>
+    <string name="ios_palette_no_matches">Aucun résultat. Touchez Aller pour l’ouvrir comme adresse ou recherche.</string>
+    <string name="ios_tabs_open_tabs">Onglets ouverts</string>
+    <string name="ios_tabs_switch_to">Passer à %1$s</string>
+    <string name="ios_tabs_close">Fermer %1$s</string>
+    <string name="ios_tabs_start_page">Page d’accueil</string>
+    <string name="ios_pages_sync_unavailable">La synchronisation n’est pas encore disponible dans cette version.</string>
+    <string name="ios_pages_supporter_unavailable">L’activation Supporter n’est pas encore disponible dans cette version.</string>
 </resources>

@@ -103,7 +103,7 @@ struct ContentView: View {
             BringSpaceSheet(manager: manager, remote: remote)
         }
         .alert(ReaderCopy.text("reader.title"), isPresented: Binding(get: { manager.readerError }, set: { manager.readerError = $0 })) {
-            Button("OK", role: .cancel) {}
+            Button(SyncCopy.text("dialog.ok"), role: .cancel) {}
         } message: { Text(ReaderCopy.text("reader.unavailable")) }
         .fullScreenCover(isPresented: $showTabGrid) {
             TabGridView(manager: manager)
@@ -191,7 +191,7 @@ struct ContentView: View {
                     isSwiping = false
                     if !isCommitting { withAnimation(Self.swipeSpring) { swipeOffset = 0 } }
                 }
-                .accessibilityAction(named: "Show all tabs") { openTabGrid() }
+                .accessibilityAction(named: SyncCopy.text("ios.island.showAllTabs")) { openTabGrid() }
                 .accessibilityAction(named: SyncCopy.text("menu.nextTab")) { switchTab(by: 1) }
                 .accessibilityAction(named: SyncCopy.text("menu.previousTab")) { switchTab(by: -1) }
         }
@@ -370,7 +370,7 @@ struct ContentView: View {
             .accessibilityElement(children: .ignore)
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { manager.isPalettePresented = true }
-            .accessibilityLabel("Search or switch tabs, \(displayDomain)")
+            .accessibilityLabel(SyncCopy.text("ios.island.searchOrSwitch", ["domain": displayDomain]))
             .accessibilityIdentifier("pill.palette")
 
             if let tab = manager.activeTab, tab.isPrivate {
@@ -399,7 +399,7 @@ struct ContentView: View {
                 Image(systemName: manager.activeTab?.isLoading == true ? "xmark" : "arrow.clockwise")
                     .frame(width: 44, height: 48)
             }
-            .accessibilityLabel(manager.activeTab?.isLoading == true ? "Stop loading" : "Reload page")
+            .accessibilityLabel(SyncCopy.text(manager.activeTab?.isLoading == true ? "ios.island.stop" : "ios.island.reload"))
 
             // The tab grid, as other browsers' tab buttons open theirs: the
             // swipe up on the Island still works, but nothing showed it.
@@ -413,15 +413,15 @@ struct ContentView: View {
                     .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(style.text, lineWidth: 1.6))
                     .frame(width: 44, height: 48)
             }
-            .accessibilityLabel("Show all tabs")
-            .accessibilityValue("\(manager.tabs.count) tabs")
+            .accessibilityLabel(SyncCopy.text("ios.island.showAllTabs"))
+            .accessibilityValue(SyncCopy.plural("tabsMenu.header", count: manager.tabs.count))
             .accessibilityIdentifier("pill.tabs")
 
             Rectangle().fill(style.border).frame(width: 1, height: 18)
             Button { manager.createTab() } label: {
                 Image(systemName: "plus").frame(width: 44, height: 48)
             }
-            .accessibilityLabel("New tab")
+            .accessibilityLabel(SyncCopy.text("tab.new"))
         }
         .font(.system(size: 15, weight: .medium))
         .buttonStyle(.plain)
@@ -521,15 +521,18 @@ struct ContentView: View {
     }
 
     private var displayDomain: String {
-        guard let url = manager.activeTab?.currentURL else { return "Start Page" }
+        let startPage = SyncCopy.text("ios.tabs.startPage")
+        guard let url = manager.activeTab?.currentURL else { return startPage }
         if url.scheme == "blanc" {
             switch url.host {
-            case "newtab": return "Start Page"
-            case "bookmarks": return "Favorites"
-            default: return url.host?.capitalized ?? "Start Page"
+            case "newtab": return startPage
+            case "bookmarks": return SyncCopy.text("pagesNav.bookmarks")
+            case "history": return SyncCopy.text("pagesNav.history")
+            case "settings": return SyncCopy.text("pagesNav.settings")
+            default: return url.host?.capitalized ?? startPage
             }
         }
-        let host = url.host ?? "Start Page"
+        let host = url.host ?? startPage
         return host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
     }
 }

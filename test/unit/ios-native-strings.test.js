@@ -18,7 +18,7 @@ const EXEMPT_MARKER = '// not user-visible';
 
 const STRING = '"((?:[^"\\\\]|\\\\.)*)"';
 const PATTERNS = [
-  new RegExp(String.raw`(?:^|[^\w.])(?:Text|Button|Label|Toggle|TextField|SecureField|Section|Menu|Link)\(\s*` + STRING, 'g'),
+  new RegExp(String.raw`(?:^|[^\w.])(?:Text|Button|Label|Toggle|TextField|SecureField|Section|Menu|Link|pageShortcut|groupHeading)\(\s*` + STRING, 'g'),
   new RegExp(String.raw`\.(?:navigationTitle|accessibilityLabel|accessibilityHint|accessibilityValue|alert|confirmationDialog|help)\(\s*` + STRING, 'g'),
   new RegExp(String.raw`\.accessibilityAction\(\s*named:\s*` + STRING, 'g'),
   new RegExp(String.raw`\.accessibility(?:Label|Hint|Value)\s*=\s*` + STRING, 'g'),
@@ -81,7 +81,7 @@ test('Swift draws no hard-coded English', () => {
 
 test('the guard catches each form it claims to', () => {
   for (const line of ['Text("Open tabs")', '.accessibilityLabel("Show all tabs")', 'button.accessibilityLabel = "Page actions"',
-    'Button("Done") { dismiss() }', '.accessibilityAction(named: "Show all tabs") {}', 'return "Start Page"',
+    'Button("Done") { dismiss() }', 'pageShortcut("Favorites", icon: "bookmark", page: "bookmarks")', '.accessibilityAction(named: "Show all tabs") {}', 'return "Start Page"',
     '.accessibilityLabel("Close \\(tab.pageTitle.isEmpty ? "tab" : tab.pageTitle)")', 'TextField("Search, enter address", text: $x)']) {
     assert.equal(scan(line).length, 1, line);
   }
@@ -89,6 +89,18 @@ test('the guard catches each form it claims to', () => {
     '/// Turning "Keep Spaces in sync" on', '.reject("Unknown layout") // not user-visible', 'SyncCopy.text("ios.tabs.startPage")']) {
     assert.equal(scan(line).length, 0, line);
   }
+});
+
+test('the app declares the six languages, so iOS offers a per-app language', () => {
+  const six = ['en', 'de', 'es', 'fr', 'it', 'pt-BR'];
+  const pbx = fs.readFileSync(path.join(root, 'ios/Blanc/Blanc.xcodeproj/project.pbxproj'), 'utf8');
+  const regions = pbx.match(/knownRegions = \(([^)]*)\);/)[1].split(',').map((r) => r.trim().replace(/"/g, '')).filter(Boolean);
+  assert.deepEqual(regions.filter((r) => r !== 'Base').sort(), [...six].sort());
+  const plist = fs.readFileSync(path.join(root, 'ios/Blanc/Info.plist'), 'utf8');
+  const declared = plist.match(/<key>CFBundleLocalizations<\/key>\s*<array>([\s\S]*?)<\/array>/)[1].match(/<string>([^<]+)<\/string>/g).map((s) => s.slice(8, -9));
+  assert.deepEqual(declared, six);
+  const catalog = JSON.parse(fs.readFileSync(path.join(root, 'ios/Blanc/Blanc/InfoPlist.xcstrings'), 'utf8'));
+  assert.deepEqual(Object.keys(catalog.strings.NSCameraUsageDescription.localizations).sort(), [...six].sort());
 });
 
 module.exports = { scan };

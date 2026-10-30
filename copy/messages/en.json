@@ -9369,5 +9369,69 @@
   "bringSpace.copyNote": {
     "message": "This copy won’t change when the Space changes on {device}. Turn on Spaces sync to keep them together.",
     "note": "iPhone: Bring a Space review sheet, explaining the copy is not linked (M17)."
+  },
+  "ios.island.searchOrSwitch": {
+    "message": "Search or switch tabs, {domain}",
+    "note": "iOS Island: accessible name of the address area; {domain} is the current page's site or \"Start Page\"."
+  },
+  "ios.island.showAllTabs": {
+    "message": "Show all tabs",
+    "note": "iOS Island: accessible name of the tab-count button and the swipe-up action that open the tab grid."
+  },
+  "ios.island.reload": {
+    "message": "Reload page",
+    "note": "iOS Island: accessible name of the reload button."
+  },
+  "ios.island.stop": {
+    "message": "Stop loading",
+    "note": "iOS Island: accessible name of the reload button while a page loads."
+  },
+  "ios.island.pageActions": {
+    "message": "Page actions",
+    "note": "iOS Island: accessible name of the leading mark that opens the page menu."
+  },
+  "ios.island.collapse": {
+    "message": "Collapse Island",
+    "note": "iOS palette: accessible name of the button that closes the palette back into the Island."
+  },
+  "ios.palette.placeholder": {
+    "message": "Search, enter address, or / command",
+    "note": "iOS palette: placeholder of the address field."
+  },
+  "ios.palette.clear": {
+    "message": "Clear search",
+    "note": "iOS palette: accessible name of the button that empties the address field."
+  },
+  "ios.palette.noCommand": {
+    "message": "No matching command",
+    "note": "iOS palette: shown when what follows / matches no command."
+  },
+  "ios.palette.noMatches": {
+    "message": "No matches. Tap Go to open it as an address or search.",
+    "note": "iOS palette: shown when typed text matches no tab, Favorite or history entry; Go is the keyboard's return key."
+  },
+  "ios.tabs.openTabs": {
+    "message": "Open tabs",
+    "note": "iOS palette and tab grid: heading over the open tabs."
+  },
+  "ios.tabs.switchTo": {
+    "message": "Switch to {title}",
+    "note": "iOS tab grid: accessible name of a tab card; {title} is the tab's title."
+  },
+  "ios.tabs.close": {
+    "message": "Close {title}",
+    "note": "iOS palette and tab grid: accessible name of a tab's close button; {title} is the tab's title."
+  },
+  "ios.tabs.startPage": {
+    "message": "Start Page",
+    "note": "iOS: the title of a tab showing the start page, on the Island and in the tab list."
+  },
+  "ios.pages.syncUnavailable": {
+    "message": "Sync isn’t available in this build yet.",
+    "note": "iOS: legacy web Settings page message when it asks the app to start a sync."
+  },
+  "ios.pages.supporterUnavailable": {
+    "message": "Supporter activation isn’t available in this build yet.",
+    "note": "iOS: legacy web Settings page message when it asks the app to activate a Patron key."
   }
 }
