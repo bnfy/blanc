@@ -265,6 +265,13 @@ struct PrivacySettingsView: View {
                         .accessibilityIdentifier("settings.clearSiteData.done")
                 }
             } footer: { Text(SettingsCopy.text("clearSiteDataHelp")) }
+            // The launch ping's consent (F21, M18 §7.1); off stops it at once.
+            Section {
+                Toggle(SyncCopy.text("ios.welcome.measureUsage"), isOn: Binding(
+                    get: { manager.settingsStore.usagePingShown },
+                    set: { manager.settingsStore.update(usagePing: $0) }))
+                    .accessibilityIdentifier("settings.measureUsage")
+            } footer: { Text(SyncCopy.text("ios.welcome.measureUsageHelp")) }
         }
         .settingsFormStyle().settingsTitle(SettingsCopy.text("privacy"))
         .alert(SettingsCopy.text("clearSiteDataConfirm"), isPresented: $confirmingClear) {
