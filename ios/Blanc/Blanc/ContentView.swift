@@ -22,12 +22,29 @@ struct ContentView: View {
     /// The Island's height with its padding, so the Spaces card rises from it.
     @State private var islandHeight: CGFloat = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+    /// Duo-1: the unfolded layout on the Duo's inner display.
+    private var layout: IslandLayout { IslandLayout(horizontalSizeClass, verticalSizeClass) }
+    private var isPalettePanelOpen: Bool { manager.isPalettePresented && layout.palette == .panel }
+    /// The palette's current placement, kept as state because the sheet's
+    /// binding closure outlives the body that made it: read through `layout`
+    /// there, an unfold would still look like a sheet and close the palette.
+    @State private var paletteIsPanel = false
+
+    /// The page runs under the side strips (the iPhone Duo's camera and clock
+    /// strip, an iPhone's notch in landscape), as in Safari: WebKit keeps the
+    /// content clear of them and paints the page's background out to the edge.
+    /// The Start Page also runs under the top and bottom.
+    private var pageEdges: Edge.Set { isStartPage ? .all : .horizontal }
 
     private var isStartPage: Bool {
         manager.activeTab?.currentURL.scheme == "blanc" && manager.activeTab?.currentURL.host == "newtab"
     }
 
-    var body: some View {
+    /// The page, the Island and what floats over them; `body` adds the
+    /// sheets. Split in two so Xcode 26 can type-check each half.
+    private var browser: some View {
         ZStack {
             style.background.ignoresSafeArea()
             if let tab = manager.activeTab {
@@ -41,13 +58,17 @@ struct ContentView: View {
                     .opacity(tab.reader == nil ? 1 : 0)
                     .allowsHitTesting(tab.reader == nil)
                     .accessibilityHidden(tab.reader != nil)
-                    .ignoresSafeArea(edges: isStartPage ? .all : [])
+                    .ignoresSafeArea(edges: pageEdges)
                     .offset(x: swipeOffset)
                 if swipeOffset != 0, let neighbor = manager.neighbor(of: tab.id, offset: swipeOffset < 0 ? 1 : -1) {
                     neighborPage(neighbor)
                         .offset(x: swipeOffset + (swipeOffset < 0 ? pageWidth : -pageWidth))
                 }
-                if let reader = tab.reader { ReaderWebView(reader: reader).id(ObjectIdentifier(reader)).offset(x: swipeOffset) }
+                if let reader = tab.reader {
+                    ReaderWebView(reader: reader).id(ObjectIdentifier(reader))
+                        .ignoresSafeArea(edges: pageEdges)
+                        .offset(x: swipeOffset)
+                }
             }
         }
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pageWidth = $0 }
@@ -62,6 +83,18 @@ struct ContentView: View {
         .overlay(alignment: .bottom) {
             if manager.isSpacesMenuPresented { spacesMenu }
         }
+        .overlay(alignment: .bottom) {
+            if isPalettePanelOpen { palettePanel }
+        }
+        .onChange(of: manager.isPalettePresented) { _, presented in
+            // The sheet runs this from its onDismiss; the panel has none.
+            if !presented, paletteIsPanel { paletteClosed() }
+        }
+        .onChange(of: layout.palette, initial: true) { _, palette in paletteIsPanel = palette == .panel }
+    }
+
+    var body: some View {
+        browser
         .sheet(item: Binding(get: { manager.spaceEditor }, set: { manager.spaceEditor = $0 })) { target in
             SpaceEditor(manager: manager, target: target)
         }
@@ -99,10 +132,8 @@ struct ContentView: View {
         .sheet(item: Binding(get: { manager.settingsDestination }, set: { manager.settingsDestination = $0 })) { destination in
             SettingsSheet(manager: manager, destination: destination)
         }
-        .sheet(isPresented: Binding(get: { manager.isPalettePresented }, set: { manager.isPalettePresented = $0 }), onDismiss: {
-            manager.presentPendingSettings()
-            if manager.takeFindRequest(), let tab = manager.activeTab { presentFind(in: tab) }
-        }) {
+        .sheet(isPresented: paletteSheetPresented,
+               onDismiss: { if !manager.isPalettePresented { paletteClosed() } }) {
             PaletteSheet(manager: manager)
         }
         .sheet(isPresented: Binding(get: { manager.isWallpaperPickerPresented }, set: { manager.isWallpaperPickerPresented = $0 }), onDismiss: {
@@ -119,6 +150,21 @@ struct ContentView: View {
         }
     }
 
+    /// The palette as a sheet. Unfolded, the palette is the panel instead;
+    /// unfolding with the sheet open hands it over, text and all, without
+    /// closing it. (Its own property: inline, Xcode 26 can't type-check `body`.)
+    private var paletteSheetPresented: Binding<Bool> {
+        Binding(get: { manager.isPalettePresented && layout.palette == .sheet },
+                set: { presented in
+                    // Unfolding also takes the sheet away; wait until the new
+                    // layout has applied to tell that from a swipe down.
+                    guard !presented else { return }
+                    DispatchQueue.main.async {
+                        if !paletteIsPanel { manager.isPalettePresented = false }
+                    }
+                })
+    }
+
     private var islandContainer: some View {
         VStack(spacing: 8) {
             if let sendNotice = manager.sendNotice {
@@ -130,6 +176,11 @@ struct ContentView: View {
             }
             UndoBanner(manager: manager, style: style)
             addressPill
+                // The panel takes the Island's place; hidden, not removed, so
+                // the page's inset never changes under it.
+                .opacity(isPalettePanelOpen ? 0 : 1)
+                .allowsHitTesting(!isPalettePanelOpen)
+                .accessibilityHidden(isPalettePanelOpen)
                 .simultaneousGesture(DragGesture(minimumDistance: 12)
                     .updating($isDragging) { _, dragging, _ in dragging = true }
                     .onChanged(swipeChanged)
@@ -175,6 +226,39 @@ struct ContentView: View {
         }
     }
 
+    /// Duo-1: the palette growing up from the Island, at its width, over the
+    /// page (not dimmed, as desktop's ⌘L panel). A tap outside or Escape closes it.
+    private var palettePanel: some View {
+        ZStack(alignment: .bottom) {
+            Color.black.opacity(0.001)
+                .ignoresSafeArea()
+                .onTapGesture { manager.isPalettePresented = false }
+                .accessibilityHidden(true)
+            PaletteSheet(manager: manager, placement: .panel)
+                .frame(maxHeight: 520)
+                .clipShape(RoundedRectangle(cornerRadius: 22))
+                .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(style.border.opacity(0.7), lineWidth: 0.5))
+                .shadow(color: .black.opacity(style.scheme == .dark ? 0.25 : 0.10), radius: 10, y: 4)
+                .frame(maxWidth: 600)
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("palette.panel")
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
+                .padding(.bottom, 10)
+            Button("") { manager.isPalettePresented = false }
+                .keyboardShortcut(.cancelAction)
+                .opacity(0)
+                .accessibilityHidden(true)
+        }
+    }
+
+    /// What closing the palette leaves to do, sheet or panel: a Settings page,
+    /// Space or Spaces menu asked for from it, or Find in page for `/find`.
+    private func paletteClosed() {
+        manager.presentPendingSettings()
+        if manager.takeFindRequest(), let tab = manager.activeTab { presentFind(in: tab) }
+    }
+
     /// The neighbor's last picture beside the page while it follows the finger,
     /// or its site's name on a plain card when it has none yet.
     private func neighborPage(_ tab: TabModel) -> some View {
@@ -188,7 +272,7 @@ struct ContentView: View {
                     .frame(maxHeight: .infinity)
             }
         }
-        .ignoresSafeArea(edges: isStartPage ? .all : [])
+        .ignoresSafeArea(edges: pageEdges)
         .allowsHitTesting(false)
     }
 
@@ -267,6 +351,7 @@ struct ContentView: View {
             SpaceMarkButton(manager: manager, style: style)
             islandMark
             Rectangle().fill(style.border).frame(width: 1, height: 18)
+            if layout.showsHistoryButtons { historyButtons }
 
             // A tap rather than a Button: a Button also fires when a sideways
             // swipe on the Island lifts inside it, a tap fails once the finger moves.
@@ -346,6 +431,27 @@ struct ContentView: View {
         .shadow(color: .black.opacity(style.scheme == .dark ? 0.25 : 0.10), radius: 10, y: 4)
         .frame(maxWidth: 600)
         .environment(\.colorScheme, isPrivate ? .dark : colorScheme)
+    }
+
+    /// Duo-1: Back and Forward on the unfolded Island, dimmed when there is
+    /// nowhere to go. The edge swipe still works.
+    private var historyButtons: some View {
+        let tab = manager.activeTab
+        return HStack(spacing: 0) {
+            Button { tab?.goBack() } label: {
+                Image(systemName: "chevron.left").frame(width: 44, height: 48)
+            }
+            .disabled(tab?.canGoBack != true)
+            .accessibilityLabel(SyncCopy.text("pill.back"))
+            .accessibilityIdentifier("pill.back")
+            Button { tab?.goForward() } label: {
+                Image(systemName: "chevron.right").frame(width: 44, height: 48)
+            }
+            .disabled(tab?.canGoForward != true)
+            .accessibilityLabel(SyncCopy.text("pill.forward"))
+            .accessibilityIdentifier("pill.forward")
+        }
+        .padding(.leading, 4)
     }
 
     /// The Sunrise mark: the page's actions, so the Island keeps only the

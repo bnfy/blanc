@@ -22,6 +22,17 @@ case "${1:-}" in
   *) echo "usage: $0 [--export]" >&2; exit 2 ;;
 esac
 
+# Only an iOS 27.1 SDK build fills the iPhone Duo's inner display; an older one
+# is letterboxed there (Duo-1, design 2026-10-29 §4.5).
+SDK_VERSION=$(xcrun --sdk iphoneos --show-sdk-version)
+SDK_MAJOR=${SDK_VERSION%%.*}
+SDK_MINOR=${SDK_VERSION#*.}; SDK_MINOR=${SDK_MINOR%%.*}
+if [ "$SDK_MAJOR" -lt 27 ] || { [ "$SDK_MAJOR" -eq 27 ] && [ "$SDK_MINOR" -lt 1 ]; }; then
+  echo "Xcode's iOS SDK is $SDK_VERSION; App Store builds need the iOS 27.1 SDK or later," >&2
+  echo "or Blanc is letterboxed on iPhone Duo. Select Xcode 27.1 with xcode-select." >&2
+  exit 1
+fi
+
 if [ -z "${ASC_KEY_P8:-}" ]; then
   exec op run --env-file=ios/.env.1password --no-masking -- "$PWD/scripts/ios-testflight.sh" "$@"
 fi
