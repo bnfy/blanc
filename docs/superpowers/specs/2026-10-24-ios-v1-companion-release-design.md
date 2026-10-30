@@ -310,18 +310,18 @@ documents stay correct.
 | M | Delivers | Status |
 |---|---|---|
 | M6.5 | Re-baseline | Done (#1030) |
-| M7a | Join a sync, read devices' tabs, publish own | Merged (#1068); real-iPhone check is a gate before TestFlight |
-| M7b | Send to device | Desktop and iOS in draft (#1088, #1096); Worker deploy pending |
-| M8 | Favorites editable, History live | |
-| M9 | Private tabs | |
-| **M16** | **Shared Spaces, groups and Recently closed: the desktop protocol** (its own design; Worker stores; desktop UI for the switch, merges, remote closes; desktop-to-desktop Spaces sync). Ships as a public desktop feature release first (§4.7). | New; built in the parallel desktop Spaces session |
-| **M17** | **Shared Spaces on iPhone**: the Space mark and menu, groups in the switcher, Bring a Space, the Recently closed band, the per-device switch | New |
-| M10 | The full shared slash-command set, Find in page, the shield chip and per-site allow (Bangs moved after 1.0, owner 2026-10-24) | After M11 |
-| M11 | Tab gestures and the card strip (F56) ([design](2026-10-24-ios-m11-tab-gestures-design.md), [plan](../plans/2026-10-24-ios-m11-tab-gestures.md)) | Implemented, unreleased; before M10 (owner, 2026-10-24) |
-| Duo-1 | Edge to edge on both Duo displays, the regular-width pill and palette, fold continuity, CI on the Duo simulator | Only "no letterboxing" and the regular-width pill are in 1.0; the rest of the Duo design (Duo-2, Duo-3) is after |
-| **M18** | **First minute and release readiness**: the walkthrough (§3), default browser, share-sheet target, Background App Refresh, six languages, App Store listing | New |
-| Beta | TestFlight, the real-iPhone gate, kill criteria armed | |
-| **1.0** | App Store | |
+| M7a | Join a sync, read devices' tabs, publish own | Merged (#1068); real-iPhone check passed 2026-10-28 |
+| M7b | Send to device | Merged (desktop #1088, iPhone #1096) |
+| M8 | Favorites editable, History live | Merged (#1107) |
+| M9 | Private tabs | Merged (#1110) |
+| **M16** | **Shared Spaces, groups and Recently closed: the desktop protocol** | Shipped in desktop v1.45.0 (design #1105, plan #1108, Worker accepted #1216) |
+| **M17** | **Shared Spaces on iPhone**: the Space mark and menu, groups in the switcher, Bring a Space, the Recently closed band, the per-device switch | Merged (#1220 design, #1225 M17a, #1229 M17b, #1247 M17c) |
+| M10 | The full shared slash-command set, Find in page, the shield chip and per-site allow | Merged (#1221) |
+| M11 | Tab gestures and the card strip (F56) | Merged (#1131) |
+| Duo-1 | Edge to edge on both Duo displays, the regular-width Island and palette | Merged (#1275, #1276); Duo-2 and Duo-3 after 1.0 |
+| **M18** | **First minute and release readiness**: the walkthrough (§3), default browser, share-sheet target, Background App Refresh, six languages, the launch ping, App Store listing ([design](2026-10-30-ios-m18-first-minute-release-readiness-design.md)) | In progress |
+| Beta | TestFlight, the real-iPhone gate, kill criteria armed | Public TestFlight beta live since 2026-10-28; kill criteria wait on the M18 launch ping |
+| **1.0** | App Store | Waits on M18 and Apple's default-browser grant |
 
 Order rationale: M8 and M9 are small and make the phone a real browser for
 testers early; M16 is desktop work and can run while M9 does; M17 needs M16
@@ -347,13 +347,13 @@ settled; M18 is last because it depends on everything it introduces.
   criteria (waitlist, TestFlight seven-day return, pairing rate, 30-day
   retention) are armed at the beta and decide whether 1.0 ships at all.
 - **Owner actions outside the code:** the default-browser entitlement
-  (`com.apple.developer.web-browser`) is **not yet requested** (owner,
-  2026-10-24; the September 22 grant was the passkey entitlement). The owner
-  files it now, and **1.0 does not ship until Apple grants it**. The project
-  carries neither entitlement yet: no entitlements file, no signing
-  entitlement setting, and no Blanc provisioning profile on the build Mac.
-  M18 adds `Blanc.entitlements` with both and a profile that includes them;
-  the first signed build is the proof.
+  (`com.apple.developer.web-browser`) was requested on 2026-10-28 and
+  refiled the same day as `P2X5BCD4C9` with the public TestFlight link; it
+  is waiting on Apple (`docs/ios/app-store-connect.md` item 4). **1.0 does
+  not ship until Apple grants it.** `Blanc.entitlements` exists, wired for
+  both configurations and empty; the key goes in only together with the
+  portal switch, in the change that also turns on M18's default-browser
+  offer.
 
   **Filing the default-browser request** (Apple's page "Preparing your app to
   be the default web browser," read 2026-10-24): the form is
@@ -361,9 +361,8 @@ settled; M18 is last because it depends on everything it introduces.
   (behind an Apple Developer sign-in; it can also request
   `com.apple.developer.browser.app-installation` in the same submission).
   Apple's requirements, and where the project stands:
-  - declares the HTTP and HTTPS schemes in `Info.plist` — **not yet**; the
-    project generates its Info.plist, so M18 adds `CFBundleURLTypes` for
-    `http` and `https` (a custom Info.plist or the build setting);
+  - declares the HTTP and HTTPS schemes in `Info.plist` — met (#1224,
+    `CFBundleURLTypes` in `ios/Blanc/Info.plist`);
   - no `UIWebView` — met (`WKWebView` only);
   - on launch, a field for a URL, search, or bookmarks — met (the pill);
   - opens an http(s) URL at the destination and renders it as served — met
