@@ -31,7 +31,9 @@ jobs:
     # median 24 minutes (up to 72) for one of its two VM slots (October 26,
     # 2026). docs/ci-self-hosted-macos-runner.md
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    # Windows usually finishes in about 6 minutes, but a slow runner hit 15
+    # twice on October 30, 2026 (the sync-pairing tests ran a minute each).
+    timeout-minutes: 25
     env:
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
     steps:

@@ -28,6 +28,10 @@ on:
       - tokens/generated/Tokens.swift
       - adblock/generated/**
       - browser-api/bridges.json
+  # Nightly, so main's full suite, UI tests included, runs every day even when
+  # nothing iOS merged.
+  schedule:
+    - cron: '23 7 * * *'
   workflow_dispatch:
 
 permissions:
@@ -61,6 +65,26 @@ jobs:
           udid=$(xcrun simctl list devices available --json \
             | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; ios=[(r,x) for r,v in d.items() if "iOS" in r for x in v if x["name"].startswith("iPhone")]; ios.sort(key=lambda p: [int(n) for n in p[0].rsplit("iOS-",1)[1].split("-")]); print(ios[-1][1]["udid"])')
           echo "udid=$udid" >> "$GITHUB_OUTPUT"
+      # The UI tests take most of a run's half hour. On a pull request they run
+      # only when the app itself changed (ios/ or this workflow); a pull
+      # request that changes only the shared blanc:// pages, the blocklist, the
+      # bridges contract or the generated Swift runs the unit tests. Pushes to
+      # main, the nightly run and manual runs always run everything.
+      - name: Choose the tests
+        id: scope
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          only=""
+          if [ "$EVENT" = pull_request ]; then
+            git fetch --no-tags --depth=1 origin "$BASE"
+            if ! git diff --name-only "$BASE" HEAD | grep -Eq '^(ios/|\.github/workflows/ios\.yml$)'; then
+              only="-only-testing:BlancTests"
+              echo "Only shared inputs changed: unit tests only."
+            fi
+          fi
+          echo "only=$only" >> "$GITHUB_OUTPUT"
       - name: Build and test
         working-directory: ios/Blanc
         run: |
@@ -68,6 +92,7 @@ jobs:
             -project Blanc.xcodeproj \
             -scheme Blanc \
             -destination "id=${{ steps.sim.outputs.udid }}" \
+            ${{ steps.scope.outputs.only }} \
             CODE_SIGNING_ALLOWED=NO
       - name: Print app crash reports
         # A UI test that ends with "application is not running" crashed the
