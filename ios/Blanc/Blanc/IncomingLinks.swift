@@ -11,7 +11,7 @@ struct IncomingLinks {
     private(set) var pairCode: String?
 
     static func accepts(_ url: URL) -> Bool {
-        ["http", "https"].contains(url.scheme?.lowercased() ?? "") && !(url.host ?? "").isEmpty
+        SharedLink.isWebURL(url)
     }
 
     mutating func receive(_ url: URL, into manager: TabsManager?) {
