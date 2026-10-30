@@ -176,7 +176,7 @@ Platform code goes through the same canonical tree. Per-platform differences are
 
 ### S1 Daily driver (macOS first; then verify on Windows and Linux)
 
-Goal: the owner can use the Mac candidate as their only browser for a week.
+Goal: the owner can use the Mac candidate as their primary browser for a week, keeping Electron for the listed gaps (entry criteria below).
 
 | Task | Rows | Work (key points) | Acceptance |
 | --- | --- | --- | --- |
