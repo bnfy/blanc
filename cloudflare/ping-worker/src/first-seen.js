@@ -106,3 +106,22 @@ export async function markWeekTwoReturn(kv, hashedId, day, bumpFn) {
   await kv.put(markerKey, '1', { expirationTtl: WEEK_TWO_RETURN_MARKER_TTL });
   return true;
 }
+
+// Thirty-day return, for Blanc for iPhone only (M18 design §7.2; the port
+// revisit's kill criteria): of the installs first seen on day D, how many
+// launch again on any day from D+28 through D+34 (UTC), shaped like week two.
+// Counted once per install on its first launch in that window. The
+// return:m1:<D> counter never expires; the ret30: marker expires after eight
+// days, once the window is over.
+export const MONTH_RETURN_MARKER_TTL = 8 * 24 * 3600;
+
+export async function markMonthReturn(kv, hashedId, day, bumpFn) {
+  const firstDay = await kv.get(`first:${hashedId}`);
+  const age = daysSince(firstDay, day);
+  if (!(age >= 28 && age <= 34)) return false;
+  const markerKey = `ret30:${firstDay}:${hashedId}`;
+  if ((await kv.get(markerKey)) !== null) return false;
+  await bumpFn(kv, `return:m1:${firstDay}`);
+  await kv.put(markerKey, '1', { expirationTtl: MONTH_RETURN_MARKER_TTL });
+  return true;
+}
