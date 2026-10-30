@@ -7,17 +7,26 @@ enum SyncCopy {
     guard
       let url = Bundle.main.url(
         forResource: "strings.\(locale)", withExtension: "js", subdirectory: "pages"),
-      let source = try? String(contentsOf: url, encoding: .utf8),
+      let source = try? String(contentsOf: url, encoding: .utf8)
+    else { return [:] }
+    return messages(fromCatalog: source)
+  }()
+  /// The messages a generated `strings.<locale>.js` carries, with its English
+  /// `fallback` (keys the language lacks or whose translation is stale) filled
+  /// in, so a missing translation reads as English, never as its key.
+  static func messages(fromCatalog source: String) -> [String: String] {
+    guard
       let start = source.range(of: "{\"locale\":"),
       // The file ends `…"fallback":{}});`: the object closes on the `}` before
       // `);`, so cut at `);`, not `});`, or the last brace is lost.
       let end = source.range(of: ");", options: .backwards),
       let data = source[start.lowerBound..<end.lowerBound].data(using: .utf8),
-      let catalog = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-      let result = catalog["messages"] as? [String: String]
+      let catalog = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
     else { return [:] }
-    return result
-  }()
+    let own = catalog["messages"] as? [String: String] ?? [:]
+    let fallback = catalog["fallback"] as? [String: String] ?? [:]
+    return fallback.merging(own) { _, translated in translated }
+  }
   static func text(_ key: String) -> String { messages[key] ?? key }
   /// A catalog message with its `{name}` placeholders filled (the simple
   /// arguments the sends.* strings use).

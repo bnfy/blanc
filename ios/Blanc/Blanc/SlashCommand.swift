@@ -10,7 +10,6 @@ enum SlashOutcome: Equatable {
 struct SlashCommand: Identifiable {
     var id: String { command }
     let command: String
-    let hintKey: String
     /// Whether the command is offered right now (desktop's `available`).
     var isAvailable: (TabsManager) -> Bool = { _ in true }
     /// Runs the command with the text typed after it.
@@ -18,7 +17,15 @@ struct SlashCommand: Identifiable {
 
     var hint: String {
         if command == "/reader" { return ReaderCopy.text("reader.hint") }
-        return NSLocalizedString(hintKey, tableName: "SlashCommands", bundle: .main, comment: "")
+        return SyncCopy.text(Self.hintKey(command))
+    }
+
+    /// The catalog key of a command's hint, as copy/build.mjs names it:
+    /// `/close-group` → `slash.closeGroup.hint`.
+    static func hintKey(_ command: String) -> String {
+        let parts = command.dropFirst().split(separator: "-").map(String.init)
+        let camel = (parts.first ?? "") + parts.dropFirst().map { $0.prefix(1).uppercased() + $0.dropFirst() }.joined()
+        return "slash.\(camel).hint"
     }
 
     @discardableResult
@@ -29,77 +36,77 @@ struct SlashCommand: Identifiable {
     /// The commands the phone offers: the shared set (F7) minus `/sleep` (iOS
     /// frees a background page's memory itself, D8) and `/bangs` (after 1.0).
     static let available: [SlashCommand] = [
-        SlashCommand(command: "/favorites", hintKey: "slash_favorites") { manager, _ in
+        SlashCommand(command: "/favorites") { manager, _ in
             manager.createTab(url: URL(string: "blanc://bookmarks/")!)
             return .done
         },
-        SlashCommand(command: "/history", hintKey: "slash_history") { manager, _ in
+        SlashCommand(command: "/history") { manager, _ in
             manager.createTab(url: URL(string: "blanc://history/")!)
             return .done
         },
-        SlashCommand(command: "/settings", hintKey: "slash_settings") { manager, _ in
+        SlashCommand(command: "/settings") { manager, _ in
             manager.showSettings(); return .done
         },
-        SlashCommand(command: "/sync", hintKey: "slash_sync") { manager, _ in
+        SlashCommand(command: "/sync") { manager, _ in
             manager.showSettings(.sync); return .done
         },
-        SlashCommand(command: "/new", hintKey: "slash_new") { manager, _ in
+        SlashCommand(command: "/new") { manager, _ in
             manager.createTab(); return .done
         },
-        SlashCommand(command: "/private", hintKey: "slash_private") { manager, _ in
+        SlashCommand(command: "/private") { manager, _ in
             manager.createTab(isPrivate: true); return .done
         },
-        SlashCommand(command: "/close", hintKey: "slash_close") { manager, _ in
+        SlashCommand(command: "/close") { manager, _ in
             if let id = manager.activeTabId { manager.closeTab(id) }
             return .done
         },
-        SlashCommand(command: "/reopen", hintKey: "slash_reopen") { manager, _ in
+        SlashCommand(command: "/reopen") { manager, _ in
             manager.reopenLast(); return .done
         },
         // Groups (M17): a private tab is never grouped.
-        SlashCommand(command: "/group", hintKey: "slash_group",
+        SlashCommand(command: "/group",
                      isAvailable: { $0.activeTab?.isPrivate != true }) { manager, argument in
             guard !argument.isEmpty else { return .prompt("/group ") }
             manager.runGroupCommand(argument)
             return .done
         },
-        SlashCommand(command: "/ungroup", hintKey: "slash_ungroup",
+        SlashCommand(command: "/ungroup",
                      isAvailable: { $0.activeTab?.groupId != nil }) { manager, _ in
             if let id = manager.activeTabId { manager.moveTab(id, toGroup: nil) }
             return .done
         },
-        SlashCommand(command: "/close-group", hintKey: "slash_close_group",
+        SlashCommand(command: "/close-group",
                      isAvailable: { $0.activeTab?.groupId != nil }) { manager, _ in
             if let group = manager.activeTab?.groupId { manager.closeGroup(group) }
             return .done
         },
         // Never offered in a private tab, as on desktop.
-        SlashCommand(command: "/send", hintKey: "slash_send",
+        SlashCommand(command: "/send",
                      isAvailable: { $0.activeTab?.isPrivate != true }) { manager, argument in
             guard !argument.isEmpty else { return .prompt("/send ") }
             manager.sendActiveTab(toDeviceNamed: argument)
             return .done
         },
-        SlashCommand(command: "/reader", hintKey: "slash_reader") { manager, _ in
+        SlashCommand(command: "/reader") { manager, _ in
             manager.toggleReaderMode(); return .done
         },
-        SlashCommand(command: "/find", hintKey: "slash_find") { manager, _ in
+        SlashCommand(command: "/find") { manager, _ in
             manager.requestFind(); return .done
         },
-        SlashCommand(command: "/block-ads", hintKey: "slash_block_ads") { manager, _ in
+        SlashCommand(command: "/block-ads") { manager, _ in
             manager.runBlockAdsCommand(); return .done
         },
-        SlashCommand(command: "/allow-ads", hintKey: "slash_allow_ads") { manager, _ in
+        SlashCommand(command: "/allow-ads") { manager, _ in
             if let tab = manager.activeTab { manager.setSiteProtection(tab, on: false) }
             return .done
         },
-        SlashCommand(command: "/theme", hintKey: "slash_theme") { manager, argument in
+        SlashCommand(command: "/theme") { manager, argument in
             let next = nextTheme(after: manager.settingsStore.theme, argument: argument)
             manager.applySettingsPatch(["theme": next.rawValue])
             return .done
         },
         // Bare: the Spaces menu. A name: that Space, or New Space with it.
-        SlashCommand(command: "/space", hintKey: "slash_space") { manager, argument in
+        SlashCommand(command: "/space") { manager, argument in
             manager.runSpaceCommand(argument)
             return .done
         },

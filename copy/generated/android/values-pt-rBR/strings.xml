@@ -2578,4 +2578,20 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="spaces_on_device">Em %1$s</string>
     <string name="bring_space_action">Trazer para o iPhone</string>
     <string name="bring_space_copy_note">Esta cópia não muda quando o Space mudar em %1$s. Ative a sincronização de Spaces para mantê-los iguais.</string>
+    <string name="ios_island_search_or_switch">Pesquisar ou trocar de aba, %1$s</string>
+    <string name="ios_island_show_all_tabs">Mostrar todas as abas</string>
+    <string name="ios_island_reload">Recarregar a página</string>
+    <string name="ios_island_stop">Parar de carregar</string>
+    <string name="ios_island_page_actions">Ações da página</string>
+    <string name="ios_island_collapse">Recolher a Island</string>
+    <string name="ios_palette_placeholder">Pesquise, digite um endereço ou um /comando</string>
+    <string name="ios_palette_clear">Limpar a pesquisa</string>
+    <string name="ios_palette_no_command">Nenhum comando corresponde</string>
+    <string name="ios_palette_no_matches">Nenhum resultado. Toque em Retorno para abrir como endereço ou pesquisa.</string>
+    <string name="ios_tabs_open_tabs">Abas abertas</string>
+    <string name="ios_tabs_switch_to">Mudar para %1$s</string>
+    <string name="ios_tabs_close">Fechar %1$s</string>
+    <string name="ios_tabs_start_page">Página inicial</string>
+    <string name="ios_pages_sync_unavailable">A sincronização ainda não está disponível nesta versão.</string>
+    <string name="ios_pages_supporter_unavailable">A ativação de Supporter ainda não está disponível nesta versão.</string>
 </resources>

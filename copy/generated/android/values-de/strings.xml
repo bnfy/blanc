@@ -2503,4 +2503,20 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="spaces_on_device">Auf %1$s</string>
     <string name="bring_space_action">Auf das iPhone holen</string>
     <string name="bring_space_copy_note">Diese Kopie ändert sich nicht, wenn sich der Space auf %1$s ändert. Schalte die Synchronisierung von Spaces ein, um sie gleich zu halten.</string>
+    <string name="ios_island_search_or_switch">Suchen oder Tabs wechseln, %1$s</string>
+    <string name="ios_island_show_all_tabs">Alle Tabs anzeigen</string>
+    <string name="ios_island_reload">Seite neu laden</string>
+    <string name="ios_island_stop">Laden stoppen</string>
+    <string name="ios_island_page_actions">Seitenaktionen</string>
+    <string name="ios_island_collapse">Island einklappen</string>
+    <string name="ios_palette_placeholder">Suchen, Adresse oder /Befehl eingeben</string>
+    <string name="ios_palette_clear">Suche löschen</string>
+    <string name="ios_palette_no_command">Kein passender Befehl</string>
+    <string name="ios_palette_no_matches">Keine Treffer. Drücke die Eingabetaste, um es als Adresse oder Suche zu öffnen.</string>
+    <string name="ios_tabs_open_tabs">Offene Tabs</string>
+    <string name="ios_tabs_switch_to">Zu %1$s wechseln</string>
+    <string name="ios_tabs_close">%1$s schließen</string>
+    <string name="ios_tabs_start_page">Startseite</string>
+    <string name="ios_pages_sync_unavailable">Sync ist in diesem Build noch nicht verfügbar.</string>
+    <string name="ios_pages_supporter_unavailable">Die Supporter-Aktivierung ist in diesem Build noch nicht verfügbar.</string>
 </resources>

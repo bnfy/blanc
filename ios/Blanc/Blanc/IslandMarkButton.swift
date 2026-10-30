@@ -19,7 +19,7 @@ struct IslandMarkButton: UIViewRepresentable {
         configuration.background = .clear()
         let button = MarkPreviewButton(configuration: configuration)
         button.showsMenuAsPrimaryAction = true
-        button.accessibilityLabel = "Page actions"
+        button.accessibilityLabel = SyncCopy.text("ios.island.pageActions")
         button.accessibilityIdentifier = "island.menu"
         let coordinator = context.coordinator
         button.menu = UIMenu(children: [UIDeferredMenuElement.uncached { completion in

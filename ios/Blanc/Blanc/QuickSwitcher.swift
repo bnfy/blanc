@@ -28,7 +28,7 @@ enum QuickSwitcher {
                 tab: tab,
                 score: s + 0.2,
                 index: index,
-                title: tab.pageTitle.isEmpty ? "New Tab" : tab.pageTitle,
+                title: tab.pageTitle.isEmpty ? SyncCopy.text("tab.untitled") : tab.pageTitle,
                 subtitle: tab.currentURL.host ?? tab.currentURL.absoluteString
             ))
         }

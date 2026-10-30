@@ -53,13 +53,13 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
             return .value(.object([
                 ("ok", .bool(false)),
                 ("created", .bool(false)),
-                ("message", .string("Sync isn’t available in this build yet.")),
+                ("message", .string(SyncCopy.text("ios.pages.syncUnavailable"))),
                 ("status", disabledStatus),
             ]))
         case ("settings", "activateSupporter"):
             return .value(.object([
                 ("ok", .bool(false)),
-                ("message", .string("Supporter activation isn’t available in this build yet.")),
+                ("message", .string(SyncCopy.text("ios.pages.supporterUnavailable"))),
             ]))
 
         case ("permissions", "list"): return .value(.object([]))

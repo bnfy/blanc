@@ -137,11 +137,11 @@ Keys (English as in the code today, except where noted):
 
 **Interfaces:**
 - Produces: `SlashCommand.hint` returns `SyncCopy.text("slash.\(camel).hint")`, the key `copy/lib/cli.mjs`'s `slashKey(command, 'hint')` builds (`/close-group` → `slash.closeGroup.hint`). `hintKey` is removed; `/reader` keeps `ReaderCopy`.
-- Produces: `SyncCopy` loads `strings.en.js` too and falls back to it, key by key, when the resolved locale's file lacks a key; only a key missing from English returns the key.
+- Produces: `SyncCopy.messages(fromCatalog:) -> [String: String]`, which merges the generated catalog's own English `fallback` part (keys a language lacks or whose translation is stale) under its `messages`, so a missing translation reads as English; only a key missing from English returns the key. (As built: the catalog already carries that fallback, so no second file is loaded.)
 
-- [ ] **Step 1: Write the failing tests:** `testEveryOfferedCommandHasACatalogHint` (for each `SlashCommand.available`, `hint` doesn't start with `slash.` and isn't empty); `testFallbackToEnglishPerKey` (with `SyncCopy.messages(locale: "de", catalog: ["a": "A-de"], english: ["a": "A", "b": "B"])`, `b` resolves to `"B"`); `testUnknownLanguageIsEnglish` (`BlancPageResolver.resolvedLocale(preferred: ["ja-JP"]) == "en"`).
-- [ ] **Step 2:** Run them. Expected: FAIL (`hint` still reads the table; no `messages(locale:catalog:english:)` seam).
-- [ ] **Step 3:** Implement: the `hint` change, `static func messages(locale:catalog:english:) -> [String: String]` as the seam `SyncCopy`'s loader uses, the `cli.mjs` change, the deletions.
+- [ ] **Step 1: Write the failing tests:** `testEveryOfferedCommandHasACatalogHint` (for each `SlashCommand.available`, `hint` doesn't start with `slash.` and isn't empty); `testMissingTranslationReadsAsEnglish` (a catalog with `messages: {a: A-de}` and `fallback: {b: B}` reads as `[a: A-de, b: B]`); `testUnknownLanguageIsEnglish` (`BlancPageResolver.resolvedLocale(preferred: ["ja-JP"]) == "en"`).
+- [ ] **Step 2:** Run them. Expected: FAIL (`hint` still reads the table; no `messages(fromCatalog:)` seam).
+- [ ] **Step 3:** Implement: the `hint` change, `static func messages(fromCatalog:) -> [String: String]` as the seam `SyncCopy`'s loader uses, the `cli.mjs` change, the deletions.
 - [ ] **Step 4:** Run the XCTests, `npm run copy:check`, `npm run test:unit`. Expected: PASS.
 - [ ] **Step 5:** Commit: `iOS strings: slash-command hints from the catalog, English per-key fallback`.
 

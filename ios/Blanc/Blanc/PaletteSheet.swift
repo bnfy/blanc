@@ -92,7 +92,7 @@ struct PaletteSheet: View {
                 .font(.system(size: 17, weight: .regular))
                 .foregroundStyle(style.secondary)
                 .frame(width: 24)
-            TextField("Search, enter address, or / command", text: Binding(get: { input }, set: { input = $0 }))
+            TextField(SyncCopy.text("ios.palette.placeholder"), text: Binding(get: { input }, set: { input = $0 }))
                 .font(BrowserStyle.font(17))
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
@@ -106,14 +106,14 @@ struct PaletteSheet: View {
                     Image(systemName: "xmark.circle.fill").foregroundStyle(style.secondary)
                         .frame(width: 44, height: 44)
                 }
-                .accessibilityLabel("Clear search")
+                .accessibilityLabel(SyncCopy.text("ios.palette.clear"))
             }
             Button { close() } label: {
                 Image(systemName: "chevron.down")
                     .font(.system(size: 14, weight: .medium))
                     .frame(width: 44, height: 44)
             }
-            .accessibilityLabel("Collapse Island")
+            .accessibilityLabel(SyncCopy.text("ios.island.collapse"))
         }
         .padding(.leading, 16)
         .padding(.trailing, 4)
@@ -128,7 +128,7 @@ struct PaletteSheet: View {
                     manager.createTab()
                     close()
                 } label: {
-                    Label("New tab", systemImage: "plus")
+                    Label(SyncCopy.text("tab.new"), systemImage: "plus")
                         .font(BrowserStyle.font(13, semibold: true))
                         .padding(.horizontal, 14)
                         .frame(height: 36)
@@ -144,9 +144,9 @@ struct PaletteSheet: View {
                     .accessibilityLabel(ReaderCopy.text(manager.activeTab?.reader != nil ? "reader.exit" : "reader.enter"))
                     .accessibilityIdentifier("palette.reader")
                 }
-                pageShortcut("Favorites", icon: "bookmark", page: "bookmarks")
-                pageShortcut("History", icon: "clock.arrow.circlepath", page: "history")
-                pageShortcut("Settings", icon: "slider.horizontal.3", page: "settings")
+                pageShortcut(SyncCopy.text("pagesNav.bookmarks"), icon: "bookmark", page: "bookmarks")
+                pageShortcut(SyncCopy.text("pagesNav.history"), icon: "clock.arrow.circlepath", page: "history")
+                pageShortcut(SyncCopy.text("pagesNav.settings"), icon: "slider.horizontal.3", page: "settings")
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
@@ -173,7 +173,7 @@ struct PaletteSheet: View {
                 close()
             } label: {
                 row(icon: tab.currentURL.scheme == "blanc" ? "sun.horizon" : "globe",
-                    title: tab.currentURL == TabsManager.newTabURL ? "Start Page" : tab.pageTitle.isEmpty ? tab.currentURL.host ?? "Tab" : tab.pageTitle,
+                    title: TabTitle.display(tab),
                     subtitle: tab.currentURL.scheme == "blanc" ? "Blanc" : tab.currentURL.host ?? tab.currentURL.absoluteString,
                     selected: tab.id == manager.activeTabId)
             }
@@ -183,7 +183,7 @@ struct PaletteSheet: View {
                 Image(systemName: "xmark").font(.system(size: 12)).foregroundStyle(style.secondary)
                     .frame(width: 44, height: 48)
             }
-            .accessibilityLabel("Close \(tab.pageTitle.isEmpty ? "tab" : tab.pageTitle)")
+            .accessibilityLabel(SyncCopy.text("ios.tabs.close", ["title": TabTitle.display(tab)]))
         }
         .padding(.leading, 10)
         .background(tab.id == manager.activeTabId ? style.selection : .clear, in: RoundedRectangle(cornerRadius: 10))
@@ -293,7 +293,7 @@ struct PaletteSheet: View {
                         ForEach(section.tabs) { tab in tabRow(tab) }
                     }
                 }
-            } header: { groupHeading("Open tabs", count: manager.tabs.count) }
+            } header: { groupHeading(SyncCopy.text("ios.tabs.openTabs"), count: manager.tabs.count) }
 
             RecentlyClosedSection(manager: manager, style: style, onOpen: { close() })
 
@@ -351,7 +351,7 @@ struct PaletteSheet: View {
         let matches = SlashCommand.filter(prefix: slashWord, in: manager)
         return List {
             if matches.isEmpty {
-                Text("No matching command")
+                Text(SyncCopy.text("ios.palette.noCommand"))
                     .foregroundStyle(style.secondary)
             } else {
                 ForEach(matches) { cmd in
@@ -375,7 +375,7 @@ struct PaletteSheet: View {
         )
         return List {
             if results.isEmpty {
-                Text("No matches — tap Go to open as address or search")
+                Text(SyncCopy.text("ios.palette.noMatches"))
                     .foregroundStyle(style.secondary)
             } else {
                 ForEach(results) { result in
