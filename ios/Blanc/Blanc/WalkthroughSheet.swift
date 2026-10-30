@@ -64,9 +64,9 @@ struct WalkthroughSheet: View {
     private static func detent(for step: WalkthroughStep?) -> PresentationDetent {
         switch step {
         case .pair: .large
-        case .arrived: .height(470)
-        case .shareBack: .height(470)
-        case .privacy: .height(400)
+        case .arrived: .height(430)
+        case .shareBack: .height(490)
+        case .privacy: .height(360)
         case .defaultBrowser: .height(340)
         case .welcome, nil: .height(360)
         }
@@ -127,16 +127,18 @@ struct WalkthroughSheet: View {
         card {
             heading(SyncCopy.text("ios.welcome.shareTitle"), line: SyncCopy.text("ios.welcome.shareBody"), leading: true)
             VStack(alignment: .leading, spacing: 14) {
-                Toggle(SettingsCopy.text("shareTabs"), isOn: Binding(
+                Toggle(isOn: Binding(
                     get: { SettingsSyncStatus(engine.status).sharesTabs },
-                    set: { value in Task { await engine.setShareTabs(value) } }))
+                    set: { value in Task { await engine.setShareTabs(value) } })) { wrapping(SettingsCopy.text("shareTabs")) }
                     .accessibilityIdentifier("welcome.shareTabs")
-                Text(SettingsCopy.text("shareTabsHelp")).font(.footnote).foregroundStyle(style.secondary)
-                Toggle(SyncCopy.text("sharedSpaces.switch.iphone"), isOn: Binding(
+                Text(SettingsCopy.text("shareTabsHelp")).font(.footnote).foregroundStyle(style.secondary).fixedSize(horizontal: false, vertical: true)
+                Toggle(isOn: Binding(
                     get: { engine.spacesEnabled },
-                    set: { value in if value { showSpacesChooser = true } else { manager.turnOffSharedSpaces() } }))
+                    set: { value in if value { showSpacesChooser = true } else { manager.turnOffSharedSpaces() } })) {
+                    wrapping(SyncCopy.text("sharedSpaces.switch.iphone"))
+                }
                     .accessibilityIdentifier("welcome.spaces")
-                Text(SyncCopy.text("sharedSpaces.switch.line.iphone")).font(.footnote).foregroundStyle(style.secondary)
+                Text(SyncCopy.text("sharedSpaces.switch.line.iphone")).font(.footnote).foregroundStyle(style.secondary).fixedSize(horizontal: false, vertical: true)
             }
             .padding(16).background(style.raised, in: RoundedRectangle(cornerRadius: 16))
         } actions: {
@@ -148,9 +150,9 @@ struct WalkthroughSheet: View {
         card {
             heading(SyncCopy.text("ios.welcome.privacyTitle"), line: nil, leading: true)
             VStack(alignment: .leading, spacing: 10) {
-                Toggle(SyncCopy.text("ios.welcome.measureUsage"), isOn: $measureUsage)
+                Toggle(isOn: $measureUsage) { wrapping(SyncCopy.text("ios.welcome.measureUsage")) }
                     .accessibilityIdentifier("welcome.measureUsage")
-                Text(SyncCopy.text("ios.welcome.measureUsageHelp")).font(.footnote).foregroundStyle(style.secondary)
+                Text(SyncCopy.text("ios.welcome.measureUsageHelp")).font(.footnote).foregroundStyle(style.secondary).fixedSize(horizontal: false, vertical: true)
             }
             .padding(16).background(style.raised, in: RoundedRectangle(cornerRadius: 16))
         } actions: {
@@ -209,6 +211,11 @@ struct WalkthroughSheet: View {
         .padding(.horizontal, 24).padding(.top, 34).padding(.bottom, 20)
     }
 
+    /// A switch's label that wraps rather than truncating (German runs long).
+    private func wrapping(_ text: String) -> some View {
+        Text(text).fixedSize(horizontal: false, vertical: true)
+    }
+
     private func heading(_ title: String, line: String?, leading: Bool = false) -> some View {
         VStack(alignment: leading ? .leading : .center, spacing: 8) {
             Text(title).font(BrowserStyle.font(24, semibold: true))
@@ -256,7 +263,7 @@ struct WalkthroughArrived: View {
                 if engine.libraryCount > 0 {
                     row(SyncCopy.text("ios.welcome.spaces")) { count(engine.libraryCount) }
                 } else {
-                    Text(SyncCopy.text("ios.welcome.spacesLater")).font(.footnote).foregroundStyle(style.secondary)
+                    Text(SyncCopy.text("ios.welcome.spacesLater")).font(.footnote).foregroundStyle(style.secondary).fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 12)
                 }
             }
