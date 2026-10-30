@@ -253,7 +253,17 @@ The menu bar structure follows shipping: Profiles, Tabs, Favorites and Help menu
 
 ## 8. Distribution, update, fallback and rollback
 
-1. **Identity.** Released app is "Blanc", macOS bundle ID `me.bnfy.bowser`, same Developer ID team. This keeps Gatekeeper identity, TCC grants (camera, microphone) and update continuity. The fork data directory is new, for example `~/Library/Application Support/Blanc/Chromium/` or a sibling, and is chosen at task F0.3, so Electron files are never shared.
+1. **Identity.** Released app is "Blanc", macOS bundle ID `me.bnfy.bowser`, same Developer ID team. The fork data directory is new, for example `~/Library/Application Support/Blanc/Chromium/` or a sibling, and is chosen at task F0.3, so Electron files are never shared.
+
+   Keeping the identifier is **intended** to preserve Gatekeeper identity, macOS privacy grants and update continuity. Matching identifiers does not prove any of those, so each outcome is a test (plan F0.3 spike and R.6), run by installing the release-channel fork over a real Electron install:
+
+   | Platform | Must be shown by test |
+   | --- | --- |
+   | macOS | Camera, microphone, screen-recording and location grants survive or are re-requested with no stale denial (Chromium helpers differ from Electron's). Keychain items are readable where §7 needs them. Default-browser choice, Dock pin, Login Items and notification permission persist. `electron-updater`/Squirrel accepts the fork bundle (designated requirement match). Gatekeeper and notarization pass on the updated app |
+   | Windows | Authenticode publisher unchanged. Default-browser `UserChoice` and pinned taskbar/Start shortcuts still launch Blanc. Uninstall entry is replaced, not duplicated |
+   | Linux | Desktop entry and default http/https handler still resolve to Blanc. AppImage update replaces in place |
+
+   Any outcome that fails becomes a migration step with user-facing copy (for example, a one-time "allow camera again" notice) or a blocker. It is never assumed.
 2. **Updater.** The fork ships its own updater reading signed metadata from GitHub Releases:
    - macOS: Sparkle 2 (EdDSA-signed appcast, notarized zips).
    - Windows: a signed installer with in-place update from the fork's own service.
@@ -268,17 +278,19 @@ The menu bar structure follows shipping: Profiles, Tabs, Favorites and Help menu
 5. **Rollback.** The fork's updater can install a designated rollback artifact, including the last Electron build, for every platform. After a rollback, Electron opens its untouched profile. Data created only in the fork returns only through Sync. This is disclosed in the rollback notice.
 6. **Withdrawal.** The PR #1028 status-page pattern is replaced by a release-feed flag that stops updates and shows the withdrawal notice in-app.
 
-## 9. Divergence register (owner approves the list once)
+## 9. Divergence register (each row reviewed individually)
 
-| ID | Divergence | Reason |
-| --- | --- | --- |
-| V1 | Settings use Chrome/Brave visual design | Owner direction |
-| V2 | History retention follows Chromium (90 days), not a 5,000-entry cap | Native model; Clear History still works |
-| V3 | Groups always store a color internally; "no color" maps to a neutral slot | Native model |
-| V4 | Inert-tab workaround retired; native inherited sandbox used | Better security |
-| V5 | Extensions available (new capability) | Fork purpose |
-| V6 | Private model per D1 | — |
-| V7 | macOS minimum version follows the fork's Chromium (currently macOS 26 in the preview; shipping supports older) | Upstream minimums; confirm at F0.3 |
+Each row has its own status, decided only by the owner. **Until a row is approved, the fork implements shipping behavior.** Approving the plan does not approve any row.
+
+| ID | Divergence | Reason | Status |
+| --- | --- | --- | --- |
+| V1 | Settings use Chrome/Brave visual design | Owner direction | Approved (owner direction, October 2026) |
+| V2 | History retention follows Chromium (90 days) instead of shipping's 5,000-entry cap | Native model | **Proposed, product change.** Default until decided: a Blanc layer trims `HistoryService` to 5,000 entries |
+| V3 | Groups always store a color internally; "no color" maps to a neutral slot that is never shown | Native model; no visible change | Proposed |
+| V4 | Inert-tab workaround retired; native inherited sandbox used | Better security | Proposed, after the inherited-sandbox check in S1.6 passes |
+| V5 | Extensions available | Fork purpose | Approved (October 15 fork authorization) |
+| V6 | Private model | — | Open: decision D1 |
+| V7 | macOS minimum version and Intel support follow the fork's Chromium (the preview needs macOS 26; shipping supports older and Intel) | Upstream minimums | **Proposed, product change.** Open: decision D8 |
 
 ## 10. Release gates for the replacement
 
@@ -286,7 +298,7 @@ A replacement release candidate is release-ready when all of these hold:
 1. Every row in §5 is *Verified* on all three platforms, or excepted by an owner decision.
 2. Privacy gate (§6.1) passes on all three platforms.
 3. Migration passes for fixture profiles from v1.40–current on all three platforms, plus the owner's real profile (backup first).
-4. Updater, cutover and rollback rehearsal pass on each platform: Electron → fork → rollback → fork.
+4. Updater, cutover and rollback rehearsal pass on each platform: Electron → fork → rollback → fork. Every identity outcome in §8.1 is shown by that rehearsal, and Electron's data directory is byte-identical before and after.
 5. Accessibility checklist passes per surface per platform.
 6. The shipping static guards that still apply pass: copy, adblock, substrate.
 7. Signing, SBOM, Sigstore and provenance as in shipping `release.sh`.

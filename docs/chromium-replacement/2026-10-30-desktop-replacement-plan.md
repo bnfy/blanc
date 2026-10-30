@@ -148,7 +148,7 @@ R Release engineering runs alongside S2–S5; M (migration importer) runs alongs
 | --- | --- | --- | --- | --- |
 | F0.1 | Freeze the spike. Write `chromium/README.md` with this contract. Ask the owner once to archive (compress, not delete) evidence older than the 158 candidate | — | Frozen folder, archive on Mac mini | No new files in the spike after this commit |
 | F0.2 | **Canonical tree.** Create `chromium/blanc/` (new files, built as `//blanc` in Chromium), `chromium/patches/NNNN-*.patch` (git-format upstream edits generated from the 158 rebase bundle, not anchors), and `chromium/tools/{sync,apply,build,test}`. For each feature choose **one** draft generation from `review-material/` and the Mac mini working tree, recording the choice in the commit message; drop the rest | — | Builds the same product as the current dev candidate | Applies cleanly to pinned Chromium; smoke scenarios match the current dev build |
-| F0.3 | **Release identity.** Two channels: `dev/preview` (current bundle ID) and `release` (`me.bnfy.bowser`, "Blanc", same team), each with its own data directory. Set the macOS minimum per D8. Re-test Keychain Safe Storage under the new identity | F0.2 | Channel config | Both channels launch; Keychain item created once, no stall in 10 relaunches |
+| F0.3 | **Release identity.** Two channels: `dev/preview` (current bundle ID) and `release` (`me.bnfy.bowser`, "Blanc", same team), each with its own data directory. Set the macOS minimum per D8. Re-test Keychain Safe Storage under the new identity. **Identity spike:** on a separate test macOS user account (never the owner's), install a release-identity fork build over a signed Electron v1.45.1 that already holds camera/mic grants, a default-browser choice and a Dock pin. Record every spec §8.1 outcome as observed. Internal signing only; nothing distributed | F0.2 | Channel config; identity spike report | Both channels launch; Keychain item created once, no stall in 10 relaunches. Each §8.1 macOS outcome is recorded as observed, never as inferred. Failures become R.6 work items |
 | F0.4 | **Tracker rebuild.** `chromium/tracker.json` with 79 rows, spec §3 states, test IDs per row; `progress.mjs` renders both bars; replace `PROGRESS.md` | F0.2 | Tracker + renderer | Renderer `--check` passes in CI |
 | F0.5 | **Fork test hook + scenario runner.** `--blanc-test` (dev builds only, compiled out of release) exposes state over CDP like shipping's `__blanc`. Add a fork step library for `spec/acceptance` plus a portable subset of shipping `test:*:desktop` scripts. First full run gives the Bar A baseline | F0.2 | Runner + baseline report | Runs unattended; JUnit output; Electron-only scenarios tagged with reasons |
 | F0.6 | **Release hygiene groundwork.** Compile assets into the resource pak (remove disk serving from release builds). Generate a typed Mojo interface from `browser-api/contract.json` and migrate handlers to it feature by feature (new code uses it from now on) | F0.2 | Pak assets; Mojo interface | Release build has no `--blanc-prototype-assets` path; contract check passes |
@@ -180,7 +180,7 @@ Goal: the owner can use the Mac candidate as their only browser for a week.
 
 | Task | Rows | Work (key points) | Acceptance |
 | --- | --- | --- | --- |
-| S1.1 | F5, F47, N21, N6 | Integrate the selected-provider search candidate and the Bangs overlay into the canonical tree; `TemplateURLService` engines with DuckDuckGo default and custom `%s`; suggestion policy; OS hand-off lists. **Replace the offline-VM requirement** with a recording proxy that fails on any request to an unlisted host | `@F5-*`, `@F47-*` pass; proxy shows only the chosen engine; private and credential-like input never leave |
+| S1.1 | F5, F47, N21, N6 | Integrate the selected-provider search candidate and the Bangs overlay into the canonical tree; `TemplateURLService` engines with DuckDuckGo default and custom `%s`; suggestion policy; OS hand-off lists. **Outbound-isolation check, replacing the offline-VM requirement (owner approval needed for the OS firewall rules):**<br>1. A recording proxy is the only permitted egress. The browser is launched with explicit proxy settings and a controlled DNS resolver.<br>2. Every other path is *independently* blocked at the OS, so a bypass fails instead of slipping past the proxy: a pf anchor for the test user on macOS, a network namespace on Linux, outbound firewall rules for the test binary on Windows. This covers direct TCP, UDP/QUIC, DNS, DoH/DoT, WebRTC/STUN and IPv6.<br>3. The OS block's own log is collected next to the proxy log.<br>4. Negative controls run in every session: deliberate direct TCP, QUIC, DNS, DoH and STUN attempts from a fixture page and from a native test hook must each be blocked and appear in the OS log. If any control is not observed, the run is invalid | `@F5-*`, `@F47-*` pass. Proxy and OS logs together show only the chosen engine. The OS log shows no unexplained blocked attempt (any attempt is a failure to investigate). Private and credential-like input never leave. All negative controls observed |
 | S1.2 | F1, F6, F7, F8, F15, F23, F37, F44, N19 | Activate the 1.44.1+ renderer (then current release), Shield hit-region fix, all 34 slash commands wired (deferred features answer with shipping's unavailable copy until their slice), Find, zoom, theming, language pick with relaunch, copy link/clean link | Their scenarios; shortcut table test (spec §5.3); VoiceOver pass on Island surfaces |
 | S1.3 | F2, F3, F18, F32 | Tab/group semantics over native models (ungrouped placement, pins lead groups, reopen tiers), multiple windows, session restore with meta columns | Scenarios; crash + clean-quit restore |
 | S1.4 | F4 | Private model per D1 | `@F4-*`; profile scan after quit finds no private trace |
@@ -189,7 +189,28 @@ Goal: the owner can use the Mac candidate as their only browser for a week.
 | S1.7 | F14 | `chrome://settings` restyled: remove Google, Sync and Safety Check sections; add Blanc sections; every v1.45.1 key and default | Generated key-by-key check against `settings.js` DEFAULTS |
 | S1.8 | F35 | Start Page on the current release's assets: blocked-count data, pins, layouts | Scenarios |
 | S1.9 | — | **Privacy baseline** (spec §6.1): disable Google services by build flags/prefs | 10-minute capture shows no Google traffic |
-| S1.X | — | **Exit:** dev instance refreshed; owner dogfoods one week; S1 scenarios pass on macOS; then the same suite on Windows/Linux candidates (after PW.1/PL.1) | Slice report per platform |
+| S1.X | — | **Exit:** S1 scenarios pass on macOS, then the owner dogfoods (entry criteria below), then the same suite runs on Windows/Linux candidates (after PW.1/PL.1) | Slice report per platform; dogfood log |
+
+**Dogfood entry criteria (all must hold before the owner switches):**
+1. **Data protection.**
+   - The owner's Electron profile is backed up while Electron is closed, and the backup's checksum is recorded.
+   - The fork reads it only through the M.2 importer, which never writes the source.
+   - The fork uses its own dev/preview data directory and bundle ID, not the release identity.
+   - Electron stays installed and usable throughout.
+2. **Real data available.** M.2 has imported the owner's Favorites, History, settings and open session into the fork, and the import was verified against the backup.
+3. **Essential workflows pass their scenarios on the candidate:**
+   - Open, close, switch and reopen tabs; groups; session restore after quit and after crash.
+   - Typed addresses and search with the chosen engine; Bangs.
+   - Favorites and History lookup, Quick Switcher.
+   - Downloads.
+   - Blocking on by default with per-site allow.
+   - Private browsing (per the D1 model or the prototype).
+   - Settings changes persist.
+   - Password filling through at least one path the owner uses (Chromium password manager or the 1Password extension).
+   - Site sign-ins work after signing in again.
+4. **Known gaps listed up front.** The S2–S5 features not yet present (for example Spaces, Sync, Glance, Split View) are listed, and the owner keeps using Electron for them.
+
+The milestone is "primary browser, with Electron for listed gaps", not "only browser". Each gap hit during dogfood is logged in the slice report, not fixed ad hoc.
 
 ### M Migration importer (alongside S1–S2; mostly independent code)
 
@@ -301,7 +322,7 @@ Everything else is incremental within the D7 envelope. Keep the existing guard (
 | D7 | **Standing build envelope** (the main speed lever) | Approve: incremental builds of any size on the existing toolchain and cache, isolated test profiles, signing of internal candidates. Asking stays required for cold builds, toolchain/SDK/GN changes, new machines, the owner's dev instance, publishing, merging | **Approve as written** |
 | D8 | **Platform floor** | Keep Intel Macs and the shipping macOS minimum, or follow the fork's Chromium minimum (the preview needs macOS 26) and Apple Silicon only | Decide after F0.7 reports the target branch's real minimum. Shipping currently supports both |
 
-Approving this plan also approves the divergence register (spec §9: V1–V7) unless you strike rows.
+Approving this plan approves **none** of the proposed divergences in spec §9. Each row is reviewed on its own, and shipping behavior is implemented until a row is approved. V2 (history retention) and V7 (macOS floor, decided with D8) are product changes and need an explicit answer. D7 is likewise a proposal until the owner approves it.
 
 ## 10. Codex handoff checklist
 
