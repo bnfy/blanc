@@ -9118,8 +9118,8 @@
     "source": "sha256:46f9241e122af9ca6ed4da4c5cce2318315350f01562f5d908c625f7a9d38008"
   },
   "ios.palette.noMatches": {
-    "message": "Nessun risultato. Tocca Vai per aprirlo come indirizzo o ricerca.",
-    "source": "sha256:6d2b630170c57cec6b423c57bab0affbd61313b5a2efcb7a525eed61abf9f90c"
+    "message": "Nessun risultato. Premi Invio per aprirlo come indirizzo o ricerca.",
+    "source": "sha256:46db92f26b57de707da442b42408e8bf0086343fd07da52e5967f9e4912de2cf"
   },
   "ios.tabs.openTabs": {
     "message": "Schede aperte",

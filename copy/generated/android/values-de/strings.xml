@@ -2512,7 +2512,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ios_palette_placeholder">Suchen, Adresse oder /Befehl eingeben</string>
     <string name="ios_palette_clear">Suche löschen</string>
     <string name="ios_palette_no_command">Kein passender Befehl</string>
-    <string name="ios_palette_no_matches">Keine Treffer. Tippe auf „Öffnen“, um es als Adresse oder Suche zu öffnen.</string>
+    <string name="ios_palette_no_matches">Keine Treffer. Drücke die Eingabetaste, um es als Adresse oder Suche zu öffnen.</string>
     <string name="ios_tabs_open_tabs">Offene Tabs</string>
     <string name="ios_tabs_switch_to">Zu %1$s wechseln</string>
     <string name="ios_tabs_close">%1$s schließen</string>

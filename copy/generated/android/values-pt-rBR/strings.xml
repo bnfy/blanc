@@ -2587,7 +2587,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="ios_palette_placeholder">Pesquise, digite um endereço ou um /comando</string>
     <string name="ios_palette_clear">Limpar a pesquisa</string>
     <string name="ios_palette_no_command">Nenhum comando corresponde</string>
-    <string name="ios_palette_no_matches">Nenhum resultado. Toque em Ir para abrir como endereço ou pesquisa.</string>
+    <string name="ios_palette_no_matches">Nenhum resultado. Toque em Retorno para abrir como endereço ou pesquisa.</string>
     <string name="ios_tabs_open_tabs">Abas abertas</string>
     <string name="ios_tabs_switch_to">Mudar para %1$s</string>
     <string name="ios_tabs_close">Fechar %1$s</string>

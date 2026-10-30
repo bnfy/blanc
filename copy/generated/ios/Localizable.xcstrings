@@ -102710,43 +102710,43 @@
       }
     },
     "ios.palette.noMatches": {
-      "comment": "iOS palette: shown when typed text matches no tab, Favorite or history entry; Go is the keyboard's return key.",
+      "comment": "iOS palette: shown when typed text matches no tab, Favorite or history entry; Return is the keyboard's return key.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No matches. Tap Go to open it as an address or search."
+            "value": "No matches. Press Return to open it as an address or search."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keine Treffer. Tippe auf „Öffnen“, um es als Adresse oder Suche zu öffnen."
+            "value": "Keine Treffer. Drücke die Eingabetaste, um es als Adresse oder Suche zu öffnen."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No hay coincidencias. Toca Ir para abrirlo como dirección o búsqueda."
+            "value": "No hay coincidencias. Pulsa Intro para abrirlo como dirección o búsqueda."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aucun résultat. Touchez Aller pour l’ouvrir comme adresse ou recherche."
+            "value": "Aucun résultat. Appuyez sur Retour pour l’ouvrir comme adresse ou recherche."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nessun risultato. Tocca Vai per aprirlo come indirizzo o ricerca."
+            "value": "Nessun risultato. Premi Invio per aprirlo come indirizzo o ricerca."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nenhum resultado. Toque em Ir para abrir como endereço ou pesquisa."
+            "value": "Nenhum resultado. Toque em Retorno para abrir como endereço ou pesquisa."
           }
         }
       }

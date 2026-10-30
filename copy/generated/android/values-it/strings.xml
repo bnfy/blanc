@@ -2587,7 +2587,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ios_palette_placeholder">Cerca, inserisci un indirizzo o un /comando</string>
     <string name="ios_palette_clear">Cancella la ricerca</string>
     <string name="ios_palette_no_command">Nessun comando corrispondente</string>
-    <string name="ios_palette_no_matches">Nessun risultato. Tocca Vai per aprirlo come indirizzo o ricerca.</string>
+    <string name="ios_palette_no_matches">Nessun risultato. Premi Invio per aprirlo come indirizzo o ricerca.</string>
     <string name="ios_tabs_open_tabs">Schede aperte</string>
     <string name="ios_tabs_switch_to">Passa a %1$s</string>
     <string name="ios_tabs_close">Chiudi %1$s</string>

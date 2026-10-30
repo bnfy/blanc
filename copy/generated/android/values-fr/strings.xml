@@ -2587,7 +2587,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ios_palette_placeholder">Rechercher, saisir une adresse ou une /commande</string>
     <string name="ios_palette_clear">Effacer la recherche</string>
     <string name="ios_palette_no_command">Aucune commande correspondante</string>
-    <string name="ios_palette_no_matches">Aucun résultat. Touchez Aller pour l’ouvrir comme adresse ou recherche.</string>
+    <string name="ios_palette_no_matches">Aucun résultat. Appuyez sur Retour pour l’ouvrir comme adresse ou recherche.</string>
     <string name="ios_tabs_open_tabs">Onglets ouverts</string>
     <string name="ios_tabs_switch_to">Passer à %1$s</string>
     <string name="ios_tabs_close">Fermer %1$s</string>

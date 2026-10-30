@@ -2512,7 +2512,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_palette_placeholder">Search, enter address, or / command</string>
     <string name="ios_palette_clear">Clear search</string>
     <string name="ios_palette_no_command">No matching command</string>
-    <string name="ios_palette_no_matches">No matches. Tap Go to open it as an address or search.</string>
+    <string name="ios_palette_no_matches">No matches. Press Return to open it as an address or search.</string>
     <string name="ios_tabs_open_tabs">Open tabs</string>
     <string name="ios_tabs_switch_to">Switch to %1$s</string>
     <string name="ios_tabs_close">Close %1$s</string>
