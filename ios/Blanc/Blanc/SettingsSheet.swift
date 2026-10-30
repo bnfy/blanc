@@ -129,6 +129,7 @@ struct SettingsSheet: View {
                     set: { manager.applySettingsPatch(["searchEngine": $0.rawValue]) })) {
                     ForEach(SettingsCopy.searchEngines, id: \.self) { Text($0.label).tag($0) }
                 }.accessibilityIdentifier("settings.searchEngine")
+                if DefaultBrowserOffer.enabled { DefaultBrowserRow() }
             }
             Section(SettingsCopy.text("appearance")) {
                 Picker(SettingsCopy.text("theme"), selection: Binding(get: { manager.settingsStore.theme }, set: { manager.applySettingsPatch(["theme": $0.rawValue]) })) {
@@ -156,6 +157,8 @@ struct SettingsSheet: View {
                 Link(SettingsCopy.text("website"), destination: URL(string: "https://blanc.day")!)
                 Link(SettingsCopy.text("privacyPolicy"), destination: URL(string: "https://blanc.day/privacy")!)
                 Link(SettingsCopy.text("support"), destination: URL(string: "mailto:support@blanc.day")!)
+                Button(SyncCopy.text("ios.welcome.showAgain")) { manager.replayWalkthrough() }
+                    .accessibilityIdentifier("settings.showWelcome")
             }
         }
         .settingsFormStyle()
