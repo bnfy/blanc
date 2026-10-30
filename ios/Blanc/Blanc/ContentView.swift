@@ -27,6 +27,10 @@ struct ContentView: View {
     /// Duo-1: the unfolded layout on the Duo's inner display.
     private var layout: IslandLayout { IslandLayout(horizontalSizeClass, verticalSizeClass) }
     private var isPalettePanelOpen: Bool { manager.isPalettePresented && layout.palette == .panel }
+    /// The palette's current placement, kept as state because the sheet's
+    /// binding closure outlives the body that made it: read through `layout`
+    /// there, an unfold would still look like a sheet and close the palette.
+    @State private var paletteIsPanel = false
 
     private var isStartPage: Bool {
         manager.activeTab?.currentURL.scheme == "blanc" && manager.activeTab?.currentURL.host == "newtab"
@@ -72,8 +76,9 @@ struct ContentView: View {
         }
         .onChange(of: manager.isPalettePresented) { _, presented in
             // The sheet runs this from its onDismiss; the panel has none.
-            if !presented, layout.palette == .panel { paletteClosed() }
+            if !presented, paletteIsPanel { paletteClosed() }
         }
+        .onChange(of: layout.palette, initial: true) { _, palette in paletteIsPanel = palette == .panel }
         .sheet(item: Binding(get: { manager.spaceEditor }, set: { manager.spaceEditor = $0 })) { target in
             SpaceEditor(manager: manager, target: target)
         }
@@ -114,7 +119,14 @@ struct ContentView: View {
         // Unfolded, the palette is the panel instead; unfolding with
         // the sheet open hands it over, text and all, without closing it.
         .sheet(isPresented: Binding(get: { manager.isPalettePresented && layout.palette == .sheet },
-                                    set: { if !$0, layout.palette == .sheet { manager.isPalettePresented = false } }),
+                                    set: { presented in
+                                        // Unfolding also takes the sheet away; wait until the
+                                        // new layout has applied to tell that from a swipe down.
+                                        guard !presented else { return }
+                                        DispatchQueue.main.async {
+                                            if !paletteIsPanel { manager.isPalettePresented = false }
+                                        }
+                                    }),
                onDismiss: { if !manager.isPalettePresented { paletteClosed() } }) {
             PaletteSheet(manager: manager)
         }
