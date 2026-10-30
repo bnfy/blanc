@@ -126,8 +126,11 @@ struct ContentView: View {
                 askingPair = request
             }
         }
-        .sheet(item: $askingPair) { request in
+        .sheet(item: pairQuestionOutsideWalkthrough) { request in
             PairLinkConfirmView(engine: manager.syncEngine, code: request.code)
+        }
+        .sheet(isPresented: walkthroughPresented) {
+            WalkthroughSheet(manager: manager, pairLink: $askingPair)
         }
         .sheet(item: Binding(get: { manager.settingsDestination }, set: { manager.settingsDestination = $0 })) { destination in
             SettingsSheet(manager: manager, destination: destination)
@@ -148,6 +151,20 @@ struct ContentView: View {
                 completion?(image)
             }
         }
+    }
+
+    /// The first-minute card (M18 §3). Swiping it away is closing it.
+    private var walkthroughPresented: Binding<Bool> {
+        Binding(get: { manager.walkthrough.current != nil },
+                set: { presented in
+                    if !presented, manager.walkthrough.current != nil {
+                        manager.closeWalkthrough(usagePingShown: manager.settingsStore.usagePingShown)
+                    }
+                })
+    }
+    /// While the card is up, a pairing link's question rises from the card.
+    private var pairQuestionOutsideWalkthrough: Binding<PairLinkRequest?> {
+        Binding(get: { manager.walkthrough.current == nil ? askingPair : nil }, set: { askingPair = $0 })
     }
 
     /// The palette as a sheet. Unfolded, the palette is the panel instead;

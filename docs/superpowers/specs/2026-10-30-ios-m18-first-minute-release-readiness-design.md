@@ -140,6 +140,12 @@ all of it new catalog keys under `ios.welcome.*`.
 **Browse without pairing** goes 1 → 5 → 6 → done. A person who closes the card
 gets no more of it; Settings gains **Show the welcome again** (§3.3).
 
+**As built (PR 3):** swiping the Welcome card down closes the card,
+saving the privacy default, rather than moving to Privacy. Past Welcome the
+card can't be swiped away, only closed with its ✕, so a choice on screen is
+never lost. The Pair card is the same form Settings → Sync shows
+(`PairWithBlancSections`), at full height.
+
 ### 3.3 State and replay
 
 - `walkthroughCompletedVersion` (an integer, today 1) in the app's own

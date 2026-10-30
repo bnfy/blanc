@@ -67,17 +67,6 @@ struct SyncSettingsView: View {
     @State private var confirm: Confirmation?
     @State private var switching = false
     @State private var showPairing = false
-    // Pair with your Blanc (design 2026-10-28 §7.1): the camera first, every
-    // other way one level deeper.
-    @Environment(\.colorScheme) private var colorScheme
-    @State private var showOtherWays = false
-    @State private var typeCodeHint = false
-    @State private var scanSheet: ScanSheet?
-    private struct ScanSheet: Identifiable {
-        let route: PairScanCoordinator.Route
-        let scan: PairScanCoordinator
-        var id: String { "\(route)" }
-    }
     private enum Confirmation: String, Identifiable { case disconnect, switchAccount, recovery; var id: String { rawValue } }
     private var status: SettingsSyncStatus { SettingsSyncStatus(engine.status) }
 
@@ -100,59 +89,10 @@ struct SyncSettingsView: View {
                 }
             } footer: { Text(SettingsCopy.text("syncHelp")) }
 
-            if !status.enabled && !switching {
-                Section {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(SettingsCopy.text("syncOffTitle")).font(.headline)
-                        Text(SettingsCopy.text("syncOffBody")).foregroundStyle(.secondary)
-                    }
-                    Button(action: startPairing) {
-                        // Settings tints with the text color, so the label takes the
-                        // page's background color to stay readable on that fill.
-                        Label(SettingsCopy.text("pairWithBlanc"), systemImage: "qrcode.viewfinder")
-                            .foregroundStyle(BrowserStyle(scheme: colorScheme).background)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .accessibilityIdentifier("settings.pairWithBlanc")
-                    Button(SettingsCopy.text("otherWays")) {
-                        withAnimation { showOtherWays.toggle() }
-                    }.accessibilityIdentifier("settings.otherWays")
-                }
-            }
-            if (!status.enabled && showOtherWays) || switching {
-                Section {
-                    TextField(SettingsCopy.text("pairingCode"), text: $form.code, axis: .vertical)
-                        .textInputAutocapitalization(.never).autocorrectionDisabled()
-                        .privacySensitive().accessibilityIdentifier("settings.syncCode")
-                    Button(SettingsCopy.text(switching ? "switchAccount" : "connect")) {
-                        if switching { confirm = .switchAccount } else { join() }
-                    }.disabled(!model.canJoin).accessibilityIdentifier("settings.connect")
-                    if typeCodeHint && !switching {
-                        Text(SettingsCopy.text("typeCodeShown")).foregroundStyle(.secondary)
-                    }
-                } header: { Text(SettingsCopy.text(switching ? "switchAccount" : "enterCode")) }
-                  footer: { Text(SettingsCopy.text("pairingHelp")) }
-                if !switching {
-                    Section {
-                        TextField(SettingsCopy.text("handle"), text: $form.handle)
-                            .textInputAutocapitalization(.never).autocorrectionDisabled()
-                            .accessibilityIdentifier("settings.syncHandle")
-                        SecureField(SettingsCopy.text("passphrase"), text: $form.passphrase)
-                            .textContentType(.password).accessibilityIdentifier("settings.syncPassphrase")
-                        if !model.handle.isEmpty && !SyncCrypto.validHandle(model.handle) {
-                            Text(SyncCopy.text("sync.error.nameTooShort")).foregroundStyle(.secondary)
-                        }
-                        if !model.passphrase.isEmpty && !SyncCrypto.passphraseStrong(model.passphrase) {
-                            Text(SyncCopy.text("sync.error.weakPassphrase")).foregroundStyle(.secondary)
-                        }
-                        Button(SettingsCopy.text("signIn")) { signIn() }.disabled(!model.canSignIn)
-                    } header: { Text(SettingsCopy.text("usePassphrase")) }
-                      footer: { Text(SettingsCopy.text("desktopAccount")) }
-                } else {
-                    Button(SettingsCopy.text("cancel")) { switching = false; model.clearSecrets() }
-                }
-            } else if status.enabled {
+            PairWithBlancSections(engine: engine, model: model, switching: switching,
+                                  onSwitch: { confirm = .switchAccount },
+                                  onCancelSwitch: { switching = false; model.clearSecrets() })
+            if status.enabled && !switching {
                 Section {
                     TextField(SettingsCopy.text("deviceName"), text: $form.deviceName)
                         .onSubmit(saveName).accessibilityIdentifier("settings.deviceName")
@@ -194,13 +134,6 @@ struct SyncSettingsView: View {
             // With the switch off, how many shared Spaces wait (design §9).
             if status.enabled && !engine.spacesEnabled { _ = await engine.previewIndex() }
         }
-        .sheet(item: $scanSheet) { sheet in
-            PairScannerSheet(route: sheet.route, scan: sheet.scan, onCode: { code in
-                scanSheet = nil
-                model.code = code
-                join()
-            }, onTypeInstead: { showCodeField() })
-        }
         .alert(item: $confirm) { confirmation in
             switch confirmation {
             case .disconnect:
@@ -208,7 +141,7 @@ struct SyncSettingsView: View {
                     Task { await model.run { await engine.disable() } }
                 }, secondaryButton: .cancel(Text(SettingsCopy.text("cancel"))))
             case .switchAccount:
-                return Alert(title: Text(SettingsCopy.text("switchAccount")), message: Text(SettingsCopy.text("switchHelp")), primaryButton: .destructive(Text(SettingsCopy.text("switchAccount"))) { join() }, secondaryButton: .cancel(Text(SettingsCopy.text("cancel"))))
+                return Alert(title: Text(SettingsCopy.text("switchAccount")), message: Text(SettingsCopy.text("switchHelp")), primaryButton: .destructive(Text(SettingsCopy.text("switchAccount"))) { PairJoin.join(engine: engine, model: model, code: model.code) }, secondaryButton: .cancel(Text(SettingsCopy.text("cancel"))))
             case .recovery:
                 return Alert(title: Text(SyncCopy.text("settings.sync.recovery.dialogMessage")), message: Text(SyncCopy.text("settings.sync.recovery.dialogDetail")), primaryButton: .default(Text(SyncCopy.text("settings.sync.recovery.dialogCopy"))) {
                     Task { await model.run(successMessage: SyncCopy.text("settings.sync.recovery.copied")) {
@@ -248,28 +181,6 @@ struct SyncSettingsView: View {
                     .accessibilityIdentifier("sync.spaces.waiting")
             }
         } footer: { Text(SyncCopy.text(on ? "sharedSpaces.accountLine" : "sharedSpaces.offLine")) }
-    }
-    private func startPairing() {
-        let scan = PairScanCoordinator()
-        Task {
-            let route = await scan.start()
-            if route == .codeField { showCodeField() } else { scanSheet = ScanSheet(route: route, scan: scan) }
-        }
-    }
-    private func showCodeField() {
-        typeCodeHint = true
-        withAnimation { showOtherWays = true }
-    }
-    private func join() {
-        let code = model.code.trimmingCharacters(in: .whitespacesAndNewlines)
-        // The success line names the sync joined (design 2026-10-28 §7.3).
-        Task { await model.run(successMessage: SyncCopy.text("settings.sync.connectedTo", ["name": SettingsSyncStatus(engine.status).handle])) {
-            status.enabled ? await engine.switchWithCode(code) : await engine.joinWithCode(code)
-        } }
-    }
-    private func signIn() {
-        let handle = model.handle, passphrase = model.passphrase
-        Task { await model.run { await engine.enable(handle: handle, passphrase: passphrase) } }
     }
     private func engineReply() -> JSONValue {
         if let error = SettingsSyncStatus(engine.status).error {

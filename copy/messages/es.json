@@ -9148,5 +9148,101 @@
   "ios.settings.backgroundRefreshOff": {
     "message": "La actualización en segundo plano está desactivada para Blanc, así que los cambios de otros dispositivos llegan cuando lo abres. Actívala en Ajustes de iOS → Apps → Blanc.",
     "source": "sha256:e841bda25782ede1ff5a1d1388cd791f8beabc9e2b266433bd9f7972f2f36b3c"
+  },
+  "ios.welcome.title": {
+    "message": "Tu Blanc, en tu bolsillo.",
+    "source": "sha256:9b3d61d7c90b5e7efb6caab1e5abe9561db5d8701d0cfc23ad3291cc847fb9d1"
+  },
+  "ios.welcome.body": {
+    "message": "Trae las pestañas, los Spaces y los Favoritos de Blanc en tu ordenador.",
+    "source": "sha256:9cae8f7c784f5c23d22ef226a6915d9672df23dba2df337951c3ed2ce54ed05b"
+  },
+  "ios.welcome.browse": {
+    "message": "Navegar sin vincular",
+    "source": "sha256:ecd9e570c80e0f6da7dac1a7102b6535c324446cf6594610290fa61bb0132621"
+  },
+  "ios.welcome.connected": {
+    "message": "Conectado a «{name}»",
+    "source": "sha256:2f0367be9cb0d9ce8d9b96a4ddbaabc1c6323fdebfbaf15b2d3dc7e6a24b745c"
+  },
+  "ios.welcome.arrived": {
+    "message": "Esto es lo que ha llegado",
+    "source": "sha256:3ff8bdb1638442a56bbc78e24ac90261b6c8ff0b93b2d199a1fe9d9d427bc64f"
+  },
+  "ios.welcome.tabsOn": {
+    "message": "Pestañas abiertas en {device}",
+    "source": "sha256:edd22c9961e9db4e48b0947c43f4ace21f61b7fd1b383334bafb64674628c525"
+  },
+  "ios.welcome.settings": {
+    "message": "Tus ajustes",
+    "source": "sha256:729c2dd0519e8a3272ff918faaca2cfc3ca92016addc0553fd98f0338e1fd149"
+  },
+  "ios.welcome.spaces": {
+    "message": "Spaces",
+    "source": "sha256:e4cbd9f668f63fdcbb9761cc02e98e23c5f1ad1cf77b54bb546deac1b213f5b4"
+  },
+  "ios.welcome.spacesLater": {
+    "message": "Para traer también tus Spaces, activa Mantener Spaces y grupos sincronizados en Ajustes → Sincronización en tu ordenador.",
+    "source": "sha256:1f0fda47015de4858ea41c5fb4111088252b9d6c0965458c021eb5e5d56d4684"
+  },
+  "ios.welcome.arriving": {
+    "message": "Trayéndolos…",
+    "source": "sha256:1b0c4dc0a387ef0bc43db6546275531c2c3fa1461e85120b817f97d24b5177ed"
+  },
+  "ios.welcome.continue": {
+    "message": "Continuar",
+    "source": "sha256:6182633248d8992fae9a8ada716e18eab4b6c272d6381ec5046e2297c6fb894a"
+  },
+  "ios.welcome.shareTitle": {
+    "message": "Compartir desde este iPhone",
+    "source": "sha256:61dd993df0201b989d53efd771e1d61505b3e653e4c43fdc60c1edc0ad5498fd"
+  },
+  "ios.welcome.shareBody": {
+    "message": "Ambos siguen desactivados hasta que los actives. Puedes cambiarlos después en Ajustes → Sincronización.",
+    "source": "sha256:8a81a001677bb25429863d7754431e93c3916de0846173acf9df6399edac60fc"
+  },
+  "ios.welcome.privacyTitle": {
+    "message": "Tu privacidad",
+    "source": "sha256:950bbe27c11bb8c7c0b89b6dfdfe7ccec9c24e7603cd96eaa46c46e77f2c0851"
+  },
+  "ios.welcome.measureUsage": {
+    "message": "Medir el uso",
+    "source": "sha256:c6c97f27c0d10c04d7cd53cb65297f25fff5d651582ae85d836b0a48d2f31681"
+  },
+  "ios.welcome.measureUsageHelp": {
+    "message": "Cada vez que abres Blanc, envía un recuento anónimo: un ID aleatorio para esta instalación, la versión de la app y la versión de iOS. Nunca lo que navegas. Consulta blanc.day/privacy.",
+    "source": "sha256:918daf894fa3d224ceb4594a9ca31bb335ea73f40215009a0e188c3b261689bc"
+  },
+  "ios.welcome.showAgain": {
+    "message": "Volver a mostrar la bienvenida",
+    "source": "sha256:5193b208da3381efbc3013b02fcea8b4ff3963097364e92b45a4d10b75d2252c"
+  },
+  "ios.defaultBrowser.title": {
+    "message": "Abrir enlaces en Blanc",
+    "source": "sha256:d98401352c1303df48cf7676b9dd1090dac64380213c20d729ab892a3f17ece8"
+  },
+  "ios.defaultBrowser.body": {
+    "message": "Haz de Blanc tu navegador predeterminado para que los enlaces de Mensajes, Mail y otras apps se abran aquí.",
+    "source": "sha256:82d16fe99342aba834b37a486f0fda627dfcfdd6ae0b8ce9de9ef4a719e0b3cc"
+  },
+  "ios.defaultBrowser.open": {
+    "message": "Abrir Ajustes",
+    "source": "sha256:c7f8376259555fc14e0368f6e041e52f49438236a47d26231d93ad2dff19f7a2"
+  },
+  "ios.defaultBrowser.notNow": {
+    "message": "Ahora no",
+    "source": "sha256:cfe84c0551203d42ce3b6d44fa297327be292799ab997b39fa3aaba9b5194f1e"
+  },
+  "ios.defaultBrowser.done": {
+    "message": "Blanc es tu navegador predeterminado",
+    "source": "sha256:6d88e5b37f862547ddb4cf2035d328f753a69d0119c436e25bfe3b2bf4493a46"
+  },
+  "ios.defaultBrowser.row": {
+    "message": "Navegador predeterminado",
+    "source": "sha256:b5803da601d3c1a88a2059b33b8bc50de137e473880f94681514a814776d910e"
+  },
+  "ios.defaultBrowser.notBlanc": {
+    "message": "No es Blanc",
+    "source": "sha256:0faee873d1f38ea949b3c0c4c7a50891b19d285b32dd49efef488caa805b880b"
   }
 }

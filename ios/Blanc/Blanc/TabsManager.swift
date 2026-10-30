@@ -406,6 +406,57 @@ final class TabsManager {
             persistSession()
         }
         sharedSyncChanged()
+        walkthrough = WalkthroughFlow(
+            paired: SyncStateStore(directory: syncDirectory).state.enabled,
+            completedVersion: Self.walkthroughForced ? 0
+                : Self.walkthroughSuppressed ? .max : settingsStore.walkthroughCompletedVersion,
+            offerDefaultBrowser: DefaultBrowserOffer.enabled, isDefaultBrowser: nil)
+        #if DEBUG
+        // Screenshots of the What arrived card from a seeded sync.
+        if ProcessInfo.processInfo.arguments.contains("-BlancUITestWalkthroughArrived") { walkthrough.joined() }
+        #endif
+    }
+
+    // MARK: The first-minute walkthrough (M18 §3)
+
+    /// The card over the start page; `current == nil` hides it.
+    var walkthrough = WalkthroughFlow(paired: true, completedVersion: .max, offerDefaultBrowser: false, isDefaultBrowser: nil)
+
+    /// UI tests start past the walkthrough unless one asks for it with
+    /// `-BlancUITestWalkthrough`, which shows it as on a fresh install.
+    private static var walkthroughSuppressed: Bool {
+        #if DEBUG
+        let arguments = ProcessInfo.processInfo.arguments
+        return arguments.contains { $0.hasPrefix("-BlancUITest") } && !walkthroughForced
+        #else
+        return false
+        #endif
+    }
+    private static var walkthroughForced: Bool {
+        #if DEBUG
+        return ProcessInfo.processInfo.arguments.contains("-BlancUITestWalkthrough")
+        #else
+        return false
+        #endif
+    }
+
+    /// Settings → About → Show the welcome again.
+    func replayWalkthrough() {
+        settingsDestination = nil
+        // The card rises once the Settings sheet has gone.
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(600))
+            walkthrough = .replay(paired: syncEngine.stateStore.state.enabled,
+                                  offerDefaultBrowser: DefaultBrowserOffer.enabled, isDefaultBrowser: nil)
+        }
+    }
+
+    /// Closes the card by any path: the privacy choice is saved with the value
+    /// on screen if it wasn't already (§3.2), and this version counts as seen.
+    func closeWalkthrough(usagePingShown: Bool) {
+        if walkthrough.close() { settingsStore.update(usagePing: usagePingShown) }
+        settingsStore.update(walkthroughCompletedVersion: WalkthroughFlow.version)
+        settingsStore.flush()
     }
 
     /// Only web pages can be Favorites; Blanc's own pages can't.

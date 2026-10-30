@@ -22,6 +22,14 @@ final class SettingsStore {
     private(set) var adblockExceptions: [String] = []
 
     private(set) var newtabLayout: BlancStartPageLayout = MobileStartPageDefaults.layout
+    /// The launch ping's consent (desktop's `usagePing`, F21): `nil` until the
+    /// person saves or skips the walkthrough's privacy step, and an unsaved
+    /// choice means no ping (M18 §3.3). The switch shows the schema default.
+    private(set) var usagePing: Bool?
+    var usagePingShown: Bool { usagePing ?? BlancSettingsDefaults.usagePing }
+    /// The walkthrough version this phone has finished (M18 §3.3);
+    /// device-local, never synced.
+    private(set) var walkthroughCompletedVersion = 0
 
     @ObservationIgnored private let fileURL: URL
     @ObservationIgnored private var unknownKeys: [String: Any] = [:]
@@ -55,7 +63,9 @@ final class SettingsStore {
                 searchEngine: BlancSearchEngine? = nil,
                 adblockEnabled: Bool? = nil,
                 adblockExceptions: [String]? = nil,
-                newtabLayout: BlancStartPageLayout? = nil) {
+                newtabLayout: BlancStartPageLayout? = nil,
+                usagePing: Bool? = nil,
+                walkthroughCompletedVersion: Int? = nil) {
         if let theme { self.theme = theme }
         if let searchEngine { self.searchEngine = searchEngine }
         if let adblockEnabled { self.adblockEnabled = adblockEnabled }
@@ -64,6 +74,8 @@ final class SettingsStore {
             self.adblockExceptions = adblockExceptions.compactMap(AdblockExceptions.normalize).filter { seen.insert($0).inserted }
         }
         if let newtabLayout { self.newtabLayout = newtabLayout }
+        if let usagePing { self.usagePing = usagePing }
+        if let walkthroughCompletedVersion { self.walkthroughCompletedVersion = walkthroughCompletedVersion }
         scheduleSave()
     }
 
@@ -99,7 +111,11 @@ final class SettingsStore {
             newtabLayout = value
         }
 
-        let knownKeys: Set<String> = ["theme", "searchEngine", "adblockEnabled", "adblockExceptions", "newtabLayout"]
+        if let v = dict["usagePing"] as? Bool { usagePing = v }
+        if let v = dict["walkthroughCompletedVersion"] as? Int { walkthroughCompletedVersion = v }
+
+        let knownKeys: Set<String> = ["theme", "searchEngine", "adblockEnabled", "adblockExceptions", "newtabLayout",
+                                      "usagePing", "walkthroughCompletedVersion"]
         for (key, value) in dict where !knownKeys.contains(key) {
             unknownKeys[key] = value
         }
@@ -119,6 +135,8 @@ final class SettingsStore {
         dict["searchEngine"] = searchEngine.rawValue
         dict["adblockEnabled"] = adblockEnabled
         dict["adblockExceptions"] = adblockExceptions
+        if let usagePing { dict["usagePing"] = usagePing }
+        dict["walkthroughCompletedVersion"] = walkthroughCompletedVersion
 
         guard let data = try? JSONSerialization.data(withJSONObject: dict, options: [.sortedKeys]) else { return }
         // `.atomic` writes to a sibling temp file and renames it into place —

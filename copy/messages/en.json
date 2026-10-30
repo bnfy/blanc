@@ -9437,5 +9437,101 @@
   "ios.settings.backgroundRefreshOff": {
     "message": "Background App Refresh is off for Blanc, so other devices’ changes arrive when you open it. Turn it on in iOS Settings → Apps → Blanc.",
     "note": "Native iOS Settings → Sync: shown while iOS has Background App Refresh off for Blanc (M18 §6)."
+  },
+  "ios.welcome.title": {
+    "message": "Your Blanc, in your pocket.",
+    "note": "iOS first-minute walkthrough (M18 §3): the Welcome card's heading."
+  },
+  "ios.welcome.body": {
+    "message": "Bring the tabs, Spaces and Favorites from Blanc on your computer.",
+    "note": "iOS walkthrough: the Welcome card's line under the heading."
+  },
+  "ios.welcome.browse": {
+    "message": "Browse without pairing",
+    "note": "iOS walkthrough: the quiet second action on the Welcome card; skips pairing."
+  },
+  "ios.welcome.connected": {
+    "message": "Connected to “{name}”",
+    "note": "iOS walkthrough: small heading on the What arrived card; {name} is the sync's name."
+  },
+  "ios.welcome.arrived": {
+    "message": "Here’s what arrived",
+    "note": "iOS walkthrough: the What arrived card's heading, over counts of what came from the computer."
+  },
+  "ios.welcome.tabsOn": {
+    "message": "Open tabs on {device}",
+    "note": "iOS walkthrough: a What arrived row; {device} is a computer's name, the count is beside it."
+  },
+  "ios.welcome.settings": {
+    "message": "Your settings",
+    "note": "iOS walkthrough: a What arrived row with a check mark."
+  },
+  "ios.welcome.spaces": {
+    "message": "Spaces",
+    "note": "iOS walkthrough: a What arrived row; the count of shared Spaces is beside it."
+  },
+  "ios.welcome.spacesLater": {
+    "message": "To bring your Spaces too, turn on Keep Spaces and groups in sync in Settings → Sync on your computer.",
+    "note": "iOS walkthrough: shown on What arrived when the computer doesn't share its Spaces."
+  },
+  "ios.welcome.arriving": {
+    "message": "Bringing them over…",
+    "note": "iOS walkthrough: What arrived while the first sync still runs."
+  },
+  "ios.welcome.continue": {
+    "message": "Continue",
+    "note": "iOS walkthrough: moves to the next card."
+  },
+  "ios.welcome.shareTitle": {
+    "message": "Share from this iPhone",
+    "note": "iOS walkthrough: the Share back card's heading, over two switches that are off by default."
+  },
+  "ios.welcome.shareBody": {
+    "message": "Both stay off until you turn them on. You can change them later in Settings → Sync.",
+    "note": "iOS walkthrough: the Share back card's line under the heading."
+  },
+  "ios.welcome.privacyTitle": {
+    "message": "Your privacy",
+    "note": "iOS walkthrough: the Privacy card's heading."
+  },
+  "ios.welcome.measureUsage": {
+    "message": "Measure usage",
+    "note": "iOS walkthrough and Settings → Privacy: the switch for the anonymous launch count (F21)."
+  },
+  "ios.welcome.measureUsageHelp": {
+    "message": "Each time you open Blanc, it sends one anonymous count: a random ID for this install, the app version and the iOS version. Never what you browse. See blanc.day/privacy.",
+    "note": "iOS walkthrough: under the Measure usage switch; says exactly what the launch ping carries."
+  },
+  "ios.welcome.showAgain": {
+    "message": "Show the welcome again",
+    "note": "iOS Settings → About: replays the first-minute walkthrough."
+  },
+  "ios.defaultBrowser.title": {
+    "message": "Open links in Blanc",
+    "note": "iOS walkthrough: the default-browser card's heading (shown once Apple grants the entitlement)."
+  },
+  "ios.defaultBrowser.body": {
+    "message": "Make Blanc your default browser so links from Messages, Mail and other apps open here.",
+    "note": "iOS walkthrough: the default-browser card's line."
+  },
+  "ios.defaultBrowser.open": {
+    "message": "Open Settings",
+    "note": "iOS: opens iOS's Default Apps screen."
+  },
+  "ios.defaultBrowser.notNow": {
+    "message": "Not now",
+    "note": "iOS walkthrough: skips the default-browser card."
+  },
+  "ios.defaultBrowser.done": {
+    "message": "Blanc is your default browser",
+    "note": "iOS walkthrough and Settings: shown once iOS says Blanc is the default browser."
+  },
+  "ios.defaultBrowser.row": {
+    "message": "Default browser",
+    "note": "iOS Settings → Browsing: the default-browser row."
+  },
+  "ios.defaultBrowser.notBlanc": {
+    "message": "Not Blanc",
+    "note": "iOS Settings: the default-browser row's value when another browser is the default or iOS didn't say."
   }
 }
