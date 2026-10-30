@@ -199,10 +199,13 @@ final class SettingsUITests: XCTestCase {
     }
     /// iOS confirms every icon change with its own alert, shown by SpringBoard.
     private func dismissIconChangedNotice() {
+        // It can come from either, and on a busy CI simulator it can take
+        // more than 5 s, so both are watched for one longer window.
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
-        for alerts in [springboard.alerts, app.alerts] {
-            let ok = alerts.buttons["OK"]
-            if ok.waitForExistence(timeout: 5) { ok.tap(); return }
+        let buttons = [springboard.alerts.buttons["OK"], app.alerts.buttons["OK"]]
+        let deadline = Date().addingTimeInterval(20)
+        while Date() < deadline {
+            for ok in buttons where ok.waitForExistence(timeout: 1) { ok.tap(); return }
         }
         XCTFail("iOS did not confirm the icon change")
     }

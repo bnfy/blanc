@@ -32,9 +32,11 @@ final class TabsManager {
 
     func makeStartPreview(layout: BlancStartPageLayout? = nil) -> TabModel {
         let configuration = WebViewConfiguration.make(schemeHandler: schemeHandler, bridge: bridge, dataStore: siteDataStore)
+        // Marked from the start of every load (pages.css hides Customize under
+        // the class), so a reload never shows the button even for a moment.
         configuration.userContentController.addUserScript(WKUserScript(source: """
-            document.getElementById('customizeButton')?.style.setProperty('display', 'none', 'important');
-            """, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+            document.documentElement.classList.add('start-preview');
+            """, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         let tab = TabModel(url: Self.newTabURL, configuration: configuration)
         previews.removeAll { $0.tab == nil }
         previews.append(WeakPreview(tab, layout: layout))
