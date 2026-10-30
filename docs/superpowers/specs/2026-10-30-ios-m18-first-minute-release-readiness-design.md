@@ -254,6 +254,12 @@ M18 adds:
   fetch-and-keep half that runs without a manager. *My call:* when the app is
   only suspended (manager alive), the background pass still only fetches and
   keeps; one path, not two.
+- **As built (PR 2):** the background pass reads the fixed stores only
+  (settings, Favorites, devices' tabs, icons, sent pages, and Recently closed
+  with the Spaces switch on) into `sync-inbox.json`. The shared sidecar and
+  the Space blobs wait for the foreground pass, because their sync path writes
+  while it merges. The foreground applies the inbox first and then runs its
+  usual pass in full; it doesn't skip fresh fetches.
 - **Budget.** iOS grants about 30 seconds. The pass checks the task's
   expiration and saves what it has; a half-finished pass is the same as one the
   network cut short.
