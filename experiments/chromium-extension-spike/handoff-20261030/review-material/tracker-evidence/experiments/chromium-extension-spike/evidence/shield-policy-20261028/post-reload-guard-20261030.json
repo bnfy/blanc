@@ -1,0 +1,18 @@
+{
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "finding": "blocker slash commands are filtered out; native blocker policy actions previously reloaded the active page with repost confirmation disabled, while shipping deliberately skips reload after POST",
+  "change": "native source now reloads only when a committed entry exists and its main-frame method is not POST; policy mutation itself is unchanged",
+  "sourceSha256": "6234ceb755ed2dd68f4851a1f1cf809ff4a3e4fb9b7623bae3c6ebfed6554531",
+  "verified": [
+    "Chromium NavigationEntryImpl::GetHasPostData checks whether committed main-frame method is POST",
+    "git diff --check passes"
+  ],
+  "notVerified": [
+    "source not compiled or linked into browser; no real POST or GET action test",
+    "blocker slash commands remain hidden until a qualified build and affected behavior checks",
+    "current development browser is unchanged"
+  ],
+  "appBuild": false,
+  "deployed": false
+}

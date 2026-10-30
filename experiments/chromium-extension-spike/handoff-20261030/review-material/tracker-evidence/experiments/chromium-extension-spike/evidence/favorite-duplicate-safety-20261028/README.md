@@ -1,0 +1,9 @@
+# Duplicate Favorite safety — October 28
+
+`baseline1` used a fresh synthetic profile and real Chromium BookmarkModel. The old framework accepted toggle of a URL with two entries in separate folders; after clean exit, `baseline1-closed-profile-readback.json` showed neither duplicate remained. No user profile was used.
+
+The fix refuses a duplicate or managed match before removal, and refuses named `/save` before creating a folder or moving ambiguous bookmarks. A bare save is a no-op for an existing URL. `fixed1` passed in a fresh profile against framework `30877fc26d3b9f1cd518a7f390e233ec1f646bfebd82ad0e8d615a4343754a40`: both duplicate IDs and parents survived, the Island notice was visible, named save did not create a folder or move nodes, and single add/remove worked. The standalone in-memory model suite passed 21 cases including synthetic account roots and fake managed nodes. It does not establish real account Sync, real enterprise policy or physical accessibility.
+
+Guarded incremental build passed six steps and the zero-action guard. After the candidate verifier passed, the development profile was normally closed and a separate closed-profile backup verified seven session/preference files. PID86147 reopened the same profile and production blocker assets. The visible window showed four tab indicators with New Tab selected; the accessibility tree did not expose tab labels, so exact restored identities and unsaved page contents are not claimed. This is an interim safety restriction, not an independent Favorites store or shipping feature parity.
+
+`keyboard1.json` separately exercised the changed native Cmd+D path with a fresh synthetic profile: the warning appeared and both duplicate nodes remained in place; Cmd+D still added a previously unbookmarked page. These are CDP keyboard events, not physical-keyboard or VoiceOver acceptance.

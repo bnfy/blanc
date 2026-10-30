@@ -1,0 +1,39 @@
+{
+  "status": "draft durable Personal identity mapping store with root claim and profile marker; not yet connected to native registry or browser",
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "implementation": [
+    "private explicit initialization requires future trusted native registry; missing file alone grants no authority",
+    "exclusive root claim, profile owner marker and mapping record contain the same generated UUID, root binding and profile directory; each file is flushed and never overwritten",
+    "read requires all three matching records; incomplete, corrupt, foreign-root and newer-version records fail closed",
+    "missing profile marker prevents a reused profile directory inheriting former Personal identity",
+    "surviving root claim prevents another profile being initialized if the mapping record disappears",
+    "POSIX final-component symlinks refused with FLAG_NO_FOLLOW; Windows returns unsupported until race-safe reparse-point handling is implemented"
+  ],
+  "verified": [
+    "Mac synthetic root: valid first creation and separate-process restart retain same identity/path",
+    "duplicate initial assignment, alternate profile assignment, partial files, marker mismatch, missing marker and missing root mapping do not overwrite or reassign",
+    "foreign-root copy and newer record rejected",
+    "identity and profile-marker symlinks refused without altering targets",
+    "concurrent independent processes racing different profile assignments produced one winner, one refusal and a coherent matching mapping",
+    "external caller cannot access private initializer"
+  ],
+  "rawEvidence": "evidence/native-personal-identity-20261030",
+  "limitations": [
+    "not full local-profile registry and not installed as factory resolver; no real profile data or application modified",
+    "first-Personal creation/migration authorization, profile-manager binding, async load and UI still absent",
+    "file Flush is not proof of directory-entry durability or availability after sudden power loss; interrupted state fails closed, explicit recovery required",
+    "root and parent directory symlink/replacement races remain to be qualified; root binding hash is not cryptographic authentication against local writers",
+    "Windows intentionally unsupported until handle-based reparse-point safety is implemented; Linux and Windows runtime and crash tests not run",
+    "actual cross-platform singleton and real profile lifecycle qualification still required"
+  ],
+  "appBuild": false,
+  "deployed": false,
+  "realProfileIO": false,
+  "featureCredit": false,
+  "sourceSha256": {
+    "personal_identity_store.h": "f9fd895e4788e88e9ffe4f6c56a84694d3d4a6a7fd8b14e1115c4bdb4754a41f",
+    "personal_identity_store.cc": "febb79ef1e76630998338b3dbb6c695758e03ec6b17c986d1c416252b564ee27",
+    "personal_identity_store_test.cc": "d9a5a6857846c17e5f791044aa33a32663b82fcaaa4417fbae09e4eab3834183"
+  }
+}

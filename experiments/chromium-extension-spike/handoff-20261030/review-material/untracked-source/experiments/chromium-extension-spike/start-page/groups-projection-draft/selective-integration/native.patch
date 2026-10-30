@@ -1,0 +1,86 @@
+--- a/chrome/browser/ui/blanc_prototype_ui.cc
++++ b/chrome/browser/ui/blanc_prototype_ui.cc
+@@ -1946,6 +1946,83 @@
+     const auto& args = message[2].GetList();
+     auto* contents = web_ui()->GetWebContents();
+     auto* profile = Profile::FromWebUI(web_ui());
++    // Draft: resolve only the requesting Start Page's own browser and profile.
++    if ((method == "groupsRead" && args.empty()) ||
++        (method == "focusGroup" && args.size() == 1 && args[0].is_string())) {
++      if (profile->IsOffTheRecord()) {
++        if (method == "groupsRead") Reply(id, true, base::Value(base::ListValue()));
++        else Reply(id, true, base::Value(false));
++        return;
++      }
++      auto* browser = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(contents);
++      auto* model = browser ? browser->GetTabStripModel() : nullptr;
++      if (!browser || browser->GetProfile() != profile || !model) {
++        Reply(id, false, base::Value("Start Page groups unavailable")); return;
++      }
++      if (method == "groupsRead") {
++        base::ListValue groups;
++        for (const auto& group : GroupsInOrder(model)) {
++          const auto* visuals = GroupVisuals(model, group);
++          const auto* group_model = model->group_model();
++          const auto* native_group = group_model ? group_model->GetTabGroup(group) : nullptr;
++          if (!visuals || !native_group) continue;
++          const gfx::Range range = native_group->ListTabs();
++          if (range.is_empty()) continue;
++          groups.Append(base::DictValue().Set("id", group.ToString())
++              .Set("name", base::UTF16ToUTF8(visuals->title()))
++              .Set("color", GroupColor(visuals->color()))
++              .Set("count", static_cast<int>(range.length())));
++        }
++        Reply(id, true, base::Value(std::move(groups))); return;
++      }
++      // Require an active, visible, non-minimized owning window. Recheck
++      // after group notifications: they may synchronously destroy/move tabs.
++      auto* view = BrowserView::GetBrowserViewForBrowser(browser);
++      auto* widget = view ? view->GetWidget() : nullptr;
++      if (model->GetActiveWebContents() != contents || !widget ||
++          !widget->IsActive() || !widget->IsVisible() || widget->IsMinimized()) {
++        Reply(id, true, base::Value(false)); return;
++      }
++      const std::string group_id = args[0].GetString();
++      if (group_id.empty() || group_id.size() > 128) {
++        Reply(id, true, base::Value(false)); return;
++      }
++      const auto group = FindGroup(model, group_id);
++      const auto* group_model = model->group_model();
++      const auto* native_group = group && group_model ? group_model->GetTabGroup(*group) : nullptr;
++      const auto* visuals = group ? GroupVisuals(model, *group) : nullptr;
++      if (!group || !native_group || !visuals || native_group->ListTabs().is_empty()) {
++        Reply(id, true, base::Value(false)); return;
++      }
++      const auto weak_self = weak_factory_.GetWeakPtr();
++      const auto weak_contents = contents->GetWeakPtr();
++      if (visuals->is_collapsed()) model->ChangeTabGroupVisuals(*group,
++          tab_groups::TabGroupVisualData(visuals->title(), visuals->color(), false));
++      if (!weak_self || !weak_contents) return;
++      auto* again = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(weak_contents.get());
++      if (!again || again != browser || again->GetProfile() != profile) {
++        weak_self->Reply(id, true, base::Value(false)); return;
++      }
++      auto* current_model = again->GetTabStripModel();
++      auto* current_view = BrowserView::GetBrowserViewForBrowser(again);
++      auto* current_widget = current_view ? current_view->GetWidget() : nullptr;
++      if (!current_model || current_model->GetActiveWebContents() != weak_contents.get() ||
++          !current_widget || !current_widget->IsActive() || !current_widget->IsVisible() ||
++          current_widget->IsMinimized()) {
++        weak_self->Reply(id, true, base::Value(false)); return;
++      }
++      const auto current_group = FindGroup(current_model, group_id);
++      const auto* current_groups = current_model->group_model();
++      const auto* current = current_group && current_groups ? current_groups->GetTabGroup(*current_group) : nullptr;
++      const auto* current_visuals = current_group ? GroupVisuals(current_model, *current_group) : nullptr;
++      if (!current || !current_visuals || current_visuals->is_collapsed() ||
++          current->ListTabs().is_empty()) {
++        weak_self->Reply(id, true, base::Value(false)); return;
++      }
++      current_model->ActivateTabAt(static_cast<int>(current->ListTabs().start()));
++      if (weak_self) weak_self->Reply(id, true, base::Value(true));
++      return;
++    }
+     if (method == "installedTheme" && args.size() == 1 && args[0].is_string()) {
+       // The private Start Page never receives a regular-profile wallpaper.
+       if (profile->IsOffTheRecord()) { Reply(id, true, base::Value(base::DictValue())); return; }

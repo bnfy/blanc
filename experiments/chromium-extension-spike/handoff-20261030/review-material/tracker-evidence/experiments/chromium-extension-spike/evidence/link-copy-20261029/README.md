@@ -1,0 +1,7 @@
+# Tab-menu link copying
+
+Reference rechecked: shipping v1.45.0, source6f1bc523d2f0d432d5c4119b9f7ec22a324dbd2d. Reuses its raw-string cleanLink implementation; ten released cleaner tests pass (clean-link-tests.log). Copy Clean Link is shown only when cleaning changes the link. Copy Link is disabled for non-http(s)/file tabs. Native action binds the expected URL to the window-owned tab, refuses pending/changed pages, and restricts cleaned text to the same target outside the query.
+
+Candidate v14 built with one immediate compilation and8workers (maximum advertised629, cap7500), normal zero-action guard passed. Framework3a46f26f0bb207612ccb47abda0c7e9dc0d5bbad5afa0c748e6f06534653b3ad. Build records: ../../../../../../evidence/link-copy-incremental-20261029 (outer Chromium Preview evidence directory).
+
+../custom-tab-name-20261029/browser-link-copy-v1.json passes actual regular overlay Copy Clean Link and private native copy, byte-preserved remaining signed parameters, stale-target rejection without clipboard mutation, and two clean exits. The Swift wrapper retained all original clipboard representations in memory and restored them after matching the final test value; no original clipboard bytes were saved or printed. This is scripted Mac/local-page evidence, not complete physical/visual/a11y/cross-platform acceptance. Candidate not promoted while selected-search isolation remains unresolved.

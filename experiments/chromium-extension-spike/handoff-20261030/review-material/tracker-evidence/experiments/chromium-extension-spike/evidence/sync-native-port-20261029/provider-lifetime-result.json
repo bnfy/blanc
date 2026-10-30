@@ -1,0 +1,49 @@
+{
+  "status": "revocable owner-sequence provider gate prevents queued raw-pointer lookup after shutdown in isolated tests; production factory and shutdown integration remain unqualified",
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "implementation": [
+    "provider pointer exists only in a revocable gate owned and accessed on provider sequence; broker posts a shared gate rather than a raw process pointer",
+    "ProfileService invalidates its gate synchronously on its owner sequence before posting asynchronous engine shutdown",
+    "service strips raw process pointer and owner runner from inputs before handing the move-only config to worker",
+    "rejected provider-owner PostTask returns unavailable rather than crash or hang",
+    "pending lookups already started still use existing shutdown and generation redaction"
+  ],
+  "verified": [
+    "blocked owner sequence revoked gate and deleted synthetic provider before queued lookup; lookup returned unavailable with zero calls to destroyed object",
+    "rejected task runner returns unavailable and completes",
+    "service shutdown invalidates gate, destroys synthetic provider while callback is held, and suppresses late reply",
+    "late asynchronous model reply after shutdown sends no PUT",
+    "affected broker owner-sequence/private/stale/rewrap/shutdown suite passed",
+    "ordinary pending-erasure broker guard regression passed",
+    "seven affected consumers pass syntax checks"
+  ],
+  "sourceInspection": [
+    "Chromium 158 BrowserProcessImpl::StartTearDown resets profile_manager before BrowserProcessImpl destructor",
+    "ProfileImpl destructor calls PerformInterlockedTwoPhaseShutdown and dependency manager calls ContextShutdown before keyed-service destruction",
+    "these source relationships support the design but are not proof of live integrated lifecycle or all process shutdown paths"
+  ],
+  "rawEvidence": "evidence/native-sync-provider-lifetime-20261030",
+  "appBuild": false,
+  "deployed": false,
+  "realCredentialIO": false,
+  "liveNetworkRequests": 0,
+  "featureCredit": false,
+  "remaining": [
+    "actual factory must create provider gate on the real provider owner and revoke via profile service before process provider destruction",
+    "verify real Chromium process/profile shutdown and owner-runner delivery at runtime across platforms",
+    "qualified Personal routing and first-setup authority",
+    "production model isolation, settings UI, migration/pairing and platform acceptance",
+    "recompile all broker/engine/service users due to constructor and layout changes"
+  ],
+  "sourceSha256": {
+    "credential_broker.h": "1ae2fe6b3e07521682606505fa6297d9e3517f356a760928bd416d7eb4ea1bde",
+    "credential_broker.cc": "0262069ac804f88ca2e6351d5459c1b6e312568ffc370023270c46c5c56287b6",
+    "profile_engine.h": "337368dd8973af6b17d6b9be4608257990b136f65f84434fa59b134d3a2c7d12",
+    "profile_engine.cc": "ae95ddf943d8a16ef67e422510a2eed5e48e434bdeb72338de6c603c11ecc620",
+    "profile_service.h": "941578d0b4850f111d1bd938456fcb9a18fd27888a06b36190cb08d89cff67a2",
+    "profile_service.cc": "dd32a07312c6a4155f472179b07fc43e259459bef57010c5739c4e466ade8b8b",
+    "credential_provider_lifetime_test.cc": "7ebd4ee5e29c8ce3809dff5523584c275191e46e1ab0e57a1ff77202874b48fe",
+    "profile_service_engine_test.cc": "de7808678ba7af8047d10ef44dfb352fbca24eb67411a9c744f1dbbbec593582"
+  }
+}

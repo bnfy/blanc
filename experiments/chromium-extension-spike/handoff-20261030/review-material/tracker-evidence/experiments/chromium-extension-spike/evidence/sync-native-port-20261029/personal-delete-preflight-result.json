@@ -1,0 +1,29 @@
+{
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "status": "draft early deletion classification tested on synthetic directories only; no real hooks installed",
+  "verified": [
+    "unknown identity defers before scheduling",
+    "verified Personal is protected, named target receives tentative may-schedule decision",
+    "unsafe, missing, and symbolic-link paths defer or reject",
+    "identity invalidation after may-schedule causes destructive step to defer",
+    "case alias is protected or deferred on test filesystem",
+    "standalone Mac fixture and cached-object link passed"
+  ],
+  "limitations": [
+    "preflight is point-in-time; identity or target may change before UI side effects, so caller must serialize or recheck at the actual side-effect boundary",
+    "existing destructive callback remains vulnerable to directory replacement between lstat and use; no production deletion may rely on it",
+    "preflight performs filesystem calls and requires a MayBlock sequence",
+    "startup and shutdown cleanup, native UI, actual ProfileManager and Windows/Linux runtime remain unintegrated and unverified",
+    "not an app build, deployed change, real-profile test, or full parity credit"
+  ],
+  "rawEvidence": "Chromium Preview/evidence/native-personal-delete-preflight-20261030",
+  "appBuild": false,
+  "deployed": false,
+  "realProfileIO": false,
+  "sourceSha256": {
+    "personal_deletion_guard.h": "8dfd95d02722425242e8cf3c89da8a235eb077ef32f11dd28ef8d14c387c8fad",
+    "personal_deletion_guard.cc": "b2e0b68f39a8295ba4840726530973df00e7af9960475a22f0e4c2c192f584c3",
+    "personal_deletion_guard_test.cc": "401711730988faa61bd5cadd57e472cfccefd2addd596a47cc06bbfb424e00a4"
+  }
+}

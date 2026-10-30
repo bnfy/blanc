@@ -1,0 +1,71 @@
+--- a/third_party/blink/renderer/core/exported/web_image_test.cc
++++ b/third_party/blink/renderer/core/exported/web_image_test.cc
+@@ -58,6 +58,31 @@
+   EXPECT_EQ(image.width(), 1);
+   EXPECT_EQ(image.height(), 1);
+   EXPECT_EQ(SkColorSetARGB(255, 255, 255, 255), image.getColor(0, 0));
++}
++
++// The candidate bounded path uses real Blink image decoders.
++TEST_F(WebImageTest, BoundedDecodeDimensionLimits) {
++  scoped_refptr<SharedBuffer> png = ReadFile("notifications/48x48.png");
++  EXPECT_TRUE(WebImage::FromDataBounded(WebData(png), 0).isNull());
++  EXPECT_TRUE(WebImage::FromDataBounded(WebData(png), 48 * 48 - 1).isNull());
++  SkBitmap within = WebImage::FromDataBounded(WebData(png), 48 * 48);
++  ASSERT_FALSE(within.isNull());
++  EXPECT_EQ(within.width(), 48);
++  EXPECT_EQ(within.height(), 48);
++
++  const auto invalid = base::byte_span_from_cstring("not a raster image");
++  EXPECT_TRUE(WebImage::FromDataBounded(WebData(invalid), 100).isNull());
++}
++
++TEST_F(WebImageTest, BoundedDecodePreservesExifOrientation) {
++  scoped_refptr<SharedBuffer> data = ReadFile("exif-orientation-5-lu.jpg");
++  SkBitmap normal = WebImage::FromData(WebData(data), gfx::Size());
++  ASSERT_FALSE(normal.isNull());
++  SkBitmap bounded = WebImage::FromDataBounded(WebData(data), 16 * 1024 * 1024);
++  ASSERT_FALSE(bounded.isNull());
++  EXPECT_EQ(normal.width(), bounded.width());
++  EXPECT_EQ(normal.height(), bounded.height());
++  EXPECT_EQ(normal.getColor(0, 0), bounded.getColor(0, 0));
+ }
+ 
+ TEST_F(WebImageTest, ICOImage) {
+--- a/services/data_decoder/image_decoder_impl_unittest.cc
++++ b/services/data_decoder/image_decoder_impl_unittest.cc
+@@ -182,6 +182,34 @@
+   }
+ }
+ 
++// Exercise the bounded service against the actual JPEG and Blink decoders.
++TEST_F(ImageDecoderImplTest, DecodeImageBoundedLimits) {
++  auto jpeg = CreateJPEGImage(32, 16, SK_ColorRED);
++  ASSERT_TRUE(jpeg);
++  auto decode = [this](const std::vector<uint8_t>& data, uint32_t max_pixels) {
++    SkBitmap result;
++    bool replied = false;
++    decoder()->DecodeImageBounded(
++        {data}, max_pixels,
++        base::BindLambdaForTesting([&](const SkBitmap& image) {
++          result = image;
++          replied = true;
++        }));
++    EXPECT_TRUE(replied);
++    return result;
++  };
++  EXPECT_TRUE(decode(*jpeg, 0).isNull());
++  EXPECT_TRUE(decode(*jpeg, 32 * 16 - 1).isNull());
++  SkBitmap exact = decode(*jpeg, 32 * 16);
++  ASSERT_FALSE(exact.isNull());
++  EXPECT_EQ(exact.width(), 32);
++  EXPECT_EQ(exact.height(), 16);
++  EXPECT_TRUE(decode(*jpeg, 16 * 1024 * 1024 + 1).isNull());
++  EXPECT_TRUE(decode({}, 1).isNull());
++  EXPECT_TRUE(decode(std::vector<uint8_t>(5 * 1024 * 1024 + 1), 1).isNull());
++  EXPECT_TRUE(decode(std::vector<uint8_t>{0, 1, 2}, 1).isNull());
++}
++
+ TEST_F(ImageDecoderImplTest, DecodeImageFailed) {
+   // The "jpeg" is just some "random" data;
+   auto jpg = base::ToVector<unsigned char>("u gycfy7xdjkhfgui bdui ");

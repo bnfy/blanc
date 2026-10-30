@@ -1,0 +1,25 @@
+'use strict';
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+const path=require('node:path');
+const fs=require('node:fs');
+const crypto=require('node:crypto');
+const base='<local-home>/Documents/ChatGPT/Blanc Browser/Chromium Preview';
+const exe=base+'/workspaces/Chromium158-combined-copy-20261029/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype';
+const framework=base+'/workspaces/Chromium158-combined-copy-20261029/src/out/BlancPrototype/Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Blanc Prototype Framework';
+const sha=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
+const evidence=path.join(__dirname,'switcher-card-browser-result.json');if(fs.existsSync(evidence))throw Error('existing evidence preserved');
+const result={status:'started',checks:[],frameworkSha256:sha(framework),scriptSha256:sha(__filename),scope:'headless isolated DOM fixture in Chromium; no native keyboard, full UI composition, accessibility reader or other-platform proof'};
+assert.equal(result.frameworkSha256,'237242c7e2ddfab4d8fa49528b98a130c1e11dff9f80ffa1db39c0cdc8c06fa1');let browser;
+(async()=>{try{
+ browser=await chromium.launch({headless:true,executablePath:exe,args:[`--blanc-prototype-assets=${base}/artifacts/start-page-settings-shield-refresh-v11-20261030`,`--blanc-blocker-assets=${base}/artifacts/procedural-groups-combined-20261028`,'--disable-background-networking','--no-first-run','--no-default-browser-check','--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1','--proxy-server=http://127.0.0.1:9','--use-mock-keychain']});
+ const page=await browser.newPage({viewport:{width:800,height:600},reducedMotion:'reduce'});
+ await page.setContent('<style>:root{--surface-raised:white;--border:#888;--shadow-popover:none;--text:black;--accent-dim:#ddd;--surface:white;--accent:blue;--text-dim:#555}</style><input id="source"><div id="host"></div>');
+ await page.addStyleTag({path:path.join(__dirname,'switcher-card.css')});await page.addScriptTag({path:path.join(__dirname,'switcher-card.js')});
+ await page.evaluate(()=>{window.choices=[];window.translate=(key,p={})=>key==='tab.untitled'?'Untitled':key==='switcher.label'?'Tab switcher':`${key}:${p.title}:${p.position}/${p.count}`;window.widget=BlancSwitcherCard.createSwitcherCard({container:document.querySelector('#host'),translate,setFavicon:(el,tab)=>{el.className='favicon fallback';el.textContent=tab.id},tabDomain:tab=>new URL(tab.url).host,choose:id=>window.choices.push(id)});window.tabs=[{id:'a',title:'<img src=x onerror=alert(1)>',url:'https://a.example/'},{id:'b',title:'Second',url:'https://b.example/'},{id:'c',title:'Third',url:'https://c.example/'}];document.querySelector('#source').focus();window.widget.render({tabIds:['a','b','c'],pick:1},window.tabs,{announce:'open'});});
+ assert.equal(await page.locator('#source').evaluate(e=>document.activeElement===e),true);assert.equal(await page.locator('[role=listbox]').getAttribute('aria-label'),'Tab switcher');assert.equal(await page.locator('[role=option][aria-selected=true]').getAttribute('aria-label'),'Second');assert.equal(await page.locator('.switcher-status').textContent(),'switcher.opened:Second:2/3');
+ assert.equal(await page.locator('.switcher-card').evaluate(e=>getComputedStyle(e).animationName),'none');assert.equal(await page.locator('.switcher-tile').count(),3);result.checks.push('focus retained, selected option and live announcement, reduced motion');
+ await page.evaluate(()=>{window.stale=document.querySelector('[role=option]');widget.render({tabIds:['a','b','c'],pick:2},tabs,{announce:'step'});window.stale.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true}));});assert.deepEqual(await page.evaluate(()=>choices),[]);assert.equal(await page.locator('.switcher-status').textContent(),'switcher.step:Third:3/3');
+ await page.locator('[role=option]').first().dispatchEvent('mousedown');assert.deepEqual(await page.evaluate(()=>choices),['a']);assert.equal(await page.locator('#source').evaluate(e=>document.activeElement===e),true);assert.equal(await page.locator('.switcher-card img').count(),0);result.checks.push('stale click ignored, current click targets tab, title rendered as text');
+ await page.evaluate(()=>widget.render({tabIds:['a','gone'],pick:1},tabs));assert.equal(await page.locator('.switcher-card').isHidden(),true);assert.equal(await page.locator('[role=option]').count(),0);result.checks.push('missing picked tab fails closed and clears card');result.status='passed';
+ }catch(e){result.status='failed';result.error=String(e.stack||e);}finally{if(browser)await browser.close();fs.writeFileSync(evidence,JSON.stringify(result,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify(result));if(result.status!=='passed')process.exitCode=1;}})();

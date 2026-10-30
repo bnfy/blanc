@@ -1,0 +1,15 @@
+'use strict';
+const assert = require('node:assert/strict');
+const {identity,enrichPinFavicons:enrich} = require('./pin-favicon-policy.cjs');
+assert.deepEqual(identity('https://WWW.Example.com'), {url:'https://www.example.com/',site:'example.com'});
+assert.equal(identity('file:///etc/passwd'),null);
+const pins=[{url:'https://www.example.com/',title:'One'},{url:'https://other.example/path',title:'Two'}];
+let calls=[];
+const source={isPrivate:false,favorites:()=>[{url:'https://www.example.com',favicon:'fav'},{url:'https://www.example.com/',favicon:'later'}],siteIcon:key=>(calls.push(key),'history-'+key)};
+assert.deepEqual(enrich(pins,source).map(p=>p.favicon),['fav','history-other.example']);
+assert.deepEqual(calls,['other.example']);
+assert.deepEqual(pins,[{url:'https://www.example.com/',title:'One'},{url:'https://other.example/path',title:'Two'}]);
+const privateSource={isPrivate:true,favorites:()=>{throw Error('private read favorites')},siteIcon:()=>{throw Error('private read history')}};
+assert.deepEqual(enrich(pins,privateSource).map(p=>p.favicon),[null,null]);
+assert.deepEqual(enrich([{url:'https://example.com/',title:'X'}],{isPrivate:false,favorites:()=>[{url:'https://example.com',favicon:null},{url:'https://example.com/',favicon:'later'}],siteIcon:()=> 'history'}).map(p=>p.favicon),['history']);
+console.log('7 shipping selection and private no-read checks pass');

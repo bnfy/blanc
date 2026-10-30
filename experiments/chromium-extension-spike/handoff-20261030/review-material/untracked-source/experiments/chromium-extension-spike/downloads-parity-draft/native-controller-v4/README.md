@@ -1,0 +1,18 @@
+# Browser-owned Downloads controller v4 — isolated draft
+
+The latest published release and exact tag were rechecked for this work: Blanc v1.45.0, commit `6f1bc523d2f0d432d5c4119b9f7ec22a324dbd2d`. Released `src/main/downloads.js` combines the active profile family's regular and private downloads, reports active records first, and caps each finished store at 200; a blanket cap on all rows would omit active downloads.
+
+This candidate extends v3's exact-item observer and UI-sequence checks with a browser-created weak-document guard. Its intended browser-owned caller supplies the actual host WebContents, current primary frame and context from the owning window, not renderer IDs. The guard checks the exact live document, current primary frame/context, expected committed and visible URL, no pending navigation, WebUI process bindings, and consumes Chromium transient activation for cancellation. A failed bind revokes the preceding binding and handles. The guard is consulted before list issuance, reconciliation and cancellation, and checked again immediately before dispatch. `ReconcileVisible` accepts a **complete browser-produced** handle snapshot and removes no-longer-present handles; duplicate, unknown or expired tokens fail without mutating the map. The snapshot and its completeness are not established by this class and must never come from the renderer. No arbitrary all-row cap was added.
+
+The files are unregistered and do not provide a usable Downloads UI or product parity. **Still required before exposure:** authoritative owner-window-to-host binding; current live row visibility and warning/enterprise action policy at issuance and dispatch; bounded handle lifetimes even if snapshot publication fails or never occurs; actual manager readiness/history and primary OTR teardown/recreation; cancellation outcomes and safe retry; real `DownloadItem` observer/reentrancy tests; shipping-compatible early/blocked downloads, retry/clear/open/show, sheet UI and accessibility. Host focus/visibility and transient activation through the actual overlay must be tested; the trusted-frame checks are syntax-checked only, not an authorization proof. Model/observer operations and pending navigation can be reentrant, and true browser lifecycle behavior is untested. Do not register the draft or treat an issued cancellation as confirmed success.
+
+The actual `ReconcileSnapshot` template was exercised with a focused fake map against missing, duplicate, expired, removal and empty snapshots using `xcrun clang++ -std=c++20 -Wall -Wextra -Werror .../reconcile-test.cc -o .../reconcile-test`, then the executable exited 0 with assertions enabled. The pinned Chromium 158 clang syntax-only command for `trusted-document.cc` exited 0 (`trusted-document-command.json`, `trusted-document-syntax.log`); controller syntax check after failed-rebind revocation exited 0 (`syntax-v2-command.json`, `syntax-v2.log`). They use the inherited environment and do not pin all transitive inputs. No real browser, DownloadItem, user profile, native build, integration or release gate was exercised.
+
+Frozen SHA-256:
+- `download-controller.cc`: `e265d51eb923833c140fad438e69a8d1696e629eed140f80cb2d5aab74d06624`
+- `download-controller.h`: `b053719a0ad8e8c751286aaf735b2b96caecee4c2c140792c4cb342a688da28f`
+- `item-lifetime.h`: `8fa5830e2f75b83c51e8ad0db9c457be9b46b9abeaff9300e5ed01192ead3692`
+- `trusted-document.cc`: `14b899d6a3bee30f14387480bbf793816e2fba86c55e9d0de13150e324948409`
+- `trusted-document.h`: `f0036177aeb5861e58c49450a5ec94951669c3639c73a74496eda28c6f2f6720`
+- `reconcile.h`: `95c82a9df7c763644246905ea8282882b0adeb99e4313d4a0e7839d70b1ea91c`
+- `reconcile-test.cc`: `e26381a3f6f56551250ea7c9521dc74e0944f282c0bf55ea88b49d3f214efe05`

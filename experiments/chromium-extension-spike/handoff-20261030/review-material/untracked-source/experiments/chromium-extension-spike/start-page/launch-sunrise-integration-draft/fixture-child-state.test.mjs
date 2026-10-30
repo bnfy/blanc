@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {EventEmitter} from 'node:events';
+import {observeChild} from './fixture-child-state.mjs';
+const fake=(pid=123)=>Object.assign(new EventEmitter(),{pid,exitCode:null,signalCode:null});
+let child=fake(),state=observeChild(child);
+assert.equal(state.exited(),false);
+child.emit('error',Error('kill failed'));
+assert.equal(state.exited(),false,'a later process error must retain locks');
+child.emit('exit',null,'SIGTERM');assert.equal(state.exited(),true);
+console.log('PASS failed kill is not an exit; observed exit permits release');
+child=fake(undefined);delete child.pid;state=observeChild(child);child.emit('error',Error('spawn failed'));assert.equal(state.exited(),true);
+console.log('PASS initial spawn failure with no PID has no child to retain');
+child=fake();state=observeChild(child);child.signalCode='SIGTERM';assert.equal(state.exited(),true);
+child=fake();state=observeChild(child);child.exitCode=0;assert.equal(state.exited(),true);
+child=new EventEmitter();child.pid=123;state=observeChild(child);assert.equal(state.exited(),false);
+console.log('PASS explicit signal/exit statuses count; missing status remains uncertain');

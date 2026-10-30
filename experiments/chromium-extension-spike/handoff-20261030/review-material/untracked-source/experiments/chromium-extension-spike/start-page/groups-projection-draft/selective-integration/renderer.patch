@@ -1,0 +1,142 @@
+--- a/pages/newtab.js
++++ b/pages/newtab.js
+@@ -564,6 +564,7 @@
+   const chip = document.createElement('button');
+   chip.type = 'button';
+   chip.className = 'group-chip';
++  chip.dataset.groupId = group.id;
+   const dots = document.createElement('span');
+   dots.className = 'chip-dots';
+   for (let i = 0; i < Math.min(group.count, 5); i++) dots.appendChild(document.createElement('i'));
+@@ -706,6 +707,7 @@
+ const state = {
+   layout: 'billboard',
+   groups: [],
++  groupsUnavailable: false,
+   blockerStatisticsAvailable: false,
+   blockedThisWeek: 0,
+   blockedByDay: [0, 0, 0, 0, 0, 0, 0],
+@@ -730,14 +732,65 @@
+ const DAY_NAMES = weekdays('long');
+ const todayIndex = () => (new Date().getDay() + 6) % 7;
+ 
++function appendGroupFailure(container) {
++  const status = document.createElement('span');
++  status.setAttribute('role', 'status');
++  status.textContent = `${t('newtab.groups')} — ${t('shield.badge.unavailable')} `;
++  const retry = document.createElement('button');
++  retry.type = 'button'; retry.dataset.groupRetry = 'true';
++  retry.textContent = t('error.retry');
++  retry.addEventListener('click', () => window.blancRetryStartGroups?.());
++  container.append(status, retry);
++}
++function groupProjectionSignature(groups) {
++  return JSON.stringify([state.groupsUnavailable, groups]);
++}
++function renderGroupChips(name, groups) {
++  const node = document.getElementById(name);
++  const signature = groupProjectionSignature(groups);
++  if (node.dataset.groupProjectionSignature === signature) return;
++  node.replaceChildren();
++  node.hidden = !groups.length && !state.groupsUnavailable;
++  if (name === 'shGroups') node.closest('.shelf-card').hidden = !groups.length && !state.groupsUnavailable;
++  if (name === 'tlGroups') document.querySelector('.tally-label-groups').hidden = !groups.length && !state.groupsUnavailable;
++  for (const group of groups) node.appendChild(groupChip(group, { withCount: name === 'shGroups' }));
++  if (state.groupsUnavailable) appendGroupFailure(node);
++  node.dataset.groupProjectionSignature = signature;
++}
++// Update only group elements, preserving a keyboard target by stable group ID.
++window.blancApplyStartGroups = (groups, unavailable) => {
++  const same = state.groupsUnavailable === unavailable && JSON.stringify(state.groups) === JSON.stringify(groups);
++  if (same) return;
++  const containers = ['groupsList', 'bbGroups', 'shGroups', 'tlGroups'].map(id => document.getElementById(id));
++  const active = document.activeElement;
++  const within = containers.find(node => node?.contains(active));
++  const groupId = within && active?.dataset?.groupId;
++  const wasRetry = within && active?.dataset?.groupRetry === 'true';
++  state.groups = groups; state.groupsUnavailable = unavailable;
++  renderLedgerGroups(groups);
++  for (const name of ['bbGroups', 'shGroups', 'tlGroups']) renderGroupChips(name, groups);
++  if (within) {
++    const replacement = groupId && [...within.querySelectorAll('[data-group-id]')].find(x => x.dataset.groupId === groupId);
++    const retry = within.querySelector('[data-group-retry]');
++    // The group section may now be hidden (last group removed or empty
++    // recovery). Use the always-visible Start Page content as the fallback.
++    const fallback = (groupId || wasRetry) ? document.getElementById('startContent') : null;
++    const focusTarget = replacement || retry || fallback;
++    if (focusTarget) { if (focusTarget === fallback) fallback.tabIndex = -1; focusTarget.focus(); }
++  }
++};
++
+ function renderLedgerGroups(groups) {
+   const section = document.getElementById('groupsSection');
+   const list = document.getElementById('groupsList');
++  const signature = groupProjectionSignature(groups);
++  if (list.dataset.groupProjectionSignature === signature) return;
+   list.replaceChildren();
+-  section.hidden = !groups.length;
++  section.hidden = !groups.length && !state.groupsUnavailable;
+   for (const g of groups) {
+     const row = document.createElement('button');
+     row.className = 'fav group-row';
++    row.dataset.groupId = g.id;
+     const cluster = document.createElement('span');
+     cluster.className = 'cluster';
+     for (let i = 0; i < Math.min(g.count, 5); i++) cluster.appendChild(document.createElement('i'));
+@@ -753,6 +806,8 @@
+     row.addEventListener('click', () => window.bowserPages.start.focusGroup(g.id));
+     list.appendChild(row);
+   }
++  if (state.groupsUnavailable) appendGroupFailure(list);
++  list.dataset.groupProjectionSignature = signature;
+ }
+ 
+ function renderBillboard() {
+@@ -835,10 +890,7 @@
+     favs.appendChild(item);
+   }
+ 
+-  const groups = document.getElementById('bbGroups');
+-  groups.replaceChildren();
+-  groups.hidden = !state.groups.length;
+-  for (const g of state.groups) groups.appendChild(groupChip(g));
++  renderGroupChips('bbGroups', state.groups);
+ }
+ 
+ function visibleBillboardSites() {
+@@ -916,12 +968,7 @@
+     grid.appendChild(pinnableFavorite(b, tileLink, 'shelf-item'));
+   }
+ 
+-  const groups = document.getElementById('shGroups');
+-  groups.replaceChildren();
+-  // The whole "pick up where you left off" card goes, not just its chips —
+-  // a labeled empty card is an empty state with copy, which the spec forbids.
+-  groups.closest('.shelf-card').hidden = !state.groups.length;
+-  for (const g of state.groups) groups.appendChild(groupChip(g, { withCount: true }));
++  renderGroupChips('shGroups', state.groups);
+ }
+ 
+ function renderTally() {
+@@ -935,11 +982,7 @@
+   if (!tallyTiles.length) favs.appendChild(emptyFavoritesHint());
+   for (const b of tallyTiles) favs.appendChild(pinnableFavorite(b, favRow(b), 'fav-item'));
+ 
+-  const groups = document.getElementById('tlGroups');
+-  groups.replaceChildren();
+-  groups.hidden = !state.groups.length;
+-  document.querySelector('.tally-label-groups').hidden = !state.groups.length;
+-  for (const g of state.groups) groups.appendChild(groupChip(g));
++  renderGroupChips('tlGroups', state.groups);
+ 
+   // Bars run oldest to newest so today lands last, under its own initial.
+   const chart = document.getElementById('tlChart');
+@@ -1797,7 +1840,7 @@
+   migrationChecklistUtilitySheetVisible = data.utilitySheetVisible === true;
+   Object.assign(state, {
+     layout: data.layout ?? 'billboard',
+-    groups: data.groups,
++    groups: data.groups ?? state.groups,
+     blockerStatisticsAvailable: data.blockerStatisticsAvailable === true,
+     blockedThisWeek: data.blockedThisWeek,
+     blockedByDay: data.blockedByDay ?? state.blockedByDay,

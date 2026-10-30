@@ -1,0 +1,25 @@
+{
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "status": "native coordinator checks required live cancellation guard before dispatch and cache commit in isolated fixture",
+  "reason": "BlobExchange currently checks request cancellation only after its asynchronous planner finishes; a planner that commits early needs that guard at its own commit boundary",
+  "verified": [
+    "same-account held model result is cancelled by changed request generation and leaves cache bytes unchanged",
+    "missing guard is refused",
+    "existing account-switch, erasure, busy and shutdown coordinator checks pass with real V8 and synthetic profile"
+  ],
+  "limitations": [
+    "BlobExchange does not currently pass its final controller/queue dispatch guard into async planners; do not hook this coordinator to production transport yet",
+    "remote payload still requires authentication and account binding by credential broker",
+    "guard must be called on same owning sequence, must not reenter coordinator, and must reflect actual lifecycle/generation; unqualified caller can supply a dishonest guard",
+    "app, real network, renderer and platform integration and Windows/Linux tests remain open"
+  ],
+  "rawEvidence": "evidence/native-sync-tab-cancel-20261030",
+  "appBuild": false,
+  "deployed": false,
+  "sourceSha256": {
+    "tab_sync_coordinator.h": "9c0b4f3e784b72850656ecd81779e4a0f704b7d50515a73dbd9ee7519448df5d",
+    "tab_sync_coordinator.cc": "9b64fb940f356d3971be33169a73f55c242f68f32dd9fe98dce8008434db0786",
+    "tab_sync_coordinator_test.cc": "2e634f110349ca3bcbc68a34cb8547f64faa9647e51759f1ca97cf4f53c651d0"
+  }
+}

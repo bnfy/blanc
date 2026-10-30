@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self';" />
+  <script src="strings.js"></script>
+  <script src="i18n.js"></script>
+  <title data-i18n="pagesNav.downloads">Downloads</title>
+  <link rel="icon" type="image/png" href="icon-sunrise.png" />
+  <link rel="stylesheet" href="pages.css" />
+</head>
+<body class="sheet">
+  <div class="page">
+    <nav class="page-nav">
+      <a href="blanc://settings/" data-i18n="pagesNav.settings">Settings</a>
+      <a href="blanc://bookmarks/" data-i18n="pagesNav.bookmarks">Favorites</a>
+      <a href="blanc://history/" data-i18n="pagesNav.history">History</a>
+      <a href="blanc://downloads/" class="current" data-i18n="pagesNav.downloads">Downloads</a>
+    </nav>
+    <div class="page-head">
+      <h1 data-i18n="pagesNav.downloads">Downloads</h1>
+      <button id="clearFinished" data-i18n="downloads.clearFinished">Clear finished</button>
+    </div>
+    <div id="list" class="row-list aligned"></div>
+  </div>
+  <script src="sheet.js"></script>
+  <script src="downloads-row-model.js"></script>
+  <script src="downloads.js"></script>
+</body>
+</html>

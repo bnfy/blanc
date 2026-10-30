@@ -1,0 +1,45 @@
+{
+  "status": "native encrypted asynchronous V8 departure exchange passed six fake-server scenarios; synchronous eight-scenario regression passed",
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "asyncRuntimeExit": 0,
+  "asyncScenarios": 6,
+  "syncRegressionExit": 0,
+  "syncScenarios": 8,
+  "implementation": [
+    "native plan_async completion posted back to exchange owner via BindPostTask",
+    "account/generation cancellation rechecked after asynchronous model work before encryption/PUT",
+    "lossless native V8 departure adapter receives JSON text only; keys/providers remain outside VM",
+    "remote JSON serialized as a separate string and parsed independently of fixed native device/clock metadata",
+    "legacy synchronous planners retain strict native validation"
+  ],
+  "verified": [
+    "encrypted GET authenticates peer lone-surrogate/overflow-number payload; V8 plan preserves surrogate and ECMAScript stringify semantics in encrypted PUT",
+    "old own-device content removed; peer future data retained; optimistic version preserved",
+    "malformed authenticated JSON rejected before PUT",
+    "JSON text attempting native metadata injection rejected before PUT",
+    "missing own device returns unchanged without PUT",
+    "generation cancellation while model task queued prevents PUT/stored callback",
+    "completion deliberately forwarded from model thread resumes on native exchange owner",
+    "existing sync-path conflict/quota/rate-limit/stale/tag/optional/erasure/quota scenarios pass"
+  ],
+  "appBuild": false,
+  "deployed": false,
+  "featureCredit": false,
+  "liveNetworkRequests": 0,
+  "realCredentialIO": false,
+  "rawEvidence": [
+    "evidence/native-sync-async-model-20261030/async-run-v4-result.json",
+    "evidence/native-sync-async-model-20261030/sync-run-v4-result.json"
+  ],
+  "remaining": [
+    "bounded immediate-only departure dispatch through drained worker with five-second timeout and one conflict retry",
+    "native Profile/utility-process lifecycle and model authority wiring",
+    "heap/watchdog/full cache size semantics and full model/platform/UI qualification"
+  ],
+  "linkFailuresPreserved": [
+    "missing UniformTypeIdentifiers framework",
+    "duplicate explicit SuperFastHash already supplied by cached Gin closure"
+  ],
+  "integrationBuildNote": "BlobModelHooks layout changed; rebuild all consuming controller/engine/service/fixture units in subsequent standalone integrations; do not mix old native objects"
+}

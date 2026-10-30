@@ -1,0 +1,82 @@
+--- a/pages/newtab-adapter.js
++++ b/pages/newtab-adapter.js
+@@ -61,6 +61,14 @@
+   let clockValue = null;
+   let sharedLayout = null;
+   let clockEpoch = 0, layoutEpoch = 0;
++  let groupEpoch = 0;
++  function validateGroupSnapshot(snapshot) {
++    if (!Array.isArray(snapshot) || snapshot.some(g => !g || typeof g.id !== 'string' ||
++      typeof g.name !== 'string' || typeof g.color !== 'string' ||
++      !Number.isSafeInteger(g.count) || g.count < 1)) throw new Error('Invalid group snapshot');
++    return snapshot;
++  }
++
+   const isPrivatePage = new URLSearchParams(location.search).has("private");
+   const preferences = () => {
+     const saved = read();
+@@ -89,10 +97,10 @@
+     pending.delete(id);
+     if (success) task.resolve(value); else task.reject(new Error(value));
+   };
+-  function request(method, args = []) {
++  function request(method, args = [], timeoutMs = 10000) {
+     return new Promise((resolve, reject) => {
+       const id = String(++nextId);
+-      const timer = setTimeout(() => { pending.delete(id); reject(new Error('New tab request timed out')); }, 10000);
++      const timer = setTimeout(() => { pending.delete(id); reject(new Error('New tab request timed out')); }, timeoutMs);
+       pending.set(id, { resolve, reject, timer });
+       chrome.send('blancNewTab', [id, method, args]);
+     });
+@@ -261,9 +269,16 @@
+             topSitesStatus(false);
+           } catch (error) { if (epoch === topSitesEpoch) suppressRankedSites(); console.warn(error.message); }
+         }
+-        // Preserve unrelated clock/layout/wallpaper data if ranked sites fail.
+-        return { ...preferences(), groups: [], remoteDevices: [], blockedThisWeek: 0,
++        // Group reads run independently after Start Page data is ready.
++        return { ...preferences(), remoteDevices: [], blockedThisWeek: 0,
+           topSites, __topSitesAvailable: available, __topSitesEpoch: epoch, wallpaperVisible: !document.hidden };
++      },
++      focusGroup: async id => {
++        if (isPrivatePage || typeof id !== 'string' || !id) return false;
++        ++groupEpoch;
++        try { return (await request('focusGroup', [id])) === true; }
++        catch (error) { console.warn('Start Page group unavailable', error); return false; }
++        finally { ++groupEpoch; }
+       },
+       setClock: async partial => {
+         if (!clockAdapter) throw new Error('Clock controls unavailable');
+@@ -381,12 +396,32 @@
+       }
+     } finally { refreshRunning = false; }
+   }
++  // Optional group reads never occupy the other Start Page refresh queue.
++  // One in-flight request at a time; hidden/private pages send none.
++  let groupReadInFlight = false;
++  async function queueGroups() {
++    if (isPrivatePage || document.hidden || !startDataReady || groupReadInFlight) return;
++    groupReadInFlight = true;
++    const epoch = groupEpoch;
++    try {
++      const groups = validateGroupSnapshot(await request('groupsRead', [], 1500));
++      if (epoch === groupEpoch && !document.hidden) window.blancApplyStartGroups?.(groups, false);
++    } catch (error) {
++      if (epoch === groupEpoch && !document.hidden) window.blancApplyStartGroups?.([], true);
++      console.warn('Start Page groups unavailable', error);
++    } finally { groupReadInFlight = false; }
++  }
++  window.blancRetryStartGroups = queueGroups;
++  document.addEventListener('visibilitychange', queueGroups);
++  document.addEventListener('blancStartDataReady', queueGroups);
++  setInterval(queueGroups, 1000);
+   function scheduleRefresh() {
+     if (startDataReady && !refreshRunning && refreshTimer === null && pendingRefresh.size)
+       refreshTimer = setTimeout(drainRefresh, 80);
+   }
+   document.addEventListener('blancStartDataReady', () => {
+     startDataReady = true;
++    queueGroups();
+     scheduleRefresh();
+   }, { once: true });
+   window.blancNewTabEvent = (kind) => {

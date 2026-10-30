@@ -1,0 +1,34 @@
+{
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "status": "isolated account/revision-bound cache storage draft; coordinator and app integration absent",
+  "implementation": [
+    "uses existing Personal ProfileStateStore and ready marker; account, revision, enabled and erasure state checked on owner sequence",
+    "stores opaque model JSON inside bounded profile/account envelope using atomic writer; POSIX no-follow read",
+    "does not return a different account cache; write is private to future trusted coordinator",
+    "refuses overwrite of corrupt, wrong-profile or unreadable prior cache"
+  ],
+  "verified": [
+    "real synthetic files survive reopening a new ProfileStateStore instance",
+    "account replacement denies stale read and stale commit without changing old file; new account sees missing",
+    "pending erasure blocks read and commit; corrupt file remains unchanged; symlink is refused and target preserved",
+    "private profile denied; Unicode escape text preserved; unauthorized commit rejected at compile time"
+  ],
+  "limitations": [
+    "model JSON is opaque and commit trusts its native coordinator; future coordinator must validate returned model output and bind account/revision before calling",
+    "not connected to model runner, Profile service, network, renderer or real profiles; no cross-process restart, power-loss, account rollback or concurrent external writer qualification",
+    "profile state operations and cache commits must all run on one MayBlock owner sequence; no cross-process lock or descriptor-bound parent validation",
+    "Windows deliberately refuses cache reads pending handle/reparse qualification; Linux runtime untested",
+    "encryption-at-rest, shipping cache migration, full size/large-cache compatibility, production permissions and cross-platform acceptance remain open"
+  ],
+  "rawEvidence": "evidence/native-sync-tab-cache-20261030",
+  "appBuild": false,
+  "deployed": false,
+  "realProfileIO": false,
+  "sourceSha256": {
+    "profile_state_store.h": "6ed5635f6238809b7e6de30ed14241513f8a9e314a9af1f7304e6697cec7bea2",
+    "tab_cache_store.h": "ccd18f2ad9bb9165c62715d41a19764c0656ffe83d0106c129367dc1d08e46c5",
+    "tab_cache_store.cc": "4c10bd806aa84c1b7ceef2beae097622cab8b8af571fad9f434bee4bc5fffcf1",
+    "tab_cache_store_test.cc": "1e1f9f5cc372c3431297689ed9d6ce089b710f2a04e3075c92c7acbeb49b00b1"
+  }
+}

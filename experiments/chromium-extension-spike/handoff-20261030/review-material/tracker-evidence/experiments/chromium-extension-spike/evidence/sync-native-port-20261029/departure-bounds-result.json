@@ -1,0 +1,42 @@
+{
+  "status": "departure exchange bounds passed isolated fake-server checks; controller and model wiring incomplete",
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "checked": [
+    "one 409 retry then conflict; two charged GETs and PUTs",
+    "missing record cannot trigger planner or PUT",
+    "last available request slot permits one GET and PUT but no delayed retry",
+    "exhausted budget permits no request, persistence, or timer",
+    "held GET timeout near five seconds",
+    "held PUT timeout near five seconds"
+  ],
+  "implementation": [
+    "native departure mode marks queue immediate-only",
+    "native departure mode never creates a missing record",
+    "native departure mode limits conflict retries to one",
+    "GET and PUT select a five-second native transport deadline; normal requests retain 30 seconds",
+    "controller and engine still not wired to departure mode"
+  ],
+  "evidence": "<local-home>/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/native-sync-departure-bounds-20261030",
+  "runtimeResults": [
+    "run-result.json scenarios 8-12 exit 0",
+    "put-timeout-v2-result.json scenario 13 exit 0"
+  ],
+  "limitations": [
+    "no real profile, network, credential or app build",
+    "no production feature or cross-platform parity credit",
+    "draft model runtime still needs isolation and resource qualification",
+    "all BlobExchange callers and BlobTransport Request consumers must rebuild due to signature and struct changes"
+  ],
+  "retainedFailures": [
+    "test compile CHECK_EQ could not print optional; fixed assertion",
+    "first held-PUT fixture reused fake GET response; cleared only fake response and reran"
+  ],
+  "sourceSha256": {
+    "blob_transport.h": "1d1f77d906e8cd6d6ed2a15dc4b59a3a55c81a70edffa19a0f5417690f68a417",
+    "blob_transport.cc": "d64a7eed094d53978e34354678de264e70bcd08b0eeaefd117921740fa22cc63",
+    "blob_exchange.h": "068b1c6708533958c12a94a915de45032c304aa4e51bd07e1385cb2182146ca9",
+    "blob_exchange.cc": "1f325b015d8784db6d14405243e2d4969f0997defd7e7faac74616517220c026",
+    "blob_exchange_test.cc": "4f4bbfe13d99627265720f1911e9d6f764f85a1b0ff343b4ff487e6d7b31556e"
+  }
+}

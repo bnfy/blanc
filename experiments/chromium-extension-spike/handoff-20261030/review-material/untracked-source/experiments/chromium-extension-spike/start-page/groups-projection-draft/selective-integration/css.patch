@@ -1,0 +1,13 @@
+--- a/pages/newtab-prototype.css
++++ b/pages/newtab-prototype.css
+@@ -1,9 +1,7 @@
+ /* These Electron services are not implemented by the Chromium prototype. */
+ #startupCard, #onboardScrim, #onboardDialog, #patronCallout,
+ #migrationChecklistShell, #mahjongLink, #version,
+-#bbGroups, #groupsSection, #remoteSection,
+-.shelf-card-groups, .shelf-card-blocked, .tally-label-groups,
+-#tlGroups, .tally-right { display: none !important; }
++#remoteSection, .shelf-card-blocked, .tally-right { display: none !important; }
+ /* Regular counts are unavailable; retain shipping's private explanations. */
+ :root:not([data-theme="private"]) #footerLeft,
+ :root:not([data-theme="private"]) #bbBlocked { display: none !important; }

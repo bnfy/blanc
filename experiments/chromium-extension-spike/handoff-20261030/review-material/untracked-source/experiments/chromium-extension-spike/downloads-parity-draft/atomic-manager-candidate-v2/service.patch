@@ -1,0 +1,131 @@
+--- a/epoch-service.h
++++ b/epoch-service.h
+@@ -1,6 +1,7 @@
+ #ifndef BLANC_DOWNLOADS_EPOCH_SERVICE_DRAFT_H_
+ #define BLANC_DOWNLOADS_EPOCH_SERVICE_DRAFT_H_
+ #include <optional>
++#include "base/memory/raw_ptr.h"
+ #include "base/memory/weak_ptr.h"
+ #include "base/scoped_observation.h"
+ #include "base/sequence_checker.h"
+@@ -20,11 +21,10 @@
+   struct Lease { Scope scope; base::UnguessableToken family; base::UnguessableToken context; };
+   explicit EpochService(Profile* regular_owner);
+   ~EpochService() override;
+-  // A future trusted browser lifecycle owner must prove the supplied manager
+-  // has not begun shutdown AND atomically register observation before it can
+-  // do so, on the UI sequence. Pointer existence is not such proof.
+-  // No existing caller establishes this; renderer input is never accepted.
+-  // This does not create or initialize a DownloadManager or private profile.
++  // Trusted caller supplies a currently live context and manager on UI.
++  // AddObserverIfRunning provides manager-shutdown registration, but not
++  // caller/profile/document authorization or proof of pointer lifetime.
++  // No renderer input is accepted and no manager or OTR profile is created.
+   bool Adopt(Scope scope, Profile* context, content::DownloadManager* manager);
+   // Internal lease; not an authorization token or renderer-visible identifier.
+   std::optional<Lease> Capture(Scope scope) const;
+@@ -44,8 +44,8 @@
+   base::UnguessableToken private_epoch_;
+   base::ScopedObservation<Profile, ProfileObserver> owner_observation_{this};
+   base::ScopedObservation<Profile, ProfileObserver> private_observation_{this};
+-  base::ScopedObservation<content::DownloadManager, content::DownloadManager::Observer> regular_manager_{this};
+-  base::ScopedObservation<content::DownloadManager, content::DownloadManager::Observer> private_manager_{this};
++  raw_ptr<content::DownloadManager> regular_manager_ = nullptr;
++  raw_ptr<content::DownloadManager> private_manager_ = nullptr;
+   SEQUENCE_CHECKER(sequence_checker_);
+   base::WeakPtrFactory<EpochService> weak_factory_{this};
+ };
+--- a/epoch-service.cc
++++ b/epoch-service.cc
+@@ -10,23 +10,23 @@
+ }
+ EpochService::~EpochService() { Shutdown(); }
+ bool EpochService::OwnerCurrent() const {
+-  return !closed_ && owner_ && !family_.is_empty() &&
+-         !owner_->ShutdownStarted() && owner_->IsRegularProfile() && !owner_->IsOffTheRecord();
++  return !closed_ && owner_ && !family_.is_empty() && !owner_->ShutdownStarted() &&
++         owner_->IsRegularProfile() && !owner_->IsOffTheRecord();
+ }
+ bool EpochService::Adopt(Scope scope, Profile* context, content::DownloadManager* manager) {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+   if (!OwnerCurrent() || !context || context->ShutdownStarted() || !manager ||
+       manager->GetBrowserContext() != context) return false;
+   if (scope == Scope::kRegular) {
+-    if (context != owner_.get() || regular_manager_.IsObserving()) return false;
+-    auto weak = weak_factory_.GetWeakPtr();
+-    regular_manager_.Observe(manager);
+-    if (!weak || !OwnerCurrent() || context->ShutdownStarted() ||
+-        !regular_manager_.IsObservingSource(manager)) return false;
++    if (context != owner_.get() || regular_manager_) return false;
++    // API contract prohibits callbacks/reentrancy during this registration.
++    if (!manager->AddObserverIfRunning(this)) return false;
++    regular_manager_ = manager;
++    if (!OwnerCurrent() || context->ShutdownStarted()) { ResetRegular(); return false; }
+     regular_epoch_ = base::UnguessableToken::Create();
+     return true;
+   }
+-  if (scope != Scope::kPrimaryPrivate || private_manager_.IsObserving() ||
++  if (scope != Scope::kPrimaryPrivate || private_manager_ || private_observation_.IsObserving() ||
+       context != owner_->GetPrimaryOTRProfile(/*create_if_needed=*/false) ||
+       !context->IsIncognitoProfile() || !context->IsPrimaryOTRProfile() ||
+       context->GetOriginalProfile() != owner_.get()) return false;
+@@ -34,21 +34,21 @@
+   auto context_weak = context->GetWeakPtr();
+   private_ = context_weak;
+   private_observation_.Observe(context);
+-  if (!weak || !context_weak || context_weak->ShutdownStarted() || !OwnerCurrent()) return false;
+-  private_manager_.Observe(manager);
+-  if (!weak || !context_weak || context_weak->ShutdownStarted() || !OwnerCurrent() ||
+-      !private_manager_.IsObservingSource(manager)) return false;
++  if (!weak) return false;
++  if (!context_weak || context_weak->ShutdownStarted() || !OwnerCurrent()) { ResetPrivate(); return false; }
++  if (!manager->AddObserverIfRunning(this)) { ResetPrivate(); return false; }
++  private_manager_ = manager;
++  if (!context_weak || context_weak->ShutdownStarted() || !OwnerCurrent()) { ResetPrivate(); return false; }
+   private_epoch_ = base::UnguessableToken::Create();
+   return true;
+ }
+ std::optional<EpochService::Lease> EpochService::Capture(Scope scope) const {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+   if (!OwnerCurrent()) return std::nullopt;
+-  if (scope == Scope::kRegular && regular_manager_.IsObserving() && !regular_epoch_.is_empty())
++  if (scope == Scope::kRegular && regular_manager_ && !regular_epoch_.is_empty())
+     return Lease{scope, family_, regular_epoch_};
+   if (scope == Scope::kPrimaryPrivate && private_ && !private_->ShutdownStarted() &&
+-      private_manager_.IsObserving() &&
+-      !private_epoch_.is_empty()) return Lease{scope, family_, private_epoch_};
++      private_manager_ && !private_epoch_.is_empty()) return Lease{scope, family_, private_epoch_};
+   return std::nullopt;
+ }
+ bool EpochService::IsCurrent(const Lease& lease) const {
+@@ -57,13 +57,17 @@
+ }
+ void EpochService::ResetPrivate() {
+   private_epoch_ = base::UnguessableToken();
+-  private_manager_.Reset();
++  auto* manager = private_manager_.get();
++  private_manager_ = nullptr;
++  if (manager) manager->RemoveObserver(this);
+   private_observation_.Reset();
+   private_.reset();
+ }
+ void EpochService::ResetRegular() {
+   regular_epoch_ = base::UnguessableToken();
+-  regular_manager_.Reset();
++  auto* manager = regular_manager_.get();
++  regular_manager_ = nullptr;
++  if (manager) manager->RemoveObserver(this);
+ }
+ void EpochService::OnProfileWillBeDestroyed(Profile* profile) {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+@@ -72,8 +76,8 @@
+ }
+ void EpochService::ManagerGoingDown(content::DownloadManager* manager) {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+-  if (regular_manager_.IsObservingSource(manager)) ResetRegular();
+-  if (private_manager_.IsObservingSource(manager)) ResetPrivate();
++  if (regular_manager_.get() == manager) ResetRegular();
++  if (private_manager_.get() == manager) ResetPrivate();
+ }
+ void EpochService::Shutdown() {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);

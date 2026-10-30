@@ -1,0 +1,41 @@
+--- a/chrome/browser/ui/browser_live_tab_context.cc
++++ b/chrome/browser/ui/browser_live_tab_context.cc
+@@ -206,6 +206,9 @@
+   if (blanc_prototype::IsPersistentSplitTab(tab_strip_model_->GetWebContentsAt(index)))
+     extra_data[blanc_prototype::kPersistentSplitKey] = blanc_prototype::PersistentSplitState(tab_strip_model_->GetWebContentsAt(index));
+ 
++  const auto name = blanc_prototype::PersistentTabName(tab_strip_model_->GetWebContentsAt(index));
++  if (!name.empty()) extra_data[blanc_prototype::kTabNameKey] = name;
++
+   glic::PopulateGlicExtraData(tab, &extra_data);
+   if (auto* contextual_tasks_controller =
+           contextual_tasks::ContextualTasksPanelController::From(
+@@ -468,6 +471,7 @@
+   }
+ 
+   CHECK(web_contents);
++  blanc_prototype::RestoreCustomTabName(web_contents, tab.extra_data);
+ 
+   if (performance_manager::policies::CanScheduleLoadForRestoredTabs()) {
+     performance_manager::policies::ScheduleLoadForRestoredTabs({web_contents});
+@@ -493,6 +497,7 @@
+       &*browser_, tab.navigations, tab.normalized_navigation_index(),
+       tab.extension_app_id, storage_namespace, tab.user_agent_override,
+       tab.extra_data, false /* from_session_restore */);
++  if (web_contents) blanc_prototype::RestoreCustomTabName(web_contents, tab.extra_data);
+   return sessions::ContentLiveTab::GetOrCreateForWebContents(web_contents);
+ }
+ 
+--- a/chrome/browser/sessions/session_service_base.cc
++++ b/chrome/browser/sessions/session_service_base.cc
+@@ -622,6 +622,10 @@
+   sessions::SessionTabHelper* session_tab_helper =
+       sessions::SessionTabHelper::FromWebContents(tab);
+   const SessionID session_id(session_tab_helper->session_id());
++  const auto custom_name = blanc_prototype::PersistentTabName(tab);
++  if (!custom_name.empty()) command_storage_manager()->AppendRebuildCommand(
++      sessions::CreateAddTabExtraDataCommand(session_id,
++          blanc_prototype::kTabNameKey, custom_name));
+   const auto tab_identity = blanc_prototype::TabIdentity(tab);
+   if (!tab_identity.empty()) command_storage_manager()->AppendRebuildCommand(
+       sessions::CreateAddTabExtraDataCommand(session_id,

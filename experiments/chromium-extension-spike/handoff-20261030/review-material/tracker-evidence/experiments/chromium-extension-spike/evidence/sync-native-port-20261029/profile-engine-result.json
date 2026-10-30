@@ -1,0 +1,41 @@
+{
+  "status": "composed native ProfileEngine synthetic end-to-end runtime passed",
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "runtimeExit": 0,
+  "implementation": [
+    "one worker-owned store/controller/credential broker/transport lifetime",
+    "network factory pending clone consumed on owner sequence",
+    "provider-owner sequence retained for credential lookup",
+    "existing-only bootstrap; no first-setup authority inferred",
+    "Sync acquires revision-bound native key then routes through persisted account controller",
+    "shutdown waits for credential acquisition retirement and controller retirement; queued replies redacted"
+  ],
+  "verified": [
+    "native policy denial gives zero provider lookup/network",
+    "real strict-vault synthetic provider unwrap into persisted queue and actual SimpleURLLoader fake factory",
+    "new-record encrypted PUT has null ifVersion and decrypts to expected native model output",
+    "GET reservation persisted before wire",
+    "consent change while GET dispatched prevents model/PUT/stored callback and drains",
+    "shutdown during provider acquisition waits for query retirement and tolerates late provider callback",
+    "quota retains two GET charges; shutdown lookup adds no charge"
+  ],
+  "compiledUnits": 2,
+  "liveNetworkRequests": 0,
+  "realCredentialIO": false,
+  "appBuild": false,
+  "deployed": false,
+  "featureCredit": false,
+  "rawEvidence": "evidence/native-sync-profile-engine-20261030",
+  "remaining": [
+    "ProfileKeyedService/factory dependency and Personal authority wiring",
+    "production native store models and UI",
+    "erase/retraction/pairing and Shared Spaces orchestration adapters",
+    "real OS provider qualification and strict API application",
+    "browser and cross-platform acceptance"
+  ],
+  "lifetimeContract": "owner retains engine through Shutdown completion; process crypto outlives queued provider tasks",
+  "failuresPreserved": [
+    "fixture generic bound lambda callback deduction and stray Queue alias; corrected test only"
+  ]
+}

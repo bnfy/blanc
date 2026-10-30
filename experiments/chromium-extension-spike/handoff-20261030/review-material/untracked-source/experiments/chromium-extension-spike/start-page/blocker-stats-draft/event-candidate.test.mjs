@@ -1,0 +1,28 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+const here = path.dirname(fileURLToPath(import.meta.url));
+const native = path.resolve(here,'../../native/blocker/blocker_proxy.cc');
+const sha = value => crypto.createHash('sha256').update(value).digest('hex');
+test('review candidate connects all decision objects without changing the native source', () => {
+  const base = fs.readFileSync(native), before = sha(base);
+  execFileSync(process.execPath,[path.join(here,'prepare-event-candidate.mjs')]);
+  const out = path.join(here,'event-candidate');
+  const manifest = JSON.parse(fs.readFileSync(path.join(out,'manifest.json')));
+  const generated = fs.readFileSync(path.join(out,'blocker_proxy.cc'),'utf8');
+  assert.equal(sha(fs.readFileSync(native)), before);
+  assert.equal(manifest.baseNativeSha256,before);
+  for(const [name,expected] of Object.entries(manifest.files)) assert.equal(sha(fs.readFileSync(path.join(out,name))),expected);
+  assert.deepEqual(manifest.paths,['ActivationGate','NavigationResponseGate','SocketDecision','TransportDecision','Request']);
+  assert.equal((generated.match(/weekly_candidate_\.OnDecision\(result/g)||[]).length,5);
+  assert.equal((generated.match(/DecisionOperation weekly_candidate_/g)||[]).length,5);
+  const sink = fs.readFileSync(path.join(out,'weekly_event_candidate.cc'),'utf8');
+  assert.match(sink,/profile->IsOffTheRecord\(\)\s*\|\|\s*!profile->IsRegularProfile\(\)/);
+  assert.doesNotMatch(sink,/GetOriginalProfile\(|AttestFullWeek\(|WriteWeeklyPref\(|SetDict\(/);
+  assert.match(sink,/ShutdownStarted\(\)/);
+  assert.match(sink,/PostTask\(/);
+});

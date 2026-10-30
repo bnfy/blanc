@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings</title>
+  <link rel="stylesheet" href="pages/pages.css">
+  <script src="pages/strings.js" defer></script>
+  <script src="pages/i18n.js" defer></script>
+</head>
+<body class="sheet">
+  <main class="page">
+    <h1 data-i18n="settings.page.heading">Settings</h1>
+    <nav class="settings-group" aria-label="Settings sections">
+      <div class="settings-card settings-card--mixed">
+        <div class="setting"><a href="chrome://blanc-prototype/appearance-settings.html" data-i18n="settings.general.cards.appearance">Appearance</a></div>
+        <div class="setting"><a href="chrome://blanc-prototype/blocking-settings.html" data-i18n="settings.privacy.blocking.title">Blocking</a></div>
+        <div class="setting"><a href="chrome://settings/">More browser settings</a></div>
+      </div>
+    </nav>
+  </main>
+</body>
+</html>

@@ -1,0 +1,40 @@
+--- a/chrome/browser/ui/browser_commands.cc
++++ b/chrome/browser/ui/browser_commands.cc
+@@ -6,6 +6,7 @@
+ #include "chrome/browser/ui/blanc_prototype_ui.h"
+ 
+ #include <algorithm>
++#include <cmath>
+ #include <memory>
+ #include <numeric>
+ #include <optional>
+@@ -2655,8 +2656,27 @@
+ }
+ 
+ void Zoom(BrowserWindowInterface* browser, content::PageZoom zoom) {
+-  zoom::PageZoom::Zoom(browser->GetTabStripModel()->GetActiveWebContents(),
+-                       zoom);
++  auto* contents = browser->GetTabStripModel()->GetActiveWebContents();
++  if (blanc_prototype::IsIslandWindow(browser)) {
++    auto* controller = contents ? zoom::ZoomController::FromWebContents(contents)
++                                : nullptr;
++    if (!controller)
++      return;
++    if (zoom == content::PAGE_ZOOM_RESET) {
++      controller->SetZoomLevel(0.0);
++      return;
++    }
++    if (zoom != content::PAGE_ZOOM_IN && zoom != content::PAGE_ZOOM_OUT)
++      return;
++    const double current = controller->GetZoomLevel();
++    if (!std::isfinite(current))
++      return;
++    constexpr double kStep = 0.5;
++    const double delta = zoom == content::PAGE_ZOOM_IN ? kStep : -kStep;
++    controller->SetZoomLevel(std::clamp(current + delta, -8.0, 8.0));
++    return;
++  }
++  zoom::PageZoom::Zoom(contents, zoom);
+ }
+ 
+ namespace {
