@@ -11,10 +11,12 @@ struct IncomingLinks {
     private(set) var pairCode: String?
 
     static func accepts(_ url: URL) -> Bool {
-        ["http", "https"].contains(url.scheme?.lowercased() ?? "") && !(url.host ?? "").isEmpty
+        SharedLink.isWebURL(url)
     }
 
     mutating func receive(_ url: URL, into manager: TabsManager?) {
+        // A link shared to Blanc arrives inside a blanc-share: link (M18 §8).
+        let url = SharedLink.fromShareURL(url) ?? url
         guard Self.accepts(url) else { return }
         if let code = PairLink.code(from: url) { pairCode = code; return }
         if let manager { manager.openIncomingLink(url) } else { pending.append(url) }

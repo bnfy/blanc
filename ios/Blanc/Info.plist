@@ -51,6 +51,16 @@
 				<string>https</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleURLName</key>
+			<string>me.bnfy.blanc.share</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>blanc-share</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>
