@@ -3818,6 +3818,8 @@ body[data-layout="tally"] #layoutTally { display: grid; }
 }
 .start-customize:hover,
 .start-customize[aria-expanded="true"] { color: var(--text); border-color: var(--border); background: transparent; }
+/* Blanc for iPhone's read-only Start Page previews (TabsManager.makeStartPreview). */
+.start-preview .start-customize { display: none !important; }
 .start-customize:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 3px; }
 
 /* Level-2 material: near-opaque, because it floats over the translucent footer. */

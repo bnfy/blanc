@@ -16,9 +16,10 @@ import WebKit
     private func cookieNames(_ store: WKWebsiteDataStore) async -> [String] {
         await store.httpCookieStore.allCookies().map(\.name)
     }
-    /// Waits for a web view's document to finish loading.
+    /// Waits for a web view's document to finish loading: up to 30 s, since a
+    /// cold CI simulator can take several seconds to start a page's process.
     private func loaded(_ webView: WKWebView) async throws {
-        for _ in 0..<100 {
+        for _ in 0..<300 {
             if webView.url != nil, !webView.isLoading,
                (try? await webView.evaluateJavaScript("document.readyState")) as? String == "complete" { return }
             try await Task.sleep(for: .milliseconds(100))
@@ -176,7 +177,7 @@ import WebKit
         window.makeKeyAndVisible()
         defer { window.isHidden = true }
         var ready = false
-        for _ in 0..<100 {
+        for _ in 0..<300 {
             if (try? await webView.evaluateJavaScript("document.body?.classList.contains('layout-ready')")) as? Bool == true { ready = true; break }
             try await Task.sleep(for: .milliseconds(100))
         }
