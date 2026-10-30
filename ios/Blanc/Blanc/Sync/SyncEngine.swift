@@ -532,12 +532,17 @@ private final class Box<T> {
   }
   /// Reads every fixed store through the request queue at once, so the
   /// scheduler serves them in its F order among the other classes.
-  private func readFixed(_ snap: AccountSnapshot, consent: Bool) async throws -> (
+  /// `sidecar: false` leaves out the shared sidecar (a background pass can't
+  /// merge it without writing), and `expired` drops the reads still waiting
+  /// for their turn once Background App Refresh's time is up.
+  private func readFixed(
+    _ snap: AccountSnapshot, consent: Bool, sidecar: Bool = true, expired: @escaping () -> Bool = { false }
+  ) async throws -> (
     pulled: [SyncStore: (String, JSONValue)], unavailable: Set<SyncStore>
   ) {
     let g = snap.generation
     let stores: [SyncStore] =
-      [.bookmarks, .settings, .session, .icons, .sends] + (consent ? [.closed, .shared] : [])
+      [.bookmarks, .settings, .session, .icons, .sends] + (consent ? [.closed] : []) + (consent && sidecar ? [.shared] : [])
     // Favicons, sent pages and the Spaces sidecars are optional, as on
     // desktop: a missing, broken or busy store (or an older Worker without it)
     // keeps the phone's last copy and never blocks the rest or sets lastError.
@@ -551,7 +556,7 @@ private final class Box<T> {
           let item = try await self.scheduledGet(
             "F", store.rawValue, accountId: snap.accountId, generation: g,
             cancelled: { [weak self] () -> Error? in
-              aborted.value || (spacesStore && !(self?.spacesConsent ?? false)) ? SyncError.cancelled : nil
+              aborted.value || expired() || (spacesStore && !(self?.spacesConsent ?? false)) ? SyncError.cancelled : nil
             })
           return .success(item)
         } catch {
@@ -1048,6 +1053,7 @@ private final class Box<T> {
     }
   }
   func appDidBecomeActive() async {
+    applyInbox()
     guard lastForeground == nil || clock() - lastForeground! >= 60_000 else { return }
     lastForeground = clock()
     // A focus refresh makes the index due; it waits its turn and never moves
@@ -1055,9 +1061,80 @@ private final class Box<T> {
     if spacesConsent { queue.markIndexDue() }
     await syncNow()
   }
+  // MARK: Background App Refresh (M18 §6)
+
+  /// Fetches the fixed stores and keeps them in `SyncInbox` for the next time
+  /// Blanc is in front, so a phone picked up after a while shows the other
+  /// devices' changes at once. Reads only: it publishes nothing, applies
+  /// nothing to the live settings or tabs, and leaves the Space blobs to the
+  /// foreground pass. What arrived before `expired` is kept; a required store
+  /// that fails, sync turned off, or another account in between keeps nothing.
+  @discardableResult
+  func fetchAndKeep(expired: @escaping () -> Bool = { false }) async -> SyncInbox? {
+    guard !transitioning, let snap = try? snapshot() else { return nil }
+    sharedState.rebind(accountId: snap.accountId)
+    do {
+      let (pulled, _) = try await readFixed(snap, consent: spacesConsent, sidecar: false, expired: expired)
+      try check(snap.generation)
+      guard stateStore.state.enabled, stateStore.state.accountId == snap.accountId, !pulled.isEmpty else { return nil }
+      let inbox = SyncInbox(
+        accountId: snap.accountId, fetchedAt: clock(),
+        documents: Dictionary(uniqueKeysWithValues: pulled.map { ($0.key.rawValue, $0.value.1) }))
+      try inbox.save(in: stateStore.directoryURL)
+      return inbox
+    } catch {
+      return nil
+    }
+  }
+  /// Merges what a background pass kept into the local caches, as a pass's
+  /// merge step does but without uploading (the pass that follows publishes),
+  /// then deletes it. Another account's inbox, or one kept before sync was
+  /// turned off, is deleted unread.
+  func applyInbox() {
+    let directory = stateStore.directoryURL
+    guard let kept = SyncInbox.load(from: directory) else { return }
+    SyncInbox.remove(from: directory)
+    guard !transitioning, stateStore.state.enabled, kept.accountId == stateStore.state.accountId else { return }
+    let ownId = stateStore.state.deviceId
+    if let remote = kept.payload(.settings) {
+      settings.merge(remote: SyncedSettings(payload: remote))
+    }
+    if let remote = kept.payload(.session) {
+      session["devices"] = TabSnapshots.merge(
+        local: session["devices"] ?? .object([]), remote: remote["devices"] ?? .object([]), ownId: ownId,
+        now: clock())
+    }
+    if let remote = kept.payload(.icons) {
+      icons = .object([
+        ("devices", SyncedIcons.merge(local: icons["devices"] ?? .object([]), remote: remote["devices"] ?? .object([]), now: clock()))
+      ])
+    }
+    var bookmarks = stateStore.load(.bookmarks) ?? .object([])
+    if let remote = kept.payload(.bookmarks) {
+      bookmarks = SyncedFavorites.merge(local: bookmarks, remote: remote, now: Double(clock()))
+    }
+    if let remote = kept.payload(.sends) {
+      sends = localSends(
+        devices: SyncSends.merge(
+          local: sends["devices"] ?? .object([]), remote: remote["devices"] ?? .object([]), ownId: ownId,
+          now: Double(clock())))
+    }
+    if let remote = kept.payload(.closed), sharedState.isEnabled {
+      closed["devices"] = SyncedClosed.mergeDevices(
+        local: closed["devices"], remote: remote["devices"], ownId: ownId, now: Double(clock()))
+    }
+    for (store, value) in [
+      (SyncStore.settings, settings.payload()), (.session, session), (.icons, icons), (.bookmarks, bookmarks),
+      (.sends, sends), (.closed, closed),
+    ] { try? stateStore.save(store, value) }
+    settingsSink(settings)
+    refreshViews()
+    onChanged?()
+  }
+
   /// While Blanc is open with the Spaces switch on, a pass every minute, as
   /// desktop's: another device's changes arrive without a change here or a
-  /// trip through the background. Background App Refresh is M18.
+  /// trip through the background.
   var foregroundWait: (Int64) async -> Bool = { (ms: Int64) async -> Bool in
     (try? await Task.sleep(for: .milliseconds(ms))) != nil
   }

@@ -178,7 +178,7 @@ Branch `claude/ios-m18-background-refresh`. Independent of PR 1.
 
 **Interfaces:**
 - Produces: `struct SyncInbox: Codable { var accountId: String; var fetchedAt: Date; var documents: [String: JSONValue] }`, stored in the app container beside `SyncStateStore`'s file. `documents` is keyed by store class and item as the engine already names them (`SyncScheduler.next(work:)`).
-- Produces: `SyncEngine.fetchAndKeep(deadline: Date) async -> SyncInbox?`. It runs the read half of a pass under the existing `SyncScheduler` limit, writes the inbox, publishes nothing, and touches no sink. It returns `nil` with no account.
+- Produces (as built: `fetchAndKeep(expired: () -> Bool)`, the fixed stores only, no fetch-skip after applying; design §6 "As built"): `SyncEngine.fetchAndKeep(deadline: Date) async -> SyncInbox?`. It runs the read half of a pass under the existing `SyncScheduler` limit, writes the inbox, publishes nothing, and touches no sink. It returns `nil` with no account.
 - Produces: `SyncEngine.applyInbox() async`, called at the start of `appDidBecomeActive()`. It applies a kept inbox only when `inbox.accountId` equals the current account, then deletes it. A foreground pass then skips the fetches the inbox already covered within the last 60 seconds.
 - Produces: `SyncEngine` can be built without a `TabsManager` (`static func background() -> SyncEngine?`, reading the stored account and secrets only). Its sinks are set when a manager adopts it.
 

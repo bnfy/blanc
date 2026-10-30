@@ -2594,4 +2594,5 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ios_tabs_start_page">Page d’accueil</string>
     <string name="ios_pages_sync_unavailable">La synchronisation n’est pas encore disponible dans cette version.</string>
     <string name="ios_pages_supporter_unavailable">L’activation Supporter n’est pas encore disponible dans cette version.</string>
+    <string name="ios_settings_background_refresh_off">L’actualisation en arrière-plan est désactivée pour Blanc : les modifications des autres appareils arrivent quand vous l’ouvrez. Activez-la dans Réglages iOS → Apps → Blanc.</string>
 </resources>

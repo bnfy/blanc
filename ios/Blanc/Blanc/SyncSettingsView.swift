@@ -92,6 +92,11 @@ struct SyncSettingsView: View {
                         LabeledContent(SettingsCopy.text("lastSynced")) { Text(date, format: .dateTime.month().day().hour().minute()) }
                     }
                     if let error = status.error { Text(error).foregroundStyle(.red) }
+                    // M18 §6: without Background App Refresh, changes wait for Blanc to open.
+                    if UIApplication.shared.backgroundRefreshStatus == .denied {
+                        Text(SettingsCopy.text("backgroundRefreshOff")).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("settings.backgroundRefreshOff")
+                    }
                 }
             } footer: { Text(SettingsCopy.text("syncHelp")) }
 

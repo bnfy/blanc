@@ -2519,4 +2519,5 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_tabs_start_page">Start Page</string>
     <string name="ios_pages_sync_unavailable">Sync isn’t available in this build yet.</string>
     <string name="ios_pages_supporter_unavailable">Supporter activation isn’t available in this build yet.</string>
+    <string name="ios_settings_background_refresh_off">Background App Refresh is off for Blanc, so other devices’ changes arrive when you open it. Turn it on in iOS Settings → Apps → Blanc.</string>
 </resources>

@@ -9144,5 +9144,9 @@
   "ios.pages.supporterUnavailable": {
     "message": "L’attivazione Supporter non è ancora disponibile in questa versione.",
     "source": "sha256:90821821255f3f0c6fe3394872eaf70c7fe37daf295f702bb71ad107749bcad4"
+  },
+  "ios.settings.backgroundRefreshOff": {
+    "message": "L’aggiornamento in background è disattivato per Blanc, quindi le modifiche degli altri dispositivi arrivano quando lo apri. Attivalo in Impostazioni di iOS → App → Blanc.",
+    "source": "sha256:e841bda25782ede1ff5a1d1388cd791f8beabc9e2b266433bd9f7972f2f36b3c"
   }
 }

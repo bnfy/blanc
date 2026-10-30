@@ -103002,6 +103002,48 @@
           }
         }
       }
+    },
+    "ios.settings.backgroundRefreshOff": {
+      "comment": "Native iOS Settings → Sync: shown while iOS has Background App Refresh off for Blanc (M18 §6).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Background App Refresh is off for Blanc, so other devices’ changes arrive when you open it. Turn it on in iOS Settings → Apps → Blanc."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Hintergrundaktualisierung ist für Blanc aus, daher kommen Änderungen anderer Geräte erst, wenn du Blanc öffnest. Schalte sie in den iOS-Einstellungen → Apps → Blanc ein."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La actualización en segundo plano está desactivada para Blanc, así que los cambios de otros dispositivos llegan cuando lo abres. Actívala en Ajustes de iOS → Apps → Blanc."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’actualisation en arrière-plan est désactivée pour Blanc : les modifications des autres appareils arrivent quand vous l’ouvrez. Activez-la dans Réglages iOS → Apps → Blanc."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’aggiornamento in background è disattivato per Blanc, quindi le modifiche degli altri dispositivi arrivano quando lo apri. Attivalo in Impostazioni di iOS → App → Blanc."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Atualização em 2º Plano está desativada para o Blanc, então as mudanças de outros dispositivos chegam quando você o abre. Ative em Ajustes do iOS → Apps → Blanc."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
