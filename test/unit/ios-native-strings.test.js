@@ -10,7 +10,7 @@ const path = require('node:path');
 // string literal. This guard fails on a literal handed to a SwiftUI text or
 // accessibility API, and on the bare tab titles that used to be hard-coded.
 const root = path.join(__dirname, '../..');
-const SOURCE_DIRS = ['ios/Blanc/Blanc', 'ios/BlancShare'];
+const SOURCE_DIRS = ['ios/Blanc/Blanc', 'ios/Blanc/BlancShare'];
 // Test data, never drawn for a person.
 const ALLOWED_FILES = ['UITestSeed.swift'];
 // A line marked this way carries a developer message no one sees.

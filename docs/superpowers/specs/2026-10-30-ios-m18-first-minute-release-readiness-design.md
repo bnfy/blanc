@@ -448,5 +448,13 @@ six languages, and the walkthrough itself has nothing to measure until PR 4.
 - The guard test's pattern and allowlist.
 - Whether the background pass needs a fetch-only split of `SyncEngine`.
 - The share extension's hand-off (§8 (a) or (b)) and its activation rule's
-  exact form.
+  exact form. **Decided October 30, 2026 (owner): (b).** The extension opens
+  `blanc-share://open?u=…&t=…` through the responder chain's UIApplication,
+  called by selector because an extension may not call it directly; App
+  Review risk accepted for Blanc opening at once. The app checks the link
+  again (`SharedLink.fromShareURL`, one http(s) link only) and opens it
+  through `IncomingLinks`, so a pair link still asks first. The activation
+  rule is `NSExtensionActivationSupportsWebURLWithMaxCount = 1` plus
+  `NSExtensionActivationSupportsText`; text that isn't exactly one link opens
+  nothing. The extension shows no text, so it adds no strings.
 - The screenshot script and the listing's draft copy, for the owner's review.
