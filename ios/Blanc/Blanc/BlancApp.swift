@@ -18,6 +18,8 @@ struct BlancApp: App {
     @State private var incomingLinks = IncomingLinks()
     /// A pairing QR scanned with the Camera app: Blanc asks before joining.
     @State private var pairLink: PairLinkRequest?
+    /// The launch ping (F21, M18 §7): once per launch, with a saved yes.
+    @State private var launchPing = LaunchPingSender()
 
     var body: some Scene {
         WindowGroup {
@@ -27,6 +29,12 @@ struct BlancApp: App {
                         .task {
                             manager.syncEngine.startForegroundChecks()
                             await manager.syncEngine.appDidBecomeActive()
+                        }
+                        .task { await launchPing.sendIfAllowed(saved: manager.settingsStore.usagePing) }
+                        // A new install saves its choice in the walkthrough: count
+                        // its first launch then, not only from the next one.
+                        .onChange(of: manager.settingsStore.usagePing) { _, saved in
+                            Task { await launchPing.sendIfAllowed(saved: saved) }
                         }
                 } else {
                     Color(uiColor: .systemBackground).ignoresSafeArea()
