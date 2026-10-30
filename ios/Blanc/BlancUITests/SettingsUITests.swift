@@ -23,8 +23,7 @@ final class SettingsUITests: XCTestCase {
     }
     private func tap(_ id: String) {
         let element = app.descendants(matching: .any).matching(identifier: id).firstMatch
-        if !element.isHittable { app.swipeUp() }
-        XCTAssertTrue(element.waitForExistence(timeout: 5), id)
+        XCTAssertTrue(app.reveal(element), id)
         element.tap()
     }
     private func capture(_ name: String) {
@@ -118,11 +117,9 @@ final class SettingsUITests: XCTestCase {
         pair.tap()
         XCTAssertTrue(app.descendants(matching: .any)["settings.syncCode"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Type the code shown on your computer."].exists)
-        // A List builds rows only as they scroll in; on a shorter screen one
-        // swipe may stop short of the passphrase section.
+        // Further down the list; on a shorter screen it isn't built yet.
         let handle = app.descendants(matching: .any)["settings.syncHandle"]
-        for _ in 0..<4 where !handle.exists { app.swipeUp() }
-        XCTAssertTrue(handle.waitForExistence(timeout: 5), "the passphrase path is there too")
+        XCTAssertTrue(app.reveal(handle), "the passphrase path is there too")
     }
     func testSyncPairingAndDisconnectConfirmation() {
         open("/sync")
@@ -133,7 +130,9 @@ final class SettingsUITests: XCTestCase {
         input.tap(); input.typeText("K7MR-4PX2")
         XCTAssertTrue(app.buttons["settings.connect"].isEnabled)
         tap("settings.connect")
-        XCTAssertTrue(app.textFields["settings.deviceName"].waitForExistence(timeout: 20), app.debugDescription)
+        // Connecting rebuilds the list; on a short sheet the name row can end up
+        // above the part that's shown.
+        XCTAssertTrue(app.reveal(app.textFields["settings.deviceName"], timeout: 20), app.debugDescription)
         capture("Native Settings — Sync connected")
         app.swipeUp()
         tap("settings.disconnect")
@@ -194,7 +193,7 @@ final class SettingsUITests: XCTestCase {
         input.tap(); input.typeText("K7MR-4PX2")
         XCTAssertTrue(app.buttons["settings.connect"].isEnabled)
         tap("settings.connect")
-        XCTAssertTrue(app.staticTexts["settings.syncError"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.reveal(app.staticTexts["settings.syncError"], timeout: 15))
         XCTAssertTrue(app.buttons["settings.connect"].isEnabled)
         capture("Native Settings — Sync error")
     }

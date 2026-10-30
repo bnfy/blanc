@@ -21,6 +21,9 @@ final class PrivateTabsUITests: XCTestCase {
     XCTAssertFalse(app.buttons["Save to Favorites"].exists, "a private page can't be a Favorite")
     app.dismissIslandMenu()
     chip.tap()
+    // On the unfolded iPhone Duo XCUITest's tap on the page doesn't close the
+    // menu (a finger's does); the chip's first tap then closes it instead.
+    if !chip.waitForNonExistence(timeout: 2) { chip.tap() }
     XCTAssertTrue(chip.waitForNonExistence(timeout: 5))
     app.openIslandMenu()
     XCTAssertTrue(app.buttons["Save to Favorites"].waitForExistence(timeout: 5), "the ordinary tab is current again")

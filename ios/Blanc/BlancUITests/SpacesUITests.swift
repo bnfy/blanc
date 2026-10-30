@@ -142,7 +142,7 @@ final class SpacesUITests: XCTestCase {
     app.buttons["spaces.edit"].tap()
     app.buttons["Edit Reading"].tap()
     let delete = app.buttons["space.delete"]
-    XCTAssertTrue(delete.waitForExistence(timeout: 5))
+    XCTAssertTrue(app.reveal(delete), "Delete is at the editor's foot")
     delete.tap()
     let undo = app.buttons["banner.undo"]
     XCTAssertTrue(undo.waitForExistence(timeout: 5))
