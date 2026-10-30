@@ -17,10 +17,15 @@ enum IslandSwipe {
         return open ? dx : dx * 0.25
     }
 
+    /// The widest iPhone held upright. A wider page (the unfolded iPhone Duo, an
+    /// iPhone held sideways) asks no more of the thumb than that one.
+    static let reachWidth: CGFloat = 440
+
     /// Switches once the finger has travelled 30% of the width, or when a
-    /// flick's predicted end passes 50%.
+    /// flick's predicted end passes 50%, the width capped at `reachWidth`.
     static func outcome(dx: CGFloat, predictedDx: CGFloat, width: CGFloat, hasPrevious: Bool, hasNext: Bool) -> Outcome {
-        let far = abs(dx) >= width * 0.3 || abs(predictedDx) > width * 0.5
+        let reach = min(width, reachWidth)
+        let far = abs(dx) >= reach * 0.3 || abs(predictedDx) > reach * 0.5
         guard far else { return .stay }
         if dx < 0 || (dx == 0 && predictedDx < 0) { return hasNext ? .next : .stay }
         return hasPrevious ? .previous : .stay

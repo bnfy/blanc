@@ -26,4 +26,17 @@ final class IslandSwipeTests: XCTestCase {
         XCTAssertEqual(outcome(130, 130, previous: false), .stay, "no tab before the first")
         XCTAssertEqual(outcome(130, 130), .previous)
     }
+
+    /// The unfolded iPhone Duo is about 950 pt wide in landscape: the swipe
+    /// asks no more of the thumb than on the widest iPhone held upright.
+    func testAWideScreenNeedsNoMoreThanTheWidestIPhone() {
+        func outcome(_ dx: CGFloat, _ predicted: CGFloat, width: CGFloat) -> IslandSwipe.Outcome {
+            IslandSwipe.outcome(dx: dx, predictedDx: predicted, width: width, hasPrevious: true, hasNext: true)
+        }
+        XCTAssertEqual(outcome(-132, -132, width: 950), .next, "30% of 440 pt")
+        XCTAssertEqual(outcome(-131, -150, width: 950), .stay)
+        XCTAssertEqual(outcome(-60, -221, width: 950), .next, "a flick past 50% of 440 pt")
+        XCTAssertEqual(outcome(-131, -131, width: 440), .stay, "the widest iPhone is unchanged")
+        XCTAssertEqual(outcome(-132, -132, width: 440), .next)
+    }
 }
