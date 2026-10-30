@@ -11,6 +11,8 @@ const { spawnSync } = require('node:child_process');
 // Duo's inner display; an older one is letterboxed. The TestFlight script must
 // refuse to archive with an older SDK, before it asks 1Password for anything.
 const script = path.join(__dirname, '../../scripts/ios-testflight.sh');
+// The script only runs on a Mac; the stubs need a POSIX shell.
+const skip = process.platform === 'win32' && 'a bash script with stubbed tools on PATH';
 
 function run(sdkVersion) {
   const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'ios-testflight-sdk-'));
@@ -28,7 +30,7 @@ function run(sdkVersion) {
 }
 
 for (const old of ['26.6', '27.0', '18.4']) {
-  test(`an iOS ${old} SDK is refused before anything is signed`, () => {
+  test(`an iOS ${old} SDK is refused before anything is signed`, { skip }, () => {
     const result = run(old);
     assert.equal(result.status, 1, result.stdout + result.stderr);
     assert.match(result.stderr, /iOS 27\.1 SDK/);
@@ -37,7 +39,7 @@ for (const old of ['26.6', '27.0', '18.4']) {
 }
 
 for (const ok of ['27.1', '27.2', '28.0']) {
-  test(`an iOS ${ok} SDK goes on`, () => {
+  test(`an iOS ${ok} SDK goes on`, { skip }, () => {
     const result = run(ok);
     assert.match(result.stdout, /reached-op/, result.stderr);
   });
