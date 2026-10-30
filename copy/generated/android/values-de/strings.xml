@@ -2519,4 +2519,5 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ios_tabs_start_page">Startseite</string>
     <string name="ios_pages_sync_unavailable">Sync ist in diesem Build noch nicht verfügbar.</string>
     <string name="ios_pages_supporter_unavailable">Die Supporter-Aktivierung ist in diesem Build noch nicht verfügbar.</string>
+    <string name="ios_settings_background_refresh_off">Die Hintergrundaktualisierung ist für Blanc aus, daher kommen Änderungen anderer Geräte erst, wenn du Blanc öffnest. Schalte sie in den iOS-Einstellungen → Apps → Blanc ein.</string>
 </resources>

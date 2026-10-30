@@ -37,6 +37,7 @@ struct BlancApp: App {
                 guard manager == nil else { return }
                 let made = TabsManager()
                 manager = made
+                BackgroundRefresh.liveEngine = made.syncEngine
                 incomingLinks.flush(into: made)
                 if let code = incomingLinks.takePairCode() { pairLink = PairLinkRequest(code: code) }
             }
@@ -52,8 +53,16 @@ struct BlancApp: App {
                     Task { await manager.syncEngine.appDidBecomeActive() }
                 } else {
                     manager.syncEngine.stopForegroundChecks()
+                    if phase == .background {
+                        BackgroundRefresh.schedule(hasAccount: manager.syncEngine.stateStore.state.enabled)
+                    }
                 }
             }
+        }
+        // M18 §6: fetch and keep what other devices changed, for the next time
+        // Blanc is in front.
+        .backgroundTask(.appRefresh(BackgroundRefresh.identifier)) {
+            await BackgroundRefresh.run()
         }
     }
 

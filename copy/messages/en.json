@@ -9433,5 +9433,9 @@
   "ios.pages.supporterUnavailable": {
     "message": "Supporter activation isn’t available in this build yet.",
     "note": "iOS: legacy web Settings page message when it asks the app to activate a Patron key."
+  },
+  "ios.settings.backgroundRefreshOff": {
+    "message": "Background App Refresh is off for Blanc, so other devices’ changes arrive when you open it. Turn it on in iOS Settings → Apps → Blanc.",
+    "note": "Native iOS Settings → Sync: shown while iOS has Background App Refresh off for Blanc (M18 §6)."
   }
 }

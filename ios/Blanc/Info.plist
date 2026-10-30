@@ -13,6 +13,8 @@
   base below must match it (test/unit/ios-camera-usage.test.js).
   CFBundleLocalizations lists the six interface languages (F44) so iOS offers
   Blanc's own Language setting; Swift reads the matching catalog (M18 §4).
+  BGTaskSchedulerPermittedIdentifiers and the fetch background mode let a
+  Background App Refresh keep the phone in sync (M18 §6, BackgroundRefresh).
   See docs/ios/app-store-connect.md.
 -->
 <plist version="1.0">
@@ -25,6 +27,14 @@
 		<string>fr</string>
 		<string>it</string>
 		<string>pt-BR</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>me.bnfy.blanc.sync</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Blanc uses the camera only to scan the pairing code on your computer.</string>

@@ -9144,5 +9144,9 @@
   "ios.pages.supporterUnavailable": {
     "message": "A ativação de Supporter ainda não está disponível nesta versão.",
     "source": "sha256:90821821255f3f0c6fe3394872eaf70c7fe37daf295f702bb71ad107749bcad4"
+  },
+  "ios.settings.backgroundRefreshOff": {
+    "message": "A Atualização em 2º Plano está desativada para o Blanc, então as mudanças de outros dispositivos chegam quando você o abre. Ative em Ajustes do iOS → Apps → Blanc.",
+    "source": "sha256:e841bda25782ede1ff5a1d1388cd791f8beabc9e2b266433bd9f7972f2f36b3c"
   }
 }

@@ -2594,4 +2594,5 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ios_tabs_start_page">Pagina iniziale</string>
     <string name="ios_pages_sync_unavailable">La sincronizzazione non è ancora disponibile in questa versione.</string>
     <string name="ios_pages_supporter_unavailable">L’attivazione Supporter non è ancora disponibile in questa versione.</string>
+    <string name="ios_settings_background_refresh_off">L’aggiornamento in background è disattivato per Blanc, quindi le modifiche degli altri dispositivi arrivano quando lo apri. Attivalo in Impostazioni di iOS → App → Blanc.</string>
 </resources>
