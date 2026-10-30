@@ -15,6 +15,31 @@ final class TabsManagerTests: XCTestCase {
         )
     }
 
+    /// Duo-1: folding or unfolding with the palette open swaps the sheet and
+    /// the panel; the typed text lives here so neither loses it.
+    @MainActor func testThePalettesTextOutlivesItsViewUntilItCloses() {
+        let m = makeManager()
+        m.isPalettePresented = true
+        m.paletteDraft = "/fi"
+        m.isPalettePresented = true
+        XCTAssertEqual(m.paletteDraft, "/fi", "still open: the text stays")
+        m.isPalettePresented = false
+        XCTAssertEqual(m.paletteDraft, "", "closed: the next palette starts empty")
+    }
+
+    @MainActor func testEveryWayThePaletteClosesClearsItsText() {
+        let m = makeManager()
+        m.isPalettePresented = true
+        m.paletteDraft = "/find"
+        m.requestFind()
+        XCTAssertEqual(m.paletteDraft, "")
+
+        m.isPalettePresented = true
+        m.paletteDraft = "/settings"
+        m.showSettings()
+        XCTAssertEqual(m.paletteDraft, "")
+    }
+
     @MainActor func testToggleFavoriteFlipsState() {
         let m = makeManager()
         let tab = m.activeTab!

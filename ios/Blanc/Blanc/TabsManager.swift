@@ -11,7 +11,13 @@ final class TabsManager {
     var isWallpaperPickerPresented = false
     var wallpaperSelectionCompletion: ((UIImage?) -> Void)?
     let startAppearance: StartAppearanceStore
-    var isPalettePresented = false
+    var isPalettePresented = false {
+        didSet { if !isPalettePresented { paletteDraft = "" } }
+    }
+    /// The palette's text. It lives here rather than in the palette's view so
+    /// folding or unfolding, which swaps the sheet and the panel, keeps it
+    /// (Duo-1); every close clears it.
+    var paletteDraft = ""
     private final class WeakPreview {
         weak var tab: TabModel?
         let layout: BlancStartPageLayout?

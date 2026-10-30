@@ -2,10 +2,16 @@ import SwiftUI
 
 struct PaletteSheet: View {
     let manager: TabsManager
-    @Environment(\.dismiss) private var dismiss
+    /// A bottom sheet on iPhone; at regular width, a panel growing up from
+    /// the Island in its place (Duo-1).
+    var placement: IslandLayout.Palette = .sheet
     @Environment(\.colorScheme) private var colorScheme
     private var style: BrowserStyle { BrowserStyle(scheme: colorScheme) }
-    @State private var input = ""
+    /// Kept by the manager, so the sheet and the panel share it (Duo-1).
+    private var input: String {
+        get { manager.paletteDraft }
+        nonmutating set { manager.paletteDraft = newValue }
+    }
     @FocusState private var inputFocused: Bool
     /// The tab a row's New Group… or New Space… is for.
     @State private var newGroupTab: NewGroupTab?
@@ -25,17 +31,19 @@ struct PaletteSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            addressRow
-            Rectangle().fill(style.border).frame(height: 0.5).padding(.horizontal, 12)
-            listContent
-                .listStyle(.plain)
-                .environment(\.defaultMinListRowHeight, 44)
-                .environment(\.defaultMinListHeaderHeight, 0)
-                .contentMargins(.top, 0, for: .scrollContent)
-                .listSectionSpacing(8)
-                .scrollContentBackground(.hidden)
-                .scrollDismissesKeyboard(.interactively)
-            footer
+            switch placement {
+            case .sheet:
+                addressRow
+                divider
+                list
+                footer
+            case .panel:
+                // The address row sits where the Island was; the rest grows up.
+                list
+                footer
+                divider
+                addressRow
+            }
         }
         .font(BrowserStyle.font(15))
         .tracking(0.15)
@@ -59,13 +67,32 @@ struct PaletteSheet: View {
         }
     }
 
+    private var divider: some View {
+        Rectangle().fill(style.border).frame(height: 0.5).padding(.horizontal, 12)
+    }
+
+    private var list: some View {
+        listContent
+            .listStyle(.plain)
+            .environment(\.defaultMinListRowHeight, 44)
+            .environment(\.defaultMinListHeaderHeight, 0)
+            .contentMargins(.top, 0, for: .scrollContent)
+            .listSectionSpacing(8)
+            .scrollContentBackground(.hidden)
+            .scrollDismissesKeyboard(.interactively)
+    }
+
+    /// Closes the palette, whichever way it is shown: the sheet follows the
+    /// manager's flag, and so does the panel.
+    private func close() { manager.isPalettePresented = false }
+
     private var addressRow: some View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 17, weight: .regular))
                 .foregroundStyle(style.secondary)
                 .frame(width: 24)
-            TextField("Search, enter address, or / command", text: $input)
+            TextField("Search, enter address, or / command", text: Binding(get: { input }, set: { input = $0 }))
                 .font(BrowserStyle.font(17))
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
@@ -81,7 +108,7 @@ struct PaletteSheet: View {
                 }
                 .accessibilityLabel("Clear search")
             }
-            Button { dismiss() } label: {
+            Button { close() } label: {
                 Image(systemName: "chevron.down")
                     .font(.system(size: 14, weight: .medium))
                     .frame(width: 44, height: 44)
@@ -99,7 +126,7 @@ struct PaletteSheet: View {
             HStack(spacing: 2) {
                 Button {
                     manager.createTab()
-                    dismiss()
+                    close()
                 } label: {
                     Label("New tab", systemImage: "plus")
                         .font(BrowserStyle.font(13, semibold: true))
@@ -111,7 +138,7 @@ struct PaletteSheet: View {
                 }
                 Spacer(minLength: 4)
                 if manager.activeTab?.readerAvailable == true || manager.activeTab?.reader != nil {
-                    Button { dismiss(); manager.toggleReaderMode() } label: {
+                    Button { close(); manager.toggleReaderMode() } label: {
                         Image(systemName: "doc.text").frame(width: 44, height: 44)
                     }
                     .accessibilityLabel(ReaderCopy.text(manager.activeTab?.reader != nil ? "reader.exit" : "reader.enter"))
@@ -129,7 +156,7 @@ struct PaletteSheet: View {
     private func pageShortcut(_ label: String, icon: String, page: String) -> some View {
         Button {
             manager.createTab(url: URL(string: "blanc://\(page)/")!)
-            dismiss()
+            close()
         } label: {
             Image(systemName: icon).font(.system(size: 16)).frame(width: 44, height: 44)
                 .contentShape(Rectangle())
@@ -143,7 +170,7 @@ struct PaletteSheet: View {
         HStack(spacing: 0) {
             Button {
                 manager.setActive(tab.id)
-                dismiss()
+                close()
             } label: {
                 row(icon: tab.currentURL.scheme == "blanc" ? "sun.horizon" : "globe",
                     title: tab.currentURL == TabsManager.newTabURL ? "Start Page" : tab.pageTitle.isEmpty ? tab.currentURL.host ?? "Tab" : tab.pageTitle,
@@ -268,7 +295,7 @@ struct PaletteSheet: View {
                 }
             } header: { groupHeading("Open tabs", count: manager.tabs.count) }
 
-            RecentlyClosedSection(manager: manager, style: style, onOpen: { dismiss() })
+            RecentlyClosedSection(manager: manager, style: style, onOpen: { close() })
 
             if !manager.syncEngine.inbox.isEmpty {
                 Section {
@@ -277,7 +304,7 @@ struct PaletteSheet: View {
                             if let url = URL(string: item.url) {
                                 manager.createTab(url: url)
                                 manager.syncEngine.dismiss(item.id)
-                                dismiss()
+                                close()
                             }
                         } label: {
                             row(icon: "arrow.down.left", title: item.title.isEmpty ? item.url : item.title,
@@ -303,7 +330,7 @@ struct PaletteSheet: View {
                         DisclosureGroup("\(device.name) (\(device.tabs.count))") {
                             ForEach(Array(device.tabs.enumerated()), id: \.offset) { _, tab in
                                 Button {
-                                    if let url = URL(string: tab.url) { manager.createTab(url: url); dismiss() }
+                                    if let url = URL(string: tab.url) { manager.createTab(url: url); close() }
                                 } label: {
                                     row(icon: "globe", title: tab.title.isEmpty ? tab.url : tab.title, subtitle: tab.url)
                                 }
@@ -354,7 +381,7 @@ struct PaletteSheet: View {
                 ForEach(results) { result in
                     Button {
                         open(result)
-                        dismiss()
+                        close()
                     } label: {
                         row(icon: result.groupId != nil ? "rectangle.stack" : result.setId != nil ? "square.on.square" : result.localTabID == nil ? "magnifyingglass" : "globe",
                             title: result.title, subtitle: result.subtitle)
@@ -394,7 +421,7 @@ struct PaletteSheet: View {
     /// command asked for (a bare `/send` waits for a device name).
     private func finish(_ outcome: SlashOutcome) {
         switch outcome {
-        case .done: dismiss()
+        case .done: close()
         case .prompt(let text): input = text
         }
     }
@@ -411,12 +438,12 @@ struct PaletteSheet: View {
         let results = QuickSwitcher.search(query: trimmed, tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites, history: manager.historyStore.entries, groups: manager.groups, sets: switcherSets, remoteSpaces: switcherRemoteSpaces)
         if let top = QuickSwitcher.goTarget(query: trimmed, results: results) {
             open(top)
-            dismiss()
+            close()
             return
         }
 
         manager.activeTab?.addressText = trimmed
         manager.submitActiveTabAddress()
-        dismiss()
+        close()
     }
 }

@@ -27,12 +27,12 @@ older Xcode from producing a letterboxed build.
 
 1. **No letterboxing, guaranteed.** The TestFlight/App Store script refuses to archive with an
    iOS SDK older than 27.1.
-2. **The palette grows from the Island when unfolded** (owner's pick, option A of three). At
-   regular width the Island itself becomes the search field and the palette's list opens upward
+2. **The palette grows from the Island when unfolded** (owner's pick, option A of three). On
+   the unfolded Duo the Island itself becomes the search field and the palette's list opens upward
    from it, at the Island's width and position, like desktop's ⌘L panel. Same three modes as
    today (tabs at rest, slash commands after `/`, Quick Switcher while typing), same rows, same
    footer actions.
-3. **Back and Forward on the unfolded Island** (owner's pick). At regular width the Island
+3. **Back and Forward on the unfolded Island** (owner's pick). Unfolded, the Island
    shows Back and Forward buttons before the site name, each dimmed and inert when there is
    nowhere to go. Everything else on the Island stays as on iPhone.
 4. **Folding never loses the palette's text.** Folding or unfolding with the palette open
@@ -52,10 +52,12 @@ Duo's outer display; anything that reloads a page when the phone folds or unfold
 
 ### 4.1 Choosing the layout
 
-`ContentView` reads `horizontalSizeClass`. Compact (every iPhone, the Duo's outer display, the
-inner display in system Split View) is today's layout. Regular is the unfolded layout. A small
-pure type, `IslandLayout`, turns the size class into the two decisions (show Back/Forward;
-palette as sheet or panel) so they can be unit tested.
+`ContentView` reads both size classes. Regular in both directions (the Duo's inner display) is
+the unfolded layout; everything else is today's layout: every iPhone in portrait, the Duo's
+outer display, the inner display in system Split View, and a Plus or Pro Max iPhone in
+landscape, which is regular width but compact height. A small pure type, `IslandLayout`, turns
+the size classes into the two decisions (show Back/Forward; palette as sheet or panel) so they
+can be unit tested.
 
 ### 4.2 The unfolded Island
 
@@ -70,8 +72,8 @@ The 600 pt cap, the swipe between tabs and the swipe up to the tab grid are unch
   width. The Island is replaced in place by the panel: its bottom edge is the address row, in
   the Island's position and width (600 pt cap, 16 pt side margins), with the list and the
   footer above it. The keyboard comes up as on iPhone; the panel rides above it.
-- Height: the list takes what it needs up to the space above the keyboard, leaving a 16 pt gap
-  at the top of the page; it scrolls beyond that.
+- Height: the panel fills the space above the keyboard, up to 520 pt, leaving a 16 pt gap at
+  the top; the list scrolls inside it.
 - Order, top to bottom: list, footer (New tab, Reader, Favorites, History, Settings), address
   row. The address row keeps its clear button and its collapse button (chevron down).
 - The page behind stays visible and is not dimmed (desktop's panel doesn't dim). A tap outside
