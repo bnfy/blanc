@@ -35,7 +35,12 @@ older Xcode from producing a letterboxed build.
 3. **Back and Forward on the unfolded Island** (owner's pick). Unfolded, the Island
    shows Back and Forward buttons before the site name, each dimmed and inert when there is
    nowhere to go. Everything else on the Island stays as on iPhone.
-4. **Folding never loses the palette's text.** Folding or unfolding with the palette open
+4. **Pages run under the side strip** (owner, 2026-10-29). iOS 27 puts the clock and camera in a
+   strip down one side; a page used to stop at it, leaving a band of the app's background. The
+   page now runs under the side safe areas as in Safari: WebKit keeps the content clear of the
+   strip and paints the page's own background out to the edge. This also applies to an iPhone's
+   notch in landscape.
+5. **Folding never loses the palette's text.** Folding or unfolding with the palette open
    keeps it open with the same text: the panel becomes the sheet and back.
 
 ## 3. Non-goals (after 1.0: Duo-2, Duo-3)

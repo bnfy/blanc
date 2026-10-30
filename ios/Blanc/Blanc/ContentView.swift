@@ -32,11 +32,19 @@ struct ContentView: View {
     /// there, an unfold would still look like a sheet and close the palette.
     @State private var paletteIsPanel = false
 
+    /// The page runs under the side strips (the iPhone Duo's camera and clock
+    /// strip, an iPhone's notch in landscape), as in Safari: WebKit keeps the
+    /// content clear of them and paints the page's background out to the edge.
+    /// The Start Page also runs under the top and bottom.
+    private var pageEdges: Edge.Set { isStartPage ? .all : .horizontal }
+
     private var isStartPage: Bool {
         manager.activeTab?.currentURL.scheme == "blanc" && manager.activeTab?.currentURL.host == "newtab"
     }
 
-    var body: some View {
+    /// The page, the Island and what floats over them; `body` adds the
+    /// sheets. Split in two so Xcode 26 can type-check each half.
+    private var browser: some View {
         ZStack {
             style.background.ignoresSafeArea()
             if let tab = manager.activeTab {
@@ -50,13 +58,17 @@ struct ContentView: View {
                     .opacity(tab.reader == nil ? 1 : 0)
                     .allowsHitTesting(tab.reader == nil)
                     .accessibilityHidden(tab.reader != nil)
-                    .ignoresSafeArea(edges: isStartPage ? .all : [])
+                    .ignoresSafeArea(edges: pageEdges)
                     .offset(x: swipeOffset)
                 if swipeOffset != 0, let neighbor = manager.neighbor(of: tab.id, offset: swipeOffset < 0 ? 1 : -1) {
                     neighborPage(neighbor)
                         .offset(x: swipeOffset + (swipeOffset < 0 ? pageWidth : -pageWidth))
                 }
-                if let reader = tab.reader { ReaderWebView(reader: reader).id(ObjectIdentifier(reader)).offset(x: swipeOffset) }
+                if let reader = tab.reader {
+                    ReaderWebView(reader: reader).id(ObjectIdentifier(reader))
+                        .ignoresSafeArea(edges: pageEdges)
+                        .offset(x: swipeOffset)
+                }
             }
         }
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pageWidth = $0 }
@@ -79,6 +91,10 @@ struct ContentView: View {
             if !presented, paletteIsPanel { paletteClosed() }
         }
         .onChange(of: layout.palette, initial: true) { _, palette in paletteIsPanel = palette == .panel }
+    }
+
+    var body: some View {
+        browser
         .sheet(item: Binding(get: { manager.spaceEditor }, set: { manager.spaceEditor = $0 })) { target in
             SpaceEditor(manager: manager, target: target)
         }
@@ -116,17 +132,7 @@ struct ContentView: View {
         .sheet(item: Binding(get: { manager.settingsDestination }, set: { manager.settingsDestination = $0 })) { destination in
             SettingsSheet(manager: manager, destination: destination)
         }
-        // Unfolded, the palette is the panel instead; unfolding with
-        // the sheet open hands it over, text and all, without closing it.
-        .sheet(isPresented: Binding(get: { manager.isPalettePresented && layout.palette == .sheet },
-                                    set: { presented in
-                                        // Unfolding also takes the sheet away; wait until the
-                                        // new layout has applied to tell that from a swipe down.
-                                        guard !presented else { return }
-                                        DispatchQueue.main.async {
-                                            if !paletteIsPanel { manager.isPalettePresented = false }
-                                        }
-                                    }),
+        .sheet(isPresented: paletteSheetPresented,
                onDismiss: { if !manager.isPalettePresented { paletteClosed() } }) {
             PaletteSheet(manager: manager)
         }
@@ -142,6 +148,21 @@ struct ContentView: View {
                 completion?(image)
             }
         }
+    }
+
+    /// The palette as a sheet. Unfolded, the palette is the panel instead;
+    /// unfolding with the sheet open hands it over, text and all, without
+    /// closing it. (Its own property: inline, Xcode 26 can't type-check `body`.)
+    private var paletteSheetPresented: Binding<Bool> {
+        Binding(get: { manager.isPalettePresented && layout.palette == .sheet },
+                set: { presented in
+                    // Unfolding also takes the sheet away; wait until the new
+                    // layout has applied to tell that from a swipe down.
+                    guard !presented else { return }
+                    DispatchQueue.main.async {
+                        if !paletteIsPanel { manager.isPalettePresented = false }
+                    }
+                })
     }
 
     private var islandContainer: some View {
@@ -251,7 +272,7 @@ struct ContentView: View {
                     .frame(maxHeight: .infinity)
             }
         }
-        .ignoresSafeArea(edges: isStartPage ? .all : [])
+        .ignoresSafeArea(edges: pageEdges)
         .allowsHitTesting(false)
     }
 
