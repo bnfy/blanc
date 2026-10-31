@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="Blanc Chromium S1 macos" tests="253" failures="139" skipped="46">
+<testsuite name="Blanc Chromium S1 macos" tests="253" failures="152" skipped="31">
   <testcase name="spec/acceptance/ad-blocking.feature:12:plain"></testcase>
   <testcase name="spec/acceptance/ad-blocking.feature:17:plain"><failure message="Timeout waiting for ads.example's shield count to reach 0: {&quot;adblockExcepted&quot;:false,&quot;asleep&quot;:false,&quot;audible&quot;:false,&quot;blockedCount&quot;:3,&quot;bookmarked&quot;:false,&quot;canDuplicate&quot;:true,&quot;canGoBack&quot;:false,&quot;canGoForward&quot;:false,&quot;committedUrl&quot;:&quot;http://127.0.0"/></testcase>
   <testcase name="spec/acceptance/ad-blocking.feature:26:plain"><failure message="Expected values to be strictly equal:"/></testcase>
@@ -34,11 +34,11 @@
   <testcase name="spec/acceptance/glance.feature:345:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;7&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;7&quot;,"/></testcase>
   <testcase name="spec/acceptance/glance.feature:359:plain"><failure message="timed out waiting for the Glance picker; last: &quot;panel&quot;"/></testcase>
   <testcase name="spec/acceptance/glance.feature:386:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;8&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;8&quot;,"/></testcase>
-  <testcase name="spec/acceptance/interface-language.feature:10:plain"><skipped message="step definition missing: the OS prefers &quot;de-DE&quot;"/></testcase>
-  <testcase name="spec/acceptance/interface-language.feature:18:plain"><skipped message="step definition missing: the OS prefers &quot;de-DE&quot;"/></testcase>
-  <testcase name="spec/acceptance/interface-language.feature:26:plain"><skipped message="step definition missing: the OS prefers &quot;en-US&quot;"/></testcase>
-  <testcase name="spec/acceptance/interface-language.feature:34:plain"><skipped message="step definition missing: the OS prefers &quot;de-DE&quot;"/></testcase>
-  <testcase name="spec/acceptance/interface-language.feature:43:plain"><skipped message="step definition missing: the OS prefers &quot;de-DE&quot;"/></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:10:plain"></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:18:plain"><failure message="Pinning English: the fork stores no interface language choice (strings.js follows the browser language)"/></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:26:plain"><failure message="Fork Settings has no #uiLanguage control offering Deutsch"/></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:34:plain"><failure message="Storing a language: the fork stores no interface language choice (strings.js follows the browser language)"/></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:43:plain"><failure message="Switching the interface language: the fork stores no interface language choice (strings.js follows the browser language)"/></testcase>
   <testcase name="spec/acceptance/internal-pages.feature:7:plain"><failure message="Timeout waiting for the favorite on the rendered Start Page: {&quot;layout&quot;:&quot;billboard&quot;,&quot;urls&quot;:[]} (rendered layout: billboard)"/></testcase>
   <testcase name="spec/acceptance/internal-pages.feature:17:plain"><failure message="sheet url chrome://bookmarks/ should be blanc://bookmarks/"/></testcase>
   <testcase name="spec/acceptance/internal-pages.feature:24:plain"><failure message="Expected values to be strictly equal:"/></testcase>
@@ -179,7 +179,7 @@
   <testcase name="spec/acceptance/private-tabs.feature:24:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;7&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;7&quot;,"/></testcase>
   <testcase name="spec/acceptance/private-tabs.feature:30:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;7&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;7&quot;,"/></testcase>
   <testcase name="spec/acceptance/private-tabs.feature:35:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;5&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;5&quot;,"/></testcase>
-  <testcase name="spec/acceptance/private-tabs.feature:40:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;7&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;7&quot;,"/></testcase>
+  <testcase name="spec/acceptance/private-tabs.feature:40:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;6&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;6&quot;,"/></testcase>
   <testcase name="spec/acceptance/settings-and-theming.feature:7:plain"><failure message="Fork Settings (chrome://settings/) has no #searchEngine control"/></testcase>
   <testcase name="spec/acceptance/settings-and-theming.feature:12:plain"><skipped message="native hook adapter missing: setAppIcon"/></testcase>
   <testcase name="spec/acceptance/settings-and-theming.feature:17:plain"></testcase>
@@ -188,13 +188,13 @@
   <testcase name="spec/acceptance/settings-and-theming.feature:37:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;7&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;7&quot;,"/></testcase>
   <testcase name="spec/acceptance/settings-and-theming.feature:42:plain"><failure message="timed out waiting for a folded setting explanation; last: []"/></testcase>
   <testcase name="spec/acceptance/site-certificate-safety.feature:4:plain"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;1245270807&quot;,&quot;url&quot;:&quot;blanc://newtab/&quot;,&quot;loadedUrl&quot;:&quot;blanc://newtab/&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;title&quot;:&quot;New Tab&quot;,&quot;favicon&quot;:&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA"/></testcase>
-  <testcase name="spec/acceptance/site-certificate-safety.feature:11:plain"><skipped message="Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"/></testcase>
-  <testcase name="spec/acceptance/site-certificate-safety.feature:19:plain"><skipped message="Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"/></testcase>
-  <testcase name="spec/acceptance/site-certificate-safety.feature:26:plain"><skipped message="Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"/></testcase>
-  <testcase name="spec/acceptance/site-certificate-safety.feature:35:plain"><skipped message="Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"/></testcase>
-  <testcase name="spec/acceptance/site-certificate-safety.feature:41:plain"><skipped message="Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"/></testcase>
-  <testcase name="spec/acceptance/site-certificate-safety.feature:50:plain"><skipped message="Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"/></testcase>
-  <testcase name="spec/acceptance/supporter-and-session.feature:26:plain"><skipped message="step definition missing: one private tab open"/></testcase>
+  <testcase name="spec/acceptance/site-certificate-safety.feature:11:plain"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;2063600520&quot;,&quot;url&quot;:&quot;blanc://newtab/&quot;,&quot;loadedUrl&quot;:&quot;blanc://newtab/&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;title&quot;:&quot;New Tab&quot;,&quot;favicon&quot;:&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA"/></testcase>
+  <testcase name="spec/acceptance/site-certificate-safety.feature:19:plain"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;421341063&quot;,&quot;url&quot;:&quot;blanc://newtab/&quot;,&quot;loadedUrl&quot;:&quot;blanc://newtab/&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;title&quot;:&quot;New Tab&quot;,&quot;favicon&quot;:&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA"/></testcase>
+  <testcase name="spec/acceptance/site-certificate-safety.feature:26:plain"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;225719061&quot;,&quot;url&quot;:&quot;blanc://newtab/&quot;,&quot;loadedUrl&quot;:&quot;blanc://newtab/&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;title&quot;:&quot;New Tab&quot;,&quot;favicon&quot;:&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA"/></testcase>
+  <testcase name="spec/acceptance/site-certificate-safety.feature:35:plain"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;2017432404&quot;,&quot;url&quot;:&quot;blanc://newtab/&quot;,&quot;loadedUrl&quot;:&quot;blanc://newtab/&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;title&quot;:&quot;New Tab&quot;,&quot;favicon&quot;:&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA"/></testcase>
+  <testcase name="spec/acceptance/site-certificate-safety.feature:41:plain"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;317583618&quot;,&quot;url&quot;:&quot;blanc://newtab/&quot;,&quot;loadedUrl&quot;:&quot;blanc://newtab/&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;title&quot;:&quot;New Tab&quot;,&quot;favicon&quot;:&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA"/></testcase>
+  <testcase name="spec/acceptance/site-certificate-safety.feature:50:plain"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;302669418&quot;,&quot;url&quot;:&quot;blanc://newtab/&quot;,&quot;loadedUrl&quot;:&quot;blanc://newtab/&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;title&quot;:&quot;New Tab&quot;,&quot;favicon&quot;:&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA"/></testcase>
+  <testcase name="spec/acceptance/supporter-and-session.feature:26:plain"><failure message="Native fixture did not exit cleanly"/></testcase>
   <testcase name="spec/acceptance/tab-drag.feature:10:example-16"></testcase>
   <testcase name="spec/acceptance/tab-drag.feature:10:example-17"></testcase>
   <testcase name="spec/acceptance/tab-drag.feature:20:example-26"></testcase>
@@ -215,7 +215,7 @@
   <testcase name="spec/acceptance/tab-drag.feature:95:example-108"></testcase>
   <testcase name="spec/acceptance/tab-drag.feature:111:example-120"><skipped message="native hook adapter missing: workspacePageScript"/></testcase>
   <testcase name="spec/acceptance/tab-drag.feature:111:example-121"><skipped message="native hook adapter missing: workspacePageScript"/></testcase>
-  <testcase name="spec/acceptance/tab-drag.feature:124:plain"><skipped message="The fork runner cannot relaunch a fixture yet"/></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:124:plain"><failure message="timed out waiting for Recently closed directly above play; last: [&quot;pinned&quot;,&quot;loose&quot;,&quot;5D88DD92D9703E84B3E259BDA6ABAED1&quot;,&quot;66688E017BCB0D9FC2C8257F4EC25955&quot;,&quot;recently-closed&quot;,&quot;loose&quot;]"/></testcase>
   <testcase name="spec/acceptance/tab-drag.feature:136:plain"><skipped message="The fork host discards setOverlayDragState; no overlay drag flag exists to read"/></testcase>
   <testcase name="spec/acceptance/tab-drag.feature:144:example-150"></testcase>
   <testcase name="spec/acceptance/tab-drag.feature:144:example-151"></testcase>
@@ -223,7 +223,7 @@
   <testcase name="spec/acceptance/tab-drag.feature:154:example-161"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;161813280&quot;,&quot;url&quot;:&quot;blanc://newtab/&quot;,&quot;loadedUrl&quot;:&quot;blanc://newtab/&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;title&quot;:&quot;New Tab&quot;,&quot;favicon&quot;:&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA"/></testcase>
   <testcase name="spec/acceptance/tab-drag.feature:164:plain"></testcase>
   <testcase name="spec/acceptance/tab-drag.feature:170:plain"></testcase>
-  <testcase name="spec/acceptance/tab-drag.feature:176:plain"><skipped message="The fork runner cannot relaunch a fixture yet"/></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:176:plain"><failure message="Browser quit with {&quot;code&quot;:2,&quot;signal&quot;:null}: Teardown watchdog expired; recording dump and terminating."/></testcase>
   <testcase name="spec/acceptance/tabs-and-groups.feature:8:plain"></testcase>
   <testcase name="spec/acceptance/tabs-and-groups.feature:15:plain"></testcase>
   <testcase name="spec/acceptance/tabs-and-groups.feature:21:plain"></testcase>
@@ -245,7 +245,7 @@
   <testcase name="spec/acceptance/tabs-and-groups.feature:298:example-308"><failure message="timed out waiting for the group-menu overlay; last: null"/></testcase>
   <testcase name="spec/acceptance/tabs-and-groups.feature:298:example-309"></testcase>
   <testcase name="spec/acceptance/tabs-and-groups.feature:312:plain"></testcase>
-  <testcase name="spec/acceptance/tabs-and-groups.feature:321:plain"><skipped message="The fork runner cannot relaunch a fixture yet"/></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:321:plain"></testcase>
   <testcase name="spec/acceptance/tabs-and-groups.feature:328:plain"></testcase>
   <testcase name="spec/acceptance/tabs-and-groups.feature:336:plain"></testcase>
   <testcase name="spec/acceptance/tabs-and-groups.feature:347:plain"><failure message="timed out waiting for the group-menu overlay; last: null"/></testcase>

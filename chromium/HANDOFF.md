@@ -3,7 +3,7 @@
 Read the approved spec and plan in docs/chromium-replacement/, then chromium/STATUS.md and tracker.json. The execution contract was approved at e884a6564. Work from current files and actual processes.
 
 ## Handback from Claude (2026-10-30)
-Claude's bounded task — finish F0.5 for S1 — is complete and pushed on this branch. Codex can resume from the branch head. The committed baseline (scenarios/baseline-macos-19b83f79bd18b94c.json) gives every S1-tagged case a real result or a named undefined reason; reports/s1-macos.json lists per-row results and each failure's reason. Later-slice adapters were deliberately not written. No native build ran; the owner's dev instance and profiles were not touched.
+Claude's bounded task — finish F0.5 for S1 — is complete on this branch, followed by runner gap fixes (relaunch, OS language, local TLS, temp-storage profiles) and F0.6 groundwork (canonical Island assets). Codex can resume from the branch head. The committed baseline (scenarios/baseline-macos-19b83f79bd18b94c.json) gives every S1-tagged case a real result or a named undefined reason; reports/s1-macos.json lists per-row results and each failure's reason. Later-slice adapters were deliberately not written. No native build ran; the owner's dev instance and profiles were not touched.
 
 **Owner preference:** when native Chromium functionality looks easier to adapt than porting the Electron behavior, list it for the owner to assess before building either. STATUS.md holds the current list. Never adapt a test to accept a native surface as parity.
 

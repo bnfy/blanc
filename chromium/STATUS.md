@@ -8,24 +8,34 @@ D7, F0.7, cold builds, new machines, D1/D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
-- F0.1/F0.2/F0.4/F0.8 as before; F0.3 and F0.6 pending.
-- **F0.5 S1 finish line reached (2026-10-30, Claude).** Every S1-tagged case
-  (rows F1–F16, F18–F20, F23, F32, F35, F37, F44, F47, N4–N6, N8, N19, N21,
-  N22; 253 cases) has a real result or a named undefined reason on the
-  current candidate. S1: 68 pass, 139 fail, 46 undefined. Per-row results with
-  each failure's reason: [reports/s1-macos.json](reports/s1-macos.json) (+ JUnit).
+- F0.1/F0.2/F0.4/F0.8 as before; F0.3 pending.
+- **F0.5 S1 finish line reached.** All 253 S1-tagged cases have a real result or
+  a named undefined reason on the current candidate: 70 pass, 152 fail, 31
+  undefined. Per-row results and reasons: [reports/s1-macos.json](reports/s1-macos.json) (+ JUnit).
 - Runner: shipping's 24 S1 step files and fixture server load unchanged from
-  v1.45.1 (85883b1a); adapters (tests/adapters/*.mjs) map shipping hook names to
-  the Island facade, native dispatch, Island DOM and CDP; a Playwright-shaped
-  CDP shim drives the overlay/strip iframes; fork steps (tests/fork-steps/)
-  cover S1 texts shipping never defined. Cases run their defined prefix and
-  retry a failure once, as shipping does. `tests/coverage.mjs S1` is the static
-  view; `tests/merge-baseline.mjs` re-runs only affected cases.
-- Baseline = full run at 15fff856 plus re-runs at bdb339d5 (harness relaunch now
-  undefined) and 73b15fb1 (F23 zoom on the reset tab); each scenario keeps its
-  fork commit. Raw output: Chromium Preview/evidence/foundation/s1-baseline-15fff856,
-  s1-rerun-*, s1-dev/*.
+  v1.45.1 (85883b1a); adapters (tests/adapters/) map shipping hooks to the Island
+  facade, native dispatch, Island DOM and CDP; fork steps (tests/fork-steps/)
+  cover S1 texts shipping never defined. Cases run their defined prefix and retry
+  a failure once. Relaunch (same profile, session restore decides), per-process
+  OS language (-AppleLanguages) and shipping's local TLS fixtures are supported.
+  Profiles live in local temp storage; only logs and errors are kept.
+- Baseline = full run at 15fff856 merged with targeted re-runs (bdb339d5,
+  73b15fb1, 5d30f8ef, 8bcccf57); each scenario keeps its fork commit
+  (`merges` in the JSON). Raw output: Chromium Preview/evidence/foundation/s1-*.
+- **F0.6 groundwork:** the 78 served Island assets are canonical in
+  `blanc/island/` + `blanc/island-assets.json`; `tools/assets.mjs --check`
+  reproduces the running manifest (ee71b58d…) file for file. Pak compilation and
+  the typed interface remain; they need one batched incremental build (with the
+  native test ops below) and then a full rebaseline on the new candidate.
 - No build ran. Bar B unchanged: no row changed state.
+
+## Observed problems to investigate
+- Chromium's teardown watchdog ("Teardown watchdog expired") terminates some test
+  browsers on quit (exit 2), intermittently, even at normal load. Cause not
+  confirmed (product shutdown hang vs. harness CDP sessions); such cases are
+  recorded as failures with the log line.
+- Writing per-case profiles into the iCloud-synced evidence folder drove load to
+  ~1000 on 2026-10-30; fixed in the runner (8bcccf57).
 
 ## Reading the failures
 Most failures are real product gaps on this candidate, clustered:
@@ -65,12 +75,13 @@ closeWindow; sessionWindows (session.json-shaped projection); certificate
 decision list/forget/cap; history visit + site icon seed; favorite favicon seed;
 first-run/checklist/Patron/launch-Sunrise state once stored; address context menu
 list/run; external-handoff probe; slots 4–8 in previewPageCommand; overlay drag
-flag; microphone capture seed. Runner (not native): fixture relaunch, OS-language
-launch (F44), local TLS certificate rotation (N5 local cases).
+flag; microphone capture seed.
 
 ## Next
 1. Owner: assess the native candidates above; decide D1.
-2. F0.3 and F0.6 under their dependencies; then S1 work in slice order, using
+2. F0.6: pak compilation and typed interface, batched with the native test ops
+   into one incremental build; then a full rebaseline (new candidate identity).
+3. F0.3 under its dependencies; S1 work in slice order after F0, using
    reports/s1-macos.json as the gap list. Re-run affected cases with --only and
    merge-baseline.mjs instead of full runs.
 
@@ -87,7 +98,7 @@ Use `git status --short` for exact paths. Nothing was discarded.
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | 68/627 executable cases pass; 183 failed; 374 undefined/not run; 2 excluded — [baseline](scenarios/baseline-macos-19b83f79bd18b94c.json)<br>S1 rows: 68/253 pass; 139 failed; 46 undefined; 0 excluded |
+| macOS | 70/627 executable cases pass; 196 failed; 359 undefined/not run; 2 excluded — [baseline](scenarios/baseline-macos-19b83f79bd18b94c.json)<br>S1 rows: 70/253 pass; 152 failed; 31 undefined; 0 excluded |
 | Windows | Not run (627 cases) |
 | Linux | Not run (627 cases) |
 

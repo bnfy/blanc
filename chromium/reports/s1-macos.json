@@ -21,12 +21,60 @@
    "scenarios": [
     "spec/acceptance/platform-services.feature:35"
    ]
+  },
+  {
+   "forkCommit": "5d30f8eff310e19a3ffb7df05d8284c615bb8185",
+   "subset": "^(spec/acceptance/interface\\-language\\.feature:10:|spec/acceptance/interface\\-language\\.feature:18:|spec/acceptance/interface\\-language\\.feature:26:|spec/acceptance/interface\\-language\\.feature:34:|spec/acceptance/interface\\-language\\.feature:43:|spec/acceptance/local\\-profiles\\.feature:27:|spec/acceptance/private\\-tabs\\.feature:40:|spec/acceptance/shared\\-spaces\\.feature:111:|spec/acceptance/site\\-certificate\\-safety\\.feature:11:|spec/acceptance/site\\-certificate\\-safety\\.feature:19:|spec/acceptance/site\\-certificate\\-safety\\.feature:26:|spec/acceptance/site\\-certificate\\-safety\\.feature:35:|spec/acceptance/site\\-certificate\\-safety\\.feature:41:|spec/acceptance/site\\-certificate\\-safety\\.feature:50:|spec/acceptance/split\\-view\\.feature:88:|spec/acceptance/split\\-view\\.feature:159:|spec/acceptance/split\\-view\\.feature:187:|spec/acceptance/split\\-view\\.feature:227:|spec/acceptance/supporter\\-and\\-session\\.feature:26:|spec/acceptance/tab\\-drag\\.feature:124:|spec/acceptance/tab\\-drag\\.feature:176:|spec/acceptance/tabs\\-and\\-groups\\.feature:321:)",
+   "scenarios": [
+    "spec/acceptance/interface-language.feature:10",
+    "spec/acceptance/interface-language.feature:18",
+    "spec/acceptance/interface-language.feature:26",
+    "spec/acceptance/interface-language.feature:34",
+    "spec/acceptance/interface-language.feature:43",
+    "spec/acceptance/local-profiles.feature:27",
+    "spec/acceptance/private-tabs.feature:40",
+    "spec/acceptance/shared-spaces.feature:111",
+    "spec/acceptance/site-certificate-safety.feature:11",
+    "spec/acceptance/site-certificate-safety.feature:19",
+    "spec/acceptance/site-certificate-safety.feature:26",
+    "spec/acceptance/site-certificate-safety.feature:35",
+    "spec/acceptance/site-certificate-safety.feature:41",
+    "spec/acceptance/site-certificate-safety.feature:50",
+    "spec/acceptance/split-view.feature:88",
+    "spec/acceptance/split-view.feature:159",
+    "spec/acceptance/split-view.feature:187",
+    "spec/acceptance/split-view.feature:227",
+    "spec/acceptance/supporter-and-session.feature:26",
+    "spec/acceptance/tab-drag.feature:124",
+    "spec/acceptance/tab-drag.feature:176",
+    "spec/acceptance/tabs-and-groups.feature:321"
+   ]
+  },
+  {
+   "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
+   "subset": "^(spec/acceptance/glance\\.feature:73:|spec/acceptance/private-tabs\\.feature:40:|spec/acceptance/site-certificate-safety\\.feature:(11|26|35):|spec/acceptance/split-view\\.feature:159:|spec/acceptance/supporter-and-session\\.feature:26:|spec/acceptance/tab-drag\\.feature:(124|176):|spec/acceptance/tabs-and-groups\\.feature:(163|181|187|193|321):)",
+   "scenarios": [
+    "spec/acceptance/glance.feature:73",
+    "spec/acceptance/private-tabs.feature:40",
+    "spec/acceptance/site-certificate-safety.feature:11",
+    "spec/acceptance/site-certificate-safety.feature:26",
+    "spec/acceptance/site-certificate-safety.feature:35",
+    "spec/acceptance/split-view.feature:159",
+    "spec/acceptance/supporter-and-session.feature:26",
+    "spec/acceptance/tab-drag.feature:124",
+    "spec/acceptance/tab-drag.feature:176",
+    "spec/acceptance/tabs-and-groups.feature:163",
+    "spec/acceptance/tabs-and-groups.feature:181",
+    "spec/acceptance/tabs-and-groups.feature:187",
+    "spec/acceptance/tabs-and-groups.feature:193",
+    "spec/acceptance/tabs-and-groups.feature:321"
+   ]
   }
  ],
  "summary": {
-  "pass": 68,
-  "fail": 139,
-  "undefined": 46,
+  "pass": 70,
+  "fail": 152,
+  "undefined": 31,
   "excluded": 0
  },
  "rows": {
@@ -294,9 +342,9 @@
    ]
   },
   "F3": {
-   "pass": 30,
-   "fail": 12,
-   "undefined": 8,
+   "pass": 31,
+   "fail": 14,
+   "undefined": 5,
    "excluded": 0,
    "cases": [
     {
@@ -397,8 +445,9 @@
     },
     {
      "id": "spec/acceptance/tab-drag.feature:124:plain",
-     "result": "undefined",
-     "reason": "The fork runner cannot relaunch a fixture yet"
+     "result": "fail",
+     "reason": "timed out waiting for Recently closed directly above play; last: [\"pinned\",\"loose\",\"5D88DD92D9703E84B3E259BDA6ABAED1\",\"66688E017BCB0D9FC2C8257F4EC25955\",\"recently-closed\",\"loose\"]",
+     "retried": true
     },
     {
      "id": "spec/acceptance/tab-drag.feature:136:plain",
@@ -435,8 +484,9 @@
     },
     {
      "id": "spec/acceptance/tab-drag.feature:176:plain",
-     "result": "undefined",
-     "reason": "The fork runner cannot relaunch a fixture yet"
+     "result": "fail",
+     "reason": "Browser quit with {\"code\":2,\"signal\":null}: Teardown watchdog expired; recording dump and terminating.",
+     "retried": true
     },
     {
      "id": "spec/acceptance/tabs-and-groups.feature:71:plain",
@@ -508,8 +558,7 @@
     },
     {
      "id": "spec/acceptance/tabs-and-groups.feature:321:plain",
-     "result": "undefined",
-     "reason": "The fork runner cannot relaunch a fixture yet"
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/tabs-and-groups.feature:328:plain",
@@ -575,35 +624,38 @@
    ]
   },
   "F44": {
-   "pass": 0,
-   "fail": 0,
-   "undefined": 5,
+   "pass": 1,
+   "fail": 4,
+   "undefined": 0,
    "excluded": 0,
    "cases": [
     {
      "id": "spec/acceptance/interface-language.feature:10:plain",
-     "result": "undefined",
-     "reason": "step definition missing: the OS prefers \"de-DE\""
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/interface-language.feature:18:plain",
-     "result": "undefined",
-     "reason": "step definition missing: the OS prefers \"de-DE\""
+     "result": "fail",
+     "reason": "Pinning English: the fork stores no interface language choice (strings.js follows the browser language)",
+     "retried": true
     },
     {
      "id": "spec/acceptance/interface-language.feature:26:plain",
-     "result": "undefined",
-     "reason": "step definition missing: the OS prefers \"en-US\""
+     "result": "fail",
+     "reason": "Fork Settings has no #uiLanguage control offering Deutsch",
+     "retried": true
     },
     {
      "id": "spec/acceptance/interface-language.feature:34:plain",
-     "result": "undefined",
-     "reason": "step definition missing: the OS prefers \"de-DE\""
+     "result": "fail",
+     "reason": "Storing a language: the fork stores no interface language choice (strings.js follows the browser language)",
+     "retried": true
     },
     {
      "id": "spec/acceptance/interface-language.feature:43:plain",
-     "result": "undefined",
-     "reason": "step definition missing: the OS prefers \"de-DE\""
+     "result": "fail",
+     "reason": "Switching the interface language: the fork stores no interface language choice (strings.js follows the browser language)",
+     "retried": true
     }
    ]
   },
@@ -1492,7 +1544,7 @@
     {
      "id": "spec/acceptance/private-tabs.feature:40:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"7\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"6\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"6\",",
      "retried": true
     }
    ]
@@ -1519,8 +1571,8 @@
   },
   "N5": {
    "pass": 0,
-   "fail": 1,
-   "undefined": 6,
+   "fail": 7,
+   "undefined": 0,
    "excluded": 0,
    "cases": [
     {
@@ -1531,46 +1583,53 @@
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:11:plain",
-     "result": "undefined",
-     "reason": "Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"
+     "result": "fail",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"2063600520\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
+     "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:19:plain",
-     "result": "undefined",
-     "reason": "Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"
+     "result": "fail",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"421341063\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
+     "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:26:plain",
-     "result": "undefined",
-     "reason": "Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"
+     "result": "fail",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"225719061\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
+     "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:35:plain",
-     "result": "undefined",
-     "reason": "Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"
+     "result": "fail",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"2017432404\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
+     "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:41:plain",
-     "result": "undefined",
-     "reason": "Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"
+     "result": "fail",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"317583618\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
+     "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:50:plain",
-     "result": "undefined",
-     "reason": "Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"
+     "result": "fail",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"302669418\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
+     "retried": true
     }
    ]
   },
   "F18": {
    "pass": 0,
-   "fail": 0,
-   "undefined": 1,
+   "fail": 1,
+   "undefined": 0,
    "excluded": 0,
    "cases": [
     {
      "id": "spec/acceptance/supporter-and-session.feature:26:plain",
-     "result": "undefined",
-     "reason": "step definition missing: one private tab open"
+     "result": "fail",
+     "reason": "Native fixture did not exit cleanly",
+     "retried": true
     }
    ]
   }

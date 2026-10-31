@@ -6276,7 +6276,7 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
@@ -6285,6 +6285,7 @@
           "name": "Closing the reference tab returns focus to the main page",
           "result": "fail",
           "executed": true,
+          "fixture": "case-0002",
           "steps": [
             {
               "text": "two ordinary tabs in one workspace for Glance",
@@ -6298,9 +6299,10 @@
             }
           ],
           "browserExit": {
-            "code": 2,
+            "code": 0,
             "signal": null
           },
+          "reapedHelpers": 8,
           "retried": true,
           "firstAttempt": {
             "result": "fail",
@@ -9094,45 +9096,49 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "5d30f8eff310e19a3ffb7df05d8284c615bb8185",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
         {
           "id": "spec/acceptance/interface-language.feature:10:plain",
           "name": "System resolves to a supported OS language",
-          "result": "undefined",
-          "executed": false,
-          "missingSteps": [
+          "result": "pass",
+          "executed": true,
+          "steps": [
             {
               "text": "the OS prefers \"de-DE\"",
-              "sourceLine": 11,
-              "reason": "step definition missing"
+              "result": "pass",
+              "shippingDefinition": "chromium/tests/fork-steps/commands.mjs"
             },
             {
               "text": "German is selectable",
-              "sourceLine": 12,
-              "reason": "step definition missing"
+              "result": "pass",
+              "shippingDefinition": "chromium/tests/fork-steps/commands.mjs"
             },
             {
               "text": "the interface language is \"System\"",
-              "sourceLine": 13,
-              "reason": "step definition missing"
+              "result": "pass",
+              "shippingDefinition": "chromium/tests/fork-steps/commands.mjs"
             },
             {
               "text": "Blanc starts",
-              "sourceLine": 14,
-              "reason": "step definition missing"
+              "result": "pass",
+              "shippingDefinition": "chromium/tests/fork-steps/commands.mjs"
             },
             {
               "text": "the interface language is \"de\"",
-              "sourceLine": 15,
-              "reason": "step definition missing"
+              "result": "pass",
+              "shippingDefinition": "chromium/tests/fork-steps/commands.mjs"
             }
-          ]
+          ],
+          "browserExit": {
+            "code": 0,
+            "signal": null
+          }
         }
       ],
-      "result": "undefined"
+      "result": "pass"
     },
     {
       "id": "spec/acceptance/interface-language.feature:18",
@@ -9144,45 +9150,40 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "5d30f8eff310e19a3ffb7df05d8284c615bb8185",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
         {
           "id": "spec/acceptance/interface-language.feature:18:plain",
           "name": "A pinned language wins over the OS",
-          "result": "undefined",
-          "executed": false,
-          "missingSteps": [
+          "result": "fail",
+          "executed": true,
+          "steps": [
             {
               "text": "the OS prefers \"de-DE\"",
-              "sourceLine": 19,
-              "reason": "step definition missing"
+              "result": "pass",
+              "shippingDefinition": "chromium/tests/fork-steps/commands.mjs"
             },
             {
               "text": "German is selectable",
-              "sourceLine": 20,
-              "reason": "step definition missing"
-            },
-            {
-              "text": "the interface language is \"English\"",
-              "sourceLine": 21,
-              "reason": "step definition missing"
-            },
-            {
-              "text": "Blanc starts",
-              "sourceLine": 22,
-              "reason": "step definition missing"
-            },
-            {
-              "text": "the interface language is \"en\"",
-              "sourceLine": 23,
-              "reason": "step definition missing"
+              "result": "pass",
+              "shippingDefinition": "chromium/tests/fork-steps/commands.mjs"
             }
-          ]
+          ],
+          "browserExit": {
+            "code": 0,
+            "signal": null
+          },
+          "retried": true,
+          "firstAttempt": {
+            "result": "fail",
+            "error": "Pinning English: the fork stores no interface language choice (strings.js follows the browser language)"
+          },
+          "error": "Pinning English: the fork stores no interface language choice (strings.js follows the browser language)"
         }
       ],
-      "result": "undefined"
+      "result": "fail"
     },
     {
       "id": "spec/acceptance/interface-language.feature:26",
@@ -9194,45 +9195,40 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "5d30f8eff310e19a3ffb7df05d8284c615bb8185",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
         {
           "id": "spec/acceptance/interface-language.feature:26:plain",
           "name": "Choosing a language asks to relaunch and applies after it",
-          "result": "undefined",
-          "executed": false,
-          "missingSteps": [
+          "result": "fail",
+          "executed": true,
+          "steps": [
             {
               "text": "the OS prefers \"en-US\"",
-              "sourceLine": 27,
-              "reason": "step definition missing"
+              "result": "pass",
+              "shippingDefinition": "chromium/tests/fork-steps/commands.mjs"
             },
             {
               "text": "German is selectable",
-              "sourceLine": 28,
-              "reason": "step definition missing"
-            },
-            {
-              "text": "the user chooses \"Deutsch\" in Settings",
-              "sourceLine": 29,
-              "reason": "step definition missing"
-            },
-            {
-              "text": "Settings offers to relaunch to apply",
-              "sourceLine": 30,
-              "reason": "step definition missing"
-            },
-            {
-              "text": "after a relaunch the interface language is \"de\"",
-              "sourceLine": 31,
-              "reason": "step definition missing"
+              "result": "pass",
+              "shippingDefinition": "chromium/tests/fork-steps/commands.mjs"
             }
-          ]
+          ],
+          "browserExit": {
+            "code": 0,
+            "signal": null
+          },
+          "retried": true,
+          "firstAttempt": {
+            "result": "fail",
+            "error": "Fork Settings has no #uiLanguage control offering Deutsch"
+          },
+          "error": "Fork Settings has no #uiLanguage control offering Deutsch"
         }
       ],
-      "result": "undefined"
+      "result": "fail"
     },
     {
       "id": "spec/acceptance/interface-language.feature:34",
@@ -9244,50 +9240,40 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "5d30f8eff310e19a3ffb7df05d8284c615bb8185",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
         {
           "id": "spec/acceptance/interface-language.feature:34:plain",
           "name": "A pinned language that is no longer available renders English",
-          "result": "undefined",
-          "executed": false,
-          "missingSteps": [
+          "result": "fail",
+          "executed": true,
+          "steps": [
             {
               "text": "the OS prefers \"de-DE\"",
-              "sourceLine": 35,
-              "reason": "step definition missing"
+              "result": "pass",
+              "shippingDefinition": "chromium/tests/fork-steps/commands.mjs"
             },
             {
               "text": "German is selectable",
-              "sourceLine": 36,
-              "reason": "step definition missing"
-            },
-            {
-              "text": "the stored interface language is \"ja\"",
-              "sourceLine": 37,
-              "reason": "step definition missing"
-            },
-            {
-              "text": "Blanc starts",
-              "sourceLine": 38,
-              "reason": "step definition missing"
-            },
-            {
-              "text": "the interface language is \"en\"",
-              "sourceLine": 39,
-              "reason": "step definition missing"
-            },
-            {
-              "text": "the stored interface language is still \"ja\"",
-              "sourceLine": 40,
-              "reason": "step definition missing"
+              "result": "pass",
+              "shippingDefinition": "chromium/tests/fork-steps/commands.mjs"
             }
-          ]
+          ],
+          "browserExit": {
+            "code": 0,
+            "signal": null
+          },
+          "retried": true,
+          "firstAttempt": {
+            "result": "fail",
+            "error": "Storing a language: the fork stores no interface language choice (strings.js follows the browser language)"
+          },
+          "error": "Storing a language: the fork stores no interface language choice (strings.js follows the browser language)"
         }
       ],
-      "result": "undefined"
+      "result": "fail"
     },
     {
       "id": "spec/acceptance/interface-language.feature:43",
@@ -9299,35 +9285,42 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "5d30f8eff310e19a3ffb7df05d8284c615bb8185",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
         {
           "id": "spec/acceptance/interface-language.feature:43:plain",
           "name": "Websites are unaffected by the interface language",
-          "result": "undefined",
-          "executed": false,
+          "result": "fail",
+          "executed": true,
           "missingSteps": [
-            {
-              "text": "the OS prefers \"de-DE\"",
-              "sourceLine": 44,
-              "reason": "step definition missing"
-            },
-            {
-              "text": "a page is loaded with the interface language \"English\" and again with \"Deutsch\"",
-              "sourceLine": 45,
-              "reason": "step definition missing"
-            },
             {
               "text": "the Accept-Language header is the same both times",
               "sourceLine": 46,
               "reason": "step definition missing"
             }
-          ]
+          ],
+          "steps": [
+            {
+              "text": "the OS prefers \"de-DE\"",
+              "result": "pass",
+              "shippingDefinition": "chromium/tests/fork-steps/commands.mjs"
+            }
+          ],
+          "browserExit": {
+            "code": 0,
+            "signal": null
+          },
+          "retried": true,
+          "firstAttempt": {
+            "result": "fail",
+            "error": "Switching the interface language: the fork stores no interface language choice (strings.js follows the browser language)"
+          },
+          "error": "Switching the interface language: the fork stores no interface language choice (strings.js follows the browser language)"
         }
       ],
-      "result": "undefined"
+      "result": "fail"
     },
     {
       "id": "spec/acceptance/internal-pages.feature:7",
@@ -13587,7 +13580,7 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "5d30f8eff310e19a3ffb7df05d8284c615bb8185",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
@@ -16975,7 +16968,7 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
@@ -17001,17 +16994,19 @@
               "reason": "step definition missing"
             }
           ],
+          "fixture": "case-0004",
           "steps": [],
           "browserExit": {
-            "code": 0,
+            "code": 2,
             "signal": null
           },
+          "reapedHelpers": 6,
           "retried": true,
           "firstAttempt": {
             "result": "fail",
-            "error": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"6\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"6\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":725,\"columnNumber\":34},{\"functionName\":\"\",\"scriptId\":\"65\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":42}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Use Chromium’s native private-window command in this prototype.\\n    at Proxy.createTab (chrome://blanc-prototype/host.js:726:35)\\n    at <anonymous>:1:43\",\"objectId\":\"2139695514146726648.1.3\"}}"
+            "error": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"4\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"4\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":725,\"columnNumber\":34},{\"functionName\":\"\",\"scriptId\":\"69\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":42}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Use Chromium’s native private-window command in this prototype.\\n    at Proxy.createTab (chrome://blanc-prototype/host.js:726:35)\\n    at <anonymous>:1:43\",\"objectId\":\"-638334365441006878.1.3\"}}"
           },
-          "error": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"7\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":725,\"columnNumber\":34},{\"functionName\":\"\",\"scriptId\":\"67\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":42}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Use Chromium’s native private-window command in this prototype.\\n    at Proxy.createTab (chrome://blanc-prototype/host.js:726:35)\\n    at <anonymous>:1:43\",\"objectId\":\"-6519087907023524722.1.3\"}}"
+          "error": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"6\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"6\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":725,\"columnNumber\":34},{\"functionName\":\"\",\"scriptId\":\"67\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":42}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Use Chromium’s native private-window command in this prototype.\\n    at Proxy.createTab (chrome://blanc-prototype/host.js:726:35)\\n    at <anonymous>:1:43\",\"objectId\":\"-8397727282024728583.1.3\"}}"
         }
       ],
       "result": "fail"
@@ -19766,7 +19761,7 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "5d30f8eff310e19a3ffb7df05d8284c615bb8185",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
@@ -20035,24 +20030,31 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
         {
           "id": "spec/acceptance/site-certificate-safety.feature:11:plain",
           "name": "A local address can be continued past for the session",
-          "result": "undefined",
+          "result": "fail",
           "executed": true,
+          "fixture": "case-0006",
           "steps": [],
-          "error": "Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind",
           "browserExit": {
             "code": 0,
             "signal": null
-          }
+          },
+          "reapedHelpers": 1,
+          "retried": true,
+          "firstAttempt": {
+            "result": "fail",
+            "error": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1984823714\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==\",\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false},{\"id\":\"1984823716\",\"url\":\"https://nas.home.arpa:60848/site/local?probe=1\",\"loadedUrl\":\"https://nas.home.arpa:60848/site/local?probe=1\",\"loading\":false,\"isLoading\":false,\"title\":\"Privacy error\",\"favicon\":null,\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false}],\"tabOrder\":[\"1984823714\",\"1984823716\"],\"clusters\":[{\"key\":\"run:1984823714\",\"groupId\":null,\"tabIds\":[\"1984823714\",\"1984823716\"]}],\"groups\":[],\"splits\":[],\"activeTabId\":\"1984823716\",\"glanceTabId\":null,\"focusedPaneTabId\":\"1984823716\"}"
+          },
+          "error": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"2063600520\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==\",\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false},{\"id\":\"2063600522\",\"url\":\"https://nas.home.arpa:60886/site/local?probe=1\",\"loadedUrl\":\"https://nas.home.arpa:60886/site/local?probe=1\",\"loading\":false,\"isLoading\":false,\"title\":\"Privacy error\",\"favicon\":null,\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false}],\"tabOrder\":[\"2063600520\",\"2063600522\"],\"clusters\":[{\"key\":\"run:2063600520\",\"groupId\":null,\"tabIds\":[\"2063600520\",\"2063600522\"]}],\"groups\":[],\"splits\":[],\"activeTabId\":\"2063600522\",\"glanceTabId\":null,\"focusedPaneTabId\":\"2063600522\"}"
         }
       ],
-      "result": "undefined"
+      "result": "fail"
     },
     {
       "id": "spec/acceptance/site-certificate-safety.feature:19",
@@ -20064,24 +20066,29 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "5d30f8eff310e19a3ffb7df05d8284c615bb8185",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
         {
           "id": "spec/acceptance/site-certificate-safety.feature:19:plain",
           "name": "A different certificate on the same local address warns again",
-          "result": "undefined",
+          "result": "fail",
           "executed": true,
           "steps": [],
-          "error": "Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind",
           "browserExit": {
             "code": 0,
             "signal": null
-          }
+          },
+          "retried": true,
+          "firstAttempt": {
+            "result": "fail",
+            "error": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1854647305\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==\",\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false},{\"id\":\"1854647307\",\"url\":\"https://nas.home.arpa:59576/site/local?probe=1\",\"loadedUrl\":\"https://nas.home.arpa:59576/site/local?probe=1\",\"loading\":false,\"isLoading\":false,\"title\":\"Privacy error\",\"favicon\":null,\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false}],\"tabOrder\":[\"1854647305\",\"1854647307\"],\"clusters\":[{\"key\":\"run:1854647305\",\"groupId\":null,\"tabIds\":[\"1854647305\",\"1854647307\"]}],\"groups\":[],\"splits\":[],\"activeTabId\":\"1854647307\",\"glanceTabId\":null,\"focusedPaneTabId\":\"1854647307\"}"
+          },
+          "error": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"421341063\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==\",\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false},{\"id\":\"421341065\",\"url\":\"https://nas.home.arpa:59633/site/local?probe=1\",\"loadedUrl\":\"https://nas.home.arpa:59633/site/local?probe=1\",\"loading\":false,\"isLoading\":false,\"title\":\"Privacy error\",\"favicon\":null,\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false}],\"tabOrder\":[\"421341063\",\"421341065\"],\"clusters\":[{\"key\":\"run:421341063\",\"groupId\":null,\"tabIds\":[\"421341063\",\"421341065\"]}],\"groups\":[],\"splits\":[],\"activeTabId\":\"421341065\",\"glanceTabId\":null,\"focusedPaneTabId\":\"421341065\"}"
         }
       ],
-      "result": "undefined"
+      "result": "fail"
     },
     {
       "id": "spec/acceptance/site-certificate-safety.feature:26",
@@ -20093,24 +20100,31 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
         {
           "id": "spec/acceptance/site-certificate-safety.feature:26:plain",
           "name": "Stop allowing in one tab leaves another open page marked not secure",
-          "result": "undefined",
+          "result": "fail",
           "executed": true,
+          "fixture": "case-0008",
           "steps": [],
-          "error": "Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind",
           "browserExit": {
-            "code": 0,
+            "code": 2,
             "signal": null
-          }
+          },
+          "reapedHelpers": 9,
+          "retried": true,
+          "firstAttempt": {
+            "result": "fail",
+            "error": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"784486897\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==\",\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false},{\"id\":\"784486899\",\"url\":\"https://nas.home.arpa:60925/site/one\",\"loadedUrl\":\"https://nas.home.arpa:60925/site/one\",\"loading\":false,\"isLoading\":false,\"title\":\"Privacy error\",\"favicon\":null,\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false}],\"tabOrder\":[\"784486897\",\"784486899\"],\"clusters\":[{\"key\":\"run:784486897\",\"groupId\":null,\"tabIds\":[\"784486897\",\"784486899\"]}],\"groups\":[],\"splits\":[],\"activeTabId\":\"784486899\",\"glanceTabId\":null,\"focusedPaneTabId\":\"784486899\"}"
+          },
+          "error": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"225719061\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==\",\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false},{\"id\":\"225719063\",\"url\":\"https://nas.home.arpa:60965/site/one\",\"loadedUrl\":\"https://nas.home.arpa:60965/site/one\",\"loading\":false,\"isLoading\":false,\"title\":\"Privacy error\",\"favicon\":null,\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false}],\"tabOrder\":[\"225719061\",\"225719063\"],\"clusters\":[{\"key\":\"run:225719061\",\"groupId\":null,\"tabIds\":[\"225719061\",\"225719063\"]}],\"groups\":[],\"splits\":[],\"activeTabId\":\"225719063\",\"glanceTabId\":null,\"focusedPaneTabId\":\"225719063\"}"
         }
       ],
-      "result": "undefined"
+      "result": "fail"
     },
     {
       "id": "spec/acceptance/site-certificate-safety.feature:35",
@@ -20122,24 +20136,31 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
         {
           "id": "spec/acceptance/site-certificate-safety.feature:35:plain",
           "name": "Private tabs keep their own certificate choices",
-          "result": "undefined",
+          "result": "fail",
           "executed": true,
+          "fixture": "case-0010",
           "steps": [],
-          "error": "Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind",
           "browserExit": {
-            "code": 0,
+            "code": 2,
             "signal": null
-          }
+          },
+          "reapedHelpers": 5,
+          "retried": true,
+          "firstAttempt": {
+            "result": "fail",
+            "error": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1970021415\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==\",\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false},{\"id\":\"1970021417\",\"url\":\"https://nas.home.arpa:61006/site/local?probe=1\",\"loadedUrl\":\"https://nas.home.arpa:61006/site/local?probe=1\",\"loading\":false,\"isLoading\":false,\"title\":\"Privacy error\",\"favicon\":null,\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false}],\"tabOrder\":[\"1970021415\",\"1970021417\"],\"clusters\":[{\"key\":\"run:1970021415\",\"groupId\":null,\"tabIds\":[\"1970021415\",\"1970021417\"]}],\"groups\":[],\"splits\":[],\"activeTabId\":\"1970021417\",\"glanceTabId\":null,\"focusedPaneTabId\":\"1970021417\"}"
+          },
+          "error": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"2017432404\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==\",\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false},{\"id\":\"2017432406\",\"url\":\"https://nas.home.arpa:61049/site/local?probe=1\",\"loadedUrl\":\"https://nas.home.arpa:61049/site/local?probe=1\",\"loading\":false,\"isLoading\":false,\"title\":\"Privacy error\",\"favicon\":null,\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false}],\"tabOrder\":[\"2017432404\",\"2017432406\"],\"clusters\":[{\"key\":\"run:2017432404\",\"groupId\":null,\"tabIds\":[\"2017432404\",\"2017432406\"]}],\"groups\":[],\"splits\":[],\"activeTabId\":\"2017432406\",\"glanceTabId\":null,\"focusedPaneTabId\":\"2017432406\"}"
         }
       ],
-      "result": "undefined"
+      "result": "fail"
     },
     {
       "id": "spec/acceptance/site-certificate-safety.feature:41",
@@ -20151,24 +20172,29 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "5d30f8eff310e19a3ffb7df05d8284c615bb8185",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
         {
           "id": "spec/acceptance/site-certificate-safety.feature:41:plain",
           "name": "A reopened page keeps its not-secure state, and eviction does not clear it",
-          "result": "undefined",
+          "result": "fail",
           "executed": true,
           "steps": [],
-          "error": "Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind",
           "browserExit": {
             "code": 0,
             "signal": null
-          }
+          },
+          "retried": true,
+          "firstAttempt": {
+            "result": "fail",
+            "error": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1674175118\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==\",\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false},{\"id\":\"1674175120\",\"url\":\"https://nas.home.arpa:59837/site/local?probe=1\",\"loadedUrl\":\"https://nas.home.arpa:59837/site/local?probe=1\",\"loading\":false,\"isLoading\":false,\"title\":\"Privacy error\",\"favicon\":null,\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false}],\"tabOrder\":[\"1674175118\",\"1674175120\"],\"clusters\":[{\"key\":\"run:1674175118\",\"groupId\":null,\"tabIds\":[\"1674175118\",\"1674175120\"]}],\"groups\":[],\"splits\":[],\"activeTabId\":\"1674175120\",\"glanceTabId\":null,\"focusedPaneTabId\":\"1674175120\"}"
+          },
+          "error": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"317583618\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==\",\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false},{\"id\":\"317583620\",\"url\":\"https://nas.home.arpa:59886/site/local?probe=1\",\"loadedUrl\":\"https://nas.home.arpa:59886/site/local?probe=1\",\"loading\":false,\"isLoading\":false,\"title\":\"Privacy error\",\"favicon\":null,\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false}],\"tabOrder\":[\"317583618\",\"317583620\"],\"clusters\":[{\"key\":\"run:317583618\",\"groupId\":null,\"tabIds\":[\"317583618\",\"317583620\"]}],\"groups\":[],\"splits\":[],\"activeTabId\":\"317583620\",\"glanceTabId\":null,\"focusedPaneTabId\":\"317583620\"}"
         }
       ],
-      "result": "undefined"
+      "result": "fail"
     },
     {
       "id": "spec/acceptance/site-certificate-safety.feature:50",
@@ -20180,24 +20206,29 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "5d30f8eff310e19a3ffb7df05d8284c615bb8185",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
         {
           "id": "spec/acceptance/site-certificate-safety.feature:50:plain",
           "name": "Going back to a page loaded past a warning still reports it after a trusted load on the same host",
-          "result": "undefined",
+          "result": "fail",
           "executed": true,
           "steps": [],
-          "error": "Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind",
           "browserExit": {
             "code": 0,
             "signal": null
-          }
+          },
+          "retried": true,
+          "firstAttempt": {
+            "result": "fail",
+            "error": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1937641037\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==\",\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false},{\"id\":\"1937641039\",\"url\":\"https://lab.home.arpa:59926/site/lab-one\",\"loadedUrl\":\"https://lab.home.arpa:59926/site/lab-one\",\"loading\":false,\"isLoading\":false,\"title\":\"Privacy error\",\"favicon\":null,\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false}],\"tabOrder\":[\"1937641037\",\"1937641039\"],\"clusters\":[{\"key\":\"run:1937641037\",\"groupId\":null,\"tabIds\":[\"1937641037\",\"1937641039\"]}],\"groups\":[],\"splits\":[],\"activeTabId\":\"1937641039\",\"glanceTabId\":null,\"focusedPaneTabId\":\"1937641039\"}"
+          },
+          "error": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"302669418\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==\",\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false},{\"id\":\"302669420\",\"url\":\"https://lab.home.arpa:59964/site/lab-one\",\"loadedUrl\":\"https://lab.home.arpa:59964/site/lab-one\",\"loading\":false,\"isLoading\":false,\"title\":\"Privacy error\",\"favicon\":null,\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"asleep\":false}],\"tabOrder\":[\"302669418\",\"302669420\"],\"clusters\":[{\"key\":\"run:302669418\",\"groupId\":null,\"tabIds\":[\"302669418\",\"302669420\"]}],\"groups\":[],\"splits\":[],\"activeTabId\":\"302669420\",\"glanceTabId\":null,\"focusedPaneTabId\":\"302669420\"}"
         }
       ],
-      "result": "undefined"
+      "result": "fail"
     },
     {
       "id": "spec/acceptance/split-view.feature:7",
@@ -20724,7 +20755,7 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "5d30f8eff310e19a3ffb7df05d8284c615bb8185",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
@@ -21179,7 +21210,7 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
@@ -21215,11 +21246,13 @@
               "reason": "step definition missing"
             }
           ],
+          "fixture": "case-0012",
           "steps": [],
           "browserExit": {
             "code": 0,
             "signal": null
           },
+          "reapedHelpers": 2,
           "retried": true,
           "firstAttempt": {
             "result": "fail",
@@ -21350,7 +21383,7 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "5d30f8eff310e19a3ffb7df05d8284c615bb8185",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
@@ -21602,7 +21635,7 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "5d30f8eff310e19a3ffb7df05d8284c615bb8185",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
@@ -21846,14 +21879,14 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
         {
           "id": "spec/acceptance/supporter-and-session.feature:26:plain",
           "name": "Relaunch restores groups but not private tabs",
-          "result": "undefined",
+          "result": "fail",
           "executed": true,
           "missingSteps": [
             {
@@ -21882,6 +21915,7 @@
               "reason": "step definition missing"
             }
           ],
+          "fixture": "case-0014",
           "steps": [
             {
               "text": "a group \"work\" with 2 tabs",
@@ -21895,13 +21929,19 @@
             }
           ],
           "browserExit": {
-            "code": 0,
+            "code": 2,
             "signal": null
           },
-          "prefixPassed": true
+          "reapedHelpers": 5,
+          "retried": true,
+          "firstAttempt": {
+            "result": "fail",
+            "error": "Native fixture did not exit cleanly"
+          },
+          "error": "Native fixture did not exit cleanly"
         }
       ],
-      "result": "undefined"
+      "result": "fail"
     },
     {
       "id": "spec/acceptance/sync.feature:7",
@@ -24671,15 +24711,16 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "bdb339d511c21f70a9937c5f450972983f343f7a",
+      "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
         {
           "id": "spec/acceptance/tab-drag.feature:124:plain",
           "name": "Move Recently closed among the groups in the island",
-          "result": "undefined",
+          "result": "fail",
           "executed": true,
+          "fixture": "case-0016",
           "steps": [
             {
               "text": "groups \"work\" and \"play\" each hold three loaded tabs",
@@ -24720,16 +24761,32 @@
               "text": "I drag Recently closed above the \"play\" header in the island",
               "result": "pass",
               "shippingDefinition": "test/desktop/steps/tab-drag.steps.js"
+            },
+            {
+              "text": "I relaunch Blanc",
+              "result": "pass",
+              "shippingDefinition": "test/desktop/steps/vertical-tabs.steps.js"
+            },
+            {
+              "text": "a loose tab has been closed",
+              "result": "pass",
+              "shippingDefinition": "test/desktop/steps/tab-drag.steps.js"
             }
           ],
-          "error": "The fork runner cannot relaunch a fixture yet",
           "browserExit": {
             "code": 0,
             "signal": null
-          }
+          },
+          "reapedHelpers": 8,
+          "retried": true,
+          "firstAttempt": {
+            "result": "fail",
+            "error": "timed out waiting for Recently closed directly above play; last: [\"pinned\",\"loose\",\"BBAB3B9AF0578B12FFA1E4B99A141CB2\",\"85853C4E23561B94DDCCA9DB311EEC94\",\"recently-closed\",\"loose\"]"
+          },
+          "error": "timed out waiting for Recently closed directly above play; last: [\"pinned\",\"loose\",\"5D88DD92D9703E84B3E259BDA6ABAED1\",\"66688E017BCB0D9FC2C8257F4EC25955\",\"recently-closed\",\"loose\"]"
         }
       ],
-      "result": "undefined"
+      "result": "fail"
     },
     {
       "id": "spec/acceptance/tab-drag.feature:136",
@@ -25053,15 +25110,16 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "bdb339d511c21f70a9937c5f450972983f343f7a",
+      "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
         {
           "id": "spec/acceptance/tab-drag.feature:176:plain",
           "name": "Recently closed between two ungrouped tabs survives a relaunch",
-          "result": "undefined",
+          "result": "fail",
           "executed": true,
+          "fixture": "case-0018",
           "steps": [
             {
               "text": "groups \"work\" and \"play\" each hold three loaded tabs",
@@ -25094,14 +25152,20 @@
               "shippingDefinition": "test/desktop/steps/tab-drag.steps.js"
             }
           ],
-          "error": "The fork runner cannot relaunch a fixture yet",
           "browserExit": {
-            "code": 0,
+            "code": 2,
             "signal": null
-          }
+          },
+          "reapedHelpers": 5,
+          "retried": true,
+          "firstAttempt": {
+            "result": "fail",
+            "error": "timed out waiting for Recently closed directly above loose-3; last: false"
+          },
+          "error": "Browser quit with {\"code\":2,\"signal\":null}: Teardown watchdog expired; recording dump and terminating."
         }
       ],
-      "result": "undefined"
+      "result": "fail"
     },
     {
       "id": "spec/acceptance/tab-migration.feature:7",
@@ -26744,7 +26808,7 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
@@ -26753,6 +26817,7 @@
           "name": "A link opened from a grouped tab opens ungrouped, where a new tab goes",
           "result": "fail",
           "executed": true,
+          "fixture": "case-0020",
           "steps": [
             {
               "text": "a tab in a group named \"Work\" with a link that opens a new tab",
@@ -26766,15 +26831,15 @@
             }
           ],
           "browserExit": {
-            "code": 2,
+            "code": 0,
             "signal": null
           },
           "retried": true,
           "firstAttempt": {
             "result": "fail",
-            "error": "the link child should be ungrouped\n+ actual - expected\n\n+ '297C3A01912364B9852B638FC7C3BE59'\n- null\n"
+            "error": "the link child should be ungrouped\n+ actual - expected\n\n+ '6AB1A6FA4430B3316837C3DBB9CD3537'\n- null\n"
           },
-          "error": "the link child should be ungrouped\n+ actual - expected\n\n+ 'FDE0ABD8DE4E0C5536C1457850BB8E84'\n- null\n"
+          "error": "the link child should be ungrouped\n+ actual - expected\n\n+ 'B1E8FFE235D8B3B242F3C6489C3A4FE4'\n- null\n"
         }
       ],
       "result": "fail"
@@ -26839,7 +26904,7 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
@@ -26858,10 +26923,11 @@
               ]
             }
           ],
+          "fixture": "case-0021",
           "steps": [],
           "error": "Undefined native adapter: renameTab",
           "browserExit": {
-            "code": 2,
+            "code": 0,
             "signal": null
           }
         }
@@ -26878,7 +26944,7 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
@@ -26887,10 +26953,11 @@
           "name": "/rename with no name restores the page title",
           "result": "undefined",
           "executed": true,
+          "fixture": "case-0022",
           "steps": [],
           "error": "Undefined native adapter: renameTab",
           "browserExit": {
-            "code": 2,
+            "code": 0,
             "signal": null
           }
         }
@@ -26907,7 +26974,7 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
+      "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
@@ -26926,10 +26993,11 @@
               ]
             }
           ],
+          "fixture": "case-0023",
           "steps": [],
           "error": "Undefined native adapter: renameTab",
           "browserExit": {
-            "code": 2,
+            "code": 0,
             "signal": null
           }
         }
@@ -27619,15 +27687,16 @@
       ],
       "shippingTag": "v1.45.1",
       "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
-      "forkCommit": "bdb339d511c21f70a9937c5f450972983f343f7a",
+      "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
       "candidate": "macos-19b83f79bd18b94c",
       "platform": "macos",
       "cases": [
         {
           "id": "spec/acceptance/tabs-and-groups.feature:321:plain",
           "name": "A group's color survives a relaunch",
-          "result": "undefined",
+          "result": "pass",
           "executed": true,
+          "fixture": "case-0024",
           "steps": [
             {
               "text": "a group \"work\" with 2 tabs",
@@ -27638,16 +27707,26 @@
               "text": "the group \"work\" is colored \"sage\"",
               "result": "pass",
               "shippingDefinition": "test/desktop/steps/group-colors.steps.js"
+            },
+            {
+              "text": "I relaunch Blanc",
+              "result": "pass",
+              "shippingDefinition": "test/desktop/steps/vertical-tabs.steps.js"
+            },
+            {
+              "text": "the group \"work\" has the color \"sage\"",
+              "result": "pass",
+              "shippingDefinition": "test/desktop/steps/group-colors.steps.js"
             }
           ],
-          "error": "The fork runner cannot relaunch a fixture yet",
           "browserExit": {
             "code": 0,
             "signal": null
-          }
+          },
+          "reapedHelpers": 4
         }
       ],
-      "result": "undefined"
+      "result": "pass"
     },
     {
       "id": "spec/acceptance/tabs-and-groups.feature:328",
@@ -29192,17 +29271,17 @@
     }
   ],
   "summary": {
-    "pass": 55,
-    "fail": 173,
-    "undefined": 348,
+    "pass": 57,
+    "fail": 186,
+    "undefined": 333,
     "excluded": 2
   },
   "caseCount": 627,
-  "executedCaseCount": 342,
+  "executedCaseCount": 347,
   "executableSummary": {
-    "pass": 68,
-    "fail": 183,
-    "undefined": 374,
+    "pass": 70,
+    "fail": 196,
+    "undefined": 359,
     "excluded": 2
   },
   "merges": [
@@ -29221,6 +29300,54 @@
       "subset": "platform-services.feature:35:",
       "scenarios": [
         "spec/acceptance/platform-services.feature:35"
+      ]
+    },
+    {
+      "forkCommit": "5d30f8eff310e19a3ffb7df05d8284c615bb8185",
+      "subset": "^(spec/acceptance/interface\\-language\\.feature:10:|spec/acceptance/interface\\-language\\.feature:18:|spec/acceptance/interface\\-language\\.feature:26:|spec/acceptance/interface\\-language\\.feature:34:|spec/acceptance/interface\\-language\\.feature:43:|spec/acceptance/local\\-profiles\\.feature:27:|spec/acceptance/private\\-tabs\\.feature:40:|spec/acceptance/shared\\-spaces\\.feature:111:|spec/acceptance/site\\-certificate\\-safety\\.feature:11:|spec/acceptance/site\\-certificate\\-safety\\.feature:19:|spec/acceptance/site\\-certificate\\-safety\\.feature:26:|spec/acceptance/site\\-certificate\\-safety\\.feature:35:|spec/acceptance/site\\-certificate\\-safety\\.feature:41:|spec/acceptance/site\\-certificate\\-safety\\.feature:50:|spec/acceptance/split\\-view\\.feature:88:|spec/acceptance/split\\-view\\.feature:159:|spec/acceptance/split\\-view\\.feature:187:|spec/acceptance/split\\-view\\.feature:227:|spec/acceptance/supporter\\-and\\-session\\.feature:26:|spec/acceptance/tab\\-drag\\.feature:124:|spec/acceptance/tab\\-drag\\.feature:176:|spec/acceptance/tabs\\-and\\-groups\\.feature:321:)",
+      "scenarios": [
+        "spec/acceptance/interface-language.feature:10",
+        "spec/acceptance/interface-language.feature:18",
+        "spec/acceptance/interface-language.feature:26",
+        "spec/acceptance/interface-language.feature:34",
+        "spec/acceptance/interface-language.feature:43",
+        "spec/acceptance/local-profiles.feature:27",
+        "spec/acceptance/private-tabs.feature:40",
+        "spec/acceptance/shared-spaces.feature:111",
+        "spec/acceptance/site-certificate-safety.feature:11",
+        "spec/acceptance/site-certificate-safety.feature:19",
+        "spec/acceptance/site-certificate-safety.feature:26",
+        "spec/acceptance/site-certificate-safety.feature:35",
+        "spec/acceptance/site-certificate-safety.feature:41",
+        "spec/acceptance/site-certificate-safety.feature:50",
+        "spec/acceptance/split-view.feature:88",
+        "spec/acceptance/split-view.feature:159",
+        "spec/acceptance/split-view.feature:187",
+        "spec/acceptance/split-view.feature:227",
+        "spec/acceptance/supporter-and-session.feature:26",
+        "spec/acceptance/tab-drag.feature:124",
+        "spec/acceptance/tab-drag.feature:176",
+        "spec/acceptance/tabs-and-groups.feature:321"
+      ]
+    },
+    {
+      "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
+      "subset": "^(spec/acceptance/glance\\.feature:73:|spec/acceptance/private-tabs\\.feature:40:|spec/acceptance/site-certificate-safety\\.feature:(11|26|35):|spec/acceptance/split-view\\.feature:159:|spec/acceptance/supporter-and-session\\.feature:26:|spec/acceptance/tab-drag\\.feature:(124|176):|spec/acceptance/tabs-and-groups\\.feature:(163|181|187|193|321):)",
+      "scenarios": [
+        "spec/acceptance/glance.feature:73",
+        "spec/acceptance/private-tabs.feature:40",
+        "spec/acceptance/site-certificate-safety.feature:11",
+        "spec/acceptance/site-certificate-safety.feature:26",
+        "spec/acceptance/site-certificate-safety.feature:35",
+        "spec/acceptance/split-view.feature:159",
+        "spec/acceptance/supporter-and-session.feature:26",
+        "spec/acceptance/tab-drag.feature:124",
+        "spec/acceptance/tab-drag.feature:176",
+        "spec/acceptance/tabs-and-groups.feature:163",
+        "spec/acceptance/tabs-and-groups.feature:181",
+        "spec/acceptance/tabs-and-groups.feature:187",
+        "spec/acceptance/tabs-and-groups.feature:193",
+        "spec/acceptance/tabs-and-groups.feature:321"
       ]
     }
   ]
