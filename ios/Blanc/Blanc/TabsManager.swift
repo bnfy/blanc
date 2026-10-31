@@ -360,6 +360,10 @@ final class TabsManager {
             UITestSeed.seedSharedSpaces(into: syncDirectory)
             restoredState = UITestSeed.sharedSpacesState()
         }
+        if UITestSeed.appStore {
+            UITestSeed.seedAppStoreSends(into: syncDirectory)
+            restoredState = UITestSeed.appStoreState()
+        }
         if UITestSeed.sends {
             UITestSeed.seedSends(into: syncDirectory)
             savedURLs = [UITestSeed.pageURL]
