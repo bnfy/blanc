@@ -27,7 +27,7 @@ async function compare(cdp,label){
   const m=/^chrome:\/\/blanc-prototype\/([^?#]+)/.exec(r.url);if(!m||!(m[1] in manifest))continue;
   let reply;
   try{reply=await cdp.send('Page.getResourceContent',{frameId:f.frame.id,url:r.url});}
-  catch(e){if(/No resource with given URL/.test(e.message)){(result.unretrievable??=[]).push(r.url);continue;}throw e;}
+  catch(e){if(/No resource with given URL|Resource was not cached/.test(e.message)){(result.unretrievable??=[]).push(r.url);continue;}throw e;}
   const {content,base64Encoded}=reply;
   // DevTools returns text decoded by the page's charset; a stylesheet with no
   // @charset can come back as Windows-1252. Re-encode the way it was decoded.

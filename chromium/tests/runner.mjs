@@ -30,7 +30,9 @@ const forkCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf
 const sourceMapSha256=crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'source-map.json'))).digest('hex');
 fs.mkdirSync(out,{recursive:true,mode:0o700});
 const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-fixtures-'));
-const baseline={schemaVersion:1,...(only?{developmentSubset:only}:{}),platform:'macos',candidate:config.candidate,candidateIdentity:{id:config.candidate,frameworkSha256:config.frameworkSha256,executableSha256:config.executableSha256},shippingTag:inventory.shippingTag,shippingCommit:inventory.shippingCommit,forkCommit,sourceMapSha256,
+// The Island assets the cases ran against: compiled in, or a disk override.
+const islandManifestSha256=crypto.createHash('sha256').update(JSON.stringify(JSON.parse(fs.readFileSync(path.join(root,'blanc/island-assets.json'))).manifest)).digest('hex');
+const baseline={schemaVersion:1,assets:config.diskAssets===false?{source:'embedded',islandManifestSha256}:{source:'disk',folder:path.basename(config.assets)},...(only?{developmentSubset:only}:{}),platform:'macos',candidate:config.candidate,candidateIdentity:{id:config.candidate,frameworkSha256:config.frameworkSha256,executableSha256:config.executableSha256},shippingTag:inventory.shippingTag,shippingCommit:inventory.shippingCommit,forkCommit,sourceMapSha256,
  qualification:'full shipping declaration inventory; defined steps execute on the native candidate; undefined steps are runner gaps, not inferred product failures',scenarios:[]};
 const xmlEscape=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const cases=[];
@@ -43,7 +45,7 @@ async function runCase(matches,steps){
   // Profiles live in local temp storage, never in the synced evidence folder;
   // the browser log and any error are kept with the results.
   const name='case-'+String(++executed).padStart(4,'0');entry.fixture=name;
-  await fixture.launch(config,path.join(scratch,name),{testHooks:true,pages:await fixturePages.start()});
+  await fixture.launch(config,path.join(scratch,name),{testHooks:true,pages:await fixturePages.start(),diskAssets:config.diskAssets!==false});
   await installDriver(fixture.host);const caps=await nativeCall(fixture.host,'capabilities');if(!caps.testHooks)throw Error('Native test hook unavailable');
   await world.reset();
   world.bindShippingContext();

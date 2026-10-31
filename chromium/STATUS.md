@@ -103,7 +103,7 @@ Use `git status --short` for exact paths. Nothing was discarded.
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | 70/627 executable cases pass; 196 failed; 359 undefined/not run; 2 excluded — [baseline](scenarios/baseline-macos-19b83f79bd18b94c.json)<br>S1 rows: 70/253 pass; 152 failed; 31 undefined; 0 excluded |
+| macOS | Not run for current candidate (previous baseline is stale) |
 | Windows | Not run (627 cases) |
 | Linux | Not run (627 cases) |
 
@@ -127,5 +127,5 @@ Use `git status --short` for exact paths. Nothing was discarded.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-19b83f79bd18b94c; Windows: none; Linux: none.
+Candidate identities: macOS: macos-d1984adbf76df5f0; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

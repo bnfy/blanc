@@ -56,7 +56,7 @@
     },
     {
       "id": "F3",
-      "requirement": "Groups: names, case rules, optional color, group menu, \u23181\u20139 clusters",
+      "requirement": "Groups: names, case rules, optional color, group menu, ⌘1–9 clusters",
       "slice": "S1",
       "legacyMacState": "Integrated in an isolated candidate",
       "platformVerification": {
@@ -157,7 +157,7 @@
     {
       "id": "F7",
       "requirement": "34 slash commands with shipping names and hints",
-      "slice": "S1\u2013S5",
+      "slice": "S1–S5",
       "legacyMacState": "Integrated (partial: some commands)",
       "platformVerification": {
         "macos": null,
@@ -1991,8 +1991,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-19b83f79bd18b94c",
-      "frameworkSha256": "19b83f79bd18b94ca8ef9060b46b99c63d323cebbaf14ddf607e684d2ed9e56e",
+      "id": "macos-d1984adbf76df5f0",
+      "frameworkSha256": "d1984adbf76df5f075d3b32cdbd85bef571811479c7cc341f514da62e25dbdd4",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"

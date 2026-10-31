@@ -7,6 +7,7 @@ export function mergeBaseline(base,update){
  if(base.developmentSubset)throw Error('Base must be a full baseline');
  for(const k of ['platform','candidate','shippingCommit','sourceMapSha256'])if(base[k]!==update[k])throw Error('Runs disagree on '+k);
  if(JSON.stringify(base.candidateIdentity)!==JSON.stringify(update.candidateIdentity))throw Error('Runs disagree on candidate identity');
+ if(JSON.stringify(base.assets)!==JSON.stringify(update.assets))throw Error('Runs disagree on Island assets');
  const ran=new Map(update.scenarios.filter(s=>s.cases.every(c=>c.result!=='not-run')).map(s=>[s.id,s]));
  const partial=update.scenarios.filter(s=>s.cases.some(c=>c.result!=='not-run')&&s.cases.some(c=>c.result==='not-run'));
  if(partial.length)throw Error('Re-run every example of a scenario: '+partial.map(s=>s.id));
