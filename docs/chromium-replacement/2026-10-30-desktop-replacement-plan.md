@@ -1,6 +1,6 @@
 # Blanc on Chromium: desktop replacement implementation plan
 
-Status: **owner-approved execution contract** at `e884a6564`, with subsequent owner clarifications. Authorized now: F0.1–F0.6 and F0.8 including their incremental builds. D1 was decided on October 31, 2026 (in-window private tabs). D7, F0.7, cold builds, new platform machines, D2, full-replacement D3, D4–D6, D8 and V2 remain separate pending decisions. No merge or release authorization.
+Status: **owner-approved execution contract** at `e884a6564`, with subsequent owner clarifications. Authorized now: F0.1–F0.6 and F0.8 including their incremental builds. D1 was decided on October 31, 2026 (in-window private tabs). On October 31, 2026 the owner also approved F0.3 and the S1 slice; including one cold release-channel build in a new output folder on the pinned toolchain, a pf firewall anchor scoped to the test user for S1.1, and a Standard test user the owner creates. D7, F0.7, cold builds, new platform machines, D2, full-replacement D3, D4–D6, D8 and V2 remain separate pending decisions. No merge or release authorization.
 Companion: [product specification](2026-10-30-desktop-replacement-spec.md). Task IDs below are referenced from the spec's matrix.
 
 ## 1. Why the work stalled, and what changes

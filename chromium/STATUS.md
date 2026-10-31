@@ -3,7 +3,10 @@
 Execution contract: spec and plan approved at e884a6564. Active slice: F0 Foundation.
 
 ## Authorization
-F0.1–F0.6 and F0.8, with necessary incremental builds, approved.
+F0.1–F0.6 and F0.8, with necessary incremental builds, approved. F0.3 and S1
+approved 2026-10-31, including one cold release-channel build (new output
+folder, pinned toolchain), a pf firewall anchor scoped to the test user for
+S1.1, and a Standard test user the owner creates.
 D1 decided 2026-10-31: in-window private tabs.
 D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
@@ -122,7 +125,7 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | 70/627 executable cases pass; 195 failed; 360 undefined/not run; 2 excluded — [baseline](scenarios/baseline-macos-790ca4d6d538c894.json)<br>S1 rows: 70/253 pass; 151 failed; 32 undefined; 0 excluded |
+| macOS | Not run for current candidate (previous baseline is stale) |
 | Windows | Not run (627 cases) |
 | Linux | Not run (627 cases) |
 
@@ -146,5 +149,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-790ca4d6d538c894; Windows: none; Linux: none.
+Candidate identities: macOS: macos-c63b5428a2f16e60; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

@@ -6,3 +6,11 @@ assert(blanc_channel == "preview" || blanc_channel == "release")
 blanc_enable_test_hooks = blanc_channel == "preview" && !is_official_build
 # Serving Island assets from a disk folder is a preview development override.
 blanc_disk_assets = blanc_channel == "preview" && !is_official_build
+# Each channel keeps its own data folder (Info.plist CrProductDirName) under
+# ~/Library/Application Support. Release is a sibling of shipping Electron's
+# "Blanc" folder, never inside it, so Electron files are never shared (F0.3).
+if (blanc_channel == "release") {
+  blanc_product_dir_name = "Blanc Browser"
+} else {
+  blanc_product_dir_name = "Blanc Chromium Preview"
+}

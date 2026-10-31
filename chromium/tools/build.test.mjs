@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { changedInputs, plannedActions, checkPlan, planSummary, localJobs, maximumActions, selectedSdk } from './build.mjs';
+import { changedInputs, plannedActions, checkPlan, planSummary, localJobs, maximumActions, selectedSdk, outputName } from './build.mjs';
 
 test('cold plans larger than the former capture limit retain their final count', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-plan-test-'));
@@ -90,6 +90,14 @@ test('local worker limit is bounded and cannot inject or duplicate flags', () =>
   assert.throws(() => localJobs(['--local-jobs=8', '--local-jobs=4']));
 });
 
+
+test('output is the preview candidate or the release channel, nothing else', () => {
+  assert.equal(outputName(['--build']), 'BlancPrototype');
+  assert.equal(outputName(['--out=BlancRelease']), 'BlancRelease');
+  for (const value of ['', 'Default', '../BlancRelease', 'BlancRelease2'])
+    assert.throws(() => outputName(['--out=' + value]));
+  assert.throws(() => outputName(['--out=BlancRelease', '--out=BlancPrototype']));
+});
 
 test('explicit recovered SDK must match the real sysroot and never hides Xcode drift', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-sdk-selection-'));

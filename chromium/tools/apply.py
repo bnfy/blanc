@@ -29,7 +29,7 @@ with tempfile.TemporaryDirectory(prefix='blanc-source-apply-') as temp:
         p = root / 'upstream' / name
         if sha(p) != expected: raise SystemExit('Pristine input mismatch: ' + name)
         q = work / name; q.parent.mkdir(parents=True, exist_ok=True); shutil.copyfile(p,q)
-    for patch in [root/'patches/baseline/0001-foundation-baseline.patch', root/'patches/0002-canonical-layout.patch', root/'patches/0003-island-mode-predicate.patch', root/'patches/0004-typed-island-interface.patch']:
+    for patch in [root/'patches/baseline/0001-foundation-baseline.patch', root/'patches/0002-canonical-layout.patch', root/'patches/0003-island-mode-predicate.patch', root/'patches/0004-typed-island-interface.patch', root/'patches/0005-channel-identity.patch']:
         subprocess.run(['git','apply',str(patch)],cwd=work,check=True)
     for name, expected in source['canonicalSha256'].items():
         p = root/name

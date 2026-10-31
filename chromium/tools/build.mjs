@@ -75,6 +75,15 @@ export function maximumActions(options) {
     throw new Error('Use one --max-actions=N with N between 0 and 999999999.');
   return Number(values[0].split('=')[1]);
 }
+// The preview candidate's output, or the release channel's own (F0.3); never
+// an arbitrary path, so a typo cannot start a cold build somewhere new.
+export function outputName(options) {
+  const values = options.filter(option => option.startsWith('--out='));
+  if (!values.length) return 'BlancPrototype';
+  if (values.length !== 1 || !['--out=BlancPrototype', '--out=BlancRelease'].includes(values[0]))
+    throw new Error('Use one --out=BlancPrototype or --out=BlancRelease.');
+  return values[0].slice('--out='.length);
+}
 export function localJobs(options) {
   const values = options.filter(option => option.startsWith('--local-jobs='));
   if (!values.length) return [];
@@ -137,8 +146,8 @@ function environment(src, out, sdkRoot = null) {
 function main() {
   const [source, ...options] = process.argv.slice(2);
   const allowed = new Set(['--check', '--build', '--record-environment', '--allow-large-build', '--reject-buildflags']);
-  if (!source || options.some(option => !allowed.has(option) && !option.startsWith('--local-jobs=') && !option.startsWith('--sdk-root=') && !option.startsWith('--max-actions='))) {
-    throw new Error('Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--reject-buildflags] [--max-actions=N] [--local-jobs=N] [--sdk-root=ABSOLUTE_PATH]');
+  if (!source || options.some(option => !allowed.has(option) && !option.startsWith('--local-jobs=') && !option.startsWith('--out=') && !option.startsWith('--sdk-root=') && !option.startsWith('--max-actions='))) {
+    throw new Error('Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--reject-buildflags] [--max-actions=N] [--local-jobs=N] [--out=BlancPrototype|BlancRelease] [--sdk-root=ABSOLUTE_PATH]');
   }
   const workerArgs = localJobs(options);
   const maxActions = maximumActions(options);
@@ -146,7 +155,8 @@ function main() {
   if (modes.length > 1) throw new Error('Choose one mode.');
   const mode = modes[0] || '--check';
   const src = fs.realpathSync(source);
-  const out = path.join(src, 'out/BlancPrototype');
+  const outName = outputName(options);
+  const out = path.join(src, 'out', outName);
   const pinFile = path.join(out, '.blanc-build-environment.json');
   const lock = path.join(out, '.blanc-build-guard.lock');
   const { inputs, env } = environment(src, out, selectedSdk(options, out));
@@ -196,7 +206,8 @@ function main() {
     if (build.error) throw build.error;
     if (build.status !== 0) throw new Error(`Build did not complete successfully (${build.status ?? build.signal}). Cached work was preserved.`);
     fs.writeFileSync(path.join(out, '.blanc-last-successful-build.json'), JSON.stringify({ inputs, completedAt: new Date().toISOString() }, null, 2) + '\n');
-    run(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), 'progress.mjs'), `--candidate-from-output=${out}`]);
+    // Only the preview build is the tracked candidate.
+    if (outName === 'BlancPrototype') run(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), 'progress.mjs'), `--candidate-from-output=${out}`]);
   } finally {
     fs.rmdirSync(lock);
   }
