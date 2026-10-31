@@ -13,6 +13,7 @@ import {fileURLToPath} from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SHIPPING = '85883b1afa11375e1300130914d6f40c5388af21';
 const show = file => execFileSync('git', ['show', `${SHIPPING}:${file}`], {cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
+const escapeRegExp = text => text.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const page = createRequire(import.meta.url)(path.join(root, 'blanc/island/search-settings.js'));
 
@@ -40,7 +41,7 @@ test('the page has shipping\'s controls with shipping\'s English text', () => {
   }
   for (const [key, value] of Object.entries(page.searchCopy.en))
     if (key !== 'settings.general.searchEngine.custom')
-      assert(ours.includes(`data-search-i18n="${key}">${value.replace(/'/g, "'")}<`), key);
+      assert(ours.includes(`data-search-i18n="${key}">${value}<`), key);
 });
 
 test('each stock engine is the prepopulated engine the resolver maps to shipping\'s URL', () => {
@@ -51,7 +52,7 @@ test('each stock engine is the prepopulated engine the resolver maps to shipping
   const shipping = show('src/main/settings.js');
   for (const [name, id] of ours) {
     const url = new RegExp(`${name}: \\{[^}]*url: \\(q\\) => \`([^$]+)\\$\\{`).exec(shipping)[1];
-    assert.match(resolver, new RegExp(`\\{${id}, [\\s\\S]*?"${url.replace(/[.?]/g, '\\$&')}%s"\\}`), name);
+    assert.match(resolver, new RegExp(`\\{${id}, [\\s\\S]*?"${escapeRegExp(url)}%s"\\}`), name);
   }
 });
 
