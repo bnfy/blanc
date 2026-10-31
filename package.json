@@ -185,6 +185,7 @@
     "ios:sync-vectors:check": "node scripts/build-ios-sync-vectors.cjs --check",
     "ios:testflight": "bash scripts/ios-testflight.sh",
     "ios:icon-previews": "node scripts/build-ios-icon-previews.js",
+    "ios:app-store-screenshots": "bash scripts/ios-app-store-screenshots.sh",
     "ios:space-identity:build": "node scripts/build-ios-space-identity.cjs",
     "ios:space-identity:check": "node scripts/build-ios-space-identity.cjs --check",
     "reader:build": "node scripts/build-reader.cjs",
