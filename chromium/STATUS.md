@@ -34,8 +34,13 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   browsers on quit (exit 2), intermittently, even at normal load. Cause not
   confirmed (product shutdown hang vs. harness CDP sessions); such cases are
   recorded as failures with the log line.
-- Writing per-case profiles into the iCloud-synced evidence folder drove load to
-  ~1000 on 2026-10-30; fixed in the runner (8bcccf57).
+- 2026-10-30: four parallel runner sessions, leaked browser helpers and per-case
+  profiles in the iCloud-synced evidence folder exhausted the owner's memory
+  (load ~1000); the owner quit apps, including Codex, which ended the dev
+  instance it had launched (clean exit, profile intact). Fixed: profiles in
+  local temp, helpers reaped per case, a free-memory guard before each case.
+  Run one native test browser at a time; launch the dev instance with `open -n`
+  so it never belongs to an agent's process tree.
 
 ## Reading the failures
 Most failures are real product gaps on this candidate, clustered:

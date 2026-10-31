@@ -9,6 +9,7 @@ import {waitFor} from './lib/cdp.mjs';
 import {installDriver,nativeCall} from './lib/test-driver.mjs';
 import {matchStep} from './steps.mjs';
 import {aggregateCases} from './results.mjs';
+import {awaitMemory} from './lib/memory-guard.mjs';
 import {createWorld,missingAdapters} from './world.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));
 import {createRequire} from 'node:module';
@@ -81,6 +82,8 @@ for(const scenario of inventory.scenarios){
    else{
     // Shipping's runnable profile retries a failed scenario once.
     for(let attempt=1;attempt<=2;attempt++){
+     // Outside the case: a memory stop ends the run, never records a result.
+     await awaitMemory();
      const result=await runCase(matches.slice(0,runnable),test.steps);
      if(attempt===2){entry.retried=true;entry.firstAttempt={result:entry.result,error:entry.error};delete entry.error;}
      Object.assign(entry,result);
