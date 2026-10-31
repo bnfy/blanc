@@ -13,30 +13,31 @@ D7, F0.7, cold builds, new platform machines, D1–D6, D8 and V2 remain pending.
 - Source patch reproduces 79 tracked files; 41 custom files relocated.
 - Incremental foundation build passed: 44 steps in 1m41s; normal zero-action
   guard passed. Regular/private native smoke passed; two clean exits.
-- F0.3/F0.6: pending. F0.8 hosted source-check workflow prepared; no
-  self-hosted runner installed. F0.5 runner still pending.
-- F0.5 baseline: NOT RUN. Shipping has 578 scenario declarations; no fork
-  scenario pass count exists yet. All declarations mapped; runner remains to be implemented.
+- F0.3/F0.6: pending. F0.8 hosted source checks passed on cdf30501; no
+  self-hosted runner installed. F0.5 preview hook built; runtime gate and
+  replay checks passed in regular/private fixtures and without opt-in.
+- F0.5 initial baseline: pending run. 627 cases from 578 declarations are
+  mapped. Runner/JUnit implemented; many step adapters remain undefined.
 
 ## Candidate
 Existing verified development app remains open; use the durable launch receipt.
 No replacement candidate promoted. Preserve 157 fallback and signed masters.
 
 ## Next
-Implement the fork scenario runner and required test hook.
+Run the initial corpus baseline; keep adapter gaps distinct from product failures.
 Archive/compression of historical raw evidence remains a separate operation;
 no historical evidence or draft is deleted.
 
 <!-- BEGIN GENERATED PROGRESS -->
-### Bar A — shipping scenarios on the fork
+### Bar A — executable shipping cases on the fork
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | Not run |
-| Windows | Not run |
-| Linux | Not run |
+| macOS | Not run (627 cases) |
+| Windows | Not run (627 cases) |
+| Linux | Not run (627 cases) |
 
-578 shipping scenario declarations are inventoried; inventory is not a fork run.
+627 executable cases from 578 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
 
 ### Bar B — requirement rows by platform
 
@@ -49,11 +50,12 @@ no historical evidence or draft is deleted.
 | Built, isolated (legacy) | 9 | 0 | 0 |
 | Integrated, partial (legacy) | 16 | 0 | 0 |
 | Integrated | 0 | 0 | 0 |
+| Verification needs recheck | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 |
 | Total | 79 | 79 | 79 |
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-fbdb706908013250; Windows: none; Linux: none.
+Candidate identities: macOS: macos-19b83f79bd18b94c; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

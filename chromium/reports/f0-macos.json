@@ -2,13 +2,6 @@
   "slice": "F0",
   "platform": "macos",
   "status": "in-progress",
-  "candidate": {
-    "id": "macos-fbdb706908013250",
-    "frameworkSha256": "fbdb70690801325086493f50cbb3c8c24d9222d7b2e6ad27aa35f7e60851dccf",
-    "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
-    "version": "158.0.8127.2",
-    "qualification": "compiled candidate; runtime acceptance pending"
-  },
   "checks": {
     "nativeBuild": "passed; 44 steps",
     "normalZeroActionGuard": "passed",
@@ -49,5 +42,70 @@
     "F0.5 fork baseline",
     "F0.6 release resource/typed bridge work",
     "F0.8 self-hosted integration"
+  ],
+  "foundationCandidate": {
+    "id": "macos-fbdb706908013250",
+    "frameworkSha256": "fbdb70690801325086493f50cbb3c8c24d9222d7b2e6ad27aa35f7e60851dccf",
+    "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
+    "version": "158.0.8127.2",
+    "qualification": "compiled candidate; runtime acceptance pending"
+  },
+  "currentCandidate": {
+    "id": "macos-19b83f79bd18b94c",
+    "frameworkSha256": "19b83f79bd18b94ca8ef9060b46b99c63d323cebbaf14ddf607e684d2ed9e56e",
+    "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
+    "version": "158.0.8127.2",
+    "qualification": "compiled candidate; runtime acceptance pending"
+  },
+  "testHookContracts": {
+    "disabled": {
+      "status": "passed",
+      "candidate": "macos-19b83f79bd18b94c",
+      "checks": [
+        "without --blanc-test, native test channel does not dispatch",
+        "ordinary fixture page has no WebUI send bridge"
+      ],
+      "browserExit": {
+        "code": 0,
+        "signal": null
+      },
+      "rawResultSha256": "29c3fdf716b8c9b50217fcbb93e175ddb3d50844bebc91f510485c370df9b599"
+    },
+    "enabled-regular": {
+      "status": "passed",
+      "candidate": "macos-19b83f79bd18b94c",
+      "checks": [
+        "native handshake and snapshot reflect actual profile and tabs",
+        "replayed mutation returns its original reply and creates only one native tab",
+        "changed replay payload and unsupported fixture seed are refused",
+        "ordinary fixture page has no WebUI send bridge"
+      ],
+      "browserExit": {
+        "code": 0,
+        "signal": null
+      },
+      "rawResultSha256": "191f5b930f4580337cb62f625935bb6e39de18e168b68bee59361eec2c63abbb"
+    },
+    "enabled-private": {
+      "status": "passed",
+      "candidate": "macos-19b83f79bd18b94c",
+      "checks": [
+        "native handshake and snapshot reflect actual profile and tabs",
+        "replayed mutation returns its original reply and creates only one native tab",
+        "changed replay payload and unsupported fixture seed are refused",
+        "ordinary fixture page has no WebUI send bridge"
+      ],
+      "browserExit": {
+        "code": 0,
+        "signal": null
+      },
+      "rawResultSha256": "a8465827ac9accdd41b1527daea013fb6155ee89de254d112ec3312b25521a85"
+    }
+  },
+  "sourceGateCheck": "release-disabled preprocessing removes all native test-channel implementation; not a release-image qualification",
+  "preservedFailures": [
+    "fixture driver initial syntax error before browser launch",
+    "initial snapshot comparison assumed string/native integer IDs matched without normalization",
+    "initial no-switch probe sent an unregistered WebUI message and triggered Chromium fatal rejection; repaired to explicit preview denial"
   ]
 }

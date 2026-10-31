@@ -9,7 +9,7 @@ const stages = [
   ['drafted', 'Drafted'], ['implemented', 'Implemented'],
   ['legacy-built-isolated', 'Built, isolated (legacy)'],
   ['legacy-integrated-partial', 'Integrated, partial (legacy)'],
-  ['integrated', 'Integrated'], ['verified', 'Verified'], ['release-ready', 'Release-ready'],
+  ['integrated', 'Integrated'], ['needs-recheck', 'Verification needs recheck'], ['verified', 'Verified'], ['release-ready', 'Release-ready'],
 ];
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
 
@@ -17,38 +17,56 @@ export function renderProgress(tracker, loadBaseline = () => null) {
   if (new Set(tracker.rows.map(r => r.id)).size !== tracker.rows.length) throw Error('Duplicate requirement rows');
   const counts = Object.fromEntries(platforms.map(([p]) => [p, Object.fromEntries(stages.map(([s]) => [s, 0]))]));
   for (const row of tracker.rows) for (const [p] of platforms) {
-    const stage = row.platformProgress?.[p]?.stage;
+    let stage = row.platformProgress?.[p]?.stage;
     if (!(stage in counts[p])) throw Error(`Missing/unknown ${p} stage for ${row.id}`);
+    if (['verified', 'release-ready'].includes(stage)) {
+      const evidence = row.platformVerification?.[p];
+      if (!evidence || typeof evidence !== 'object' || !evidence.candidate || !evidence.shippingCommit) throw Error(`Missing verification for ${row.id}/${p}`);
+      if (evidence.candidate !== tracker.currentCandidates?.[p]?.id || evidence.shippingCommit !== tracker.shippingCommit) stage = 'needs-recheck';
+    }
     counts[p][stage]++;
-    if (['verified', 'release-ready'].includes(stage) && !row.platformVerification?.[p]) throw Error(`Missing verification for ${row.id}/${p}`);
   }
-  const lines = ['### Bar A — shipping scenarios on the fork', '', '| Platform | Current-candidate baseline |', '| --- | --- |'];
+  const caseTotal = Object.values(tracker.scenarioCases || {}).reduce((n, cases) => n + cases.length, 0);
+  const lines = ['### Bar A — executable shipping cases on the fork', '', '| Platform | Current-candidate baseline |', '| --- | --- |'];
   for (const [p, name] of platforms) {
     const candidate = tracker.currentCandidates?.[p];
     const ref = tracker.baselines?.[p];
     const baseline = ref ? loadBaseline(ref) : null;
-    let status = 'Not run';
+    let status = `Not run (${caseTotal} cases)`;
     if (baseline) {
       if (baseline.candidate !== candidate?.id || baseline.platform !== p || baseline.shippingCommit !== tracker.shippingCommit) {
         status = 'Not run for current candidate (previous baseline is stale)';
       } else {
         const seen = new Set();
-        let pass = 0, eligible = 0, excluded = 0;
+        let pass = 0, excluded = 0, failed = 0, undefinedCases = 0, recordedCases = 0;
         for (const s of baseline.scenarios) {
           if (seen.has(s.id)) throw Error('Duplicate baseline scenario');
           seen.add(s.id);
           if (!s.featureRows?.length || s.featureRows.some(id => !tracker.rows.some(r => r.id === id))) throw Error('Unmapped baseline scenario');
-          if (s.result === 'excluded') { if (!s.exclusionReason) throw Error('Unexplained exclusion'); excluded++; continue; }
-          if (!['pass', 'fail', 'not-run', 'undefined'].includes(s.result)) throw Error('Unknown scenario result');
-          eligible++; if (s.result === 'pass') pass++;
+          const expectedCases = tracker.scenarioCases?.[s.id];
+          const actualCases = s.cases?.map(c => c.id);
+          if (!expectedCases || !actualCases || actualCases.length !== expectedCases.length || new Set(actualCases).size !== actualCases.length || expectedCases.some(id => !actualCases.includes(id))) throw Error('Incomplete scenario example coverage');
+          if (s.cases.some(c => !['pass', 'fail', 'undefined', 'excluded', 'not-run'].includes(c.result))) throw Error('Unknown executable case result');
+          const aggregate = s.cases.every(c => c.result === 'excluded') ? 'excluded' : s.cases.every(c => c.result === 'pass') ? 'pass' : s.cases.some(c => c.result === 'fail') ? 'fail' : 'undefined';
+          if (aggregate !== s.result) throw Error('Scenario result disagrees with its executable cases');
+          if (s.result === 'excluded' && !s.exclusionReason) throw Error('Unexplained exclusion');
+          if (!['pass', 'fail', 'not-run', 'undefined', 'excluded'].includes(s.result)) throw Error('Unknown scenario result');
+          for (const c of s.cases) {
+            recordedCases++;
+            if (c.result === 'pass') pass++;
+            else if (c.result === 'fail') failed++;
+            else if (c.result === 'excluded') { if (!c.exclusionReason && !s.exclusionReason) throw Error('Unexplained case exclusion'); excluded++; }
+            else undefinedCases++;
+          }
         }
         if (!Array.isArray(tracker.scenarioIds) || tracker.scenarioIds.length !== seen.size || tracker.scenarioIds.some(id => !seen.has(id))) throw Error('Baseline does not cover the full shipping scenario inventory');
-        status = `${pass}/${eligible} pass; ${excluded} excluded — [baseline](${ref})`;
+        if (recordedCases !== caseTotal) throw Error('Baseline executable-case count is incomplete');
+        status = `${pass}/${caseTotal} executable cases pass; ${failed} failed; ${undefinedCases} undefined/not run; ${excluded} excluded — [baseline](${ref})`;
       }
     }
     lines.push(`| ${name} | ${status} |`);
   }
-  lines.push('', '578 shipping scenario declarations are inventoried; inventory is not a fork run.',
+  lines.push('', `${caseTotal} executable cases from ${tracker.scenarioIds?.length || 0} declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.`,
     '', '### Bar B — requirement rows by platform', '', '| State | macOS | Windows | Linux |', '| --- | ---: | ---: | ---: |');
   for (const [stage, label] of stages) lines.push(`| ${label} | ${platforms.map(([p]) => counts[p][stage]).join(' | ')} |`);
   lines.push(`| Total | ${platforms.map(() => tracker.rows.length).join(' | ')} |`, '',

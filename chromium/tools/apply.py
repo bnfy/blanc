@@ -16,7 +16,10 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--src', type=Path, required=True)
 parser.add_argument('--backup', type=Path)
 parser.add_argument('--apply', action='store_true')
+parser.add_argument('--previous-map', type=Path)
 args = parser.parse_args()
+previous = json.loads(args.previous_map.read_text()) if args.previous_map else {}
+if previous and previous.get('upstream') != source['upstream']: raise SystemExit('Previous source map has different upstream')
 head = subprocess.check_output(['git','-C',str(args.src),'rev-parse','HEAD']).decode().strip()
 if head != source['upstream']:
     raise SystemExit('Unexpected upstream; no changes made')
@@ -38,7 +41,8 @@ with tempfile.TemporaryDirectory(prefix='blanc-source-apply-') as temp:
         before = sha(args.src/name)
         if sha(work/name) != expected: raise SystemExit('Reconstruction mismatch: '+name)
         if before == expected: continue
-        if before != pristine['files'].get(name):
+        allowed_before = {pristine['files'].get(name), previous.get('canonicalSha256', {}).get(name), previous.get('upstreamFiles', {}).get(name)}
+        if before not in allowed_before:
             raise SystemExit('Unrecognized cached source; preserve and reconcile: '+name)
         changes.append({'path':name,'before':before,'after':expected})
     print(json.dumps({'mode':'apply' if args.apply else 'check','changes':len(changes)}))

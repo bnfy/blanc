@@ -1,7 +1,7 @@
 {
   "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
   "selection": "verified pre-Glance/language baseline",
-  "qualification": "relocated source; GN generation passes; compilation pending",
+  "qualification": "canonical source and preview test hook built; zero guard plus regular/private/disabled hook contracts passed; full corpus baseline pending",
   "mapping": {
     "chrome/browser/ui/billboard_clock_settings.inc": "blanc/browser/ui/billboard_clock_settings.inc",
     "chrome/browser/ui/blanc_extensions_branding.h": "blanc/browser/ui/blanc_extensions_branding.h",
@@ -48,7 +48,7 @@
   "canonicalSha256": {
     "blanc/browser/ui/billboard_clock_settings.inc": "57ce0ed0160903e1b90c3d65fd5cd7cd33218d5774a3b2d8fdb448b0d49c9892",
     "blanc/browser/ui/blanc_extensions_branding.h": "17d77bbc267d13477a24bd971021f2291c505567a32383229505c13b53238a02",
-    "blanc/browser/ui/blanc_prototype_ui.cc": "3568aae9669fe054c0344a03edbf48652376b84352a0a0768db55a053992b7ee",
+    "blanc/browser/ui/blanc_prototype_ui.cc": "5f14c2e48c4a54ef0ebb20533b3d41e2cd34df30f196e893fdd8fdc4f67d7ffc",
     "blanc/browser/ui/blanc_prototype_ui.h": "106357b2ed86cb55423a188e4b14d1222da7875f246fa451ac18cfa5514cee8a",
     "blanc/browser/ui/blanc_quiet_media.h": "8fb187c5b49e762de12f5db114149ac462b06c9ca16f16a78ef50363a80e061f",
     "blanc/browser/ui/blanc_quiet_probe.h": "47467fe0a2004e804cda235613a0aea6b88d494b84b3608bf6af991a6aa07dfd",
@@ -87,8 +87,9 @@
     "blanc/content/public/browser/blanc_url_loader_gate.h": "f7237607aa43df79e905a0e9fef918f196626b3c0de203c2353c79fdca010b48",
     "blanc/content/public/browser/blanc_websocket_gate.h": "2e542a56bb7527d2c70f7a8635fe9b689cda749887dd659cce3f45485ff768b2",
     "blanc/content/public/common/blanc_research_build.h": "27665fabd5e87d6733f2f26ca2256eb4b1b3fe32305c83290db0eda37aba68a6",
-    "blanc/BUILD.gn": "525e20af9b2d7977b947fd4a07ee42f0c9974feda369989e9c6d41a0a6100c5c",
-    "blanc/ui.gni": "06c4a3105ad2c3cffe41d5cfbcb180e3c8699b9b9decd8c44c55babd29230639"
+    "blanc/BUILD.gn": "dd561bf94e0eef130023683749a9d5a195e90c2491a033c89c3d6cf80c9e8118",
+    "blanc/ui.gni": "98f43cfb53c2e6b19356867368831a2c702a1441482bb30a98afd8ea4cfbc9af",
+    "blanc/config.gni": "daf21a5dd2642f40140c411583566f8ee24c59a601a7715d53102be1a867af09"
   },
   "targetOwnership": "//blanc:ui routes to browser-boundary template target, respecting existing upstream visibility",
   "upstreamFiles": {

@@ -1,6 +1,6 @@
 # Blanc on Chromium: desktop replacement product specification
 
-Status: **draft for owner review**, October 30, 2026. Planning only; it authorizes no build, merge, signing or release.
+Status: **owner-approved execution contract** at `e884a6564`, with subsequent owner clarifications. Authorized now: F0.1–F0.6 and F0.8 including their incremental builds. D7, F0.7, cold builds, new platform machines, D1–D6, D8 and V2 remain separate pending decisions. No merge or release authorization.
 Companion: [implementation plan](2026-10-30-desktop-replacement-plan.md).
 
 ## 1. Purpose and reference

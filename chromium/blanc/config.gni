@@ -1,0 +1,6 @@
+# Preview hooks are opt-in at runtime and absent from release/official builds.
+declare_args() {
+  blanc_channel = "preview"
+}
+assert(blanc_channel == "preview" || blanc_channel == "release")
+blanc_enable_test_hooks = blanc_channel == "preview" && !is_official_build

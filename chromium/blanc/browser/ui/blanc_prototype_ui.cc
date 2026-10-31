@@ -1,3 +1,4 @@
+#include "blanc/buildflags.h"
 #include "services/network/public/mojom/web_sandbox_flags.mojom.h"
 #include "blanc/browser/ui/blanc_tab_name_rules.h"
 #include "blanc/browser/ui/blanc_quiet_probe.h"
@@ -2778,6 +2779,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     web_ui()->RegisterMessageCallback(
         "blancPrototype",
         base::BindRepeating(&Handler::Handle, base::Unretained(this)));
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+    web_ui()->RegisterMessageCallback(
+        "blancTest", base::BindRepeating(&Handler::HandleTest,
+                                        base::Unretained(this)));
+#endif
     auto_timer_.Start(FROM_HERE, base::Seconds(30),
         base::BindRepeating(&Handler::AutoTick, weak_factory_.GetWeakPtr()));
   }
@@ -2789,6 +2795,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     tracker_.TryCancelAll();
     split_closes_.clear();
     pending_navigations_.clear();
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+    test_calls_.clear();
+    largest_test_call_ = 0;
+#endif
     theme_uninstall_.reset();
     extension_menu_runner_.reset();
     extension_menu_adapter_.reset();
@@ -2916,9 +2926,103 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     return GetOwner(contents) && contents->GetLastCommittedURL() ==
         GURL("chrome://blanc-prototype/host.html");
   }
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+  struct TestCall {
+    std::string request;
+    bool complete = false;
+    bool success = false;
+    base::Value result;
+  };
+  std::map<std::string, TestCall> test_calls_;
+  uint64_t largest_test_call_ = 0;
+  void HandleTest(const base::ListValue& message) {
+    if (!IsIslandHost() || message.size() != 3 || !message[0].is_string() ||
+        !message[1].is_string() || !message[2].is_list()) return;
+    const auto& external_id = message[0].GetString();
+    uint64_t number = 0;
+    if (external_id.size() > 20 ||
+        !base::StringToUint64(external_id, &number) || number == 0) return;
+    AllowJavascript();
+    const auto reject = [&](const std::string& error) {
+      web_ui()->CallJavascriptFunctionUnsafe("blancTestReply", base::Value(external_id),
+          base::Value(false), base::Value(error));
+    };
+    if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test")) {
+      reject("Preview test hooks require --blanc-test."); return;
+    }
+    std::string request;
+    if (!base::JSONWriter::Write(message, &request) || request.size() > 65536) {
+      reject("Test request exceeds bounds."); return;
+    }
+    const std::string id = "blanc-test-" + external_id;
+    auto previous = test_calls_.find(id);
+    if (previous != test_calls_.end()) {
+      if (previous->second.request != request) {
+        reject("Test request id was reused with different arguments."); return;
+      }
+      if (previous->second.complete) {
+        web_ui()->CallJavascriptFunctionUnsafe("blancTestReply", base::Value(external_id),
+            base::Value(previous->second.success), previous->second.result);
+      }
+      return;
+    }
+    if (number <= largest_test_call_) {
+      reject("Test request id has retired."); return;
+    }
+    if (test_calls_.size() >= 512) {
+      auto finished = std::ranges::find_if(test_calls_,
+          [](const auto& item) { return item.second.complete; });
+      if (finished == test_calls_.end()) {
+        reject("Too many pending test requests."); return;
+      }
+      test_calls_.erase(finished);
+    }
+    largest_test_call_ = number;
+    TestCall call;
+    call.request = std::move(request);
+    test_calls_.emplace(id, std::move(call));
+    if (message[1].GetString() == "capabilities") {
+      base::DictValue result;
+      result.Set("testHooks", true);
+      result.Set("profilePrivate", GetOwner(web_ui()->GetWebContents())
+          ->browser->GetProfile()->IsOffTheRecord());
+      result.Set("contract", "native-production-dispatch-v1");
+      Reply(id, true, base::Value(std::move(result)));
+      return;
+    }
+    const std::string& method = message[1].GetString();
+    // Only existing production policy paths are exposed. Fixture seeds and
+    // unsupported shipping hooks must be implemented explicitly, never faked.
+    static constexpr std::string_view methods[] = {
+        "snapshot", "createTab", "closeTab", "switchTab", "navigate",
+        "togglePinned", "reopenClosedTab", "previewPageCommand", "duplicateTab"};
+    if (!std::ranges::contains(methods, method)) {
+      Reply(id, false, base::Value("Unsupported fork test operation: " + method));
+      return;
+    }
+    base::ListValue forwarded;
+    forwarded.Append(id);
+    forwarded.Append(method);
+    forwarded.Append(message[2].Clone());
+    Handle(forwarded);
+  }
+#endif
   // Every reply, synchronous or not, re-checks the host before touching it.
   void Reply(const std::string& id, bool success, base::Value result) {
     if (!IsIslandHost() || !IsJavascriptAllowed()) return;
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+    auto test = test_calls_.find(id);
+    if (test != test_calls_.end()) {
+      if (test->second.complete) return;
+      test->second.complete = true;
+      test->second.success = success;
+      test->second.result = result.Clone();
+      web_ui()->CallJavascriptFunctionUnsafe("blancTestReply",
+          base::Value(id.substr(std::string_view("blanc-test-").size())),
+          base::Value(success), result);
+      return;
+    }
+#endif
     web_ui()->CallJavascriptFunctionUnsafe("blancPrototypeReply", base::Value(id),
                                            base::Value(success), result);
   }

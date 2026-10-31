@@ -25,10 +25,18 @@ const scenarios = [];
 const files = git('ls-tree', '-r', '--name-only', shipping, 'spec/acceptance').trim().split('\n').filter(p => p.endsWith('.feature'));
 for (const file of files) {
   const envelopes = generateMessages(git('show', `${shipping}:${file}`), file, SourceMediaType.TEXT_X_CUCUMBER_GHERKIN_PLAIN,
-    { includeGherkinDocument: true, includePickles: false, newId: IdGenerator.incrementing() });
+    { includeGherkinDocument: true, includePickles: true, newId: IdGenerator.incrementing() });
   const errors = envelopes.filter(x => x.parseError);
   if (errors.length) throw Error(JSON.stringify(errors));
   const doc = envelopes.find(x => x.gherkinDocument)?.gherkinDocument;
+  const astLocations = new Map();
+  function locations(value) {
+    if (!value || typeof value !== 'object') return;
+    if (value.id && value.location) astLocations.set(value.id, value.location.line);
+    for (const child of Object.values(value)) if (Array.isArray(child)) child.forEach(locations); else if (child && typeof child === 'object') locations(child);
+  }
+  locations(doc);
+  const pickles = envelopes.filter(e => e.pickle).map(e => e.pickle);
   function walk(children, inherited) {
     for (const child of children) {
       if (child.rule) walk(child.rule.children, [...inherited, ...child.rule.tags]);
@@ -40,7 +48,14 @@ for (const file of files) {
       const scenarioId = `${file}:${s.location.line}`;
       const shippingScenarioTag = [...s.tags.map(t => t.name), ...tags].find(t => /^@(?:F|R|X|N)\d+-\d+$/.test(t))?.slice(1) || null;
       const mobileOnly = tags.includes('@mobile') && !tags.includes('@desktop') && !tags.includes('@all');
-      scenarios.push({ id: scenarioId, shippingScenarioTag, file, line: s.location.line, name: s.name, tags,
+      const cases = pickles.filter(p => p.astNodeIds.includes(s.id)).map(p => {
+        const exampleId = p.astNodeIds.find(id => id !== s.id);
+        const exampleLine = exampleId ? astLocations.get(exampleId) : null;
+        return { id: scenarioId + (exampleLine ? `:example-${exampleLine}` : ':plain'), name: p.name, exampleLine: exampleLine || null,
+          steps: p.steps.map(step => ({ text: step.text, type: step.type, argument: step.argument || null, sourceLine: astLocations.get(step.astNodeIds[0]) || null })) };
+      });
+      if (!cases.length) throw Error(`Scenario has no executable cases: ${scenarioId}`);
+      scenarios.push({ id: scenarioId, shippingScenarioTag, cases, file, line: s.location.line, name: s.name, tags,
         featureRows, mappingReasons: roots.filter(id => aliases[id]).map(id => aliases[id].reason),
         desktopApplicability: mobileOnly ? 'excluded' : 'applicable',
         exclusionReason: mobileOnly ? 'Shipping scenario explicitly targets mobile only' : null,
@@ -55,10 +70,23 @@ const unmapped = scenarios.filter(s => !s.featureRows.length);
 const output = { schemaVersion: 1, qualification: 'scenario declaration inventory only; no fork baseline run or pass credit',
   shippingTag: 'v1.45.1', shippingCommit: shipping, declarationCount: scenarios.length,
   unmappedCount: unmapped.length, mappingAliases: aliases, scenarios };
-fs.writeFileSync(path.join(root, 'chromium/scenarios/inventory.json'), JSON.stringify(output, null, 2) + '\n');
+const inventoryFile = path.join(root, 'chromium/scenarios/inventory.json');
+const serialized = JSON.stringify(output, null, 2) + '\n';
+if (process.argv.includes('--check')) {
+  if (fs.readFileSync(inventoryFile, 'utf8') !== serialized) throw Error('Scenario inventory is stale');
+} else fs.writeFileSync(inventoryFile, serialized);
+if (process.argv.includes('--sync-mapping')) {
+  const trackerFile = path.join(root, 'chromium/tracker.json');
+  const tracker = JSON.parse(fs.readFileSync(trackerFile));
+  if (tracker.shippingCommit !== shipping) throw Error('Rebaseline shipping reference before changing mappings');
+  tracker.scenarioIds = scenarios.map(s => s.id);
+  tracker.scenarioCases = Object.fromEntries(scenarios.map(s => [s.id, s.cases.map(c => c.id)]));
+  fs.writeFileSync(trackerFile, JSON.stringify(tracker, null, 2) + '\n');
+}
+
 if (!fs.existsSync(path.join(root, 'chromium/tracker.json'))) fs.writeFileSync(path.join(root, 'chromium/tracker.json'), JSON.stringify({ schemaVersion: 1,
   qualification: 'initial requirement inventory; canonical/platform states await verification',
   shippingTag: 'v1.45.1', shippingCommit: shipping, rows }, null, 2) + '\n');
 console.log(JSON.stringify({ declarations: scenarios.length, mapped: scenarios.length - unmapped.length,
-  desktopApplicable: scenarios.filter(s => s.desktopApplicability === 'applicable').length,
+  desktopApplicable: scenarios.filter(s => s.desktopApplicability === 'applicable').length, executableCases: scenarios.reduce((n,s) => n + s.cases.length, 0),
   rows: rows.length, forkBaselineRun: false, unmapped: unmapped.map(s => s.id) }));

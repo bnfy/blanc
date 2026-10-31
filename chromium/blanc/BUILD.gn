@@ -1,4 +1,12 @@
 # Copyright 2026 Bananify Creative. MIT; see LICENSE.
+import("//build/buildflag_header.gni")
+import("//blanc/config.gni")
+
+buildflag_header("buildflags") {
+  header = "buildflags.h"
+  flags = [ "ENABLE_BLANC_TEST_HOOKS=$blanc_enable_test_hooks" ]
+}
+
 group("blanc") {
   deps = [ ":ui", "services/blocker:browser" ]
 }
