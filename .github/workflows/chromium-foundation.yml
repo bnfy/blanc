@@ -4,11 +4,13 @@ on:
     paths:
       - 'chromium/**'
       - 'docs/chromium-replacement/**'
+      - 'browser-api/**'
       - '.github/workflows/chromium-foundation.yml'
   push:
     branches: [codex/f12-socket-speculation]
     paths:
       - 'chromium/**'
+      - 'browser-api/**'
       - '.github/workflows/chromium-foundation.yml'
   workflow_dispatch:
 permissions:
@@ -33,8 +35,15 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Reconstruct the pinned source patch set
         run: python3 chromium/tools/check-patches.py
-      - name: Check build guards and candidate-bound progress
-        run: node --test chromium/tools/build.test.mjs chromium/tools/progress.test.mjs chromium/tests/results.test.mjs chromium/tests/adapters.test.mjs
+      - name: Check source map, Island assets and embedded resources
+        run: |
+          python3 chromium/tools/refresh-source-map.py --check
+          node chromium/tools/assets.mjs --check
+          python3 chromium/blanc/island_resources/embed_test.py
+      - name: Check the typed Island interface matches browser-api/contract.json
+        run: node chromium/tools/browser-api-mojom.mjs --check
+      - name: Run tool and runner unit tests
+        run: node --test chromium/tools/*.test.mjs chromium/tests/*.test.mjs
       - name: Check scenario inventory freshness
         run: |
           node chromium/tools/scenario-inventory.cjs --check
