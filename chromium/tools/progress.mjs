@@ -37,8 +37,12 @@ export function renderProgress(tracker, loadBaseline = () => null) {
       if (baseline.candidate !== candidate?.id || baseline.platform !== p || baseline.shippingCommit !== tracker.shippingCommit || (candidate?.frameworkSha256 && baseline.candidateIdentity?.frameworkSha256 !== candidate.frameworkSha256) || (candidate?.executableSha256 && baseline.candidateIdentity?.executableSha256 !== candidate.executableSha256)) {
         status = 'Not run for current candidate (previous baseline is stale)';
       } else {
+        if (baseline.developmentSubset) throw Error('A development subset run is not a baseline');
         const seen = new Set();
         let pass = 0, excluded = 0, failed = 0, undefinedCases = 0, recordedCases = 0;
+        // Rows whose slice the tracker names as S1 (including S1–S5 and S1 security).
+        const sliceRows = new Set(tracker.rows.filter(r => /^S1\b/.test(r.slice || '')).map(r => r.id));
+        const slice = { pass: 0, fail: 0, undefined: 0, excluded: 0, cases: 0 };
         for (const s of baseline.scenarios) {
           if (seen.has(s.id)) throw Error('Duplicate baseline scenario');
           seen.add(s.id);
@@ -51,8 +55,10 @@ export function renderProgress(tracker, loadBaseline = () => null) {
           if (aggregate !== s.result) throw Error('Scenario result disagrees with its executable cases');
           if (s.result === 'excluded' && !s.exclusionReason) throw Error('Unexplained exclusion');
           if (!['pass', 'fail', 'not-run', 'undefined', 'excluded'].includes(s.result)) throw Error('Unknown scenario result');
+          const inSlice = s.featureRows.some(id => sliceRows.has(id));
           for (const c of s.cases) {
             recordedCases++;
+            if (inSlice) { slice.cases++; slice[c.result === 'not-run' ? 'undefined' : c.result]++; }
             if (c.result === 'pass') pass++;
             else if (c.result === 'fail') failed++;
             else if (c.result === 'excluded') { if (!c.exclusionReason && !s.exclusionReason) throw Error('Unexplained case exclusion'); excluded++; }
@@ -62,6 +68,7 @@ export function renderProgress(tracker, loadBaseline = () => null) {
         if (!Array.isArray(tracker.scenarioIds) || tracker.scenarioIds.length !== seen.size || tracker.scenarioIds.some(id => !seen.has(id))) throw Error('Baseline does not cover the full shipping scenario inventory');
         if (recordedCases !== caseTotal) throw Error('Baseline executable-case count is incomplete');
         status = `${pass}/${caseTotal} executable cases pass; ${failed} failed; ${undefinedCases} undefined/not run; ${excluded} excluded — [baseline](${ref})`;
+        if (slice.cases) status += `<br>S1 rows: ${slice.pass}/${slice.cases} pass; ${slice.fail} failed; ${slice.undefined} undefined; ${slice.excluded} excluded`;
       }
     }
     lines.push(`| ${name} | ${status} |`);

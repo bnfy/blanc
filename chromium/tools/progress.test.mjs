@@ -62,3 +62,13 @@ test('matching a short candidate name cannot credit different artifact bytes',()
  const t=tracker();t.currentCandidates.macos.frameworkSha256='expected';t.baselines.macos='current.json';
  const text=renderProgress(t,()=>({candidate:'new',candidateIdentity:{frameworkSha256:'different'},platform:'macos',shippingCommit:'shipping',scenarios:[]}));assert.match(text,/previous baseline is stale/);
 });
+test('S1 rows get their own line and development subsets never count', () => {
+  const t = tracker(); t.baselines.macos = 'current.json'; t.rows[0].slice = 'S1';
+  const baseline = { candidate: 'new', platform: 'macos', shippingCommit: 'shipping', scenarios: [
+    { id: 'F1-1', featureRows: ['F1'], result: 'pass', cases:[{id:'case1',result:'pass'}] },
+    { id: 'F1-2', featureRows: ['F1'], result: 'fail', cases:[{id:'case2',result:'fail'}] },
+    { id: 'F1-3', featureRows: ['F1'], result: 'undefined', cases:[{id:'case3',result:'undefined'}] },
+  ] };
+  assert.match(renderProgress(t, () => baseline), /S1 rows: 1\/3 pass; 1 failed; 1 undefined; 0 excluded/);
+  assert.throws(() => renderProgress(t, () => ({ ...baseline, developmentSubset: 'F1' })), /development subset/);
+});

@@ -54,7 +54,7 @@ Use `git status --short` for the exact preserved paths. Nothing was discarded.
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | 3/627 executable cases pass; 0 failed; 622 undefined/not run; 2 excluded — [baseline](scenarios/baseline-macos-19b83f79bd18b94c.json) |
+| macOS | 3/627 executable cases pass; 0 failed; 622 undefined/not run; 2 excluded — [baseline](scenarios/baseline-macos-19b83f79bd18b94c.json)<br>S1 rows: 3/253 pass; 0 failed; 250 undefined; 0 excluded |
 | Windows | Not run (627 cases) |
 | Linux | Not run (627 cases) |
 
