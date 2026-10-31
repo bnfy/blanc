@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Blanc Chromium S1 macos" tests="253" failures="139" skipped="46">
+  <testcase name="spec/acceptance/ad-blocking.feature:12:plain"></testcase>
+  <testcase name="spec/acceptance/ad-blocking.feature:17:plain"><failure message="Timeout waiting for ads.example's shield count to reach 0: {&quot;adblockExcepted&quot;:false,&quot;asleep&quot;:false,&quot;audible&quot;:false,&quot;blockedCount&quot;:3,&quot;bookmarked&quot;:false,&quot;canDuplicate&quot;:true,&quot;canGoBack&quot;:false,&quot;canGoForward&quot;:false,&quot;committedUrl&quot;:&quot;http://127.0.0"/></testcase>
+  <testcase name="spec/acceptance/ad-blocking.feature:26:plain"><failure message="Expected values to be strictly equal:"/></testcase>
+  <testcase name="spec/acceptance/ad-blocking.feature:36:plain"><failure message="exceptions [] should contain 127.0.0.1"/></testcase>
+  <testcase name="spec/acceptance/ad-blocking.feature:47:plain"><failure message="timed out waiting for the pill shield to show the allow-listed state; last: {&quot;hidden&quot;:false,&quot;off&quot;:false,&quot;title&quot;:&quot;Blanc Blocker — protected, nothing blocked yet — click for site controls&quot;}"/></testcase>
+  <testcase name="spec/acceptance/ad-blocking.feature:59:plain"><failure message="the site toggle should be shown"/></testcase>
+  <testcase name="spec/acceptance/ad-blocking.feature:71:plain"><failure message="timed out waiting for the not-secure badge to render; last: true"/></testcase>
+  <testcase name="spec/acceptance/ad-blocking.feature:77:plain"></testcase>
+  <testcase name="spec/acceptance/ad-blocking.feature:83:plain"><failure message="timed out waiting for the not-secure badge to render; last: true"/></testcase>
+  <testcase name="spec/acceptance/blank-tab-affordance.feature:8:plain"></testcase>
+  <testcase name="spec/acceptance/blank-tab-affordance.feature:17:plain"></testcase>
+  <testcase name="spec/acceptance/blank-tab-affordance.feature:24:plain"></testcase>
+  <testcase name="spec/acceptance/blank-tab-affordance.feature:34:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Unsupported prototype destination.&quot;,&quot;lineNumber&quot;:5,&quot;columnNumber&quot;:91,&quot;scriptId&quot;:&quot;44&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;window.blancTestReply&quot;,&quot;scriptId&quot;:&quot;44&quot;,&quot;url&quot;:&quot;&quot;,&quot;lineNum"/></testcase>
+  <testcase name="spec/acceptance/downloads.feature:7:plain"><failure message="downloads should show in the Blanc downloads sheet"/></testcase>
+  <testcase name="spec/acceptance/downloads.feature:13:plain"><skipped message="step definition missing: a completed download"/></testcase>
+  <testcase name="spec/acceptance/find-favorites-history.feature:7:plain"><failure message="Timeout waiting for find count to show 3: &quot;&quot;"/></testcase>
+  <testcase name="spec/acceptance/find-favorites-history.feature:16:plain"></testcase>
+  <testcase name="spec/acceptance/find-favorites-history.feature:24:plain"></testcase>
+  <testcase name="spec/acceptance/find-favorites-history.feature:31:plain"><failure message="utilitySheetRowIcons: the fork has no Blanc utility sheet; utility pages open as Chromium manager tabs"/></testcase>
+  <testcase name="spec/acceptance/find-favorites-history.feature:37:plain"></testcase>
+  <testcase name="spec/acceptance/find-favorites-history.feature:42:plain"></testcase>
+  <testcase name="spec/acceptance/find-favorites-history.feature:48:plain"><failure message="historyDayHeadings: the fork has no Blanc utility sheet; utility pages open as Chromium manager tabs"/></testcase>
+  <testcase name="spec/acceptance/glance.feature:52:plain"><failure message="getGlanceCard: the fork shows Glance as a side-by-side split preview, not a floating card"/></testcase>
+  <testcase name="spec/acceptance/glance.feature:59:plain"><failure message="getGlanceCard: the fork shows Glance as a side-by-side split preview, not a floating card"/></testcase>
+  <testcase name="spec/acceptance/glance.feature:66:plain"></testcase>
+  <testcase name="spec/acceptance/glance.feature:111:plain"></testcase>
+  <testcase name="spec/acceptance/glance.feature:227:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;8&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;8&quot;,"/></testcase>
+  <testcase name="spec/acceptance/glance.feature:264:plain"><skipped message="Shipping main-process evaluate needs a native adapter"/></testcase>
+  <testcase name="spec/acceptance/glance.feature:273:plain"><skipped message="Shipping main-process evaluate needs a native adapter"/></testcase>
+  <testcase name="spec/acceptance/glance.feature:280:plain"><skipped message="Shipping main-process evaluate needs a native adapter"/></testcase>
+  <testcase name="spec/acceptance/glance.feature:287:plain"><failure message="focusTabContents expects the active tab"/></testcase>
+  <testcase name="spec/acceptance/glance.feature:345:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;7&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;7&quot;,"/></testcase>
+  <testcase name="spec/acceptance/glance.feature:359:plain"><failure message="timed out waiting for the Glance picker; last: &quot;panel&quot;"/></testcase>
+  <testcase name="spec/acceptance/glance.feature:386:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;8&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;8&quot;,"/></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:10:plain"><skipped message="step definition missing: the OS prefers &quot;de-DE&quot;"/></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:18:plain"><skipped message="step definition missing: the OS prefers &quot;de-DE&quot;"/></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:26:plain"><skipped message="step definition missing: the OS prefers &quot;en-US&quot;"/></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:34:plain"><skipped message="step definition missing: the OS prefers &quot;de-DE&quot;"/></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:43:plain"><skipped message="step definition missing: the OS prefers &quot;de-DE&quot;"/></testcase>
+  <testcase name="spec/acceptance/internal-pages.feature:7:plain"><failure message="Timeout waiting for the favorite on the rendered Start Page: {&quot;layout&quot;:&quot;billboard&quot;,&quot;urls&quot;:[]} (rendered layout: billboard)"/></testcase>
+  <testcase name="spec/acceptance/internal-pages.feature:17:plain"><failure message="sheet url chrome://bookmarks/ should be blanc://bookmarks/"/></testcase>
+  <testcase name="spec/acceptance/internal-pages.feature:24:plain"><failure message="Expected values to be strictly equal:"/></testcase>
+  <testcase name="spec/acceptance/internal-pages.feature:31:plain"><failure message="clickFirstSheetLink: the fork has no Blanc utility sheet; utility pages open as Chromium manager tabs"/></testcase>
+  <testcase name="spec/acceptance/internal-pages.feature:39:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Unsupported prototype destination.&quot;,&quot;lineNumber&quot;:5,&quot;columnNumber&quot;:91,&quot;scriptId&quot;:&quot;44&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;window.blancTestReply&quot;,&quot;scriptId&quot;:&quot;44&quot;,&quot;url&quot;:&quot;&quot;,&quot;lineNum"/></testcase>
+  <testcase name="spec/acceptance/internal-pages.feature:47:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Unsupported prototype destination.&quot;,&quot;lineNumber&quot;:5,&quot;columnNumber&quot;:91,&quot;scriptId&quot;:&quot;44&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;window.blancTestReply&quot;,&quot;scriptId&quot;:&quot;44&quot;,&quot;url&quot;:&quot;&quot;,&quot;lineNum"/></testcase>
+  <testcase name="spec/acceptance/internal-pages.feature:53:plain"><failure message="utilitySheetContentsId: the fork has no Blanc utility sheet; utility pages open as Chromium manager tabs"/></testcase>
+  <testcase name="spec/acceptance/internal-pages.feature:61:plain"></testcase>
+  <testcase name="spec/acceptance/internal-pages.feature:66:plain"><failure message="{&quot;exceptionId&quot;:1,&quot;text&quot;:&quot;Uncaught&quot;,&quot;lineNumber&quot;:0,&quot;columnNumber&quot;:80,&quot;scriptId&quot;:&quot;18&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;&quot;,&quot;scriptId&quot;:&quot;18&quot;,&quot;url&quot;:&quot;&quot;,&quot;lineNumber&quot;:0,&quot;columnNumber&quot;:80},{&quot;functionName&quot;:&quot;&quot;,&quot;scriptId&quot;:&quot;18&quot;,&quot;url&quot;:&quot;&quot;,&quot;lineN"/></testcase>
+  <testcase name="spec/acceptance/internal-pages.feature:72:plain"><failure message="utilitySheetPalette: the fork has no Blanc utility sheet; utility pages open as Chromium manager tabs"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:11:plain"></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:22:plain"></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:29:plain"><failure message="Fork Settings (chrome://settings/) has no #islandHoverOpen control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:35:plain"><failure message="Fork Settings (chrome://settings/) has no #islandHoverOpen control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:43:plain"><failure message="Fork Settings (chrome://settings/) has no #islandHoverOpen control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:49:plain"><failure message="Fork Settings (chrome://settings/) has no #islandHoverOpen control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:55:plain"><failure message="Fork Settings (chrome://settings/) has no #islandHoverOpen control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:61:plain"><failure message="Fork Settings (chrome://settings/) has no #islandHoverOpen control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:73:plain"><failure message="Fork Settings (chrome://settings/) has no #islandHoverOpen control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:79:plain"><failure message="Fork Settings (chrome://settings/) has no #islandHoverOpen control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:87:plain"><failure message="Fork Settings (chrome://settings/) has no #islandHoverOpen control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:93:plain"><failure message="Fork Settings (chrome://settings/) has no #islandHoverOpen control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:99:plain"><failure message="Fork Settings (chrome://settings/) has no #islandHoverOpen control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:107:plain"><failure message="Fork Settings (chrome://settings/) has no #islandHoverOpen control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:115:plain"><failure message="Fork Settings (chrome://settings/) has no #islandHoverOpen control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:123:plain"><failure message="Fork Settings (chrome://settings/) has no #islandHoverOpen control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:131:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:140:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:149:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:156:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:166:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:173:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:180:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:190:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:200:plain"><failure message="Fork Settings (chrome://settings/) has no #islandHoverOpen control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:211:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:222:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:234:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:241:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:251:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:258:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:267:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:276:plain"><failure message="Fork Settings (chrome://settings/) has no #islandHoverOpen control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:286:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:295:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:312:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:320:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:339:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:348:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:359:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:372:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:383:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:394:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:403:plain"><failure message="Fork Settings (chrome://settings/) has no #islandAutoHideStyle control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:411:plain"></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:420:plain"></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:429:plain"></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:436:example-443"></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:436:example-444"><failure message="Expected values to be strictly equal:"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:436:example-445"></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:448:example-456"><failure message="Fork Settings (chrome://settings/) has no #theme control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:448:example-457"><failure message="Fork Settings (chrome://settings/) has no #theme control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:448:example-458"><failure message="Fork Settings (chrome://settings/) has no #theme control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:448:example-459"><failure message="Fork Settings (chrome://settings/) has no #theme control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:462:plain"></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:469:plain"><failure message="timed out waiting for hint row “Search YouTube for “lofi””; last: [{&quot;title&quot;:&quot;!yt lofi&quot;,&quot;cmd&quot;:&quot;&quot;,&quot;hint&quot;:&quot;&quot;,&quot;sub&quot;:&quot;&quot;,&quot;tag&quot;:&quot;Search&quot;,&quot;label&quot;:&quot;&quot;,&quot;quiet&quot;:false,&quot;active&quot;:true,&quot;enter&quot;:true,&quot;faviconClass&quot;:&quot;&quot;,&quot;faviconHasIcon&quot;:false,&quot;faviconDecoded&quot;:"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:477:plain"><failure message="timed out waiting for hint row “Open YouTube”; last: [{&quot;title&quot;:&quot;!yt&quot;,&quot;cmd&quot;:&quot;&quot;,&quot;hint&quot;:&quot;&quot;,&quot;sub&quot;:&quot;&quot;,&quot;tag&quot;:&quot;Search&quot;,&quot;label&quot;:&quot;&quot;,&quot;quiet&quot;:false,&quot;active&quot;:true,&quot;enter&quot;:true,&quot;faviconClass&quot;:&quot;&quot;,&quot;faviconHasIcon&quot;:false,&quot;faviconDecoded&quot;:null}]"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:485:plain"><failure message="timed out waiting for hint row “Search YouTube for “lofi””; last: [{&quot;title&quot;:&quot;lofi !yt&quot;,&quot;cmd&quot;:&quot;&quot;,&quot;hint&quot;:&quot;&quot;,&quot;sub&quot;:&quot;&quot;,&quot;tag&quot;:&quot;Search&quot;,&quot;label&quot;:&quot;&quot;,&quot;quiet&quot;:false,&quot;active&quot;:true,&quot;enter&quot;:true,&quot;faviconClass&quot;:&quot;&quot;,&quot;faviconHasIcon&quot;:false,&quot;faviconDecoded&quot;:"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:493:plain"><failure message="timed out waiting for picker section Popular; last: []"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:508:plain"><failure message="timed out waiting for hint row “Open Yahoo!”; last: [{&quot;title&quot;:&quot;!y&quot;,&quot;cmd&quot;:&quot;&quot;,&quot;hint&quot;:&quot;&quot;,&quot;sub&quot;:&quot;&quot;,&quot;tag&quot;:&quot;Search&quot;,&quot;label&quot;:&quot;&quot;,&quot;quiet&quot;:false,&quot;active&quot;:true,&quot;enter&quot;:true,&quot;faviconClass&quot;:&quot;&quot;,&quot;faviconHasIcon&quot;:false,&quot;faviconDecoded&quot;:null}]"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:517:plain"><failure message="Fork Settings (chrome://settings/) has no #customBangCode control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:532:plain"><failure message="Fork Settings (chrome://settings/) has no #searchEngine control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:543:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;6&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;6&quot;,"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:558:plain"></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:565:plain"><failure message="Expected values to be strictly deep-equal:"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:573:plain"><failure message="timed out waiting for the Settings sheet; last: {&quot;visible&quot;:true,&quot;ready&quot;:true,&quot;url&quot;:&quot;chrome://settings/&quot;,&quot;kind&quot;:&quot;tab&quot;}"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:591:plain"><failure message="timed out waiting for hint row “Search YouTube for “lofi””; last: [{&quot;title&quot;:&quot;!yt lofi&quot;,&quot;cmd&quot;:&quot;&quot;,&quot;hint&quot;:&quot;&quot;,&quot;sub&quot;:&quot;&quot;,&quot;tag&quot;:&quot;Search&quot;,&quot;label&quot;:&quot;&quot;,&quot;quiet&quot;:false,&quot;active&quot;:true,&quot;enter&quot;:true,&quot;faviconClass&quot;:&quot;&quot;,&quot;faviconHasIcon&quot;:false,&quot;faviconDecoded&quot;:"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:599:plain"><failure message="Fork Settings (chrome://settings/) has no #searchEngine control"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:608:plain"><failure message="timed out waiting for bang y8 recorded; last: {&quot;engine&quot;:&quot;google&quot;,&quot;query&quot;:&quot;!y8 probe&quot;,&quot;url&quot;:&quot;https://www.google.com/search?q=!y8%20probe&quot;}"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:621:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Prototype does not implement bangIcons. Use Chromium’s native controls.&quot;,&quot;lineNumber&quot;:974,&quot;columnNumber&quot;:23,&quot;scriptId&quot;:&quot;8&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;&quot;,&quot;scriptId&quot;:&quot;8&quot;,&quot;"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:632:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Prototype does not implement bangIcons. Use Chromium’s native controls.&quot;,&quot;lineNumber&quot;:974,&quot;columnNumber&quot;:23,&quot;scriptId&quot;:&quot;8&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;&quot;,&quot;scriptId&quot;:&quot;8&quot;,&quot;"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:640:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Prototype does not implement bangIcons. Use Chromium’s native controls.&quot;,&quot;lineNumber&quot;:974,&quot;columnNumber&quot;:23,&quot;scriptId&quot;:&quot;8&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;&quot;,&quot;scriptId&quot;:&quot;8&quot;,&quot;"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:651:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Prototype does not implement bangIcons. Use Chromium’s native controls.&quot;,&quot;lineNumber&quot;:974,&quot;columnNumber&quot;:23,&quot;scriptId&quot;:&quot;5&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;&quot;,&quot;scriptId&quot;:&quot;5&quot;,&quot;"/></testcase>
+  <testcase name="spec/acceptance/multi-window.feature:7:plain"><skipped message="The fork Island has no close-window path (its closeTab keeps the last tab); native window close needs a closeWindow test op"/></testcase>
+  <testcase name="spec/acceptance/multi-window.feature:16:plain"><skipped message="The fork persists windows through Chromium session restore (SNSS), with no session.json projection; needs a sessionWindows test op"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:7:plain"></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:12:example-19"><failure message="Fork Settings (chrome://settings/) has no #searchEngine control"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:12:example-20"><failure message="Fork Settings (chrome://settings/) has no #searchEngine control"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:12:example-21"><failure message="Fork Settings (chrome://settings/) has no #searchEngine control"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:12:example-22"><failure message="Fork Settings (chrome://settings/) has no #searchEngine control"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:12:example-23"><failure message="Fork Settings (chrome://settings/) has no #searchEngine control"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:26:plain"><failure message="Expected values to be strictly equal:"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:32:plain"><failure message="Fork Settings (chrome://settings/) has no #searchEngine control"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:43:plain"><failure message="Fork Settings (chrome://settings/) has no #searchSuggestions control"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:59:plain"></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:66:plain"><failure message="Expected values to be strictly equal:"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:71:plain"><failure message="Fork Settings (chrome://settings/) has no #searchEngine control"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:77:plain"><failure message="Fork Settings (chrome://settings/) has no #searchEngine control"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:83:plain"><failure message="Fork Settings (chrome://settings/) has no #searchEngine control"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:91:plain"><failure message="Fork Settings (chrome://settings/) has no #searchEngine control"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:100:plain"><skipped message="step definition missing: I open the context menu on a link"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:108:plain"><skipped message="The fork address input uses Chromium’s native context menu; listing it needs a native test op"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:117:plain"><skipped message="Clipboard writes would replace the owner's real pasteboard"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:8:plain"></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:14:plain"></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:21:plain"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;167884351&quot;,&quot;url&quot;:&quot;blanc://newtab/&quot;,&quot;loadedUrl&quot;:&quot;blanc://newtab/&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;title&quot;:&quot;New Tab&quot;,&quot;favicon&quot;:&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:35:plain"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;1160753362&quot;,&quot;url&quot;:&quot;blanc://newtab/&quot;,&quot;loadedUrl&quot;:&quot;blanc://newtab/&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;title&quot;:&quot;New Tab&quot;,&quot;favicon&quot;:&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:41:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;7&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;7&quot;,"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:47:plain"><skipped message="seedBillboardHistory: named public hosts and cached icons cannot be visited offline; needs a native history-seeding test op"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:58:plain"><skipped message="seedBillboardHistory: named public hosts and cached icons cannot be visited offline; needs a native history-seeding test op"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:71:plain"><skipped message="seedBillboardHistory: named public hosts and cached icons cannot be visited offline; needs a native history-seeding test op"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:85:plain"></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:101:plain"></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:114:plain"><failure message="readFavoritesSheetPins: the fork has no Blanc utility sheet; utility pages open as Chromium manager tabs"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:126:plain"><skipped message="seedBillboardOverflowHistory: sixty public hosts cannot be visited offline; needs a native history-seeding test op"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:134:plain"><skipped message="seedBillboardHistory: named public hosts and cached icons cannot be visited offline; needs a native history-seeding test op"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:143:plain"><skipped message="firstRunState: the fork stores no first-run completion or privacy choices"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:150:plain"><skipped message="firstRunState: the fork stores no first-run completion or privacy choices"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:161:plain"><skipped message="firstRunState: the fork stores no first-run completion or privacy choices"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:171:plain"><skipped message="firstRunState: the fork stores no first-run completion or privacy choices"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:183:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;4&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;4&quot;,"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:188:plain"></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:194:plain"></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:205:plain"><skipped message="seedBillboardHistory: named public hosts and cached icons cannot be visited offline; needs a native history-seeding test op"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:212:plain"><failure message="timed out waiting for Shelf with 3 columns; last: {&quot;columns&quot;:&quot;3&quot;,&quot;viewportWidth&quot;:1200,&quot;tiles&quot;:[{&quot;left&quot;:60,&quot;right&quot;:412,&quot;top&quot;:154,&quot;bottom&quot;:260},{&quot;left&quot;:424,&quot;right&quot;:776,&quot;top&quot;:154,&quot;bottom&quot;:260},{&quot;left&quot;:788,&quot;right&quot;:1140,&quot;top&quot;:154,&quot;bottom&quot;:260},{"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:221:plain"><failure message="timed out waiting for Tally at 1440x840; last: {&quot;viewportWidth&quot;:1440,&quot;private&quot;:false,&quot;content&quot;:{&quot;left&quot;:108,&quot;right&quot;:1332,&quot;top&quot;:91,&quot;bottom&quot;:718,&quot;width&quot;:1224},&quot;left&quot;:{&quot;left&quot;:510,&quot;right&quot;:930,&quot;top&quot;:137,&quot;bottom&quot;:324,&quot;width&quot;:420},&quot;right&quot;:null}"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:229:plain"><skipped message="firstRunState: the fork stores no first-run completion or privacy choices"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:240:plain"><skipped message="setLaunchSunrise: the fork stores no launch Sunrise setting"/></testcase>
+  <testcase name="spec/acceptance/permissions-and-auth.feature:6:plain"><failure message="timed out waiting for the Blanc permission prompt; last: undefined"/></testcase>
+  <testcase name="spec/acceptance/permissions-and-auth.feature:13:plain"><skipped message="step definition missing: a tab whose site was granted microphone access"/></testcase>
+  <testcase name="spec/acceptance/permissions-and-auth.feature:21:plain"><skipped message="Shipping main-process evaluate needs a native adapter"/></testcase>
+  <testcase name="spec/acceptance/permissions-and-auth.feature:27:plain"><skipped message="Shipping main-process evaluate needs a native adapter"/></testcase>
+  <testcase name="spec/acceptance/permissions-and-auth.feature:33:plain"><skipped message="Shipping main-process evaluate needs a native adapter"/></testcase>
+  <testcase name="spec/acceptance/permissions-and-auth.feature:39:plain"><skipped message="Shipping main-process evaluate needs a native adapter"/></testcase>
+  <testcase name="spec/acceptance/platform-services.feature:35:plain"></testcase>
+  <testcase name="spec/acceptance/private-tabs.feature:7:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;8&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;8&quot;,"/></testcase>
+  <testcase name="spec/acceptance/private-tabs.feature:16:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;5&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;5&quot;,"/></testcase>
+  <testcase name="spec/acceptance/private-tabs.feature:24:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;7&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;7&quot;,"/></testcase>
+  <testcase name="spec/acceptance/private-tabs.feature:30:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;7&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;7&quot;,"/></testcase>
+  <testcase name="spec/acceptance/private-tabs.feature:35:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;5&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;5&quot;,"/></testcase>
+  <testcase name="spec/acceptance/private-tabs.feature:40:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;7&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;7&quot;,"/></testcase>
+  <testcase name="spec/acceptance/settings-and-theming.feature:7:plain"><failure message="Fork Settings (chrome://settings/) has no #searchEngine control"/></testcase>
+  <testcase name="spec/acceptance/settings-and-theming.feature:12:plain"><skipped message="native hook adapter missing: setAppIcon"/></testcase>
+  <testcase name="spec/acceptance/settings-and-theming.feature:17:plain"></testcase>
+  <testcase name="spec/acceptance/settings-and-theming.feature:23:plain"><failure message="Fork Settings (chrome://settings/) has no #searchSuggestions control"/></testcase>
+  <testcase name="spec/acceptance/settings-and-theming.feature:29:plain"><failure message="Fork Settings (chrome://settings/) has no #theme control"/></testcase>
+  <testcase name="spec/acceptance/settings-and-theming.feature:37:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.&quot;,&quot;lineNumber&quot;:726,&quot;columnNumber&quot;:35,&quot;scriptId&quot;:&quot;7&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;createTab&quot;,&quot;scriptId&quot;:&quot;7&quot;,"/></testcase>
+  <testcase name="spec/acceptance/settings-and-theming.feature:42:plain"><failure message="timed out waiting for a folded setting explanation; last: []"/></testcase>
+  <testcase name="spec/acceptance/site-certificate-safety.feature:4:plain"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;1245270807&quot;,&quot;url&quot;:&quot;blanc://newtab/&quot;,&quot;loadedUrl&quot;:&quot;blanc://newtab/&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;title&quot;:&quot;New Tab&quot;,&quot;favicon&quot;:&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA"/></testcase>
+  <testcase name="spec/acceptance/site-certificate-safety.feature:11:plain"><skipped message="Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"/></testcase>
+  <testcase name="spec/acceptance/site-certificate-safety.feature:19:plain"><skipped message="Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"/></testcase>
+  <testcase name="spec/acceptance/site-certificate-safety.feature:26:plain"><skipped message="Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"/></testcase>
+  <testcase name="spec/acceptance/site-certificate-safety.feature:35:plain"><skipped message="Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"/></testcase>
+  <testcase name="spec/acceptance/site-certificate-safety.feature:41:plain"><skipped message="Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"/></testcase>
+  <testcase name="spec/acceptance/site-certificate-safety.feature:50:plain"><skipped message="Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind"/></testcase>
+  <testcase name="spec/acceptance/supporter-and-session.feature:26:plain"><skipped message="step definition missing: one private tab open"/></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:10:example-16"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:10:example-17"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:20:example-26"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:20:example-27"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:30:example-36"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:30:example-37"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:40:example-46"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:40:example-47"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:50:example-58"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:50:example-59"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:62:example-69"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:62:example-70"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:73:example-80"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:73:example-81"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:84:example-91"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:84:example-92"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:95:example-107"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:95:example-108"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:111:example-120"><skipped message="native hook adapter missing: workspacePageScript"/></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:111:example-121"><skipped message="native hook adapter missing: workspacePageScript"/></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:124:plain"><skipped message="The fork runner cannot relaunch a fixture yet"/></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:136:plain"><skipped message="The fork host discards setOverlayDragState; no overlay drag flag exists to read"/></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:144:example-150"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:144:example-151"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:154:example-160"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;2032276178&quot;,&quot;url&quot;:&quot;blanc://newtab/&quot;,&quot;loadedUrl&quot;:&quot;blanc://newtab/&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;title&quot;:&quot;New Tab&quot;,&quot;favicon&quot;:&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA"/></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:154:example-161"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;161813280&quot;,&quot;url&quot;:&quot;blanc://newtab/&quot;,&quot;loadedUrl&quot;:&quot;blanc://newtab/&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;title&quot;:&quot;New Tab&quot;,&quot;favicon&quot;:&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA"/></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:164:plain"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:170:plain"></testcase>
+  <testcase name="spec/acceptance/tab-drag.feature:176:plain"><skipped message="The fork runner cannot relaunch a fixture yet"/></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:8:plain"></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:15:plain"></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:21:plain"></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:28:plain"></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:35:plain"></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:43:plain"></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:51:plain"></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:62:plain"><failure message="order: pinned, loose, recently-closed"/></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:71:plain"></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:78:plain"><failure message="{&quot;directCount&quot;:1,&quot;directIds&quot;:[&quot;1959562121&quot;],&quot;directTitles&quot;:[&quot;&quot;],&quot;overflowText&quot;:&quot;+5&quot;,&quot;overflowLabel&quot;:&quot;5 more tabs — open the list&quot;,&quot;iconsMode&quot;:false,&quot;iconCount&quot;:0,&quot;peekCount&quot;:1}"/></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:94:plain"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;447770711&quot;,&quot;url&quot;:&quot;http://127.0.0.1:53227/site/work-1&quot;,&quot;loadedUrl&quot;:&quot;http://127.0.0.1:53227/site/work-1&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;title&quot;:&quot;work-1&quot;,&quot;favicon&quot;:null,&quot;groupId&quot;"/></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:112:plain"><failure message="Timeout waiting for a &quot;3 tabs tucked away&quot; row for work: false"/></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:119:plain"></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:125:plain"><failure message="anchor should render inside work"/></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:132:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Prototype does not implement beginRenameGroup. Use Chromium’s native controls.&quot;,&quot;lineNumber&quot;:974,&quot;columnNumber&quot;:23,&quot;scriptId&quot;:&quot;7&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;&quot;,&quot;scriptId"/></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:142:plain"><failure message="{&quot;exceptionId&quot;:2,&quot;text&quot;:&quot;Uncaught (in promise) Error: Prototype does not implement beginRenameGroup. Use Chromium’s native controls.&quot;,&quot;lineNumber&quot;:974,&quot;columnNumber&quot;:23,&quot;scriptId&quot;:&quot;7&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;&quot;,&quot;scriptId"/></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:153:plain"></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:163:plain"><failure message="the link child should be ungrouped"/></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:298:example-308"><failure message="timed out waiting for the group-menu overlay; last: null"/></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:298:example-309"></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:312:plain"></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:321:plain"><skipped message="The fork runner cannot relaunch a fixture yet"/></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:328:plain"></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:336:plain"></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:347:plain"><failure message="timed out waiting for the group-menu overlay; last: null"/></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:356:plain"><failure message="Fork Settings (chrome://settings/) has no #islandTabIcons control"/></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:367:plain"></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:373:plain"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;1521314048&quot;,&quot;url&quot;:&quot;blanc://newtab/&quot;,&quot;loadedUrl&quot;:&quot;blanc://newtab/&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;title&quot;:&quot;New Tab&quot;,&quot;favicon&quot;:&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA"/></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:383:plain"><skipped message="Native snapshot adapter does not expose state.tabs.1.audioMuted"/></testcase>
+</testsuite>
