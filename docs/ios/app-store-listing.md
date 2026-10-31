@@ -113,14 +113,15 @@ iPhone 17 Pro Max simulator, iOS 26.5, light, English: Apple's 6.9" size,
 1320 × 2868. Apple accepts the 6.9" set alone, so there's no 6.5" set.
 Committed in `docs/ios/app-store/`:
 
-1. `1-island.png`: blanc.day with the Island at the bottom.
+1. `1-island.png`: blanc.day's What's New page with the Island at the bottom.
 2. `2-palette.png`: the palette, with open tabs, a tab group and two pages
    sent from a MacBook Pro.
 3. `3-send.png`: Send to Device in the Island's menu.
 4. `4-spaces.png`: the Spaces menu (This iPhone and a "Work" Space).
 5. `5-start.png`: the Start Page (Billboard).
 
-**For the owner to judge:** shots 1, 3 and 4 show blanc.day's home page,
-whose hero image is a screenshot of The Met's website. Everything shown is
-Blanc's own UI and pages, and every page is blanc.day; no sync account or
-person's data appears.
+**Page choice:** the shots show blanc.day's What's New page. The home
+page's hero is a screenshot of another site (The Met), Features and Support
+show other sites too, Download tells phone visitors Blanc is for computers,
+and Pair mentions the TestFlight beta. Everything shown is Blanc's own UI
+and pages; no sync account or person's data appears.

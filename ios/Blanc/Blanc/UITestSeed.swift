@@ -35,19 +35,21 @@ enum UITestSeed {
   }
 
   /// `-BlancUITestAppStore`: the App Store screenshots' state
-  /// (`scripts/ios-app-store-screenshots.sh`). This iPhone has blanc.day's
-  /// home and Features page loose and a "Getting started" group of two
-  /// blanc.day pages, a "Work" Space holds blanc.day's support page, and a
+  /// (`scripts/ios-app-store-screenshots.sh`). This iPhone shows blanc.day's
+  /// What's New page (the home page's hero shows another site, and Download
+  /// tells phone visitors Blanc is for computers), with Download loose and a
+  /// "Getting started" group of
+  /// two blanc.day pages, a "Work" Space holds blanc.day's support page, and a
   /// MacBook Pro sent two pages here. All Blanc's own pages, so no third
   /// party's site appears in the store.
   static var appStore: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestAppStore") }
   static func appStoreState() -> SessionState {
     let started = TabGroup(id: String(repeating: "e", count: 32), name: "Getting started", color: "#376694")
     let iphone = SavedSet(tabs: [
-      SavedTab(url: "https://blanc.day/", title: "Blanc"),
-      SavedTab(url: "https://blanc.day/features", title: "Features"),
-      SavedTab(url: "https://blanc.day/download", title: "Download", groupId: started.id),
+      SavedTab(url: "https://blanc.day/whats-new", title: "What's New"),
+      SavedTab(url: "https://blanc.day/download", title: "Download Blanc"),
       SavedTab(url: "https://blanc.day/pair", title: "Pair your iPhone", groupId: started.id),
+      SavedTab(url: "https://blanc.day/support", title: "Support", groupId: started.id),
     ], groups: [started], activeIndex: 0)
     let work = SpaceRecord(id: String(repeating: "f", count: 32), name: "Work", color: "#426c4c", symbol: "briefcase",
                            set: SavedSet(tabs: [SavedTab(url: "https://blanc.day/support", title: "Support")]))
