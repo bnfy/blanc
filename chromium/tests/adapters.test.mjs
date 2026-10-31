@@ -28,6 +28,6 @@ test('pinned shipping callbacks share the reset per-scenario context',()=>{
  assert.match(definition.shippingSourceSha256,/^[a-f0-9]{64}$/);
 });
 test('unported fixture seeds are identified before browser launch',()=>{
- const definition={run:async function(){await this.call('seedHistory');await this.call('state');}};
- assert.deepEqual(missingAdapters(definition),['seedHistory']);
+ const definition={run:async function(){await this.call('unportedSeedFixture');await this.call('state');}};
+ assert.deepEqual(missingAdapters(definition),['unportedSeedFixture']);
 });
