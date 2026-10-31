@@ -33,9 +33,10 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   (`external_handoff.cc`) is compiled and compared with shipping over 3,100+
   inputs. Searches go to the profile's default engine through the shipping
   engine resolver; a fresh profile gets DuckDuckGo unless policy or an
-  extension controls the engine. Typed smoke passes; the navigation feature
-  run is pending (the screen was locked, so the render guard stopped it with
-  no result). Gaps: new tabs from typed text still use the old Google-only
+  extension controls the engine. Typed smoke passes. Navigation feature
+  (--only, 18 cases): mailto hand-off and the app-callback confirmation now
+  pass; nothing regressed. The 11 search cases still fail only because fork
+  Settings has no search engine or suggestions control. Gaps: new tabs from typed text still use the old Google-only
   path; page-started blocklist (N6), Bangs, engine picker, suggestions policy
   and the outbound-isolation check remain.
 - **F0.5 S1 finish line reached.** All 253 S1-tagged cases have a real result
@@ -128,8 +129,8 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. Run the navigation feature on macos-e68005f969555007 (screen unlocked),
-   then the full S1 rebaseline on it.
+1. Full S1 rebaseline on macos-e68005f969555007 (screen unlocked); then the
+   Settings search engine and suggestions controls.
 2. F0.3 identity spike in `blanc-test` once signing is approved; then S1 work in slice order, moving each
    group's handlers to the typed interface as its rows are worked. Re-run
    affected cases with --only and merge-baseline.mjs.
