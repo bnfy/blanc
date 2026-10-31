@@ -7,8 +7,11 @@ const same=(a,b)=>String(a).toLocaleLowerCase()===String(b).toLocaleLowerCase();
 export async function tabPage(w,id){
  const tabs=(await w.snapshot()).tabs;const tab=tabs.find(t=>String(t.id)===String(id));
  if(!tab)throw Error('Unknown native tab '+id);
- const targets=(await w.fixture.targets()).filter(t=>t.type==='page'&&t.url===tab.url);
- if(targets.length!==1||tabs.filter(t=>t.url===tab.url).length!==1)throw new UndefinedNativeAdapterError('Tab document is not uniquely addressable: '+tab.url);
+ // A page target reports the committed document URL (the Start Page commits
+ // chrome://newtab/ as its blanc-prototype document), so match either.
+ const urls=new Set([tab.url,tab.committedUrl].filter(Boolean));
+ const targets=(await w.fixture.targets()).filter(t=>t.type==='page'&&urls.has(t.url));
+ if(targets.length!==1||tabs.filter(t=>urls.has(t.url)||urls.has(t.committedUrl)).length!==1)throw new UndefinedNativeAdapterError('Tab document is not uniquely addressable: '+tab.url);
  await w.app.refresh();
  return w.app.windows().find(p=>p.targetId===targets[0].id);
 }
