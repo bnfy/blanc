@@ -1999,7 +1999,7 @@
     }
   },
   "baselines": {
-    "macos": "scenarios/baseline-macos-d1984adbf76df5f0.json"
+    "macos": "scenarios/baseline-macos-790ca4d6d538c894.json"
   },
   "scenarioIds": [
     "spec/acceptance/F41-named-workspaces.feature:4",

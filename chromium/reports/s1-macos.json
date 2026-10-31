@@ -1,10 +1,31 @@
 {
  "slice": "S1",
  "platform": "macos",
- "candidate": "macos-d1984adbf76df5f0",
+ "candidate": "macos-790ca4d6d538c894",
  "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
- "forkCommit": "8f7f7c16137c0ebc677ffc2fcb45597f73dabab2",
- "merges": [],
+ "forkCommit": "f4a4f2fed46eb7e07f9d73cb8224983a8c612b45",
+ "merges": [
+  {
+   "forkCommit": "b22cc3f98718a237f4cd4949b826149a36871bd3",
+   "subset": "navigation-and-context-menu.feature",
+   "scenarios": [
+    "spec/acceptance/navigation-and-context-menu.feature:7",
+    "spec/acceptance/navigation-and-context-menu.feature:12",
+    "spec/acceptance/navigation-and-context-menu.feature:26",
+    "spec/acceptance/navigation-and-context-menu.feature:32",
+    "spec/acceptance/navigation-and-context-menu.feature:43",
+    "spec/acceptance/navigation-and-context-menu.feature:59",
+    "spec/acceptance/navigation-and-context-menu.feature:66",
+    "spec/acceptance/navigation-and-context-menu.feature:71",
+    "spec/acceptance/navigation-and-context-menu.feature:77",
+    "spec/acceptance/navigation-and-context-menu.feature:83",
+    "spec/acceptance/navigation-and-context-menu.feature:91",
+    "spec/acceptance/navigation-and-context-menu.feature:100",
+    "spec/acceptance/navigation-and-context-menu.feature:108",
+    "spec/acceptance/navigation-and-context-menu.feature:117"
+   ]
+  }
+ ],
  "summary": {
   "pass": 70,
   "fail": 151,
@@ -96,7 +117,7 @@
     {
      "id": "spec/acceptance/blank-tab-affordance.feature:34:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Unsupported prototype destination.\",\"lineNumber\":5,\"columnNumber\":91,\"scriptId\":\"43\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancTestReply\",\"scriptId\":\"43\",\"url\":\"\",\"lineNum",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Unsupported prototype destination.\",\"lineNumber\":5,\"columnNumber\":91,\"scriptId\":\"49\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancTestReply\",\"scriptId\":\"49\",\"url\":\"\",\"lineNum",
      "retried": true
     }
    ]
@@ -121,19 +142,19 @@
     {
      "id": "spec/acceptance/glance.feature:227:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":731,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
      "retried": true
     },
     {
      "id": "spec/acceptance/glance.feature:345:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":731,\"columnNumber\":35,\"scriptId\":\"10\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"10",
      "retried": true
     },
     {
      "id": "spec/acceptance/glance.feature:386:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"7\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":731,\"columnNumber\":35,\"scriptId\":\"9\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"9\",",
      "retried": true
     }
    ]
@@ -147,7 +168,7 @@
     {
      "id": "spec/acceptance/find-favorites-history.feature:7:plain",
      "result": "fail",
-     "reason": "Island view covers 171840px² of page outside the find capsule: {\"width\":1200,\"height\":228,\"pageTop\":68,\"bar\":{\"left\":360,\"top\":84,\"right\":840,\"bottom\":126}}",
+     "reason": "Timeout waiting for find count to show 3: \"\"",
      "retried": true
     }
    ]
@@ -265,7 +286,7 @@
     {
      "id": "spec/acceptance/tabs-and-groups.feature:373:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"2098370447\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"605334462\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
      "retried": true
     },
     {
@@ -380,7 +401,7 @@
     {
      "id": "spec/acceptance/tab-drag.feature:124:plain",
      "result": "fail",
-     "reason": "timed out waiting for Recently closed directly above play; last: [\"pinned\",\"loose\",\"B9D5D283E260D15FD3207A37AE0325C8\",\"98B72BD2CC012C94F5A6C0771F0BDFDD\",\"recently-closed\",\"loose\"]",
+     "reason": "timed out waiting for Recently closed directly above play; last: [\"pinned\",\"loose\",\"D764FC393D09277C509355E3AADF3380\",\"97348359848428C875A168DE7279F477\",\"recently-closed\",\"loose\"]",
      "retried": true
     },
     {
@@ -399,13 +420,13 @@
     {
      "id": "spec/acceptance/tab-drag.feature:154:example-160",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1538427196\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"952848648\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
      "retried": true
     },
     {
      "id": "spec/acceptance/tab-drag.feature:154:example-161",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"629573610\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1008813103\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
      "retried": true
     },
     {
@@ -429,13 +450,13 @@
     {
      "id": "spec/acceptance/tabs-and-groups.feature:78:plain",
      "result": "fail",
-     "reason": "{\"directCount\":1,\"directIds\":[\"426420148\"],\"directTitles\":[\"\"],\"overflowText\":\"+5\",\"overflowLabel\":\"5 more tabs — open the list\",\"iconsMode\":false,\"iconCount\":0,\"peekCount\":1}",
+     "reason": "{\"directCount\":1,\"directIds\":[\"734183700\"],\"directTitles\":[\"\"],\"overflowText\":\"+5\",\"overflowLabel\":\"5 more tabs — open the list\",\"iconsMode\":false,\"iconCount\":0,\"peekCount\":1}",
      "retried": true
     },
     {
      "id": "spec/acceptance/tabs-and-groups.feature:94:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"712141970\",\"url\":\"http://127.0.0.1:51677/site/work-1\",\"loadedUrl\":\"http://127.0.0.1:51677/site/work-1\",\"loading\":false,\"isLoading\":false,\"title\":\"work-1\",\"favicon\":null,\"groupId\"",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"788176101\",\"url\":\"http://127.0.0.1:61669/site/work-1\",\"loadedUrl\":\"http://127.0.0.1:61669/site/work-1\",\"loading\":false,\"isLoading\":false,\"title\":\"work-1\",\"favicon\":null,\"groupId\"",
      "retried": true
     },
     {
@@ -457,13 +478,13 @@
     {
      "id": "spec/acceptance/tabs-and-groups.feature:132:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement beginRenameGroup. Use Chromium’s native controls.\",\"lineNumber\":974,\"columnNumber\":23,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement beginRenameGroup. Use Chromium’s native controls.\",\"lineNumber\":988,\"columnNumber\":23,\"scriptId\":\"10\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptI",
      "retried": true
     },
     {
      "id": "spec/acceptance/tabs-and-groups.feature:142:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement beginRenameGroup. Use Chromium’s native controls.\",\"lineNumber\":974,\"columnNumber\":23,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement beginRenameGroup. Use Chromium’s native controls.\",\"lineNumber\":988,\"columnNumber\":23,\"scriptId\":\"10\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptI",
      "retried": true
     },
     {
@@ -626,13 +647,13 @@
     {
      "id": "spec/acceptance/internal-pages.feature:39:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Unsupported prototype destination.\",\"lineNumber\":5,\"columnNumber\":91,\"scriptId\":\"44\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancTestReply\",\"scriptId\":\"44\",\"url\":\"\",\"lineNum",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Unsupported prototype destination.\",\"lineNumber\":5,\"columnNumber\":91,\"scriptId\":\"49\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancTestReply\",\"scriptId\":\"49\",\"url\":\"\",\"lineNum",
      "retried": true
     },
     {
      "id": "spec/acceptance/internal-pages.feature:47:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Unsupported prototype destination.\",\"lineNumber\":5,\"columnNumber\":91,\"scriptId\":\"44\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancTestReply\",\"scriptId\":\"44\",\"url\":\"\",\"lineNum",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Unsupported prototype destination.\",\"lineNumber\":5,\"columnNumber\":91,\"scriptId\":\"49\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancTestReply\",\"scriptId\":\"49\",\"url\":\"\",\"lineNum",
      "retried": true
     },
     {
@@ -1048,7 +1069,7 @@
     {
      "id": "spec/acceptance/island-and-commands.feature:543:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":731,\"columnNumber\":35,\"scriptId\":\"10\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"10",
      "retried": true
     },
     {
@@ -1082,31 +1103,31 @@
     {
      "id": "spec/acceptance/island-and-commands.feature:608:plain",
      "result": "fail",
-     "reason": "timed out waiting for bang y8 recorded; last: {\"engine\":\"google\",\"query\":\"!y8 probe\",\"url\":\"https://www.google.com/search?q=!y8%20probe\"}",
+     "reason": "timed out waiting for bang y8 recorded; last: null",
      "retried": true
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:621:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement bangIcons. Use Chromium’s native controls.\",\"lineNumber\":974,\"columnNumber\":23,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"8\",\"",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement bangIcons. Use Chromium’s native controls.\",\"lineNumber\":988,\"columnNumber\":23,\"scriptId\":\"10\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"10\"",
      "retried": true
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:632:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement bangIcons. Use Chromium’s native controls.\",\"lineNumber\":974,\"columnNumber\":23,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"7\",\"",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement bangIcons. Use Chromium’s native controls.\",\"lineNumber\":988,\"columnNumber\":23,\"scriptId\":\"10\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"10\"",
      "retried": true
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:640:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement bangIcons. Use Chromium’s native controls.\",\"lineNumber\":974,\"columnNumber\":23,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"8\",\"",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement bangIcons. Use Chromium’s native controls.\",\"lineNumber\":988,\"columnNumber\":23,\"scriptId\":\"10\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"10\"",
      "retried": true
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:651:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement bangIcons. Use Chromium’s native controls.\",\"lineNumber\":974,\"columnNumber\":23,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"8\",\"",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement bangIcons. Use Chromium’s native controls.\",\"lineNumber\":988,\"columnNumber\":23,\"scriptId\":\"10\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"10\"",
      "retried": true
     }
    ]
@@ -1263,19 +1284,19 @@
     {
      "id": "spec/acceptance/newtab-layouts.feature:21:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1601812353\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1583197928\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
      "retried": true
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:35:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1473197413\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"868114208\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
      "retried": true
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:41:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":731,\"columnNumber\":35,\"scriptId\":\"10\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"10",
      "retried": true
     },
     {
@@ -1340,7 +1361,7 @@
     {
      "id": "spec/acceptance/newtab-layouts.feature:183:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":731,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
      "retried": true
     },
     {
@@ -1448,37 +1469,37 @@
     {
      "id": "spec/acceptance/private-tabs.feature:7:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":731,\"columnNumber\":35,\"scriptId\":\"10\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"10",
      "retried": true
     },
     {
      "id": "spec/acceptance/private-tabs.feature:16:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":1,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":731,\"columnNumber\":35,\"scriptId\":\"10\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"10",
      "retried": true
     },
     {
      "id": "spec/acceptance/private-tabs.feature:24:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"7\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":731,\"columnNumber\":35,\"scriptId\":\"10\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"10",
      "retried": true
     },
     {
      "id": "spec/acceptance/private-tabs.feature:30:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"7\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":731,\"columnNumber\":35,\"scriptId\":\"10\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"10",
      "retried": true
     },
     {
      "id": "spec/acceptance/private-tabs.feature:35:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":731,\"columnNumber\":35,\"scriptId\":\"10\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"10",
      "retried": true
     },
     {
      "id": "spec/acceptance/private-tabs.feature:40:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"7\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":731,\"columnNumber\":35,\"scriptId\":\"10\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"10",
      "retried": true
     }
    ]
@@ -1498,7 +1519,7 @@
     {
      "id": "spec/acceptance/settings-and-theming.feature:37:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":731,\"columnNumber\":35,\"scriptId\":\"10\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"10",
      "retried": true
     }
    ]
@@ -1512,43 +1533,43 @@
     {
      "id": "spec/acceptance/site-certificate-safety.feature:4:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"130475149\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"657297298\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
      "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:11:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1047808074\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1470270340\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
      "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:19:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"2009871185\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"925131130\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
      "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:26:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"997524560\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"756222695\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
      "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:35:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"864536236\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1897302921\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
      "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:41:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"858593037\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1062353349\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
      "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:50:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"2075167085\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1478314626\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
      "retried": true
     }
    ]
