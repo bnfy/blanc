@@ -20,7 +20,7 @@ const TLS_HOSTS=['insecure.test','secure.test','badcert.test',...LOCAL_HOSTS];
 import {connect, waitFor, pause} from './cdp.mjs';
 const digest = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 export class NativeFixture {
-  async launch(config, directory, {testHooks=false, privateMode=false, pages=null} = {}) {
+  async launch(config, directory, {testHooks=false, privateMode=false, pages=null, diskAssets=true} = {}) {
     this.directory=directory; this.connections=[]; this.sockets=new Set();
     if(fs.existsSync(directory))throw Error('Refusing to overwrite fixture');
     if(digest(config.framework)!==config.frameworkSha256||digest(config.executable)!==config.executableSha256)throw Error('Candidate identity mismatch');
@@ -53,7 +53,7 @@ export class NativeFixture {
     }
     this.config=config;this.launches=0;this.exits=[];
     this.flags=[`--user-data-dir=${this.profile}`,'--remote-debugging-port=0',
-      `--blanc-prototype-assets=${config.assets}`,`--blanc-blocker-assets=${config.blockerAssets}`,
+      ...(diskAssets?[`--blanc-prototype-assets=${config.assets}`]:[]),`--blanc-blocker-assets=${config.blockerAssets}`,
       `--proxy-server=http://127.0.0.1:${this.proxy.address().port}`,`--proxy-bypass-list=127.0.0.1;localhost;${TLS_HOSTS.join(';')}`,
       `--host-resolver-rules=${TLS_HOSTS.map(h=>'MAP '+h+' 127.0.0.1, ').join('')}MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1`,...tlsFlags,
       '--disable-background-networking','--disable-quic','--no-first-run','--no-default-browser-check','--use-mock-keychain',
