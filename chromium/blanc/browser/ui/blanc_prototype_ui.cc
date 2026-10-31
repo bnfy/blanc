@@ -1,6 +1,7 @@
 #include "blanc/buildflags.h"
 #include "blanc/island_resources/island_resources.h"
 #include "blanc/browser/ui/browser_api/navigation.h"
+#include "blanc/browser/ui/browser_api/search_default.h"
 #include "blanc/common/browser_api/browser_api_factory_base.h"
 #include "services/network/public/mojom/web_sandbox_flags.mojom.h"
 #include "blanc/browser/ui/blanc_tab_name_rules.h"
@@ -2978,6 +2979,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(std::move(result)));
       return;
     }
+    // Read-only: typed hand-offs the navigation group recorded instead of
+    // launching (navigation.h).
+    if (message[1].GetString() == "handoffs") {
+      base::ListValue list;
+      for (const auto& [url, prompt] : blanc::browser_api::TestHandoffs())
+        list.Append(base::DictValue().Set("url", url).Set("prompt", prompt));
+      Reply(id, true, base::Value(std::move(list)));
+      return;
+    }
     const std::string& method = message[1].GetString();
     // Only existing production policy paths are exposed. Fixture seeds and
     // unsupported shipping hooks must be implemented explicitly, never faked.
@@ -5630,6 +5640,7 @@ ToolbarButtonProvider* ToolbarProvider(BrowserWindowInterface* browser,
 
 std::unique_ptr<views::WebView> CreateIsland(
     BrowserWindowInterface* browser) {
+  blanc::browser_api::EnsureBlancDefaultSearch(browser->GetProfile()->GetOriginalProfile());
   auto view = std::make_unique<IslandView>(browser->GetProfile());
   view->SetID(kIslandViewId);
   auto owner = std::make_unique<Owner>(browser);

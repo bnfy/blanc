@@ -734,10 +734,18 @@
       if (options?.focusAddress) await show('');
     },
     // The navigation group runs on the typed interface (browser-api.js).
+    // Typed text is an address, a search or an OS hand-off, decided as in
+    // shipping (address-input.js); the profile's engine runs searches.
     navigate: async (id, value) => {
-      const result = await typed('navigate', [String(nativeId(id)), destination(value)]);
+      const meaning = window.BlancAddressInput.interpret(value);
+      // A hand-off goes to the browser as typed; it classifies the text again
+      // and opens the app itself (V9). Nothing loads in the tab.
+      if (meaning.kind === 'handoff') return typed('navigate', [String(nativeId(id)), meaning.url]);
+      const result = meaning.kind === 'search'
+        ? await typed('search', [String(nativeId(id)), meaning.query])
+        : await typed('navigate', [String(nativeId(id)), meaning.url]);
       await refresh();
-      return result;
+      return meaning.kind === 'search' ? undefined : result;
     },
     search: async (id, query) => {
       const result = await typed('search', [String(nativeId(id)), query]);

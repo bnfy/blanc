@@ -3,10 +3,17 @@
 
 #include <utility>
 
+#include "base/command_line.h"
 #include "base/functional/bind.h"
-#include "base/strings/escape.h"
+#include "base/strings/string_util.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/task/sequenced_task_runner.h"
+#include "blanc/browser/ui/browser_api/external_handoff.h"
+#include "blanc/browser/ui/modules/selected_shipping.h"
+#include "blanc/buildflags.h"
+#include "base/no_destructor.h"
+#include "chrome/browser/platform_util.h"
+#include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "components/sessions/content/session_tab_helper.h"
@@ -62,6 +69,13 @@ std::optional<bool> Woke(bool was_discarded) {
 
 }  // namespace
 
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+std::vector<std::pair<std::string, bool>>& TestHandoffs() {
+  static base::NoDestructor<std::vector<std::pair<std::string, bool>>> handoffs;
+  return *handoffs;
+}
+#endif
+
 Navigation::Navigation(BrowserGetter browser, mojo::PendingReceiver<mojom::Navigation> receiver)
     : browser_(std::move(browser)), receiver_(this, std::move(receiver)) {}
 
@@ -102,19 +116,54 @@ void Navigation::Navigate(const std::string& id, const std::string& url, Navigat
     std::move(callback).Run(std::nullopt);
     return;
   }
+  // An OS hand-off is decided on the typed text first, as in shipping:
+  // familiar links open directly, custom app links through Chromium's
+  // external-protocol prompt (V9). Nothing loads in the tab itself.
+  const Handoff handoff = ClassifyExternalNavigation(url, /*trusted=*/true);
+  if (handoff == Handoff::kOpen || handoff == Handoff::kConfirm) {
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+    if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test")) {
+      TestHandoffs().emplace_back(url, handoff == Handoff::kConfirm);
+      std::move(callback).Run(std::nullopt);
+      return;
+    }
+#endif
+    if (handoff == Handoff::kOpen) {
+      platform_util::OpenExternal(GURL(url));
+    } else if (handoff == Handoff::kConfirm) {
+      tab->GetController().LoadURL(GURL(url), content::Referrer(), ui::PAGE_TRANSITION_TYPED, std::string());
+    }
+    std::move(callback).Run(std::nullopt);
+    return;
+  }
   Load(tab, GURL(url), std::move(callback));
 }
 
 void Navigation::Search(const std::string& id, const std::string& query,
                         const std::optional<std::string>& engine, SearchCallback callback) {
-  // The engine argument is ignored, as in the contract. Searches still go to
-  // Google until search engines move to TemplateURLService (F5).
+  // The engine argument is ignored, as in the contract: the profile's
+  // selected provider decides (TemplateURLService; DuckDuckGo by default).
   auto* tab = Tab(id);
-  if (!tab || query.empty()) {
+  auto* browser = browser_.Run();
+  if (!tab || !browser || base::TrimWhitespaceASCII(query, base::TRIM_ALL).empty()) {
     std::move(callback).Run(nullptr);
     return;
   }
-  Load(tab, GURL("https://www.google.com/search?q=" + base::EscapeQueryParamValue(query, false)),
+  const auto resolution = blanc::custom_search::ResolveCurrentSelectedShipping(browser->GetProfile(), query);
+  if (resolution.status != blanc::custom_search::ShippingStatus::kReady || !resolution.url) {
+    // Nothing loads while the provider is loading, changing or unsupported.
+    std::move(callback).Run(nullptr);
+    return;
+  }
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+  // Under the desktop test hook a search resolves to its URL instead of
+  // loading it, as the contract specifies.
+  if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test")) {
+    std::move(callback).Run(mojom::BoolOrString::NewStringValue(*resolution.url));
+    return;
+  }
+#endif
+  Load(tab, GURL(*resolution.url),
        base::BindOnce([](SearchCallback callback, std::optional<bool>) {
          // A started search resolves to nothing, as in the contract.
          std::move(callback).Run(nullptr);

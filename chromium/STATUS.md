@@ -6,13 +6,38 @@ Execution contract: spec and plan approved at e884a6564. Active slice: F0 Founda
 F0.1–F0.6 and F0.8, with necessary incremental builds, approved. F0.3 and S1
 approved 2026-10-31, including one cold release-channel build (new output
 folder, pinned toolchain), a pf firewall anchor scoped to the test user for
-S1.1, and a Standard test user the owner creates.
+S1.1, and a Standard test user the owner creates (`blanc-test`, created).
+Xcode's Metal Toolchain (27B47) installed with owner approval 2026-10-31;
+the cold release build needed it. Pinned environments unchanged.
 D1 decided 2026-10-31: in-window private tabs.
 D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
-- F0.1/F0.2/F0.4/F0.8 as before; F0.3 pending.
+- F0.1/F0.2/F0.4/F0.8 as before.
+- **F0.3 channel identity built; identity spike pending.** Patch 0005 gives
+  each channel its own data folder (`CrProductDirName`) and Keychain item:
+  preview is Blanc Prototype / `day.blanc.prototype` / "Blanc Chromium
+  Preview" / "Blanc Chromium Preview Safe Storage"; release is Blanc /
+  `me.bnfy.bowser` / "Blanc Browser" / "Blanc Browser Safe Storage". Neither
+  shares a folder or Keychain item with Electron Blanc ("Blanc", "Blanc Safe
+  Storage"); `tools/channel-identity.test.mjs` holds that. The cold release
+  build (`out/BlancRelease`, 57,200 steps) succeeded and its app reports
+  those values. Next: the install-over-Electron spike in `blanc-test`, which
+  needs an internally signed build; signing waits for the owner.
+- **S1.1 piece 1 (address bar meaning) on macos-e68005f969555007.** Typed text
+  is classified as shipping v1.45.1 does (`blanc/island/address-input.js`,
+  differential against shipping's own code over 2,000+ inputs). Familiar
+  links (mailto, tel, facetime, sms) open directly; custom app links go
+  through Chromium's external-protocol prompt (V9); the C++ classifier
+  (`external_handoff.cc`) is compiled and compared with shipping over 3,100+
+  inputs. Searches go to the profile's default engine through the shipping
+  engine resolver; a fresh profile gets DuckDuckGo unless policy or an
+  extension controls the engine. Typed smoke passes; the navigation feature
+  run is pending (the screen was locked, so the render guard stopped it with
+  no result). Gaps: new tabs from typed text still use the old Google-only
+  path; page-started blocklist (N6), Bangs, engine picker, suggestions policy
+  and the outbound-isolation check remain.
 - **F0.5 S1 finish line reached.** All 253 S1-tagged cases have a real result
   or a named undefined reason on the current candidate: 70 pass, 151 fail, 32
   undefined. Per-row results and reasons: [reports/s1-macos.json](reports/s1-macos.json) (+ JUnit).
@@ -95,14 +120,17 @@ the opener's group); Glance stays a custom card; Close Tabs Below as one entry
 through TabRestoreService if its group entries allow it.
 
 ## Native test ops
-Built in d1984adb: slots 4–8 in previewPageCommand; closeWindow. Identified, not
+Built in d1984adb: slots 4–8 in previewPageCommand; closeWindow. Built for
+S1.1: `handoffs` (typed hand-offs recorded under --blanc-test). Identified, not
 built: sessionWindows (session.json-shaped projection); certificate decision
 list/forget/cap; history visit + site icon seed; favorite favicon seed;
 first-run/checklist/Patron/launch-Sunrise state once stored; address context menu
-list/run; external-handoff probe; overlay drag flag; microphone capture seed.
+list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. F0.3 under its dependencies; then S1 work in slice order, moving each
+1. Run the navigation feature on macos-e68005f969555007 (screen unlocked),
+   then the full S1 rebaseline on it.
+2. F0.3 identity spike in `blanc-test` once signing is approved; then S1 work in slice order, moving each
    group's handlers to the typed interface as its rows are worked. Re-run
    affected cases with --only and merge-baseline.mjs.
 
@@ -149,5 +177,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-c63b5428a2f16e60; Windows: none; Linux: none.
+Candidate identities: macOS: macos-e68005f969555007; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

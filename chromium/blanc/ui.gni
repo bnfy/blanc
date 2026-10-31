@@ -9,7 +9,9 @@ template("blanc_ui") {
 source_set(target_name) {
   forward_variables_from(invoker, "*")
   sources = [ "//blanc/browser/ui/blanc_prototype_ui.cc", "//blanc/browser/ui/blanc_tab_name_rules.h",
-              "//blanc/browser/ui/browser_api/navigation.cc", "//blanc/browser/ui/browser_api/navigation.h" ]
+              "//blanc/browser/ui/browser_api/navigation.cc", "//blanc/browser/ui/browser_api/navigation.h",
+              "//blanc/browser/ui/browser_api/search_default.cc", "//blanc/browser/ui/browser_api/search_default.h",
+              "//blanc/browser/ui/browser_api/external_handoff.cc", "//blanc/browser/ui/browser_api/external_handoff.h" ]
   public_deps = [ "//chrome/browser/ui/views/frame:browser_view_header" ]
   deps = [
     "//blanc:buildflags",
@@ -217,6 +219,7 @@ source_set(target_name) {
     "//components/safe_browsing/core/browser/password_protection:password_protection_metrics_util",
     "//components/saved_tab_groups/public:features",
     "//components/search",
+    "//components/search_engines",
     "//components/sessions",
     "//components/split_tabs",
     "//components/startup_metric_utils",

@@ -46,6 +46,7 @@
   },
   "manifest": {
     "adapter.js": "955f8a952ccebe4e339da3a7d61f1ea76ddb734fc91c40f522a95b6634be3007",
+    "address-input.js": "7d6e1c7c9294cc135379e6ad69794e120dfb58002c20ce16d548b1f7e65ad609",
     "blocking-settings-adapter.js": "02dd353af94db31829b0969e8a02be55b1949091bd7e22f546a38238fef6df55",
     "blocking-settings.html": "e33eef7727db18fc1778e7f714aad1ac0055b3b8419253c1e6c5342d75f90cfc",
     "blocking-settings.js": "2b4cca5a6db9d01ce88e48a60c67a76a6d515ab6e8a686f375e435a2137c78cb",
@@ -54,8 +55,8 @@
     "extensions.css": "c91af1c5bb163ce53458080c2bf2bb92704caac221120dbb0800610f3bd406ee",
     "extensions.js": "e6c24a5f8fb1559e077045c3707a0dd33d3e58a8af7c16c5a5365eb9cf74ca4d",
     "host.css": "c16f3126d4c411387a4a2022a2a4af44d881c9824089a663d306343e31885df3",
-    "host.html": "ddd6c644e09f325edef2a221b6387147739c2867b09ab009e5106927cbb48247",
-    "host.js": "ebd61e8f26cb0e927dbf042c63ef2af5122c71179d8df230885f5941aef03b5c",
+    "host.html": "d70f897f4236813ba20d3ecc4a3c7415e232444b00ede5cc15efa6329e8d5081",
+    "host.js": "ec3e7d16a141accd2cd3f6abb54ad5d6e56f836ae1941ccdfc1a4a771b9d2180",
     "i18n.js": "5749b9e67f1876fdd535f6f47908d8a3982ee7c5868b2e23dc50085a1ab27793",
     "icons/chevron-left.svg": "83b0681aa38bf55e9d52a1e4b4cced624abe1fe7678ecafda133a574f1161d93",
     "icons/external-link.svg": "3891241b8c3bfc3a8a930078f26ffc5a7e9763da6d0162ace2050b28d4c1d1fe",

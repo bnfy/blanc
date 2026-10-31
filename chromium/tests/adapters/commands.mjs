@@ -38,8 +38,12 @@ const TAP=`(()=>{if(window.__blancCapture)return true;const c=window.__blancCapt
   c.log.push({route:c.route.method,input:c.route.args,native:args[1],url:args[2][args[1]==='navigate'?1:0]});return send(name,args);};
  // Navigation runs on the typed interface; record what reaches it the same way.
  const typed=window.BlancBrowserApi;
- if(typed)window.BlancBrowserApi=Object.freeze({invoke:(name,args)=>{if(c.route&&name==='navigate')
-  c.log.push({route:c.route.method,input:c.route.args,native:'typed:'+name,url:args[1]});return typed.invoke(name,args);}});
+ if(typed)window.BlancBrowserApi=Object.freeze({invoke:(name,args)=>{const route=c.route;
+  if(route&&name==='navigate')c.log.push({route:route.method,input:route.args,native:'typed:'+name,url:args[1]});
+  const result=typed.invoke(name,args);
+  // Under the test hook a search resolves to the URL it would load.
+  if(route&&name==='search')return result.then(url=>{if(typeof url==='string')c.log.push({route:route.method,input:route.args,native:'typed:search',url});return url;});
+  return result;}});
  return true;})()`;
 async function capture(w,reset){await w.hostEval(TAP);if(reset)await w.hostEval('window.__blancCapture.log.length=0');}
 const lastCaptured=async w=>w.hostEval('window.__blancCapture?.log.at(-1)??null');
@@ -53,6 +57,16 @@ async function openPalette(w){
 // Where the fork's command bar sends typed text: a fresh tab, the palette,
 // the text as a real input, Enter, and the facade's native request read back.
 // The probe tab is closed and the previous tab restored afterwards.
+// What typing the text did: 'open' or 'confirm' for a recorded OS hand-off,
+// 'none' for a web navigation or search.
+async function typedHandoff(w,text){
+ const before=(await w.native('handoffs')).length;
+ const entry=await typedDestination(w,text);
+ const recorded=(await w.native('handoffs')).slice(before).find(h=>h.url===text.trim()||h.url===text);
+ if(recorded)return recorded.prompt?'confirm':'open';
+ if(entry&&/^https?:/i.test(entry.url))return 'none';
+ throw new UndefinedNativeAdapterError('Typing '+text+' produced neither a hand-off nor a web navigation');
+}
 async function typedDestination(w,text){
  const before=(await w.snapshot()).activeTabId;
  const probe=String((await w.native('createTab',['chrome://newtab/'])).tabId);
@@ -145,18 +159,10 @@ export const commands={
  // Shipping normalizes the text in main; the fork's equivalent is where its
  // command bar actually sends it, read off the native request.
  async resolveAddress(w,input){const e=await typedDestination(w,input);return e?e.url:null;},
- // A hand-off leaves no web navigation behind: the fork's native navigate only
- // loads http(s), so a typed URI that turned into a web URL was not handed off.
- async wouldHandOff(w,url){
-  const e=await typedDestination(w,url);
-  if(e&&/^https?:/i.test(e.url))return false;
-  throw new UndefinedNativeAdapterError('The fork issued no web navigation for '+url+'; an OS hand-off is not observable without a native test op');
- },
- async handoffDecision(w,url){
-  const e=await typedDestination(w,url);
-  if(e&&/^https?:/i.test(e.url))return 'none';
-  throw new UndefinedNativeAdapterError('The fork issued no web navigation for '+url+'; its hand-off decision needs a native test op');
- },
+ // Typed hand-offs are recorded natively instead of launched under the test
+ // hook (the native "handoffs" op); a web navigation means none happened.
+ async wouldHandOff(w,url){return (await typedHandoff(w,url))!=='none';},
+ async handoffDecision(w,url){return typedHandoff(w,url);},
  setSearchEngine:(w,engine)=>setControl(w,'searchEngine',String(engine)),
  searchEngine:w=>readControl(w,'searchEngine'),
  async setCustomSearchEngine(w,template){await setControl(w,'searchEngine','custom');await setControl(w,'searchEngineTemplate',String(template));return readControl(w,'searchEngine');},

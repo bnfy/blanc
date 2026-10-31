@@ -5,7 +5,10 @@
 #include <optional>
 #include <string>
 
+#include <vector>
+
 #include "base/functional/callback.h"
+#include "blanc/buildflags.h"
 #include "blanc/common/browser_api/browser_api.mojom.h"
 #include "mojo/public/cpp/bindings/pending_receiver.h"
 #include "mojo/public/cpp/bindings/receiver.h"
@@ -15,6 +18,12 @@ class BrowserWindowInterface;
 namespace content { class WebContents; }
 
 namespace blanc::browser_api {
+
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+// Typed hand-offs recorded instead of launched under --blanc-test, so a test
+// run never opens Mail or another app: {url, whether Chromium would prompt}.
+std::vector<std::pair<std::string, bool>>& TestHandoffs();
+#endif
 
 // The contract's "navigation" group over the Island window's tab strip. Tab ids
 // are Chromium session ids; a tab outside the window is unknown.
