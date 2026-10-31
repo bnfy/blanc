@@ -8,13 +8,15 @@ import {createRequire} from 'node:module';
 const {loadShippingModule}=createRequire(import.meta.url)('./shipping-core.cjs');
 // Shipping hooks.js TLS fixtures: secure.test is trusted only by the per-run
 // SPKI pin; badcert.test's key is deliberately left out of it.
-function mintCertificate(dir,name){
-  const key=path.join(dir,name+'-key.pem'),cert=path.join(dir,name+'-cert.pem');
-  execFileSync('openssl',['req','-x509','-newkey','rsa:2048','-keyout',key,'-out',cert,'-days','2','-nodes','-subj','/CN='+name,'-addext','subjectAltName=DNS:'+name],{stdio:'pipe'});
+function mintCertificate(dir,name,hosts=[name],file=name){
+  const key=path.join(dir,file+'-key.pem'),cert=path.join(dir,file+'-cert.pem');
+  execFileSync('openssl',['req','-x509','-newkey','rsa:2048','-keyout',key,'-out',cert,'-days','2','-nodes','-subj','/CN='+name,'-addext','subjectAltName='+hosts.map(h=>'DNS:'+h).join(',')],{stdio:'pipe'});
   const spki=crypto.createHash('sha256').update(crypto.createPublicKey(fs.readFileSync(cert)).export({type:'spki',format:'der'})).digest('base64');
   return {key:fs.readFileSync(key),cert:fs.readFileSync(cert),spki};
 }
-const TLS_HOSTS=['insecure.test','secure.test','badcert.test'];
+// Local-use names (F39/N5): two untrusted keys A and B, plus one trusted by pin.
+const LOCAL_HOSTS=['nas.home.arpa','lab.home.arpa'];
+const TLS_HOSTS=['insecure.test','secure.test','badcert.test',...LOCAL_HOSTS];
 import {connect, waitFor, pause} from './cdp.mjs';
 const digest = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 export class NativeFixture {
@@ -43,7 +45,11 @@ export class NativeFixture {
       this.secureServer=await startSecure(secure);this.untrustedServer=await startSecure(untrusted);
       this.secureBase=`https://secure.test:${this.secureServer.port}`;
       this.untrustedBase=`https://badcert.test:${this.untrustedServer.port}`;
-      tlsFlags=[`--ignore-certificate-errors-spki-list=${secure.spki}`];
+      const local=Object.fromEntries(['a','b','trusted'].map(k=>[k,mintCertificate(tls,LOCAL_HOSTS[0],LOCAL_HOSTS,'local-'+k)]));
+      const pair=({key,cert})=>({key,cert});
+      this.localServer=await startSecure(pair(local.a));
+      this.localFixtures={handle:this.localServer,certA:pair(local.a),certB:pair(local.b),certTrusted:pair(local.trusted)};
+      tlsFlags=[`--ignore-certificate-errors-spki-list=${secure.spki},${local.trusted.spki}`];
     }
     this.config=config;this.launches=0;this.exits=[];
     this.flags=[`--user-data-dir=${this.profile}`,'--remote-debugging-port=0',
@@ -103,7 +109,7 @@ export class NativeFixture {
     for(const s of this.sockets||[])s.destroy();
     for(const s of [this.server,this.proxy])if(s?.listening)await new Promise(resolve=>s.close(resolve));
     if(this.pages)await this.pages.close();
-    for(const s of [this.secureServer,this.untrustedServer])if(s)await s.close();
+    for(const s of [this.secureServer,this.untrustedServer,this.localServer])if(s)await s.close();
     return this.exit;
   }
 }

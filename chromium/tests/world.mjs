@@ -21,7 +21,7 @@ export function createWorld(fixture){
   insecureFixtureUrl(n){return this.fixtureUrl(n).replace('127.0.0.1','insecure.test');},
   secureFixtureUrl(n){if(!fixture.secureBase)throw Error('TLS fixtures were not started');return fixture.secureBase+'/site/'+encodeURIComponent(n);},
   untrustedFixtureUrl(n){if(!fixture.untrustedBase)throw Error('TLS fixtures were not started');return fixture.untrustedBase+'/site/'+encodeURIComponent(n);},
-  localFixtureUrl(){throw new UndefinedNativeAdapterError('Local TLS fixtures need shipping ctx.localFixtures certificate rotation, which the fork runner does not bind');},
+  localFixtureUrl(name,query='',host='nas.home.arpa'){return `https://${host}:${fixture.localServer.port}/site/${encodeURIComponent(name)}${query}`;},
   native(method,args=[]){return nativeCall(fixture.host,method,args);},
   async snapshot(){return nativeCall(fixture.host,'snapshot');},
   async state(){return observedState(shippingState(await this.snapshot()));},
@@ -58,6 +58,7 @@ export function createWorld(fixture){
    // browser's own session restore decides what returns.
    const relaunch=async(options)=>{await this.relaunch(options);};
    shippingCore.resetContext({app,profileDir:fixture.profile,fixturesBase:fixture.base,tabByName:{},scenarioApp:app,
+    localFixtures:fixture.localFixtures,localFixturesPort:fixture.localServer?.port,localFixturesBase:fixture.localServer&&`https://nas.home.arpa:${fixture.localServer.port}`,
     relaunch:async(extraEnv={},{freshProfile=false}={})=>{
      if(Object.keys(extraEnv).length||freshProfile)throw new UndefinedNativeAdapterError('Relaunch with an environment or fresh profile needs an adapter');
      await relaunch();},
