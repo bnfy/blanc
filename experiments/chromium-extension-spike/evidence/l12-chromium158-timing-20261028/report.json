@@ -1,0 +1,4453 @@
+{
+  "started": "2026-10-28T23:41:14.062Z",
+  "completed": true,
+  "protocol": "one discarded full warm-up then five full repetitions per profile in the same process; nearest-rank percentiles; median-of-five",
+  "pageScheduling": "26 sequential page loads per repetition, 200 candidates per page except last; each page issues its resources concurrently without pacing; full corpus unchanged; repeated roots excluded from unique URL floor",
+  "nativeClock": "base::TimeTicks from factory entry or redirect receipt through decision application; Mojo included",
+  "electronClock": "process.hrtime.bigint at JS provider-observer entry through real provider result; preceding Electron native dispatch excluded; reference only",
+  "fullAcceptance": false,
+  "sources": {
+    "latency-run.mjs": "a67e86e2f728280781e75d98bccb9462eae1a765926d44fcf5a98258d67b90d0",
+    "latency-validate.mjs": "7826c7058f487d836afeeff0beb4fb8388eb184fc3dfd453b62ccd4757aca63e",
+    "session.mjs": "98ed2bd70467a09f8dec63667ec6dd765205f3245c45e209f3e06349109dc275",
+    "page.mjs": "f9cba4814df85c8adea3acdbc86a877392c7a69ecdc743d7917ede0d2c7ba6bc",
+    "native-latency-trace.mjs": "9fd2adb0b1aefcdc3ed31af320d4dbe1badb6713c187425983893426907d1f4c"
+  },
+  "runs": [
+    {
+      "label": "chromium-regular",
+      "rep": 0,
+      "warmup": true,
+      "started": "2026-10-28T23:41:20.765Z",
+      "finished": "2026-10-28T23:41:37.718Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:41:20.765Z",
+          "user": 45.4,
+          "system": 24.47,
+          "idle": 30.48
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.241,
+        "p95": 1.814,
+        "p99": 4.664
+      },
+      "first200Ms": {
+        "p50": 0.191,
+        "p95": 1.217,
+        "p99": 2.582
+      },
+      "first200MaximumMs": 1673.108,
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "chromium-regular",
+      "rep": 1,
+      "warmup": false,
+      "started": "2026-10-28T23:41:41.205Z",
+      "finished": "2026-10-28T23:41:57.111Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:41:41.205Z",
+          "user": 42.94,
+          "system": 26.46,
+          "idle": 30.58
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.218,
+        "p95": 2.731,
+        "p99": 5.18
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "chromium-regular",
+      "rep": 2,
+      "warmup": false,
+      "started": "2026-10-28T23:42:00.604Z",
+      "finished": "2026-10-28T23:42:18.666Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:42:00.604Z",
+          "user": 45.1,
+          "system": 25.89,
+          "idle": 29.9
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.213,
+        "p95": 1.644,
+        "p99": 4.544
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "chromium-regular",
+      "rep": 3,
+      "warmup": false,
+      "started": "2026-10-28T23:42:22.226Z",
+      "finished": "2026-10-28T23:42:42.917Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:42:22.226Z",
+          "user": 44.94,
+          "system": 18.86,
+          "idle": 36.19
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.195,
+        "p95": 0.802,
+        "p99": 1.509
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "chromium-regular",
+      "rep": 4,
+      "warmup": false,
+      "started": "2026-10-28T23:42:46.446Z",
+      "finished": "2026-10-28T23:43:08.328Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:42:46.446Z",
+          "user": 42.98,
+          "system": 21.8,
+          "idle": 35.2
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.206,
+        "p95": 1.758,
+        "p99": 5.428
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "chromium-regular",
+      "rep": 5,
+      "warmup": false,
+      "started": "2026-10-28T23:43:11.853Z",
+      "finished": "2026-10-28T23:43:35.954Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:43:11.853Z",
+          "user": 43.5,
+          "system": 25.24,
+          "idle": 31.69
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.194,
+        "p95": 0.702,
+        "p99": 1.33
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "chromium-private",
+      "rep": 0,
+      "warmup": true,
+      "started": "2026-10-28T23:43:43.314Z",
+      "finished": "2026-10-28T23:44:00.097Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:43:43.314Z",
+          "user": 47.96,
+          "system": 25.29,
+          "idle": 26.73
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.351,
+        "p95": 5.572,
+        "p99": 14.961
+      },
+      "first200Ms": {
+        "p50": 1.277,
+        "p95": 3.246,
+        "p99": 3.613
+      },
+      "first200MaximumMs": 1702.455,
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "chromium-private",
+      "rep": 1,
+      "warmup": false,
+      "started": "2026-10-28T23:44:03.671Z",
+      "finished": "2026-10-28T23:44:19.644Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:44:03.671Z",
+          "user": 47.77,
+          "system": 26.66,
+          "idle": 25.56
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.243,
+        "p95": 1.905,
+        "p99": 4.935
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "chromium-private",
+      "rep": 2,
+      "warmup": false,
+      "started": "2026-10-28T23:44:23.222Z",
+      "finished": "2026-10-28T23:44:40.875Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:44:23.222Z",
+          "user": 47.52,
+          "system": 25.68,
+          "idle": 26.78
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.218,
+        "p95": 1.478,
+        "p99": 2.802
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "chromium-private",
+      "rep": 3,
+      "warmup": false,
+      "started": "2026-10-28T23:44:44.462Z",
+      "finished": "2026-10-28T23:45:02.750Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:44:44.462Z",
+          "user": 51.78,
+          "system": 23.42,
+          "idle": 24.79
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.205,
+        "p95": 1.375,
+        "p99": 3.367
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "chromium-private",
+      "rep": 4,
+      "warmup": false,
+      "started": "2026-10-28T23:45:06.331Z",
+      "finished": "2026-10-28T23:45:28.254Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:45:06.331Z",
+          "user": 45.97,
+          "system": 25.64,
+          "idle": 28.38
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.244,
+        "p95": 2.275,
+        "p99": 5.413
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "chromium-private",
+      "rep": 5,
+      "warmup": false,
+      "started": "2026-10-28T23:45:31.858Z",
+      "finished": "2026-10-28T23:45:54.839Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:45:31.858Z",
+          "user": 46.86,
+          "system": 24.19,
+          "idle": 28.94
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.208,
+        "p95": 1.029,
+        "p99": 1.801
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    }
+  ],
+  "profiles": {
+    "chromium-regular": {
+      "source": {
+        "browserKind": "chromium",
+        "kind": "regular",
+        "isOffTheRecord": false,
+        "version": "158.0.8127.2"
+      },
+      "idleBeforeSession": {
+        "at": "2026-10-28T23:41:15.623Z",
+        "user": 37.59,
+        "system": 26.36,
+        "idle": 36.4
+      },
+      "repetitions": [
+        {
+          "label": "chromium-regular",
+          "rep": 0,
+          "warmup": true,
+          "started": "2026-10-28T23:41:20.765Z",
+          "finished": "2026-10-28T23:41:37.718Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:41:20.765Z",
+              "user": 45.4,
+              "system": 24.47,
+              "idle": 30.48
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.241,
+            "p95": 1.814,
+            "p99": 4.664
+          },
+          "first200Ms": {
+            "p50": 0.191,
+            "p95": 1.217,
+            "p99": 2.582
+          },
+          "first200MaximumMs": 1673.108,
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "chromium-regular",
+          "rep": 1,
+          "warmup": false,
+          "started": "2026-10-28T23:41:41.205Z",
+          "finished": "2026-10-28T23:41:57.111Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:41:41.205Z",
+              "user": 42.94,
+              "system": 26.46,
+              "idle": 30.58
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.218,
+            "p95": 2.731,
+            "p99": 5.18
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "chromium-regular",
+          "rep": 2,
+          "warmup": false,
+          "started": "2026-10-28T23:42:00.604Z",
+          "finished": "2026-10-28T23:42:18.666Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:42:00.604Z",
+              "user": 45.1,
+              "system": 25.89,
+              "idle": 29.9
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.213,
+            "p95": 1.644,
+            "p99": 4.544
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "chromium-regular",
+          "rep": 3,
+          "warmup": false,
+          "started": "2026-10-28T23:42:22.226Z",
+          "finished": "2026-10-28T23:42:42.917Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:42:22.226Z",
+              "user": 44.94,
+              "system": 18.86,
+              "idle": 36.19
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.195,
+            "p95": 0.802,
+            "p99": 1.509
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "chromium-regular",
+          "rep": 4,
+          "warmup": false,
+          "started": "2026-10-28T23:42:46.446Z",
+          "finished": "2026-10-28T23:43:08.328Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:42:46.446Z",
+              "user": 42.98,
+              "system": 21.8,
+              "idle": 35.2
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.206,
+            "p95": 1.758,
+            "p99": 5.428
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "chromium-regular",
+          "rep": 5,
+          "warmup": false,
+          "started": "2026-10-28T23:43:11.853Z",
+          "finished": "2026-10-28T23:43:35.954Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:43:11.853Z",
+              "user": 43.5,
+              "system": 25.24,
+              "idle": 31.69
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.194,
+            "p95": 0.702,
+            "p99": 1.33
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        }
+      ],
+      "boundMs": 5,
+      "medianMs": {
+        "p50": 0.206,
+        "p95": 1.644,
+        "p99": 4.544
+      },
+      "timingBoundMet": true,
+      "idleConditionMet": false,
+      "ownerAuthorizedLoadedBoundMet": true,
+      "formalNativeGatePassed": false
+    },
+    "chromium-private": {
+      "source": {
+        "browserKind": "chromium",
+        "kind": "private",
+        "isOffTheRecord": true,
+        "version": "158.0.8127.2"
+      },
+      "idleBeforeSession": {
+        "at": "2026-10-28T23:43:38.533Z",
+        "user": 63.87,
+        "system": 20.67,
+        "idle": 15.45
+      },
+      "repetitions": [
+        {
+          "label": "chromium-private",
+          "rep": 0,
+          "warmup": true,
+          "started": "2026-10-28T23:43:43.314Z",
+          "finished": "2026-10-28T23:44:00.097Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:43:43.314Z",
+              "user": 47.96,
+              "system": 25.29,
+              "idle": 26.73
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.351,
+            "p95": 5.572,
+            "p99": 14.961
+          },
+          "first200Ms": {
+            "p50": 1.277,
+            "p95": 3.246,
+            "p99": 3.613
+          },
+          "first200MaximumMs": 1702.455,
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "chromium-private",
+          "rep": 1,
+          "warmup": false,
+          "started": "2026-10-28T23:44:03.671Z",
+          "finished": "2026-10-28T23:44:19.644Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:44:03.671Z",
+              "user": 47.77,
+              "system": 26.66,
+              "idle": 25.56
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.243,
+            "p95": 1.905,
+            "p99": 4.935
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "chromium-private",
+          "rep": 2,
+          "warmup": false,
+          "started": "2026-10-28T23:44:23.222Z",
+          "finished": "2026-10-28T23:44:40.875Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:44:23.222Z",
+              "user": 47.52,
+              "system": 25.68,
+              "idle": 26.78
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.218,
+            "p95": 1.478,
+            "p99": 2.802
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "chromium-private",
+          "rep": 3,
+          "warmup": false,
+          "started": "2026-10-28T23:44:44.462Z",
+          "finished": "2026-10-28T23:45:02.750Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:44:44.462Z",
+              "user": 51.78,
+              "system": 23.42,
+              "idle": 24.79
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.205,
+            "p95": 1.375,
+            "p99": 3.367
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "chromium-private",
+          "rep": 4,
+          "warmup": false,
+          "started": "2026-10-28T23:45:06.331Z",
+          "finished": "2026-10-28T23:45:28.254Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:45:06.331Z",
+              "user": 45.97,
+              "system": 25.64,
+              "idle": 28.38
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.244,
+            "p95": 2.275,
+            "p99": 5.413
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "chromium-private",
+          "rep": 5,
+          "warmup": false,
+          "started": "2026-10-28T23:45:31.858Z",
+          "finished": "2026-10-28T23:45:54.839Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:45:31.858Z",
+              "user": 46.86,
+              "system": 24.19,
+              "idle": 28.94
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.208,
+            "p95": 1.029,
+            "p99": 1.801
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        }
+      ],
+      "boundMs": 5,
+      "medianMs": {
+        "p50": 0.218,
+        "p95": 1.478,
+        "p99": 3.367
+      },
+      "timingBoundMet": true,
+      "idleConditionMet": false,
+      "ownerAuthorizedLoadedBoundMet": true,
+      "formalNativeGatePassed": false
+    }
+  },
+  "gaps": [
+    "Electron native-entry TimeTicks unavailable through this observer",
+    "engine-internal timing not exposed separately"
+  ],
+  "requireIdle": false,
+  "admissionPolicy": "owner-authorized available load; measured idle retained",
+  "pageLayoutSha256": "ddf5a81237bd3cfa2b6a3acea7730bdbc2e7a69c116690a5ca77eb2aa4cc42c4",
+  "baseFixtureBundleSha256": "d0b37595faa4d1354c2b54cc0b75e979567e825959a2d66a1a9c46c57094a15d",
+  "cleanup": {
+    "removed": false,
+    "retainedFixtureRoot": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/l12-chromium158-timing-20261028/attempt1/sessions-CNK1fX"
+  },
+  "finished": "2026-10-28T23:45:55.183Z"
+}

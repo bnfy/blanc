@@ -1,0 +1,17 @@
+{
+  "kinds": [
+    "regular",
+    "private"
+  ],
+  "modes": [
+    "shutdown-veto"
+  ],
+  "lastWindow": true,
+  "vetoCount": 2,
+  "control": {
+    "kinds": [
+      "regular"
+    ],
+    "vetoCount": 0
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "status": "draft Sync factory fails closed without native Personal registry authority and pins verified identity; real registry and browser routing still open",
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "reference": [
+    "shipping default id is default and display name Personal; it cannot be renamed or deleted",
+    "shipping Sync account/status operations route named regular profile context to Personal; Shared Spaces status remains local-context restricted",
+    "Chromium last-used profile changes with use and is not Personal identity; loaded-profile ordering is unspecified"
+  ],
+  "implementation": [
+    "native resolver installation requires PassKey of future NativeLocalProfileRegistry; default missing resolver cannot create a Sync service",
+    "named regular managed requester routes account-level factory lookup to registry-mapped Personal when loaded",
+    "private/guest/system/unmanaged callers are rejected",
+    "path must be absolute, have no parent traversal, be directly under actual user-data root and resolve to a loaded regular manager-owned profile",
+    "first confirmed path is pinned for the process; changed mapping is rejected",
+    "factory build guard and creation-authority guard prevent creating state for named profile or accidentally granting creation authority to Personal via named profile"
+  ],
+  "verification": [
+    "isolated gate rejects private/unmanaged and unloaded contexts, relative/traversal/wrong-root paths and changed mapped identity",
+    "first invalid candidates do not pin identity; valid Personal mapping remains stable across later requests",
+    "factory syntax compiles against Chromium158 headers",
+    "negative compile rejects resolver installation without registry PassKey",
+    "existing profile-creation patch applies cleanly as a dry-run only, but still covers new named-profile creation, not initial Personal setup"
+  ],
+  "rawEvidence": "evidence/native-sync-personal-routing-20261030",
+  "limitations": [
+    "NativeLocalProfileRegistry, persistent trusted identity mapping, real resolver and actual profile routing are not implemented",
+    "if Personal is unloaded, current synchronous resolver fails closed; shipping parity requires a safe asynchronous existing-profile load without creating a missing profile",
+    "profile-local Shared Spaces visibility must not use account-level cross-profile routing",
+    "creation hook draft must not be treated as Personal bootstrap; initial/default profile creation and migration need separate authority",
+    "no real ProfileManager, private-window, multi-profile UI or platform runtime test",
+    "original draft factory remains controller-only; native Sync is not enabled"
+  ],
+  "appBuild": false,
+  "deployed": false,
+  "realProfileIO": false,
+  "featureCredit": false,
+  "sourceSha256": {
+    "personal_profile_gate.h": "f03f6db0a124dd30f2516045ed02d5ad5a46fc34529e25badca0cc6f03ed5e33",
+    "personal_profile_gate_test.cc": "32a13b4fec0de7063e49c12ac9a109b5848d6da2255ddfcfd409be27295bb2f8",
+    "profile_service_factory.h": "f4a35c5a1f7750506b161062b4a0e932fbbc4ba7bfce9984e66f24d52d548122",
+    "profile_service_factory.cc": "f3f307f774244a66d22488182455517e429561a937b19f3e8a3b2ea48af17e77",
+    "profile-creation-hook.patch": "52598e02ecc74f5fad8aec67702c9485c7a09c8efd684887266ca4e7b3a1d8e4"
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "at": "2026-10-24T00:00:57.229560+00:00",
+  "source": "Google update service; compare recorded October16 versions; not installed profile inspection",
+  "extensions": [
+    {
+      "id": "aeblfdkhhhdcdjpifhhbdiojplfjncoa",
+      "name": "1Password \u2013 Password Manager",
+      "recorded156Version": "8.12.41.1",
+      "httpStatus": 200,
+      "response": [
+        {
+          "_esbAllowlist": "true",
+          "codebase": "https://clients2.googleusercontent.com/crx/blobs/AZPVhcTxvqmrhVtneb2UpumyANaDuTHFj75iogEitf934LOzb3TsHMt6bP0vB-rTxcHAsiGbKr1oyWYfvaMQv51QkUX_sYsWRFLDP4HY_8j5diYpGAD-OOHN5-5x-8h15qBXAMZSmuW8HWd_d_jvVVVD-h-GCkPd1hdCXg/AEBLFDKHHHDCDJPIFHHBDIOJPLFJNCOA_8_12_42_36.crx",
+          "fp": "1.3b6edb23be8f82f80bd8011bc1e9208379ea0052f578fc54dcf58a0f6b6cda52",
+          "hash_sha256": "3b6edb23be8f82f80bd8011bc1e9208379ea0052f578fc54dcf58a0f6b6cda52",
+          "protected": "0",
+          "size": "17957405",
+          "status": "ok",
+          "version": "8.12.42.36"
+        }
+      ]
+    },
+    {
+      "id": "dhdgffkkebhmkfjojejmpbldmpobfkfo",
+      "name": "Tampermonkey",
+      "recorded156Version": "5.5.1",
+      "httpStatus": 200,
+      "response": [
+        {
+          "_esbAllowlist": "true",
+          "status": "noupdate"
+        }
+      ]
+    },
+    {
+      "id": "fmkadmapgofadopljbjfkapdkoienihi",
+      "name": "React Developer Tools",
+      "recorded156Version": "8.0.0",
+      "httpStatus": 200,
+      "response": [
+        {
+          "_esbAllowlist": "true",
+          "status": "noupdate"
+        }
+      ]
+    },
+    {
+      "id": "kbfnbcaeplbcioakkpcpgfkobkghlhen",
+      "name": "Grammarly: AI Writing Assistant and Grammar Checker App",
+      "recorded156Version": "14.1338.0",
+      "httpStatus": 200,
+      "response": [
+        {
+          "_esbAllowlist": "true",
+          "codebase": "https://clients2.googleusercontent.com/crx/blobs/AZPVhcSCc0NQCibZwIIHKk2JGtvbTduqfmKzP6_baBXaL6OqTrvUvXPd69p0-5gx4S0xtXcQ-9QkS9ql6Fzow1AMSWmQrIugs2b7H6S3ejyX34G0W76h4DJaWa__-KgJrWHmAMZSmuW85SQoj5EJrLvbZLr0PGFfabN_Ig/KBFNBCAEPLBCIOAKKPCPGFKOBKGHLHEN_14_1341_0_0.crx",
+          "fp": "1.17c363794d3183324448c2d7fea7cd8b2b0fa7bc9dee0d1a050add01a9c84c2f",
+          "hash_sha256": "17c363794d3183324448c2d7fea7cd8b2b0fa7bc9dee0d1a050add01a9c84c2f",
+          "protected": "0",
+          "size": "18464156",
+          "status": "ok",
+          "version": "14.1341.0"
+        }
+      ]
+    },
+    {
+      "id": "nkbihfbeogaeaoehlefnkodbefgpgknn",
+      "name": "MetaMask",
+      "recorded156Version": "13.52.0",
+      "httpStatus": 200,
+      "response": [
+        {
+          "_esbAllowlist": "true",
+          "codebase": "https://clients2.googleusercontent.com/crx/blobs/AZPVhcSqWwlH3NbsLTv_4c9Tf99nZD-NhjB2_IW7ifxkWdOSpF8XqbcZnft1WcVFXU_El-4BvylzRAKLzssT0sdhhlvrfJuKHcL2_P1XBQEd_AdORPP7_MdtUWpj_TBJnLQWAMZSmuVebYYgXz8PqgQL8nXjz_k1w0vKuw/NKBIHFBEOGAEAOEHLEFNKODBEFGPGKNN_13_53_0_0.crx",
+          "fp": "1.de0dc9366f76486ee2168342727e265ec1023d2a32108050578429e0096fcb12",
+          "hash_sha256": "de0dc9366f76486ee2168342727e265ec1023d2a32108050578429e0096fcb12",
+          "protected": "0",
+          "size": "25224198",
+          "status": "ok",
+          "version": "13.53.0.0"
+        }
+      ]
+    },
+    {
+      "id": "nngceckbapebfimnlniiiahkandclblb",
+      "name": "Bitwarden Password Manager",
+      "recorded156Version": "2026.10.0",
+      "httpStatus": 200,
+      "response": [
+        {
+          "_esbAllowlist": "true",
+          "status": "noupdate"
+        }
+      ]
+    }
+  ]
+}

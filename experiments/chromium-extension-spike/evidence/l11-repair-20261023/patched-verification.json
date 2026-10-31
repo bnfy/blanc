@@ -1,0 +1,118 @@
+{
+  "phase": "patched",
+  "toolSha256": "37eefe694ead74733bece985f15da24b19d4fea3af6f8a636178615314dd8152",
+  "results": [
+    {
+      "certificate": "0164d7ceae5bb909c272af151ff44b1177ae9b47d9424b94f1d9558c30934d19",
+      "mode": "builtin",
+      "exitCode": 1,
+      "revoked": true,
+      "note": "Certificate-only verifier probe, not a successful TLS handshake. Other name/path errors may coexist."
+    },
+    {
+      "certificate": "0164d7ceae5bb909c272af151ff44b1177ae9b47d9424b94f1d9558c30934d19",
+      "mode": "downloaded",
+      "exitCode": 1,
+      "revoked": true,
+      "note": "Certificate-only verifier probe, not a successful TLS handshake. Other name/path errors may coexist."
+    },
+    {
+      "certificate": "42c4accd12c4f59597925e1a08a7a90102608543809308d50ec427e118ba1493",
+      "mode": "builtin",
+      "exitCode": 1,
+      "revoked": true,
+      "note": "Certificate-only verifier probe, not a successful TLS handshake. Other name/path errors may coexist."
+    },
+    {
+      "certificate": "42c4accd12c4f59597925e1a08a7a90102608543809308d50ec427e118ba1493",
+      "mode": "downloaded",
+      "exitCode": 1,
+      "revoked": true,
+      "note": "Certificate-only verifier probe, not a successful TLS handshake. Other name/path errors may coexist."
+    },
+    {
+      "certificate": "432ec25f0d28de9006d97bf752f17bbb2cd41f669933fcb072d9a1148d0261f3",
+      "mode": "builtin",
+      "exitCode": 1,
+      "revoked": true,
+      "note": "Certificate-only verifier probe, not a successful TLS handshake. Other name/path errors may coexist."
+    },
+    {
+      "certificate": "432ec25f0d28de9006d97bf752f17bbb2cd41f669933fcb072d9a1148d0261f3",
+      "mode": "downloaded",
+      "exitCode": 1,
+      "revoked": true,
+      "note": "Certificate-only verifier probe, not a successful TLS handshake. Other name/path errors may coexist."
+    },
+    {
+      "certificate": "4b2460a466f95fd40113bcdcca2ceb29b3b093921de45474da7df48874c630b1",
+      "mode": "builtin",
+      "exitCode": 1,
+      "revoked": false,
+      "note": "Certificate-only verifier probe, not a successful TLS handshake. Other name/path errors may coexist."
+    },
+    {
+      "certificate": "4b2460a466f95fd40113bcdcca2ceb29b3b093921de45474da7df48874c630b1",
+      "mode": "downloaded",
+      "exitCode": 1,
+      "revoked": false,
+      "note": "Certificate-only verifier probe, not a successful TLS handshake. Other name/path errors may coexist."
+    },
+    {
+      "certificate": "98b896625c0c230adeec3eb2cf6aad5001ecf9156a68644e82374ce5833bc25b",
+      "mode": "builtin",
+      "exitCode": 1,
+      "revoked": true,
+      "note": "Certificate-only verifier probe, not a successful TLS handshake. Other name/path errors may coexist."
+    },
+    {
+      "certificate": "98b896625c0c230adeec3eb2cf6aad5001ecf9156a68644e82374ce5833bc25b",
+      "mode": "downloaded",
+      "exitCode": 1,
+      "revoked": true,
+      "note": "Certificate-only verifier probe, not a successful TLS handshake. Other name/path errors may coexist."
+    },
+    {
+      "certificate": "9e39de2881273acc225a149c72ba3e0f51424963669ab633ee1dc7df5db067b4",
+      "mode": "builtin",
+      "exitCode": 1,
+      "revoked": false,
+      "note": "Certificate-only verifier probe, not a successful TLS handshake. Other name/path errors may coexist."
+    },
+    {
+      "certificate": "9e39de2881273acc225a149c72ba3e0f51424963669ab633ee1dc7df5db067b4",
+      "mode": "downloaded",
+      "exitCode": 1,
+      "revoked": false,
+      "note": "Certificate-only verifier probe, not a successful TLS handshake. Other name/path errors may coexist."
+    },
+    {
+      "certificate": "cb6e15165ac802e9b3f993f16c25d41f4e81c21ebde71ae1b012ac00bf9c7c3f",
+      "mode": "builtin",
+      "exitCode": 1,
+      "revoked": true,
+      "note": "Certificate-only verifier probe, not a successful TLS handshake. Other name/path errors may coexist."
+    },
+    {
+      "certificate": "cb6e15165ac802e9b3f993f16c25d41f4e81c21ebde71ae1b012ac00bf9c7c3f",
+      "mode": "downloaded",
+      "exitCode": 1,
+      "revoked": true,
+      "note": "Certificate-only verifier probe, not a successful TLS handshake. Other name/path errors may coexist."
+    },
+    {
+      "certificate": "e7568fe6e12331f4fd7de61da4c7559d0f8eb192a218d4741a3ba75184333838",
+      "mode": "builtin",
+      "exitCode": 1,
+      "revoked": true,
+      "note": "Certificate-only verifier probe, not a successful TLS handshake. Other name/path errors may coexist."
+    },
+    {
+      "certificate": "e7568fe6e12331f4fd7de61da4c7559d0f8eb192a218d4741a3ba75184333838",
+      "mode": "downloaded",
+      "exitCode": 1,
+      "revoked": true,
+      "note": "Certificate-only verifier probe, not a successful TLS handshake. Other name/path errors may coexist."
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "app": "/Users/anthonyjloria/Projects/BlancChromium158/src/out/BlancPrototype/Blanc Prototype.app",
+  "profile": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/chromium158-affected-checks/recovery-key-diagnostic/node22-home/Library/Application Support/Blanc Chromium Preview",
+  "mockKeychain": false,
+  "checks": [
+    {
+      "name": "fresh separate default profile",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/"
+        ],
+        "selected": 0
+      }
+    },
+    {
+      "name": "three settled tabs",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9780/a",
+          "http://127.0.0.1:9780/b"
+        ],
+        "selected": 1
+      }
+    },
+    {
+      "name": "encrypted session written",
+      "pass": false,
+      "details": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/chromium158-affected-checks/recovery-key-diagnostic/node22-home/Library/Application Support/Blanc Chromium Preview/Default/Sessions_Encrypted"
+    }
+  ],
+  "error": "Error: encrypted session written"
+}

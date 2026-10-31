@@ -1,0 +1,48 @@
+diff --git a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
+index d38d2bb..4e78b85 100644
+--- a/chrome/browser/BUILD.gn
++++ b/chrome/browser/BUILD.gn
+@@ -515,6 +515,8 @@ if (!is_android) {
+     deps = [
+       ":chrome_browser_interface_binders_webui_parts",
+       "//base",
++      "//blanc/common/browser_api:mojo_bindings",
++      "//chrome/browser/ui/views/frame:browser_view_header",
+       "//chrome/browser/actor/ui:actor_overlay",
+       "//chrome/browser/contextual_cueing/internals",
+       "//chrome/browser/contextual_cueing/internals:mojo_bindings",
+diff --git a/chrome/browser/chrome_browser_interface_binders_webui_parts_desktop.cc b/chrome/browser/chrome_browser_interface_binders_webui_parts_desktop.cc
+index 95fa3ac..a2e71a9 100644
+--- a/chrome/browser/chrome_browser_interface_binders_webui_parts_desktop.cc
++++ b/chrome/browser/chrome_browser_interface_binders_webui_parts_desktop.cc
+@@ -38,6 +38,8 @@
+ #include "chrome/browser/ui/webui/data_sharing/data_sharing.mojom.h"
+ #include "chrome/browser/ui/webui/data_sharing/data_sharing_ui.h"
+ #include "chrome/browser/ui/webui/downloads/downloads.mojom.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
++#include "blanc/common/browser_api/browser_api.mojom.h"
+ #include "chrome/browser/ui/webui/downloads/downloads_ui.h"
+ #include "chrome/browser/ui/webui/drive_picker_host/drive_picker_host.mojom.h"
+ #include "chrome/browser/ui/webui/drive_picker_host/drive_picker_host_ui.h"
+@@ -226,6 +228,9 @@ void PopulateChromeWebUIFrameBindersPartsDesktop(
+   RegisterWebUIControllerInterfaceBinder<downloads::mojom::PageHandlerFactory,
+                                          DownloadsUI>(map);
+ 
++  RegisterWebUIControllerInterfaceBinder<
++      blanc::browser_api::mojom::BrowserApiFactory, blanc_prototype::UI>(map);
++
+   if (lens::features::IsLensOverlayEnabled()) {
+     RegisterWebUIControllerInterfaceBinder<
+         lens::mojom::LensSidePanelPageHandlerFactory,
+diff --git a/chrome/browser/ui/views/frame/BUILD.gn b/chrome/browser/ui/views/frame/BUILD.gn
+index 01f69e7..79ed914 100644
+--- a/chrome/browser/ui/views/frame/BUILD.gn
++++ b/chrome/browser/ui/views/frame/BUILD.gn
+@@ -710,6 +710,7 @@ source_set("windows_icon_painter") {
+ source_set("browser_view_header") {
+   public = [ "browser_view.h", "//blanc/browser/ui/blanc_prototype_ui.h" ]
+   public_deps = [
++    "//ui/webui",
+     ":browser_view_layout_params",
+     ":browser_widget",
+     ":contents_container_view",

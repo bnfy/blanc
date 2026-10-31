@@ -1,0 +1,13 @@
+[20888:12011190:1026/172528.944231:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[20888:12011156:1026/172529.263247:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:53813/devtools/browser/9dc1bd0d-e56c-4ad3-bfdc-cacd054ba57b
+[20888:12011156:1026/172529.770024:ERROR:components/leveldb_proto/public/proto_database_provider.h:101] In memory database cannot use the given database directory
+[20888:12011210:1026/172532.176086:ERROR:base/process/process_mac.cc:45] task_policy_set TASK_CATEGORY_POLICY: (os/kern) invalid argument (4)
+[20888:12011210:1026/172532.176398:ERROR:base/process/process_mac.cc:90] task_policy_set TASK_SUPPRESSION_POLICY: (os/kern) invalid argument (4)
+[20933:12011720:1026/172532.295012:ERROR:third_party/blink/renderer/core/html/media/html_media_element.cc:5451] SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"}
+[20933:12011720:1026/172532.295090:ERROR:third_party/blink/renderer/core/html/media/html_media_element.cc:5451] SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"}
+[20933:12011720:1026/172532.295133:ERROR:third_party/blink/renderer/core/html/media/html_media_element.cc:5451] SetError: {code=4, message="MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"}
+[20888:12011156:1026/172537.682818:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[20888:12011156:1026/172537.686286:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[20888:12011156:1026/172538.006467:ERROR:base/process/kill_posix.cc:33] waitpid(20896): No child processes (10)

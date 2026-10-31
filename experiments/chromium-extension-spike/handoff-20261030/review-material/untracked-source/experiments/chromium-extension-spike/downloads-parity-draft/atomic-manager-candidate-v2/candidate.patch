@@ -1,0 +1,116 @@
+--- a/content/public/browser/download_manager.h
++++ b/content/public/browser/download_manager.h
+@@ -132,6 +132,15 @@
+ 
+   // Allow objects to observe the download creation process.
+   virtual void AddObserver(Observer* observer) = 0;
++
++  // Registers an observer only if shutdown has not begun. Called on the UI
++  // sequence; returns false off UI. The atomic guarantee assumes all manager
++  // shutdowns run on that sequence, as required by its BrowserContext owner.
++  // Implementations must not invoke callbacks, spin a nested loop or reenter.
++  // If true, the caller must
++  // remove the observer or handle ManagerGoingDown; false means no registration.
++  // Default implementation fails closed for unsupported manager implementations.
++  virtual bool AddObserverIfRunning(Observer* observer);
+ 
+   // Remove a download observer from ourself.
+   virtual void RemoveObserver(Observer* observer) = 0;
+--- a/content/browser/download/download_manager_impl.h
++++ b/content/browser/download/download_manager_impl.h
+@@ -114,6 +114,7 @@
+                    scoped_refptr<network::SharedURLLoaderFactory>
+                        blob_url_loader_factory) override;
+   void AddObserver(Observer* observer) override;
++  bool AddObserverIfRunning(Observer* observer) override;
+   void RemoveObserver(Observer* observer) override;
+   download::DownloadItem* CreateDownloadItem(
+       const std::string& guid,
+--- a/content/browser/download/download_manager_impl.cc
++++ b/content/browser/download/download_manager_impl.cc
+@@ -1310,6 +1310,15 @@
+   observers_.AddObserver(observer);
+ }
+ 
++bool DownloadManagerImpl::AddObserverIfRunning(Observer* observer) {
++  if (!BrowserThread::CurrentlyOn(BrowserThread::UI) || !observer ||
++      !shutdown_needed_ || observers_.HasObserver(observer))
++    return false;
++  // ObserverList::AddObserver does not notify observers or run nested tasks.
++  observers_.AddObserver(observer);
++  return true;
++}
++
+ void DownloadManagerImpl::RemoveObserver(Observer* observer) {
+   observers_.RemoveObserver(observer);
+ }
+--- a/content/public/test/mock_download_manager.h
++++ b/content/public/test/mock_download_manager.h
+@@ -128,6 +128,7 @@
+     DownloadUrlMock(params.get());
+   }
+   MOCK_METHOD1(AddObserver, void(Observer* observer));
++  MOCK_METHOD1(AddObserverIfRunning, bool(Observer* observer));
+   MOCK_METHOD1(RemoveObserver, void(Observer* observer));
+ 
+   // Redirects to mock method to get around gmock 10 argument limit.
+--- a/content/browser/download/download_manager_impl_unittest.cc
++++ b/content/browser/download/download_manager_impl_unittest.cc
+@@ -25,6 +25,8 @@
+ #include "base/strings/string_util.h"
+ #include "base/strings/utf_string_conversions.h"
+ #include "base/test/bind.h"
++#include "base/test/test_future.h"
++#include "base/task/thread_pool.h"
+ #include "base/test/gmock_callback_support.h"
+ #include "base/test/scoped_feature_list.h"
+ #include "base/uuid.h"
+@@ -1049,6 +1051,35 @@
+   }
+ };
+ 
++TEST_F(DownloadManagerShutdownTest, ObserveIfRunningTracksShutdownAtomically) {
++  MockDownloadManagerObserver accepted;
++  MockDownloadManagerObserver second;
++  MockDownloadManagerObserver late;
++  EXPECT_FALSE(download_manager_->AddObserverIfRunning(nullptr));
++  EXPECT_TRUE(download_manager_->AddObserverIfRunning(&accepted));
++  EXPECT_FALSE(download_manager_->AddObserverIfRunning(&accepted));
++  EXPECT_TRUE(download_manager_->AddObserverIfRunning(&second));
++  base::test::TestFuture<bool> off_sequence;
++  base::ThreadPool::PostTaskAndReplyWithResult(
++      FROM_HERE,
++      base::BindOnce([](DownloadManager* manager, DownloadManager::Observer* observer) {
++        return manager->AddObserverIfRunning(observer);
++      }, base::Unretained(download_manager_.get()), base::Unretained(&late)),
++      off_sequence.GetCallback());
++  EXPECT_FALSE(off_sequence.Get());
++  EXPECT_CALL(GetMockObserver(), ManagerGoingDown(download_manager_.get()));
++  EXPECT_CALL(accepted, ManagerGoingDown(download_manager_.get()))
++      .WillOnce([&](DownloadManager*) {
++        download_manager_->RemoveObserver(&accepted);
++        EXPECT_FALSE(download_manager_->AddObserverIfRunning(&late));
++      });
++  EXPECT_CALL(second, ManagerGoingDown(download_manager_.get()))
++      .WillOnce([&](DownloadManager*) { download_manager_->RemoveObserver(&second); });
++  EXPECT_CALL(late, ManagerGoingDown(_)).Times(0);
++  download_manager_->Shutdown();
++  EXPECT_FALSE(download_manager_->AddObserverIfRunning(&late));
++}
++
+ TEST_F(DownloadManagerShutdownTest,
+        OnDownloadCanceledAtShutdownCalledForInProgressDownload) {
+   RunOnDownloadCanceledAtShutdownCalledTest(download::DownloadItem::IN_PROGRESS,
+--- a/content/public/browser/download_manager.cc
++++ b/content/public/browser/download_manager.cc
+@@ -9,6 +9,10 @@
+ 
+ namespace content {
+ 
++bool DownloadManager::AddObserverIfRunning(Observer*) {
++  return false;
++}
++
+ // static
+ scoped_refptr<base::SequencedTaskRunner> DownloadManager::GetTaskRunner() {
+   return download::GetDownloadTaskRunner();

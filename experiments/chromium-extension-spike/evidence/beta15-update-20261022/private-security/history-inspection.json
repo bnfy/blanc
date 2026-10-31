@@ -1,0 +1,6 @@
+{
+  "fixtureUrlRows": 0,
+  "method": "closed no-WAL database byte copy; query performed on disposable analysis copy",
+  "originalDatabaseUnchanged": true,
+  "initialProbe": "read-only URI open failed; no original DB writes"
+}

@@ -1,0 +1,87 @@
+[
+  {
+    "path": "experiments/chromium-extension-spike/evidence/l5-native-pointer-20261023/check.mjs",
+    "before": "8ad2c68d3db1b494be6ed1691f8ea76c58556bb05bcca3f1b2749575dd3ad536",
+    "after": "2ba3f1bb7ee8cb59370df6c8ab417d640952ae92f51886f393dcd99ee8e6cd54"
+  },
+  {
+    "path": "experiments/chromium-extension-spike/evidence/l5-native-pointer-20261023/regression/scope/run.mjs",
+    "before": "9999e38052936d77462bddbf9cec6a69d37ba624195b3b72e82409a1d69f5176",
+    "after": "697641e5efc519cc1e6ce84223511385ba604b3bda6241b0bdca80937b5ecdde"
+  },
+  {
+    "path": "experiments/chromium-extension-spike/evidence/l5-split-visual-parity-20261023/check.mjs",
+    "before": "cb7423d3d7bc7e4ec69a2abdd8d00e72c341d0016f642ce558113ea9253b718b",
+    "after": "d101b297e01f0af551adef575aeb9f4140ba98c3153d5c590e2409dd02813fae"
+  },
+  {
+    "path": "experiments/chromium-extension-spike/evidence/l5-split-visual-parity-20261023/geometry.mjs",
+    "before": "584f553272c4fcb75f54801449f35f77bf989e10634d3a2ca43de2a1131e292d",
+    "after": "4e317811f198d99b33b6515e1d30a6a31ef5f078605a48084df786cd4df812ac"
+  },
+  {
+    "path": "experiments/chromium-extension-spike/evidence/l5-split-visual-parity-20261023/regression/scope/run.mjs",
+    "before": "cef4114a7a8a611e87d27b227469a213fadebba76a56d93d9389f8419968126f",
+    "after": "595390d58242ff2f9646eef46a553387aa05487adf328d6382639371bcbc9a0d"
+  },
+  {
+    "path": "experiments/chromium-extension-spike/evidence/l5-theme-accessibility-20261023/scope/run.mjs",
+    "before": "5864c87b65bfabe7a6514695b27cd11c5a6ad7b3d53838d913741b606fcca47d",
+    "after": "f792db8c8cd66fa628ecbcec034f2a8006cb5d3cc9411f1167c3ce5ec63fc23d"
+  },
+  {
+    "path": "experiments/chromium-extension-spike/evidence/l6-restore-scheduling-20261023/signed-qualification/tests/startup/run.mjs",
+    "before": "c9afb7adbb3057d6b28f54d9230db53c589383d06e2200b0aff25ec9df730483",
+    "after": "d7cbc30a8bd0cc34fc7639e302b117482ce96e27d6e283235cf67fb2f96eeb91"
+  },
+  {
+    "path": "experiments/chromium-extension-spike/evidence/l7-security-repair-20261023/hooks.mjs",
+    "before": "13a25b8646e308199e848d07666b712151bc6d0456d446508b5438e60f07adbf",
+    "after": "35db9bcb58f3bc8dd7b62de23a80998832dc1faf2f678b6e0ebb9d5e5c3a9f0a"
+  },
+  {
+    "path": "experiments/chromium-extension-spike/evidence/l7-security-repair-20261023/scope/run.mjs",
+    "before": "54379ae308ddf1e0aed61d5d89008f047c076e784046f5c203dcd7a0f5f6af30",
+    "after": "b2c122cc93286cd7b1671fb3f48e12f842f53cc23a65a692b4465e435726930e"
+  },
+  {
+    "path": "experiments/chromium-extension-spike/evidence/l7-security-repair-20261023/transport.mjs",
+    "before": "4b9dc6e56a94e4a3681e25346e553e058a1f7d91c934ed3a334e79ec29e93fb8",
+    "after": "ebf29f9ad83863a44597b322fd310ded752692d5446a33e1727763c188c94a1f"
+  },
+  {
+    "path": "experiments/chromium-extension-spike/evidence/l7-security-review-20261023/scope/run.mjs",
+    "before": "9e71bd32014f5b119dad902144ed26880d53db5074b0648d227bce5aecd3d995",
+    "after": "936cc1c6d3a941aea2eb70005e39a7d69abf12f879ab86cd80abc7737ec518b9"
+  },
+  {
+    "path": "experiments/chromium-extension-spike/evidence/l8-normal-startup-20261023/diagnose.mjs",
+    "before": "f887c318142a983bce6df5408a2d6a1842ac17936590850866cf6eced83c3839",
+    "after": "7dcba7469d4eaad0fcb6d11e3058c911b2749ff17a4eb40262dd2c608b2d2d97"
+  },
+  {
+    "path": "experiments/chromium-extension-spike/evidence/l8-normal-startup-20261023/verify-startup-native-prefs.mjs",
+    "before": "c9afb7adbb3057d6b28f54d9230db53c589383d06e2200b0aff25ec9df730483",
+    "after": "6c8634f0d55e31d111dd18b46270cfe12f2c22524153bcc01e7eebdf60ad6255"
+  },
+  {
+    "path": "experiments/chromium-extension-spike/evidence/l8-normal-startup-20261023/verify-startup.mjs",
+    "before": "e508fc2119f03e9d0b2050e116821390a44d5c86707987cdd8f10a75e5b54d23",
+    "after": "81aeb600bdc9b0de3f23a2b0a49441a10e0771120443f2e2df183db0e0126494"
+  },
+  {
+    "path": "experiments/chromium-extension-spike/evidence/rebase-157-20261016/harness/lib.mjs",
+    "before": "116e558d514bd0195a5333a50d05f0611b7caa4aa0fee30ab10777f7cdad0b16",
+    "after": "f235f6a286b5f08f95f6213ef41abea1f69476811fb7bc7034d6190af6475801"
+  },
+  {
+    "path": "experiments/chromium-extension-spike/evidence/rebase-157-native-20261017/harness/lib.mjs",
+    "before": "1c00c3a9d69bc8e29a1642ffaa4426c06fedd51b357ac1189851945327efa324",
+    "after": "1dcbce2b8fefefd00752db00851835a32482ab6145cd1f149517499d36da75e7"
+  },
+  {
+    "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/sender-close-check.mjs",
+    "before": "9709863c2e49686ac50e1adb6c356048cce9589c33eac6b9c3007f8095d416c3",
+    "after": "46a7c65f25de429796ed09e87778e46d40aca19e8fd7bd17660ae94a291c8ad2"
+  }
+]

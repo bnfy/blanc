@@ -16,6 +16,8 @@ window.BlancExtensions = class {
     this.panel = document.getElementById('extensionsPanel');
     this.search = document.getElementById('extensionSearch');
     this.list = document.getElementById('extensionList');
+    this.themes = document.getElementById('installedThemes');
+    this.themeList = document.getElementById('themeList');
     this.message = document.getElementById('extensionMessage');
     this.items = [];
     this.selected = null;
@@ -30,9 +32,11 @@ window.BlancExtensions = class {
     document.getElementById('extensionsEscape').addEventListener('click', () => close());
     document.getElementById('extensionsManage').addEventListener('click', () => this.openPage('chrome://extensions/'));
     document.getElementById('extensionsGet').addEventListener('click', () => this.openPage('https://chromewebstore.google.com/category/extensions'));
+    this.themeList.addEventListener('click', event => {
+      const button = event.target.closest('[data-theme-action]');
+      if (button && !button.disabled) this.themeAction(button.dataset.themeId, button.dataset.themeAction);
+    });
     this.list.addEventListener('click', event => {
-      const themeAction = event.target.closest('[data-theme-action]');
-      if (themeAction) { this.themeAction(themeAction.dataset.themeId, themeAction.dataset.themeAction); return; }
       const button = event.target.closest('[data-extension-id]');
       if (button && !button.disabled) this.activate(button.dataset.extensionId);
     });
@@ -105,7 +109,9 @@ window.BlancExtensions = class {
   }
   render() {
     const query = this.search.value.trim().toLocaleLowerCase();
-    this.visible = this.items.filter(item => item.name.toLocaleLowerCase().includes(query));
+    const matching = this.items.filter(item => item.name.toLocaleLowerCase().includes(query));
+    this.renderThemes(matching.filter(item => item.theme));
+    this.visible = matching.filter(item => !item.theme);
     this.visible.push(...this.storeItems.filter(item => !this.items.some(installed => installed.id === item.storeId)));
     if (query) this.visible.push({
       id: 'store-search', enabled: true, icon: '', storeSearch: true,
@@ -117,7 +123,7 @@ window.BlancExtensions = class {
     this.list.replaceChildren();
     let section = '';
     for (const item of this.visible) {
-      const nextSection = item.storeId || item.storeSearch ? 'Chrome Web Store' : item.theme ? 'Installed themes' : 'Installed';
+      const nextSection = item.storeId || item.storeSearch ? 'Chrome Web Store' : 'Installed';
       if (nextSection !== section) {
         const label = document.createElement('div');
         label.className = 'extension-section';
@@ -125,21 +131,6 @@ window.BlancExtensions = class {
         label.textContent = nextSection;
         this.list.append(label);
         section = nextSection;
-      }
-      if (item.theme) {
-        const row = document.createElement('div'); row.className = 'extension-row theme-row';
-        row.id = `extension-${item.id}`; row.dataset.extensionId = item.id;
-        row.setAttribute('role', 'option'); row.setAttribute('aria-label', item.name);
-        const name = document.createElement('span'); name.className = 'extension-text';
-        name.textContent = item.name + (item.active ? ' — Active' : ''); row.append(name);
-        for (const action of ['applyTheme', 'removeTheme']) {
-          const button = document.createElement('button'); button.type = 'button';
-          button.dataset.themeAction = action; button.dataset.themeId = item.id;
-          button.textContent = action === 'applyTheme' ? 'Apply' : 'Remove';
-          button.setAttribute('aria-label', button.textContent + ' ' + item.name);
-          button.disabled = this.busy || (action === 'applyTheme' && item.active); row.append(button);
-        }
-        this.list.append(row); continue;
       }
       const row = document.createElement('button');
       row.type = 'button';
@@ -193,9 +184,40 @@ window.BlancExtensions = class {
       row.append(icon, fallback, text, hint);
       this.list.append(row);
     }
-    this.message.textContent = this.storeMessage || (this.visible.length ? '' : this.items.length ? 'No matching extensions' : 'No extensions installed. Search above to find your first one.');
+    this.message.textContent = this.storeMessage || (this.visible.length || matching.length ? '' : this.items.length ? 'No matching extensions' : 'No extensions installed. Search above to find your first one.');
     this.select(this.selected, false);
     this.refreshGeometry();
+  }
+  renderThemes(items) {
+    // A list-box option is a single accessible item: its button descendants
+    // are flattened by macOS. Keep theme controls outside the combobox popup.
+    const focused = document.activeElement?.closest('[data-theme-action]');
+    const previous = focused ? { id: focused.dataset.themeId, action: focused.dataset.themeAction } : null;
+    this.themes.hidden = items.length === 0;
+    this.themeList.replaceChildren();
+    for (const item of items) {
+      const row = document.createElement('div'); row.className = 'extension-row theme-row';
+      const name = document.createElement('span'); name.className = 'extension-text';
+      name.id = `theme-name-${item.id}`;
+      name.textContent = item.name + (item.active ? ' — Active' : '');
+      row.setAttribute('role', 'group'); row.setAttribute('aria-labelledby', name.id);
+      row.append(name);
+      for (const action of ['applyTheme', 'removeTheme']) {
+        const button = document.createElement('button'); button.type = 'button';
+        button.dataset.themeAction = action; button.dataset.themeId = item.id;
+        button.textContent = action === 'applyTheme' ? 'Apply' : 'Remove';
+        button.setAttribute('aria-label', button.textContent + ' ' + item.name);
+        button.disabled = this.busy || (action === 'applyTheme' && item.active);
+        row.append(button);
+      }
+      this.themeList.append(row);
+    }
+    if (previous && !this.panel.hidden) {
+      const buttons = [...this.themeList.querySelectorAll('button:not(:disabled)')];
+      const target = buttons.find(b => b.dataset.themeId === previous.id && b.dataset.themeAction === previous.action)
+        || buttons.find(b => b.dataset.themeId === previous.id);
+      (target || this.search).focus();
+    }
   }
   select(id, scroll = true) {
     this.selected = id;

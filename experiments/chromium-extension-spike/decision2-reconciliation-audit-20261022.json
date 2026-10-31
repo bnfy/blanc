@@ -1,0 +1,19 @@
+{
+  "kind": "documentation and selected archive integrity, not runtime revalidation",
+  "source_checkpoint": "8b421954",
+  "broken_package_links": [],
+  "archives": [
+    {
+      "archive": "f12-prefetch-private-only-cross-profile-20261022",
+      "verified_members": 10
+    },
+    {
+      "archive": "f12-webtransport-enforcement-20261021",
+      "verified_members": 21
+    },
+    {
+      "archive": "f12-prefetch-response-repair-20261021",
+      "verified_members": 9
+    }
+  ]
+}

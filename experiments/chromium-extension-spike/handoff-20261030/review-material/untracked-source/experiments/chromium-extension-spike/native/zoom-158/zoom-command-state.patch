@@ -1,0 +1,20 @@
+--- a/chrome/browser/ui/browser_command_controller.cc
++++ b/chrome/browser/ui/browser_command_controller.cc
+@@ -2352,10 +2352,14 @@
+   if (!contents) {
+     return;
+   }
+-  command_updater_->UpdateCommandEnabled(IDC_ZOOM_PLUS, CanZoomIn(contents));
++  // Blanc's shipping zoom actions stay available and clamp in Zoom().
++  const bool blanc_zoom = blanc_prototype::IsIslandWindow(browser_);
++  command_updater_->UpdateCommandEnabled(IDC_ZOOM_PLUS,
++                                         blanc_zoom || CanZoomIn(contents));
+   command_updater_->UpdateCommandEnabled(IDC_ZOOM_NORMAL,
+-                                         CanResetZoom(contents));
+-  command_updater_->UpdateCommandEnabled(IDC_ZOOM_MINUS, CanZoomOut(contents));
++                                         blanc_zoom || CanResetZoom(contents));
++  command_updater_->UpdateCommandEnabled(IDC_ZOOM_MINUS,
++                                         blanc_zoom || CanZoomOut(contents));
+ 
+   if (const auto* zoom_controller =
+           zoom::ZoomController::FromWebContents(contents)) {

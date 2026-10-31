@@ -12963,14 +12963,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/undici@8.11.2",
+      "bom-ref": "pkg:npm/undici@8.12.3",
       "name": "undici",
-      "version": "8.11.2",
+      "version": "8.12.3",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "bb8501dbf22b29d53a945c6e9879a6a356b77c240ee6dcd0965468adfa114badedc61ac1ef14e94a7d4f7edc02e2a10790e6aa3fde5f0965b8949cf012bc3385"
+          "content": "f9f7677544f004ff3a7158e2853a76d61647a3b77aa23d5cff8ed73c0de52fc98cd171ecf82e0491c8e6811b059c59367ff50e3460f2f48b4122d997b0b3901f"
         }
       ],
       "licenses": [
@@ -12980,7 +12980,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/undici@8.11.2",
+      "purl": "pkg:npm/undici@8.12.3",
       "properties": [
         {
           "name": "blanc:development",
@@ -13002,7 +13002,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/undici/-/undici-8.11.2.tgz"
+          "url": "https://registry.npmjs.org/undici/-/undici-8.12.3.tgz"
         }
       ]
     },
@@ -13728,14 +13728,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/zod@4.6.5",
+      "bom-ref": "pkg:npm/zod@4.6.7",
       "name": "zod",
-      "version": "4.6.5",
+      "version": "4.6.7",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "bf997f6855d941e6a2e1ac0b6cea52a0779c13d52232b9dfc7be6d1172e33689d754047143998e7a2a538d1394721b3350d0aa9c4fa1a8032e8d1b111ecbadd9"
+          "content": "83c5b60f6914e9af2e9ed734e777d7d6e5412b333bcaa0315bfdf3c24f37fba472176f9228eb95f9cd30043854c335753da19aa66647fab99c5333dffb7086c2"
         }
       ],
       "licenses": [
@@ -13745,7 +13745,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/zod@4.6.5",
+      "purl": "pkg:npm/zod@4.6.7",
       "properties": [
         {
           "name": "blanc:development",
@@ -13767,7 +13767,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/zod/-/zod-4.6.5.tgz"
+          "url": "https://registry.npmjs.org/zod/-/zod-4.6.7.tgz"
         }
       ]
     },
@@ -14554,7 +14554,7 @@
         "pkg:npm/vitefu@1.1.3",
         "pkg:npm/xxhash-wasm@1.1.0",
         "pkg:npm/yargs-parser@22.0.0",
-        "pkg:npm/zod@4.6.5"
+        "pkg:npm/zod@4.6.7"
       ]
     },
     {
@@ -15348,7 +15348,7 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/undici@8.11.2",
+      "ref": "pkg:npm/undici@8.12.3",
       "dependsOn": []
     },
     {
@@ -15368,7 +15368,7 @@
       "dependsOn": [
         "pkg:npm/css-tree@3.2.1",
         "pkg:npm/ohash@2.0.12",
-        "pkg:npm/undici@8.11.2"
+        "pkg:npm/undici@8.12.3"
       ]
     },
     {
@@ -15463,7 +15463,7 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/zod@4.6.5",
+      "ref": "pkg:npm/zod@4.6.7",
       "dependsOn": []
     },
     {

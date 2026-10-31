@@ -1,0 +1,14 @@
+{
+  "priorCandidate": "14706b0e",
+  "candidate": "1523375af5b93cf910d9cca82f522155ef525adf",
+  "sameAssets": {
+    "Contents/Resources/BlancAssets/host.css": true,
+    "Contents/Resources/BlancAssets/host.js": true,
+    "Contents/Resources/BlancAssets/host.html": true,
+    "Contents/Resources/BlancAssets/extensions.js": true,
+    "Contents/Resources/BlancAssets/extensions.css": true,
+    "Contents/Resources/BlancAssets/renderer.js": true,
+    "Contents/Resources/BlancBlocker/engine.js": true
+  },
+  "scope": "Maps unchanged UI assets only; not renewed full L5/L8 or owner approval."
+}

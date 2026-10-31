@@ -1,0 +1,18 @@
+{
+  "app": "/private/tmp/blanc-prerender-final-20261024/Blanc Chromium Preview.app",
+  "scope": "signed default settings; no feature overrides; no page debugger before activation; kill exact disposable blocker utility after armed timer",
+  "runs": [
+    {
+      "mode": "regular",
+      "checks": [],
+      "events": [],
+      "args": [
+        "--user-data-dir=/private/tmp/blanc-prerender-final-20261024/prerender-timeout-fixed/regular/profile",
+        "--remote-debugging-port=0",
+        "--no-first-run"
+      ]
+    }
+  ],
+  "error": "ReferenceError: WebSocket is not defined",
+  "stack": "ReferenceError: WebSocket is not defined\n    at connect (file:///private/tmp/blanc-prerender-final-20261024/prerender-timeout-fixed.mjs:5:38)\n    at file:///private/tmp/blanc-prerender-final-20261024/prerender-timeout-fixed.mjs:7:904\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"
+}

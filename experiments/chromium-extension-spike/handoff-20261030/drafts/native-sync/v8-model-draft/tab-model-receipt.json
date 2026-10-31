@@ -1,0 +1,9 @@
+{
+  "sourceCommit": "85883b1afa11375e1300130914d6f40c5388af21",
+  "sourcePath": "src/main/tabsync-model.js",
+  "sourceSha256": "58f86a172674daed9abc3aecc9741c6439b9f1f501de5a8d80610138a2e3f25c",
+  "wrapperSha256": "abe53ec49e8fc60784358987fcc93cd0e5bf0697cd0db46e52a9ffadc277a722",
+  "headerSha256": "7a14997c87933ae4b0e62bf321c0e79fea0c5ae87e337a4eb3ed5285f4addc54",
+  "adapter": "native V8 UTF8 byte length; lexical CommonJS wrapper; exact source unchanged",
+  "scope": "isolated proof only; no browser initialization or service integration"
+}

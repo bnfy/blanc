@@ -1,0 +1,15 @@
+{
+  "status": "asset copy and existing tested identities matched; not promoted",
+  "frameworkSha256": "237242c7e2ddfab4d8fa49528b98a130c1e11dff9f80ffa1db39c0cdc8c06fa1",
+  "assetReceiptSha256": "2ba1acb86e61d2062271e48d6f82805201782411bdb0345ee4095fec3d7435aa",
+  "assets": "<local-home>/Documents/ChatGPT/Blanc Browser/Chromium Preview/artifacts/verified-start-page-refresh-20261030",
+  "source": "<local-home>/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/generated-158",
+  "files": 78,
+  "scope": "Only pages/newtab-adapter.js differs from development v6; includes wallpaper dynamic projection, missing image fallback and theme refresh race repair. Existing regular/private targeted browser evidence was produced against the exact missing-image asset manifest; prior theme checks used preceding adapter revision.",
+  "limitations": [
+    "no fresh full bundle or physical input qualification",
+    "do not restart or quit development instance; user must close normally and closed-profile backup/verification required",
+    "process state not verified in current sandbox: ps denied",
+    "no app build or promotion"
+  ]
+}

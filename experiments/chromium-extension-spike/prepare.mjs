@@ -1,4 +1,12 @@
+import { prepareCertificateRevocation } from './certificate-revocation.mjs';
+import { writeResearchPolicy, guardResearchHooks } from './research-build.mjs';
+import { addPreviewNotice } from './preview/notice.mjs';
+import { hardenMarkup } from './trusted-markup.mjs';
+import { prepareSessionRecovery } from './session-recovery.mjs';
+import { preparePendingNavigation } from './pending-navigation.mjs';
+import { prepareNativeHitTest } from './native-hit-test.mjs';
 import { prepareSaveAcknowledgement } from './save-ack.mjs';
+import { prepareStartupSession } from './startup-session.mjs';
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
@@ -15,9 +23,9 @@ import { prepareRendererTarget } from './ubo-renderer-target.mjs';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '../..');
 const chromium = path.resolve(process.argv[2] ?? '');
-const expectedVersion = '157.0.8103.6';
+const expectedVersion = '157.0.8103.15';
 const assetsOnly = process.argv.slice(3).includes('--assets-only');
-if (process.argv.slice(3).some(arg => arg !== '--assets-only')) throw new Error('Unknown prepare option');
+if (process.argv.slice(3).some(arg => arg !== '--assets-only' && arg !== '--research-hooks')) throw new Error('Unknown prepare option');
 
 function fail(message) {
   console.error(`chromium spike: ${message}`);
@@ -252,6 +260,11 @@ overlaySource = overlaySource.replace(commandsAnchor,
   "  ].filter((command) => ['/find', '/downloads', '/new', '/close', '/save', '/favorites', '/history', '/clear', '/pin', '/mute', '/group', '/ungroup', '/close-group', '/reopen'].includes(command.cmd));\n\n  function runCommand(command) {");
 assets.set(overlayScript, overlaySource);
 
+for (const name of ['renderer', 'overlay', 'vertical-tabs']) {
+  const target = path.join(generated, name + '.js');
+  assets.set(target, hardenMarkup(assets.get(target), name));
+}
+addPreviewNotice(assets, generated, actualVersion);
 for (const [target, value] of assets) writeIfChanged(target, value);
 if (assetsOnly) {
   console.log(`Updated prototype assets: ${generated}. Reload the page or relaunch the browser; no native files changed.`);
@@ -290,6 +303,29 @@ function edit(relative, edits) {
   }
   writeIfChanged(target, source);
 }
+
+// This fork has a fresh-profile-only preview contract. Never fall back to or
+// migrate the generic Chromium keychain item; both async and legacy users share
+// KeychainPassword. Stable names survive preview updates and app relocation.
+edit('components/os_crypt/common/keychain_password_mac.mm', [{
+  anchor: 'const char kDefaultServiceName[] = "Chromium Safe Storage";\nconst char kDefaultAccountName[] = "Chromium";',
+  replacement: 'const char kDefaultServiceName[] = "Blanc Chromium Preview Safe Storage";\nconst char kDefaultAccountName[] = "Blanc Chromium Preview";',
+  present: 'const char kDefaultServiceName[] = "Blanc Chromium Preview Safe Storage";',
+}]);
+
+// Blanc uses the Island, not Chromium's OS-wide Google search launcher.
+// Deny profile eligibility as well as controller activation so persisted opt-in
+// and feature experiments cannot register the launcher or show its onboarding.
+edit('chrome/browser/ui/omnibox/omnibox_next_features.cc', [{
+  anchor: "bool IsOmniboxEverywhereEligible(Profile* profile) {\n#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)\n  if (!profile || profile->IsOffTheRecord()) {\n    return false;\n  }\n\n  if (!base::FeatureList::IsEnabled(kOmniboxEverywhere)) {\n    return false;\n  }\n\n  return search::DefaultSearchProviderIsGoogle(\n      TemplateURLServiceFactory::GetForProfile(profile));\n#else\n  return false;\n#endif  // BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)\n}",
+  replacement: "bool IsOmniboxEverywhereEligible(Profile* profile) {\n  return false;  // Blanc: no OS-wide Google search launcher.\n}",
+  present: 'return false;  // Blanc: no OS-wide Google search launcher.',
+}]);
+edit('chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_controller.cc', [{
+  anchor: 'return !enabled_pref_member_.prefs() || enabled_pref_member_.GetValue();',
+  replacement: 'return false;  // Blanc: disable launcher, hotkey and background activation.',
+  present: 'return false;  // Blanc: disable launcher, hotkey and background activation.',
+}]);
 
 // Chromium 157 split BrowserView out of the former monolithic UI target.
 // Keep the bridge implementation with BrowserView and expose its declarations
@@ -743,6 +779,19 @@ console.log(`Assets: ${generated}`);
 prepareWindowIdentity(edit);
 prepareSaveAcknowledgement(edit);
 
+// Upgrade a previously prepared header-bar hook before applying the current one.
+const splitViewPath = path.join(chromium, 'chrome/browser/ui/views/frame/multi_contents_view.cc');
+let previousSplitHook = fs.readFileSync(splitViewPath, 'utf8');
+previousSplitHook = previousSplitHook.replace('blanc_prototype::IsPersistentSplitTab(', 'blanc_prototype::HasSplitPresentation(');
+if (previousSplitHook.includes("// Do not stack Chromium's rounded page outlines beneath those headers.")) {
+  previousSplitHook = previousSplitHook
+    .replace("// Persistent Island panes use their own headers and visible keyboard focus.\n  // Do not stack Chromium's rounded page outlines beneath those headers.",
+      '// Persistent Island panes paint one shipping-style card outline in the Island.\n  // Native pages keep the matching inner radius without a second outline.')
+    .replace('container->SetRoundedCorners(gfx::RoundedCornersF());\n      container->UpdateBorderAndOverlay(false, false, false);',
+      'container->UpdateBorderAndOverlay(false, false, false);\n      container->SetRoundedCorners(gfx::RoundedCornersF(7));');
+}
+writeIfChanged(splitViewPath, previousSplitHook);
+
 edit('chrome/browser/ui/views/frame/multi_contents_view.cc', [
   { anchor: '#include "chrome/browser/ui/views/frame/multi_contents_view.h"\n',
     replacement: '#include "chrome/browser/ui/views/frame/multi_contents_view.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
@@ -750,4 +799,27 @@ edit('chrome/browser/ui/views/frame/multi_contents_view.cc', [
   { anchor: '  layouts.host_size = gfx::Size(width, height);\n  return layouts;',
     replacement: '  layouts.host_size = gfx::Size(width, height);\n  blanc_prototype::AdjustSplitLayout(this, &layouts);\n  return layouts;',
     present: '  blanc_prototype::AdjustSplitLayout(this, &layouts);' },
+  { anchor: 'void MultiContentsView::UpdateContentsBorderAndOverlay() {\n  const bool is_in_split = IsInSplitView();',
+    replacement: `void MultiContentsView::UpdateContentsBorderAndOverlay() {
+  // Persistent Island panes paint one shipping-style card outline in the Island.
+  // Native pages keep the matching inner radius without a second outline.
+  if (blanc_prototype::IsEnabled() && IsInSplitView() &&
+      blanc_prototype::HasSplitPresentation(GetActiveContentsView()->web_contents())) {
+    for (auto& container : contents_container_views_) {
+      container->UpdateBorderAndOverlay(false, false, false);
+      container->SetRoundedCorners(gfx::RoundedCornersF(7));
+    }
+    return;
+  }
+  const bool is_in_split = IsInSplitView();`,
+    present: "blanc_prototype::HasSplitPresentation(GetActiveContentsView()->web_contents())" },
 ]);
+
+prepareNativeHitTest(edit);
+preparePendingNavigation(edit);
+prepareSessionRecovery(edit);
+prepareStartupSession(edit);
+prepareCertificateRevocation(edit);
+
+writeResearchPolicy(chromium, process.argv.includes('--research-hooks'));
+guardResearchHooks(chromium);

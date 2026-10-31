@@ -1,0 +1,109 @@
+{
+  "sourceRevision": "6b9a05a00f321bfbde617c181103d5a455ff45f3",
+  "version": "157.0.8103.15",
+  "notarization": {
+    "message": "Processing complete",
+    "status": "Accepted",
+    "id": "47e56224-454f-4765-9bd6-f7868a245f32"
+  },
+  "frozenBundleMembers": 463,
+  "allMemberBytesAndSymlinksUnchanged": true,
+  "totalPassingCheckpoints": 125,
+  "recoveryPassingCheckpoints": 92,
+  "coreAndNoticePassingCheckpoints": 33,
+  "schedules": [
+    {
+      "schedule": "normal-startup",
+      "report": "tests/startup/verification-final.json",
+      "passingCheckpoints": 7
+    },
+    {
+      "schedule": "encrypted-recovery",
+      "report": "regression/recovery/report.json",
+      "passingCheckpoints": 6
+    },
+    {
+      "schedule": "failed-write-retry",
+      "report": "regression/verified/report.json",
+      "passingCheckpoints": 4
+    },
+    {
+      "schedule": "split",
+      "report": "regression/splits/report.json",
+      "passingCheckpoints": 5
+    },
+    {
+      "schedule": "private-lifecycle",
+      "report": "regression/private-lifecycle/runtime.json",
+      "passingCheckpoints": 10
+    },
+    {
+      "schedule": "grouped-windows-spaces",
+      "report": "regression/grouped/runtime.json",
+      "passingCheckpoints": 6
+    },
+    {
+      "schedule": "native-cancellation-close",
+      "report": "regression/close/test.json",
+      "passingCheckpoints": 6
+    },
+    {
+      "schedule": "nonregular-record",
+      "report": "regression/nonregular/pipe-report.json",
+      "passingCheckpoints": 6
+    },
+    {
+      "schedule": "owner-profile-teardown",
+      "report": "regression/teardown-report.json",
+      "passingCheckpoints": 6
+    },
+    {
+      "schedule": "core",
+      "report": "tests/core/report.json",
+      "passingCheckpoints": 17
+    },
+    {
+      "schedule": "notice",
+      "report": "notice-test.json",
+      "passingCheckpoints": 16
+    },
+    {
+      "schedule": "repeated-nonregular-regular-restart-1",
+      "report": "repeated/baseline-1/pipe-report.json",
+      "passingCheckpoints": 6
+    },
+    {
+      "schedule": "repeated-nonregular-regular-restart-2",
+      "report": "repeated/baseline-2/pipe-report.json",
+      "passingCheckpoints": 6
+    },
+    {
+      "schedule": "repeated-nonregular-regular-restart-3",
+      "report": "repeated/baseline-3/pipe-report.json",
+      "passingCheckpoints": 6
+    },
+    {
+      "schedule": "repeated-nonregular-regular-restart-4",
+      "report": "repeated/baseline-4/pipe-report.json",
+      "passingCheckpoints": 6
+    },
+    {
+      "schedule": "repeated-nonregular-regular-restart-5",
+      "report": "repeated/baseline-5/pipe-report.json",
+      "passingCheckpoints": 6
+    },
+    {
+      "schedule": "repeated-nonregular-regular-restart-6",
+      "report": "repeated/baseline-6/pipe-report.json",
+      "passingCheckpoints": 6
+    }
+  ],
+  "excludedFromPassingTotal": [
+    "old7065 baseline36",
+    "temporary signed diagnostic72",
+    "ad-hoc keychain setup failure",
+    "original intermittent failure",
+    "functional event-order negative control"
+  ],
+  "qualificationScope": "Finite signed-candidate recovery acceptance; no power-loss, real provider-outage, permanent profile migration, new owner VoiceOver or distribution acceptance claim."
+}

@@ -1,0 +1,36 @@
+{
+  "nativeOnly": true,
+  "pairedParity": false,
+  "passed": true,
+  "runs": [
+    {
+      "kind": "regular",
+      "passed": true,
+      "handshakes": 4,
+      "decisions": 8
+    },
+    {
+      "kind": "private",
+      "passed": true,
+      "handshakes": 4,
+      "decisions": 8
+    },
+    {
+      "kind": "regular",
+      "mode": "missing-engine",
+      "passed": true,
+      "handshakes": 0,
+      "decisions": 1
+    },
+    {
+      "kind": "private",
+      "mode": "missing-engine",
+      "passed": true,
+      "handshakes": 0,
+      "decisions": 1
+    }
+  ],
+  "engineSha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+  "harnessSha256": "a435a153ac46c1db36a8d48ebc3a852b566a12fc623fd34b96f774972f2da5d4",
+  "cleanup": true
+}

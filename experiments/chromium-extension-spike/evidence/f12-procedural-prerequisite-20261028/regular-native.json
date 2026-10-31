@@ -1,0 +1,50 @@
+{
+  "kind": "regular",
+  "complete": true,
+  "checks": [
+    {
+      "name": "healthy request reaches fixture",
+      "pass": true
+    },
+    {
+      "name": "health is ready",
+      "pass": true
+    },
+    {
+      "name": "pinned has-text initially hides target",
+      "pass": true
+    },
+    {
+      "name": "neutral text remains visible",
+      "pass": true
+    },
+    {
+      "name": "text mutation removes stale hide",
+      "pass": true
+    },
+    {
+      "name": "text mutation restores hide",
+      "pass": true
+    },
+    {
+      "name": "move outside matching ancestry removes hide",
+      "pass": true
+    },
+    {
+      "name": "move into matching ancestry restores hide",
+      "pass": true
+    },
+    {
+      "name": "attribute mutation removes hide",
+      "pass": true
+    },
+    {
+      "name": "timer-inserted matching node hidden",
+      "pass": true
+    }
+  ],
+  "exit": {
+    "code": 0,
+    "signal": null
+  }
+}

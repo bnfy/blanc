@@ -1,0 +1,16 @@
+{
+  "README.md": "4ba339bed24482cc7f9650cc45ba9624663b4a0998c9030456508102007a6c25",
+  "ci-reviewed.json": "f745edef3341322095bb3575da304aba759673e190de80e294a5b175e1c64270",
+  "companion.log.gz": "5d66382ff40a2909ef47555ae1477d067e599c7cf9db553f2e1ca87d1a3ccaa9",
+  "dependency-policy.log.gz": "c255fe3bcc8e28de6292032d1b604659c9b87c085f99cf75ce39e03d4e16d6df",
+  "fixed-worker.log.gz": "e30105576d6df3c1f836d671dc7149d58b1d2b2ecd589ac04fd02c49d2c77844",
+  "handoff-provider.log.gz": "a6900943b8ef6d2b49254812830255c993b91a99e332f041d2e8baa72f206c24",
+  "linux-provider.log.gz": "ae9817ed2f2155aea07be1fd4853f96ef2068c502ccf4d2d25609e49897eaafc",
+  "npm10-before-offline.log.gz": "b59c6f8a46d946246b0dd8a63246a99160240e27d66ff9fb44902fe17c00ea97",
+  "npm10-validation.json": "72cb0a1b72b10c93eaef8edfe5da9494e8aa150f623e50930b3df7c7fa4db57f",
+  "original-worker.log.gz": "ec6a396d3180587ffd2e1c160461e2f0755fddbe1a8b9b4841aeb631f11eeb14",
+  "restricted-network-negative-control.log.gz": "1bfa2585de99d972c1c32c1f17f307bf8e88775b2cab157effe5dcf44b4074ee",
+  "windows-provider.log.gz": "9ab0d7db61f269df92b10b3cb5ba5d7811536aeaff05b7708a76872202fae8d3",
+  "worker-npm10-ci.log.gz": "a8fea54f3aa583baf7791c85e755313420a5f501cc376e2a7bb1f44e0a3a96a9",
+  "worker-runtime.log.gz": "1136954d2922ac2c56aec6cbd07f038578a4f4f60e92edae07c7809eeea83299"
+}

@@ -1,0 +1,30 @@
+{
+  "checkedHead": "9ce2d81f4854681f6386d569db80495da98d292e",
+  "ciFailure": "substrate job120740827574; three new undici advisory families",
+  "versions": {
+    "desktop": [
+      "6.29.1",
+      "7.30.1"
+    ],
+    "site": [
+      "8.12.3"
+    ],
+    "worker": [
+      "7.30.1"
+    ],
+    "companions": [
+      "7.30.1"
+    ]
+  },
+  "policy": "all four workspaces have no unsuppressed high/critical findings",
+  "tests": {
+    "workerRuntime": 5,
+    "companionLintErrors": 0,
+    "companionLintWarnings": 0,
+    "siteBuild": "pass",
+    "compliance": "pass",
+    "postQuarantineScopedUnit": 18,
+    "appUnitHistorical": 69
+  },
+  "gate": "L11 open: native qualification supported, shared repository checks unresolved; Electron paused"
+}

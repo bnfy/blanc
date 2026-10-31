@@ -1,0 +1,185 @@
+--- /dev/null
++++ b/content/public/browser/blanc_download_lifecycle.h
+@@ -0,0 +1,23 @@
++#ifndef CONTENT_PUBLIC_BROWSER_BLANC_DOWNLOAD_LIFECYCLE_H_
++#define CONTENT_PUBLIC_BROWSER_BLANC_DOWNLOAD_LIFECYCLE_H_
++#include <optional>
++#include "base/unguessable_token.h"
++#include "content/common/content_export.h"
++namespace content {
++class BrowserContext;
++// Browser-owned lifetime evidence, never a renderer identifier or permission.
++struct BlancDownloadLifetime {
++  base::UnguessableToken context;
++  base::UnguessableToken manager_generation;
++  bool operator==(const BlancDownloadLifetime&) const = default;
++};
++// UI sequence only. Callers must establish a live BrowserContext and trusted
++// document/family. Returns no value for absent, untracked or shut-down manager;
++// never creates a manager or private context. Conditional on the existing
++// supported UI-sequence shutdown contract; not safe for off-sequence shutdown.
++CONTENT_EXPORT std::optional<BlancDownloadLifetime>
++GetBlancDownloadLifetime(BrowserContext* context);
++CONTENT_EXPORT bool IsBlancDownloadLifetimeCurrent(
++    BrowserContext* context, const BlancDownloadLifetime& expected);
++}  // namespace content
++#endif
+--- a/content/browser/browser_context_impl.cc
++++ b/content/browser/browser_context_impl.cc
+@@ -12,6 +12,7 @@
+ #include "base/functional/callback_helpers.h"
+ #include "base/location.h"
+ #include "base/memory/ref_counted.h"
++#include "base/scoped_observation.h"
+ #include "base/task/sequenced_task_runner.h"
+ #include "base/trace_event/trace_event.h"
+ #include "build/build_config.h"
+@@ -34,6 +35,7 @@
+ #include "content/common/content_navigation_policy.h"
+ #include "content/public/browser/back_forward_transition_animation_manager.h"
+ #include "content/public/browser/browser_context.h"
++#include "content/public/browser/blanc_download_lifecycle.h"
+ #include "content/public/browser/browser_thread.h"
+ #include "content/public/browser/content_browser_client.h"
+ #include "content/public/browser/render_process_host.h"
+@@ -58,6 +60,30 @@
+ 
+ namespace {
+ 
++// UI-sequence-owned tracker for the exact manager constructed below. Its
++// absence is meaningful: never attach it to an already-published manager.
++const char kBlancDownloadLifetimeKey[] = "blanc.download.lifetime";
++class BlancDownloadLifetimeData final : public base::SupportsUserData::Data,
++                                        public DownloadManager::Observer {
++ public:
++  explicit BlancDownloadLifetimeData(DownloadManagerImpl* manager);
++  ~BlancDownloadLifetimeData() override;
++  void ManagerGoingDown(DownloadManager* manager) override;
++  const base::UnguessableToken& generation() const { return generation_; }
++ private:
++  base::UnguessableToken generation_ = base::UnguessableToken::Create();
++  base::ScopedObservation<DownloadManager, DownloadManager::Observer>
++      observation_{this};
++};
++BlancDownloadLifetimeData::BlancDownloadLifetimeData(DownloadManagerImpl* manager) {
++  observation_.Observe(manager);
++}
++BlancDownloadLifetimeData::~BlancDownloadLifetimeData() = default;
++void BlancDownloadLifetimeData::ManagerGoingDown(DownloadManager* manager) {
++  generation_ = base::UnguessableToken();
++  observation_.Reset();
++}
++
+ void NotifyContextWillBeDestroyed(StoragePartition* partition) {
+   static_cast<StoragePartitionImpl*>(partition)
+       ->OnBrowserContextWillBeDestroyed();
+@@ -69,6 +95,21 @@
+              base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ }  // namespace
++
++std::optional<BlancDownloadLifetime> GetBlancDownloadLifetime(
++    BrowserContext* context) {
++  if (!BrowserThread::CurrentlyOn(BrowserThread::UI) || !context ||
++      context->ShutdownStarted()) return std::nullopt;
++  auto* data = static_cast<BlancDownloadLifetimeData*>(
++      context->GetUserData(kBlancDownloadLifetimeKey));
++  if (!data || data->generation().is_empty()) return std::nullopt;
++  return BlancDownloadLifetime{context->UniqueToken(), data->generation()};
++}
++bool IsBlancDownloadLifetimeCurrent(
++    BrowserContext* context, const BlancDownloadLifetime& expected) {
++  auto current = GetBlancDownloadLifetime(context);
++  return current && *current == expected;
++}
+ 
+ // static
+ BrowserContextImpl* BrowserContextImpl::From(BrowserContext* self) {
+@@ -295,6 +336,11 @@
+   //    constructed BrowserContext.
+   if (!download_manager_) {
+     download_manager_ = std::make_unique<DownloadManagerImpl>(self_);
++    if (!self_->ShutdownStarted()) {
++      self_->SetUserData(kBlancDownloadLifetimeKey,
++                         std::make_unique<BlancDownloadLifetimeData>(
++                             static_cast<DownloadManagerImpl*>(download_manager_.get())));
++    }
+ 
+     // Note that GetDownloadManagerDelegate might call into GetDownloadManager,
+     // leading to re-entrancy concerns.  We avoid re-entrancy by making sure
+--- a/content/browser/download/download_manager_impl_unittest.cc
++++ b/content/browser/download/download_manager_impl_unittest.cc
+@@ -42,6 +42,7 @@
+ #include "components/download/public/common/mock_input_stream.h"
+ #include "content/browser/download/embedder_download_data.pb.h"
+ #include "content/public/browser/browser_context.h"
++#include "content/public/browser/blanc_download_lifecycle.h"
+ #include "content/public/browser/download_manager_delegate.h"
+ #include "content/public/browser/storage_partition.h"
+ #include "content/public/test/browser_task_environment.h"
+@@ -1027,6 +1028,65 @@
+ }
+ #endif
+ 
++// Synthetic TestBrowserContext owns a temporary directory; no real profile is
++// required. These tests exercise the lifecycle helper, not actual private
++// Profile parentage, renderer delivery, downloads or warning presentation.
++TEST_F(DownloadManagerTest, BlancLifecycleDoesNotCreateAndTracksShutdown) {
++  TestBrowserContext context;
++  EXPECT_FALSE(GetBlancDownloadLifetime(&context));
++  auto* manager = context.GetDownloadManager();
++  ASSERT_TRUE(manager);
++  auto first = GetBlancDownloadLifetime(&context);
++  ASSERT_TRUE(first);
++  EXPECT_TRUE(IsBlancDownloadLifetimeCurrent(&context, *first));
++  manager->Shutdown();
++  EXPECT_FALSE(GetBlancDownloadLifetime(&context));
++  EXPECT_FALSE(IsBlancDownloadLifetimeCurrent(&context, *first));
++  // The setter shuts down the old manager again before dropping it. This must
++  // remain safe and no old pointer is used after replacement.
++  context.SetDownloadManagerForTesting(nullptr);
++  auto* replacement = context.GetDownloadManager();
++  ASSERT_TRUE(replacement);
++  auto second = GetBlancDownloadLifetime(&context);
++  ASSERT_TRUE(second);
++  EXPECT_NE(first->manager_generation, second->manager_generation);
++  EXPECT_FALSE(IsBlancDownloadLifetimeCurrent(&context, *first));
++}
++TEST_F(DownloadManagerTest, BlancLifecycleSeparatesSyntheticPrivateContexts) {
++  TestBrowserContext regular;
++  TestBrowserContext private_context;
++  private_context.set_is_off_the_record(true);
++  ASSERT_TRUE(regular.GetDownloadManager());
++  ASSERT_TRUE(private_context.GetDownloadManager());
++  auto regular_lease = GetBlancDownloadLifetime(&regular);
++  auto private_lease = GetBlancDownloadLifetime(&private_context);
++  ASSERT_TRUE(regular_lease && private_lease);
++  EXPECT_NE(regular_lease->context, private_lease->context);
++  EXPECT_FALSE(IsBlancDownloadLifetimeCurrent(&regular, *private_lease));
++  private_context.NotifyWillBeDestroyed();
++  EXPECT_FALSE(IsBlancDownloadLifetimeCurrent(&private_context, *private_lease));
++  EXPECT_TRUE(IsBlancDownloadLifetimeCurrent(&regular, *regular_lease));
++}
++class BlancReentrantTestContext : public TestBrowserContext {
++ public:
++  DownloadManagerDelegate* GetDownloadManagerDelegate() override {
++    saw_lifetime = GetBlancDownloadLifetime(this).has_value();
++    reentrant_manager = GetDownloadManager();
++    return nullptr;
++  }
++  bool saw_lifetime = false;
++  raw_ptr<DownloadManager> reentrant_manager = nullptr;
++};
++TEST_F(DownloadManagerTest, BlancLifetimeExistsBeforeReentrantDelegate) {
++  BlancReentrantTestContext context;
++  auto* manager = context.GetDownloadManager();
++  EXPECT_TRUE(context.saw_lifetime);
++  EXPECT_EQ(context.reentrant_manager, manager);
++  auto lease = GetBlancDownloadLifetime(&context);
++  ASSERT_TRUE(lease);
++  EXPECT_TRUE(IsBlancDownloadLifetimeCurrent(&context, *lease));
++}
++
+ class DownloadManagerShutdownTest : public DownloadManagerTest {
+  public:
+   void TearDown() override { download_manager_.reset(); }

@@ -1,11 +1,48 @@
 #include "chrome/services/blanc_blocker/blocker_service.h"
 #include "base/task/single_thread_task_runner.h"
+#include "base/functional/bind.h"
+#include "base/check.h"
 #include "base/compiler_specific.h"
 #include "base/strings/string_view_util.h"
 #include "gin/array_buffer.h"
 #include "gin/v8_initializer.h"
 #include "tools/v8_context_snapshot/buildflags.h"
 namespace blanc {
+// Gin's locker task wrapper acquires the isolate before V8 can discard a
+// cancelled task. Fence the entire wrapper when this service is destroyed.
+class BlockerTaskRunner final : public base::SingleThreadTaskRunner {
+ public:
+  BlockerTaskRunner()
+      : runner_(base::SingleThreadTaskRunner::GetCurrentDefault()),
+        alive_(std::make_shared<bool>(true)) {}
+  void Cancel() {
+    CHECK(RunsTasksInCurrentSequence());
+    *alive_ = false;
+  }
+  bool PostDelayedTask(const base::Location& from_here, base::OnceClosure task,
+                       base::TimeDelta delay) override {
+    return runner_->PostDelayedTask(from_here, Fence(std::move(task)), delay);
+  }
+  bool PostNonNestableDelayedTask(const base::Location& from_here,
+                                base::OnceClosure task,
+                                base::TimeDelta delay) override {
+    return runner_->PostNonNestableDelayedTask(from_here, Fence(std::move(task)), delay);
+  }
+  bool RunsTasksInCurrentSequence() const override {
+    return runner_->RunsTasksInCurrentSequence();
+  }
+ private:
+  ~BlockerTaskRunner() override = default;
+  base::OnceClosure Fence(base::OnceClosure task) {
+    // Posting can occur on V8 background threads. Only the destination sequence
+    // reads the flag, and Cancel writes it on that same sequence.
+    return base::BindOnce([](std::shared_ptr<bool> alive, base::OnceClosure task) {
+      if (*alive) std::move(task).Run();
+    }, alive_, std::move(task));
+  }
+  const scoped_refptr<base::SingleThreadTaskRunner> runner_;
+  const std::shared_ptr<bool> alive_;
+};
 namespace {
 v8::Local<v8::String> Str(v8::Isolate* isolate, const std::string& text) {
   return v8::String::NewFromUtf8(isolate, text.data(), v8::NewStringType::kNormal,
@@ -34,7 +71,13 @@ void Decode(const v8::FunctionCallbackInfo<v8::Value>& args) {
 }
 BlockerService::BlockerService(mojo::PendingReceiver<mojom::Blocker> receiver)
     : receiver_(this, std::move(receiver)) {}
-BlockerService::~BlockerService() = default;
+BlockerService::~BlockerService() {
+  if (task_runner_) task_runner_->Cancel();
+  decide_.Reset();
+  cosmetics_.Reset();
+  context_.Reset();
+  isolate_.reset();
+}
 void BlockerService::Initialize(const std::string& script, InitializeCallback callback) {
   if (isolate_ || script.empty() || script.size() > 16 * 1024 * 1024) {
     std::move(callback).Run(false); return;
@@ -52,8 +95,9 @@ void BlockerService::Initialize(const std::string& script, InitializeCallback ca
     gin::IsolateHolder::Initialize(gin::IsolateHolder::kNonStrictMode,
                                    gin::ArrayBufferAllocator::SharedInstance());
   }
+  task_runner_ = base::MakeRefCounted<BlockerTaskRunner>();
   isolate_ = std::make_unique<gin::IsolateHolder>(
-      base::SingleThreadTaskRunner::GetCurrentDefault(), gin::IsolateHolder::kUseLocker,
+      task_runner_, gin::IsolateHolder::kUseLocker,
       gin::IsolateHolder::IsolateType::kUtility);
   auto* isolate = isolate_->isolate();
   v8::Locker locker(isolate);
@@ -71,6 +115,9 @@ void BlockerService::Initialize(const std::string& script, InitializeCallback ca
       compiled->Run(context).ToLocal(&result) &&
       context->Global()->Get(context, Str(isolate, "blancDecide")).ToLocal(&fn) && fn->IsFunction();
   if (ready) { context_.Reset(isolate, context); decide_.Reset(isolate, fn.As<v8::Function>()); }
+  if (ready && context->Global()->Get(context, Str(isolate, "blancCosmetics")).ToLocal(&fn) && fn->IsFunction())
+    cosmetics_.Reset(isolate, fn.As<v8::Function>());
+  else ready = false;
   std::move(callback).Run(ready);
 }
 void BlockerService::Decide(const std::string& url, const std::string& resource_type,
@@ -89,4 +136,26 @@ void BlockerService::Decide(const std::string& url, const std::string& resource_
     decision = result.As<v8::Int32>()->Value();
   std::move(callback).Run(decision);
 }
+void BlockerService::Cosmetics(const std::string& input, CosmeticsCallback callback) {
+  if (cosmetics_.IsEmpty() || input.size() > 256 * 1024) {
+    std::move(callback).Run(false, ""); return;
+  }
+  auto* isolate = isolate_->isolate();
+  v8::Locker locker(isolate);
+  v8::Isolate::Scope scope(isolate);
+  v8::HandleScope handles(isolate);
+  v8::TryCatch caught(isolate);
+  auto context = context_.Get(isolate);
+  v8::Context::Scope context_scope(context);
+  v8::Local<v8::Value> args[] = {Str(isolate, input)}, result;
+  if (!cosmetics_.Get(isolate)->Call(context, context->Global(), 1, args).ToLocal(&result) || !result->IsString()) {
+    std::move(callback).Run(false, ""); return;
+  }
+  v8::String::Utf8Value text(isolate, result);
+  if (!*text || text.length() > 1024 * 1024) {
+    std::move(callback).Run(false, ""); return;
+  }
+  std::move(callback).Run(true, std::string(*text, text.length()));
+}
+
 }

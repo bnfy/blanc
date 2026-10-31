@@ -1,0 +1,15 @@
+{
+  "observed_local": "2026-10-22 23:07:36",
+  "memoryBytes": 25769803776,
+  "logicalCPUs": 10,
+  "load1min": 91.28,
+  "cpuIdlePercent": 0.0,
+  "memoryUsed": "23G",
+  "compressor": "5713M",
+  "interruption": "SIGINT only to owned Siso PID84780",
+  "completedActions": 18003,
+  "failedActions": 0,
+  "remainingActions": 44125,
+  "nextInvocationLocalJobs": 8,
+  "compilerSdkAndGNArgsChanged": false
+}

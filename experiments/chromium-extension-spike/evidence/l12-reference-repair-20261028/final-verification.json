@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "finalBrowserChecks": 112,
+  "regularPrivateRepetitions": 2,
+  "identicalOutcomes": true,
+  "identicalAuthenticatedRepair": true,
+  "directOwnershipChecks": 4,
+  "earlierFailuresRetained": true
+}

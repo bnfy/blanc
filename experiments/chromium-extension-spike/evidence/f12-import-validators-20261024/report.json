@@ -1,0 +1,1801 @@
+{
+  "complete": true,
+  "runs": [
+    {
+      "mode": "regular",
+      "profile": "/private/tmp/blanc-f12-import-validators-20261024/profile-final-regular",
+      "origin": "http://127.0.0.1:51964",
+      "phases": [
+        {
+          "phase": "import-change",
+          "before": [
+            {
+              "registrationId": "2",
+              "versionId": "2"
+            },
+            {
+              "registrationId": "3",
+              "versionId": "3"
+            }
+          ],
+          "after": [
+            {
+              "versionId": "4",
+              "registrationId": "3",
+              "scriptURL": "http://127.0.0.1:51964/worker.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 1792869101.963067,
+              "controlledClients": [
+                "04D3B76A7A617C15DF4B98F3A9D2A0C9"
+              ],
+              "targetId": "243C74BCFF524705E06BF45BDE168DBC"
+            },
+            {
+              "versionId": "5",
+              "registrationId": "2",
+              "scriptURL": "http://127.0.0.1:51964/worker.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 1792869101.863808,
+              "controlledClients": [
+                "5FE09974AB507F3826266D2B1E05C53B"
+              ],
+              "targetId": "4E547BD6956B7C51B96595705DE170EB"
+            }
+          ],
+          "serverRequests": [
+            {
+              "path": "/worker.js",
+              "generation": 2,
+              "etag": "\"main-fixed\"",
+              "validator": "\"main-fixed\"",
+              "status": 304,
+              "leakedToken": false
+            },
+            {
+              "path": "/worker.js",
+              "generation": 2,
+              "etag": "\"main-fixed\"",
+              "validator": "\"main-fixed\"",
+              "status": 304,
+              "leakedToken": false
+            },
+            {
+              "path": "/dependency.js",
+              "generation": 2,
+              "etag": "\"dependency-2\"",
+              "validator": "\"dependency-1\"",
+              "status": 200,
+              "leakedToken": false
+            },
+            {
+              "path": "/dependency.js",
+              "generation": 2,
+              "etag": "\"dependency-2\"",
+              "validator": "\"dependency-2\"",
+              "status": 304,
+              "leakedToken": false
+            }
+          ],
+          "attribution": [
+            {
+              "args": {
+                "main_script": true,
+                "private": false,
+                "registration_id": 3,
+                "request_token": "blanc-trace-update/531190CB837375F532993DE1B0EBF0FA",
+                "version_id": 3
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.ServiceWorkerUpdateRequest",
+              "ph": "I",
+              "pid": 53759,
+              "s": "t",
+              "tid": 8617038,
+              "ts": 349436527474,
+              "tts": 868355
+            },
+            {
+              "args": {
+                "main_script": true,
+                "private": false,
+                "registration_id": 2,
+                "request_token": "blanc-trace-update/F8A451527A35529BE6C2051E1FAF11C3",
+                "version_id": 2
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.ServiceWorkerUpdateRequest",
+              "ph": "I",
+              "pid": 53759,
+              "s": "t",
+              "tid": 8617038,
+              "ts": 349436527643,
+              "tts": 868477
+            },
+            {
+              "args": {
+                "request_token": "blanc-trace-update/531190CB837375F532993DE1B0EBF0FA",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.BlockerDecision",
+              "ph": "I",
+              "pid": 53759,
+              "s": "t",
+              "tid": 8617038,
+              "ts": 349436528642,
+              "tts": 868860
+            },
+            {
+              "args": {
+                "request_token": "blanc-trace-update/F8A451527A35529BE6C2051E1FAF11C3",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.BlockerDecision",
+              "ph": "I",
+              "pid": 53759,
+              "s": "t",
+              "tid": 8617038,
+              "ts": 349436528727,
+              "tts": 868945
+            },
+            {
+              "args": {
+                "main_script": false,
+                "private": false,
+                "registration_id": 3,
+                "request_token": "blanc-trace-update/C8CA9A182879666887DF83BA824E7694",
+                "version_id": 3
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.ServiceWorkerUpdateRequest",
+              "ph": "I",
+              "pid": 53759,
+              "s": "t",
+              "tid": 8617038,
+              "ts": 349436532667,
+              "tts": 870505
+            },
+            {
+              "args": {
+                "request_token": "blanc-trace-update/C8CA9A182879666887DF83BA824E7694",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.BlockerDecision",
+              "ph": "I",
+              "pid": 53759,
+              "s": "t",
+              "tid": 8617038,
+              "ts": 349436533089,
+              "tts": 870860
+            },
+            {
+              "args": {
+                "main_script": false,
+                "private": false,
+                "registration_id": 2,
+                "request_token": "blanc-trace-update/B9A0836BE9E51C67BFD9EAB0A2373CC1",
+                "version_id": 2
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.ServiceWorkerUpdateRequest",
+              "ph": "I",
+              "pid": 53759,
+              "s": "t",
+              "tid": 8617038,
+              "ts": 349436533489,
+              "tts": 871260
+            },
+            {
+              "args": {
+                "request_token": "blanc-trace-update/B9A0836BE9E51C67BFD9EAB0A2373CC1",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.BlockerDecision",
+              "ph": "I",
+              "pid": 53759,
+              "s": "t",
+              "tid": 8617038,
+              "ts": 349436533731,
+              "tts": 871389
+            }
+          ]
+        },
+        {
+          "phase": "not-modified",
+          "before": [
+            {
+              "registrationId": "3",
+              "versionId": "4"
+            },
+            {
+              "registrationId": "2",
+              "versionId": "5"
+            }
+          ],
+          "after": [
+            {
+              "versionId": "4",
+              "registrationId": "3",
+              "scriptURL": "http://127.0.0.1:51964/worker.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 1792869101.963067,
+              "controlledClients": [
+                "04D3B76A7A617C15DF4B98F3A9D2A0C9"
+              ],
+              "targetId": "243C74BCFF524705E06BF45BDE168DBC"
+            },
+            {
+              "versionId": "5",
+              "registrationId": "2",
+              "scriptURL": "http://127.0.0.1:51964/worker.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 1792869101.863808,
+              "controlledClients": [
+                "5FE09974AB507F3826266D2B1E05C53B"
+              ],
+              "targetId": "4E547BD6956B7C51B96595705DE170EB"
+            }
+          ],
+          "serverRequests": [
+            {
+              "path": "/worker.js",
+              "generation": 2,
+              "etag": "\"main-fixed\"",
+              "validator": "\"main-fixed\"",
+              "status": 304,
+              "leakedToken": false
+            },
+            {
+              "path": "/worker.js",
+              "generation": 2,
+              "etag": "\"main-fixed\"",
+              "validator": "\"main-fixed\"",
+              "status": 304,
+              "leakedToken": false
+            },
+            {
+              "path": "/dependency.js",
+              "generation": 2,
+              "etag": "\"dependency-2\"",
+              "validator": "\"dependency-2\"",
+              "status": 304,
+              "leakedToken": false
+            },
+            {
+              "path": "/dependency.js",
+              "generation": 2,
+              "etag": "\"dependency-2\"",
+              "validator": "\"dependency-2\"",
+              "status": 304,
+              "leakedToken": false
+            }
+          ],
+          "attribution": [
+            {
+              "args": {
+                "main_script": true,
+                "private": false,
+                "registration_id": 3,
+                "request_token": "blanc-trace-update/79490CB92B1F78D7E8A36AE13105540B",
+                "version_id": 4
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.ServiceWorkerUpdateRequest",
+              "ph": "I",
+              "pid": 53759,
+              "s": "t",
+              "tid": 8617038,
+              "ts": 349437673046,
+              "tts": 932091
+            },
+            {
+              "args": {
+                "main_script": true,
+                "private": false,
+                "registration_id": 2,
+                "request_token": "blanc-trace-update/31D56DBF795C7EED33DA363F50695371",
+                "version_id": 5
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.ServiceWorkerUpdateRequest",
+              "ph": "I",
+              "pid": 53759,
+              "s": "t",
+              "tid": 8617038,
+              "ts": 349437673109,
+              "tts": 932143
+            },
+            {
+              "args": {
+                "request_token": "blanc-trace-update/79490CB92B1F78D7E8A36AE13105540B",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.BlockerDecision",
+              "ph": "I",
+              "pid": 53759,
+              "s": "t",
+              "tid": 8617038,
+              "ts": 349437673380,
+              "tts": 932277
+            },
+            {
+              "args": {
+                "request_token": "blanc-trace-update/31D56DBF795C7EED33DA363F50695371",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.BlockerDecision",
+              "ph": "I",
+              "pid": 53759,
+              "s": "t",
+              "tid": 8617038,
+              "ts": 349437673479,
+              "tts": 932339
+            },
+            {
+              "args": {
+                "main_script": false,
+                "private": false,
+                "registration_id": 3,
+                "request_token": "blanc-trace-update/E0C046E7F2189A46DFBC67E47DAB2CBF",
+                "version_id": 4
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.ServiceWorkerUpdateRequest",
+              "ph": "I",
+              "pid": 53759,
+              "s": "t",
+              "tid": 8617038,
+              "ts": 349437675049,
+              "tts": 933099
+            },
+            {
+              "args": {
+                "request_token": "blanc-trace-update/E0C046E7F2189A46DFBC67E47DAB2CBF",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.BlockerDecision",
+              "ph": "I",
+              "pid": 53759,
+              "s": "t",
+              "tid": 8617038,
+              "ts": 349437675275,
+              "tts": 933297
+            },
+            {
+              "args": {
+                "main_script": false,
+                "private": false,
+                "registration_id": 2,
+                "request_token": "blanc-trace-update/370CC388C28EF9EBC9FE22902C726B59",
+                "version_id": 5
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.ServiceWorkerUpdateRequest",
+              "ph": "I",
+              "pid": 53759,
+              "s": "t",
+              "tid": 8617038,
+              "ts": 349437675645,
+              "tts": 933666
+            },
+            {
+              "args": {
+                "request_token": "blanc-trace-update/370CC388C28EF9EBC9FE22902C726B59",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.BlockerDecision",
+              "ph": "I",
+              "pid": 53759,
+              "s": "t",
+              "tid": 8617038,
+              "ts": 349437675818,
+              "tts": 933759
+            }
+          ]
+        }
+      ],
+      "browserContextId": null,
+      "exit": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "mode": "private",
+      "profile": "/private/tmp/blanc-f12-import-validators-20261024/profile-final-private",
+      "origin": "http://127.0.0.1:51964",
+      "phases": [
+        {
+          "phase": "import-change",
+          "before": [
+            {
+              "registrationId": "0",
+              "versionId": "0"
+            },
+            {
+              "registrationId": "1",
+              "versionId": "1"
+            }
+          ],
+          "after": [
+            {
+              "versionId": "2",
+              "registrationId": "0",
+              "scriptURL": "http://127.0.0.1:51964/worker.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 1792869108.491883,
+              "controlledClients": [
+                "8089C3E9E3CB8D76CAAA4C8ABC1966D9"
+              ],
+              "targetId": "5E2B40712137C49F0F0E84E0D99A2F28"
+            },
+            {
+              "versionId": "3",
+              "registrationId": "1",
+              "scriptURL": "http://127.0.0.1:51964/worker.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 1792869108.563563,
+              "controlledClients": [
+                "CF423ECBC4AA52A8BC14A567F277A19F"
+              ],
+              "targetId": "C4370419DF24FD7F0033A18E0676BF47"
+            }
+          ],
+          "serverRequests": [
+            {
+              "path": "/worker.js",
+              "generation": 2,
+              "etag": "\"main-fixed\"",
+              "validator": "\"main-fixed\"",
+              "status": 304,
+              "leakedToken": false
+            },
+            {
+              "path": "/worker.js",
+              "generation": 2,
+              "etag": "\"main-fixed\"",
+              "validator": "\"main-fixed\"",
+              "status": 304,
+              "leakedToken": false
+            },
+            {
+              "path": "/dependency.js",
+              "generation": 2,
+              "etag": "\"dependency-2\"",
+              "validator": "\"dependency-1\"",
+              "status": 200,
+              "leakedToken": false
+            },
+            {
+              "path": "/dependency.js",
+              "generation": 2,
+              "etag": "\"dependency-2\"",
+              "validator": "\"dependency-2\"",
+              "status": 304,
+              "leakedToken": false
+            }
+          ],
+          "attribution": [
+            {
+              "args": {
+                "main_script": true,
+                "private": true,
+                "registration_id": 0,
+                "request_token": "blanc-trace-update/D4696370B4F3D99D57A940F8CF62FA76",
+                "version_id": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.ServiceWorkerUpdateRequest",
+              "ph": "I",
+              "pid": 53798,
+              "s": "t",
+              "tid": 8617778,
+              "ts": 349444186182,
+              "tts": 998889
+            },
+            {
+              "args": {
+                "main_script": true,
+                "private": true,
+                "registration_id": 1,
+                "request_token": "blanc-trace-update/FB5D11189DEF148BAE9DF19F9B75BFFD",
+                "version_id": 1
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.ServiceWorkerUpdateRequest",
+              "ph": "I",
+              "pid": 53798,
+              "s": "t",
+              "tid": 8617778,
+              "ts": 349444186365,
+              "tts": 999014
+            },
+            {
+              "args": {
+                "request_token": "blanc-trace-update/D4696370B4F3D99D57A940F8CF62FA76",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.BlockerDecision",
+              "ph": "I",
+              "pid": 53798,
+              "s": "t",
+              "tid": 8617778,
+              "ts": 349444187494,
+              "tts": 999399
+            },
+            {
+              "args": {
+                "request_token": "blanc-trace-update/FB5D11189DEF148BAE9DF19F9B75BFFD",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.BlockerDecision",
+              "ph": "I",
+              "pid": 53798,
+              "s": "t",
+              "tid": 8617778,
+              "ts": 349444187644,
+              "tts": 999547
+            },
+            {
+              "args": {
+                "main_script": false,
+                "private": true,
+                "registration_id": 0,
+                "request_token": "blanc-trace-update/8FEF0D276F5F9317F906B5289FF1B125",
+                "version_id": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.ServiceWorkerUpdateRequest",
+              "ph": "I",
+              "pid": 53798,
+              "s": "t",
+              "tid": 8617778,
+              "ts": 349444191304,
+              "tts": 1001238
+            },
+            {
+              "args": {
+                "request_token": "blanc-trace-update/8FEF0D276F5F9317F906B5289FF1B125",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.BlockerDecision",
+              "ph": "I",
+              "pid": 53798,
+              "s": "t",
+              "tid": 8617778,
+              "ts": 349444192278,
+              "tts": 1002140
+            },
+            {
+              "args": {
+                "main_script": false,
+                "private": true,
+                "registration_id": 1,
+                "request_token": "blanc-trace-update/6CD1DE75D57A15751F348D0E19FB7E55",
+                "version_id": 1
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.ServiceWorkerUpdateRequest",
+              "ph": "I",
+              "pid": 53798,
+              "s": "t",
+              "tid": 8617778,
+              "ts": 349444192434,
+              "tts": 1002294
+            },
+            {
+              "args": {
+                "request_token": "blanc-trace-update/6CD1DE75D57A15751F348D0E19FB7E55",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.BlockerDecision",
+              "ph": "I",
+              "pid": 53798,
+              "s": "t",
+              "tid": 8617778,
+              "ts": 349444192767,
+              "tts": 1002573
+            }
+          ]
+        },
+        {
+          "phase": "not-modified",
+          "before": [
+            {
+              "registrationId": "0",
+              "versionId": "2"
+            },
+            {
+              "registrationId": "1",
+              "versionId": "3"
+            }
+          ],
+          "after": [
+            {
+              "versionId": "2",
+              "registrationId": "0",
+              "scriptURL": "http://127.0.0.1:51964/worker.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 1792869108.491883,
+              "controlledClients": [
+                "8089C3E9E3CB8D76CAAA4C8ABC1966D9"
+              ],
+              "targetId": "5E2B40712137C49F0F0E84E0D99A2F28"
+            },
+            {
+              "versionId": "3",
+              "registrationId": "1",
+              "scriptURL": "http://127.0.0.1:51964/worker.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 1792869108.563563,
+              "controlledClients": [
+                "CF423ECBC4AA52A8BC14A567F277A19F"
+              ],
+              "targetId": "C4370419DF24FD7F0033A18E0676BF47"
+            }
+          ],
+          "serverRequests": [
+            {
+              "path": "/worker.js",
+              "generation": 2,
+              "etag": "\"main-fixed\"",
+              "validator": "\"main-fixed\"",
+              "status": 304,
+              "leakedToken": false
+            },
+            {
+              "path": "/worker.js",
+              "generation": 2,
+              "etag": "\"main-fixed\"",
+              "validator": "\"main-fixed\"",
+              "status": 304,
+              "leakedToken": false
+            },
+            {
+              "path": "/dependency.js",
+              "generation": 2,
+              "etag": "\"dependency-2\"",
+              "validator": "\"dependency-2\"",
+              "status": 304,
+              "leakedToken": false
+            },
+            {
+              "path": "/dependency.js",
+              "generation": 2,
+              "etag": "\"dependency-2\"",
+              "validator": "\"dependency-2\"",
+              "status": 304,
+              "leakedToken": false
+            }
+          ],
+          "attribution": [
+            {
+              "args": {
+                "main_script": true,
+                "private": true,
+                "registration_id": 1,
+                "request_token": "blanc-trace-update/170A6BD63D6B2EB6AD42BCD3DFA88A5E",
+                "version_id": 3
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.ServiceWorkerUpdateRequest",
+              "ph": "I",
+              "pid": 53798,
+              "s": "t",
+              "tid": 8617778,
+              "ts": 349450288105,
+              "tts": 1422665
+            },
+            {
+              "args": {
+                "main_script": true,
+                "private": true,
+                "registration_id": 0,
+                "request_token": "blanc-trace-update/88B604ED355946AB31AC8B413A0E9984",
+                "version_id": 2
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.ServiceWorkerUpdateRequest",
+              "ph": "I",
+              "pid": 53798,
+              "s": "t",
+              "tid": 8617778,
+              "ts": 349450288166,
+              "tts": 1422717
+            },
+            {
+              "args": {
+                "request_token": "blanc-trace-update/170A6BD63D6B2EB6AD42BCD3DFA88A5E",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.BlockerDecision",
+              "ph": "I",
+              "pid": 53798,
+              "s": "t",
+              "tid": 8617778,
+              "ts": 349450288413,
+              "tts": 1422854
+            },
+            {
+              "args": {
+                "request_token": "blanc-trace-update/88B604ED355946AB31AC8B413A0E9984",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.BlockerDecision",
+              "ph": "I",
+              "pid": 53798,
+              "s": "t",
+              "tid": 8617778,
+              "ts": 349450288494,
+              "tts": 1422923
+            },
+            {
+              "args": {
+                "main_script": false,
+                "private": true,
+                "registration_id": 1,
+                "request_token": "blanc-trace-update/2ABA739BEBF9F4C152872D0307DEE474",
+                "version_id": 3
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.ServiceWorkerUpdateRequest",
+              "ph": "I",
+              "pid": 53798,
+              "s": "t",
+              "tid": 8617778,
+              "ts": 349450290017,
+              "tts": 1423661
+            },
+            {
+              "args": {
+                "request_token": "blanc-trace-update/2ABA739BEBF9F4C152872D0307DEE474",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.BlockerDecision",
+              "ph": "I",
+              "pid": 53798,
+              "s": "t",
+              "tid": 8617778,
+              "ts": 349450290207,
+              "tts": 1423840
+            },
+            {
+              "args": {
+                "main_script": false,
+                "private": true,
+                "registration_id": 0,
+                "request_token": "blanc-trace-update/29A930AE62A43F6A3D6876462FA5D49B",
+                "version_id": 2
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.ServiceWorkerUpdateRequest",
+              "ph": "I",
+              "pid": 53798,
+              "s": "t",
+              "tid": 8617778,
+              "ts": 349450290513,
+              "tts": 1424145
+            },
+            {
+              "args": {
+                "request_token": "blanc-trace-update/29A930AE62A43F6A3D6876462FA5D49B",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.BlockerDecision",
+              "ph": "I",
+              "pid": 53798,
+              "s": "t",
+              "tid": 8617778,
+              "ts": 349450290664,
+              "tts": 1424248
+            }
+          ]
+        }
+      ],
+      "browserContextId": "CF52D7021E69293E85FDB9909969DD6F",
+      "exit": {
+        "code": 0,
+        "signal": null
+      }
+    }
+  ],
+  "checks": [
+    {
+      "name": "regular: initial imported dependency runs in both registrations",
+      "pass": true
+    },
+    {
+      "name": "regular/import-change: controllers execute the expected imported bytes",
+      "pass": true
+    },
+    {
+      "name": "regular/import-change: each registration has independently joined main/import decisions",
+      "pass": true,
+      "detail": [
+        {
+          "args": {
+            "main_script": true,
+            "private": false,
+            "registration_id": 3,
+            "request_token": "blanc-trace-update/531190CB837375F532993DE1B0EBF0FA",
+            "version_id": 3
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 53759,
+          "s": "t",
+          "tid": 8617038,
+          "ts": 349436527474,
+          "tts": 868355
+        },
+        {
+          "args": {
+            "main_script": true,
+            "private": false,
+            "registration_id": 2,
+            "request_token": "blanc-trace-update/F8A451527A35529BE6C2051E1FAF11C3",
+            "version_id": 2
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 53759,
+          "s": "t",
+          "tid": 8617038,
+          "ts": 349436527643,
+          "tts": 868477
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/531190CB837375F532993DE1B0EBF0FA",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 53759,
+          "s": "t",
+          "tid": 8617038,
+          "ts": 349436528642,
+          "tts": 868860
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/F8A451527A35529BE6C2051E1FAF11C3",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 53759,
+          "s": "t",
+          "tid": 8617038,
+          "ts": 349436528727,
+          "tts": 868945
+        },
+        {
+          "args": {
+            "main_script": false,
+            "private": false,
+            "registration_id": 3,
+            "request_token": "blanc-trace-update/C8CA9A182879666887DF83BA824E7694",
+            "version_id": 3
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 53759,
+          "s": "t",
+          "tid": 8617038,
+          "ts": 349436532667,
+          "tts": 870505
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/C8CA9A182879666887DF83BA824E7694",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 53759,
+          "s": "t",
+          "tid": 8617038,
+          "ts": 349436533089,
+          "tts": 870860
+        },
+        {
+          "args": {
+            "main_script": false,
+            "private": false,
+            "registration_id": 2,
+            "request_token": "blanc-trace-update/B9A0836BE9E51C67BFD9EAB0A2373CC1",
+            "version_id": 2
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 53759,
+          "s": "t",
+          "tid": 8617038,
+          "ts": 349436533489,
+          "tts": 871260
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/B9A0836BE9E51C67BFD9EAB0A2373CC1",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 53759,
+          "s": "t",
+          "tid": 8617038,
+          "ts": 349436533731,
+          "tts": 871389
+        }
+      ]
+    },
+    {
+      "name": "regular/import-change: two requests per script reach validator endpoint",
+      "pass": true,
+      "detail": [
+        {
+          "path": "/worker.js",
+          "generation": 2,
+          "etag": "\"main-fixed\"",
+          "validator": "\"main-fixed\"",
+          "status": 304,
+          "leakedToken": false
+        },
+        {
+          "path": "/worker.js",
+          "generation": 2,
+          "etag": "\"main-fixed\"",
+          "validator": "\"main-fixed\"",
+          "status": 304,
+          "leakedToken": false
+        },
+        {
+          "path": "/dependency.js",
+          "generation": 2,
+          "etag": "\"dependency-2\"",
+          "validator": "\"dependency-1\"",
+          "status": 200,
+          "leakedToken": false
+        },
+        {
+          "path": "/dependency.js",
+          "generation": 2,
+          "etag": "\"dependency-2\"",
+          "validator": "\"dependency-2\"",
+          "status": 304,
+          "leakedToken": false
+        }
+      ]
+    },
+    {
+      "name": "regular/import-change: unchanged main scripts validate with 304",
+      "pass": true
+    },
+    {
+      "name": "regular: changed import fetched and activates both replacement versions",
+      "pass": true
+    },
+    {
+      "name": "regular/import-change: trace payload remains opaque",
+      "pass": true
+    },
+    {
+      "name": "regular/import-change: missing import identity rejected offline",
+      "pass": true
+    },
+    {
+      "name": "regular/not-modified: controllers execute the expected imported bytes",
+      "pass": true
+    },
+    {
+      "name": "regular/not-modified: each registration has independently joined main/import decisions",
+      "pass": true,
+      "detail": [
+        {
+          "args": {
+            "main_script": true,
+            "private": false,
+            "registration_id": 3,
+            "request_token": "blanc-trace-update/79490CB92B1F78D7E8A36AE13105540B",
+            "version_id": 4
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 53759,
+          "s": "t",
+          "tid": 8617038,
+          "ts": 349437673046,
+          "tts": 932091
+        },
+        {
+          "args": {
+            "main_script": true,
+            "private": false,
+            "registration_id": 2,
+            "request_token": "blanc-trace-update/31D56DBF795C7EED33DA363F50695371",
+            "version_id": 5
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 53759,
+          "s": "t",
+          "tid": 8617038,
+          "ts": 349437673109,
+          "tts": 932143
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/79490CB92B1F78D7E8A36AE13105540B",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 53759,
+          "s": "t",
+          "tid": 8617038,
+          "ts": 349437673380,
+          "tts": 932277
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/31D56DBF795C7EED33DA363F50695371",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 53759,
+          "s": "t",
+          "tid": 8617038,
+          "ts": 349437673479,
+          "tts": 932339
+        },
+        {
+          "args": {
+            "main_script": false,
+            "private": false,
+            "registration_id": 3,
+            "request_token": "blanc-trace-update/E0C046E7F2189A46DFBC67E47DAB2CBF",
+            "version_id": 4
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 53759,
+          "s": "t",
+          "tid": 8617038,
+          "ts": 349437675049,
+          "tts": 933099
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/E0C046E7F2189A46DFBC67E47DAB2CBF",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 53759,
+          "s": "t",
+          "tid": 8617038,
+          "ts": 349437675275,
+          "tts": 933297
+        },
+        {
+          "args": {
+            "main_script": false,
+            "private": false,
+            "registration_id": 2,
+            "request_token": "blanc-trace-update/370CC388C28EF9EBC9FE22902C726B59",
+            "version_id": 5
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 53759,
+          "s": "t",
+          "tid": 8617038,
+          "ts": 349437675645,
+          "tts": 933666
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/370CC388C28EF9EBC9FE22902C726B59",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 53759,
+          "s": "t",
+          "tid": 8617038,
+          "ts": 349437675818,
+          "tts": 933759
+        }
+      ]
+    },
+    {
+      "name": "regular/not-modified: two requests per script reach validator endpoint",
+      "pass": true,
+      "detail": [
+        {
+          "path": "/worker.js",
+          "generation": 2,
+          "etag": "\"main-fixed\"",
+          "validator": "\"main-fixed\"",
+          "status": 304,
+          "leakedToken": false
+        },
+        {
+          "path": "/worker.js",
+          "generation": 2,
+          "etag": "\"main-fixed\"",
+          "validator": "\"main-fixed\"",
+          "status": 304,
+          "leakedToken": false
+        },
+        {
+          "path": "/dependency.js",
+          "generation": 2,
+          "etag": "\"dependency-2\"",
+          "validator": "\"dependency-2\"",
+          "status": 304,
+          "leakedToken": false
+        },
+        {
+          "path": "/dependency.js",
+          "generation": 2,
+          "etag": "\"dependency-2\"",
+          "validator": "\"dependency-2\"",
+          "status": 304,
+          "leakedToken": false
+        }
+      ]
+    },
+    {
+      "name": "regular/not-modified: unchanged main scripts validate with 304",
+      "pass": true
+    },
+    {
+      "name": "regular: unchanged dependency validates with 304 and preserves versions",
+      "pass": true
+    },
+    {
+      "name": "regular/not-modified: trace payload remains opaque",
+      "pass": true
+    },
+    {
+      "name": "regular/not-modified: missing import identity rejected offline",
+      "pass": true
+    },
+    {
+      "name": "regular: browser exits cleanly",
+      "pass": true
+    },
+    {
+      "name": "private: initial imported dependency runs in both registrations",
+      "pass": true
+    },
+    {
+      "name": "private/import-change: controllers execute the expected imported bytes",
+      "pass": true
+    },
+    {
+      "name": "private/import-change: each registration has independently joined main/import decisions",
+      "pass": true,
+      "detail": [
+        {
+          "args": {
+            "main_script": true,
+            "private": true,
+            "registration_id": 0,
+            "request_token": "blanc-trace-update/D4696370B4F3D99D57A940F8CF62FA76",
+            "version_id": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 53798,
+          "s": "t",
+          "tid": 8617778,
+          "ts": 349444186182,
+          "tts": 998889
+        },
+        {
+          "args": {
+            "main_script": true,
+            "private": true,
+            "registration_id": 1,
+            "request_token": "blanc-trace-update/FB5D11189DEF148BAE9DF19F9B75BFFD",
+            "version_id": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 53798,
+          "s": "t",
+          "tid": 8617778,
+          "ts": 349444186365,
+          "tts": 999014
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/D4696370B4F3D99D57A940F8CF62FA76",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 53798,
+          "s": "t",
+          "tid": 8617778,
+          "ts": 349444187494,
+          "tts": 999399
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/FB5D11189DEF148BAE9DF19F9B75BFFD",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 53798,
+          "s": "t",
+          "tid": 8617778,
+          "ts": 349444187644,
+          "tts": 999547
+        },
+        {
+          "args": {
+            "main_script": false,
+            "private": true,
+            "registration_id": 0,
+            "request_token": "blanc-trace-update/8FEF0D276F5F9317F906B5289FF1B125",
+            "version_id": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 53798,
+          "s": "t",
+          "tid": 8617778,
+          "ts": 349444191304,
+          "tts": 1001238
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/8FEF0D276F5F9317F906B5289FF1B125",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 53798,
+          "s": "t",
+          "tid": 8617778,
+          "ts": 349444192278,
+          "tts": 1002140
+        },
+        {
+          "args": {
+            "main_script": false,
+            "private": true,
+            "registration_id": 1,
+            "request_token": "blanc-trace-update/6CD1DE75D57A15751F348D0E19FB7E55",
+            "version_id": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 53798,
+          "s": "t",
+          "tid": 8617778,
+          "ts": 349444192434,
+          "tts": 1002294
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/6CD1DE75D57A15751F348D0E19FB7E55",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 53798,
+          "s": "t",
+          "tid": 8617778,
+          "ts": 349444192767,
+          "tts": 1002573
+        }
+      ]
+    },
+    {
+      "name": "private/import-change: two requests per script reach validator endpoint",
+      "pass": true,
+      "detail": [
+        {
+          "path": "/worker.js",
+          "generation": 2,
+          "etag": "\"main-fixed\"",
+          "validator": "\"main-fixed\"",
+          "status": 304,
+          "leakedToken": false
+        },
+        {
+          "path": "/worker.js",
+          "generation": 2,
+          "etag": "\"main-fixed\"",
+          "validator": "\"main-fixed\"",
+          "status": 304,
+          "leakedToken": false
+        },
+        {
+          "path": "/dependency.js",
+          "generation": 2,
+          "etag": "\"dependency-2\"",
+          "validator": "\"dependency-1\"",
+          "status": 200,
+          "leakedToken": false
+        },
+        {
+          "path": "/dependency.js",
+          "generation": 2,
+          "etag": "\"dependency-2\"",
+          "validator": "\"dependency-2\"",
+          "status": 304,
+          "leakedToken": false
+        }
+      ]
+    },
+    {
+      "name": "private/import-change: unchanged main scripts validate with 304",
+      "pass": true
+    },
+    {
+      "name": "private: changed import fetched and activates both replacement versions",
+      "pass": true
+    },
+    {
+      "name": "private/import-change: trace payload remains opaque",
+      "pass": true
+    },
+    {
+      "name": "private/import-change: missing import identity rejected offline",
+      "pass": true
+    },
+    {
+      "name": "private/not-modified: controllers execute the expected imported bytes",
+      "pass": true
+    },
+    {
+      "name": "private/not-modified: each registration has independently joined main/import decisions",
+      "pass": true,
+      "detail": [
+        {
+          "args": {
+            "main_script": true,
+            "private": true,
+            "registration_id": 1,
+            "request_token": "blanc-trace-update/170A6BD63D6B2EB6AD42BCD3DFA88A5E",
+            "version_id": 3
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 53798,
+          "s": "t",
+          "tid": 8617778,
+          "ts": 349450288105,
+          "tts": 1422665
+        },
+        {
+          "args": {
+            "main_script": true,
+            "private": true,
+            "registration_id": 0,
+            "request_token": "blanc-trace-update/88B604ED355946AB31AC8B413A0E9984",
+            "version_id": 2
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 53798,
+          "s": "t",
+          "tid": 8617778,
+          "ts": 349450288166,
+          "tts": 1422717
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/170A6BD63D6B2EB6AD42BCD3DFA88A5E",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 53798,
+          "s": "t",
+          "tid": 8617778,
+          "ts": 349450288413,
+          "tts": 1422854
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/88B604ED355946AB31AC8B413A0E9984",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 53798,
+          "s": "t",
+          "tid": 8617778,
+          "ts": 349450288494,
+          "tts": 1422923
+        },
+        {
+          "args": {
+            "main_script": false,
+            "private": true,
+            "registration_id": 1,
+            "request_token": "blanc-trace-update/2ABA739BEBF9F4C152872D0307DEE474",
+            "version_id": 3
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 53798,
+          "s": "t",
+          "tid": 8617778,
+          "ts": 349450290017,
+          "tts": 1423661
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/2ABA739BEBF9F4C152872D0307DEE474",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 53798,
+          "s": "t",
+          "tid": 8617778,
+          "ts": 349450290207,
+          "tts": 1423840
+        },
+        {
+          "args": {
+            "main_script": false,
+            "private": true,
+            "registration_id": 0,
+            "request_token": "blanc-trace-update/29A930AE62A43F6A3D6876462FA5D49B",
+            "version_id": 2
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 53798,
+          "s": "t",
+          "tid": 8617778,
+          "ts": 349450290513,
+          "tts": 1424145
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/29A930AE62A43F6A3D6876462FA5D49B",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 53798,
+          "s": "t",
+          "tid": 8617778,
+          "ts": 349450290664,
+          "tts": 1424248
+        }
+      ]
+    },
+    {
+      "name": "private/not-modified: two requests per script reach validator endpoint",
+      "pass": true,
+      "detail": [
+        {
+          "path": "/worker.js",
+          "generation": 2,
+          "etag": "\"main-fixed\"",
+          "validator": "\"main-fixed\"",
+          "status": 304,
+          "leakedToken": false
+        },
+        {
+          "path": "/worker.js",
+          "generation": 2,
+          "etag": "\"main-fixed\"",
+          "validator": "\"main-fixed\"",
+          "status": 304,
+          "leakedToken": false
+        },
+        {
+          "path": "/dependency.js",
+          "generation": 2,
+          "etag": "\"dependency-2\"",
+          "validator": "\"dependency-2\"",
+          "status": 304,
+          "leakedToken": false
+        },
+        {
+          "path": "/dependency.js",
+          "generation": 2,
+          "etag": "\"dependency-2\"",
+          "validator": "\"dependency-2\"",
+          "status": 304,
+          "leakedToken": false
+        }
+      ]
+    },
+    {
+      "name": "private/not-modified: unchanged main scripts validate with 304",
+      "pass": true
+    },
+    {
+      "name": "private: unchanged dependency validates with 304 and preserves versions",
+      "pass": true
+    },
+    {
+      "name": "private/not-modified: trace payload remains opaque",
+      "pass": true
+    },
+    {
+      "name": "private/not-modified: missing import identity rejected offline",
+      "pass": true
+    },
+    {
+      "name": "private: browser exits cleanly",
+      "pass": true
+    },
+    {
+      "name": "opaque tokens never enter HTTP headers",
+      "pass": true
+    }
+  ],
+  "serverHits": [
+    {
+      "path": "/worker.js",
+      "generation": 1,
+      "etag": "\"main-fixed\"",
+      "validator": null,
+      "status": 200,
+      "leakedToken": false
+    },
+    {
+      "path": "/dependency.js",
+      "generation": 1,
+      "etag": "\"dependency-1\"",
+      "validator": null,
+      "status": 200,
+      "leakedToken": false
+    },
+    {
+      "path": "/worker.js",
+      "generation": 1,
+      "etag": "\"main-fixed\"",
+      "validator": "\"main-fixed\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/dependency.js",
+      "generation": 1,
+      "etag": "\"dependency-1\"",
+      "validator": "\"dependency-1\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/worker.js",
+      "generation": 2,
+      "etag": "\"main-fixed\"",
+      "validator": "\"main-fixed\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/worker.js",
+      "generation": 2,
+      "etag": "\"main-fixed\"",
+      "validator": "\"main-fixed\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/dependency.js",
+      "generation": 2,
+      "etag": "\"dependency-2\"",
+      "validator": "\"dependency-1\"",
+      "status": 200,
+      "leakedToken": false
+    },
+    {
+      "path": "/dependency.js",
+      "generation": 2,
+      "etag": "\"dependency-2\"",
+      "validator": "\"dependency-2\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/worker.js",
+      "generation": 2,
+      "etag": "\"main-fixed\"",
+      "validator": "\"main-fixed\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/worker.js",
+      "generation": 2,
+      "etag": "\"main-fixed\"",
+      "validator": "\"main-fixed\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/dependency.js",
+      "generation": 2,
+      "etag": "\"dependency-2\"",
+      "validator": "\"dependency-2\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/dependency.js",
+      "generation": 2,
+      "etag": "\"dependency-2\"",
+      "validator": "\"dependency-2\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/worker.js",
+      "generation": 1,
+      "etag": "\"main-fixed\"",
+      "validator": null,
+      "status": 200,
+      "leakedToken": false
+    },
+    {
+      "path": "/dependency.js",
+      "generation": 1,
+      "etag": "\"dependency-1\"",
+      "validator": null,
+      "status": 200,
+      "leakedToken": false
+    },
+    {
+      "path": "/worker.js",
+      "generation": 1,
+      "etag": "\"main-fixed\"",
+      "validator": "\"main-fixed\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/dependency.js",
+      "generation": 1,
+      "etag": "\"dependency-1\"",
+      "validator": "\"dependency-1\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/worker.js",
+      "generation": 2,
+      "etag": "\"main-fixed\"",
+      "validator": "\"main-fixed\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/worker.js",
+      "generation": 2,
+      "etag": "\"main-fixed\"",
+      "validator": "\"main-fixed\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/dependency.js",
+      "generation": 2,
+      "etag": "\"dependency-2\"",
+      "validator": "\"dependency-1\"",
+      "status": 200,
+      "leakedToken": false
+    },
+    {
+      "path": "/dependency.js",
+      "generation": 2,
+      "etag": "\"dependency-2\"",
+      "validator": "\"dependency-2\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/worker.js",
+      "generation": 2,
+      "etag": "\"main-fixed\"",
+      "validator": "\"main-fixed\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/worker.js",
+      "generation": 2,
+      "etag": "\"main-fixed\"",
+      "validator": "\"main-fixed\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/dependency.js",
+      "generation": 2,
+      "etag": "\"dependency-2\"",
+      "validator": "\"dependency-2\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/dependency.js",
+      "generation": 2,
+      "etag": "\"dependency-2\"",
+      "validator": "\"dependency-2\"",
+      "status": 304,
+      "leakedToken": false
+    }
+  ]
+}

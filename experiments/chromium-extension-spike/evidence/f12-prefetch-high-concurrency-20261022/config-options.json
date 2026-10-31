@@ -1,0 +1,13 @@
+{
+  "kinds": [
+    "regular",
+    "private"
+  ],
+  "modes": [
+    "shutdown-veto"
+  ],
+  "lastWindow": true,
+  "vetoCount": 2,
+  "consumerCount": 8,
+  "exitRequestsPerPrompt": 4
+}

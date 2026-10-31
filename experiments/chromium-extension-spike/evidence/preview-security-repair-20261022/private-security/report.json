@@ -1,0 +1,130 @@
+{
+  "app": "/private/tmp/blanc-preview-security-final/Blanc Chromium Preview.app",
+  "checks": [
+    {
+      "name": "trusted Island operational",
+      "pass": true
+    },
+    {
+      "name": "raw HTML rejected by Trusted Types",
+      "pass": true
+    },
+    {
+      "name": "Trusted Types applies to Island frames",
+      "pass": true,
+      "details": [
+        {
+          "url": "chrome://blanc-prototype/host.html",
+          "rejected": true,
+          "svg": 0
+        },
+        {
+          "url": "chrome://blanc-prototype/index.html",
+          "rejected": true,
+          "svg": 26
+        },
+        {
+          "url": "chrome://blanc-prototype/overlay.html",
+          "rejected": true,
+          "svg": 23
+        }
+      ]
+    },
+    {
+      "name": "packaged icons still render",
+      "pass": true,
+      "details": [
+        {
+          "url": "chrome://blanc-prototype/host.html",
+          "rejected": true,
+          "svg": 0
+        },
+        {
+          "url": "chrome://blanc-prototype/index.html",
+          "rejected": true,
+          "svg": 26
+        },
+        {
+          "url": "chrome://blanc-prototype/overlay.html",
+          "rejected": true,
+          "svg": 23
+        }
+      ]
+    },
+    {
+      "name": "unapproved policy creation refused",
+      "pass": true
+    },
+    {
+      "name": "HTTP fixture fully loaded",
+      "pass": true
+    },
+    {
+      "name": "web page has no privileged bridge",
+      "pass": true,
+      "details": {
+        "host": "undefined",
+        "send": "undefined",
+        "newtab": "undefined"
+      }
+    },
+    {
+      "name": "web iframe cannot acquire privileged host",
+      "pass": true,
+      "details": {
+        "url": "about:blank",
+        "api": "undefined"
+      }
+    },
+    {
+      "name": "web fetch denied: chrome://blanc-prototype/host.js",
+      "pass": true
+    },
+    {
+      "name": "web fetch denied: chrome://blanc-prototype/../../etc/passwd",
+      "pass": true
+    },
+    {
+      "name": "web fetch denied: file:///etc/passwd",
+      "pass": true
+    },
+    {
+      "name": "vertical rail icons render under Trusted Types",
+      "pass": true,
+      "details": {
+        "url": "chrome://blanc-prototype/index.html",
+        "svg": 28,
+        "rejected": true
+      }
+    },
+    {
+      "name": "boundary probes leave owner tabs intact",
+      "pass": true,
+      "details": [
+        "blanc://newtab/",
+        "http://127.0.0.1:9800/"
+      ]
+    },
+    {
+      "name": "clean exit",
+      "pass": true
+    },
+    {
+      "name": "private request diagnostics absent",
+      "pass": true
+    },
+    {
+      "name": "no rejected packaged markup",
+      "pass": true
+    }
+  ],
+  "trustedTypes": {
+    "enforced": true
+  },
+  "privateFlags": [
+    true,
+    true
+  ],
+  "diagnosticRecords": 1,
+  "complete": true
+}

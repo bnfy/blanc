@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: fresh preparation places one gate inside overrides and is idempotent
+ok 1 - fresh preparation places one gate inside overrides and is idempotent
+  ---
+  duration_ms: 23.352541
+  ...
+# Subtest: migration removes the old outer gate instead of duplicating it
+ok 2 - migration removes the old outer gate instead of duplicating it
+  ---
+  duration_ms: 5.82425
+  ...
+# Subtest: unknown old hook is rejected instead of retaining an extra gate
+ok 3 - unknown old hook is rejected instead of retaining an extra gate
+  ---
+  duration_ms: 2.337792
+  ...
+# Subtest: a changed navigation assembly anchor fails closed
+ok 4 - a changed navigation assembly anchor fails closed
+  ---
+  duration_ms: 4.22375
+  ...
+# Subtest: main-frame replacement derives isolation from existing trusted context
+ok 5 - main-frame replacement derives isolation from existing trusted context
+  ---
+  duration_ms: 4.941958
+  ...
+# Subtest: changed trusted-isolation reset anchor is refused
+ok 6 - changed trusted-isolation reset anchor is refused
+  ---
+  duration_ms: 4.997792
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 89.303083

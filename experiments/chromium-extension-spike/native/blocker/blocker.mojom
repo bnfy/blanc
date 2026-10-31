@@ -6,9 +6,16 @@ import "sandbox/policy/mojom/sandbox.mojom";
 interface Blocker {
   Initialize(string script) => (bool ready);
   Decide(string url, string resource_type, string referrer) => (int32 decision);
+  Cosmetics(string input) => (bool ready, string output);
 };
 // Explicit prototype switch only; the browser binds this to the current document.
 interface DocumentStart {
   [Sync] GetScript(string url) => (bool ready, string code, string token);
   [Sync] Complete(string token) => (bool accepted);
+};
+
+// Bound by the browser to the requesting document. The renderer supplies only
+// bounded DOM hints; URL and ancestor authority remain in the browser.
+interface Cosmetics {
+  [Sync] Get(bool initial, string hints) => (bool ready, string output);
 };

@@ -29,7 +29,7 @@ for(const kind of ['regular','private'])for(const mechanism of ['keepalive','bea
  assert.equal(r.terminalArrivals.length,1);const arrival=r.terminalArrivals[0];
  assert.equal(arrival.url,origin+'/finish-allow');assert.equal(arrival.method,'POST');assert.equal(arrival.bodySha256,r.expectedBodySha256);
  assert(arrival.at>=r.events[close].at);
- assert(!r.arrivals.some(x=>x.url.startsWith(blocked)));
+ assert(!r.arrivals.some(x=>new URL(x.url).origin===new URL(blocked).origin));
  assert(!r.faults.some(x=>['unmanifested','authority-mismatch','responder-failed'].includes(x.code)));
  results.push({label,passed:true,postCloseRedirectDecisions:2,allowedPostBodyPreserved:true,blockedTerminalAbsent:true});
 }

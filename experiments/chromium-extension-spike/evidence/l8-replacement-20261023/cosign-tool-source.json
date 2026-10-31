@@ -1,0 +1,7 @@
+{
+  "tool": "cosign",
+  "version": "v3.1.3",
+  "sha256": "77bbab240111761d50044f37541da0734d964dfe5f092cab6d584663c912372e",
+  "source": "Existing release Mac Homebrew binary /opt/homebrew/bin/cosign; checksum verified after copying into task directory",
+  "globalInstallationChanged": false
+}

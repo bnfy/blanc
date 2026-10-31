@@ -1,0 +1,1 @@
+Blanc build guard: spawnSync /bin/ps EPERM

@@ -844,7 +844,7 @@ the patch budget, and with acceptable per-request latency?
 | Block rate | the **replay corpus** defined below, issued at the browser level through the fork and through Electron Blanc on the same lists | every request decided the same way in both, for blocked *and* allowed traffic; any divergence listed by URL, type and rule |
 | Cosmetic coverage | the corpus's **outcome pages**, checked in both browsers by DOM assertion and capture | parity with Electron on the same pages, CSS and scriptlet outcomes reported separately |
 | Decision latency | see the latency protocol below | **proposed** acceptance bounds, not criterion 3: p99 under 2 ms in-process, under 5 ms over Mojo, on the warm steady-state run; above that, the other engine placement is tried before concluding. The owner may change the bounds at approval |
-| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's amended tranche budget (55 files, 129 hunks); reported either way |
+| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's amended tranche budget (61 files, 150 hunks); reported either way |
 | Private windows | the same hook active in incognito, verified by the fixture | blocked, as Blanc Blocker protects private tabs today |
 
 **Replay corpus — original approved definition.** This definition remains
@@ -1175,8 +1175,10 @@ runtime in Electron; any public claim about the fork; Decision 2 itself.
 
 ## 7. Kill criteria that apply during this tranche
 
-**Patch budget, amended October 21:** **55 upstream files
-and 129 hunks**, counted as follows. A *file* is an existing upstream file
+October 23 L7 repair inventory: **62 upstream files / 162 hunks**, recorded under the owner's standing authorization to update the ceiling without another request. The counter uses 62/162; counting rules, dependency checks, incremental-build guard and latency/Electron restrictions are unchanged. The new generated research-policy header is accounted separately as a copied Blanc module.
+
+**Patch budget, amended October 22 under standing owner authorization:** **61 upstream files
+and 150 hunks**, counted as follows. A *file* is an existing upstream file
 that `prepare.mjs` (or, later, the `patches/` set) modifies; Blanc-owned
 new files do not count; the two icon assets count as files. A *hunk* is one
 `@@` section of a unified diff with zero context lines, produced
@@ -1213,7 +1215,7 @@ and after each spike, and recorded in the ledger. Today's count is **21
 files**; the hunk count is measured at the start of the tranche and
 recorded as the baseline. Each spike reports its own delta.
 
-From plan §5: criterion 2 (the count above exceeds 55 files or 129 hunks and
+From plan §5: criterion 2 (the count above exceeds 61 files or 150 hunks and
 cannot be moved into overrides within one sprint) and criterion 3 (neither
 F12 option blocks at Blanc Blocker's rate on the replay corpus within the
 budget). Either is recorded in the ledger and reported to the owner the day
@@ -2497,3 +2499,348 @@ Primary plan next priority advanced: created `f12-acceptance-status.md` and the 
 ## F12 sender-closure evidence — October21
 
 Recovered authenticated native engine archive (13members verified, current source hash matches). Four regular/private keepalive/beacon schedules pass: eight post-close307 decisions, allowed POST bodies preserved, blocked terminal arrivals absent with explicit block records. Exact sender target destruction precedes redirect release. Scope is pre-enqueued single307 continuation; retries/process shutdown and paired Electron parity remain open. Evidence: evidence/f12-sender-close-20261021/README.md. No builds, latency deferred, Electron diagnostic build pending approval.
+
+## WebSocket budget and consolidation — October 21, 2026
+
+Owner approved58upstreamfiles/133hunks for shared document/worker WebSocket enforcement, then authorized subsequent patch-budget increases without further approval requests, with consolidation later where possible. Record fresh totals and deltas; do not treat this as permission to bypass build guards, change toolchains, run latency, or start the Electron diagnostic build. Historical counts remain evidence of their checkpoints.
+
+## Pending WebSocket lifecycle — October 21, 2026
+
+Ten native regular/private pending teardown/timeout/utility-loss schedules pass with independent server records and opt-in correlated lifecycle observations. No policy repair required. Incremental31.42s/six steps; guard0; fresh56/133. Evidence: evidence/f12-websocket-lifecycle-20261021/. Broader lifecycle/provider and WebTransport/speculation gates remain open. Google baseline separate; latency deferred; Electron diagnostic build unstarted.
+
+### Native WebTransport HTTP/3 enforcement — October 21, 2026
+
+Eight final regular/private controls pass: both endpoints work without the opt-in gate; protected allowed connections complete real HTTP/3 CONNECT plus datagram echo, while two blocked-host attempts receive native filter refusals with no server arrival. Chrome's existing extension rejection is preserved; weak owner/client-disconnect/35-second timeout guard an initiator-origin `other` decision before network creation. Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-enforcement-20261021/. Four WebSocket regression schedules and eleven counter tests pass. One40.71s/eight-step incremental build, finalguard0; fresh56files134hunks, threshold58/134 updated under standing owner authorization. Document runtime scope only; WebTransport workers/pending teardown/timeout/utility-loss/provider composition remain open. Next: those bounded transport controls, then speculation. Google baseline separate; native input pending, latency deferred, Electron diagnostic build pending approval/unstarted. F12/Decision2 remain in progress.
+
+### WebTransport workers and pending lifecycle — October 21, 2026
+
+Twelve bounded regular/private schedules pass: two matrices cover12dedicated/shared/service-worker allow/block controls; ten pending cases cover document/dedicated/shared destruction, real35-second timeout and utility loss. Real HTTP3 CONNECT/datagram controls establish reachability. Initial immediate-abandonment assumption failed and is retained: document destruction later refuses the stale decision; dedicated/shared late allow decisions do not create connections because their connector is destroyed. Do not call these immediate cancellation. Timeout refuses once/ignores late reply and fresh control succeeds; utility loss keeps subsequent requests failed closed, not restart proof. Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-lifecycle-20261021/. No native edits/build; guard0, prior56/134unchanged. Pending service-worker termination/profile/browser/concurrent/provider matrices and speculation remain open; F12/Decision2 in progress. Google baseline separate, native input pending, latency deferred, Electron diagnostic build pending approval/unstarted.
+
+### WebTransport service-worker/profile teardown — October21
+
+Four final schedules pass: regular/private activated service-worker stop, private BrowserContext destruction, and regular owned-browser/profile clean shutdown while service-worker transport decisions are held. Exact native pending IDs, version/context/process observations and real HTTP3 server records show no late handshake; surviving-context controls work. Initial worker target-disappearance assertion timed out and is retained: native stopped-version events prove worker stop even while debugging targets remain. Late worker allow decisions are not network handshakes. Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-teardown-20261021/. No native edit/compile,guard0,unchanged binary verified; prior56/134unchanged. Hot regular-profile deletion, crash/restart/concurrent/provider boundaries remain unqualified. Next request-path priority: speculation initial requests/consumption. Claude primary plan governs; F12/Decision2 stay in progress. Google baseline separate, native input pending, latency deferred, Electron diagnostic build pending approval.
+
+### WebTransport hot deletion/crash checkpoint — October21
+
+IMPORTANT unresolved runtime failure: after native Default profile removal from Local State and its page closure, a held service-worker WebTransport allow decision still reaches the real HTTP3 server (CONNECT+echo) on utility resume. Weak context remains alive. Profile1 survives; clean restart removes Default and fresh transport works, but does not close late-handshake gap. Regular/private browser-SIGKILL/restart controls pass with no pending handshake/replay and fresh success. Final3schedules:2pass1fail, not allpass. Initial premature Preferences assertion and first actual failure retained separately. No repair/build; guard0; unchanged native hashes,prior56/134. Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-profile-crash-20261021/. Next priority: deletion/shutdown admission check at pending completion, then rerun; not merely WeakPtr lifetime. Google baseline separate; F12/Decision2 remain open, native input pending, latency deferred, Electron diagnostic build pending approval.
+
+### WebTransport deletion-admission repair — October21
+
+The reproduced hot-profile gap is repaired: pending completion now refuses when BrowserContext shutdown started or Chromium marked the profile for deletion, even while its weak context remains alive. Same hot-delete fixture explicitly records profile_unavailable=true/result-1 and zero server arrival; survivor/restart plus regular/private crash controls pass. Four prior teardown schedules and eight real HTTP3 baseline/enforcement controls pass on the repaired binary. Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-delete-fix-20261021/. Previous failure remains archived; this supersedes its unresolved status only for the tested boundary. One33.43s/six-step incremental build, finalguard0; only Blanc-owned native source changed, prior56/134unchanged. Concurrent deletion/cancellation/new-request/provider cases remain unqualified. Next request-path priority: speculation initial requests/consumption. Google baseline separate; native input pending, latency deferred, Electron diagnostic build pending approval; F12/Decision2 remain open.
+
+### Concurrent WebTransport/deletion cancellation — October21
+
+Four final regular/private schedules pass eight concurrent document/service-worker requests each:32distinct native batch decisions,16allowed realHTTP3/datagram exchanges,16filterrefusals with no blockedserverarrival. Two schedules cancel native Default-profile deletion at real beforeunload while decisions are held; profile remains registered, requests resolve normally after utility resume, fresh controls succeed. This is pre-commit deletion scheduling cancellation, not reversal of marked deletion. Initial asyncLocalState fixture errors retained separately. Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-concurrent-cancel-20261021/. No nativeedit/build,guard0,unchanged artifacthashes;prior56/134unchanged. Saturation/higherload/repeatedcancellation/multiple-profile/provider matrices remain open. Next request-path priorityspeculationinitialrequests/consumption. Googlebaseline separate; nativeinputpending,latencydeferred,Electron diagnosticbuildpendingapproval; F12/Decision2notaccepted.
+
+### Higher-load WebTransport / repeated deletion cancellation — October 21
+
+Four final schedules / twelve cycles pass with 16 simultaneous allowed document/service-worker requests per cycle: 192 native decisions and real HTTP/3 batch exchanges, six native deletion cancellations across regular/private contexts, and twelve fresh controls. Repeated removal reacquires Chromium's consumed profile-statistics keepalive each time; the earlier fixture assertion is retained. Important limit: 32-request mixed batches never all reached the gate; 16-request mixed batches pass their first cycle but time out on the second admission cycle. Chromium throttle/failed-handshake penalties are a plausible source-supported explanation, not proven causality. Repeated mixed-load admission/cancellation remains open; allowed-only success does not supersede that limit. Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-load-cancel-20261021/. No production edit/build, guard0, native hashes and prior56files/134hunks unchanged. Disposable profiles/keys removed. Next work: isolate throttled admission from gate completion without disabling Chromium safeguards; speculation initial requests/consumption also remains a Decision2 priority. Google baseline separate, native input pending, latency deferred, Electron diagnostic build pending approval/unstarted; F12/Decision2 remain open.
+
+### Mixed WebTransport admission causality — October21
+
+Repeated mixed WebTransport admission investigation: the 10-second all-pending barrier times out under injected utility suspension, not under normal utility execution. Two cycles of16 mixed document/service-worker requests in each regular/private profile pass normally:64 decisions,32allowed HTTP3 CONNECT/echo exchanges,32blocked outcomes with no blocked server arrivals,4fresh controls. Paired held-utility runs pass cycle1 and reproduce cycle2 admission timeout in both contexts. Native verbose logs show300-second failed-handshake penalties and individual admission delays greater than10seconds. Source confirms throttle runs before WillCreateWebTransport/Blanc gate, with per-page document and per-BrowserContext service-worker state. Holding admitted requests prevents successful handshakes from releasing their pending counts while new admission is exponentially delayed. This supersedes the prior merely speculative throttle explanation for these reproduced runs; it is not proof of arbitrary-load progress or all cancellation boundaries.
+
+No production fix or throttle bypass is indicated. Future mixed cancellation fixtures should cancel with an explicitly measured subset admitted and the remainder queued, then release utility and verify every eventual outcome, rather than require all requests pending simultaneously within10seconds. Longer runs, saturation and repeated mixed cancellation remain unqualified. No latency benchmark performed: native timer diagnostics are used solely for timeout causality. No compilation; guard0; native/engine hashes unchanged, prior56files/134hunks unchanged. Disposable profiles and keys removed. Google baseline separate; physical native input pending, latency deferred, Electron diagnostic build pending approval/unstarted; F12/Decision2 remain open.
+
+Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-admission-20261021/.
+
+### Repeated mixed WebTransport cancellation — October21
+
+Two successive mixed cancellation cycles in each regular/private disposable profile pass. Each batch submits16requests (8document/8service-worker,8allow/8block). At the actual native beforeunload prompt, admitted/not-yet-admitted counts are8/8 then4/12 regular and10/6 then3/13 private; captured Chromium throttle diagnostics show queued work. The utility is held only until cancellation, not until every request is admitted. No new server events occur before release. Dismissing each prompt preserves Default registration; utility resume yields64distinct final decisions across four cycles,32real HTTP3 CONNECT/datagram exchanges and32filter refusals with no blocked-host arrival. Four fresh controls pass. Profile-statistics keepalive is reacquired before each deletion attempt.
+
+This qualifies the bounded repeated mixed queued/admitted cancellation case that the prior all-pending barrier could not test. It does not qualify arbitrary load, indefinite starvation, more than two successive mixed cycles, committed deletion reversal, utility loss during cancellation, or all provider/profile combinations. Chromium admission safeguards remain enabled; no production changes or timing thresholds were weakened. The first run also passed but lacked prompt-time snapshots; it is retained locally and not added to final totals. Final report and prompt-time throttle evidence are archived. No native compilation, guard0, unchanged executable/framework/engine provenance and prior56files/134hunks. Disposable profiles and keys removed. Google baseline stays separate. Physical native input pending, latency deferred, Electron diagnostic build pending approval/unstarted. F12/Decision2 remain open; speculation initial requests/consumption remains a request-path priority.
+
+Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-mixed-queued-cancel-20261021/.
+
+### WebTransport utility loss during cancellation — October21
+
+Four bounded regular/private schedules pass: SIGKILL of the verified disposable Blanc Blocker utility either at the native beforeunload prompt or immediately after dismissing it. Each schedule submits16mixed document/service-worker requests; prompt snapshots show admitted/not-yet-admitted counts4/12 and9/7 regular,8/8 and9/7 private, with native throttle queue evidence. Before loss the owned utility is held and no batch server arrival occurs. Cancellation preserves Default registration. All64requests eventually receive distinct native result-1 decisions and client failures, not fixture-deadline failures. Four fresh normally-allowed requests also fail closed. Only the four pre-loss positive controls reach the real HTTP3 server; no batch or fresh post-loss CONNECT arrives. This verifies failure handling, not utility auto-recovery: the engine remains unavailable in the same process.
+
+No production changes or native compilation; guard0 and native/engine hashes unchanged, prior56files/134hunks. Syntax/lint, archived-report validator and evidence hashes pass. Disposable profiles/keys removed; raw logs local under /private/tmp/blanc-wt-cancel-utility-loss-01. Profile/provider matrices, restart recovery after this combined boundary, committed deletion, repeated utility replacements and arbitrary load remain unqualified. Google baseline separate, physical native input pending, latency deferred, Electron diagnostic build pending approval/unstarted. F12/Decision2 remain open; speculation initial requests/consumption remains a request-path priority.
+
+Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-cancel-utility-loss-20261021/.
+
+### WebTransport cancellation / utility-loss restart — October21
+
+Four clean restart schedules pass after WebTransport utility loss and native profile-deletion cancellation: regular/private contexts, loss at beforeunload prompt or immediately after cancellation. The pre-restart boundary again refuses64mixed queued/admitted requests plus4fresh requests with zero post-loss CONNECT. After clean close/relaunch of each same disposable user-data directory, Default remains registered and no private browser context is restored. No unsolicited CONNECT appears in the1.5second restart observation window. In a fresh matching regular/private context, all four allowed controls complete real HTTP3 CONNECT/datagram echoes and four blocked controls receive native result1 without server arrival. This is clean process restart recovery, not in-process utility recovery, crash/powerloss qualification, permanent-profile migration, full session-history fidelity, or indefinite no-replay proof. Previously failed pending requests are not claimed to resume.
+
+No production edit or compilation; guard0 and native/engine hashes unchanged, prior56files/134hunks. Archived validator, syntax/lint, hashes and diff checks pass. Disposable profiles/keys removed; local raw root /private/tmp/blanc-wt-cancel-restart-01. Abrupt crash during this combined boundary, service-worker fresh controls after restart, longer observation and broader provider/profile matrices remain open. Google baseline separate, native input pending, latency deferred, Electron diagnostic build pending approval/unstarted. F12/Decision2 remain open; speculation initial requests/consumption remains a request-path priority.
+
+Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-cancel-restart-20261021/.
+
+### WebTransport cancellation / utility-loss abrupt crash — October21
+
+Four browser-SIGKILL/restart schedules pass after WebTransport utility loss and profile-deletion cancellation: regular/private, utility loss at beforeunload prompt or immediately after cancellation. Each browser PID is verified against its disposable user-data directory and original recorded owner before SIGKILL; browser disconnect is awaited before relaunching the same directory. Crash occurs after all16mixed requests and a fresh request have refused, not while callbacks or cancellation remain unresolved. Across schedules64mixed refusals and4fresh refusals precede crash. Default stays registered; private browser contexts are absent after restart. No unsolicited CONNECT appears during the1.5second observation window. Four fresh allowed requests complete realHTTP3/datagram exchanges; four blocked requests receive native result1 with no blocked server arrival. This qualifies abrupt process death at the settled failure boundary, not powerloss, in-flight crash, session/tab-history fidelity or indefinite no-replay guarantees.
+
+No production edits or native compilation; guard0, unchanged native/engine hashes and prior56files/134hunks. Archived validator, syntax/lint, hash and diff checks pass. Disposable profiles/keys removed; raw local root /private/tmp/blanc-wt-cancel-crash-01. Unresolved-callback/cancellation crash, post-restart service-worker controls and broader matrices remain open. Google baseline separate; physical native input pending, latency deferred, Electron diagnostic build pending approval/unstarted. F12/Decision2 remain open; speculation initial requests/consumption remains a request-path priority.
+
+Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-cancel-crash-20261021/.
+
+### WebTransport unresolved-callback / cancellation crash — October21
+
+Four final regular/private browser-SIGKILL schedules pass with unresolved WebTransport callbacks: crash while the native deletion beforeunload prompt remains open, or just after Cancel. Each submits16mixed document/service-worker requests with the verified utility held. At crash the admitted counts are9/8regular and8/10private; the remainder is not yet admitted and native throttle snapshots show queued work. Zero batch decisions and zero new server events are observed before killing the verified browser owner. The held disposable utility is killed after browser disconnect for cleanup. No claim that requests received refusals: they remain unresolved at process death. After relaunching the same disposable directory, Default remains registered, private contexts are absent, no unsolicited CONNECT appears during1.5seconds, and four fresh allowed HTTP3/datagram controls plus four native-blocked controls pass.
+
+Initial four attempts failed a fixture precondition: newly created profile registration was not yet on disk, so the post-crash Local State info_cache assertion could not run. Those reports remain archived and are not successful recovery cases. Final fixture first proves Default registration persisted before creating requests. This qualifies an already-registered profile, not the fresh-registration crash boundary, powerloss, indefinite no-replay, session/tab-history fidelity, or post-restart service-worker request recovery. No production change/build; guard0, unchanged native/engine hashes and prior56files/134hunks. Syntax/lint, archived validator, hashes and diff checks pass. All disposable profiles/keys removed; raw roots /private/tmp/blanc-wt-pending-crash-01 and -02. Google baseline separate; native input pending, latency deferred, Electron diagnostic build pending approval/unstarted. F12/Decision2 remain open; speculation initial requests/consumption remains a request-path priority.
+
+Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-pending-crash-20261021/.
+
+### Fresh-profile registration crash recovery — October 21
+
+Four final fresh-profile crash/restart schedules pass: regular/private contexts, crash with native deletion beforeunload open or just after Cancel, and mixed WebTransport callbacks unresolved. Each fixture explicitly proves Default is absent from Local State info_cache both before requests and immediately after the verified browser SIGKILL. Restarting the same disposable user-data directory reconstructs and persists Default registration. The existing regular service-worker registration survives (one scope); fresh private contexts have zero registrations and no private context is restored. Four allowed HTTP/3/datagram controls and four native blocked controls pass after restart, with no unsolicited CONNECT in the 1.5-second observation window. The earlier missing-info_cache assertion was not proof of an unrecoverable profile: this test proceeds through restart instead of requiring registration to have persisted before the crash.
+
+Scope remains bounded: Default directory reconstruction with an independent Profile 1 present, one retained regular service-worker registration, no claim of complete preferences, tabs/history, arbitrary named profiles, power loss, indefinite no replay, or fresh service-worker transport execution after restart. A preliminary four-case run without the registration-retention check passed and remains local; it is not added to final totals. No production edits or compilation; guard zero, native/engine hashes unchanged, prior 56 files/134 hunks unchanged. Validator, syntax/lint, evidence hashes and diff checks pass. Disposable profiles and keys removed; raw roots /private/tmp/blanc-wt-registration-crash-01 and -02. Google baseline separate; native input pending, latency deferred, Electron diagnostic build pending approval/unstarted. F12/Decision 2 remain open; speculation initial requests/consumption remains a request-path priority.
+
+Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-registration-crash-20261021/.
+
+### Post-restart service-worker WebTransport — October 21
+
+Four crash/restart schedules pass with post-restart service-worker WebTransport execution: regular/private, crashing during the native deletion prompt or just after Cancel with unresolved mixed requests and Default not yet registered on disk. Existing regular service-worker registrations survive and are used without re-registering; private contexts have no retained registrations and explicitly create fresh private workers. All four service-worker allowed controls complete real HTTP/3 CONNECT/datagram echoes; four blocked controls receive native result1 and no blocked-host server arrival. Native records confirm frame-less-worker ownership, initiator-origin source contract and correct private flags. The existing four document allow/block controls also pass. Default registration reconstruction, private-context exclusion and the bounded 1.5-second no-replay observation remain successful.
+
+No production edits or compilation; guard zero, unchanged native/engine hashes and prior 56 files/134 hunks. Validator, syntax/lint, evidence hashes and diff checks pass. Disposable profiles/keys removed; raw root /private/tmp/blanc-wt-restart-service-01. This is fresh worker request execution after restart, not resumption of interrupted connections, private persistence, arbitrary-load/repeated-restart qualification or indefinite no-replay proof. Broader provider/profile and lifecycle matrices remain open. Google baseline separate; native input pending, latency deferred, Electron diagnostic build pending approval/unstarted. F12/Decision 2 remain open; speculation initial requests/consumption remains a request-path priority.
+
+Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-restart-service-20261021/.
+
+### Repeated-restart service-worker WebTransport — October 21
+
+Four regular/private cancellation-boundary sequences pass three post-restart service-worker allow/block pairs each: initial browser-SIGKILL recovery followed by two clean close/relaunch cycles in the same disposable user-data directory. Across twelve restart checks, workers complete twelve real HTTP/3 CONNECT/datagram echoes and receive twelve native blocked decisions with no blocked-host arrivals. Regular registrations remain available without re-registering; private registrations and contexts are absent after every restart, and private workers are explicitly re-created. Each restart includes a bounded 1.5-second no-unsolicited-CONNECT observation. Native records confirm worker ownership and correct private flags. Initial document allow/block controls also pass.
+
+This qualifies repeated clean restarts after one crash, not three consecutive crashes, connection resumption, indefinite no replay, arbitrary repetition/load or broader provider/profile matrices. No production edit or compilation; guard zero, unchanged native/engine hashes and prior 56 files/134 hunks. Validator, syntax/lint, evidence hashes and diff checks pass. Disposable profiles and keys removed; raw root /private/tmp/blanc-wt-repeated-service-01. Google baseline separate; physical native input pending, latency deferred, Electron diagnostic build pending approval/unstarted. F12/Decision 2 remain open; speculation initial requests/consumption remains a request-path priority.
+
+Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-repeated-service-20261021/.
+
+### Consecutive-crash service-worker WebTransport — October 21
+
+Four regular/private sequences pass three consecutive verified browser-SIGKILL/restart cycles in each disposable profile. The first crash interrupts unresolved WebTransport and native deletion prompt/Cancel boundaries; the two later crashes occur after completed worker allow/block pairs, with no intervening clean shutdown. All twelve post-restart worker pairs pass: twelve real HTTP/3 CONNECT/datagram echoes and twelve native blocks without blocked-host server arrival. Regular registrations survive without re-registration; private registrations and contexts remain absent after every restart and fresh private workers are created. Native records prove worker ownership and private flags. Every restart includes a bounded 1.5-second no-unsolicited-CONNECT observation. Original document controls also pass.
+
+This qualifies three consecutive process crashes per tested profile, not three in-flight callback crashes, power loss, interrupted-connection resumption, indefinite replay exclusion, arbitrary repetition/load or all profile/provider combinations. No production edits or compilation; guard zero, native/engine hashes unchanged, prior 56 files/134 hunks unchanged. Validator, syntax/lint, hashes and diff checks pass. Disposable profiles/keys removed; raw root /private/tmp/blanc-wt-consecutive-crash-service-01. Google baseline separate; physical native input pending, latency deferred, Electron diagnostic build pending approval/unstarted. F12/Decision 2 remain open; speculation initial requests/consumption remains a request-path priority.
+
+Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-consecutive-crash-service-20261021/.
+
+### Consecutive pending service-worker crashes — October 21
+
+Four regular/private sequences pass three consecutive browser-SIGKILL/restart cycles with pending work. The first interrupts the existing mixed document/service-worker cancellation boundary. Each of the next two submits eight service-worker requests, holds the verified utility, proves three admitted native pending IDs with five not yet admitted, zero native decisions, zero client callbacks and zero new server events, then kills the verified disposable browser. The held utility is killed after disconnect for cleanup. Thus eight additional crashes interrupt service-worker-only batches, not completed requests. All twelve post-restart worker pairs pass: twelve real HTTP/3/datagram allowed exchanges and twelve native blocks without blocked-host arrivals. Regular registrations persist; private contexts/registrations remain excluded and private workers are explicitly recreated. Each restart includes a bounded 1.5-second no-unsolicited-CONNECT observation.
+
+This is bounded consecutive pending-work process-crash recovery, not request resumption, power loss, indefinite no replay, arbitrary load/repetition, or all provider/profile combinations. No production edits or compilation; guard zero, unchanged native/engine hashes, prior 56 files/134 hunks unchanged. Validator, syntax/lint, evidence hashes and diff checks pass. Disposable profiles/keys removed; raw root /private/tmp/blanc-wt-repeated-pending-service-01. Google baseline separate; physical native input pending, latency deferred, Electron diagnostic build pending approval/unstarted. F12/Decision 2 remain open; speculation initial requests/consumption remains a request-path priority.
+
+Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-repeated-pending-service-20261021/.
+
+### October 21: ordinary prefetch initial-request diagnostic
+
+Two regular/private schedules confirm four real speculative requests reach the
+native engine before navigation. All four receive explicit mainFrame allow,
+including the candidate tracker host; this is not a blocking pass. Same-origin
+navigation makes no additional server request, but dedicated prefetch consumption
+versus HTTP cache reuse is unqualified. Refusal control and consumption attribution
+remain the next priority. Evidence: `evidence/f12-prefetch-initial-20261021/README.md`.
+No native code/build change; prior 56 files/134 hunks unchanged. Google baseline
+separate; latency deferred; native input and Electron diagnostic build pending.
+
+### October 21: prefetch consumption and fail-closed refusal
+
+Four regular/private schedules pass. Dedicated same-origin prefetch serving is
+confirmed by fromPrefetchCache=true, fromDiskCache=false and PrefetchResponseUsed;
+no second server request. Utility loss before speculation causes explicit native
+engine-error refusals for both initial prefetch and navigation, with no arrival.
+The pinned engine explicitly allows mainFrame requests; filter-match refusal is
+not claimed. This resolves the earlier same-origin consumption ambiguity, while
+post-prefetch utility loss/policy change, cross-origin serving, redirects,
+pre-prefetch, prerender and uBO remain open. F12/Decision 2 remain in progress.
+Evidence: `evidence/f12-prefetch-consumption-20261021/README.md`.
+No native compile, guard zero, prior56/134 unchanged. Google baseline separate;
+latency deferred; native input and Electron diagnostic build pending.
+
+### October 21: utility loss between ready prefetch and consumption
+
+Two regular/private diagnostics show previously allowed ready prefetch consumed
+after utility loss without a fresh native decision. Fresh control requests are
+explicitly refused before navigation; consumption uses prefetch cache with no
+new server arrival. This is not consumption-time fail-closed acceptance, nor a
+new network leak. No repair; invalidation/revalidation policy remains open before
+claiming that coverage. F12/Decision 2 stay open. Evidence: `evidence/f12-prefetch-postready-loss-20261021/README.md`.
+No build; guard zero; prior56/134 unchanged. Google baseline separate, latency
+deferred, native input and Electron diagnostic build pending.
+
+### October 21: prefetch consumption after utility loss repaired
+
+The opt-in Blanc navigation response throttle revalidates HTTP(S) responses
+before commit, including prefetch, with a weak callback and35s timeout. Two
+regular/private post-ready utility-loss schedules now cancel before document
+commit; four healthy-consumption/earlier-loss regressions also pass. This
+supersedes the prior bounded post-ready-loss failure. uBO is excluded. New
+throttle timeout/teardown, subframes, redirects, BFCache/prerender and broader
+policy changes remain unqualified; F12/Decision2 remain open. Extra response
+round-trip latency is unmeasured and deferred. Evidence: `evidence/f12-prefetch-response-repair-20261021/README.md`.
+Incremental43.79s/8steps after retained include error; guard0. Fresh56files/135hunks;
+ceiling58/135 recorded under standing authorization, consolidation later. Eleven
+counter tests and scoped checks pass. Google baseline separate; permanent tabs
+untouched; native input and Electron diagnostic build pending.
+
+### October 21: prefetch response timeout and tab teardown
+
+Four regular/private schedules pass: paused utility forces native35s response
+timeout with refusal, or consuming tab closes while response is pending. After
+resumption no late commit/duplicate completion occurs in the bounded observation;
+fresh navigation succeeds. CDP PrefetchResponseUsed, unresolved source navigation,
+native decisions and server arrivals establish the tested phases. No production
+change; guard0; prior56/135 unchanged. Profile destruction, shutdown, subframes,
+redirects and broader lifecycle remain open. Evidence: `evidence/f12-prefetch-response-lifecycle-20261021/README.md`.
+Google baseline separate; latency deferred; native input and Electron diagnostic
+build pending. F12/Decision2 remain in progress.
+
+### October 21: pending prefetch profile deletion and shutdown
+
+Four regular/private schedules pass. Actual Default profile deletion closes the
+pending consuming page, preserves the independent profile, and stays absent after
+restart. Clean browser shutdown while the utility is held cancels pending
+navigation and restarts usable. No late response completion or second server
+arrival in the bounded observation. Cancellation/veto, crash/powerloss, concurrent
+navigations and broader lifecycle remain open; no session-restoration claim.
+Evidence: `evidence/f12-prefetch-profile-shutdown-20261021/README.md`.
+No production change/build, guard0, prior56/135 unchanged. Google baseline
+separate; latency deferred; native input and Electron diagnostic build pending.
+
+### October 21: pending-prefetch cancellation/veto still unqualified
+
+Three four-schedule fixture attempts retained; zero acceptance passes. Initial
+Browser.close bypasses unload handlers and was replaced by chrome://quit. Final
+delete-cancel captures native prompts and retains profiles, but only after the
+pending response timed out (settled=true/error document at prompt). Shutdown-veto
+prompt capture still times out. These do not establish a production cancellation
+bug or pending-response recovery. Next priority is reliable prompt activation/
+sequencing before timeout, without widening deadlines. Evidence: `evidence/f12-prefetch-cancellation-veto-20261021/README.md`.
+No native change/build; guard0; prior56/135 unchanged. Profiles cleaned, Google
+baseline separate; latency deferred; native input and Electron build pending.
+
+### October 21: pending-prefetch cancellation/veto sequencing repaired
+
+Four final regular/private schedules pass: profile-deletion cancellation and native Exit veto while cached prefetch consumption awaits a blocker response. The guard is armed in Default before the independent profile is opened and before the utility stall. Nonblocking trigger dispatch captures the actual beforeunload prompt with the original navigation still unsettled on its source URL. Cancellation retains Default; utility resume permits the original navigation with a native response allow, one prefetched server arrival, and a successful fresh navigation. Earlier failed setup/trigger attempts are retained separately, not counted as passes.
+
+Shutdown uses an archived temporary flag-gated IDC_EXIT command; CDP Browser.close bypasses unload handlers. The diagnostic is removed byte-for-byte and the normal binary restored. The final matrix includes an independent Profile 1 window, so last-window veto and physical native input remain unqualified. Two incremental builds (35.25/35.26 seconds); production blocker unchanged and prior56files/135hunks unchanged. Google baseline separate; latency deferred and Electron build pending approval/unstarted. F12/Decision2 remain open. Evidence: `evidence/f12-prefetch-veto-sequencing-fix-20261021/README.md`.
+
+### October 22: last-window pending-prefetch shutdown veto
+
+One regular-context schedule passes after closing the independent Profile 1 window and proving exactly one Island host and one native browser window across all remaining non-host page targets. Native Exit produces beforeunload while original prefetched consumption is unsettled; dismissal retains Default and the source, utility resume permits that navigation with an explicit response allow and one prefetch server arrival, and a fresh navigation succeeds. Initial embedded-target window-probe error retained separately. Temporary Exit diagnostic removed byte-for-byte and normal binary restored incrementally; no production changes, prior56files/135hunks unchanged. Private-only last-window, physical input, crash/powerloss and concurrent veto remain open. Google baseline separate; latency deferred, Electron build pending approval/unstarted. F12/Decision2 remain open. Evidence: `evidence/f12-prefetch-last-window-veto-20261022/README.md`.
+
+### October 22: private-only last-window pending-prefetch veto
+
+One private-only last-window schedule passes: the guard and consumer share one private context; all regular content tabs and the independent profile window are closed, with one Island host and one native window proven before Exit. Beforeunload arrives while the original consumption is unsettled. Cancellation retains the window; resuming the utility produces a private response allow, original consumption with one prefetch server arrival, and successful fresh private navigation. Two retained setup failures attempted to close an embedded Island host as a tab; the fixture now excludes hosts from tab closure and verifies their count independently. Temporary Exit diagnostic removed byte-for-byte and normal binary restored incrementally; no production changes, prior56files/135hunks unchanged. Physical input, abrupt crash/powerloss, repeated veto and concurrent cancellation remain open. Google baseline separate, latency deferred, Electron build pending approval/unstarted. F12/Decision2 remain open. Evidence: `evidence/f12-prefetch-private-last-window-20261022/README.md`.
+
+### October 22: repeated shutdown veto — partial evidence, readiness boundary open
+
+Final repeated test completes two regular cycles and one private-only cycle, each with two native Exit vetoes while original prefetch consumption is pending. Six prompts cancel successfully; all three completed cycles recover original consumption with native allow/one server arrival and fresh navigation. Full three-cycle schedules do NOT pass: regular cycle3/private cycle2 stop before prefetch readiness, with no preload events. Earlier attempts and a no-veto regular control also fail second-cycle readiness; cancellation is not proven causal. Rearming observation and distinct source URLs do not reliably resolve it. Next work is readiness/eligibility/fixture diagnosis, not claiming a shutdown-recovery failure. Temporary native diagnostic removed, normal binary restored incrementally, production unchanged/prior56files135hunks. Google baseline separate; latency deferred and Electron build pending. Full repeated acceptance, physical input and F12/Decision2 remain open. Evidence: `evidence/f12-prefetch-repeated-veto-20261022/README.md`.
+
+### October 22: repeated-prefetch readiness reconciled
+
+Native diagnostic evidence shows the selected source was still HIDDEN when a later-cycle candidate was submitted, despite document.visibilityState=visible; it became natively visible by timeout without prefetch starting. Rule parsing/candidate registration succeeded. Chromium CanPrefetchNow requires native VISIBLE. Fixture now closes helper windows first and waits for actual source active/primary-active/VISIBLE before submission, without changing the15second readiness deadline or forcing eligibility. Three no-veto cycles pass, then final three regular+three private-only cycles pass two native shutdown vetoes each (12prompts/6original-consumption recoveries), native allow/one prefetch arrival/fresh navigation each. Earlier failures and private host lookup correction retained. This supersedes the prior incomplete repeated-cycle row within bounded fixture scope; general native visibility behavior, physical input, concurrent cancellation/crash/powerloss remain open. Temporary diagnostics removed byte-for-byte; normal binary restored incrementally, production unchanged/prior56files135hunks. Google baseline separate; latency deferred, Electron build pending approval/unstarted; F12/Decision2 open. Evidence: `evidence/f12-prefetch-readiness-reconciliation-20261022/README.md`.
+
+### October 22: concurrent pending-prefetch shutdown veto
+
+Regular and private-only last-window schedules pass with two pending prefetched consumptions each. Two rounds issue a native Exit and an acknowledged duplicate while beforeunload is open; duplicate requests coalesce into the existing prompt in the bounded check. Across schedules8native acknowledgements/4dismissed prompts preserve all4pending navigations; utility resume yields4original consumption recoveries, native allow/private ownership, one serverprefetcharrival perURL, and fresh navigation. Temporary native probes removed byte-for-byte, normal binary restored incrementally, production unchanged/prior56files135hunks. Higher concurrency/cross-profile overlap/physical input/crash/powerloss remain open. Google baseline separate; latency deferred, Electron build pending approval/unstarted; F12/Decision2 open. Evidence: `evidence/f12-prefetch-concurrent-veto-20261022/README.md`.
+
+### October 22: higher-concurrency prefetch shutdown veto
+
+Regular and private-only last-window schedules each pass eight pending prefetched consumptions and two veto rounds with four acknowledged overlapping native Exit requests per prompt. Across schedules16acknowledgements coalesce into4prompts; all16original consumptions recover with native allow/private ownership and one serverprefetcharrival perURL; fresh navigation also passes. Temporary probes removed byte-for-byte and normal binary restored incrementally; production unchanged/prior56files135hunks. This is a bounded eight-consumer check, not maximum capacity or cross-profile simultaneous qualification. Repeated bursts/physical input/crash/powerloss remain open. Google baseline separate; latency deferred and Electron build pending approval/unstarted; F12/Decision2 open. Evidence: `evidence/f12-prefetch-high-concurrency-20261022/README.md`.
+
+### October 22: repeated high-concurrency shutdown veto
+
+Three consecutive eight-consumer cycles pass in each regular and private-only last-window schedule. Across six cycles, 48 acknowledged native Exit requests coalesce into 12 actual beforeunload prompts; all 48 original prefetched consumptions remain pending through cancellation and recover after utility resume. Every URL has native allow with the expected private flag and exactly one server prefetch arrival; fresh navigation passes each cycle. Extra consumers close between cycles, dialog listeners detach, and new cycle URLs prevent cache ambiguity. No readiness timeout or runtime failure occurred in this run.
+
+Temporary native visibility/Exit probes are removed byte-for-byte and the normal binary restored incrementally with final guard zero. Production code and prior upstream footprint of 56 files/135 hunks are unchanged. This qualifies three repeated cycles at eight consumers per window, not maximum capacity, indefinite repetition, simultaneous cross-profile shutdown, physical native input, crash or power-loss recovery. Google baseline remains separate; disposable profiles and certificate keys removed; permanent profiles untouched. Latency deferred; Electron diagnostic build pending approval and unstarted. F12/Decision 2 remains open.
+
+Evidence: `evidence/f12-prefetch-repeated-high-concurrency-20261022/README.md`.
+
+### October 22: cross-profile shutdown veto and prefetch recovery
+
+> Evidence correction (October 22): Default guard ownership was not verified in this fixture. Its cross-profile guard-placement claim is withdrawn; see the corrected higher-concurrency cross-profile evidence below.
+
+Two regular-profile schedules pass with concurrent pending prefetch consumptions in distinct Default and Profile 1 windows. The beforeunload guard belongs to Default in one schedule and Profile 1 in the other. Each schedule performs two cancellation rounds, with a second acknowledged native Exit request while each prompt is open. Across both schedules, eight acknowledged Exit requests coalesce into four prompts; both consumers remain pending through each cancellation. Utility resume recovers all four original consumptions with native allow, private=false, exactly one server prefetch arrival per URL and fresh navigation in both profiles. The fixture verifies distinct native windows, associates each source with its Island host, and waits for both profile Preferences files. The runtime has one shared owned blocker utility, held only after both candidates reach Ready.
+
+The first attempt stopped before candidate submission because the second Island bridge was not ready; its report is retained separately and is not an acceptance pass. A bounded bridge-readiness wait fixes fixture sequencing without changing production behavior or response deadlines. Temporary visibility/Exit probes are removed byte-for-byte; the normal binary is restored incrementally with final guard zero. Prior upstream footprint remains 56 files/135 hunks. This is two regular profiles with one consumer each, not cross-profile private contexts, simultaneous guards, higher cross-profile load, repeated cycles, physical native input, crash or power-loss qualification. Google baseline remains separate; disposable profiles/keys removed and permanent profiles untouched. Latency deferred; Electron diagnostic build pending approval/unstarted. F12/Decision 2 remains open.
+
+Evidence: `evidence/f12-prefetch-cross-profile-veto-20261022/README.md`.
+
+### October 22: concurrently armed cross-profile shutdown guards
+
+> Evidence correction (October 22): Default guard ownership was not verified in this fixture. Its cross-profile guard-placement claim is withdrawn; see the corrected higher-concurrency cross-profile evidence below.
+
+Two schedules pass with beforeunload guards armed concurrently in Default and Profile 1, each retaining one pending prefetch consumption. Both schedules repeat twice: one cancels the first prompt; the other accepts the first profile prompt and cancels the second. Chromium presents prompts sequentially. A second acknowledged Exit from the other profile while the first prompt is open coalesces within a bounded 200 ms observation. Across both schedules there are eight Exit acknowledgements, six actual prompts, four cancellation rounds and four original consumption recoveries. Both windows and guard pages survive cancellation, including the initially accepted profile, and every consumer remains unsettled with no response decision until utility resume. Native allow/private=false, exactly one server prefetch arrival per URL and fresh navigation in both profiles pass. No runtime failure occurred in this run.
+
+Temporary native visibility/Exit probes are removed byte-for-byte and the normal binary restored incrementally, with final guard zero. Production code and prior upstream footprint of 56 files/135 hunks are unchanged. This qualifies two regular profiles, one consumer per profile and two rounds per choice; private cross-profile guards, higher cross-profile load, arbitrary repetition, physical native input, crash and power-loss remain unqualified. Google baseline remains separate; disposable profiles and keys removed, permanent profiles untouched. Latency deferred; Electron diagnostic build pending approval and unstarted. F12/Decision 2 remains open.
+
+Evidence: `evidence/f12-prefetch-cross-profile-guards-20261022/README.md`.
+
+### October 22: higher-concurrency cross-profile guards and ownership correction
+
+Two corrected schedules pass with eight pending prefetched consumptions per regular profile (16 concurrently), and beforeunload guards concurrently armed in Default and Profile 1. Each schedule repeats two cancellation rounds: cancel the first prompt, or accept the first and cancel the second profile prompt. Native Island host assertions prove guard and consumer ownership before candidate submission, and all eight consumers per profile share their intended window, distinct from the other profile. Across schedules, eight acknowledged Exit requests, six sequential prompts and 32 original consumption recoveries pass. Every consumer remains pending through prompts/cancellation, then receives native allow/private=false and exactly one server prefetch arrival after the shared owned utility resumes; fresh navigation passes for every consumer.
+
+The initial attempt exposed a fixture error: context.newPage() after Profile 1 opened put the intended Default extra tab in Profile 1's active window. The prior fixtures also created the purported Default guard after Profile 1 opened without verifying native ownership. Therefore the guard-placement claims in 3418dfa2 and c9703316 are withdrawn; their raw observations remain historical, not proof of guards in both profiles. The corrected fixture creates the Default guard before Profile 1, launches additional tabs with explicit profile-directory, and asserts each guard and consumer against its native Island host. Initial failure report/fixture retained separately; corrected final run passes. No production defect or production repair is claimed.
+
+Temporary probes removed byte-for-byte; normal binary restored incrementally with final guard zero. Prior upstream footprint remains 56 files/135 hunks. This qualifies eight consumers per regular profile and two rounds per choice, not maximum capacity, private cross-profile guards, arbitrary repeated bursts, physical input, crash or power-loss recovery. Google baseline separate; disposable profiles/keys removed and permanent profiles untouched. Latency deferred; Electron diagnostic build pending approval/unstarted. F12/Decision 2 remains open.
+
+Evidence: `evidence/f12-prefetch-cross-profile-high-guards-20261022/README.md`.
+
+### October 22: repeated high-concurrency cross-profile shutdown guards
+
+Six repeated high-concurrency cycles pass: three cancel-first cycles and three accept-first/cancel-second cycles, reusing the same two regular-profile windows, guard hosts and sixteen consumer tabs within each schedule. Every cycle rechecks native guard/consumer ownership and source visibility, uses distinct source/consumption URLs, arms both guards, and holds the owned blocker utility only after all sixteen candidates reach Ready. Two cancellation rounds per cycle produce 24 acknowledged Exit requests and 18 sequential prompts overall. All 96 original consumptions stay pending through cancellation and recover after utility resume with native allow/private=false and exactly one server prefetch arrival per URL; fresh navigation passes for each consumer. CDP sessions and dialog listeners detach between cycles. No runtime failure or readiness timeout occurred in this run.
+
+These checks retain the explicit ownership correction from 38160ddc; they do not reinstate the withdrawn guard-placement claims in 3418dfa2/c9703316. The validator verifies identical target IDs and guard hosts across cycles as well as 48 distinct consumed URLs per schedule. Temporary native probes removed byte-for-byte; normal binary restored incrementally with final guard zero. Production unchanged, prior upstream footprint 56 files/135 hunks. This is three cycles per choice at eight consumers per regular profile, not arbitrary duration/capacity, private cross-profile guards, physical native input, crash or power-loss qualification. Google baseline remains separate; disposable profiles/keys removed, permanent profiles untouched. Latency deferred; Electron diagnostic build pending approval/unstarted. F12/Decision 2 remains open.
+
+Evidence: `evidence/f12-prefetch-cross-profile-repeated-high-guards-20261022/README.md`.
+
+### October 22: private cross-profile shutdown veto and prefetch recovery
+
+Two private cross-profile schedules pass with native beforeunload guards armed in private windows belonging to Default and Profile 1. Temporary native probes assert IsOffTheRecord and original-profile basename for every guard and consumer, with distinct Island hosts and native windows. Each profile has one pending prefetched consumption. Both choices repeat twice: cancel the first prompt, or accept it and cancel the other profile's prompt. Eight acknowledged Exit requests coalesce into six sequential prompts; all four original consumptions remain pending through cancellation and recover after the owned utility resumes. Native response decisions retain private=true, each URL has exactly one server prefetch arrival, and fresh navigation passes in both private windows. No runtime failure occurred.
+
+The initial regular Default anchor remains open; this is not private-only last-window shutdown qualification. The probes add private/original-profile fields only under the temporary fixture flag, are archived in this evidence directory, and are removed byte-for-byte afterward. Normal binary restored incrementally, final guard zero; production unchanged and prior upstream footprint remains 56 files/135 hunks. Higher private cross-profile load, repeated cycles, persistence exclusion/cache isolation, physical native input, crash and power-loss remain unqualified. Google baseline separate; disposable profiles/keys removed and permanent profiles untouched. Latency deferred; Electron diagnostic build pending approval/unstarted. F12/Decision 2 remains open.
+
+Evidence: `evidence/f12-prefetch-private-cross-profile-20261022/README.md`.
+
+### October 22: private-only cross-profile shutdown veto
+
+Both private-only cross-profile shutdown-veto schedules pass after closing the disposable regular about:blank anchor. Native and CDP inventories require exactly two Island hosts, four content tabs and two native windows; every native tab is off the record, with distinct original profiles Default and Profile 1. Both guards are armed. The cancel-first and accept-first/cancel-second choices each repeat twice, producing eight acknowledged Exit requests and six sequential prompts. Both original consumptions remain pending through cancellation, including the initially accepted profile, and all four recover after utility resume with native allow/private=true and exactly one server prefetch arrival per URL. Fresh private navigation passes. The final inventory retains the same two private window IDs and no regular window. No runtime failure occurred.
+
+This closes the regular-anchor limitation for this two-private-window cancellation case. It is not completed-shutdown, private persistence/exclusion, cache-isolation, higher-load, arbitrary repeated-cycle, physical native input, crash or power-loss qualification. Temporary native probes from the prior private cross-profile evidence are removed byte-for-byte; normal binary restored incrementally, final guard zero. Production code and prior upstream footprint 56 files/135 hunks unchanged. Google baseline separate; disposable profiles/keys removed and permanent profiles untouched. Latency deferred; Electron diagnostic build pending approval/unstarted. F12/Decision 2 remains open.
+
+Evidence: `evidence/f12-prefetch-private-only-cross-profile-20261022/README.md`.
+
+October 22 restored-renderer repair: standing owner authorization permits recording 62 upstream files / 153 zero-context hunks (previous61/150). Added narrow legacy pending-GET PageState normalization and excluded uncommitted PageState at save. Consolidation remains planned; no cold build, latency or Electron build authorized.
+
+October22 pending-read repair: standing owner authorization records62upstreamfiles/156zero-contexthunks (prior62/153); descriptor validation adds3hunks in the already-patched session backend. Consolidation remains planned. Incremental builds only; latency/Electron pending.
+
+October23 Split View owner-input repair: standing owner authorization records62 upstream files/163 zero-context hunks. One new hunk in the already-patched multi_contents_view.cc removes duplicate framing for persistent Island splits; the native pane input observer is in the existing Blanc module. Incremental builds only; consolidation later; latency/Electron pending.
+
+October23 native pointer correction: owner retest disproved the page-observer workaround; it is removed. AppKit must honor Views hit testing for overlapping native WebViews. The six production bridge files and two existing test doubles bring the measured footprint to70 upstream files/173 hunks under standing owner authorization. No IPC or permission surface was added. App-shim remote views retain their existing fallback; native owner acceptance remains pending. Builds stay incremental; latency/Electron remain pending.
+
+October23 current-shipping visual parity: replace full-width headers with 1.42.1 card frames/corner tabs and measured bounded corner hit regions. No additional upstream paths/hunks: current inventory70/173. Existing geometry message accepts optional two clamped widths only in the trusted Island; no new message or untrusted-page API. Standing consolidation authorization remains in force. Incremental builds only; no Electron diagnostic build or latency run.
+
+October23 normal-startup recovery: the owner restart check exposed that scripted restore flags masked Chromium's New Tab default. Add one scoped registered-default branch in `chrome/browser/prefs/session_startup_pref.cc`: Blanc continues its last session, with explicit user/managed startup choices still authoritative and ordinary Chromium unaffected. Fresh footprint71upstreamfiles/175hunks (+1file/+2hunks), under the owner's standing October21 budget/consolidation authorization. No build-setting or toolchain changes; incremental35.06s/sixsteps. Final signed/native acceptance remains required.
+
+The first fresh-profile control exposed a restore-before-any-session path when `--no-first-run` is supplied. Keep the default for later launches, but extend the existing first-run fallback to new Blanc profiles even under that control switch. Explicit user/managed choices remain untouched. Adds one hunk in a second newly patched upstream path, startup_browser_creator.cc: measured72files/176hunks under the same standing authorization. The failed preflight is retained and is not a passing recovery result.
+
+## October23 startup restoration scheduling repair
+
+The macOS Blanc startup restore now runs as a non-nestable main-thread task after the startup stack unwinds. The task owns value inputs, process/profile keep-alives and a weak profile reference; it does not retain the stack-owned creator. Existing restoration, empty/error fallback, shared-group/update notices, explicit preferences, private handling and Quit behavior remain in the native path. This removes the pre-main-loop restoration entry seen in the retained stall stack. Fresh inventory72files/178hunks under the owner's standing patch-consolidation authorization; final signed recovery qualification remains pending. Temporary diagnostic markers were removed byte-for-byte from both inspected session sources. No GN/toolchain change, latency measurement or Electron build.
+
+
+## October25 final-factory repair footprint
+
+The owner's standing October21 consolidation authorization covers the new75existing-upstream-files/184hunks ceiling (+2/+4 from73/180). The added existing files are the internal URL-loader factory utility source/header; the late hook preserves the original context while gating downstream DevTools replacements.151Git dependency checkouts remain clean. One18-planned/23-actual-step incremental build passes, finalguard0. Counts exclude copied Blanc-owned files under the established policy, not their maintenance cost. No cold build, toolchain/GN change, latency or Electron work. See evidence/f12-redirect-repair-20261025.
+
+
+### October26 separate navigation factory
+
+October 26 navigation repair: [separate factory finding and focused evidence](evidence/f12-navigation-gate-20261026/README.md) records a real regular/private subframe network-admission gap in signed source1523375. The direct navigation factory now invokes the existing final gate after DevTools assembly. Repaired native output passes20new navigation checks and4preparation tests; baseline8pass/6fail retained. Incremental60.28s/6steps, finalguard0; fresh76files/185hunks and151clean Git dependencies. Direct main-frame request/profile attribution is qualified under deliberate mainFrame allow policy. Signed replacement/affected-only checks and privileged navigation replacement attribution remain pending; no new gate acceptance (9/12). Electron paused, Google baseline separate, latency deferred.
+
+### October26 signed navigation replacement
+
+October 26 signed navigation repair: [notarized affected-path evidence](evidence/f12-navigation-signed-20261026/README.md) binds source`efb1b511` and archive`19cdde2731c4`. Apple accepted submission`214024e9-4c28-47b3-9575-44db8220ba11`; stapling, ticket, strict signature and Gatekeeper checks pass. All20affected regular/private navigation checks pass on the replacement, with exact request/profile joins and zero blocked-subframe server arrivals. The17ARM64executables/UI/compliance bytes match the frozen signed audit; no native rebuild, prior passing matrix or owner distribution walkthrough repeated. Earlier baseline failures remain retained. F12/Decision2 and privileged navigation replacement/restart attribution remain open; no new gate approval. Electron paused, Google baseline separate, latency deferred.
+
+### October27 main-frame isolation repair / recovery exception
+
+October 27 isolation repair in progress: [draft and authorized recovery-build evidence](evidence/f12-navigation-isolation-20261027/README.md). Existing trusted main-frame isolation is derived with CreateForRedirect, retaining nonce/partition; six preparation checks pass. Missing workspace inputs required source/package recovery. The guard stopped a53,938-action plan, and the owner approved one isolated recovery-build exception with unchanged compiler/SDK/arguments and caches preserved. The first attempt stopped on missing pinned Go; the resumed build is running. Affected runtime checks and final guard remain pending; no fix/gate pass claimed. Fresh77files/186hunks,151clean dependencies. Electron paused, Google baseline separate, latency deferred.
+
+## October28 production Blanc Blocker integration
+
+Owner selected the existing Blanc Blocker for CSS/scriptlet integration. [Affected native evidence](evidence/f12-cosmetic-implementation-20261028/README.md) passes20regular/private checks with finalguard0; signed replacement pending. Fresh inventory79files/189hunks with151clean Git dependencies. Updated ceiling79/189 under existing standing authorization; raw prior-ceiling failure retained, counting rules unchanged. Electron paused, Google separate, latency deferred; no aggregate F12 or launch-gate credit.
+
+October28 signed cosmetic follow-up: source569d830d notarized/stapled, Gatekeeperpass,20affected signed checks pass,457tested files unchanged. [Signed evidence](evidence/f12-cosmetic-implementation-20261028/README.md). Broader cosmetic/provider coverage and aggregate F12/Decision2 remain open; no unaffected suites repeated.

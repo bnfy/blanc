@@ -1,0 +1,20 @@
+# Copyright 2026 Bananify Creative. MIT; see LICENSE.
+import("//build/buildflag_header.gni")
+import("//blanc/config.gni")
+
+blanc_release_channel = blanc_channel == "release"
+buildflag_header("buildflags") {
+  header = "buildflags.h"
+  flags = [
+    "ENABLE_BLANC_TEST_HOOKS=$blanc_enable_test_hooks",
+    "ENABLE_BLANC_DISK_ASSETS=$blanc_disk_assets",
+    "BLANC_RELEASE_CHANNEL=$blanc_release_channel",
+  ]
+}
+
+group("blanc") {
+  deps = [ ":ui", "services/blocker:browser" ]
+}
+group("ui") {
+  deps = [ "//chrome/browser/ui/views/frame:blanc_ui" ]
+}

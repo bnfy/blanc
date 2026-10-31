@@ -1,0 +1,82 @@
+{
+  "mode": "legacy",
+  "checks": [
+    {
+      "name": "restored document targets present",
+      "pass": true
+    },
+    {
+      "name": "restored page rendered http://127.0.0.1:9820/preview/two",
+      "pass": true,
+      "details": {
+        "url": "http://127.0.0.1:9820/preview/two",
+        "loaded": true,
+        "title": "Isolation fixture",
+        "ready": "complete"
+      }
+    },
+    {
+      "name": "restored page rendered http://127.0.0.1:9820/preview/one",
+      "pass": true,
+      "details": {
+        "url": "http://127.0.0.1:9820/preview/one",
+        "loaded": true,
+        "title": "Isolation fixture",
+        "ready": "complete"
+      }
+    },
+    {
+      "name": "no renderer bad IPC",
+      "pass": true
+    },
+    {
+      "name": "clean exit 9851",
+      "pass": true
+    },
+    {
+      "name": "second restart retains order and selection",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9820/preview/one",
+          "http://127.0.0.1:9820/preview/two"
+        ],
+        "selected": 2
+      }
+    },
+    {
+      "name": "restored document targets present",
+      "pass": true
+    },
+    {
+      "name": "restored page rendered http://127.0.0.1:9820/preview/two",
+      "pass": true,
+      "details": {
+        "url": "http://127.0.0.1:9820/preview/two",
+        "loaded": true,
+        "title": "Isolation fixture",
+        "ready": "complete"
+      }
+    },
+    {
+      "name": "restored page rendered http://127.0.0.1:9820/preview/one",
+      "pass": true,
+      "details": {
+        "url": "http://127.0.0.1:9820/preview/one",
+        "loaded": true,
+        "title": "Isolation fixture",
+        "ready": "complete"
+      }
+    },
+    {
+      "name": "clean exit 9852",
+      "pass": true
+    },
+    {
+      "name": "GET fixture sends no POST",
+      "pass": true
+    }
+  ],
+  "complete": true
+}

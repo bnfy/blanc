@@ -1,0 +1,7 @@
+2026-10-28T18:24:23.5177266Z HEAD is now at ea679cf3 Merge 972e4bf4a258a7d12836fffefac7e1d228901200 into 5d19ffefe835b3400b481947d7e641c1e6016d6e
+2026-10-28T18:24:55.8400228Z desktop: no unsuppressed high or critical dependency findings
+2026-10-28T18:24:56.1938411Z site: no unsuppressed high or critical dependency findings
+2026-10-28T18:24:56.5543593Z tab-import-worker: no unsuppressed high or critical dependency findings
+2026-10-28T18:24:57.5538006Z tab-import-companions: dependency-policy violations
+2026-10-28T18:24:57.5538962Z   - addons-linter (high): GHSA-GCQX-W48M-W2H4, GHSA-5P2G-FCMC-QVQQ, GHSA-W3RX-R6R6-PGPR
+2026-10-28T18:24:57.5644931Z ##[error]Process completed with exit code 1.

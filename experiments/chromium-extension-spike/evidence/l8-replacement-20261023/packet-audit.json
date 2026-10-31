@@ -1,0 +1,58 @@
+{
+  "sourceRevision": "6b9a05a00f321bfbde617c181103d5a455ff45f3",
+  "version": "157.0.8103.15",
+  "archiveSha256": "a7fe468c648e1b3d096a49e663e06b182bb483353fb5c4bb1c37dc8349994aca",
+  "manifestDigestMatches": [
+    {
+      "name": "Blanc-Chromium-Preview-157.0.8103.15-6b9a05a0-arm64.zip",
+      "sha256": "a7fe468c648e1b3d096a49e663e06b182bb483353fb5c4bb1c37dc8349994aca",
+      "matches": true
+    },
+    {
+      "name": "Blanc-Chromium-Preview-157.0.8103.15-6b9a05a0.cdx.json",
+      "sha256": "2f218458a3bf67d6e825017bcbb5dfc95cf2698e9918c0835705768223715921",
+      "matches": true
+    },
+    {
+      "name": "Blanc-Chromium-Preview-157.0.8103.15-6b9a05a0.files.json",
+      "sha256": "cbcf9fabba924012434c2697b9aa8f67ffb1d1beeaa6cb42ab7026348551ce0e",
+      "matches": true
+    },
+    {
+      "name": "Blanc-Chromium-Preview-157.0.8103.15-6b9a05a0.provenance.json",
+      "sha256": "a729a974f0609955e4eb094522cd0ac4fa0a2c8716ddb73e383c82b0c939a460",
+      "matches": true
+    }
+  ],
+  "regularFilesVerified": 458,
+  "symlinksVerified": 5,
+  "sourceTreeMatchesCommit": true,
+  "provenanceSubjectAndMaterialsBound": true,
+  "complianceValidated": true,
+  "componentCount": 340,
+  "nativeLicenseComponents": 323,
+  "fullNativeLicenseTexts": 320,
+  "verification": {
+    "codesign": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "stapler": {
+      "exitCode": 0,
+      "stdout": "Processing: /private/tmp/blanc-l8-replacement-6b9a05a0/archive-extracted/Blanc Chromium Preview.app\nThe validate action worked!\n",
+      "stderr": ""
+    },
+    "gatekeeper": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "/private/tmp/blanc-l8-replacement-6b9a05a0/archive-extracted/Blanc Chromium Preview.app: accepted\nsource=Notarized Developer ID\n"
+    }
+  },
+  "limits": [
+    "Local archive extraction, not a native browser download or quarantine proof",
+    "Sigstore manifest authentication pending",
+    "No app launched or profile modified",
+    "Not independent hermetic reproduction or a hosted-build attestation"
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "archive": "experiments/chromium-extension-spike/evidence/f12-document-gate-20261017/worker-updates.tar.gz",
+  "sha256": "a9727a7d97ed840b1d34ac82becdcb3889c34519c9499591ba379c0e62d2a88c",
+  "members": [
+    {
+      "path": "changed/chromium-private-a.json",
+      "bytes": 46574,
+      "sha256": "4d780edc9a82ea5c415fb9d1a7763e21fe2367d00af7618438395845acad75c0"
+    },
+    {
+      "path": "changed/chromium-private-b.json",
+      "bytes": 46492,
+      "sha256": "3c7845d76ef0b979172393052b04634a5e2f3aab8dc63d65f9b63688249eebc8"
+    },
+    {
+      "path": "changed/chromium-regular-a.json",
+      "bytes": 46572,
+      "sha256": "1c07875bf08085f63f6a9801e44e3a7cb5abba7fad31126ffc6a26d531f5b6d4"
+    },
+    {
+      "path": "changed/chromium-regular-b.json",
+      "bytes": 46160,
+      "sha256": "8b30d780a615cacd2d5de47b83b951d4cfd520cc227288c5b508f9fea80445f8"
+    },
+    {
+      "path": "changed/electron-private-a.json",
+      "bytes": 48094,
+      "sha256": "2c2476284681e764c145d67d8d2da5b7d6a544392fd338eaacec1e71a5f8e878"
+    },
+    {
+      "path": "changed/electron-private-b.json",
+      "bytes": 48088,
+      "sha256": "c35a9550fa366ccdc733a29b160779ae4fa7400909b35176ba2f1545e4f2ae3e"
+    },
+    {
+      "path": "changed/electron-regular-a.json",
+      "bytes": 48992,
+      "sha256": "c738dbd86fec3ae5ce3012507d6cf62f9bb9913888e5d34096b33b387bfde506"
+    },
+    {
+      "path": "changed/electron-regular-b.json",
+      "bytes": 48276,
+      "sha256": "312f91d798215fc032d3409d31efc8fec3ab44eea21aa671b098e1206b023fec"
+    },
+    {
+      "path": "changed/fixtures.json",
+      "bytes": 1837,
+      "sha256": "dc8d19fd967c1fac9920e4cb5c63c2b609e3d5b65aef625b07f1417dacfde6f0"
+    },
+    {
+      "path": "changed/replacement.js",
+      "bytes": 502,
+      "sha256": "848390c3654e466922128b052a476cfd7e9addfade8ee7d4c52e4224197f04fd"
+    },
+    {
+      "path": "changed/report.json",
+      "bytes": 4585,
+      "sha256": "e5b1f8f88b74b29abac6575e87f4a98d5e5285f21024c97daeec0692288a1d3d"
+    },
+    {
+      "path": "collision/chromium-private-a.json",
+      "bytes": 37268,
+      "sha256": "3471ecc09d28215440ecd08fe7c981e9586c621b197f6c51628f190f108d38f2"
+    },
+    {
+      "path": "collision/chromium-private-b.json",
+      "bytes": 37271,
+      "sha256": "d35315837c48f9f7c5acf77cd531c78ceb05569f34819109abe14654a4919c76"
+    },
+    {
+      "path": "collision/chromium-regular-a.json",
+      "bytes": 38041,
+      "sha256": "0a5b196b954a3d1eaff1627247db19be31cb706997427ffd0fdfca8b223c6b29"
+    },
+    {
+      "path": "collision/chromium-regular-b.json",
+      "bytes": 38044,
+      "sha256": "b32341589f28da9d2869cdc2172324e7be10870ba6902812a220682b2895a149"
+    },
+    {
+      "path": "collision/electron-private-a.json",
+      "bytes": 37179,
+      "sha256": "0b5cdac9cf3979cf75eea0392c3b0e8701983a313d6352d2e5894d3b0808a5f4"
+    },
+    {
+      "path": "collision/electron-private-b.json",
+      "bytes": 37183,
+      "sha256": "b3c501521bbe0849cc6d3d43b4db848b627d6caceb5c5e09c8adadd03f7a03dd"
+    },
+    {
+      "path": "collision/electron-regular-a.json",
+      "bytes": 37285,
+      "sha256": "607dd43b45eb2569c6215705273d438c5e0f89f7de315eed75ec424c9dae3280"
+    },
+    {
+      "path": "collision/electron-regular-b.json",
+      "bytes": 37291,
+      "sha256": "5a78beadf0f93e7a7d1dd7bdb71ddb5dd86307d91cc58c392d6dbb95e7071541"
+    },
+    {
+      "path": "collision/fixtures.json",
+      "bytes": 531,
+      "sha256": "42b715cf8d49c90c6da9e28971f6adf0f9ebf8aca021b4513bd4d4394c7c003d"
+    },
+    {
+      "path": "collision/report.json",
+      "bytes": 7446,
+      "sha256": "6a02e183d139b78bf5ac97650acf4e1c3b5c9e1dfb3b2e87ec2ec84b507916e2"
+    }
+  ],
+  "existingNativeJoins": 12,
+  "uniqueTokens": 12,
+  "profiles": [
+    "private",
+    "regular"
+  ],
+  "newRuntimeTests": 0,
+  "crossRuntimeAcceptance": false,
+  "limits": [
+    "Historical opt-in research evidence, not new signed production diagnostics",
+    "Private logging is now intentionally refused",
+    "Current research-hooks-disabled build must not expose identity logs"
+  ]
+}

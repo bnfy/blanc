@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+const [repo, commit] = process.argv.slice(2);
+if (!repo || !/^[a-f0-9]{40}$/.test(commit || '')) throw new Error('Supply repository and currently verified shipping source commit.');
+const source = execFileSync('git', ['show', `${commit}:src/main/tabsync-model.js`], { cwd: repo, encoding: 'utf8' });
+if (/\brequire\s*\(|\bprocess\s*\.|\belectron\s*\./.test(source)) throw new Error('New runtime dependency requires review.');
+const exports = ['PRUNE_MS','HEARTBEAT_MS','BUDGET_BYTES','canonical','fingerprint','sanitizeEntry','winner','mergeDevices','rebindDevices','buildOwnEntry','retractedEntry','presenceEntry','ownEntryFor','heartbeatDue','devicesEqual','applyBudget','exportDevices','displayDevices'];
+const prefix = `// Generated from shipping src/main/tabsync-model.js. No credential/network/DOM authority.\nconst module = { exports: {} };\nconst Buffer = Object.freeze({byteLength(value, encoding) {\n  if (typeof value !== 'string' || encoding !== 'utf8') throw new TypeError('Unsupported byte-length input');\n  return new TextEncoder().encode(value).length;\n}});\n`;
+const generated = prefix + source + `\nexport { ${exports.join(', ')} };\n`;
+const dir = path.dirname(fileURLToPath(import.meta.url));
+fs.writeFileSync(path.join(dir, 'tab-model.mjs'), generated);
+const sha = x => crypto.createHash('sha256').update(x).digest('hex');
+fs.writeFileSync(path.join(dir, 'tab-model-receipt.json'), JSON.stringify({sourceCommit:commit, sourcePath:'src/main/tabsync-model.js', sourceSha256:sha(source), moduleSha256:sha(generated), adapter:'TextEncoder UTF8 byte count; no published model code altered', scope:'read-only browser model preparation; not native backend, cache, transport or UI integration', exports},null,2)+'\n');
+console.log(`Staged shipping tab model from ${commit}`);

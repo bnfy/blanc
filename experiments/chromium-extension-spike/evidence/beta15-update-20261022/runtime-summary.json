@@ -1,0 +1,67 @@
+{
+  "version": "157.0.8103.15",
+  "suites": {
+    "regularSecurity": {
+      "complete": true,
+      "checks": 17,
+      "report": "regular-security/report.json"
+    },
+    "privateSecurity": {
+      "complete": true,
+      "checks": 16,
+      "report": "private-security/report.json"
+    },
+    "encryptedRecovery": {
+      "complete": true,
+      "checks": 6,
+      "report": "recovery/report.json"
+    },
+    "writeRetry": {
+      "complete": true,
+      "checks": 4,
+      "report": "verified/report.json"
+    },
+    "splitRecovery": {
+      "complete": true,
+      "checks": 5,
+      "report": "splits/report.json"
+    },
+    "privateLifecycle": {
+      "complete": true,
+      "checks": 10,
+      "report": "private-lifecycle/runtime.json"
+    },
+    "nonregularSession": {
+      "complete": true,
+      "checks": 6,
+      "report": "pipe-report.json"
+    },
+    "isolation": {
+      "complete": true,
+      "checks": 12,
+      "report": "isolation/report.json"
+    }
+  },
+  "passedAssertions": 76,
+  "privateHistoryFixtureRows": 0,
+  "notarization": {
+    "id": "17bf3b2f-3528-4fc3-b17e-2db0a4833e43",
+    "status": "Accepted",
+    "message": "Processing complete"
+  },
+  "artifact": {
+    "archive": "/private/tmp/blanc-beta15-upgrade/Blanc-Chromium-Preview-stapled.zip",
+    "sha256": "d9924b7e5398b95f21e1107cb146eaf0f1e53387e9c850fc720b33e4adbe50cb",
+    "size": 243373167,
+    "notarization": {
+      "id": "17bf3b2f-3528-4fc3-b17e-2db0a4833e43",
+      "status": "Accepted",
+      "message": "Processing complete"
+    },
+    "signedAudit": "final-candidate-audit.json",
+    "version": "157.0.8103.15",
+    "upstream": "1aa07b638799e59656559ae6c6649d4b197f555e"
+  },
+  "testedCodeUnchangedAfterStapling": true,
+  "physicalInputAndFullSecuritySignoff": false
+}

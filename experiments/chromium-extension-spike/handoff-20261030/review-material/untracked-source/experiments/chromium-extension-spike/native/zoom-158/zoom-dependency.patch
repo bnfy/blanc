@@ -1,0 +1,10 @@
+--- a/chrome/browser/ui/BUILD.gn
++++ b/chrome/browser/ui/BUILD.gn
+@@ -977,6 +977,7 @@
+       "//extensions/buildflags",
+       "//pdf:features",
+       "//printing/buildflags",
++      "//third_party/blink/public/common",
+       "//ui/actions",
+       "//ui/base",
+       "//ui/base:types",

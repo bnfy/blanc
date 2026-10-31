@@ -1,0 +1,53 @@
+{
+  "9225": [
+    {
+      "tabs": [
+        {
+          "id": "1043157000",
+          "url": "blanc://newtab/"
+        }
+      ],
+      "active": "1043157000"
+    }
+  ],
+  "9248": [
+    {
+      "tabs": [
+        {
+          "id": "1871330499",
+          "url": "blanc://newtab/"
+        },
+        {
+          "id": "1871330500",
+          "url": "blanc://newtab/"
+        }
+      ],
+      "active": "1871330500"
+    }
+  ],
+  "9270": [
+    {
+      "tabs": [
+        {
+          "id": "971435681",
+          "url": "blanc://newtab/"
+        }
+      ],
+      "active": "971435681"
+    }
+  ],
+  "assets": [
+    {
+      "path": "index.html",
+      "error": "fetch refused"
+    },
+    {
+      "path": "pages/newtab.html",
+      "error": "fetch refused"
+    },
+    {
+      "path": "pages/instrument-sans-latin-wdth-normal.woff2",
+      "error": "fetch refused"
+    }
+  ]
+}

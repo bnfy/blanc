@@ -1,0 +1,165 @@
+diff --git a/chrome/browser/app_controller_mac.mm b/chrome/browser/app_controller_mac.mm
+index ff885e2..b5aa7d0 100644
+--- a/chrome/browser/app_controller_mac.mm
++++ b/chrome/browser/app_controller_mac.mm
+@@ -152,6 +152,7 @@
+ #include "ui/menus/cocoa/menu_controller.h"
+ #include "ui/native_theme/native_theme.h"
+ #include "url/gurl.h"
++#include "blanc/common/island_mode.h"
+ 
+ namespace {
+ 
+@@ -1301,7 +1302,7 @@ - (void)applicationDidFinishLaunching:(NSNotification*)notify {
+ 
+   [self setUpdateCheckInterval];
+ 
+-  if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-prototype-assets")) {
++  if (blanc::IslandMode()) {
+     NSImage* blancIcon = [NSWorkspace.sharedWorkspace
+         iconForFile:NSRunningApplication.currentApplication.bundleURL.path];
+     NSApp.applicationIconImage = blancIcon;
+diff --git a/chrome/browser/prefs/session_startup_pref.cc b/chrome/browser/prefs/session_startup_pref.cc
+index 9843100..71f3d64 100644
+--- a/chrome/browser/prefs/session_startup_pref.cc
++++ b/chrome/browser/prefs/session_startup_pref.cc
+@@ -18,6 +18,7 @@
+ #include "components/pref_registry/pref_registry_syncable.h"
+ #include "components/prefs/pref_service.h"
+ #include "components/url_formatter/url_fixer.h"
++#include "blanc/common/island_mode.h"
+ 
+ #if BUILDFLAG(IS_ANDROID)
+ #include "base/android/device_info.h"
+@@ -69,7 +70,7 @@ void SessionStartupPref::RegisterProfilePrefs(
+ SessionStartupPref::Type SessionStartupPref::GetDefaultStartupType() {
+   // Blanc continues its saved session on an ordinary application launch.
+   // This is a registered default, not an override of user or managed prefs.
+-  if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-prototype-assets"))
++  if (blanc::IslandMode())
+     return SessionStartupPref::LAST;
+ #if BUILDFLAG(IS_CHROMEOS)
+   return SessionStartupPref::LAST;
+diff --git a/chrome/browser/search/search.cc b/chrome/browser/search/search.cc
+index 8838187..4c8c737 100644
+--- a/chrome/browser/search/search.cc
++++ b/chrome/browser/search/search.cc
+@@ -35,6 +35,7 @@
+ #include "content/public/browser/web_contents.h"
+ #include "ui/webui/buildflags.h"
+ #include "url/gurl.h"
++#include "blanc/common/island_mode.h"
+ 
+ #if BUILDFLAG(IS_ANDROID)
+ #include "base/android/device_info.h"
+@@ -171,7 +172,7 @@ struct NewTabURLDetails {
+   static NewTabURLDetails ForProfile(Profile* profile) {
+     // Blanc's private Start Page is distinct from the regular page. Keep
+     // Chromium's Guest and special OTR New Tab behavior unchanged.
+-    if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-prototype-assets") &&
++    if (blanc::IslandMode() &&
+         (profile->IsIncognitoProfile() && profile->IsPrimaryOTRProfile()))
+       return NewTabURLDetails(GURL("chrome://blanc-prototype/pages/newtab.html?private=1"),
+                               NEW_TAB_URL_VALID);
+@@ -184,7 +185,7 @@ struct NewTabURLDetails {
+       return NewTabURLDetails(GURL(), NEW_TAB_URL_INCOGNITO);
+     }
+ 
+-    if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-prototype-assets"))
++    if (blanc::IslandMode())
+       return NewTabURLDetails(GURL("chrome://blanc-prototype/pages/newtab.html"),
+                               NEW_TAB_URL_VALID);
+ 
+diff --git a/chrome/browser/ui/startup/startup_browser_creator.cc b/chrome/browser/ui/startup/startup_browser_creator.cc
+index 11a4652..bcb791c 100644
+--- a/chrome/browser/ui/startup/startup_browser_creator.cc
++++ b/chrome/browser/ui/startup/startup_browser_creator.cc
+@@ -98,6 +98,7 @@
+ #include "extensions/browser/extension_registry.h"
+ #include "extensions/common/switches.h"
+ #include "printing/buildflags/buildflags.h"
++#include "blanc/common/island_mode.h"
+ 
+ #if BUILDFLAG(IS_CHROMEOS)
+ #include "ash/constants/ash_switches.h"
+@@ -979,7 +980,7 @@ SessionStartupPref StartupBrowserCreator::GetSessionStartupPref(
+   // A fresh Blanc profile has no previous session, including when its
+   // controlled launcher suppresses the generic Chromium first-run flow.
+   const bool blanc_new_profile =
+-      command_line.HasSwitch("blanc-prototype-assets") && profile->IsNewProfile();
++      blanc::IslandMode() && profile->IsNewProfile();
+   if ((is_first_run || blanc_new_profile) &&
+       SessionStartupPref::TypeIsDefault(prefs)) {
+     pref.type = SessionStartupPref::DEFAULT;
+diff --git a/chrome/browser/ui/startup/startup_browser_creator_impl.cc b/chrome/browser/ui/startup/startup_browser_creator_impl.cc
+index 9f79288..13e8857 100644
+--- a/chrome/browser/ui/startup/startup_browser_creator_impl.cc
++++ b/chrome/browser/ui/startup/startup_browser_creator_impl.cc
+@@ -76,6 +76,7 @@
+ #include "ui/base/page_transition_types.h"
+ #include "ui/base/window_open_disposition.h"
+ #include "url/origin.h"
++#include "blanc/common/island_mode.h"
+ 
+ #if BUILDFLAG(IS_LINUX)
+ #include "base/nix/xdg_util.h"
+@@ -605,7 +606,7 @@ void StartupBrowserCreatorImpl::DetermineURLsAndLaunch(
+         }
+       }, current_chrome_version_string_for_testing_);
+ #if BUILDFLAG(IS_MAC)
+-  if (command_line_->HasSwitch("blanc-prototype-assets") &&
++  if (blanc::IslandMode() &&
+       process_startup == chrome::startup::IsProcessStartup::kYes &&
+       behavior == BrowserOpenBehavior::SYNCHRONOUS_RESTORE) {
+     // Do not start AppKit's first application loop inside session restore.
+diff --git a/chrome/browser/ui/window_feature_controller/window_feature_controller.cc b/chrome/browser/ui/window_feature_controller/window_feature_controller.cc
+index 79f6246..487e392 100644
+--- a/chrome/browser/ui/window_feature_controller/window_feature_controller.cc
++++ b/chrome/browser/ui/window_feature_controller/window_feature_controller.cc
+@@ -10,6 +10,7 @@
+ #include "build/build_config.h"
+ #include "chrome/browser/ui/fullscreen/browser_window_fullscreen_controller.h"
+ #include "chrome/browser/ui/web_applications/app_browser_controller.h"
++#include "blanc/common/island_mode.h"
+ 
+ DEFINE_USER_DATA(WindowFeatureController);
+ 
+@@ -63,7 +64,7 @@ bool WindowFeatureController::IsTrustedSource() const {
+ #if BUILDFLAG(IS_MAC)
+ bool WindowFeatureController::UsesImmersiveFullscreenMode() const {
+   if (browser_type_ == BrowserWindowInterface::Type::TYPE_NORMAL &&
+-      base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-prototype-assets"))
++      blanc::IslandMode())
+     return false;
+   const bool is_pwa = app_controller_ != nullptr;
+   const bool is_tabbed_window =
+@@ -73,7 +74,7 @@ bool WindowFeatureController::UsesImmersiveFullscreenMode() const {
+ 
+ bool WindowFeatureController::UsesImmersiveFullscreenTabbedMode() const {
+   if (browser_type_ == BrowserWindowInterface::Type::TYPE_NORMAL &&
+-      base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-prototype-assets"))
++      blanc::IslandMode())
+     return false;
+   const bool is_pwa = app_controller_ != nullptr;
+   const bool is_tabbed_window =
+diff --git a/components/remote_cocoa/app_shim/browser_native_widget_window_mac.mm b/components/remote_cocoa/app_shim/browser_native_widget_window_mac.mm
+index a3a54f3..4cfe878 100644
+--- a/components/remote_cocoa/app_shim/browser_native_widget_window_mac.mm
++++ b/components/remote_cocoa/app_shim/browser_native_widget_window_mac.mm
+@@ -10,6 +10,7 @@
+ #include "base/command_line.h"
+ #include "components/remote_cocoa/app_shim/native_widget_ns_window_bridge.h"
+ #include "components/remote_cocoa/common/native_widget_ns_window_host.mojom.h"
++#include "blanc/common/island_mode.h"
+ 
+ namespace {
+ // Workaround for https://crbug.com/1369643
+@@ -70,7 +71,7 @@ - (CGFloat)_titlebarHeight {
+ }
+ 
+ - (CGFloat)_minXTitlebarWidgetInset {
+-  if (!_inFullScreen && base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-prototype-assets"))
++  if (!_inFullScreen && blanc::IslandMode())
+     return 21.0;
+   if (@available(macOS 26, *)) {
+     // On macOS 26, position the leading window widget the same distance from

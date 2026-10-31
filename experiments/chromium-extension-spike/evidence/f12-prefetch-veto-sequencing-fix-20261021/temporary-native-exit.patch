@@ -1,0 +1,15 @@
+--- a/chrome/browser/ui/blanc_prototype_ui.cc
++++ b/chrome/browser/ui/blanc_prototype_ui.cc
+@@ -2773,6 +2773,12 @@
+           base::BindOnce(&Handler::SpaceReady, weak_factory_.GetWeakPtr(), id, method, name, std::move(*captured)));
+       return;
+     }
++    if (method == "previewPageCommand" && args.size() == 1 && args[0].is_string() &&
++        args[0].GetString() == "fixtureQuit" &&
++        base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-prefetch-veto-fixture")) {
++      reply(true, base::Value(chrome::ExecuteCommand(browser, IDC_EXIT)));
++      return;
++    }
+     if (method == "previewPageCommand" && args.size() == 1 && args[0].is_string()) {
+       const std::map<std::string, int> commands = {
+         {"restore", IDC_RESTORE_TAB}, {"slot1", IDC_SELECT_TAB_0}, {"slot2", IDC_SELECT_TAB_1}, {"slot3", IDC_SELECT_TAB_2}, {"slot9", IDC_SELECT_LAST_TAB},

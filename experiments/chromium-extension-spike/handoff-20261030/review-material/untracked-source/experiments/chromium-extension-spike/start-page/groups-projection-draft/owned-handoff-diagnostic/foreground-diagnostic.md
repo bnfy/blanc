@@ -1,0 +1,7 @@
+# Owned foreground group-click diagnostic
+
+This separate unrun fixture uses the already-foreground observation seen in hand2 without a physical-click handoff. It launches only an isolated verified candidate in a fresh profile. It does not operate the user/dev browser or change native product code. The existing `Page.bringToFront` addresses the fixture and may change system foreground; there is no claim of physical activation.
+
+The fixture requires a single CDP window for its own three tabs, a unique on-screen owned CG window and an NSWorkspace foreground-PID match, with the direct child's `proc_pidinfo` birth captured in memory. It rechecks birth, ownership, unique window and foreground immediately before dispatching the original hit-tested CDP group click. It samples those facts after dispatch, collects the genuine native request/reply and tab result, and fails if the after sample is not verified. It records no user window names, URLs, foreign PIDs, window IDs or process birth. Samples are not atomic with click dispatch and foreground equality does not prove `Widget::IsActive()`. A successful result does not prove a physical click or establish product parity.
+
+The new `foreground-gate.test.mjs` checks fail-closed singleton/foreground/birth criteria and fixture wiring without running a browser. The pre-existing guard's synthetic tests and the group's historical failures remain preserved. The prior handoff fixture and hand2 evidence are unchanged.

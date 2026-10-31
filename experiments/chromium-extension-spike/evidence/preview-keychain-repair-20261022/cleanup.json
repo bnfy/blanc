@@ -1,0 +1,49 @@
+{
+  "removed_task_paths": [
+    "/private/tmp/blanc-preview-keychain-repair/checks/isolated-home",
+    "/private/tmp/blanc-preview-keychain-repair/checks/real-keychain-veto-profile",
+    "/private/tmp/blanc-preview-keychain-repair/checks-real-home/isolated-home",
+    "/private/tmp/blanc-preview-keychain-repair/failed-transfer.app",
+    "/private/tmp/blanc-preview-keychain-signed"
+  ],
+  "encrypted_records_before_cleanup": {
+    "checks/real-keychain-veto-profile/Default/Sessions_Encrypted/Tabs_13437185102542048": {
+      "bytes": 4694,
+      "sha256": "783ea845ffacd092ac3bb79696b7a58e8eebc53d70ef7964cb60a925b5345cdb"
+    },
+    "checks/real-keychain-veto-profile/Default/Sessions_Encrypted/Session_13437185102163677": {
+      "bytes": 13024,
+      "sha256": "f7e52c89ef9e4bef60dc6ed8f1c1efaa9939ff8b91b9e04864be09a4d83a25b5"
+    },
+    "checks/real-keychain-veto-profile/Default/Sessions_Encrypted/Tabs_13437185098905911": {
+      "bytes": 2016,
+      "sha256": "b834420dddff0ea8b68d242b650fa8c8b189e5cafb3395694452f3fb16f00c4c"
+    },
+    "checks/real-keychain-veto-profile/Default/Sessions_Encrypted/Session_13437185103254197": {
+      "bytes": 5388,
+      "sha256": "732cb4aa0c02a74104ee9c7e2ebcffaef414044b7928fc9fc77f15583ce49981"
+    },
+    "checks/real-keychain-veto-profile/Default/Sessions_Encrypted/Session_13437185098841519": {
+      "bytes": 5654,
+      "sha256": "b274bc3aff8f19ada332e9938b27efc1c39f01dec84b6751a1411a77197c8016"
+    },
+    "checks-real-home/isolated-home/Library/Application Support/Blanc Chromium Preview/Default/Sessions_Encrypted/Tabs_13437185061152852": {
+      "bytes": 2997,
+      "sha256": "c43eddd82518b7de5d9e6d8fd933e755dc263f923a44c89e7505d6d18ab8e538"
+    },
+    "checks-real-home/isolated-home/Library/Application Support/Blanc Chromium Preview/Default/Sessions_Encrypted/Session_13437185063273927": {
+      "bytes": 5692,
+      "sha256": "9bc4e23dbfff8cc61dad758ba8f5083d00c9da166a77b1975896c114d202820d"
+    },
+    "checks-real-home/isolated-home/Library/Application Support/Blanc Chromium Preview/Default/Sessions_Encrypted/Session_13437185058074002": {
+      "bytes": 5660,
+      "sha256": "a9c721e4a82fcfe06d5c23fec10539a1cb2b64fa7fc337525b9875e6bae7d1ba"
+    },
+    "checks-real-home/isolated-home/Library/Application Support/Blanc Chromium Preview/Default/Sessions_Encrypted/Tabs_13437185063660606": {
+      "bytes": 5963,
+      "sha256": "b35bab1329e1092221d7ac9c39df5eec271bc0aa30a3c29498e9bb383e111b70"
+    }
+  },
+  "preview_keychain_item_retained": true,
+  "ssh_key_revoked_and_deleted": true
+}

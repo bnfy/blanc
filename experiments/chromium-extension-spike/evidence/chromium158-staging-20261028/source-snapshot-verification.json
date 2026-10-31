@@ -1,0 +1,16 @@
+{
+  "checks": {
+    "patchDigest": true,
+    "archiveDigest": true,
+    "upstream": true,
+    "currentTrackedPatch": true,
+    "archiveInventory": true,
+    "currentUntrackedContents": true
+  },
+  "passed": true,
+  "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
+  "trackedFiles": 78,
+  "trackedHunks": 170,
+  "untrackedSourceFiles": 23,
+  "scope": "Durable source snapshot verified against current158 checkout; no compilation, runtime or signed acceptance implied."
+}

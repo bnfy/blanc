@@ -1,0 +1,33 @@
+{
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "status": "isolated native V8 bound-merge draft tested; no persistent cache or browser integration",
+  "implementation": [
+    "validate account binding, device UUID and clock in native metadata envelope",
+    "parse cache and remote JSON as data and call exact released rebindDevices before mergeDevices",
+    "preserve same-account sharedMembership and discard it with cached devices on account change"
+  ],
+  "verified": [
+    "independent released-source oracle exactly matches isolated native fixture for same-account and changed-account cases",
+    "mismatched account cannot retain old cached device or sharedMembership in returned result",
+    "missing cache binding creates empty bound view; malformed cache/remote and invalid account refuse",
+    "changed runner affected Unicode/merge/shutdown fixture passes"
+  ],
+  "limitations": [
+    "no persistent cache adapter, live identity/consent binding, revision recheck across async model callbacks, or exchange integration",
+    "this code cannot establish that the remote response belongs to the selected account; native credential/session binding is required",
+    "same-account malformed devices and non-object maps are refused as stricter draft constraints",
+    "no real profile, production network, renderer, app build, platform UI or candidate validation",
+    "utility-process limits, cache storage, export/budget, pairing, icon sidecar, macOS/Windows/Linux acceptance remain open"
+  ],
+  "rawEvidence": "evidence/native-sync-account-bound-merge-20261030",
+  "appBuild": false,
+  "deployed": false,
+  "realProfileIO": false,
+  "sourceSha256": {
+    "model_runner.h": "3412c3ec776f23301898aab5d7f98ccc4eb362a59e6b3f1d6135ab6a97bc9a65",
+    "model_runner.cc": "c3c794d5e1efbc6e0de3714ee668bb140f5cab982916af7fe0be85bbf7d3cdff",
+    "model_runner_test.cc": "267d56fcd177793ea72980f20b338ec69b424f3820ede807eaf8010c64761bf7",
+    "tab_model_source.h": "7a14997c87933ae4b0e62bf321c0e79fea0c5ae87e337a4eb3ed5285f4addc54"
+  }
+}

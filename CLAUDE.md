@@ -44,6 +44,8 @@ compliance gate.
 
 **Chromium build cache preservation (October 16, 2026 owner direction):** avoid cold builds. For the isolated prototype, use `experiments/chromium-extension-spike/build.mjs` for native builds and read its README first. Preserve `out/BlancPrototype`, Siso caches, GN arguments and the selected toolchain. Use `prepare.mjs SRC --assets-only` for existing disk-served UI assets. Do not run hooks, clean, change build mode, update toolchains, or accept a changed build environment as a routine build step. Review toolchain changes and large dry-run plans before an intentional rebuild; never automatically bypass the guard. Keep security upgrades deliberate and scheduled, not indefinitely deferred. Do not start a competing build while one is active.
 
+**Prototype patch budget (October 21, 2026 owner direction):** Do not ask for further upstream patch-budget increases during the authorized Chromium prototype work. Record fresh file/hunk totals and update the plan; consolidate patches later where possible. This does not waive guarded incremental builds, approve toolchain changes, authorize latency measurements, or approve the Electron diagnostic build.
+
 ## Commands
 
 ```

@@ -1,0 +1,101 @@
+{
+  "scope": "Read-only artifact/source mapping; no new runtime or build",
+  "source": "7c427328100d1ba76cb7e8b651a1f36d74ec86c6",
+  "archiveSha256": "ffcfefdfbb5421619f3ba359bb4c5d92134b468ac8475c18eda12153a7f5e4ed",
+  "localLinksVerified": [
+    {
+      "document": "experiments/chromium-extension-spike/preview-candidate-acceptance-map-20261023.md",
+      "target": "evidence/l11-native-replacement-20261023/source-delta.json"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-candidate-acceptance-map-20261023.md",
+      "target": "evidence/l12-acceptance-map-20261023/asset-identity-map.json"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-candidate-acceptance-map-20261023.md",
+      "target": "evidence/l11-native-replacement-20261023/README.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-candidate-acceptance-map-20261023.md",
+      "target": "evidence/l8-certificate-distribution-20261023/README.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-candidate-acceptance-map-20261023.md",
+      "target": "mac-preview-scope-approval-20261022.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-candidate-acceptance-map-20261023.md",
+      "target": "evidence/l2-owner-acceptance-20261022/README.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-candidate-acceptance-map-20261023.md",
+      "target": "evidence/l3-closeout-20261023/README.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-candidate-acceptance-map-20261023.md",
+      "target": "evidence/l5-owner-acceptance-20261023/README.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-candidate-acceptance-map-20261023.md",
+      "target": "evidence/l6-restore-scheduling-20261023/README.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-candidate-acceptance-map-20261023.md",
+      "target": "evidence/l7-owner-acceptance-20261023/README.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-candidate-acceptance-map-20261023.md",
+      "target": "evidence/l11-repair-20261023/README.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-candidate-acceptance-map-20261023.md",
+      "target": "evidence/l8-certificate-distribution-20261023/README.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-candidate-acceptance-map-20261023.md",
+      "target": "preview-manual-maintenance-policy.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-candidate-acceptance-map-20261023.md",
+      "target": "evidence/l10-functional-smoke-20261023/README.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-user-guide.md",
+      "target": "preview-release-decision-20261023.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-user-guide.md",
+      "target": "preview-manual-maintenance-policy.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-manual-maintenance-policy.md",
+      "target": "evidence/signed-update-rollback-20261023/README.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-manual-maintenance-policy.md",
+      "target": "evidence/preview-notice-20261023/README.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-manual-maintenance-policy.md",
+      "target": "preview/status-notice.md"
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-manual-maintenance-policy.md",
+      "target": "evidence/preview-notice-20261023/README.md"
+    }
+  ],
+  "documents": {
+    "experiments/chromium-extension-spike/preview-candidate-acceptance-map-20261023.md": "629c244181f04bf8a3595ad712aa22aded52482d0d9a5f8265938c376c5276c1",
+    "experiments/chromium-extension-spike/preview/status-notice.md": "2781cec285c941d837e10f02be53d8ff9c49b57ac7fccbf590b28bea069801b9",
+    "experiments/chromium-extension-spike/preview-user-guide.md": "120e598dbb21c4386863d3f0d8293a4d22b753eccbe56048f3892b0ad8f0a7be",
+    "experiments/chromium-extension-spike/preview-manual-maintenance-policy.md": "6874a16920576cb77177861fd20d2166a7c00d1a96ce910a8c86f93c4a4d89aa"
+  },
+  "gateDelta": 0,
+  "readiness": "9/12",
+  "remainingBlockers": [
+    "L4 actual Google version upgrade",
+    "L11 sandbox repair and exact-head CI",
+    "L12 artifact-specific final approval",
+    "Decision2 including deferred latency disposition and cost/capacity evidence"
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "fixes": [
+    {
+      "commit": "0b07ac7d6c5b48130d50a447f02a1d38e753e1a6",
+      "included": true
+    },
+    {
+      "commit": "66ac08fa276070074f25a329e6371d5fd4792b1a",
+      "included": true
+    },
+    {
+      "commit": "d3ffcebca08613d4e907c16ba65745d5768fbab9",
+      "included": true
+    },
+    {
+      "commit": "bcc2e3b13da9320d2632151e53e35cc63f94dacb",
+      "included": true
+    },
+    {
+      "commit": "c09065c7aae301c629cab91cb257f2d2a4aba2ee",
+      "included": true
+    }
+  ],
+  "files": [
+    {
+      "path": "components/metrics/persistent_system_profile.cc",
+      "matchesTarget": true,
+      "sha256": "f32285cd8df7da79195d30001a898d2ec347374256a0a0ced6ecdb969f291716"
+    },
+    {
+      "path": "base/metrics/persistent_memory_allocator.cc",
+      "matchesTarget": true,
+      "sha256": "8470e0a9457b7faff70412466f58a6ad0da076c8698ff0c8decd452ccad0cbd8"
+    },
+    {
+      "path": "content/browser/file_system_access/file_system_access_manager_impl.cc",
+      "matchesTarget": true,
+      "sha256": "4735b083bf0f4bae80c15698935487ad129857aef71c3913b5300353fb27012b"
+    },
+    {
+      "path": "content/browser/file_system_access/file_system_access_manager_impl.h",
+      "matchesTarget": true,
+      "sha256": "1f54b71135cf96975fac3ce686faa781a248d633045736187b9624799af052ad"
+    },
+    {
+      "path": "ui/views/controls/menu/menu_runner_impl.cc",
+      "matchesTarget": true,
+      "sha256": "9adbf95bee2b8297dda8c0d4cd2a2bd0028e27903f3fc971bbc2f792e14c2f24"
+    },
+    {
+      "path": "media/base/cdm_promise_adapter.cc",
+      "matchesTarget": true,
+      "sha256": "047c2328e92948e765f14b9b68d8deb994bf3bf983d96bde2aba8e95a977fc98"
+    },
+    {
+      "path": "cc/tiles/image_controller.cc",
+      "matchesTarget": true,
+      "sha256": "f7f538a24817e8432c2b2e0df5fd93a4d76230b2bcc3d8e4a4c279384e41a8c3"
+    },
+    {
+      "path": "cc/tiles/image_controller.h",
+      "matchesTarget": true,
+      "sha256": "0a30117168b9433321dafa78ce69686bfad868039ac1b8116176c1a1fce6e90c"
+    }
+  ]
+}

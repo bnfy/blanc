@@ -1,0 +1,110 @@
+[
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Alerts).app/Contents/MacOS/Blanc Prototype Helper (Alerts)",
+    "entitlements": null
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif)",
+    "entitlements": null
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Renderer).app/Contents/MacOS/Blanc Prototype Helper (Renderer)",
+    "entitlements": "helper-renderer-entitlements.plist"
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif GPU).app/Contents/MacOS/Blanc Prototype Helper (Aperitif GPU)",
+    "entitlements": "helper-gpu-entitlements.plist"
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper.app/Contents/MacOS/Blanc Prototype Helper",
+    "entitlements": null
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)",
+    "entitlements": "helper-renderer-entitlements.plist"
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (GPU).app/Contents/MacOS/Blanc Prototype Helper (GPU)",
+    "entitlements": "helper-gpu-entitlements.plist"
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Alerts)",
+    "entitlements": null
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Libraries/libvulkan.dylib",
+    "entitlements": null
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Libraries/libvk_swiftshader.dylib",
+    "entitlements": null
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Libraries/libaperitif.dylib",
+    "entitlements": null
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/web_app_shortcut_copier",
+    "entitlements": null
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/chrome_crashpad_handler",
+    "entitlements": null
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/app_mode_loader",
+    "entitlements": null
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Blanc Prototype Framework",
+    "entitlements": null
+  },
+  {
+    "path": "Contents/MacOS/Blanc Prototype",
+    "entitlements": "app-entitlements.plist"
+  },
+  {
+    "path": "Contents/MacOS/Blanc Preview Launcher",
+    "entitlements": null
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif Alerts).app",
+    "entitlements": null
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (GPU).app",
+    "entitlements": "helper-gpu-entitlements.plist"
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif Renderer).app",
+    "entitlements": "helper-renderer-entitlements.plist"
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper.app",
+    "entitlements": null
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif GPU).app",
+    "entitlements": "helper-gpu-entitlements.plist"
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Renderer).app",
+    "entitlements": "helper-renderer-entitlements.plist"
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif).app",
+    "entitlements": null
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Alerts).app",
+    "entitlements": null
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework",
+    "entitlements": null
+  },
+  {
+    "path": ".",
+    "entitlements": "app-entitlements.plist"
+  }
+]

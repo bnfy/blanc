@@ -1,0 +1,49 @@
+{
+  "tested_app": "/private/tmp/blanc-close-loading-repair/Blanc Chromium Preview.app",
+  "files": 432,
+  "identities": [
+    {
+      "path": "Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Resources/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.framework"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.framework.AlertNotificationService"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (GPU).app/Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.helper"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.helper.renderer"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper.app/Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.helper"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif GPU).app/Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.helper"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Renderer).app/Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.helper.renderer"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.helper"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Alerts).app/Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.framework.AlertNotificationService"
+    }
+  ],
+  "manifest_sha256": "abf9e3141f5f0e013a5fa97ffbf77e54fb9d0e9953dbabe5b09b4fe82b92fa3a",
+  "source_sha256": "1210f37c3f4245fb4419e5174638b00e5ad3ae7d711faaec773dfcb27ecd8d87",
+  "all_match": true
+}

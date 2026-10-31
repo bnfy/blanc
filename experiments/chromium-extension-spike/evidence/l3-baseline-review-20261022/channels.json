@@ -1,0 +1,191 @@
+{
+  "Stable": {
+    "url": "https://chromiumdash.appspot.com/fetch_releases?channel=Stable&platform=Mac&num=3",
+    "http": 200,
+    "releases": [
+      {
+        "channel": "Stable",
+        "chromium_main_branch_position": 1706539,
+        "hashes": {
+          "angle": "3b89d84e9d59f75675ac4e2bef58fc068a9f0577",
+          "chromium": "d0c02bfad08ec92a6ffcf989e53cd995e6381a4c",
+          "dawn": "1da41e55bb915dd03f61028fad64a99ee1786d48",
+          "devtools": "bf69d041b0ad1f74730204a73bff29f3ef1d4ead",
+          "pdfium": "2f22dfe030ded6a7666aeea4899d400bd2e338a4",
+          "skia": "886e42fda11610a56dd1b22e8697e27f9d1e34f2",
+          "v8": "392e44423f46d75904da712fadea4c7d5d97967f",
+          "webrtc": "ce13eaa8e5750b09c46b088a35d74bdadbac25dc"
+        },
+        "milestone": 156,
+        "platform": "Mac",
+        "previous_version": "156.0.8078.47",
+        "time": 1792526229680,
+        "version": "156.0.8078.48"
+      },
+      {
+        "channel": "Stable",
+        "chromium_main_branch_position": 1706539,
+        "hashes": {
+          "angle": "3b89d84e9d59f75675ac4e2bef58fc068a9f0577",
+          "chromium": "1d17a2e2ee147bb7d6ae2ab6abdb3a2510c17775",
+          "dawn": "1da41e55bb915dd03f61028fad64a99ee1786d48",
+          "devtools": "bf69d041b0ad1f74730204a73bff29f3ef1d4ead",
+          "pdfium": "2f22dfe030ded6a7666aeea4899d400bd2e338a4",
+          "skia": "886e42fda11610a56dd1b22e8697e27f9d1e34f2",
+          "v8": "392e44423f46d75904da712fadea4c7d5d97967f",
+          "webrtc": "ce13eaa8e5750b09c46b088a35d74bdadbac25dc"
+        },
+        "milestone": 156,
+        "platform": "Mac",
+        "previous_version": "156.0.8078.36",
+        "time": 1792526229680,
+        "version": "156.0.8078.47"
+      },
+      {
+        "channel": "Stable",
+        "chromium_main_branch_position": 1697595,
+        "hashes": {
+          "angle": "cccf60cde32c911b017a315b82235df61da5057b",
+          "chromium": "804d6b05f089b27af8342622a36558c49401a1d4",
+          "dawn": "42d0e90fe3552a2a8e95ca8e506bc19bbda12729",
+          "devtools": "a7b389bcb341f6e5e1bfa107992d3c327db75736",
+          "pdfium": "39f0ed4a657e53ed743a16d10d77dec086a08e03",
+          "skia": "29ed1e87a0a50f3d8347e988842d9d59e7573efa",
+          "v8": "712e1808de2d7416f1276d0deb1ee4ac978132b8",
+          "webrtc": "5bd86a2f17a35dfc986b87d058f511e45805bd1d"
+        },
+        "milestone": 155,
+        "platform": "Mac",
+        "previous_version": "155.0.8059.85",
+        "time": 1792526229680,
+        "version": "155.0.8059.86"
+      }
+    ]
+  },
+  "Beta": {
+    "url": "https://chromiumdash.appspot.com/fetch_releases?channel=Beta&platform=Mac&num=3",
+    "http": 200,
+    "releases": [
+      {
+        "channel": "Beta",
+        "chromium_main_branch_position": 1717349,
+        "hashes": {
+          "angle": "3b27750335a883d966eb8e460bc4f1126fed1a5d",
+          "chromium": "1aa07b638799e59656559ae6c6649d4b197f555e",
+          "dawn": "de87968dc43d608fa96b08b731755bad86fba131",
+          "devtools": "2c13d600e80aea1e914e7184d2645ead1111af37",
+          "pdfium": "4e6f5ead3e8eef06e8a8482ec4afff4b52845e18",
+          "skia": "ac947b5f02facc8237e889c3977c3a670d9d4664",
+          "v8": "7b7308258b7b58b8cf112439c91b199b8a11ecf1",
+          "webrtc": "95554e4a0c5c343fdc989387d9d0ce18e2a2294b"
+        },
+        "milestone": 157,
+        "platform": "Mac",
+        "previous_version": "157.0.8103.6",
+        "time": 1792700195122,
+        "version": "157.0.8103.15"
+      },
+      {
+        "channel": "Beta",
+        "chromium_main_branch_position": 1717349,
+        "hashes": {
+          "angle": "25078a7740fdebf86b5396ec971aaebf418ce01d",
+          "chromium": "41520584daa68d0040db7746ae562a0ff82187f6",
+          "dawn": "088a8d00efd1c70b58c549d355401d115904b648",
+          "devtools": "b0d3487640f473652bb3d4eddd68c6f5d1f1352a",
+          "pdfium": "686814d06630e1684d302d1629580a991e28d3e5",
+          "skia": "b94213a11b3a2edadfae89f0c57a7f4ab72772c9",
+          "v8": "d2463ed6f2dfd0bdbb642624bd3d0e7d3e792555",
+          "webrtc": "b321f634929af0af61a8964487fbd7894a008f12"
+        },
+        "milestone": 157,
+        "platform": "Mac",
+        "previous_version": "156.0.8078.12",
+        "time": 1792141401083,
+        "version": "157.0.8103.6"
+      },
+      {
+        "channel": "Beta",
+        "chromium_main_branch_position": 1706539,
+        "hashes": {
+          "angle": "d9c703d8031a570e9296837af14f8bf5708ddf07",
+          "chromium": "634b046faf2137b83af71c87baf362b533af9104",
+          "dawn": "0a2c7df818e285d6db0f085135139cda04cee8bb",
+          "devtools": "2d671c506c4e5f8958b027e26047deb0acfbd7f9",
+          "pdfium": "8ca5b735df4263f43c830479b78213854a392c22",
+          "skia": "95ee33d7ec7791ab9c071675710a14fe6408ae4f",
+          "v8": "4b33f15d4d172248a95629d6aa9917b20a79ad76",
+          "webrtc": "3987dfb7b952b5c86cb7d93370d48416a81d6397"
+        },
+        "milestone": 156,
+        "platform": "Mac",
+        "previous_version": "156.0.8078.4",
+        "time": 1791385123611,
+        "version": "156.0.8078.12"
+      }
+    ]
+  },
+  "Dev": {
+    "url": "https://chromiumdash.appspot.com/fetch_releases?channel=Dev&platform=Mac&num=3",
+    "http": 200,
+    "releases": [
+      {
+        "channel": "Dev",
+        "chromium_main_branch_position": 1719119,
+        "hashes": {
+          "angle": "600ecdbcbc2fbbef6aed8329f5a68b88d6dd8680",
+          "chromium": "7c103cdbf1d0648479547e04501a271269a8df96",
+          "dawn": "054f9e5d1a73a3ab75563db11fa16fa6711e2fb7",
+          "devtools": "a26acf8978e760d941fcb1793444b0b95d215cdb",
+          "pdfium": "69efacb11fa5bee156017811629ae996296fb7d4",
+          "skia": "9954a8508dd9826003de28624c9ceeb1a40fd22b",
+          "v8": "a641d75b8c6d8f9a0ef9580721a54a094806529c",
+          "webrtc": "1c42989f395b1c916c76879eb35647046c456ed5"
+        },
+        "milestone": 158,
+        "platform": "Mac",
+        "previous_version": "157.0.8092.0",
+        "time": 1792165260000,
+        "version": "158.0.8106.0"
+      },
+      {
+        "channel": "Dev",
+        "chromium_main_branch_position": 1713811,
+        "hashes": {
+          "angle": "b6b6a2fb3365dbe709d8e12ae606de8d479d58c7",
+          "chromium": "2b9f0645d8f651a36f74683f22a3746379f13bc6",
+          "dawn": "074d0e5ea441d1fcc24977948ec00c32bda379f2",
+          "devtools": "66558c3ff7d500ef9bca5a605730c707c1bc2b28",
+          "pdfium": "88d0b7025f18371b44a899dc8a24f596f1fd53d9",
+          "skia": "8e1e98afa7fd2d2ddb25ceb7454fd914007b4535",
+          "v8": "ef6dfaaf5380bc097a4d05a4b2e693894aff7320",
+          "webrtc": "39976fe4f9bd686d705c179cd4b13b0e273c1395"
+        },
+        "milestone": 157,
+        "platform": "Mac",
+        "previous_version": "157.0.8081.0",
+        "time": 1791555302491,
+        "version": "157.0.8092.0"
+      },
+      {
+        "channel": "Dev",
+        "chromium_main_branch_position": 1708524,
+        "hashes": {
+          "angle": "b5762e77fea1f7340569c42a2363f4cdf1578bcb",
+          "chromium": "8e1399bb93d56db69425613739e3944394deb5f0",
+          "dawn": "8adb308446f54b9f3eb6864f8de4dab675c0ce0b",
+          "devtools": "f622184d50fec15e5348aa30d72780e02c9d754a",
+          "pdfium": "772643d86db3047610ff92e368a9d935af0df8bb",
+          "skia": "b207b5279fd6eb284a6d3b1626556e821bdf7b3c",
+          "v8": "e148d55bb3322408d7c2790bce79959082638c1d",
+          "webrtc": "3256978944de550e38945644510f150803f58307"
+        },
+        "milestone": 157,
+        "platform": "Mac",
+        "previous_version": "156.0.8072.0",
+        "time": 1790988147957,
+        "version": "157.0.8081.0"
+      }
+    ]
+  }
+}

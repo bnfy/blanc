@@ -1,0 +1,351 @@
+{
+  "head": "732b34fb1b3b745e8fe5d2c7b0b2e48d183c797d",
+  "workflowCount": 4,
+  "jobCount": 28,
+  "activeJobs": 26,
+  "byOSSeconds": {
+    "ubuntu": 1136,
+    "windows": 1382,
+    "macos": 1638
+  },
+  "totalSeconds": 4156,
+  "elapsedSeconds": 8420,
+  "jobs": [
+    {
+      "id": 121757611928,
+      "name": "substrate",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "started_at": "2026-10-26T18:11:56Z",
+      "completed_at": "2026-10-26T18:13:57Z"
+    },
+    {
+      "id": 121757612187,
+      "name": "changes",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "started_at": "2026-10-26T18:11:56Z",
+      "completed_at": "2026-10-26T18:12:11Z"
+    },
+    {
+      "id": 121757612291,
+      "name": "acceptance-wiring",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "started_at": "2026-10-26T18:11:56Z",
+      "completed_at": "2026-10-26T18:12:22Z"
+    },
+    {
+      "id": 121757779092,
+      "name": "modified-link-clicks (windows-latest)",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "failure",
+      "labels": [
+        "windows-latest"
+      ],
+      "started_at": "2026-10-26T18:12:16Z",
+      "completed_at": "2026-10-26T18:13:38Z"
+    },
+    {
+      "id": 121757779110,
+      "name": "browser-shortcuts (windows-latest)",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "windows-latest"
+      ],
+      "started_at": "2026-10-26T18:12:15Z",
+      "completed_at": "2026-10-26T18:14:36Z"
+    },
+    {
+      "id": 121757779114,
+      "name": "workspace-regressions (ubuntu-latest)",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "started_at": "2026-10-26T18:12:15Z",
+      "completed_at": "2026-10-26T18:13:31Z"
+    },
+    {
+      "id": 121757779120,
+      "name": "tab-handoff",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "started_at": "2026-10-26T18:12:15Z",
+      "completed_at": "2026-10-26T18:12:57Z"
+    },
+    {
+      "id": 121757779165,
+      "name": "browser-shortcuts (macos-latest)",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "macos-latest"
+      ],
+      "started_at": "2026-10-26T20:28:28Z",
+      "completed_at": "2026-10-26T20:31:01Z"
+    },
+    {
+      "id": 121757779180,
+      "name": "oauth-compatibility",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "started_at": "2026-10-26T18:12:15Z",
+      "completed_at": "2026-10-26T18:13:19Z"
+    },
+    {
+      "id": 121757779185,
+      "name": "browser-shortcuts (ubuntu-latest)",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "started_at": "2026-10-26T18:12:15Z",
+      "completed_at": "2026-10-26T18:13:56Z"
+    },
+    {
+      "id": 121757779197,
+      "name": "quiet-tabs (ubuntu-latest)",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "started_at": "2026-10-26T18:12:15Z",
+      "completed_at": "2026-10-26T18:14:32Z"
+    },
+    {
+      "id": 121757779202,
+      "name": "workspace-regressions (windows-latest)",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "windows-latest"
+      ],
+      "started_at": "2026-10-26T18:12:16Z",
+      "completed_at": "2026-10-26T18:14:06Z"
+    },
+    {
+      "id": 121757779208,
+      "name": "workspace-regressions (macos-latest)",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "macos-latest"
+      ],
+      "started_at": "2026-10-26T20:24:22Z",
+      "completed_at": "2026-10-26T20:25:48Z"
+    },
+    {
+      "id": 121757779221,
+      "name": "favorites-import (windows-latest)",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "windows-latest"
+      ],
+      "started_at": "2026-10-26T18:12:15Z",
+      "completed_at": "2026-10-26T18:13:22Z"
+    },
+    {
+      "id": 121757779322,
+      "name": "quiet-tabs (windows-latest)",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "windows-latest"
+      ],
+      "started_at": "2026-10-26T18:12:15Z",
+      "completed_at": "2026-10-26T18:15:02Z"
+    },
+    {
+      "id": 121757779325,
+      "name": "favorites-import (ubuntu-latest)",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "started_at": "2026-10-26T18:12:15Z",
+      "completed_at": "2026-10-26T18:12:41Z"
+    },
+    {
+      "id": 121757779509,
+      "name": "favorites-import (macos-latest)",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "macos-latest"
+      ],
+      "started_at": "2026-10-26T20:31:04Z",
+      "completed_at": "2026-10-26T20:32:15Z"
+    },
+    {
+      "id": 121757779679,
+      "name": "modified-link-clicks (ubuntu-latest)",
+      "run_id": 40375578003,
+      "status": "completed",
+      "conclusion": "failure",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "started_at": "2026-10-26T18:12:22Z",
+      "completed_at": "2026-10-26T18:12:53Z"
+    },
+    {
+      "id": 121757984871,
+      "name": "unit (windows-latest)",
+      "run_id": 40375578065,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "windows-latest"
+      ],
+      "started_at": "2026-10-26T18:12:39Z",
+      "completed_at": "2026-10-26T18:17:34Z"
+    },
+    {
+      "id": 121757985555,
+      "name": "unit (macos-15)",
+      "run_id": 40375578065,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "macos-15"
+      ],
+      "started_at": "2026-10-26T18:20:56Z",
+      "completed_at": "2026-10-26T18:24:15Z"
+    },
+    {
+      "id": 121757611389,
+      "name": "javascript",
+      "run_id": 40375578012,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "started_at": "2026-10-26T18:11:56Z",
+      "completed_at": "2026-10-26T18:15:19Z"
+    },
+    {
+      "id": 121757612003,
+      "name": "ordinary-package",
+      "run_id": 40375578083,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "started_at": "2026-10-26T18:11:56Z",
+      "completed_at": "2026-10-26T18:12:29Z"
+    },
+    {
+      "id": 121757612151,
+      "name": "desktop (macos-15-intel)",
+      "run_id": 40375578083,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "macos-15-intel"
+      ],
+      "started_at": "2026-10-26T19:44:12Z",
+      "completed_at": "2026-10-26T19:57:20Z"
+    },
+    {
+      "id": 121757612253,
+      "name": "desktop (windows-latest)",
+      "run_id": 40375578083,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "windows-latest"
+      ],
+      "started_at": "2026-10-26T18:11:56Z",
+      "completed_at": "2026-10-26T18:20:36Z"
+    },
+    {
+      "id": 121757612388,
+      "name": "desktop (ubuntu-latest)",
+      "run_id": 40375578083,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "started_at": "2026-10-26T18:11:55Z",
+      "completed_at": "2026-10-26T18:16:16Z"
+    },
+    {
+      "id": 121757612581,
+      "name": "desktop (macos-15)",
+      "run_id": 40375578083,
+      "status": "completed",
+      "conclusion": "success",
+      "labels": [
+        "macos-15"
+      ],
+      "started_at": "2026-10-26T19:27:54Z",
+      "completed_at": "2026-10-26T19:33:35Z"
+    },
+    {
+      "id": 121757614336,
+      "name": "installed-intel",
+      "run_id": 40375578083,
+      "status": "completed",
+      "conclusion": "skipped",
+      "labels": [
+        "macos-15-intel"
+      ],
+      "started_at": "2026-10-26T18:11:52Z",
+      "completed_at": "2026-10-26T18:11:52Z"
+    },
+    {
+      "id": 121757614424,
+      "name": "linux-native-diagnostics",
+      "run_id": 40375578083,
+      "status": "completed",
+      "conclusion": "skipped",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "started_at": "2026-10-26T18:11:52Z",
+      "completed_at": "2026-10-26T18:11:52Z"
+    }
+  ]
+}

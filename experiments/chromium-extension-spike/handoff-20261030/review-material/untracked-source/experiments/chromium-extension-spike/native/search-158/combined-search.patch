@@ -1,0 +1,379 @@
+--- a/chrome/browser/ui/blanc_prototype_ui.cc
++++ b/chrome/browser/ui/blanc_prototype_ui.cc
+@@ -163,6 +163,11 @@
+ #include "ui/views/controls/webview/webview.h"
+ #include "url/gurl.h"
+ 
++#include "modules/custom_template.cc"
++#include "modules/selected_custom.cc"
++#include "modules/selected_shipping.cc"
++#include "modules/selected_shipping_browser.cc"
++
+ namespace blanc_prototype {
+ namespace {
+ constexpr char kOwnerKey[] = "blanc-prototype-owner";
+@@ -652,6 +657,7 @@
+   std::set<std::string> ratio_recovery_checked;
+   int pending_ratio_writes = 0;
+   base::WeakPtr<Owner> GetWeakPtr() { return weak_factory_.GetWeakPtr(); }
++  uint64_t search_selection_epoch = 1;
+   bool identity_registered = false;
+   bool initial_window_save_started = false;
+   bool initial_window_saved = false;
+@@ -906,6 +912,7 @@
+     for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
+       SiteMuteTab::Get(browser->GetTabStripModel()->GetWebContentsAt(i));
+     if (!selection.active_tab_changed()) return;
++    ++search_selection_epoch;
+     UpdatePersistentSplitFocus(browser);
+     SyncActive();
+     auto* host = view ? view->GetWebContents() : nullptr;
+@@ -1722,6 +1729,7 @@
+                                   contents->GetLastCommittedURL() == GURL("chrome://blanc-prototype/pages/newtab.html")
+                               ? "blanc://newtab/" : contents->GetVisibleURL().spec())
+                     .Set("committedUrl", committed.spec())
++                    .Set("searchDocumentId", base::NumberToString(contents->GetPrimaryMainFrame()->GetNavigationId()))
+                     .Set("title", base::UTF16ToUTF8(contents->GetTitle()))
+                     .Set("blockedCount", blanc::ShieldBlockedCount(contents))
+                     .Set("adblockExcepted", blanc::BlockingSiteExcepted(browser->GetProfile(), committed))
+@@ -1809,6 +1817,7 @@
+       .Set("extensionsWidth", extension_width)
+       .Set("tabs", std::move(tabs))
+       .Set("activeTabId", std::move(active_id))
++      .Set("searchSelectionEpoch", base::NumberToString(owner->search_selection_epoch))
+       .Set("groups", std::move(groups))
+       .Set("splits", std::move(persistent_splits))
+       .Set("closed", ClosedEntries(browser->GetProfile()))
+@@ -2610,6 +2619,111 @@
+ 
+ #include "chrome/browser/ui/blocking_settings_handler.inc"
+ 
++// A bounded, sequence-confined navigation outcome reducer. It intentionally
++// distinguishes a committed document from every inconclusive outcome.
++class BlancNavigationOutcomeState {
++ public:
++  enum class Result { kCommitted, kSameDocument, kNotCommitted, kUnknown };
++  void Start(int64_t id) { Record({id, true, Result::kUnknown}); }
++  void Finish(int64_t id, bool committed, bool error, bool same_document) {
++    Record({id, false, committed ? (error ? Result::kNotCommitted : (same_document ? Result::kSameDocument : Result::kCommitted))
++                                 : Result::kUnknown});
++  }
++  void Bind(int64_t id) {
++    if (result_) return;
++    target_ = id;
++    for (const auto& event : early_) {
++      Apply(event);
++      if (result_) break;
++    }
++    early_.clear();
++  }
++  void Unknown() { if (!result_) result_ = Result::kUnknown; }
++  std::optional<Result> result() const { return result_; }
++ private:
++  struct Event { int64_t id; bool start; Result result; };
++  void Record(Event event) {
++    if (result_) return;
++    if (!target_) {
++      if (early_.size() >= 32) { Unknown(); early_.clear(); }
++      else early_.push_back(event);
++      return;
++    }
++    Apply(event);
++  }
++  void Apply(Event event) {
++    if (event.start) {
++      if (event.id == *target_) started_ = true;
++      else if (started_) Unknown();
++      return;
++    }
++    if (event.id == *target_) result_ = event.result;
++  }
++  std::optional<int64_t> target_;
++  std::optional<Result> result_;
++  std::vector<Event> early_;
++  bool started_ = false;
++};
++
++// Pure guard for one Island search intent against a live tab/document.
++bool BlancSearchIntentCurrent(bool active, bool pending_navigation,
++                              bool visible_matches_committed,
++                              std::string_view actual_navigation_id,
++                              std::string_view expected_navigation_id,
++                              std::string_view actual_url,
++                              std::string_view expected_url) {
++  return active && !pending_navigation && visible_matches_committed &&
++         actual_navigation_id == expected_navigation_id && actual_url == expected_url;
++}
++
++// These are the only virtual URL aliases used by regular and primary-private
++// Start Pages. Never accept arbitrary extra query parameters as an alias.
++bool BlancSearchVisibleMatches(const GURL& visible, const GURL& committed,
++                               bool regular_profile, bool primary_private) {
++  if (visible == committed) return true;
++  if (visible != GURL("chrome://newtab/")) return false;
++  return (regular_profile && committed == GURL("chrome://blanc-prototype/pages/newtab.html")) ||
++         (primary_private && committed == GURL("chrome://blanc-prototype/pages/newtab.html?private=1"));
++}
++
++class CreatedSearchTabCapture : public TabStripModelObserver {
++ public:
++  CreatedSearchTabCapture(TabStripModel* model, content::WebContents* original)
++      : model_(model), original_(original ? original->GetWeakPtr() : nullptr) {
++    model_->AddObserver(this);
++  }
++  ~CreatedSearchTabCapture() override { if (model_) model_->RemoveObserver(this); }
++  void OnTabStripModelChanged(TabStripModel* model, const TabStripModelChange& change,
++                              const TabStripSelectionChange& selection) override {
++    if (model != model_ || invalid_) return;
++    if (const auto* insert = change.GetInsert()) {
++      if (seen_ || insert->contents.size() != 1 || !original_ ||
++          selection.old_contents != original_.get()) { invalid_ = true; return; }
++      auto* candidate = insert->contents[0].contents.get();
++      if (!candidate || selection.new_contents != candidate ||
++          model_->GetIndexOfWebContents(candidate) == TabStripModel::kNoTab) {
++        invalid_ = true; return;
++      }
++      seen_ = true; created_ = candidate->GetWeakPtr();
++    } else if (selection.active_tab_changed() || change.type() != TabStripModelChange::kSelectionOnly) {
++      invalid_ = true;
++    }
++  }
++  void OnTabStripModelDestroyed(TabStripModel*) override { model_ = nullptr; invalid_ = true; }
++  base::WeakPtr<content::WebContents> Match(content::WebContents* returned) const {
++    if (invalid_ || !seen_ || !model_ || !created_ || created_.get() != returned ||
++        model_->GetActiveWebContents() != created_.get() ||
++        model_->GetIndexOfWebContents(created_.get()) == TabStripModel::kNoTab) return {};
++    return created_;
++  }
++ private:
++  raw_ptr<TabStripModel> model_;
++  base::WeakPtr<content::WebContents> original_;
++  base::WeakPtr<content::WebContents> created_;
++  bool seen_ = false;
++  bool invalid_ = false;
++};
++
+ class Handler : public content::WebUIMessageHandler, public extensions::ExtensionUninstallDialog::Delegate {
+  public:
+   void RegisterMessages() override {
+@@ -2622,6 +2736,7 @@
+     weak_factory_.InvalidateWeakPtrs();
+     tracker_.TryCancelAll();
+     split_closes_.clear();
++    pending_navigations_.clear();
+     theme_uninstall_.reset();
+     extension_menu_runner_.reset();
+     extension_menu_adapter_.reset();
+@@ -2631,6 +2746,110 @@
+   }
+ 
+  private:
++  class NavigationWatch : public content::WebContentsObserver {
++   public:
++    NavigationWatch(content::WebContents* tab, base::RepeatingClosure changed)
++        : content::WebContentsObserver(tab), changed_(std::move(changed)) {}
++    void DidStartNavigation(content::NavigationHandle* handle) override {
++      if (!handle->IsInPrimaryMainFrame()) return;
++      state_.Start(handle->GetNavigationId()); Notify();
++    }
++    void DidFinishNavigation(content::NavigationHandle* handle) override {
++      if (!handle->IsInPrimaryMainFrame()) return;
++      const bool committed = handle->HasCommitted();
++      state_.Finish(handle->GetNavigationId(), committed,
++                    committed && handle->IsErrorPage(), handle->IsSameDocument());
++      Notify();
++    }
++    void WebContentsDestroyed() override { state_.Unknown(); Notify(); }
++    void PrimaryMainFrameRenderProcessGone(base::TerminationStatus) override {
++      state_.Unknown(); Notify();
++    }
++    void Bind(int64_t id) { state_.Bind(id); Notify(); }
++    void Unknown() { state_.Unknown(); Notify(); }
++    std::optional<BlancNavigationOutcomeState::Result> result() const {
++      return state_.result();
++    }
++   private:
++    void Notify() { if (state_.result()) changed_.Run(); }
++    BlancNavigationOutcomeState state_;
++    base::RepeatingClosure changed_;
++  };
++  struct PendingNavigation {
++    uint64_t generation;
++    std::unique_ptr<NavigationWatch> watch;
++    bool created;
++    int target_tab_id;
++    uint64_t creation_epoch;
++  };
++  std::map<std::string, PendingNavigation> pending_navigations_;
++  uint64_t navigation_generation_ = 0;
++  void NavigationChanged(std::string id, uint64_t generation) {
++    // Never destroy an observer in its callback or during LoadURLWithParams.
++    base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
++        FROM_HERE, base::BindOnce(&Handler::FinishNavigation,
++                                 weak_factory_.GetWeakPtr(), id, generation));
++  }
++  void NavigationTimedOut(std::string id, uint64_t generation) {
++    auto it = pending_navigations_.find(id);
++    if (it == pending_navigations_.end() || it->second.generation != generation)
++      return;
++    it->second.watch->Unknown();
++  }
++  void FinishNavigation(std::string id, uint64_t generation) {
++    auto it = pending_navigations_.find(id);
++    if (it == pending_navigations_.end() || it->second.generation != generation)
++      return;
++    auto result = it->second.watch->result();
++    if (!result) return;
++    const bool created = it->second.created;
++    const int tab_id = it->second.target_tab_id;
++    const uint64_t epoch = it->second.creation_epoch;
++    pending_navigations_.erase(it);
++    using Result = BlancNavigationOutcomeState::Result;
++    if (created) {
++      base::DictValue value;
++      value.Set("status", *result == Result::kCommitted ? "committed" : *result == Result::kSameDocument ? "same-document" : *result == Result::kNotCommitted ? "failed" : "unknown");
++      value.Set("tabId", tab_id); value.Set("selectionEpoch", base::NumberToString(epoch));
++      Reply(id, true, base::Value(std::move(value)));
++    } else if (*result == Result::kCommitted) Reply(id, true, base::Value(true));
++    else if (*result == Result::kSameDocument) {
++      base::DictValue outcome;
++      outcome.Set("status", "same-document");
++      Reply(id, true, base::Value(std::move(outcome)));
++    } else if (*result == Result::kNotCommitted)
++      Reply(id, false, base::Value("The page could not be opened."));
++    else Reply(id, false, base::Value("The action may still complete. Check the page before retrying."));
++  }
++  void StartObservedNavigation(const std::string& id, content::WebContents* tab,
++                               const GURL& url, ui::PageTransition transition, bool created = false, uint64_t epoch = 0) {
++    if (pending_navigations_.size() >= 16 || pending_navigations_.contains(id)) {
++      Reply(id, false, base::Value("Too many pending actions."));
++      return;
++    }
++    const uint64_t generation = ++navigation_generation_;
++    auto watch = std::make_unique<NavigationWatch>(tab,
++        base::BindRepeating(&Handler::NavigationChanged,
++                            weak_factory_.GetWeakPtr(), id, generation));
++    pending_navigations_.emplace(id, PendingNavigation{generation, std::move(watch), created, sessions::SessionTabHelper::IdForTab(tab).id(), epoch});
++    base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(
++        FROM_HERE, base::BindOnce(&Handler::NavigationTimedOut,
++                                 weak_factory_.GetWeakPtr(), id, generation),
++        base::Seconds(8));
++    content::NavigationController::LoadURLParams params(url);
++    params.transition_type = transition;
++    auto weak_self = weak_factory_.GetWeakPtr();
++    auto result = tab->GetController().LoadURLWithParamsForResult(params);
++    if (!weak_self) return;
++    auto it = pending_navigations_.find(id);
++    if (it == pending_navigations_.end() || it->second.generation != generation)
++      return;
++    if (result.has_value() && result.value())
++      it->second.watch->Bind(result.value()->GetNavigationId());
++    else
++      it->second.watch->Unknown();
++  }
++
+   std::unique_ptr<extensions::ExtensionUninstallDialog> theme_uninstall_;
+   void ExtensionMenuClosed(std::string id) {
+     base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+@@ -3958,8 +4177,21 @@
+         reply(false, base::Value("Unsupported prototype destination."));
+         return;
+       }
+-      chrome::AddTabAt(browser, url, -1, true);
+-      reply(true, base::Value());
++      const uint64_t start_epoch = owner->search_selection_epoch;
++      const auto weak_owner = owner->GetWeakPtr();
++      const auto weak_self = weak_factory_.GetWeakPtr();
++      const auto weak_browser = browser->GetWeakPtr();
++      CreatedSearchTabCapture capture(model, model->GetActiveWebContents());
++      auto* returned = chrome::AddAndReturnTabAt(browser, url, -1, true);
++      if (!weak_self || !weak_browser || !weak_owner) return;
++      auto created = capture.Match(returned);
++      if (!created || weak_owner->search_selection_epoch != start_epoch + 1) {
++        reply(false, base::Value("The new tab could not be opened.")); return;
++      }
++      base::DictValue result; result.Set("status", "created");
++      result.Set("tabId", sessions::SessionTabHelper::IdForTab(created.get()).id());
++      result.Set("selectionEpoch", base::NumberToString(weak_owner->search_selection_epoch));
++      reply(true, base::Value(std::move(result)));
+       return;
+     }
+     // Group-level commands name a group, not a tab. Group ids are
+@@ -4418,6 +4650,77 @@
+       model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
+       base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+           base::BindOnce(&Handler::CheckSplitClose, weak_factory_.GetWeakPtr(), id));
++      return;
++    } else if ((method == "searchTab" || method == "createSearchTab" || method == "externalTab" || method == "navigateTab") && args.size() == 5 && args[1].is_string() &&
++               args[2].is_string() && args[3].is_string() && args[4].is_string()) {
++      auto* frame = tab->GetPrimaryMainFrame();
++      const GURL committed = frame ? frame->GetLastCommittedURL() : GURL();
++      const bool visible = BlancSearchVisibleMatches(tab->GetVisibleURL(), committed,
++          !profile->IsOffTheRecord(), profile->IsIncognitoProfile() && profile->IsPrimaryOTRProfile());
++      if (!frame || args[4].GetString() != base::NumberToString(owner->search_selection_epoch) || !BlancSearchIntentCurrent(index == model->active_index(),
++              tab->GetController().GetPendingEntry() != nullptr, visible,
++              base::NumberToString(frame->GetNavigationId()), args[2].GetString(),
++              committed.spec(), args[3].GetString())) {
++        reply(false, base::Value("The page changed before the search could start.")); return;
++      }
++      if (method == "navigateTab") {
++        const GURL direct(args[1].GetString());
++        if (!direct.is_valid() || !direct.SchemeIsHTTPOrHTTPS()) {
++          reply(false, base::Value("This address cannot be opened.")); return;
++        }
++        StartObservedNavigation(id, tab, direct, ui::PAGE_TRANSITION_TYPED); return;
++      }
++      if (method == "externalTab") {
++        const std::string& raw = args[1].GetString();
++        const GURL external(raw);
++        if (raw.empty() || raw.size() > 8192 ||
++            std::ranges::any_of(raw, [](unsigned char c) {
++              return c <= 0x20 || c == 0x7f || c == '\\' || c == '\"' || c == '`';
++            }) || !external.is_valid() || !(external.SchemeIs("mailto") ||
++              external.SchemeIs("tel") || external.SchemeIs("facetime") || external.SchemeIs("sms"))) {
++          reply(false, base::Value("This address cannot be opened.")); return;
++        }
++        const auto weak_self = weak_factory_.GetWeakPtr();
++        tab->GetController().LoadURL(external, content::Referrer(), ui::PAGE_TRANSITION_TYPED, std::string());
++        if (!weak_self) return;
++        base::DictValue outcome; outcome.Set("status", "handoff-requested");
++        reply(true, base::Value(std::move(outcome))); return;
++      }
++      std::u16string query16;
++      if (!base::UTF8ToUTF16(args[1].GetString().data(), args[1].GetString().size(), &query16) ||
++          base::TrimWhitespace(query16, base::TRIM_ALL).empty()) {
++        reply(false, base::Value("Enter a search or address.")); return;
++      }
++      const auto weak_tab = tab->GetWeakPtr();
++      const auto weak_self = weak_factory_.GetWeakPtr();
++      const auto weak_browser = browser->GetWeakPtr();
++      const auto weak_owner = owner->GetWeakPtr();
++      const auto resolution = blanc::custom_search::ResolveCurrentSelectedShipping(profile, args[1].GetString());
++      if (!weak_self || !weak_tab || !weak_browser || !weak_owner) return;
++      auto* current_model = weak_browser->GetTabStripModel();
++      frame = weak_tab->GetPrimaryMainFrame();
++      if (!frame || !current_model || args[4].GetString() != base::NumberToString(weak_owner->search_selection_epoch) || current_model->GetActiveWebContents() != weak_tab.get() ||
++          weak_tab->GetController().GetPendingEntry() ||
++          base::NumberToString(frame->GetNavigationId()) != args[2].GetString() ||
++          frame->GetLastCommittedURL().spec() != args[3].GetString()) {
++        reply(false, base::Value("The page changed before the search could start.")); return;
++      }
++      if (resolution.status != blanc::custom_search::ShippingStatus::kReady || !resolution.url) {
++        reply(false, base::Value("The selected search provider is loading or unavailable.")); return;
++      }
++      if (method == "createSearchTab") {
++        const uint64_t start_epoch = weak_owner->search_selection_epoch;
++        CreatedSearchTabCapture capture(current_model, weak_tab.get());
++        auto* returned = chrome::AddAndReturnTabAt(weak_browser.get(), GURL("about:blank"), -1, true);
++        if (!weak_self || !weak_browser || !weak_tab || !weak_owner) return;
++        auto new_tab = capture.Match(returned);
++        if (!new_tab || weak_owner->search_selection_epoch != start_epoch + 1) {
++          reply(false, base::Value("The new search tab could not be opened.")); return;
++        }
++        StartObservedNavigation(id, new_tab.get(), GURL(*resolution.url), ui::PAGE_TRANSITION_GENERATED, true, weak_owner->search_selection_epoch);
++        return;
++      }
++      StartObservedNavigation(id, weak_tab.get(), GURL(*resolution.url), ui::PAGE_TRANSITION_GENERATED);
+       return;
+     } else if (method == "navigate" && args.size() == 2 && args[1].is_string()) {
+       const GURL url(args[1].GetString());

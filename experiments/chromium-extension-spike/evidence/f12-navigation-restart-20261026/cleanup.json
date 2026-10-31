@@ -1,0 +1,63 @@
+[
+  {
+    "phase": "first",
+    "mode": "regular",
+    "loggedPids": [
+      "43366",
+      "43376",
+      "43390"
+    ],
+    "allLoggedProcessesAbsent": true,
+    "mainExit": {
+      "code": 0,
+      "signal": null
+    },
+    "profileRemoved": "/private/tmp/blanc-f12-navigation-restart-20261026/first/profile-regular",
+    "networkServiceFatalCount": 1
+  },
+  {
+    "phase": "first",
+    "mode": "private",
+    "loggedPids": [
+      "43411",
+      "43418",
+      "43435",
+      "43463"
+    ],
+    "allLoggedProcessesAbsent": true,
+    "mainExit": {
+      "code": 0,
+      "signal": null
+    },
+    "profileRemoved": "/private/tmp/blanc-f12-navigation-restart-20261026/first/profile-private",
+    "networkServiceFatalCount": 1
+  },
+  {
+    "phase": "same-origin",
+    "mode": "regular",
+    "loggedPids": [
+      "43573"
+    ],
+    "allLoggedProcessesAbsent": true,
+    "mainExit": {
+      "code": 0,
+      "signal": null
+    },
+    "profileRemoved": "/private/tmp/blanc-f12-navigation-restart-20261026/same-origin/profile-regular",
+    "networkServiceFatalCount": 0
+  },
+  {
+    "phase": "same-origin",
+    "mode": "private",
+    "loggedPids": [
+      "43600"
+    ],
+    "allLoggedProcessesAbsent": true,
+    "mainExit": {
+      "code": 0,
+      "signal": null
+    },
+    "profileRemoved": "/private/tmp/blanc-f12-navigation-restart-20261026/same-origin/profile-private",
+    "networkServiceFatalCount": 0
+  }
+]

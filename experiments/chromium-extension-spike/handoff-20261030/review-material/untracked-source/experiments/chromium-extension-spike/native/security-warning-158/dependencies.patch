@@ -1,0 +1,18 @@
+--- a/chrome/browser/ui/views/frame/BUILD.gn
++++ b/chrome/browser/ui/views/frame/BUILD.gn
+@@ -817,6 +817,7 @@
+     "//chrome/browser/profiles:profile_util",
+     "//chrome/browser/sessions",
+     "//chrome/browser/sharing_hub",
++    "//chrome/browser/ssl",
+     "//chrome/browser/signin",
+     "//chrome/browser/sync",
+     "//chrome/browser/themes",
+@@ -955,6 +956,7 @@
+     "//components/safe_browsing/core/browser/password_protection:password_protection_metrics_util",
+     "//components/saved_tab_groups/public:features",
+     "//components/search",
++    "//components/security_state/core",
+     "//components/sessions",
+     "//components/split_tabs",
+     "//components/startup_metric_utils",

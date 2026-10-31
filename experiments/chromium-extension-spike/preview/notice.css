@@ -1,0 +1,21 @@
+.preview-notice-button { border:0; padding:5px 0; background:none; color:inherit; font:inherit; text-align:left; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.preview-notice-button:focus-visible { outline:2px solid var(--accent,#8a6530); outline-offset:3px; border-radius:4px; }
+#previewStatusLink { display:block; width:100%; margin-top:10px; padding:9px 0 0; border-top:1px solid var(--border,#7775); font-size:12px; }
+#previewNoticeButton { max-width:100%; }
+.preview-notice { box-sizing:border-box; width:min(600px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); margin:auto; padding:24px; overflow:auto; border:1px solid var(--border,#7775); border-radius:14px; background:var(--surface-raised,#fffdf8); background:rgb(from var(--surface,#fffdf8) r g b / 1); color:var(--text,#24211d); box-shadow:0 14px 60px #0005; font-family:var(--font-text,'Instrument Sans',sans-serif); font-size:14px; line-height:1.5; }
+.preview-notice::backdrop { background:#0008; }
+.preview-notice-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.preview-notice-heading h2 { margin:0; font-size:24px; line-height:1.2; }
+.preview-notice-eyebrow { margin:0 0 6px; font-size:12px; }
+.preview-notice-heading button { border:1px solid var(--border,#7775); border-radius:7px; background:transparent; color:inherit; padding:6px 10px; font:inherit; cursor:pointer; }
+.preview-notice-status { font-weight:650; padding:10px 12px; border:1px solid currentColor; border-radius:8px; }
+.preview-notice-build { margin:18px 0; }
+.preview-notice-build div { display:grid; grid-template-columns:110px 1fr; gap:12px; margin:6px 0; }
+.preview-notice-build dt { opacity:.8; }
+.preview-notice-build dd { margin:0; overflow-wrap:anywhere; }
+.preview-notice h3 { font-size:16px; margin:20px 0 6px; }
+.preview-notice p { margin:12px 0; }
+.preview-notice a { color:inherit; text-decoration:underline; text-underline-offset:3px; }
+.preview-notice :focus-visible { outline:2px solid currentColor; outline-offset:4px; }
+.preview-notice-profile code { overflow-wrap:anywhere; font-size:12px; }
+@media (max-width:420px) { .preview-notice { padding:16px; } .preview-notice-build div { grid-template-columns:1fr; gap:0; } }

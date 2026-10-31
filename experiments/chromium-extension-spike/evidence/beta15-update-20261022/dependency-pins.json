@@ -1,0 +1,11 @@
+{
+  "v8": "7b7308258b7b58b8cf112439c91b199b8a11ecf1",
+  "third_party/skia": "ac947b5f02facc8237e889c3977c3a670d9d4664",
+  "third_party/angle": "3b27750335a883d966eb8e460bc4f1126fed1a5d",
+  "third_party/dawn": "de87968dc43d608fa96b08b731755bad86fba131",
+  "third_party/devtools-frontend/src": "2c13d600e80aea1e914e7184d2645ead1111af37",
+  "third_party/pdfium": "4e6f5ead3e8eef06e8a8482ec4afff4b52845e18",
+  "third_party/webrtc": "95554e4a0c5c343fdc989387d9d0ce18e2a2294b",
+  "third_party/icu": "4fe960221710e5b5524ac6e49a454bbb8bfc295d",
+  "third_party/libvpx/source/libvpx": "d603b5421220b05fd37c5bb6439eb0398cc1f1fe"
+}

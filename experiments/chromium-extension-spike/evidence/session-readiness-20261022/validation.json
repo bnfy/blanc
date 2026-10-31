@@ -1,0 +1,12 @@
+{
+  "starts": 5,
+  "normal_configuration_starts": 3,
+  "explicit_encrypted_preferred_starts": 2,
+  "all_effective_stages": 2,
+  "queued_browser_reads_resumed": 5,
+  "exact_tabs_selection_and_clean_exits": true,
+  "original_profiles_unchanged": true,
+  "google_and_dev_unchanged": true,
+  "stall_reproduced": false,
+  "root_cause_established": false
+}

@@ -1,0 +1,4384 @@
+{
+  "schedules": [
+    {
+      "kind": "regular",
+      "mode": "timeout",
+      "responses": [
+        {
+          "requestId": "439DF21DAEB72410B48DC2CE8CAC4729",
+          "loaderId": "439DF21DAEB72410B48DC2CE8CAC4729",
+          "timestamp": 109305.570916,
+          "type": "Document",
+          "response": {
+            "url": "https://page.blanc-fixture.test:53578/source",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 00:29:32 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 46,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 53578,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": false,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 109305.567224,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.491,
+              "sendEnd": 0.625,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 2.557,
+              "receiveHeadersEnd": 2.643
+            },
+            "responseTime": 1792628972182.252,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792628965,
+              "validTo": 1792715365,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "441BF116BA07D16F249F76E020F8B90F"
+        },
+        {
+          "requestId": "53C7BAE10A0025946A9C1119D8E5B4F0",
+          "loaderId": "53C7BAE10A0025946A9C1119D8E5B4F0",
+          "timestamp": 109305.603124,
+          "type": "Prefetch",
+          "response": {
+            "url": "https://page.blanc-fixture.test:53578/regular-timeout",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 00:29:32 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 46,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 53578,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": true,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 109305.599093,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.26,
+              "sendEnd": 0.336,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 0.723,
+              "receiveHeadersEnd": 3.753
+            },
+            "responseTime": 1792628972212.286,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792628965,
+              "validTo": 1792715365,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "441BF116BA07D16F249F76E020F8B90F"
+        },
+        {
+          "requestId": "C2D9574A267BCEE55A4EE398B8A4698A",
+          "loaderId": "C2D9574A267BCEE55A4EE398B8A4698A",
+          "timestamp": 109305.737963,
+          "type": "Document",
+          "response": {
+            "url": "https://page.blanc-fixture.test:53578/regular-timeout",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 00:29:32 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 46,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 53578,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": true,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 109305.599093,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.26,
+              "sendEnd": 0.336,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 0.723,
+              "receiveHeadersEnd": 3.753
+            },
+            "responseTime": 1792628972212.286,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792628965,
+              "validTo": 1792715365,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "441BF116BA07D16F249F76E020F8B90F"
+        },
+        {
+          "requestId": "47380.2",
+          "loaderId": "C2D9574A267BCEE55A4EE398B8A4698A",
+          "timestamp": 109340.785776,
+          "type": "Image",
+          "response": {
+            "url": "data:image/png;base64,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",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Content-Type": "image/png"
+            },
+            "mimeType": "image/png",
+            "charset": "",
+            "connectionReused": false,
+            "connectionId": 0,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": false,
+            "encodedDataLength": 0,
+            "protocol": "data",
+            "securityState": "unknown"
+          },
+          "hasExtraInfo": false,
+          "frameId": "441BF116BA07D16F249F76E020F8B90F"
+        },
+        {
+          "requestId": "47380.3",
+          "loaderId": "C2D9574A267BCEE55A4EE398B8A4698A",
+          "timestamp": 109340.786,
+          "type": "Image",
+          "response": {
+            "url": "data:image/png;base64,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",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Content-Type": "image/png"
+            },
+            "mimeType": "image/png",
+            "charset": "",
+            "connectionReused": false,
+            "connectionId": 0,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": false,
+            "encodedDataLength": 0,
+            "protocol": "data",
+            "securityState": "unknown"
+          },
+          "hasExtraInfo": false,
+          "frameId": "441BF116BA07D16F249F76E020F8B90F"
+        },
+        {
+          "requestId": "47380.4",
+          "loaderId": "C2D9574A267BCEE55A4EE398B8A4698A",
+          "timestamp": 109340.790476,
+          "type": "Image",
+          "response": {
+            "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABIAQMAAABvIyEEAAAABlBMVEUAAABTU1OoaSf/AAAAAXRSTlMAQObYZgAAAENJREFUeF7tzbEJACEQRNGBLeAasBCza2lLEGx0CxFGG9hBMDDxRy/72O9FMnIFapGylsu1fgoBdkXfUHLrQgdfrlJN1BdYBjQQm3UAAAAASUVORK5CYII=",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Content-Type": "image/png"
+            },
+            "mimeType": "image/png",
+            "charset": "",
+            "connectionReused": false,
+            "connectionId": 0,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": false,
+            "encodedDataLength": 0,
+            "protocol": "data",
+            "securityState": "unknown"
+          },
+          "hasExtraInfo": false,
+          "frameId": "441BF116BA07D16F249F76E020F8B90F"
+        }
+      ],
+      "preloadEvents": [
+        {
+          "key": {
+            "loaderId": "439DF21DAEB72410B48DC2CE8CAC4729",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/regular-timeout"
+          },
+          "pipelineId": "E944DA2402EB201D290CFB2C8F815216",
+          "initiatingFrameId": "441BF116BA07D16F249F76E020F8B90F",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/regular-timeout",
+          "status": "Running",
+          "prefetchStatus": "PrefetchNotFinishedInTime",
+          "requestId": "53C7BAE10A0025946A9C1119D8E5B4F0"
+        },
+        {
+          "key": {
+            "loaderId": "439DF21DAEB72410B48DC2CE8CAC4729",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/regular-timeout"
+          },
+          "pipelineId": "E944DA2402EB201D290CFB2C8F815216",
+          "initiatingFrameId": "441BF116BA07D16F249F76E020F8B90F",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/regular-timeout",
+          "status": "Ready",
+          "prefetchStatus": "PrefetchSuccessfulButNotUsed",
+          "requestId": "53C7BAE10A0025946A9C1119D8E5B4F0"
+        },
+        {
+          "key": {
+            "loaderId": "439DF21DAEB72410B48DC2CE8CAC4729",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/regular-timeout"
+          },
+          "pipelineId": "E944DA2402EB201D290CFB2C8F815216",
+          "initiatingFrameId": "441BF116BA07D16F249F76E020F8B90F",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/regular-timeout",
+          "status": "Success",
+          "prefetchStatus": "PrefetchResponseUsed",
+          "requestId": "53C7BAE10A0025946A9C1119D8E5B4F0"
+        }
+      ],
+      "urls": [
+        "https://page.blanc-fixture.test:53578/regular-timeout"
+      ],
+      "readyBeforeLoss": [
+        {
+          "key": {
+            "loaderId": "439DF21DAEB72410B48DC2CE8CAC4729",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/regular-timeout"
+          },
+          "pipelineId": "E944DA2402EB201D290CFB2C8F815216",
+          "initiatingFrameId": "441BF116BA07D16F249F76E020F8B90F",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/regular-timeout",
+          "status": "Running",
+          "prefetchStatus": "PrefetchNotFinishedInTime",
+          "requestId": "53C7BAE10A0025946A9C1119D8E5B4F0"
+        },
+        {
+          "key": {
+            "loaderId": "439DF21DAEB72410B48DC2CE8CAC4729",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/regular-timeout"
+          },
+          "pipelineId": "E944DA2402EB201D290CFB2C8F815216",
+          "initiatingFrameId": "441BF116BA07D16F249F76E020F8B90F",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/regular-timeout",
+          "status": "Ready",
+          "prefetchStatus": "PrefetchSuccessfulButNotUsed",
+          "requestId": "53C7BAE10A0025946A9C1119D8E5B4F0"
+        }
+      ],
+      "heldUtility": {
+        "pid": 47381,
+        "ppid": 47361,
+        "command": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif) --type=utility --utility-sub-type=blanc.mojom.Blocker --lang=en-US --service-sandbox-type=service --host-resolver-rules=MAP page.blanc-fixture.test 127.0.0.1, MAP 000491b06a.com 127.0.0.1, MAP * ~NOTFOUND, EXCLUDE 127.0.0.1 --ignore-certificate-errors-spki-list=8zizG9xWTqcnBLJUWXOV0mhEuKTMHFDwbUdqa/W/ZJc= --user-data-dir=/private/tmp/blanc-prefetch-lifecycle-01/regular-timeout --shared-files --metrics-shmem-handle=1752395122,r,3795667547844898642,15318221665654919286,524288 --field-trial-handle=1718379636,r,10364352406367738735,8728631133620008162,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AutoDeElevate,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,OptimizationHints,PaintHolding,ThirdPartyStoragePartitioning,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=1935764596,r,15772255779064732982,4722724359412098229,4 --trace-process-track-uuid=2222899754596510404 --seatbelt-client=103"
+      },
+      "beforeConsumption": {
+        "arrivals": [
+          {
+            "url": "/regular-timeout",
+            "host": "page.blanc-fixture.test:53578",
+            "headers": {
+              "host": "page.blanc-fixture.test:53578",
+              "connection": "keep-alive",
+              "upgrade-insecure-requests": "1",
+              "sec-purpose": "prefetch",
+              "sec-speculation-tags": "null",
+              "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\"",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "navigate",
+              "sec-fetch-dest": "document",
+              "referer": "https://page.blanc-fixture.test:53578/source",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "en-US,en;q=0.9"
+            }
+          }
+        ],
+        "decisions": [
+          {
+            "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+            "event": "engine-ready"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "439DF21DAEB72410B48DC2CE8CAC4729",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "A3D72627550664597D23217A80619EEA",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 0,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 1425680,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": -6,
+            "method": "GET",
+            "profile_kind": "regular",
+            "redirect_index": 0,
+            "referrer": "",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:53578",
+            "url": "https://page.blanc-fixture.test:53578/source"
+          },
+          {
+            "decision": "allow",
+            "engine_result": 0,
+            "event": "navigation-response-decision",
+            "private": false,
+            "url": "https://page.blanc-fixture.test:53578/source"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "53C7BAE10A0025946A9C1119D8E5B4F0",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "0BE8920910F83CE960D66FBBD6226B53",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 7,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 461,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": 0,
+            "method": "GET",
+            "profile_kind": "regular",
+            "redirect_index": 0,
+            "referrer": "https://page.blanc-fixture.test:53578/source",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:53578",
+            "url": "https://page.blanc-fixture.test:53578/regular-timeout"
+          }
+        ]
+      },
+      "pending": {
+        "settled": false,
+        "url": "https://page.blanc-fixture.test:53578/source",
+        "decisions": []
+      },
+      "navigation": {
+        "error": "Error: page.waitForNavigation: net::ERR_BLOCKED_BY_CLIENT\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================"
+      },
+      "beforeResume": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "439DF21DAEB72410B48DC2CE8CAC4729",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "A3D72627550664597D23217A80619EEA",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1425680,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -6,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "https://page.blanc-fixture.test:53578",
+          "url": "https://page.blanc-fixture.test:53578/source"
+        },
+        {
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "navigation-response-decision",
+          "private": false,
+          "url": "https://page.blanc-fixture.test:53578/source"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "53C7BAE10A0025946A9C1119D8E5B4F0",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "0BE8920910F83CE960D66FBBD6226B53",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 7,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 461,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": 0,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "https://page.blanc-fixture.test:53578/source",
+          "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "https://page.blanc-fixture.test:53578",
+          "url": "https://page.blanc-fixture.test:53578/regular-timeout"
+        },
+        {
+          "decision": "block",
+          "engine_result": -1,
+          "event": "navigation-response-decision",
+          "private": false,
+          "url": "https://page.blanc-fixture.test:53578/regular-timeout"
+        }
+      ],
+      "afterResume": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "439DF21DAEB72410B48DC2CE8CAC4729",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "A3D72627550664597D23217A80619EEA",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1425680,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -6,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "https://page.blanc-fixture.test:53578",
+          "url": "https://page.blanc-fixture.test:53578/source"
+        },
+        {
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "navigation-response-decision",
+          "private": false,
+          "url": "https://page.blanc-fixture.test:53578/source"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "53C7BAE10A0025946A9C1119D8E5B4F0",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "0BE8920910F83CE960D66FBBD6226B53",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 7,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 461,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": 0,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "https://page.blanc-fixture.test:53578/source",
+          "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "https://page.blanc-fixture.test:53578",
+          "url": "https://page.blanc-fixture.test:53578/regular-timeout"
+        },
+        {
+          "decision": "block",
+          "engine_result": -1,
+          "event": "navigation-response-decision",
+          "private": false,
+          "url": "https://page.blanc-fixture.test:53578/regular-timeout"
+        }
+      ],
+      "arrivalsAfterConsumption": [
+        {
+          "url": "/regular-timeout",
+          "host": "page.blanc-fixture.test:53578",
+          "headers": {
+            "host": "page.blanc-fixture.test:53578",
+            "connection": "keep-alive",
+            "upgrade-insecure-requests": "1",
+            "sec-purpose": "prefetch",
+            "sec-speculation-tags": "null",
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "navigate",
+            "sec-fetch-dest": "document",
+            "referer": "https://page.blanc-fixture.test:53578/source",
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "en-US,en;q=0.9"
+          }
+        }
+      ],
+      "freshNavigationPassed": true,
+      "titleAfterLateReply": "page.blanc-fixture.test",
+      "passed": true,
+      "histograms": {
+        "histograms": [
+          {
+            "name": "Omnibox.SearchPrefetch.PrefetchServingReason2",
+            "sum": 6,
+            "count": 2,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 2
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.BlockUntilHeadDuration.PerMatchingCandidate.NonPrerender.Served.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.BlockUntilHeadDuration.PerMatchingCandidate.Served.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToFirstURLRequestStarted.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToHeaderDeterminedSuccessfully.SpeculationRule_Immediate2",
+            "sum": 5,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 5,
+                "high": 6,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToInitialEligibility.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToPrefetchCompletedSuccessfully.SpeculationRule_Immediate2",
+            "sum": 5,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 5,
+                "high": 6,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToPrefetchStarted.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToURLRequestStarted.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.CreateStreamDelay.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.InitialEligibilityToPrefetchStarted.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.PrefetchStartedToFirstURLRequestStarted.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.PrefetchStartedToHeaderDeterminedSuccessfully.SpeculationRule_Immediate2",
+            "sum": 5,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 5,
+                "high": 6,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.PrefetchStartedToPrefetchCompletedSuccessfully.SpeculationRule_Immediate2",
+            "sum": 5,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 5,
+                "high": 6,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.PrefetchStartedToURLRequestStarted.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.ServedCount.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchMatchingBlockedNavigation.PerMatchingCandidate.NonPrerender.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchMatchingBlockedNavigation.PerMatchingCandidate.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchPotentialCandidateServingResult.PerMatchingCandidate.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.Prefetchcontainer.ConnectedCallbackDelay.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.Prefetchcontainer.InitializeStreamDelay.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.AfterClick.Mainframe.CookieWaitTime",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.AfterClick.RedirectChainSize",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.Mainframe.BodyLength",
+            "sum": 104,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 76,
+                "high": 105,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.Mainframe.NetError",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.Mainframe.RespCode",
+            "sum": 200,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 200,
+                "high": 201,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.Mainframe.TotalTime",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 10,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.RedirectChainSize",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.StreamingURLLoaderFinalStatus",
+            "sum": 4,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 4,
+                "high": 5,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PreloadServingMetrics.ForNavigationCommitted.PrefetchMatchMetrics.Count",
+            "sum": 2,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 2,
+                "high": 3,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PreloadServingMetrics.ForNavigationCommitted.PrefetchMatchMetrics.IsPotentialMatch",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.EagerViewportHeuristic.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.PointerDownOnAnchor.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.SpeculationRules.Precision",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.SpeculationRules.Recall",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.SpeculationRules.TriggeringOutcome",
+            "sum": 5,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 5,
+                "high": 6,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.UrlPointerDownOnAnchor.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.UrlPointerHoverOnAnchor.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.ViewportHeuristic.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.PrefetchDataPipeTeeDtorState",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.PrefetchStatus",
+            "sum": 42,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 42,
+                "high": 43,
+                "count": 1
+              }
+            ]
+          }
+        ]
+      },
+      "profileRemoved": true
+    },
+    {
+      "kind": "regular",
+      "mode": "tab-close",
+      "responses": [
+        {
+          "requestId": "26D2C6F998BF04B46A440D6479168EF6",
+          "loaderId": "26D2C6F998BF04B46A440D6479168EF6",
+          "timestamp": 109345.491466,
+          "type": "Document",
+          "response": {
+            "url": "https://page.blanc-fixture.test:53578/source",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 00:30:12 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 46,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 53578,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": false,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 109345.489348,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.484,
+              "sendEnd": 0.575,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 0.938,
+              "receiveHeadersEnd": 1.036
+            },
+            "responseTime": 1792629012102.978,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792628965,
+              "validTo": 1792715365,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "A5CF26488C3CBFA7E113B008587A5386"
+        },
+        {
+          "requestId": "8354B88C60D5DBD1B88DA070340FEBC2",
+          "loaderId": "8354B88C60D5DBD1B88DA070340FEBC2",
+          "timestamp": 109345.517662,
+          "type": "Prefetch",
+          "response": {
+            "url": "https://page.blanc-fixture.test:53578/regular-tab-close",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 00:30:12 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 46,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 53578,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": true,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 109345.515207,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.258,
+              "sendEnd": 0.31,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 0.604,
+              "receiveHeadersEnd": 1.763
+            },
+            "responseTime": 1792629012128.504,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792628965,
+              "validTo": 1792715365,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "A5CF26488C3CBFA7E113B008587A5386"
+        },
+        {
+          "requestId": "6B2AC78DDFD63A2BB16E0BCAFBFA0AC0",
+          "loaderId": "6B2AC78DDFD63A2BB16E0BCAFBFA0AC0",
+          "timestamp": 109345.655655,
+          "type": "Document",
+          "response": {
+            "url": "https://page.blanc-fixture.test:53578/regular-tab-close",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 00:30:12 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 46,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 53578,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": true,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 109345.515207,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.258,
+              "sendEnd": 0.31,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 0.604,
+              "receiveHeadersEnd": 1.763
+            },
+            "responseTime": 1792629012128.504,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792628965,
+              "validTo": 1792715365,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "A5CF26488C3CBFA7E113B008587A5386"
+        }
+      ],
+      "preloadEvents": [
+        {
+          "key": {
+            "loaderId": "26D2C6F998BF04B46A440D6479168EF6",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/regular-tab-close"
+          },
+          "pipelineId": "DF1F942862B9C85AEE060F27C30F83C7",
+          "initiatingFrameId": "A5CF26488C3CBFA7E113B008587A5386",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/regular-tab-close",
+          "status": "Running",
+          "prefetchStatus": "PrefetchNotFinishedInTime",
+          "requestId": "8354B88C60D5DBD1B88DA070340FEBC2"
+        },
+        {
+          "key": {
+            "loaderId": "26D2C6F998BF04B46A440D6479168EF6",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/regular-tab-close"
+          },
+          "pipelineId": "DF1F942862B9C85AEE060F27C30F83C7",
+          "initiatingFrameId": "A5CF26488C3CBFA7E113B008587A5386",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/regular-tab-close",
+          "status": "Ready",
+          "prefetchStatus": "PrefetchSuccessfulButNotUsed",
+          "requestId": "8354B88C60D5DBD1B88DA070340FEBC2"
+        },
+        {
+          "key": {
+            "loaderId": "26D2C6F998BF04B46A440D6479168EF6",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/regular-tab-close"
+          },
+          "pipelineId": "DF1F942862B9C85AEE060F27C30F83C7",
+          "initiatingFrameId": "A5CF26488C3CBFA7E113B008587A5386",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/regular-tab-close",
+          "status": "Success",
+          "prefetchStatus": "PrefetchResponseUsed",
+          "requestId": "8354B88C60D5DBD1B88DA070340FEBC2"
+        }
+      ],
+      "urls": [
+        "https://page.blanc-fixture.test:53578/regular-tab-close"
+      ],
+      "readyBeforeLoss": [
+        {
+          "key": {
+            "loaderId": "26D2C6F998BF04B46A440D6479168EF6",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/regular-tab-close"
+          },
+          "pipelineId": "DF1F942862B9C85AEE060F27C30F83C7",
+          "initiatingFrameId": "A5CF26488C3CBFA7E113B008587A5386",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/regular-tab-close",
+          "status": "Running",
+          "prefetchStatus": "PrefetchNotFinishedInTime",
+          "requestId": "8354B88C60D5DBD1B88DA070340FEBC2"
+        },
+        {
+          "key": {
+            "loaderId": "26D2C6F998BF04B46A440D6479168EF6",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/regular-tab-close"
+          },
+          "pipelineId": "DF1F942862B9C85AEE060F27C30F83C7",
+          "initiatingFrameId": "A5CF26488C3CBFA7E113B008587A5386",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/regular-tab-close",
+          "status": "Ready",
+          "prefetchStatus": "PrefetchSuccessfulButNotUsed",
+          "requestId": "8354B88C60D5DBD1B88DA070340FEBC2"
+        }
+      ],
+      "heldUtility": {
+        "pid": 47490,
+        "ppid": 47472,
+        "command": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif) --type=utility --utility-sub-type=blanc.mojom.Blocker --lang=en-US --service-sandbox-type=service --host-resolver-rules=MAP page.blanc-fixture.test 127.0.0.1, MAP 000491b06a.com 127.0.0.1, MAP * ~NOTFOUND, EXCLUDE 127.0.0.1 --ignore-certificate-errors-spki-list=8zizG9xWTqcnBLJUWXOV0mhEuKTMHFDwbUdqa/W/ZJc= --user-data-dir=/private/tmp/blanc-prefetch-lifecycle-01/regular-tab-close --shared-files --metrics-shmem-handle=1752395122,r,11969447287450416008,10483160483129872657,524288 --field-trial-handle=1718379636,r,8845843378162066825,11899993247624061991,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AutoDeElevate,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,OptimizationHints,PaintHolding,ThirdPartyStoragePartitioning,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=1935764596,r,3986107326998344752,18036828221426969754,4 --trace-process-track-uuid=3258532551637876497 --seatbelt-client=103"
+      },
+      "beforeConsumption": {
+        "arrivals": [
+          {
+            "url": "/regular-tab-close",
+            "host": "page.blanc-fixture.test:53578",
+            "headers": {
+              "host": "page.blanc-fixture.test:53578",
+              "connection": "keep-alive",
+              "upgrade-insecure-requests": "1",
+              "sec-purpose": "prefetch",
+              "sec-speculation-tags": "null",
+              "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\"",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "navigate",
+              "sec-fetch-dest": "document",
+              "referer": "https://page.blanc-fixture.test:53578/source",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "en-US,en;q=0.9"
+            }
+          }
+        ],
+        "decisions": [
+          {
+            "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+            "event": "engine-ready"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "26D2C6F998BF04B46A440D6479168EF6",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "B471C4E1A6510249F462CAF3E9548E71",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 0,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 1420049,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": -6,
+            "method": "GET",
+            "profile_kind": "regular",
+            "redirect_index": 0,
+            "referrer": "",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:53578",
+            "url": "https://page.blanc-fixture.test:53578/source"
+          },
+          {
+            "decision": "allow",
+            "engine_result": 0,
+            "event": "navigation-response-decision",
+            "private": false,
+            "url": "https://page.blanc-fixture.test:53578/source"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "8354B88C60D5DBD1B88DA070340FEBC2",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "6BC52C39DF83643220F492E39A426CA0",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 7,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 390,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": 0,
+            "method": "GET",
+            "profile_kind": "regular",
+            "redirect_index": 0,
+            "referrer": "https://page.blanc-fixture.test:53578/source",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:53578",
+            "url": "https://page.blanc-fixture.test:53578/regular-tab-close"
+          }
+        ]
+      },
+      "pending": {
+        "settled": false,
+        "url": "https://page.blanc-fixture.test:53578/source",
+        "decisions": []
+      },
+      "navigation": {
+        "error": "Error: page.waitForNavigation: net::ERR_ABORTED; maybe frame was detached?\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================"
+      },
+      "beforeResume": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "26D2C6F998BF04B46A440D6479168EF6",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "B471C4E1A6510249F462CAF3E9548E71",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1420049,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -6,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "https://page.blanc-fixture.test:53578",
+          "url": "https://page.blanc-fixture.test:53578/source"
+        },
+        {
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "navigation-response-decision",
+          "private": false,
+          "url": "https://page.blanc-fixture.test:53578/source"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "8354B88C60D5DBD1B88DA070340FEBC2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "6BC52C39DF83643220F492E39A426CA0",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 7,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 390,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": 0,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "https://page.blanc-fixture.test:53578/source",
+          "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "https://page.blanc-fixture.test:53578",
+          "url": "https://page.blanc-fixture.test:53578/regular-tab-close"
+        }
+      ],
+      "afterResume": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "26D2C6F998BF04B46A440D6479168EF6",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "B471C4E1A6510249F462CAF3E9548E71",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1420049,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -6,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "https://page.blanc-fixture.test:53578",
+          "url": "https://page.blanc-fixture.test:53578/source"
+        },
+        {
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "navigation-response-decision",
+          "private": false,
+          "url": "https://page.blanc-fixture.test:53578/source"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "8354B88C60D5DBD1B88DA070340FEBC2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "6BC52C39DF83643220F492E39A426CA0",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 7,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 390,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": 0,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "https://page.blanc-fixture.test:53578/source",
+          "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "https://page.blanc-fixture.test:53578",
+          "url": "https://page.blanc-fixture.test:53578/regular-tab-close"
+        }
+      ],
+      "arrivalsAfterConsumption": [
+        {
+          "url": "/regular-tab-close",
+          "host": "page.blanc-fixture.test:53578",
+          "headers": {
+            "host": "page.blanc-fixture.test:53578",
+            "connection": "keep-alive",
+            "upgrade-insecure-requests": "1",
+            "sec-purpose": "prefetch",
+            "sec-speculation-tags": "null",
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "navigate",
+            "sec-fetch-dest": "document",
+            "referer": "https://page.blanc-fixture.test:53578/source",
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "en-US,en;q=0.9"
+          }
+        }
+      ],
+      "freshNavigationPassed": true,
+      "passed": true,
+      "histograms": {
+        "histograms": [
+          {
+            "name": "Omnibox.SearchPrefetch.PrefetchServingReason2",
+            "sum": 6,
+            "count": 2,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 2
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.BlockUntilHeadDuration.PerMatchingCandidate.NonPrerender.Served.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.BlockUntilHeadDuration.PerMatchingCandidate.Served.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToFirstURLRequestStarted.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToHeaderDeterminedSuccessfully.SpeculationRule_Immediate2",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToInitialEligibility.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToPrefetchCompletedSuccessfully.SpeculationRule_Immediate2",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToPrefetchStarted.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToURLRequestStarted.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.CreateStreamDelay.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.InitialEligibilityToPrefetchStarted.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.PrefetchStartedToFirstURLRequestStarted.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.PrefetchStartedToHeaderDeterminedSuccessfully.SpeculationRule_Immediate2",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.PrefetchStartedToPrefetchCompletedSuccessfully.SpeculationRule_Immediate2",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.PrefetchStartedToURLRequestStarted.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.ServedCount.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchMatchingBlockedNavigation.PerMatchingCandidate.NonPrerender.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchMatchingBlockedNavigation.PerMatchingCandidate.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchPotentialCandidateServingResult.PerMatchingCandidate.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.Prefetchcontainer.ConnectedCallbackDelay.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.Prefetchcontainer.InitializeStreamDelay.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.AfterClick.Mainframe.CookieWaitTime",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.AfterClick.RedirectChainSize",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.Mainframe.BodyLength",
+            "sum": 104,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 76,
+                "high": 105,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.Mainframe.NetError",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.Mainframe.RespCode",
+            "sum": 200,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 200,
+                "high": 201,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.Mainframe.TotalTime",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 10,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.RedirectChainSize",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.StreamingURLLoaderFinalStatus",
+            "sum": 4,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 4,
+                "high": 5,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PreloadServingMetrics.ForNavigationCommitted.PrefetchMatchMetrics.Count",
+            "sum": 2,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 2,
+                "high": 3,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PreloadServingMetrics.ForNavigationCommitted.PrefetchMatchMetrics.IsPotentialMatch",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.EagerViewportHeuristic.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.PointerDownOnAnchor.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.SpeculationRules.Precision",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.SpeculationRules.Recall",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.SpeculationRules.TriggeringOutcome",
+            "sum": 5,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 5,
+                "high": 6,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.UrlPointerDownOnAnchor.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.UrlPointerHoverOnAnchor.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.ViewportHeuristic.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.PrefetchDataPipeTeeDtorState",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.PrefetchStatus",
+            "sum": 42,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 42,
+                "high": 43,
+                "count": 1
+              }
+            ]
+          }
+        ]
+      },
+      "profileRemoved": true
+    },
+    {
+      "kind": "private",
+      "mode": "timeout",
+      "responses": [
+        {
+          "requestId": "8096D90DE39089F23E214907C7590642",
+          "loaderId": "8096D90DE39089F23E214907C7590642",
+          "timestamp": 109351.520731,
+          "type": "Document",
+          "response": {
+            "url": "https://page.blanc-fixture.test:53578/source",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 00:30:18 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 57,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 53578,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": false,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 109351.517707,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.395,
+              "sendEnd": 0.469,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 1.54,
+              "receiveHeadersEnd": 1.665
+            },
+            "responseTime": 1792629018131.973,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792628965,
+              "validTo": 1792715365,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "5114C252DF93284B7D20EFF642FFF694"
+        },
+        {
+          "requestId": "832274C6681B1C3CC9C5E597A9DAC41F",
+          "loaderId": "832274C6681B1C3CC9C5E597A9DAC41F",
+          "timestamp": 109351.544024,
+          "type": "Prefetch",
+          "response": {
+            "url": "https://page.blanc-fixture.test:53578/private-timeout",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 00:30:18 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 57,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 53578,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": true,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 109351.543166,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.223,
+              "sendEnd": 0.279,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 0.522,
+              "receiveHeadersEnd": 0.564
+            },
+            "responseTime": 1792629018156.415,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792628965,
+              "validTo": 1792715365,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "5114C252DF93284B7D20EFF642FFF694"
+        },
+        {
+          "requestId": "839149EC412E33154A859440046B381D",
+          "loaderId": "839149EC412E33154A859440046B381D",
+          "timestamp": 109351.684268,
+          "type": "Document",
+          "response": {
+            "url": "https://page.blanc-fixture.test:53578/private-timeout",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 00:30:18 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 57,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 53578,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": true,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 109351.543166,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.223,
+              "sendEnd": 0.279,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 0.522,
+              "receiveHeadersEnd": 0.564
+            },
+            "responseTime": 1792629018156.415,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792628965,
+              "validTo": 1792715365,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "5114C252DF93284B7D20EFF642FFF694"
+        },
+        {
+          "requestId": "47516.2",
+          "loaderId": "839149EC412E33154A859440046B381D",
+          "timestamp": 109386.746342,
+          "type": "Image",
+          "response": {
+            "url": "data:image/png;base64,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",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Content-Type": "image/png"
+            },
+            "mimeType": "image/png",
+            "charset": "",
+            "connectionReused": false,
+            "connectionId": 0,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": false,
+            "encodedDataLength": 0,
+            "protocol": "data",
+            "securityState": "unknown"
+          },
+          "hasExtraInfo": false,
+          "frameId": "5114C252DF93284B7D20EFF642FFF694"
+        },
+        {
+          "requestId": "47516.3",
+          "loaderId": "839149EC412E33154A859440046B381D",
+          "timestamp": 109386.746632,
+          "type": "Image",
+          "response": {
+            "url": "data:image/png;base64,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",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Content-Type": "image/png"
+            },
+            "mimeType": "image/png",
+            "charset": "",
+            "connectionReused": false,
+            "connectionId": 0,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": false,
+            "encodedDataLength": 0,
+            "protocol": "data",
+            "securityState": "unknown"
+          },
+          "hasExtraInfo": false,
+          "frameId": "5114C252DF93284B7D20EFF642FFF694"
+        },
+        {
+          "requestId": "47516.4",
+          "loaderId": "839149EC412E33154A859440046B381D",
+          "timestamp": 109386.752193,
+          "type": "Image",
+          "response": {
+            "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABIAQMAAABvIyEEAAAABlBMVEUAAABTU1OoaSf/AAAAAXRSTlMAQObYZgAAAENJREFUeF7tzbEJACEQRNGBLeAasBCza2lLEGx0CxFGG9hBMDDxRy/72O9FMnIFapGylsu1fgoBdkXfUHLrQgdfrlJN1BdYBjQQm3UAAAAASUVORK5CYII=",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Content-Type": "image/png"
+            },
+            "mimeType": "image/png",
+            "charset": "",
+            "connectionReused": false,
+            "connectionId": 0,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": false,
+            "encodedDataLength": 0,
+            "protocol": "data",
+            "securityState": "unknown"
+          },
+          "hasExtraInfo": false,
+          "frameId": "5114C252DF93284B7D20EFF642FFF694"
+        }
+      ],
+      "preloadEvents": [
+        {
+          "key": {
+            "loaderId": "8096D90DE39089F23E214907C7590642",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/private-timeout"
+          },
+          "pipelineId": "65BF82C170F266766D3B1BCB5B11BD47",
+          "initiatingFrameId": "5114C252DF93284B7D20EFF642FFF694",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/private-timeout",
+          "status": "Running",
+          "prefetchStatus": "PrefetchNotFinishedInTime",
+          "requestId": "832274C6681B1C3CC9C5E597A9DAC41F"
+        },
+        {
+          "key": {
+            "loaderId": "8096D90DE39089F23E214907C7590642",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/private-timeout"
+          },
+          "pipelineId": "65BF82C170F266766D3B1BCB5B11BD47",
+          "initiatingFrameId": "5114C252DF93284B7D20EFF642FFF694",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/private-timeout",
+          "status": "Ready",
+          "prefetchStatus": "PrefetchSuccessfulButNotUsed",
+          "requestId": "832274C6681B1C3CC9C5E597A9DAC41F"
+        },
+        {
+          "key": {
+            "loaderId": "8096D90DE39089F23E214907C7590642",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/private-timeout"
+          },
+          "pipelineId": "65BF82C170F266766D3B1BCB5B11BD47",
+          "initiatingFrameId": "5114C252DF93284B7D20EFF642FFF694",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/private-timeout",
+          "status": "Success",
+          "prefetchStatus": "PrefetchResponseUsed",
+          "requestId": "832274C6681B1C3CC9C5E597A9DAC41F"
+        }
+      ],
+      "urls": [
+        "https://page.blanc-fixture.test:53578/private-timeout"
+      ],
+      "readyBeforeLoss": [
+        {
+          "key": {
+            "loaderId": "8096D90DE39089F23E214907C7590642",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/private-timeout"
+          },
+          "pipelineId": "65BF82C170F266766D3B1BCB5B11BD47",
+          "initiatingFrameId": "5114C252DF93284B7D20EFF642FFF694",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/private-timeout",
+          "status": "Running",
+          "prefetchStatus": "PrefetchNotFinishedInTime",
+          "requestId": "832274C6681B1C3CC9C5E597A9DAC41F"
+        },
+        {
+          "key": {
+            "loaderId": "8096D90DE39089F23E214907C7590642",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/private-timeout"
+          },
+          "pipelineId": "65BF82C170F266766D3B1BCB5B11BD47",
+          "initiatingFrameId": "5114C252DF93284B7D20EFF642FFF694",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/private-timeout",
+          "status": "Ready",
+          "prefetchStatus": "PrefetchSuccessfulButNotUsed",
+          "requestId": "832274C6681B1C3CC9C5E597A9DAC41F"
+        }
+      ],
+      "heldUtility": {
+        "pid": 47517,
+        "ppid": 47496,
+        "command": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif) --type=utility --utility-sub-type=blanc.mojom.Blocker --lang=en-US --service-sandbox-type=service --host-resolver-rules=MAP page.blanc-fixture.test 127.0.0.1, MAP 000491b06a.com 127.0.0.1, MAP * ~NOTFOUND, EXCLUDE 127.0.0.1 --ignore-certificate-errors-spki-list=8zizG9xWTqcnBLJUWXOV0mhEuKTMHFDwbUdqa/W/ZJc= --user-data-dir=/private/tmp/blanc-prefetch-lifecycle-01/private-timeout --shared-files --metrics-shmem-handle=1752395122,r,4813878077757277537,3177391469705872316,524288 --field-trial-handle=1718379636,r,13886735704101350996,4233423528165000552,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AutoDeElevate,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,OptimizationHints,PaintHolding,ThirdPartyStoragePartitioning,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=1935764596,r,13692605626518867735,12596515340850974162,4 --trace-process-track-uuid=2551602370897934096 --seatbelt-client=103"
+      },
+      "beforeConsumption": {
+        "arrivals": [
+          {
+            "url": "/private-timeout",
+            "host": "page.blanc-fixture.test:53578",
+            "headers": {
+              "host": "page.blanc-fixture.test:53578",
+              "connection": "keep-alive",
+              "upgrade-insecure-requests": "1",
+              "sec-purpose": "prefetch",
+              "sec-speculation-tags": "null",
+              "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\"",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "navigate",
+              "sec-fetch-dest": "document",
+              "referer": "https://page.blanc-fixture.test:53578/source",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "en-US,en;q=0.9"
+            }
+          }
+        ],
+        "decisions": [
+          {
+            "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+            "event": "engine-ready"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "8096D90DE39089F23E214907C7590642",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "19730777173802C4F017CE045EE9477D",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 0,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 1441125,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": -8,
+            "method": "GET",
+            "profile_kind": "private",
+            "redirect_index": 0,
+            "referrer": "",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:53578",
+            "url": "https://page.blanc-fixture.test:53578/source"
+          },
+          {
+            "decision": "allow",
+            "engine_result": 0,
+            "event": "navigation-response-decision",
+            "private": true,
+            "url": "https://page.blanc-fixture.test:53578/source"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "832274C6681B1C3CC9C5E597A9DAC41F",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "7CD90969D2B9C4E567B999DB66B237C9",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 7,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 386,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": 0,
+            "method": "GET",
+            "profile_kind": "private",
+            "redirect_index": 0,
+            "referrer": "https://page.blanc-fixture.test:53578/source",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:53578",
+            "url": "https://page.blanc-fixture.test:53578/private-timeout"
+          }
+        ]
+      },
+      "pending": {
+        "settled": false,
+        "url": "https://page.blanc-fixture.test:53578/source",
+        "decisions": []
+      },
+      "navigation": {
+        "error": "Error: page.waitForNavigation: net::ERR_BLOCKED_BY_CLIENT\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================"
+      },
+      "beforeResume": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "8096D90DE39089F23E214907C7590642",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "19730777173802C4F017CE045EE9477D",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1441125,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -8,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "https://page.blanc-fixture.test:53578",
+          "url": "https://page.blanc-fixture.test:53578/source"
+        },
+        {
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "navigation-response-decision",
+          "private": true,
+          "url": "https://page.blanc-fixture.test:53578/source"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "832274C6681B1C3CC9C5E597A9DAC41F",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "7CD90969D2B9C4E567B999DB66B237C9",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 7,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 386,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": 0,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "https://page.blanc-fixture.test:53578/source",
+          "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "https://page.blanc-fixture.test:53578",
+          "url": "https://page.blanc-fixture.test:53578/private-timeout"
+        },
+        {
+          "decision": "block",
+          "engine_result": -1,
+          "event": "navigation-response-decision",
+          "private": true,
+          "url": "https://page.blanc-fixture.test:53578/private-timeout"
+        }
+      ],
+      "afterResume": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "8096D90DE39089F23E214907C7590642",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "19730777173802C4F017CE045EE9477D",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1441125,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -8,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "https://page.blanc-fixture.test:53578",
+          "url": "https://page.blanc-fixture.test:53578/source"
+        },
+        {
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "navigation-response-decision",
+          "private": true,
+          "url": "https://page.blanc-fixture.test:53578/source"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "832274C6681B1C3CC9C5E597A9DAC41F",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "7CD90969D2B9C4E567B999DB66B237C9",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 7,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 386,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": 0,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "https://page.blanc-fixture.test:53578/source",
+          "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "https://page.blanc-fixture.test:53578",
+          "url": "https://page.blanc-fixture.test:53578/private-timeout"
+        },
+        {
+          "decision": "block",
+          "engine_result": -1,
+          "event": "navigation-response-decision",
+          "private": true,
+          "url": "https://page.blanc-fixture.test:53578/private-timeout"
+        }
+      ],
+      "arrivalsAfterConsumption": [
+        {
+          "url": "/private-timeout",
+          "host": "page.blanc-fixture.test:53578",
+          "headers": {
+            "host": "page.blanc-fixture.test:53578",
+            "connection": "keep-alive",
+            "upgrade-insecure-requests": "1",
+            "sec-purpose": "prefetch",
+            "sec-speculation-tags": "null",
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "navigate",
+            "sec-fetch-dest": "document",
+            "referer": "https://page.blanc-fixture.test:53578/source",
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "en-US,en;q=0.9"
+          }
+        }
+      ],
+      "freshNavigationPassed": true,
+      "titleAfterLateReply": "page.blanc-fixture.test",
+      "passed": true,
+      "histograms": {
+        "histograms": [
+          {
+            "name": "Prefetch.BlockUntilHeadDuration.PerMatchingCandidate.NonPrerender.Served.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.BlockUntilHeadDuration.PerMatchingCandidate.Served.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToFirstURLRequestStarted.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToHeaderDeterminedSuccessfully.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToInitialEligibility.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToPrefetchCompletedSuccessfully.SpeculationRule_Immediate2",
+            "sum": 2,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 2,
+                "high": 3,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToPrefetchStarted.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToURLRequestStarted.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.CreateStreamDelay.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.InitialEligibilityToPrefetchStarted.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.PrefetchStartedToFirstURLRequestStarted.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.PrefetchStartedToHeaderDeterminedSuccessfully.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.PrefetchStartedToPrefetchCompletedSuccessfully.SpeculationRule_Immediate2",
+            "sum": 2,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 2,
+                "high": 3,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.PrefetchStartedToURLRequestStarted.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.ServedCount.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchMatchingBlockedNavigation.PerMatchingCandidate.NonPrerender.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchMatchingBlockedNavigation.PerMatchingCandidate.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchPotentialCandidateServingResult.PerMatchingCandidate.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.Prefetchcontainer.ConnectedCallbackDelay.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.Prefetchcontainer.InitializeStreamDelay.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.AfterClick.Mainframe.CookieWaitTime",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.AfterClick.RedirectChainSize",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.Mainframe.BodyLength",
+            "sum": 104,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 76,
+                "high": 105,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.Mainframe.NetError",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.Mainframe.RespCode",
+            "sum": 200,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 200,
+                "high": 201,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.Mainframe.TotalTime",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 10,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.RedirectChainSize",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.StreamingURLLoaderFinalStatus",
+            "sum": 4,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 4,
+                "high": 5,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PreloadServingMetrics.ForNavigationCommitted.PrefetchMatchMetrics.Count",
+            "sum": 2,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 2,
+                "high": 3,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PreloadServingMetrics.ForNavigationCommitted.PrefetchMatchMetrics.IsPotentialMatch",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.EagerViewportHeuristic.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.PointerDownOnAnchor.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.SpeculationRules.Precision",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.SpeculationRules.Recall",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.SpeculationRules.TriggeringOutcome",
+            "sum": 5,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 5,
+                "high": 6,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.UrlPointerDownOnAnchor.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.UrlPointerHoverOnAnchor.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.ViewportHeuristic.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.PrefetchDataPipeTeeDtorState",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.PrefetchStatus",
+            "sum": 42,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 42,
+                "high": 43,
+                "count": 1
+              }
+            ]
+          }
+        ]
+      },
+      "profileRemoved": true
+    },
+    {
+      "kind": "private",
+      "mode": "tab-close",
+      "responses": [
+        {
+          "requestId": "AB1DC067AFA38E9A9A298C81FB678D15",
+          "loaderId": "AB1DC067AFA38E9A9A298C81FB678D15",
+          "timestamp": 109392.153682,
+          "type": "Document",
+          "response": {
+            "url": "https://page.blanc-fixture.test:53578/source",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 00:30:58 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 65,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 53578,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": false,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 109392.151851,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.378,
+              "sendEnd": 0.459,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 0.821,
+              "receiveHeadersEnd": 0.91
+            },
+            "responseTime": 1792629058765.625,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792628965,
+              "validTo": 1792715365,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "FAEAAAAABDAEA936C2EC630B23167254"
+        },
+        {
+          "requestId": "D8BEC84D9563C00060DF638BC5061629",
+          "loaderId": "D8BEC84D9563C00060DF638BC5061629",
+          "timestamp": 109392.177975,
+          "type": "Prefetch",
+          "response": {
+            "url": "https://page.blanc-fixture.test:53578/private-tab-close",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 00:30:58 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 65,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 53578,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": true,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 109392.177094,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.256,
+              "sendEnd": 0.314,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 0.561,
+              "receiveHeadersEnd": 0.602
+            },
+            "responseTime": 1792629058790.607,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792628965,
+              "validTo": 1792715365,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "FAEAAAAABDAEA936C2EC630B23167254"
+        },
+        {
+          "requestId": "1AFEC5DDC7F09CE3ECA8DA13A9D67DD0",
+          "loaderId": "1AFEC5DDC7F09CE3ECA8DA13A9D67DD0",
+          "timestamp": 109392.316712,
+          "type": "Document",
+          "response": {
+            "url": "https://page.blanc-fixture.test:53578/private-tab-close",
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "Cache-Control": "public, max-age=600",
+              "Connection": "keep-alive",
+              "Content-Type": "text/html",
+              "Date": "Thu, 22 Oct 2026 00:30:58 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "mimeType": "text/html",
+            "charset": "",
+            "connectionReused": true,
+            "connectionId": 65,
+            "remoteIPAddress": "127.0.0.1",
+            "remotePort": 53578,
+            "fromDiskCache": false,
+            "fromServiceWorker": false,
+            "fromPrefetchCache": true,
+            "encodedDataLength": 192,
+            "timing": {
+              "requestTime": 109392.177094,
+              "proxyStart": -1,
+              "proxyEnd": -1,
+              "dnsStart": -1,
+              "dnsEnd": -1,
+              "connectStart": -1,
+              "connectEnd": -1,
+              "sslStart": -1,
+              "sslEnd": -1,
+              "workerStart": -1,
+              "workerReady": -1,
+              "workerFetchStart": -1,
+              "workerRespondWithSettled": -1,
+              "sendStart": 0.256,
+              "sendEnd": 0.314,
+              "pushStart": 0,
+              "pushEnd": 0,
+              "receiveHeadersStart": 0.561,
+              "receiveHeadersEnd": 0.602
+            },
+            "responseTime": 1792629058790.607,
+            "protocol": "http/1.1",
+            "alternateProtocolUsage": "unspecifiedReason",
+            "securityState": "secure",
+            "securityDetails": {
+              "protocol": "TLS 1.3",
+              "keyExchange": "",
+              "keyExchangeGroup": "X25519",
+              "cipher": "AES_256_GCM",
+              "certificateId": 0,
+              "subjectName": "Blanc disposable fixture server",
+              "sanList": [
+                "page.blanc-fixture.test",
+                "000491b06a.com"
+              ],
+              "issuer": "Blanc disposable fixture CA",
+              "validFrom": 1792628965,
+              "validTo": 1792715365,
+              "signedCertificateTimestampList": [],
+              "certificateTransparencyCompliance": "unknown",
+              "serverSignatureAlgorithm": 2052,
+              "encryptedClientHello": false
+            }
+          },
+          "hasExtraInfo": true,
+          "frameId": "FAEAAAAABDAEA936C2EC630B23167254"
+        }
+      ],
+      "preloadEvents": [
+        {
+          "key": {
+            "loaderId": "AB1DC067AFA38E9A9A298C81FB678D15",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/private-tab-close"
+          },
+          "pipelineId": "2ED4A4C1C7BA340A72EA5F4700854937",
+          "initiatingFrameId": "FAEAAAAABDAEA936C2EC630B23167254",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/private-tab-close",
+          "status": "Running",
+          "prefetchStatus": "PrefetchNotFinishedInTime",
+          "requestId": "D8BEC84D9563C00060DF638BC5061629"
+        },
+        {
+          "key": {
+            "loaderId": "AB1DC067AFA38E9A9A298C81FB678D15",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/private-tab-close"
+          },
+          "pipelineId": "2ED4A4C1C7BA340A72EA5F4700854937",
+          "initiatingFrameId": "FAEAAAAABDAEA936C2EC630B23167254",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/private-tab-close",
+          "status": "Ready",
+          "prefetchStatus": "PrefetchSuccessfulButNotUsed",
+          "requestId": "D8BEC84D9563C00060DF638BC5061629"
+        },
+        {
+          "key": {
+            "loaderId": "AB1DC067AFA38E9A9A298C81FB678D15",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/private-tab-close"
+          },
+          "pipelineId": "2ED4A4C1C7BA340A72EA5F4700854937",
+          "initiatingFrameId": "FAEAAAAABDAEA936C2EC630B23167254",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/private-tab-close",
+          "status": "Success",
+          "prefetchStatus": "PrefetchResponseUsed",
+          "requestId": "D8BEC84D9563C00060DF638BC5061629"
+        }
+      ],
+      "urls": [
+        "https://page.blanc-fixture.test:53578/private-tab-close"
+      ],
+      "readyBeforeLoss": [
+        {
+          "key": {
+            "loaderId": "AB1DC067AFA38E9A9A298C81FB678D15",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/private-tab-close"
+          },
+          "pipelineId": "2ED4A4C1C7BA340A72EA5F4700854937",
+          "initiatingFrameId": "FAEAAAAABDAEA936C2EC630B23167254",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/private-tab-close",
+          "status": "Running",
+          "prefetchStatus": "PrefetchNotFinishedInTime",
+          "requestId": "D8BEC84D9563C00060DF638BC5061629"
+        },
+        {
+          "key": {
+            "loaderId": "AB1DC067AFA38E9A9A298C81FB678D15",
+            "action": "Prefetch",
+            "url": "https://page.blanc-fixture.test:53578/private-tab-close"
+          },
+          "pipelineId": "2ED4A4C1C7BA340A72EA5F4700854937",
+          "initiatingFrameId": "FAEAAAAABDAEA936C2EC630B23167254",
+          "prefetchUrl": "https://page.blanc-fixture.test:53578/private-tab-close",
+          "status": "Ready",
+          "prefetchStatus": "PrefetchSuccessfulButNotUsed",
+          "requestId": "D8BEC84D9563C00060DF638BC5061629"
+        }
+      ],
+      "heldUtility": {
+        "pid": 47578,
+        "ppid": 47557,
+        "command": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif) --type=utility --utility-sub-type=blanc.mojom.Blocker --lang=en-US --service-sandbox-type=service --host-resolver-rules=MAP page.blanc-fixture.test 127.0.0.1, MAP 000491b06a.com 127.0.0.1, MAP * ~NOTFOUND, EXCLUDE 127.0.0.1 --ignore-certificate-errors-spki-list=8zizG9xWTqcnBLJUWXOV0mhEuKTMHFDwbUdqa/W/ZJc= --user-data-dir=/private/tmp/blanc-prefetch-lifecycle-01/private-tab-close --shared-files --metrics-shmem-handle=1752395122,r,10093733664914909608,9150752965327604882,524288 --field-trial-handle=1718379636,r,18316610198424314899,8144188239152241988,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AutoDeElevate,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,OptimizationHints,PaintHolding,ThirdPartyStoragePartitioning,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=1935764596,r,9607060913528111907,16871408421551646532,4 --trace-process-track-uuid=1922220474757696115 --seatbelt-client=103"
+      },
+      "beforeConsumption": {
+        "arrivals": [
+          {
+            "url": "/private-tab-close",
+            "host": "page.blanc-fixture.test:53578",
+            "headers": {
+              "host": "page.blanc-fixture.test:53578",
+              "connection": "keep-alive",
+              "upgrade-insecure-requests": "1",
+              "sec-purpose": "prefetch",
+              "sec-speculation-tags": "null",
+              "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\"",
+              "sec-fetch-site": "none",
+              "sec-fetch-mode": "navigate",
+              "sec-fetch-dest": "document",
+              "referer": "https://page.blanc-fixture.test:53578/source",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              "accept-language": "en-US,en;q=0.9"
+            }
+          }
+        ],
+        "decisions": [
+          {
+            "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+            "event": "engine-ready"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "AB1DC067AFA38E9A9A298C81FB678D15",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "9FC765B76861C2C13CA958EDA0C4E713",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 0,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 1448933,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": -8,
+            "method": "GET",
+            "profile_kind": "private",
+            "redirect_index": 0,
+            "referrer": "",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:53578",
+            "url": "https://page.blanc-fixture.test:53578/source"
+          },
+          {
+            "decision": "allow",
+            "engine_result": 0,
+            "event": "navigation-response-decision",
+            "private": true,
+            "url": "https://page.blanc-fixture.test:53578/source"
+          },
+          {
+            "decision": "allow",
+            "devtools_request_id": "D8BEC84D9563C00060DF638BC5061629",
+            "engine_result": 0,
+            "event": "decision",
+            "factory_instance": "9715E84D2646C7B7F48E3C20B57F23D0",
+            "factory_isolation_top_origin": "absent",
+            "factory_kind": "other",
+            "factory_type": 7,
+            "frame_role": "main",
+            "frame_state": "live-at-entry",
+            "hook_to_decision_us": 507,
+            "initiator_origin": "absent",
+            "initiator_present": false,
+            "loader_request_id": 0,
+            "method": "GET",
+            "profile_kind": "private",
+            "redirect_index": 0,
+            "referrer": "https://page.blanc-fixture.test:53578/source",
+            "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+            "resource_type": "mainFrame",
+            "status": "ready",
+            "top_frame_origin": "https://page.blanc-fixture.test:53578",
+            "url": "https://page.blanc-fixture.test:53578/private-tab-close"
+          }
+        ]
+      },
+      "pending": {
+        "settled": false,
+        "url": "https://page.blanc-fixture.test:53578/source",
+        "decisions": []
+      },
+      "navigation": {
+        "error": "Error: page.waitForNavigation: net::ERR_ABORTED; maybe frame was detached?\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================"
+      },
+      "beforeResume": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "AB1DC067AFA38E9A9A298C81FB678D15",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "9FC765B76861C2C13CA958EDA0C4E713",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1448933,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -8,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "https://page.blanc-fixture.test:53578",
+          "url": "https://page.blanc-fixture.test:53578/source"
+        },
+        {
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "navigation-response-decision",
+          "private": true,
+          "url": "https://page.blanc-fixture.test:53578/source"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "D8BEC84D9563C00060DF638BC5061629",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "9715E84D2646C7B7F48E3C20B57F23D0",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 7,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 507,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": 0,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "https://page.blanc-fixture.test:53578/source",
+          "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "https://page.blanc-fixture.test:53578",
+          "url": "https://page.blanc-fixture.test:53578/private-tab-close"
+        }
+      ],
+      "afterResume": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "AB1DC067AFA38E9A9A298C81FB678D15",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "9FC765B76861C2C13CA958EDA0C4E713",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1448933,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -8,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "https://page.blanc-fixture.test:53578",
+          "url": "https://page.blanc-fixture.test:53578/source"
+        },
+        {
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "navigation-response-decision",
+          "private": true,
+          "url": "https://page.blanc-fixture.test:53578/source"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "D8BEC84D9563C00060DF638BC5061629",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "9715E84D2646C7B7F48E3C20B57F23D0",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 7,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 507,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": 0,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "https://page.blanc-fixture.test:53578/source",
+          "request_isolation_top_origin": "https://page.blanc-fixture.test:53578",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "https://page.blanc-fixture.test:53578",
+          "url": "https://page.blanc-fixture.test:53578/private-tab-close"
+        }
+      ],
+      "arrivalsAfterConsumption": [
+        {
+          "url": "/private-tab-close",
+          "host": "page.blanc-fixture.test:53578",
+          "headers": {
+            "host": "page.blanc-fixture.test:53578",
+            "connection": "keep-alive",
+            "upgrade-insecure-requests": "1",
+            "sec-purpose": "prefetch",
+            "sec-speculation-tags": "null",
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "navigate",
+            "sec-fetch-dest": "document",
+            "referer": "https://page.blanc-fixture.test:53578/source",
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "en-US,en;q=0.9"
+          }
+        }
+      ],
+      "freshNavigationPassed": true,
+      "passed": true,
+      "histograms": {
+        "histograms": [
+          {
+            "name": "Prefetch.BlockUntilHeadDuration.PerMatchingCandidate.NonPrerender.Served.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.BlockUntilHeadDuration.PerMatchingCandidate.Served.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToFirstURLRequestStarted.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToHeaderDeterminedSuccessfully.SpeculationRule_Immediate2",
+            "sum": 2,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 2,
+                "high": 3,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToInitialEligibility.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToPrefetchCompletedSuccessfully.SpeculationRule_Immediate2",
+            "sum": 2,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 2,
+                "high": 3,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToPrefetchStarted.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.AddedToURLRequestStarted.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.CreateStreamDelay.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.InitialEligibilityToPrefetchStarted.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.PrefetchStartedToFirstURLRequestStarted.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.PrefetchStartedToHeaderDeterminedSuccessfully.SpeculationRule_Immediate2",
+            "sum": 2,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 2,
+                "high": 3,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.PrefetchStartedToPrefetchCompletedSuccessfully.SpeculationRule_Immediate2",
+            "sum": 2,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 2,
+                "high": 3,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.PrefetchStartedToURLRequestStarted.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchContainer.ServedCount.SpeculationRule_Immediate2",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchMatchingBlockedNavigation.PerMatchingCandidate.NonPrerender.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchMatchingBlockedNavigation.PerMatchingCandidate.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.PrefetchPotentialCandidateServingResult.PerMatchingCandidate.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.Prefetchcontainer.ConnectedCallbackDelay.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Prefetch.Prefetchcontainer.InitializeStreamDelay.SpeculationRule_Immediate2",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.AfterClick.Mainframe.CookieWaitTime",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.AfterClick.RedirectChainSize",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.Mainframe.BodyLength",
+            "sum": 104,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 76,
+                "high": 105,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.Mainframe.NetError",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.Mainframe.RespCode",
+            "sum": 200,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 200,
+                "high": 201,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.Mainframe.TotalTime",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 10,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.RedirectChainSize",
+            "sum": 1,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 1,
+                "high": 2,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PrefetchProxy.Prefetch.StreamingURLLoaderFinalStatus",
+            "sum": 4,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 4,
+                "high": 5,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PreloadServingMetrics.ForNavigationCommitted.PrefetchMatchMetrics.Count",
+            "sum": 2,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 2,
+                "high": 3,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "PreloadServingMetrics.ForNavigationCommitted.PrefetchMatchMetrics.IsPotentialMatch",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.EagerViewportHeuristic.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.PointerDownOnAnchor.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.SpeculationRules.Precision",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.SpeculationRules.Recall",
+            "sum": 0,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 0,
+                "high": 1,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.SpeculationRules.TriggeringOutcome",
+            "sum": 5,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 5,
+                "high": 6,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.UrlPointerDownOnAnchor.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.UrlPointerHoverOnAnchor.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.Attempt.ViewportHeuristic.Recall",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.PrefetchDataPipeTeeDtorState",
+            "sum": 3,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 3,
+                "high": 4,
+                "count": 1
+              }
+            ]
+          },
+          {
+            "name": "Preloading.Prefetch.PrefetchStatus",
+            "sum": 42,
+            "count": 1,
+            "buckets": [
+              {
+                "low": 42,
+                "high": 43,
+                "count": 1
+              }
+            ]
+          }
+        ]
+      },
+      "profileRemoved": true
+    }
+  ],
+  "forcedFeatures": [],
+  "latencyMeasured": false
+}

@@ -1,0 +1,30 @@
+{
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "status": "draft BlobExchange can pass final dispatch-bound cancellation guard to async planners",
+  "implementation": [
+    "guarded planner receives a copy of the queue-bound guard on the exchange owner sequence",
+    "guarded planner requires a nonempty guard and cannot coexist with another planner; ambiguous and missing guard fail before HTTP",
+    "lossless JSON validation remains responsibility of native guarded planner; operation rechecks guard after planner completes",
+    "no-upload result means no server update, not necessarily no local cache change"
+  ],
+  "verified": [
+    "ten fake-server encrypted V8 scenarios including final dispatch guard success, changed dispatch guard before planned side effect, missing guard and ambiguous planner refusal",
+    "guard cancellation prevented synthetic local side effect and server PUT; encrypted and Unicode behavior retained",
+    "eight affected synchronous exchange regression scenarios passed"
+  ],
+  "limitations": [
+    "guard path is not yet connected to TabSyncCoordinator or actual AccountController/ProfileEngine in a complete fixture; queue test binds a final wrapped guard",
+    "planner must call guard on exchange owner sequence immediately before local side effects and authenticate its account/session",
+    "BlobModelHooks layout changed; all consumers must rebuild together before integration",
+    "not app integrated, no live network/profile/credential, Windows/Linux, UI or full parity validation"
+  ],
+  "rawEvidence": "evidence/native-sync-guarded-planner-20261030",
+  "appBuild": false,
+  "deployed": false,
+  "sourceSha256": {
+    "blob_exchange.h": "9586e2c978dcc8055cf0f85a53a18ab796ee4e46dbb5086c74500236c35dabd6",
+    "blob_exchange.cc": "eceddc6163a77c93574cae11299f595fd24becf4e0e842a3f31f6ab377162372",
+    "v8-model-draft/exchange_model_test.cc": "4f0938ceb4c1c9caae0794d05d7e2a36650617ae1f2ac955f978eda3ce8cceec"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "status": "native controller/broker/departure draft composed and targeted isolated checks pass; production integration remains open",
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "controller": [
+    "after actual in-flight PUT settles, sends/closed/session GET and PUT run in order",
+    "mismatched key account causes no network and no quota charge",
+    "duplicate preparation callbacks ignored",
+    "shutdown while preparation held completes and late callback is harmless",
+    "prepared departure can run while normal publishing gate reports key unavailable",
+    "profile-wide budget is checked before each preparation; retry remains immediate-only"
+  ],
+  "broker": [
+    "real native synthetic-vault broker and fake URLLoader send three stores in order even when publication gate unavailable",
+    "unavailable provider produces no network and disable remains best effort",
+    "shutdown during provider lookup waits for completion; late provider callback harmless"
+  ],
+  "model": [
+    "actual native asynchronous V8 departure model through profile engine, broker, queue, encryption and fake network",
+    "all three stores removed own secret and retained escaped lone-surrogate peer field",
+    "model metadata owned by native profile and supplied clock"
+  ],
+  "rawEvidence": [
+    "evidence/native-sync-departure-controller-20261030",
+    "evidence/native-sync-departure-engine-20261030",
+    "evidence/native-sync-departure-engine-v8-20261030"
+  ],
+  "failuresPreserved": [
+    "fixture capturing lambdas incompatible with base Bind; fixed with explicit wrapper",
+    "V8 linked archive selected old encryptor before strict object; reordered strict object before archives, without modifying cache"
+  ],
+  "appBuild": false,
+  "deployed": false,
+  "realCredentialIO": false,
+  "liveNetworkRequests": 0,
+  "featureCredit": false,
+  "remaining": [
+    "native factory must supply actual qualified model runner and process lifetime",
+    "erasure-pending broker restriction differs from shipping departure and needs explicit treatment",
+    "production isolated V8 runtime heap/time watchdog and cache size qualification",
+    "real profile factory, UI, key migration, platform and acceptance coverage",
+    "service and all Hooks/BlobExchange consumers must be rebuilt due to changed interfaces and layouts"
+  ],
+  "sourceSha256": {
+    "request_worker.h": "d2fc7bf51f7a654291984f857173a14231d13a2b751fd4274e69d21d4146ef41",
+    "request_worker.cc": "b2557746cc15c6f840ff9c53142f54223647d0b8299a1d604fe5aa8366a7036c",
+    "account_controller.h": "cab7e1071132b54bc79894acce6b41570b730355329ac78a7a89dadc45d52c78",
+    "account_controller.cc": "804a79bdfa06863453c5c7ae65ac37335e2690f8f26377c0049e558612145ec0",
+    "profile_engine.h": "098883657923a03062bb5b932b530913295811f95d83875ed207fe891a3e261c",
+    "profile_engine.cc": "e1a1863742555655c1b46931a36dae44eb9833dd853273a2e8de9ceae80d27a6",
+    "departure_controller_test.cc": "1a8f5e47486050696bc70bcda10581a63bc96516404f2932bb1e11a256f21373",
+    "departure_engine_test.cc": "356474328126adcca2ded3b8d47bfad14b9ab1cf134d8928fcbf9bcd97adc7be",
+    "departure_engine_v8_test.cc": "334d3ab6db835e525bf610d8fcde20b5c9d1d1bf2ef80259632cc41c638a4e22"
+  }
+}

@@ -1,0 +1,1859 @@
+{
+  "source": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "scope": "off-the-record context, two registrations sharing one script URL, concurrent update and cache partition ownership",
+  "checks": [
+    {
+      "name": "both pages belong to the new private browser context",
+      "pass": true
+    },
+    {
+      "name": "each registration owns only its own browser client",
+      "pass": true,
+      "detail": [
+        {
+          "version": 1,
+          "scope": "http://127.0.0.1:51054/alpha/",
+          "clients": [
+            {
+              "id": "6ae49d7b-b09d-42d7-9fa5-0720af8852c0",
+              "url": "http://127.0.0.1:51054/alpha/page"
+            }
+          ]
+        },
+        {
+          "version": 1,
+          "scope": "http://127.0.0.1:51054/beta/",
+          "clients": [
+            {
+              "id": "36fb753c-9c27-4ab7-8ecf-af3cfd132621",
+              "url": "http://127.0.0.1:51054/beta/page"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "same script URL keeps scope-specific private caches and client IDs",
+      "pass": true,
+      "detail": [
+        {
+          "version": 1,
+          "scope": "http://127.0.0.1:51054/alpha/",
+          "clientId": "6ae49d7b-b09d-42d7-9fa5-0720af8852c0",
+          "clientUrl": "http://127.0.0.1:51054/alpha/page",
+          "text": "cache:http://127.0.0.1:51054/alpha/:v1"
+        },
+        {
+          "version": 1,
+          "scope": "http://127.0.0.1:51054/beta/",
+          "clientId": "36fb753c-9c27-4ab7-8ecf-af3cfd132621",
+          "clientUrl": "http://127.0.0.1:51054/beta/page",
+          "text": "cache:http://127.0.0.1:51054/beta/:v1"
+        }
+      ]
+    },
+    {
+      "name": "both private cache responses avoid network arrivals",
+      "pass": true
+    },
+    {
+      "name": "native private flag and shared context establish both pages as private",
+      "pass": true,
+      "detail": [
+        {
+          "url": "http://127.0.0.1:51054/alpha/page",
+          "private": true
+        }
+      ]
+    },
+    {
+      "name": "concurrent same-URL updates preserve each private registration/client",
+      "pass": true,
+      "detail": [
+        {
+          "version": 2,
+          "scope": "http://127.0.0.1:51054/alpha/",
+          "clients": [
+            {
+              "id": "6ae49d7b-b09d-42d7-9fa5-0720af8852c0",
+              "url": "http://127.0.0.1:51054/alpha/page"
+            }
+          ]
+        },
+        {
+          "version": 2,
+          "scope": "http://127.0.0.1:51054/beta/",
+          "clients": [
+            {
+              "id": "36fb753c-9c27-4ab7-8ecf-af3cfd132621",
+              "url": "http://127.0.0.1:51054/beta/page"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "browser protocol assigns two versions to each distinct registration",
+      "pass": true,
+      "detail": {
+        "http://127.0.0.1:51054/alpha/": "0",
+        "http://127.0.0.1:51054/beta/": "1"
+      }
+    },
+    {
+      "name": "evicting alpha cache leaves beta cache intact",
+      "pass": true,
+      "detail": [
+        {
+          "version": 2,
+          "scope": "http://127.0.0.1:51054/alpha/",
+          "clientId": "6ae49d7b-b09d-42d7-9fa5-0720af8852c0",
+          "clientUrl": "http://127.0.0.1:51054/alpha/page",
+          "text": "network:/alpha/cache"
+        },
+        {
+          "version": 2,
+          "scope": "http://127.0.0.1:51054/beta/",
+          "clientId": "36fb753c-9c27-4ab7-8ecf-af3cfd132621",
+          "clientUrl": "http://127.0.0.1:51054/beta/page",
+          "text": "cache:http://127.0.0.1:51054/beta/:v2"
+        }
+      ]
+    },
+    {
+      "name": "private registrations and caches never appear in regular profile",
+      "pass": true,
+      "detail": {
+        "registrations": [],
+        "caches": []
+      }
+    },
+    {
+      "name": "disposing private context removes both registrations and caches",
+      "pass": true,
+      "detail": {
+        "registrations": [],
+        "caches": []
+      }
+    }
+  ],
+  "complete": true,
+  "origin": "http://127.0.0.1:51054",
+  "privateContextId": "805AF51ACA6F4427434DAD6298115818",
+  "pageContextBindings": [
+    {
+      "targetId": "08CBCC02303597FDF41BA88D4F896860",
+      "browserContextId": "805AF51ACA6F4427434DAD6298115818",
+      "url": "http://127.0.0.1:51054/alpha/page"
+    },
+    {
+      "targetId": "5762E30F83E294A234551C19EA2F1184",
+      "browserContextId": "805AF51ACA6F4427434DAD6298115818",
+      "url": "http://127.0.0.1:51054/beta/page"
+    }
+  ],
+  "before": [
+    {
+      "version": 1,
+      "scope": "http://127.0.0.1:51054/alpha/",
+      "clients": [
+        {
+          "id": "6ae49d7b-b09d-42d7-9fa5-0720af8852c0",
+          "url": "http://127.0.0.1:51054/alpha/page"
+        }
+      ]
+    },
+    {
+      "version": 1,
+      "scope": "http://127.0.0.1:51054/beta/",
+      "clients": [
+        {
+          "id": "36fb753c-9c27-4ab7-8ecf-af3cfd132621",
+          "url": "http://127.0.0.1:51054/beta/page"
+        }
+      ]
+    }
+  ],
+  "nativePrivateStates": [
+    {
+      "url": "http://127.0.0.1:51054/alpha/page",
+      "private": true
+    }
+  ],
+  "after": [
+    {
+      "version": 2,
+      "scope": "http://127.0.0.1:51054/alpha/",
+      "clients": [
+        {
+          "id": "6ae49d7b-b09d-42d7-9fa5-0720af8852c0",
+          "url": "http://127.0.0.1:51054/alpha/page"
+        }
+      ]
+    },
+    {
+      "version": 2,
+      "scope": "http://127.0.0.1:51054/beta/",
+      "clients": [
+        {
+          "id": "36fb753c-9c27-4ab7-8ecf-af3cfd132621",
+          "url": "http://127.0.0.1:51054/beta/page"
+        }
+      ]
+    }
+  ],
+  "registrationIds": {
+    "http://127.0.0.1:51054/alpha/": "0",
+    "http://127.0.0.1:51054/beta/": "1"
+  },
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "serverHits": [
+    {
+      "path": "/worker.js",
+      "generation": 1,
+      "sha256": "020d77b9008c8a356d7aeee31ca0f43c40dc77a1eacd134948400272d637674c"
+    },
+    {
+      "path": "/worker.js",
+      "generation": 1,
+      "sha256": "020d77b9008c8a356d7aeee31ca0f43c40dc77a1eacd134948400272d637674c"
+    },
+    {
+      "path": "/worker.js",
+      "generation": 2,
+      "sha256": "2129de35458a47e7223c92c256d06439d74ef2d44f671ca22f0809f4c0c7c2ca"
+    },
+    {
+      "path": "/worker.js",
+      "generation": 2,
+      "sha256": "2129de35458a47e7223c92c256d06439d74ef2d44f671ca22f0809f4c0c7c2ca"
+    },
+    {
+      "path": "/alpha/cache"
+    }
+  ],
+  "workerEvents": [
+    {
+      "method": "ServiceWorker.workerRegistrationUpdated",
+      "params": {
+        "registrations": []
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": []
+      }
+    },
+    {
+      "method": "ServiceWorker.workerRegistrationUpdated",
+      "params": {
+        "registrations": [
+          {
+            "registrationId": "0",
+            "scopeURL": "http://127.0.0.1:51054/alpha/",
+            "isDeleted": false
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.399932,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.399932,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.399932,
+            "controlledClients": [],
+            "targetId": "65BBD76475822F8075A9C64FBAC9F167"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.399932,
+            "controlledClients": [],
+            "targetId": "65BBD76475822F8075A9C64FBAC9F167"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerRegistrationUpdated",
+      "params": {
+        "registrations": [
+          {
+            "registrationId": "0",
+            "scopeURL": "http://127.0.0.1:51054/alpha/",
+            "isDeleted": false
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.399932,
+            "controlledClients": [],
+            "targetId": "65BBD76475822F8075A9C64FBAC9F167"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "installed",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.399932,
+            "controlledClients": [],
+            "targetId": "65BBD76475822F8075A9C64FBAC9F167"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.399932,
+            "controlledClients": [],
+            "targetId": "65BBD76475822F8075A9C64FBAC9F167"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.399932,
+            "controlledClients": [
+              "08CBCC02303597FDF41BA88D4F896860"
+            ],
+            "targetId": "65BBD76475822F8075A9C64FBAC9F167"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.399932,
+            "controlledClients": [
+              "08CBCC02303597FDF41BA88D4F896860"
+            ],
+            "targetId": "65BBD76475822F8075A9C64FBAC9F167"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerRegistrationUpdated",
+      "params": {
+        "registrations": [
+          {
+            "registrationId": "0",
+            "scopeURL": "http://127.0.0.1:51054/alpha/",
+            "isDeleted": false
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.399932,
+            "controlledClients": [
+              "08CBCC02303597FDF41BA88D4F896860"
+            ],
+            "targetId": "65BBD76475822F8075A9C64FBAC9F167"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerRegistrationUpdated",
+      "params": {
+        "registrations": [
+          {
+            "registrationId": "1",
+            "scopeURL": "http://127.0.0.1:51054/beta/",
+            "isDeleted": false
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerRegistrationUpdated",
+      "params": {
+        "registrations": [
+          {
+            "registrationId": "1",
+            "scopeURL": "http://127.0.0.1:51054/beta/",
+            "isDeleted": false
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [],
+            "targetId": "E275B29D42F7576651B823BAD9E98B44"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [],
+            "targetId": "E275B29D42F7576651B823BAD9E98B44"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [],
+            "targetId": "E275B29D42F7576651B823BAD9E98B44"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [],
+            "targetId": "E275B29D42F7576651B823BAD9E98B44"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerRegistrationUpdated",
+      "params": {
+        "registrations": [
+          {
+            "registrationId": "1",
+            "scopeURL": "http://127.0.0.1:51054/beta/",
+            "isDeleted": false
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerRegistrationUpdated",
+      "params": {
+        "registrations": [
+          {
+            "registrationId": "1",
+            "scopeURL": "http://127.0.0.1:51054/beta/",
+            "isDeleted": false
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [],
+            "targetId": "E275B29D42F7576651B823BAD9E98B44"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [],
+            "targetId": "E275B29D42F7576651B823BAD9E98B44"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "installed",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [],
+            "targetId": "E275B29D42F7576651B823BAD9E98B44"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "installed",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [],
+            "targetId": "E275B29D42F7576651B823BAD9E98B44"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [],
+            "targetId": "E275B29D42F7576651B823BAD9E98B44"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [],
+            "targetId": "E275B29D42F7576651B823BAD9E98B44"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [
+              "5762E30F83E294A234551C19EA2F1184"
+            ],
+            "targetId": "E275B29D42F7576651B823BAD9E98B44"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [
+              "5762E30F83E294A234551C19EA2F1184"
+            ],
+            "targetId": "E275B29D42F7576651B823BAD9E98B44"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [
+              "5762E30F83E294A234551C19EA2F1184"
+            ],
+            "targetId": "E275B29D42F7576651B823BAD9E98B44"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [
+              "5762E30F83E294A234551C19EA2F1184"
+            ],
+            "targetId": "E275B29D42F7576651B823BAD9E98B44"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": [],
+            "targetId": "89825FBE05430409E49F9E92CBA7E565"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": [],
+            "targetId": "89825FBE05430409E49F9E92CBA7E565"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": [],
+            "targetId": "842DD9DED2305AC9E403F7F2F975D603"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": [],
+            "targetId": "842DD9DED2305AC9E403F7F2F975D603"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.866897,
+            "controlledClients": [],
+            "targetId": "89825FBE05430409E49F9E92CBA7E565"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.866897,
+            "controlledClients": [],
+            "targetId": "89825FBE05430409E49F9E92CBA7E565"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.867622,
+            "controlledClients": [],
+            "targetId": "842DD9DED2305AC9E403F7F2F975D603"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.867622,
+            "controlledClients": [],
+            "targetId": "842DD9DED2305AC9E403F7F2F975D603"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.866897,
+            "controlledClients": [],
+            "targetId": "89825FBE05430409E49F9E92CBA7E565"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.866897,
+            "controlledClients": [],
+            "targetId": "89825FBE05430409E49F9E92CBA7E565"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.866897,
+            "controlledClients": [],
+            "targetId": "89825FBE05430409E49F9E92CBA7E565"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.866897,
+            "controlledClients": [],
+            "targetId": "89825FBE05430409E49F9E92CBA7E565"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.867622,
+            "controlledClients": [],
+            "targetId": "842DD9DED2305AC9E403F7F2F975D603"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "starting",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.867622,
+            "controlledClients": [],
+            "targetId": "842DD9DED2305AC9E403F7F2F975D603"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.867622,
+            "controlledClients": [],
+            "targetId": "842DD9DED2305AC9E403F7F2F975D603"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.867622,
+            "controlledClients": [],
+            "targetId": "842DD9DED2305AC9E403F7F2F975D603"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "installed",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.866897,
+            "controlledClients": [],
+            "targetId": "89825FBE05430409E49F9E92CBA7E565"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "installed",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.866897,
+            "controlledClients": [],
+            "targetId": "89825FBE05430409E49F9E92CBA7E565"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopping",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.399932,
+            "controlledClients": [
+              "08CBCC02303597FDF41BA88D4F896860"
+            ],
+            "targetId": "65BBD76475822F8075A9C64FBAC9F167"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopping",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.399932,
+            "controlledClients": [
+              "08CBCC02303597FDF41BA88D4F896860"
+            ],
+            "targetId": "65BBD76475822F8075A9C64FBAC9F167"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "installed",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.867622,
+            "controlledClients": [],
+            "targetId": "842DD9DED2305AC9E403F7F2F975D603"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "installed",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.867622,
+            "controlledClients": [],
+            "targetId": "842DD9DED2305AC9E403F7F2F975D603"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopping",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [
+              "5762E30F83E294A234551C19EA2F1184"
+            ],
+            "targetId": "E275B29D42F7576651B823BAD9E98B44"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopping",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [
+              "5762E30F83E294A234551C19EA2F1184"
+            ],
+            "targetId": "E275B29D42F7576651B823BAD9E98B44"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.399932,
+            "controlledClients": [
+              "08CBCC02303597FDF41BA88D4F896860"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.399932,
+            "controlledClients": [
+              "08CBCC02303597FDF41BA88D4F896860"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "redundant",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.399932,
+            "controlledClients": [
+              "08CBCC02303597FDF41BA88D4F896860"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "redundant",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.399932,
+            "controlledClients": [
+              "08CBCC02303597FDF41BA88D4F896860"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.866897,
+            "controlledClients": [],
+            "targetId": "89825FBE05430409E49F9E92CBA7E565"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.866897,
+            "controlledClients": [],
+            "targetId": "89825FBE05430409E49F9E92CBA7E565"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [
+              "5762E30F83E294A234551C19EA2F1184"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [
+              "5762E30F83E294A234551C19EA2F1184"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "redundant",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [
+              "5762E30F83E294A234551C19EA2F1184"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "stopped",
+            "status": "redundant",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866326.463287,
+            "controlledClients": [
+              "5762E30F83E294A234551C19EA2F1184"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.867622,
+            "controlledClients": [],
+            "targetId": "842DD9DED2305AC9E403F7F2F975D603"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.867622,
+            "controlledClients": [],
+            "targetId": "842DD9DED2305AC9E403F7F2F975D603"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.866897,
+            "controlledClients": [
+              "08CBCC02303597FDF41BA88D4F896860"
+            ],
+            "targetId": "89825FBE05430409E49F9E92CBA7E565"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.866897,
+            "controlledClients": [
+              "08CBCC02303597FDF41BA88D4F896860"
+            ],
+            "targetId": "89825FBE05430409E49F9E92CBA7E565"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.867622,
+            "controlledClients": [
+              "5762E30F83E294A234551C19EA2F1184"
+            ],
+            "targetId": "842DD9DED2305AC9E403F7F2F975D603"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.867622,
+            "controlledClients": [
+              "5762E30F83E294A234551C19EA2F1184"
+            ],
+            "targetId": "842DD9DED2305AC9E403F7F2F975D603"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.867622,
+            "controlledClients": [
+              "5762E30F83E294A234551C19EA2F1184"
+            ],
+            "targetId": "842DD9DED2305AC9E403F7F2F975D603"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "3",
+            "registrationId": "1",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.867622,
+            "controlledClients": [
+              "5762E30F83E294A234551C19EA2F1184"
+            ],
+            "targetId": "842DD9DED2305AC9E403F7F2F975D603"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.866897,
+            "controlledClients": [
+              "08CBCC02303597FDF41BA88D4F896860"
+            ],
+            "targetId": "89825FBE05430409E49F9E92CBA7E565"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51054/worker.js",
+            "runningStatus": "running",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866329.866897,
+            "controlledClients": [
+              "08CBCC02303597FDF41BA88D4F896860"
+            ],
+            "targetId": "89825FBE05430409E49F9E92CBA7E565"
+          }
+        ]
+      }
+    }
+  ]
+}

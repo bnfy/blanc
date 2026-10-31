@@ -1,0 +1,105 @@
+{
+  "mode": "private-signed-final",
+  "checks": [
+    {
+      "name": "page click activates right",
+      "pass": true,
+      "details": 450087787
+    },
+    {
+      "name": "page click activates left",
+      "pass": true,
+      "details": 450087786
+    },
+    {
+      "name": "page click activates right-again",
+      "pass": true,
+      "details": 450087787
+    },
+    {
+      "name": "page click activates left-again",
+      "pass": true,
+      "details": 450087786
+    },
+    {
+      "name": "input click selects right and keeps typed content",
+      "pass": true
+    },
+    {
+      "name": "script click does not activate inactive pane",
+      "pass": true
+    },
+    {
+      "name": "mouse movement does not change active pane",
+      "pass": true
+    },
+    {
+      "name": "script action in detached background tab does not activate or split it",
+      "pass": true
+    }
+  ],
+  "lastSnapshot": {
+    "activeTabId": 450087787,
+    "adblockEnabled": false,
+    "closed": [],
+    "displayShares": [],
+    "extensionsWidth": 26,
+    "focusedTabId": 450087787,
+    "glanceTabId": null,
+    "groups": [],
+    "initialWindowSaveFailed": false,
+    "initialWindowSaved": false,
+    "installedTheme": {},
+    "spaceAutosaveError": "",
+    "spaceBusy": false,
+    "spaceName": "",
+    "spaceWindowIdentity": "",
+    "splitGeometry": {},
+    "splits": [],
+    "tabLayout": "island",
+    "tabs": [
+      {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": 450087786,
+        "isLoading": true,
+        "muted": false,
+        "pageBg": "",
+        "pinned": false,
+        "private": true,
+        "siteMuted": null,
+        "title": "",
+        "url": "http://127.0.0.1:9862/left"
+      },
+      {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": 450087787,
+        "isLoading": true,
+        "muted": false,
+        "pageBg": "",
+        "pinned": false,
+        "private": true,
+        "siteMuted": null,
+        "title": "",
+        "url": "http://127.0.0.1:9862/right"
+      }
+    ],
+    "verticalTabsDefaultWidth": 248,
+    "verticalTabsMaxWidth": 360,
+    "verticalTabsMinWidth": 200,
+    "verticalTabsPreferredWidth": 248,
+    "verticalTabsWidth": 248
+  },
+  "complete": true
+}

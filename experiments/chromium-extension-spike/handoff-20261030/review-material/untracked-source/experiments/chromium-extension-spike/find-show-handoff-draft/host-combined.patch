@@ -1,0 +1,89 @@
+--- a/host.js
++++ b/host.js
+@@ -9,6 +9,8 @@
+   let opened = false;
+   let overlayMode = null;
+   let findTabId = null;
++  let findShowEpoch = 0;
++  let pendingFindShow = null;
+   let refreshQueue = Promise.resolve();
+   let extensionsOpened = false;
+   let geometry = "";
+@@ -51,6 +53,12 @@
+   function subscribe(event, callback) {
+     if (!subscribers.has(event)) subscribers.set(event, new Set());
+     subscribers.get(event).add(callback);
++    // The renderer can subscribe after a Find request was opened. Deliver the
++    // pending handoff once its handler has finished registering.
++    if (event === 'onOverlayShow' && pendingFindShow) {
++      const epoch = pendingFindShow.epoch;
++      queueMicrotask(() => deliverFindShow(epoch));
++    }
+     if (event === 'onSplitLayout') queueMicrotask(() => {
+       if (subscribers.get(event)?.has(callback)) callback(currentSplitLayout());
+     });
+@@ -487,6 +495,7 @@
+   }
+ 
+   async function show(prefill, mode = 'panel') {
++    invalidateFindShow();
+     if (overlayMode === 'find') emit('onOverlayHide', {});
+     findTabId = null;
+     overlay.dataset.mode = mode;
+@@ -512,9 +521,32 @@
+     });
+   }
+ 
++  // A backgrounded host can stop receiving animation frames. The timer also
++  // attempts the handoff, while a late listener retries it at registration.
++  // Epochs prevent a delayed callback from reopening a closed/replaced view.
++  function invalidateFindShow() {
++    ++findShowEpoch;
++    pendingFindShow = null;
++  }
++
++  function deliverFindShow(epoch) {
++    const pending = pendingFindShow;
++    if (!pending || pending.epoch !== epoch || epoch !== findShowEpoch ||
++        !opened || overlayMode !== 'find' || findTabId !== pending.tabId ||
++        !subscribers.get('onOverlayShow')?.size) return;
++    pendingFindShow = null;
++    emit('onOverlayShow', { mode: 'find', purpose: { findTabId: pending.tabId } });
++    // A callback may synchronously close or replace the overlay.
++    if (epoch !== findShowEpoch || !opened || overlayMode !== 'find') return;
++    overlay.contentWindow.focus();
++    reportGeometry();
++  }
++
+   async function openFindBar() {
++    invalidateFindShow();
++    const epoch = findShowEpoch;
+     await refresh();
+-    if (!snapshot?.activeTabId) return;
++    if (epoch !== findShowEpoch || !snapshot?.activeTabId) return;
+     if (overlayMode !== 'find') emit('onOverlayHide', {});
+     extensionsOpened = false;
+     extensionsPanel.hide();
+@@ -530,17 +562,17 @@
+     overlayMode = 'find';
+     overlay.dataset.mode = 'find';
+     await request('height', [228]);
++    if (epoch !== findShowEpoch) return;
+     opened = true;
+     overlay.hidden = false;
+     emit('onIslandState', { mode: 'find' });
+-    requestAnimationFrame(() => {
+-      emit('onOverlayShow', { mode: 'find', purpose: { findTabId } });
+-      overlay.contentWindow.focus();
+-      reportGeometry();
+-    });
++    pendingFindShow = { epoch, tabId: findTabId };
++    requestAnimationFrame(() => deliverFindShow(epoch));
++    setTimeout(() => deliverFindShow(epoch), 250);
+   }
+ 
+   async function close(focus = true) {
++    invalidateFindShow();
+     await dismissPaneMenu();
+     tooltip.hidden = true;
+     extensionsOpened = false;

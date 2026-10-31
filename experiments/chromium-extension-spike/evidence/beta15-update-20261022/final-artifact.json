@@ -1,0 +1,13 @@
+{
+  "archive": "/private/tmp/blanc-beta15-upgrade/Blanc-Chromium-Preview-stapled.zip",
+  "sha256": "d9924b7e5398b95f21e1107cb146eaf0f1e53387e9c850fc720b33e4adbe50cb",
+  "size": 243373167,
+  "notarization": {
+    "id": "17bf3b2f-3528-4fc3-b17e-2db0a4833e43",
+    "status": "Accepted",
+    "message": "Processing complete"
+  },
+  "signedAudit": "final-candidate-audit.json",
+  "version": "157.0.8103.15",
+  "upstream": "1aa07b638799e59656559ae6c6649d4b197f555e"
+}

@@ -1,0 +1,412 @@
+{
+  "results": [
+    {
+      "protection": "baseline",
+      "kind": "regular",
+      "host": "page.blanc-fixture.test",
+      "result": {
+        "ready": true,
+        "echo": "blanc-http3-proof"
+      },
+      "decisions": [],
+      "arrivals": [
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:55449",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64690"
+          },
+          "accepted": true
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        }
+      ]
+    },
+    {
+      "protection": "baseline",
+      "kind": "regular",
+      "host": "000491b06a.com",
+      "result": {
+        "ready": true,
+        "echo": "blanc-http3-proof"
+      },
+      "decisions": [],
+      "arrivals": [
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "000491b06a.com:55449",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64690"
+          },
+          "accepted": true
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        }
+      ]
+    },
+    {
+      "protection": "baseline",
+      "kind": "private",
+      "host": "page.blanc-fixture.test",
+      "result": {
+        "ready": true,
+        "echo": "blanc-http3-proof"
+      },
+      "decisions": [],
+      "arrivals": [
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:55449",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64690"
+          },
+          "accepted": true
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        }
+      ]
+    },
+    {
+      "protection": "baseline",
+      "kind": "private",
+      "host": "000491b06a.com",
+      "result": {
+        "ready": true,
+        "echo": "blanc-http3-proof"
+      },
+      "decisions": [],
+      "arrivals": [
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "000491b06a.com:55449",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64690"
+          },
+          "accepted": true
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        }
+      ]
+    },
+    {
+      "protection": "enforced",
+      "kind": "regular",
+      "host": "page.blanc-fixture.test",
+      "result": {
+        "ready": true,
+        "echo": "blanc-http3-proof"
+      },
+      "decisions": [
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64690",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "9E9322AADB4C3E03D627092FE5EE5D34",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:55449/transport"
+        }
+      ],
+      "arrivals": [
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:55449",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64690"
+          },
+          "accepted": true
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        }
+      ]
+    },
+    {
+      "protection": "enforced",
+      "kind": "regular",
+      "host": "000491b06a.com",
+      "result": {
+        "ready": false,
+        "error": "WebTransportError: Opening handshake failed."
+      },
+      "decisions": [
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64690",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "D88C974B5A12D43E681F35199F343737",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:55449/transport"
+        }
+      ],
+      "arrivals": []
+    },
+    {
+      "protection": "enforced",
+      "kind": "private",
+      "host": "page.blanc-fixture.test",
+      "result": {
+        "ready": true,
+        "echo": "blanc-http3-proof"
+      },
+      "decisions": [
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64690",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "19E8075178AF7EF96B454FC10B57583F",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:55449/transport"
+        }
+      ],
+      "arrivals": [
+        {
+          "event": "alpn",
+          "value": "h3"
+        },
+        {
+          "event": "connect",
+          "headers": {
+            ":scheme": "https",
+            ":method": "CONNECT",
+            ":authority": "page.blanc-fixture.test:55449",
+            ":path": "/transport",
+            ":protocol": "webtransport",
+            "sec-webtransport-http3-draft02": "1",
+            "origin": "http://127.0.0.1:64690"
+          },
+          "accepted": true
+        },
+        {
+          "event": "echo",
+          "value": "blanc-http3-proof"
+        }
+      ]
+    },
+    {
+      "protection": "enforced",
+      "kind": "private",
+      "host": "000491b06a.com",
+      "result": {
+        "ready": false,
+        "error": "WebTransportError: Opening handshake failed."
+      },
+      "decisions": [
+        {
+          "context_alive": true,
+          "decision": "block",
+          "engine_result": 1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64690",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "D0855820235F750751A6CD85AF174480",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://000491b06a.com:55449/transport"
+        }
+      ],
+      "arrivals": []
+    }
+  ],
+  "serverRows": [
+    {
+      "event": "ready"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:55449",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64690"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "000491b06a.com:55449",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64690"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:55449",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64690"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "000491b06a.com:55449",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64690"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:55449",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64690"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:55449",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64690"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    }
+  ],
+  "errors": []
+}

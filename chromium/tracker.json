@@ -1,0 +1,4369 @@
+{
+  "schemaVersion": 1,
+  "qualification": "Initial platform inventory imported from approved spec; legacy macOS stages are not canonical verification.",
+  "shippingTag": "v1.45.1",
+  "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
+  "rows": [
+    {
+      "id": "F1",
+      "requirement": "Island: resting pill, panel/palette/find modes, shield chip, hover-open, auto-hide (float/pin), tooltips, space mark",
+      "slice": "S1",
+      "legacyMacState": "Integrated (partial); Shield hit-region fix drafted",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-integrated-partial",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F2",
+      "requirement": "Tabs: create/close/switch/reopen tiers/duplicate/pin/mute/close others/above/below/move to window, tab drag",
+      "slice": "S1",
+      "legacyMacState": "Integrated (partial)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-integrated-partial",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F3",
+      "requirement": "Groups: names, case rules, optional color, group menu, ⌘1–9 clusters",
+      "slice": "S1",
+      "legacyMacState": "Integrated in an isolated candidate",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-built-isolated",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F4",
+      "requirement": "Private tabs: never in history/session/sync/reopen; children stay private; theme + quick-exit chip",
+      "slice": "S1",
+      "legacyMacState": "Integrated (partial; primary-incognito model)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-integrated-partial",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F5",
+      "requirement": "Address input, engines (DDG default, custom `%s`), suggestions policy, OS hand-off",
+      "slice": "S1",
+      "legacyMacState": "Drafted (live build still hardcodes Google)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "drafted",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F6",
+      "requirement": "Command palette and Quick Switcher",
+      "slice": "S1",
+      "legacyMacState": "Integrated (partial)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-integrated-partial",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F7",
+      "requirement": "34 slash commands with shipping names and hints",
+      "slice": "S1–S5",
+      "legacyMacState": "Integrated (partial: some commands)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-integrated-partial",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F8",
+      "requirement": "Find capsule",
+      "slice": "S1",
+      "legacyMacState": "Built in an isolated candidate",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-built-isolated",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F9",
+      "requirement": "Favorites: heart, add all, sheet, Start Page favorites",
+      "slice": "S1",
+      "legacyMacState": "Integrated (partial)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-integrated-partial",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F10",
+      "requirement": "History: per visit, clear, private excluded",
+      "slice": "S1",
+      "legacyMacState": "Integrated (partial)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-integrated-partial",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F11",
+      "requirement": "Downloads sheet, progress, cap 200",
+      "slice": "S1",
+      "legacyMacState": "Drafted (prototype opens Chromium Downloads tab)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "drafted",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F12",
+      "requirement": "Blocking default-on, per-tab count, per-site allow/re-block, shield popover, global toggle",
+      "slice": "S1",
+      "legacyMacState": "Integrated (network + cosmetic); site actions drafted",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-integrated-partial",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F13",
+      "requirement": "Permissions: explicit prompts, default-deny, same copy",
+      "slice": "S1",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F14",
+      "requirement": "Settings: every shipping key/default/validation",
+      "slice": "S1",
+      "legacyMacState": "Integrated (General only)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-integrated-partial",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F15",
+      "requirement": "Theming: system/light/dark/private, live",
+      "slice": "S1",
+      "legacyMacState": "Integrated (partial)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-integrated-partial",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F16",
+      "requirement": "Internal pages; utility pages as a sheet, never tabs",
+      "slice": "S1",
+      "legacyMacState": "Integrated (Start Page); sheet not built",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-integrated-partial",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F17",
+      "requirement": "Patron (unlocks nothing), five Mac colorways, platform icons",
+      "slice": "S2",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F18",
+      "requirement": "Session restore incl. groups, splits, meta, document-policy stamp",
+      "slice": "S1",
+      "legacyMacState": "Integrated (partial; recovery suite on 157)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-integrated-partial",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F19",
+      "requirement": "Context menu incl. Open Link in Glance/Space, Copy clean link",
+      "slice": "S1",
+      "legacyMacState": "Drafted",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "drafted",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F20",
+      "requirement": "HTTP auth: no credential dialog, request fails",
+      "slice": "S1",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F21",
+      "requirement": "Telemetry: consent first, fixed events, packaged only",
+      "slice": "S2",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F22",
+      "requirement": "Distribution and updates",
+      "slice": "R",
+      "legacyMacState": "Not started (manual signed replacement only)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F23",
+      "requirement": "Zoom",
+      "slice": "S1",
+      "legacyMacState": "Built in an isolated candidate",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-built-isolated",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F27",
+      "requirement": "Tab Sync, pairing, device names",
+      "slice": "S4",
+      "legacyMacState": "Drafted (native exchange pieces)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "drafted",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F28",
+      "requirement": "Vertical tabs rail",
+      "slice": "S3",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F30",
+      "requirement": "Favorites import from Chromium browsers",
+      "slice": "S2",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F31",
+      "requirement": "Quiet Tabs",
+      "slice": "S3",
+      "legacyMacState": "Integrated in an isolated candidate; regular-profile timed test passed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-built-isolated",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F32",
+      "requirement": "Independent windows",
+      "slice": "S1",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F33",
+      "requirement": "Local profiles",
+      "slice": "S2",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F34",
+      "requirement": "Glance floating card",
+      "slice": "S3",
+      "legacyMacState": "Drafted (many unbuilt generations)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "drafted",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F35",
+      "requirement": "Start Page layouts, pins, Customize, blocked counts",
+      "slice": "S1",
+      "legacyMacState": "Integrated (partial)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-integrated-partial",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F36",
+      "requirement": "First-run onboarding",
+      "slice": "S2",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F37",
+      "requirement": "Blank tab shows where to type",
+      "slice": "S1",
+      "legacyMacState": "Built (CSS fix unpromoted)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-built-isolated",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F38",
+      "requirement": "1Password fill",
+      "slice": "S5 / D2",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F40",
+      "requirement": "Bring Your Tabs (`/bring-tabs` ships though matrix says PLANNED)",
+      "slice": "S3",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F41",
+      "requirement": "Spaces: up to 25, swap in place, autosave, mark/menu",
+      "slice": "S3",
+      "legacyMacState": "Drafted (placeholder list)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "drafted",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F57",
+      "requirement": "Shared Spaces sync (v1.45.1 status rules)",
+      "slice": "S4",
+      "legacyMacState": "Drafted",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "drafted",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F42",
+      "requirement": "Dark websites",
+      "slice": "S5",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F44",
+      "requirement": "Interface language: 6 languages, picker + relaunch",
+      "slice": "S1",
+      "legacyMacState": "Integrated (partial; browser-language approximation)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-integrated-partial",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F45",
+      "requirement": "Arc Spaces import",
+      "slice": "S3",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F46",
+      "requirement": "Custom tab names",
+      "slice": "S3",
+      "legacyMacState": "Built in an isolated candidate",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-built-isolated",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F47",
+      "requirement": "Bangs",
+      "slice": "S1",
+      "legacyMacState": "Drafted (30-file overlay, unbuilt)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "drafted",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F48",
+      "requirement": "Pinned homes",
+      "slice": "S3",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F49",
+      "requirement": "Wallpaper image",
+      "slice": "S5",
+      "legacyMacState": "Integrated (differs: IndexedDB blob vs file)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-integrated-partial",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F50",
+      "requirement": "Color wallpaper",
+      "slice": "S5",
+      "legacyMacState": "Built in an isolated candidate",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-built-isolated",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F51",
+      "requirement": "What's New page",
+      "slice": "S2",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F52",
+      "requirement": "Tab Archive",
+      "slice": "S3",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F53",
+      "requirement": "Split View (2 panes)",
+      "slice": "S3",
+      "legacyMacState": "Built (pin/unpin) in an isolated candidate",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-built-isolated",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F54",
+      "requirement": "Billboard clock Font & color",
+      "slice": "S5",
+      "legacyMacState": "Integrated (partial)",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-integrated-partial",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F58",
+      "requirement": "Reader Mode",
+      "slice": "S5",
+      "legacyMacState": "Drafted",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "drafted",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F59",
+      "requirement": "Ctrl+Tab recent order (Linux/Windows; Mac off)",
+      "slice": "S3",
+      "legacyMacState": "Drafted",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "drafted",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F60",
+      "requirement": "Link routing incl. background window keeps focus",
+      "slice": "S3",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "R1",
+      "requirement": "Launch Sunrise (opt-in)",
+      "slice": "S5",
+      "legacyMacState": "Built in an isolated candidate",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "legacy-built-isolated",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "R2",
+      "requirement": "Sync without a passphrase + recovery code",
+      "slice": "S4",
+      "legacyMacState": "Drafted",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "drafted",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "R3",
+      "requirement": "Pair iPhone (QR)",
+      "slice": "S4",
+      "legacyMacState": "Not started",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "X1",
+      "requirement": "uBO provider",
+      "slice": "D2",
+      "legacyMacState": "Research only",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "research",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "X2",
+      "requirement": "Widevine/DRM playback",
+      "slice": "D3",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      },
+      "exceptions": [
+        {
+          "scope": "beta only",
+          "accepted": "Owner D3 decision",
+          "requirementExcepted": "DRM/Widevine playback",
+          "betaRequirement": "On EME playback request, show a notice that Electron Blanc is required and offer explicit current-page handoff",
+          "replacementDecision": "open"
+        }
+      ]
+    },
+    {
+      "id": "N1",
+      "requirement": "Recently closed band, `closedSlot`, Forget/Clear all (`closed-tabs.js`, `closed-slot.js`)",
+      "slice": "S3",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N2",
+      "requirement": "Capture indicator chip/popover, truthful `permissions.query` (`capture-*`)",
+      "slice": "S5",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N3",
+      "requirement": "Screen sharing broker and picker; Linux PipeWire portal (`display-capture-*`)",
+      "slice": "S5",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N4",
+      "requirement": "Inherited document policy / inert tabs (`document-policy.js`)",
+      "slice": "S1 (security)",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N5",
+      "requirement": "Certificate error page, session-only local-network continue (`certificate-exceptions.js`, `site-security.js`)",
+      "slice": "S1 (security)",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N6",
+      "requirement": "OS hand-off schemes and blocklist (`external-protocols.js`)",
+      "slice": "S1",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N7",
+      "requirement": "Touch ID WebAuthn passkeys (`webauthn.js`)",
+      "slice": "S2",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N8",
+      "requirement": "Network privacy: secure DNS, WebRTC IP policy (`network-privacy.js`)",
+      "slice": "S1",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N9",
+      "requirement": "Send to device (`sends.js`)",
+      "slice": "S4",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N10",
+      "requirement": "Default-browser status, reminder, Windows Default Programs (`default-browser-*.js`, `installer.nsh`)",
+      "slice": "S2",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N11",
+      "requirement": "Moving-in checklist (`migration-checklist.js`)",
+      "slice": "S2",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N12",
+      "requirement": "Mahjong (`blanc://mahjong`, sound)",
+      "slice": "S5",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N13",
+      "requirement": "Site mute (`site-mute.js`), page tint (`page-tint-*`)",
+      "slice": "S3",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N14",
+      "requirement": "Mouse gestures, off by default (`mouse-gestures.js`)",
+      "slice": "S5",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N15",
+      "requirement": "Local HTML preview in isolated session; macOS `public.html` association (`local-html-*`)",
+      "slice": "S5",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N16",
+      "requirement": "Trust receipt, diagnostics export, crash ledger (`trust-receipt.js`)",
+      "slice": "R",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N17",
+      "requirement": "Invite a Friend (`/invite`, Help menu)",
+      "slice": "S5",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N18",
+      "requirement": "Dock menu, app badge, About panel, manual Check for updates",
+      "slice": "R",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N19",
+      "requirement": "Copy link / Copy clean link (`clean-link.js`, address menu)",
+      "slice": "S1",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N20",
+      "requirement": "Tab import/handoff pages and `blanc-import:` scheme (`tab-import.html`, `tab-handoff.html`)",
+      "slice": "S3",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N21",
+      "requirement": "Bang icons, search suggestions provider (`bang-icons`, suggestions)",
+      "slice": "S1",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "N22",
+      "requirement": "Startup navigation gate: web requests held until the blocker is ready",
+      "slice": "S1 (security)",
+      "legacyMacState": "not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null
+      },
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    }
+  ],
+  "currentCandidates": {
+    "macos": {
+      "id": "macos-496905d55d71fa94",
+      "frameworkSha256": "496905d55d71fa94d184290da888116abb0aaed8fb27974e628a390a9b3d4297",
+      "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
+      "version": "158.0.8127.2",
+      "qualification": "compiled candidate; runtime acceptance pending"
+    }
+  },
+  "baselines": {
+    "macos": "scenarios/baseline-macos-790ca4d6d538c894.json"
+  },
+  "scenarioIds": [
+    "spec/acceptance/F41-named-workspaces.feature:4",
+    "spec/acceptance/F41-named-workspaces.feature:10",
+    "spec/acceptance/F41-named-workspaces.feature:16",
+    "spec/acceptance/F41-named-workspaces.feature:22",
+    "spec/acceptance/F41-named-workspaces.feature:28",
+    "spec/acceptance/F41-named-workspaces.feature:34",
+    "spec/acceptance/F41-named-workspaces.feature:40",
+    "spec/acceptance/F41-named-workspaces.feature:46",
+    "spec/acceptance/F41-named-workspaces.feature:51",
+    "spec/acceptance/F41-named-workspaces.feature:57",
+    "spec/acceptance/F41-named-workspaces.feature:63",
+    "spec/acceptance/F41-named-workspaces.feature:69",
+    "spec/acceptance/F41-named-workspaces.feature:75",
+    "spec/acceptance/F41-named-workspaces.feature:81",
+    "spec/acceptance/F41-named-workspaces.feature:87",
+    "spec/acceptance/F41-named-workspaces.feature:93",
+    "spec/acceptance/F41-named-workspaces.feature:98",
+    "spec/acceptance/F41-named-workspaces.feature:103",
+    "spec/acceptance/F41-named-workspaces.feature:109",
+    "spec/acceptance/F41-named-workspaces.feature:113",
+    "spec/acceptance/F41-named-workspaces.feature:118",
+    "spec/acceptance/F41-named-workspaces.feature:127",
+    "spec/acceptance/F41-named-workspaces.feature:134",
+    "spec/acceptance/F41-named-workspaces.feature:144",
+    "spec/acceptance/F41-named-workspaces.feature:153",
+    "spec/acceptance/F41-named-workspaces.feature:162",
+    "spec/acceptance/F41-named-workspaces.feature:169",
+    "spec/acceptance/F41-named-workspaces.feature:175",
+    "spec/acceptance/F41-named-workspaces.feature:182",
+    "spec/acceptance/F41-named-workspaces.feature:189",
+    "spec/acceptance/F41-named-workspaces.feature:196",
+    "spec/acceptance/F41-named-workspaces.feature:204",
+    "spec/acceptance/F41-named-workspaces.feature:211",
+    "spec/acceptance/F41-named-workspaces.feature:218",
+    "spec/acceptance/F41-named-workspaces.feature:228",
+    "spec/acceptance/F41-named-workspaces.feature:237",
+    "spec/acceptance/F41-named-workspaces.feature:246",
+    "spec/acceptance/F41-named-workspaces.feature:254",
+    "spec/acceptance/F41-named-workspaces.feature:262",
+    "spec/acceptance/F41-named-workspaces.feature:270",
+    "spec/acceptance/F41-named-workspaces.feature:279",
+    "spec/acceptance/F41-named-workspaces.feature:285",
+    "spec/acceptance/F41-named-workspaces.feature:291",
+    "spec/acceptance/F41-named-workspaces.feature:300",
+    "spec/acceptance/F41-named-workspaces.feature:308",
+    "spec/acceptance/F41-named-workspaces.feature:316",
+    "spec/acceptance/F41-named-workspaces.feature:329",
+    "spec/acceptance/F41-named-workspaces.feature:341",
+    "spec/acceptance/F41-named-workspaces.feature:351",
+    "spec/acceptance/F41-named-workspaces.feature:359",
+    "spec/acceptance/F41-named-workspaces.feature:367",
+    "spec/acceptance/F41-named-workspaces.feature:376",
+    "spec/acceptance/F41-named-workspaces.feature:386",
+    "spec/acceptance/F41-named-workspaces.feature:396",
+    "spec/acceptance/F41-named-workspaces.feature:403",
+    "spec/acceptance/F41-named-workspaces.feature:413",
+    "spec/acceptance/F41-named-workspaces.feature:423",
+    "spec/acceptance/F41-named-workspaces.feature:431",
+    "spec/acceptance/F41-named-workspaces.feature:439",
+    "spec/acceptance/F41-named-workspaces.feature:449",
+    "spec/acceptance/F41-named-workspaces.feature:459",
+    "spec/acceptance/F41-named-workspaces.feature:472",
+    "spec/acceptance/F41-named-workspaces.feature:480",
+    "spec/acceptance/F41-named-workspaces.feature:488",
+    "spec/acceptance/F41-named-workspaces.feature:497",
+    "spec/acceptance/F41-named-workspaces.feature:507",
+    "spec/acceptance/F41-named-workspaces.feature:516",
+    "spec/acceptance/F41-named-workspaces.feature:527",
+    "spec/acceptance/F41-named-workspaces.feature:535",
+    "spec/acceptance/F41-named-workspaces.feature:541",
+    "spec/acceptance/F41-named-workspaces.feature:549",
+    "spec/acceptance/F41-named-workspaces.feature:558",
+    "spec/acceptance/F41-named-workspaces.feature:566",
+    "spec/acceptance/F41-named-workspaces.feature:576",
+    "spec/acceptance/F41-named-workspaces.feature:583",
+    "spec/acceptance/F41-named-workspaces.feature:591",
+    "spec/acceptance/F41-named-workspaces.feature:602",
+    "spec/acceptance/F41-named-workspaces.feature:613",
+    "spec/acceptance/F41-named-workspaces.feature:624",
+    "spec/acceptance/F41-named-workspaces.feature:633",
+    "spec/acceptance/F41-named-workspaces.feature:643",
+    "spec/acceptance/F41-named-workspaces.feature:651",
+    "spec/acceptance/ad-blocking.feature:12",
+    "spec/acceptance/ad-blocking.feature:17",
+    "spec/acceptance/ad-blocking.feature:26",
+    "spec/acceptance/ad-blocking.feature:36",
+    "spec/acceptance/ad-blocking.feature:47",
+    "spec/acceptance/ad-blocking.feature:59",
+    "spec/acceptance/ad-blocking.feature:71",
+    "spec/acceptance/ad-blocking.feature:77",
+    "spec/acceptance/ad-blocking.feature:83",
+    "spec/acceptance/arc-spaces-import.feature:7",
+    "spec/acceptance/arc-spaces-import.feature:14",
+    "spec/acceptance/arc-spaces-import.feature:23",
+    "spec/acceptance/arc-spaces-import.feature:31",
+    "spec/acceptance/arc-spaces-import.feature:39",
+    "spec/acceptance/arc-spaces-import.feature:46",
+    "spec/acceptance/arc-spaces-import.feature:53",
+    "spec/acceptance/arc-spaces-import.feature:60",
+    "spec/acceptance/blank-tab-affordance.feature:8",
+    "spec/acceptance/blank-tab-affordance.feature:17",
+    "spec/acceptance/blank-tab-affordance.feature:24",
+    "spec/acceptance/blank-tab-affordance.feature:34",
+    "spec/acceptance/browser-migration.feature:7",
+    "spec/acceptance/browser-migration.feature:14",
+    "spec/acceptance/browser-migration.feature:21",
+    "spec/acceptance/browser-migration.feature:28",
+    "spec/acceptance/browser-migration.feature:35",
+    "spec/acceptance/downloads.feature:7",
+    "spec/acceptance/downloads.feature:13",
+    "spec/acceptance/find-favorites-history.feature:7",
+    "spec/acceptance/find-favorites-history.feature:16",
+    "spec/acceptance/find-favorites-history.feature:24",
+    "spec/acceptance/find-favorites-history.feature:31",
+    "spec/acceptance/find-favorites-history.feature:37",
+    "spec/acceptance/find-favorites-history.feature:42",
+    "spec/acceptance/find-favorites-history.feature:48",
+    "spec/acceptance/glance.feature:7",
+    "spec/acceptance/glance.feature:17",
+    "spec/acceptance/glance.feature:24",
+    "spec/acceptance/glance.feature:31",
+    "spec/acceptance/glance.feature:38",
+    "spec/acceptance/glance.feature:45",
+    "spec/acceptance/glance.feature:52",
+    "spec/acceptance/glance.feature:59",
+    "spec/acceptance/glance.feature:66",
+    "spec/acceptance/glance.feature:73",
+    "spec/acceptance/glance.feature:81",
+    "spec/acceptance/glance.feature:88",
+    "spec/acceptance/glance.feature:98",
+    "spec/acceptance/glance.feature:105",
+    "spec/acceptance/glance.feature:111",
+    "spec/acceptance/glance.feature:117",
+    "spec/acceptance/glance.feature:127",
+    "spec/acceptance/glance.feature:135",
+    "spec/acceptance/glance.feature:144",
+    "spec/acceptance/glance.feature:151",
+    "spec/acceptance/glance.feature:159",
+    "spec/acceptance/glance.feature:169",
+    "spec/acceptance/glance.feature:178",
+    "spec/acceptance/glance.feature:187",
+    "spec/acceptance/glance.feature:197",
+    "spec/acceptance/glance.feature:207",
+    "spec/acceptance/glance.feature:214",
+    "spec/acceptance/glance.feature:221",
+    "spec/acceptance/glance.feature:227",
+    "spec/acceptance/glance.feature:234",
+    "spec/acceptance/glance.feature:246",
+    "spec/acceptance/glance.feature:253",
+    "spec/acceptance/glance.feature:264",
+    "spec/acceptance/glance.feature:273",
+    "spec/acceptance/glance.feature:280",
+    "spec/acceptance/glance.feature:287",
+    "spec/acceptance/glance.feature:296",
+    "spec/acceptance/glance.feature:304",
+    "spec/acceptance/glance.feature:312",
+    "spec/acceptance/glance.feature:319",
+    "spec/acceptance/glance.feature:328",
+    "spec/acceptance/glance.feature:337",
+    "spec/acceptance/glance.feature:345",
+    "spec/acceptance/glance.feature:353",
+    "spec/acceptance/glance.feature:359",
+    "spec/acceptance/glance.feature:365",
+    "spec/acceptance/glance.feature:372",
+    "spec/acceptance/glance.feature:378",
+    "spec/acceptance/glance.feature:386",
+    "spec/acceptance/glance.feature:392",
+    "spec/acceptance/glance.feature:399",
+    "spec/acceptance/glance.feature:409",
+    "spec/acceptance/glance.feature:420",
+    "spec/acceptance/glance.feature:430",
+    "spec/acceptance/glance.feature:438",
+    "spec/acceptance/glance.feature:444",
+    "spec/acceptance/glance.feature:451",
+    "spec/acceptance/glance.feature:459",
+    "spec/acceptance/glance.feature:465",
+    "spec/acceptance/glance.feature:471",
+    "spec/acceptance/glance.feature:480",
+    "spec/acceptance/glance.feature:489",
+    "spec/acceptance/glance.feature:498",
+    "spec/acceptance/glance.feature:506",
+    "spec/acceptance/glance.feature:519",
+    "spec/acceptance/glance.feature:526",
+    "spec/acceptance/glance.feature:538",
+    "spec/acceptance/interface-language.feature:10",
+    "spec/acceptance/interface-language.feature:18",
+    "spec/acceptance/interface-language.feature:26",
+    "spec/acceptance/interface-language.feature:34",
+    "spec/acceptance/interface-language.feature:43",
+    "spec/acceptance/internal-pages.feature:7",
+    "spec/acceptance/internal-pages.feature:17",
+    "spec/acceptance/internal-pages.feature:24",
+    "spec/acceptance/internal-pages.feature:31",
+    "spec/acceptance/internal-pages.feature:39",
+    "spec/acceptance/internal-pages.feature:47",
+    "spec/acceptance/internal-pages.feature:53",
+    "spec/acceptance/internal-pages.feature:61",
+    "spec/acceptance/internal-pages.feature:66",
+    "spec/acceptance/internal-pages.feature:72",
+    "spec/acceptance/island-and-commands.feature:11",
+    "spec/acceptance/island-and-commands.feature:22",
+    "spec/acceptance/island-and-commands.feature:29",
+    "spec/acceptance/island-and-commands.feature:35",
+    "spec/acceptance/island-and-commands.feature:43",
+    "spec/acceptance/island-and-commands.feature:49",
+    "spec/acceptance/island-and-commands.feature:55",
+    "spec/acceptance/island-and-commands.feature:61",
+    "spec/acceptance/island-and-commands.feature:73",
+    "spec/acceptance/island-and-commands.feature:79",
+    "spec/acceptance/island-and-commands.feature:87",
+    "spec/acceptance/island-and-commands.feature:93",
+    "spec/acceptance/island-and-commands.feature:99",
+    "spec/acceptance/island-and-commands.feature:107",
+    "spec/acceptance/island-and-commands.feature:115",
+    "spec/acceptance/island-and-commands.feature:123",
+    "spec/acceptance/island-and-commands.feature:131",
+    "spec/acceptance/island-and-commands.feature:140",
+    "spec/acceptance/island-and-commands.feature:149",
+    "spec/acceptance/island-and-commands.feature:156",
+    "spec/acceptance/island-and-commands.feature:166",
+    "spec/acceptance/island-and-commands.feature:173",
+    "spec/acceptance/island-and-commands.feature:180",
+    "spec/acceptance/island-and-commands.feature:190",
+    "spec/acceptance/island-and-commands.feature:200",
+    "spec/acceptance/island-and-commands.feature:211",
+    "spec/acceptance/island-and-commands.feature:222",
+    "spec/acceptance/island-and-commands.feature:234",
+    "spec/acceptance/island-and-commands.feature:241",
+    "spec/acceptance/island-and-commands.feature:251",
+    "spec/acceptance/island-and-commands.feature:258",
+    "spec/acceptance/island-and-commands.feature:267",
+    "spec/acceptance/island-and-commands.feature:276",
+    "spec/acceptance/island-and-commands.feature:286",
+    "spec/acceptance/island-and-commands.feature:295",
+    "spec/acceptance/island-and-commands.feature:312",
+    "spec/acceptance/island-and-commands.feature:320",
+    "spec/acceptance/island-and-commands.feature:339",
+    "spec/acceptance/island-and-commands.feature:348",
+    "spec/acceptance/island-and-commands.feature:359",
+    "spec/acceptance/island-and-commands.feature:372",
+    "spec/acceptance/island-and-commands.feature:383",
+    "spec/acceptance/island-and-commands.feature:394",
+    "spec/acceptance/island-and-commands.feature:403",
+    "spec/acceptance/island-and-commands.feature:411",
+    "spec/acceptance/island-and-commands.feature:420",
+    "spec/acceptance/island-and-commands.feature:429",
+    "spec/acceptance/island-and-commands.feature:436",
+    "spec/acceptance/island-and-commands.feature:448",
+    "spec/acceptance/island-and-commands.feature:462",
+    "spec/acceptance/island-and-commands.feature:469",
+    "spec/acceptance/island-and-commands.feature:477",
+    "spec/acceptance/island-and-commands.feature:485",
+    "spec/acceptance/island-and-commands.feature:493",
+    "spec/acceptance/island-and-commands.feature:508",
+    "spec/acceptance/island-and-commands.feature:517",
+    "spec/acceptance/island-and-commands.feature:532",
+    "spec/acceptance/island-and-commands.feature:543",
+    "spec/acceptance/island-and-commands.feature:558",
+    "spec/acceptance/island-and-commands.feature:565",
+    "spec/acceptance/island-and-commands.feature:573",
+    "spec/acceptance/island-and-commands.feature:591",
+    "spec/acceptance/island-and-commands.feature:599",
+    "spec/acceptance/island-and-commands.feature:608",
+    "spec/acceptance/island-and-commands.feature:621",
+    "spec/acceptance/island-and-commands.feature:632",
+    "spec/acceptance/island-and-commands.feature:640",
+    "spec/acceptance/island-and-commands.feature:651",
+    "spec/acceptance/link-routing.feature:8",
+    "spec/acceptance/link-routing.feature:16",
+    "spec/acceptance/link-routing.feature:28",
+    "spec/acceptance/link-routing.feature:37",
+    "spec/acceptance/link-routing.feature:50",
+    "spec/acceptance/link-routing.feature:62",
+    "spec/acceptance/link-routing.feature:79",
+    "spec/acceptance/local-profiles.feature:7",
+    "spec/acceptance/local-profiles.feature:17",
+    "spec/acceptance/local-profiles.feature:27",
+    "spec/acceptance/multi-window.feature:7",
+    "spec/acceptance/multi-window.feature:16",
+    "spec/acceptance/navigation-and-context-menu.feature:7",
+    "spec/acceptance/navigation-and-context-menu.feature:12",
+    "spec/acceptance/navigation-and-context-menu.feature:26",
+    "spec/acceptance/navigation-and-context-menu.feature:32",
+    "spec/acceptance/navigation-and-context-menu.feature:43",
+    "spec/acceptance/navigation-and-context-menu.feature:59",
+    "spec/acceptance/navigation-and-context-menu.feature:66",
+    "spec/acceptance/navigation-and-context-menu.feature:71",
+    "spec/acceptance/navigation-and-context-menu.feature:77",
+    "spec/acceptance/navigation-and-context-menu.feature:83",
+    "spec/acceptance/navigation-and-context-menu.feature:91",
+    "spec/acceptance/navigation-and-context-menu.feature:100",
+    "spec/acceptance/navigation-and-context-menu.feature:108",
+    "spec/acceptance/navigation-and-context-menu.feature:117",
+    "spec/acceptance/newtab-layouts.feature:8",
+    "spec/acceptance/newtab-layouts.feature:14",
+    "spec/acceptance/newtab-layouts.feature:21",
+    "spec/acceptance/newtab-layouts.feature:35",
+    "spec/acceptance/newtab-layouts.feature:41",
+    "spec/acceptance/newtab-layouts.feature:47",
+    "spec/acceptance/newtab-layouts.feature:58",
+    "spec/acceptance/newtab-layouts.feature:71",
+    "spec/acceptance/newtab-layouts.feature:85",
+    "spec/acceptance/newtab-layouts.feature:101",
+    "spec/acceptance/newtab-layouts.feature:114",
+    "spec/acceptance/newtab-layouts.feature:126",
+    "spec/acceptance/newtab-layouts.feature:134",
+    "spec/acceptance/newtab-layouts.feature:143",
+    "spec/acceptance/newtab-layouts.feature:150",
+    "spec/acceptance/newtab-layouts.feature:161",
+    "spec/acceptance/newtab-layouts.feature:171",
+    "spec/acceptance/newtab-layouts.feature:183",
+    "spec/acceptance/newtab-layouts.feature:188",
+    "spec/acceptance/newtab-layouts.feature:194",
+    "spec/acceptance/newtab-layouts.feature:205",
+    "spec/acceptance/newtab-layouts.feature:212",
+    "spec/acceptance/newtab-layouts.feature:221",
+    "spec/acceptance/newtab-layouts.feature:229",
+    "spec/acceptance/newtab-layouts.feature:240",
+    "spec/acceptance/onboarding.feature:8",
+    "spec/acceptance/onboarding.feature:14",
+    "spec/acceptance/onboarding.feature:23",
+    "spec/acceptance/onboarding.feature:29",
+    "spec/acceptance/onboarding.feature:39",
+    "spec/acceptance/onboarding.feature:48",
+    "spec/acceptance/onboarding.feature:57",
+    "spec/acceptance/onboarding.feature:64",
+    "spec/acceptance/permissions-and-auth.feature:6",
+    "spec/acceptance/permissions-and-auth.feature:13",
+    "spec/acceptance/permissions-and-auth.feature:21",
+    "spec/acceptance/permissions-and-auth.feature:27",
+    "spec/acceptance/permissions-and-auth.feature:33",
+    "spec/acceptance/permissions-and-auth.feature:39",
+    "spec/acceptance/platform-services.feature:7",
+    "spec/acceptance/platform-services.feature:17",
+    "spec/acceptance/platform-services.feature:25",
+    "spec/acceptance/platform-services.feature:30",
+    "spec/acceptance/platform-services.feature:35",
+    "spec/acceptance/platform-services.feature:42",
+    "spec/acceptance/platform-services.feature:50",
+    "spec/acceptance/platform-services.feature:64",
+    "spec/acceptance/platform-services.feature:76",
+    "spec/acceptance/platform-services.feature:88",
+    "spec/acceptance/platform-services.feature:98",
+    "spec/acceptance/platform-services.feature:105",
+    "spec/acceptance/platform-services.feature:112",
+    "spec/acceptance/private-tabs.feature:7",
+    "spec/acceptance/private-tabs.feature:16",
+    "spec/acceptance/private-tabs.feature:24",
+    "spec/acceptance/private-tabs.feature:30",
+    "spec/acceptance/private-tabs.feature:35",
+    "spec/acceptance/private-tabs.feature:40",
+    "spec/acceptance/quiet-tabs.feature:8",
+    "spec/acceptance/quiet-tabs.feature:16",
+    "spec/acceptance/quiet-tabs.feature:22",
+    "spec/acceptance/quiet-tabs.feature:28",
+    "spec/acceptance/quiet-tabs.feature:49",
+    "spec/acceptance/quiet-tabs.feature:56",
+    "spec/acceptance/quiet-tabs.feature:62",
+    "spec/acceptance/quiet-tabs.feature:70",
+    "spec/acceptance/quiet-tabs.feature:77",
+    "spec/acceptance/quiet-tabs.feature:84",
+    "spec/acceptance/quiet-tabs.feature:99",
+    "spec/acceptance/quiet-tabs.feature:106",
+    "spec/acceptance/quiet-tabs.feature:113",
+    "spec/acceptance/quiet-tabs.feature:118",
+    "spec/acceptance/reader-mode.feature:7",
+    "spec/acceptance/reader-mode.feature:13",
+    "spec/acceptance/reader-mode.feature:20",
+    "spec/acceptance/send-to-device.feature:7",
+    "spec/acceptance/send-to-device.feature:15",
+    "spec/acceptance/send-to-device.feature:24",
+    "spec/acceptance/send-to-device.feature:33",
+    "spec/acceptance/send-to-device.feature:41",
+    "spec/acceptance/send-to-device.feature:49",
+    "spec/acceptance/send-to-device.feature:56",
+    "spec/acceptance/send-to-device.feature:63",
+    "spec/acceptance/settings-and-theming.feature:7",
+    "spec/acceptance/settings-and-theming.feature:12",
+    "spec/acceptance/settings-and-theming.feature:17",
+    "spec/acceptance/settings-and-theming.feature:23",
+    "spec/acceptance/settings-and-theming.feature:29",
+    "spec/acceptance/settings-and-theming.feature:37",
+    "spec/acceptance/settings-and-theming.feature:42",
+    "spec/acceptance/settings-and-theming.feature:49",
+    "spec/acceptance/settings-and-theming.feature:57",
+    "spec/acceptance/settings-and-theming.feature:65",
+    "spec/acceptance/settings-and-theming.feature:74",
+    "spec/acceptance/shared-spaces.feature:4",
+    "spec/acceptance/shared-spaces.feature:11",
+    "spec/acceptance/shared-spaces.feature:17",
+    "spec/acceptance/shared-spaces.feature:23",
+    "spec/acceptance/shared-spaces.feature:29",
+    "spec/acceptance/shared-spaces.feature:35",
+    "spec/acceptance/shared-spaces.feature:41",
+    "spec/acceptance/shared-spaces.feature:47",
+    "spec/acceptance/shared-spaces.feature:57",
+    "spec/acceptance/shared-spaces.feature:73",
+    "spec/acceptance/shared-spaces.feature:80",
+    "spec/acceptance/shared-spaces.feature:87",
+    "spec/acceptance/shared-spaces.feature:94",
+    "spec/acceptance/shared-spaces.feature:103",
+    "spec/acceptance/shared-spaces.feature:111",
+    "spec/acceptance/shared-spaces.feature:119",
+    "spec/acceptance/shared-spaces.feature:132",
+    "spec/acceptance/shared-spaces.feature:143",
+    "spec/acceptance/site-certificate-safety.feature:4",
+    "spec/acceptance/site-certificate-safety.feature:11",
+    "spec/acceptance/site-certificate-safety.feature:19",
+    "spec/acceptance/site-certificate-safety.feature:26",
+    "spec/acceptance/site-certificate-safety.feature:35",
+    "spec/acceptance/site-certificate-safety.feature:41",
+    "spec/acceptance/site-certificate-safety.feature:50",
+    "spec/acceptance/split-view.feature:7",
+    "spec/acceptance/split-view.feature:12",
+    "spec/acceptance/split-view.feature:19",
+    "spec/acceptance/split-view.feature:28",
+    "spec/acceptance/split-view.feature:35",
+    "spec/acceptance/split-view.feature:42",
+    "spec/acceptance/split-view.feature:48",
+    "spec/acceptance/split-view.feature:54",
+    "spec/acceptance/split-view.feature:60",
+    "spec/acceptance/split-view.feature:69",
+    "spec/acceptance/split-view.feature:77",
+    "spec/acceptance/split-view.feature:88",
+    "spec/acceptance/split-view.feature:96",
+    "spec/acceptance/split-view.feature:110",
+    "spec/acceptance/split-view.feature:116",
+    "spec/acceptance/split-view.feature:122",
+    "spec/acceptance/split-view.feature:129",
+    "spec/acceptance/split-view.feature:135",
+    "spec/acceptance/split-view.feature:141",
+    "spec/acceptance/split-view.feature:147",
+    "spec/acceptance/split-view.feature:153",
+    "spec/acceptance/split-view.feature:159",
+    "spec/acceptance/split-view.feature:169",
+    "spec/acceptance/split-view.feature:178",
+    "spec/acceptance/split-view.feature:187",
+    "spec/acceptance/split-view.feature:194",
+    "spec/acceptance/split-view.feature:201",
+    "spec/acceptance/split-view.feature:209",
+    "spec/acceptance/split-view.feature:218",
+    "spec/acceptance/split-view.feature:227",
+    "spec/acceptance/split-view.feature:234",
+    "spec/acceptance/supporter-and-session.feature:7",
+    "spec/acceptance/supporter-and-session.feature:12",
+    "spec/acceptance/supporter-and-session.feature:18",
+    "spec/acceptance/supporter-and-session.feature:26",
+    "spec/acceptance/sync.feature:7",
+    "spec/acceptance/sync.feature:13",
+    "spec/acceptance/sync.feature:20",
+    "spec/acceptance/sync.feature:26",
+    "spec/acceptance/sync.feature:38",
+    "spec/acceptance/sync.feature:49",
+    "spec/acceptance/sync.feature:56",
+    "spec/acceptance/sync.feature:73",
+    "spec/acceptance/sync.feature:88",
+    "spec/acceptance/sync.feature:104",
+    "spec/acceptance/sync.feature:114",
+    "spec/acceptance/sync.feature:120",
+    "spec/acceptance/sync.feature:129",
+    "spec/acceptance/sync.feature:150",
+    "spec/acceptance/sync.feature:162",
+    "spec/acceptance/sync.feature:181",
+    "spec/acceptance/sync.feature:199",
+    "spec/acceptance/sync.feature:210",
+    "spec/acceptance/tab-archive.feature:8",
+    "spec/acceptance/tab-archive.feature:15",
+    "spec/acceptance/tab-archive.feature:22",
+    "spec/acceptance/tab-archive.feature:29",
+    "spec/acceptance/tab-archive.feature:36",
+    "spec/acceptance/tab-archive.feature:43",
+    "spec/acceptance/tab-archive.feature:49",
+    "spec/acceptance/tab-archive.feature:56",
+    "spec/acceptance/tab-archive.feature:64",
+    "spec/acceptance/tab-archive.feature:71",
+    "spec/acceptance/tab-archive.feature:79",
+    "spec/acceptance/tab-archive.feature:87",
+    "spec/acceptance/tab-archive.feature:94",
+    "spec/acceptance/tab-archive.feature:104",
+    "spec/acceptance/tab-archive.feature:113",
+    "spec/acceptance/tab-archive.feature:122",
+    "spec/acceptance/tab-drag.feature:10",
+    "spec/acceptance/tab-drag.feature:20",
+    "spec/acceptance/tab-drag.feature:30",
+    "spec/acceptance/tab-drag.feature:40",
+    "spec/acceptance/tab-drag.feature:50",
+    "spec/acceptance/tab-drag.feature:62",
+    "spec/acceptance/tab-drag.feature:73",
+    "spec/acceptance/tab-drag.feature:84",
+    "spec/acceptance/tab-drag.feature:95",
+    "spec/acceptance/tab-drag.feature:111",
+    "spec/acceptance/tab-drag.feature:124",
+    "spec/acceptance/tab-drag.feature:136",
+    "spec/acceptance/tab-drag.feature:144",
+    "spec/acceptance/tab-drag.feature:154",
+    "spec/acceptance/tab-drag.feature:164",
+    "spec/acceptance/tab-drag.feature:170",
+    "spec/acceptance/tab-drag.feature:176",
+    "spec/acceptance/tab-migration.feature:7",
+    "spec/acceptance/tab-migration.feature:15",
+    "spec/acceptance/tab-migration.feature:26",
+    "spec/acceptance/tab-migration.feature:35",
+    "spec/acceptance/tab-migration.feature:43",
+    "spec/acceptance/tab-migration.feature:50",
+    "spec/acceptance/tab-migration.feature:58",
+    "spec/acceptance/tab-migration.feature:66",
+    "spec/acceptance/tab-migration.feature:74",
+    "spec/acceptance/tab-migration.feature:81",
+    "spec/acceptance/tab-migration.feature:88",
+    "spec/acceptance/tab-migration.feature:95",
+    "spec/acceptance/tab-migration.feature:102",
+    "spec/acceptance/tab-migration.feature:109",
+    "spec/acceptance/tab-migration.feature:116",
+    "spec/acceptance/tabs-and-groups.feature:8",
+    "spec/acceptance/tabs-and-groups.feature:15",
+    "spec/acceptance/tabs-and-groups.feature:21",
+    "spec/acceptance/tabs-and-groups.feature:28",
+    "spec/acceptance/tabs-and-groups.feature:35",
+    "spec/acceptance/tabs-and-groups.feature:43",
+    "spec/acceptance/tabs-and-groups.feature:51",
+    "spec/acceptance/tabs-and-groups.feature:62",
+    "spec/acceptance/tabs-and-groups.feature:71",
+    "spec/acceptance/tabs-and-groups.feature:78",
+    "spec/acceptance/tabs-and-groups.feature:94",
+    "spec/acceptance/tabs-and-groups.feature:112",
+    "spec/acceptance/tabs-and-groups.feature:119",
+    "spec/acceptance/tabs-and-groups.feature:125",
+    "spec/acceptance/tabs-and-groups.feature:132",
+    "spec/acceptance/tabs-and-groups.feature:142",
+    "spec/acceptance/tabs-and-groups.feature:153",
+    "spec/acceptance/tabs-and-groups.feature:163",
+    "spec/acceptance/tabs-and-groups.feature:171",
+    "spec/acceptance/tabs-and-groups.feature:181",
+    "spec/acceptance/tabs-and-groups.feature:187",
+    "spec/acceptance/tabs-and-groups.feature:193",
+    "spec/acceptance/tabs-and-groups.feature:199",
+    "spec/acceptance/tabs-and-groups.feature:206",
+    "spec/acceptance/tabs-and-groups.feature:213",
+    "spec/acceptance/tabs-and-groups.feature:219",
+    "spec/acceptance/tabs-and-groups.feature:226",
+    "spec/acceptance/tabs-and-groups.feature:234",
+    "spec/acceptance/tabs-and-groups.feature:240",
+    "spec/acceptance/tabs-and-groups.feature:249",
+    "spec/acceptance/tabs-and-groups.feature:256",
+    "spec/acceptance/tabs-and-groups.feature:270",
+    "spec/acceptance/tabs-and-groups.feature:278",
+    "spec/acceptance/tabs-and-groups.feature:284",
+    "spec/acceptance/tabs-and-groups.feature:292",
+    "spec/acceptance/tabs-and-groups.feature:298",
+    "spec/acceptance/tabs-and-groups.feature:312",
+    "spec/acceptance/tabs-and-groups.feature:321",
+    "spec/acceptance/tabs-and-groups.feature:328",
+    "spec/acceptance/tabs-and-groups.feature:336",
+    "spec/acceptance/tabs-and-groups.feature:347",
+    "spec/acceptance/tabs-and-groups.feature:356",
+    "spec/acceptance/tabs-and-groups.feature:367",
+    "spec/acceptance/tabs-and-groups.feature:373",
+    "spec/acceptance/tabs-and-groups.feature:383",
+    "spec/acceptance/vertical-tabs.feature:9",
+    "spec/acceptance/vertical-tabs.feature:21",
+    "spec/acceptance/vertical-tabs.feature:34",
+    "spec/acceptance/vertical-tabs.feature:43",
+    "spec/acceptance/vertical-tabs.feature:58",
+    "spec/acceptance/vertical-tabs.feature:74",
+    "spec/acceptance/vertical-tabs.feature:90",
+    "spec/acceptance/vertical-tabs.feature:99",
+    "spec/acceptance/vertical-tabs.feature:110",
+    "spec/acceptance/vertical-tabs.feature:120",
+    "spec/acceptance/vertical-tabs.feature:129",
+    "spec/acceptance/vertical-tabs.feature:146",
+    "spec/acceptance/vertical-tabs.feature:159",
+    "spec/acceptance/vertical-tabs.feature:172",
+    "spec/acceptance/vertical-tabs.feature:184",
+    "spec/acceptance/vertical-tabs.feature:194",
+    "spec/acceptance/vertical-tabs.feature:201",
+    "spec/acceptance/vertical-tabs.feature:217",
+    "spec/acceptance/vertical-tabs.feature:239",
+    "spec/acceptance/vertical-tabs.feature:249"
+  ],
+  "scenarioCases": {
+    "spec/acceptance/F41-named-workspaces.feature:4": [
+      "spec/acceptance/F41-named-workspaces.feature:4:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:10": [
+      "spec/acceptance/F41-named-workspaces.feature:10:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:16": [
+      "spec/acceptance/F41-named-workspaces.feature:16:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:22": [
+      "spec/acceptance/F41-named-workspaces.feature:22:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:28": [
+      "spec/acceptance/F41-named-workspaces.feature:28:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:34": [
+      "spec/acceptance/F41-named-workspaces.feature:34:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:40": [
+      "spec/acceptance/F41-named-workspaces.feature:40:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:46": [
+      "spec/acceptance/F41-named-workspaces.feature:46:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:51": [
+      "spec/acceptance/F41-named-workspaces.feature:51:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:57": [
+      "spec/acceptance/F41-named-workspaces.feature:57:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:63": [
+      "spec/acceptance/F41-named-workspaces.feature:63:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:69": [
+      "spec/acceptance/F41-named-workspaces.feature:69:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:75": [
+      "spec/acceptance/F41-named-workspaces.feature:75:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:81": [
+      "spec/acceptance/F41-named-workspaces.feature:81:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:87": [
+      "spec/acceptance/F41-named-workspaces.feature:87:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:93": [
+      "spec/acceptance/F41-named-workspaces.feature:93:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:98": [
+      "spec/acceptance/F41-named-workspaces.feature:98:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:103": [
+      "spec/acceptance/F41-named-workspaces.feature:103:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:109": [
+      "spec/acceptance/F41-named-workspaces.feature:109:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:113": [
+      "spec/acceptance/F41-named-workspaces.feature:113:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:118": [
+      "spec/acceptance/F41-named-workspaces.feature:118:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:127": [
+      "spec/acceptance/F41-named-workspaces.feature:127:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:134": [
+      "spec/acceptance/F41-named-workspaces.feature:134:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:144": [
+      "spec/acceptance/F41-named-workspaces.feature:144:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:153": [
+      "spec/acceptance/F41-named-workspaces.feature:153:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:162": [
+      "spec/acceptance/F41-named-workspaces.feature:162:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:169": [
+      "spec/acceptance/F41-named-workspaces.feature:169:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:175": [
+      "spec/acceptance/F41-named-workspaces.feature:175:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:182": [
+      "spec/acceptance/F41-named-workspaces.feature:182:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:189": [
+      "spec/acceptance/F41-named-workspaces.feature:189:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:196": [
+      "spec/acceptance/F41-named-workspaces.feature:196:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:204": [
+      "spec/acceptance/F41-named-workspaces.feature:204:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:211": [
+      "spec/acceptance/F41-named-workspaces.feature:211:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:218": [
+      "spec/acceptance/F41-named-workspaces.feature:218:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:228": [
+      "spec/acceptance/F41-named-workspaces.feature:228:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:237": [
+      "spec/acceptance/F41-named-workspaces.feature:237:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:246": [
+      "spec/acceptance/F41-named-workspaces.feature:246:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:254": [
+      "spec/acceptance/F41-named-workspaces.feature:254:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:262": [
+      "spec/acceptance/F41-named-workspaces.feature:262:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:270": [
+      "spec/acceptance/F41-named-workspaces.feature:270:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:279": [
+      "spec/acceptance/F41-named-workspaces.feature:279:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:285": [
+      "spec/acceptance/F41-named-workspaces.feature:285:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:291": [
+      "spec/acceptance/F41-named-workspaces.feature:291:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:300": [
+      "spec/acceptance/F41-named-workspaces.feature:300:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:308": [
+      "spec/acceptance/F41-named-workspaces.feature:308:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:316": [
+      "spec/acceptance/F41-named-workspaces.feature:316:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:329": [
+      "spec/acceptance/F41-named-workspaces.feature:329:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:341": [
+      "spec/acceptance/F41-named-workspaces.feature:341:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:351": [
+      "spec/acceptance/F41-named-workspaces.feature:351:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:359": [
+      "spec/acceptance/F41-named-workspaces.feature:359:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:367": [
+      "spec/acceptance/F41-named-workspaces.feature:367:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:376": [
+      "spec/acceptance/F41-named-workspaces.feature:376:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:386": [
+      "spec/acceptance/F41-named-workspaces.feature:386:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:396": [
+      "spec/acceptance/F41-named-workspaces.feature:396:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:403": [
+      "spec/acceptance/F41-named-workspaces.feature:403:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:413": [
+      "spec/acceptance/F41-named-workspaces.feature:413:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:423": [
+      "spec/acceptance/F41-named-workspaces.feature:423:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:431": [
+      "spec/acceptance/F41-named-workspaces.feature:431:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:439": [
+      "spec/acceptance/F41-named-workspaces.feature:439:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:449": [
+      "spec/acceptance/F41-named-workspaces.feature:449:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:459": [
+      "spec/acceptance/F41-named-workspaces.feature:459:example-468",
+      "spec/acceptance/F41-named-workspaces.feature:459:example-469"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:472": [
+      "spec/acceptance/F41-named-workspaces.feature:472:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:480": [
+      "spec/acceptance/F41-named-workspaces.feature:480:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:488": [
+      "spec/acceptance/F41-named-workspaces.feature:488:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:497": [
+      "spec/acceptance/F41-named-workspaces.feature:497:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:507": [
+      "spec/acceptance/F41-named-workspaces.feature:507:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:516": [
+      "spec/acceptance/F41-named-workspaces.feature:516:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:527": [
+      "spec/acceptance/F41-named-workspaces.feature:527:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:535": [
+      "spec/acceptance/F41-named-workspaces.feature:535:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:541": [
+      "spec/acceptance/F41-named-workspaces.feature:541:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:549": [
+      "spec/acceptance/F41-named-workspaces.feature:549:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:558": [
+      "spec/acceptance/F41-named-workspaces.feature:558:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:566": [
+      "spec/acceptance/F41-named-workspaces.feature:566:example-572",
+      "spec/acceptance/F41-named-workspaces.feature:566:example-573"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:576": [
+      "spec/acceptance/F41-named-workspaces.feature:576:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:583": [
+      "spec/acceptance/F41-named-workspaces.feature:583:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:591": [
+      "spec/acceptance/F41-named-workspaces.feature:591:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:602": [
+      "spec/acceptance/F41-named-workspaces.feature:602:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:613": [
+      "spec/acceptance/F41-named-workspaces.feature:613:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:624": [
+      "spec/acceptance/F41-named-workspaces.feature:624:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:633": [
+      "spec/acceptance/F41-named-workspaces.feature:633:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:643": [
+      "spec/acceptance/F41-named-workspaces.feature:643:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:651": [
+      "spec/acceptance/F41-named-workspaces.feature:651:plain"
+    ],
+    "spec/acceptance/ad-blocking.feature:12": [
+      "spec/acceptance/ad-blocking.feature:12:plain"
+    ],
+    "spec/acceptance/ad-blocking.feature:17": [
+      "spec/acceptance/ad-blocking.feature:17:plain"
+    ],
+    "spec/acceptance/ad-blocking.feature:26": [
+      "spec/acceptance/ad-blocking.feature:26:plain"
+    ],
+    "spec/acceptance/ad-blocking.feature:36": [
+      "spec/acceptance/ad-blocking.feature:36:plain"
+    ],
+    "spec/acceptance/ad-blocking.feature:47": [
+      "spec/acceptance/ad-blocking.feature:47:plain"
+    ],
+    "spec/acceptance/ad-blocking.feature:59": [
+      "spec/acceptance/ad-blocking.feature:59:plain"
+    ],
+    "spec/acceptance/ad-blocking.feature:71": [
+      "spec/acceptance/ad-blocking.feature:71:plain"
+    ],
+    "spec/acceptance/ad-blocking.feature:77": [
+      "spec/acceptance/ad-blocking.feature:77:plain"
+    ],
+    "spec/acceptance/ad-blocking.feature:83": [
+      "spec/acceptance/ad-blocking.feature:83:plain"
+    ],
+    "spec/acceptance/arc-spaces-import.feature:7": [
+      "spec/acceptance/arc-spaces-import.feature:7:plain"
+    ],
+    "spec/acceptance/arc-spaces-import.feature:14": [
+      "spec/acceptance/arc-spaces-import.feature:14:plain"
+    ],
+    "spec/acceptance/arc-spaces-import.feature:23": [
+      "spec/acceptance/arc-spaces-import.feature:23:plain"
+    ],
+    "spec/acceptance/arc-spaces-import.feature:31": [
+      "spec/acceptance/arc-spaces-import.feature:31:plain"
+    ],
+    "spec/acceptance/arc-spaces-import.feature:39": [
+      "spec/acceptance/arc-spaces-import.feature:39:plain"
+    ],
+    "spec/acceptance/arc-spaces-import.feature:46": [
+      "spec/acceptance/arc-spaces-import.feature:46:plain"
+    ],
+    "spec/acceptance/arc-spaces-import.feature:53": [
+      "spec/acceptance/arc-spaces-import.feature:53:plain"
+    ],
+    "spec/acceptance/arc-spaces-import.feature:60": [
+      "spec/acceptance/arc-spaces-import.feature:60:plain"
+    ],
+    "spec/acceptance/blank-tab-affordance.feature:8": [
+      "spec/acceptance/blank-tab-affordance.feature:8:plain"
+    ],
+    "spec/acceptance/blank-tab-affordance.feature:17": [
+      "spec/acceptance/blank-tab-affordance.feature:17:plain"
+    ],
+    "spec/acceptance/blank-tab-affordance.feature:24": [
+      "spec/acceptance/blank-tab-affordance.feature:24:plain"
+    ],
+    "spec/acceptance/blank-tab-affordance.feature:34": [
+      "spec/acceptance/blank-tab-affordance.feature:34:plain"
+    ],
+    "spec/acceptance/browser-migration.feature:7": [
+      "spec/acceptance/browser-migration.feature:7:plain"
+    ],
+    "spec/acceptance/browser-migration.feature:14": [
+      "spec/acceptance/browser-migration.feature:14:plain"
+    ],
+    "spec/acceptance/browser-migration.feature:21": [
+      "spec/acceptance/browser-migration.feature:21:plain"
+    ],
+    "spec/acceptance/browser-migration.feature:28": [
+      "spec/acceptance/browser-migration.feature:28:plain"
+    ],
+    "spec/acceptance/browser-migration.feature:35": [
+      "spec/acceptance/browser-migration.feature:35:plain"
+    ],
+    "spec/acceptance/downloads.feature:7": [
+      "spec/acceptance/downloads.feature:7:plain"
+    ],
+    "spec/acceptance/downloads.feature:13": [
+      "spec/acceptance/downloads.feature:13:plain"
+    ],
+    "spec/acceptance/find-favorites-history.feature:7": [
+      "spec/acceptance/find-favorites-history.feature:7:plain"
+    ],
+    "spec/acceptance/find-favorites-history.feature:16": [
+      "spec/acceptance/find-favorites-history.feature:16:plain"
+    ],
+    "spec/acceptance/find-favorites-history.feature:24": [
+      "spec/acceptance/find-favorites-history.feature:24:plain"
+    ],
+    "spec/acceptance/find-favorites-history.feature:31": [
+      "spec/acceptance/find-favorites-history.feature:31:plain"
+    ],
+    "spec/acceptance/find-favorites-history.feature:37": [
+      "spec/acceptance/find-favorites-history.feature:37:plain"
+    ],
+    "spec/acceptance/find-favorites-history.feature:42": [
+      "spec/acceptance/find-favorites-history.feature:42:plain"
+    ],
+    "spec/acceptance/find-favorites-history.feature:48": [
+      "spec/acceptance/find-favorites-history.feature:48:plain"
+    ],
+    "spec/acceptance/glance.feature:7": [
+      "spec/acceptance/glance.feature:7:plain"
+    ],
+    "spec/acceptance/glance.feature:17": [
+      "spec/acceptance/glance.feature:17:plain"
+    ],
+    "spec/acceptance/glance.feature:24": [
+      "spec/acceptance/glance.feature:24:plain"
+    ],
+    "spec/acceptance/glance.feature:31": [
+      "spec/acceptance/glance.feature:31:plain"
+    ],
+    "spec/acceptance/glance.feature:38": [
+      "spec/acceptance/glance.feature:38:plain"
+    ],
+    "spec/acceptance/glance.feature:45": [
+      "spec/acceptance/glance.feature:45:plain"
+    ],
+    "spec/acceptance/glance.feature:52": [
+      "spec/acceptance/glance.feature:52:plain"
+    ],
+    "spec/acceptance/glance.feature:59": [
+      "spec/acceptance/glance.feature:59:plain"
+    ],
+    "spec/acceptance/glance.feature:66": [
+      "spec/acceptance/glance.feature:66:plain"
+    ],
+    "spec/acceptance/glance.feature:73": [
+      "spec/acceptance/glance.feature:73:plain"
+    ],
+    "spec/acceptance/glance.feature:81": [
+      "spec/acceptance/glance.feature:81:plain"
+    ],
+    "spec/acceptance/glance.feature:88": [
+      "spec/acceptance/glance.feature:88:plain"
+    ],
+    "spec/acceptance/glance.feature:98": [
+      "spec/acceptance/glance.feature:98:plain"
+    ],
+    "spec/acceptance/glance.feature:105": [
+      "spec/acceptance/glance.feature:105:plain"
+    ],
+    "spec/acceptance/glance.feature:111": [
+      "spec/acceptance/glance.feature:111:plain"
+    ],
+    "spec/acceptance/glance.feature:117": [
+      "spec/acceptance/glance.feature:117:plain"
+    ],
+    "spec/acceptance/glance.feature:127": [
+      "spec/acceptance/glance.feature:127:plain"
+    ],
+    "spec/acceptance/glance.feature:135": [
+      "spec/acceptance/glance.feature:135:plain"
+    ],
+    "spec/acceptance/glance.feature:144": [
+      "spec/acceptance/glance.feature:144:plain"
+    ],
+    "spec/acceptance/glance.feature:151": [
+      "spec/acceptance/glance.feature:151:plain"
+    ],
+    "spec/acceptance/glance.feature:159": [
+      "spec/acceptance/glance.feature:159:plain"
+    ],
+    "spec/acceptance/glance.feature:169": [
+      "spec/acceptance/glance.feature:169:plain"
+    ],
+    "spec/acceptance/glance.feature:178": [
+      "spec/acceptance/glance.feature:178:plain"
+    ],
+    "spec/acceptance/glance.feature:187": [
+      "spec/acceptance/glance.feature:187:plain"
+    ],
+    "spec/acceptance/glance.feature:197": [
+      "spec/acceptance/glance.feature:197:plain"
+    ],
+    "spec/acceptance/glance.feature:207": [
+      "spec/acceptance/glance.feature:207:plain"
+    ],
+    "spec/acceptance/glance.feature:214": [
+      "spec/acceptance/glance.feature:214:plain"
+    ],
+    "spec/acceptance/glance.feature:221": [
+      "spec/acceptance/glance.feature:221:plain"
+    ],
+    "spec/acceptance/glance.feature:227": [
+      "spec/acceptance/glance.feature:227:plain"
+    ],
+    "spec/acceptance/glance.feature:234": [
+      "spec/acceptance/glance.feature:234:plain"
+    ],
+    "spec/acceptance/glance.feature:246": [
+      "spec/acceptance/glance.feature:246:plain"
+    ],
+    "spec/acceptance/glance.feature:253": [
+      "spec/acceptance/glance.feature:253:plain"
+    ],
+    "spec/acceptance/glance.feature:264": [
+      "spec/acceptance/glance.feature:264:plain"
+    ],
+    "spec/acceptance/glance.feature:273": [
+      "spec/acceptance/glance.feature:273:plain"
+    ],
+    "spec/acceptance/glance.feature:280": [
+      "spec/acceptance/glance.feature:280:plain"
+    ],
+    "spec/acceptance/glance.feature:287": [
+      "spec/acceptance/glance.feature:287:plain"
+    ],
+    "spec/acceptance/glance.feature:296": [
+      "spec/acceptance/glance.feature:296:plain"
+    ],
+    "spec/acceptance/glance.feature:304": [
+      "spec/acceptance/glance.feature:304:plain"
+    ],
+    "spec/acceptance/glance.feature:312": [
+      "spec/acceptance/glance.feature:312:plain"
+    ],
+    "spec/acceptance/glance.feature:319": [
+      "spec/acceptance/glance.feature:319:plain"
+    ],
+    "spec/acceptance/glance.feature:328": [
+      "spec/acceptance/glance.feature:328:plain"
+    ],
+    "spec/acceptance/glance.feature:337": [
+      "spec/acceptance/glance.feature:337:plain"
+    ],
+    "spec/acceptance/glance.feature:345": [
+      "spec/acceptance/glance.feature:345:plain"
+    ],
+    "spec/acceptance/glance.feature:353": [
+      "spec/acceptance/glance.feature:353:plain"
+    ],
+    "spec/acceptance/glance.feature:359": [
+      "spec/acceptance/glance.feature:359:plain"
+    ],
+    "spec/acceptance/glance.feature:365": [
+      "spec/acceptance/glance.feature:365:plain"
+    ],
+    "spec/acceptance/glance.feature:372": [
+      "spec/acceptance/glance.feature:372:plain"
+    ],
+    "spec/acceptance/glance.feature:378": [
+      "spec/acceptance/glance.feature:378:plain"
+    ],
+    "spec/acceptance/glance.feature:386": [
+      "spec/acceptance/glance.feature:386:plain"
+    ],
+    "spec/acceptance/glance.feature:392": [
+      "spec/acceptance/glance.feature:392:plain"
+    ],
+    "spec/acceptance/glance.feature:399": [
+      "spec/acceptance/glance.feature:399:plain"
+    ],
+    "spec/acceptance/glance.feature:409": [
+      "spec/acceptance/glance.feature:409:plain"
+    ],
+    "spec/acceptance/glance.feature:420": [
+      "spec/acceptance/glance.feature:420:plain"
+    ],
+    "spec/acceptance/glance.feature:430": [
+      "spec/acceptance/glance.feature:430:plain"
+    ],
+    "spec/acceptance/glance.feature:438": [
+      "spec/acceptance/glance.feature:438:plain"
+    ],
+    "spec/acceptance/glance.feature:444": [
+      "spec/acceptance/glance.feature:444:plain"
+    ],
+    "spec/acceptance/glance.feature:451": [
+      "spec/acceptance/glance.feature:451:plain"
+    ],
+    "spec/acceptance/glance.feature:459": [
+      "spec/acceptance/glance.feature:459:plain"
+    ],
+    "spec/acceptance/glance.feature:465": [
+      "spec/acceptance/glance.feature:465:plain"
+    ],
+    "spec/acceptance/glance.feature:471": [
+      "spec/acceptance/glance.feature:471:plain"
+    ],
+    "spec/acceptance/glance.feature:480": [
+      "spec/acceptance/glance.feature:480:plain"
+    ],
+    "spec/acceptance/glance.feature:489": [
+      "spec/acceptance/glance.feature:489:plain"
+    ],
+    "spec/acceptance/glance.feature:498": [
+      "spec/acceptance/glance.feature:498:plain"
+    ],
+    "spec/acceptance/glance.feature:506": [
+      "spec/acceptance/glance.feature:506:example-515",
+      "spec/acceptance/glance.feature:506:example-516"
+    ],
+    "spec/acceptance/glance.feature:519": [
+      "spec/acceptance/glance.feature:519:plain"
+    ],
+    "spec/acceptance/glance.feature:526": [
+      "spec/acceptance/glance.feature:526:example-534",
+      "spec/acceptance/glance.feature:526:example-535"
+    ],
+    "spec/acceptance/glance.feature:538": [
+      "spec/acceptance/glance.feature:538:plain"
+    ],
+    "spec/acceptance/interface-language.feature:10": [
+      "spec/acceptance/interface-language.feature:10:plain"
+    ],
+    "spec/acceptance/interface-language.feature:18": [
+      "spec/acceptance/interface-language.feature:18:plain"
+    ],
+    "spec/acceptance/interface-language.feature:26": [
+      "spec/acceptance/interface-language.feature:26:plain"
+    ],
+    "spec/acceptance/interface-language.feature:34": [
+      "spec/acceptance/interface-language.feature:34:plain"
+    ],
+    "spec/acceptance/interface-language.feature:43": [
+      "spec/acceptance/interface-language.feature:43:plain"
+    ],
+    "spec/acceptance/internal-pages.feature:7": [
+      "spec/acceptance/internal-pages.feature:7:plain"
+    ],
+    "spec/acceptance/internal-pages.feature:17": [
+      "spec/acceptance/internal-pages.feature:17:plain"
+    ],
+    "spec/acceptance/internal-pages.feature:24": [
+      "spec/acceptance/internal-pages.feature:24:plain"
+    ],
+    "spec/acceptance/internal-pages.feature:31": [
+      "spec/acceptance/internal-pages.feature:31:plain"
+    ],
+    "spec/acceptance/internal-pages.feature:39": [
+      "spec/acceptance/internal-pages.feature:39:plain"
+    ],
+    "spec/acceptance/internal-pages.feature:47": [
+      "spec/acceptance/internal-pages.feature:47:plain"
+    ],
+    "spec/acceptance/internal-pages.feature:53": [
+      "spec/acceptance/internal-pages.feature:53:plain"
+    ],
+    "spec/acceptance/internal-pages.feature:61": [
+      "spec/acceptance/internal-pages.feature:61:plain"
+    ],
+    "spec/acceptance/internal-pages.feature:66": [
+      "spec/acceptance/internal-pages.feature:66:plain"
+    ],
+    "spec/acceptance/internal-pages.feature:72": [
+      "spec/acceptance/internal-pages.feature:72:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:11": [
+      "spec/acceptance/island-and-commands.feature:11:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:22": [
+      "spec/acceptance/island-and-commands.feature:22:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:29": [
+      "spec/acceptance/island-and-commands.feature:29:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:35": [
+      "spec/acceptance/island-and-commands.feature:35:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:43": [
+      "spec/acceptance/island-and-commands.feature:43:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:49": [
+      "spec/acceptance/island-and-commands.feature:49:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:55": [
+      "spec/acceptance/island-and-commands.feature:55:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:61": [
+      "spec/acceptance/island-and-commands.feature:61:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:73": [
+      "spec/acceptance/island-and-commands.feature:73:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:79": [
+      "spec/acceptance/island-and-commands.feature:79:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:87": [
+      "spec/acceptance/island-and-commands.feature:87:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:93": [
+      "spec/acceptance/island-and-commands.feature:93:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:99": [
+      "spec/acceptance/island-and-commands.feature:99:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:107": [
+      "spec/acceptance/island-and-commands.feature:107:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:115": [
+      "spec/acceptance/island-and-commands.feature:115:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:123": [
+      "spec/acceptance/island-and-commands.feature:123:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:131": [
+      "spec/acceptance/island-and-commands.feature:131:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:140": [
+      "spec/acceptance/island-and-commands.feature:140:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:149": [
+      "spec/acceptance/island-and-commands.feature:149:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:156": [
+      "spec/acceptance/island-and-commands.feature:156:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:166": [
+      "spec/acceptance/island-and-commands.feature:166:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:173": [
+      "spec/acceptance/island-and-commands.feature:173:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:180": [
+      "spec/acceptance/island-and-commands.feature:180:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:190": [
+      "spec/acceptance/island-and-commands.feature:190:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:200": [
+      "spec/acceptance/island-and-commands.feature:200:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:211": [
+      "spec/acceptance/island-and-commands.feature:211:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:222": [
+      "spec/acceptance/island-and-commands.feature:222:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:234": [
+      "spec/acceptance/island-and-commands.feature:234:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:241": [
+      "spec/acceptance/island-and-commands.feature:241:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:251": [
+      "spec/acceptance/island-and-commands.feature:251:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:258": [
+      "spec/acceptance/island-and-commands.feature:258:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:267": [
+      "spec/acceptance/island-and-commands.feature:267:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:276": [
+      "spec/acceptance/island-and-commands.feature:276:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:286": [
+      "spec/acceptance/island-and-commands.feature:286:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:295": [
+      "spec/acceptance/island-and-commands.feature:295:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:312": [
+      "spec/acceptance/island-and-commands.feature:312:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:320": [
+      "spec/acceptance/island-and-commands.feature:320:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:339": [
+      "spec/acceptance/island-and-commands.feature:339:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:348": [
+      "spec/acceptance/island-and-commands.feature:348:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:359": [
+      "spec/acceptance/island-and-commands.feature:359:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:372": [
+      "spec/acceptance/island-and-commands.feature:372:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:383": [
+      "spec/acceptance/island-and-commands.feature:383:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:394": [
+      "spec/acceptance/island-and-commands.feature:394:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:403": [
+      "spec/acceptance/island-and-commands.feature:403:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:411": [
+      "spec/acceptance/island-and-commands.feature:411:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:420": [
+      "spec/acceptance/island-and-commands.feature:420:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:429": [
+      "spec/acceptance/island-and-commands.feature:429:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:436": [
+      "spec/acceptance/island-and-commands.feature:436:example-443",
+      "spec/acceptance/island-and-commands.feature:436:example-444",
+      "spec/acceptance/island-and-commands.feature:436:example-445"
+    ],
+    "spec/acceptance/island-and-commands.feature:448": [
+      "spec/acceptance/island-and-commands.feature:448:example-456",
+      "spec/acceptance/island-and-commands.feature:448:example-457",
+      "spec/acceptance/island-and-commands.feature:448:example-458",
+      "spec/acceptance/island-and-commands.feature:448:example-459"
+    ],
+    "spec/acceptance/island-and-commands.feature:462": [
+      "spec/acceptance/island-and-commands.feature:462:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:469": [
+      "spec/acceptance/island-and-commands.feature:469:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:477": [
+      "spec/acceptance/island-and-commands.feature:477:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:485": [
+      "spec/acceptance/island-and-commands.feature:485:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:493": [
+      "spec/acceptance/island-and-commands.feature:493:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:508": [
+      "spec/acceptance/island-and-commands.feature:508:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:517": [
+      "spec/acceptance/island-and-commands.feature:517:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:532": [
+      "spec/acceptance/island-and-commands.feature:532:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:543": [
+      "spec/acceptance/island-and-commands.feature:543:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:558": [
+      "spec/acceptance/island-and-commands.feature:558:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:565": [
+      "spec/acceptance/island-and-commands.feature:565:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:573": [
+      "spec/acceptance/island-and-commands.feature:573:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:591": [
+      "spec/acceptance/island-and-commands.feature:591:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:599": [
+      "spec/acceptance/island-and-commands.feature:599:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:608": [
+      "spec/acceptance/island-and-commands.feature:608:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:621": [
+      "spec/acceptance/island-and-commands.feature:621:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:632": [
+      "spec/acceptance/island-and-commands.feature:632:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:640": [
+      "spec/acceptance/island-and-commands.feature:640:plain"
+    ],
+    "spec/acceptance/island-and-commands.feature:651": [
+      "spec/acceptance/island-and-commands.feature:651:plain"
+    ],
+    "spec/acceptance/link-routing.feature:8": [
+      "spec/acceptance/link-routing.feature:8:plain"
+    ],
+    "spec/acceptance/link-routing.feature:16": [
+      "spec/acceptance/link-routing.feature:16:plain"
+    ],
+    "spec/acceptance/link-routing.feature:28": [
+      "spec/acceptance/link-routing.feature:28:plain"
+    ],
+    "spec/acceptance/link-routing.feature:37": [
+      "spec/acceptance/link-routing.feature:37:plain"
+    ],
+    "spec/acceptance/link-routing.feature:50": [
+      "spec/acceptance/link-routing.feature:50:plain"
+    ],
+    "spec/acceptance/link-routing.feature:62": [
+      "spec/acceptance/link-routing.feature:62:plain"
+    ],
+    "spec/acceptance/link-routing.feature:79": [
+      "spec/acceptance/link-routing.feature:79:plain"
+    ],
+    "spec/acceptance/local-profiles.feature:7": [
+      "spec/acceptance/local-profiles.feature:7:plain"
+    ],
+    "spec/acceptance/local-profiles.feature:17": [
+      "spec/acceptance/local-profiles.feature:17:plain"
+    ],
+    "spec/acceptance/local-profiles.feature:27": [
+      "spec/acceptance/local-profiles.feature:27:plain"
+    ],
+    "spec/acceptance/multi-window.feature:7": [
+      "spec/acceptance/multi-window.feature:7:plain"
+    ],
+    "spec/acceptance/multi-window.feature:16": [
+      "spec/acceptance/multi-window.feature:16:plain"
+    ],
+    "spec/acceptance/navigation-and-context-menu.feature:7": [
+      "spec/acceptance/navigation-and-context-menu.feature:7:plain"
+    ],
+    "spec/acceptance/navigation-and-context-menu.feature:12": [
+      "spec/acceptance/navigation-and-context-menu.feature:12:example-19",
+      "spec/acceptance/navigation-and-context-menu.feature:12:example-20",
+      "spec/acceptance/navigation-and-context-menu.feature:12:example-21",
+      "spec/acceptance/navigation-and-context-menu.feature:12:example-22",
+      "spec/acceptance/navigation-and-context-menu.feature:12:example-23"
+    ],
+    "spec/acceptance/navigation-and-context-menu.feature:26": [
+      "spec/acceptance/navigation-and-context-menu.feature:26:plain"
+    ],
+    "spec/acceptance/navigation-and-context-menu.feature:32": [
+      "spec/acceptance/navigation-and-context-menu.feature:32:plain"
+    ],
+    "spec/acceptance/navigation-and-context-menu.feature:43": [
+      "spec/acceptance/navigation-and-context-menu.feature:43:plain"
+    ],
+    "spec/acceptance/navigation-and-context-menu.feature:59": [
+      "spec/acceptance/navigation-and-context-menu.feature:59:plain"
+    ],
+    "spec/acceptance/navigation-and-context-menu.feature:66": [
+      "spec/acceptance/navigation-and-context-menu.feature:66:plain"
+    ],
+    "spec/acceptance/navigation-and-context-menu.feature:71": [
+      "spec/acceptance/navigation-and-context-menu.feature:71:plain"
+    ],
+    "spec/acceptance/navigation-and-context-menu.feature:77": [
+      "spec/acceptance/navigation-and-context-menu.feature:77:plain"
+    ],
+    "spec/acceptance/navigation-and-context-menu.feature:83": [
+      "spec/acceptance/navigation-and-context-menu.feature:83:plain"
+    ],
+    "spec/acceptance/navigation-and-context-menu.feature:91": [
+      "spec/acceptance/navigation-and-context-menu.feature:91:plain"
+    ],
+    "spec/acceptance/navigation-and-context-menu.feature:100": [
+      "spec/acceptance/navigation-and-context-menu.feature:100:plain"
+    ],
+    "spec/acceptance/navigation-and-context-menu.feature:108": [
+      "spec/acceptance/navigation-and-context-menu.feature:108:plain"
+    ],
+    "spec/acceptance/navigation-and-context-menu.feature:117": [
+      "spec/acceptance/navigation-and-context-menu.feature:117:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:8": [
+      "spec/acceptance/newtab-layouts.feature:8:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:14": [
+      "spec/acceptance/newtab-layouts.feature:14:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:21": [
+      "spec/acceptance/newtab-layouts.feature:21:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:35": [
+      "spec/acceptance/newtab-layouts.feature:35:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:41": [
+      "spec/acceptance/newtab-layouts.feature:41:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:47": [
+      "spec/acceptance/newtab-layouts.feature:47:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:58": [
+      "spec/acceptance/newtab-layouts.feature:58:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:71": [
+      "spec/acceptance/newtab-layouts.feature:71:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:85": [
+      "spec/acceptance/newtab-layouts.feature:85:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:101": [
+      "spec/acceptance/newtab-layouts.feature:101:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:114": [
+      "spec/acceptance/newtab-layouts.feature:114:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:126": [
+      "spec/acceptance/newtab-layouts.feature:126:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:134": [
+      "spec/acceptance/newtab-layouts.feature:134:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:143": [
+      "spec/acceptance/newtab-layouts.feature:143:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:150": [
+      "spec/acceptance/newtab-layouts.feature:150:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:161": [
+      "spec/acceptance/newtab-layouts.feature:161:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:171": [
+      "spec/acceptance/newtab-layouts.feature:171:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:183": [
+      "spec/acceptance/newtab-layouts.feature:183:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:188": [
+      "spec/acceptance/newtab-layouts.feature:188:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:194": [
+      "spec/acceptance/newtab-layouts.feature:194:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:205": [
+      "spec/acceptance/newtab-layouts.feature:205:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:212": [
+      "spec/acceptance/newtab-layouts.feature:212:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:221": [
+      "spec/acceptance/newtab-layouts.feature:221:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:229": [
+      "spec/acceptance/newtab-layouts.feature:229:plain"
+    ],
+    "spec/acceptance/newtab-layouts.feature:240": [
+      "spec/acceptance/newtab-layouts.feature:240:plain"
+    ],
+    "spec/acceptance/onboarding.feature:8": [
+      "spec/acceptance/onboarding.feature:8:plain"
+    ],
+    "spec/acceptance/onboarding.feature:14": [
+      "spec/acceptance/onboarding.feature:14:plain"
+    ],
+    "spec/acceptance/onboarding.feature:23": [
+      "spec/acceptance/onboarding.feature:23:plain"
+    ],
+    "spec/acceptance/onboarding.feature:29": [
+      "spec/acceptance/onboarding.feature:29:plain"
+    ],
+    "spec/acceptance/onboarding.feature:39": [
+      "spec/acceptance/onboarding.feature:39:plain"
+    ],
+    "spec/acceptance/onboarding.feature:48": [
+      "spec/acceptance/onboarding.feature:48:plain"
+    ],
+    "spec/acceptance/onboarding.feature:57": [
+      "spec/acceptance/onboarding.feature:57:plain"
+    ],
+    "spec/acceptance/onboarding.feature:64": [
+      "spec/acceptance/onboarding.feature:64:plain"
+    ],
+    "spec/acceptance/permissions-and-auth.feature:6": [
+      "spec/acceptance/permissions-and-auth.feature:6:plain"
+    ],
+    "spec/acceptance/permissions-and-auth.feature:13": [
+      "spec/acceptance/permissions-and-auth.feature:13:plain"
+    ],
+    "spec/acceptance/permissions-and-auth.feature:21": [
+      "spec/acceptance/permissions-and-auth.feature:21:plain"
+    ],
+    "spec/acceptance/permissions-and-auth.feature:27": [
+      "spec/acceptance/permissions-and-auth.feature:27:plain"
+    ],
+    "spec/acceptance/permissions-and-auth.feature:33": [
+      "spec/acceptance/permissions-and-auth.feature:33:plain"
+    ],
+    "spec/acceptance/permissions-and-auth.feature:39": [
+      "spec/acceptance/permissions-and-auth.feature:39:plain"
+    ],
+    "spec/acceptance/platform-services.feature:7": [
+      "spec/acceptance/platform-services.feature:7:plain"
+    ],
+    "spec/acceptance/platform-services.feature:17": [
+      "spec/acceptance/platform-services.feature:17:plain"
+    ],
+    "spec/acceptance/platform-services.feature:25": [
+      "spec/acceptance/platform-services.feature:25:plain"
+    ],
+    "spec/acceptance/platform-services.feature:30": [
+      "spec/acceptance/platform-services.feature:30:plain"
+    ],
+    "spec/acceptance/platform-services.feature:35": [
+      "spec/acceptance/platform-services.feature:35:plain"
+    ],
+    "spec/acceptance/platform-services.feature:42": [
+      "spec/acceptance/platform-services.feature:42:plain"
+    ],
+    "spec/acceptance/platform-services.feature:50": [
+      "spec/acceptance/platform-services.feature:50:plain"
+    ],
+    "spec/acceptance/platform-services.feature:64": [
+      "spec/acceptance/platform-services.feature:64:plain"
+    ],
+    "spec/acceptance/platform-services.feature:76": [
+      "spec/acceptance/platform-services.feature:76:plain"
+    ],
+    "spec/acceptance/platform-services.feature:88": [
+      "spec/acceptance/platform-services.feature:88:plain"
+    ],
+    "spec/acceptance/platform-services.feature:98": [
+      "spec/acceptance/platform-services.feature:98:plain"
+    ],
+    "spec/acceptance/platform-services.feature:105": [
+      "spec/acceptance/platform-services.feature:105:plain"
+    ],
+    "spec/acceptance/platform-services.feature:112": [
+      "spec/acceptance/platform-services.feature:112:plain"
+    ],
+    "spec/acceptance/private-tabs.feature:7": [
+      "spec/acceptance/private-tabs.feature:7:plain"
+    ],
+    "spec/acceptance/private-tabs.feature:16": [
+      "spec/acceptance/private-tabs.feature:16:plain"
+    ],
+    "spec/acceptance/private-tabs.feature:24": [
+      "spec/acceptance/private-tabs.feature:24:plain"
+    ],
+    "spec/acceptance/private-tabs.feature:30": [
+      "spec/acceptance/private-tabs.feature:30:plain"
+    ],
+    "spec/acceptance/private-tabs.feature:35": [
+      "spec/acceptance/private-tabs.feature:35:plain"
+    ],
+    "spec/acceptance/private-tabs.feature:40": [
+      "spec/acceptance/private-tabs.feature:40:plain"
+    ],
+    "spec/acceptance/quiet-tabs.feature:8": [
+      "spec/acceptance/quiet-tabs.feature:8:plain"
+    ],
+    "spec/acceptance/quiet-tabs.feature:16": [
+      "spec/acceptance/quiet-tabs.feature:16:plain"
+    ],
+    "spec/acceptance/quiet-tabs.feature:22": [
+      "spec/acceptance/quiet-tabs.feature:22:plain"
+    ],
+    "spec/acceptance/quiet-tabs.feature:28": [
+      "spec/acceptance/quiet-tabs.feature:28:example-35",
+      "spec/acceptance/quiet-tabs.feature:28:example-36",
+      "spec/acceptance/quiet-tabs.feature:28:example-37",
+      "spec/acceptance/quiet-tabs.feature:28:example-38",
+      "spec/acceptance/quiet-tabs.feature:28:example-39",
+      "spec/acceptance/quiet-tabs.feature:28:example-40",
+      "spec/acceptance/quiet-tabs.feature:28:example-41",
+      "spec/acceptance/quiet-tabs.feature:28:example-42",
+      "spec/acceptance/quiet-tabs.feature:28:example-43",
+      "spec/acceptance/quiet-tabs.feature:28:example-44",
+      "spec/acceptance/quiet-tabs.feature:28:example-45",
+      "spec/acceptance/quiet-tabs.feature:28:example-46"
+    ],
+    "spec/acceptance/quiet-tabs.feature:49": [
+      "spec/acceptance/quiet-tabs.feature:49:plain"
+    ],
+    "spec/acceptance/quiet-tabs.feature:56": [
+      "spec/acceptance/quiet-tabs.feature:56:plain"
+    ],
+    "spec/acceptance/quiet-tabs.feature:62": [
+      "spec/acceptance/quiet-tabs.feature:62:plain"
+    ],
+    "spec/acceptance/quiet-tabs.feature:70": [
+      "spec/acceptance/quiet-tabs.feature:70:plain"
+    ],
+    "spec/acceptance/quiet-tabs.feature:77": [
+      "spec/acceptance/quiet-tabs.feature:77:plain"
+    ],
+    "spec/acceptance/quiet-tabs.feature:84": [
+      "spec/acceptance/quiet-tabs.feature:84:example-93",
+      "spec/acceptance/quiet-tabs.feature:84:example-94",
+      "spec/acceptance/quiet-tabs.feature:84:example-95",
+      "spec/acceptance/quiet-tabs.feature:84:example-96"
+    ],
+    "spec/acceptance/quiet-tabs.feature:99": [
+      "spec/acceptance/quiet-tabs.feature:99:plain"
+    ],
+    "spec/acceptance/quiet-tabs.feature:106": [
+      "spec/acceptance/quiet-tabs.feature:106:plain"
+    ],
+    "spec/acceptance/quiet-tabs.feature:113": [
+      "spec/acceptance/quiet-tabs.feature:113:plain"
+    ],
+    "spec/acceptance/quiet-tabs.feature:118": [
+      "spec/acceptance/quiet-tabs.feature:118:plain"
+    ],
+    "spec/acceptance/reader-mode.feature:7": [
+      "spec/acceptance/reader-mode.feature:7:plain"
+    ],
+    "spec/acceptance/reader-mode.feature:13": [
+      "spec/acceptance/reader-mode.feature:13:plain"
+    ],
+    "spec/acceptance/reader-mode.feature:20": [
+      "spec/acceptance/reader-mode.feature:20:plain"
+    ],
+    "spec/acceptance/send-to-device.feature:7": [
+      "spec/acceptance/send-to-device.feature:7:plain"
+    ],
+    "spec/acceptance/send-to-device.feature:15": [
+      "spec/acceptance/send-to-device.feature:15:plain"
+    ],
+    "spec/acceptance/send-to-device.feature:24": [
+      "spec/acceptance/send-to-device.feature:24:plain"
+    ],
+    "spec/acceptance/send-to-device.feature:33": [
+      "spec/acceptance/send-to-device.feature:33:plain"
+    ],
+    "spec/acceptance/send-to-device.feature:41": [
+      "spec/acceptance/send-to-device.feature:41:plain"
+    ],
+    "spec/acceptance/send-to-device.feature:49": [
+      "spec/acceptance/send-to-device.feature:49:plain"
+    ],
+    "spec/acceptance/send-to-device.feature:56": [
+      "spec/acceptance/send-to-device.feature:56:plain"
+    ],
+    "spec/acceptance/send-to-device.feature:63": [
+      "spec/acceptance/send-to-device.feature:63:plain"
+    ],
+    "spec/acceptance/settings-and-theming.feature:7": [
+      "spec/acceptance/settings-and-theming.feature:7:plain"
+    ],
+    "spec/acceptance/settings-and-theming.feature:12": [
+      "spec/acceptance/settings-and-theming.feature:12:plain"
+    ],
+    "spec/acceptance/settings-and-theming.feature:17": [
+      "spec/acceptance/settings-and-theming.feature:17:plain"
+    ],
+    "spec/acceptance/settings-and-theming.feature:23": [
+      "spec/acceptance/settings-and-theming.feature:23:plain"
+    ],
+    "spec/acceptance/settings-and-theming.feature:29": [
+      "spec/acceptance/settings-and-theming.feature:29:plain"
+    ],
+    "spec/acceptance/settings-and-theming.feature:37": [
+      "spec/acceptance/settings-and-theming.feature:37:plain"
+    ],
+    "spec/acceptance/settings-and-theming.feature:42": [
+      "spec/acceptance/settings-and-theming.feature:42:plain"
+    ],
+    "spec/acceptance/settings-and-theming.feature:49": [
+      "spec/acceptance/settings-and-theming.feature:49:plain"
+    ],
+    "spec/acceptance/settings-and-theming.feature:57": [
+      "spec/acceptance/settings-and-theming.feature:57:plain"
+    ],
+    "spec/acceptance/settings-and-theming.feature:65": [
+      "spec/acceptance/settings-and-theming.feature:65:plain"
+    ],
+    "spec/acceptance/settings-and-theming.feature:74": [
+      "spec/acceptance/settings-and-theming.feature:74:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:4": [
+      "spec/acceptance/shared-spaces.feature:4:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:11": [
+      "spec/acceptance/shared-spaces.feature:11:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:17": [
+      "spec/acceptance/shared-spaces.feature:17:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:23": [
+      "spec/acceptance/shared-spaces.feature:23:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:29": [
+      "spec/acceptance/shared-spaces.feature:29:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:35": [
+      "spec/acceptance/shared-spaces.feature:35:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:41": [
+      "spec/acceptance/shared-spaces.feature:41:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:47": [
+      "spec/acceptance/shared-spaces.feature:47:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:57": [
+      "spec/acceptance/shared-spaces.feature:57:example-62",
+      "spec/acceptance/shared-spaces.feature:57:example-63",
+      "spec/acceptance/shared-spaces.feature:57:example-64",
+      "spec/acceptance/shared-spaces.feature:57:example-65",
+      "spec/acceptance/shared-spaces.feature:57:example-66",
+      "spec/acceptance/shared-spaces.feature:57:example-67",
+      "spec/acceptance/shared-spaces.feature:57:example-68",
+      "spec/acceptance/shared-spaces.feature:57:example-69",
+      "spec/acceptance/shared-spaces.feature:57:example-70"
+    ],
+    "spec/acceptance/shared-spaces.feature:73": [
+      "spec/acceptance/shared-spaces.feature:73:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:80": [
+      "spec/acceptance/shared-spaces.feature:80:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:87": [
+      "spec/acceptance/shared-spaces.feature:87:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:94": [
+      "spec/acceptance/shared-spaces.feature:94:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:103": [
+      "spec/acceptance/shared-spaces.feature:103:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:111": [
+      "spec/acceptance/shared-spaces.feature:111:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:119": [
+      "spec/acceptance/shared-spaces.feature:119:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:132": [
+      "spec/acceptance/shared-spaces.feature:132:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:143": [
+      "spec/acceptance/shared-spaces.feature:143:plain"
+    ],
+    "spec/acceptance/site-certificate-safety.feature:4": [
+      "spec/acceptance/site-certificate-safety.feature:4:plain"
+    ],
+    "spec/acceptance/site-certificate-safety.feature:11": [
+      "spec/acceptance/site-certificate-safety.feature:11:plain"
+    ],
+    "spec/acceptance/site-certificate-safety.feature:19": [
+      "spec/acceptance/site-certificate-safety.feature:19:plain"
+    ],
+    "spec/acceptance/site-certificate-safety.feature:26": [
+      "spec/acceptance/site-certificate-safety.feature:26:plain"
+    ],
+    "spec/acceptance/site-certificate-safety.feature:35": [
+      "spec/acceptance/site-certificate-safety.feature:35:plain"
+    ],
+    "spec/acceptance/site-certificate-safety.feature:41": [
+      "spec/acceptance/site-certificate-safety.feature:41:plain"
+    ],
+    "spec/acceptance/site-certificate-safety.feature:50": [
+      "spec/acceptance/site-certificate-safety.feature:50:plain"
+    ],
+    "spec/acceptance/split-view.feature:7": [
+      "spec/acceptance/split-view.feature:7:plain"
+    ],
+    "spec/acceptance/split-view.feature:12": [
+      "spec/acceptance/split-view.feature:12:plain"
+    ],
+    "spec/acceptance/split-view.feature:19": [
+      "spec/acceptance/split-view.feature:19:plain"
+    ],
+    "spec/acceptance/split-view.feature:28": [
+      "spec/acceptance/split-view.feature:28:plain"
+    ],
+    "spec/acceptance/split-view.feature:35": [
+      "spec/acceptance/split-view.feature:35:plain"
+    ],
+    "spec/acceptance/split-view.feature:42": [
+      "spec/acceptance/split-view.feature:42:plain"
+    ],
+    "spec/acceptance/split-view.feature:48": [
+      "spec/acceptance/split-view.feature:48:plain"
+    ],
+    "spec/acceptance/split-view.feature:54": [
+      "spec/acceptance/split-view.feature:54:plain"
+    ],
+    "spec/acceptance/split-view.feature:60": [
+      "spec/acceptance/split-view.feature:60:plain"
+    ],
+    "spec/acceptance/split-view.feature:69": [
+      "spec/acceptance/split-view.feature:69:plain"
+    ],
+    "spec/acceptance/split-view.feature:77": [
+      "spec/acceptance/split-view.feature:77:plain"
+    ],
+    "spec/acceptance/split-view.feature:88": [
+      "spec/acceptance/split-view.feature:88:plain"
+    ],
+    "spec/acceptance/split-view.feature:96": [
+      "spec/acceptance/split-view.feature:96:plain"
+    ],
+    "spec/acceptance/split-view.feature:110": [
+      "spec/acceptance/split-view.feature:110:plain"
+    ],
+    "spec/acceptance/split-view.feature:116": [
+      "spec/acceptance/split-view.feature:116:plain"
+    ],
+    "spec/acceptance/split-view.feature:122": [
+      "spec/acceptance/split-view.feature:122:plain"
+    ],
+    "spec/acceptance/split-view.feature:129": [
+      "spec/acceptance/split-view.feature:129:plain"
+    ],
+    "spec/acceptance/split-view.feature:135": [
+      "spec/acceptance/split-view.feature:135:plain"
+    ],
+    "spec/acceptance/split-view.feature:141": [
+      "spec/acceptance/split-view.feature:141:plain"
+    ],
+    "spec/acceptance/split-view.feature:147": [
+      "spec/acceptance/split-view.feature:147:plain"
+    ],
+    "spec/acceptance/split-view.feature:153": [
+      "spec/acceptance/split-view.feature:153:plain"
+    ],
+    "spec/acceptance/split-view.feature:159": [
+      "spec/acceptance/split-view.feature:159:plain"
+    ],
+    "spec/acceptance/split-view.feature:169": [
+      "spec/acceptance/split-view.feature:169:plain"
+    ],
+    "spec/acceptance/split-view.feature:178": [
+      "spec/acceptance/split-view.feature:178:plain"
+    ],
+    "spec/acceptance/split-view.feature:187": [
+      "spec/acceptance/split-view.feature:187:plain"
+    ],
+    "spec/acceptance/split-view.feature:194": [
+      "spec/acceptance/split-view.feature:194:plain"
+    ],
+    "spec/acceptance/split-view.feature:201": [
+      "spec/acceptance/split-view.feature:201:plain"
+    ],
+    "spec/acceptance/split-view.feature:209": [
+      "spec/acceptance/split-view.feature:209:plain"
+    ],
+    "spec/acceptance/split-view.feature:218": [
+      "spec/acceptance/split-view.feature:218:plain"
+    ],
+    "spec/acceptance/split-view.feature:227": [
+      "spec/acceptance/split-view.feature:227:plain"
+    ],
+    "spec/acceptance/split-view.feature:234": [
+      "spec/acceptance/split-view.feature:234:example-240",
+      "spec/acceptance/split-view.feature:234:example-241"
+    ],
+    "spec/acceptance/supporter-and-session.feature:7": [
+      "spec/acceptance/supporter-and-session.feature:7:plain"
+    ],
+    "spec/acceptance/supporter-and-session.feature:12": [
+      "spec/acceptance/supporter-and-session.feature:12:plain"
+    ],
+    "spec/acceptance/supporter-and-session.feature:18": [
+      "spec/acceptance/supporter-and-session.feature:18:plain"
+    ],
+    "spec/acceptance/supporter-and-session.feature:26": [
+      "spec/acceptance/supporter-and-session.feature:26:plain"
+    ],
+    "spec/acceptance/sync.feature:7": [
+      "spec/acceptance/sync.feature:7:plain"
+    ],
+    "spec/acceptance/sync.feature:13": [
+      "spec/acceptance/sync.feature:13:plain"
+    ],
+    "spec/acceptance/sync.feature:20": [
+      "spec/acceptance/sync.feature:20:plain"
+    ],
+    "spec/acceptance/sync.feature:26": [
+      "spec/acceptance/sync.feature:26:plain"
+    ],
+    "spec/acceptance/sync.feature:38": [
+      "spec/acceptance/sync.feature:38:plain"
+    ],
+    "spec/acceptance/sync.feature:49": [
+      "spec/acceptance/sync.feature:49:plain"
+    ],
+    "spec/acceptance/sync.feature:56": [
+      "spec/acceptance/sync.feature:56:plain"
+    ],
+    "spec/acceptance/sync.feature:73": [
+      "spec/acceptance/sync.feature:73:plain"
+    ],
+    "spec/acceptance/sync.feature:88": [
+      "spec/acceptance/sync.feature:88:plain"
+    ],
+    "spec/acceptance/sync.feature:104": [
+      "spec/acceptance/sync.feature:104:plain"
+    ],
+    "spec/acceptance/sync.feature:114": [
+      "spec/acceptance/sync.feature:114:plain"
+    ],
+    "spec/acceptance/sync.feature:120": [
+      "spec/acceptance/sync.feature:120:plain"
+    ],
+    "spec/acceptance/sync.feature:129": [
+      "spec/acceptance/sync.feature:129:plain"
+    ],
+    "spec/acceptance/sync.feature:150": [
+      "spec/acceptance/sync.feature:150:plain"
+    ],
+    "spec/acceptance/sync.feature:162": [
+      "spec/acceptance/sync.feature:162:plain"
+    ],
+    "spec/acceptance/sync.feature:181": [
+      "spec/acceptance/sync.feature:181:plain"
+    ],
+    "spec/acceptance/sync.feature:199": [
+      "spec/acceptance/sync.feature:199:plain"
+    ],
+    "spec/acceptance/sync.feature:210": [
+      "spec/acceptance/sync.feature:210:plain"
+    ],
+    "spec/acceptance/tab-archive.feature:8": [
+      "spec/acceptance/tab-archive.feature:8:plain"
+    ],
+    "spec/acceptance/tab-archive.feature:15": [
+      "spec/acceptance/tab-archive.feature:15:plain"
+    ],
+    "spec/acceptance/tab-archive.feature:22": [
+      "spec/acceptance/tab-archive.feature:22:plain"
+    ],
+    "spec/acceptance/tab-archive.feature:29": [
+      "spec/acceptance/tab-archive.feature:29:plain"
+    ],
+    "spec/acceptance/tab-archive.feature:36": [
+      "spec/acceptance/tab-archive.feature:36:plain"
+    ],
+    "spec/acceptance/tab-archive.feature:43": [
+      "spec/acceptance/tab-archive.feature:43:plain"
+    ],
+    "spec/acceptance/tab-archive.feature:49": [
+      "spec/acceptance/tab-archive.feature:49:plain"
+    ],
+    "spec/acceptance/tab-archive.feature:56": [
+      "spec/acceptance/tab-archive.feature:56:plain"
+    ],
+    "spec/acceptance/tab-archive.feature:64": [
+      "spec/acceptance/tab-archive.feature:64:plain"
+    ],
+    "spec/acceptance/tab-archive.feature:71": [
+      "spec/acceptance/tab-archive.feature:71:plain"
+    ],
+    "spec/acceptance/tab-archive.feature:79": [
+      "spec/acceptance/tab-archive.feature:79:plain"
+    ],
+    "spec/acceptance/tab-archive.feature:87": [
+      "spec/acceptance/tab-archive.feature:87:plain"
+    ],
+    "spec/acceptance/tab-archive.feature:94": [
+      "spec/acceptance/tab-archive.feature:94:plain"
+    ],
+    "spec/acceptance/tab-archive.feature:104": [
+      "spec/acceptance/tab-archive.feature:104:plain"
+    ],
+    "spec/acceptance/tab-archive.feature:113": [
+      "spec/acceptance/tab-archive.feature:113:plain"
+    ],
+    "spec/acceptance/tab-archive.feature:122": [
+      "spec/acceptance/tab-archive.feature:122:plain"
+    ],
+    "spec/acceptance/tab-drag.feature:10": [
+      "spec/acceptance/tab-drag.feature:10:example-16",
+      "spec/acceptance/tab-drag.feature:10:example-17"
+    ],
+    "spec/acceptance/tab-drag.feature:20": [
+      "spec/acceptance/tab-drag.feature:20:example-26",
+      "spec/acceptance/tab-drag.feature:20:example-27"
+    ],
+    "spec/acceptance/tab-drag.feature:30": [
+      "spec/acceptance/tab-drag.feature:30:example-36",
+      "spec/acceptance/tab-drag.feature:30:example-37"
+    ],
+    "spec/acceptance/tab-drag.feature:40": [
+      "spec/acceptance/tab-drag.feature:40:example-46",
+      "spec/acceptance/tab-drag.feature:40:example-47"
+    ],
+    "spec/acceptance/tab-drag.feature:50": [
+      "spec/acceptance/tab-drag.feature:50:example-58",
+      "spec/acceptance/tab-drag.feature:50:example-59"
+    ],
+    "spec/acceptance/tab-drag.feature:62": [
+      "spec/acceptance/tab-drag.feature:62:example-69",
+      "spec/acceptance/tab-drag.feature:62:example-70"
+    ],
+    "spec/acceptance/tab-drag.feature:73": [
+      "spec/acceptance/tab-drag.feature:73:example-80",
+      "spec/acceptance/tab-drag.feature:73:example-81"
+    ],
+    "spec/acceptance/tab-drag.feature:84": [
+      "spec/acceptance/tab-drag.feature:84:example-91",
+      "spec/acceptance/tab-drag.feature:84:example-92"
+    ],
+    "spec/acceptance/tab-drag.feature:95": [
+      "spec/acceptance/tab-drag.feature:95:example-107",
+      "spec/acceptance/tab-drag.feature:95:example-108"
+    ],
+    "spec/acceptance/tab-drag.feature:111": [
+      "spec/acceptance/tab-drag.feature:111:example-120",
+      "spec/acceptance/tab-drag.feature:111:example-121"
+    ],
+    "spec/acceptance/tab-drag.feature:124": [
+      "spec/acceptance/tab-drag.feature:124:plain"
+    ],
+    "spec/acceptance/tab-drag.feature:136": [
+      "spec/acceptance/tab-drag.feature:136:plain"
+    ],
+    "spec/acceptance/tab-drag.feature:144": [
+      "spec/acceptance/tab-drag.feature:144:example-150",
+      "spec/acceptance/tab-drag.feature:144:example-151"
+    ],
+    "spec/acceptance/tab-drag.feature:154": [
+      "spec/acceptance/tab-drag.feature:154:example-160",
+      "spec/acceptance/tab-drag.feature:154:example-161"
+    ],
+    "spec/acceptance/tab-drag.feature:164": [
+      "spec/acceptance/tab-drag.feature:164:plain"
+    ],
+    "spec/acceptance/tab-drag.feature:170": [
+      "spec/acceptance/tab-drag.feature:170:plain"
+    ],
+    "spec/acceptance/tab-drag.feature:176": [
+      "spec/acceptance/tab-drag.feature:176:plain"
+    ],
+    "spec/acceptance/tab-migration.feature:7": [
+      "spec/acceptance/tab-migration.feature:7:plain"
+    ],
+    "spec/acceptance/tab-migration.feature:15": [
+      "spec/acceptance/tab-migration.feature:15:plain"
+    ],
+    "spec/acceptance/tab-migration.feature:26": [
+      "spec/acceptance/tab-migration.feature:26:plain"
+    ],
+    "spec/acceptance/tab-migration.feature:35": [
+      "spec/acceptance/tab-migration.feature:35:plain"
+    ],
+    "spec/acceptance/tab-migration.feature:43": [
+      "spec/acceptance/tab-migration.feature:43:plain"
+    ],
+    "spec/acceptance/tab-migration.feature:50": [
+      "spec/acceptance/tab-migration.feature:50:plain"
+    ],
+    "spec/acceptance/tab-migration.feature:58": [
+      "spec/acceptance/tab-migration.feature:58:plain"
+    ],
+    "spec/acceptance/tab-migration.feature:66": [
+      "spec/acceptance/tab-migration.feature:66:plain"
+    ],
+    "spec/acceptance/tab-migration.feature:74": [
+      "spec/acceptance/tab-migration.feature:74:plain"
+    ],
+    "spec/acceptance/tab-migration.feature:81": [
+      "spec/acceptance/tab-migration.feature:81:plain"
+    ],
+    "spec/acceptance/tab-migration.feature:88": [
+      "spec/acceptance/tab-migration.feature:88:plain"
+    ],
+    "spec/acceptance/tab-migration.feature:95": [
+      "spec/acceptance/tab-migration.feature:95:plain"
+    ],
+    "spec/acceptance/tab-migration.feature:102": [
+      "spec/acceptance/tab-migration.feature:102:plain"
+    ],
+    "spec/acceptance/tab-migration.feature:109": [
+      "spec/acceptance/tab-migration.feature:109:plain"
+    ],
+    "spec/acceptance/tab-migration.feature:116": [
+      "spec/acceptance/tab-migration.feature:116:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:8": [
+      "spec/acceptance/tabs-and-groups.feature:8:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:15": [
+      "spec/acceptance/tabs-and-groups.feature:15:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:21": [
+      "spec/acceptance/tabs-and-groups.feature:21:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:28": [
+      "spec/acceptance/tabs-and-groups.feature:28:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:35": [
+      "spec/acceptance/tabs-and-groups.feature:35:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:43": [
+      "spec/acceptance/tabs-and-groups.feature:43:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:51": [
+      "spec/acceptance/tabs-and-groups.feature:51:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:62": [
+      "spec/acceptance/tabs-and-groups.feature:62:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:71": [
+      "spec/acceptance/tabs-and-groups.feature:71:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:78": [
+      "spec/acceptance/tabs-and-groups.feature:78:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:94": [
+      "spec/acceptance/tabs-and-groups.feature:94:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:112": [
+      "spec/acceptance/tabs-and-groups.feature:112:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:119": [
+      "spec/acceptance/tabs-and-groups.feature:119:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:125": [
+      "spec/acceptance/tabs-and-groups.feature:125:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:132": [
+      "spec/acceptance/tabs-and-groups.feature:132:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:142": [
+      "spec/acceptance/tabs-and-groups.feature:142:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:153": [
+      "spec/acceptance/tabs-and-groups.feature:153:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:163": [
+      "spec/acceptance/tabs-and-groups.feature:163:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:171": [
+      "spec/acceptance/tabs-and-groups.feature:171:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:181": [
+      "spec/acceptance/tabs-and-groups.feature:181:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:187": [
+      "spec/acceptance/tabs-and-groups.feature:187:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:193": [
+      "spec/acceptance/tabs-and-groups.feature:193:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:199": [
+      "spec/acceptance/tabs-and-groups.feature:199:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:206": [
+      "spec/acceptance/tabs-and-groups.feature:206:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:213": [
+      "spec/acceptance/tabs-and-groups.feature:213:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:219": [
+      "spec/acceptance/tabs-and-groups.feature:219:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:226": [
+      "spec/acceptance/tabs-and-groups.feature:226:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:234": [
+      "spec/acceptance/tabs-and-groups.feature:234:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:240": [
+      "spec/acceptance/tabs-and-groups.feature:240:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:249": [
+      "spec/acceptance/tabs-and-groups.feature:249:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:256": [
+      "spec/acceptance/tabs-and-groups.feature:256:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:270": [
+      "spec/acceptance/tabs-and-groups.feature:270:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:278": [
+      "spec/acceptance/tabs-and-groups.feature:278:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:284": [
+      "spec/acceptance/tabs-and-groups.feature:284:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:292": [
+      "spec/acceptance/tabs-and-groups.feature:292:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:298": [
+      "spec/acceptance/tabs-and-groups.feature:298:example-308",
+      "spec/acceptance/tabs-and-groups.feature:298:example-309"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:312": [
+      "spec/acceptance/tabs-and-groups.feature:312:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:321": [
+      "spec/acceptance/tabs-and-groups.feature:321:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:328": [
+      "spec/acceptance/tabs-and-groups.feature:328:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:336": [
+      "spec/acceptance/tabs-and-groups.feature:336:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:347": [
+      "spec/acceptance/tabs-and-groups.feature:347:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:356": [
+      "spec/acceptance/tabs-and-groups.feature:356:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:367": [
+      "spec/acceptance/tabs-and-groups.feature:367:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:373": [
+      "spec/acceptance/tabs-and-groups.feature:373:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:383": [
+      "spec/acceptance/tabs-and-groups.feature:383:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:9": [
+      "spec/acceptance/vertical-tabs.feature:9:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:21": [
+      "spec/acceptance/vertical-tabs.feature:21:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:34": [
+      "spec/acceptance/vertical-tabs.feature:34:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:43": [
+      "spec/acceptance/vertical-tabs.feature:43:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:58": [
+      "spec/acceptance/vertical-tabs.feature:58:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:74": [
+      "spec/acceptance/vertical-tabs.feature:74:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:90": [
+      "spec/acceptance/vertical-tabs.feature:90:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:99": [
+      "spec/acceptance/vertical-tabs.feature:99:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:110": [
+      "spec/acceptance/vertical-tabs.feature:110:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:120": [
+      "spec/acceptance/vertical-tabs.feature:120:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:129": [
+      "spec/acceptance/vertical-tabs.feature:129:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:146": [
+      "spec/acceptance/vertical-tabs.feature:146:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:159": [
+      "spec/acceptance/vertical-tabs.feature:159:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:172": [
+      "spec/acceptance/vertical-tabs.feature:172:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:184": [
+      "spec/acceptance/vertical-tabs.feature:184:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:194": [
+      "spec/acceptance/vertical-tabs.feature:194:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:201": [
+      "spec/acceptance/vertical-tabs.feature:201:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:217": [
+      "spec/acceptance/vertical-tabs.feature:217:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:239": [
+      "spec/acceptance/vertical-tabs.feature:239:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:249": [
+      "spec/acceptance/vertical-tabs.feature:249:plain"
+    ]
+  }
+}

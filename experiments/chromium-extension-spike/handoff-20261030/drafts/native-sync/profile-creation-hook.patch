@@ -1,0 +1,27 @@
+--- a/chrome/browser/profiles/profile_manager.cc
++++ b/chrome/browser/profiles/profile_manager.cc
+@@ -3,6 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "chrome/browser/profiles/profile_manager.h"
++#include "chrome/browser/ui/blanc/sync/profile_service_factory.h"
+ 
+ #include <stdint.h>
+ 
+@@ -1064,6 +1065,16 @@
+     entry = storage.GetProfileAttributesWithPath(new_path);
+   } while (entry != nullptr);
+ 
++  // This callback is specific to a freshly allocated path after the existing
++  // NukeProfileFromDisk/new-profile creation flow, not general profile loading.
++  initialized_callback = base::BindOnce(
++      [](base::PassKey<ProfileManager> authority,
++         base::OnceCallback<void(Profile*)> done, Profile* profile) {
++        if (profile)
++          blanc::sync::ProfileServiceFactory::GetForCreatedProfile(profile, authority);
++        if (done) std::move(done).Run(profile);
++      }, base::PassKey<ProfileManager>(), std::move(initialized_callback));
++
+   // Add a storage entry early here to set up a new profile with user selected
+   // name and avatar.
+   // These parameters will be used to initialize profile's prefs in

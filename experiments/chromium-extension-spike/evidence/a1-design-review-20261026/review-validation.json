@@ -1,0 +1,13 @@
+{
+  "ledgerPaths": 75,
+  "recordedHunks": 184,
+  "domainPartitionComplete": true,
+  "selectedOwnedCopies": 14,
+  "inputHashesVerified": 20,
+  "localLinksChecked": 20,
+  "nativeBuilds": 0,
+  "runtimeTests": 0,
+  "latencyRuns": 0,
+  "layoutOrHookChanges": false,
+  "measuredReduction": 0
+}

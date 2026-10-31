@@ -1,0 +1,21 @@
+{
+  "scope": "fresh regular profile; same registration; two clients",
+  "functionalChecksPassed": 10,
+  "functionalRunComplete": false,
+  "functionalRunRemainingFailure": "observer was closed with client A before updated activation could be recorded",
+  "focusedIdentityChecksPassed": 1,
+  "focusedIdentityRunComplete": true,
+  "setupCorrections": [
+    "early undefined serviceWorker document-readiness race",
+    "wait included unrelated extension worker activation; corrected to exact fixture scriptURL"
+  ],
+  "existingPassingTestsRepeated": false,
+  "productionCodeChanged": false,
+  "newBuilds": 0,
+  "latencyMeasured": false,
+  "remaining": [
+    "Private profile and multiple distinct registration version ownership unqualified in this record",
+    "No per-request hidden loader token join claimed",
+    "No blocked-network decision or whole-F12 acceptance inferred from cache/network routing checks"
+  ]
+}

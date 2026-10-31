@@ -1,0 +1,121 @@
+--- a/third_party/blink/public/web/web_image.h
++++ b/third_party/blink/public/web/web_image.h
+@@ -31,6 +31,7 @@
+ #ifndef THIRD_PARTY_BLINK_PUBLIC_WEB_WEB_IMAGE_H_
+ #define THIRD_PARTY_BLINK_PUBLIC_WEB_WEB_IMAGE_H_
+ 
++#include <cstdint>
+ #include <vector>
+ 
+ #include "base/time/time.h"
+@@ -62,6 +63,10 @@
+   // top-left oriented.
+   static SkBitmap FromData(const WebData&, const gfx::Size& desired_size);
+ 
++  // Decode the first raster frame only after checking decoder-reported image,
++  // decoded, and frame dimensions against a caller-provided pixel bound.
++  static SkBitmap FromDataBounded(const WebData&, uint32_t max_pixels);
++
+   // Decodes the given data as an SVG image. If the SVG is well-formed, an
+   // image of the first frame is returned. If an error is encountered an empty
+   // SkBitmap is returned.
+--- a/third_party/blink/renderer/core/exported/web_image.cc
++++ b/third_party/blink/renderer/core/exported/web_image.cc
+@@ -97,6 +97,46 @@
+   return bitmap;
+ }
+ 
++SkBitmap WebImage::FromDataBounded(const WebData& data,
++                                   uint32_t max_pixels) {
++  if (!max_pixels)
++    return {};
++  const bool data_complete = true;
++  std::unique_ptr<ImageDecoder> decoder(ImageDecoder::Create(
++      data, data_complete, ImageDecoder::kAlphaPremultiplied,
++      ImageDecoder::kDefaultBitDepth, ColorBehavior::kIgnore,
++      cc::AuxImage::kDefault, Platform::GetMaxDecodedImageBytes()));
++  if (!decoder || !decoder->IsSizeAvailable())
++    return {};
++  const auto within_bound = [max_pixels](const gfx::Size& size) {
++    return size.width() > 0 && size.height() > 0 &&
++           size.Area64() <= max_pixels;
++  };
++  // The service-level max_size_in_bytes is a post-decode output limit.
++  // Check dimensions from this same decoder before requesting pixel data.
++  if (!within_bound(decoder->Size()) ||
++      !within_bound(decoder->DecodedSize()) || !decoder->FrameCount() ||
++      !within_bound(decoder->FrameSizeAtIndex(0)))
++    return {};
++  ImageFrame* frame = decoder->DecodeFrameBufferAtIndex(0);
++  if (!frame || decoder->Failed() || frame->Bitmap().drawsNothing() ||
++      !within_bound(gfx::Size(frame->Bitmap().width(), frame->Bitmap().height())))
++    return {};
++  if (decoder->Orientation() == ImageOrientationEnum::kDefault)
++    return frame->Bitmap();
++  cc::PaintImage image(Image::ResizeAndOrientImage(
++      cc::PaintImage::CreateFromBitmap(frame->Bitmap()),
++      decoder->Orientation()));
++  SkBitmap bitmap;
++  auto sk_image = image.GetSwSkImage();
++  if (!sk_image)
++    return {};
++  sk_image->asLegacyBitmap(&bitmap);
++  if (!within_bound(gfx::Size(bitmap.width(), bitmap.height())))
++    return {};
++  return bitmap;
++}
++
+ SkBitmap WebImage::DecodeSVG(const WebData& data,
+                              const gfx::Size& desired_size) {
+   scoped_refptr<SVGImage> svg_image = SVGImage::Create(nullptr);
+--- a/services/data_decoder/public/mojom/image_decoder.mojom
++++ b/services/data_decoder/public/mojom/image_decoder.mojom
+@@ -37,6 +37,11 @@
+               gfx.mojom.Size desired_image_frame_size)
+       => (skia.mojom.BitmapN32? decoded_image);
+ 
++  // Decodes only the first raster frame, checking decoder-reported dimensions
++  // before requesting pixel data. The service enforces its own absolute cap.
++  DecodeImageBounded(mojo_base.mojom.BigBuffer encoded_data, uint32 max_pixels)
++      => (skia.mojom.BitmapN32? decoded_image);
++
+   // Decodes the image in |encoded_data|. This will return all frames in the
+   // image and assumes it is an animation (instead of say, a multi-sized image).
+   //
+--- a/services/data_decoder/image_decoder_impl.h
++++ b/services/data_decoder/image_decoder_impl.h
+@@ -28,6 +28,9 @@
+                    int64_t max_size_in_bytes,
+                    const gfx::Size& desired_image_frame_size,
+                    DecodeImageCallback callback) override;
++  void DecodeImageBounded(mojo_base::BigBuffer encoded_data,
++                          uint32_t max_pixels,
++                          DecodeImageBoundedCallback callback) override;
+   void DecodeAnimation(mojo_base::BigBuffer encoded_data,
+                        bool shrink_to_fit,
+                        int64_t max_size_in_bytes,
+--- a/services/data_decoder/image_decoder_impl.cc
++++ b/services/data_decoder/image_decoder_impl.cc
+@@ -97,6 +97,22 @@
+   std::move(callback).Run(decoded_image);
+ }
+ 
++void ImageDecoderImpl::DecodeImageBounded(
++    mojo_base::BigBuffer encoded_data,
++    uint32_t max_pixels,
++    DecodeImageBoundedCallback callback) {
++  constexpr uint32_t kMaxPixels = 16 * 1024 * 1024;
++  constexpr size_t kMaxEncodedBytes = 5 * 1024 * 1024;
++  if (encoded_data.size() == 0 || encoded_data.size() > kMaxEncodedBytes ||
++      max_pixels == 0 || max_pixels > kMaxPixels) {
++    std::move(callback).Run(SkBitmap());
++    return;
++  }
++  SkBitmap image = blink::WebImage::FromDataBounded(
++      blink::WebData(base::as_byte_span(encoded_data)), max_pixels);
++  std::move(callback).Run(image);
++}
++
+ void ImageDecoderImpl::DecodeAnimation(mojo_base::BigBuffer encoded_data,
+                                        bool shrink_to_fit,
+                                        int64_t max_size_in_bytes,

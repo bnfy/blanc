@@ -1,0 +1,10 @@
+# Repeated shutdown veto and prefetch recovery — October 22, 2026
+
+**Full three-cycle acceptance remains open. No production repair is claimed.**
+The fixture requests three cycles in each same browser process and two consecutive native Exit vetoes during each pending response. It retains one native window, with matching private identities in the private-only schedule, and verifies the original cached consumption recovers after both cancellations.
+
+Final attempt 3 passes two regular cycles and one private cycle: six actual beforeunload prompts, each dismissed while navigation remains unsettled on its source URL. All three completed cycles resume the original navigation with a native allow and exactly one prefetched server arrival, followed by a fresh navigation. Regular cycle 3 and private cycle 2 stop before Ready, with no preload events or pending-response/veto phase reached. Do not count these schedules as full passes.
+
+Attempts 1 and 2 pass the first cycle in each context, then time out before readiness in cycle 2. Rearming Preload observation does not resolve this. A matching regular no-veto control also passes cycle 1 and fails readiness in cycle 2. Thus cancellation is not established as the cause. Distinct source URLs in attempt 3 permit one additional regular cycle but do not reliably resolve the boundary. Root cause remains unproven; investigate prefetch eligibility/observation and fixture navigation before diagnosing a shutdown-recovery regression. No deadlines or assertions were weakened.
+
+The temporary flag-gated IDC_EXIT hook is the previously archived patch in ../f12-prefetch-veto-sequencing-fix-20261021/temporary-native-exit.patch. It is removed byte-for-byte and normal binary restored incrementally. Production blocker unchanged; prior56files/135hunks unchanged. Disposable profiles/keys cleaned, permanent profiles untouched, Google baseline separate. Physical input, full repeated-cycle qualification, concurrent cancellation and crash/powerloss remain open. Latency deferred; Electron build pending approval/unstarted. F12/Decision2 remain open.

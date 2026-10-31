@@ -1,0 +1,21 @@
+# Prepared loopback search exploration — not run
+
+`local-exploratory-fixture.mjs` is syntax-checked only. It launches the preserved unsigned/unverified candidate app with its normal Chromium sandbox, and creates a new, separate, retained test profile. It does not run `sandbox-exec`, use any personal profile or tabs, or input real queries. Exact invocation, after review and appropriate execution access:
+
+```
+node '<local-home>/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/search-host-routing-draft/unsafe-buffer-repair/local-exploratory-fixture.mjs' fresh-label
+```
+
+Choose an unused alphanumeric/underscore/hyphen label, at most 40 characters. A normal terminal execution context is needed so Chromium can initialize its own sandbox; this does not authorize changing host permissions or sandbox policy. Outputs `local-<label>.json`, `.log`, and `local-profile-<label>` remain beside the script. Never overwrite or remove another profile. The script stops on mismatched identities or failing controls and leaves raw failures. Neither this command nor the browser has been run for this exploration.
+
+The preflight binds the preserved app executable and framework, all 78 preserved assets and blocker assets, archived 158 UI candidate source and seven archived module files to the original `native-receipt-built.json` and preserved-candidate receipt. It does not read the restored 158 checkout. These are consistency checks against the captured receipt, not a cryptographic proof that the executable was built from those sources. The original guarded build and zero-action evidence remain the provenance. The candidate framework hash is `7428bc301fdaf9e2a559133e0e1ce2de5f8e6785a022a36313bdbfbb5d2bcaad`.
+
+A loopback HTTP server receives fabricated queries only after actual Settings controls add and select a synthetic loopback provider. The script attempts typed Island search, explicit API search, stale-document rejection, a normal exit and restart in primary private mode, private synthetic search, absence of the private marker from the closed regular History database, and normal exits. It logs sandbox startup errors, checks a rejecting proxy's loopback self-test, and records proxy attempts. Settings selectors, process lifecycle and runtime behavior are unverified; failures are evidence, never silently waived. This does not exercise stock-provider switching, native reentrant observer, actual real-world traffic, full accessibility or migration.
+
+**There is no host-wide outbound-denial guarantee.** The rejecting loopback HTTP proxy, resolver rules, `--disable-background-networking` and `--disable-quic` are best-effort mitigations; a browser process can use network paths outside them. The proxy self-test proves only that the proxy rejects a local probe, not that every Chromium connection is intercepted. No real user/account data or real search terms may be entered. An exploratory pass reports `acceptance: false`, `hostWideOutboundDenied: false`, and `complete: false`; it does not meet the mandatory independent outbound-isolation fixture, establish parity, or qualify the candidate for promotion.
+
+## Review revision
+
+`local-exploratory-fixture-v2.mjs` is a separate, syntax-checked review draft; the original is preserved. It waits for the prior replacement navigation and local request to complete and a new document identity to be observed before capturing the stale-search baseline. Server and proxy binding are inside the cleanup scope, and process signal termination is distinguished from a normal exit. `review-v2-check.mjs` checks the source's module-name regex against all seven names, CONNECT response CRLF bytes, DevTools port parsing, process termination expressions, bind cleanup and stale-test ordering without importing or running either fixture; its output is retained in `review-v2-check.log`. The checked file uses actual single JavaScript escapes; tool output rendering must not be mistaken for double backslashes in the file. Static checks do not prove browser behavior or network isolation. Neither version has been run.
+
+For a later reviewed execution, use `local-exploratory-fixture-v2.mjs` in the invocation above; all network and acceptance limits remain unchanged.

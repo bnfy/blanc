@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Appearance</title>
+  <link rel="stylesheet" href="pages/pages.css">
+  <script src="pages/strings.js" defer></script>
+  <script src="pages/i18n.js" defer></script>
+  <script src="appearance-settings.js" defer></script>
+</head>
+<body class="sheet">
+  <main class="page">
+    <h1 data-i18n="settings.page.heading">Settings</h1>
+    <section class="settings-group" aria-labelledby="appearance-title">
+      <h2 id="appearance-title" class="group-title" data-i18n="settings.general.cards.appearance">Appearance</h2>
+      <div class="settings-card settings-card--mixed">
+        <div class="setting">
+          <div class="label"><label for="launch-sunrise" data-i18n="settings.general.launchSunrise.label">Play the Sunrise when Blanc opens</label>
+            <span class="hint" id="launch-sunrise-hint" data-i18n="settings.general.launchSunrise.hint">The first start page after launch draws the Sunrise once. Skipped when your system reduces motion.</span></div>
+          <label class="toggle"><input id="launch-sunrise" type="checkbox" aria-describedby="launch-sunrise-hint" disabled><span class="track"></span></label>
+        </div>
+        <p id="setting-status" role="status">Loading appearance settings…</p>
+      </div>
+    </section>
+    <p><a href="chrome://settings/appearance">More appearance settings</a></p>
+  </main>
+</body>
+</html>

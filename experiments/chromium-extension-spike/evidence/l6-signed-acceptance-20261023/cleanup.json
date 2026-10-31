@@ -1,0 +1,22 @@
+{
+  "timeUtc": "2026-10-23T16:05:29.749576+00:00",
+  "removedOnlyOwnedPaths": [
+    "recovery/isolated-home",
+    "recovery/node22-home",
+    "splits/isolated-home",
+    "splits/node22-home",
+    "verified/node22-home",
+    "private-lifecycle/profile-final",
+    "grouped/profile-ready",
+    "grouped/after",
+    "close/profile",
+    "nonregular/pipe-profile",
+    "nonregular/regular-session-backup",
+    "teardown-profile",
+    "teardown-profile-final"
+  ],
+  "signedMasterPreserved": true,
+  "GoogleBaselineChanged": false,
+  "permanentProfilesChanged": false,
+  "beforeCleanupProcessCheck": "no L6 browser or harness process remained"
+}

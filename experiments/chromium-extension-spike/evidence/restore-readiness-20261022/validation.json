@@ -1,0 +1,8 @@
+{
+  "diagnostic_starts": 3,
+  "all_required_callbacks_arrived": true,
+  "all_clean_exits": true,
+  "original_profiles_unchanged": true,
+  "stall_reproduced": false,
+  "root_cause_established": false
+}

@@ -1,0 +1,21 @@
+The following is a diff from the previous accessibility tree for Window: "Blanc" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 716-717, 727-728, 730
++						730 text E
++						731 text example.com
++						732 button Switch to Example Domain
++						733 text E
++						734 text example.com
+~							632 button Reload
++								735 image
++			736 HTML content Blanc Overlay, URL: blanc-chrome://overlay/
++				737 container
++					738 text field (settable) Value: domain, Placeholder: Find in page
++					739 text 1/2
++					740 button Previous match
++						741 image
++					742 button Next match
++						743 image
++					744 button Close
++						745 image
++	746 menu button Window sharing
+The focused UI element is 738 text field (settable) Value: domain, Placeholder: Find in page

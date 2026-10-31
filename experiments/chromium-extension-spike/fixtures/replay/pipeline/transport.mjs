@@ -1,7 +1,7 @@
 // Local TLS termination only. No upstream client, DNS or forwarding in this module.
 import http from 'node:http';
 import tls from 'node:tls';
-export async function serve({hosts,tlsMaterial,respond,fault}) {
+export async function serve({hosts,tlsMaterial,respond,fault,upgrade}) {
   const allowed=new Set(hosts.map(h=>h+':443')),sockets=new Set(),connectionErrors=[];
   const parser=http.createServer(async(req,res)=>{
     const authority=req.socket.fixtureAuthority;
@@ -10,6 +10,13 @@ export async function serve({hosts,tlsMaterial,respond,fault}) {
     }
     try {await respond(req,res,{httpVersion:req.httpVersion,alpn:req.socket.alpnProtocol||null});}
     catch {fault('responder-failed');if(!res.headersSent)res.writeHead(502);res.end();}
+  });
+  if(upgrade)parser.on('upgrade',(req,socket,head)=>{
+    const authority=req.socket.fixtureAuthority;
+    if(!allowed.has(authority)||req.headers.host!==authority.slice(0,-4)||req.socket.servername!==authority.slice(0,-4)){
+      fault('upgrade-authority-mismatch');socket.destroy();return;
+    }
+    try{upgrade(req,socket,head);}catch{fault('upgrade-handler-failed');socket.destroy();}
   });
   const server=http.createServer((_req,res)=>{fault('plaintext-refused',_req.headers.host);res.writeHead(502);res.end();});
   const materials=tlsMaterial.entries||[tlsMaterial];

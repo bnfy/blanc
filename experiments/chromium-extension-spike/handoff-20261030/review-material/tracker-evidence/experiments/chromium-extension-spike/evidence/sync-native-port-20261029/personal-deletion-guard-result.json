@@ -1,0 +1,50 @@
+{
+  "status": "draft process-lifetime deletion guard tested in isolation; no Chromium deletion hooks are installed",
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "implementation": [
+    "root-bound shared guard defaults to defer until verified store identity is confirmed by native registry",
+    "exact Personal directory is protected, invalid paths denied, and validated non-Personal action runs under same lock as invalidation",
+    "a changed Personal path or UUID is refused; invalidation makes further actions defer until same identity reverified",
+    "POSIX compares directory device/inode to prevent case aliases of Personal being treated as named, rejecting symlinks, absent targets and non-directories",
+    "Windows and unqualified platforms defer named deletion pending native handle/reparse-point qualification",
+    "registry draft confirms gate from the verified identity even when Personal is not loaded; the separately owned gate can outlive registry shutdown"
+  ],
+  "verified": [
+    "isolated fake action never runs for unknown identity, Personal, unsafe path, symlink, nonexistent or non-directory target",
+    "named action can run with distinct observed POSIX directory identities; failed action preserves synthetic cleanup marker",
+    "reassignment and changed UUID refused; invalidation defers until exact identity restored",
+    "concurrent invalidation waits while a guarded action holds the lock, and following actions defer",
+    "private gate confirmation rejected by compiler; registry and factory pass syntax checks"
+  ],
+  "upstreamDeletionPaths": [
+    "DeleteProfileHelper::MaybeScheduleProfileForDeletion can close windows/cancel downloads before eventual cleanup",
+    "startup PreProfileInit calls CleanUpEphemeralProfiles and CleanUpDeletedProfiles before loaded Profile/registry",
+    "ProfileManager::UnloadProfile can schedule disk nuke",
+    "browser_shutdown::ShutdownPostThreadsStop calls NukeDeletedProfilesFromDisk after g_browser_process is gone",
+    "NukeProfileFromDisk is also used by new-profile creation for an unused target; a blanket hook can break creation",
+    "deferred cleanup must retain kProfilesDeleted/ephemeral bookkeeping and must not run success callbacks or remove attributes"
+  ],
+  "rawEvidence": "evidence/native-personal-deletion-guard-20261030",
+  "limitations": [
+    "guard is not connected to any real deletion entry point or startup/shutdown plumbing; it currently protects no user profile",
+    "POSIX lstat checks and callback are not bound to a directory handle; an external replacement between check and operation remains possible",
+    "callbacks hold a lock; production scheduling must avoid blocking UI/teardown and avoid reentrancy while serializing invalidation and destructive work",
+    "identity must load early enough to defer startup cleanup and guard must outlive BrowserProcess for post-thread cleanup",
+    "native deletion UI must veto Personal before marking, closing windows or cancelling downloads; named cleanup must resume safely after deferred identity resolution",
+    "Windows handle/reparse support, real ProfileManager lifecycle, fault injection and Linux/Windows runtime tests remain open"
+  ],
+  "appBuild": false,
+  "deployed": false,
+  "realProfileIO": false,
+  "featureCredit": false,
+  "sourceSha256": {
+    "personal_deletion_guard.h": "ca1f6fbe76f289719163bb2673a8c5d80a8fc6de81135df46f20a6b5d288b212",
+    "personal_deletion_guard.cc": "fde81e42d1cf88fd7264b7a86b0d056540300015d81a2ffbd69eff347359a0e0",
+    "personal_deletion_guard_test.cc": "1609ac29a2fdbc161386c48ee4aa225e9410ad42b38ff6e65b5f26d391935c61",
+    "personal_identity_loader.h": "fac542257833d70eb4abedc816b5616c07aab6d1883d90665f5f18087fcbe8dd",
+    "personal_identity_loader.cc": "c07297b48ba8e06a66ac3584e077068bbd79414613b8adf3d9318ef6d39051f0",
+    "native_local_profile_registry.h": "48a9282537281e14daac399a6eaac78cfbae9f72df4a79b0c17eedb368c176fe",
+    "native_local_profile_registry.cc": "c193134a97c49f2f4ef6cbff3d60f2d9e8438cea30bf5a61a164c37f020f5335"
+  }
+}

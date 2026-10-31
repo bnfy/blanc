@@ -21,13 +21,19 @@
     <label class="extension-search"><img src="icons/search.svg" alt="">
       <input id="extensionSearch" type="search" placeholder="Find an extension…" aria-label="Find an extension" role="combobox" aria-expanded="true" aria-controls="extensionList" aria-autocomplete="list" autocomplete="off" spellcheck="false">
     </label>
-    <div id="extensionList" role="listbox" aria-label="Installed extensions and Chrome Web Store results"></div>
+    <div id="extensionResults">
+      <div id="extensionList" role="listbox" aria-label="Installed extensions and Chrome Web Store results"></div>
+      <section id="installedThemes" aria-labelledby="installedThemesHeading" hidden>
+        <h2 id="installedThemesHeading" class="extension-section">Installed themes</h2>
+        <div id="themeList"></div>
+      </section>
+    </div>
     <p id="extensionMessage" role="status"></p>
     <footer class="extensions-footer">
       <button id="extensionsManage"><img src="icons/settings.svg" alt="">Manage extensions</button>
       <button id="extensionsGet"><img src="icons/external-link.svg" alt="">Browse web store</button>
     </footer>
-    <div class="extensions-keys">↑ ↓ to move &nbsp; Enter to open &nbsp; Esc to close</div>
+    <div class="extensions-keys">↑ ↓ to move &nbsp; Enter to open &nbsp; Tab for theme actions &nbsp; Esc to close</div>
   </section>
   <section id="splitHeaders" aria-label="Split View panes" hidden></section>
   <div id="status" role="status" hidden></div>

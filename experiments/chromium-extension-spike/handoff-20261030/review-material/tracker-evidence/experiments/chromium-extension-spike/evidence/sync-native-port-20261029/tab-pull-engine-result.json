@@ -1,0 +1,36 @@
+{
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "status": "guarded read-only Tab Sync pull composed with credential broker/controller/transport and native model/cache in isolated fixture",
+  "implementation": [
+    "native guarded pull adapter forwards BlobExchange dispatch guard into coordinator",
+    "fixed V8 model extracts session blob devices as separately parsed JSON data; cache remains account/revision bound",
+    "no server PUT is attempted by this pull-only building block"
+  ],
+  "verified": [
+    "synthetic OSCrypt provider and protected key, actual ProfileEngine/AccountController/RequestWorker/BlobExchange, encrypted fake response, V8 model and synthetic disk cache compose successfully",
+    "session payload device URL and escaped Unicode survive, no PUT",
+    "pending erasure while model held cancels before cache write",
+    "adapter account differing from authenticated session is refused with no cache",
+    "controller shutdown while model held cancels and leaves no cache after runner drains"
+  ],
+  "limitations": [
+    "synthetic provider, fake network and fixture-owned profile only; no real native Profile factory, provider, production endpoint, browser/UI or authenticated release candidate exercised",
+    "read-only pull is not full Tab Sync: local snapshot publication, optimistic PUT, export/budget, heartbeat, sidecar, pairing, display and migration remain",
+    "trusted caller must bind adapter account/revision to broker session, and same owner sequence must own coordinator, state and final guard",
+    "Windows cache disabled, Linux untested; V8 utility/process/resource limits and platform lifecycle remain open",
+    "BlobModelHooks and coordinator/model interfaces changed; rebuild all users together"
+  ],
+  "rawEvidence": "evidence/native-sync-tab-pull-engine-20261030",
+  "appBuild": false,
+  "deployed": false,
+  "realProfileIO": false,
+  "sourceSha256": {
+    "tab_pull_model.h": "120d74f7a8e7676fc27a26ba9a5b1510b171a12ef11963c3b9d1dc20559d5a10",
+    "tab_pull_model.cc": "f9f89a196225d3c792ea46aa2ccbad3c76797243b53cda34d891d69ae4fb2d56",
+    "tab_pull_engine_test.cc": "be8422373e7e9ad123b53816a88e435d00725c0c74b021a89139c32e7b492c5e",
+    "tab_sync_coordinator.h": "7c5c8c2acf65a911f3a265cc9081008bf867752bf89e03f7dff611c3e2362bde",
+    "tab_sync_coordinator.cc": "87c2f056c250a5ec650391adf08dfb137a85b3dc74b68418a3b73fd1c9853d76",
+    "v8-model-draft/model_runner.cc": "7bc30c2fa7aff4e916626afec5b2364067bf9c4922cd25dafc5251451fb776aa"
+  }
+}

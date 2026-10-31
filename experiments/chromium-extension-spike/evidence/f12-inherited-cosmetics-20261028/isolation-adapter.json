@@ -1,0 +1,7 @@
+{
+  "baselineRecursionReproduced": true,
+  "adapterMatchesProductionWrapper": true,
+  "stackedFetchUsable": true,
+  "functionToStringUsable": true,
+  "checks": 4
+}

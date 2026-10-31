@@ -1,0 +1,35 @@
+{
+  "status": "real-file account controller + worker + encrypted URLLoader fake-server integration passed",
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "runtimeExit": 0,
+  "controllerRegressionExit": 0,
+  "implementation": [
+    "EnqueueBlob freezes URL account from persisted identity and refuses mismatched key-account binding",
+    "queue dispatch binds final controller/worker cancellation into every exchange await",
+    "worker cancellation uses weak lifetime instead of raw this"
+  ],
+  "verified": [
+    "wrong key account: zero network/zero quota charge",
+    "persisted GET reservation precedes actual URLLoader dispatch",
+    "key gate lost after GET prevents model merge/PUT/stored hook",
+    "successful decrypt/plan/encrypt/PUT through controller and persisted worker",
+    "shutdown cancels held GET and retained guard remains safe after worker destruction",
+    "profile quota retains three GET charges after controller restart",
+    "affected original controller drain/wipe/retraction/generation/gate/snapshot/failed-write/late-callback regression"
+  ],
+  "fixtures": "synthetic durable disposable profiles; synthetic key/protected-key marker and native gate",
+  "liveNetworkRequests": 0,
+  "appBuild": false,
+  "deployed": false,
+  "featureCredit": false,
+  "rawEvidence": "evidence/native-sync-blob-controller-20261030",
+  "remaining": [
+    "actual Profile factory/key broker/brand/Personal authority wiring",
+    "store-specific native models and UI",
+    "signed OS provider qualification",
+    "migration, pairing and Shared Spaces orchestration",
+    "actual browser/platform acceptance"
+  ],
+  "regressionWarning": "expected permission-denied warning from deliberate failed-write fixture; runtime exit0"
+}

@@ -1,0 +1,43 @@
+{
+  "status": "async Personal identity loader tested; ProfileManager-observing registry adapter drafted and syntax checked; not app integrated",
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "implementation": [
+    "identity disk read runs on worker and returns status on owner sequence; no creation or recovery inferred from missing state",
+    "reload removes previous mapping before worker work; invalidate/shutdown revoke weak resolvers and cancel in-flight/queued results",
+    "draft native registry observes ProfileManager and loaded Personal Profile, installs factory resolver only after matching validated record to loaded regular registered Profile",
+    "permanent deletion notification, profile destruction or manager shutdown revokes resolver; observed deleted paths cannot later be selected in that registry lifetime",
+    "unloaded target returns not-loaded without calling Chromium profile creation"
+  ],
+  "verified": [
+    "isolated loader uses synthetic files and actual second sequence: missing record no disk creation, valid mapping, owner callback, revoked resolver, in-flight cancellation, busy refusal, missing marker reload, shutdown/late reply",
+    "controlled queued-ready callback changed to cancelled after invalidation; no duplicate reply from late disk work",
+    "registry and factory compile against actual Chromium158 profile headers; runtime ProfileManager observer behavior remains untested",
+    "initial generic callback deduction compile failure preserved and fixed"
+  ],
+  "upstreamFinding": [
+    "ProfileManager::LoadProfileByPath checks ProfileAttributesStorage and then calls CreateProfileAsync; ProfileImpl may call CreateDirectory",
+    "an attributes entry is not proof the directory remains intact, and existence checks before loading cannot close a replacement race; the draft refuses unloaded paths pending a safe qualified mechanism"
+  ],
+  "rawEvidence": "evidence/native-personal-identity-loader-20261030",
+  "limitations": [
+    "NativeLocalProfileRegistry is a draft adapter, not instantiated by browser startup and not a complete named-profile registry",
+    "real ProfileManager factory/observer runtime, user-data singleton ownership and loaded-profile races need validation",
+    "profile deletion must be prevented in product UI/manager, not merely observed after notification",
+    "external filesystem changes and parent-directory substitution while a profile remains loaded are not yet monitored or protected",
+    "Windows identity store is intentionally unsupported; Linux and Windows runtime untested",
+    "actual new-Personal bootstrap, authorized migration, UI, first-run, model utility isolation and cross-platform acceptance remain open"
+  ],
+  "appBuild": false,
+  "deployed": false,
+  "realProfileIO": false,
+  "featureCredit": false,
+  "sourceSha256": {
+    "personal_identity_loader.h": "326486e4f87974348efafdba7cc6acff11855bd289df1820fe04f11525f533c8",
+    "personal_identity_loader.cc": "b03269c919f024775d26aad373aa587d65722036ce7b530620cadd4d63589243",
+    "personal_identity_loader_test.cc": "533f51171151b3177b469500da0e0babc3e873bb9e56cde9e582b6c7b9fa6ebc",
+    "native_local_profile_registry.h": "b07864f5c8e76fa731b3eb04262ff8f67e431ca2d8b20af28a4c443f94ae4c47",
+    "native_local_profile_registry.cc": "eabb25ccd9e9aba75981f04ad9e6dd5a3a1210b61e7e5a57403a20cd545b17be",
+    "profile_service_factory.cc": "fdd196897e0746e00e2884ef35141324f92fb62a1c413fab4bef501dbfb49275"
+  }
+}

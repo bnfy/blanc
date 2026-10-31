@@ -1,0 +1,713 @@
+{
+  "reference": {
+    "release": "v1.45.1",
+    "commit": "85883b1afa11375e1300130914d6f40c5388af21",
+    "latest_release_verified_utc": "2026-10-30T21:34:53Z",
+    "source": "spec/parity-matrix.md at release commit",
+    "matrix_sha256": "1a18650d2a3d19aa24ca95e2b5760031c295e49039acb271b6859a052877b64e",
+    "scope_note": "52 desktop non-N/A matrix rows, including planned F40 conservatively; three v1.45 release supplements; uBO and Widevine as owner-named possible exceptions. Supplemental rows can overlap matrix rows. 57 is a checklist denominator, not a complete independent feature decomposition or a schedule estimate.",
+    "release_published_utc": "2026-10-29T22:38:24Z",
+    "matrix_file": "shipping-matrix-v1451.md"
+  },
+  "snapshot": {
+    "date": "2026-10-29",
+    "development_framework_sha256": "d8ac07d95573e10607bacddcba6d67c8b87ca64753247e2364e30c62eb169df8",
+    "assets_manifest_sha256": "bf8e22cd934f67c876491ba4cb2610ec1cdeaf94efe411b160fe965f6eb7f9d2",
+    "scope": "Current development build and existing scoped evidence. Re-audit classifications after source, output, release or platform evidence changes."
+  },
+  "status_definitions": {
+    "verified": "Full applicable shipping contract including behavior, visuals except Settings allowance, safety, inputs and accessibility, tested against release on macOS, Windows and Linux and linked to exact candidate identities. No exception assumed.",
+    "partial": "Some specific capability has evidence but at least one shipping or cross-platform condition remains open.",
+    "known_gap": "At least one specified requirement is confirmed unimplemented or available only as an isolated draft.",
+    "unassessed": "No sufficiently current assessment here; not evidence of absence or completeness."
+  },
+  "excluded": [
+    {
+      "id": "F24",
+      "name": "Password AutoFill / passkeys",
+      "shipping_matrix_desktop_status": "N/A",
+      "reason": "Shipping matrix identifies this as desktop N/A; re-evaluate on new release."
+    },
+    {
+      "id": "F56",
+      "name": "Tab gestures",
+      "shipping_matrix_desktop_status": "N/A",
+      "reason": "Shipping matrix identifies this as desktop N/A; re-evaluate on new release."
+    }
+  ],
+  "items": [
+    {
+      "id": "F1",
+      "name": "Island chrome (pill + command bar)",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Resting pill shows back/forward (desktop; mobile uses edge-swipe per D7), standalone-pin + active-section dots (cap 8 + window-wide `+N`; pointer platforms reveal a dot's favicon on hover/focus), favicon, domain, shield count (clickable → site-protection popover on desktop), private chip, action cluster. Expanded states: panel / palette / find. Desktop has opt-in 300 ms hover-open and an opt-in auto-hiding strip; touch-only mobile has no hover equivalent.",
+      "status": "partial",
+      "reason": "Missed Shield close clicks reproduced; paired native hit-region fix remains unbuilt. Reconciled assets pass simulated-capability geometry and injected rejection/retry checks in isolated fixtures; actual fixed-native interaction, page pass-through, drag, accessibility and other platforms remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/chromium-parity-inventory-20261028/feature-closeout.md",
+        "experiments/chromium-extension-spike/evidence/blank-tab-typing-20261030/README.md",
+        "experiments/chromium-extension-spike/evidence/settings-hub-20261030/shield-refresh.md"
+      ]
+    },
+    {
+      "id": "F2",
+      "name": "Tabs (create/close/switch/reopen/duplicate/pin/mute)",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Same lifecycle + same reopen-closed and pin/mute semantics. Desktop recovery is scoped to the native workspace that closed the tab (D11). Pins remain in their current group and lead it; ungrouped pins use a standalone shelf. Plain new tab is always ungrouped. An inactive tab may have its renderer discarded and rebuilt (D8, F31) without losing identity, title, address, or back-history.",
+      "status": "partial",
+      "reason": "Combined Mac candidate now disables Close Above/Below when no unpinned tabs are on that side; scripted regular/private checks confirm state and preservation of pinned/selected tabs. Tab selection and two-pane identity have focused checks. Full lifecycle, interactions and platform parity remain open; candidate is unpromoted.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/tab-selection-port-20261028/README.md",
+        "experiments/chromium-extension-spike/evidence/link-copy-20261029/README.md"
+      ]
+    },
+    {
+      "id": "F3",
+      "name": "Tab groups",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Names (with an optional Spaces preset color), kept in the case typed and matched in any case; renamable from the header. Group exists only while non-empty. Pill renders standalone pins + the active section and counts every omitted tab in `+N`. Same create/move/ungroup/close-group actions. iOS (M17, unreleased): groups as tab-grid sections and in the palette, synced with shared Spaces; dragging into groups comes later.",
+      "status": "partial",
+      "reason": "Isolated Chromium 158 candidate has scoped native group creation, rename and activation checks on Mac; complete group actions, current development promotion, shipping comparison, accessibility and other platforms remain open. The previously verified 158 native group handler is now retained in repository source; 157 compilation and preparation of the matching newer Start Page assets remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/start-page/groups-projection-draft/README.md"
+      ]
+    },
+    {
+      "id": "F4",
+      "name": "Private tabs",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Never in history/session/reopen; inherited by child tabs; isolated non-persistent web session; private theme + quick-exit chip. M9 iOS client implemented, unreleased: `/private`, one in-memory web session shared by private tabs and forgotten when the last one closes, page-opened children stay private, never saved, synced or in History, private theme and a Private chip that closes the tab.",
+      "status": "partial",
+      "reason": "Focused primary-incognito Start Page checks exist; the entire private-tab contract remains unproved.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/topsites-partial-delete-20261029/README.md"
+      ]
+    },
+    {
+      "id": "F5",
+      "name": "Address input & search",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Same normalization heuristic + engine choice (DuckDuckGo/Google/Bing/Brave/Kagi, or a custom address). Best-effort autocomplete follows the current default; opt-out, private tabs, pasted/dropped text, local paths, URL-like input, and credential-like prefixes stay local. OS hand-off for `mailto:`/`tel:`/etc.; desktop additionally confirms reviewed app/OAuth callback schemes.",
+      "status": "partial",
+      "reason": "Live search still hardcodes Google. The selected-provider candidate built with a zero-action guard. Synthetic regular and private native and Island searches reached loopback; the private Island closed after commit and a separate closed-database readback found no private markers. The fixture itself failed its original SQLite read. Independent host-wide isolation, stock providers, real privacy and fresh-profile defaults remain open. A fresh-default draft is unintegrated: global fallback replacement could change existing users and native choice-screen eligibility.",
+      "evidence": [
+        "experiments/chromium-extension-spike/search-shipping-provider-draft/README.md",
+        "experiments/chromium-extension-spike/search-host-routing-draft/README.md",
+        "experiments/chromium-extension-spike/search-host-routing-draft/unsafe-buffer-repair/outbound-isolation-blocker-20261029.md",
+        "experiments/chromium-extension-spike/search-host-routing-draft/unsafe-buffer-repair/local-privateprobe2.json",
+        "experiments/chromium-extension-spike/search-host-routing-draft/unsafe-buffer-repair/local-privateprobe3.json",
+        "experiments/chromium-extension-spike/search-host-routing-draft/unsafe-buffer-repair/local-privateprobe5.json",
+        "experiments/chromium-extension-spike/search-host-routing-draft/unsafe-buffer-repair/local-privateprobe5-history-readback.json",
+        "experiments/chromium-extension-spike/search-fresh-default-draft/PRODUCT-FALLBACK-REVIEW.md"
+      ]
+    },
+    {
+      "id": "F6",
+      "name": "Command palette & Quick Switcher",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "⌘L-equivalent summons it; loose/in-order match across tabs, favorites, history, group names; groups ranked above tabs.",
+      "status": "partial",
+      "reason": "Isolated Chromium 158 regular/private scripted tab and group matching passed; regular Favorite/history ranking, deduplication and selection passed. Seeded private check confirms Chromium hides regular Favorites and History, whereas released shipping source lists them; privacy-preserving parity remains unresolved. Native keyboard, accessibility, visual parity and Windows/Linux remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/quick-switcher-20261030/README.md",
+        "experiments/chromium-extension-spike/evidence/quick-switcher-private-20261030/README.md"
+      ]
+    },
+    {
+      "id": "F7",
+      "name": "Slash commands",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Shared commands keep identical names + hints; `/1password` is available only on desktop under D26.",
+      "status": "partial",
+      "reason": "The staged 158 refresh candidate exposes /settings in regular/private mode; private routing uses the Blanc Settings hub. /copy and /copy clean are prepared behind a native capability guard, but that native field is unbuilt. Other commands, localization, input/accessibility and Windows/Linux remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/slash-settings-20261030/README.md",
+        "experiments/chromium-extension-spike/evidence/settings-reuse-20261030/README.md",
+        "experiments/chromium-extension-spike/evidence/copy-command-20261030/README.md",
+        "experiments/chromium-extension-spike/evidence/settings-hub-20261030/development-refresh.md"
+      ]
+    },
+    {
+      "id": "F8",
+      "name": "Find in page",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Capsule over content, match nav, page stays interactive.",
+      "status": "partial",
+      "reason": "Isolated Chromium 158 groups candidate with the integrated host/adapter passed regular and verified-private scripted Find initialization, loaded-page match count, next and close. It is not yet running in the user dev instance; physical shortcut/focus, shipping visuals, accessibility, lifecycle and Windows/Linux remain unverified.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/ui138-find-20261018/README.md",
+        "experiments/chromium-extension-spike/evidence/find-158-20261029/README.md",
+        "experiments/chromium-extension-spike/find-show-handoff-draft/README.md"
+      ]
+    },
+    {
+      "id": "F9",
+      "name": "Favorites",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Heart toggle, \"Add all open tabs\", favorites page + newtab favorites. Internal id stays `bookmarks`. M8 iOS client implemented, unreleased: Favorites are edited on the phone (the pill's heart and the Favorites page) and sync both ways; importing and Start Page pins stay on the computer.",
+      "status": "partial",
+      "reason": "Combined Mac candidate exposes localized tab-menu Save/Remove Favorites using the existing native bridge and cancels delayed menu handoffs. Scripted background target, closed-target refusal, heart, private and non-web checks pass. It is unpromoted; full sheet, remaining races, migration, Sync, accessibility and other platforms remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/favorite-duplicate-safety-20261028/README.md",
+        "experiments/chromium-extension-spike/evidence/custom-tab-name-20261029/README.md"
+      ]
+    },
+    {
+      "id": "F10",
+      "name": "History",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Per-visit record + title update, capped 5000, clearable, excluded for private tabs. M8 iOS client implemented, unreleased: local History on the phone, never synced, on the History page and last in the Quick Switcher.",
+      "status": "partial",
+      "reason": "History clearing and partial deletion have focused checks, not full history parity.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/topsites-partial-delete-20261029/README.md"
+      ]
+    },
+    {
+      "id": "F11",
+      "name": "Downloads",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Downloads list UI + progress, capped 200.",
+      "status": "known_gap",
+      "reason": "The current prototype opens Chromium Downloads in a tab; the shipping Blanc transient sheet, profile/private lifecycle and capped history are not integrated. An isolated presentation adapter has synthetic tests only; native enforcement and live product behavior remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/downloads-parity-draft/README.md"
+      ]
+    },
+    {
+      "id": "F12",
+      "name": "Ad/tracker blocking",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Ads/trackers blocked by default; per-tab shield count; per-site allow and re-block from the same command; shield chip opens a site-protection popover (desktop); global toggle. Filter data shared.",
+      "status": "partial",
+      "reason": "Blanc Blocker network and cosmetic paths exist. Security-warning and deferred POST-safe site-policy reload are reconciled in an unbuilt candidate; real security, POST/GET, action races, provider lifecycle and full cross-platform acceptance remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/chromium-parity-inventory-20261028/blocker-parity.md",
+        "experiments/chromium-extension-spike/evidence/shield-policy-20261028/post-reload-guard-20261030.json",
+        "experiments/chromium-extension-spike/evidence/settings-hub-20261030/shield-refresh.md",
+        "experiments/chromium-extension-spike/evidence/security-warning-20261030/README.md",
+        "experiments/chromium-extension-spike/evidence/shield-policy-20261028/deferred-reload-reconciliation-20261030.md"
+      ],
+      "native_post_reload_guard": "Uncompiled source now avoids automatic reload for committed POST, matching shipping; real browser validation and enabling blocker commands remain open."
+    },
+    {
+      "id": "F13",
+      "name": "Permissions",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Explicit per-permission prompts with the same policy/copy.",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded in this tracker.",
+      "evidence": []
+    },
+    {
+      "id": "F14",
+      "name": "Settings",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Same shared keys, defaults, and validation (search engine, device-local `searchSuggestions`, adblock, home page, theme, app icon, exceptions, usage measurement, supporter); desktop alone exposes F38's device-local 1Password toggle/account routing value.",
+      "status": "partial",
+      "reason": "A candidate for the existing Mac development framework passes scripted regular/private Settings footer and /settings command, private tab reuse, native Settings link and a bounded private accessibility-tree check. It is unpromoted; full settings behavior, screen reader, accessibility and cross-platform parity remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/settings-general-20261028/README.md",
+        "experiments/chromium-extension-spike/evidence/settings-reuse-20261030/README.md",
+        "experiments/chromium-extension-spike/evidence/settings-hub-20261030/README.md",
+        "experiments/chromium-extension-spike/evidence/settings-hub-20261030/development-refresh.md"
+      ]
+    },
+    {
+      "id": "F15",
+      "name": "Theming",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "system/light/dark + private scope; propagates to chrome, internal pages, web content live, no restart.",
+      "status": "partial",
+      "reason": "Combined Mac refresh corrects installed Theme/Sunrise simultaneous selection and passes scripted selection/restart plus time-of-day and private checks. Earlier time-of-day attempts timed out for an unresolved reason. The candidate is unpromoted; physical input, complete theming behavior, accessibility and Windows/Linux remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/start-page-layout-clock-20261028/README.md",
+        "experiments/chromium-extension-spike/evidence/wallpaper-atomic-switch-20261029/README.md"
+      ]
+    },
+    {
+      "id": "F16",
+      "name": "Internal `blanc://` pages",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "newtab ledger, favorites, history, downloads, settings, shortcuts, error — same content/copy; utility pages present as a transient chrome surface (desktop: sheet), never tabs.",
+      "status": "partial",
+      "reason": "Start Page uses shipping-derived content, while full native page and surface behavior remain incomplete.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/start-page-layout-clock-20261028/README.md"
+      ]
+    },
+    {
+      "id": "F17",
+      "name": "Patron & app icons",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Five current colorways (Sunrise, Sunrise Dark, Sunrise Gold, Sunrise Spectrum, Sunrise Amber); Patron is optional support and unlocks nothing; Blanc Spaces (F41) is free. iOS app icons implemented, unreleased: the five plus the iPhone-only Sunrise Dawn, with Sunrise Gold standard, in Settings → Appearance → App icon; Patron purchase not built.",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded in this tracker.",
+      "evidence": []
+    },
+    {
+      "id": "F18",
+      "name": "Session persistence & restore",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Restore tabs + groups; private tabs excluded; same `session.json` shape (adapted per platform store). Plus an optional per-tab title/favicon `meta` column so restored tabs are scannable before they load.",
+      "status": "partial",
+      "reason": "Some native session and restoration paths exist, but the full shipping session contract is not established.",
+      "evidence": [
+        "docs/chromium-migration-implementation-plan-2026-10-16.md"
+      ]
+    },
+    {
+      "id": "F19",
+      "name": "Context menu (link/page actions)",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Same actions (open in new/background tab, copy link, etc.); OS hand-off honored.",
+      "status": "unassessed",
+      "reason": "Shipping Open Link in Glance is missing from the running Chromium menu. An unpromoted menu/consent overlay includes native about/blob/filesystem routing. Shipping blanc utility hosts require a sheet rather than a Glance tab. GN/link, real routing and consent, lifecycle, privacy, visuals, accessibility and other platforms remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/context-menu-source-audit-20261030/README.md",
+        "experiments/chromium-extension-spike/context-menu-glance-draft/README.md"
+      ]
+    },
+    {
+      "id": "F20",
+      "name": "HTTP authentication policy",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "No platform shows its own credentials dialog for HTTP Basic/Digest or proxy challenges; the challenged request fails, and the page can observe the 401/407 response where the browser permits.",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded in this tracker.",
+      "evidence": []
+    },
+    {
+      "id": "F21",
+      "name": "Telemetry (bounded usage measurement)",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "A fresh profile must commit its on/off choice before any event; the choice is presented on by default and remains device-local. When enabled, packaged desktop builds send one launch event plus once-per-session fixed metrics for the first Mahjong move and each rendered start-page layout. Desktop 1.31.0+ also sends two once-per-install first-day signals (default browser; three web pages opened) used only for next-day return. Private tabs and browsing/game content are excluded.",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded in this tracker.",
+      "evidence": []
+    },
+    {
+      "id": "F22",
+      "name": "Distribution & updates",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "User gets updates; no in-app updater fighting the OS store.",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded in this tracker.",
+      "evidence": []
+    },
+    {
+      "id": "F23",
+      "name": "Zoom / page scaling",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Page can be scaled; desktop discrete zoom vs mobile pinch/native reflow.",
+      "status": "partial",
+      "reason": "The SDK 27.2 build passed its zero-action guard and isolated regular/private scripted zoom increments, bounds, reversal and reset. Native clicks and Cmd+= activated and zoomed only the second split pane in isolated regular/private Mac fixtures; CDP-only input had failed to activate it. The candidate is not promoted; other shortcuts, utility sheets, accessibility and Windows/Linux remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/zoom-parity-20261030/README.md"
+      ]
+    },
+    {
+      "id": "F27",
+      "name": "Tab Sync (other-device tab list)",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Per-device opt-in, off by default, publish-only gating; read-only browsing in panel/switcher/start page; http(s)-only bounded snapshots plus a separately-budgeted E2EE icon sidecar; retraction + 30-day prune + 24 h heartbeat. Optional favicons are inert bounded PNG bytes—never remote URLs loaded by a receiving device. Desktop adds device pairing with a ten-minute code (one-shot Worker route) and a clipboard recovery code, and synced device names (Rename Device…, Settings → Sync); M7a iOS client implemented, unreleased: join-only pairing/recovery, Keychain storage, Settings, read-only Favorites and other-device tabs; real-iPhone and packaged-desktop pairing validation pending. Send to device remains M7b. M17 (unreleased): the iOS snapshot publishes its groups and, with Spaces sync on, a `shared` sidecar; tabs another device binds to a shared Space the phone holds are listed once.",
+      "status": "known_gap",
+      "reason": "Remote tab list remains a host placeholder. Native encrypted queue/URLLoader exchange now composes the real-file controller/shared quota worker with isolated lifecycle checks. Actual Profile authority, qualified credential broker, native models/pairing/UI, migration and cross-platform acceptance remain incomplete.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/chromium-parity-inventory-20261028/README.md",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/README.md",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/LEGACY-MIGRATION-INTEGRATION.md",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/blob-controller-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/profile-engine-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/async-model-exchange-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/departure-bounds-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/departure-controller-engine-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/pending-erasure-departure-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/profile-service-engine-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/provider-lifetime-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/personal-routing-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/personal-identity-store-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/personal-identity-loader-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/personal-deletion-guard-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/personal-delete-preflight-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/device-merge-runner-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/account-bound-device-merge-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/tab-cache-store-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/tab-sync-coordinator-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/tab-sync-cancellation-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/guarded-planner-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/tab-pull-engine-result.json"
+      ],
+      "native_sync_integration_note": "Profile owner/consent dispatch and dedicated creation-hook draft have isolated checks. Read-only legacy metadata/quota and strict rewrap compose in memory with synthetic-provider checks. Creation hook/strict API remain unapplied; actual source provider, models, atomic migration, native UI/app/platform acceptance incomplete. No completion credit.",
+      "renderer_model_preparation": "Verified shipping tabsync-model reused as ESM with five Node24 adapter checks; not deployed, bridged or UI/platform qualified. No feature completion credit.",
+      "native_sync_transport_integration": "Real-file account controller and persisted worker now exercise encrypted GET/PUT through actual SimpleURLLoader fake factory. Final dispatch cancellation propagates through awaits; wrong key-account binding refuses before IO; shutdown guard lifetime and quota restart checks pass. Synthetic provider/authority only. Actual Profile/broker/brand/Personal/models/UI/platform wiring incomplete; no completion credit.",
+      "native_profile_engine_preparation": "Existing-only native engine composes strict vault/provider owner routing, revision-bound controller, persisted quota and actual URLLoader fake-server exchange. Synthetic end-to-end/policy/consent-drain/shutdown passed. Actual Profile factory/Personal authority, production models/UI and platform acceptance remain incomplete. No feature completion credit.",
+      "native_lossless_model_preparation": "Owned native V8 runner and async encrypted departure adapter preserve shipping UTF16/JS number semantics through fake URLLoader GET/PUT; six async scenarios and eight sync regressions passed. Full models, bounded departure orchestration, production runtime/Profile/UI/platform acceptance remain open. No feature completion credit.",
+      "native_personal_delete_preflight": "Draft early classification protects verified Personal and defers uncertain paths; fake fixture passed. It is not hooked to real UI or deletion, and its point-in-time result cannot authorize later operations.",
+      "native_device_merge_preparation": "The exact released device merge now runs in the isolated V8 runner with a fixed operation and JSON data envelope; source oracle and targeted native fixture agree. Not connected to actual profile, cache, network, UI, or app.",
+      "native_account_bound_merge": "Isolated V8 draft applies released account rebind before merge; source oracle and synthetic fixture pass. Persistent cache, async generation guard and real app integration remain open.",
+      "native_tab_cache_storage": "Isolated atomic cache draft checks Personal profile, enabled account, erasure and captured revision; stale writes, corrupt data and symlink cases tested. Model/coordinator/browser wiring and real platform qualification remain open.",
+      "native_tab_sync_coordinator": "Isolated coordinator composes actual V8 account-bound merge and real synthetic cache, rechecks account/revision/erasure after asynchronous work. Authenticated network, UI, app and platform integration remain open.",
+      "native_tab_sync_cancellation": "The isolated native coordinator requires a live guard and rechecks it before committing. BlobExchange must propagate the actual controller/queue dispatch guard to its asynchronous model before safe transport integration.",
+      "native_guarded_async_planner": "BlobExchange draft passes the final dispatch-bound guard to guarded async planners and refuses missing/ambiguous guards; fake encrypted network checks passed. Coordinator and real controller integration still pending.",
+      "native_tab_pull_engine": "Read-only pull composes synthetic credential provider, actual engine/controller/transport, V8 released merge and synthetic disk cache; guard/account/shutdown races passed. Product publication/UI and real platform integration remain open."
+    },
+    {
+      "id": "F28",
+      "name": "Vertical tabs",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "The logical tabs/groups and their identity, lifecycle, private/media state, and organization remain available. Desktop may present them in an optional persistent rail without replacing the Island or reloading content; mobile uses its native tab overview.",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded in this tracker.",
+      "evidence": []
+    },
+    {
+      "id": "F30",
+      "name": "Browser Favorites migration",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Explicit, bounded, add-only import of supported web Favorites; folders preserved where available, retries deduplicated, and no implicit import of passwords/history/cookies/sessions.",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded in this tracker.",
+      "evidence": []
+    },
+    {
+      "id": "F31",
+      "name": "Quiet Tabs (idle renderer discard)",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "An idle background tab may have its renderer discarded and rebuilt on return with identity, title, address, and back-history intact; the page is reloaded, never resumed. Never applied to the active tab, media-bearing or muted tabs, pins, unsaved input, non-refetchable commits, pending permission prompts, opener families, or deep-scrolled pages. Restored sessions come back quiet. The state is called \"quiet\" in every user-visible and assistive string.",
+      "status": "partial",
+      "reason": "Isolated Mac candidate implements guarded manual discard/wake, metadata/storage preservation, off/30m/1h/6h setting, automatic sweep and native Settings dialog. Scoped regular/private menu/wake checks pass. Regular-profile real-time sweep passed at31m04s; native Settings Save/Cancel and active-tab refusal now pass regular/private after unlock. Global50 regular/private capacity and scoped private lifetime cleanup now pass; broader race/privacy, localization/accessibility/visual and Windows/Linux qualification remain incomplete; no combined development promotion.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/quiet-tabs-native-audit-20261029/README.md"
+      ]
+    },
+    {
+      "id": "F32",
+      "name": "Independent desktop windows",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Each desktop native window owns an isolated tab/group/surface workspace; close removes only that secondary workspace, and relaunch restores all persisted windows without mixing tabs.",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded in this tracker.",
+      "evidence": []
+    },
+    {
+      "id": "F33",
+      "name": "Local desktop profiles",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Personal retains every existing root record; each named desktop profile isolates site storage, Favorites/history/download metadata/permissions, normal browsing, and private browsing. Device settings stay shared and Profile Sync remains Personal-only.",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded in this tracker.",
+      "evidence": []
+    },
+    {
+      "id": "F34",
+      "name": "Glance reference pane",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "A desktop window can show one explicitly chosen local tab as a temporary reference; dismissal leaves the tab open, and ownership never crosses a window or profile. Unreleased on main since v1.39.0: the reference is a movable, resizable card floating over the page (Open as tab replaces Make main's swap; a tab switch closes it). iOS offers it at regular width only (D30).",
+      "status": "partial",
+      "reason": "Native temporary pair/conversion exists. Staged native geometry matches released floating-card arithmetic in 4,200 finite cases; an unbuilt floating view and live-state implementation and an unrun isolated browser harness are prepared. Its private card palette switches in a mocked-surface check; mixed-profile theme behavior remains unimplemented. Staged Keep as Split uses the native pivot transaction instead of separate regrouping; grouped conversion remains unrun and pinned pairs remain refused. The released model pins the pair when either tab is pinned, and preserves the main group and newly pinned homes; Chromium pivot pinning and post-conversion grouping differ. Actual browser behavior, foreground/background page visibility, focus, security, accessibility and desktop-platform parity remain unverified.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/glance-pinned-parity-20261030/README.md",
+        "experiments/chromium-extension-spike/evidence/chromium-parity-inventory-20261028/feature-closeout.md",
+        "experiments/chromium-extension-spike/glance-floating-draft/README.md"
+      ]
+    },
+    {
+      "id": "F35",
+      "name": "Start page layouts",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Four layouts (ledger/billboard/shelf/tally), chosen by a synced setting with an in-page Customize popover; Billboard ranks local history by hostname, shows short site names (full titles as tooltips), reuses locally captured favicon pixels, and keeps dismissals in localStorage only; up to eight Start Page pins (from tiles, the Favorites page or the tab menu) lead every layout, held per profile and synced (Personal) inside the settings payload; per-day blocked counts feed the tally chart; every footer opens Mahjong in its own managed tab; desktop can play the Sunrise once on the first Start Page after launch (opt-in, skipped with reduced motion); no horizontal overflow at any width.",
+      "status": "partial",
+      "reason": "Four layouts and ranked icons have focused checks. Isolated 158 candidate has scoped group visibility and activation checks on Mac; prior focus failures are retained. Mixed/private behavior, blocker statistics, onboarding, Sync, accessibility and full visual parity remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/topsites-partial-delete-20261029/README.md",
+        "experiments/chromium-extension-spike/start-page/groups-projection-draft/README.md"
+      ]
+    },
+    {
+      "id": "F36",
+      "name": "First-run onboarding",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "A six-step walkthrough shown once to fresh profiles (default browser, import, island, blocking, privacy, theme); privacy consent gates its network features, import keeps F30's explicit discovery, and both successful-import and skip paths can hand off to F40 without making full import a prerequisite. Replayable from Settings. Default-browser registration and live profile import are desktop surfaces (D22).",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded in this tracker.",
+      "evidence": []
+    },
+    {
+      "id": "F37",
+      "name": "Blank tab shows where to type",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "A blank tab's island reads as a text field (prompt in placeholder ink, plus a commands affordance that opens the command list) and typing on the blank tab begins entry in the island. The *contract* is product-level and portable; its desktop expression — a caret, a `/` chip, and a hardware-keyboard type-to-open path — is not. Mobile satisfies it with a tap target and the platform keyboard; there is no physical-keyboard gate to port.",
+      "status": "partial",
+      "reason": "The Commands chip was hidden by the running-style prototype CSS. An unpromoted CSS fix passes native pointer and keyboard activation and normal-page visibility checks in regular/private macOS fixtures; trusted q typing also passes. IME, broader focus, complete visual/accessibility and Windows/Linux remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/blank-tab-typing-20261030/README.md"
+      ]
+    },
+    {
+      "id": "F38",
+      "name": "Fill a login from 1Password",
+      "shipping_matrix_desktop_status": "PARTIAL",
+      "shipping_contract": "Desktop (macOS, Windows, Linux), off-by-default explicit bridge to the user's installed 1Password app/account; Windows/Linux real-account validation pending; saved-website behavior and a revalidated login form bound the fill; no Blanc credential store, background lookup, renderer IPC, persistence, sync, or telemetry.",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded in this tracker.",
+      "evidence": []
+    },
+    {
+      "id": "F40",
+      "name": "Bring Your Tabs (direct open-tab migration)",
+      "shipping_matrix_desktop_status": "PLANNED",
+      "shipping_contract": "A selected Chromium-family profile's newest verified restorable open-tab session becomes reviewed, ordered quiet tabs and editable Named Groups. Duplicate tabs, pins, source windows, and eligible named source groups are preserved; Favorites remain separate. iOS reinterprets it (M17, unreleased) as Bring a Space: with Spaces sync off, another device's Space is reviewed and copied as an unlinked local Space. Any quit request is normal, user-initiated, and gated by recoverability preflight plus exact newest-session verification.",
+      "status": "unassessed",
+      "reason": "Matrix calls this planned; included conservatively until shipping scope is confirmed.",
+      "evidence": []
+    },
+    {
+      "id": "F41",
+      "name": "Blanc Spaces",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Named, profile-scoped sets of a window's tabs and groups that swap in place and autosave; each has a colour and symbol shown as the Island's space mark; free for everyone; at most 25 per profile. Desktop can opt selected Spaces into end-to-end-encrypted sync (F57); iOS (M17, unreleased): This iPhone plus local and shared Spaces, the Space mark and menu, Recently deleted.",
+      "status": "known_gap",
+      "reason": "The workspace list is a placeholder; real Spaces data, actions and persistence remain open. v1.45.1 shared rows additionally place the accessible sync mark below the name; the current candidate lacks shared-status integration.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/chromium-parity-inventory-20261028/feature-closeout.md",
+        "experiments/chromium-extension-spike/evidence/parity-progress-20261029/release-v1451-delta.json"
+      ]
+    },
+    {
+      "id": "F57",
+      "name": "Shared Spaces sync",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Shipped in public v1.45.0: per-device, off-by-default encrypted synchronization of selected Spaces (up to 25, Personal profile only), groups, ordering and closes. Internal/local navigation retains the last shareable web page on peers. Device-validated Mac↔Windows and Mac↔Linux (Gate D rerun). iOS (M17c, unreleased): the same protocol, switch, Recently closed and sidecar; the two-device check passed on October 29, 2026.",
+      "status": "known_gap",
+      "reason": "Encrypted Shared Spaces native integration remains incomplete. v1.45.1 requires pending-upload status based on actual unacknowledged edits, busy only after two consecutive rate limits, and idempotent unchanged reconciliation. These are not implemented by styling the menu.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/shipping-release-v145-20261029/README.md",
+        "experiments/chromium-extension-spike/evidence/parity-progress-20261029/release-v1451-delta.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/LEGACY-MIGRATION-INTEGRATION.md",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/blob-controller-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/profile-engine-result.json",
+        "experiments/chromium-extension-spike/evidence/sync-native-port-20261029/async-model-exchange-result.json"
+      ],
+      "native_sync_integration_note": "Profile owner/consent dispatch and dedicated creation-hook draft have isolated checks. Read-only legacy metadata/quota and strict rewrap compose in memory with synthetic-provider checks. Creation hook/strict API remain unapplied; actual source provider, models, atomic migration, native UI/app/platform acceptance incomplete. No completion credit.",
+      "native_sync_transport_integration": "Real-file account controller and persisted worker now exercise encrypted GET/PUT through actual SimpleURLLoader fake factory. Final dispatch cancellation propagates through awaits; wrong key-account binding refuses before IO; shutdown guard lifetime and quota restart checks pass. Synthetic provider/authority only. Actual Profile/broker/brand/Personal/models/UI/platform wiring incomplete; no completion credit.",
+      "native_profile_engine_preparation": "Existing-only native engine composes strict vault/provider owner routing, revision-bound controller, persisted quota and actual URLLoader fake-server exchange. Synthetic end-to-end/policy/consent-drain/shutdown passed. Actual Profile factory/Personal authority, production models/UI and platform acceptance remain incomplete. No feature completion credit.",
+      "native_lossless_model_preparation": "Owned native V8 runner and async encrypted departure adapter preserve shipping UTF16/JS number semantics through fake URLLoader GET/PUT; six async scenarios and eight sync regressions passed. Full models, bounded departure orchestration, production runtime/Profile/UI/platform acceptance remain open. No feature completion credit."
+    },
+    {
+      "id": "F42",
+      "name": "Dark websites",
+      "shipping_matrix_desktop_status": "PARTIAL",
+      "shipping_contract": "Off by default, device-local. While Blanc is dark, http(s) pages without their own dark mode are darkened from first paint by the pinned Dark Reader engine in an isolated world; per-site opt-out via Settings, `/dark-site` or the shield popover switch (memory-only in private tabs). Desktop is PARTIAL: main frames only, iframes stay as drawn.",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded in this tracker.",
+      "evidence": []
+    },
+    {
+      "id": "F44",
+      "name": "Interface language",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "All Blanc-authored UI text from the shared catalog; fixed brand/command terms; English fallback; user may pin a supported language other than the OS's; web-facing language signals unaffected. Desktop: in-app picker + relaunch; mobile: OS per-app language.",
+      "status": "partial",
+      "reason": "Combined Mac refresh bundles six current shipping Island catalogs using browser-language approximation; scripted French regular and Portuguese private Island/menu and keyboard checks pass. It is unpromoted. Explicit preference, true OS region, native dialogs, full accessibility and Windows/Linux remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/start-page-region-20261029/README.md",
+        "experiments/chromium-extension-spike/evidence/quiet-localization-20261029/README.md",
+        "experiments/chromium-extension-spike/evidence/interface-locales-20261030/README.md",
+        "experiments/chromium-extension-spike/evidence/start-page-locales-v1451-20261030/README.md",
+        "experiments/chromium-extension-spike/evidence/language-preference-20261030/README.md"
+      ]
+    },
+    {
+      "id": "F45",
+      "name": "Arc Spaces import",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Desktop only. Arc's StorableSidebar.json (found on macOS/Windows, or a chosen file anywhere) becomes one Blanc space per Arc Space, in one all-or-nothing write; folders become groups, tabs stay quiet, top-row Favorites join an Arc folder. The page sees only names and counts.",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded in this tracker.",
+      "evidence": []
+    },
+    {
+      "id": "F46",
+      "name": "Custom tab names",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "Desktop only. A tab may carry the person's own name instead of its page title; it survives navigation, relaunch, Spaces and reopen, never reaches History or Favorites, and is memory-only for private tabs.",
+      "status": "partial",
+      "reason": "Built Chromium158 passes synthetic rename/reset/navigation/close-reopen/restart and primary-private marker checks. A failed actual-menu fixture exposed a missing /rename allowlist entry; corrected assets pass background-tab menu/prompt targeting and Favorites page-title preservation. Physical input/accessibility, full lifecycle and aggregate displays, Sync and Windows/Linux remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/custom-tab-name-20261029/README.md"
+      ]
+    },
+    {
+      "id": "F47",
+      "name": "Bangs",
+      "shipping_matrix_desktop_status": "SHIPPED",
+      "shipping_contract": "`!code words` searches one site directly for every search engine, from Kagi's pinned open list; a hint row and a `!` picker in the command bar; a synced switch and the person's own bangs in Settings; no suggestion request for bang-shaped text; recents device-local and never from private tabs. The pure module and catalog under `bangs/` are the shared substrate.",
+      "status": "known_gap",
+      "reason": "Current development assets report Bangs disabled; isolated regular/private scripted input routed !yt to Google instead of YouTube. Separate Glance/language/Bangs assets and a 30-file native source overlay are reconciled; scoped mock checks and syntax pass, but GN/link, selected-search outbound isolation, real navigation, privacy, sync and desktop parity remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/bangs-parity-20261030/README.md"
+      ]
+    },
+    {
+      "id": "F48",
+      "name": "Pinned homes",
+      "shipping_matrix_desktop_status": "PARTIAL",
+      "shipping_contract": "Desktop only. A pinned tab keeps browsing normally for the session, returns to the page where it was pinned after a clean relaunch, restores the last page after a crash, and changes home only through explicit pin or menu actions. Homes stay local and private-tab homes are memory-only.",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded in this tracker.",
+      "evidence": []
+    },
+    {
+      "id": "F49",
+      "name": "Start Page wallpaper image",
+      "shipping_matrix_desktop_status": "PARTIAL",
+      "shipping_contract": "Desktop only. A JPEG or PNG the person chooses is downscaled, stripped of metadata except orientation, stored on this device only (never synced, never in private tabs) and served at an unguessable per-launch address.",
+      "status": "partial",
+      "reason": "Isolated Chromium 158 groups candidate stores a large synthetic photo as a profile-local JPEG Blob at quality 85, decodes it after restart, excludes it from a verified primary private context, and deletes it on removal. A simulated settings failure preserves the previous photo; legacy data URLs and cross-tab replacement/removal have scoped checks. This IndexedDB and document-scoped Blob URL design differs from shipping’s native file and per-launch URL; All eight synthetic JPEG EXIF orientations rendered with expected dimensions and quadrant colors; one test metadata marker was stripped. Sync, physical picker, exhaustive metadata/real-camera behavior, visual/accessibility and Windows/Linux remain open. Candidate v6 is now running in the user dev instance after a closed-profile backup; physical dialog and full interaction remain unverified. A separate prepared 158 candidate follows the time-of-day flag when a custom image is missing, with isolated regular and primary-private checks; it is not yet promoted.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/wallpaper-atomic-switch-20261029/README.md",
+        "experiments/chromium-extension-spike/evidence/wallpaper-atomic-switch-20261029/dev-refresh-candidate-20261030.json"
+      ],
+      "dev_refresh_staging": "Exact existing scoped-tested 78-file missing-image asset set copied to durable isolated candidate; same framework as development receipt, one JS differs from v6. Not promoted; no full candidate qualification."
+    },
+    {
+      "id": "F50",
+      "name": "Start Page color wallpaper",
+      "shipping_matrix_desktop_status": "PARTIAL",
+      "shipping_contract": "Desktop only. Soft, solid or gradient from the eight Spaces presets, synced; optionally follows the window's Space color; never in private tabs; inks checked at 4.5:1 in a pure paint module.",
+      "status": "partial",
+      "reason": "Isolated 158 refresh candidate passes a delayed installed-theme refresh/selection check and regular-to-private theme/color isolation on its exact assets. Physical input, Web Store installation, Sync, accessibility, other platforms and full parity remain open; candidate is not running in the development browser.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/wallpaper-atomic-switch-20261029/README.md"
+      ]
+    },
+    {
+      "id": "F51",
+      "name": "What's New page",
+      "shipping_matrix_desktop_status": "PARTIAL",
+      "shipping_contract": "Desktop only. Opens blanc.day's page for a feature release once after the update, only when the page exists; the Start Page pill links to it.",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded in this tracker.",
+      "evidence": []
+    },
+    {
+      "id": "F52",
+      "name": "Tab Archive",
+      "shipping_matrix_desktop_status": "PARTIAL",
+      "shipping_contract": "Desktop only. Off by default, device-local. Idle ungrouped, unpinned tabs close into a per-profile Archive kept 30 days, restorable from the Quick Switcher and History; never private tabs, never synced, cleared with history.",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded in this tracker.",
+      "evidence": []
+    },
+    {
+      "id": "F53",
+      "name": "Split View",
+      "shipping_matrix_desktop_status": "PARTIAL",
+      "shipping_contract": "Desktop, and iOS regular width (two panes, D30). Two to four tabs side by side, one row in the tab list, saved with the session and Spaces; grown out of Glance; one Island plus a header per pane.",
+      "status": "known_gap",
+      "reason": "The new unpromoted Mac candidate passes isolated regular/private menu pin and unpin for both panes while preserving split and pane order. The running development app remains older; pinned-home/group handling, veto/races, physical input, four-pane layouts, visual/accessibility and Windows/Linux remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/tab-selection-port-20261028/README.md",
+        "experiments/chromium-extension-spike/evidence/zoom-parity-20261030/README.md"
+      ]
+    },
+    {
+      "id": "F54",
+      "name": "Billboard clock Font & color",
+      "shipping_matrix_desktop_status": "PARTIAL",
+      "shipping_contract": "Desktop only. Four bundled faces (Roboto Flex added) with weight and a type-designed height from each face's width axis, Automatic or a Spaces preset at a tone, Solid or a refracting Glass, and a shadow that keeps it readable on any background; synced; values finished in a pure module.",
+      "status": "partial",
+      "reason": "Start Page clock controls have scoped candidate checks; complete shipping sync, visual/accessibility and all-platform acceptance remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/start-page-layout-clock-20261028/README.md"
+      ]
+    },
+    {
+      "id": "F58",
+      "name": "Reader Mode",
+      "shipping_matrix_desktop_status": "PARTIAL",
+      "shipping_contract": "Free manual local article reading, shared sanitizer/reading UI and appearance defaults, source identity and return without reload; no reader-content persistence or sync. Candidate only; platform release gates pending. iOS reuses already-loaded canvas-readable images.",
+      "status": "known_gap",
+      "reason": "No integrated Reader capability. Shipping extraction and presentation pass isolated fixtures; native guard passes fake-interface checks, and image format/accounting drafts pass standalone checks. Real browser authority, companion, blocker-safe image broker, UI and desktop platforms remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/reader-mode-draft/README.md"
+      ]
+    },
+    {
+      "id": "F59",
+      "name": "Switch tabs in the order you used them",
+      "shipping_matrix_desktop_status": "PARTIAL",
+      "shipping_contract": "Desktop only. Ctrl+Tab steps back through tabs by most recent use and lands when Ctrl is released; Esc cancels; Ctrl+PageDown/PageUp keep list order. A favicon-strip card from the second step; click to land, Ctrl+W closes the pick. Linux only until the Ctrl release is proven on Windows and macOS.",
+      "status": "known_gap",
+      "reason": "Shipping v1.45.1 supports a held-key recent-tab session on Linux/Windows; Chromium native MRU immediately activates one prior tab. An unintegrated shipping-model adapter and card pass seven unit tests and an isolated headless DOM composition check; native input, actual tab activation, full UI and platform behavior remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/mru-switcher-draft/README.md"
+      ]
+    },
+    {
+      "id": "F60",
+      "name": "Open links from other apps where they belong",
+      "shipping_matrix_desktop_status": "PARTIAL",
+      "shipping_contract": "Desktop only. Ordered domain/contains rules in Settings → Profiles send links other apps hand Blanc to a profile, optionally a Space (opened in a new window when not showing) and a private tab; unmatched links keep the window used last. Device-local, never synced. The shield popover's switch and `/route [off]` make a rule for the site in view. Opt-in: links the person opens in a new tab from a page follow rules that point elsewhere (never popups, private tabs or same-tab clicks). Candidate only.",
+      "status": "unassessed",
+      "reason": "No full three-platform parity assessment recorded. v1.45.1 requires a background-routed new window to preserve focus in the originating window; foreground routes still activate normally. No routing implementation was found in the primary prototype bridge during this limited check; broader audit remains open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/parity-progress-20261029/release-v1451-delta.json"
+      ]
+    },
+    {
+      "id": "R1",
+      "name": "Launch Sunrise on startup",
+      "shipping_matrix_desktop_status": "release supplement",
+      "shipping_contract": "See referenced v1.45 release notes and actual shipping implementation; possible exceptions are not automatically waived.",
+      "status": "known_gap",
+      "reason": "Not yet present in the running development build. A foreground fix built and passed six isolated background, inactive split, Split View and Glance checks with clean exits; Settings/private observations were on the preceding candidate. Development qualification and full persistence, accessibility and cross-platform parity remain open.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/start-page-sunrise-20261029/README.md"
+      ]
+    },
+    {
+      "id": "R2",
+      "name": "Passphrase-free Sync and recovery",
+      "shipping_matrix_desktop_status": "release supplement",
+      "shipping_contract": "See referenced v1.45 release notes and actual shipping implementation; possible exceptions are not automatically waived.",
+      "status": "known_gap",
+      "reason": "v1.45 release adds the flow; native Sync and recovery remain incomplete.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/shipping-release-v145-20261029/README.md"
+      ]
+    },
+    {
+      "id": "R3",
+      "name": "Pair iPhone to Sync",
+      "shipping_matrix_desktop_status": "release supplement",
+      "shipping_contract": "See referenced v1.45 release notes and actual shipping implementation; possible exceptions are not automatically waived.",
+      "status": "known_gap",
+      "reason": "v1.45 adds the pairing flow; native Sync and pairing remain incomplete.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/shipping-release-v145-20261029/README.md"
+      ]
+    },
+    {
+      "id": "X1",
+      "name": "uBO provider experience",
+      "shipping_matrix_desktop_status": "owner-named possible exception",
+      "shipping_contract": "See referenced v1.45 release notes and actual shipping implementation; possible exceptions are not automatically waived.",
+      "status": "known_gap",
+      "reason": "Research-only admission exists; shipping production provider lifecycle and controls remain open. This is a possible exception, not a waiver.",
+      "evidence": [
+        "experiments/chromium-extension-spike/evidence/chromium-parity-inventory-20261028/blocker-parity.md"
+      ]
+    },
+    {
+      "id": "X2",
+      "name": "DRM / Widevine behavior",
+      "shipping_matrix_desktop_status": "owner-named possible exception",
+      "shipping_contract": "See referenced v1.45 release notes and actual shipping implementation; possible exceptions are not automatically waived.",
+      "status": "unassessed",
+      "reason": "Possible exception remains undecided; actual shipping-to-Chromium behavior has not been assessed here.",
+      "evidence": []
+    }
+  ]
+}

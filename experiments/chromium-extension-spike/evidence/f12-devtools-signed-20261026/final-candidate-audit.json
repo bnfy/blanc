@@ -1,0 +1,220 @@
+{
+  "stage": "final",
+  "version": "157.0.8103.15",
+  "identifiers": [
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Alerts).app/Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.framework.AlertNotificationService",
+      "version": "157.0.8103.15"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.framework.AlertNotificationService",
+      "version": "157.0.8103.15"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif GPU).app/Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.helper",
+      "version": "157.0.8103.15"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.helper.renderer",
+      "version": "157.0.8103.15"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.helper",
+      "version": "157.0.8103.15"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (GPU).app/Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.helper",
+      "version": "157.0.8103.15"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Renderer).app/Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.helper.renderer",
+      "version": "157.0.8103.15"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper.app/Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.helper",
+      "version": "157.0.8103.15"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Resources/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview.framework",
+      "version": "157.0.8103.15"
+    },
+    {
+      "path": "Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview",
+      "version": "157.0.8103.15"
+    }
+  ],
+  "machO": [
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Blanc Prototype Framework",
+      "sha256": "552d15048979f26ff9f8eaf80645518ddc223b35c23fba0506089fe557557ccb",
+      "architecture": "arm64",
+      "entitlements": {}
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Alerts).app/Contents/MacOS/Blanc Prototype Helper (Alerts)",
+      "sha256": "edc5b4744ec681bce171553f950330a0ab3f3f88aeb66f01a364efd294f568e4",
+      "architecture": "arm64",
+      "entitlements": {}
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Alerts)",
+      "sha256": "3ed913e5d538291ed3af75cd0c3b36b773e040a41b6fee3b9c630b1da3d751ae",
+      "architecture": "arm64",
+      "entitlements": {}
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif GPU).app/Contents/MacOS/Blanc Prototype Helper (Aperitif GPU)",
+      "sha256": "f1bcba8e0cf67262df43a0c8e61bc9af448ea3c093b96978eaf1cc6446f8febc",
+      "architecture": "arm64",
+      "entitlements": {
+        "com.apple.security.cs.allow-jit": true
+      }
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)",
+      "sha256": "5e6dbb5eb4b3b44dbba2eb2e3b6cbd9a8662fa11f3b3e38216ca9531033c9d4b",
+      "architecture": "arm64",
+      "entitlements": {
+        "com.apple.security.cs.allow-jit": true
+      }
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif)",
+      "sha256": "4cfd0db22d48fba8a71bb5f74ac427241f77ddda55566e91a735c792392c5492",
+      "architecture": "arm64",
+      "entitlements": {}
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (GPU).app/Contents/MacOS/Blanc Prototype Helper (GPU)",
+      "sha256": "d031d69894e55535b99861f64e5cd5b43ea2bc5ba2786f0378deb85d5c0f732f",
+      "architecture": "arm64",
+      "entitlements": {
+        "com.apple.security.cs.allow-jit": true
+      }
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Renderer).app/Contents/MacOS/Blanc Prototype Helper (Renderer)",
+      "sha256": "843161f485d1a42e5d76934ac4d2c054129538e2b48705716f8e8e4660788ed9",
+      "architecture": "arm64",
+      "entitlements": {
+        "com.apple.security.cs.allow-jit": true
+      }
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper.app/Contents/MacOS/Blanc Prototype Helper",
+      "sha256": "3bd177d08b0317a33a4088d3124e54b4df733c53c65f414f36bd790fe1ffe05f",
+      "architecture": "arm64",
+      "entitlements": {}
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/app_mode_loader",
+      "sha256": "bd07ba38e9d83306b80f7cadb5c43172846a6b5b2824314091cc93f9e34d696a",
+      "architecture": "arm64",
+      "entitlements": {}
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/chrome_crashpad_handler",
+      "sha256": "fd94aa6f513b39510853bb76b237e16ce87645181efeb28df236f20ca7833f2d",
+      "architecture": "arm64",
+      "entitlements": {}
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/web_app_shortcut_copier",
+      "sha256": "37eaad0e5139b18ed82737357db4d8acfda68193ba409a40735ab4f0a8560685",
+      "architecture": "arm64",
+      "entitlements": {}
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Libraries/libaperitif.dylib",
+      "sha256": "6f2560b2d3a96a403468294af2bbf052d15c55d701747b106824ba1a3c82c57b",
+      "architecture": "arm64",
+      "entitlements": {}
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Libraries/libvk_swiftshader.dylib",
+      "sha256": "a4d50e321a30b9a6e9d1499e7f312cdb3be8c7a05f11d2148ca08eaa8b0031fb",
+      "architecture": "arm64",
+      "entitlements": {}
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Libraries/libvulkan.dylib",
+      "sha256": "be98d0eeb53164530d1bb5dc360f6a9590c5370d3d747388c90b348559256e59",
+      "architecture": "arm64",
+      "entitlements": {}
+    },
+    {
+      "path": "Contents/MacOS/Blanc Preview Launcher",
+      "sha256": "e854cf8a6b46b4bf6103a8f00b54c2b0e21bf14f688fcd78fa0335d1f793482c",
+      "architecture": "arm64",
+      "entitlements": {
+        "com.apple.security.device.audio-input": true,
+        "com.apple.security.device.bluetooth": true,
+        "com.apple.security.device.camera": true,
+        "com.apple.security.device.print": true,
+        "com.apple.security.device.usb": true,
+        "com.apple.security.personal-information.location": true,
+        "com.apple.security.personal-information.photos-library": true
+      }
+    },
+    {
+      "path": "Contents/MacOS/Blanc Prototype",
+      "sha256": "3f18b163f96b1bb908e85e987ff3735bd4812b127b3fd5b7ca4bd26f84c4d633",
+      "architecture": "arm64",
+      "entitlements": {
+        "com.apple.security.device.audio-input": true,
+        "com.apple.security.device.bluetooth": true,
+        "com.apple.security.device.camera": true,
+        "com.apple.security.device.print": true,
+        "com.apple.security.device.usb": true,
+        "com.apple.security.personal-information.location": true,
+        "com.apple.security.personal-information.photos-library": true
+      }
+    }
+  ],
+  "assets": {
+    "Contents/Resources/BlancAssets/host.css": "c16f3126d4c411387a4a2022a2a4af44d881c9824089a663d306343e31885df3",
+    "Contents/Resources/BlancAssets/host.js": "647211f5fbc626487290923b6c84bfe0e8e3d6bfd9e60cd99b3c4dfc3b564b53",
+    "Contents/Resources/BlancAssets/host.html": "daec6220bc75ce60517ca7bf866e121b29ecca099f771d4c8ba88b2f99e4b32c",
+    "Contents/Resources/BlancAssets/extensions.js": "e6c24a5f8fb1559e077045c3707a0dd33d3e58a8af7c16c5a5365eb9cf74ca4d",
+    "Contents/Resources/BlancAssets/extensions.css": "c91af1c5bb163ce53458080c2bf2bb92704caac221120dbb0800610f3bd406ee",
+    "Contents/Resources/BlancAssets/renderer.js": "288253ddf5bc2ec673ceb20811afd3e1b71d8988984f8fb0604acf769a0f9641",
+    "Contents/Resources/BlancBlocker/engine.js": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d"
+  },
+  "compliance": {
+    "Contents/Resources/Compliance/runtime-sbom.cdx.json": "1bfce39aa1390ddf9c667d624c0c408754b46c23aecd44afc34087c617256d2b",
+    "Contents/Resources/Compliance/LICENSE": "2ed3f1dce1cdce4260ece8e13f7bb6e367be1b9766b479624c0f4c4cf6701369",
+    "Contents/Resources/Compliance/source-materials.json": "9095a5ef951f44c90b12b3f8f676c5d38c7fd297b7ff0b5a9eb6cd498823bfbc",
+    "Contents/Resources/Compliance/chromium-credits.html": "6643414070dc6c327bf679416260a2d0db64f72bc1de1e40f712f85aa6da6ff2",
+    "Contents/Resources/Compliance/resolved-dependencies.json": "c51f1bd9743e0bf60093fcc6b5d65c828be648cb68c53b2e0d3dd88bbcd198cc",
+    "Contents/Resources/Compliance/manifest.json": "da93fddf4b1b4cdc19959b5b7dab218fb14af18e5336fd42a4db138bbc7a3dd2",
+    "Contents/Resources/Compliance/THIRD-PARTY-NOTICES.txt": "06c1d081da69be23f244453a140ce62b0df0b9cde25f8565ddc1f34dde61b11a",
+    "Contents/Resources/Compliance/LICENSE.chromium": "368cca1106be99d39ecd32a38d8305585d802a475effb66380b91ffc9bcf709b",
+    "Contents/Resources/Compliance/ASSET-LICENSE.md": "f97f97266eeca7ae54873dafaf3f6b87106a35e5544cad7a855b9f3f3211d58e",
+    "Contents/Resources/Compliance/chromium.spdx.json": "28de2306d02f5ccd14120bc37e263d2d9a2f053855b2e6483a61aa62bd41e605",
+    "Contents/Resources/Compliance/licenses/@remusao_guess-url-type-LICENSE": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "Contents/Resources/Compliance/licenses/inter-OFL.txt": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57",
+    "Contents/Resources/Compliance/licenses/tldts-experimental-LICENSE": "c64182d48160db948b6aa97a984f1a32974ce4d2053900361264cd33853796cb",
+    "Contents/Resources/Compliance/licenses/@remusao_smaz-decompress-LICENSE": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "Contents/Resources/Compliance/licenses/@ghostery_adblocker-LICENSE": "9a5743e68333a1959b266bee6905ee8ef1250f799c01a5f1bd98211e00cddd3a",
+    "Contents/Resources/Compliance/licenses/@ghostery_url-parser-LICENSE": "6e3496aca922d1041d0795f9f654a322b2fad023bb90eeed0ea59d6ad7176d23",
+    "Contents/Resources/Compliance/licenses/instrument-sans-OFL.txt": "c27a3c53c3beed7f5c26853afa15991478ff7145d3754a36b0382f84e10c0d03",
+    "Contents/Resources/Compliance/licenses/@remusao_smaz-compress-LICENSE": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "Contents/Resources/Compliance/licenses/@remusao_trie-LICENSE": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "Contents/Resources/Compliance/licenses/@remusao_smaz-LICENSE": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "Contents/Resources/Compliance/licenses/caveat-OFL.txt": "163a2b400e16916ad3196296c946c526d0efce6baf22a2164269ffc62fb9f671",
+    "Contents/Resources/Compliance/licenses/jetbrains-mono-OFL.txt": "b2fe5e8987594e9ffd1d2ca52a2f5d73eb8335243893c5d6254b5ad69269591d",
+    "Contents/Resources/Compliance/licenses/@remusao_small-LICENSE": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "Contents/Resources/Compliance/licenses/@ghostery_adblocker-extended-selectors-LICENSE": "9a5743e68333a1959b266bee6905ee8ef1250f799c01a5f1bd98211e00cddd3a"
+  },
+  "signingIdentity": "Executable=/private/tmp/blanc-devtools-candidate-20261026/Blanc Chromium Preview.app/Contents/MacOS/Blanc Preview Launcher\nIdentifier=me.bnfy.blanc.chromium.preview\nFormat=app bundle with Mach-O thin (arm64)\nCodeDirectory v=20500 size=458 flags=0x12a00(kill,restrict,library-validation,runtime) hashes=3+7 location=embedded\nVersionPlatform=1\nVersionMin=1703936\nVersionSDK=1769472\nHash type=sha256 size=32\nCandidateCDHash sha256=984f29802c540c7a2cd9e99d5710d57cf7576d2e\nCandidateCDHashFull sha256=984f29802c540c7a2cd9e99d5710d57cf7576d2ee3931eacd4dfb0b038fe5b85\nHash choices=sha256\nCMSDigest=984f29802c540c7a2cd9e99d5710d57cf7576d2ee3931eacd4dfb0b038fe5b85\nCMSDigestType=2\nExecutable Segment base=0\nExecutable Segment limit=16384\nExecutable Segment flags=0x1\nPage size=16384\nCDHash=984f29802c540c7a2cd9e99d5710d57cf7576d2e\nSignature size=8976\nAuthority=Developer ID Application: Anthony Loria (XYGUCY4498)\nAuthority=Developer ID Certification Authority\nAuthority=Apple Root CA\nTimestamp=Oct 26, 2026 at 10:37:30\u202fAM\nNotarization Ticket=stapled\nInfo.plist entries=36\nTeamIdentifier=XYGUCY4498\nRuntime Version=27.0.0\nSealed Resources version=2 rules=13 files=163\nInternal requirements count=1 size=192\nTotal signatures=1\nChosen signature=1\n"
+}

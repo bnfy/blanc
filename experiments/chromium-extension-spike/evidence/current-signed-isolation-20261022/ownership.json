@@ -1,0 +1,54 @@
+{
+  "preview": {
+    "CFBundleIdentifier": "me.bnfy.blanc.chromium.preview",
+    "CFBundleExecutable": "Blanc Preview Launcher",
+    "CFBundleShortVersionString": "157.0.8103.6",
+    "CFBundleVersion": "8103.6",
+    "CFBundleURLTypes": null,
+    "CFBundleDocumentTypes": null,
+    "SUFeedURL": null,
+    "SUPublicEDKey": null
+  },
+  "shipping": {
+    "CFBundleIdentifier": "me.bnfy.bowser",
+    "CFBundleExecutable": "Blanc",
+    "CFBundleShortVersionString": "1.42.1",
+    "CFBundleVersion": "1421",
+    "CFBundleURLTypes": [
+      {
+        "CFBundleTypeRole": "Viewer",
+        "CFBundleURLName": "Web URL",
+        "CFBundleURLSchemes": [
+          "http",
+          "https"
+        ]
+      },
+      {
+        "CFBundleTypeRole": "Viewer",
+        "CFBundleURLName": "Blanc Tab Handoff",
+        "CFBundleURLSchemes": [
+          "blanc-import"
+        ]
+      }
+    ],
+    "CFBundleDocumentTypes": [
+      {
+        "CFBundleTypeRole": "Viewer",
+        "LSHandlerRank": "Alternate",
+        "LSItemContentTypes": [
+          "public.html"
+        ]
+      },
+      {
+        "CFBundleTypeRole": "Viewer",
+        "LSHandlerRank": "Alternate",
+        "LSItemContentTypes": [
+          "public.xhtml"
+        ]
+      }
+    ],
+    "SUFeedURL": null,
+    "SUPublicEDKey": null
+  },
+  "shippingBundleMatchesTestedClone": true
+}

@@ -1,0 +1,13 @@
+{
+  "source": "Read-only CDP inspection of native chrome://downloads during initial-destination fixture",
+  "item": {
+    "fileName": "Blanc-Preview-157.0.8103.15-acceptance.zip",
+    "filePath": "/Users/anthonyjloria/Downloads/Blanc-Preview-157.0.8103.15-acceptance.zip",
+    "url": "http://127.0.0.1:9870/Blanc-Preview-157.0.8103.15-acceptance.zip",
+    "total": "243373167",
+    "state": 2,
+    "isDangerous": false,
+    "isInsecure": false,
+    "started": 1792767618
+  }
+}

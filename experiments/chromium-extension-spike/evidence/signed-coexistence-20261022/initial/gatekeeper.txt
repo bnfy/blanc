@@ -1,0 +1,2 @@
+/private/tmp/blanc-isolation-acceptance-20261022/apps/Blanc Chromium Preview.app: accepted
+source=Notarized Developer ID

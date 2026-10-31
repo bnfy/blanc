@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {hasPair,outsideVisiblePair} from './foreground-fixture-predicates.mjs';
+const s={activeTabId:'c',glanceTabId:null,splits:[{tabIds:['a','b']}]};
+assert(hasPair(s,'a','b'));assert(outsideVisiblePair(s,'b','c'));
+assert(!hasPair({...s,splits:[]},'a','b'));
+assert(!outsideVisiblePair({...s,activeTabId:'b'},'b','c'));
+assert(!outsideVisiblePair({...s,glanceTabId:'b'},'b','c'));
+assert(!outsideVisiblePair({...s,splits:[{tabIds:['c','b']}]},'b','c'));
+assert(!outsideVisiblePair({...s,splits:undefined},'b','c'));
+assert(!outsideVisiblePair(s,'c','c'));
+console.log('PASS fixture pair and foreground membership predicates');

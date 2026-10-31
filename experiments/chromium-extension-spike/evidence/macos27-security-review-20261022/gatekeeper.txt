@@ -1,0 +1,2 @@
+/private/tmp/blanc-macos27-acceptance/Blanc Chromium Preview.app: accepted
+source=Notarized Developer ID

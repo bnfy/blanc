@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import fs from 'node:fs';
+import {readyMarkerSource,usableControl,privateGroupPresent} from './fixture-groups-readiness.mjs';
+let callback,options;const window={};const document={addEventListener:(name,fn,opts)=>{assert.equal(name,'blancStartDataReady');callback=fn;options=opts}};
+vm.runInNewContext(readyMarkerSource,{document,window});assert.notEqual(window.__groupsFixtureReady,true);assert.equal(options.once,true);callback();assert.equal(window.__groupsFixtureReady,true);
+const ok={width:30,height:20,visible:true,hit:true,disabled:false,inViewport:true};assert(usableControl(ok));
+for(const patch of [{width:0},{height:0},{visible:false},{hit:false},{disabled:true},{inViewport:false}])assert(!usableControl({...ok,...patch}));assert(!usableControl(null));
+const src=fs.readFileSync(new URL('./browser-check-groups-ready.mjs',import.meta.url),'utf8');const injected=src.indexOf("source:readyMarkerSource"),navigated=src.indexOf("Page.navigate',{url:'chrome://newtab/'}",injected),ready=src.indexOf("'Start Page data-ready event'",navigated),selected=src.indexOf('await selectLayout(start.page,layout)',ready);
+assert(injected>=0&&injected<navigated&&navigated<ready&&ready<selected);assert(src.includes("Input.dispatchMouseEvent")&&src.includes("detail.nativeGroups")&&src.includes("detail.host")&&src.includes("detail.page")&&src.includes('console:proof.console.slice(-30)'));
+console.log('PASS actual readiness marker precedes layout, visible hit-target gating and failure diagnostic wiring');
+const nativeStart=src.indexOf('  async function nativeGroupRequest('),nativeEnd=src.indexOf('  const readNativeGroups=',nativeStart);assert(nativeStart>=0&&nativeEnd>nativeStart);
+let sent;const fakeWindow={blancNewTabReply:()=>{}};const fakeChrome={send:(name,args)=>{sent=[name,args];queueMicrotask(()=>fakeWindow.blancNewTabReply(args[0],true,false))}};
+const fakePage={eval:code=>vm.runInNewContext(code,{window:fakeWindow,chrome:fakeChrome,setTimeout,clearTimeout,Error})};
+const nativeGroupRequest=vm.runInNewContext('('+src.slice(nativeStart,nativeEnd).trim()+')');
+assert.equal(await nativeGroupRequest(fakePage,'focusGroup',['actual-private-group']),false);assert.equal(sent[0],'blancNewTab');assert.equal(sent[1][1],'focusGroup');assert.equal(sent[1][2][0],'actual-private-group');
+assert(src.includes("nativeGroupRequest(start.page,'focusGroup',[privateGroupId])")&&src.includes("after.activeTabId,before.activeTabId")&&src.includes("'private Start Page data-ready event'"));
+console.log('PASS raw native private focus uses real fixture group ID, readiness and active-tab check');
+
+const privateState={tabs:[{id:'member',private:true,groupId:'group'}],groups:[{id:'group'}]};assert(privateGroupPresent(privateState,'member','group'));assert(!privateGroupPresent({...privateState,groups:[]},'member','group'));assert(!privateGroupPresent({...privateState,tabs:[{id:'member',private:true,groupId:'other'}]},'member','group'));assert(!privateGroupPresent({...privateState,tabs:[{id:'member',private:false,groupId:'group'}]},'member','group'));assert(src.includes('privateGroupPresent(s,privateMember.id,privateGroupId)')&&src.includes('privateGroupPresent(after,privateMember.id,privateGroupId)'));console.log('PASS private member and group identity must persist before and after denial');

@@ -1,0 +1,10 @@
+{
+  "verified": true,
+  "identity": "anthony@bnfy.me",
+  "issuer": "https://github.com/login/oauth",
+  "checksumEntries": 3,
+  "bundleSha256": "a05c4a6f95cab9e269fb7ecf2f29ead46f971c4d17acc7d5f4d9bb11466352ad",
+  "manifestSha256": "d7c8374727939e6631e77ae37440df89c441a71aded7f5bbd8e249e86e22f666",
+  "verificationExitCode": 0,
+  "profileOrCredentialIncluded": false
+}

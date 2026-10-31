@@ -1,0 +1,41 @@
+{
+  "status": "profile service can own native engine in isolated fixture; production factory remains disabled",
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "implementation": [
+    "native engine constructed on sequenced MayBlock worker from native-only process crypto, owner sequence, network clone and fixed model factory",
+    "engine-backed controller services existing status, consent and disable methods",
+    "trusted Sync model runs on worker and result returns to service owner with shutdown redaction",
+    "engine and controller are retained until asynchronous retirement; late provider/model results cannot dispatch",
+    "live engine constructor is private to factory and isolated test access; current factory remains controller-only",
+    "bootstrap mode explicitly passed to engine; ordinary service path stays ExistingOnly"
+  ],
+  "verified": [
+    "real worker service with synthetic native provider on owner sequence, encrypted GET/PUT fake URLLoader and owner-sequence completion",
+    "shutdown with held credential provider redacts pending reply and tolerates late provider callback",
+    "shutdown with held asynchronous model callback prevents late PUT",
+    "affected controller-only service lifecycle/consent/status regression passed",
+    "factory syntax pass; nonfriend engine-constructor negative compile rejected"
+  ],
+  "rawEvidence": "evidence/native-sync-service-engine-20261030",
+  "retainedFailures": [
+    "first service syntax failed because generic callback could not infer braced result; explicit result type fixed"
+  ],
+  "limitations": [
+    "factory still lacks qualified native Personal-profile authority and does not provide engine dependencies",
+    "process OSCryptAsync and owner runner must outlive asynchronous backend shutdown; real Chromium shutdown ordering and reliable retirement acknowledgment are not yet proven",
+    "real process service, real profiles, OS credential access and live network untested",
+    "production isolated model runtime, heap/time isolation, GN registration, UI, migration, pairing and platform qualification remain open",
+    "source signatures/layout changed; recompile service and engine consumers before further integration"
+  ],
+  "appBuild": false,
+  "deployed": false,
+  "featureCredit": false,
+  "sourceSha256": {
+    "profile_engine.h": "105727fa098a6ff80b5482d0ba86239858e58a3dec7000a4a9042b7c024036ec",
+    "profile_engine.cc": "4f36ffe2b1eb86eebbcdd818718e36ee9676829a5f375150e90975b25c99ed37",
+    "profile_service.h": "6b9a824adde806eabc463811e361b21749e5cb63011006561899037628c88c86",
+    "profile_service.cc": "dd25c04e36f73ba1d6edc6e698580cd9b6e4fb027272b576a15f6a8ba715d031",
+    "profile_service_engine_test.cc": "4fb20142f18d02e1c6d6dbe2a81e0474baf635076f4292207d92c122467cb93f"
+  }
+}

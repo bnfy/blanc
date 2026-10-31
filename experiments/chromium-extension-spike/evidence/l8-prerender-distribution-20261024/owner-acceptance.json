@@ -1,0 +1,20 @@
+{
+  "answer": "All checks passed",
+  "sourceRevision": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "archiveSha256": "18a0c2ca240f2200fee3e8b250fbade27b7b86ec1c1dd77c21a538a6776aa8cc",
+  "app": "Downloads/Blanc Chromium Preview-2.app",
+  "criteria": {
+    "ordinaryOpenNoSecurityOverrideOrStall": true,
+    "shelfAndBitwardenPresent": true,
+    "bothExampleTabsLoadedAndExampleOrgSelected": true,
+    "twoNormalRestartsPreserveTabsSelectionAndShelf": true,
+    "bitwardenPopupTabFocusAfterEachRestart": true,
+    "shippingExistingTabsIntact": true
+  },
+  "evidenceType": "Direct owner report; automated read-back separately recorded",
+  "limits": [
+    "No new full VoiceOver or install-permission-dialog pass",
+    "No real extension-version upgrade",
+    "Not a factory-clean OS or independent hermetic build"
+  ]
+}

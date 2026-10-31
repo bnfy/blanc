@@ -1,0 +1,103 @@
+{
+  "candidateSource": "8439cabc865167f0e70cddedd22b390a3bec4438",
+  "archiveSha256": "8783c93501a199b7194957ee2e0672178617aff8e795a2ea4411cc8884b3f985",
+  "notary": "12b32e11-5d97-4639-ad5d-605ff26b2bef",
+  "app": "/private/tmp/blanc-split-parity-final/Blanc Chromium Preview.app",
+  "profile": "/private/tmp/blanc-split-parity-final/profile-signed-owner",
+  "cdp": 9875,
+  "server": 9874,
+  "strictSignature": "reverified at acceptance recording; 17 executable and seven selected asset hashes match signed baseline",
+  "stage1": {
+    "status": "passed",
+    "checks": [
+      "current shipping card/corner-tab visuals accepted",
+      "physical page clicking/typing and divider drag/reset",
+      "narrow/wide readability",
+      "VoiceOver Island labels/order and keyboard navigation",
+      "VoiceOver pane-specific focus/remove labels, divider name/value, context-menu labels and Escape focus return"
+    ],
+    "ownerResponse": "Passed. Continue with the theme, extension-popup, and permission-dialog checks so we can close L5."
+  },
+  "stage2": {
+    "status": "passed; owner confirms all remaining permission and popup checks, including initial Cancel",
+    "checks": [
+      "theme Apply/Remove group labels and keyboard focus, native Cancel",
+      "extension popup focus and Escape return",
+      "permission dialog spoken origin/buttons and keyboard refusal",
+      "final explicit current-candidate L5 owner acceptance"
+    ],
+    "themes": {
+      "installedFrom": "official Google Web Store, native Add to Blanc",
+      "active": "Shaded Purple at theme-check setup; subsequent Apply/Remove completed by owner",
+      "inactive": "Cherry Blossom Tree HD Wallpapers Theme at theme-check setup",
+      "ui": "Setup AX snapshot retained; owner subsequently completed the controls",
+      "ownerResponse": "Passed. Continue with Bitwarden\u2019s installation-permission dialog and popup-focus checks so we can close L5. Keep Google baseline separate, latency deferred, and the Electron build pending.",
+      "status": "passed",
+      "checks": [
+        "spoken group/action labels and disabled state",
+        "Return Apply and meaningful focus transfer",
+        "Space Remove and native Cancel focus return",
+        "confirmed removal and search focus return"
+      ]
+    },
+    "bitwarden": {
+      "storeUrl": "https://chromewebstore.google.com/detail/bitwarden-password-manage/nngceckbapebfimnlniiiahkandclblb",
+      "storeVersion": "2026.10.0",
+      "profile": "/private/tmp/blanc-split-parity-final/profile-signed-owner",
+      "nativeDialogTitle": "Add \"Bitwarden Password Manager\"?",
+      "spokenPermissionsExposedInAX": [
+        "Read and change all your data on all websites",
+        "Display notifications",
+        "Read and modify data you copy and paste"
+      ],
+      "buttons": [
+        "Cancel",
+        "Add extension"
+      ],
+      "initialFocus": "Cancel",
+      "initialAddState": "disabled by native safety delay",
+      "installed": "Owner confirms initial Cancel left Bitwarden uninstalled, then retry installation and popup-focus checks passed",
+      "ownerChecks": [
+        "VoiceOver announces name, permissions and buttons",
+        "keyboard Cancel leaves Store Add to Blanc and extension absent",
+        "second explicit owner Add installs only this disposable fixture",
+        "native popup focuses and speaks intro controls, keyboard navigation stays in popup",
+        "Escape dismisses popup and Cmd+L works; repeat opens correctly"
+      ],
+      "status": "passed",
+      "ownerResponse": "Passed, including Cancel leaving Bitwarden uninstalled before retrying. Record L5 as accepted and update the plan and evidence on #1028. Keep Google baseline separate, latency deferred, and the Electron build pending.",
+      "permissionConsent": "Owner performed Cancel and retry Add extension; agent opened the native prompt and stopped before granting permissions",
+      "popupInteraction": "Owner completed VoiceOver web-area interaction, optional setup Skip, keyboard navigation, Escape/Cmd+L focus return and reopening; no account login or vault/autofill test claimed"
+    }
+  },
+  "L6": "independent owner-observed history acknowledgement warning remains open",
+  "Google": "untouched",
+  "latency": "deferred",
+  "ElectronDiagnosticBuild": "pending approval/unstarted",
+  "recordedAt": "2026-10-23T18:19:57.422530+00:00",
+  "L5": "accepted by owner for this exact signed candidate",
+  "ownerFinalResponse": "Passed, including Cancel leaving Bitwarden uninstalled before retrying. Record L5 as accepted and update the plan and evidence on #1028. Keep Google baseline separate, latency deferred, and the Electron build pending.",
+  "readiness": {
+    "accepted": [
+      "L1",
+      "L2",
+      "L3",
+      "L5",
+      "L7",
+      "L9",
+      "L10"
+    ],
+    "open": [
+      "L4",
+      "L6",
+      "L8",
+      "L11",
+      "L12"
+    ],
+    "count": 7,
+    "total": 12,
+    "percent": 58.3,
+    "delta": "+1 L5",
+    "Decision2": "open; no public release or merge approval"
+  }
+}

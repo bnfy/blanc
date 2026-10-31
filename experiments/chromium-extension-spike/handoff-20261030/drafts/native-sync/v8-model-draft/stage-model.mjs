@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+const [repo, commit] = process.argv.slice(2);
+if (!repo || !/^[a-f0-9]{40}$/.test(commit || '')) throw new Error('Supply repository and currently verified shipping source commit.');
+const sourcePath = 'src/main/tabsync-model.js';
+const source = execFileSync('git', ['show', `${commit}:${sourcePath}`], {cwd:repo,encoding:'utf8'});
+if (/\brequire\s*\(|\bprocess\s*\.|\belectron\s*\./.test(source)) throw new Error('New runtime dependency requires review.');
+const sha = s => crypto.createHash('sha256').update(s).digest('hex');
+const wrapper = `(function(nativeByteLength){\nconst module={exports:{}};\nconst Buffer=Object.freeze({byteLength(value,encoding){if(typeof value!=='string'||encoding!=='utf8')throw new TypeError('Invalid byte-length input');return nativeByteLength(value);}});\n${source}\nreturn module.exports;\n})`;
+const delimiter = 'BLANC_' + sha(wrapper).slice(0,8);
+if(wrapper.includes(')'+delimiter+'"'))throw new Error('Raw literal delimiter collision');
+const dir=path.dirname(fileURLToPath(import.meta.url));
+const header=`// Generated from ${commit}:${sourcePath}; exact shipping model inside lexical adapter.\n#ifndef BLANC_SYNC_DRAFT_TAB_MODEL_SOURCE_H_\n#define BLANC_SYNC_DRAFT_TAB_MODEL_SOURCE_H_\nnamespace blanc::sync::draft {\ninline constexpr char kTabModelSource[] = R"${delimiter}(${wrapper})${delimiter}";\n}\n#endif\n`;
+fs.writeFileSync(path.join(dir,'tab_model_source.h'),header);
+fs.writeFileSync(path.join(dir,'tab-model-receipt.json'),JSON.stringify({sourceCommit:commit,sourcePath,sourceSha256:sha(source),wrapperSha256:sha(wrapper),headerSha256:sha(header),adapter:'native V8 UTF8 byte length; lexical CommonJS wrapper; exact source unchanged',scope:'isolated proof only; no browser initialization or service integration'},null,2)+'\n');

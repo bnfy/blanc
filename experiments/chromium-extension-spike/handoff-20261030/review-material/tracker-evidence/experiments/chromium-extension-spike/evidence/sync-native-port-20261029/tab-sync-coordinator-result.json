@@ -1,0 +1,36 @@
+{
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "status": "native coordinator draft composes cache and released model in isolated fixture; not app integrated",
+  "implementation": [
+    "reads current account/revision bound cache and device id on same profile owner sequence",
+    "runs fixed shipping-model account rebind and merge asynchronously",
+    "commits successful result only after account/revision/enabled/erasure recheck",
+    "single in-flight merge; shutdown completes pending caller once and ignores/clears late model result"
+  ],
+  "verified": [
+    "real synthetic ProfileStateStore and cache compose with actual Chromium V8 runner and persist sanitized remote device",
+    "held model result after account A to B switch returns stale and preserves existing file; B merge never exposes A data",
+    "erasure pending during model run returns stale and preserves cache",
+    "second concurrent call returns busy; shutdown completes pending callback once and ignores late result"
+  ],
+  "limitations": [
+    "caller must authenticate remote payload through credential broker bound to the same account; no production exchange or live network integrated",
+    "cache stores opaque model output, not exposed directly to renderer; UI read path and source profile policy remain open",
+    "coordinator and cache share one MayBlock owning sequence; process termination, storage rollback and external races remain unqualified",
+    "macOS synthetic fixture only; Windows cache disabled and Linux untested",
+    "model runner requires resource-limited utility isolation and robust process shutdown; current draft may CHECK if task posting fails",
+    "export/budget/heartbeat, favicon sidecar, pairing, UI, migration and cross-platform verification still missing"
+  ],
+  "rawEvidence": "evidence/native-sync-tab-coordinator-20261030",
+  "appBuild": false,
+  "deployed": false,
+  "realProfileIO": false,
+  "sourceSha256": {
+    "tab_sync_coordinator.h": "b9eebccec73f7c38e10d1d0c55cbd2a191b5e252f5560a5cfb989f2bbc0eb280",
+    "tab_sync_coordinator.cc": "479d82d7200779921b9c521693810d8ef7d5e6c40f91ed1c77156061d2ffc2b8",
+    "tab_sync_coordinator_test.cc": "344454dc4cbd41903ba0bca8c56ef71b0158d84a9361f0f8f582499501306619",
+    "tab_cache_store.h": "ccd18f2ad9bb9165c62715d41a19764c0656ffe83d0106c129367dc1d08e46c5",
+    "tab_cache_store.cc": "4c10bd806aa84c1b7ceef2beae097622cab8b8af571fad9f434bee4bc5fffcf1"
+  }
+}

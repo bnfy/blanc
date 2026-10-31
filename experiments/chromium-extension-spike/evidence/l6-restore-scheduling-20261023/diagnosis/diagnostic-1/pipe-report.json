@@ -1,0 +1,14 @@
+{
+  "app": "/private/tmp/blanc-chromium157-update/src/out/BlancPrototype/Blanc Prototype.app",
+  "checks": [
+    {
+      "name": "selected encrypted session is a FIFO with no writer",
+      "pass": true,
+      "details": {
+        "file": "/private/tmp/blanc-l6-restore-stall/diagnostic-1/pipe-profile/Default/Sessions_Encrypted/Session_13437257612425317"
+      }
+    }
+  ],
+  "error": "Error: startup deadline exceeded",
+  "stack": "Error: startup deadline exceeded\n    at boot (file:///private/tmp/blanc-l6-restore-stall/diagnostic-1/run.mjs:5:1066)\n    at async file:///private/tmp/blanc-l6-restore-stall/diagnostic-1/run.mjs:7:738"
+}

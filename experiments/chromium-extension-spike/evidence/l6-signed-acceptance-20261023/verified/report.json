@@ -1,0 +1,47 @@
+{
+  "app": "/private/tmp/blanc-l7-repair/Blanc Chromium Preview.app",
+  "profile": "/private/tmp/blanc-l6-acceptance/verified/node22-home/Library/Application Support/Blanc Chromium Preview",
+  "mockKeychain": false,
+  "checks": [
+    {
+      "name": "only disposable session stores made immutable",
+      "pass": true,
+      "details": [
+        "/private/tmp/blanc-l6-acceptance/verified/node22-home/Library/Application Support/Blanc Chromium Preview/Default/Sessions/Session_13437244916139226",
+        "/private/tmp/blanc-l6-acceptance/verified/node22-home/Library/Application Support/Blanc Chromium Preview/Default/Sessions/Session_13437244917029526",
+        "/private/tmp/blanc-l6-acceptance/verified/node22-home/Library/Application Support/Blanc Chromium Preview/Default/Sessions",
+        "/private/tmp/blanc-l6-acceptance/verified/node22-home/Library/Application Support/Blanc Chromium Preview/Default/Sessions_Encrypted/Session_13437244916139529",
+        "/private/tmp/blanc-l6-acceptance/verified/node22-home/Library/Application Support/Blanc Chromium Preview/Default/Sessions_Encrypted/Session_13437244917029811",
+        "/private/tmp/blanc-l6-acceptance/verified/node22-home/Library/Application Support/Blanc Chromium Preview/Default/Sessions_Encrypted"
+      ]
+    },
+    {
+      "name": "failed filesystem save is refused",
+      "pass": true,
+      "details": "Error: {\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Tab closed, but history persistence failed or timed out.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"6\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"6\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"66\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Tab closed, but history persistence failed or timed out.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-3544823687610360539.1.1\"}}"
+    },
+    {
+      "name": "retry close acknowledged",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9780/a"
+        ],
+        "selected": 1
+      }
+    },
+    {
+      "name": "retry survives immediate crash",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9780/a"
+        ],
+        "selected": 1
+      }
+    }
+  ],
+  "complete": true
+}

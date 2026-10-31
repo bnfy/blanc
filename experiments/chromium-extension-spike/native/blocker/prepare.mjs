@@ -1,12 +1,16 @@
+import {prepareCosmeticSources} from './prepare_cosmetic_sources.mjs';
+import { prepareFinalFactory } from './prepare_final_factory.mjs';
+import { writeResearchPolicy, guardResearchHooks } from '../../research-build.mjs';
 // Separate, explicit opt-in to the experimental blocker in the preserved 157 output.
 import fs from 'node:fs';
 import {writeIfChanged as write} from './write-file.mjs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-const [src,assets]=process.argv.slice(2), here=path.dirname(fileURLToPath(import.meta.url));
+const [src,assets,...options]=process.argv.slice(2), here=path.dirname(fileURLToPath(import.meta.url));
+if(options.some(x=>x!=='--research-hooks'))throw Error('Unknown blocker prepare option');
 if(!src||!assets)throw Error('usage: prepare.mjs CHROMIUM_SRC AUTHENTICATED_ENGINE_ASSETS');
 const version=Object.fromEntries(fs.readFileSync(path.join(src,'chrome/VERSION'),'utf8').trim().split('\n').map(line=>line.split('=')));
-if(['MAJOR','MINOR','BUILD','PATCH'].map(k=>version[k]).join('.')!=='157.0.8103.6')throw Error('exact approved 157 pin required');
+if(['MAJOR','MINOR','BUILD','PATCH'].map(k=>version[k]).join('.')!=='157.0.8103.15')throw Error('exact approved 157 pin required');
 for(const name of ['BUILD.gn','blocker.mojom','blocker_service.cc','blocker_service.h','blocker_proxy.cc','blocker_proxy.h','document_start.inc','document_start_renderer.inc','update_identity.inc'])write(path.join(src,'chrome/services/blanc_blocker',name),fs.readFileSync(path.join(here,name)));
 write(path.join(src,'chrome/services/blanc_blocker/bundle_hash.h'),fs.readFileSync(path.join(assets,'bundle_hash.h')));
 function patch(relative,marker,before,after){const file=path.join(src,relative),text=fs.readFileSync(file,'utf8');if(text.includes(marker))return;if(text.split(before).length!==2)throw Error('anchor mismatch '+relative+' '+marker);write(file,text.replace(before,after));}
@@ -19,22 +23,7 @@ void RegisterMainThreadServices(mojo::ServiceFactory& services) {
   services.Add(RunBlancBlocker);`);
 patch('chrome/utility/BUILD.gn','"//chrome/services/blanc_blocker:service"','  public_deps = []\n  deps = [','  public_deps = []\n  deps = [\n    "//chrome/services/blanc_blocker:service",');
 patch('chrome/browser/chrome_content_browser_client.cc','blanc_blocker/blocker_proxy.h','#include "chrome/browser/chrome_content_browser_client.h"','#include "chrome/browser/chrome_content_browser_client.h"\n#include "chrome/services/blanc_blocker/blocker_proxy.h"');
-const browserClient=path.join(src,'chrome/browser/chrome_content_browser_client.cc');
-const previous='  blanc::MaybeProxy(browser_context, frame, static_cast<int>(type), factory_builder);\n\n';
-const previousText=fs.readFileSync(browserClient,'utf8');
-if(!previousText.includes('// Blanc network factories only')&&previousText.includes(previous))write(browserClient,previousText.replace(previous,''));
-const oldCall='blanc::MaybeProxy(browser_context, frame, static_cast<int>(type), factory_builder);';
-const newCall='blanc::MaybeProxy(browser_context, frame, static_cast<int>(type), isolation_info, factory_builder);';
-const current=fs.readFileSync(browserClient,'utf8');
-if(current.includes(oldCall)){
- if(current.split(oldCall).length!==2)throw Error('ambiguous Blanc factory call');
- write(browserClient,current.replace(oldCall,newCall));
-}
-patch('chrome/browser/chrome_content_browser_client.cc','// Blanc network factories only','  // Install the HTTP Header Injection proxying factory.',`  // Blanc network factories only; WebUI/data/file loaders keep their own protocol.
-  if (is_for_network_service)
-    ${newCall}
-
-  // Install the HTTP Header Injection proxying factory.`);
+prepareFinalFactory(src);
 patch('chrome/browser/BUILD.gn','"//chrome/services/blanc_blocker:browser"','    ":universal_web_contents_observers",','    ":universal_web_contents_observers",\n    "//chrome/services/blanc_blocker:browser",');
 console.log('Blanc blocker sources prepared; run unchanged-args GN then the normal build guard.');
 
@@ -59,3 +48,29 @@ write(path.join(src,'content/browser/service_worker/blanc_update_identity.inc'),
 patch('chrome/browser/chrome_content_browser_client.cc','blanc::SetDocumentStartPrerenderPolicy(policy_map);',
   '  RegisterChromeMojoBinderPoliciesForSameOriginPrerendering(policy_map);',
   '  RegisterChromeMojoBinderPoliciesForSameOriginPrerendering(policy_map);\n  blanc::SetDocumentStartPrerenderPolicy(policy_map);');
+
+write(path.join(src,"content/public/browser/blanc_websocket_gate.h"),fs.readFileSync(path.join(here,"blanc_websocket_gate.h")));
+patch("chrome/browser/chrome_content_browser_client.cc","content/public/browser/blanc_websocket_gate.h","#include \"chrome/services/blanc_blocker/blocker_proxy.h\"","#include \"chrome/services/blanc_blocker/blocker_proxy.h\"\n#include \"content/public/browser/blanc_websocket_gate.h\"");
+patch("chrome/browser/chrome_content_browser_client.cc","SetBlancWebSocketWrapper","ChromeContentBrowserClient::ChromeContentBrowserClient() {","ChromeContentBrowserClient::ChromeContentBrowserClient() {\n  content::SetBlancWebSocketWrapper(&blanc::WrapWebSocketFactory);");
+patch("content/browser/websockets/websocket_connector_impl.cc","content/public/browser/blanc_websocket_gate.h","#include \"content/browser/websockets/websocket_connector_impl.h\"","#include \"content/browser/websockets/websocket_connector_impl.h\"\n#include \"content/public/browser/blanc_websocket_gate.h\"");
+patch("content/browser/websockets/websocket_connector_impl.cc","void SetBlancWebSocketWrapper","namespace content {","namespace content {\nnamespace { BlancWebSocketWrapper g_blanc_websocket_wrapper = nullptr; }\nvoid SetBlancWebSocketWrapper(BlancWebSocketWrapper wrapper) {\n  g_blanc_websocket_wrapper = wrapper;\n}\n");
+patch("content/browser/websockets/websocket_connector_impl.cc","factory = g_blanc_websocket_wrapper","  if (GetContentClient()->browser()->WillInterceptWebSocket(frame)) {","  if (g_blanc_websocket_wrapper) {\n    factory = g_blanc_websocket_wrapper(\n        frame_id_.child_id.GetUnsafeValue(), frame_id_.frame_routing_id, origin_,\n        std::move(factory));\n  }\n\n  if (GetContentClient()->browser()->WillInterceptWebSocket(frame)) {");
+
+patch('chrome/browser/chrome_content_browser_client.cc', 'callback = blanc::WrapWebTransportCallback(',
+  '    WillCreateWebTransportCallback callback) {',
+  `    WillCreateWebTransportCallback callback) {
+  callback = blanc::WrapWebTransportCallback(process_id, frame_routing_id, url,
+                                            initiator_origin, std::move(callback));`);
+
+patch('chrome/browser/chrome_content_browser_client.cc','blanc::AddNavigationResponseGate(registry);',
+  '  CreateAndAddChromeThrottlesForNavigation(registry);',
+  '  blanc::AddNavigationResponseGate(registry);\n  CreateAndAddChromeThrottlesForNavigation(registry);');
+
+patch('chrome/browser/chrome_content_browser_client.cc', 'blanc::MaybeCreateActivationGate(',
+  '  std::vector<std::unique_ptr<content::CommitDeferringCondition>> conditions;',
+  '  std::vector<std::unique_ptr<content::CommitDeferringCondition>> conditions;\n  MaybeAddCondition(blanc::MaybeCreateActivationGate(*navigation_handle, navigation_type),\n                    &conditions);');
+
+writeResearchPolicy(src, options.includes('--research-hooks'));
+guardResearchHooks(src);
+
+if (JSON.parse(fs.readFileSync(path.join(assets, "manifest.json"))).cosmeticAdapterSha256) prepareCosmeticSources(src, assets);

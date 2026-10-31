@@ -1,0 +1,83 @@
+{
+  "status": "staged-ad-hoc-awaiting-Developer-ID",
+  "sourceCommit": "7c5d6bb58845c2fb22c03e61488e3d2a1ab9740a",
+  "bundles": [
+    {
+      "path": "Contents/Info.plist",
+      "identifier": "me.bnfy.blanc.chromium.preview",
+      "executable": "Blanc Preview Launcher"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Resources/Info.plist",
+      "identifier": "me.bnfy.blanc.chromium.preview.framework",
+      "executable": "Blanc Prototype Framework"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/Info.plist",
+      "identifier": "me.bnfy.blanc.chromium.preview.framework.AlertNotificationService",
+      "executable": "Blanc Prototype Helper (Aperitif Alerts)"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (GPU).app/Contents/Info.plist",
+      "identifier": "me.bnfy.blanc.chromium.preview.helper",
+      "executable": "Blanc Prototype Helper (GPU)"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/Info.plist",
+      "identifier": "me.bnfy.blanc.chromium.preview.helper.renderer",
+      "executable": "Blanc Prototype Helper (Aperitif Renderer)"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper.app/Contents/Info.plist",
+      "identifier": "me.bnfy.blanc.chromium.preview.helper",
+      "executable": "Blanc Prototype Helper"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif GPU).app/Contents/Info.plist",
+      "identifier": "me.bnfy.blanc.chromium.preview.helper",
+      "executable": "Blanc Prototype Helper (Aperitif GPU)"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Renderer).app/Contents/Info.plist",
+      "identifier": "me.bnfy.blanc.chromium.preview.helper.renderer",
+      "executable": "Blanc Prototype Helper (Renderer)"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/Info.plist",
+      "identifier": "me.bnfy.blanc.chromium.preview.helper",
+      "executable": "Blanc Prototype Helper (Aperitif)"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Alerts).app/Contents/Info.plist",
+      "identifier": "me.bnfy.blanc.chromium.preview.framework.AlertNotificationService",
+      "executable": "Blanc Prototype Helper (Alerts)"
+    }
+  ],
+  "entitlementSources": {
+    "helper-gpu-entitlements.plist": {
+      "sha256": "958648f799e436860b51eaf55ec8f92d2c62da17001e23d96bc05ffc748f2a2a",
+      "values": {
+        "com.apple.security.cs.allow-jit": true
+      }
+    },
+    "helper-renderer-entitlements.plist": {
+      "sha256": "958648f799e436860b51eaf55ec8f92d2c62da17001e23d96bc05ffc748f2a2a",
+      "values": {
+        "com.apple.security.cs.allow-jit": true
+      }
+    },
+    "app-entitlements.plist": {
+      "sha256": "bab6f068004a79a5c439958d4060ff74edaad6301ca1390fed2cb666af4d28b7",
+      "values": {
+        "com.apple.security.device.audio-input": true,
+        "com.apple.security.device.bluetooth": true,
+        "com.apple.security.device.camera": true,
+        "com.apple.security.device.print": true,
+        "com.apple.security.device.usb": true,
+        "com.apple.security.personal-information.location": true,
+        "com.apple.security.personal-information.photos-library": true
+      }
+    }
+  },
+  "manifestSha256": "01a2457865078cd0b7d0f3c952595dc7ce16aa9d8f57de647c3d0420354d0464"
+}

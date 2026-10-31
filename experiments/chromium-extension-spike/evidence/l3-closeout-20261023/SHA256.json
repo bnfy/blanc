@@ -1,0 +1,10 @@
+{
+  "stable-retry.json": "0c492c6da5b24f0eed753b1daacbec00375aebfd21910f43988207c98291be16",
+  "stable-retry-observation.json": "5619636b281116b769751ee0bd2a5156c5ca1316c7ddbbb3ab16973aa868fcf8",
+  "beta.json": "60a832b9f182bfc830b596ec3195df4bf546cef08ead4116b8b4b55a1fcb3ee5",
+  "current-channels.json": "4e5458b2149b178d8795b0388eb8146c191885791761f2e1dac9f59a4afcdf51",
+  "dev.json": "b7289b03687d09477f5692408754bf3b603e8a0df3605a192d43c063a1722f8c",
+  "README.md": "b15b917af1d2db3e466da5c5b4a14cf6167cb0671fcc3e7d8a51040c74b5854e",
+  "verify.py": "1b325042ade85d4682ddc9799c7f6371d43c32f6163bc58a3ca7a89daec94ef9",
+  "verified-baseline.json": "8babfe9507971bc44ff10fc808fea4fe003f0cdf4e16e86d407b22d659c082cf"
+}

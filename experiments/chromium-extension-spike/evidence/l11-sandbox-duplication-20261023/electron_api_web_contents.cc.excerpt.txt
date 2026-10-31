@@ -1,0 +1,77 @@
+Source electron_api_web_contents.cc:1590-1638
+1590:     network::mojom::WebSandboxFlags sandbox_flags) {
+1591:   v8::Isolate* isolate = JavascriptEnvironment::GetIsolate();
+1592:   v8::HandleScope handle_scope(isolate);
+1593:   auto weak_this = GetWeakPtr();
+1594:
+1595:   // Build the window the way a renderer-created popup is built
+1596:   // (OnWillCreateWindow -> WebContentsCreatedWithFullParams ->
+1597:   // AddNewContents): the app's window-open handler decides first and leaves
+1598:   // the child's webPreferences behind, the child is created in the opener's
+1599:   // browser context with those preferences, and only then is it handed to JS.
+1600:   pending_child_web_preferences_.Reset();
+1601:   if (Emit("-will-add-new-contents", params.url, "", "", params.disposition,
+1602:            params.referrer, params.post_data) ||
+1603:       !weak_this) {
+1604:     if (weak_this)
+1605:       pending_child_web_preferences_.Reset();
+1606:     return;
+1607:   }
+1608:
+1609:   content::WebContents::CreateParams create_params(source->GetBrowserContext());
+1610:   create_params.starting_sandbox_flags = sandbox_flags;
+1611:   MaybeOverrideCreateParamsForNewWindow(&create_params);
+1612:   std::unique_ptr<content::WebContents> new_contents =
+1613:       content::WebContents::Create(create_params);
+1614:   AdoptChildWebContents(new_contents.get(), params.url, "", params.referrer, "",
+1615:                         params.post_data);
+1616:
+1617:   bool was_blocked = false;
+1618:   base::WeakPtr<content::WebContents> target = new_contents->GetWeakPtr();
+1619:   AddNewContents(source, std::move(new_contents), params.url,
+1620:                  params.disposition, *blink::mojom::WindowFeatures::New(),
+1621:                  params.user_gesture, &was_blocked);
+1622:   if (was_blocked || !target)
+1623:     return;
+1624:
+1625:   // The first navigation keeps the initiator's identity (origin, frame, site
+1626:   // instance, user gesture) instead of being re-issued as a browser-initiated
+1627:   // load, so Sec-Fetch-Site / SameSite, external protocol attribution and
+1628:   // navigation events describe who asked for it.
+1629:   content::NavigationController::LoadURLParams load_params(params);
+1630:   load_params.frame_tree_node_id = {};
+1631:   load_params.override_user_agent =
+1632:       content::NavigationController::UA_OVERRIDE_INHERIT;
+1633:   target->GetController().LoadURLWithParams(load_params);
+1634: }
+1635:
+1636: void WebContents::BeforeUnloadFired(content::WebContents* tab,
+1637:                                     bool proceed,
+1638:                                     bool* proceed_to_fire_unload) {
+Source electron_api_web_contents.cc:2952-2977
+2952: v8::Local<v8::Value> WebContents::Clone(v8::Isolate* isolate) {
+2953:   auto new_contents = web_contents()->Clone();
+2954:   DCHECK(new_contents);
+2955:
+2956:   // Copy WebContentsPreferences from the original WebContents to the cloned one
+2957:   v8::Local<v8::Value> current_prefs = GetLastWebPreferences(isolate);
+2958:   gin_helper::Dictionary pref_dict;
+2959:   gin::ConvertFromV8(isolate, gin::ConvertToV8(isolate, current_prefs),
+2960:                      &pref_dict);
+2961:   WebContentsPreferences::CreateForWebContents(new_contents.get(), pref_dict);
+2962:
+2963:   // Use CreateAndTake to properly take ownership of the cloned WebContents
+2964:   // and create a new wrapper with the appropriate type
+2965:   auto wrapper = CreateAndTake(isolate, std::move(new_contents), type_);
+2966:
+2967:   // We call HandleNewRenderFrame here as at this point the empty "about:blank"
+2968:   // render frame has already been created. This ensures that preferences like
+2969:   // background color, scheduler throttling, and Mojo connection are properly
+2970:   // set up for the cloned WebContents.
+2971:   auto* frame = wrapper->MainFrame();
+2972:   if (frame) {
+2973:     wrapper->HandleNewRenderFrame(frame);
+2974:   }
+2975:
+2976:   return gin::ConvertToV8(isolate, wrapper);
+2977: }

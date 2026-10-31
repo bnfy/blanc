@@ -1,0 +1,16 @@
+{
+  "source": "0353d3e33443fc54fbc75dea0bbe0bd1d009e374",
+  "archive": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/chromium158-rebase-20261028/Blanc-Chromium-Preview-158.0.8127.2-0353d3e3-arm64.zip",
+  "sha256": "08e34d602a46a6c381421850eb09ed5c05e73b1ac5221f8cc69054677b717f8e",
+  "notarization": {
+    "status": "Accepted",
+    "message": "Processing complete",
+    "id": "58770fc8-39eb-4acd-8884-b9f0bddb6534"
+  },
+  "signature": "Developer ID; strict deep verification passed",
+  "gatekeeper": "accepted",
+  "testedSignedFilesUnchanged": 459,
+  "signedAffectedChecks": 11,
+  "nativeAffectedChecks": 75,
+  "scope": "158rebase candidate; no fresh download/owner acceptance or L12 approval"
+}

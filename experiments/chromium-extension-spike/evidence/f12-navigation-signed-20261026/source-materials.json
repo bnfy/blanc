@@ -1,0 +1,57 @@
+{
+  "addedNativeSourceSha256": {
+    "chrome/browser/ui/blanc_extensions_branding.h": "17d77bbc267d13477a24bd971021f2291c505567a32383229505c13b53238a02",
+    "chrome/browser/ui/blanc_prototype_ui.cc": "a1f62eaaadc84118376b265b5e41fa4d0279fbd36aa93c8f8e044047410c4dbe",
+    "chrome/browser/ui/blanc_prototype_ui.h": "a6261906f6783cabba6bdeaffa86ad7f2474bc6291ac4f9f21bcdc0cc208bfc3",
+    "chrome/browser/ui/blanc_webstore_promotion.h": "2095cbea3733a7e78bf76b77ff80c039389a18e2633128980ee440898c11c9b6",
+    "chrome/services/blanc_blocker/BUILD.gn": "a672411fad445cb1aa1252a247af5b29bf1318dc94e78b7aa76d1658aa00782a",
+    "chrome/services/blanc_blocker/blocker.mojom": "2f3b6f1a650f3170f84837c15629116f090ef60f12893122880fe66cfe1bd948",
+    "chrome/services/blanc_blocker/blocker_proxy.cc": "eaf73aedd7ab0cdcff01ad0fa14503666af1a5628a52ebf26de74a82e9fbf18c",
+    "chrome/services/blanc_blocker/blocker_proxy.h": "794f8a01010a004c45bf3935d0db22cf1b8ddabe7f28e833bd10bdc718bd2d11",
+    "chrome/services/blanc_blocker/blocker_service.cc": "dc57f01b48543be19d8a3997fa859b5c706f4247559fea4cad88cd53efab0336",
+    "chrome/services/blanc_blocker/blocker_service.h": "5f148e2b71b50e496226b599859a75814b2cf4579ad71f5e00733068ba2e0ad0",
+    "chrome/services/blanc_blocker/bundle_hash.h": "043b8dbaf73a78cc89dbd52c5c85affe806fa7318e40c6b127292e2a09d23dca",
+    "chrome/services/blanc_blocker/document_start.inc": "91d8f9270dec23afdf443c168c4d22ff389395478499c3003da8aa87cf5c9f83",
+    "chrome/services/blanc_blocker/document_start_renderer.inc": "b7fb8f5710ae687d7f8ebd2f13eb2bc1aab7c7f6de181d295f52c838e26d9459",
+    "chrome/services/blanc_blocker/update_identity.inc": "f4a4c29a41d6a0a1120bc40c387003d5b732b6aa16c2376fe8fbaf90a0dd51bd",
+    "content/browser/service_worker/blanc_update_identity.inc": "f4a4c29a41d6a0a1120bc40c387003d5b732b6aa16c2376fe8fbaf90a0dd51bd",
+    "content/public/browser/blanc_document_token.h": "7fba8c8ac526416683e43128737e4c5ce06e8228910fa4ccd952d1ac5d58de1c",
+    "content/public/browser/blanc_url_loader_gate.h": "f7237607aa43df79e905a0e9fef918f196626b3c0de203c2353c79fdca010b48",
+    "content/public/browser/blanc_websocket_gate.h": "2e542a56bb7527d2c70f7a8635fe9b689cda749887dd659cce3f45485ff768b2",
+    "content/public/common/blanc_research_build.h": "27665fabd5e87d6733f2f26ca2256eb4b1b3fe32305c83290db0eda37aba68a6"
+  },
+  "blockerManifestSha256": "8e82749b038ab94b191951a904ff4bfe37f4415b98dcecaf4a6fef81d34d86a2",
+  "buildEnvironment": {
+    "argsSha256": "414e3baad6c84730b3c17f411ed82c5065561ba344fe2a202675654e1e18a057",
+    "clangRevision": "llvmorg-24-init-7747-g62397f8b-67",
+    "clangVersion": "clang version 24.0.0git (https://chromium.googlesource.com/a/external/github.com/llvm/llvm-project 86922d51225db089fffb99475eefc4904f79e3c8)\nTarget: arm64-apple-darwin27.2.0\nThread model: posix\nInstalledDir: /private/tmp/blanc-chromium157-update/src/third_party/llvm-build/Release+Asserts/bin",
+    "developerDir": "/Applications/Xcode.app/Contents/Developer",
+    "sdkBuild": "26A425",
+    "sdkPath": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk",
+    "sdkVersion": "27.0",
+    "xcode": "Xcode 27.1\nBuild version 27A9275"
+  },
+  "buildRecord": {
+    "completedAt": "2026-10-26T21:30:48.725Z",
+    "inputs": {
+      "argsSha256": "414e3baad6c84730b3c17f411ed82c5065561ba344fe2a202675654e1e18a057",
+      "clangRevision": "llvmorg-24-init-7747-g62397f8b-67",
+      "clangVersion": "clang version 24.0.0git (https://chromium.googlesource.com/a/external/github.com/llvm/llvm-project 86922d51225db089fffb99475eefc4904f79e3c8)\nTarget: arm64-apple-darwin27.2.0\nThread model: posix\nInstalledDir: /private/tmp/blanc-chromium157-update/src/third_party/llvm-build/Release+Asserts/bin",
+      "developerDir": "/Applications/Xcode.app/Contents/Developer",
+      "sdkBuild": "26A425",
+      "sdkPath": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk",
+      "sdkVersion": "27.0",
+      "xcode": "Xcode 27.1\nBuild version 27A9275"
+    }
+  },
+  "filterPinsSha256": "df317cd3e925466fb3011a143c86340e415ed10425866af26bc7c70f5f3479dc",
+  "nativeDiffSha256": "c1f0df9aa0751b4d419e140dfab7ffe5a52c19c41462ff9192c5dced9cee4ad5",
+  "nativeUpstreamRevision": "1aa07b638799e59656559ae6c6649d4b197f555e",
+  "provenanceScope": "Materials observed at packaging; local incremental native build, not a hosted or independent hermetic rebuild. Final signed artifact digest and authenticated distribution manifest are external to avoid a self-hash cycle.",
+  "repository": "https://github.com/bnfy/blanc",
+  "resolvedDependencyPinsSha256": "c51f1bd9743e0bf60093fcc6b5d65c828be648cb68c53b2e0d3dd88bbcd198cc",
+  "schemaVersion": 1,
+  "sourceRevision": "efb1b511efb19fa3cc5a819a5ef701a2b867d7d1",
+  "sourceTree": "dc1cd1b49ec7c7e94858646386d0c15f71a1c706",
+  "upstreamLicenseInventorySha256": "d5b03f45c62d79510f434337c9200036ae4bf1a95100e2d955e9e9031b3263ff"
+}

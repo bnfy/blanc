@@ -1,0 +1,253 @@
+{
+  "complete": false,
+  "runs": [
+    {
+      "mode": "regular",
+      "profile": "/private/tmp/blanc-f12-redirect-repair-20261025/navigation/profile-regular",
+      "cases": [
+        {
+          "label": "replace-block",
+          "interceptions": [
+            {
+              "path": "/start/replace-block",
+              "networkId": "2F03F2551EECD502E58694592C76BAD8",
+              "requestId": "interception-job-1.0",
+              "modifiedHeaders": false,
+              "replacement": null
+            },
+            {
+              "path": "/original/replace-block",
+              "networkId": "2F03F2551EECD502E58694592C76BAD8",
+              "requestId": "interception-job-1.1",
+              "modifiedHeaders": false,
+              "replacement": "http://googleads.g.doubleclick.net:58283/replacement/replace-block"
+            }
+          ],
+          "value": {
+            "ok": false,
+            "error": "net::ERR_ABORTED"
+          },
+          "serverHits": [
+            {
+              "path": "/start/replace-block",
+              "host": "127.0.0.1:58283",
+              "method": "GET",
+              "keep": null,
+              "remove": null,
+              "edited": null
+            }
+          ],
+          "networkEvents": [
+            {
+              "method": "Network.requestWillBeSent",
+              "params": {
+                "requestId": "2F03F2551EECD502E58694592C76BAD8",
+                "loaderId": "2F03F2551EECD502E58694592C76BAD8",
+                "documentURL": "http://127.0.0.1:58283/start/replace-block",
+                "request": {
+                  "url": "http://127.0.0.1:58283/start/replace-block",
+                  "method": "GET",
+                  "headers": {
+                    "Upgrade-Insecure-Requests": "1",
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+                    "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+                    "sec-ch-ua-mobile": "?0",
+                    "sec-ch-ua-platform": "\"macOS\""
+                  },
+                  "mixedContentType": "none",
+                  "initialPriority": "VeryHigh",
+                  "referrerPolicy": "strict-origin-when-cross-origin",
+                  "isSameSite": true
+                },
+                "timestamp": 431099.204355,
+                "wallTime": 1792950767.495304,
+                "initiator": {
+                  "type": "other"
+                },
+                "redirectHasExtraInfo": false,
+                "type": "Document",
+                "frameId": "0C45A23C883561383D47EBC48032EA55",
+                "hasUserGesture": false
+              }
+            },
+            {
+              "method": "Network.requestWillBeSentExtraInfo",
+              "params": {
+                "requestId": "2F03F2551EECD502E58694592C76BAD8",
+                "associatedCookies": [],
+                "headers": {
+                  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                  "Accept-Encoding": "gzip, deflate, br, zstd",
+                  "Accept-Language": "en-US,en;q=0.9",
+                  "Connection": "keep-alive",
+                  "Host": "127.0.0.1:58283",
+                  "Sec-Fetch-Dest": "document",
+                  "Sec-Fetch-Mode": "navigate",
+                  "Sec-Fetch-Site": "none",
+                  "Sec-Fetch-User": "?1",
+                  "Upgrade-Insecure-Requests": "1",
+                  "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+                  "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+                  "sec-ch-ua-mobile": "?0",
+                  "sec-ch-ua-platform": "\"macOS\""
+                },
+                "connectTiming": {
+                  "requestTime": 431099.21192
+                },
+                "siteHasCookieInOtherPartition": false
+              }
+            },
+            {
+              "method": "Network.responseReceivedExtraInfo",
+              "params": {
+                "requestId": "2F03F2551EECD502E58694592C76BAD8",
+                "blockedCookies": [],
+                "headers": {
+                  "Connection": "keep-alive",
+                  "Date": "Sun, 25 Oct 2026 17:52:47 GMT",
+                  "Keep-Alive": "timeout=5",
+                  "Location": "/original/replace-block",
+                  "Transfer-Encoding": "chunked"
+                },
+                "resourceIPAddressSpace": "Loopback",
+                "statusCode": 302,
+                "headersText": "HTTP/1.1 302 Found\r\nLocation: /original/replace-block\r\nDate: Sun, 25 Oct 2026 17:52:47 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nTransfer-Encoding: chunked\r\n\r\n",
+                "cookiePartitionKey": {
+                  "topLevelSite": "http://127.0.0.1",
+                  "hasCrossSiteAncestor": false
+                },
+                "cookiePartitionKeyOpaque": false,
+                "exemptedCookies": []
+              }
+            },
+            {
+              "method": "Network.requestWillBeSent",
+              "params": {
+                "requestId": "2F03F2551EECD502E58694592C76BAD8",
+                "loaderId": "2F03F2551EECD502E58694592C76BAD8",
+                "documentURL": "http://127.0.0.1:58283/original/replace-block",
+                "request": {
+                  "url": "http://127.0.0.1:58283/original/replace-block",
+                  "method": "GET",
+                  "headers": {
+                    "Upgrade-Insecure-Requests": "1",
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+                    "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+                    "sec-ch-ua-mobile": "?0",
+                    "sec-ch-ua-platform": "\"macOS\""
+                  },
+                  "mixedContentType": "none",
+                  "initialPriority": "VeryHigh",
+                  "referrerPolicy": "strict-origin-when-cross-origin",
+                  "isSameSite": true
+                },
+                "timestamp": 431099.213538,
+                "wallTime": 1792950767.504498,
+                "initiator": {
+                  "type": "other"
+                },
+                "redirectHasExtraInfo": true,
+                "redirectResponse": {
+                  "url": "http://127.0.0.1:58283/start/replace-block",
+                  "status": 302,
+                  "statusText": "Found",
+                  "headers": {
+                    "Connection": "keep-alive",
+                    "Date": "Sun, 25 Oct 2026 17:52:47 GMT",
+                    "Keep-Alive": "timeout=5",
+                    "Location": "/original/replace-block",
+                    "Transfer-Encoding": "chunked"
+                  },
+                  "mimeType": "",
+                  "charset": "",
+                  "connectionReused": true,
+                  "connectionId": 101,
+                  "remoteIPAddress": "127.0.0.1",
+                  "remotePort": 58283,
+                  "fromDiskCache": false,
+                  "fromServiceWorker": false,
+                  "fromPrefetchCache": false,
+                  "encodedDataLength": 169,
+                  "timing": {
+                    "requestTime": 431099.21192,
+                    "proxyStart": -1,
+                    "proxyEnd": -1,
+                    "dnsStart": -1,
+                    "dnsEnd": -1,
+                    "connectStart": -1,
+                    "connectEnd": -1,
+                    "sslStart": -1,
+                    "sslEnd": -1,
+                    "workerStart": -1,
+                    "workerReady": -1,
+                    "workerFetchStart": -1,
+                    "workerRespondWithSettled": -1,
+                    "sendStart": 0.255,
+                    "sendEnd": 0.292,
+                    "pushStart": 0,
+                    "pushEnd": 0,
+                    "receiveHeadersStart": 0.442,
+                    "receiveHeadersEnd": 0.492
+                  },
+                  "responseTime": 1792950767503.306,
+                  "protocol": "http/1.1",
+                  "alternateProtocolUsage": "unspecifiedReason",
+                  "securityState": "secure"
+                },
+                "type": "Document",
+                "frameId": "0C45A23C883561383D47EBC48032EA55",
+                "hasUserGesture": false
+              }
+            },
+            {
+              "method": "Network.loadingFailed",
+              "params": {
+                "requestId": "2F03F2551EECD502E58694592C76BAD8",
+                "timestamp": 431099.568375,
+                "type": "Document",
+                "errorText": "net::ERR_ABORTED",
+                "canceled": true
+              }
+            }
+          ],
+          "native": []
+        }
+      ],
+      "browserContextId": null
+    }
+  ],
+  "checks": [
+    {
+      "name": "regular/replace-block: native trace joins actual intercepted network IDs",
+      "pass": false,
+      "detail": []
+    }
+  ],
+  "error": "AssertionError [ERR_ASSERTION]: regular/replace-block: native trace joins actual intercepted network IDs\n    at check (file:///private/tmp/blanc-f12-redirect-repair-20261025/navigation/run.mjs:14:3)\n    at file:///private/tmp/blanc-f12-redirect-repair-20261025/navigation/run.mjs:89:4",
+  "serverHits": [
+    {
+      "path": "/page",
+      "host": "127.0.0.1:58283",
+      "method": "GET",
+      "keep": null,
+      "remove": null,
+      "edited": null
+    },
+    {
+      "path": "/page",
+      "host": "127.0.0.1:58283",
+      "method": "GET",
+      "keep": null,
+      "remove": null,
+      "edited": null
+    },
+    {
+      "path": "/start/replace-block",
+      "host": "127.0.0.1:58283",
+      "method": "GET",
+      "keep": null,
+      "remove": null,
+      "edited": null
+    }
+  ]
+}

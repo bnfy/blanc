@@ -1,0 +1,24 @@
+{
+  "removed": [
+    "/private/tmp/blanc-session-recovery/permanent-profile",
+    "/private/tmp/blanc-session-recovery/temporary-profile",
+    "/private/tmp/blanc-session-recovery/Blanc Recovery Lifetime.app",
+    "/private/tmp/blanc-session-recovery/Blanc Recovery Fixed.app",
+    "/private/tmp/blanc-session-recovery/Blanc Chromium Preview.app",
+    "/private/tmp/blanc-session-recovery/delay-profile",
+    "/private/tmp/blanc-session-recovery/quit-profile",
+    "/private/tmp/blanc-session-recovery/final/permanent-profile",
+    "/private/tmp/blanc-session-recovery/final/temporary-profile",
+    "/private/tmp/blanc-session-recovery/final/delay-profile",
+    "/private/tmp/blanc-session-recovery/final/quit-profile",
+    "/private/tmp/blanc-session-recovery/encrypted/delay-profile",
+    "/private/tmp/blanc-session-recovery/encrypted/quit-profile",
+    "/private/tmp/blanc-session-recovery/verified/permanent-profile",
+    "/private/tmp/blanc-session-recovery/verified/temporary-profile",
+    "/private/tmp/blanc-session-recovery/verified/delay-profile",
+    "/private/tmp/blanc-session-recovery/verified/quit-profile",
+    "/private/tmp/blanc-session-recovery/verified-encrypted/delay-profile",
+    "/private/tmp/blanc-session-recovery/verified-encrypted/quit-profile"
+  ],
+  "live_fixture_processes": []
+}

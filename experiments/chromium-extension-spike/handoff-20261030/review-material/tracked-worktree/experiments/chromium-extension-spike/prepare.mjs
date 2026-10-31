@@ -1,0 +1,1046 @@
+import { prepareCertificateRevocation } from './certificate-revocation.mjs';
+import { writeResearchPolicy, guardResearchHooks } from './research-build.mjs';
+import { addPreviewNotice } from './preview/notice.mjs';
+import { hardenMarkup } from './trusted-markup.mjs';
+import { prepareSessionRecovery } from './session-recovery.mjs';
+import { preparePendingNavigation } from './pending-navigation.mjs';
+import { prepareNativeHitTest } from './native-hit-test.mjs';
+import { prepareSaveAcknowledgement } from './save-ack.mjs';
+import { prepareStartupSession } from './startup-session.mjs';
+import fs from 'node:fs';
+import { createHash } from 'node:crypto';
+import path from 'node:path';
+import process from 'node:process';
+import { fileURLToPath } from 'node:url';
+import { prepareMacIcon } from './mac-icon.mjs';
+import { prepareComponent } from './ubo-component.mjs';
+import { prepareDocumentTarget } from './ubo-document-target.mjs';
+import { prepareWindowIdentity } from './window-identity.mjs';
+import { prepareHistoryAcknowledgement } from './history-acknowledgement.mjs';
+import { prepareGroupPersistence } from './group-persistence.mjs';
+import { prepareRendererTarget } from './ubo-renderer-target.mjs';
+import { addCopyCommandAsset } from './copy-command-assets.mjs';
+import { buildInterfaceCatalogs, buildStartPageCatalogs } from './interface-locales.mjs';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const repo = path.resolve(here, '../..');
+const chromium = path.resolve(process.argv[2] ?? '');
+const expectedVersion = '157.0.8103.15';
+const assetsOnly = process.argv.slice(3).includes('--assets-only');
+const stageNativeOwned = process.argv.slice(3).includes('--stage-native-owned');
+const stageBlockerOwned = process.argv.slice(3).includes('--stage-blocker-owned');
+if (process.argv.slice(3).some(arg => arg !== '--assets-only' && arg !== '--research-hooks' && arg !== '--stage-native-owned' && arg !== '--stage-blocker-owned')) throw new Error('Unknown prepare option');
+if ((stageNativeOwned || stageBlockerOwned) && process.argv.slice(3).length !== 1) throw new Error('owned staging cannot be combined with other options');
+
+function fail(message) {
+  console.error(`chromium spike: ${message}`);
+  process.exit(1);
+}
+
+if (!process.argv[2]) fail('pass the Chromium src checkout as the first argument');
+const versionFile = path.join(chromium, 'chrome', 'VERSION');
+if (!fs.existsSync(versionFile)) fail(`${chromium} is not a complete Chromium checkout`);
+const version = Object.fromEntries(
+  fs.readFileSync(versionFile, 'utf8').trim().split('\n').map((line) => line.split('=')),
+);
+const actualVersion = `${version.MAJOR}.${version.MINOR}.${version.BUILD}.${version.PATCH}`;
+if ((stageNativeOwned || stageBlockerOwned) && actualVersion !== '158.0.8127.2') fail('owned staging requires Chromium 158.0.8127.2');
+if (actualVersion !== expectedVersion && !(actualVersion === '158.0.8127.2' && (assetsOnly || stageNativeOwned || stageBlockerOwned))) {
+  fail(`expected Chromium ${expectedVersion}, or 158.0.8127.2 with --assets-only; found ${actualVersion}; review anchors before changing the pin`);
+}
+
+// Read first and treat a missing file as changed, rather than checking
+// existence and then reading (CodeQL js/file-system-race).
+function writeIfChanged(target, value) {
+  let current = null;
+  try {
+    current = fs.readFileSync(target);
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+  if (!current || !current.equals(Buffer.from(value))) fs.writeFileSync(target, value);
+}
+
+// Produce only reviewed Blanc-owned UI files in the repository workspace.
+// This does not patch Chromium, generate build files, or invoke a compiler.
+if (stageNativeOwned) {
+  const names = ['blanc_prototype_ui.h', 'blanc_prototype_ui.cc', 'blanc_tab_name_rules.h', 'blanc_quiet_probe.h', 'blanc_quiet_media.h', 'blanc_quiet_schedule.h', 'blanc_quiet_strings.h', 'blocking_settings_handler.inc',
+    'billboard_clock_settings.inc', 'start_page_pins.inc', 'start_page_pin_menu.inc'];
+  const files = new Map();
+  for (const name of names) {
+    let bytes = fs.readFileSync(path.join(here, 'native', name));
+    if (name === 'blanc_prototype_ui.cc') {
+      let text = bytes.toString('utf8');
+      const disposition = 'WindowOpenDisposition::NEW_FOREGROUND_TAB';
+      if (text.split(disposition).length !== 5) fail('158 foreground disposition anchors changed');
+      text = text.replaceAll(disposition, 'WindowOpenDisposition::kNewForegroundTab');
+      const menuAnchor = '  void ExecuteCommandForTesting(int id, int flags) override {\n';
+      if (text.split(menuAnchor).length !== 2 || text.includes('GetActionAppMenuForTesting()')) fail('158 app-menu anchor changed');
+      text = text.replace(menuAnchor, '  ActionAppMenu* GetActionAppMenuForTesting() override {\n    return delegate_->GetAppMenuControl()->GetActionAppMenuForTesting();\n  }\n' + menuAnchor);
+      // Keep the generated byte stream identical to the already-built 158
+      // source, even though the repository comment no longer says Draft.
+      const groupComment = "// Resolve only the requesting Start Page's own browser and profile.";
+      if (text.split(groupComment).length !== 2) fail('158 group anchor changed');
+      text = text.replace(groupComment, "// Draft: resolve only the requesting Start Page's own browser and profile.");
+      bytes = Buffer.from(text);
+    }
+    files.set(name, bytes);
+  }
+  const out = path.join(here, 'generated-158-native');
+  if (fs.existsSync(out) && (!fs.lstatSync(out).isDirectory() || fs.lstatSync(out).isSymbolicLink())) fail('invalid 158 native staging directory');
+  if (fs.existsSync(out)) for (const entry of fs.readdirSync(out, { withFileTypes: true })) {
+    if (!entry.isFile() || entry.isSymbolicLink() || !files.has(entry.name)) fail(`unexpected 158 native staging entry: ${entry.name}`);
+  }
+  const receipt = { version: actualVersion, scope: 'Blanc-owned UI files only; upstream integration and build are separate', files: {} };
+  for (const [name, bytes] of files) {
+    const target = path.join(chromium, 'chrome', 'browser', 'ui', name);
+    const installed = fs.existsSync(target) ? fs.readFileSync(target) : null;
+    receipt.files[name] = { stagedSha256: createHash('sha256').update(bytes).digest('hex'), installedSha256: installed ? createHash('sha256').update(installed).digest('hex') : null, matchesInstalled: installed ? bytes.equals(installed) : false };
+  }
+  fs.mkdirSync(out, { recursive: true });
+  for (const [name, bytes] of files) writeIfChanged(path.join(out, name), bytes);
+  writeIfChanged(path.join(here, 'generated-158-native-receipt.json'), JSON.stringify(receipt, null, 2) + '\n');
+  const changed = Object.values(receipt.files).filter(file => !file.matchesInstalled).length;
+  console.log(`Staged ${files.size} Blanc-owned UI files in ${out}; ${changed} differ from this 158 checkout. No Chromium files or build caches changed.`);
+  process.exit(0);
+}
+
+// Stage the blocker-owned sources only; upstream hooks and the authenticated
+// engine bundle are intentionally not generated or modified by this mode.
+if (stageBlockerOwned) {
+  const blocker = path.join(here, 'native', 'blocker');
+  const names = ['BUILD.gn', 'blocker.mojom', 'blocker_service.cc', 'blocker_service.h',
+    'blocker_proxy.cc', 'blocker_proxy.h', 'document_start.inc', 'document_start_renderer.inc',
+    'update_identity.inc', 'cosmetic_document.inc', 'shield_count.inc', 'blocking_policy.inc'];
+  const pairs = names.map(name => [name, `chrome/services/blanc_blocker/${name}`]);
+  pairs.push(['blanc_url_loader_gate.h', 'content/public/browser/blanc_url_loader_gate.h'],
+    ['blanc_websocket_gate.h', 'content/public/browser/blanc_websocket_gate.h'],
+    ['update_identity.inc', 'content/browser/service_worker/blanc_update_identity.inc']);
+  const files = new Map();
+  function replaceOnce(text, before, after, label) {
+    if (text.split(before).length !== 2) fail(`158 blocker anchor changed: ${label}`);
+    return text.replace(before, after);
+  }
+  for (const [name, target] of pairs) {
+    let text = fs.readFileSync(path.join(blocker, name), 'utf8');
+    if (name === 'blocker_proxy.cc')
+      text = replaceOnce(text, 'new CosmeticDocument(*frame, std::move(receiver));',
+        'base::MakeSelfDeleting<CosmeticDocument>(*frame, std::move(receiver));', 'cosmetic binding');
+    if (name === 'cosmetic_document.inc') {
+      text = replaceOnce(text,
+        '  CosmeticDocument(content::RenderFrameHost& frame, mojo::PendingReceiver<mojom::Cosmetics> receiver);\n  ~CosmeticDocument() override;',
+        '  CosmeticDocument(content::RenderFrameHost& frame, mojo::PendingReceiver<mojom::Cosmetics> receiver, base::SelfDeletingPassKey key);', 'declaration');
+      text = replaceOnce(text, ' private:\n  void PolicyChanged();',
+        ' private:\n  ~CosmeticDocument() override;\n  void PolicyChanged();', 'destructor');
+      text = replaceOnce(text,
+        'CosmeticDocument::CosmeticDocument(content::RenderFrameHost& frame, mojo::PendingReceiver<mojom::Cosmetics> receiver)\n    : DocumentService(frame, std::move(receiver)) {',
+        'CosmeticDocument::CosmeticDocument(content::RenderFrameHost& frame, mojo::PendingReceiver<mojom::Cosmetics> receiver, base::SelfDeletingPassKey key)\n    : DocumentService(frame, std::move(receiver), key) {', 'constructor');
+    }
+    files.set(target, Buffer.from(text));
+  }
+  const receipt = { version: actualVersion, scope: 'blocker-owned sources only; upstream hooks and bundle excluded', files: {} };
+  for (const [name, bytes] of files) {
+    const installed = fs.readFileSync(path.join(chromium, name));
+    receipt.files[name] = { stagedSha256: createHash('sha256').update(bytes).digest('hex'), installedSha256: installed ? createHash('sha256').update(installed).digest('hex') : null, matchesInstalled: installed ? bytes.equals(installed) : false };
+  }
+  const out = path.join(here, 'generated-158-blocker');
+  if (fs.existsSync(out) && (!fs.lstatSync(out).isDirectory() || fs.lstatSync(out).isSymbolicLink())) fail('invalid 158 blocker staging directory');
+  function inspect(directory, prefix = '') {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const name = prefix ? `${prefix}/${entry.name}` : entry.name;
+      if (entry.isSymbolicLink()) fail(`symlink in 158 blocker staging: ${name}`);
+      if (entry.isDirectory()) inspect(path.join(directory, entry.name), name);
+      else if (!entry.isFile() || !files.has(name)) fail(`unexpected 158 blocker staging entry: ${name}`);
+    }
+  }
+  if (fs.existsSync(out)) inspect(out);
+  for (const [name, bytes] of files) {
+    const target = path.join(out, name); fs.mkdirSync(path.dirname(target), { recursive: true });
+    writeIfChanged(target, bytes);
+  }
+  writeIfChanged(path.join(here, 'generated-158-blocker-receipt.json'), JSON.stringify(receipt, null, 2) + '\n');
+  const changed = Object.values(receipt.files).filter(file => !file.matchesInstalled).length;
+  console.log(`Staged ${files.size} blocker-owned files in ${out}; ${changed} differ from this 158 checkout. No Chromium files or build caches changed.`);
+  process.exit(0);
+}
+
+// The tested 158 Start Page is based on the released 1.45.0 renderer, while
+// the older repository renderer used by 157 predates it. Preserve a reviewed
+// immutable baseline and overlay the editable prototype files. A changed
+// overlay produces an explicitly unverified output for subsequent checks.
+if (actualVersion === '158.0.8127.2') {
+  if (process.argv.slice(3).includes('--research-hooks')) fail('research hooks are not available in 158 assets-only preparation');
+  const baseline = path.join(here, 'prototype', 'chromium158-asset-baseline');
+  const source = path.join(baseline, 'assets');
+  if (!fs.lstatSync(source).isDirectory() || fs.lstatSync(source).isSymbolicLink()) fail('invalid 158 asset baseline directory');
+  const manifest = JSON.parse(fs.readFileSync(path.join(baseline, 'manifest.json'), 'utf8'));
+  const entries = Object.entries(manifest.files || {});
+  if (entries.length !== 78) fail('158 asset baseline manifest count changed');
+  const overlays = {
+    'adapter.js': 'adapter.js', 'host.js': 'host.js', 'host.css': 'host.css', 'host.html': 'host.html',
+    'prototype.css': 'prototype.css', 'shield-model.js': 'shield-model.js',
+    'tab-selection.js': 'tab-selection.js', 'selection-tab-sections.js': 'selection-tab-sections.js',
+    'blocking-settings.html': 'blocking-settings.html', 'blocking-settings.js': 'blocking-settings.js',
+    'blocking-settings-adapter.js': 'blocking-settings-adapter.js',
+    'extensions.css': 'extensions.css', 'extensions.js': 'extensions.js',
+    'installed-theme.js': 'installed-theme.js', 'pages/installed-theme.js': 'installed-theme.js',
+    'pages/newtab-adapter.js': 'newtab-adapter-158.js', 'pages/newtab-prototype.css': 'newtab-prototype-158.css',
+    'pages/billboard-clock-adapter.js': 'billboard-clock-adapter.js',
+    'pages/shipping-clock-style.js': 'shipping-clock-style.js',
+  };
+  function rejectSymlinkComponents(root, relative, allowMissing = false) {
+    let current = root;
+    for (const part of relative.split('/')) {
+      current = path.join(current, part);
+      try {
+        if (fs.lstatSync(current).isSymbolicLink()) fail(`symlink in 158 asset path: ${relative}`);
+      } catch (error) {
+        if (allowMissing && error.code === 'ENOENT') return;
+        throw error;
+      }
+    }
+  }
+  const prepared = new Map();
+  let matchesVerified = true;
+  for (const [name, expected] of entries) {
+    if (name.startsWith('/') || name.split('/').some(part => part === '..' || !part) || !/^[0-9a-f]{64}$/.test(expected)) fail(`invalid 158 asset entry: ${name}`);
+    rejectSymlinkComponents(source, name);
+    const original = path.join(source, name);
+    if (!fs.lstatSync(original).isFile() || fs.lstatSync(original).isSymbolicLink()) fail(`invalid 158 baseline file: ${name}`);
+    const bytes = fs.readFileSync(original);
+    if (createHash('sha256').update(bytes).digest('hex') !== expected) fail(`158 baseline hash changed: ${name}`);
+    let next = overlays[name] ? fs.readFileSync(path.join(here, 'prototype', overlays[name])) : bytes;
+    if (name === 'overlay.js') {
+      // Chromium's native Settings route is available; expose the existing
+      // shipping command without advertising the unimplemented Sync route.
+      const text = next.toString('utf8');
+      const before = "'/find', '/downloads', '/new', '/close', '/save'";
+      const after = "'/find', '/downloads', '/settings', '/new', '/close', '/save'";
+      if (text.split(before).length !== 2) fail('158 slash-command allowlist anchor changed');
+      next = Buffer.from(text.replace(before, after));
+    }
+    if (['overlay.js', 'renderer.js', 'strings.js'].includes(name))
+      next = Buffer.from(addCopyCommandAsset(name, next));
+    if (name === 'strings.js') next = Buffer.from(buildInterfaceCatalogs(next));
+    if (name === 'pages/strings.js') next = Buffer.from(buildStartPageCatalogs(next));
+    if (createHash('sha256').update(next).digest('hex') !== expected) matchesVerified = false;
+    prepared.set(name, next);
+  }
+  for (const name of Object.keys(overlays)) if (!prepared.has(name)) fail(`missing 158 overlay: ${name}`);
+  const out = path.join(here, 'generated-158');
+  if (fs.existsSync(out)) {
+    if (!fs.lstatSync(out).isDirectory() || fs.lstatSync(out).isSymbolicLink()) fail('invalid 158 output directory');
+    const inspect = (directory, prefix = '') => {
+      for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+        const name = prefix ? `${prefix}/${entry.name}` : entry.name;
+        if (entry.isSymbolicLink()) fail(`symlink in 158 output: ${name}`);
+        if (entry.isDirectory()) inspect(path.join(directory, entry.name), name);
+        else if (!entry.isFile() || !prepared.has(name)) fail(`unexpected 158 output: ${name}`);
+      }
+    };
+    inspect(out);
+  }
+  for (const [name, bytes] of prepared) {
+    rejectSymlinkComponents(out, name, true);
+    const target = path.join(out, name);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    writeIfChanged(target, bytes);
+  }
+  const receipt = { version: actualVersion, baselineManifestSha256: manifest.sourceManifestSha256,
+    matchesVerifiedBaseline: matchesVerified, files: Object.fromEntries([...prepared].map(([name, bytes]) => [name, createHash('sha256').update(bytes).digest('hex')])) };
+  writeIfChanged(path.join(here, 'generated-158-receipt.json'), JSON.stringify(receipt, null, 2) + '\n');
+  console.log(`Prepared ${prepared.size} Chromium 158 assets in ${out}; ${matchesVerified ? 'matches the tested baseline' : 'changed overlays require qualification'}. No native files changed.`);
+  process.exit(0);
+}
+
+const generated = path.join(here, 'generated');
+fs.mkdirSync(path.join(generated, 'pages'), { recursive: true });
+
+const reviewedAssets = JSON.parse(fs.readFileSync(path.join(here, 'renderer-1.38/manifest.json'), 'utf8'));
+const assets = new Map();
+const copies = [
+  ['src/main/start-page-paint.js', 'pages/start-page-paint.js'],
+  ['src/renderer/space-identity.js', 'pages/space-identity.js'],
+  ['src/renderer/pages/bangs.js', 'pages/bangs.js'],
+  ['src/renderer/pages/bangs-catalog.js', 'pages/bangs-catalog.js'],
+  ['src/renderer/pages/newtab.html', 'pages/newtab.html'],
+  ['src/renderer/pages/newtab.js', 'pages/newtab.js'],
+  ['src/renderer/pages/close.svg', 'pages/close.svg'],
+  ['src/renderer/pages/newtab-wallpaper.js', 'pages/newtab-wallpaper.js'],
+  ['src/renderer/pages/start-site-name.js', 'pages/start-site-name.js'],
+  ['src/renderer/pages/pages.css', 'pages/pages.css'],
+  ['src/renderer/pages/i18n.js', 'pages/i18n.js'],
+  ['src/renderer/pages/sunrise-mark.png', 'pages/sunrise-mark.png'],
+  ['src/renderer/pages/icon-sunrise.png', 'pages/icon-sunrise.png'],
+  ['src/renderer/pages/icon-sunrise-dark.png', 'pages/icon-sunrise-dark.png'],
+  ['src/renderer/pages/onboarding-island-dark.png', 'pages/onboarding-island-dark.png'],
+  ['src/renderer/pages/onboarding-island-light.png', 'pages/onboarding-island-light.png'],
+  ['src/renderer/pages/start-page-sunrise.png', 'pages/start-page-sunrise.png'],
+  ['src/renderer/pages/start-page-day.png', 'pages/start-page-day.png'],
+  ['src/renderer/pages/start-page-dusk.png', 'pages/start-page-dusk.png'],
+  ['src/renderer/pages/start-page-night.png', 'pages/start-page-night.png'],
+  ['src/renderer/pages/caveat-latin.woff2', 'pages/caveat-latin.woff2'],
+  ['src/renderer/pages/select-caret.svg', 'pages/select-caret.svg'],
+  ['src/renderer/pages/select-caret-dark.svg', 'pages/select-caret-dark.svg'],
+  ['src/renderer/pages/strings.en.js', 'pages/strings.js'],
+  ['prototype/newtab-adapter.js', 'pages/newtab-adapter.js'],
+  ['prototype/newtab-prototype.css', 'pages/newtab-prototype.css'],
+  ['prototype/extensions.js', 'extensions.js'],
+  ['prototype/extensions.css', 'extensions.css'],
+  ...['search', 'settings', 'external-link', 'chevron-left'].map(name =>
+    [`src/renderer/ublock-popup-icons/${name}.svg`, `icons/${name}.svg`]),
+  ['prototype/host.html', 'host.html'],
+  ['prototype/host.css', 'host.css'],
+  ['prototype/host.js', 'host.js'],
+  ['prototype/tab-selection.js', 'tab-selection.js'],
+  ['prototype/shield-model.js', 'shield-model.js'],
+  ['prototype/blocking-settings.html', 'blocking-settings.html'],
+  ['prototype/blocking-settings.js', 'blocking-settings.js'],
+  ['prototype/blocking-settings-adapter.js', 'blocking-settings-adapter.js'],
+  ['prototype/selection-tab-sections.js', 'selection-tab-sections.js'],
+
+  ['prototype/installed-theme.js', 'installed-theme.js'],
+  ['prototype/installed-theme.js', 'pages/installed-theme.js'],
+  ['prototype/adapter.js', 'adapter.js'],
+  ['prototype/prototype.css', 'prototype.css'],
+  ['src/renderer/index.html', 'index.html'],
+  ['src/renderer/overlay.html', 'overlay.html'],
+  ['src/renderer/styles.css', 'styles.css'],
+  ['src/renderer/renderer.js', 'renderer.js'],
+  ['src/renderer/overlay.js', 'overlay.js'],
+  ['src/renderer/tab-drag.js', 'tab-drag.js'],
+  ['src/renderer/tab-sections.js', 'tab-sections.js'],
+  ['src/renderer/vertical-tabs.js', 'vertical-tabs.js'],
+  ['src/renderer/space-identity.js', 'space-identity.js'],
+  ['src/renderer/space-picker.js', 'space-picker.js'],
+  ['src/renderer/workspace-ui.js', 'workspace-ui.js'],
+  ['src/renderer/panel-left.svg', 'panel-left.svg'],
+  ['src/renderer/sunrise-hero-mark.png', 'sunrise-hero-mark.png'],
+  ['src/renderer/pages/type-to-open.js', 'pages/type-to-open.js'],
+  ['src/renderer/pages/sunrise-favicon-mark.png', 'pages/sunrise-favicon-mark.png'],
+  ['src/renderer/pages/inter-latin.woff2', 'pages/inter-latin.woff2'],
+  ['src/renderer/pages/instrument-sans-latin-wdth-normal.woff2', 'pages/instrument-sans-latin-wdth-normal.woff2'],
+  ['src/renderer/pages/jetbrains-mono-latin.woff2', 'pages/jetbrains-mono-latin.woff2'],
+  ['src/renderer/pages/i18n.js', 'i18n.js'],
+  ['src/renderer/pages/strings.en.js', 'strings.js'],
+];
+
+for (const [source, destination] of copies) {
+  const sourcePath = source.startsWith('prototype/')
+    ? path.join(here, source)
+    : Object.hasOwn(reviewedAssets.files, source)
+      ? path.join(here, 'renderer-1.38', source === 'src/main/start-page-paint.js' ? 'start-page-paint.js' : source.slice('src/renderer/'.length))
+      : path.join(repo, source);
+  const destinationPath = path.join(generated, destination);
+  const bytes = fs.readFileSync(sourcePath);
+  if (Object.hasOwn(reviewedAssets.files, source) && createHash('sha256').update(bytes).digest('hex') !== reviewedAssets.files[source]) fail(`reviewed asset hash changed: ${source}`);
+  fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
+  assets.set(destinationPath, bytes);
+}
+
+// The reviewed pure paint module only needs CommonJS binding adaptation.
+const paintFile = path.join(generated, 'pages/start-page-paint.js');
+assets.set(paintFile, '(() => {\n' + assets.get(paintFile).toString('utf8')
+  .replace("const Identity = require('../renderer/space-identity');", 'const Identity = window.SpaceIdentity;')
+  .replace('module.exports = {', 'window.BlancStartPaint = {') + '\n})();\n');
+for (const name of ['index.html', 'overlay.html']) {
+  const target = path.join(generated, name);
+  let html = assets.get(target).toString('utf8');
+  const stylesheet = '<link rel="stylesheet" href="styles.css" />';
+  if (!html.includes(stylesheet)) fail(`${name} stylesheet anchor changed`);
+  html = html.replace(stylesheet, `${stylesheet}\n  <link rel="stylesheet" href="prototype.css" />`);
+  const firstScript = '<script src="strings.js"></script>';
+  if (!html.includes(firstScript)) fail(`${name} script anchor changed`);
+  html = html.replace(firstScript, '<script src="adapter.js"></script>\n  ' + firstScript);
+  if (name === 'index.html') {
+    const anchor = '<div id="pillActions" class="pill-btns"></div>';
+    if (!html.includes(anchor)) fail('Island actions anchor changed');
+    // Keep the native slot in the same tightly spaced group as Reload and Close.
+    html = html.replace(anchor, '<div id="pillActions" class="pill-btns"><span id="nativeExtensions" aria-hidden="true"></span></div>');
+  }
+  assets.set(target, html);
+}
+
+// PR993 rail semantics: one row per persistent split, selecting its last focus.
+// Keep the reviewed 1.38 source immutable; adapt only the prototype copy.
+const railFile = path.join(generated, 'vertical-tabs.js');
+let railSource = assets.get(railFile).toString('utf8');
+railSource = railSource.replace('activeTabId: payload.activeTabId,', 'activeTabId: payload.activeTabId, splits: payload.splits,');
+railSource = railSource.replace('  function tabRow(tab, activeTabId) {', `  let railSplits = [];
+  function rowsFor(tabs, activeTabId) {
+    const byId = new Map(tabs.map(tab => [tab.id, tab]));
+    const consumed = new Set();
+    const rows = [];
+    for (const tab of tabs) {
+      if (consumed.has(tab.id)) continue;
+      const split = railSplits.find(s => s.tabIds.includes(tab.id) && s.tabIds.every(id => byId.has(id)));
+      if (!split) { rows.push(tabRow(tab, activeTabId)); continue; }
+      const members = split.tabIds.map(id => byId.get(id));
+      members.forEach(t => consumed.add(t.id));
+      const focused = members[split.focusedIndex] || members[0];
+      const row = document.createElement('div');
+      row.className = 'vertical-tab-row vertical-split-row' + (split.tabIds.includes(activeTabId) ? ' active' : '');
+      row.setAttribute('role', 'listitem'); row.dataset.splitId = split.id;
+      row.dataset.tabId = members[0].id; row.dataset.dragTab = '';
+      row.dataset.bucket = bucketKey(members[0]); row.dataset.pinned = String(!!members[0].pinned);
+      row.dataset.groupId = members[0].groupId ?? ''; row.dataset.dragTitle = members.map(titleFor).join(' + ');
+      const label = members.map(titleFor).join(' + ');
+      row.setAttribute('aria-label', 'Split View: ' + label);
+      const primary = document.createElement('button'); primary.type = 'button';
+      primary.className = 'vertical-tab-primary'; primary.tabIndex = -1;
+      primary.dataset.tabId = focused.id; primary.dataset.focusKey = 'split:' + split.id;
+      primary.setAttribute('aria-label', 'Switch to Split View: ' + label);
+      const icons = document.createElement('span'); icons.className = 'vertical-split-icons';
+      for (const member of members) icons.appendChild(faviconFor(member));
+      const title = document.createElement('span'); title.className = 'vertical-tab-title'; title.textContent = label;
+      primary.append(icons, title); primary.addEventListener('click', () => activateTab(focused));
+      primary.addEventListener('keydown', event => {
+        if (event.altKey && event.shiftKey && ['ArrowUp', 'ArrowDown'].includes(event.key)) {
+          event.preventDefault(); keyboardMove('tab', members[0].id, event.key === 'ArrowUp' ? 'up' : 'down');
+        }
+      });
+      const close = document.createElement('button'); close.type = 'button'; close.className = 'vertical-tab-close';
+      close.textContent = '×'; close.setAttribute('aria-label', 'Close Split View: ' + label);
+      close.addEventListener('click', () => invoke('close split', () => api.closeSplit(focused.id)));
+      row.append(primary, close); rows.push(row);
+    }
+    return rows;
+  }
+  function tabRow(tab, activeTabId) {`);
+for (const bucket of ['tabs', 'pinned', 'regular']) {
+  railSource = railSource.replaceAll('for (const tab of ' + bucket + ') section.appendChild(tabRow(tab, activeTabId));',
+    'for (const row of rowsFor(' + bucket + ', activeTabId)) section.appendChild(row);');
+}
+railSource = railSource.replace('    const tabs = payload.tabs || [];', '    railSplits = payload.splits || [];\n    const tabs = payload.tabs || [];');
+railSource = railSource.replace('    const result = kind ===', `    const hiddenMembers = new Set((lastPayload.splits || []).flatMap(s => s.tabIds.slice(1)));
+    const movePayload = { ...lastPayload, tabs: lastPayload.tabs.filter(t => !hiddenMembers.has(t.id)) };
+    const memberSplit = (lastPayload.splits || []).find(s => s.tabIds.includes(id));
+    if (kind === 'tab' && memberSplit) id = memberSplit.tabIds[0];
+    const result = kind ===`);
+railSource = railSource.replace('dragApi.keyboardTabMove(lastPayload, id, direction)', 'dragApi.keyboardTabMove(movePayload, id, direction)');
+assets.set(railFile, railSource);
+
+// Reuse the shipping new-tab document with a narrowly scoped Chromium adapter.
+const newTabFile = path.join(generated, 'pages/newtab.html');
+let newTabHtml = assets.get(newTabFile).toString('utf8');
+// Profile-local wallpaper blobs have opaque, page-scoped URLs.
+const wallpaperCsp = "img-src 'self' data:;";
+if (newTabHtml.split(wallpaperCsp).length !== 2) fail("Start Page image CSP changed");
+newTabHtml = newTabHtml.replace(wallpaperCsp, "img-src 'self' data: blob:;");
+newTabHtml = newTabHtml.replace('<script src="strings.js"></script>',
+  '<script src="installed-theme.js"></script><script src="newtab-adapter.js"></script>\n  <script src="strings.js"></script>');
+newTabHtml = newTabHtml.replace('<link rel="stylesheet" href="pages.css" />',
+  '<link rel="stylesheet" href="pages.css" />\n  <link rel="stylesheet" href="newtab-prototype.css" />');
+newTabHtml = newTabHtml.replace('  <script src="onboarding.js"></script>\n', '');
+newTabHtml = newTabHtml.replace('<script src="newtab-adapter.js"></script>', '<script src="space-identity.js"></script><script src="start-page-paint.js"></script><script src="newtab-adapter.js"></script>');
+newTabHtml = newTabHtml.replace('</div>\n        <div id="customWallpaperCover"', '<button id="storeThemeWallpaperPick" type="button" aria-label="Theme" aria-pressed="false" hidden>Theme</button>\n        </div>\n        <div id="customWallpaperCover"');
+assets.set(newTabFile, newTabHtml);
+const themePageFile = path.join(generated, 'pages/newtab.js');
+let themePageJs = assets.get(themePageFile).toString('utf8');
+themePageJs = themePageJs.replace("  const custom = wallpaperState.source === 'custom';", "  const storeTheme = wallpaperState.source === 'web-store';\n  const storeThemePick = document.getElementById('storeThemeWallpaperPick');\n  storeThemePick.hidden = !wallpaperState.themeAvailable || isPrivate;\n  storeThemePick.setAttribute('aria-pressed', String(storeTheme));\n  storeThemePick.disabled = wallpaperUpdatePending;\n  const custom = wallpaperState.source === 'custom';");
+themePageJs = themePageJs.replace('String(!custom && !color)', 'String(!custom && !color && !storeTheme)')
+  .replace('customWallpaperRow.hidden = !custom;', 'customWallpaperRow.hidden = !custom && !(storeTheme && wallpaperState.hasImage);')
+  .replace('if (custom) document.body.dataset.wallpaperStyle = style;', 'if (custom || storeTheme) document.body.dataset.wallpaperStyle = style;')
+  .replace('wallpaper.setSource(wallpaperState);', "wallpaper.setSource(wallpaperState.source === 'web-store' ? { ...wallpaperState, source: wallpaperState.hasImage ? 'custom' : 'sunrise' } : wallpaperState);")
+  .replace('wallpaperToggle.hidden = custom || color;', 'wallpaperToggle.hidden = custom || color || storeTheme;')
+  .replace("custom ? 'custom' : color ? 'color' : 'sunrise'", "custom || storeTheme ? 'custom' : color ? 'color' : 'sunrise'")
+  .replace("wallpaperState.source === 'custom' || wallpaperState.source === 'color'", "wallpaperState.source === 'custom' || wallpaperState.source === 'color' || wallpaperState.source === 'web-store'")
+  .replace("wallpaperState.source !== 'custom' && wallpaperState.source !== 'color'", "wallpaperState.source !== 'custom' && wallpaperState.source !== 'color' && wallpaperState.source !== 'web-store'");
+themePageJs += "\ndocument.getElementById('storeThemeWallpaperPick').addEventListener('click', () => updateWallpaper(async () => applyWallpaper(await window.bowserPages.start.setWallpaper('web-store'))));\n";
+assets.set(themePageFile, themePageJs);
+
+// Give the copied resting favorite button a stable prototype-only selector.
+const renderer = path.join(generated, 'renderer.js');
+let rendererSource = assets.get(renderer).toString('utf8');
+const favoriteAnchor = "  const favoriteBtn = pillButton('heart', blancI18n.t('pill.favorite'), () => window.browserAPI.toggleBookmark());";
+if (rendererSource.split(favoriteAnchor).length !== 2) fail('favorite button anchor changed');
+rendererSource = rendererSource.replace(favoriteAnchor, favoriteAnchor + "\n  favoriteBtn.id = 'pillHeart';");
+assets.set(renderer, rendererSource);
+
+// Only these copied slash commands have native implementations in this spike.
+// /save, /favorites, /history and /clear ride the bookmark and history bridge;
+// /pin, /mute, /group, /ungroup and /close-group ride TabStripModel;
+// /clear is destructive and is tested only on a disposable profile.
+const overlayScript = path.join(generated, 'overlay.js');
+let overlaySource = assets.get(overlayScript).toString('utf8');
+const commandsAnchor = '  ];\n\n  function runCommand(command) {';
+if (overlaySource.split(commandsAnchor).length !== 2) fail('command list anchor changed');
+overlaySource = overlaySource.replace(commandsAnchor,
+  "  ].filter((command) => ['/find', '/downloads', '/new', '/close', '/save', '/favorites', '/history', '/clear', '/pin', '/mute', '/group', '/ungroup', '/close-group', '/reopen', '/rename'].includes(command.cmd));\n\n  function runCommand(command) {");
+assets.set(overlayScript, overlaySource);
+
+for (const name of ['renderer', 'overlay', 'vertical-tabs']) {
+  const target = path.join(generated, name + '.js');
+  assets.set(target, hardenMarkup(assets.get(target), name));
+}
+addPreviewNotice(assets, generated, actualVersion);
+for (const [target, value] of assets) writeIfChanged(target, value);
+if (assetsOnly) {
+  console.log(`Updated prototype assets: ${generated}. Reload the page or relaunch the browser; no native files changed.`);
+  process.exit(0);
+}
+
+prepareMacIcon(chromium);
+
+for (const name of ['blanc_prototype_ui.h', 'blanc_prototype_ui.cc', 'blanc_tab_name_rules.h', 'blanc_quiet_probe.h', 'blanc_quiet_media.h', 'blanc_quiet_schedule.h', 'blanc_quiet_strings.h', 'blocking_settings_handler.inc', 'billboard_clock_settings.inc', 'start_page_pins.inc', 'start_page_pin_menu.inc']) {
+  writeIfChanged(path.join(chromium, 'chrome/browser/ui', name),
+    fs.readFileSync(path.join(here, 'native', name), 'utf8'));
+}
+
+// Keep the reviewed compatibility script byte-for-byte in a Blanc-owned header.
+writeIfChanged(path.join(chromium, 'chrome/browser/ui/blanc_webstore_promotion.h'),
+  'inline constexpr char16_t kBlancWebStorePromotion[] = uR"BLANC(' +
+  fs.readFileSync(path.join(here, 'native/webstore-promotion.js'), 'utf8') + ')BLANC";\n');
+
+
+let extensionsBranding = fs.readFileSync(path.join(here, 'native/extensions-branding.js'), 'utf8');
+extensionsBranding = extensionsBranding.replace('__BLANC_FONTS__', JSON.stringify([
+  ['Instrument Sans', fs.readFileSync(path.join(generated, 'pages/instrument-sans-latin-wdth-normal.woff2')).toString('base64'), '400 700'],
+  ['Inter', fs.readFileSync(path.join(generated, 'pages/inter-latin.woff2')).toString('base64'), '100 900'],
+])).replace('__BLANC_LOGO__', 'data:image/png;base64,' + fs.readFileSync(path.join(generated, 'pages/sunrise-mark.png')).toString('base64'));
+writeIfChanged(path.join(chromium, 'chrome/browser/ui/blanc_extensions_branding.h'),
+  'inline constexpr char16_t kBlancExtensionsBranding[] = uR"BLANC(' + extensionsBranding + ')BLANC";\n');
+
+function edit(relative, edits) {
+  const target = path.join(chromium, relative);
+  let source = fs.readFileSync(target, 'utf8');
+  for (const { anchor, replacement, present } of edits) {
+    if (present && source.includes(present)) continue;
+    const occurrences = source.split(anchor).length - 1;
+    if (occurrences !== 1) fail(`${relative}: expected one anchor, found ${occurrences}: ${anchor.slice(0, 80)}`);
+    source = source.replace(anchor, replacement);
+  }
+  writeIfChanged(target, source);
+}
+
+// This fork has a fresh-profile-only preview contract. Never fall back to or
+// migrate the generic Chromium keychain item; both async and legacy users share
+// KeychainPassword. Stable names survive preview updates and app relocation.
+edit('components/os_crypt/common/keychain_password_mac.mm', [{
+  anchor: 'const char kDefaultServiceName[] = "Chromium Safe Storage";\nconst char kDefaultAccountName[] = "Chromium";',
+  replacement: 'const char kDefaultServiceName[] = "Blanc Chromium Preview Safe Storage";\nconst char kDefaultAccountName[] = "Blanc Chromium Preview";',
+  present: 'const char kDefaultServiceName[] = "Blanc Chromium Preview Safe Storage";',
+}]);
+
+// Blanc uses the Island, not Chromium's OS-wide Google search launcher.
+// Deny profile eligibility as well as controller activation so persisted opt-in
+// and feature experiments cannot register the launcher or show its onboarding.
+edit('chrome/browser/ui/omnibox/omnibox_next_features.cc', [{
+  anchor: "bool IsOmniboxEverywhereEligible(Profile* profile) {\n#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)\n  if (!profile || profile->IsOffTheRecord()) {\n    return false;\n  }\n\n  if (!base::FeatureList::IsEnabled(kOmniboxEverywhere)) {\n    return false;\n  }\n\n  return search::DefaultSearchProviderIsGoogle(\n      TemplateURLServiceFactory::GetForProfile(profile));\n#else\n  return false;\n#endif  // BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)\n}",
+  replacement: "bool IsOmniboxEverywhereEligible(Profile* profile) {\n  return false;  // Blanc: no OS-wide Google search launcher.\n}",
+  present: 'return false;  // Blanc: no OS-wide Google search launcher.',
+}]);
+edit('chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_controller.cc', [{
+  anchor: 'return !enabled_pref_member_.prefs() || enabled_pref_member_.GetValue();',
+  replacement: 'return false;  // Blanc: disable launcher, hotkey and background activation.',
+  present: 'return false;  // Blanc: disable launcher, hotkey and background activation.',
+}]);
+
+// Chromium 157 split BrowserView out of the former monolithic UI target.
+// Keep the bridge implementation with BrowserView and expose its declarations
+// through BrowserView's header target, avoiding an implementation dependency cycle.
+edit('chrome/browser/ui/views/frame/BUILD.gn', [
+  {
+    anchor: '  public = [ "browser_view.h" ]\n',
+    replacement: '  public = [ "browser_view.h", "//chrome/browser/ui/blanc_prototype_ui.h" ]\n',
+    present: '"browser_view.h", "//chrome/browser/ui/blanc_prototype_ui.h"',
+  },
+  {
+    anchor: '  sources = [ "browser_view.cc" ]\n',
+    replacement: '  sources = [ "browser_view.cc", "//chrome/browser/ui/blanc_prototype_ui.cc" ]\n',
+    present: '"browser_view.cc", "//chrome/browser/ui/blanc_prototype_ui.cc"',
+  },
+  {
+    anchor: '  deps = [\n    ":app_menu_button",\n    ":browser_frame_view",\n',
+    replacement: '  deps = [\n    "//chrome/browser/bookmarks",\n    "//chrome/browser/history",\n    "//components/bookmarks/browser",\n    "//components/bookmarks/common",\n    "//components/history/core/browser",\n    "//components/input",\n    "//components/keyed_service/core",\n    "//components/tab_groups",\n    "//components/viz/common",\n    ":app_menu_button",\n    ":browser_frame_view",\n',
+    present: '  deps = [\n    "//chrome/browser/bookmarks",\n    "//chrome/browser/history",\n',
+  },
+]);
+
+edit('chrome/browser/ui/webui/chrome_web_ui_configs.cc', [
+  {
+    anchor: '#include "chrome/browser/ui/webui/chrome_web_ui_configs.h"\n',
+    replacement: '#include "chrome/browser/ui/webui/chrome_web_ui_configs.h"\n\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+    present: '#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+  },
+  {
+    anchor: '  auto& map = content::WebUIConfigMap::GetInstance();\n',
+    replacement: '  auto& map = content::WebUIConfigMap::GetInstance();\n  map.AddWebUIConfig(std::make_unique<blanc_prototype::Config>());\n',
+    present: '  map.AddWebUIConfig(std::make_unique<blanc_prototype::Config>());\n',
+  },
+]);
+
+const browserViewFile = path.join(chromium, 'chrome/browser/ui/views/frame/browser_view.cc');
+writeIfChanged(browserViewFile, fs.readFileSync(browserViewFile, 'utf8')
+  .replace('if (blanc_prototype::IsEnabled())\n    AddChildView', 'if (blanc_prototype::IsIslandWindow(browser_))\n    AddChildView')
+  .replace('blanc_prototype::LayoutIsland(this, top_container_->bounds().bottom());', 'blanc_prototype::LayoutIsland(this, top_container_->y());'));
+
+edit('chrome/browser/ui/views/frame/browser_view.cc', [
+  {
+    anchor: 'ToolbarButtonProvider* BrowserView::toolbar_button_provider() {\n  return ToolbarButtonProvider::From(browser_);\n}',
+    replacement: 'ToolbarButtonProvider* BrowserView::toolbar_button_provider() {\n  return blanc_prototype::ToolbarProvider(browser_, ToolbarButtonProvider::From(browser_));\n}',
+    present: 'return blanc_prototype::ToolbarProvider(browser_, ToolbarButtonProvider::From(browser_));',
+  },
+  {
+    anchor: '#include "chrome/browser/ui/browser_commands.h"\n',
+    replacement: '#include "chrome/browser/ui/browser_commands.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+    present: '#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+  },
+  {
+    anchor: '  window_scrim_view_ = AddChildView(std::make_unique<ScrimView>());\n',
+    replacement: '  window_scrim_view_ = AddChildView(std::make_unique<ScrimView>());\n  if (blanc_prototype::IsIslandWindow(browser_))\n    AddChildView(blanc_prototype::CreateIsland(browser_));\n',
+    present: '    AddChildView(blanc_prototype::CreateIsland(browser_));\n',
+  },
+  {
+    anchor: '  LayoutSuperclass<views::View>(this);\n',
+    replacement: '  LayoutSuperclass<views::View>(this);\n  if (blanc_prototype::IsEnabled())\n    blanc_prototype::LayoutIsland(this, top_container_->y());\n',
+    present: '    blanc_prototype::LayoutIsland(this, top_container_->y());\n',
+  },
+]);
+
+
+// Keep the browser's tab model and command support; replace only its visible chrome.
+edit('chrome/browser/ui/views/frame/browser_view.cc', [
+  ...['ShouldDrawTabStrip', 'IsToolbarVisible', 'IsBookmarkBarVisible'].map((name) => ({
+    anchor: `bool BrowserView::${name}() const {\n`,
+    replacement: `bool BrowserView::${name}() const {\n  if (blanc_prototype::IsIslandWindow(browser_)) return false;\n`,
+    present: `bool BrowserView::${name}() const {\n  if (blanc_prototype::IsIslandWindow(browser_))`,
+  })),
+  {
+    anchor: 'BrowserView::~BrowserView() {\n',
+    replacement: 'BrowserView::~BrowserView() {\n  blanc_prototype::RestoreExtensions(this);\n',
+    present: '  blanc_prototype::RestoreExtensions(this);\n',
+  },
+  {
+    anchor: 'int BrowserView::NonClientHitTest(const gfx::Point& point) {\n',
+    replacement: `int BrowserView::NonClientHitTest(const gfx::Point& point) {
+  if (blanc_prototype::IsIslandWindow(browser_)) {
+    gfx::Point local(point);
+    views::View::ConvertPointToTarget(parent(), this, &local);
+    if (blanc_prototype::IsCaption(this, local.x(), local.y())) return HTCAPTION;
+    if (local.y() >= 0 && local.y() < 68) return HTCLIENT;
+  }
+`,
+    present: '    if (blanc_prototype::IsCaption(this, local.x(), local.y())) return HTCAPTION;',
+  },
+]);
+edit('chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc', [
+  { anchor: 'params.visual_client_area.width(), 68);',
+    replacement: 'params.visual_client_area.width(), blanc_prototype::HeaderHeight(views().browser_view));',
+    present: 'params.visual_client_area.width(), blanc_prototype::HeaderHeight(views().browser_view));' },
+  { anchor: '  // Lay out infobar container.\n',
+    replacement: '  params.InsetHorizontal(blanc_prototype::RailWidth(views().browser_view), /*leading=*/true);\n\n  // Lay out infobar container.\n',
+    present: 'params.InsetHorizontal(blanc_prototype::RailWidth' },
+  {
+    anchor: '  return info;\n}\n\nBrowserViewTabbedLayoutImpl::SidePanelContentAnimation',
+    replacement: `  if (blanc_prototype::HasIsland(views().browser_view)) {
+    info.top_container_separator = false;
+    info.multi_contents_separator = false;
+  }
+  return info;
+}
+
+BrowserViewTabbedLayoutImpl::SidePanelContentAnimation`,
+    present: '    info.multi_contents_separator = false;',
+  },
+  {
+    anchor: '#include "chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.h"\n',
+    replacement: '#include "chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+    present: '#include "chrome/browser/ui/blanc_prototype_ui.h"',
+  },
+  {
+    anchor: '  const int original_top = params.visual_client_area.y();\n',
+    replacement: `  const int original_top = params.visual_client_area.y();
+  if (blanc_prototype::HasIsland(views().browser_view)) {
+    for (views::View* child : views().top_container->children())
+      layout.AddChild(child, gfx::Rect(), false);
+    return gfx::Rect(params.visual_client_area.x(), original_top,
+                     params.visual_client_area.width(), blanc_prototype::HeaderHeight(views().browser_view));
+  }
+`,
+    present: '    for (views::View* child : views().top_container->children())',
+  },
+]);
+// The Island owns fullscreen chrome too; do not move hidden Chromium controls
+// into macOS's separate immersive toolbar window.
+edit('chrome/browser/ui/window_feature_controller/window_feature_controller.cc', [
+  {
+    anchor: '#include "base/check.h"\n',
+    replacement: '#include "base/check.h"\n#include "base/command_line.h"\n',
+    present: '#include "base/command_line.h"',
+  },
+  ...['UsesImmersiveFullscreenMode', 'UsesImmersiveFullscreenTabbedMode'].map((name) => ({
+    anchor: `bool WindowFeatureController::${name}() const {\n`,
+    replacement: `bool WindowFeatureController::${name}() const {
+  if (browser_type_ == BrowserWindowInterface::Type::TYPE_NORMAL &&
+      base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-prototype-assets"))
+    return false;
+`,
+    present: `bool WindowFeatureController::${name}() const {\n  if (browser_type_`,
+  })),
+]);
+
+edit('chrome/browser/ui/views/frame/browser_native_widget_mac.mm', [
+  {
+    anchor: '#import "chrome/browser/ui/views/frame/browser_native_widget_mac.h"\n',
+    replacement: '#import "chrome/browser/ui/views/frame/browser_native_widget_mac.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+    present: '#include "chrome/browser/ui/blanc_prototype_ui.h"',
+  },
+  {
+    anchor: '    float* titlebar_height) {\n',
+    replacement: `    float* titlebar_height) {
+  if (browser_view_ && blanc_prototype::IsIslandWindow(browser_view_->browser())) {
+    *override_titlebar_height = true;
+    // Use inset native window controls, independent of the 68px Island header.
+    *titlebar_height = 56;
+    return;
+  }
+`,
+    present: '    *titlebar_height = 56;',
+  },
+]);
+
+// Match the inset AppKit titlebar used by Blanc's Electron window. These
+// remain real NSWindow buttons, including hover, minimize and fullscreen.
+edit('components/remote_cocoa/app_shim/browser_native_widget_window_mac.mm', [
+  {
+    anchor: '#include "base/mac/mac_util.h"\n',
+    replacement: '#include "base/mac/mac_util.h"\n#include "base/command_line.h"\n',
+    present: '#include "base/command_line.h"',
+  },
+  {
+    anchor: '- (CGFloat)_minXTitlebarWidgetInset {\n',
+    replacement: `- (CGFloat)_minXTitlebarWidgetInset {
+  if (!_inFullScreen && base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-prototype-assets"))
+    return 21.0;
+`,
+    present: '    return 21.0;',
+  },
+]);
+edit('chrome/browser/ui/views/frame/browser_frame_view_mac.mm', [
+  {
+    anchor: '#include "base/command_line.h"\n',
+    replacement: '#include "base/command_line.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+    present: '#include "chrome/browser/ui/blanc_prototype_ui.h"',
+  },
+  {
+    anchor: '  // LINT.IfChange(MacTabStripInsets)\n',
+    replacement: `  if (blanc_prototype::IsIslandWindow(GetBrowserView()->browser())) {
+    result.bounds = gfx::RectF(20, 20, 62, 16);
+    result.margins = gfx::OutsetsF::VH(20, 20);
+    return result;
+  }
+
+  // LINT.IfChange(MacTabStripInsets)
+`,
+    present: '    result.bounds = gfx::RectF(20, 20, 62, 16);',
+  },
+]);
+
+// Retire the first controller-switch hooks: Chromium's ActionItem path bypasses
+// that switch. The shared command functions below serve both dispatch paths.
+// Restore Tab actions and legacy commands converge on this entry point.
+edit('chrome/browser/ui/browser_command_controller.cc', [{
+  anchor: '    case IDC_RESTORE_TAB:\n      if (!blanc_prototype::RestoreClosedSplitFromCommand(browser_))\n        RestoreTab(browser_);',
+  replacement: '    case IDC_RESTORE_TAB:\n      RestoreTab(browser_);',
+  present: '    case IDC_RESTORE_TAB:\n      RestoreTab(browser_);'
+}]);
+// Profile-wide closure shuts session recording down before beforeunload.
+// Restore it only on confirmed cancellation, after all close handlers reset.
+edit('chrome/browser/lifetime/application_lifetime_desktop.cc', [{
+  anchor: '    if (on_close_aborted) {\n      on_close_aborted.Run(profile_path);\n    }',
+  replacement: `    // CloseAllBrowsersWithProfile shuts these down before beforeunload.
+    // A cancelled close keeps the profile alive; resume recording its windows.
+    if (match_original_profile && !original_profile->IsOffTheRecord()) {
+      SessionServiceFactory::GetForProfileForSessionRestore(original_profile);
+      AppSessionServiceFactory::GetForProfileForSessionRestore(original_profile);
+    }
+    if (on_close_aborted) {
+      on_close_aborted.Run(profile_path);
+    }`,
+  present: '    // A cancelled close keeps the profile alive; resume recording its windows.'
+}]);
+
+edit('chrome/browser/ui/browser_tab_restorer.cc', [{
+  anchor: '#include "base/memory/ptr_util.h"',
+  replacement: '#include "chrome/browser/ui/blanc_prototype_ui.h"\n#include "base/memory/ptr_util.h"',
+  present: '#include "chrome/browser/ui/blanc_prototype_ui.h"'
+}, {
+  anchor: 'void RestoreTab(BrowserWindowInterface* browser) {\n',
+  replacement: 'void RestoreTab(BrowserWindowInterface* browser) {\n  if (blanc_prototype::RestoreClosedSplitFromCommand(browser)) return;\n',
+  present: '  if (blanc_prototype::RestoreClosedSplitFromCommand(browser)) return;'
+}]);
+
+const controllerFile = path.join(chromium, 'chrome/browser/ui/browser_command_controller.cc');
+let controllerSource = fs.readFileSync(controllerFile, 'utf8');
+controllerSource = controllerSource
+  .replace('      if (blanc_prototype::IsEnabled())\n        blanc_prototype::OpenIsland(browser_, true);\n', '')
+  .replace('      if (blanc_prototype::IsEnabled() && blanc_prototype::OpenIsland(browser_))\n        break;\n', '');
+writeIfChanged(controllerFile, controllerSource);
+// The Island is the effective location bar, including in browser fullscreen.
+edit('chrome/browser/ui/browser_command_controller.cc', [
+  {
+    anchor: '#include "chrome/browser/ui/browser_command_controller.h"\n',
+    replacement: '#include "chrome/browser/ui/browser_command_controller.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+    present: '#include "chrome/browser/ui/blanc_prototype_ui.h"',
+  },
+  {
+    anchor: 'bool BrowserCommandController::IsShowingLocationBar() {\n',
+    replacement: 'bool BrowserCommandController::IsShowingLocationBar() {\n  if (blanc_prototype::IsIslandWindow(browser_)) return true;\n',
+    present: 'bool BrowserCommandController::IsShowingLocationBar() {\n  if (blanc_prototype::IsIslandWindow(browser_))',
+  },
+]);
+edit('chrome/browser/ui/views/frame/browser_view.cc', [{
+  anchor: 'bool BrowserView::IsLocationBarVisible() const {\n',
+  replacement: 'bool BrowserView::IsLocationBarVisible() const {\n  if (blanc_prototype::IsIslandWindow(browser_)) return true;\n',
+  present: 'bool BrowserView::IsLocationBarVisible() const {\n  if (blanc_prototype::IsIslandWindow(browser_))',
+}]);
+
+
+edit('chrome/browser/ui/browser_commands.cc', [
+  { anchor: "void SelectNumberedTab(BrowserWindowInterface* browser,\n                       int index,\n                       TabStripUserGestureDetails gesture_detail) {\n", replacement: "void SelectNumberedTab(BrowserWindowInterface* browser,\n                       int index,\n                       TabStripUserGestureDetails gesture_detail) {\n  if (blanc_prototype::SelectIslandSlot(browser, index)) return;\n", present: "void SelectNumberedTab(BrowserWindowInterface* browser,\n                       int index,\n                       TabStripUserGestureDetails gesture_detail) {\n  if (blanc_prototype::SelectIslandSlot(browser, index)) return;\n" },
+  { anchor: "void SelectLastTab(BrowserWindowInterface* browser,\n                   TabStripUserGestureDetails gesture_detail) {\n", replacement: "void SelectLastTab(BrowserWindowInterface* browser,\n                   TabStripUserGestureDetails gesture_detail) {\n  if (blanc_prototype::SelectIslandSlot(browser, 8)) return;\n", present: "void SelectLastTab(BrowserWindowInterface* browser,\n                   TabStripUserGestureDetails gesture_detail) {\n  if (blanc_prototype::SelectIslandSlot(browser, 8)) return;\n" },
+
+  {
+    anchor: '#include "chrome/browser/ui/browser_commands.h"\n',
+    replacement: '#include "chrome/browser/ui/browser_commands.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+    present: '#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+  },
+  {
+    anchor: '    return *AddAndReturnTabAt(browser, GURL(), -1, /*foreground=*/true,\n                              std::nullopt, /*pinned=*/false, window_action);\n',
+    replacement: '    auto* contents = AddAndReturnTabAt(browser, GURL(), -1, /*foreground=*/true,\n                                       std::nullopt, /*pinned=*/false, window_action);\n    if (context == NewTabTypes::kNewTabCommand && blanc_prototype::IsEnabled())\n      blanc_prototype::OpenIsland(browser, true);\n    return *contents;\n',
+    present: '      blanc_prototype::OpenIsland(browser, true);\n',
+  },
+  {
+    anchor: 'void FocusLocationBar(BrowserWindowInterface* browser) {\n',
+    replacement: 'void FocusLocationBar(BrowserWindowInterface* browser) {\n  if (blanc_prototype::IsEnabled() && blanc_prototype::OpenIsland(browser))\n    return;\n',
+    present: '  if (blanc_prototype::IsEnabled() && blanc_prototype::OpenIsland(browser))\n',
+  },
+]);
+
+// Native Find routes through the same command function as menu and Cmd-F.
+edit('chrome/browser/ui/browser_commands.cc', [
+{
+  anchor: 'void Find(BrowserWindowInterface* browser) {\n',
+  replacement: 'void Find(BrowserWindowInterface* browser) {\n  if (blanc_prototype::OpenFindIsland(browser)) return;\n',
+  present: '  if (blanc_prototype::OpenFindIsland(browser)) return;',
+}]);
+
+// Next/previous share this helper, including menu and native Cmd-G variants.
+edit('chrome/browser/ui/browser_commands.cc', [
+{
+  anchor: 'void FindInPage(BrowserWindowInterface* browser,\n                bool find_next,\n                bool forward_direction) {\n',
+  replacement: 'void FindInPage(BrowserWindowInterface* browser,\n                bool find_next,\n                bool forward_direction) {\n  if (blanc_prototype::OpenFindIsland(browser, find_next ? (forward_direction ? 1 : -1) : 0)) return;\n',
+  present: '  if (blanc_prototype::OpenFindIsland(browser, find_next ?',
+}]);
+
+// ⌘D (IDC_BOOKMARK_THIS_TAB) toggles the Island's Favorite instead of opening
+// Chromium's star bubble, which has no toolbar to anchor to in Island windows.
+// The shared command function serves both dispatch paths; its parameter type
+// differs between Chromium pins, so accept either exact signature.
+const commandsFile = path.join(chromium, 'chrome/browser/ui/browser_commands.cc');
+const commandsSource = fs.readFileSync(commandsFile, 'utf8');
+const bookmarkAnchor = [
+  'void BookmarkCurrentTab(BrowserWindowInterface* browser) {\n',
+  'void BookmarkCurrentTab(Browser* browser) {\n',
+].find((anchor) => commandsSource.split(anchor).length === 2);
+if (!bookmarkAnchor) fail('BookmarkCurrentTab anchor changed');
+edit('chrome/browser/ui/browser_commands.cc', [{
+  anchor: bookmarkAnchor,
+  replacement: `${bookmarkAnchor}  if (blanc_prototype::ToggleFavoriteFromIsland(browser))\n    return;\n`,
+  present: '  if (blanc_prototype::ToggleFavoriteFromIsland(browser))\n',
+}]);
+
+edit('chrome/browser/search/search.cc', [
+  {
+    anchor: '#include "base/check_deref.h"\n',
+    replacement: '#include "base/check_deref.h"\n#include "base/command_line.h"\n',
+    present: '#include "base/command_line.h"',
+  },
+  {
+    anchor: '    // Incognito and Guest profiles have their own New Tab.\n',
+    replacement: `    // Blanc's private Start Page is distinct from the regular page. Keep
+    // Chromium's Guest and special OTR New Tab behavior unchanged.
+    if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-prototype-assets") &&
+        (profile->IsIncognitoProfile() && profile->IsPrimaryOTRProfile()))
+      return NewTabURLDetails(GURL("chrome://blanc-prototype/pages/newtab.html?private=1"),
+                              NEW_TAB_URL_VALID);
+
+    // Incognito and Guest profiles have their own New Tab.\n`,
+    present: 'return NewTabURLDetails(GURL("chrome://blanc-prototype/pages/newtab.html?private=1"),',
+  },
+  {
+    anchor: '    const bool default_is_google = DefaultSearchProviderIsGoogle(profile);\n',
+    replacement: `    if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-prototype-assets"))
+      return NewTabURLDetails(GURL("chrome://blanc-prototype/pages/newtab.html"),
+                              NEW_TAB_URL_VALID);
+
+    const bool default_is_google = DefaultSearchProviderIsGoogle(profile);
+`,
+    present: 'return NewTabURLDetails(GURL("chrome://blanc-prototype/pages/newtab.html"),',
+  },
+]);
+
+// Use a distinct catalog identity so the Dock does not reuse Chromium's
+// AppIcon rendition when upgrading this local bundle without a version bump.
+// Keep the original seven-character length: Chromium embeds the source plist's
+// byte size in libbase; changing it triggers unrelated generated dependents.
+edit('chrome/app/app-Info.plist', [{
+  anchor: '<key>CFBundleIconName</key>\n\t<string>AppIcon</string>',
+  replacement: '<key>CFBundleIconName</key>\n\t<string>BlancDK</string>',
+  present: '<key>CFBundleIconName</key>\n\t<string>BlancDK</string>',
+}]);
+
+// Refresh the runtime icon as well as the bundle resources: macOS can retain
+// Chromium's old Dock tile for a locally rebuilt app with the same identity.
+edit('chrome/browser/app_controller_mac.mm', [{
+  anchor: '  [self setUpdateCheckInterval];',
+  replacement: `  [self setUpdateCheckInterval];
+
+  if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-prototype-assets")) {
+    NSImage* blancIcon = [NSWorkspace.sharedWorkspace
+        iconForFile:NSRunningApplication.currentApplication.bundleURL.path];
+    NSApp.applicationIconImage = blancIcon;
+  }`,
+  present: 'NSApp.applicationIconImage = blancIcon;',
+}]);
+
+edit('chrome/app/theme/chromium/BRANDING', [
+  { anchor: 'PRODUCT_FULLNAME=Chromium\n', replacement: 'PRODUCT_FULLNAME=Blanc Prototype\n', present: 'PRODUCT_FULLNAME=Blanc Prototype\n' },
+  { anchor: 'PRODUCT_SHORTNAME=Chromium\n', replacement: 'PRODUCT_SHORTNAME=Blanc Prototype\n', present: 'PRODUCT_SHORTNAME=Blanc Prototype\n' },
+  { anchor: 'PRODUCT_INSTALLER_FULLNAME=Chromium Installer\n', replacement: 'PRODUCT_INSTALLER_FULLNAME=Blanc Prototype Installer\n', present: 'PRODUCT_INSTALLER_FULLNAME=Blanc Prototype Installer\n' },
+  { anchor: 'PRODUCT_INSTALLER_SHORTNAME=Chromium Installer\n', replacement: 'PRODUCT_INSTALLER_SHORTNAME=Blanc Prototype Installer\n', present: 'PRODUCT_INSTALLER_SHORTNAME=Blanc Prototype Installer\n' },
+  { anchor: 'MAC_BUNDLE_ID=org.chromium.Chromium\n', replacement: 'MAC_BUNDLE_ID=day.blanc.prototype\n', present: 'MAC_BUNDLE_ID=day.blanc.prototype\n' },
+]);
+
+// This Chromium pin's pruned WebUI npm archive intentionally omits transitive
+// declaration files referenced by @types/node. Avoid traversing those external
+// declarations while still type-checking the ESLint tool's own sources.
+const eslintBuild = path.join(chromium, 'ui/webui/resources/tools/eslint/BUILD.gn');
+let eslintBuildSource = fs.readFileSync(eslintBuild, 'utf8');
+eslintBuildSource = eslintBuildSource.replace(
+  '  definitions = [ "//third_party/node/node_modules/@types/node/buffer.d.ts" ]\n\n',
+  '',
+);
+eslintBuildSource = eslintBuildSource.replace(
+  '  definitions = [ "//third_party/node/node_modules/buffer/index.d.ts" ]\n\n', '',
+);
+if (!eslintBuildSource.includes('  path_mappings = [\n')) fail('ESLint path mappings anchor changed');
+eslintBuildSource = eslintBuildSource.replace('  path_mappings = [\n',
+  '  definitions = [ "//third_party/node/node_modules/buffer/index.d.ts" ]\n\n  path_mappings = [\n');
+writeIfChanged(eslintBuild, eslintBuildSource);
+const bufferStub = path.join(chromium, 'third_party/node/node_modules/buffer/index.d.ts');
+fs.mkdirSync(path.dirname(bufferStub), { recursive: true });
+writeIfChanged(bufferStub, 'export {};\n');
+edit('ui/webui/resources/tools/eslint/tsconfig_base.json', [{
+  anchor: '    "types": ["node", "trusted-types"]\n',
+  replacement: '    "types": ["node", "trusted-types"],\n    "skipLibCheck": true\n',
+  present: '    "skipLibCheck": true\n',
+}]);
+
+
+// Blanc exposes extension actions in the expanded Island, never as pinned icons.
+edit('chrome/browser/ui/views/extensions/extensions_toolbar_button.h', [
+  { anchor: "  int GetIconSize() const override;",
+    replacement: "  int GetIconSize() const override;\n  SkColor GetForegroundColor(ButtonState state) const override;",
+    present: "  SkColor GetForegroundColor(ButtonState state) const override;" },
+]);
+edit('chrome/browser/ui/views/extensions/extensions_toolbar_button.cc', [
+  { anchor: "    const views::SizeBounds& available_size) const {\n  return extensions_toolbar_->GetToolbarActionSize();",
+    replacement: "    const views::SizeBounds& available_size) const {\n  if (blanc_prototype::IsIslandWindow(browser_)) return gfx::Size(26, 26);\n  return extensions_toolbar_->GetToolbarActionSize();",
+    present: "if (blanc_prototype::IsIslandWindow(browser_)) return gfx::Size(26, 26);" },
+  { anchor: "#include \"ui/views/accessibility/view_accessibility.h\"\n",
+    replacement: "#include \"ui/views/accessibility/view_accessibility.h\"\n#include \"ui/native_theme/native_theme.h\"\n#include \"ui/views/animation/ink_drop.h\"\n#include \"ui/views/animation/ink_drop_highlight.h\"\n#include \"ui/views/animation/flood_fill_ink_drop_ripple.h\"\n#include \"ui/views/controls/highlight_path_generator.h\"\n",
+    present: "#include \"ui/views/animation/ink_drop_highlight.h\"" },
+  { anchor: "  GetViewAccessibility().SetHasPopup(ax::mojom::HasPopup::kMenu);",
+    replacement: "  if (blanc_prototype::IsIslandWindow(browser_)) {\n    // Match Blanc's 26px circular action hover while retaining the native anchor.\n    views::InstallFixedSizeCircleHighlightPathGenerator(this, 13);\n    views::InkDrop::Get(this)->SetCreateHighlightCallback(base::BindRepeating(\n        [](views::View* host) {\n          const bool dark = host->GetNativeTheme()->preferred_color_scheme() == ui::NativeTheme::PreferredColorScheme::kDark;\n          const SkColor ink = dark ? SkColorSetRGB(245, 245, 245)\n                                   : SkColorSetRGB(17, 17, 17);\n          auto highlight = std::make_unique<views::InkDropHighlight>(\n              gfx::SizeF(host->size()), ink);\n          highlight->set_visible_opacity(dark ? 0.12f : 0.08f);\n          return highlight;\n        }, this));\n    views::InkDrop::Get(this)->SetCreateRippleCallback(base::BindRepeating(\n        [](views::View* host) -> std::unique_ptr<views::InkDropRipple> {\n          const bool dark = host->GetNativeTheme()->preferred_color_scheme() == ui::NativeTheme::PreferredColorScheme::kDark;\n          return std::make_unique<views::FloodFillInkDropRipple>(\n              views::InkDrop::Get(host), host->size(),\n              host->GetLocalBounds().CenterPoint(),\n              dark ? SkColorSetRGB(245, 245, 245) : SkColorSetRGB(17, 17, 17),\n              dark ? 0.12f : 0.08f);\n        }, this));\n  }\n\n  GetViewAccessibility().SetHasPopup(ax::mojom::HasPopup::kMenu);",
+    present: "// Match Blanc's 26px circular action hover" },
+  { anchor: "int ExtensionsToolbarButton::GetIconSize() const {\n",
+    replacement: "SkColor ExtensionsToolbarButton::GetForegroundColor(ButtonState state) const {\n  if (!blanc_prototype::IsIslandWindow(browser_) || state == STATE_DISABLED)\n    return ToolbarChipButton::GetForegroundColor(state);\n  const bool dark = GetNativeTheme()->preferred_color_scheme() == ui::NativeTheme::PreferredColorScheme::kDark;\n  if (state == STATE_HOVERED || state == STATE_PRESSED)\n    return dark ? SkColorSetRGB(245, 245, 245) : SkColorSetRGB(17, 17, 17);\n  return dark ? SkColorSetRGB(156, 156, 156) : SkColorSetRGB(107, 107, 107);\n}\n\nint ExtensionsToolbarButton::GetIconSize() const {\n",
+    present: "SkColor ExtensionsToolbarButton::GetForegroundColor(ButtonState state) const {" },
+  { anchor: '#include "chrome/browser/ui/views/extensions/extensions_toolbar_button.h"\n',
+    replacement: '#include "chrome/browser/ui/views/extensions/extensions_toolbar_button.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+    present: '#include "chrome/browser/ui/blanc_prototype_ui.h"' },
+  { anchor: 'int ExtensionsToolbarButton::GetIconSize() const {\n',
+    replacement: 'int ExtensionsToolbarButton::GetIconSize() const {\n  // Match the Island\'s 14px icons at 1.15 zoom, retaining native hit bounds.\n  if (blanc_prototype::IsIslandWindow(browser_)) return 16;\n',
+    present: 'if (blanc_prototype::IsIslandWindow(browser_)) return 16;' },
+  { anchor: 'void ExtensionsToolbarButton::ToggleExtensionsMenu() {\n',
+    replacement: 'void ExtensionsToolbarButton::ToggleExtensionsMenu() {\n  if (blanc_prototype::OpenExtensions(browser_)) return;\n',
+    present: 'if (blanc_prototype::OpenExtensions(browser_)) return;' },
+]);
+edit('chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc', [
+  { anchor: '#include "chrome/browser/ui/views/extensions/extensions_toolbar_desktop.h"\n',
+    replacement: '#include "chrome/browser/ui/views/extensions/extensions_toolbar_desktop.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+    present: '#include "chrome/browser/ui/blanc_prototype_ui.h"' },
+  { anchor: '  // Popped out action uses a flex rule',
+    replacement: '  if (blanc_prototype::IsIslandWindow(browser_)) {\n    GetAnimatingLayoutManager()->FadeOut(action_view);\n    return;\n  }\n\n  // Popped out action uses a flex rule',
+    present: 'blanc_prototype::IsIslandWindow(browser_)) {\n    GetAnimatingLayoutManager()->FadeOut(action_view);' },
+  { anchor: '  icon->SetVisible(ToolbarActionsModel::CanShowActionsInToolbar(*browser_) &&',
+    replacement: '  icon->SetVisible(!blanc_prototype::IsIslandWindow(browser_) &&\n                   ToolbarActionsModel::CanShowActionsInToolbar(*browser_) &&',
+    present: 'icon->SetVisible(!blanc_prototype::IsIslandWindow(browser_)' },
+  { anchor: '  return model_->IsActionPinned(action_id) || ShouldForceVisibility(action_id);',
+    replacement: '  return !blanc_prototype::IsIslandWindow(browser_) &&\n      (model_->IsActionPinned(action_id) || ShouldForceVisibility(action_id));',
+    present: 'return !blanc_prototype::IsIslandWindow(browser_) &&' },
+  { anchor: '  UpdateExtensionsButton(*web_contents);\n  UpdateRequestAccessButton(*web_contents);\n}',
+    replacement: '  UpdateExtensionsButton(*web_contents);\n  UpdateRequestAccessButton(*web_contents);\n  if (blanc_prototype::IsIslandWindow(browser_))\n    request_access_button_->SetVisible(false);\n}',
+    present: 'request_access_button_->SetVisible(false);' },
+  { anchor: '  ToolbarActionView* view = GetViewForId(action_id);\n  return view ? view->GetReferenceButtonForPopup()',
+    replacement: '  if (blanc_prototype::IsIslandWindow(browser_)) return GetExtensionsButtonAnchor();\n  ToolbarActionView* view = GetViewForId(action_id);\n  return view ? view->GetReferenceButtonForPopup()',
+    present: 'if (blanc_prototype::IsIslandWindow(browser_)) return GetExtensionsButtonAnchor();' },
+]);
+
+prepareGroupPersistence(edit);
+prepareHistoryAcknowledgement(edit);
+prepareComponent(edit);
+prepareDocumentTarget(edit);
+prepareRendererTarget(edit, chromium);
+console.log(`Prepared Blanc Chromium prototype from ${expectedVersion}`);
+console.log(`Assets: ${generated}`);
+
+prepareWindowIdentity(edit);
+prepareSaveAcknowledgement(edit);
+
+// Upgrade a previously prepared header-bar hook before applying the current one.
+const splitViewPath = path.join(chromium, 'chrome/browser/ui/views/frame/multi_contents_view.cc');
+let previousSplitHook = fs.readFileSync(splitViewPath, 'utf8');
+previousSplitHook = previousSplitHook.replace('blanc_prototype::IsPersistentSplitTab(', 'blanc_prototype::HasSplitPresentation(');
+if (previousSplitHook.includes("// Do not stack Chromium's rounded page outlines beneath those headers.")) {
+  previousSplitHook = previousSplitHook
+    .replace("// Persistent Island panes use their own headers and visible keyboard focus.\n  // Do not stack Chromium's rounded page outlines beneath those headers.",
+      '// Persistent Island panes paint one shipping-style card outline in the Island.\n  // Native pages keep the matching inner radius without a second outline.')
+    .replace('container->SetRoundedCorners(gfx::RoundedCornersF());\n      container->UpdateBorderAndOverlay(false, false, false);',
+      'container->UpdateBorderAndOverlay(false, false, false);\n      container->SetRoundedCorners(gfx::RoundedCornersF(7));');
+}
+writeIfChanged(splitViewPath, previousSplitHook);
+
+edit('chrome/browser/ui/views/frame/multi_contents_view.cc', [
+  { anchor: '#include "chrome/browser/ui/views/frame/multi_contents_view.h"\n',
+    replacement: '#include "chrome/browser/ui/views/frame/multi_contents_view.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+    present: '#include "chrome/browser/ui/blanc_prototype_ui.h"' },
+  { anchor: '  layouts.host_size = gfx::Size(width, height);\n  return layouts;',
+    replacement: '  layouts.host_size = gfx::Size(width, height);\n  blanc_prototype::AdjustSplitLayout(this, &layouts);\n  return layouts;',
+    present: '  blanc_prototype::AdjustSplitLayout(this, &layouts);' },
+  { anchor: 'void MultiContentsView::UpdateContentsBorderAndOverlay() {\n  const bool is_in_split = IsInSplitView();',
+    replacement: `void MultiContentsView::UpdateContentsBorderAndOverlay() {
+  // Persistent Island panes paint one shipping-style card outline in the Island.
+  // Native pages keep the matching inner radius without a second outline.
+  if (blanc_prototype::IsEnabled() && IsInSplitView() &&
+      blanc_prototype::HasSplitPresentation(GetActiveContentsView()->web_contents())) {
+    for (auto& container : contents_container_views_) {
+      container->UpdateBorderAndOverlay(false, false, false);
+      container->SetRoundedCorners(gfx::RoundedCornersF(7));
+    }
+    return;
+  }
+  const bool is_in_split = IsInSplitView();`,
+    present: "blanc_prototype::HasSplitPresentation(GetActiveContentsView()->web_contents())" },
+]);
+
+prepareNativeHitTest(edit);
+preparePendingNavigation(edit);
+prepareSessionRecovery(edit);
+prepareStartupSession(edit);
+prepareCertificateRevocation(edit);
+
+writeResearchPolicy(chromium, process.argv.includes('--research-hooks'));
+guardResearchHooks(chromium);

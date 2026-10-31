@@ -1,0 +1,301 @@
+'use strict';
+// Installed actions and Store discovery share the picker. Chromium owns installation and popups.
+window.BlancExtensions = class {
+  static storeIconUrl(value) {
+    try {
+      const url = new URL(value);
+      return url.protocol === 'https:' && url.hostname === 'lh3.googleusercontent.com' &&
+        !url.username && !url.password && !url.port && !url.search && !url.hash ? url.href : '';
+    } catch { return ''; }
+  }
+  constructor({ request, close, refreshGeometry, back }) {
+    this.request = request;
+    this.close = close;
+    this.refreshGeometry = refreshGeometry;
+    this.back = back;
+    this.panel = document.getElementById('extensionsPanel');
+    this.search = document.getElementById('extensionSearch');
+    this.list = document.getElementById('extensionList');
+    this.themes = document.getElementById('installedThemes');
+    this.themeList = document.getElementById('themeList');
+    this.message = document.getElementById('extensionMessage');
+    this.items = [];
+    this.selected = null;
+    this.busy = false;
+    this.storeItems = [];
+    this.iconCache = new Map();
+    this.searchGeneration = 0;
+    this.storeMessage = '';
+    this.search.addEventListener('input', () => this.searchStore());
+    this.panel.addEventListener('keydown', event => this.keydown(event));
+    document.getElementById('extensionsBack').addEventListener('click', () => back());
+    document.getElementById('extensionsEscape').addEventListener('click', () => close());
+    document.getElementById('extensionsManage').addEventListener('click', () => this.openPage('chrome://extensions/'));
+    document.getElementById('extensionsGet').addEventListener('click', () => this.openPage('https://chromewebstore.google.com/category/extensions'));
+    this.themeList.addEventListener('click', event => {
+      const button = event.target.closest('[data-theme-action]');
+      if (button && !button.disabled) this.themeAction(button.dataset.themeId, button.dataset.themeAction);
+    });
+    this.list.addEventListener('click', event => {
+      const button = event.target.closest('[data-extension-id]');
+      if (button && !button.disabled) this.activate(button.dataset.extensionId);
+    });
+    this.list.addEventListener('contextmenu', event => {
+      const row = event.target.closest('[data-extension-id]');
+      if (!row || !this.items.some(item => item.id === row.dataset.extensionId)) return;
+      event.preventDefault();
+      this.activate(row.dataset.extensionId, true);
+    });
+    this.list.addEventListener('pointermove', event => {
+      const button = event.target.closest('[data-extension-id]');
+      if (button && !button.disabled) this.select(button.dataset.extensionId, false);
+    });
+  }
+  async show() {
+    this.panel.hidden = false;
+    this.search.value = '';
+    this.searchStore();
+    this.search.focus();
+    if (!this.items.length) this.message.textContent = 'Loading extensions…';
+    await this.update();
+    this.refreshGeometry();
+    this.search.focus();
+  }
+  hide() {
+    this.panel.hidden = true;
+    clearTimeout(this.searchTimer);
+    this.searchGeneration++;
+  }
+  searchStore() {
+    const generation = ++this.searchGeneration;
+    clearTimeout(this.searchTimer);
+    this.storeItems = [];
+    const query = this.search.value.trim();
+    this.storeMessage = query.length < 2 ? (query ? 'Type at least two characters to search the Chrome Web Store.' : '') : 'Searching Chrome Web Store…';
+    this.render();
+    if (query.length < 2) return;
+    this.searchTimer = setTimeout(async () => {
+      try {
+        const result = await this.request('storeSearch', [query]);
+        if (generation !== this.searchGeneration || this.panel.hidden) return;
+        this.storeItems = result.items.filter(item => /^[a-p]{32}$/.test(item.id)).map(item => ({
+          ...item, id: `store-${item.id}`, storeId: item.id, enabled: true, icon: window.BlancExtensions.storeIconUrl(item.icon),
+        }));
+        if (this.selected === 'store-search' && this.storeItems.length) this.selected = null;
+        this.storeMessage = this.storeItems.length ? '' : 'No results available here. Open the Store to see the full search.';
+      } catch {
+        if (generation !== this.searchGeneration || this.panel.hidden) return;
+        this.storeMessage = 'Store search unavailable. You can still open the full search.';
+      }
+      this.render();
+    }, 350);
+  }
+  async update() {
+    if (this.panel.hidden || this.busy || this.updating) return;
+    this.updating = true;
+    try {
+      const result = await this.request('extensions');
+      this.tabId = result.tabId;
+      const items = result.items.sort((a, b) => Number(!!a.theme) - Number(!!b.theme) || a.name.localeCompare(b.name));
+      const key = JSON.stringify(items);
+      if (key !== this.serialized) {
+        this.serialized = key;
+        this.items = items;
+        this.render();
+      } else if (!this.items.length) this.render();
+    } catch (error) {
+      this.message.textContent = error.message;
+    } finally { this.updating = false; }
+  }
+  render() {
+    const query = this.search.value.trim().toLocaleLowerCase();
+    const matching = this.items.filter(item => item.name.toLocaleLowerCase().includes(query));
+    this.renderThemes(matching.filter(item => item.theme));
+    this.visible = matching.filter(item => !item.theme);
+    this.visible.push(...this.storeItems.filter(item => !this.items.some(installed => installed.id === item.storeId)));
+    if (query) this.visible.push({
+      id: 'store-search', enabled: true, icon: '', storeSearch: true,
+      name: `Search Chrome Web Store for “${this.search.value.trim()}”`,
+    });
+    if (!this.visible.some(item => item.id === this.selected)) {
+      this.selected = this.visible[0]?.id ?? null;
+    }
+    this.list.replaceChildren();
+    let section = '';
+    for (const item of this.visible) {
+      const nextSection = item.storeId || item.storeSearch ? 'Chrome Web Store' : 'Installed';
+      if (nextSection !== section) {
+        const label = document.createElement('div');
+        label.className = 'extension-section';
+        label.setAttribute('role', 'presentation');
+        label.textContent = nextSection;
+        this.list.append(label);
+        section = nextSection;
+      }
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'extension-row';
+      row.id = `extension-${item.id}`;
+      row.dataset.extensionId = item.id;
+      row.setAttribute('role', 'option');
+      row.tabIndex = -1;
+      // Unavailable actions remain manageable through their native context menu.
+      row.disabled = false;
+      row.title = item.title || item.name;
+      const icon = document.createElement('img');
+      icon.className = 'extension-icon';
+      icon.alt = '';
+      const fallback = document.createElement('span');
+      fallback.className = 'extension-icon extension-icon-fallback';
+      fallback.setAttribute('aria-hidden', 'true');
+      fallback.textContent = item.name.slice(0, 1).toLocaleUpperCase();
+      fallback.hidden = true;
+      if (item.storeId) {
+        icon.addEventListener('error', () => { icon.hidden = true; fallback.hidden = false; }, { once: true });
+        icon.hidden = true;
+        fallback.hidden = false;
+        if (item.icon) {
+          if (!this.iconCache.has(item.icon)) {
+            if (this.iconCache.size >= 32) this.iconCache.delete(this.iconCache.keys().next().value);
+            this.iconCache.set(item.icon, this.request('storeIcon', [item.icon]).catch(() => ''));
+          }
+          this.iconCache.get(item.icon).then(data => {
+            if (!/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(data)) return;
+            icon.src = data;
+            icon.hidden = false;
+            fallback.hidden = true;
+          });
+        }
+      } else if (item.icon.startsWith('data:image/png;base64,')) icon.src = item.icon;
+      else icon.hidden = true;
+      const text = document.createElement('span');
+      text.className = 'extension-text';
+      const name = document.createElement('span');
+      name.className = 'extension-name';
+      name.textContent = item.name;
+      const detail = document.createElement('span');
+      detail.className = 'extension-detail';
+      detail.textContent = item.storeId ? (item.description || 'View in Chrome Web Store') : item.storeSearch ? 'See all results in Chrome Web Store' : item.enabled ? 'Open extension' : 'Unavailable on this page';
+      text.append(name, detail);
+      const hint = document.createElement('span');
+      hint.className = 'extension-enter';
+      hint.textContent = 'Enter';
+      hint.setAttribute('aria-hidden', 'true');
+      row.append(icon, fallback, text, hint);
+      this.list.append(row);
+    }
+    this.message.textContent = this.storeMessage || (this.visible.length || matching.length ? '' : this.items.length ? 'No matching extensions' : 'No extensions installed. Search above to find your first one.');
+    this.select(this.selected, false);
+    this.refreshGeometry();
+  }
+  renderThemes(items) {
+    // A list-box option is a single accessible item: its button descendants
+    // are flattened by macOS. Keep theme controls outside the combobox popup.
+    const focused = document.activeElement?.closest('[data-theme-action]');
+    const previous = focused ? { id: focused.dataset.themeId, action: focused.dataset.themeAction } : null;
+    this.themes.hidden = items.length === 0;
+    this.themeList.replaceChildren();
+    for (const item of items) {
+      const row = document.createElement('div'); row.className = 'extension-row theme-row';
+      const name = document.createElement('span'); name.className = 'extension-text';
+      name.id = `theme-name-${item.id}`;
+      name.textContent = item.name + (item.active ? ' — Active' : '');
+      row.setAttribute('role', 'group'); row.setAttribute('aria-labelledby', name.id);
+      row.append(name);
+      for (const action of ['applyTheme', 'removeTheme']) {
+        const button = document.createElement('button'); button.type = 'button';
+        button.dataset.themeAction = action; button.dataset.themeId = item.id;
+        button.textContent = action === 'applyTheme' ? 'Apply' : 'Remove';
+        button.setAttribute('aria-label', button.textContent + ' ' + item.name);
+        button.disabled = this.busy || (action === 'applyTheme' && item.active);
+        row.append(button);
+      }
+      this.themeList.append(row);
+    }
+    if (previous && !this.panel.hidden) {
+      const buttons = [...this.themeList.querySelectorAll('button:not(:disabled)')];
+      const target = buttons.find(b => b.dataset.themeId === previous.id && b.dataset.themeAction === previous.action)
+        || buttons.find(b => b.dataset.themeId === previous.id);
+      (target || this.search).focus();
+    }
+  }
+  select(id, scroll = true) {
+    this.selected = id;
+    for (const row of this.list.querySelectorAll('[data-extension-id]')) row.setAttribute('aria-selected', String(row.dataset.extensionId === id));
+    if (id) {
+      this.search.setAttribute('aria-activedescendant', `extension-${id}`);
+      if (scroll) document.getElementById(`extension-${id}`)?.scrollIntoView({ block: 'nearest' });
+    } else this.search.removeAttribute('aria-activedescendant');
+  }
+  keydown(event) {
+    if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 'a' && event.target === this.search) {
+      event.preventDefault();
+      this.search.select();
+      return;
+    }
+    if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); this.close(); return; }
+    if ((event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) &&
+        this.items.some(item => item.id === this.selected)) {
+      event.preventDefault();
+      this.activate(this.selected, true);
+      return;
+    }
+    if (event.target !== this.search) return;
+    const choices = this.visible ?? [];
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const index = choices.findIndex(item => item.id === this.selected);
+      const direction = event.key === 'ArrowDown' ? 1 : -1;
+      this.select(choices[(index + direction + choices.length) % choices.length]?.id ?? null);
+    } else if (event.key === 'Enter' && this.selected) {
+      event.preventDefault();
+      this.activate(this.selected);
+    }
+  }
+  async activate(id, contextMenu = false) {
+    if (this.busy) return;
+    const storeItem = this.storeItems.find(item => item.id === id);
+    if (storeItem) {
+      await this.openPage(`https://chromewebstore.google.com/detail/${storeItem.storeId}`);
+      return;
+    }
+    if (id === 'store-search') {
+      const query = this.search.value.trim();
+      if (query) await this.openPage(`https://chromewebstore.google.com/search/${encodeURIComponent(query)}`);
+      return;
+    }
+    const installed = this.items.find(item => item.id === id);
+    if (!installed || (!contextMenu && !installed.enabled)) return;
+    if (installed.theme) { if (!contextMenu && !installed.active) await this.themeAction(id, 'applyTheme'); return; }
+    this.busy = true;
+    try {
+      const tabId = this.tabId;
+      if (contextMenu) {
+        this.contextMenuOpen = true;
+        const selected = await this.request('extensionContextMenu', [id, tabId]);
+        this.contextMenuOpen = false;
+        if (selected) await this.close(false);
+        else if (!this.panel.hidden) this.search.focus();
+        return;
+      }
+      await this.close(false);
+      // Let the native anchor become visible before Chromium opens its popup.
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await this.request('extensionAction', [id, tabId]);
+    } catch (error) {
+      await window.BlancPrototypeHost.extensions();
+      this.message.textContent = error.message;
+    } finally { this.contextMenuOpen = false; this.busy = false; }
+  }
+  async themeAction(id, action) {
+    if (this.busy) return;
+    this.busy = true;
+    try { await this.request(action, [id]); }
+    catch (error) { this.message.textContent = error.message; }
+    finally { this.busy = false; await this.update(); }
+  }
+  async openPage(url) {
+    await this.close();
+    await this.request('createTab', [url]);
+  }
+};

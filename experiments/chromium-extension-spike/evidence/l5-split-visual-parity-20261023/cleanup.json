@@ -1,0 +1,24 @@
+{
+  "removedCompletedFixtures": [
+    "/private/tmp/blanc-split-parity/regression/core/profile-final",
+    "/private/tmp/blanc-split-parity/regression/core/downloads",
+    "/private/tmp/blanc-split-parity/regression/recovery/node22-home",
+    "/private/tmp/blanc-split-parity/regression/scope/profile",
+    "/private/tmp/blanc-split-parity/regression/private/profile",
+    "/private/tmp/blanc-split-parity/regression/regular/profile",
+    "/private/tmp/blanc-split-parity-final/regression/core/profile-final",
+    "/private/tmp/blanc-split-parity-final/regression/core/downloads",
+    "/private/tmp/blanc-split-parity-final/regression/recovery/node22-home",
+    "/private/tmp/blanc-split-parity-final/regression/scope/profile",
+    "/private/tmp/blanc-split-parity-final/regression/private/profile",
+    "/private/tmp/blanc-split-parity-final/regression/regular/profile",
+    "/private/tmp/blanc-split-parity-final/profile-private-signed-final",
+    "/private/tmp/blanc-split-parity-final/profile-private-visual"
+  ],
+  "retainedOwner": "/private/tmp/blanc-split-parity-final/profile-signed-owner",
+  "oldOwner": "/private/tmp/blanc-l5-hit-fix/profile-signed-owner-current remains open and untouched",
+  "diagnostics": "earlier crash/bridge-race profiles retained locally",
+  "Google": "untouched and uncommitted",
+  "signingKey": "retained under standing authorization",
+  "remote": "both signing jobs/staging removed; local signed masters/archives retained"
+}

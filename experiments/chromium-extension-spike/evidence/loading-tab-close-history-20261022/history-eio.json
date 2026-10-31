@@ -1,0 +1,24 @@
+{
+  "label": "history-eio",
+  "hits": [
+    {
+      "url": "/settled",
+      "method": "GET",
+      "held": true
+    },
+    {
+      "url": "/favicon.ico",
+      "method": "GET",
+      "held": true
+    }
+  ],
+  "closeError": "Error: {\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Tab closed, but history persistence failed or timed out.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"7\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"48\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Tab closed, but history persistence failed or timed out.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"6148837784604409393.1.1\"}}",
+  "fault": {
+    "pid": 23026,
+    "path": "/private/tmp/blanc-close-loading-repair/history-eio-profile/Default/Sessions_Encrypted/Tabs_13437175322208871",
+    "mode": "flush",
+    "op": "fsync",
+    "errno": 5
+  },
+  "pass": true
+}

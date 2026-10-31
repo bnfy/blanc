@@ -1,0 +1,51 @@
+{
+  "status": "pending-erasure departure mismatch addressed in native draft; isolated checks passed; browser integration not qualified",
+  "shippingRelease": "v1.45.1",
+  "shippingSource": "85883b1afa11375e1300130914d6f40c5388af21",
+  "implementation": [
+    "only ProfileEngine can invoke private broker departure acquisition with pending erasure",
+    "ordinary broker acquisition rejects pending erasure",
+    "credential session binds erasure flag as well as revision/account/protected bytes; change before provider reply or queued delivery cancels",
+    "controller refuses ordinary requests while erasure pending and checks identity/flag again after asynchronous work",
+    "departure request checks the captured erasure flag before dispatch and after GET/model work"
+  ],
+  "verification": [
+    "503 quota erasure pending on actual fake DELETE retains enabled account and protected key; ordinary engine/controller requests blocked; explicit non-wipe disable attempts ordered sends/closed/session",
+    "provider callback after pending flag changes cannot dispatch; late callback after shutdown safe",
+    "flag changes while departure GET held suppress that PUT",
+    "flag changes while ordinary GET held suppress model and PUT",
+    "503 pending on departure GETs makes three best-effort attempts without PUT before local disable",
+    "direct ordinary broker blocks admission/provider-return/queued-delivery races with no session",
+    "compiler rejects external access to private departure broker API",
+    "actual V8 departure model plus encrypted fake network passes with pending state and peer lone-surrogate preservation"
+  ],
+  "rawEvidence": "evidence/native-sync-erasure-pending-departure-20261030",
+  "runtimeResults": [
+    "run-3-result.json through run-6-result.json exit 0",
+    "run-v2-3-result.json and run-v2-7-result.json exit 0 after normal controller guard change",
+    "broker-run-result.json exit 0",
+    "v8-run-result.json exit 0",
+    "private-api-negative-result.json expected compiler failure"
+  ],
+  "appBuild": false,
+  "deployed": false,
+  "realCredentialIO": false,
+  "liveNetworkRequests": 0,
+  "featureCredit": false,
+  "remaining": [
+    "native Profile factory and real owner/provider integration",
+    "production V8 process isolation, heap/time limits and cache semantics",
+    "settings UI, pairing, data migration and macOS/Windows/Linux qualification",
+    "rebuild all consumers after credential Session and DepartureMaterial layout changes"
+  ],
+  "sourceSha256": {
+    "credential_broker.h": "ec4e612b72a42c8ba2afecac4400eb7ea9cdb4e0db59bda7fd707f12ef7307ee",
+    "credential_broker.cc": "e6c1adc3bc994cff72487737863e3b6798864fb97bb8b7763adccd6bfe99cf21",
+    "account_controller.h": "7cd0825cfea171d5e7ce754fd3afbcb11d53410c884a62be5bec5bf85d7efe9a",
+    "account_controller.cc": "042a7a727c8dd8fd053e9fe7977d2ae8574991ef3a218ed07aa8f3f397fa04a7",
+    "profile_engine.cc": "c2684fd5adfe5cd36a0ca10b51eedf79ea7afc84b9f0590004c0451315655ef5",
+    "departure_engine_test.cc": "67b2829f9becab38a41cd4dd680770a3ea3463ec6757bd9afafc1c67f55f8492",
+    "credential_pending_test.cc": "212d30c9e5d76c600a1ecc9dd24d4da1ee96ec7f75f9ed6eddf5dc2f138d747e",
+    "departure_engine_v8_test.cc": "c027cae000369d1edd864cbbc7f46211d3696a63f31986eb06255f3abca36223"
+  }
+}

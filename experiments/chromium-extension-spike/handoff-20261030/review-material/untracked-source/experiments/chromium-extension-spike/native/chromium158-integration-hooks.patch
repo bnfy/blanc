@@ -1,0 +1,527 @@
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/common/ChromeIsolatedWorldIds.java b/chrome/android/java/src/org/chromium/chrome/browser/common/ChromeIsolatedWorldIds.java
+index 89348f2218..83ff39d445 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/common/ChromeIsolatedWorldIds.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/common/ChromeIsolatedWorldIds.java
+@@ -24,6 +24,7 @@ import java.lang.annotation.RetentionPolicy;
+     ChromeIsolatedWorldIds.ISOLATED_WORLD_ID_INDIGO,
+     ChromeIsolatedWorldIds.ISOLATED_WORLD_ID_CHROME_INTERNAL,
+     ChromeIsolatedWorldIds.ISOLATED_WORLD_UNUSED_MAC,
++    ChromeIsolatedWorldIds.ISOLATED_WORLD_ID_BLANC_COSMETICS,
+     ChromeIsolatedWorldIds.ISOLATED_WORLD_ID_UNUSED_EXTENSIONS
+ })
+ @Retention(RetentionPolicy.SOURCE)
+@@ -33,6 +34,7 @@ public @interface ChromeIsolatedWorldIds {
+     int ISOLATED_WORLD_ID_INDIGO = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 2;
+     int ISOLATED_WORLD_ID_CHROME_INTERNAL = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 3;
+     int ISOLATED_WORLD_UNUSED_MAC = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 4;
+-    int ISOLATED_WORLD_ID_UNUSED_EXTENSIONS = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 5;
++    int ISOLATED_WORLD_ID_BLANC_COSMETICS = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 5;
++    int ISOLATED_WORLD_ID_UNUSED_EXTENSIONS = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 6;
+ }
+ // LINT.ThenChange(//chrome/common/chrome_isolated_world_ids.h)
+diff --git a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
+index f0f529901a..d7092a17df 100644
+--- a/chrome/browser/BUILD.gn
++++ b/chrome/browser/BUILD.gn
+@@ -1089,6 +1089,7 @@ source_set("core") {
+     ":startup_data",
+     ":unexpire_flags",
+     ":universal_web_contents_observers",
++    "//chrome/services/blanc_blocker:browser",
+     "//base/allocator:buildflags",
+     "//build/config/linux/dbus:buildflags",
+     "//chrome/browser/accessibility",
+diff --git a/chrome/browser/chrome_content_browser_client.cc b/chrome/browser/chrome_content_browser_client.cc
+index 03111c8cb7..65bd0f37b1 100644
+--- a/chrome/browser/chrome_content_browser_client.cc
++++ b/chrome/browser/chrome_content_browser_client.cc
+@@ -3,6 +3,10 @@
+ // found in the LICENSE file.
+ 
+ #include "chrome/browser/chrome_content_browser_client.h"
++#include "content/public/common/blanc_research_build.h"
++#include "chrome/services/blanc_blocker/blocker_proxy.h"
++#include "content/public/browser/blanc_url_loader_gate.h"
++#include "content/public/browser/blanc_websocket_gate.h"
+ 
+ #include <algorithm>
+ #include <iterator>
+@@ -1577,6 +1581,8 @@ ChromeContentBrowserClient::GetPopupNavigationDelegateFactoryForTesting() {
+ }
+ 
+ ChromeContentBrowserClient::ChromeContentBrowserClient() {
++  content::SetBlancURLLoaderWrapper(&blanc::MaybeProxy);
++  content::SetBlancWebSocketWrapper(&blanc::WrapWebSocketFactory);
+ #if BUILDFLAG(ENABLE_PLUGINS)
+   extra_parts_.push_back(
+       std::make_unique<ChromeContentBrowserClientPluginsPart>());
+@@ -3233,6 +3239,9 @@ void ChromeContentBrowserClient::AppendExtraCommandLineSwitches(
+ 
+     // Please keep this in alphabetical order.
+     static const char* const kSwitchNames[] = {
++#if BLANC_RESEARCH_HOOKS
++        "blanc-ubo-document-start",
++#endif
+         autofill::switches::kIgnoreAutocompleteOffForAutofill,
+         autofill::switches::kShowAutofillSignatures,
+ #if BUILDFLAG(IS_CHROMEOS)
+@@ -5716,6 +5725,7 @@ void ChromeContentBrowserClient::
+   // RegisterChromeMojoBinderPoliciesForSameOriginPrerendering() which requires
+   // security review.
+   RegisterChromeMojoBinderPoliciesForSameOriginPrerendering(policy_map);
++  blanc::SetDocumentStartPrerenderPolicy(policy_map);
+ }
+ 
+ void ChromeContentBrowserClient::OpenURL(
+@@ -5785,6 +5795,7 @@ void ChromeContentBrowserClient::RemovePresentationObserver(
+ 
+ void ChromeContentBrowserClient::CreateThrottlesForNavigation(
+     content::NavigationThrottleRegistry& registry) {
++  blanc::AddNavigationResponseGate(registry);
+   CreateAndAddChromeThrottlesForNavigation(registry);
+ }
+ 
+@@ -5798,6 +5809,8 @@ ChromeContentBrowserClient::CreateCommitDeferringConditionsForNavigation(
+     content::NavigationHandle* navigation_handle,
+     content::CommitDeferringCondition::NavigationType navigation_type) {
+   std::vector<std::unique_ptr<content::CommitDeferringCondition>> conditions;
++  MaybeAddCondition(blanc::MaybeCreateActivationGate(*navigation_handle, navigation_type),
++                    &conditions);
+ 
+ #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
+   MaybeAddCondition(
+@@ -7171,6 +7184,8 @@ void ChromeContentBrowserClient::WillCreateWebTransport(
+     mojo::PendingRemote<network::mojom::WebTransportHandshakeClient>
+         handshake_client,
+     WillCreateWebTransportCallback callback) {
++  callback = blanc::WrapWebTransportCallback(process_id, frame_routing_id, url,
++                                            initiator_origin, std::move(callback));
+ #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
+   DCHECK_CURRENTLY_ON(BrowserThread::UI);
+   // TODO(crbug.com/40195467): Add a unit test which calls
+diff --git a/chrome/browser/chrome_content_browser_client_receiver_bindings.cc b/chrome/browser/chrome_content_browser_client_receiver_bindings.cc
+index aa6ff52009..16d998b388 100644
+--- a/chrome/browser/chrome_content_browser_client_receiver_bindings.cc
++++ b/chrome/browser/chrome_content_browser_client_receiver_bindings.cc
+@@ -5,6 +5,7 @@
+ // This file exposes services from the browser to child processes.
+ 
+ #include "base/feature_list.h"
++#include "content/public/common/blanc_research_build.h"
+ #include "base/functional/bind.h"
+ #include "base/metrics/histogram_functions.h"
+ #include "base/task/single_thread_task_runner.h"
+@@ -13,6 +14,7 @@
+ #include "chrome/browser/chrome_browser_interface_binders.h"
+ #include "chrome/browser/chrome_browser_interface_binders_webui.h"
+ #include "chrome/browser/chrome_content_browser_client.h"
++#include "chrome/services/blanc_blocker/blocker_proxy.h"
+ #include "chrome/browser/chrome_content_browser_client_parts.h"
+ #include "chrome/browser/content_settings/content_settings_manager_delegate.h"
+ #include "chrome/browser/facilitated_payments/facilitated_payments_driver_binder.h"
+@@ -349,6 +351,10 @@ void ChromeContentBrowserClient::BindMediaServiceReceiver(
+ void ChromeContentBrowserClient::RegisterBrowserInterfaceBindersForFrame(
+     content::RenderFrameHost* render_frame_host,
+     mojo::BinderMapWithContext<content::RenderFrameHost*>* map) {
++  map->Add<blanc::mojom::Cosmetics>(&blanc::BindCosmetics);
++#if BLANC_RESEARCH_HOOKS
++  map->Add<blanc::mojom::DocumentStart>(&blanc::BindDocumentStart);
++#endif
+   chrome::internal::PopulateChromeFrameBinders(map, render_frame_host);
+   chrome::internal::PopulateChromeWebUIFrameBinders(map, render_frame_host);
+ 
+diff --git a/chrome/common/chrome_isolated_world_ids.h b/chrome/common/chrome_isolated_world_ids.h
+index 846e4777c4..7d62cd7672 100644
+--- a/chrome/common/chrome_isolated_world_ids.h
++++ b/chrome/common/chrome_isolated_world_ids.h
+@@ -27,6 +27,7 @@ enum ChromeIsolatedWorldIDs {
+   // Numbers for isolated worlds for extensions are set in
+   // extensions/renderer/script_injection.cc, and are are greater than or equal
+   // to this number.
++  ISOLATED_WORLD_ID_BLANC_COSMETICS,
+   ISOLATED_WORLD_ID_EXTENSIONS
+ };
+ // LINT.ThenChange(//chrome/android/java/src/org/chromium/chrome/browser/common/ChromeIsolatedWorldIds.java)
+diff --git a/chrome/renderer/BUILD.gn b/chrome/renderer/BUILD.gn
+index dab2e49bb9..e391a04ab1 100644
+--- a/chrome/renderer/BUILD.gn
++++ b/chrome/renderer/BUILD.gn
+@@ -128,6 +128,7 @@ static_library("renderer") {
+ 
+   deps = [
+     ":process_state",
++    "//chrome/services/blanc_blocker:mojom",
+     "//base/allocator:buildflags",
+     "//build:chromeos_buildflags",
+     "//chrome:resources",
+diff --git a/chrome/renderer/chrome_content_renderer_client.cc b/chrome/renderer/chrome_content_renderer_client.cc
+index 792412915d..0d09ecb364 100644
+--- a/chrome/renderer/chrome_content_renderer_client.cc
++++ b/chrome/renderer/chrome_content_renderer_client.cc
+@@ -3,6 +3,10 @@
+ // found in the LICENSE file.
+ 
+ #include "chrome/renderer/chrome_content_renderer_client.h"
++#include "chrome/services/blanc_blocker/blocker.mojom.h"
++#include "content/public/renderer/render_frame_observer.h"
++#include "third_party/blink/public/platform/browser_interface_broker_proxy.h"
++#include "third_party/blink/public/web/web_script_source.h"
+ 
+ #include <functional>
+ #include <memory>
+@@ -1487,8 +1491,13 @@ ChromeContentRendererClient::CreateSpeechRecognitionClient(
+ }
+ #endif  // BUILDFLAG(ENABLE_SPEECH_SERVICE)
+ 
++#include "chrome/services/blanc_blocker/document_start_renderer.inc"
++#include "chrome/services/blanc_blocker/cosmetic_renderer.inc"
++
+ void ChromeContentRendererClient::RunScriptsAtDocumentStart(
+     content::RenderFrame* render_frame) {
++  if (!BlancProductionDocumentStart(render_frame)) return;
++  if (!BlancDocumentStart(render_frame)) return;
+ #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
+   extensions::ExtensionsRendererClient::Get()->RunScriptsAtDocumentStart(
+       render_frame);
+diff --git a/chrome/utility/BUILD.gn b/chrome/utility/BUILD.gn
+index e5b851a44d..03c2cb3e2a 100644
+--- a/chrome/utility/BUILD.gn
++++ b/chrome/utility/BUILD.gn
+@@ -30,6 +30,7 @@ static_library("utility") {
+ 
+   public_deps = []
+   deps = [
++    "//chrome/services/blanc_blocker:service",
+     "//base",
+     "//build:chromeos_buildflags",
+     "//chrome:resources",
+diff --git a/chrome/utility/services.cc b/chrome/utility/services.cc
+index 2dfe79c92d..a0d7159d5a 100644
+--- a/chrome/utility/services.cc
++++ b/chrome/utility/services.cc
+@@ -3,6 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "chrome/utility/services.h"
++#include "chrome/services/blanc_blocker/blocker_service.h"
+ 
+ #include <memory>
+ #include <utility>
+@@ -503,7 +504,12 @@ void RegisterElevatedMainThreadServices(mojo::ServiceFactory& services) {
+ #endif
+ }
+ 
++auto RunBlancBlocker(mojo::PendingReceiver<blanc::mojom::Blocker> receiver) {
++  return std::make_unique<blanc::BlockerService>(std::move(receiver));
++}
++
+ void RegisterMainThreadServices(mojo::ServiceFactory& services) {
++  services.Add(RunBlancBlocker);
+   services.Add(RunFilePatcher);
+   services.Add(RunUnzipper);
+   services.Add(RunCSVPasswordParser);
+diff --git a/content/browser/devtools/devtools_url_loader_interceptor.cc b/content/browser/devtools/devtools_url_loader_interceptor.cc
+index 6bab10c3fa..a96d4719f8 100644
+--- a/content/browser/devtools/devtools_url_loader_interceptor.cc
++++ b/content/browser/devtools/devtools_url_loader_interceptor.cc
+@@ -35,6 +35,7 @@
+ #include "content/public/browser/storage_partition.h"
+ #include "content/public/common/child_process_id_util.h"
+ #include "content/public/common/content_client.h"
++#include "mojo/public/cpp/bindings/callback_helpers.h"
+ #include "mojo/public/cpp/bindings/message.h"
+ #include "mojo/public/cpp/bindings/receiver.h"
+ #include "mojo/public/cpp/bindings/receiver_set.h"
+@@ -61,6 +62,7 @@
+ #include "services/network/public/mojom/early_hints.mojom.h"
+ #include "services/network/public/mojom/encoded_body_length.mojom.h"
+ #include "services/network/public/mojom/network_context.mojom.h"
++#include "services/network/public/mojom/network_service.mojom.h"
+ #include "services/network/public/mojom/url_loader.mojom.h"
+ #include "third_party/blink/public/platform/resource_request_blocked_reason.h"
+ #include "third_party/perfetto/include/perfetto/tracing/track.h"
+@@ -599,6 +601,8 @@ class InterceptionJob : public network::mojom::URLLoaderClient,
+     kWaitingForClient,
+   };
+ 
++  // Invalidates delayed parser/cookie completions on response replacement.
++  uint64_t response_metadata_epoch_ = 0;
+   State state_ = kNotStarted;
+   base::TimeTicks start_ticks_;
+   base::Time start_time_;
+@@ -1456,6 +1460,7 @@ Response InterceptionJob::InnerContinueRequest(
+     client_->OnReceiveResponse(std::move(response_metadata_->head),
+                                std::move(body_),
+                                std::move(response_metadata_->cached_metadata));
++    ++response_metadata_epoch_;
+     response_metadata_.reset();
+     client_receiver_.Resume();
+     return Response::Success();
+@@ -1528,7 +1533,17 @@ void InterceptionJob::ApplyModificationsToRequest(
+       }
+       request->site_for_cookies = net::SiteForCookies::FromUrl(new_url);
+       if (request->trusted_params) {
+-        request->trusted_params->isolation_info = {};
++        // Blanc: retain trusted main-navigation isolation across replacement.
++        // Derive the new origin/cookie key using the existing trusted context;
++        // CreateForRedirect preserves its nonce and isolation partition.
++        auto& isolation_info = request->trusted_params->isolation_info;
++        if (!isolation_info.IsEmpty() &&
++            isolation_info.request_type() ==
++                net::IsolationInfo::RequestType::kMainFrame) {
++          isolation_info = isolation_info.CreateForRedirect(new_origin);
++        } else {
++          isolation_info = {};
++        }
+       }
+     }
+   }
+@@ -1578,6 +1593,7 @@ Response InterceptionJob::ProcessResponseOverride(
+   CHECK_LE(response_body_offset, body ? body->size() : 0,
+            base::NotFatalUntil::M159);
+   size_t body_size = body ? body->size() - response_body_offset : 0;
++  ++response_metadata_epoch_;
+   response_metadata_ = std::make_unique<ResponseMetadata>();
+   network::mojom::URLResponseHeadPtr& head = response_metadata_->head;
+ 
+@@ -1639,15 +1655,41 @@ Response InterceptionJob::ProcessResponseOverride(
+     if (redirect_url.is_valid()) {
+       continue_after_cookies_set =
+           base::BindOnce(&InterceptionJob::ProcessRedirectByClient,
+-                         base::Unretained(this), std::move(redirect_url));
++                         weak_ptr_factory_.GetWeakPtr(), std::move(redirect_url));
+     }
+   }
+   if (!continue_after_cookies_set) {
+     continue_after_cookies_set =
+-        base::BindOnce(&InterceptionJob::SendResponse, base::Unretained(this),
++        base::BindOnce(&InterceptionJob::SendResponse, weak_ptr_factory_.GetWeakPtr(),
+                        std::move(body), response_body_offset);
+   }
+-  ProcessSetCookies(*head->headers, std::move(continue_after_cookies_set));
++  // Fresh DevTools response bodies have raw headers but no parsed policy.
++  // Parse untrusted bytes in the network service before redirect or response
++  // reaches loader throttles. A disconnected parser fails the load closed.
++  GetNetworkService()->ParseHeaders(
++      url, head->headers,
++      mojo::WrapCallbackWithDefaultInvokeIfNotRun(
++          base::BindOnce(
++              [](base::WeakPtr<InterceptionJob> job, uint64_t response_epoch,
++                 base::OnceClosure next,
++                 network::mojom::ParsedHeadersPtr parsed) {
++                if (!job || job->response_metadata_epoch_ != response_epoch)
++                  return;
++                if (!parsed || !job->response_metadata_ ||
++                    !job->response_metadata_->head) {
++                  job->CompleteRequest(network::URLLoaderCompletionStatus(net::ERR_FAILED));
++                  return;
++                }
++                job->response_metadata_->head->parsed_headers = std::move(parsed);
++                job->ProcessSetCookies(*job->response_metadata_->head->headers,
++                    base::BindOnce([](base::WeakPtr<InterceptionJob> job,
++                                      uint64_t response_epoch, base::OnceClosure next) {
++                      if (job && job->response_metadata_epoch_ == response_epoch)
++                        std::move(next).Run();
++                    }, job, response_epoch, std::move(next)));
++              }, weak_ptr_factory_.GetWeakPtr(), response_metadata_epoch_,
++              std::move(continue_after_cookies_set)),
++          network::mojom::ParsedHeadersPtr()));
+ 
+   return Response::Success();
+ }
+@@ -2021,6 +2063,7 @@ void InterceptionJob::FollowRedirect(
+   request_cookies_.reset();
+ 
+   request->UpdateOnRedirect(info);
++  ++response_metadata_epoch_;
+   response_metadata_.reset();
+ 
+   UpdateCORSFlag();
+@@ -2085,6 +2128,7 @@ void InterceptionJob::OnReceiveResponse(
+        download_utils::IsDownload(/*browser_context=*/nullptr, request.url,
+                                   head->headers.get(), head->mime_type));
+ 
++  ++response_metadata_epoch_;
+   response_metadata_ = std::make_unique<ResponseMetadata>(std::move(head));
+   response_metadata_->cached_metadata = std::move(cached_metadata);
+ 
+@@ -2096,6 +2140,7 @@ void InterceptionJob::OnReceiveRedirect(
+     network::mojom::URLResponseHeadPtr head) {
+   CHECK_EQ(State::kRequestSent, state_, base::NotFatalUntil::M159);
+   state_ = State::kRedirectReceived;
++  ++response_metadata_epoch_;
+   response_metadata_ = std::make_unique<ResponseMetadata>(head.Clone());
+   response_metadata_->redirect_info =
+       std::make_unique<net::RedirectInfo>(redirect_info);
+@@ -2170,6 +2215,7 @@ void InterceptionJob::OnComplete(
+       CompleteRequest(status);
+       return;
+     }
++    ++response_metadata_epoch_;
+     response_metadata_ = std::make_unique<ResponseMetadata>();
+     response_metadata_->status = status;
+     auto request_info = BuildRequestInfo(nullptr);
+diff --git a/content/browser/loader/navigation_url_loader_impl.cc b/content/browser/loader/navigation_url_loader_impl.cc
+index b6cca80692..6985dd3ede 100644
+--- a/content/browser/loader/navigation_url_loader_impl.cc
++++ b/content/browser/loader/navigation_url_loader_impl.cc
+@@ -2333,6 +2333,15 @@ NavigationURLLoaderImpl::CreateNetworkLoaderFactory(
+                       /*is_download=*/false, factory_builder,
+                       /*factory_override=*/nullptr, &header_client);
+ 
++  // Blanc: navigation uses a separate factory assembly path. Gate after
++  // DevTools so initial and restarted subframe requests are checked before I/O.
++  url_loader_factory::ContentClientParams(
++      browser_context, frame_tree_node->current_frame_host(),
++      frame_tree_node->current_frame_host()->GetProcess()->GetDeprecatedID(),
++      url::Origin(), net::IsolationInfo(), ukm_id)
++      .FinalizeBlancFactory(factory_builder, /*factory_override=*/nullptr,
++                           ContentBrowserClient::URLLoaderFactoryType::kNavigation);
++
+   net::CookieSettingOverrides devtools_cookie_overrides;
+   devtools_instrumentation::ApplyNetworkCookieControlsOverrides(
+       devtools_params.agent_host(), devtools_cookie_overrides);
+diff --git a/content/browser/loader/url_loader_factory_utils.cc b/content/browser/loader/url_loader_factory_utils.cc
+index 11d6b8487b..29ec227625 100644
+--- a/content/browser/loader/url_loader_factory_utils.cc
++++ b/content/browser/loader/url_loader_factory_utils.cc
+@@ -3,6 +3,8 @@
+ // found in the LICENSE file.
+ 
+ #include "content/browser/loader/url_loader_factory_utils.h"
++#include "content/public/browser/blanc_url_loader_gate.h"
++#include "mojo/public/cpp/bindings/remote.h"
+ 
+ #include <variant>
+ 
+@@ -11,6 +13,10 @@
+ #include "net/cookies/cookie_setting_override.h"
+ 
+ namespace content {
++namespace { BlancURLLoaderWrapper g_blanc_url_loader_wrapper = nullptr; }
++void SetBlancURLLoaderWrapper(BlancURLLoaderWrapper wrapper) {
++  g_blanc_url_loader_wrapper = wrapper;
++}
+ namespace url_loader_factory {
+ 
+ namespace {
+@@ -175,6 +181,31 @@ ContentClientParams& ContentClientParams::operator=(ContentClientParams&&) =
+     default;
+ ContentClientParams::~ContentClientParams() = default;
+ 
++void ContentClientParams::FinalizeBlancFactory(
++    network::URLLoaderFactoryBuilder& factory_builder,
++    network::mojom::URLLoaderFactoryOverridePtr* factory_override,
++    ContentBrowserClient::URLLoaderFactoryType type) {
++  if (!g_blanc_url_loader_wrapper) return;
++  if (factory_override && *factory_override) {
++    // DevTools restarts modified requests using this inner target. An outer
++    // builder entry cannot see those requests. Preserve the override and all
++    // its CORS settings, inserting only at its downstream receiver.
++    network::URLLoaderFactoryBuilder inner;
++    if (!g_blanc_url_loader_wrapper(browser_context_.get(), frame_.get(),
++          static_cast<int>(type), isolation_info_.get(), inner)) return;
++    mojo::PendingRemote<network::mojom::URLLoaderFactory> target;
++    auto receiver = target.InitWithNewPipeAndPassReceiver();
++    auto proxy = std::move(inner)
++        .Finish<mojo::PendingRemote<network::mojom::URLLoaderFactory>>(std::move(target));
++    mojo::FusePipes(std::move((*factory_override)->overridden_factory_receiver),
++                    std::move(proxy));
++    (*factory_override)->overridden_factory_receiver = std::move(receiver);
++  } else {
++    g_blanc_url_loader_wrapper(browser_context_.get(), frame_.get(),
++        static_cast<int>(type), isolation_info_.get(), factory_builder);
++  }
++}
++
+ void ContentClientParams::Run(
+     network::URLLoaderFactoryBuilder& factory_builder,
+     ContentBrowserClient::URLLoaderFactoryType type,
+@@ -266,6 +297,10 @@ template <typename OutType, typename... FinishArgs>
+             : nullptr);
+   }
+ 
++  if (content_client_params && terminal_params.is_for_network_service()) {
++    content_client_params->FinalizeBlancFactory(factory_builder, factory_override_ptr, type);
++  }
++
+   if (auto terminal_url_loader_factory =
+           terminal_params.TakeURLLoaderFactory()) {
+     if (GetTestingInterceptor()) {
+diff --git a/content/browser/loader/url_loader_factory_utils.h b/content/browser/loader/url_loader_factory_utils.h
+index 41e0227b3c..f2362b0052 100644
+--- a/content/browser/loader/url_loader_factory_utils.h
++++ b/content/browser/loader/url_loader_factory_utils.h
+@@ -76,6 +76,11 @@ class CONTENT_EXPORT ContentClientParams final {
+            network::mojom::URLLoaderFactoryOverridePtr* factory_override,
+            bool is_for_network_service);
+ 
++  // Append the blocker after request-mutating proxies, including overrides.
++  void FinalizeBlancFactory(network::URLLoaderFactoryBuilder& factory_builder,
++      network::mojom::URLLoaderFactoryOverridePtr* factory_override,
++      ContentBrowserClient::URLLoaderFactoryType type);
++
+  private:
+   raw_ptr<BrowserContext> browser_context_;
+   raw_ptr<RenderFrameHost> frame_;
+diff --git a/content/browser/service_worker/service_worker_update_checker.cc b/content/browser/service_worker/service_worker_update_checker.cc
+index c35044bb0d..5b7a701bf0 100644
+--- a/content/browser/service_worker/service_worker_update_checker.cc
++++ b/content/browser/service_worker/service_worker_update_checker.cc
+@@ -3,6 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "content/browser/service_worker/service_worker_update_checker.h"
++#include "content/browser/service_worker/blanc_update_identity.inc"
+ 
+ #include <algorithm>
+ #include <utility>
+@@ -273,7 +274,10 @@ void ServiceWorkerUpdateChecker::OnResourceIdAssignedForOneScriptCheck(
+       url, is_main_script, main_script_url_, version_to_update_->scope(),
+       force_bypass_cache_, worker_script_type_, update_via_cache_,
+       fetch_client_settings_object_, time_since_last_check_,
+-      context_->wrapper()->browser_context(), loader_factory_,
++      context_->wrapper()->browser_context(),
++      BlancUpdateFactory(loader_factory_, version_to_update_->registration_id(),
++          version_to_update_->version_id(), version_to_update_->scope(),
++          version_to_update_->key(), context_->wrapper()->browser_context()->IsOffTheRecord(), is_main_script),
+       std::move(compare_reader), std::move(copy_reader), std::move(writer),
+       new_resource_id,
+       // If the main script checksum is empty, then calculate each script
+diff --git a/content/browser/websockets/websocket_connector_impl.cc b/content/browser/websockets/websocket_connector_impl.cc
+index eaf7d1eb13..fb32c405ab 100644
+--- a/content/browser/websockets/websocket_connector_impl.cc
++++ b/content/browser/websockets/websocket_connector_impl.cc
+@@ -3,6 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "content/browser/websockets/websocket_connector_impl.h"
++#include "content/public/browser/blanc_websocket_gate.h"
+ 
+ #include <algorithm>
+ 
+@@ -27,6 +28,11 @@
+ #include "url/gurl.h"
+ 
+ namespace content {
++namespace { BlancWebSocketWrapper g_blanc_websocket_wrapper = nullptr; }
++void SetBlancWebSocketWrapper(BlancWebSocketWrapper wrapper) {
++  g_blanc_websocket_wrapper = wrapper;
++}
++
+ 
+ namespace {
+ 
+@@ -143,6 +149,12 @@ void WebSocketConnectorImpl::Connect(
+       options.options, std::move(throttling_profile_id),
+       network_restrictions_id_, target_address_space, target_network);
+ 
++  if (g_blanc_websocket_wrapper) {
++    factory = g_blanc_websocket_wrapper(
++        frame_id_.child_id.GetUnsafeValue(), frame_id_.frame_routing_id, origin_,
++        std::move(factory));
++  }
++
+   if (GetContentClient()->browser()->WillInterceptWebSocket(frame)) {
+     GetContentClient()->browser()->CreateWebSocket(
+         frame, std::move(factory), url, isolation_info_.site_for_cookies(),

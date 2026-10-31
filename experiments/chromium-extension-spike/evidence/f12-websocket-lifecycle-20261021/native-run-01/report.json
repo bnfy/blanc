@@ -1,0 +1,58 @@
+{
+  "passed": true,
+  "nativeOnly": true,
+  "latencyBenchmark": false,
+  "runs": [
+    {
+      "label": "regular-document-close",
+      "passed": true,
+      "pendingId": "AD5A8B23F0377DC96DE1DC07FBA6B504"
+    },
+    {
+      "label": "regular-dedicated-close",
+      "passed": true,
+      "pendingId": "1251E039A96B59530043015B1E84A54B"
+    },
+    {
+      "label": "regular-shared-close",
+      "passed": true,
+      "pendingId": "B5F41078F5039CBE4D5AD1819DBC32DF"
+    },
+    {
+      "label": "regular-timeout",
+      "passed": true,
+      "pendingId": "D296179575A3529E7B3A5ED7378EB897"
+    },
+    {
+      "label": "regular-utility-loss",
+      "passed": true,
+      "pendingId": "07382FC3C31BCF90CDBD73D9BAAD2A85"
+    },
+    {
+      "label": "private-document-close",
+      "passed": true,
+      "pendingId": "FF5C3B4D517D339C474C9AE62AD145C6"
+    },
+    {
+      "label": "private-dedicated-close",
+      "passed": true,
+      "pendingId": "E925F616D709E23DFD989FD6B3D40134"
+    },
+    {
+      "label": "private-shared-close",
+      "passed": true,
+      "pendingId": "C735EA93D6452C8DEE05FC5410AEE20F"
+    },
+    {
+      "label": "private-timeout",
+      "passed": true,
+      "pendingId": "2F870A92C85D61C688AC5B8C0628A919"
+    },
+    {
+      "label": "private-utility-loss",
+      "passed": true,
+      "pendingId": "835360F7E66381669EB1974C5D52B7A7"
+    }
+  ],
+  "cleanup": true
+}
