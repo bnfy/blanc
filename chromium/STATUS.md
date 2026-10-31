@@ -129,8 +129,9 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. Full S1 rebaseline on macos-e68005f969555007 (screen unlocked); then the
-   Settings search engine and suggestions controls.
+1. Settings search engine and suggestions controls (native-versus-port
+   choice with the owner); then one full S1 rebaseline covering S1.1 and
+   F0.3 (owner, 2026-10-31: one run after the picker, not one per build).
 2. F0.3 identity spike in `blanc-test` once signing is approved; then S1 work in slice order, moving each
    group's handlers to the typed interface as its rows are worked. Re-run
    affected cases with --only and merge-baseline.mjs.
