@@ -4,7 +4,8 @@ Execution contract: spec and plan approved at e884a6564. Active slice: F0 Founda
 
 ## Authorization
 F0.1–F0.6 and F0.8, with necessary incremental builds, approved.
-D7, F0.7, cold builds, new machines, D1/D2/D4–D6/D8/V2 and replacement D3
+D1 decided 2026-10-31: in-window private tabs.
+D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
@@ -55,7 +56,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
 Most failures on the previous candidate are real product gaps, clustered:
 - Settings opens chrome://settings (no Blanc controls): 42 Island hover/auto-hide
   cases, search engine, suggestions, theme, bang and tab-icon settings.
-- Private tabs refused (D1 pending): F4 and every case with a private step.
+- Private tabs refused (in-window private tabs not built yet; D1 decided): F4 and every case with a private step.
 - Facade gaps: Bangs disabled, no bangIcons, no beginRenameGroup, /allow-ads and
   /block-ads absent from the command list, search hard-coded to Google.
 - Utility pages open as Chromium manager tabs, not Blanc's sheet.
@@ -63,26 +64,24 @@ Most failures on the previous candidate are real product gaps, clustered:
   when assets change): Mahjong reads (no Mahjong page), utility-sheet reads,
   Glance-card reads (Glance is a split preview).
 
-## Native candidates — owner to assess before any build
-Native Chromium surfaces that could be adapted instead of porting Electron:
-1. Search engines: TemplateURLService / chrome://settings/searchEngines (F5-2/4/8–11,
-   F14-1); facade search routes to Google today. Small to route, moderate for presets/UI.
-2. Search suggestions: omnibox SearchSuggest provider (F5-4/5/11); privacy rules to recheck.
-3. Settings: chrome://settings vs Blanc Settings controls (F14, F15-1, Island settings).
-4. Utility sheets: chrome://bookmarks|history|downloads tabs vs Blanc sheet (F9–F11, F16).
-5. Find: native find bar vs the full-width 228 px Island view (F8-1). Small–medium.
-6. Address menu: omnibox Paste and go vs Blanc's address menu (F19-2/3); the Island
-   input is not the omnibox, so a small Blanc menu is likely simpler.
-7. External hand-off: ExternalProtocolHandler / existing `externalTab` op (F5-3/F5-7).
-8. Private: incognito windows vs in-window private tabs (F4) — decision D1.
-9. Permissions: Chromium bubble vs Blanc prompt (F13-1). Certificates: Chromium
-   interstitial and decisions vs blanc://error and session-only continue (N5).
-   HTTP auth: native login dialog vs silent cancel (F20).
-10. Tab strip semantics: Chromium un-groups pinned tabs (F3-5), link children join
-    the opener's group (F3-21), per-tab closed entries vs one Close Tabs Below undo,
-    pinned section choice (#1174). Glance: native split vs floating card (F34).
-11. Windows: native multi-window passes F2-5; close-window and session projection need ops.
-Bangs have no native equivalent.
+## Native-versus-port decisions (owner, 2026-10-31)
+Recorded in the spec (§4, §9) and plan:
+- D1: port shipping's in-window private tabs (deep tab/profile patch, isolated
+  in `blanc/private/`). S1.4 unblocked.
+- Pinned tabs stay in their group, as shipped (custom change to Chromium's tab
+  collections).
+- V8: Chromium's certificate warning page and proceed decisions replace
+  `blanc://error` (N5). Rewrite N5's expectations to the approved divergence.
+- V9: page-started external-scheme launches ask first through Chromium's
+  prompt; typed addresses hand off directly (N6).
+Everything else already follows spec §4 (Chromium models, Blanc UI): engines
+and suggestions through TemplateURLService and native suggest with Blanc's
+privacy rules; chrome://settings restyled with Blanc sections (V1); Blanc
+sheets over native bookmarks/history/downloads; Island find capsule over
+FindTabHelper; a Blanc address menu; native sessions; native permissions with a
+Blanc prompt; link children ungrouped (one patch where TabStripModel inherits
+the opener's group); Glance stays a custom card; Close Tabs Below as one entry
+through TabRestoreService if its group entries allow it.
 
 ## Native test ops
 Built in d1984adb: slots 4–8 in previewPageCommand; closeWindow. Identified, not
@@ -92,8 +91,7 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; external-handoff probe; overlay drag flag; microphone capture seed.
 
 ## Next
-1. Owner: assess the native candidates above; decide D1.
-2. F0.6 typed interface; F0.3 under its dependencies; then S1 work in slice
+1. F0.6 typed interface; F0.3 under its dependencies; then S1 work in slice
    order. Re-run affected cases with --only and merge-baseline.mjs.
 
 ## Intentionally uncommitted

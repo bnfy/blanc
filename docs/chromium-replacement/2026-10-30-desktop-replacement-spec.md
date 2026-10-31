@@ -1,6 +1,6 @@
 # Blanc on Chromium: desktop replacement product specification
 
-Status: **owner-approved execution contract** at `e884a6564`, with subsequent owner clarifications. Authorized now: F0.1–F0.6 and F0.8 including their incremental builds. D7, F0.7, cold builds, new platform machines, D1–D2, full-replacement D3, D4–D6, D8 and V2 remain separate pending decisions. No merge or release authorization.
+Status: **owner-approved execution contract** at `e884a6564`, with subsequent owner clarifications. Authorized now: F0.1–F0.6 and F0.8 including their incremental builds. D1 was decided on October 31, 2026 (in-window private tabs). D7, F0.7, cold builds, new platform machines, D2, full-replacement D3, D4–D6, D8 and V2 remain separate pending decisions. No merge or release authorization.
 Companion: [implementation plan](2026-10-30-desktop-replacement-plan.md).
 
 ## 1. Purpose and reference
@@ -59,11 +59,11 @@ Rule: **use the Chromium model and machinery; draw Blanc's UI.** Write custom na
 | Area | Decision | Product tradeoff | Security / maintenance tradeoff | Test approach |
 | --- | --- | --- | --- | --- |
 | Window frame, tab strip, toolbar, omnibox UI | **Custom (kept):** native strip/toolbar hidden; Island is a WebUI view in `BrowserView` (built today) | Exact shipping look | Hiding native chrome touches ~15 upstream files; keep patches minimal | Interactive UI tests + shipping scenarios |
-| Tabs, pins, mute, duplicate, reopen | **Adapt native** `TabStripModel`, `TabRestoreService`; Blanc ordering rules as a thin layer | Reopen tiers (live view parked 30 s) become native restore + snapshot; record any difference | Low | browser_tests |
+| Tabs, pins, mute, duplicate, reopen | **Adapt native** `TabStripModel`, `TabRestoreService`; Blanc ordering rules as a thin layer. **Pinned tabs stay in their group** as shipped (owner decision, October 31, 2026), although Chromium keeps pinned tabs in their own section outside groups: a custom change to Chromium's tab collections, accepted as a permanent rebase cost | Reopen tiers (live view parked 30 s) become native restore + snapshot; record any difference | Low | browser_tests |
 | Tab groups | **Adapt native** `TabGroupModel`; names, optional preset color, case rules in Blanc layer | Chromium groups require a color; map "no color" to a neutral palette slot | Low | browser_tests |
 | Split View (2 panes, as shipped) | **Adapt native** split tabs (Chromium 158 `AddToNewSplit`) | Shipping is 2-pane; 3–4 pane is future work, not parity | Native split UI hidden; corner tab drawn by Blanc | interactive_ui_tests |
 | Glance (floating card) | **Custom** view hosting a native WebContents | No Chromium equivalent | Medium: custom view lifetime | interactive_ui_tests |
-| Private tabs | **Owner decision D1.** Shipping mixes private tabs into normal windows; Chromium isolates incognito per window | See D1 | In-window mixing is a deep, risky patch | — |
+| Private tabs | **Custom (owner decision D1, October 31, 2026):** port shipping's in-window private tabs; private tabs mix into normal windows as shipped | Same as shipping | Deep patch to tab and profile ownership, a permanent rebase cost the owner accepted; isolate it in `chromium/blanc/private/` | `@F4-*`; profile scan after quit finds no private trace |
 | Address/search, suggestions, Bangs | **Adapt native** `TemplateURLService` (engines incl. custom `%s`), Blanc input heuristic and Bang resolver in Blanc layer; suggestions through native suggest with Blanc's privacy rules | Same engines/defaults (DuckDuckGo default) | Must not touch Google endpoints; private and credential-like input stay local | Unit + browser_tests + outbound-request check |
 | Quick Switcher, slash commands, palette | **Custom UI** over native models | Shipping ranking | Low | Shipping scenarios |
 | Find in page | **Adapt native** `FindTabHelper`; Island capsule UI | Same | Low | interactive_ui_tests |
@@ -289,8 +289,10 @@ Each row has its own status, decided only by the owner. **Until a row is approve
 | V3 | Groups always store a color internally; "no color" maps to a neutral slot that is never shown | Native model; no visible change | Proposed |
 | V4 | Inert-tab workaround retired; native inherited sandbox used | Better security | Proposed, after the inherited-sandbox check in S1.6 passes |
 | V5 | Extensions available | Fork purpose | Approved (October 15 fork authorization) |
-| V6 | Private model | — | Open: decision D1 |
+| V6 | Private model | — | Closed: no divergence. D1 (October 31, 2026) keeps shipping's in-window private tabs |
 | V7 | macOS minimum version and Intel support follow the fork's Chromium (the preview needs macOS 26; shipping supports older and Intel) | Upstream minimums | **Proposed, product change.** Open: decision D8 |
+| V8 | Certificate errors show Chromium's warning page and use its proceed decisions instead of `blanc://error` and shipping's session-only continue (N5) | Chromium's interstitial is better maintained and more secure | **Approved** (owner, October 31, 2026) |
+| V9 | A page-started launch of an external scheme (`mailto:`, `tel:` and similar) asks first through Chromium's prompt and remembers the answer per site; addresses the user types still hand off directly (N6) | Chromium's handler is hardened against launch spam | **Approved** (owner, October 31, 2026) |
 
 ## 10. Release gates for the replacement
 
