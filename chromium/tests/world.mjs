@@ -1,5 +1,5 @@
 import {waitFor} from './lib/cdp.mjs';
-import {nativeCall} from './lib/test-driver.mjs';
+import {nativeCall,installDriver} from './lib/test-driver.mjs';
 import {shippingCore} from './steps.mjs';
 import {UndefinedNativeAdapterError,observedState} from './lib/adapters.mjs';
 export {nativeId} from './lib/adapters.mjs';
@@ -49,12 +49,22 @@ export function createWorld(fixture){
    await this.waitForState(s=>s.tabs.length===1&&s.activeTabId===keep&&!s.tabs[0].loading);
    await app.refresh();
   },
+  async relaunch({crash=false}={}){
+   await fixture.stop({crash});await fixture.start();
+   await installDriver(fixture.host);app.reset();await app.refresh();
+  },
   bindShippingContext(){
-   // Shipping steps assert the harness can relaunch; the fork runner cannot
-   // yet, so a relaunch is an undefined adapter rather than a failed check.
-   const noRelaunch=()=>{throw new UndefinedNativeAdapterError('The fork runner cannot relaunch a fixture yet');};
+   // Shipping's relaunch helpers: same profile, no launch URL, so the
+   // browser's own session restore decides what returns.
+   const relaunch=async(options)=>{await this.relaunch(options);};
    shippingCore.resetContext({app,profileDir:fixture.profile,fixturesBase:fixture.base,tabByName:{},scenarioApp:app,
-    relaunch:noRelaunch,crashAndRelaunch:noRelaunch,quitAndRelaunch:noRelaunch});
+    relaunch:async(extraEnv={},{freshProfile=false}={})=>{
+     if(Object.keys(extraEnv).length||freshProfile)throw new UndefinedNativeAdapterError('Relaunch with an environment or fresh profile needs an adapter');
+     await relaunch();},
+    crashAndRelaunch:()=>relaunch({crash:true}),
+    quitAndRelaunch:async whileQuit=>{
+     if(whileQuit)throw new UndefinedNativeAdapterError('Reading Electron profile files while quit has no fork equivalent');
+     await relaunch();}});
   },
  };
  return world;

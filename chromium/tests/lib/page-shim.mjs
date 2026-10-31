@@ -155,7 +155,7 @@ export class Page{
  getAttribute(selector,name){return this.locator(selector).getAttribute(name);}
  inputValue(selector){return this.locator(selector).inputValue();}
  url(){return this.pageUrl;}
- isClosed(){return this.closedProbe();}
+ isClosed(){return this.closed===true||this.closedProbe();}
  screenshot(){throw new UndefinedNativeAdapterError('Page shim lacks screenshot');}
  waitForEvent(){throw new UndefinedNativeAdapterError('Page shim lacks waitForEvent');}
  context(){throw new UndefinedNativeAdapterError('Page shim lacks context');}
@@ -178,6 +178,8 @@ export function createAppShim(fixture){
   windows(){return [...pages.values()];},
   evaluate(){throw new UndefinedNativeAdapterError('Shipping main-process evaluate needs a native adapter');},
   firstWindow(){return pages.get('strip');},
+  // A relaunch replaces every connection; pages are rebuilt on refresh.
+  reset(){for(const page of pages.values())page.closed=true;pages.clear();},
   async refresh(){
    for(const [url,frame] of Object.entries(ISLAND_FRAMES))if(!pages.has(frame))pages.set(frame,new Page({cdp:fixture.host,url,frame,host:fixture.host}));
    const targets=(await fixture.targets()).filter(t=>t.type==='page'&&!t.url.startsWith('chrome://blanc-prototype/host.html'));

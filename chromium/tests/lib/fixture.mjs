@@ -45,23 +45,16 @@ export class NativeFixture {
       this.untrustedBase=`https://badcert.test:${this.untrustedServer.port}`;
       tlsFlags=[`--ignore-certificate-errors-spki-list=${secure.spki}`];
     }
-    const fd=fs.openSync(path.join(directory,'browser.log'),'wx');
-    this.process=spawn(config.executable,[`--user-data-dir=${this.profile}`,'--remote-debugging-port=0',
+    this.config=config;this.launches=0;this.exits=[];
+    this.flags=[`--user-data-dir=${this.profile}`,'--remote-debugging-port=0',
       `--blanc-prototype-assets=${config.assets}`,`--blanc-blocker-assets=${config.blockerAssets}`,
       `--proxy-server=http://127.0.0.1:${this.proxy.address().port}`,`--proxy-bypass-list=127.0.0.1;localhost;${TLS_HOSTS.join(';')}`,
       `--host-resolver-rules=${TLS_HOSTS.map(h=>'MAP '+h+' 127.0.0.1, ').join('')}MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1`,...tlsFlags,
       '--disable-background-networking','--disable-quic','--no-first-run','--no-default-browser-check','--use-mock-keychain',
-      ...(testHooks?['--blanc-test']:[]),...(privateMode?['--incognito']:[]),this.base+'/initial'],{stdio:['ignore',fd,fd]});
-    fs.closeSync(fd);this.process.on('exit',(code,signal)=>{this.exit={code,signal};});
-    this.process.on('error',e=>{this.launchError=e.message;});
-    this.port=await waitFor(()=>{if(this.launchError)throw Error(this.launchError);return +fs.readFileSync(path.join(this.profile,'DevToolsActivePort'),'utf8').split('\n')[0];},p=>p>0,'debug port');
-    this.targets=()=>fetch(`http://127.0.0.1:${this.port}/json/list`).then(r=>r.json());
-    this.browser=await connect(await fetch(`http://127.0.0.1:${this.port}/json/version`).then(r=>r.json()));this.connections.push(this.browser);
-    const targets=await waitFor(this.targets,ts=>ts.some(t=>t.url.includes('/host.html'))&&ts.some(t=>t.url===this.base+'/initial'),'Island and local page');
-    this.host=await connect(targets.find(t=>t.url.includes('/host.html')));this.connections.push(this.host);
-    this.page=await connect(targets.find(t=>t.url===this.base+'/initial'));this.connections.push(this.page);
-    this.snapshot=()=>this.host.eval('window.BlancPrototypeHost.api.getAllTabs()');
-    await waitFor(this.snapshot,s=>s.blockerHealth==='ready'&&s.tabs.some(t=>t.url===this.base+'/initial'&&!t.isLoading),'blocker and local page');
+      ...(testHooks?['--blanc-test']:[]),...(privateMode?['--incognito']:[])];
+    await this.start(this.base+'/initial');
+    this.page=await connect((await this.targets()).find(t=>t.url===this.base+'/initial'));this.connections.push(this.page);
+    await waitFor(this.snapshot,s=>s.tabs.some(t=>t.url===this.base+'/initial'&&!t.isLoading),'local page');
     if(privateMode){
       const info=(await this.browser.send('Target.getTargets')).targetInfos;
       const h=info.find(t=>t.url.includes('/host.html')),p=info.find(t=>t.url===this.base+'/initial');
@@ -69,6 +62,34 @@ export class NativeFixture {
       if(!h.browserContextId||h.browserContextId===contexts.defaultBrowserContextId||h.browserContextId!==p.browserContextId)throw Error('Private native context not established');
     }
     return this;
+  }
+  // One browser process on the fixture profile; `url` is the launch page, or
+  // none for a relaunch, where the browser's own session restore decides.
+  async start(url=null){
+    this.exit=null;this.launchError=null;fs.rmSync(path.join(this.profile,'DevToolsActivePort'),{force:true});
+    const fd=fs.openSync(path.join(this.directory,'browser.log'),'a');
+    const child=this.process=spawn(this.config.executable,[...this.flags,...(url?[url]:[])],{stdio:['ignore',fd,fd]});
+    fs.closeSync(fd);this.launches++;
+    child.on('exit',(code,signal)=>{this.exits.push({code,signal});if(this.process===child)this.exit={code,signal};});
+    child.on('error',e=>{this.launchError=e.message;});
+    this.port=await waitFor(()=>{if(this.launchError)throw Error(this.launchError);return +fs.readFileSync(path.join(this.profile,'DevToolsActivePort'),'utf8').split('\n')[0];},p=>p>0,'debug port');
+    this.targets=()=>fetch(`http://127.0.0.1:${this.port}/json/list`).then(r=>r.json());
+    this.browser=await connect(await fetch(`http://127.0.0.1:${this.port}/json/version`).then(r=>r.json()));this.connections.push(this.browser);
+    const targets=await waitFor(this.targets,ts=>ts.some(t=>t.url.includes('/host.html'))&&(!url||ts.some(t=>t.url===url)),'Island');
+    this.host=await connect(targets.find(t=>t.url.includes('/host.html')));this.connections.push(this.host);
+    this.snapshot=()=>this.host.eval('window.BlancPrototypeHost.api.getAllTabs()');
+    await waitFor(this.snapshot,s=>s.blockerHealth==='ready','blocker');
+  }
+  // Quit (Browser.close, which must exit cleanly) or crash (SIGKILL), keeping
+  // the profile and fixture servers for the next start.
+  async stop({crash=false}={}){
+    const child=this.process;
+    if(crash)child.kill('SIGKILL');else try{await this.browser.send('Browser.close');}catch{}
+    for(const c of this.connections)try{c.close();}catch{}
+    this.connections=[];
+    for(let i=0;i<150&&!this.exit;i++)await pause(100);
+    if(!this.exit)throw Error('Browser did not exit after '+(crash?'SIGKILL':'quit'));
+    if(!crash&&this.exit.code!==0)throw Error('Browser quit with '+JSON.stringify(this.exit));
   }
   async connectTarget(target){const c=await connect(target);this.connections.push(c);return c;}
   async close(){
