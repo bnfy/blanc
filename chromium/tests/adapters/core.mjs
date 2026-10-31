@@ -1,17 +1,19 @@
 // Tabs, groups and the Island overlay: shipping test-hook names over the
 // fork's native test dispatch and the Island facade (its browserAPI).
 import {UndefinedNativeAdapterError,nativeId} from '../lib/adapters.mjs';
+import {shippingPageUrl} from '../lib/page-shim.mjs';
 const same=(a,b)=>String(a).toLocaleLowerCase()===String(b).toLocaleLowerCase();
 // A tab's document, found by its committed URL: CDP page targets carry no
 // tab id, so a URL shared by two tabs is ambiguous rather than guessed.
 export async function tabPage(w,id){
  const tabs=(await w.snapshot()).tabs;const tab=tabs.find(t=>String(t.id)===String(id));
  if(!tab)throw Error('Unknown native tab '+id);
- // A page target reports the committed document URL (the Start Page commits
- // chrome://newtab/ as its blanc-prototype document), so match either.
- const urls=new Set([tab.url,tab.committedUrl].filter(Boolean));
- const targets=(await w.fixture.targets()).filter(t=>t.type==='page'&&urls.has(t.url));
- if(targets.length!==1||tabs.filter(t=>urls.has(t.url)||urls.has(t.committedUrl)).length!==1)throw new UndefinedNativeAdapterError('Tab document is not uniquely addressable: '+tab.url);
+ // The snapshot names the Start Page blanc://newtab/ and commits it as its
+ // blanc-prototype document; its page target says chrome://newtab/. Compare
+ // all of them through the shipping URL projection.
+ const urls=new Set([tab.url,tab.committedUrl].filter(Boolean).map(shippingPageUrl));
+ const targets=(await w.fixture.targets()).filter(t=>t.type==='page'&&urls.has(shippingPageUrl(t.url)));
+ if(targets.length!==1||tabs.filter(t=>urls.has(shippingPageUrl(t.url))||(t.committedUrl&&urls.has(shippingPageUrl(t.committedUrl)))).length!==1)throw new UndefinedNativeAdapterError('Tab document is not uniquely addressable: '+tab.url);
  await w.app.refresh();
  return w.app.windows().find(p=>p.targetId===targets[0].id);
 }
