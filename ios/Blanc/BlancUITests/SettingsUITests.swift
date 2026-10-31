@@ -19,7 +19,9 @@ final class SettingsUITests: XCTestCase {
         let input = app.textFields["island.address"]
         XCTAssertTrue(input.waitForExistence(timeout: 5))
         input.tap(); input.typeText(command + "\n")
-        XCTAssertTrue(app.navigationBars[command == "/sync" ? "Sync" : "Settings"].waitForExistence(timeout: 5))
+        // 15 s like the launch wait: right after a relaunch, a busy CI
+        // simulator has taken over 5 s to show Settings.
+        XCTAssertTrue(app.navigationBars[command == "/sync" ? "Sync" : "Settings"].waitForExistence(timeout: 15))
     }
     private func tap(_ id: String) {
         let element = app.descendants(matching: .any).matching(identifier: id).firstMatch

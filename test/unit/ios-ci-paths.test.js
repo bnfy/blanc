@@ -63,3 +63,15 @@ test('desktop-only sources and Android outputs do not start an iOS run', () => {
     }
   }
 });
+
+test('pull requests run the iOS UI tests only when the app itself changed', () => {
+  // UI tests take most of the run; shared inputs (pages, blocklist, bridges,
+  // generated Swift) get the unit tests on a PR, and main gets everything
+  // on every push and nightly.
+  assert.match(workflow, /^  schedule:\n    - cron: '[^']+'$/m, 'a nightly full run');
+  const step = workflow.split('- name: Choose the tests')[1].split('- name: Build and test')[0];
+  assert.match(step, /if \[ "\$EVENT" = pull_request \]/);
+  assert.ok(step.includes("grep -Eq '^(ios/|\\.github/workflows/ios\\.yml$)'"), 'UI tests follow app changes');
+  assert.match(step, /only="-only-testing:BlancTests"/);
+  assert.match(workflow, /\$\{\{ steps\.scope\.outputs\.only \}\}/);
+});
