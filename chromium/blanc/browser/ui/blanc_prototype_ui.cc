@@ -1,7 +1,14 @@
 #include "blanc/buildflags.h"
 #include "blanc/island_resources/island_resources.h"
 #include "blanc/browser/ui/browser_api/navigation.h"
+#include "blanc/browser/ui/browser_api/search_choice.h"
 #include "blanc/browser/ui/browser_api/search_default.h"
+#include "blanc/browser/ui/modules/custom_template.h"
+#include "chrome/browser/search_engines/template_url_service_factory.h"
+#include "chrome/common/pref_names.h"
+#include "components/search_engines/template_url.h"
+#include "components/search_engines/template_url_data.h"
+#include "components/search_engines/template_url_service.h"
 #include "blanc/common/browser_api/browser_api_factory_base.h"
 #include "services/network/public/mojom/web_sandbox_flags.mojom.h"
 #include "blanc/browser/ui/blanc_tab_name_rules.h"
@@ -2656,6 +2663,7 @@ class IslandExtensionMenu : public extensions::ExtensionContextMenuModel {
 };
 
 #include "blanc/browser/ui/blocking_settings_handler.inc"
+#include "blanc/browser/ui/search_settings_handler.inc"
 
 // A bounded, sequence-confined navigation outcome reducer. It intentionally
 // distinguishes a committed document from every inconclusive outcome.
@@ -5623,6 +5631,7 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
   web_ui->AddMessageHandler(std::make_unique<Handler>());
   web_ui->AddMessageHandler(std::make_unique<NewTabHandler>());
   web_ui->AddMessageHandler(std::make_unique<BlockingSettingsHandler>());
+  web_ui->AddMessageHandler(std::make_unique<SearchSettingsHandler>());
 }
 
 ToolbarButtonProvider* ToolbarProvider(BrowserWindowInterface* browser,

@@ -770,10 +770,10 @@
           let current = await request('snapshot');
           const active = current.tabs?.find(tab => String(tab.id) === String(current.activeTabId));
           if (!active || typeof active.private !== 'boolean') throw new Error('Settings window is unavailable.');
-          const blanc = section === 'blocking' || active.private || current.canUseBlancSettings === true;
-          const target = blanc ? 'chrome://blanc-prototype/blocking-settings.html' : 'chrome://settings/';
-          const matches = tab => tab.url === target &&
-            (blanc ? tab.private === active.private : !active.private && !tab.private);
+          // Blanc's own Settings page, as shipping opens its own; it links to
+          // Chromium's settings for everything not yet ported.
+          const target = 'chrome://blanc-prototype/blocking-settings.html';
+          const matches = tab => tab.url === target && tab.private === active.private;
           const existing = current.tabs?.find(matches);
           if (existing) {
             try {

@@ -11,7 +11,8 @@ source_set(target_name) {
   sources = [ "//blanc/browser/ui/blanc_prototype_ui.cc", "//blanc/browser/ui/blanc_tab_name_rules.h",
               "//blanc/browser/ui/browser_api/navigation.cc", "//blanc/browser/ui/browser_api/navigation.h",
               "//blanc/browser/ui/browser_api/search_default.cc", "//blanc/browser/ui/browser_api/search_default.h",
-              "//blanc/browser/ui/browser_api/external_handoff.cc", "//blanc/browser/ui/browser_api/external_handoff.h" ]
+              "//blanc/browser/ui/browser_api/external_handoff.cc", "//blanc/browser/ui/browser_api/external_handoff.h",
+              "//blanc/browser/ui/browser_api/search_choice.h" ]
   public_deps = [ "//chrome/browser/ui/views/frame:browser_view_header" ]
   deps = [
     "//blanc:buildflags",

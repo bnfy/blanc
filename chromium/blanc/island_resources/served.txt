@@ -62,6 +62,8 @@ pages/type-to-open.js
 panel-left.svg
 prototype.css
 renderer.js
+search-settings-adapter.js
+search-settings.js
 selection-tab-sections.js
 shield-model.js
 space-identity.js

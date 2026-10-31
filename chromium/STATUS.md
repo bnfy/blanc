@@ -25,20 +25,37 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   build (`out/BlancRelease`, 57,200 steps) succeeded and its app reports
   those values. Next: the install-over-Electron spike in `blanc-test`, which
   needs an internally signed build; signing waits for the owner.
-- **S1.1 piece 1 (address bar meaning) on macos-e68005f969555007.** Typed text
-  is classified as shipping v1.45.1 does (`blanc/island/address-input.js`,
-  differential against shipping's own code over 2,000+ inputs). Familiar
-  links (mailto, tel, facetime, sms) open directly; custom app links go
-  through Chromium's external-protocol prompt (V9); the C++ classifier
-  (`external_handoff.cc`) is compiled and compared with shipping over 3,100+
-  inputs. Searches go to the profile's default engine through the shipping
-  engine resolver; a fresh profile gets DuckDuckGo unless policy or an
-  extension controls the engine. Typed smoke passes. Navigation feature
-  (--only, 18 cases): mailto hand-off and the app-callback confirmation now
-  pass; nothing regressed. The 11 search cases still fail only because fork
-  Settings has no search engine or suggestions control. Gaps: new tabs from typed text still use the old Google-only
-  path; page-started blocklist (N6), Bangs, engine picker, suggestions policy
-  and the outbound-isolation check remain.
+- **S1.1 address bar and search on macos-496905d55d71fa94** (targeted runs;
+  the recorded S1 baseline stays on macos-790ca4d6d538c894, since
+  merge-baseline refuses mixed builds).
+  - Typed text means what it does in shipping v1.45.1
+    (`blanc/island/address-input.js`, differential against shipping's code
+    over 2,000+ inputs). Familiar links (mailto, tel, facetime, sms) open
+    directly; custom app links go through Chromium's external-protocol
+    prompt (V9; C++ classifier `external_handoff.cc` compared with shipping
+    over 3,100+ inputs).
+  - Settings → General → Search is shipping's: engine picker (DuckDuckGo,
+    Google, Bing, Brave Search, Kagi, Custom…), custom search address, and
+    search suggestions switch, with shipping's copy in all six languages
+    (`tools/search-settings.test.mjs`). The choice is stored in Chromium's
+    search engine store (stock engines by prepopulated id; one `blanc-custom`
+    entry for the custom address), so chrome://settings/search agrees.
+    Suggestions use Chromium's `search.suggest_enabled`. A fresh profile
+    gets DuckDuckGo unless policy or an extension controls the engine.
+  - The Island's Settings action now opens Blanc's Settings page, as shipping
+    does; it links to Chromium's settings for everything not yet ported.
+  - Results: navigation feature 9 pass, 2 fail (was 4/14): the five engine
+    searches, search operator, and three custom address cases now pass.
+    Still failing: live suggestions (the Island fetches none yet) and
+    private-tab suggestions (needs D1 in-window private tabs). The other
+    eight Settings-touching features match the recorded baseline, except
+    "An invalid search engine is rejected" (now passes) and "Search
+    suggestions can be disabled without syncing" (now blocked only on
+    Profile Sync).
+  - Gaps: new tabs from typed text still use the old Google-only path; the
+    custom-address hint says it syncs, which the fork can't yet; page-started
+    blocklist (N6), Bangs, live suggestions and the outbound-isolation check
+    remain.
 - **F0.5 S1 finish line reached.** All 253 S1-tagged cases have a real result
   or a named undefined reason on the current candidate: 70 pass, 151 fail, 32
   undefined. Per-row results and reasons: [reports/s1-macos.json](reports/s1-macos.json) (+ JUnit).
@@ -129,8 +146,8 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. Settings search engine and suggestions controls (native-versus-port
-   choice with the owner). Verify each change with targeted `--only` runs
+1. S1.1 rest: live suggestions in the Island, typed text in new tabs,
+   N6, Bangs, outbound isolation. Verify each change with targeted `--only` runs
    merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
    (~2 h) unless development can't continue without it; propose one with
    the reason first.
@@ -181,5 +198,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-e68005f969555007; Windows: none; Linux: none.
+Candidate identities: macOS: macos-496905d55d71fa94; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

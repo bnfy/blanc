@@ -8,10 +8,40 @@
   <link rel="stylesheet" href="pages/pages.css">
   <script src="blocking-settings-adapter.js" defer></script>
   <script src="blocking-settings.js" defer></script>
+  <script src="search-settings-adapter.js" defer></script>
+  <script src="search-settings.js" defer></script>
 </head>
 <body class="sheet">
   <main class="page">
     <h1 data-blocking-i18n="settings.page.heading">Settings</h1>
+    <section class="settings-group" aria-labelledby="general-title">
+      <h2 class="group-title" id="general-title" data-search-i18n="settings.general.title">General</h2>
+      <div class="settings-card settings-card--mixed">
+        <h3 class="card-title" data-search-i18n="settings.general.cards.search">Search</h3>
+        <div class="setting">
+          <div class="label">
+            <span data-search-i18n="settings.general.searchEngine.label">Search engine</span>
+            <span class="hint" data-search-i18n="settings.general.searchEngine.hint">Used when the address bar input isn't a URL</span>
+          </div>
+          <select id="searchEngine"></select>
+        </div>
+        <div class="setting" id="searchEngineCustomRow" hidden>
+          <div class="label">
+            <span id="searchEngineTemplateLabel" data-search-i18n="settings.general.searchEngineTemplate.label">Custom search address</span>
+            <span class="hint" id="searchEngineTemplateHint" data-search-i18n="settings.general.searchEngineTemplate.hint">Paste the search address with %s where your search words go, for example https://searx.example.org/search?q=%s. It syncs with your other settings.</span>
+            <span class="hint field-error" id="searchEngineTemplateError" role="alert" hidden data-search-i18n="settings.general.searchEngineTemplateError">That address isn't valid — your previous search engine is still in use.</span>
+          </div>
+          <input id="searchEngineTemplate" type="url" autocomplete="off" spellcheck="false" placeholder="https://search.example.com/search?q=%s" aria-labelledby="searchEngineTemplateLabel" aria-describedby="searchEngineTemplateHint"/>
+        </div>
+        <div class="setting">
+          <div class="label">
+            <span data-search-i18n="settings.general.searchSuggestions.label">Search suggestions</span>
+            <span class="hint" data-search-i18n="settings.general.searchSuggestions.hint">Send eligible typed prefixes to your selected search provider, including Google if selected. Private tabs and recognized sensitive-looking input are excluded. Submitting a search sends the completed query even when suggestions are off.</span>
+          </div>
+          <label class="toggle"><input id="searchSuggestions" type="checkbox"><span class="track"></span></label>
+        </div>
+      </div>
+    </section>
     <section class="settings-group" aria-labelledby="privacy-title">
       <h2 class="group-title" id="privacy-title" data-blocking-i18n="settings.privacy.title">Privacy &amp; Security</h2>
       <div class="settings-card settings-card--mixed">
