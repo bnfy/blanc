@@ -130,8 +130,10 @@ list/run; overlay drag flag; microphone capture seed.
 
 ## Next
 1. Settings search engine and suggestions controls (native-versus-port
-   choice with the owner); then one full S1 rebaseline covering S1.1 and
-   F0.3 (owner, 2026-10-31: one run after the picker, not one per build).
+   choice with the owner). Verify each change with targeted `--only` runs
+   merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
+   (~2 h) unless development can't continue without it; propose one with
+   the reason first.
 2. F0.3 identity spike in `blanc-test` once signing is approved; then S1 work in slice order, moving each
    group's handlers to the typed interface as its rows are worked. Re-run
    affected cases with --only and merge-baseline.mjs.
