@@ -40,23 +40,33 @@ export class Mouse{
   await this.cdp.send('Input.dispatchMouseEvent',{type:'mouseWheel',x:this.x+o.x,y:this.y+o.y,deltaX,deltaY});}
 }
 const call=(fn,...args)=>`(${typeof fn==='string'?`()=>(${fn})`:fn.toString()})(${args.map(a=>a===undefined?'undefined':JSON.stringify(a)).join(',')})`;
+// Playwright's { hasText } narrows a step by its normalized text content:
+// a case-insensitive substring for a string, or a RegExp.
+function step(css,{hasText}={}){
+ if(hasText==null)return css;
+ return {css,text:hasText instanceof RegExp?{source:hasText.source,flags:hasText.flags}:String(hasText)};
+}
 export class Locator{
  constructor(page,selectors,index=null){this.page=page;this.selectors=selectors;this.index=index;}
- locator(selector){return new Locator(this.page,[...this.selectors,selector],this.index===null?null:this.index);}
+ locator(selector,options){return new Locator(this.page,[...this.selectors,step(selector,options)],this.index===null?null:this.index);}
  first(){return new Locator(this.page,this.selectors,0);}
  last(){return new Locator(this.page,this.selectors,-1);}
  nth(i){return new Locator(this.page,this.selectors,i);}
  getByRole(){throw new UndefinedNativeAdapterError('Locator shim lacks getByRole');}
  // Resolve inside the page: each selector narrows the previous matches.
- query(body,arg){return `(()=>{let els=[document];for(const s of ${JSON.stringify(this.selectors)})els=els.flatMap(e=>[...e.querySelectorAll(s)]);
+ query(body,arg){return `(()=>{let els=[document];const norm=t=>t.replace(/\\s+/g,' ').trim();
+  for(const s of ${JSON.stringify(this.selectors)}){els=els.flatMap(e=>[...e.querySelectorAll(typeof s==='string'?s:s.css)]);
+   if(typeof s!=='string')els=els.filter(e=>typeof s.text==='string'?norm(e.textContent).toLowerCase().includes(norm(s.text).toLowerCase()):new RegExp(s.text.source,s.text.flags).test(norm(e.textContent)));}
   els=[...new Set(els)];const index=${JSON.stringify(this.index)};
   if(index!==null)els=index<0?els.slice(index):els.slice(index,index+1);return (${body})(els,${JSON.stringify(arg)});})()`;}
  async all(fn,arg){return this.page.evalExpression(this.query(`(els,arg)=>(${fn.toString()})(els,arg)`,arg));}
  async one(fn,arg,{timeout=5000}={}){const end=Date.now()+timeout;
   for(;;){const r=await this.page.evalExpression(this.query(`(els,arg)=>els.length===0?{missing:true}:els.length>1&&${this.index===null}?{strict:els.length}:{value:(${fn.toString()})(els[0],arg)}`,arg));
-   if(r.strict)throw Error(`strict mode violation: ${this.selectors.join(' ')} resolved to ${r.strict} elements`);
-   if(!r.missing)return r.value;if(Date.now()>end)throw Error('Timeout waiting for '+this.selectors.join(' '));await pause(50);}}
+   if(r.strict)throw Error(`strict mode violation: ${this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' ')} resolved to ${r.strict} elements`);
+   if(!r.missing)return r.value;if(Date.now()>end)throw Error('Timeout waiting for '+this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' '));await pause(50);}}
  count(){return this.all(els=>els.length);}
+ allTextContents(){return this.all(els=>els.map(e=>e.textContent));}
+ allInnerTexts(){return this.all(els=>els.map(e=>e.innerText));}
  evaluate(fn,arg){return this.page.evalExpression(this.query(`(els,arg)=>{if(!els[0])throw Error('No element for locator');return (${fn.toString()})(els[0],arg)}`,arg));}
  evaluateAll(fn,arg){return this.all(fn,arg);}
  getAttribute(name,o){return this.one((e,n)=>e.getAttribute(n),name,o);}
@@ -70,7 +80,7 @@ export class Locator{
  async waitFor({state='visible',timeout=5000}={}){const end=Date.now()+timeout;
   for(;;){const [count,visible]=await Promise.all([this.count(),this.isVisible()]);
    if(state==='attached'&&count||state==='detached'&&!count||state==='visible'&&visible||state==='hidden'&&!visible)return;
-   if(Date.now()>end)throw Error(`Timeout waiting for ${this.selectors.join(' ')} to be ${state}`);await pause(50);}}
+   if(Date.now()>end)throw Error(`Timeout waiting for ${this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' ')} to be ${state}`);await pause(50);}}
  boundingBox(){return this.all(els=>{const e=els[0];if(!e)return null;const r=e.getBoundingClientRect();
   return r.width||r.height?{x:r.x,y:r.y,width:r.width,height:r.height}:null;});}
  scrollIntoViewIfNeeded(){return this.one(e=>{e.scrollIntoView({block:'nearest',inline:'nearest'});return true;});}
@@ -78,8 +88,15 @@ export class Locator{
  blur(){return this.one(e=>{e.blur();return true;});}
  dispatchEvent(type,init={}){return this.one((e,a)=>{e.dispatchEvent(new (a.type.startsWith('pointer')?PointerEvent:a.type.startsWith('mouse')||a.type==='click'||a.type==='contextmenu'?MouseEvent:a.type.startsWith('key')?KeyboardEvent:Event)(a.type,{bubbles:true,cancelable:true,composed:true,...a.init}));return true;},{type,init});}
  selectOption(value){return this.one((e,v)=>{e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));return [e.value];},value);}
- async center(){await this.waitFor();await this.scrollIntoViewIfNeeded();const b=await this.boundingBox();if(!b)throw Error('Element has no box');
-  return {x:b.x+b.width/2,y:b.y+b.height/2};}
+ // Playwright's actionability: visible, stable across animation frames, and
+ // the hit target at its centre (an opening morph must not eat the click).
+ async center({timeout=5000}={}){await this.waitFor({timeout});await this.scrollIntoViewIfNeeded();const end=Date.now()+timeout;
+  for(let last=null;;){// A throttled (background) document may never paint; a timer bounds the wait.
+   const r=await this.evaluate(e=>new Promise(done=>{const read=()=>{const b=e.getBoundingClientRect(),x=b.x+b.width/2,y=b.y+b.height/2;
+    done({x:b.x,y:b.y,width:b.width,height:b.height,hit:e.contains(document.elementFromPoint(x,y))});};
+    requestAnimationFrame(()=>requestAnimationFrame(read));setTimeout(read,100);}));
+   if(r.width&&r.hit&&last&&['x','y','width','height'].every(k=>r[k]===last[k]))return {x:r.x+r.width/2,y:r.y+r.height/2};
+   if(Date.now()>end)throw Error(`Timeout waiting for ${this.selectors.map(s=>typeof s==='string'?s:s.css+':has-text('+JSON.stringify(s.text)+')').join(' ')} to be stable and receive pointer events`);last=r;}}
  async click({button='left',clickCount=1,modifiers=[],position}={}){
   const b=position?await this.boundingBox():null;const p=position?{x:b.x+position.x,y:b.y+position.y}:await this.center();
   for(const m of modifiers)await this.page.keyboard.down(m==='ControlOrMeta'?'Meta':m);
@@ -105,11 +122,14 @@ export class Page{
   return this.cdp.eval(`(()=>{const r=document.getElementById(${JSON.stringify(this.frame)}).getBoundingClientRect();return {x:r.x,y:r.y}})()`);}
  async contextId(){
   if(!this.frame)return undefined;
-  if(!this.watching){this.watching=true;
-   this.cdp.on('Runtime.executionContextCreated',({context})=>{if(context.auxData?.isDefault)this.contexts.set(context.auxData.frameId,context.id);});
-   this.cdp.on('Runtime.executionContextDestroyed',({executionContextId})=>{for(const [f,id] of this.contexts)if(id===executionContextId)this.contexts.delete(f);});
-   this.cdp.on('Runtime.executionContextsCleared',()=>this.contexts.clear());
+  // One context map per connection: frame pages share the host connection,
+  // and a second Runtime.enable on it reports no existing contexts.
+  if(!this.cdp.frameContexts){const contexts=this.cdp.frameContexts=new Map();
+   this.cdp.on('Runtime.executionContextCreated',({context})=>{if(context.auxData?.isDefault)contexts.set(context.auxData.frameId,context.id);});
+   this.cdp.on('Runtime.executionContextDestroyed',({executionContextId})=>{for(const [f,id] of contexts)if(id===executionContextId)contexts.delete(f);});
+   this.cdp.on('Runtime.executionContextsCleared',()=>contexts.clear());
    await this.cdp.send('Runtime.enable');}
+  this.contexts=this.cdp.frameContexts;
   const tree=(await this.cdp.send('Page.getFrameTree')).frameTree;
   const src=await this.cdp.eval(`document.getElementById(${JSON.stringify(this.frame)}).src`);
   const child=(tree.childFrames||[]).find(f=>f.frame.url===src);
@@ -125,7 +145,7 @@ export class Page{
    if(Date.now()>end)throw Error('waitForFunction timed out: '+JSON.stringify(last));await pause(typeof polling==='number'?polling:50);}}
  waitForTimeout(ms){return pause(ms);}
  async waitForLoadState(){await this.waitForFunction(()=>document.readyState!=='loading');}
- locator(selector){return new Locator(this,[selector]);}
+ locator(selector,options){return new Locator(this,[step(selector,options)]);}
  getByRole(){throw new UndefinedNativeAdapterError('Page shim lacks getByRole');}
  fill(selector,value){return this.locator(selector).fill(value);}
  press(selector,key){return this.locator(selector).press(key);}
@@ -145,6 +165,8 @@ export class Page{
 export const ISLAND_FRAMES={'blanc-chrome://overlay/':'overlay','blanc-chrome://index/':'strip'};
 export function shippingPageUrl(url){
  if(url==='chrome://newtab/'||url.startsWith('chrome://new-tab-page'))return 'blanc://newtab/';
+ // The fork's chrome://newtab/ commits its Start Page document here.
+ if(url.startsWith('chrome://blanc-prototype/pages/newtab.html'))return 'blanc://newtab/'+url.slice('chrome://blanc-prototype/pages/newtab.html'.length);
  if(url.startsWith('chrome://blanc-prototype/blocking-settings.html'))return 'blanc://settings/';
  return url;
 }

@@ -3,7 +3,18 @@ import path from 'node:path';
 import http from 'node:http';
 import net from 'node:net';
 import crypto from 'node:crypto';
-import {spawn} from 'node:child_process';
+import {spawn,execFileSync} from 'node:child_process';
+import {createRequire} from 'node:module';
+const {loadShippingModule}=createRequire(import.meta.url)('./shipping-core.cjs');
+// Shipping hooks.js TLS fixtures: secure.test is trusted only by the per-run
+// SPKI pin; badcert.test's key is deliberately left out of it.
+function mintCertificate(dir,name){
+  const key=path.join(dir,name+'-key.pem'),cert=path.join(dir,name+'-cert.pem');
+  execFileSync('openssl',['req','-x509','-newkey','rsa:2048','-keyout',key,'-out',cert,'-days','2','-nodes','-subj','/CN='+name,'-addext','subjectAltName=DNS:'+name],{stdio:'pipe'});
+  const spki=crypto.createHash('sha256').update(crypto.createPublicKey(fs.readFileSync(cert)).export({type:'spki',format:'der'})).digest('base64');
+  return {key:fs.readFileSync(key),cert:fs.readFileSync(cert),spki};
+}
+const TLS_HOSTS=['insecure.test','secure.test','badcert.test'];
 import {connect, waitFor, pause} from './cdp.mjs';
 const digest = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 export class NativeFixture {
@@ -24,11 +35,21 @@ export class NativeFixture {
     this.proxy=net.createServer(s=>{track(s);s.destroy();});
     for(const s of [this.server,this.proxy].filter(Boolean))await new Promise((resolve,reject)=>{s.once('error',reject);s.listen(0,'127.0.0.1',resolve);});
     this.base=pages?pages.base:`http://127.0.0.1:${this.server.address().port}`;
+    let tlsFlags=[];
+    if(pages){
+      const tls=path.join(directory,'tls');fs.mkdirSync(tls,{mode:0o700});
+      const {startSecure}=loadShippingModule('test/desktop/support/fixtures-server.js');
+      const secure=mintCertificate(tls,'secure.test'),untrusted=mintCertificate(tls,'badcert.test');
+      this.secureServer=await startSecure(secure);this.untrustedServer=await startSecure(untrusted);
+      this.secureBase=`https://secure.test:${this.secureServer.port}`;
+      this.untrustedBase=`https://badcert.test:${this.untrustedServer.port}`;
+      tlsFlags=[`--ignore-certificate-errors-spki-list=${secure.spki}`];
+    }
     const fd=fs.openSync(path.join(directory,'browser.log'),'wx');
     this.process=spawn(config.executable,[`--user-data-dir=${this.profile}`,'--remote-debugging-port=0',
       `--blanc-prototype-assets=${config.assets}`,`--blanc-blocker-assets=${config.blockerAssets}`,
-      `--proxy-server=http://127.0.0.1:${this.proxy.address().port}`,'--proxy-bypass-list=127.0.0.1;localhost',
-      '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1',
+      `--proxy-server=http://127.0.0.1:${this.proxy.address().port}`,`--proxy-bypass-list=127.0.0.1;localhost;${TLS_HOSTS.join(';')}`,
+      `--host-resolver-rules=${TLS_HOSTS.map(h=>'MAP '+h+' 127.0.0.1, ').join('')}MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1`,...tlsFlags,
       '--disable-background-networking','--disable-quic','--no-first-run','--no-default-browser-check','--use-mock-keychain',
       ...(testHooks?['--blanc-test']:[]),...(privateMode?['--incognito']:[]),this.base+'/initial'],{stdio:['ignore',fd,fd]});
     fs.closeSync(fd);this.process.on('exit',(code,signal)=>{this.exit={code,signal};});
@@ -58,6 +79,7 @@ export class NativeFixture {
     for(const s of this.sockets||[])s.destroy();
     for(const s of [this.server,this.proxy])if(s?.listening)await new Promise(resolve=>s.close(resolve));
     if(this.pages)await this.pages.close();
+    for(const s of [this.secureServer,this.untrustedServer])if(s)await s.close();
     return this.exit;
   }
 }
