@@ -20,7 +20,7 @@ if(tracker.currentCandidates.macos?.id!==config.candidate)throw Error('Candidate
 const forkCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
 const sourceMapSha256=crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'source-map.json'))).digest('hex');
 fs.mkdirSync(out,{recursive:true,mode:0o700});
-const baseline={schemaVersion:1,platform:'macos',candidate:config.candidate,shippingTag:inventory.shippingTag,shippingCommit:inventory.shippingCommit,forkCommit,sourceMapSha256,
+const baseline={schemaVersion:1,platform:'macos',candidate:config.candidate,candidateIdentity:{id:config.candidate,frameworkSha256:config.frameworkSha256,executableSha256:config.executableSha256},shippingTag:inventory.shippingTag,shippingCommit:inventory.shippingCommit,forkCommit,sourceMapSha256,
  qualification:'full shipping declaration inventory; defined steps execute on the native candidate; undefined steps are runner gaps, not inferred product failures',scenarios:[]};
 const xmlEscape=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const cases=[];
@@ -76,7 +76,7 @@ for(const scenario of inventory.scenarios){
  fs.writeFileSync(path.join(out,'progress.json'),JSON.stringify({declarationsRecorded:baseline.scenarios.length,total:inventory.scenarios.length,executedCases:executed})+'\n');
 }
 const summary=Object.fromEntries(['pass','fail','undefined','excluded'].map(s=>[s,baseline.scenarios.filter(x=>x.result===s).length]));
-baseline.summary=summary;baseline.caseCount=cases.length;
+baseline.summary=summary;baseline.caseCount=cases.length;baseline.executedCaseCount=executed;baseline.executableSummary=Object.fromEntries(['pass','fail','undefined','excluded'].map(s=>[s,cases.filter(c=>c.result===s).length]));
 fs.writeFileSync(path.join(out,'baseline.json'),JSON.stringify(baseline,null,2)+'\n');
 const xml=cases.map(c=>`  <testcase name="${xmlEscape(c.id)}">${c.result==='pass'?'':c.result==='fail'?`<failure message="${xmlEscape(c.error)}"/>`:`<skipped message="${xmlEscape(c.result==='excluded'?c.exclusionReason:'Undefined fork step adapter')}"/>`}</testcase>`).join('\n');
 fs.writeFileSync(path.join(out,'junit.xml'),`<?xml version="1.0" encoding="UTF-8"?>\n<testsuite name="Blanc Chromium shipping baseline" tests="${cases.length}" failures="${cases.filter(c=>c.result==='fail').length}" skipped="${cases.filter(c=>['undefined','excluded'].includes(c.result)).length}">\n${xml}\n</testsuite>\n`);

@@ -57,3 +57,8 @@ test('Bar A counts executable examples rather than declaration aggregates',()=>{
   {id:'F1-3',featureRows:['F1'],result:'excluded',exclusionReason:'mobile only',cases:[{id:'case3',result:'excluded',exclusionReason:'mobile only'}]},
  ]}));assert.match(text,/1\/4 executable cases pass/);assert.match(text,/4 executable cases from 3 declarations/);
 });
+
+test('matching a short candidate name cannot credit different artifact bytes',()=>{
+ const t=tracker();t.currentCandidates.macos.frameworkSha256='expected';t.baselines.macos='current.json';
+ const text=renderProgress(t,()=>({candidate:'new',candidateIdentity:{frameworkSha256:'different'},platform:'macos',shippingCommit:'shipping',scenarios:[]}));assert.match(text,/previous baseline is stale/);
+});

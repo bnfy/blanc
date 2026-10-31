@@ -56,7 +56,7 @@
     },
     {
       "id": "F3",
-      "requirement": "Groups: names, case rules, optional color, group menu, ⌘1–9 clusters",
+      "requirement": "Groups: names, case rules, optional color, group menu, \u23181\u20139 clusters",
       "slice": "S1",
       "legacyMacState": "Integrated in an isolated candidate",
       "platformVerification": {
@@ -157,7 +157,7 @@
     {
       "id": "F7",
       "requirement": "34 slash commands with shipping names and hints",
-      "slice": "S1–S5",
+      "slice": "S1\u2013S5",
       "legacyMacState": "Integrated (partial: some commands)",
       "platformVerification": {
         "macos": null,
@@ -1427,7 +1427,16 @@
           "stage": "not-started",
           "basis": "no fork build"
         }
-      }
+      },
+      "exceptions": [
+        {
+          "scope": "beta only",
+          "accepted": "Owner D3 decision",
+          "requirementExcepted": "DRM/Widevine playback",
+          "betaRequirement": "On EME playback request, show a notice that Electron Blanc is required and offer explicit current-page handoff",
+          "replacementDecision": "open"
+        }
+      ]
     },
     {
       "id": "N1",
@@ -1989,7 +1998,9 @@
       "qualification": "compiled candidate; runtime acceptance pending"
     }
   },
-  "baselines": {},
+  "baselines": {
+    "macos": "scenarios/baseline-macos-19b83f79bd18b94c.json"
+  },
   "scenarioIds": [
     "spec/acceptance/F41-named-workspaces.feature:4",
     "spec/acceptance/F41-named-workspaces.feature:10",

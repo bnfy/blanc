@@ -34,7 +34,7 @@ export function renderProgress(tracker, loadBaseline = () => null) {
     const baseline = ref ? loadBaseline(ref) : null;
     let status = `Not run (${caseTotal} cases)`;
     if (baseline) {
-      if (baseline.candidate !== candidate?.id || baseline.platform !== p || baseline.shippingCommit !== tracker.shippingCommit) {
+      if (baseline.candidate !== candidate?.id || baseline.platform !== p || baseline.shippingCommit !== tracker.shippingCommit || (candidate?.frameworkSha256 && baseline.candidateIdentity?.frameworkSha256 !== candidate.frameworkSha256) || (candidate?.executableSha256 && baseline.candidateIdentity?.executableSha256 !== candidate.executableSha256)) {
         status = 'Not run for current candidate (previous baseline is stale)';
       } else {
         const seen = new Set();

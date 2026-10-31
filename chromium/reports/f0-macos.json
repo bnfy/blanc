@@ -39,7 +39,7 @@
   "notCompleted": [
     "F0.3 identity spike",
     "F0.4 full tracker workflow",
-    "F0.5 fork baseline",
+    "F0.5 full step-adapter coverage",
     "F0.6 release resource/typed bridge work",
     "F0.8 self-hosted integration"
   ],
@@ -107,5 +107,18 @@
     "fixture driver initial syntax error before browser launch",
     "initial snapshot comparison assumed string/native integer IDs matched without normalization",
     "initial no-switch probe sent an unregistered WebUI message and triggered Chromium fatal rejection; repaired to explicit preview denial"
-  ]
+  ],
+  "initialCorpusBaseline": {
+    "file": "scenarios/baseline-macos-19b83f79bd18b94c.json",
+    "sourceCommit": "2456e7046506c0bf89a9517551c006850fe201dd",
+    "executableCases": 627,
+    "declarations": 578,
+    "executedCases": 3,
+    "caseResults": {
+      "undefined": 622,
+      "excluded": 2,
+      "pass": 3
+    },
+    "qualification": "Initial partial-adapter baseline: all 627 cases represented, 3 executed on native app; undefined adapters are unexecuted and do not establish product absence."
+  }
 }

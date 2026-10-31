@@ -1,6 +1,6 @@
 # Blanc on Chromium: desktop replacement product specification
 
-Status: **owner-approved execution contract** at `e884a6564`, with subsequent owner clarifications. Authorized now: F0.1–F0.6 and F0.8 including their incremental builds. D7, F0.7, cold builds, new platform machines, D1–D6, D8 and V2 remain separate pending decisions. No merge or release authorization.
+Status: **owner-approved execution contract** at `e884a6564`, with subsequent owner clarifications. Authorized now: F0.1–F0.6 and F0.8 including their incremental builds. D7, F0.7, cold builds, new platform machines, D1–D2, full-replacement D3, D4–D6, D8 and V2 remain separate pending decisions. No merge or release authorization.
 Companion: [implementation plan](2026-10-30-desktop-replacement-plan.md).
 
 ## 1. Purpose and reference
@@ -30,7 +30,7 @@ Blanc's Chromium fork will replace the shipping Electron app on macOS, Windows a
 3. **Privacy and security** invariants in §6 hold. Chromium defaults that send data Blanc doesn't send today are disabled, for example Google services, Safe Browsing pings, field trials, crash upload and Chrome Sync.
 4. **Accessibility and input.** Every surface is keyboard-operable, has a correct accessibility tree, honors reduced motion, and keeps the shipping shortcuts (§5.3).
 5. **No data loss.** Existing users' profile data migrates as specified in §7, and the user can go back to Electron (§8.5).
-6. **Possible exceptions, not waivers.** uBlock Origin (X1) and Widevine/DRM (X2) need explicit owner decisions (plan §9). Until then, both count as required.
+6. **Possible exceptions, not waivers.** uBlock Origin (X1) and Widevine/DRM (X2) need explicit owner decisions (plan §9). Full replacement still requires both until separately decided. Owner D3 accepts a beta-only exception for DRM/Widevine playback: an EME playback request must show a notice that the site needs Electron Blanc and offer an explicit way to open the current page there. The notice/handoff is required for beta; replacement DRM acceptance remains open.
 
 **Out of scope.** iOS/Android. A general Electron extension runtime. Chrome Sync. Google sign-in. WebKit. Latency work (deferred). The separate Google-upgrade baseline (kept apart).
 
@@ -155,7 +155,7 @@ Columns:
 | R2 | Sync without a passphrase + recovery code | S4 | Reuse JS | Drafted | Shipping sync suites |
 | R3 | Pair iPhone (QR) | S4 | Reuse JS | Not started | Two-device check |
 | X1 | uBO provider | D2 | D2 | Research only | Per D2 |
-| X2 | Widevine/DRM playback | D3 | D3 | Not assessed | Per D3 |
+| X2 | Widevine/DRM playback; beta EME notice and current-page Electron handoff | S5 / D3 | D3 | **Accepted exception for beta playback only.** EME notice/handoff required before beta; replacement decision open | Beta: EME request shows notice and explicit current-page action to Electron, including unavailable-app handling. Replacement: per separate D3 decision |
 
 ### 5.2 Shipping surfaces not yet tracked (add as rows N1–N22)
 
@@ -293,6 +293,9 @@ Each row has its own status, decided only by the owner. **Until a row is approve
 | V7 | macOS minimum version and Intel support follow the fork's Chromium (the preview needs macOS 26; shipping supports older and Intel) | Upstream minimums | **Proposed, product change.** Open: decision D8 |
 
 ## 10. Release gates for the replacement
+
+**Beta-specific X2 gate:** DRM/Widevine playback is excepted for the beta only. A page requesting Encrypted Media Extensions playback must show an accessible Electron-build notice and an explicit current-page handoff action. Verify the handoff destination and unavailable-Electron case while preserving the existing privacy/navigation policy. This beta exception does not remove X2 from the full replacement gates below.
+
 
 A replacement release candidate is release-ready when all of these hold:
 1. Every row in §5 is *Verified* on all three platforms, or excepted by an owner decision.

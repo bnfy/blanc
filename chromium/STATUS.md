@@ -4,7 +4,8 @@ Execution contract: spec and plan approved at e884a6564. Active slice: F0 Founda
 
 ## Authorization
 F0.1–F0.6 and F0.8, with necessary incremental builds, approved.
-D7, F0.7, cold builds, new platform machines, D1–D6, D8 and V2 remain pending.
+D7, F0.7, cold builds, new machines, D1/D2/D4–D6/D8/V2 and replacement D3
+remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
 - F0.1: canonical operating rules established; spike frozen for new work.
@@ -16,15 +17,17 @@ D7, F0.7, cold builds, new platform machines, D1–D6, D8 and V2 remain pending.
 - F0.3/F0.6: pending. F0.8 hosted source checks passed on cdf30501; no
   self-hosted runner installed. F0.5 preview hook built; runtime gate and
   replay checks passed in regular/private fixtures and without opt-in.
-- F0.5 initial baseline: pending run. 627 cases from 578 declarations are
-  mapped. Runner/JUnit implemented; many step adapters remain undefined.
+- F0.5 initial partial-adapter baseline recorded: 3 cases passed on the native
+  candidate; 622 adapters undefined; 2 mobile-only cases excluded. Full F0.5
+  adapter work remains incomplete. JSON/JUnit and source mappings are committed.
 
 ## Candidate
 Existing verified development app remains open; use the durable launch receipt.
 No replacement candidate promoted. Preserve 157 fallback and signed masters.
 
 ## Next
-Run the initial corpus baseline; keep adapter gaps distinct from product failures.
+Continue F0.5 step adapters; carry forward valid unchanged checks.
+Use HANDOFF.md for a compact fresh-chat entry point.
 Archive/compression of historical raw evidence remains a separate operation;
 no historical evidence or draft is deleted.
 
@@ -33,7 +36,7 @@ no historical evidence or draft is deleted.
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | Not run (627 cases) |
+| macOS | 3/627 executable cases pass; 0 failed; 622 undefined/not run; 2 excluded — [baseline](scenarios/baseline-macos-19b83f79bd18b94c.json) |
 | Windows | Not run (627 cases) |
 | Linux | Not run (627 cases) |
 
