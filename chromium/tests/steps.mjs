@@ -1,15 +1,16 @@
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
-const {CucumberExpression,ParameterTypeRegistry}=require('@cucumber/cucumber-expressions');
+const {CucumberExpression,RegularExpression,ParameterTypeRegistry}=require('@cucumber/cucumber-expressions');
 const parameters=new ParameterTypeRegistry();
 const {loadShippingCore}=require('./lib/shipping-core.cjs');
 export const definitions=[];
 // These intent-level steps preserve the assertions in shipping v1.45.1
 // test/desktop/steps/runnable.steps.js; only the native transport changes.
 function register(expression,run,source,sourceSha256=null){
- if(typeof expression!=='string')throw Error('Core registry needs an explicit expression adapter');
- definitions.push({expression,matcher:new CucumberExpression(expression,parameters),run,shippingSource:source,shippingSourceSha256:sourceSha256});
+ const matcher=expression instanceof RegExp?new RegularExpression(expression,parameters):typeof expression==='string'?new CucumberExpression(expression,parameters):null;
+ if(!matcher)throw Error('Core registry needs an explicit expression adapter');
+ definitions.push({expression:String(expression),matcher,run,shippingSource:source,shippingSourceSha256:sourceSha256});
 }
 export const shippingCore=loadShippingCore(register);
 function step(expression,run,source){

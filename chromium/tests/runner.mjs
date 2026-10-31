@@ -10,8 +10,14 @@ import {matchStep} from './steps.mjs';
 import {aggregateCases} from './results.mjs';
 import {createWorld,missingAdapters} from './world.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));
-const [configPath,outputDirectory]=process.argv.slice(2);
-if(!configPath||!outputDirectory)throw Error('Usage: runner.mjs local-config.json durable-output-directory');
+import {createRequire} from 'node:module';
+const {loadShippingModule}=createRequire(import.meta.url)('./lib/shipping-core.cjs');
+const fixturePages=loadShippingModule('test/desktop/support/fixtures-server.js');
+const [configPath,outputDirectory,...flags]=process.argv.slice(2);
+if(!configPath||!outputDirectory)throw Error('Usage: runner.mjs local-config.json durable-output-directory [--only=case-id-regex]');
+// --only runs a development subset; its output is never a baseline.
+const only=flags.find(f=>f.startsWith('--only='))?.slice(7);
+const onlyPattern=only?new RegExp(only):null;
 const config=JSON.parse(fs.readFileSync(configPath));
 const out=path.resolve(outputDirectory);
 if(fs.existsSync(out))throw Error('Refusing to overwrite prior baseline');
@@ -21,7 +27,7 @@ if(tracker.currentCandidates.macos?.id!==config.candidate)throw Error('Candidate
 const forkCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
 const sourceMapSha256=crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'source-map.json'))).digest('hex');
 fs.mkdirSync(out,{recursive:true,mode:0o700});
-const baseline={schemaVersion:1,platform:'macos',candidate:config.candidate,candidateIdentity:{id:config.candidate,frameworkSha256:config.frameworkSha256,executableSha256:config.executableSha256},shippingTag:inventory.shippingTag,shippingCommit:inventory.shippingCommit,forkCommit,sourceMapSha256,
+const baseline={schemaVersion:1,...(only?{developmentSubset:only}:{}),platform:'macos',candidate:config.candidate,candidateIdentity:{id:config.candidate,frameworkSha256:config.frameworkSha256,executableSha256:config.executableSha256},shippingTag:inventory.shippingTag,shippingCommit:inventory.shippingCommit,forkCommit,sourceMapSha256,
  qualification:'full shipping declaration inventory; defined steps execute on the native candidate; undefined steps are runner gaps, not inferred product failures',scenarios:[]};
 const xmlEscape=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const cases=[];
@@ -30,7 +36,8 @@ for(const scenario of inventory.scenarios){
  const record={id:scenario.id,file:scenario.file,line:scenario.line,name:scenario.name,featureRows:scenario.featureRows,shippingTag:inventory.shippingTag,shippingCommit:inventory.shippingCommit,forkCommit,candidate:config.candidate,platform:'macos',cases:[]};
  for(const test of scenario.cases){
   const entry={id:test.id,name:test.name,result:'not-run',executed:false};
-  if(scenario.desktopApplicability==='excluded'){entry.result='excluded';entry.exclusionReason=scenario.exclusionReason;}
+  if(onlyPattern&&!onlyPattern.test(test.id)){entry.result='not-run';}
+  else if(scenario.desktopApplicability==='excluded'){entry.result='excluded';entry.exclusionReason=scenario.exclusionReason;}
   else{
    const matches=test.steps.map(s=>s.argument?null:matchStep(s.text));
    const missing=test.steps.flatMap((s,i)=>{
@@ -43,12 +50,13 @@ for(const scenario of inventory.scenarios){
     const fixture=new NativeFixture();
     const world=createWorld(fixture);
     try{
-     await fixture.launch(config,path.join(out,'fixtures','case-'+String(++executed).padStart(4,'0')),{testHooks:true});
+     await fixture.launch(config,path.join(out,'fixtures','case-'+String(++executed).padStart(4,'0')),{testHooks:true,pages:await fixturePages.start()});
      await installDriver(fixture.host);const caps=await nativeCall(fixture.host,'capabilities');if(!caps.testHooks)throw Error('Native test hook unavailable');
+     await world.reset();
      world.bindShippingContext();
      entry.executed=true;entry.steps=[];
      for(let i=0;i<matches.length;i++){
-      const match=matches[i];await match.definition.run.call(world,...match.args);
+      const match=matches[i];await world.app.refresh();await match.definition.run.call(world,...match.args);
       entry.steps.push({text:test.steps[i].text,result:'pass',shippingDefinition:match.definition.shippingSource});
      }
      entry.result='pass';

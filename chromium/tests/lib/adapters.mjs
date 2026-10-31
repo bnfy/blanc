@@ -10,3 +10,5 @@ export function observedState(value,label='state',cache=new WeakMap()){
   throw new UndefinedNativeAdapterError('Native snapshot adapter does not expose '+label+'.'+key);
  }});cache.set(value,proxy);return proxy;
 }
+// The fork's native ids are integers; shipping's are strings.
+export const nativeId=value=>{const n=Number(value);if(!Number.isSafeInteger(n))throw Error('Not a native tab id: '+value);return n;};

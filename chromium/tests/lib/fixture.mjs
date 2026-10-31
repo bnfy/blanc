@@ -7,18 +7,23 @@ import {spawn} from 'node:child_process';
 import {connect, waitFor, pause} from './cdp.mjs';
 const digest = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 export class NativeFixture {
-  async launch(config, directory, {testHooks=false, privateMode=false} = {}) {
+  async launch(config, directory, {testHooks=false, privateMode=false, pages=null} = {}) {
     this.directory=directory; this.connections=[]; this.sockets=new Set();
     if(fs.existsSync(directory))throw Error('Refusing to overwrite fixture');
     if(digest(config.framework)!==config.frameworkSha256||digest(config.executable)!==config.executableSha256)throw Error('Candidate identity mismatch');
     fs.mkdirSync(directory,{recursive:true,mode:0o700});
     this.profile=path.join(directory,'profile');fs.mkdirSync(this.profile,{mode:0o700});
     const track=s=>{this.sockets.add(s);s.once('close',()=>this.sockets.delete(s));};
-    this.server=http.createServer((q,r)=>{r.writeHead(200,{'content-type':'text/html'});r.end('<title>Native test fixture</title><p>Local synthetic page</p>');});
-    this.server.on('connection',track);
+    // `pages` is an already-listening loopback page server ({base, close});
+    // without one the fixture serves a single synthetic page.
+    this.pages=pages;
+    if(!pages){
+      this.server=http.createServer((q,r)=>{r.writeHead(200,{'content-type':'text/html'});r.end('<title>Native test fixture</title><p>Local synthetic page</p>');});
+      this.server.on('connection',track);
+    }
     this.proxy=net.createServer(s=>{track(s);s.destroy();});
-    for(const s of [this.server,this.proxy])await new Promise((resolve,reject)=>{s.once('error',reject);s.listen(0,'127.0.0.1',resolve);});
-    this.base=`http://127.0.0.1:${this.server.address().port}`;
+    for(const s of [this.server,this.proxy].filter(Boolean))await new Promise((resolve,reject)=>{s.once('error',reject);s.listen(0,'127.0.0.1',resolve);});
+    this.base=pages?pages.base:`http://127.0.0.1:${this.server.address().port}`;
     const fd=fs.openSync(path.join(directory,'browser.log'),'wx');
     this.process=spawn(config.executable,[`--user-data-dir=${this.profile}`,'--remote-debugging-port=0',
       `--blanc-prototype-assets=${config.assets}`,`--blanc-blocker-assets=${config.blockerAssets}`,
@@ -44,6 +49,7 @@ export class NativeFixture {
     }
     return this;
   }
+  async connectTarget(target){const c=await connect(target);this.connections.push(c);return c;}
   async close(){
     if(this.browser)try{await this.browser.send('Browser.close');}catch{}
     for(const c of this.connections||[])try{c.close();}catch{}
@@ -51,6 +57,7 @@ export class NativeFixture {
     if(this.process&&!this.exit){this.process.kill('SIGTERM');for(let i=0;i<50&&!this.exit;i++)await pause(100);}
     for(const s of this.sockets||[])s.destroy();
     for(const s of [this.server,this.proxy])if(s?.listening)await new Promise(resolve=>s.close(resolve));
+    if(this.pages)await this.pages.close();
     return this.exit;
   }
 }
