@@ -9,41 +9,51 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
 
 ## Current work
 - F0.1/F0.2/F0.4/F0.8 as before; F0.3 pending.
-- **F0.5 S1 finish line reached.** All 253 S1-tagged cases have a real result or
-  a named undefined reason on the current candidate: 70 pass, 152 fail, 31
-  undefined. Per-row results and reasons: [reports/s1-macos.json](reports/s1-macos.json) (+ JUnit).
+- **F0.5 S1 finish line reached** on the previous candidate (19b83f79): all 253
+  S1-tagged cases have a real result or a named undefined reason (70 pass, 152
+  fail, 31 undefined). [reports/s1-macos.json](reports/s1-macos.json) (+ JUnit)
+  lists per-row results and reasons; it stays the gap list until the new
+  candidate's baseline replaces it.
+- **F0.6 built, except the typed interface.** Candidate macos-d1984adbf76df5f0
+  (two incremental builds, 8 and 13 steps; toolchain, SDK and GN args
+  unchanged): the 73 served Island files are compiled in from `blanc/island/`
+  (`blanc/island_resources`); the asset-folder switch survives only in preview,
+  non-official builds (`ENABLE_BLANC_DISK_ASSETS`, proven by
+  `tools/check-hook-gates.py`); patch 0003 keys Blanc behaviour on
+  `blanc::IslandMode()` instead of that switch (8 upstream sites). Smoke
+  (`tests/embedded-assets-smoke.mjs`): with no asset folder the Island and
+  Blanc's Start Page load, and 54 of 73 resources read back byte-identical (the
+  rest are not retrievable from cache). The typed interface from
+  `browser-api/contract.json` is not started.
+- **Baseline on the new candidate: not recorded yet.** The first full run
+  (3a94ff5c) ran with the display asleep and the screen locked from case 12
+  onward; the Island opens on an animation frame, so 36 cases that pass on a
+  rendering display failed. That run was discarded. The runner now stops when
+  the browser gets no animation frame (b75120d6) and holds the display awake
+  for the run. Re-run with the screen unlocked.
 - Runner: shipping's 24 S1 step files and fixture server load unchanged from
   v1.45.1 (85883b1a); adapters (tests/adapters/) map shipping hooks to the Island
   facade, native dispatch, Island DOM and CDP; fork steps (tests/fork-steps/)
   cover S1 texts shipping never defined. Cases run their defined prefix and retry
-  a failure once. Relaunch (same profile, session restore decides), per-process
-  OS language (-AppleLanguages) and shipping's local TLS fixtures are supported.
-  Profiles live in local temp storage; only logs and errors are kept.
-- Baseline = full run at 15fff856 merged with targeted re-runs (bdb339d5,
-  73b15fb1, 5d30f8ef, 8bcccf57); each scenario keeps its fork commit
-  (`merges` in the JSON). Raw output: Chromium Preview/evidence/foundation/s1-*.
-- **F0.6 groundwork:** the 78 served Island assets are canonical in
-  `blanc/island/` + `blanc/island-assets.json`; `tools/assets.mjs --check`
-  reproduces the running manifest (ee71b58d…) file for file. Pak compilation and
-  the typed interface remain; they need one batched incremental build (with the
-  native test ops below) and then a full rebaseline on the new candidate.
-- No build ran. Bar B unchanged: no row changed state.
+  a failure once. Profiles live in local temp storage; only logs and errors are
+  kept. Guards before each case: free memory, and a rendering display.
 
 ## Observed problems to investigate
 - Chromium's teardown watchdog ("Teardown watchdog expired") terminates some test
-  browsers on quit (exit 2), intermittently, even at normal load. Cause not
-  confirmed (product shutdown hang vs. harness CDP sessions); such cases are
+  browsers on quit (exit 2), intermittently. Cause not confirmed; such cases are
   recorded as failures with the log line.
-- 2026-10-30: four parallel runner sessions, leaked browser helpers and per-case
-  profiles in the iCloud-synced evidence folder exhausted the owner's memory
-  (load ~1000); the owner quit apps, including Codex, which ended the dev
-  instance it had launched (clean exit, profile intact). Fixed: profiles in
-  local temp, helpers reaped per case, a free-memory guard before each case.
-  Run one native test browser at a time; launch the dev instance with `open -n`
-  so it never belongs to an agent's process tree.
+- The Island's `styles.css` is served without a charset and decoded as
+  Windows-1252 (non-ASCII is only in comments today). Same on disk and embedded.
+- The Start Page requests `onboarding.js` and `onboarding-guard.js`, which were
+  never in the served set.
+- A tab created through CDP `Target.createTarget` gets Chromium's NTP, not
+  Blanc's Start Page; Island-created tabs are correct.
+- 2026-10-30 memory incident (parallel runners, leaked helpers, profiles in the
+  synced folder): fixed. Run one native test browser at a time; launch the dev
+  instance with `open -n` so it never belongs to an agent's process tree.
 
 ## Reading the failures
-Most failures are real product gaps on this candidate, clustered:
+Most failures on the previous candidate are real product gaps, clustered:
 - Settings opens chrome://settings (no Blanc controls): 42 Island hover/auto-hide
   cases, search engine, suggestions, theme, bang and tab-icon settings.
 - Private tabs refused (D1 pending): F4 and every case with a private step.
@@ -75,20 +85,22 @@ Native Chromium surfaces that could be adapted instead of porting Electron:
 11. Windows: native multi-window passes F2-5; close-window and session projection need ops.
 Bangs have no native equivalent.
 
-## Native test ops identified (none built)
-closeWindow; sessionWindows (session.json-shaped projection); certificate
-decision list/forget/cap; history visit + site icon seed; favorite favicon seed;
+## Native test ops
+Built in d1984adb: slots 4–8 in previewPageCommand; closeWindow. Identified, not
+built: sessionWindows (session.json-shaped projection); certificate decision
+list/forget/cap; history visit + site icon seed; favorite favicon seed;
 first-run/checklist/Patron/launch-Sunrise state once stored; address context menu
-list/run; external-handoff probe; slots 4–8 in previewPageCommand; overlay drag
-flag; microphone capture seed.
+list/run; external-handoff probe; overlay drag flag; microphone capture seed.
 
 ## Next
-1. Owner: assess the native candidates above; decide D1.
-2. F0.6: pak compilation and typed interface, batched with the native test ops
-   into one incremental build; then a full rebaseline (new candidate identity).
-3. F0.3 under its dependencies; S1 work in slice order after F0, using
-   reports/s1-macos.json as the gap list. Re-run affected cases with --only and
-   merge-baseline.mjs instead of full runs.
+1. Full S1 baseline on macos-d1984adbf76df5f0 with the screen unlocked
+   (`node tests/runner.mjs <Chromium Preview>/evidence/foundation/f06-runtime-config.json <new dir>`,
+   ~2 h, one browser at a time); record it as
+   `scenarios/baseline-macos-d1984adbf76df5f0.json`, point tracker.json at it,
+   regenerate reports/s1-macos.* and the bars.
+2. Owner: assess the native candidates above; decide D1.
+3. F0.6 typed interface; F0.3 under its dependencies; then S1 work in slice
+   order. Re-run affected cases with --only and merge-baseline.mjs.
 
 ## Intentionally uncommitted
 No canonical `chromium/` changes are left uncommitted. Preserved, not staged:
