@@ -2,11 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
-import {execFileSync} from 'node:child_process';
+import {execFileSync,spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {NativeFixture} from './lib/fixture.mjs';
 import {waitFor} from './lib/cdp.mjs';
 import {installDriver,nativeCall} from './lib/test-driver.mjs';
+import {assertRendering} from './lib/render-guard.mjs';
 import {matchStep} from './steps.mjs';
 import {aggregateCases} from './results.mjs';
 import {awaitMemory} from './lib/memory-guard.mjs';
@@ -37,6 +38,9 @@ const baseline={schemaVersion:1,assets:config.diskAssets===false?{source:'embedd
 const xmlEscape=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const cases=[];
 let executed=0;
+// Hold the display awake for the run (released when it exits): a sleeping
+// display stops the run through the render guard.
+spawn('/usr/bin/caffeinate',['-d','-i','-w',String(process.pid)],{stdio:'ignore'}).unref();
 async function runCase(matches,steps){
  const entry={executed:false};
  const fixture=new NativeFixture();
@@ -47,6 +51,7 @@ async function runCase(matches,steps){
   const name='case-'+String(++executed).padStart(4,'0');entry.fixture=name;
   await fixture.launch(config,path.join(scratch,name),{testHooks:true,pages:await fixturePages.start(),diskAssets:config.diskAssets!==false});
   await installDriver(fixture.host);const caps=await nativeCall(fixture.host,'capabilities');if(!caps.testHooks)throw Error('Native test hook unavailable');
+  await assertRendering(e=>fixture.host.eval(e));
   await world.reset();
   world.bindShippingContext();
   entry.executed=true;entry.steps=[];
@@ -55,11 +60,16 @@ async function runCase(matches,steps){
    entry.steps.push({text:steps[i].text,result:'pass',shippingDefinition:match.definition.shippingSource});
   }
   entry.result='pass';
- }catch(error){entry.result=error.code==='BLANC_ADAPTER_UNDEFINED'?'undefined':'fail';entry.error=String(error.message||error);if(fs.existsSync(fixture.directory||''))fs.writeFileSync(path.join(fixture.directory,'error.txt'),String(error.stack||error));}
+ }catch(error){
+  // A failure on a display that stopped rendering mid-case is not a result.
+  if(error.code!=='BLANC_ENVIRONMENT_STOP'&&fixture.host)await assertRendering(e=>fixture.host.eval(e)).catch(stop=>{if(stop.code==='BLANC_ENVIRONMENT_STOP')error=stop;});
+  if(error.code==='BLANC_ENVIRONMENT_STOP'){entry.stop=error;}
+  else{entry.result=error.code==='BLANC_ADAPTER_UNDEFINED'?'undefined':'fail';entry.error=String(error.message||error);if(fs.existsSync(fixture.directory||''))fs.writeFileSync(path.join(fixture.directory,'error.txt'),String(error.stack||error));}}
  finally{entry.browserExit=await fixture.close();if(fixture.reapedHelpers)entry.reapedHelpers=fixture.reapedHelpers;
   if(fixture.directory&&fs.existsSync(fixture.directory)){const keep=path.join(out,'fixtures',entry.fixture);fs.mkdirSync(keep,{recursive:true});
    for(const f of ['browser.log','error.txt'])if(fs.existsSync(path.join(fixture.directory,f)))fs.copyFileSync(path.join(fixture.directory,f),path.join(keep,f));
    fs.rmSync(fixture.directory,{recursive:true,force:true});}if(entry.result==='pass'&&entry.browserExit?.code!==0){entry.result='fail';entry.error='Native fixture did not exit cleanly';}}
+ if(entry.stop)throw entry.stop;
  return entry;
 }
 for(const scenario of inventory.scenarios){
