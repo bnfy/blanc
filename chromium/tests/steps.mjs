@@ -34,6 +34,11 @@ step("I enlarge the page through the platform's zoom control",async function(){t
 step('the page content is enlarged',async function(){await this.waitFor(()=>this.fixture.page.eval('devicePixelRatio'),n=>n>this.zoomBefore,'page enlarged');},'spec/acceptance/platform-services.feature');
 step('I reset the zoom',async function(){assert.equal(await this.call('zoomReset'),true);},'spec/acceptance/platform-services.feature');
 step("the page returns to its default scale",async function(){await this.waitFor(()=>this.fixture.page.eval('devicePixelRatio'),n=>Math.abs(n-this.zoomBefore)<1e-6,'page reset');},'spec/acceptance/platform-services.feature');
+// Steps shipping never defined, written for the fork from their Gherkin.
+for(const area of ['island','commands','pages','tabs']){
+ const {default:registerArea}=await import(`./fork-steps/${area}.mjs`);
+ registerArea((expression,run)=>step(expression,run,`chromium/tests/fork-steps/${area}.mjs`));
+}
 export function matchStep(text){
  const matches=definitions.flatMap(d=>{const args=d.matcher.match(text);return args?[{definition:d,args:args.map(a=>a.getValue(null))}]:[];});
  if(matches.length>1)throw Error('Ambiguous fork step: '+text);
