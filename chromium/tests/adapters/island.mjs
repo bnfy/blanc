@@ -4,6 +4,7 @@
 import {UndefinedNativeAdapterError,nativeId} from '../lib/adapters.mjs';
 import {tabPage} from './core.mjs';
 import {shippingPageUrl} from '../lib/page-shim.mjs';
+import {jsLiteral} from '../lib/js-literal.mjs';
 const undef=reason=>()=>{throw new UndefinedNativeAdapterError(reason);};
 // Electron sendInputEvent mouse types -> CDP Input.dispatchMouseEvent types.
 const MOUSE={mouseMove:'mouseMoved',mouseDown:'mousePressed',mouseUp:'mouseReleased'};
@@ -49,7 +50,7 @@ const strip=w=>w.frame('strip');const overlay=w=>w.frame('overlay');
 // The strip paints from the host's snapshot poll; read it after the host's
 // own refresh has carried the native state that the step just changed.
 const painted=w=>w.hostEval('window.BlancPrototypeHost.refresh().then(()=>new Promise(r=>setTimeout(r,50)))');
-const frameRect=(w,id)=>w.hostEval(`(()=>{const f=document.getElementById(${JSON.stringify(id)});if(!f||f.hidden)return null;const r=f.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}})()`);
+const frameRect=(w,id)=>w.hostEval(`(()=>{const f=document.getElementById(${jsLiteral(id)});if(!f||f.hidden)return null;const r=f.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}})()`);
 async function frameInput(w,id,input){
  const r=await frameRect(w,id);if(!r)return false;
  return send(w.fixture.host,input,{x:r.x,y:r.y});

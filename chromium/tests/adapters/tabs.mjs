@@ -6,6 +6,7 @@ import {installDriver,nativeCall} from '../lib/test-driver.mjs';
 import {waitFor} from '../lib/cdp.mjs';
 import {shippingPageUrl} from '../lib/page-shim.mjs';
 import {tabPage} from './core.mjs';
+import {jsLiteral} from '../lib/js-literal.mjs';
 const HOST='chrome://blanc-prototype/host.html';
 const SETTINGS='chrome://blanc-prototype/blocking-settings.html';
 // A record whose absent fields raise instead of reading undefined. Shallow:
@@ -220,7 +221,7 @@ export const tabs={
  // As typed into Settings → Blocking's exception field (it normalizes).
  async addException(w,h){
   const page=await blockingSettings(w);
-  await page.eval(`(()=>{const i=document.getElementById('exception-input');i.value=${JSON.stringify(String(h))};document.getElementById('exception-form').requestSubmit();})()`);
+  await page.eval(`(()=>{const i=document.getElementById('exception-input');i.value=${jsLiteral(String(h))};document.getElementById('exception-form').requestSubmit();})()`);
   await waitFor(()=>page.eval(`document.getElementById('blocking-error').hidden&&!!document.querySelector('#exception-list .site-row')`),Boolean,'exception saved');
  },
  async activeHostname(w){const t=await activeTab(w);return t?blockableHostname(t.committedUrl||t.url):null;},
@@ -239,7 +240,7 @@ export const tabs={
  forgetCertificateExceptionOnly(){throw new UndefinedNativeAdapterError('No fork path forgets a certificate decision (Chromium SSLHostStateDelegate); needs a native test op');},
  setCertificateExceptionCap(){throw new UndefinedNativeAdapterError('Chromium keeps certificate decisions without Blanc\'s bounded cap; no fork path sets one');},
  // Shipping's chrome document is blanc-chrome://index/, the fork's strip.
- attemptChromeNavigation:(w,url)=>strip(w).evalExpression(`location.href=${JSON.stringify(String(url))}`),
+ attemptChromeNavigation:(w,url)=>strip(w).evalExpression(`location.href=${jsLiteral(String(url))}`),
  async chromeUrl(w){
   const [host,src]=await w.hostEval(`[location.href,document.getElementById('strip').contentWindow.location.href]`);
   return host===HOST&&src==='chrome://blanc-prototype/index.html'?'blanc-chrome://index/':src;

@@ -2,6 +2,7 @@
 // test-hook names over the fork's Start Page document, its native newtab
 // bridge (window.bowserPages), the Island facade and native dispatch.
 import {UndefinedNativeAdapterError,nativeId} from '../lib/adapters.mjs';
+import {jsLiteral} from '../lib/js-literal.mjs';
 export const NEWTAB=/^chrome:\/\/(newtab\/|new-tab-page\/|blanc-prototype\/pages\/newtab\.html)/;
 // Fork utility pages: the facade opens Chromium's managers as tabs, and the
 // Blanc settings hub is a tab too. No Blanc utility sheet exists.
@@ -67,8 +68,8 @@ async function historyItems(w){
 }
 const noSheet=hook=>()=>{throw Error(`${hook}: the fork has no Blanc utility sheet; utility pages open as Chromium manager tabs`);};
 const noState=(hook,what)=>()=>{throw new UndefinedNativeAdapterError(`${hook}: the fork stores no ${what}`);};
-const toggleIn=(list,cls,attr)=>key=>`(()=>{const item=[...document.querySelectorAll(${JSON.stringify(list)})].find(c=>${attr}===${JSON.stringify(String(key))});
- const button=item?.querySelector(${JSON.stringify(cls)});if(!button)return false;button.focus();button.click();return true;})()`;
+const toggleIn=(list,cls,attr)=>key=>`(()=>{const item=[...document.querySelectorAll(${jsLiteral(list)})].find(c=>${attr}===${jsLiteral(String(key))});
+ const button=item?.querySelector(${jsLiteral(cls)});if(!button)return false;button.focus();button.click();return true;})()`;
 const favoriteList="({ledger:'favoritesList',shelf:'shFavorites',tally:'tlFavorites'})[document.body.dataset.layout]";
 export const pages={
  // ---- favorites (Chromium's BookmarkModel through the Island heart) ----
@@ -97,7 +98,7 @@ export const pages={
   const tab=settled.tabs.find(t=>String(t.id)===String(id));
   if(title&&tab.title!==title){
    const targets=(await w.fixture.targets()).filter(t=>t.type==='page'&&t.url===tab.url);
-   await (await visiblePage(w,targets)).evalExpression(`document.title=${JSON.stringify(String(title))}`);
+   await (await visiblePage(w,targets)).evalExpression(`document.title=${jsLiteral(String(title))}`);
    await w.waitFor(()=>w.snapshot(),s=>s.tabs.some(t=>String(t.id)===String(id)&&t.title===title),'seeded title');
   }
   await toggle(w,id);
@@ -119,7 +120,7 @@ export const pages={
  seedBillboardHistory:()=>{throw new UndefinedNativeAdapterError('seedBillboardHistory: named public hosts and cached icons cannot be visited offline; needs a native history-seeding test op');},
  seedBillboardOverflowHistory:()=>{throw new UndefinedNativeAdapterError('seedBillboardOverflowHistory: sixty public hosts cannot be visited offline; needs a native history-seeding test op');},
  // ---- Start Page layout (native layoutRead/layoutWrite via the page) ----
- setNewtabLayout:async(w,layout)=>(await anyStartPage(w)).evalExpression(`window.bowserPages.start.setLayout(${JSON.stringify(String(layout))})`),
+ setNewtabLayout:async(w,layout)=>(await anyStartPage(w)).evalExpression(`window.bowserPages.start.setLayout(${jsLiteral(String(layout))})`),
  newtabLayout:async w=>(await anyStartPage(w)).evalExpression('window.bowserPages.start.data().then(d=>d.layout)'),
  readNewtabLayoutDom:onStart(null,`(()=>({layout:document.body.dataset.layout??null,
   active:document.querySelector('[data-layout-pick].active')?.dataset.layoutPick??null,
@@ -150,7 +151,7 @@ export const pages={
    status:document.getElementById('favoritesPinStatus')?.textContent??'',
    focusedPinOf:document.activeElement?.classList.contains('fav-pin')?document.activeElement.closest('[data-favorite-url]')?.dataset.favoriteUrl??null:null};})()`),
  toggleFavoritePin:onStart(false,title=>`(()=>{const list=${favoriteList};
-  const item=list&&[...document.getElementById(list).querySelectorAll('[data-favorite-url]')].find(c=>c.querySelector('.name')?.textContent===${JSON.stringify(String(title))});
+  const item=list&&[...document.getElementById(list).querySelectorAll('[data-favorite-url]')].find(c=>c.querySelector('.name')?.textContent===${jsLiteral(String(title))});
   const button=item?.querySelector('.fav-pin');if(!button)return false;button.focus();button.click();return true;})()`),
  readBillboardSites:onStart(null,`(()=>({sites:[...document.querySelectorAll('#bbFavorites .bb-site')].map(item=>({key:item.dataset.siteKey,
   href:item.querySelector('.bb-fav')?.href??null,label:item.querySelector('.label')?.textContent??null,
@@ -163,7 +164,7 @@ export const pages={
   focusedPinOf:document.activeElement?.classList.contains('bb-site-pin')?document.activeElement.closest('.bb-site')?.dataset.siteKey??null:null}))()`),
  toggleBillboardPin:onStart(false,toggleIn('#bbFavorites .bb-site','.bb-site-pin','c.dataset.siteKey')),
  hideBillboardSite:onStart(false,toggleIn('#bbFavorites .bb-site','.bb-site-dismiss','c.dataset.siteKey')),
- setBillboardHidden:onStart(false,keys=>`(()=>{localStorage.setItem('blanc.billboard.hidden-top-sites.v1',${JSON.stringify(JSON.stringify(Array.isArray(keys)?keys.slice(0,200).map(String):[]))});return true;})()`),
+ setBillboardHidden:onStart(false,keys=>`(()=>{localStorage.setItem('blanc.billboard.hidden-top-sites.v1',${jsLiteral(JSON.stringify(Array.isArray(keys)?keys.slice(0,200).map(String):[]))});return true;})()`),
  // ---- Start Page geometry reads (the copied shipping DOM) ----
  readStartFrameGeometry:onStart(null,`(()=>{const rect=e=>{if(!e)return null;const s=getComputedStyle(e);if(s.display==='none'||s.visibility==='hidden')return null;
   const r=e.getBoundingClientRect();if(!r.width||!r.height)return null;return {top:r.top,right:r.right,bottom:r.bottom,left:r.left,width:r.width,height:r.height};};
@@ -194,7 +195,7 @@ export const pages={
   const round=v=>Math.round(v*10)/10;
   return {layout:document.body.dataset.layout,viewportWidth:innerWidth,headerBottom:round(headerBottom),contentTop:round(top),above:round(top),below:round(footerTop-bottom),
    parts:shown.map(e=>e.id||e.className)};})()`),
- readStartFooterLayout:onStart(null,blockedText=>`(()=>{if(${JSON.stringify(blockedText??null)}!==null)document.getElementById('footerLeft').textContent=${JSON.stringify(blockedText??'')};
+ readStartFooterLayout:onStart(null,blockedText=>`(()=>{if(${jsLiteral(blockedText??null)}!==null)document.getElementById('footerLeft').textContent=${jsLiteral(blockedText??'')};
   const box=s=>{const e=document.querySelector(s);if(!e||e.hidden||getComputedStyle(e).display==='none')return null;const r=e.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height};};
   const items=[...document.querySelectorAll('#layoutFooter .footer-left > *')].filter(e=>!e.hidden&&getComputedStyle(e).display!=='none'&&e.getBoundingClientRect().width>0).map(e=>e.getBoundingClientRect());
   const centres=items.map(r=>Math.round((r.top+r.bottom)/2));
@@ -267,11 +268,11 @@ export const pages={
  },
  // F16-6 attack drivers: run in the active page and resolve after it ran.
  async attemptNavigateActiveTab(w,url){
-  const ran=await (await activePage(w)).evalExpression(`(()=>{location.href=${JSON.stringify(forkInternalUrl(url))};return true;})()`);
+  const ran=await (await activePage(w)).evalExpression(`(()=>{location.href=${jsLiteral(forkInternalUrl(url))};return true;})()`);
   if(ran!==true)throw Error('navigation attempt did not execute');
  },
  async attemptWindowOpenActiveTab(w,url){
-  const ran=await (await activePage(w)).evalExpression(`(()=>{window.open(${JSON.stringify(forkInternalUrl(url))});return true;})()`);
+  const ran=await (await activePage(w)).evalExpression(`(()=>{window.open(${jsLiteral(forkInternalUrl(url))});return true;})()`);
   if(ran!==true)throw Error('window.open attempt did not execute');
  },
  // Fork steps read the active Start Page through this (null when it isn't).

@@ -1,3 +1,4 @@
+import {jsLiteral} from './js-literal.mjs';
 // Installed only into the exact native Island of an isolated fixture.
 export async function installDriver(host){
   const url=await host.eval('location.href');
@@ -20,5 +21,5 @@ export async function installDriver(host){
   await host.eval('('+bootstrap.toString()+')()');
 }
 export function nativeCall(host,method,args=[],id=null,timeout=15000){
-  return host.eval(`window.__blancNativeCall(${JSON.stringify(method)},${JSON.stringify(args)},${id?JSON.stringify(String(id)):'undefined'},${timeout})`);
+  return host.eval(`window.__blancNativeCall(${jsLiteral(method)},${jsLiteral(args)},${id?JSON.stringify(String(id)):'undefined'},${timeout})`);
 }

@@ -2,6 +2,7 @@
 // defined. Each follows its Gherkin text and spec row; no shipping source.
 import assert from 'node:assert/strict';
 import {UndefinedNativeAdapterError} from '../lib/adapters.mjs';
+import {jsLiteral} from '../lib/js-literal.mjs';
 // Cucumber Expressions treat `/` as alternation and `(...)` as optional text.
 const until=(world,read,ok,label,timeout=8000)=>world.waitFor(read,ok,label,timeout);
 // The active Start Page document, through the pages adapters' own lookup.
@@ -19,7 +20,7 @@ export default function register(step){
   // title must not add a fourth match.
   const url=this.fixtureUrl('find-page');const id=await this.call('openTab',url);
   this.findTabId=id;this.findWord=word;
-  const found=await this.call('executeTab',id,`(document.body.innerText.match(new RegExp(${JSON.stringify(word)},'gi'))||[]).length`);
+  const found=await this.call('executeTab',id,`(document.body.innerText.match(new RegExp(${jsLiteral(word)},'gi'))||[]).length`);
   assert.equal(found,count,`fixture page should contain ${word} ${count} times`);
  });
  step('I search for {string}',async function(query){
@@ -49,13 +50,13 @@ export default function register(step){
    return {width:innerWidth,height:innerHeight,pageTop:strip.bottom,bar:{left:frame.left+bar.left,top:frame.top+bar.top,right:frame.left+bar.right,bottom:frame.top+bar.bottom}};})()`);
   const coveredRows=Math.max(0,g.height-g.pageTop);
   const covered=coveredRows*g.width-Math.max(0,Math.min(g.bar.bottom,g.height)-Math.max(g.bar.top,g.pageTop))*(g.bar.right-g.bar.left);
-  assert.equal(covered,0,`Island view covers ${covered}px² of page outside the find capsule: ${JSON.stringify(g)}`);
+  assert.equal(covered,0,`Island view covers ${covered}px² of page outside the find capsule: ${jsLiteral(g)}`);
  });
  // ---- F10-1: a visit is recorded with the final page title ----
  step('I visit {string} with title {string}',async function(name,title){
   const url=this.fixtureUrl(name);const id=await this.call('openTab',url);
   // The page sets its own final title, as a site does after load.
-  await this.call('executeTab',id,`document.title=${JSON.stringify(title)}`);
+  await this.call('executeTab',id,`document.title=${jsLiteral(title)}`);
   await this.waitForState(s=>s.tabs.some(t=>t.id===id&&t.title===title));
   this.visitedUrl=url;
  });

@@ -17,10 +17,11 @@ import {createRequire} from 'node:module';
 const {loadShippingModule}=createRequire(import.meta.url)('./lib/shipping-core.cjs');
 const fixturePages=loadShippingModule('test/desktop/support/fixtures-server.js');
 const [configPath,outputDirectory,...flags]=process.argv.slice(2);
-if(!configPath||!outputDirectory)throw Error('Usage: runner.mjs local-config.json durable-output-directory [--only=case-id-regex]');
-// --only runs a development subset; its output is never a baseline.
+if(!configPath||!outputDirectory)throw Error('Usage: runner.mjs local-config.json durable-output-directory [--only=case-id-text]');
+// --only runs a development subset (case ids containing the text); its
+// output is never a baseline.
 const only=flags.find(f=>f.startsWith('--only='))?.slice(7);
-const onlyPattern=only?new RegExp(only):null;
+const onlyPattern=only?{test:id=>id.includes(only)}:null;
 const config=JSON.parse(fs.readFileSync(configPath));
 const out=path.resolve(outputDirectory);
 if(fs.existsSync(out))throw Error('Refusing to overwrite prior baseline');

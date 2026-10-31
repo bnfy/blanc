@@ -2,12 +2,13 @@
 // defined. Each follows its Gherkin text and spec row; no shipping source.
 import assert from 'node:assert/strict';
 import {blockableHostname} from '../adapters/tabs.mjs';
+import {jsLiteral} from '../lib/js-literal.mjs';
 // Well-known EasyPrivacy tracker scripts. The page itself requests them; the
 // resolver sends anything that escapes the blocker to NOTFOUND, so nothing
 // leaves loopback either way.
 export const TRACKERS=['https://www.google-analytics.com/analytics.js','https://www.googletagmanager.com/gtag/js?id=G-TEST',
  'https://connect.facebook.net/en_US/fbevents.js'];
-const requestTrackers=`Promise.all(${JSON.stringify(TRACKERS)}.map(src=>new Promise(done=>{const s=document.createElement('script');s.src=src;s.onload=s.onerror=()=>done();document.head.append(s);}))).then(()=>true)`;
+const requestTrackers=`Promise.all(${jsLiteral(TRACKERS)}.map(src=>new Promise(done=>{const s=document.createElement('script');s.src=src;s.onload=s.onerror=()=>done();document.head.append(s);}))).then(()=>true)`;
 async function nativeTab(world,id){return (await world.snapshot()).tabs.find(t=>String(t.id)===String(id));}
 async function loadTrackers(world,name){
  const id=await world.call('openTab',world.fixtureUrl(name));
@@ -36,7 +37,7 @@ export default function register(step){
  step('{string} is in the ad-block exceptions',async function(name){
   const host=blockableHostname((await nativeTab(this,this.named.get(name))).committedUrl);
   assert.ok(host,`${name} should have an exception-list hostname`);
-  const ex=await this.call('exceptions');assert.ok(ex.includes(host),`exceptions ${JSON.stringify(ex)} should contain ${host}`);
+  const ex=await this.call('exceptions');assert.ok(ex.includes(host),`exceptions ${jsLiteral(ex)} should contain ${host}`);
  });
  step('I reload {string}',async function(name){
   const id=this.named.get(name);await this.api('reload',[id]);

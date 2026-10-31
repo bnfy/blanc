@@ -4,6 +4,7 @@
 // host, so frame pages offset input by the iframe's position.
 import {UndefinedNativeAdapterError} from './adapters.mjs';
 import {pause} from './cdp.mjs';
+import {jsLiteral} from './js-literal.mjs';
 const KEYS={Enter:[13,'\r'],Escape:[27],Tab:[9],Backspace:[8],Delete:[46],ArrowDown:[40],ArrowUp:[38],ArrowLeft:[37],ArrowRight:[39],
  Home:[36],End:[35],PageDown:[34],PageUp:[33],Space:[32,' '],' ':[32,' '],Meta:[91],Control:[17],Shift:[16],Alt:[18],F6:[117]};
 const MODIFIER_BITS={Alt:1,Control:2,Meta:4,Shift:8};
@@ -55,10 +56,10 @@ export class Locator{
  getByRole(){throw new UndefinedNativeAdapterError('Locator shim lacks getByRole');}
  // Resolve inside the page: each selector narrows the previous matches.
  query(body,arg){return `(()=>{let els=[document];const norm=t=>t.replace(/\\s+/g,' ').trim();
-  for(const s of ${JSON.stringify(this.selectors)}){els=els.flatMap(e=>[...e.querySelectorAll(typeof s==='string'?s:s.css)]);
+  for(const s of ${jsLiteral(this.selectors)}){els=els.flatMap(e=>[...e.querySelectorAll(typeof s==='string'?s:s.css)]);
    if(typeof s!=='string')els=els.filter(e=>typeof s.text==='string'?norm(e.textContent).toLowerCase().includes(norm(s.text).toLowerCase()):new RegExp(s.text.source,s.text.flags).test(norm(e.textContent)));}
-  els=[...new Set(els)];const index=${JSON.stringify(this.index)};
-  if(index!==null)els=index<0?els.slice(index):els.slice(index,index+1);return (${body})(els,${JSON.stringify(arg)});})()`;}
+  els=[...new Set(els)];const index=${jsLiteral(this.index)};
+  if(index!==null)els=index<0?els.slice(index):els.slice(index,index+1);return (${body})(els,${jsLiteral(arg)});})()`;}
  async all(fn,arg){return this.page.evalExpression(this.query(`(els,arg)=>(${fn.toString()})(els,arg)`,arg));}
  async one(fn,arg,{timeout=5000}={}){const end=Date.now()+timeout;
   for(;;){const r=await this.page.evalExpression(this.query(`(els,arg)=>els.length===0?{missing:true}:els.length>1&&${this.index===null}?{strict:els.length}:{value:(${fn.toString()})(els[0],arg)}`,arg));
@@ -119,7 +120,7 @@ export class Page{
   this.keyboard=new Keyboard(cdp);this.mouse=new Mouse(cdp,()=>this.offset());
  }
  async offset(){if(!this.frame)return {x:0,y:0};
-  return this.cdp.eval(`(()=>{const r=document.getElementById(${JSON.stringify(this.frame)}).getBoundingClientRect();return {x:r.x,y:r.y}})()`);}
+  return this.cdp.eval(`(()=>{const r=document.getElementById(${jsLiteral(this.frame)}).getBoundingClientRect();return {x:r.x,y:r.y}})()`);}
  async contextId(){
   if(!this.frame)return undefined;
   // One context map per connection: frame pages share the host connection,
@@ -131,7 +132,7 @@ export class Page{
    await this.cdp.send('Runtime.enable');}
   this.contexts=this.cdp.frameContexts;
   const tree=(await this.cdp.send('Page.getFrameTree')).frameTree;
-  const src=await this.cdp.eval(`document.getElementById(${JSON.stringify(this.frame)}).src`);
+  const src=await this.cdp.eval(`document.getElementById(${jsLiteral(this.frame)}).src`);
   const child=(tree.childFrames||[]).find(f=>f.frame.url===src);
   if(!child)throw Error('Island frame not loaded: '+this.frame);
   for(let i=0;i<50&&!this.contexts.has(child.frame.id);i++)await pause(20);

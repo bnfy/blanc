@@ -5,6 +5,7 @@ import net from 'node:net';
 import crypto from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {connect, waitFor, pause} from './lib/cdp.mjs';
+import {jsLiteral} from './lib/js-literal.mjs';
 const [configPath, mode] = process.argv.slice(2);
 if (!configPath || !['regular', 'private'].includes(mode)) throw Error('Usage: smoke.mjs local-config.json regular|private');
 const config = JSON.parse(fs.readFileSync(configPath));
@@ -51,11 +52,11 @@ try {
     if (!a.browserContextId || a.browserContextId===contexts.defaultBrowserContextId || a.browserContextId!==b.browserContextId) throw Error('Private native context not established');
   }
   result.checks.push('native UI, document context and ready blocker');
-  await host.eval('window.BlancPrototypeHost.api.createTab(' + JSON.stringify(second) + ')');
+  await host.eval('window.BlancPrototypeHost.api.createTab(' + jsLiteral(second) + ')');
   const created = await waitFor(snapshot, s=>s.tabs.some(t=>t.url===second && !t.isLoading), 'created tab');
   const tab = created.tabs.find(t=>t.url===second);
   if (tab.private !== (mode==='private')) throw Error('New tab privacy mismatch');
-  await host.eval('window.BlancPrototypeHost.api.closeTab(' + JSON.stringify(tab.id) + ')');
+  await host.eval('window.BlancPrototypeHost.api.closeTab(' + jsLiteral(tab.id) + ')');
   await waitFor(snapshot, s=>!s.tabs.some(t=>t.id===tab.id) && s.tabs.some(t=>t.url===first && t.id===s.activeTabId), 'closed tab and restored selection');
   result.checks.push('create/close tab and native selection');
   await host.eval('window.BlancPrototypeHost.api.closeOverlay()');

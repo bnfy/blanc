@@ -1,11 +1,12 @@
 // Fork step definitions for island-area S1 steps that shipping v1.45.1 never
 // defined. Each follows its Gherkin text and spec row; no shipping source.
 import assert from 'node:assert/strict';
+import {jsLiteral} from '../lib/js-literal.mjs';
 // Distinct EasyPrivacy tracker scripts, requested by the page itself; the
 // resolver sends anything the blocker lets through to NOTFOUND.
 const TRACKERS=['https://www.google-analytics.com/analytics.js','https://www.googletagmanager.com/gtag/js?id=G-ISLAND',
  'https://connect.facebook.net/en_US/fbevents.js'];
-const request=urls=>`Promise.all(${JSON.stringify(urls)}.map(src=>new Promise(done=>{const s=document.createElement('script');s.src=src;s.onload=s.onerror=()=>done();document.head.append(s);}))).then(()=>true)`;
+const request=urls=>`Promise.all(${jsLiteral(urls)}.map(src=>new Promise(done=>{const s=document.createElement('script');s.src=src;s.onload=s.onerror=()=>done();document.head.append(s);}))).then(()=>true)`;
 const strip=w=>w.frame('strip');
 // Visible elements of the resting strip, measured in its own document.
 const shown=(w,selector)=>strip(w).evaluate(sel=>[...document.querySelectorAll(sel)].filter(e=>{const r=e.getBoundingClientRect();const s=getComputedStyle(e);

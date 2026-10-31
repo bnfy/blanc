@@ -1,3 +1,4 @@
+import {jsLiteral} from './js-literal.mjs';
 export const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 export async function connect(target) {
   const socket = new WebSocket(target.webSocketDebuggerUrl);
@@ -45,5 +46,5 @@ export async function waitFor(read, accepts, label, timeout = 20000) {
     try { last = await read(); if (accepts(last)) return last; } catch (e) { if (e.code === 'BLANC_ADAPTER_UNDEFINED') throw e; last = e.message; }
     await pause(100);
   }
-  throw Error(`Timeout waiting for ${label}: ${JSON.stringify(last)}`);
+  throw Error(`Timeout waiting for ${label}: ${jsLiteral(last)}`);
 }

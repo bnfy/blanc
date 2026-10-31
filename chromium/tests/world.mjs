@@ -6,6 +6,7 @@ export {nativeId} from './lib/adapters.mjs';
 import {createAppShim} from './lib/page-shim.mjs';
 import {shippingState} from './adapters/state.mjs';
 import {adapters} from './adapters/index.mjs';
+import {jsLiteral} from './lib/js-literal.mjs';
 // Shipping step files call globalThis.__blanc hooks by name; each name the
 // fork can serve has an adapter over a production path, CDP or the Island DOM.
 export const supportedHooks=new Set(Object.keys(adapters));
@@ -29,7 +30,7 @@ export function createWorld(fixture){
   // The Island facade is the fork's browserAPI: a method it does not
   // implement rejects with the product's own refusal, which is a failure.
   async api(method,args=[]){
-   return fixture.host.eval(`window.BlancPrototypeHost.api[${JSON.stringify(method)}](...${JSON.stringify(args)})`);
+   return fixture.host.eval(`window.BlancPrototypeHost.api[${jsLiteral(method)}](...${jsLiteral(args)})`);
   },
   hostEval(expression){return fixture.host.eval(expression);},
   frame(name){return app.windows().find(p=>p.frame===name);},

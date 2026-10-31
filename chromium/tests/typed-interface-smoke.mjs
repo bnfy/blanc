@@ -7,6 +7,7 @@ import os from 'node:os';
 import assert from 'node:assert/strict';
 import {NativeFixture} from './lib/fixture.mjs';
 import {connect,waitFor} from './lib/cdp.mjs';
+import {jsLiteral} from './lib/js-literal.mjs';
 const [configPath,outFile]=process.argv.slice(2);
 if(!configPath||!outFile)throw Error('Usage: typed-interface-smoke.mjs runtime-config.json result.json');
 const config=JSON.parse(fs.readFileSync(configPath));
@@ -19,18 +20,18 @@ try{
  const tab=(await fixture.snapshot()).tabs.find(t=>t.url===fixture.base+'/initial');
  const id=String(tab.id);
  const target=fixture.base+'/typed';
- const navigated=await fixture.host.eval(`window.BlancBrowserApi.invoke('navigate', [${JSON.stringify(id)}, ${JSON.stringify(target)}])`);
+ const navigated=await fixture.host.eval(`window.BlancBrowserApi.invoke('navigate', [${jsLiteral(id)}, ${jsLiteral(target)}])`);
  assert.equal(navigated,true,'a finished load resolves to true');
  await waitFor(fixture.snapshot,s=>s.tabs.some(t=>String(t.id)===id&&t.url===target),'tab at the typed URL');
  result.checks.navigate=navigated;
  // Nothing loads for an unknown tab or a non-web address: undefined.
- result.checks.unknownTab=await fixture.host.eval(`window.BlancBrowserApi.invoke('navigate', ['999999', ${JSON.stringify(target)}]).then(v => v === undefined)`);
- result.checks.nonWeb=await fixture.host.eval(`window.BlancBrowserApi.invoke('navigate', [${JSON.stringify(id)}, 'file:///etc/hosts']).then(v => v === undefined)`);
+ result.checks.unknownTab=await fixture.host.eval(`window.BlancBrowserApi.invoke('navigate', ['999999', ${jsLiteral(target)}]).then(v => v === undefined)`);
+ result.checks.nonWeb=await fixture.host.eval(`window.BlancBrowserApi.invoke('navigate', [${jsLiteral(id)}, 'file:///etc/hosts']).then(v => v === undefined)`);
  assert(result.checks.unknownTab&&result.checks.nonWeb,'nothing loads resolves to undefined');
- result.checks.back=await fixture.host.eval(`window.BlancBrowserApi.invoke('goBack', [${JSON.stringify(id)}]).then(v => v === undefined)`);
+ result.checks.back=await fixture.host.eval(`window.BlancBrowserApi.invoke('goBack', [${jsLiteral(id)}]).then(v => v === undefined)`);
  await waitFor(fixture.snapshot,s=>s.tabs.some(t=>String(t.id)===id&&t.url===fixture.base+'/initial'),'tab back at /initial');
  // The Island facade itself now routes through the typed interface.
- await fixture.host.eval(`window.BlancPrototypeHost.api.navigate(${JSON.stringify(id)}, ${JSON.stringify(target+'?facade')})`);
+ await fixture.host.eval(`window.BlancPrototypeHost.api.navigate(${jsLiteral(id)}, ${jsLiteral(target+'?facade')})`);
  await waitFor(fixture.snapshot,s=>s.tabs.some(t=>String(t.id)===id&&t.url===target+'?facade'),'facade navigation');
  result.checks.facade=true;
  // A Start Page tab shares the WebUI controller but must not bind.
