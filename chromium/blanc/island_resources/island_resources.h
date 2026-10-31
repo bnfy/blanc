@@ -12,6 +12,10 @@ namespace blanc::island_resources {
 // (served.txt); the only paths either serving mode may answer.
 bool IsServed(std::string_view path);
 
+// Whether `path` is a build output (such as the compiled Mojo bindings) rather
+// than a canonical file; a development asset folder never shadows these.
+bool IsGenerated(std::string_view path);
+
 // The embedded bytes of a served Island asset, or null.
 scoped_refptr<base::RefCountedMemory> Find(std::string_view path);
 

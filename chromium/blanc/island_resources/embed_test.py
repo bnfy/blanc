@@ -9,14 +9,18 @@ with tempfile.TemporaryDirectory() as tmp:
         open(os.path.join(tmp, 'root', name), 'wb').write(data)
     open(os.path.join(tmp, 'served.txt'), 'w').write('\n'.join(blobs) + '\n')
     out = os.path.join(tmp, 'out.cc')
+    gen = os.path.join(tmp, 'gen.js')
+    open(gen, 'wb').write(b'export {};\n')
     subprocess.run([sys.executable, os.path.join(here, 'embed.py'), '--served', os.path.join(tmp, 'served.txt'),
-                    '--root', os.path.join(tmp, 'root'), '--output', out], check=True)
+                    '--root', os.path.join(tmp, 'root'), '--output', out, '--generated', 'g/x.js=' + gen], check=True)
+    blobs['g/x.js'] = b'export {};\n'
     text = open(out).read()
     for index, (name, data) in enumerate(blobs.items()):
         body = re.search(r'constexpr char kData%d\[\] =\n(.*?);\nconstexpr size_t kSize%d = (\d+);' % (index, index), text, re.S)
         decoded = codecs.escape_decode(''.join(re.findall(r'"((?:[^"\\]|\\.)*)"', body.group(1))).encode('latin-1'))[0]
         assert decoded == data and int(body.group(2)) == len(data), name
     # The literals must also mean the same bytes to a C++ compiler.
+    assert '{"g/x.js", kData3, kSize3, true}' in text and '{"a.bin", kData0, kSize0, false}' in text
     harness = os.path.join(tmp, 'h.cc')
     data_only = text.split('struct Asset')[0].replace('#include "blanc/island_resources/island_resources.h"', '')
     open(harness, 'w').write('#include <cstdio>\n#include <cstddef>\n' + data_only.replace('namespace {', '') +

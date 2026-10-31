@@ -2,6 +2,8 @@ adapter.js
 blocking-settings-adapter.js
 blocking-settings.html
 blocking-settings.js
+browser-api-codec.js
+browser-api.js
 extensions.css
 extensions.js
 host.css

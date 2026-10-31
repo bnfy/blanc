@@ -91,6 +91,11 @@
     }
   }
 
+  function typed(method, args) {
+    if (!window.BlancBrowserApi) return Promise.reject(new Error('The typed Island interface is unavailable.'));
+    return window.BlancBrowserApi.invoke(method, args);
+  }
+
   function request(method, args = []) {
     return new Promise((resolve, reject) => {
       const id = String(++nextId);
@@ -728,10 +733,16 @@
       await refresh();
       if (options?.focusAddress) await show('');
     },
-    navigate: async (id, value) => { await request('navigate', [nativeId(id), destination(value)]); await refresh(); },
-    search: async (id, query) => {
-      await request('navigate', [nativeId(id), `https://www.google.com/search?q=${encodeURIComponent(query)}`]);
+    // The navigation group runs on the typed interface (browser-api.js).
+    navigate: async (id, value) => {
+      const result = await typed('navigate', [String(nativeId(id)), destination(value)]);
       await refresh();
+      return result;
+    },
+    search: async (id, query) => {
+      const result = await typed('search', [String(nativeId(id)), query]);
+      await refresh();
+      return result;
     },
     openPage: async (name, section) => {
       // A capable native build exposes the Blanc settings hub for both the
@@ -961,8 +972,11 @@
       const pageCommand = ['goBack', 'goForward', 'reload', 'stop'].includes(method);
       const routed = pageCommand && String(id) === snapshot?.activeTabId
         ? snapshot.focusedTabId ?? id : id;
-      await request(method, [nativeId(routed)]);
+      const result = pageCommand
+        ? await typed(method, [String(nativeId(routed))])
+        : await request(method, [nativeId(routed)]);
       await refresh();
+      return pageCommand ? result : undefined;
     };
   }
 

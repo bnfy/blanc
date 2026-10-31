@@ -8,8 +8,11 @@
 #include <string>
 #include "content/public/browser/web_ui_controller.h"
 #include "content/public/browser/webui_config.h"
+#include "mojo/public/cpp/bindings/pending_receiver.h"
+#include "ui/webui/mojo_web_ui_controller.h"
 
 namespace content { class WebContents; }
+namespace blanc::browser_api::mojom { class BrowserApiFactory; }
 class BrowserWindowInterface;
 class MultiContentsView;
 class ToolbarButtonProvider;
@@ -24,9 +27,21 @@ base::OnceClosure ShowBlockerRecovery();
 inline constexpr char kAssetsSwitch[] = "blanc-prototype-assets";
 inline constexpr char kHost[] = "blanc-prototype";
 
-class UI : public content::WebUIController {
+class BrowserApiHost;
+
+class UI : public ui::MojoWebUIController {
  public:
   explicit UI(content::WebUI* web_ui);
+  UI(const UI&) = delete;
+  UI& operator=(const UI&) = delete;
+  ~UI() override;
+  // Binds the typed Island interface (F0.6), for the Island host document only.
+  void BindInterface(
+      mojo::PendingReceiver<blanc::browser_api::mojom::BrowserApiFactory> receiver);
+
+ private:
+  std::unique_ptr<BrowserApiHost> browser_api_;
+  WEB_UI_CONTROLLER_TYPE_DECL();
 };
 
 class Config : public content::DefaultWebUIConfig<UI> {

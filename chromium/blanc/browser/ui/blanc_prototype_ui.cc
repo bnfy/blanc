@@ -1,5 +1,7 @@
 #include "blanc/buildflags.h"
 #include "blanc/island_resources/island_resources.h"
+#include "blanc/browser/ui/browser_api/navigation.h"
+#include "blanc/common/browser_api/browser_api_factory_base.h"
 #include "services/network/public/mojom/web_sandbox_flags.mojom.h"
 #include "blanc/browser/ui/blanc_tab_name_rules.h"
 #include "blanc/browser/ui/blanc_quiet_probe.h"
@@ -5517,7 +5519,45 @@ base::OnceClosure ShowSessionRecovery() {
 // The Island's assets are compiled in, so it never depends on a disk folder.
 bool IsEnabled() { return true; }
 
-UI::UI(content::WebUI* web_ui) : content::WebUIController(web_ui) {
+// The typed Island interface. Groups still on the untyped dispatcher refuse to
+// bind (BrowserApiFactoryBase); migrated groups bind their handler here.
+class BrowserApiHost : public blanc::browser_api::BrowserApiFactoryBase {
+ public:
+  BrowserApiHost(content::WebContents* contents,
+      mojo::PendingReceiver<blanc::browser_api::mojom::BrowserApiFactory> receiver)
+      : contents_(contents->GetWeakPtr()), receiver_(this, std::move(receiver)) {}
+  void BindNavigation(
+      mojo::PendingReceiver<blanc::browser_api::mojom::Navigation> receiver) override {
+    navigation_ = std::make_unique<blanc::browser_api::Navigation>(
+        base::BindRepeating(&BrowserApiHost::Browser, base::Unretained(this)), std::move(receiver));
+  }
+
+ private:
+  BrowserWindowInterface* Browser() {
+    auto* owner = contents_ ? GetOwner(contents_.get()) : nullptr;
+    return owner ? owner->browser.get() : nullptr;
+  }
+  base::WeakPtr<content::WebContents> contents_;
+  mojo::Receiver<blanc::browser_api::mojom::BrowserApiFactory> receiver_;
+  std::unique_ptr<blanc::browser_api::Navigation> navigation_;
+};
+
+UI::~UI() = default;
+
+void UI::BindInterface(
+    mojo::PendingReceiver<blanc::browser_api::mojom::BrowserApiFactory> receiver) {
+  // Start Page tabs share this controller; only the Island host may act on tabs.
+  auto* contents = web_ui()->GetWebContents();
+  if (!GetOwner(contents) ||
+      contents->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html")) {
+    return;
+  }
+  browser_api_ = std::make_unique<BrowserApiHost>(contents, std::move(receiver));
+}
+
+WEB_UI_CONTROLLER_TYPE_IMPL(UI)
+
+UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome_send=*/true) {
   // Preview builds may serve a disk folder for development; release and
   // official builds compile that path out and serve only embedded assets.
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
@@ -5558,7 +5598,8 @@ UI::UI(content::WebUI* web_ui) : content::WebUIController(web_ui) {
             const std::string asset_path = path == "pages/newtab.html?private=1"
                 ? "pages/newtab.html" : path;
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
-            if (!root.empty()) {
+            // Build outputs such as the compiled bindings exist only embedded.
+            if (!root.empty() && !blanc::island_resources::IsGenerated(asset_path)) {
               base::ThreadPool::PostTaskAndReplyWithResult(
                   FROM_HERE, {base::MayBlock()},
                   base::BindOnce(&ReadAsset, root, asset_path), std::move(callback));

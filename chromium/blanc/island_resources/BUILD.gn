@@ -8,11 +8,16 @@ action("generate") {
   foreach(path, served) {
     inputs += [ "//blanc/island/" + path ]
   }
+  # The compiled typed-interface bindings ship beside the canonical files.
+  bindings = "$root_gen_dir/blanc/common/browser_api/tsc/browser_api.mojom-webui.js"
+  inputs += [ bindings ]
+  deps = [ "//blanc/common/browser_api:build_ts" ]
   outputs = [ "$target_gen_dir/island_resources.cc" ]
   args = [
     "--served", rebase_path("served.txt", root_build_dir),
     "--root", rebase_path("//blanc/island", root_build_dir),
     "--output", rebase_path(outputs[0], root_build_dir),
+    "--generated", "browser_api.mojom-webui.js=" + rebase_path(bindings, root_build_dir),
   ]
 }
 source_set("island_resources") {
