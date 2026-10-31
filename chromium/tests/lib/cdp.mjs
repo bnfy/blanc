@@ -35,7 +35,7 @@ export async function waitFor(read, accepts, label, timeout = 20000) {
   const end = Date.now() + timeout;
   let last;
   while (Date.now() < end) {
-    try { last = await read(); if (accepts(last)) return last; } catch (e) { last = e.message; }
+    try { last = await read(); if (accepts(last)) return last; } catch (e) { if (e.code === 'BLANC_ADAPTER_UNDEFINED') throw e; last = e.message; }
     await pause(100);
   }
   throw Error(`Timeout waiting for ${label}: ${JSON.stringify(last)}`);

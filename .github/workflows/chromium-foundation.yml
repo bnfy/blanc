@@ -34,7 +34,7 @@ jobs:
       - name: Reconstruct the pinned source patch set
         run: python3 chromium/tools/check-patches.py
       - name: Check build guards and candidate-bound progress
-        run: node --test chromium/tools/build.test.mjs chromium/tools/progress.test.mjs chromium/tests/results.test.mjs
+        run: node --test chromium/tools/build.test.mjs chromium/tools/progress.test.mjs chromium/tests/results.test.mjs chromium/tests/adapters.test.mjs
       - name: Check scenario inventory freshness
         run: |
           node chromium/tools/scenario-inventory.cjs --check

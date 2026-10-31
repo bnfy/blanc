@@ -18,18 +18,36 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   self-hosted runner installed. F0.5 preview hook built; runtime gate and
   replay checks passed in regular/private fixtures and without opt-in.
 - F0.5 initial partial-adapter baseline recorded: 3 cases passed on the native
-  candidate; 622 adapters undefined; 2 mobile-only cases excluded. Full F0.5
-  adapter work remains incomplete. JSON/JUnit and source mappings are committed.
+  candidate; 622 adapters undefined; 2 mobile-only cases excluded. F0.5 remains incomplete: the owner-defined finish line is a stable runner
+  with adapters for every S1-tagged case; later adapters start with their slice. JSON/JUnit and source mappings are committed.
 
 ## Candidate
 Existing verified development app remains open; use the durable launch receipt.
 No replacement candidate promoted. Preserve 157 fallback and signed masters.
 
-## Next
-Continue F0.5 step adapters; carry forward valid unchanged checks.
-Use HANDOFF.md for a compact fresh-chat entry point.
-Archive/compression of historical raw evidence remains a separate operation;
-no historical evidence or draft is deleted.
+## Handoff — paused for Claude
+- Completed runner infrastructure: pinned shipping-core callback loader, explicit
+  missing-adapter errors, isolated per-case context and native world adapters.
+  Four adapter unit checks passed. This expansion has not had a native baseline
+  run; the existing 3/627 result below remains the last measured baseline.
+- Next: finish and validate S1-tagged adapter coverage, then F0.3 and F0.6.
+  Later-slice adapters are deferred until their slice starts. No new gate credit.
+- Process inspection at handoff found no active Chromium build or test run.
+  No browser was closed or relaunched. Preserve the development launch receipt.
+- Codex is paused; Claude owns the bounded repository task until handback through
+  this PR branch. No further build, test or source work is scheduled by this chat.
+
+## Intentionally uncommitted
+No canonical `chromium/` changes are intentionally left uncommitted by this
+handoff. Existing work outside the canonical tree is preserved, not staged:
+- `AGENTS.md` and `docs/chromium-migration-implementation-plan-2026-10-16.md`:
+  earlier local guidance/planning edits, outside this finished runner change.
+- `experiments/chromium-extension-spike/`: earlier modified source and extensive
+  untracked drafts, generated candidates and raw evidence. These are historical,
+  mixed-qualification work; do not bulk-add them or treat them as integrated.
+- Outside Git: durable profiles, credentials/signing access, caches, apps and raw
+  foundation fixtures remain local. Google baseline and Electron stay separate.
+Use `git status --short` for the exact preserved paths. Nothing was discarded.
 
 <!-- BEGIN GENERATED PROGRESS -->
 ### Bar A — executable shipping cases on the fork

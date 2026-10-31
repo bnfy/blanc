@@ -3,10 +3,19 @@ import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 const {CucumberExpression,ParameterTypeRegistry}=require('@cucumber/cucumber-expressions');
 const parameters=new ParameterTypeRegistry();
+const {loadShippingCore}=require('./lib/shipping-core.cjs');
 export const definitions=[];
 // These intent-level steps preserve the assertions in shipping v1.45.1
 // test/desktop/steps/runnable.steps.js; only the native transport changes.
-function step(expression,run,source){definitions.push({expression,matcher:new CucumberExpression(expression,parameters),run,shippingSource:source});}
+function register(expression,run,source,sourceSha256=null){
+ if(typeof expression!=='string')throw Error('Core registry needs an explicit expression adapter');
+ definitions.push({expression,matcher:new CucumberExpression(expression,parameters),run,shippingSource:source,shippingSourceSha256:sourceSha256});
+}
+export const shippingCore=loadShippingCore(register);
+function step(expression,run,source){
+ if(definitions.some(d=>d.expression===expression))return;
+ register(expression,run,source);
+}
 const origin='test/desktop/steps/runnable.steps.js';
 async function openNamed(name){const url=this.fixtureUrl(name);const id=await this.call('openTab',url);this.named.set(name,id);this.activeName=name;}
 step('a tab open on {string}',openNamed,origin);

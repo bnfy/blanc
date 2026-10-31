@@ -8,6 +8,7 @@ import {waitFor} from './lib/cdp.mjs';
 import {installDriver,nativeCall} from './lib/test-driver.mjs';
 import {matchStep} from './steps.mjs';
 import {aggregateCases} from './results.mjs';
+import {createWorld,missingAdapters} from './world.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const [configPath,outputDirectory]=process.argv.slice(2);
 if(!configPath||!outputDirectory)throw Error('Usage: runner.mjs local-config.json durable-output-directory');
@@ -32,39 +33,26 @@ for(const scenario of inventory.scenarios){
   if(scenario.desktopApplicability==='excluded'){entry.result='excluded';entry.exclusionReason=scenario.exclusionReason;}
   else{
    const matches=test.steps.map(s=>s.argument?null:matchStep(s.text));
-   const missing=test.steps.filter((s,i)=>!matches[i]).map(s=>({text:s.text,sourceLine:s.sourceLine,reason:s.argument?'argument adapter missing':'step definition missing'}));
+   const missing=test.steps.flatMap((s,i)=>{
+    if(!matches[i])return [{text:s.text,sourceLine:s.sourceLine,reason:s.argument?'argument adapter missing':'step definition missing'}];
+    const hooks=missingAdapters(matches[i].definition);
+    return hooks.length?[{text:s.text,sourceLine:s.sourceLine,reason:'native hook adapter missing',hooks}]:[];
+   });
    if(missing.length){entry.result='undefined';entry.missingSteps=missing;}
    else{
     const fixture=new NativeFixture();
-    const world={fixture,named:new Map(),fixtureUrl:n=>fixture.base+'/site/'+encodeURIComponent(n),waitFor,
-      async state(){return nativeCall(fixture.host,'snapshot');},
-      async waitForState(predicate){return waitFor(()=>this.state(),predicate,'shipping state assertion');},
-      async call(method,...args){
-       if(method==='state')return this.state();
-       if(method==='openTab'){
-        const reply=await nativeCall(fixture.host,'createTab',args);
-        await this.waitForState(s=>s.tabs.some(t=>t.id===reply.tabId&&t.url===args[0]&&!t.isLoading));return reply.tabId;
-       }
-       if(method==='duplicateActive')return nativeCall(fixture.host,'duplicateTab',[(await this.state()).activeTabId]);
-       if(method==='pinTab'){
-        const tab=(await this.state()).tabs.find(t=>t.id===args[0]);if(!tab)throw Error('Unknown tab');
-        return tab.pinned?true:nativeCall(fixture.host,'togglePinned',args);
-       }
-       if(method==='reopenClosed')return nativeCall(fixture.host,'reopenClosedTab');
-       if(method==='zoomIn'||method==='zoomReset')return nativeCall(fixture.host,'previewPageCommand',[method]);
-       if(method==='closeTab')return nativeCall(fixture.host,'closeTab',args);
-       throw Error('Undefined native adapter: '+method);
-      }};
+    const world=createWorld(fixture);
     try{
      await fixture.launch(config,path.join(out,'fixtures','case-'+String(++executed).padStart(4,'0')),{testHooks:true});
      await installDriver(fixture.host);const caps=await nativeCall(fixture.host,'capabilities');if(!caps.testHooks)throw Error('Native test hook unavailable');
+     world.bindShippingContext();
      entry.executed=true;entry.steps=[];
      for(let i=0;i<matches.length;i++){
       const match=matches[i];await match.definition.run.call(world,...match.args);
       entry.steps.push({text:test.steps[i].text,result:'pass',shippingDefinition:match.definition.shippingSource});
      }
      entry.result='pass';
-    }catch(error){entry.result='fail';entry.error=String(error.message||error);if(fs.existsSync(fixture.directory||''))fs.writeFileSync(path.join(fixture.directory,'error.txt'),String(error.stack||error));}
+    }catch(error){entry.result=error.code==='BLANC_ADAPTER_UNDEFINED'?'undefined':'fail';entry.error=String(error.message||error);if(fs.existsSync(fixture.directory||''))fs.writeFileSync(path.join(fixture.directory,'error.txt'),String(error.stack||error));}
     finally{entry.browserExit=await fixture.close();if(entry.result==='pass'&&entry.browserExit?.code!==0){entry.result='fail';entry.error='Native fixture did not exit cleanly';}}
    }
   }
