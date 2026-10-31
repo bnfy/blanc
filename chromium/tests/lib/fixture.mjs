@@ -68,7 +68,7 @@ export class NativeFixture {
   async start(url=null){
     this.exit=null;this.launchError=null;fs.rmSync(path.join(this.profile,'DevToolsActivePort'),{force:true});
     const fd=fs.openSync(path.join(this.directory,'browser.log'),'a');
-    const child=this.process=spawn(this.config.executable,[...this.flags,...(url?[url]:[])],{stdio:['ignore',fd,fd]});
+    const child=this.process=spawn(this.config.executable,[...this.flags,...(this.extraArgs||[]),...(url?[url]:[])],{stdio:['ignore',fd,fd]});
     fs.closeSync(fd);this.launches++;
     child.on('exit',(code,signal)=>{this.exits.push({code,signal});if(this.process===child)this.exit={code,signal};});
     child.on('error',e=>{this.launchError=e.message;});
@@ -89,7 +89,10 @@ export class NativeFixture {
     this.connections=[];
     for(let i=0;i<150&&!this.exit;i++)await pause(100);
     if(!this.exit)throw Error('Browser did not exit after '+(crash?'SIGKILL':'quit'));
-    if(!crash&&this.exit.code!==0)throw Error('Browser quit with '+JSON.stringify(this.exit));
+    if(!crash&&this.exit.code!==0){
+      const watchdog=fs.readFileSync(path.join(this.directory,'browser.log'),'utf8').split('\n').filter(l=>/watchdog/i.test(l)).at(-1);
+      throw Error('Browser quit with '+JSON.stringify(this.exit)+(watchdog?': '+watchdog.trim():''));
+    }
   }
   async connectTarget(target){const c=await connect(target);this.connections.push(c);return c;}
   async close(){
