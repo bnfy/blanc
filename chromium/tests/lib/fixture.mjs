@@ -100,6 +100,16 @@ export class NativeFixture {
       throw Error('Browser quit with '+JSON.stringify(this.exit)+(watchdog?': '+watchdog.trim():''));
     }
   }
+  // A browser its teardown watchdog terminates can orphan helpers. Every
+  // helper carries this fixture's unique profile path, so only those match.
+  reapHelpers(){
+    if(!this.profile)return [];
+    const flag='--user-data-dir='+this.profile;
+    const orphans=execFileSync('/bin/ps',['-axo','pid=,command='],{encoding:'utf8'}).split('\n')
+      .filter(l=>l.includes(flag+' ')||l.endsWith(flag)).map(l=>Number(l.trim().split(/\s+/)[0])).filter(pid=>pid&&pid!==process.pid);
+    for(const pid of orphans)try{process.kill(pid,'SIGKILL');}catch{}
+    this.reapedHelpers=orphans.length;return orphans;
+  }
   async connectTarget(target){const c=await connect(target);this.connections.push(c);return c;}
   async close(){
     if(this.browser)try{await this.browser.send('Browser.close');}catch{}
@@ -110,6 +120,7 @@ export class NativeFixture {
     for(const s of [this.server,this.proxy])if(s?.listening)await new Promise(resolve=>s.close(resolve));
     if(this.pages)await this.pages.close();
     for(const s of [this.secureServer,this.untrustedServer,this.localServer])if(s)await s.close();
+    this.reapHelpers();
     return this.exit;
   }
 }

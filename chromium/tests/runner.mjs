@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import crypto from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
@@ -27,6 +28,7 @@ if(tracker.currentCandidates.macos?.id!==config.candidate)throw Error('Candidate
 const forkCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
 const sourceMapSha256=crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'source-map.json'))).digest('hex');
 fs.mkdirSync(out,{recursive:true,mode:0o700});
+const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-fixtures-'));
 const baseline={schemaVersion:1,...(only?{developmentSubset:only}:{}),platform:'macos',candidate:config.candidate,candidateIdentity:{id:config.candidate,frameworkSha256:config.frameworkSha256,executableSha256:config.executableSha256},shippingTag:inventory.shippingTag,shippingCommit:inventory.shippingCommit,forkCommit,sourceMapSha256,
  qualification:'full shipping declaration inventory; defined steps execute on the native candidate; undefined steps are runner gaps, not inferred product failures',scenarios:[]};
 const xmlEscape=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
@@ -37,7 +39,10 @@ async function runCase(matches,steps){
  const fixture=new NativeFixture();
  const world=createWorld(fixture);
  try{
-  await fixture.launch(config,path.join(out,'fixtures','case-'+String(++executed).padStart(4,'0')),{testHooks:true,pages:await fixturePages.start()});
+  // Profiles live in local temp storage, never in the synced evidence folder;
+  // the browser log and any error are kept with the results.
+  const name='case-'+String(++executed).padStart(4,'0');entry.fixture=name;
+  await fixture.launch(config,path.join(scratch,name),{testHooks:true,pages:await fixturePages.start()});
   await installDriver(fixture.host);const caps=await nativeCall(fixture.host,'capabilities');if(!caps.testHooks)throw Error('Native test hook unavailable');
   await world.reset();
   world.bindShippingContext();
@@ -48,7 +53,10 @@ async function runCase(matches,steps){
   }
   entry.result='pass';
  }catch(error){entry.result=error.code==='BLANC_ADAPTER_UNDEFINED'?'undefined':'fail';entry.error=String(error.message||error);if(fs.existsSync(fixture.directory||''))fs.writeFileSync(path.join(fixture.directory,'error.txt'),String(error.stack||error));}
- finally{entry.browserExit=await fixture.close();if(entry.result==='pass'&&entry.browserExit?.code!==0){entry.result='fail';entry.error='Native fixture did not exit cleanly';}}
+ finally{entry.browserExit=await fixture.close();if(fixture.reapedHelpers)entry.reapedHelpers=fixture.reapedHelpers;
+  if(fixture.directory&&fs.existsSync(fixture.directory)){const keep=path.join(out,'fixtures',entry.fixture);fs.mkdirSync(keep,{recursive:true});
+   for(const f of ['browser.log','error.txt'])if(fs.existsSync(path.join(fixture.directory,f)))fs.copyFileSync(path.join(fixture.directory,f),path.join(keep,f));
+   fs.rmSync(fixture.directory,{recursive:true,force:true});}if(entry.result==='pass'&&entry.browserExit?.code!==0){entry.result='fail';entry.error='Native fixture did not exit cleanly';}}
  return entry;
 }
 for(const scenario of inventory.scenarios){
