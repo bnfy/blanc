@@ -18,6 +18,9 @@ function step(expression,run,source){
  register(expression,run,source);
 }
 const origin='test/desktop/steps/runnable.steps.js';
+import {tabPage} from './adapters/core.mjs';
+// The active tab's document: the launch page is closed by the per-case reset.
+const activeScale=async w=>(await tabPage(w,(await w.snapshot()).activeTabId)).evaluate(()=>devicePixelRatio);
 async function openNamed(name){const url=this.fixtureUrl(name);const id=await this.call('openTab',url);this.named.set(name,id);this.activeName=name;}
 step('a tab open on {string}',openNamed,origin);
 step('the active tab is on {string}',openNamed,origin);
@@ -30,10 +33,10 @@ step('a tab open on {string} is present',async function(name){await this.waitFor
 step('a second tab open on {string} is present',async function(name){await this.waitForState(s=>s.tabs.filter(t=>t.url===this.fixtureUrl(name)).length>=2);},origin);
 step('{string} is marked pinned',async function(name){const s=await this.state();assert(s.tabs.some(t=>t.id===this.named.get(name)&&t.pinned===true));},origin);
 // Shipping platform-services.feature zoom assertions use the actual local page.
-step("I enlarge the page through the platform's zoom control",async function(){this.zoomBefore=await this.fixture.page.eval('devicePixelRatio');assert.equal(await this.call('zoomIn'),true);},'spec/acceptance/platform-services.feature');
-step('the page content is enlarged',async function(){await this.waitFor(()=>this.fixture.page.eval('devicePixelRatio'),n=>n>this.zoomBefore,'page enlarged');},'spec/acceptance/platform-services.feature');
+step("I enlarge the page through the platform's zoom control",async function(){this.zoomBefore=await activeScale(this);assert.equal(await this.call('zoomIn'),true);},'spec/acceptance/platform-services.feature');
+step('the page content is enlarged',async function(){await this.waitFor(()=>activeScale(this),n=>n>this.zoomBefore,'page enlarged');},'spec/acceptance/platform-services.feature');
 step('I reset the zoom',async function(){assert.equal(await this.call('zoomReset'),true);},'spec/acceptance/platform-services.feature');
-step("the page returns to its default scale",async function(){await this.waitFor(()=>this.fixture.page.eval('devicePixelRatio'),n=>Math.abs(n-this.zoomBefore)<1e-6,'page reset');},'spec/acceptance/platform-services.feature');
+step("the page returns to its default scale",async function(){await this.waitFor(()=>activeScale(this),n=>Math.abs(n-this.zoomBefore)<1e-6,'page reset');},'spec/acceptance/platform-services.feature');
 // Steps shipping never defined, written for the fork from their Gherkin.
 for(const area of ['island','commands','pages','tabs']){
  const {default:registerArea}=await import(`./fork-steps/${area}.mjs`);

@@ -50,7 +50,11 @@ export function createWorld(fixture){
    await app.refresh();
   },
   bindShippingContext(){
-   shippingCore.resetContext({app,profileDir:fixture.profile,fixturesBase:fixture.base,tabByName:{},scenarioApp:app});
+   // Shipping steps assert the harness can relaunch; the fork runner cannot
+   // yet, so a relaunch is an undefined adapter rather than a failed check.
+   const noRelaunch=()=>{throw new UndefinedNativeAdapterError('The fork runner cannot relaunch a fixture yet');};
+   shippingCore.resetContext({app,profileDir:fixture.profile,fixturesBase:fixture.base,tabByName:{},scenarioApp:app,
+    relaunch:noRelaunch,crashAndRelaunch:noRelaunch,quitAndRelaunch:noRelaunch});
   },
  };
  return world;
