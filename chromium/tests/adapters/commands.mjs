@@ -36,6 +36,10 @@ const TAP=`(()=>{if(window.__blancCapture)return true;const c=window.__blancCapt
  const send=chrome.send.bind(chrome);
  chrome.send=(name,args)=>{if(name==='blancPrototype'&&c.route&&(args[1]==='navigate'||args[1]==='createTab'))
   c.log.push({route:c.route.method,input:c.route.args,native:args[1],url:args[2][args[1]==='navigate'?1:0]});return send(name,args);};
+ // Navigation runs on the typed interface; record what reaches it the same way.
+ const typed=window.BlancBrowserApi;
+ if(typed)window.BlancBrowserApi=Object.freeze({invoke:(name,args)=>{if(c.route&&name==='navigate')
+  c.log.push({route:c.route.method,input:c.route.args,native:'typed:'+name,url:args[1]});return typed.invoke(name,args);}});
  return true;})()`;
 async function capture(w,reset){await w.hostEval(TAP);if(reset)await w.hostEval('window.__blancCapture.log.length=0');}
 const lastCaptured=async w=>w.hostEval('window.__blancCapture?.log.at(-1)??null');
