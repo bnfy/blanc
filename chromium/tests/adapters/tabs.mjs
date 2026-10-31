@@ -124,7 +124,15 @@ export const tabs={
   await waitFor(()=>snap(r),s=>s.tabs.length>0&&s.tabs.every(t=>!t.isLoading),'new window tab');
   return r.id;
  },
- closeWindowRuntime(){throw new UndefinedNativeAdapterError('The fork Island has no close-window path (its closeTab keeps the last tab); native window close needs a closeWindow test op');},
+ // Chromium's own Close Window command, run by that window's Island. Its
+ // reply can be lost as the window goes, so the result is the window leaving.
+ async closeWindowRuntime(w,id){
+  const r=await runtime(w,id);
+  const reply=await nativeCall(r.cdp,'previewPageCommand',['closeWindow'],null,5000).catch(e=>/closed|timed out/i.test(e.message)?'gone':Promise.reject(e));
+  if(reply===false)return false;
+  await waitFor(async()=>!(await runtimes(w)).some(x=>x.id===r.id),Boolean,'window '+id+' to close');
+  return true;
+ },
  async openTabInWindow(w,id,url,options){
   if(options&&Object.keys(options).length){
    if(Object.keys(options).some(k=>k!=='private'))throw new UndefinedNativeAdapterError('Tab creation options need an adapter: '+Object.keys(options));

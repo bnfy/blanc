@@ -1,4 +1,5 @@
 #include "blanc/buildflags.h"
+#include "blanc/island_resources/island_resources.h"
 #include "services/network/public/mojom/web_sandbox_flags.mojom.h"
 #include "blanc/browser/ui/blanc_tab_name_rules.h"
 #include "blanc/browser/ui/blanc_quiet_probe.h"
@@ -1139,28 +1140,12 @@ IslandDelegate* GetIslandDelegate() {
   return delegate.get();
 }
 
+// served.txt is the single allowlist for both serving modes.
 bool IsAsset(const std::string& path) {
-  static constexpr const char* kAssets[] = {
-      "pages/newtab.html", "pages/newtab.js", "pages/close.svg", "pages/newtab-wallpaper.js", "pages/start-site-name.js", "pages/pages.css", "pages/type-to-open.js", "pages/bangs.js", "pages/bangs-catalog.js", "pages/i18n.js", "pages/sunrise-mark.png", "pages/icon-sunrise.png", "pages/icon-sunrise-dark.png", "pages/onboarding-island-dark.png", "pages/onboarding-island-light.png", "pages/start-page-sunrise.png", "pages/start-page-day.png", "pages/start-page-dusk.png", "pages/start-page-night.png", "pages/caveat-latin.woff2", "pages/select-caret.svg", "pages/select-caret-dark.svg", "pages/strings.js", "pages/newtab-adapter.js", "pages/start-page-paint.js", "pages/space-identity.js", "pages/newtab-prototype.css",
-      "host.html", "host.js", "host.css", "extensions.js", "extensions.css",
-      "tab-selection.js", "shield-model.js", "selection-tab-sections.js",
-      "blocking-settings.html", "blocking-settings.js", "blocking-settings-adapter.js",
-      "icons/search.svg", "icons/settings.svg", "icons/external-link.svg", "icons/chevron-left.svg", "adapter.js", "prototype.css",
-      "index.html", "overlay.html", "styles.css", "renderer.js", "overlay.js",
-      "strings.js", "i18n.js", "tab-drag.js", "tab-sections.js", "vertical-tabs.js",
-      "space-identity.js", "space-picker.js", "workspace-ui.js", "panel-left.svg",
-      "sunrise-hero-mark.png", "pages/type-to-open.js", "pages/bangs.js", "pages/bangs-catalog.js",
-      "installed-theme.js", "pages/installed-theme.js",
-      "pages/sunrise-favicon-mark.png", "pages/inter-latin.woff2",
-      "pages/instrument-sans-latin-wdth-normal.woff2",
-      "pages/jetbrains-mono-latin.woff2", "pages/roboto-flex-clock.woff2",
-      "pages/clock-ink.js", "pages/clock-art.js", "pages/start-pins.js",
-      "pages/newtab-shared-spaces.js", "pages/pages-neutral.css",
-      "pages/shipping-clock-style.js", "pages/billboard-clock-adapter.js"};
-  return std::ranges::any_of(kAssets,
-                            [&](const char* item) { return path == item; });
+  return blanc::island_resources::IsServed(path);
 }
 
+#if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
 scoped_refptr<base::RefCountedMemory> ReadAsset(base::FilePath root,
                                                std::string path) {
   std::string bytes;
@@ -1171,6 +1156,7 @@ scoped_refptr<base::RefCountedMemory> ReadAsset(base::FilePath root,
   }
   return base::MakeRefCounted<base::RefCountedString>(std::move(bytes));
 }
+#endif
 
 sessions::TabRestoreService* ClosedService(Profile* profile) {
   if (profile->IsOffTheRecord()) return nullptr;
@@ -4052,7 +4038,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     if (method == "previewPageCommand" && args.size() == 1 && args[0].is_string()) {
       const std::map<std::string, int> commands = {
-        {"restore", IDC_RESTORE_TAB}, {"slot1", IDC_SELECT_TAB_0}, {"slot2", IDC_SELECT_TAB_1}, {"slot3", IDC_SELECT_TAB_2}, {"slot9", IDC_SELECT_LAST_TAB},
+        {"restore", IDC_RESTORE_TAB}, {"slot1", IDC_SELECT_TAB_0}, {"slot2", IDC_SELECT_TAB_1}, {"slot3", IDC_SELECT_TAB_2},
+        {"slot4", IDC_SELECT_TAB_3}, {"slot5", IDC_SELECT_TAB_4}, {"slot6", IDC_SELECT_TAB_5},
+        {"slot7", IDC_SELECT_TAB_6}, {"slot8", IDC_SELECT_TAB_7}, {"slot9", IDC_SELECT_LAST_TAB},
+        {"closeWindow", IDC_CLOSE_WINDOW},
         {"nextTab", IDC_SELECT_NEXT_TAB}, {"previousTab", IDC_SELECT_PREVIOUS_TAB},
         {"hardReload", IDC_RELOAD_BYPASSING_CACHE}, {"close", IDC_CLOSE_TAB},
         {"zoomIn", IDC_ZOOM_PLUS}, {"zoomOut", IDC_ZOOM_MINUS},
@@ -5525,13 +5514,18 @@ base::OnceClosure ShowSessionRecovery() {
   }, std::move(dialog), widget->GetWeakPtr());
 }
 
-bool IsEnabled() {
-  return base::CommandLine::ForCurrentProcess()->HasSwitch(kAssetsSwitch);
-}
+// The Island's assets are compiled in, so it never depends on a disk folder.
+bool IsEnabled() { return true; }
 
 UI::UI(content::WebUI* web_ui) : content::WebUIController(web_ui) {
+  // Preview builds may serve a disk folder for development; release and
+  // official builds compile that path out and serve only embedded assets.
+#if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
   const base::FilePath root =
       base::CommandLine::ForCurrentProcess()->GetSwitchValuePath(kAssetsSwitch);
+#else
+  const base::FilePath root;
+#endif
   auto* source =
       content::WebUIDataSource::CreateAndAdd(Profile::FromWebUI(web_ui), kHost);
   source->DisableDenyXFrameOptions();
@@ -5563,9 +5557,16 @@ UI::UI(content::WebUI* web_ui) : content::WebUIController(web_ui) {
             // static asset; arbitrary queries never become filesystem paths.
             const std::string asset_path = path == "pages/newtab.html?private=1"
                 ? "pages/newtab.html" : path;
-            base::ThreadPool::PostTaskAndReplyWithResult(
-                FROM_HERE, {base::MayBlock()},
-                base::BindOnce(&ReadAsset, root, asset_path), std::move(callback));
+#if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
+            if (!root.empty()) {
+              base::ThreadPool::PostTaskAndReplyWithResult(
+                  FROM_HERE, {base::MayBlock()},
+                  base::BindOnce(&ReadAsset, root, asset_path), std::move(callback));
+              return;
+            }
+#endif
+            std::move(callback).Run(IsAsset(asset_path)
+                ? blanc::island_resources::Find(asset_path) : nullptr);
           },
           root, Profile::FromWebUI(web_ui)->GetWeakPtr()));
   web_ui->AddMessageHandler(std::make_unique<Handler>());

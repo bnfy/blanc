@@ -1,5 +1,5 @@
 {
- "note": "Island assets served by --blanc-prototype-assets. Fork files live in blanc/island/; shippingFiles are served byte-identical from the shipping commit. manifest is the SHA-256 of every served file and equals the development candidate (start-page-commands-fix-20261030). Assemble or check with tools/assets.mjs.",
+ "note": "Island assets served by the Island WebUI. All files live in blanc/island/; shippingFiles are byte-identical copies of shipping files at the pinned commit (provenance). manifest is the SHA-256 of every file and equals the development candidate (start-page-commands-fix-20261030). island_resources/served.txt is the single allowlist of served paths for disk and embedded serving. Check with tools/assets.mjs.",
  "shipping": "85883b1afa11375e1300130914d6f40c5388af21",
  "shippingFiles": {
   "i18n.js": "src/renderer/pages/i18n.js",

@@ -4,3 +4,5 @@ declare_args() {
 }
 assert(blanc_channel == "preview" || blanc_channel == "release")
 blanc_enable_test_hooks = blanc_channel == "preview" && !is_official_build
+# Serving Island assets from a disk folder is a preview development override.
+blanc_disk_assets = blanc_channel == "preview" && !is_official_build

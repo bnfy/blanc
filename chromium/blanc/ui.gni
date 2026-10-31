@@ -12,6 +12,7 @@ source_set(target_name) {
   public_deps = [ "//chrome/browser/ui/views/frame:browser_view_header" ]
   deps = [
     "//blanc:buildflags",
+    "//blanc/island_resources",
     "//chrome/browser/bookmarks",
     "//chrome/browser/history",
     "//chrome/browser/search_engines",

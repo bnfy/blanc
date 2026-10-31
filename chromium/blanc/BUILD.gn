@@ -4,7 +4,10 @@ import("//blanc/config.gni")
 
 buildflag_header("buildflags") {
   header = "buildflags.h"
-  flags = [ "ENABLE_BLANC_TEST_HOOKS=$blanc_enable_test_hooks" ]
+  flags = [
+    "ENABLE_BLANC_TEST_HOOKS=$blanc_enable_test_hooks",
+    "ENABLE_BLANC_DISK_ASSETS=$blanc_disk_assets",
+  ]
 }
 
 group("blanc") {

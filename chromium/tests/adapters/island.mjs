@@ -170,8 +170,9 @@ export const island={
  // Cmd+1..3 go through the native browser commands the fork binds to Island
  // slots (SelectIslandSlot); other slots have no reachable native command.
  async selectTabAtIndex(w,index){
-  const slot={0:'slot1',1:'slot2',2:'slot3'}[index];
-  if(!slot)throw new UndefinedNativeAdapterError('No native test path selects Island slot '+(index+1)+' (previewPageCommand maps slot1-3 and slot9 only)');
+  // Island slots 1-8 run Chromium's select-tab commands (slot9 is the last tab).
+  if(!Number.isInteger(index)||index<0||index>7)throw new UndefinedNativeAdapterError('No Island slot for index '+index);
+  const slot='slot'+(index+1);
   if(await w.native('previewPageCommand',[slot])!==true)throw Error('Island slot command was refused: '+slot);
  },
  // ---- settings (fork Settings page) ----
