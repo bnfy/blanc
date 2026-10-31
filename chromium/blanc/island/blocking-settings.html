@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings</title>
+  <link rel="stylesheet" href="pages/pages.css">
+  <script src="blocking-settings-adapter.js" defer></script>
+  <script src="blocking-settings.js" defer></script>
+</head>
+<body class="sheet">
+  <main class="page">
+    <h1 data-blocking-i18n="settings.page.heading">Settings</h1>
+    <section class="settings-group" aria-labelledby="privacy-title">
+      <h2 class="group-title" id="privacy-title" data-blocking-i18n="settings.privacy.title">Privacy &amp; Security</h2>
+      <div class="settings-card settings-card--mixed">
+        <h3 class="card-title" data-blocking-i18n="settings.privacy.blocking.title">Blocking</h3>
+        <p class="section-hint" id="provider-status" role="status">Loading blocking settings…</p>
+        <div class="setting">
+          <div class="label"><label for="blocking-enabled" data-blocking-i18n="settings.privacy.adblockEnabled.label">Block ads &amp; trackers</label>
+            <span class="hint" data-blocking-i18n="settings.privacy.adblockEnabled.hint">Stops ads and the hidden trackers that follow you from site to site. On by default.</span></div>
+          <label class="toggle"><input id="blocking-enabled" type="checkbox" disabled><span class="track"></span></label>
+        </div>
+        <div class="site-list-block">
+          <p class="section-hint" data-blocking-i18n="settings.privacy.sitesListedHereLoad">Sites listed here load with ad-blocking turned off, e.g. for sites that break under it.</p>
+          <div class="site-list">
+            <div id="exception-list" class="site-list-rows"></div>
+            <form id="exception-form" class="site-list-add">
+              <input id="exception-input" type="text" placeholder="example.com" aria-label="Site to allow ads" disabled>
+              <button id="exception-add" type="submit" data-blocking-i18n="settings.privacy.exceptionAdd" disabled>Add</button>
+            </form>
+          </div>
+        </div>
+        <p id="blocking-error" role="alert" hidden></p>
+      </div>
+    </section>
+    <section class="settings-group" aria-labelledby="native-settings-title">
+      <h2 class="group-title" id="native-settings-title">Chromium</h2>
+      <div class="settings-card settings-card--mixed">
+        <div class="setting"><a href="chrome://settings/" data-blocking-i18n="settings.page.heading">Settings</a></div>
+      </div>
+      <div class="settings-card settings-card--mixed">
+        <h3 class="card-title" data-blocking-i18n="settings.privacy.title">Privacy &amp; Security</h3>
+        <div class="setting"><a href="chrome://settings/content" data-blocking-i18n="settings.privacy.sitePermissions.title">Site permissions</a></div>
+        <div class="setting"><a href="chrome://settings/clearBrowserData" data-blocking-i18n="settings.privacy.clearBrowsingData">Clear cookies, cache &amp; site data</a></div>
+      </div>
+      <div class="settings-card settings-card--mixed">
+        <h3 class="card-title" data-blocking-i18n="settings.general.cards.browsing">Browsing</h3>
+        <div class="setting"><a href="chrome://settings/downloads" data-blocking-i18n="pagesNav.downloads">Downloads</a></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
