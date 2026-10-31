@@ -1,0 +1,43 @@
+name: Chromium foundation
+on:
+  pull_request:
+    paths:
+      - 'chromium/**'
+      - 'docs/chromium-replacement/**'
+      - '.github/workflows/chromium-foundation.yml'
+  push:
+    branches: [codex/f12-socket-speculation]
+    paths:
+      - 'chromium/**'
+      - '.github/workflows/chromium-foundation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: chromium-foundation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  source-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Reconstruct the pinned source patch set
+        run: python3 chromium/tools/check-patches.py
+      - name: Check build guards and candidate-bound progress
+        run: node --test chromium/tools/build.test.mjs chromium/tools/progress.test.mjs
+      - name: Check scenario inventory freshness
+        run: |
+          node chromium/tools/scenario-inventory.cjs
+          git diff --exit-code -- chromium/scenarios/inventory.json
+      - name: Check generated progress freshness
+        run: node chromium/tools/progress.mjs --check

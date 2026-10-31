@@ -1,0 +1,7 @@
+# Copyright 2026 Bananify Creative. MIT; see LICENSE.
+group("blanc") {
+  deps = [ ":ui", "services/blocker:browser" ]
+}
+group("ui") {
+  deps = [ "//chrome/browser/ui/views/frame:blanc_ui" ]
+}

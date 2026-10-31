@@ -1,0 +1,2 @@
+# Patch context contains required single-space lines; preserve exact patch bytes.
+patches/** -whitespace

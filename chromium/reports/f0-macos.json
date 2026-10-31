@@ -1,0 +1,53 @@
+{
+  "slice": "F0",
+  "platform": "macos",
+  "status": "in-progress",
+  "candidate": {
+    "id": "macos-fbdb706908013250",
+    "frameworkSha256": "fbdb70690801325086493f50cbb3c8c24d9222d7b2e6ad27aa35f7e60851dccf",
+    "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
+    "version": "158.0.8127.2",
+    "qualification": "compiled candidate; runtime acceptance pending"
+  },
+  "checks": {
+    "nativeBuild": "passed; 44 steps",
+    "normalZeroActionGuard": "passed",
+    "patchReconstruction": "passed; 79 tracked files",
+    "sourceMap": "matched deployed canonical source"
+  },
+  "smoke": {
+    "regular": {
+      "status": "passed",
+      "checks": [
+        "native UI, document context and ready blocker",
+        "create/close tab and native selection",
+        "native page zoom and reset"
+      ],
+      "browserExit": {
+        "code": 0,
+        "signal": null
+      },
+      "rawResultSha256": "5af1d0579c75d34fc97a84da3102a443296a5f1987e1d948128f39341d5688eb"
+    },
+    "private": {
+      "status": "passed",
+      "checks": [
+        "native UI, document context and ready blocker",
+        "create/close tab and native selection",
+        "native page zoom and reset"
+      ],
+      "browserExit": {
+        "code": 0,
+        "signal": null
+      },
+      "rawResultSha256": "00876783a5f7dbabe9542cca183d26ed93f83cbac0a00ca7e3b1e5a7a05cd8f3"
+    }
+  },
+  "notCompleted": [
+    "F0.3 identity spike",
+    "F0.4 full tracker workflow",
+    "F0.5 fork baseline",
+    "F0.6 release resource/typed bridge work",
+    "F0.8 self-hosted integration"
+  ]
+}
