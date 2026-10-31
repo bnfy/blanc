@@ -17,7 +17,7 @@ export function shippingState(snapshot){
   private:!!t.private,asleep:!!t.asleep,
  }));
  const layout=tabs.map(t=>({id:t.id,groupId:t.groupId,pinned:t.pinned,splitId:t.splitId}));
- const groups=(snapshot.groups||[]).map(g=>({id:String(g.id),name:g.name,collapsed:!!g.collapsed,color:g.color??null}));
+ const groups=(snapshot.groups||[]).map(g=>({id:String(g.id),name:g.name,collapsed:!!g.collapsed,color:g.color||null}));
  const named=new Set(groups.map(g=>g.id));
  const clusters=sectionsOf(layout).filter(s=>s.groupId?named.has(s.groupId):s.key.startsWith('run:'))
   .map(s=>({key:s.key,groupId:s.groupId??null,tabIds:[...s.tabIds]}));

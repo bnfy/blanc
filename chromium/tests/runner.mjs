@@ -32,6 +32,25 @@ const baseline={schemaVersion:1,...(only?{developmentSubset:only}:{}),platform:'
 const xmlEscape=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const cases=[];
 let executed=0;
+async function runCase(matches,steps){
+ const entry={executed:false};
+ const fixture=new NativeFixture();
+ const world=createWorld(fixture);
+ try{
+  await fixture.launch(config,path.join(out,'fixtures','case-'+String(++executed).padStart(4,'0')),{testHooks:true,pages:await fixturePages.start()});
+  await installDriver(fixture.host);const caps=await nativeCall(fixture.host,'capabilities');if(!caps.testHooks)throw Error('Native test hook unavailable');
+  await world.reset();
+  world.bindShippingContext();
+  entry.executed=true;entry.steps=[];
+  for(let i=0;i<matches.length;i++){
+   const match=matches[i];await world.app.refresh();await match.definition.run.call(world,...match.args);
+   entry.steps.push({text:steps[i].text,result:'pass',shippingDefinition:match.definition.shippingSource});
+  }
+  entry.result='pass';
+ }catch(error){entry.result=error.code==='BLANC_ADAPTER_UNDEFINED'?'undefined':'fail';entry.error=String(error.message||error);if(fs.existsSync(fixture.directory||''))fs.writeFileSync(path.join(fixture.directory,'error.txt'),String(error.stack||error));}
+ finally{entry.browserExit=await fixture.close();if(entry.result==='pass'&&entry.browserExit?.code!==0){entry.result='fail';entry.error='Native fixture did not exit cleanly';}}
+ return entry;
+}
 for(const scenario of inventory.scenarios){
  const record={id:scenario.id,file:scenario.file,line:scenario.line,name:scenario.name,featureRows:scenario.featureRows,shippingTag:inventory.shippingTag,shippingCommit:inventory.shippingCommit,forkCommit,candidate:config.candidate,platform:'macos',cases:[]};
  for(const test of scenario.cases){
@@ -40,28 +59,26 @@ for(const scenario of inventory.scenarios){
   else if(scenario.desktopApplicability==='excluded'){entry.result='excluded';entry.exclusionReason=scenario.exclusionReason;}
   else{
    const matches=test.steps.map(s=>s.argument?null:matchStep(s.text));
-   const missing=test.steps.flatMap((s,i)=>{
-    if(!matches[i])return [{text:s.text,sourceLine:s.sourceLine,reason:s.argument?'argument adapter missing':'step definition missing'}];
+   const gaps=test.steps.map((s,i)=>{
+    if(!matches[i])return {text:s.text,sourceLine:s.sourceLine,reason:s.argument?'argument adapter missing':'step definition missing'};
     const hooks=missingAdapters(matches[i].definition);
-    return hooks.length?[{text:s.text,sourceLine:s.sourceLine,reason:'native hook adapter missing',hooks}]:[];
+    return hooks.length?{text:s.text,sourceLine:s.sourceLine,reason:'native hook adapter missing',hooks}:null;
    });
-   if(missing.length){entry.result='undefined';entry.missingSteps=missing;}
+   const missing=gaps.filter(Boolean);
+   // Like Cucumber, run the defined prefix: a failure there is the case's
+   // result; reaching the first gap leaves it undefined.
+   const runnable=missing.length?gaps.findIndex(Boolean):matches.length;
+   if(missing.length)entry.missingSteps=missing;
+   if(runnable===0)entry.result='undefined';
    else{
-    const fixture=new NativeFixture();
-    const world=createWorld(fixture);
-    try{
-     await fixture.launch(config,path.join(out,'fixtures','case-'+String(++executed).padStart(4,'0')),{testHooks:true,pages:await fixturePages.start()});
-     await installDriver(fixture.host);const caps=await nativeCall(fixture.host,'capabilities');if(!caps.testHooks)throw Error('Native test hook unavailable');
-     await world.reset();
-     world.bindShippingContext();
-     entry.executed=true;entry.steps=[];
-     for(let i=0;i<matches.length;i++){
-      const match=matches[i];await world.app.refresh();await match.definition.run.call(world,...match.args);
-      entry.steps.push({text:test.steps[i].text,result:'pass',shippingDefinition:match.definition.shippingSource});
-     }
-     entry.result='pass';
-    }catch(error){entry.result=error.code==='BLANC_ADAPTER_UNDEFINED'?'undefined':'fail';entry.error=String(error.message||error);if(fs.existsSync(fixture.directory||''))fs.writeFileSync(path.join(fixture.directory,'error.txt'),String(error.stack||error));}
-    finally{entry.browserExit=await fixture.close();if(entry.result==='pass'&&entry.browserExit?.code!==0){entry.result='fail';entry.error='Native fixture did not exit cleanly';}}
+    // Shipping's runnable profile retries a failed scenario once.
+    for(let attempt=1;attempt<=2;attempt++){
+     const result=await runCase(matches.slice(0,runnable),test.steps);
+     if(attempt===2){entry.retried=true;entry.firstAttempt={result:entry.result,error:entry.error};delete entry.error;}
+     Object.assign(entry,result);
+     if(runnable<matches.length&&entry.result==='pass'){entry.result='undefined';entry.prefixPassed=true;}
+     if(entry.result!=='fail')break;
+    }
    }
   }
   record.cases.push(entry);cases.push(entry);

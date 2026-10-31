@@ -45,7 +45,11 @@ export const core={
  },
  async ungroupGroupByName(w,name){const g=await groupNamed(w,name);if(g)await w.api('ungroupGroup',[g.id]);return !!g;},
  toggleGroup:(w,id)=>w.api('toggleGroupCollapsed',[String(id)]),
- newTabBelow:(w,id)=>w.api('newTabBelow',[String(id)]),
+ async newTabBelow(w,id){
+  const before=new Set((await w.snapshot()).tabs.map(t=>String(t.id)));
+  await w.api('newTabBelow',[String(id)]);
+  return (await w.waitForState(s=>s.tabs.some(t=>!before.has(t.id)))).tabs.find(t=>!before.has(t.id)).id;
+ },
  closeTabsBeside:async(w,id,direction)=>{await w.api(direction==='above'?'closeAbove':'closeBelow',[String(id)]);return true;},
  adblockEnabled:async w=>(await w.snapshot()).adblockEnabled,
  closeOverlay:w=>w.api('closeOverlay'),

@@ -12,6 +12,7 @@ test('native DTO adapters preserve real values and refuse missing contract field
  assert.equal(state.tabs[0].groupId,null);
  assert.equal(JSON.stringify(state),JSON.stringify(actual));
  assert.throws(()=>state.clusters,UndefinedNativeAdapterError);
+ assert.deepEqual(state.tabs.map(t=>t.id),[7]);
 });
 test('polling cannot turn an undefined adapter into a product timeout',async()=>{
  let reads=0;
