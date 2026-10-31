@@ -9,12 +9,10 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
 
 ## Current work
 - F0.1/F0.2/F0.4/F0.8 as before; F0.3 pending.
-- **F0.5 S1 finish line reached** on the previous candidate (19b83f79): all 253
-  S1-tagged cases have a real result or a named undefined reason (70 pass, 152
-  fail, 31 undefined). [reports/s1-macos.json](reports/s1-macos.json) (+ JUnit)
-  lists per-row results and reasons; it stays the gap list until the new
-  candidate's baseline replaces it.
-- **F0.6 built, except the typed interface.** Candidate macos-d1984adbf76df5f0
+- **F0.5 S1 finish line reached.** All 253 S1-tagged cases have a real result
+  or a named undefined reason on the current candidate: 70 pass, 151 fail, 32
+  undefined. Per-row results and reasons: [reports/s1-macos.json](reports/s1-macos.json) (+ JUnit).
+- **F0.6 built and verified, except the typed interface.** Candidate macos-d1984adbf76df5f0
   (two incremental builds, 8 and 13 steps; toolchain, SDK and GN args
   unchanged): the 73 served Island files are compiled in from `blanc/island/`
   (`blanc/island_resources`); the asset-folder switch survives only in preview,
@@ -25,12 +23,13 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   Blanc's Start Page load, and 54 of 73 resources read back byte-identical (the
   rest are not retrievable from cache). The typed interface from
   `browser-api/contract.json` is not started.
-- **Baseline on the new candidate: not recorded yet.** The first full run
-  (3a94ff5c) ran with the display asleep and the screen locked from case 12
-  onward; the Island opens on an animation frame, so 36 cases that pass on a
-  rendering display failed. That run was discarded. The runner now stops when
-  the browser gets no animation frame (b75120d6) and holds the display awake
-  for the run. Re-run with the screen unlocked.
+- **Baseline on the new candidate recorded** (one full run at 8f7f7c16,
+  embedded assets): every case matches the previous candidate's result except
+  one, whose defined steps pass on both; on the previous build the browser then
+  failed to quit cleanly (teardown watchdog), so it counted as a failure, and
+  here it quit cleanly and stays undefined. No watchdog exits in this run. An
+  earlier run with the screen locked was discarded; the runner now stops when
+  the browser gets no animation frame and holds the display awake for the run.
 - Runner: shipping's 24 S1 step files and fixture server load unchanged from
   v1.45.1 (85883b1a); adapters (tests/adapters/) map shipping hooks to the Island
   facade, native dispatch, Island DOM and CDP; fork steps (tests/fork-steps/)
@@ -93,13 +92,8 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; external-handoff probe; overlay drag flag; microphone capture seed.
 
 ## Next
-1. Full S1 baseline on macos-d1984adbf76df5f0 with the screen unlocked
-   (`node tests/runner.mjs <Chromium Preview>/evidence/foundation/f06-runtime-config.json <new dir>`,
-   ~2 h, one browser at a time); record it as
-   `scenarios/baseline-macos-d1984adbf76df5f0.json`, point tracker.json at it,
-   regenerate reports/s1-macos.* and the bars.
-2. Owner: assess the native candidates above; decide D1.
-3. F0.6 typed interface; F0.3 under its dependencies; then S1 work in slice
+1. Owner: assess the native candidates above; decide D1.
+2. F0.6 typed interface; F0.3 under its dependencies; then S1 work in slice
    order. Re-run affected cases with --only and merge-baseline.mjs.
 
 ## Intentionally uncommitted
@@ -115,7 +109,7 @@ Use `git status --short` for exact paths. Nothing was discarded.
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | Not run for current candidate (previous baseline is stale) |
+| macOS | 70/627 executable cases pass; 195 failed; 360 undefined/not run; 2 excluded — [baseline](scenarios/baseline-macos-d1984adbf76df5f0.json)<br>S1 rows: 70/253 pass; 151 failed; 32 undefined; 0 excluded |
 | Windows | Not run (627 cases) |
 | Linux | Not run (627 cases) |
 

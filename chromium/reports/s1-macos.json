@@ -1,80 +1,14 @@
 {
  "slice": "S1",
  "platform": "macos",
- "candidate": "macos-19b83f79bd18b94c",
+ "candidate": "macos-d1984adbf76df5f0",
  "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
- "forkCommit": "15fff8562b551c80255973150684d8c9c7971021",
- "merges": [
-  {
-   "forkCommit": "bdb339d511c21f70a9937c5f450972983f343f7a",
-   "subset": "platform-services.feature:35:|tab-drag.feature:(124|176):|tabs-and-groups.feature:321:",
-   "scenarios": [
-    "spec/acceptance/platform-services.feature:35",
-    "spec/acceptance/tab-drag.feature:124",
-    "spec/acceptance/tab-drag.feature:176",
-    "spec/acceptance/tabs-and-groups.feature:321"
-   ]
-  },
-  {
-   "forkCommit": "73b15fb1450cbec8cb4dda2541a76c3755381154",
-   "subset": "platform-services.feature:35:",
-   "scenarios": [
-    "spec/acceptance/platform-services.feature:35"
-   ]
-  },
-  {
-   "forkCommit": "5d30f8eff310e19a3ffb7df05d8284c615bb8185",
-   "subset": "^(spec/acceptance/interface\\-language\\.feature:10:|spec/acceptance/interface\\-language\\.feature:18:|spec/acceptance/interface\\-language\\.feature:26:|spec/acceptance/interface\\-language\\.feature:34:|spec/acceptance/interface\\-language\\.feature:43:|spec/acceptance/local\\-profiles\\.feature:27:|spec/acceptance/private\\-tabs\\.feature:40:|spec/acceptance/shared\\-spaces\\.feature:111:|spec/acceptance/site\\-certificate\\-safety\\.feature:11:|spec/acceptance/site\\-certificate\\-safety\\.feature:19:|spec/acceptance/site\\-certificate\\-safety\\.feature:26:|spec/acceptance/site\\-certificate\\-safety\\.feature:35:|spec/acceptance/site\\-certificate\\-safety\\.feature:41:|spec/acceptance/site\\-certificate\\-safety\\.feature:50:|spec/acceptance/split\\-view\\.feature:88:|spec/acceptance/split\\-view\\.feature:159:|spec/acceptance/split\\-view\\.feature:187:|spec/acceptance/split\\-view\\.feature:227:|spec/acceptance/supporter\\-and\\-session\\.feature:26:|spec/acceptance/tab\\-drag\\.feature:124:|spec/acceptance/tab\\-drag\\.feature:176:|spec/acceptance/tabs\\-and\\-groups\\.feature:321:)",
-   "scenarios": [
-    "spec/acceptance/interface-language.feature:10",
-    "spec/acceptance/interface-language.feature:18",
-    "spec/acceptance/interface-language.feature:26",
-    "spec/acceptance/interface-language.feature:34",
-    "spec/acceptance/interface-language.feature:43",
-    "spec/acceptance/local-profiles.feature:27",
-    "spec/acceptance/private-tabs.feature:40",
-    "spec/acceptance/shared-spaces.feature:111",
-    "spec/acceptance/site-certificate-safety.feature:11",
-    "spec/acceptance/site-certificate-safety.feature:19",
-    "spec/acceptance/site-certificate-safety.feature:26",
-    "spec/acceptance/site-certificate-safety.feature:35",
-    "spec/acceptance/site-certificate-safety.feature:41",
-    "spec/acceptance/site-certificate-safety.feature:50",
-    "spec/acceptance/split-view.feature:88",
-    "spec/acceptance/split-view.feature:159",
-    "spec/acceptance/split-view.feature:187",
-    "spec/acceptance/split-view.feature:227",
-    "spec/acceptance/supporter-and-session.feature:26",
-    "spec/acceptance/tab-drag.feature:124",
-    "spec/acceptance/tab-drag.feature:176",
-    "spec/acceptance/tabs-and-groups.feature:321"
-   ]
-  },
-  {
-   "forkCommit": "8bcccf570d207b1d9c5e66609d090e906c330e4c",
-   "subset": "^(spec/acceptance/glance\\.feature:73:|spec/acceptance/private-tabs\\.feature:40:|spec/acceptance/site-certificate-safety\\.feature:(11|26|35):|spec/acceptance/split-view\\.feature:159:|spec/acceptance/supporter-and-session\\.feature:26:|spec/acceptance/tab-drag\\.feature:(124|176):|spec/acceptance/tabs-and-groups\\.feature:(163|181|187|193|321):)",
-   "scenarios": [
-    "spec/acceptance/glance.feature:73",
-    "spec/acceptance/private-tabs.feature:40",
-    "spec/acceptance/site-certificate-safety.feature:11",
-    "spec/acceptance/site-certificate-safety.feature:26",
-    "spec/acceptance/site-certificate-safety.feature:35",
-    "spec/acceptance/split-view.feature:159",
-    "spec/acceptance/supporter-and-session.feature:26",
-    "spec/acceptance/tab-drag.feature:124",
-    "spec/acceptance/tab-drag.feature:176",
-    "spec/acceptance/tabs-and-groups.feature:163",
-    "spec/acceptance/tabs-and-groups.feature:181",
-    "spec/acceptance/tabs-and-groups.feature:187",
-    "spec/acceptance/tabs-and-groups.feature:193",
-    "spec/acceptance/tabs-and-groups.feature:321"
-   ]
-  }
- ],
+ "forkCommit": "8f7f7c16137c0ebc677ffc2fcb45597f73dabab2",
+ "merges": [],
  "summary": {
   "pass": 70,
-  "fail": 152,
-  "undefined": 31,
+  "fail": 151,
+  "undefined": 32,
   "excluded": 0
  },
  "rows": {
@@ -162,7 +96,7 @@
     {
      "id": "spec/acceptance/blank-tab-affordance.feature:34:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Unsupported prototype destination.\",\"lineNumber\":5,\"columnNumber\":91,\"scriptId\":\"44\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancTestReply\",\"scriptId\":\"44\",\"url\":\"\",\"lineNum",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Unsupported prototype destination.\",\"lineNumber\":5,\"columnNumber\":91,\"scriptId\":\"43\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancTestReply\",\"scriptId\":\"43\",\"url\":\"\",\"lineNum",
      "retried": true
     }
    ]
@@ -193,13 +127,13 @@
     {
      "id": "spec/acceptance/glance.feature:345:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"7\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
      "retried": true
     },
     {
      "id": "spec/acceptance/glance.feature:386:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"7\",",
      "retried": true
     }
    ]
@@ -213,7 +147,7 @@
     {
      "id": "spec/acceptance/find-favorites-history.feature:7:plain",
      "result": "fail",
-     "reason": "Timeout waiting for find count to show 3: \"\"",
+     "reason": "Island view covers 171840px² of page outside the find capsule: {\"width\":1200,\"height\":228,\"pageTop\":68,\"bar\":{\"left\":360,\"top\":84,\"right\":840,\"bottom\":126}}",
      "retried": true
     }
    ]
@@ -331,7 +265,7 @@
     {
      "id": "spec/acceptance/tabs-and-groups.feature:373:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1521314048\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"2098370447\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
      "retried": true
     },
     {
@@ -446,7 +380,7 @@
     {
      "id": "spec/acceptance/tab-drag.feature:124:plain",
      "result": "fail",
-     "reason": "timed out waiting for Recently closed directly above play; last: [\"pinned\",\"loose\",\"5D88DD92D9703E84B3E259BDA6ABAED1\",\"66688E017BCB0D9FC2C8257F4EC25955\",\"recently-closed\",\"loose\"]",
+     "reason": "timed out waiting for Recently closed directly above play; last: [\"pinned\",\"loose\",\"B9D5D283E260D15FD3207A37AE0325C8\",\"98B72BD2CC012C94F5A6C0771F0BDFDD\",\"recently-closed\",\"loose\"]",
      "retried": true
     },
     {
@@ -465,13 +399,13 @@
     {
      "id": "spec/acceptance/tab-drag.feature:154:example-160",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"2032276178\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1538427196\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
      "retried": true
     },
     {
      "id": "spec/acceptance/tab-drag.feature:154:example-161",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"161813280\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"629573610\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
      "retried": true
     },
     {
@@ -485,7 +419,7 @@
     {
      "id": "spec/acceptance/tab-drag.feature:176:plain",
      "result": "fail",
-     "reason": "Browser quit with {\"code\":2,\"signal\":null}: Teardown watchdog expired; recording dump and terminating.",
+     "reason": "timed out waiting for Recently closed directly above loose-3; last: false",
      "retried": true
     },
     {
@@ -495,13 +429,13 @@
     {
      "id": "spec/acceptance/tabs-and-groups.feature:78:plain",
      "result": "fail",
-     "reason": "{\"directCount\":1,\"directIds\":[\"1959562121\"],\"directTitles\":[\"\"],\"overflowText\":\"+5\",\"overflowLabel\":\"5 more tabs — open the list\",\"iconsMode\":false,\"iconCount\":0,\"peekCount\":1}",
+     "reason": "{\"directCount\":1,\"directIds\":[\"426420148\"],\"directTitles\":[\"\"],\"overflowText\":\"+5\",\"overflowLabel\":\"5 more tabs — open the list\",\"iconsMode\":false,\"iconCount\":0,\"peekCount\":1}",
      "retried": true
     },
     {
      "id": "spec/acceptance/tabs-and-groups.feature:94:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"447770711\",\"url\":\"http://127.0.0.1:53227/site/work-1\",\"loadedUrl\":\"http://127.0.0.1:53227/site/work-1\",\"loading\":false,\"isLoading\":false,\"title\":\"work-1\",\"favicon\":null,\"groupId\"",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"712141970\",\"url\":\"http://127.0.0.1:51677/site/work-1\",\"loadedUrl\":\"http://127.0.0.1:51677/site/work-1\",\"loading\":false,\"isLoading\":false,\"title\":\"work-1\",\"favicon\":null,\"groupId\"",
      "retried": true
     },
     {
@@ -523,7 +457,7 @@
     {
      "id": "spec/acceptance/tabs-and-groups.feature:132:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement beginRenameGroup. Use Chromium’s native controls.\",\"lineNumber\":974,\"columnNumber\":23,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement beginRenameGroup. Use Chromium’s native controls.\",\"lineNumber\":974,\"columnNumber\":23,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId",
      "retried": true
     },
     {
@@ -1114,7 +1048,7 @@
     {
      "id": "spec/acceptance/island-and-commands.feature:543:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"6\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"6\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
      "retried": true
     },
     {
@@ -1160,7 +1094,7 @@
     {
      "id": "spec/acceptance/island-and-commands.feature:632:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement bangIcons. Use Chromium’s native controls.\",\"lineNumber\":974,\"columnNumber\":23,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"8\",\"",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement bangIcons. Use Chromium’s native controls.\",\"lineNumber\":974,\"columnNumber\":23,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"7\",\"",
      "retried": true
     },
     {
@@ -1172,7 +1106,7 @@
     {
      "id": "spec/acceptance/island-and-commands.feature:651:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement bangIcons. Use Chromium’s native controls.\",\"lineNumber\":974,\"columnNumber\":23,\"scriptId\":\"5\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"5\",\"",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Prototype does not implement bangIcons. Use Chromium’s native controls.\",\"lineNumber\":974,\"columnNumber\":23,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"8\",\"",
      "retried": true
     }
    ]
@@ -1186,7 +1120,7 @@
     {
      "id": "spec/acceptance/multi-window.feature:7:plain",
      "result": "undefined",
-     "reason": "The fork Island has no close-window path (its closeTab keeps the last tab); native window close needs a closeWindow test op"
+     "reason": "The fork persists windows through Chromium session restore (SNSS), with no session.json projection; needs a sessionWindows test op"
     },
     {
      "id": "spec/acceptance/multi-window.feature:16:plain",
@@ -1329,19 +1263,19 @@
     {
      "id": "spec/acceptance/newtab-layouts.feature:21:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"167884351\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1601812353\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
      "retried": true
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:35:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1160753362\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1473197413\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
      "retried": true
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:41:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"7\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
      "retried": true
     },
     {
@@ -1406,7 +1340,7 @@
     {
      "id": "spec/acceptance/newtab-layouts.feature:183:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"4\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"4\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
      "retried": true
     },
     {
@@ -1520,7 +1454,7 @@
     {
      "id": "spec/acceptance/private-tabs.feature:16:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"5\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"5\",",
+     "reason": "{\"exceptionId\":1,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
      "retried": true
     },
     {
@@ -1538,13 +1472,13 @@
     {
      "id": "spec/acceptance/private-tabs.feature:35:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"5\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"5\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
      "retried": true
     },
     {
      "id": "spec/acceptance/private-tabs.feature:40:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"6\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"6\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"7\",",
      "retried": true
     }
    ]
@@ -1564,7 +1498,7 @@
     {
      "id": "spec/acceptance/settings-and-theming.feature:37:plain",
      "result": "fail",
-     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"7\",",
+     "reason": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Use Chromium’s native private-window command in this prototype.\",\"lineNumber\":726,\"columnNumber\":35,\"scriptId\":\"8\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"createTab\",\"scriptId\":\"8\",",
      "retried": true
     }
    ]
@@ -1578,58 +1512,57 @@
     {
      "id": "spec/acceptance/site-certificate-safety.feature:4:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1245270807\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"130475149\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
      "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:11:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"2063600520\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"1047808074\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
      "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:19:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"421341063\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"2009871185\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
      "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:26:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"225719061\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"997524560\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
      "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:35:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"2017432404\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"864536236\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
      "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:41:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"317583618\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"858593037\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
      "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:50:plain",
      "result": "fail",
-     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"302669418\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAA",
+     "reason": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"2075167085\",\"url\":\"blanc://newtab/\",\"loadedUrl\":\"blanc://newtab/\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"favicon\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABA",
      "retried": true
     }
    ]
   },
   "F18": {
    "pass": 0,
-   "fail": 1,
-   "undefined": 0,
+   "fail": 0,
+   "undefined": 1,
    "excluded": 0,
    "cases": [
     {
      "id": "spec/acceptance/supporter-and-session.feature:26:plain",
-     "result": "fail",
-     "reason": "Native fixture did not exit cleanly",
-     "retried": true
+     "result": "undefined",
+     "reason": "step definition missing: one private tab open"
     }
    ]
   }
