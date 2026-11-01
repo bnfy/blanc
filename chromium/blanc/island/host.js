@@ -737,6 +737,7 @@
     },
     hideTooltip: () => { tooltip.hidden = true; },
     bangs: loadBangs,
+    bangIcons: hosts => typed('bangIcons', [Array.isArray(hosts) ? hosts.map(String) : []]),
     getAllTabs: async () => snapshot ?? request('snapshot'),
     createTab: async (url, options) => {
       if (options?.private) throw new Error('Use Chromium’s native private-window command in this prototype.');
@@ -1066,6 +1067,7 @@
   window.addEventListener('resize', reportGeometry);
   // Events from the typed interface (browser-api.js), only the ones it sends.
   window.addEventListener('blanc-browser-api', (event) => {
+    if (event.detail?.event === 'onBangIconsChanged') emit('onBangIconsChanged', event.detail.payload);
     if (event.detail?.event !== 'onBangsChanged') return;
     bangState = event.detail.payload;
     emit('onBangsChanged', bangState);

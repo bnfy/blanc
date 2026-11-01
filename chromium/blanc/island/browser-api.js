@@ -11,9 +11,10 @@ factory.bindNavigation(navigation.$.bindNewPipeAndPassReceiver());
 // overlay as shipping's bangs:changed push does.
 const searchClient = new SearchClientCallbackRouter();
 const codec = () => window.BlancBrowserApiCodec;
-searchClient.onBangsChanged.addListener(payload => window.dispatchEvent(new CustomEvent('blanc-browser-api', {
-  detail: {event: 'onBangsChanged', payload: codec().decode(codec().table.events.onBangsChanged.payload, payload)},
-})));
+for (const event of ['onBangsChanged', 'onBangIconsChanged'])
+  searchClient[event].addListener(payload => window.dispatchEvent(new CustomEvent('blanc-browser-api', {
+    detail: {event, payload: codec().decode(codec().table.events[event].payload, payload)},
+  })));
 const search = new SearchRemote();
 factory.bindSearch(search.$.bindNewPipeAndPassReceiver(), searchClient.$.bindNewPipeAndPassRemote());
 const remotes = {navigation, search};

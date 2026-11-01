@@ -14,6 +14,8 @@ source_set(target_name) {
               "//blanc/browser/ui/browser_api/external_handoff.cc", "//blanc/browser/ui/browser_api/external_handoff.h",
               "//blanc/browser/ui/browser_api/page_handoff.cc", "//blanc/browser/ui/browser_api/page_handoff.h",
               "//blanc/browser/ui/browser_api/bangs.cc", "//blanc/browser/ui/browser_api/bangs.h",
+              "//blanc/browser/ui/browser_api/bang_icons.cc", "//blanc/browser/ui/browser_api/bang_icons.h",
+              "//blanc/browser/ui/browser_api/bang_icon_policy.cc", "//blanc/browser/ui/browser_api/bang_icon_policy.h",
               "//blanc/browser/ui/browser_api/search.cc", "//blanc/browser/ui/browser_api/search.h",
               "//blanc/browser/ui/browser_api/suggestion_policy.cc", "//blanc/browser/ui/browser_api/suggestion_policy.h",
               "//blanc/browser/ui/browser_api/search_choice.h" ]
@@ -60,6 +62,9 @@ source_set(target_name) {
     "//chrome/browser/ui/views/frame:web_contents_close_handler",
     "//base",
     "//base:i18n",
+    "//ui/gfx/codec",
+    "//skia",
+    "//services/data_decoder/public/cpp",
     "//chrome/app:branded_strings",
     "//chrome/app:command_ids",
     "//chrome/app:generated_resources",

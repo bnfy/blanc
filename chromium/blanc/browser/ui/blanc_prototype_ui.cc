@@ -1,6 +1,7 @@
 #include "blanc/buildflags.h"
 #include "blanc/island_resources/island_resources.h"
 #include "blanc/browser/ui/browser_api/navigation.h"
+#include "blanc/browser/ui/browser_api/bang_icons.h"
 #include "blanc/browser/ui/browser_api/bangs.h"
 #include "blanc/browser/ui/browser_api/page_handoff.h"
 #include "blanc/browser/ui/browser_api/search.h"
@@ -3025,6 +3026,28 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(true));
       return;
     }
+    // Shipping's bang icon server stub and the requests and store it reads
+    // (bang_icons.h): {host: "png" | "not-found"}.
+    if (message[1].GetString() == "stubBangIconServer" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_dict()) {
+      std::map<std::string, std::string> answers;
+      for (const auto [host, answer] : message[2].GetList()[0].GetDict())
+        if (answer.is_string()) answers[host] = answer.GetString();
+      blanc::browser_api::bang_icons::Service::ForProfile(
+          GetOwner(web_ui()->GetWebContents())->browser->GetProfile())->SetTestServer(std::move(answers));
+      Reply(id, true, base::Value(true));
+      return;
+    }
+    if (message[1].GetString() == "bangIconRequests" || message[1].GetString() == "bangIconStore") {
+      auto* service = blanc::browser_api::bang_icons::Service::ForProfile(
+          GetOwner(web_ui()->GetWebContents())->browser->GetProfile());
+      base::ListValue list;
+      for (const auto& host : message[1].GetString() == "bangIconRequests" ? service->RequestedHosts()
+                                                                            : service->StoredHosts())
+        list.Append(host);
+      Reply(id, true, base::Value(std::move(list)));
+      return;
+    }
     // Shipping's setBangsEnabled hook: the same preference the Settings
     // switch writes, without opening Settings (which closes the command bar).
     if (message[1].GetString() == "setBangsEnabled" && message[2].GetList().size() == 1 &&
@@ -4419,6 +4442,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       // Clearing history also forgets which bangs were used, as shipping's
       // /clear does.
       blanc::browser_api::bangs::ClearRecent(*profile->GetPrefs());
+      blanc::browser_api::bang_icons::Service::ForProfile(profile)->Clear();
       service->ExpireHistoryBetween(
           /*restrict_urls=*/{}, /*restrict_app_id=*/std::nullopt, base::Time(),
           base::Time::Max(), /*user_initiated=*/true,

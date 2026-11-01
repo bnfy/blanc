@@ -25,7 +25,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   build (`out/BlancRelease`, 57,200 steps) succeeded and its app reports
   those values. Next: the install-over-Electron spike in `blanc-test`, which
   needs an internally signed build; signing waits for the owner.
-- **S1.1 address bar and search on macos-62abd01336eee83b** (targeted runs;
+- **S1.1 address bar and search on macos-56a7b95ab2df8558** (targeted runs;
   the recorded S1 baseline stays on macos-790ca4d6d538c894, since
   merge-baseline refuses mixed builds).
   - Typed text means what it does in shipping v1.45.1
@@ -87,14 +87,27 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     follows. Recents are recorded natively, never from a private window,
     and `/clear` forgets them. Settings → General has shipping's switch
     and "Your bangs", with shipping's copy in six languages
-    (`tools/bang-settings.test.mjs`). Bang scenarios: 13 of the 14 without
-    icons pass; "Recently used bangs skip private tabs" needs D1. The four
-    icon scenarios (F47-15–18) wait for bang icons (N21). Navigation and
-    settings features unchanged.
+    (`tools/bang-settings.test.mjs`).
+  - Bang icons (N21) are shipping's: `browser_api/bang_icons.cc` keeps the
+    server's icons in `Blanc Bang Icons.json` beside the profile (never
+    synced, 300 at most, least recently used dropped first) and asks
+    `https://blanc.day/bang-icons/<host>` under shipping's rules
+    (`bang_icon_policy.cc`, compared with shipping's code over 6,000+
+    operations, `tools/bang-icon-policy.test.mjs`): catalog sites only,
+    never a custom bang's site or from a private tab, four at a time, 8 s,
+    no cookies or redirects, a 404 remembered for the run, two retries.
+    Images are decoded in Chromium's sandboxed decoder and kept as 32 px
+    PNGs; `/clear` empties the store and withdraws shown icons. Not
+    ported: shipping first offers icons from the person's own visits
+    (Chromium's favicon service is the native option), and its
+    first-run check. Under the test hook the server is stubbed; a real
+    request to blanc.day has not been exercised.
+  - Bang scenarios: 16 of 18 pass; the two private-tab ones need D1.
+    Navigation and settings features unchanged.
   - Patch series: 0001–0007 touch all 82 pinned upstream files with 257
     hunks.
   - Gaps: the custom-address and bang hints say they sync, which the fork
-    can't yet; bang icons (N21) and the outbound-isolation check remain.
+    can't yet; the outbound-isolation check remains.
 - **F0.5 S1 finish line reached.** All 253 S1-tagged cases have a real result
   or a named undefined reason on the current candidate: 70 pass, 151 fail, 32
   undefined. Per-row results and reasons: [reports/s1-macos.json](reports/s1-macos.json) (+ JUnit).
@@ -208,14 +221,15 @@ through TabRestoreService if its group entries allow it.
 Built in d1984adb: slots 4–8 in previewPageCommand; closeWindow. Built for
 S1.1: `handoffs` (typed hand-offs recorded under --blanc-test),
 `externalLaunches` (every external launch and Blanc's decision),
-`setSuggestionFixture`/`suggestionRequests`, `setBangsEnabled`. Identified, not
+`setSuggestionFixture`/`suggestionRequests`, `setBangsEnabled`,
+`stubBangIconServer`/`bangIconRequests`/`bangIconStore`. Identified, not
 built: sessionWindows (session.json-shaped projection); certificate decision
 list/forget/cap; history visit + site icon seed; favorite favicon seed;
 first-run/checklist/Patron/launch-Sunrise state once stored; address context menu
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.1 rest: bang icons (N21), outbound isolation. Verify each change with targeted `--only` runs
+1. S1.1 rest: outbound isolation. Verify each change with targeted `--only` runs
    merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
    (~2 h) unless development can't continue without it; propose one with
    the reason first.
@@ -266,5 +280,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-62abd01336eee83b; Windows: none; Linux: none.
+Candidate identities: macOS: macos-56a7b95ab2df8558; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

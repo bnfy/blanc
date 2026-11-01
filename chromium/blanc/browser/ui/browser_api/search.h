@@ -11,6 +11,8 @@
 #include "base/functional/callback.h"
 #include "base/memory/weak_ptr.h"
 #include "base/time/time.h"
+#include "base/scoped_observation.h"
+#include "blanc/browser/ui/browser_api/bang_icons.h"
 #include "blanc/browser/ui/modules/custom_template.h"
 #include "blanc/buildflags.h"
 #include "blanc/common/browser_api/browser_api.mojom.h"
@@ -53,7 +55,7 @@ std::vector<TestSuggestionRequest>& TestSuggestionRequests();
 // normal tab, for eligible text without a bang; requests carry no cookies,
 // refuse redirects and are bounded in time and size. Bang state comes from
 // the profile's preferences (bangs.h) and is pushed on every change.
-class Search : public mojom::Search {
+class Search : public mojom::Search, public bang_icons::Service::Observer {
  public:
   using BrowserGetter = base::RepeatingCallback<BrowserWindowInterface*()>;
   Search(BrowserGetter browser, mojo::PendingReceiver<mojom::Search> receiver,
@@ -66,6 +68,9 @@ class Search : public mojom::Search {
   void SearchSuggestions(const std::string& query, SearchSuggestionsCallback callback) override;
   void Bangs(BangsCallback callback) override;
   void BangIcons(const std::vector<std::string>& hosts, BangIconsCallback callback) override;
+
+  // bang_icons::Service::Observer:
+  void OnBangIconChanged(const std::string& host, const std::optional<std::string>& icon) override;
 
  private:
   struct Engine {
@@ -92,6 +97,7 @@ class Search : public mojom::Search {
   std::map<std::string, Cached> cache_;
   std::vector<std::string> cache_order_;
   PrefChangeRegistrar bang_prefs_;
+  base::ScopedObservation<bang_icons::Service, bang_icons::Service::Observer> bang_icon_observation_{this};
   base::WeakPtrFactory<Search> weak_factory_{this};
 };
 

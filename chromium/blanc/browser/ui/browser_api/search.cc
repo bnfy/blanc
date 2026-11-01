@@ -35,6 +35,7 @@
 #include "services/network/public/cpp/resource_request.h"
 #include "services/network/public/cpp/simple_url_loader.h"
 #include "services/network/public/mojom/url_response_head.mojom.h"
+#include "url/gurl.h"
 
 namespace blanc::browser_api {
 namespace {
@@ -108,6 +109,8 @@ Search::Search(BrowserGetter browser, mojo::PendingReceiver<mojom::Search> recei
     for (const char* pref : {bangs::kEnabledPref, bangs::kCustomPref, bangs::kRecentPref})
       bang_prefs_.Add(pref, base::BindRepeating(&Search::OnBangPrefsChanged, base::Unretained(this)));
   }
+  if (auto* window = browser_.Run())
+    bang_icon_observation_.Observe(bang_icons::Service::ForProfile(window->GetProfile()));
 }
 
 PrefService* Search::Prefs() {
@@ -266,8 +269,53 @@ void Search::Bangs(BangsCallback callback) {
       : mojom::BangsState::New(false, std::vector<mojom::CustomBangPtr>(), std::vector<std::string>()));
 }
 
+// Shipping's bangIconsFor (src/main/main.js): the icons already on the device
+// for the bang rows on screen, then a request to Blanc's icon server for the
+// rest where the rules allow. Whether the tab is private is decided here, never
+// by the Island; a private tab reads what is held and writes nothing. Not
+// ported: shipping first answers with icons from the person's own visits.
 void Search::BangIcons(const std::vector<std::string>& hosts, BangIconsCallback callback) {
-  std::move(callback).Run({});
+  auto* browser = browser_.Run();
+  auto* prefs = Prefs();
+  auto* service = browser ? bang_icons::Service::ForProfile(browser->GetProfile()) : nullptr;
+  std::vector<mojom::BangIconPtr> answers;
+  if (!service || !prefs) {
+    std::move(callback).Run(std::move(answers));
+    return;
+  }
+  std::vector<std::string> wanted;
+  for (const auto& host : hosts) {
+    if (host.empty() || host.size() > 253) continue;
+    const std::string lower = base::ToLowerASCII(host);
+    if (!std::ranges::contains(wanted, lower)) wanted.push_back(lower);
+    if (wanted.size() >= bang_icons::kMaxHosts) break;
+  }
+  auto* tab = browser->GetTabStripModel()->GetActiveWebContents();
+  const bool private_active = !tab || tab->GetBrowserContext()->IsOffTheRecord();
+  // The person's own bangs never send their site to the server.
+  std::set<std::string> custom_hosts;
+  for (const auto& row : bangs::NormalizeCustomBangs(prefs->GetList(bangs::kCustomPref))) {
+    std::string address = *row.GetDict().FindString("template");
+    base::ReplaceFirstSubstringAfterOffset(&address, 0, "%s", "x");
+    const GURL url(address);
+    if (url.has_host())
+      custom_hosts.insert(std::string(url.host()) + (url.has_port() ? ":" + std::string(url.port()) : ""));
+  }
+  std::vector<std::string> from_store;
+  for (const auto& host : wanted) {
+    auto held = custom_hosts.contains(host) ? std::nullopt : service->Held(host);
+    if (!held) continue;
+    answers.push_back(mojom::BangIcon::New(host, *held));
+    from_store.push_back(host);
+    service->NoteShown(host);
+  }
+  if (!private_active) service->Touch(from_store);
+  service->Request(wanted, prefs->GetBoolean(bangs::kEnabledPref), private_active, custom_hosts);
+  std::move(callback).Run(std::move(answers));
+}
+
+void Search::OnBangIconChanged(const std::string& host, const std::optional<std::string>& icon) {
+  client_->OnBangIconsChanged(mojom::BangIcon::New(host, icon));
 }
 
 }  // namespace blanc::browser_api

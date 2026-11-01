@@ -175,11 +175,11 @@ export const commands={
  },
  // The overlay's own bang source.
  recentBangs:async w=>(await w.api('bangs')).recent,
- // Shipping stubs the fetcher behind browserAPI.bangIcons; the fork's facade
- // must offer that bridge for there to be anything to stub or count.
- async stubBangIconServer(w){await w.api('bangIcons',[[]]);throw new UndefinedNativeAdapterError('The fork icon server has no test stub');},
- async bangIconRequests(w){await w.api('bangIcons',[[]]);throw new UndefinedNativeAdapterError('The fork icon server keeps no request log');},
- async bangIconStore(w){await w.api('bangIcons',[[]]);throw new UndefinedNativeAdapterError('The fork icon store is not readable');},
+ // Shipping's icon server stub and readers, at the native service's fetch
+ // boundary (browser_api/bang_icons.h).
+ stubBangIconServer:(w,map)=>w.native('stubBangIconServer',[map&&typeof map==='object'?map:{}]),
+ bangIconRequests:w=>w.native('bangIconRequests'),
+ bangIconStore:w=>w.native('bangIconStore'),
  setSearchSuggestionFixture:(w,suggestions)=>w.native('setSuggestionFixture',[Array.isArray(suggestions)?suggestions.filter(s=>typeof s==='string'):[]]),
  searchSuggestionRequests:w=>w.native('suggestionRequests'),
  // Straight through the bridge, as shipping's overlay calls it.
