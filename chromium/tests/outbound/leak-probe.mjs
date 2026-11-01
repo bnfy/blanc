@@ -24,8 +24,9 @@ async function probe(fixture, label, query, expectEngine) {
   await pause(3500);
   const sent = fixture.egress.slice(before).map(r => r.target);
   result.probes.push({label, query, engine: answer, sent});
-  const reached = sent.includes('duckduckgo.com:443');
-  if (expectEngine ? sent.length !== 1 || !reached : sent.length !== 0)
+  // Exactly one CONNECT, and its whole target is DuckDuckGo's.
+  const reached = sent.length === 1 && sent[0] === 'duckduckgo.com:443';
+  if (expectEngine ? !reached : sent.length !== 0)
     throw Error(`${label}: expected ${expectEngine ? 'one request to duckduckgo.com' : 'nothing'}, saw ${JSON.stringify(sent)}`);
 }
 

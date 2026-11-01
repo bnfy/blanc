@@ -50,7 +50,8 @@ test('a blocked attempt outside every control fails the run', () => {
 test('a proxied host that is neither an engine nor a scenario site fails the run', () => {
   const report = judge({...base, pflog: parsePflog(LOG), egress: [...base.egress, {target: 'clients2.google.com:443'}]});
   assert.equal(report.verdict, 'fail');
-  assert.match(report.problems.join('\n'), /clients2\.google\.com/);
+  assert.ok(report.problems.includes('proxy saw 1 request(s) to clients2.google.com, not an engine or a scenario site'),
+    JSON.stringify(report.problems));
 });
 
 test('only an IPv6 control without a route is skipped, and it is reported', () => {
