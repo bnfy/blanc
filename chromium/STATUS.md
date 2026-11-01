@@ -88,6 +88,16 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   a failure once. Profiles live in local temp storage; only logs and errors are
   kept. Guards before each case: free memory, and a rendering display.
 
+## PR CI (Electron checks; owner allowed fixes 2026-11-01)
+- Windows jobs failed at checkout: 218 paths over Windows' length limit in
+  Codex's copied `handoff-20261030/review-material/`. Removed from the tree
+  with owner approval (still in history at aea73a85; the handoff README says
+  how to read it).
+- Still failing, all already fixed on `main` (this branch is 328 commits
+  behind): the dependency audit in `substrate` (tab-import companion
+  advisories), Ubuntu `modified-link-clicks`, macOS Intel shield test. Merge
+  main or port the fixes: waiting for the owner.
+
 ## Observed problems to investigate
 - Chromium's teardown watchdog ("Teardown watchdog expired") terminates some test
   browsers on quit (exit 2), intermittently. Cause not confirmed; such cases are
