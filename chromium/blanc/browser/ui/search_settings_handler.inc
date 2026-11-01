@@ -1,4 +1,4 @@
-// Settings → Search (S1.1). Only the bundled top-level settings document can
+// Settings → Search and Bangs (S1.1). Only the bundled top-level settings document can
 // read or change the search engine or suggestions. The engine lives in
 // Chromium's search engine store, so chrome://settings/search and Blanc agree;
 // this handler maps it to shipping's five engines and one Blanc-owned custom
@@ -54,6 +54,13 @@ void SearchSettingsHandler::Handle(const base::ListValue& message) {
     const auto& partial = args[0].GetDict();
     if (auto suggestions = partial.FindBool("searchSuggestions"))
       prefs->SetBoolean(prefs::kSearchSuggestEnabled, *suggestions);
+    // Bangs: the switch and the person's own bangs, normalized as shipping's
+    // settings do. Recents are never written from Settings.
+    if (auto bangs_on = partial.FindBool("bangsEnabled"))
+      prefs->SetBoolean(blanc::browser_api::bangs::kEnabledPref, *bangs_on);
+    if (const auto* custom_bangs = partial.FindList("customBangs"))
+      prefs->SetList(blanc::browser_api::bangs::kCustomPref,
+                     blanc::browser_api::bangs::NormalizeCustomBangs(*custom_bangs));
     blanc::custom_search::Patch patch;
     if (const auto* engine = partial.FindString("searchEngine")) patch.engine = *engine;
     if (const auto* address = partial.FindString("searchEngineTemplate")) patch.custom_template = *address;
@@ -96,5 +103,8 @@ void SearchSettingsHandler::Handle(const base::ListValue& message) {
   state.Set("searchEngineTemplate", current.custom_template);
   state.Set("searchSuggestions", prefs->GetBoolean(prefs::kSearchSuggestEnabled));
   state.Set("editable", editable);
+  state.Set("bangsEnabled", prefs->GetBoolean(blanc::browser_api::bangs::kEnabledPref));
+  state.Set("customBangs", blanc::browser_api::bangs::NormalizeCustomBangs(
+      prefs->GetList(blanc::browser_api::bangs::kCustomPref)));
   Reply(id, true, base::Value(std::move(state)));
 }

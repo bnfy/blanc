@@ -1,6 +1,7 @@
 #include "blanc/buildflags.h"
 #include "blanc/island_resources/island_resources.h"
 #include "blanc/browser/ui/browser_api/navigation.h"
+#include "blanc/browser/ui/browser_api/bangs.h"
 #include "blanc/browser/ui/browser_api/page_handoff.h"
 #include "blanc/browser/ui/browser_api/search.h"
 #include "blanc/browser/ui/browser_api/search_choice.h"
@@ -3024,6 +3025,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(true));
       return;
     }
+    // Shipping's setBangsEnabled hook: the same preference the Settings
+    // switch writes, without opening Settings (which closes the command bar).
+    if (message[1].GetString() == "setBangsEnabled" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_bool()) {
+      GetOwner(web_ui()->GetWebContents())->browser->GetProfile()->GetOriginalProfile()->GetPrefs()
+          ->SetBoolean(blanc::browser_api::bangs::kEnabledPref, message[2].GetList()[0].GetBool());
+      Reply(id, true, base::Value(true));
+      return;
+    }
     if (message[1].GetString() == "suggestionRequests") {
       base::ListValue list;
       for (const auto& r : blanc::browser_api::TestSuggestionRequests())
@@ -4385,6 +4395,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           &tracker_);
       return;
     }
+    // A bang was used in a normal window (host.js); shipping records it in
+    // main and never from a private tab.
+    if (method == "recordRecentBang" && args.size() == 1 && args[0].is_string()) {
+      if (profile->IsOffTheRecord()) { reply(false, base::Value("Private windows keep no recent bangs.")); return; }
+      blanc::browser_api::bangs::RecordRecent(*profile->GetPrefs(), args[0].GetString());
+      reply(true, base::Value(true));
+      return;
+    }
     if (method == "clearHistory" && args.empty()) {
       // Electron's /clear empties the history list and nothing else, so this
       // expires every local visit through HistoryService rather than running
@@ -4398,6 +4416,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         reply(false, base::Value("Clear history from a regular window."));
         return;
       }
+      // Clearing history also forgets which bangs were used, as shipping's
+      // /clear does.
+      blanc::browser_api::bangs::ClearRecent(*profile->GetPrefs());
       service->ExpireHistoryBetween(
           /*restrict_urls=*/{}, /*restrict_app_id=*/std::nullopt, base::Time(),
           base::Time::Max(), /*user_initiated=*/true,

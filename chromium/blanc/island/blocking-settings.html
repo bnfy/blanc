@@ -10,6 +10,9 @@
   <script src="blocking-settings.js" defer></script>
   <script src="search-settings-adapter.js" defer></script>
   <script src="search-settings.js" defer></script>
+  <script src="pages/bangs-catalog.js" defer></script>
+  <script src="pages/bangs.js" defer></script>
+  <script src="bang-settings.js" defer></script>
 </head>
 <body class="sheet">
   <main class="page">
@@ -39,6 +42,30 @@
             <span class="hint" data-search-i18n="settings.general.searchSuggestions.hint">Send eligible typed prefixes to your selected search provider, including Google if selected. Private tabs and recognized sensitive-looking input are excluded. Submitting a search sends the completed query even when suggestions are off.</span>
           </div>
           <label class="toggle"><input id="searchSuggestions" type="checkbox"><span class="track"></span></label>
+        </div>
+        <div class="setting">
+          <div class="label">
+            <span data-bang-i18n="settings.general.bangs.label">Bangs</span>
+            <span class="hint" data-bang-i18n="settings.general.bangs.hint">Type ! followed by a site's code to search that site directly, for example !w for Wikipedia or !yt for YouTube. Type ! alone to see them. It syncs with your other settings.</span>
+          </div>
+          <label class="toggle"><input id="bangsEnabled" type="checkbox"><span class="track"></span></label>
+        </div>
+        <div id="customBangsBlock" class="site-list-block">
+          <div class="label custom-bangs-head">
+            <span data-bang-i18n="settings.general.customBangs.label">Your bangs</span>
+            <span class="hint" data-bang-i18n="settings.general.customBangs.hint">Syncs with your other settings; the device that saves last wins.</span>
+            <span class="hint" id="customBangReplaces" hidden></span>
+            <span class="hint field-error" id="customBangError" role="alert" hidden></span>
+          </div>
+          <div class="site-list">
+            <div id="customBangList" class="site-list-rows"></div>
+            <div class="site-list-add custom-bang-add">
+              <input id="customBangCode" type="text" placeholder="code" maxlength="32" autocomplete="off" spellcheck="false" aria-label="Code" data-bang-i18n-label="settings.general.customBangs.code"/>
+              <input id="customBangName" type="text" placeholder="Name" maxlength="60" autocomplete="off" aria-label="Name" data-bang-i18n-label="settings.general.customBangs.name"/>
+              <input id="customBangTemplate" type="url" placeholder="https://search.example.com/?q=%s" autocomplete="off" spellcheck="false" aria-label="Address with %s" data-bang-i18n-label="settings.general.customBangs.address" data-bang-i18n-placeholder="ignore"/>
+              <button id="customBangAdd" type="button" data-bang-i18n="settings.general.customBangs.add">Add</button>
+            </div>
+          </div>
         </div>
       </div>
     </section>

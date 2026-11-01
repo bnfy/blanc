@@ -13,6 +13,7 @@
 #include "base/no_destructor.h"
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
+#include "blanc/browser/ui/browser_api/bangs.h"
 #include "blanc/browser/ui/browser_api/search_choice.h"
 #include "blanc/browser/ui/browser_api/suggestion_policy.h"
 #include "chrome/browser/browser_process.h"
@@ -99,7 +100,24 @@ std::vector<TestSuggestionRequest>& TestSuggestionRequests() {
 
 Search::Search(BrowserGetter browser, mojo::PendingReceiver<mojom::Search> receiver,
                mojo::PendingRemote<mojom::SearchClient> client)
-    : browser_(std::move(browser)), receiver_(this, std::move(receiver)), client_(std::move(client)) {}
+    : browser_(std::move(browser)), receiver_(this, std::move(receiver)), client_(std::move(client)) {
+  if (auto* prefs = Prefs()) {
+    // Settings and recents both change these; the open command bar follows,
+    // as shipping's bangs:changed push does.
+    bang_prefs_.Init(prefs);
+    for (const char* pref : {bangs::kEnabledPref, bangs::kCustomPref, bangs::kRecentPref})
+      bang_prefs_.Add(pref, base::BindRepeating(&Search::OnBangPrefsChanged, base::Unretained(this)));
+  }
+}
+
+PrefService* Search::Prefs() {
+  auto* browser = browser_.Run();
+  return browser ? browser->GetProfile()->GetOriginalProfile()->GetPrefs() : nullptr;
+}
+
+void Search::OnBangPrefsChanged() {
+  if (auto* prefs = Prefs()) client_->OnBangsChanged(bangs::State(*prefs));
+}
 
 Search::~Search() = default;
 
@@ -243,8 +261,9 @@ void Search::OnResponse(Engine engine, std::string key, std::optional<std::strin
 }
 
 void Search::Bangs(BangsCallback callback) {
-  std::move(callback).Run(mojom::BangsState::New(false, std::vector<mojom::CustomBangPtr>(),
-                                                 std::vector<std::string>()));
+  auto* prefs = Prefs();
+  std::move(callback).Run(prefs ? bangs::State(*prefs)
+      : mojom::BangsState::New(false, std::vector<mojom::CustomBangPtr>(), std::vector<std::string>()));
 }
 
 void Search::BangIcons(const std::vector<std::string>& hosts, BangIconsCallback callback) {

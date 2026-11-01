@@ -25,7 +25,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   build (`out/BlancRelease`, 57,200 steps) succeeded and its app reports
   those values. Next: the install-over-Electron spike in `blanc-test`, which
   needs an internally signed build; signing waits for the owner.
-- **S1.1 address bar and search on macos-17d373ff3906d80a** (targeted runs;
+- **S1.1 address bar and search on macos-62abd01336eee83b** (targeted runs;
   the recorded S1 baseline stays on macos-790ca4d6d538c894, since
   merge-baseline refuses mixed builds).
   - Typed text means what it does in shipping v1.45.1
@@ -77,10 +77,24 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     Page-started `chrome-extension:` navigation follows Chromium (V10,
     owner 2026-11-01): Web Store extensions open their declared
     web-accessible pages that way; shipping refused all but the PDF viewer.
-  - Patch series: 0001–0006 touch all 82 pinned upstream files with 256
+  - Bangs (F47) are shipping's: the Island host resolves a typed bang (Enter
+    or a search row) with shipping's unmodified `bangs.js` and catalog,
+    the way it already reads typed text with `address-input.js`, from bang
+    settings kept in profile preferences (patch 0007: `blanc.bangs.enabled`
+    on by default, `blanc.bangs.custom`, `blanc.bangs.recent`;
+    `browser_api/bangs.cc` applies shipping's limits). The search group
+    serves the state and pushes every change, so the open command bar
+    follows. Recents are recorded natively, never from a private window,
+    and `/clear` forgets them. Settings → General has shipping's switch
+    and "Your bangs", with shipping's copy in six languages
+    (`tools/bang-settings.test.mjs`). Bang scenarios: 13 of the 14 without
+    icons pass; "Recently used bangs skip private tabs" needs D1. The four
+    icon scenarios (F47-15–18) wait for bang icons (N21). Navigation and
+    settings features unchanged.
+  - Patch series: 0001–0007 touch all 82 pinned upstream files with 257
     hunks.
-  - Gaps: the custom-address hint says it syncs, which the fork can't yet;
-    Bangs and the outbound-isolation check remain.
+  - Gaps: the custom-address and bang hints say they sync, which the fork
+    can't yet; bang icons (N21) and the outbound-isolation check remain.
 - **F0.5 S1 finish line reached.** All 253 S1-tagged cases have a real result
   or a named undefined reason on the current candidate: 70 pass, 151 fail, 32
   undefined. Per-row results and reasons: [reports/s1-macos.json](reports/s1-macos.json) (+ JUnit).
@@ -194,14 +208,14 @@ through TabRestoreService if its group entries allow it.
 Built in d1984adb: slots 4–8 in previewPageCommand; closeWindow. Built for
 S1.1: `handoffs` (typed hand-offs recorded under --blanc-test),
 `externalLaunches` (every external launch and Blanc's decision),
-`setSuggestionFixture`/`suggestionRequests`. Identified, not
+`setSuggestionFixture`/`suggestionRequests`, `setBangsEnabled`. Identified, not
 built: sessionWindows (session.json-shaped projection); certificate decision
 list/forget/cap; history visit + site icon seed; favorite favicon seed;
 first-run/checklist/Patron/launch-Sunrise state once stored; address context menu
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.1 rest: Bangs, outbound isolation. Verify each change with targeted `--only` runs
+1. S1.1 rest: bang icons (N21), outbound isolation. Verify each change with targeted `--only` runs
    merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
    (~2 h) unless development can't continue without it; propose one with
    the reason first.
@@ -252,5 +266,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-17d373ff3906d80a; Windows: none; Linux: none.
+Candidate identities: macOS: macos-62abd01336eee83b; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

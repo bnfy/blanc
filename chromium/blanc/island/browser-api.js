@@ -7,9 +7,13 @@ import {BrowserApiFactory, NavigationRemote, SearchClientCallbackRouter, SearchR
 const factory = BrowserApiFactory.getRemote();
 const navigation = new NavigationRemote();
 factory.bindNavigation(navigation.$.bindNewPipeAndPassReceiver());
-// The search group's client events (bangs) are not ported yet; the router
-// keeps that pipe open.
+// The search group's client events reach host.js, which hands them to the
+// overlay as shipping's bangs:changed push does.
 const searchClient = new SearchClientCallbackRouter();
+const codec = () => window.BlancBrowserApiCodec;
+searchClient.onBangsChanged.addListener(payload => window.dispatchEvent(new CustomEvent('blanc-browser-api', {
+  detail: {event: 'onBangsChanged', payload: codec().decode(codec().table.events.onBangsChanged.payload, payload)},
+})));
 const search = new SearchRemote();
 factory.bindSearch(search.$.bindNewPipeAndPassReceiver(), searchClient.$.bindNewPipeAndPassRemote());
 const remotes = {navigation, search};

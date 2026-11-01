@@ -1,5 +1,6 @@
 adapter.js
 address-input.js
+bang-settings.js
 blocking-settings-adapter.js
 blocking-settings.html
 blocking-settings.js

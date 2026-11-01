@@ -14,12 +14,14 @@
 #include "blanc/browser/ui/modules/custom_template.h"
 #include "blanc/buildflags.h"
 #include "blanc/common/browser_api/browser_api.mojom.h"
+#include "components/prefs/pref_change_registrar.h"
 #include "mojo/public/cpp/bindings/pending_receiver.h"
 #include "mojo/public/cpp/bindings/pending_remote.h"
 #include "mojo/public/cpp/bindings/receiver.h"
 #include "mojo/public/cpp/bindings/remote.h"
 
 class BrowserWindowInterface;
+class PrefService;
 class TemplateURLService;
 namespace network { class SimpleURLLoader; }
 
@@ -49,7 +51,8 @@ std::vector<TestSuggestionRequest>& TestSuggestionRequests();
 // chrome:search-suggestions, src/main/search-suggestions.js). Typed text
 // leaves the device only for a stock engine, with suggestions on, from a
 // normal tab, for eligible text without a bang; requests carry no cookies,
-// refuse redirects and are bounded in time and size. Bangs are not ported yet.
+// refuse redirects and are bounded in time and size. Bang state comes from
+// the profile's preferences (bangs.h) and is pushed on every change.
 class Search : public mojom::Search {
  public:
   using BrowserGetter = base::RepeatingCallback<BrowserWindowInterface*()>;
@@ -77,6 +80,8 @@ class Search : public mojom::Search {
   bool SuggestionsOn();
   void Finish(const Engine& engine, std::vector<std::string> suggestions);
   void OnResponse(Engine engine, std::string key, std::optional<std::string> body);
+  PrefService* Prefs();
+  void OnBangPrefsChanged();
 
   BrowserGetter browser_;
   mojo::Receiver<mojom::Search> receiver_;
@@ -86,6 +91,7 @@ class Search : public mojom::Search {
   SearchSuggestionsCallback pending_;
   std::map<std::string, Cached> cache_;
   std::vector<std::string> cache_order_;
+  PrefChangeRegistrar bang_prefs_;
   base::WeakPtrFactory<Search> weak_factory_{this};
 };
 

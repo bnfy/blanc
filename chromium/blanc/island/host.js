@@ -668,6 +668,26 @@
     return Number.isInteger(n) ? n : -1;
   }
 
+  // The stored bang settings as last read or pushed (Settings, a bang used,
+  // history cleared), so a typed bang resolves in the same turn as Enter.
+  let bangState = null;
+  const loadBangs = () => typed('bangs', []).then(state => (bangState = state));
+  // A typed bang goes to its site, resolved here once more from the stored
+  // settings so the hint row and Enter cannot disagree (shipping's
+  // bang-resolution.js resolveTyped). A private tab leaves no recent. Null
+  // when bangs are off or the text has no known bang.
+  function openTypedBang(id, text) {
+    const bang = bangState?.enabled && window.Bangs && window.BangsCatalog
+      ? window.Bangs.resolveBang(String(text ?? ''), window.BangsCatalog, bangState.custom) : null;
+    if (!bang) return null;
+    const tab = snapshot?.tabs.find(t => String(t.id) === String(id));
+    if (tab && !tab.private) request('recordRecentBang', [bang.code]).catch(() => {});
+    return typed('navigate', [String(nativeId(id)), bang.url]).then(async (result) => {
+      await refresh();
+      return result;
+    });
+  }
+
   const implemented = {
     platform: 'darwin',
     startPinMenuState: id => request('startPinMenuState', [nativeId(id)]),
@@ -716,7 +736,7 @@
       tooltip.style.top = `${Math.max(0, Math.min(44, anchor.y + anchor.height + 4))}px`;
     },
     hideTooltip: () => { tooltip.hidden = true; },
-    bangs: async () => ({ enabled: false, custom: [], recent: [] }),
+    bangs: loadBangs,
     getAllTabs: async () => snapshot ?? request('snapshot'),
     createTab: async (url, options) => {
       if (options?.private) throw new Error('Use Chromium’s native private-window command in this prototype.');
@@ -730,6 +750,8 @@
     // Typed text is an address, a search or an OS hand-off, decided as in
     // shipping (address-input.js); the profile's engine runs searches.
     navigate: async (id, value) => {
+      const bang = openTypedBang(id, value);
+      if (bang) return bang;
       const meaning = window.BlancAddressInput.interpret(value);
       // A hand-off goes to the browser as typed; it classifies the text again
       // and opens the app itself (V9). Nothing loads in the tab.
@@ -741,6 +763,9 @@
       return meaning.kind === 'search' ? undefined : result;
     },
     search: async (id, query) => {
+      // A search row's text can carry a bang too, as in shipping.
+      const bang = openTypedBang(id, query);
+      if (bang) return bang.then(() => undefined);
       const result = await typed('search', [String(nativeId(id)), query]);
       await refresh();
       return result;
@@ -1039,6 +1064,13 @@
     notice(event.reason?.message ?? String(event.reason));
   });
   window.addEventListener('resize', reportGeometry);
+  // Events from the typed interface (browser-api.js), only the ones it sends.
+  window.addEventListener('blanc-browser-api', (event) => {
+    if (event.detail?.event !== 'onBangsChanged') return;
+    bangState = event.detail.payload;
+    emit('onBangsChanged', bangState);
+  });
+  loadBangs().catch(() => {});
   setInterval(refresh, 300);
   applyRail().catch(error => notice(error.message));
 })();

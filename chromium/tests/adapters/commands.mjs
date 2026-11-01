@@ -17,9 +17,20 @@ export const engineOfUrl=url=>SEARCH.find(([,p])=>String(url).startsWith(p))?.[0
 // One captured submission in shipping's shape. `route` is the Island facade
 // method the overlay called (navigate is shipping's typed-address route,
 // search its search-row route); `url` is what the facade then asked native
-// to load. The fork has no bang resolver, so it never yields engine 'bang'.
+// to load. A typed bang is the facade's navigate or search of bang-shaped text that
+// reached native as a page load rather than a search: shipping captures it as
+// engine 'bang' with the words beside the bang as its query.
+const BANG_CODE=/^[a-z0-9][a-z0-9_-]{0,31}$/i;
+function bangWords(text){
+ const tokens=String(text??'').trim().split(/\s+/);
+ if(tokens[0]?.startsWith('!')&&BANG_CODE.test(tokens[0].slice(1)))return tokens.slice(1).join(' ');
+ if(tokens.length>1&&tokens.at(-1).startsWith('!')&&BANG_CODE.test(tokens.at(-1).slice(1)))return tokens.slice(0,-1).join(' ');
+ return null;
+}
 export function submissionOf(entry){
  if(!entry)return null;
+ const words=(entry.route==='navigate'||entry.route==='search')&&entry.native==='typed:navigate'?bangWords(entry.input[1]):null;
+ if(words!==null)return {engine:'bang',query:words,url:entry.url};
  if(entry.route==='search')return {engine:engineOfUrl(entry.url)??'unknown',query:String(entry.input[1]??'').trim(),url:entry.url};
  return {engine:'address',query:String(entry.route==='createTab'?entry.input[0]:entry.input[1]),url:entry.url};
 }
@@ -152,7 +163,9 @@ export const commands={
  setSearchSuggestions:(w,on)=>setControl(w,'searchSuggestions',!!on),
  searchSuggestions:w=>readControl(w,'searchSuggestions'),
  setAppearance:(w,theme)=>setControl(w,'theme',String(theme)),
- setBangsEnabled:(w,on)=>setControl(w,'bangsEnabled',!!on),
+ // Shipping's hook writes the setting without UI; Settings would close the
+ // open command bar, which F47-7 keeps open.
+ setBangsEnabled:(w,on)=>w.native('setBangsEnabled',[!!on]),
  // Custom bangs are added one at a time through Settings → Your bangs.
  async setCustomBangs(w,list){
   for(const b of list)await inSettings(w,a=>{for(const id of ['customBangCode','customBangName','customBangTemplate','customBangAdd'])if(!document.getElementById(id))return {missing:id};
