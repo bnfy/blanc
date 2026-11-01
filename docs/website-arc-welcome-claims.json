@@ -1,0 +1,68 @@
+{
+ "publicRelease": "v1.43.1",
+ "sourceSha": "154d1db84a7d54d83b6dd40ef91ea7042636446f",
+ "releaseEvidence": "docs/release-incidents/2026-10-24-v1.43.1.md",
+ "scope": "Owner-requested October 23, 2026 welcome hero for the Arc page: a short greeting, one line on the import, and the Sunrise Spectrum app icon. All three claims rest on public v1.43.1; the app icon line was an owner waiver from October 23 until v1.43.0 shipped the icon.",
+ "evidenceGroups": {
+  "arcImport": {
+   "evidence": [
+    "src/main/arc-import.js",
+    "src/main/arc-import-source.js",
+    "src/main/arc-sidebar.js",
+    "src/renderer/pages/tab-import-arc.js",
+    "spec/acceptance/arc-spaces-import.feature",
+    "test/unit/arc-import.test.js",
+    "docs/evidence/f45-arc-import-real-sidebars-2026-10-12.md"
+   ],
+   "qualification": "User-selected local sidebar import, not a live connection or account migration. Each selected Space becomes a Blanc Space; loose pins remain pinned and folders become groups. Optional top-row Favorites go to the Arc folder. No sign-ins, passwords, history, archived tabs, Notes or Easels. Linux requires a copied sidebar file. Real-sidebar hand checks do not establish Intel Mac or x64 Windows acceptance."
+  },
+  "appIcon": {
+   "evidence": [
+    "src/main/app-icon-assets.js",
+    "src/main/settings.js",
+    "docs/superpowers/specs/2026-10-23-sunrise-spectrum-amber-icons-design.md"
+   ],
+   "qualification": "Sunrise Spectrum is a macOS-only app icon choice, shipped in v1.43.0 (#1069) and in v1.43.1. On Windows and Linux there is no app icon choice."
+  }
+ },
+ "claims": [
+  {
+   "id": "arc-welcome-01",
+   "source": "site/src/pages/arc-alternative.astro",
+   "exactWording": "Welcome, Arc users",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "arcImport"
+   ],
+   "verdict": "qualified",
+   "kind": "label",
+   "note": "A label: the page's greeting. It makes no capability claim; its evidence group only ties it to the Arc import guide it introduces."
+  },
+  {
+   "id": "arc-welcome-02",
+   "source": "site/src/pages/arc-alternative.astro",
+   "exactWording": "Bring your Arc Spaces over, with folders as tab groups.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "arcImport"
+   ],
+   "verdict": "qualified"
+  },
+  {
+   "id": "arc-welcome-03",
+   "source": "site/src/pages/arc-alternative.astro",
+   "exactWording": "On a Mac, choose Sunrise Spectrum, an app icon in Arc’s colors, in Settings → General → App icon.",
+   "subject": "Blanc",
+   "evidenceGroups": [
+    "appIcon"
+   ],
+   "verdict": "verified",
+   "convertedFromWaiver": {
+    "date": "2026-10-23",
+    "decision": "Asked whether the page should mention the Arc-style icon before a release ships it, the owner chose to show the icon and this line now, over waiting for the release or using the icon as art only.",
+    "converted": "2026-10-24",
+    "reason": "v1.43.0 and v1.43.1 ship sunrise-spectrum in src/main/app-icon-assets.js."
+   }
+  }
+ ]
+}

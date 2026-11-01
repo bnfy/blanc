@@ -27,11 +27,12 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
   const sbom = generated.runtime.sbom;
   const refs = new Set(sbom.components.map((component) => component['bom-ref']));
 
-  assert.equal(generated.runtime.runtimePackages.length, 32);
-  assert.equal(sbom.components.length, 45);
+  assert.equal(generated.runtime.runtimePackages.length, 35);
+  assert.equal(sbom.components.length, 50);
   assert.ok(refs.has('asset:instrument-sans-font'));
+  assert.ok(refs.has('asset:roboto-flex-clock-font'));
   assert.ok(refs.has('asset:ublock-origin'));
-  assert.ok(refs.has('pkg:npm/electron@44.9.1'));
+  assert.ok(refs.has('pkg:npm/electron@44.9.3'));
   assert.ok(refs.has('pkg:npm/%401password/sdk@0.5.0'));
   assert.ok(refs.has('pkg:npm/%401password/sdk-core@0.5.0'));
   assert.ok(refs.has('asset:inter-font'));
@@ -47,14 +48,14 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
   assert.equal([...refs].some((ref) => ref.includes('electron-builder@')), false);
 
   const root = sbom.dependencies.find((item) => item.ref.startsWith('application:runtime:'));
-  assert.ok(root.dependsOn.includes('pkg:npm/electron@44.9.1'));
+  assert.ok(root.dependsOn.includes('pkg:npm/electron@44.9.3'));
   assert.ok(root.dependsOn.includes('asset:blanc-adblock-seed'));
   const seed = sbom.dependencies.find((item) => item.ref === 'asset:blanc-adblock-seed');
   assert.deepEqual(seed.dependsOn, [
     'asset:easylist-data',
     'asset:easyprivacy-data',
     'asset:ghostery-resources',
-    'pkg:npm/%40ghostery/adblocker-electron@2.18.2',
+    'pkg:npm/%40ghostery/adblocker-electron@2.20.1',
   ]);
 });
 
@@ -124,7 +125,7 @@ test('both lock SBOMs include every unique locked name/version with audited lice
   const generated = createComplianceArtifacts();
   const root = JSON.parse(generated.files['compliance/root-lock-sbom.cdx.json']);
   const site = JSON.parse(generated.files['compliance/site-lock-sbom.cdx.json']);
-  assert.equal(root.components.length, 461); // electron-builder 26.17 dedupes @noble/hashes to one version.
+  assert.equal(root.components.length, 461); // Cucumber 13.3 and Playwright 1.64.1 graph; electron-builder 26.17 dedupes @noble/hashes to one version.
   assert.equal(site.components.length, 290); // Reviewed Astro 7 graph, Three.js, and no retired JetBrains Mono package.
   const onePassword = root.components.find((component) => component.name === '@1password/sdk');
   assert.deepEqual(onePassword.licenses, [{ license: { id: 'MIT' } }]);
@@ -193,12 +194,12 @@ test('after-pack compliance payload contains SBOM, framework notices, and every 
     fs.readFileSync(path.join(resources, 'LICENSE.blanc.txt'), 'utf8'),
     fs.readFileSync(path.join(ROOT, 'LICENSE'), 'utf8')
   );
-  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 45);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 50);
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSE.electron.txt'), 'utf8'), 'Electron MIT fixture\n');
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSES.chromium.html'), 'utf8'), '<html>Chromium fixture</html>\n');
 
   const licenses = fs.readdirSync(path.join(resources, 'ThirdPartyLicenses'));
-  assert.equal(licenses.length, 41, '32 runtime npm records plus four OFL fonts, uBlock GPL/LGPL, Lucide, Dark Reader and Kagi bangs');
+  assert.equal(licenses.length, 46, '35 runtime npm records plus six OFL fonts, uBlock GPL/LGPL, Lucide, Dark Reader and Kagi bangs');
   assert.equal(fs.readFileSync(path.join(resources, 'ThirdPartyLicenses/LGPL-3.0.txt'), 'utf8'), fs.readFileSync(path.join(ROOT, 'ublock/licenses/LGPL-3.0.txt'), 'utf8'));
   assert.ok(licenses.includes('1password__sdk--0.5.0.txt'));
   assert.ok(licenses.includes('1password__sdk-core--0.5.0.txt'));
@@ -210,6 +211,7 @@ test('after-pack compliance payload contains SBOM, framework notices, and every 
   assert.equal(fs.readFileSync(path.join(resources, 'ThirdPartyLicenses/kagi-bangs-LICENSE.txt'), 'utf8'), fs.readFileSync(path.join(ROOT, 'bangs/sources/kagi-bangs-LICENSE.txt'), 'utf8'));
   assert.ok(licenses.includes('jetbrains-mono-OFL.txt'));
   assert.ok(licenses.includes('caveat-OFL.txt'));
+  assert.ok(licenses.includes('roboto-flex-OFL.txt'));
   const { createPackage } = require('@electron/asar');
   const payload = path.join(appOutDir, 'fixture-source');
   fs.mkdirSync(payload);

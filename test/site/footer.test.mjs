@@ -59,7 +59,7 @@ test('footer groups, legal links and conditional privacy choices render on every
       if (privacy) {
         await footer.getByRole('button', { name: 'Privacy choices' }).click();
         await page.getByRole('dialog', { name: 'Privacy choices' }).waitFor({ state: 'visible' });
-        await page.getByRole('button', { name: 'No thanks', exact: true }).click();
+        await page.getByRole('button', { name: 'Turn off', exact: true }).click();
         await page.locator('#consent').waitFor({ state: 'hidden' });
       }
     }

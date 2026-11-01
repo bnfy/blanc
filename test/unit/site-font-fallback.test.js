@@ -32,7 +32,9 @@ test('the page head loads Blubird and no longer preloads Newsreader', () => {
 
 // Since October 15, 2026 every page is set in Blubird: headings in Blubird
 // Display at 0 tracking (the face's own spacing, as on the homepage), text in
-// Blubird Text. Product replicas keep Inter, the app's face.
+// Blubird Text. Product replicas keep Inter, the app's face. Since October 22,
+// 2026 a small Display title (24px and under) may open up to +0.03em, where
+// the face's own spacing reads tight; never negative.
 test('headings use Blubird Display at 0 tracking and text uses Blubird Text', () => {
   const css = read('site/src/styles/site.css');
   assert.match(css, /--site-font-patron: var\(--font-brand-display\);/);
@@ -45,7 +47,15 @@ test('headings use Blubird Display at 0 tracking and text uses Blubird Text', ()
   for (const name of sheets) {
     for (const [, body] of read(`site/src/styles/${name}`).matchAll(/\{([^{}]*)\}/g)) {
       if (!/var\(--site-font-(display|patron)\)|var\(--font-brand-display\)/.test(body)) continue;
-      assert.doesNotMatch(body, /letter-spacing:\s*-/, `${name}: ${body.trim().slice(0, 120)}`);
+      const where = `${name}: ${body.trim().slice(0, 120)}`;
+      assert.doesNotMatch(body, /letter-spacing:\s*-/, where);
+      const tracking = body.match(/letter-spacing:\s*([\d.]+)(em|px)?/);
+      if (!tracking || Number(tracking[1]) === 0) continue;
+      // Positive tracking only on small titles, and only a little.
+      assert.equal(tracking[2], 'em', `${where}: positive tracking is set in em`);
+      assert.ok(Number(tracking[1]) <= 0.03, `${where}: at most +0.03em`);
+      const size = body.match(/font-size:\s*([\d.]+)px/);
+      assert.ok(size && Number(size[1]) <= 24, `${where}: positive tracking needs a fixed font-size of 24px or less`);
     }
   }
 });

@@ -296,30 +296,6 @@
       "verdict": "verified"
     },
     {
-      "id": "v138-016",
-      "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "Choose your Start Page layout and wallpaper.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "layouts",
-        "customImage",
-        "colorWallpaper"
-      ],
-      "verdict": "verified",
-      "replaces": "website-115-071"
-    },
-    {
-      "id": "v138-017",
-      "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "Standalone Mahjong — Daily Turtle / Burst",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "mahjongCapture"
-      ],
-      "verdict": "verified",
-      "replaces": "website-115-259"
-    },
-    {
       "id": "v138-018",
       "source": "site/src/pages/features/start-page.astro",
       "exactWording": "Four layouts for your regular sites and groups, over a time-of-day scene, your own image or a color.",

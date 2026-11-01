@@ -1,0 +1,104 @@
+name: iOS
+
+# Builds the iOS app (ios/Blanc) and runs its XCTest suite on a simulator. It
+# runs only when something the Xcode project builds from changes: ios/ itself,
+# the desktop's blanc:// pages and the iOS blocklist (bundled folders), the
+# bowserPages contract, and the two generated Swift files ios/Blanc symlinks
+# (settings and tokens). Sources that only feed those generated files, and the
+# Android outputs beside them, don't run it. Keep this list in step with the
+# project's references outside ios/. Simulator builds are unsigned; nothing
+# here touches signing, TestFlight or App Store Connect.
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/ios.yml
+      - ios/**
+      - src/renderer/pages/**
+      - settings-schema/generated/BlancSettings.swift
+      - tokens/generated/Tokens.swift
+      - adblock/generated/**
+      - browser-api/bridges.json
+  pull_request:
+    paths:
+      - .github/workflows/ios.yml
+      - ios/**
+      - src/renderer/pages/**
+      - settings-schema/generated/BlancSettings.swift
+      - tokens/generated/Tokens.swift
+      - adblock/generated/**
+      - browser-api/bridges.json
+  # Nightly, so main's full suite, UI tests included, runs every day even when
+  # nothing iOS merged.
+  schedule:
+    - cron: '23 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  xctest:
+    runs-on: macos-26
+    # The build and full suite took 29 minutes on October 29, 2026, after
+    # M17c and the icon picker added UI tests; 30 cancelled runs mid-suite.
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The pill's Liquid Glass branch needs at least the iOS 26 SDK, so use
+      # the newest Xcode on the image. The project stays in objectVersion 77
+      # (its preferredProjectObjectVersion) so Xcode 26 can open it; iPhone Duo
+      # work needs Xcode 27.1, which hosted images don't carry yet.
+      - name: Select the newest Xcode
+        run: |
+          ls -d /Applications/Xcode*.app
+          xcode=$(ls -d /Applications/Xcode_[0-9]*.app | sort -V | tail -1)
+          sudo xcode-select -s "$xcode"
+          xcodebuild -version
+      - name: Pick an iPhone simulator
+        id: sim
+        run: |
+          udid=$(xcrun simctl list devices available --json \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; ios=[(r,x) for r,v in d.items() if "iOS" in r for x in v if x["name"].startswith("iPhone")]; ios.sort(key=lambda p: [int(n) for n in p[0].rsplit("iOS-",1)[1].split("-")]); print(ios[-1][1]["udid"])')
+          echo "udid=$udid" >> "$GITHUB_OUTPUT"
+      # The UI tests take most of a run's half hour. On a pull request they run
+      # only when the app itself changed (ios/ or this workflow); a pull
+      # request that changes only the shared blanc:// pages, the blocklist, the
+      # bridges contract or the generated Swift runs the unit tests. Pushes to
+      # main, the nightly run and manual runs always run everything.
+      - name: Choose the tests
+        id: scope
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          only=""
+          if [ "$EVENT" = pull_request ]; then
+            git fetch --no-tags --depth=1 origin "$BASE"
+            if ! git diff --name-only "$BASE" HEAD | grep -Eq '^(ios/|\.github/workflows/ios\.yml$)'; then
+              only="-only-testing:BlancTests"
+              echo "Only shared inputs changed: unit tests only."
+            fi
+          fi
+          echo "only=$only" >> "$GITHUB_OUTPUT"
+      - name: Build and test
+        working-directory: ios/Blanc
+        run: |
+          xcodebuild test \
+            -project Blanc.xcodeproj \
+            -scheme Blanc \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            ${{ steps.scope.outputs.only }} \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Print app crash reports
+        # A UI test that ends with "application is not running" crashed the
+        # app; the simulator writes the report on the host.
+        if: failure()
+        run: |
+          for f in $(ls -t ~/Library/Logs/DiagnosticReports/Blanc* 2>/dev/null | head -3); do
+            echo "::group::$f"; head -c 60000 "$f"; echo "::endgroup::"
+          done

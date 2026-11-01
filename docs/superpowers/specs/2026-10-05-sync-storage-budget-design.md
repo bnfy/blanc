@@ -199,3 +199,33 @@ production, and deploy the site through the normal reviewed path.
   migration. That project should adopt equivalent budget and expiry rules.
 - Per-account size limits beyond the existing 512 KB per store.
 - Changes to the desktop app.
+
+
+## M16 addendum: dynamic Space blobs (2026-10-25, not deployed)
+
+The original §7 four-store calculation is a historical scenario, not a bound
+for M16. Its per-Space routes remove the finite store-name limit: the desktop
+caps live Spaces at 25, but historical/deleted/orphan Space blobs and arbitrary
+valid ids can accumulate under an active account. Marker expiry only cleans
+inactive accounts. `NEW_ACCOUNT_DAILY_LIMIT` cannot cap growth inside existing
+accounts, and its counter remains non-atomic.
+
+At the original pricing assumption ($0.50/decimal GB-month above 1 GB), 33
+capped blobs are 16.5 MiB per account. With 365 retained daily cohorts, the
+33-blob scenario is 631.50 GB / $315.25 monthly at 100 new accounts/day,
+315.75 GB / $157.38 at 50, or 157.88 GB / $78.44 at 25. These exclude request
+charges, metadata and extra accumulated blobs. They are **not maxima**.
+For example, 1,000 historical Space blobs plus eight fixed blobs consume
+504 MiB per account at the cap, regardless of the number of currently live
+Spaces. No finite storage ceiling follows from the current admission rules.
+
+The October 5 production listing (42 accounts, 138 blobs) is historical.
+M16's 150–220 KiB typical plaintext estimate for a 500-tab Space is also an
+estimate, not a measurement of production or a promise about actual encrypted
+sizes. The Worker README records the scenario arithmetic, excluded costs and
+request-volume assumptions in one place.
+
+Deployment remains on hold. Before deployment the owner must explicitly
+accept this exposure or require reviewed enforceable quota/retention controls.
+The new-account-limit decision is separate. No automatic destructive cleanup
+or changed limit is authorized by the M16 protocol PR.

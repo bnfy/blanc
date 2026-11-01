@@ -85,6 +85,28 @@ Feature: Tabs and tab groups
     When I activate a tab in group "play"
     Then the island shows 4 direct tab dots
     And the island shows 2 more tabs
+    # #1174: the pinned tab keeps the section it was opened from.
+    When I activate the standalone pinned tab
+    Then the island shows 4 direct tab dots
+    And the island shows 2 more tabs
+
+  @F3-34 @F3 @desktop
+  Scenario: A pinned tab inside a group stays first on the Island, whichever section is active
+    Given a group "work" with 3 tabs
+    And the first tab in group "work" is pinned
+    And a group "play" with 2 tabs
+    When I activate a tab in group "play"
+    Then the island shows 3 direct tab dots
+    And the island shows the pinned tab in group "work" first, once
+    And the island shows 3 more tabs
+    When I activate an unpinned tab in group "work"
+    Then the island shows 3 direct tab dots
+    And the island shows the pinned tab in group "work" first, once
+    And the island shows 3 more tabs
+    When I activate the pinned tab in group "work"
+    Then the island shows 3 direct tab dots
+    And the island shows the pinned tab in group "work" first, once
+    And the island shows 3 more tabs
 
   @F3-3 @F3 @all
   Scenario: Collapsing a group tucks its tabs away in the panel
@@ -329,6 +351,18 @@ Feature: Tabs and tab groups
     Then no group menu is open
     And no side-list group header is marked open
     And a click in the island panel keeps it open
+
+  @F3-33 @F3 @desktop
+  Scenario: The Island can show site icons instead of dots
+    Given a standalone pinned tab
+    And a group "work" with 2 tabs
+    When I turn on site icons on the Island
+    And I activate a tab in group "work"
+    Then the island shows 3 direct tab dots
+    And every direct tab shows its site icon
+    When I turn off site icons on the Island
+    Then the island shows 3 direct tab dots
+    And the direct tabs are dots again
   @F2-9 @F2 @desktop
   Scenario: New Tab Below opens inside the group, directly below
     Given a group "work" with 2 tabs

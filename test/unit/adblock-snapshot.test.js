@@ -32,7 +32,7 @@ test('release-pinned desktop lists match their manifest', () => {
   assert.equal(snapshot.sourceDate, '2026-07-09');
   assert.equal(
     adblockCacheName(snapshot.digest, snapshot.resourceDigest),
-    'adblock-engine.v4.bd2ebb4f273205a0.bin'
+    'adblock-engine.v4.9607234b5baf9cdf.bin'
   );
   assert.equal(snapshot.resourceDigest.length, 64);
 });

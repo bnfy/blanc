@@ -4,8 +4,9 @@
 // connected mailbox). Mail has no public release, so docs/marketing-claims.md
 // requires every one to be labelled as a preview; this component is the only
 // way the Mail pages show a screenshot, so the label can't be left off.
-// Files: /mail/screens/<name>.webp (2200px wide) and <name>-1100.webp, built
-// from it by site/scripts/build-display-images.mjs.
+// Files: /mail/screens/<name>.webp, the capture as taken (1400px for the
+// rule editor, captured at 2x), and <name>-1100.webp, built from it by
+// site/scripts/build-display-images.mjs.
 interface Props {
   name: string;
   alt: string;
@@ -20,7 +21,7 @@ const { name, alt, width, height, class: className = '', eager = false, sizes = 
 <figure class={`mail-shot ${className}`}>
   <img
     src={`/mail/screens/${name}.webp`}
-    srcset={`/mail/screens/${name}-1100.webp 1100w, /mail/screens/${name}.webp 2200w`}
+    srcset={`/mail/screens/${name}-1100.webp 1100w, /mail/screens/${name}.webp ${width}w`}
     sizes={sizes}
     alt={alt}
     width={width}

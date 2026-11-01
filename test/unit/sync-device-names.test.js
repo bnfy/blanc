@@ -120,13 +120,16 @@ test('the freshness pull waits for tab state, carries settings, and runs at most
   sync.setTabStateReady(true);
   sync.refreshSession();
   const deadline = Date.now() + 10_000;
-  // The empty icon sidecar is never created on a 404, so two PUTs end the pass.
+  // The empty icon sidecar and a presence-only sends store are never created
+  // on a 404, so two PUTs and the sends GET end the pass.
   const put = (store) => requests.some((r) => r.method === 'PUT' && r.store === store);
-  while (!(put('session') && put('settings')) && Date.now() < deadline) {
+  const got = (store) => requests.some((r) => r.method === 'GET' && r.store === store);
+  while (!(put('session') && put('settings') && got('sends')) && Date.now() < deadline) {
     await new Promise((resolve) => setTimeout(resolve, 20));
   }
   const gets = requests.filter((r) => r.method === 'GET').map((r) => r.store).sort();
-  assert.deepEqual(gets, ['icons', 'session', 'settings']);
+  assert.deepEqual(gets, ['icons', 'sends', 'session', 'settings']);
+  assert.equal(put('sends'), false, 'presence alone never creates the sends store');
 
   const session = requests.find((r) => r.method === 'PUT' && r.store === 'session');
   const published = JSON.parse(decrypt(key, JSON.parse(session.body).blob));

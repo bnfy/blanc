@@ -6,6 +6,16 @@
 export interface NewtabPagesAPI {
   /** The running app version string. IPC: invoke `pages:app-version`. */
   appVersion: () => Promise<unknown>;
+  pins: {
+    /** List the profile's Start Page pins, each with a locally held icon. IPC: invoke `pages:pins:list`. */
+    list: () => Promise<unknown>;
+    /** Pin an http(s) page to the Start Page; refused from private start pages and past the cap. IPC: invoke `pages:pins:pin`. */
+    pin: (url: unknown, title: unknown) => Promise<unknown>;
+    /** Unpin a page from the Start Page; refused from private start pages. IPC: invoke `pages:pins:unpin`. */
+    unpin: (url: unknown) => Promise<unknown>;
+    /** The Start Page pins changed; read them again. IPC: event `pages:pins:changed`. */
+    onChanged: (callback: () => void) => void;
+  };
   bookmarks: {
     /** List Favorites (internal name: bookmarks). IPC: invoke `pages:bookmarks:list`. */
     list: () => Promise<unknown>;
@@ -45,6 +55,8 @@ export interface NewtabPagesAPI {
     setWallpaperFill: (fill: unknown) => Promise<unknown>;
     /** Whether a window in a Space draws that Space's color as the Color wallpaper. IPC: invoke `pages:start:set-wallpaper-follow-space`. */
     setWallpaperFollowSpace: (enabled: unknown) => Promise<unknown>;
+    /** Change the Billboard clock's Font & Color: any of font, weight, height, color, tone and style. Replies with the clock as now drawn. IPC: invoke `pages:start:set-clock`. */
+    setClock: (partial: unknown) => Promise<unknown>;
     /** Pick an image file for the Start Page wallpaper and show it. IPC: invoke `pages:start:choose-wallpaper`. */
     chooseWallpaper: () => Promise<unknown>;
     /** Delete the stored Start Page image and return to Sunrise. IPC: invoke `pages:start:remove-wallpaper`. */
@@ -85,6 +97,16 @@ export interface NewtabPagesAPI {
     onVisibility: (callback: (payload: unknown) => void) => void;
     /** Open tabs from other synced devices changed. IPC: event `pages:start:remote-tabs`. */
     onRemoteTabs: (callback: (payload: unknown) => void) => void;
+    /** Open a page another device sent here in a new ordinary tab, and hide it on this device. IPC: invoke `pages:start:open-sent`. */
+    openSent: (id: string) => Promise<unknown>;
+    /** Hide a page another device sent here without opening it. IPC: invoke `pages:start:dismiss-sent`. */
+    dismissSent: (id: string) => Promise<unknown>;
+    /** Pages other devices sent here changed. IPC: event `pages:start:sent-items`. */
+    onSentItems: (callback: (payload: unknown) => void) => void;
+    /** Development-only Shared Spaces pairing notice. IPC: invoke `pages:start:shared-question`. */
+    sharedQuestion: () => Promise<unknown>;
+    /** Development-only Shared Spaces pairing notice. IPC: invoke `pages:start:shared-question-answer`. */
+    sharedQuestionAnswer: (id: string, on: boolean) => Promise<unknown>;
   };
 }
 
@@ -114,7 +136,19 @@ export interface BookmarksPagesAPI {
     /** Escape was pressed while armed; the page closes its own consumer. IPC: event `pages:surface:escape`. */
     onEscape: (callback: () => void) => () => void;
   };
+  pins: {
+    /** List the profile's Start Page pins, each with a locally held icon. IPC: invoke `pages:pins:list`. */
+    list: () => Promise<unknown>;
+    /** Pin an http(s) page to the Start Page; refused from private start pages and past the cap. IPC: invoke `pages:pins:pin`. */
+    pin: (url: unknown, title: unknown) => Promise<unknown>;
+    /** Unpin a page from the Start Page; refused from private start pages. IPC: invoke `pages:pins:unpin`. */
+    unpin: (url: unknown) => Promise<unknown>;
+    /** The Start Page pins changed; read them again. IPC: event `pages:pins:changed`. */
+    onChanged: (callback: () => void) => void;
+  };
   bookmarks: {
+    /** Whether this host permits editing Favorites. IPC: invoke `pages:bookmarks:capabilities`. */
+    capabilities: () => Promise<unknown>;
     /** List Favorites (internal name: bookmarks). IPC: invoke `pages:bookmarks:list`. */
     list: () => Promise<unknown>;
     /** Drop a Favorite's cached favicon after it failed to load. IPC: invoke `pages:bookmarks:clear-favicon`. */
@@ -223,6 +257,10 @@ export interface SettingsPagesAPI {
     removeWallpaper: () => Promise<unknown>;
     /** Choose the interface language; optionally relaunch to apply it. IPC: invoke `pages:settings:language`. */
     language: (code: unknown, restart: unknown) => Promise<unknown>;
+    /** Where link routing rules can point: live profiles and Spaces, ids and names only. IPC: invoke `pages:settings:link-targets`. */
+    linkTargets: () => Promise<unknown>;
+    /** Replace the link routing rules; main validates the whole list and stores all or nothing. IPC: invoke `pages:settings:link-routes:set`. */
+    setLinkRoutes: (routes: unknown) => Promise<unknown>;
     /** Blocking provider status. IPC: invoke `pages:blocking:status`. */
     blockingStatus: () => Promise<unknown>;
     /** Retry a blocking provider that failed to start. IPC: invoke `pages:blocking:retry`. */
@@ -231,6 +269,10 @@ export interface SettingsPagesAPI {
     blockingOpen: (tool: unknown) => Promise<unknown>;
     /** Blocking provider status changed. IPC: event `pages:blocking:status`. */
     onBlockingStatus: (callback: (payload: unknown) => void) => void;
+    /** Read sanitized ECS protected-media readiness. IPC: invoke `pages:settings:drm-status`. */
+    drmStatus: () => Promise<unknown>;
+    /** Restart through the unsaved-work guard only when protected media requires it. IPC: invoke `pages:settings:drm-restart`. */
+    drmRestart: () => Promise<boolean>;
     /** Check for an app update now. IPC: invoke `pages:settings:check-for-updates`. */
     checkForUpdates: () => Promise<unknown>;
     /** Appearance changed outside the page (for example /theme). IPC: event `pages:settings:appearance`. */
@@ -251,6 +293,8 @@ export interface SettingsPagesAPI {
     syncTabsSet: (on: unknown) => Promise<unknown>;
     /** Name this device as the user's other devices list it, then return the new status. An empty name restores the computer's name; main ignores a non-string. IPC: invoke `pages:settings:sync-device-name-set`. */
     syncDeviceNameSet: (name: unknown) => Promise<unknown>;
+    /** This device's platform and the other devices this sync knows of (devices sharing their open tabs plus Send to Device presence), as names and platforms only. No device ids or keys cross. IPC: invoke `pages:settings:sync-devices`. */
+    syncDevices: () => Promise<unknown>;
     /** Park this device's wrapped sync secret under a fresh pairing code; returns the code and expiry for display. No key crosses. IPC: invoke `pages:settings:sync-pair-begin`. */
     syncPairBegin: () => Promise<unknown>;
     /** Retract the current pairing code. IPC: invoke `pages:settings:sync-pair-cancel`. */
@@ -263,6 +307,14 @@ export interface SettingsPagesAPI {
     syncSwitchCode: (payload: unknown) => Promise<unknown>;
     /** Copy the recovery code to the clipboard from main behind a native dialog. The reply never carries the code. IPC: invoke `pages:settings:sync-recovery-code-copy`. */
     syncRecoveryCodeCopy: () => Promise<unknown>;
+    /** Turn on Sync with a generated account, no name or passphrase; status-only reply with whether the first pass reached the server. IPC: invoke `pages:settings:sync-start-new`. */
+    syncStartNew: () => Promise<unknown>;
+    /** Hide the recovery-code prompt on this device for good. IPC: invoke `pages:settings:sync-recovery-prompt-dismiss`. */
+    syncRecoveryPromptDismiss: () => Promise<unknown>;
+    /** Report whether the sheet with a live pairing code is visible, so main watches for the device that takes it. IPC: invoke `pages:settings:sync-pair-watch`. */
+    syncPairWatch: (visible: unknown) => Promise<unknown>;
+    /** The device that took the live pairing code arrived: its name and platform only. IPC: event `pages:settings:sync-pair-joined`. */
+    onSyncPairJoined: (callback: (payload: unknown) => void) => void;
     /** Replay the welcome tour. IPC: invoke `pages:settings:welcome-tour`. */
     welcomeTour: () => Promise<unknown>;
     /** 1Password fill status. Main registers this handler only when 1Password fill is available. IPC: invoke `pages:settings:onepassword-status`. */
@@ -275,6 +327,16 @@ export interface SettingsPagesAPI {
     trustReceipt: () => Promise<unknown>;
     /** Open a release, verification, SBOM or provenance link for this version. IPC: invoke `pages:settings:open-trust-link`. */
     openTrustLink: (kind: unknown) => Promise<unknown>;
+    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-preview`. */
+    sharedSpacesPreview: () => Promise<unknown>;
+    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-apply`. */
+    sharedSpacesApply: (payload: unknown) => Promise<unknown>;
+    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-status`. */
+    sharedSpacesStatus: () => Promise<unknown>;
+    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-open`. */
+    sharedSpacesOpen: (id: string) => Promise<unknown>;
+    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-acknowledge`. */
+    sharedSpacesAcknowledge: (id: string) => Promise<unknown>;
   };
   profiles: {
     /** Local profiles. IPC: invoke `pages:profiles:list`. */

@@ -21,7 +21,10 @@ test('packaged UI excludes retired B app icons and keeps Sunrise and Mahjong til
   const icons = fs.readdirSync(pages).filter((name) => /^icon-.*\.png$/.test(name));
   for (const name of ['icon.svg', ...icons]) {
     const file = path.join(pages, name);
-    const current = ['icon-sunrise.png', 'icon-sunrise-dark.png', 'icon-sunrise-gold.png', 'icon-sunrise-gold-dark.png'].includes(name);
+    const current = [
+      'icon-sunrise.png', 'icon-sunrise-dark.png', 'icon-sunrise-gold.png', 'icon-sunrise-gold-dark.png',
+      'icon-sunrise-spectrum.png', 'icon-sunrise-spectrum-dark.png', 'icon-sunrise-amber.png', 'icon-sunrise-amber-dark.png',
+    ].includes(name);
     assert.equal(filter(file, fs.statSync(file)), current, `${name}: shipped only for current Sunrise variants`);
   }
   for (const name of fs.readdirSync(pages).filter((name) => name.startsWith('mahjong-'))) {
@@ -107,12 +110,10 @@ test('current and archived icon artwork retain their canonical identity sources'
   const platformSource = fs.readFileSync(path.join(ROOT, 'assets/sunrise-app-icon.png'));
   const platformIcon = fs.readFileSync(path.join(ROOT, 'build/icon.png'));
   assert.deepEqual(platformIcon, platformSource);
-  assert.deepEqual(
-    fs.readFileSync(path.join(ROOT, 'ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/icon-sunrise.png')),
-    platformIcon,
-  );
-  const appIconCatalog = JSON.parse(source('ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/Contents.json'));
-  assert.equal(appIconCatalog.images[0].filename, 'icon-sunrise.png');
+  // The iPhone icon is the Icon Composer package (ios-app-icons.test.js); the
+  // flat asset-catalog icon it replaced must not come back beside it.
+  assert.equal(fs.existsSync(path.join(ROOT, 'ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset')), false);
+  assert.equal(fs.existsSync(path.join(ROOT, 'ios/Blanc/Blanc/AppIcons/AppIcon.icon/icon.json')), true);
   assert.ok(fs.statSync(path.join(ROOT, 'build/windows-icons/icon-sunrise.ico')).size > 10_000);
 });
 

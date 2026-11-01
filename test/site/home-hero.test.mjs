@@ -12,21 +12,16 @@ let browser;
 before(async () => { browser = await chromium.launch(); });
 after(async () => { await browser?.close(); });
 
-async function openHome({ width = 1440, height = 900, reducedMotion = 'reduce', javaScriptEnabled = true, blockNoteFont = false, blockSiteFont = false, wideNote = false } = {}) {
+async function openHome({ width = 1440, height = 900, reducedMotion = 'reduce', javaScriptEnabled = true } = {}) {
   const context = await browser.newContext({ viewport: { width, height }, reducedMotion, javaScriptEnabled });
   const page = await context.newPage();
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== new URL(baseURL).origin) return route.abort();
-    if (blockNoteFont && url.pathname.startsWith('/fonts/reenie-beanie/')) return route.abort();
-    // CI has no Blubird (its license keeps it out of the repository), so the headline falls back to Inter.
-    if (blockSiteFont && url.pathname.startsWith('/fonts/blubird/')) return route.abort();
     return route.continue();
   });
   await page.addInitScript(() => localStorage.setItem('measurement-consent-v2', 'denied'));
   await page.goto(`${baseURL}/`);
-  // A wide stand-in for the note, as a system without Reenie Beanie or a handwriting face may draw it.
-  if (wideNote) await page.addStyleTag({ content: '.opening-aside { font-family: Verdana, "DejaVu Sans", sans-serif !important; letter-spacing: 0.06em; }' });
   await page.evaluate(() => document.fonts.ready);
   return { page, close: () => context.close() };
 }
@@ -49,34 +44,6 @@ test('the first screen ends on the headline and Download, with the window’s to
       });
       assert.equal(h1Lines, 1, `${width}×${height}: the headline is one line`);
     } finally { await close(); }
-  }
-});
-
-test('the note sits above the headline’s end, clear of its letters, with or without its font', async () => {
-  for (const [blockNoteFont, blockSiteFont, wideNote] of [[false, false, false], [true, false, false], [false, true, false], [true, true, false], [true, true, true]]) {
-    for (const width of [1440, 1024, 768, 390]) {
-      const { page, close } = await openHome({ width, blockNoteFont, blockSiteFont, wideNote });
-      try {
-        const result = await page.evaluate(() => {
-          const h1 = document.getElementById('opening-title');
-          const note = document.querySelector('.opening-note').getBoundingClientRect();
-          // Each line of the headline, as tall as its line box: a Range's rects
-          // add the font's empty ascent above the letters.
-          const range = document.createRange(); range.selectNodeContents(h1);
-          const lineHeight = parseFloat(getComputedStyle(h1).lineHeight);
-          const letters = [...range.getClientRects()].map(r => {
-            const middle = (r.top + r.bottom) / 2;
-            return { left: r.left, right: r.right, width: r.width, top: middle - lineHeight / 2, bottom: middle + lineHeight / 2 };
-          });
-          const overlaps = letters.some(r => note.left < r.right && note.right > r.left && note.top < r.bottom && note.bottom > r.top);
-          return { overlaps, above: note.bottom <= letters[0].top + 4, nearEnd: Math.abs(note.right - Math.max(...letters.map(r => r.right))) < h1.getBoundingClientRect().width * 0.25, family: getComputedStyle(document.querySelector('.opening-note')).fontFamily };
-        });
-        assert.equal(result.overlaps, false, `${width}, note font blocked ${blockNoteFont}, headline font blocked ${blockSiteFont}, wide stand-in ${wideNote}: note overlaps the headline`);
-        assert.ok(result.above, `${width}, note font blocked ${blockNoteFont}, headline font blocked ${blockSiteFont}, wide stand-in ${wideNote}: note sits above the headline`);
-        assert.ok(result.nearEnd, `${width}, note font blocked ${blockNoteFont}, headline font blocked ${blockSiteFont}, wide stand-in ${wideNote}: note sits at the headline’s end`);
-        if (!wideNote) assert.match(result.family, /Reenie Beanie/);
-      } finally { await close(); }
-    }
   }
 });
 

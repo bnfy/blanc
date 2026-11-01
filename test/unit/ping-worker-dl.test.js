@@ -78,3 +78,12 @@ test('ping-worker dl pure logic', async (t) => {
     }), null);
   });
 });
+
+test('no download is pinned, and pin lookups never reach the prototype', async () => {
+  const { PINNED_DOWNLOADS, pinnedDownload, DL_TARGETS } = await import('../../cloudflare/ping-worker/src/dl.js');
+  assert.deepEqual(Object.keys(PINNED_DOWNLOADS), []);
+  for (const target of DL_TARGETS) assert.equal(pinnedDownload(target), null, target);
+  assert.equal(pinnedDownload('__proto__'), null);
+  assert.equal(pinnedDownload('constructor'), null);
+});
+

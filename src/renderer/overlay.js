@@ -15,6 +15,7 @@
   const panelAnchor = document.getElementById('panelAnchor');
   const islandPanel = document.getElementById('islandPanel');
   const addressInput = document.getElementById('addressInput');
+  const readerBtn = document.getElementById('readerBtn');
   const panelSiteInfo = document.getElementById('panelSiteInfo');
   const islandList = document.getElementById('islandList');
   const islandHint = document.getElementById('islandHint');
@@ -35,6 +36,10 @@
   const shieldPopNote = document.getElementById('shieldPopNote');
   const shieldPopDark = document.getElementById('shieldPopDark');
   const shieldPopDarkToggle = document.getElementById('shieldPopDarkToggle');
+  const shieldPopRoute = document.getElementById('shieldPopRoute');
+  const shieldPopRouteLabel = document.getElementById('shieldPopRouteLabel');
+  const shieldPopRouteToggle = document.getElementById('shieldPopRouteToggle');
+  const shieldPopRouteNote = document.getElementById('shieldPopRouteNote');
   const shieldPopSettings = document.getElementById('shieldPopSettings');
   const shieldPopLabel = document.getElementById('shieldPopLabel');
   const shieldPopProvider = document.getElementById('shieldPopProvider');
@@ -56,6 +61,13 @@
   const capturePop = document.getElementById('capturePop');
   const capturePopHead = document.getElementById('capturePopHead');
   const capturePopRows = document.getElementById('capturePopRows');
+  const switcherCard = document.getElementById('switcherCard');
+  const switcherTiles = document.getElementById('switcherTiles');
+  const switcherTitle = document.getElementById('switcherTitle');
+  const switcherHost = document.getElementById('switcherHost');
+  const switcherStatus = document.getElementById('switcherStatus');
+  /** The Ctrl+Tab card's last payload from main: `{ tabIds, pick }`. */
+  let switcherModel = null;
   const displayShareBackdrop = document.getElementById('displayShareBackdrop');
   const displaySharePicker = document.getElementById('displaySharePicker');
   const displayShareOrigin = document.getElementById('displayShareOrigin');
@@ -114,6 +126,7 @@
    * (arrives in overlay:show's purpose payload; cleared once used, dismissed,
    * or the command is edited away from /group). */
   let pendingGroupTabId = null;
+  let pendingGroupTabIds = null;
   // F46: the tab a menu-initiated "Rename Tab…" targets, like pendingGroupTabId.
   let pendingRenameTabId = null;
   // F46: the exact text a rename prompt was opened with. Enter on it unedited
@@ -161,6 +174,7 @@
   // Other devices' tab snapshots (tab sync). Renderer-local fold state —
   // devices start folded so the panel stays quiet (spec §2).
   let remoteDevices = [];
+  let sentItems = []; // pages other devices sent here (M7b)
   const unfoldedDevices = new Set();
   // Recently closed starts folded — one line like a synced device; unfold to
   // see the reopen rows (Claude island declutter iteration).
@@ -215,6 +229,9 @@
   // means the row shows the catalog's generic "search" tag.
   let searchProviderLabel = null;
   let suggestionDebounce = null;
+  // Settings → Island: search rows lead typed results even over a strong
+  // local match. Main sends it with every overlay:show.
+  let searchPriorityResults = false;
   let suggestionRequestGeneration = 0;
   let addressInputComposing = false;
   // A paste/drop or text entered while a private tab is active can contain
@@ -292,12 +309,30 @@
     announce: announceIsland,
     onActiveChange(active) {
       window.browserAPI.setOverlayDragState(active);
+      if (active) window.browserAPI.selectTab(null, 'clear');
       if (!active && renderQueued && !pointerHeld) {
         renderQueued = false;
         renderList();
       }
     },
   });
+  islandList.addEventListener('click', (event) => {
+    const primary = event.target.closest('.row-primary[data-selection-tab-id]');
+    if (!primary || (!event.shiftKey && !(navigator.platform.includes('Mac') ? event.metaKey : event.ctrlKey))) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    primary.focus();
+    window.browserAPI.selectTab(primary.dataset.selectionTabId, event.shiftKey ? 'range' : 'toggle');
+  }, true);
+  islandList.addEventListener('keydown', (event) => {
+    if (!event.shiftKey || event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+    const primary = event.target.closest('.row-primary[data-selection-tab-id]');
+    if (!primary) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    primary.focus();
+    window.browserAPI.selectTab(primary.dataset.selectionTabId, event.key === 'ArrowUp' ? 'extend-up' : 'extend-down').then(id => {
+      requestAnimationFrame(() => islandList.querySelector(`[data-selection-tab-id="${CSS.escape(id ?? '')}"]`)?.focus());
+    });
+  }, true);
   islandList.addEventListener('keydown', (event) => {
     if (!event.altKey || !event.shiftKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return;
     if (!restingList()) return;
@@ -396,14 +431,17 @@
     const row = document.createElement('div');
     row.className = 'island-row split-row'
       + (tabs.some((t) => t.id === state.activeTabId) ? ' active' : '')
-      + (inGroup ? ' in-group' : '');
+      + (inGroup ? ' in-group' : '')
+      + ((state.selectedTabIds ?? []).includes(tabs[0]?.id) ? ' selected' : '');
     row.dataset.splitId = splitId;
+    row.dataset.tabId = tabs[0]?.id;
     row.setAttribute('role', 'group');
     row.setAttribute('aria-label', blancI18n.t('split.rowName', { titles: titles.join(' + ') }));
     row.dataset.i18nIgnore = 'aria-label'; // page titles
     const primary = document.createElement('button');
     primary.type = 'button';
     primary.className = 'row-primary split-row-primary';
+    primary.dataset.selectionTabId = tabs[0]?.id;
     const icons = document.createElement('span');
     icons.className = 'split-row-icons';
     for (const tab of tabs.slice(0, 4)) {
@@ -416,7 +454,7 @@
     title.textContent = label;
     title.dataset.i18nIgnore = '';
     primary.append(icons, title);
-    primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: label }));
+    primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: label }) + ((state.selectedTabIds ?? []).includes(tabs[0]?.id) ? ', ' + blancI18n.t('rail.state.selected') : ''));
     primary.dataset.i18nIgnore = 'aria-label';
     const focused = tabs[Math.min(split?.focusedIndex ?? 0, tabs.length - 1)] ?? tabs[0];
     primary.addEventListener('click', () => {
@@ -643,6 +681,7 @@
       const details = [
         ...metadata,
         tab.private ? blancI18n.t('rail.state.private') : '',
+      (state.selectedTabIds ?? []).includes(tab.id) ? blancI18n.t('rail.state.selected') : '',
         tab.asleep ? blancI18n.t('rail.state.quiet') : '',
       ].filter(Boolean).join(', ') || blancI18n.t('glance.picker.openTab');
       row.setAttribute('aria-label', blancI18n.t('glance.picker.optionLabel', { title: title.textContent, details }));
@@ -736,6 +775,10 @@
     panelSiteInfo.setAttribute('aria-expanded', String(visible && siteInfoOpen));
     if (!visible) siteInfoOpen = false;
 
+    readerBtn.hidden = !tab?.readerAvailable && !tab?.readerActive;
+    readerBtn.setAttribute('aria-pressed', String(tab?.readerActive === true));
+    readerBtn.setAttribute('aria-label', blancI18n.t(tab?.readerActive ? 'reader.exit' : 'reader.enter'));
+    readerBtn.dataset.tooltip = blancI18n.t(tab?.readerActive ? 'reader.exit' : 'reader.enter');
     const verticalTabsActive = state.tabLayout === 'vertical';
     footerTabLayout.dataset.tooltip = verticalTabsActive
       ? blancI18n.t('rail.islandLayout')
@@ -750,7 +793,8 @@
     row.className =
       'island-row tab-row' +
       (tab.id === state.activeTabId ? ' active' : '') +
-      (tab.asleep ? ' quiet' : '');
+      (tab.asleep ? ' quiet' : '') +
+      ((state.selectedTabIds ?? []).includes(tab.id) ? ' selected' : '');
     row.dataset.tabId = tab.id;
     row.dataset.dragTab = '';
     row.dataset.pinned = String(!!tab.pinned);
@@ -788,6 +832,7 @@
     const primary = document.createElement('button');
     primary.type = 'button';
     primary.className = 'row-primary';
+    primary.dataset.selectionTabId = tab.id;
     // tabDomain() is '' for a blank new tab; filter rather than emit ", ,".
     // The word a person hears is quiet; the field name stays internal.
     const parts = [
@@ -795,10 +840,12 @@
       tabDomain(tab),
       tab.asleep ? blancI18n.t('rail.state.quiet') : '',
       tab.private ? blancI18n.t('rail.state.private') : '',
+      (state.selectedTabIds ?? []).includes(tab.id) ? blancI18n.t('rail.state.selected') : '',
     ].filter(Boolean);
     primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: parts.join(', ') }));
     if (tab.title) primary.dataset.i18nIgnore = 'aria-label'; // carries the page title
     primary.append(faviconWrap, title);
+    if(tab.syncNotSynced){const mark=document.createElement('span');mark.className='sync-not-synced';mark.textContent='•';mark.setAttribute('aria-label',blancI18n.t('sharedSpaces.unsyncedTab'));mark.title=blancI18n.t('sharedSpaces.unsyncedTab');primary.append(mark);}
     primary.addEventListener('click', () => {
       window.browserAPI.switchTab(tab.id);
       window.browserAPI.closeOverlay();
@@ -1113,8 +1160,9 @@
       button.addEventListener('click', async () => {
         // A refused name keeps the menu open with its notice; nothing runs.
         if (!(await commitGroupName({ close: false }))) return;
+        const box = button.getBoundingClientRect();
         closeGroupMenu({ commit: false, closeOverlay: true });
-        run();
+        run(box);
       });
       return button;
     };
@@ -1123,6 +1171,14 @@
     actions.append(
       action(blancI18n.t('groupMenu.newTab'), () => window.browserAPI.newTabInGroup(group.id)),
       action(blancI18n.t('groupMenu.moveToNewWindow'), () => window.browserAPI.moveGroupToNewWindow(group.id), { disabled: holdsEveryTab }),
+    );
+    // Move Group to Space ▸ (D8): shown once the profile has a space, like
+    // Move to Space ▸ in the tab menu. Main lists the spaces in a native menu.
+    if (wsWorkspaces.length) {
+      actions.append(action(blancI18n.t('groupMenu.moveToSpace'),
+        (box) => window.browserAPI.openGroupSpaceMenu(group.id, { x: box.left, y: box.bottom })));
+    }
+    actions.append(
       action(blancI18n.t('groupMenu.ungroup'), () => window.browserAPI.ungroupGroup(group.id)),
       action(blancI18n.t('groupMenu.close'), () => window.browserAPI.closeGroup(group.id)),
     );
@@ -1277,6 +1333,61 @@
     return row;
   }
 
+  /** "Sent to this device · 2": the inbox heading, which doesn't fold. */
+  function sentHeaderRow(count) {
+    const row = document.createElement('div');
+    row.className = 'island-ghead static sent-head';
+    row.innerHTML = '<span class="ghead-name"></span><span class="ghead-n"></span>';
+    row.querySelector('.ghead-name').textContent = blancI18n.t('sends.section');
+    row.querySelector('.ghead-n').textContent = String(count);
+    return row;
+  }
+
+  /** A page another device sent here: click opens it in a new tab (main
+   * hides it here), × dismisses it. */
+  function sentItemRow(item) {
+    const row = document.createElement('div');
+    row.className = 'island-row sent-row';
+    row.setAttribute('role', 'button');
+    row.tabIndex = 0;
+    row.dataset.sentId = item.id;
+    const favicon = document.createElement('span');
+    setFavicon(favicon, { url: item.url });
+    const text = document.createElement('span');
+    text.className = 'sent-text';
+    const title = document.createElement('span');
+    title.className = 'row-title';
+    title.textContent = item.title || item.url;
+    title.dataset.i18nIgnore = ''; // a page title is data
+    const from = document.createElement('span');
+    from.className = 'row-sub';
+    from.textContent = blancI18n.t('sends.from', { device: item.fromName, time: timeAgo(item.sentAt) });
+    text.append(title, from);
+    const dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.className = 'row-close sent-dismiss';
+    dismiss.dataset.tooltip = blancI18n.t('sends.dismiss');
+    dismiss.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: dismiss.dataset.tooltip, title: title.textContent }));
+    dismiss.dataset.i18nIgnore = 'aria-label'; // carries the page title
+    dismiss.innerHTML = ICONS.close;
+    dismiss.addEventListener('click', (event) => {
+      event.stopPropagation();
+      window.browserAPI.dismissSentItem(item.id);
+    });
+    row.append(favicon, text, dismiss);
+    const open = () => {
+      window.browserAPI.closeOverlay();
+      window.browserAPI.openSentItem(item.id);
+    };
+    row.addEventListener('click', open);
+    row.addEventListener('keydown', (event) => {
+      if (event.target !== row || (event.key !== 'Enter' && event.key !== ' ')) return;
+      event.preventDefault();
+      open();
+    });
+    return row;
+  }
+
   /** A remote tab row: opens the url as a plain new local tab (ungrouped —
    * no group reconstruction in v1, spec §2). */
   function remoteTabRow(tab, device) {
@@ -1392,7 +1503,9 @@
       // A context-menu "New Group…" targets the right-clicked tab, not the
       // active one (overlay:show's purpose payload sets the pending target).
       const target = pendingGroupTabId ?? state.activeTabId;
-      if (name && target) window.browserAPI.groupTabByName(target, name);
+      if (pendingGroupTabIds) window.browserAPI.groupTabsByName(pendingGroupTabIds, name);
+      else if (name && target) window.browserAPI.groupTabByName(target, name);
+      pendingGroupTabIds = null;
       pendingGroupTabId = null;
     } },
     { cmd: '/ungroup', hint: blancI18n.t('slash.ungroup.hint'), run: () => state.activeTabId && window.browserAPI.setTabGroup(state.activeTabId, null) },
@@ -1400,10 +1513,35 @@
       const groupId = activeTab()?.groupId;
       if (groupId) window.browserAPI.closeGroup(groupId);
     } },
+    // Send to device (M7b): the argument names one of the account's other
+    // devices, matched without regard to case. Never offered in a private tab.
+    { cmd: '/send', hint: blancI18n.t('slash.send.hint'), keepOverlay: true,
+      get available() { return !activeTab()?.private; },
+      run: (input) => {
+        const name = commandArgument(input);
+        if (!name) { promptCommand('/send '); return null; }
+        const tabId = state.activeTabId;
+        // The notice shows on the resting list, so the typed command goes.
+        addressInput.value = '';
+        renderList();
+        return sendActiveTabTo(tabId, name);
+      },
+      resultNotice: (result) => sendNotice(result) },
+    // Copy Link (⌘⇧C / Ctrl+Shift+C); "/copy clean" is Copy Clean Link, which
+    // has a chord on macOS only. Main shows the pill's "copied" notice.
+    { cmd: '/copy', hint: blancI18n.t('slash.copy.hint'), run: (input) => {
+      window.browserAPI.copyActiveLink(commandArgument(input).toLowerCase() === 'clean');
+    } },
+    { cmd: '/reader', hint: blancI18n.t('slash.reader.hint'), run: () => window.browserAPI.toggleReaderMode(state.activeTabId) },
     { cmd: '/find', hint: blancI18n.t('slash.find.hint'), run: () => window.browserAPI.openFindBar(), keepOverlay: true },
     { cmd: '/block-ads', hint: blancI18n.t('slash.blockAds.hint'), run: () => window.browserAPI.toggleAdblock() },
     { cmd: '/allow-ads', hint: blancI18n.t('slash.allowAds.hint'), run: () => window.browserAPI.allowAdsOnActiveSite() },
     { cmd: '/dark-site', hint: blancI18n.t('slash.darkSite.hint'), run: () => window.browserAPI.toggleDarkSiteOnActiveSite() },
+    // Link routing (F60): links to this site from other apps open in this
+    // window's profile (and Space); "/route off" removes the rule.
+    { cmd: '/route', hint: blancI18n.t('slash.route.hint'), run: (input) => {
+      window.browserAPI.routeActiveSite(commandArgument(input).toLowerCase() === 'off' ? 'off' : 'on');
+    } },
     { cmd: '/1password', hint: blancI18n.t('slash.1password.hint'),
       available: typeof window.browserAPI.fillLoginFromOnePassword === 'function',
       run: () => window.browserAPI.fillLoginFromOnePassword() },
@@ -1417,6 +1555,25 @@
     { cmd: '/glance', hint: blancI18n.t('slash.glance.hint'), keepOverlay: true, run: (input) => window.browserAPI.openGlancePicker(commandArgument(input)) },
     { cmd: '/invite', hint: blancI18n.t('slash.invite.hint'), run: () => window.browserAPI.inviteFriend(), keepOverlay: true, clearInput: true, resultNotice: (result) => result === 'copied' ? blancI18n.t('slash.invite.copied') : '' },
   ];
+
+  async function sendActiveTabTo(tabId, name) {
+    const targets = await window.browserAPI.listSendTargets();
+    if (!targets.length) return { notice: 'none' };
+    const wanted = name.toLocaleLowerCase();
+    const target = targets.find((t) => t.name.toLocaleLowerCase() === wanted);
+    if (!target) return { notice: 'noMatch', name };
+    const { status } = await window.browserAPI.sendTabToDevice(tabId, target.id);
+    return { status, device: target.name };
+  }
+
+  function sendNotice(result) {
+    if (!result) return '';
+    if (result.notice === 'none') return blancI18n.t('sends.none');
+    if (result.notice === 'noMatch') return blancI18n.t('sends.noMatch', { name: result.name });
+    if (result.status === 'sent') return blancI18n.t('sends.sent', { device: result.device });
+    if (result.status === 'unavailable') return blancI18n.t('sends.unavailable');
+    return blancI18n.t('sends.failed');
+  }
 
   function runCommand(command) {
     // Commands like "/group work" read their argument from the typed input.
@@ -1571,6 +1728,7 @@
     title.textContent = entry.tabCount > 1
       ? blancI18n.t('closed.groupTitle', { title: entry.title, count: entry.tabCount })
       : entry.title;
+    if(entry.fromName)title.textContent+=' · '+blancI18n.t('sharedSpaces.closedOn',{device:entry.fromName});
     title.dataset.i18nIgnore = ''; // a closed page or group title is data
     const forget = document.createElement('button');
     forget.type = 'button';
@@ -1815,12 +1973,13 @@
   }
 
   /** Keep six rows total. A confident local match retains the established
-   * Quick-Switcher top slot; otherwise exact search leads, followed by engine
-   * completions and then the weaker local guesses. */
+   * Quick-Switcher top slot unless Search priority results is on; otherwise
+   * exact search leads, followed by engine completions and then the local
+   * matches. */
   function blendedResults(query) {
     const local = switcherResults(query.toLowerCase());
     const search = searchResults(query);
-    if (local[0]?.score >= STRONG_MATCH_SCORE) {
+    if (!searchPriorityResults && local[0]?.score >= STRONG_MATCH_SCORE) {
       return [
         ...local.slice(0, 3),
         ...search.slice(0, 3),
@@ -2494,7 +2653,7 @@
       if (commandNotice) rows.push(commandNoticeRow(commandNotice));
       else if (archiveNotice) rows.push(archiveNoticeBand(archiveNotice));
       rows.push(pinned.length
-        ? dragSection('pinned', [pinnedHeaderRow(pinned.length), ...pinned.map(tabRow)])
+        ? dragSection('pinned', [pinnedHeaderRow(TabSections.rowsOf(pinned.map((t) => t.id), state.tabs).length), ...tabRowsFor(pinned)])
         : dragEmptyZone('pinned'));
 
       const clusters = clusterTabs();
@@ -2566,9 +2725,12 @@
   /** Other devices (spec 2026-10-16 §6): the footer toggle, hidden with no
    * other device to show, and the drawer between the list and the footer. */
   function renderDevicesDrawer(resting, anchor = null) {
-    footerDevices.hidden = !remoteDevices.length;
-    footerDevicesCount.textContent = String(remoteDevices.length);
-    const show = resting && devicesDrawerOpen && remoteDevices.length > 0;
+    // Pages waiting here show the drawer's button even with no device's tabs,
+    // and its count becomes theirs (M7b §5).
+    footerDevices.hidden = !remoteDevices.length && !sentItems.length;
+    footerDevices.classList.toggle('has-sent', sentItems.length > 0);
+    footerDevicesCount.textContent = String(sentItems.length || remoteDevices.length);
+    const show = resting && devicesDrawerOpen && !footerDevices.hidden;
     footerDevices.setAttribute('aria-expanded', String(show));
     islandDrawer.hidden = !show;
     if (!show) {
@@ -2576,6 +2738,7 @@
       return;
     }
     const rows = [];
+    if (sentItems.length) rows.push(sentHeaderRow(sentItems.length), ...sentItems.map(sentItemRow));
     for (const device of remoteDevices) {
       rows.push(remoteHeaderRow(device));
       if (unfoldedDevices.has(device.deviceId)) {
@@ -2749,6 +2912,8 @@
     shieldPop.hidden = next !== 'shield';
     shieldPopPointer.hidden = next !== 'shield' || !shieldConnected;
     capturePop.hidden = next !== 'capture';
+    switcherCard.hidden = next !== 'switcher';
+    if (next !== 'switcher') switcherModel = null;
     displayShareBackdrop.hidden = next !== 'display-share';
     if (next !== 'display-share') displayShareModel = null;
     glancePickerEl.hidden = next !== 'glance';
@@ -2759,6 +2924,7 @@
         closedSectionOpen = false;
         devicesDrawerOpen = false;
         pendingGroupTabId = null;
+        pendingGroupTabIds = null;
         pendingRenameTabId = null;
         renamePrefill = null;
         namePrompt = null;
@@ -2778,8 +2944,10 @@
       // tab). Glance's string purposes fall through harmlessly.
       if (purpose && typeof purpose === 'object' && purpose.beginGroupTabId != null) {
         pendingGroupTabId = purpose.beginGroupTabId;
+        pendingGroupTabIds = null;
         pendingRenameTabId = null;
       }
+      if (Array.isArray(purpose?.beginGroupTabIds)) { pendingGroupTabIds = purpose.beginGroupTabIds; pendingGroupTabId = null; }
       // "Rename Tab…" (F46): same atomic payload as New Group… above.
       if (purpose && typeof purpose === 'object' && purpose.renameTabId != null) {
         pendingRenameTabId = purpose.renameTabId;
@@ -2790,12 +2958,14 @@
       if (purpose && typeof purpose === 'object' && purpose.renameGroupId != null) {
         namePrompt = { kind: 'group', id: purpose.renameGroupId, prefill: prefill ?? '', notice: '' };
         pendingGroupTabId = null;
+        pendingGroupTabIds = null;
         pendingRenameTabId = null;
       }
       // "Rename Device…" from the Other devices drawer: the same prompt.
       if (purpose && typeof purpose === 'object' && purpose.renameDeviceId != null) {
         namePrompt = { kind: 'device', id: purpose.renameDeviceId, prefill: prefill ?? '', notice: '' };
         pendingGroupTabId = null;
+        pendingGroupTabIds = null;
         pendingRenameTabId = null;
       }
       // A workspace row's context menu (main process) has no other channel
@@ -2862,7 +3032,20 @@
     } else if (next === 'spaces') {
       // The menu is the whole overlay here; data refreshes behind the first paint.
       refreshSwitcherData();
-      if (!reshow) openWorkspaceSwitcher();
+      if (purpose?.spaceMoveError) {
+        workspaceUI.showMoveError(purpose.spaceMoveError.name, purpose.spaceMoveError.error, purpose.spaceMoveError.movedCount);
+      } else if (purpose?.spaceLinkError) {
+        workspaceUI.showLinkError(purpose.spaceLinkError.name, purpose.spaceLinkError.error);
+      } else if (purpose?.newSpaceLinkTitle != null) {
+        workspaceUI.begin('new', null, { start: 'link', tabTitle: purpose.newSpaceLinkTitle });
+      } else if (Array.isArray(purpose?.newSpaceTabIds)) {
+        // From Move Group to Space ▸ the editor names the group (user data).
+        workspaceUI.begin('new', null, { start: 'tabs', tabId: purpose.newSpaceTabIds,
+          tabTitle: typeof purpose.newSpaceGroupName === 'string' ? purpose.newSpaceGroupName : blancI18n.t('tabsMenu.header', { count: purpose.newSpaceTabIds.length }) });
+      } else if (purpose?.newSpaceTabId != null) {
+        const tab = state.tabs.find((item) => item.id === purpose.newSpaceTabId);
+        workspaceUI.begin('new', null, { start: 'tab', tabId: purpose.newSpaceTabId, tabTitle: tab?.customTitle || tab?.title || tab?.url || '' });
+      } else if (!reshow) openWorkspaceSwitcher();
     } else if (next === 'shield') {
       renderShieldPop();
       (shieldChoosing ? shieldPopProvider.querySelector('input:checked:not(:disabled)') || shieldPopBack : shieldPopToggle.hidden ? shieldPopChangeProvider.disabled ? shieldPopSettings : shieldPopChangeProvider : shieldPopToggle).focus();
@@ -2871,6 +3054,57 @@
     } else if (next === 'capture') {
       renderCapturePop();
       capturePopRows.querySelector('.capture-pop-stop, .display-share-stop')?.focus();
+    } else if (next === 'switcher') {
+      const previousPick = switcherModel ? switcherModel.tabIds[switcherModel.pick] : undefined;
+      switcherModel = purpose?.switcher ?? null;
+      renderSwitcher({ announce: reshow ? 'step' : 'open', previousPick });
+    }
+  }
+
+  // The Ctrl+Tab card draws main's order and pick as they are; it keeps no
+  // order of its own and never takes focus (main reads the keys). A click on a
+  // tile is the one thing it sends back.
+  function renderSwitcher({ announce = null, previousPick } = {}) {
+    const model = switcherModel;
+    const entries = (model?.tabIds ?? [])
+      .map((id) => state.tabs.find((tab) => tab.id === id))
+      .filter(Boolean);
+    const pickId = model?.tabIds[model.pick];
+    const tiles = entries.map((tab, index) => {
+      const li = document.createElement('li');
+      li.className = 'switcher-tile';
+      li.id = `switcher-tile-${index}`;
+      li.setAttribute('role', 'option');
+      li.setAttribute('aria-selected', String(tab.id === pickId));
+      li.setAttribute('aria-label', tab.title || blancI18n.t('tab.untitled'));
+      li.dataset.i18nIgnore = 'aria-label'; // a page title
+      const icon = document.createElement('span');
+      setFavicon(icon, tab);
+      li.append(icon);
+      li.addEventListener('mousedown', (event) => {
+        event.preventDefault();
+        window.browserAPI.switcherPick(tab.id);
+      });
+      return li;
+    });
+    switcherTiles.replaceChildren(...tiles);
+    const picked = entries.find((tab) => tab.id === pickId);
+    const pickIndex = entries.indexOf(picked);
+    if (pickIndex >= 0) {
+      switcherTiles.setAttribute('aria-activedescendant', `switcher-tile-${pickIndex}`);
+      tiles[pickIndex].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    } else {
+      switcherTiles.removeAttribute('aria-activedescendant');
+    }
+    switcherTitle.textContent = picked ? picked.title || blancI18n.t('tab.untitled') : '';
+    switcherTitle.dataset.i18nIgnore = '';
+    switcherHost.textContent = picked ? tabDomain(picked) : '';
+    switcherHost.dataset.i18nIgnore = '';
+    // Opening and each step say where the pick is; a repaint for another
+    // reason (a tab's title loading) says nothing.
+    if (picked && (announce === 'open' || (announce === 'step' && previousPick !== pickId))) {
+      const params = { title: picked.title || blancI18n.t('tab.untitled'), position: pickIndex + 1, count: entries.length };
+      switcherStatus.textContent = blancI18n.t(announce === 'open' ? 'switcher.opened' : 'switcher.step', params);
     }
   }
 
@@ -3043,6 +3277,17 @@
       shieldPopDarkToggle.setAttribute('aria-checked', String(dark.on));
       document.getElementById('shieldPopDarkNote').hidden = dark.appliesNow;
     }
+    // Link routing (F60): the same rule /route writes, for links from other apps.
+    const route = v.route;
+    shieldPopRoute.hidden = !route;
+    if (route) {
+      shieldPopRouteLabel.textContent = blancI18n.t(route.scope === 'space' ? 'shield.routeSpace' : 'shield.route');
+      shieldPopRouteToggle.classList.toggle('on', route.on);
+      shieldPopRouteToggle.setAttribute('aria-checked', String(route.on));
+      shieldPopRouteNote.textContent = route.elsewhere
+        ? blancI18n.t('shield.routeElsewhere', { destination: route.elsewhere })
+        : blancI18n.t('shield.routeNote');
+    }
   }
 
   shieldPopToggle.addEventListener('click', () => {
@@ -3054,6 +3299,9 @@
   });
   shieldPopDarkToggle.addEventListener('click', () => {
     window.browserAPI.toggleDarkSiteOnActiveSite();
+  });
+  shieldPopRouteToggle.addEventListener('click', () => {
+    window.browserAPI.routeActiveSite('toggle');
   });
   function providerName(provider) { return provider === 'ublock-origin' ? 'uBlock Origin' : 'Blanc Blocker'; }
 
@@ -3311,7 +3559,9 @@
     }, { capture: true, passive: true });
   }
 
-  window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
+  window.browserAPI.onOverlayShow((show) => {
+    const { mode: next, prefill, purpose, pillRect } = show;
+    searchPriorityResults = show.searchPriorityResults === true;
     stepHoverLeave({ type: 'open', hoverOpened: next === 'panel' && purpose?.hoverOpened === true });
     const wasOpen = mode === next;
     endOverlayExit();
@@ -3329,6 +3579,7 @@
   // Main's overlay before-input owns Escape; when the workspace popover is
   // open it forwards here instead of hideOverlay so editors dismiss first.
   window.browserAPI.onOverlayEscape(() => {
+    if (state.selectedTabIds?.length && ['panel', 'palette'].includes(mode)) { window.browserAPI.selectTab(null, 'clear'); return; }
     if (groupMenu) {
       const fromMode = groupMenu.host === 'mode';
       closeGroupMenu({ commit: false });
@@ -3427,6 +3678,9 @@
     shieldPopPointer.hidden = true;
     shieldConnected = false;
     glancePickerEl.hidden = true;
+    switcherCard.hidden = true;
+    switcherModel = null;
+    switcherStatus.textContent = '';
     inputTouched = false;
     siteInfoOpen = false;
     commandResultGeneration += 1;
@@ -3434,6 +3688,7 @@
     addressInputComposing = false;
     suppressProviderSuggestions = false;
     pendingGroupTabId = null;
+    pendingGroupTabIds = null;
     pendingRenameTabId = null;
     renamePrefill = null;
     namePrompt = null;
@@ -3471,6 +3726,7 @@
   });
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
+    if (state.selectedTabIds?.length && ['panel', 'palette'].includes(mode)) { e.preventDefault(); e.stopPropagation(); window.browserAPI.selectTab(null, 'clear'); return; }
     // Prefer the IPC path (overlay:escape from main) — main's before-input
     // consumes Escape before this listener would see it. Kept as a fallback
     // for harnesses that inject keydown into the document directly.
@@ -3506,6 +3762,10 @@
       : window.browserAPI.reload(state.activeTabId);
   });
   heartBtn.addEventListener('click', () => window.browserAPI.toggleBookmark());
+  readerBtn.addEventListener('click', () => {
+    window.browserAPI.closeOverlay();
+    window.browserAPI.toggleReaderMode(state.activeTabId);
+  });
   panelSiteInfo.addEventListener('click', () => {
     if (panelSiteInfo.hidden) return;
     siteInfoOpen = !siteInfoOpen;
@@ -3745,7 +4005,7 @@
   // --- State sync ---
 
   async function refreshSwitcherData() {
-    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload, archivedList, notice] = await Promise.all([
+    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload, archivedList, notice, sentList] = await Promise.all([
       window.browserAPI.listFavorites(),
       window.browserAPI.listHistory({ limit: 300 }),
       window.browserAPI.listRemoteTabs(),
@@ -3753,12 +4013,14 @@
       window.browserAPI.bangs(),
       window.browserAPI.archiveList(),
       window.browserAPI.archiveNotice(),
+      window.browserAPI.listSentToThisDevice(),
     ]);
     favorites = favoritesList;
     historyEntries = historyList;
     archivedEntries = Array.isArray(archivedList) ? archivedList : [];
     archiveNotice = notice ?? null;
     remoteDevices = remoteList;
+    sentItems = Array.isArray(sentList) ? sentList : [];
     applyWorkspacesPayload(workspacesPayload);
     bangsState = bangsPayload;
     // Data lands after the panel already rendered — refresh it.
@@ -3767,6 +4029,10 @@
 
   window.browserAPI.onTabsUpdated((payload) => {
     const activeTabChanged = payload.activeTabId !== state.activeTabId;
+    if (JSON.stringify(payload.selectedTabIds ?? []) !== JSON.stringify(state.selectedTabIds ?? [])) {
+      const count = payload.selectedTabIds?.length ?? 0;
+      announceIsland(blancI18n.t(count ? 'tabsSelection.count' : 'tabsSelection.cleared', { count }));
+    }
     state = payload;
     noteBangIconPrivacy();
     islandDrag.notePayload(payload);
@@ -3789,11 +4055,16 @@
     if (mode === 'glance') renderGlancePicker();
     if (mode === 'shield') renderShieldPop();
     if (mode === 'capture') renderCapturePop();
+    if (mode === 'switcher') renderSwitcher();
   });
   // Cached-first: the panel renders the cache instantly, and this repaints
   // when the panel-open refresh's pull lands (tab sync).
   window.browserAPI.onRemoteTabsUpdated((devices) => {
     remoteDevices = devices;
+    if (mode === 'panel' || mode === 'palette') renderList();
+  });
+  window.browserAPI.onSentToThisDeviceUpdated((items) => {
+    sentItems = Array.isArray(items) ? items : [];
     if (mode === 'panel' || mode === 'palette') renderList();
   });
   // The bang settings changed (Settings, Profile Sync, a bang used, history

@@ -20,8 +20,8 @@ test('expanded feature guides retain release limitations beside their benefits',
   assert.match(workspaces, /free for everyone/);
   assert.match(workspaces, /doesn’t unlock any feature/);
   assert.doesNotMatch(workspaces, /requires an active Patron|Active Patrons can/);
-  assert.match(workspaces, /device-local and profile-scoped/);
-  assert.match(workspaces, /do not sync across devices/);
+  assert.match(workspaces, /profile-scoped and stay on this device unless you share them/);
+  assert.match(workspaces, /Spaces never move tabs between local profiles/);
   assert.match(guide('profiles'), /Sync is available only to Personal/);
   assert.match(guide('profiles'), /Files you downloaded remain on disk/);
   assert.match(guide('glance'), /never written to session restore or sync/);
@@ -76,13 +76,14 @@ test('privacy copy accounts for suggestions, telemetry, ad measurement, tab/icon
   assert.match(privacy, /OpenAI receives the limited ChatGPT-ad conversion event/);
 });
 
-test('ChatGPT ad attribution is consent-gated and server-side only', () => {
+test('ChatGPT ad attribution respects regional measurement choices and is server-side only', () => {
   const siteScript = read('site/src/scripts/site.js');
   const worker = read('cloudflare/ping-worker/src/index.js');
   const conversion = read('cloudflare/ping-worker/src/dl.js');
   const workerConfig = read('cloudflare/ping-worker/wrangler.toml');
 
-  assert.match(siteScript, /localStorage\.getItem\(CONSENT_KEY\) !== 'granted'/);
+  assert.match(siteScript, /if \(disabled \|\| !measurementEnabled\(\)\) return/);
+  assert.match(siteScript, /choice === 'granted' \|\| \(choice === null && !measurementOptInRequired\)/);
   assert.match(siteScript, /measurement-consent-v2/);
   assert.match(siteScript, /sessionStorage\.setItem\(STORAGE_KEY, pendingOppref\)/);
   assert.match(siteScript, /url\.searchParams\.set\('oppref', oppref\)/);

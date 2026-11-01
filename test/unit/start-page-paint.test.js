@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const Identity = require('../../src/renderer/space-identity');
 const {
-  FILLS, PRESET_IDS, DEFAULT_PRESET, DEFAULT_FILL, MIN_INK, SOFT,
+  FILLS, PRESET_IDS, DEFAULT_PRESET, DEFAULT_FILL, MIN_INK, SOFT, SOFT_NEUTRAL,
   mix, colorPaint, colorWallpaper, normalizePreset, normalizeFill,
 } = require('../../src/main/start-page-paint');
 
@@ -45,6 +45,17 @@ test('every preset keeps its ink and dim ink at AA on every stop', () => {
     assert.ok(Identity.contrast(SOFT.dark.dim, paint.softDark) >= MIN_INK, `${id} soft dark`);
     assert.notEqual(paint.softLight, SOFT.light.bg, `${id} soft light is tinted`);
   }
+});
+
+test('Soft tints the Neutral background under the Neutral surface style', () => {
+  for (const { id, hex } of Identity.PRESETS) {
+    const paint = colorPaint(hex, 'neutral');
+    assert.ok(Identity.contrast(SOFT_NEUTRAL.light.dim, paint.softLight) >= MIN_INK, `${id} soft light`);
+    assert.ok(Identity.contrast(SOFT_NEUTRAL.dark.dim, paint.softDark) >= MIN_INK, `${id} soft dark`);
+    assert.notEqual(paint.softLight, colorPaint(hex).softLight, `${id} differs from Sunrise`);
+  }
+  const wallpaper = colorWallpaper({ preset: 'sage', fill: 'soft', surface: 'neutral' });
+  assert.equal(wallpaper.softLight, colorPaint(wallpaper.base, 'neutral').softLight);
 });
 
 test('a pale custom Space color gets black ink and still clears AA', () => {

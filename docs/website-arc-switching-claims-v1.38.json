@@ -26,17 +26,6 @@
   },
   "claims": [
     {
-      "id": "arc-switching-138-01",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Bring the Arc Spaces you choose into Blanc as separate spaces, with pinned tabs, Today tabs and folders converted to tab groups. The guide below explains what transfers, what stays in Arc and how to start the import.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "arcImport",
-        "limits"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "arc-switching-138-02",
       "source": "site/src/pages/arc-alternative.astro",
       "exactWording": "This is a tab import, not a transfer of your accounts or browsing history. Blanc reads Arc’s sidebar file without changing it.",
@@ -309,6 +298,22 @@
         "arcImport"
       ],
       "verdict": "qualified"
+    }
+  ],
+  "supersededClaims": [
+    {
+      "reason": "October 23, 2026: the owner replaced the Arc page's hero with a short welcome (docs/website-arc-welcome-claims.json).",
+      "claim": {
+        "id": "arc-switching-138-01",
+        "source": "site/src/pages/arc-alternative.astro",
+        "exactWording": "Bring the Arc Spaces you choose into Blanc as separate spaces, with pinned tabs, Today tabs and folders converted to tab groups. The guide below explains what transfers, what stays in Arc and how to start the import.",
+        "subject": "Blanc",
+        "evidenceGroups": [
+          "arcImport",
+          "limits"
+        ],
+        "verdict": "qualified"
+      }
     }
   ]
 }

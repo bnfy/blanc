@@ -1,28 +1,155 @@
 import Foundation
 
+/// What the palette does after a command runs: close, or stay open with new
+/// text typed (a bare `/send` asks for a device).
+enum SlashOutcome: Equatable {
+    case done
+    case prompt(String)
+}
+
 struct SlashCommand: Identifiable {
     var id: String { command }
     let command: String
-    let hintKey: String
-    let execute: (TabsManager) -> Void
+    /// Whether the command is offered right now (desktop's `available`).
+    var isAvailable: (TabsManager) -> Bool = { _ in true }
+    /// Runs the command with the text typed after it.
+    let action: (TabsManager, String) -> SlashOutcome
 
     var hint: String {
-        NSLocalizedString(hintKey, tableName: "SlashCommands", bundle: .main, comment: "")
+        if command == "/reader" { return ReaderCopy.text("reader.hint") }
+        return SyncCopy.text(Self.hintKey(command))
     }
 
+    /// The catalog key of a command's hint, as copy/build.mjs names it:
+    /// `/close-group` → `slash.closeGroup.hint`.
+    static func hintKey(_ command: String) -> String {
+        let parts = command.dropFirst().split(separator: "-").map(String.init)
+        let camel = (parts.first ?? "") + parts.dropFirst().map { $0.prefix(1).uppercased() + $0.dropFirst() }.joined()
+        return "slash.\(camel).hint"
+    }
+
+    @discardableResult
+    func execute(_ manager: TabsManager, argument: String = "") -> SlashOutcome {
+        action(manager, argument)
+    }
+
+    /// The commands the phone offers: the shared set (F7) minus `/sleep` (iOS
+    /// frees a background page's memory itself, D8) and `/bangs` (after 1.0).
     static let available: [SlashCommand] = [
-        SlashCommand(command: "/new", hintKey: "slash_new") { manager in
-            manager.createTab()
+        SlashCommand(command: "/favorites") { manager, _ in
+            manager.createTab(url: URL(string: "blanc://bookmarks/")!)
+            return .done
         },
-        SlashCommand(command: "/close", hintKey: "slash_close") { manager in
-            if let id = manager.activeTabId {
-                manager.closeTab(id)
-            }
+        SlashCommand(command: "/history") { manager, _ in
+            manager.createTab(url: URL(string: "blanc://history/")!)
+            return .done
+        },
+        SlashCommand(command: "/settings") { manager, _ in
+            manager.showSettings(); return .done
+        },
+        SlashCommand(command: "/sync") { manager, _ in
+            manager.showSettings(.sync); return .done
+        },
+        SlashCommand(command: "/new") { manager, _ in
+            manager.createTab(); return .done
+        },
+        SlashCommand(command: "/private") { manager, _ in
+            manager.createTab(isPrivate: true); return .done
+        },
+        SlashCommand(command: "/close") { manager, _ in
+            if let id = manager.activeTabId { manager.closeTab(id) }
+            return .done
+        },
+        SlashCommand(command: "/reopen") { manager, _ in
+            manager.reopenLast(); return .done
+        },
+        // Groups (M17): a private tab is never grouped.
+        SlashCommand(command: "/group",
+                     isAvailable: { $0.activeTab?.isPrivate != true }) { manager, argument in
+            guard !argument.isEmpty else { return .prompt("/group ") }
+            manager.runGroupCommand(argument)
+            return .done
+        },
+        SlashCommand(command: "/ungroup",
+                     isAvailable: { $0.activeTab?.groupId != nil }) { manager, _ in
+            if let id = manager.activeTabId { manager.moveTab(id, toGroup: nil) }
+            return .done
+        },
+        SlashCommand(command: "/close-group",
+                     isAvailable: { $0.activeTab?.groupId != nil }) { manager, _ in
+            if let group = manager.activeTab?.groupId { manager.closeGroup(group) }
+            return .done
+        },
+        // Never offered in a private tab, as on desktop.
+        SlashCommand(command: "/send",
+                     isAvailable: { $0.activeTab?.isPrivate != true }) { manager, argument in
+            guard !argument.isEmpty else { return .prompt("/send ") }
+            manager.sendActiveTab(toDeviceNamed: argument)
+            return .done
+        },
+        SlashCommand(command: "/reader") { manager, _ in
+            manager.toggleReaderMode(); return .done
+        },
+        SlashCommand(command: "/find") { manager, _ in
+            manager.requestFind(); return .done
+        },
+        SlashCommand(command: "/block-ads") { manager, _ in
+            manager.runBlockAdsCommand(); return .done
+        },
+        SlashCommand(command: "/allow-ads") { manager, _ in
+            if let tab = manager.activeTab { manager.setSiteProtection(tab, on: false) }
+            return .done
+        },
+        SlashCommand(command: "/theme") { manager, argument in
+            let next = nextTheme(after: manager.settingsStore.theme, argument: argument)
+            manager.applySettingsPatch(["theme": next.rawValue])
+            return .done
+        },
+        // Bare: the Spaces menu. A name: that Space, or New Space with it.
+        SlashCommand(command: "/space") { manager, argument in
+            manager.runSpaceCommand(argument)
+            return .done
         },
     ]
 
     static func filter(prefix: String) -> [SlashCommand] {
         guard !prefix.isEmpty else { return available }
         return available.filter { $0.command.hasPrefix(prefix) }
+    }
+
+    /// `filter(prefix:)` without the commands `manager` doesn't offer now.
+    static func filter(prefix: String, in manager: TabsManager) -> [SlashCommand] {
+        filter(prefix: prefix).filter { $0.isAvailable(manager) }
+    }
+
+    /// Runs the first command matching the typed word, with the rest as its
+    /// argument. Nil when nothing matches.
+    static func run(_ input: String, in manager: TabsManager) -> SlashOutcome? {
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        let word = String(trimmed.split(separator: " ").first ?? Substring(trimmed))
+        return filter(prefix: word, in: manager).first?.execute(manager, argument: argument(from: trimmed))
+    }
+
+    /// The text after the command word, trimmed (desktop's `commandArgument`).
+    static func argument(from input: String) -> String {
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let space = trimmed.firstIndex(of: " ") else { return "" }
+        return trimmed[space...].trimmingCharacters(in: .whitespaces)
+    }
+
+    /// Bare `/theme` cycles system → light → dark; a word picks that theme,
+    /// and an unknown word changes nothing (desktop's `chrome:cycle-theme`).
+    static func nextTheme(after current: BlancThemePreference, argument: String) -> BlancThemePreference {
+        let order: [BlancThemePreference] = [.system, .light, .dark]
+        let word = argument.lowercased()
+        if !word.isEmpty { return BlancThemePreference(rawValue: word) ?? current }
+        let index = order.firstIndex(of: current) ?? 0
+        return order[(index + 1) % order.count]
+    }
+
+    /// The device `name` means, without regard to case.
+    static func sendTarget(named name: String, in targets: [SendTarget]) -> SendTarget? {
+        let wanted = name.lowercased()
+        return targets.first { $0.name.lowercased() == wanted }
     }
 }

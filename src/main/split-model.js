@@ -15,9 +15,15 @@ const PR1_MAX_PANES = 2;
 let splitSeq = 0;
 const newSplitId = () => `split-${Date.now().toString(36)}-${++splitSeq}`;
 
-/** A tab may join a split when it is a real, unpinned tab not already in one. */
+/** A tab may join a split when it is a real tab not already in one. */
 function splitEligible(tab) {
-  return !!tab?.id && !tab.pinned && !tab.splitId;
+  return !!tab?.id && !tab.splitId;
+}
+
+/** A split is pinned or not as a whole: pinned when any of its tabs is, so
+ *  splitting a pinned tab with any other pins the other too. */
+function splitPinned(members) {
+  return members.some((tab) => tab.pinned);
 }
 
 /**
@@ -159,6 +165,7 @@ module.exports = {
   PR1_MAX_PANES,
   newSplitId,
   splitEligible,
+  splitPinned,
   createSplit,
   removeFromSplit,
   placeAfterSplit,

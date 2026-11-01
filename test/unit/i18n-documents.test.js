@@ -11,7 +11,7 @@ const documents = [
 ];
 
 test('every chrome and internal document exists in the expected count', () => {
-  assert.equal(documents.length, 17, documents.join('\n'));
+  assert.equal(documents.length, 18, documents.join('\n'));
 });
 
 // The display-capture helper loads in a never-shown BrowserWindow and has no

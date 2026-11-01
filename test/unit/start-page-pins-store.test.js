@@ -1,0 +1,175 @@
+'use strict';
+
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const test = require('node:test');
+const { waitForJson } = require('./support/wait-for-json');
+
+const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-start-pins-'));
+const electronId = require.resolve('electron');
+const originalElectron = require.cache[electronId];
+require.cache[electronId] = {
+  id: electronId,
+  filename: electronId,
+  loaded: true,
+  exports: { app: { getPath: () => userData, on: () => {} } },
+};
+
+delete require.cache[require.resolve('../../src/main/store')];
+delete require.cache[require.resolve('../../src/main/start-page-pins')];
+const pins = require('../../src/main/start-page-pins');
+const { withLocalProfile } = require('../../src/main/local-profile-context');
+
+const clear = () => { for (const pin of pins.listPins()) pins.unpin(pin.url); };
+
+test.after(() => {
+  if (originalElectron) require.cache[electronId] = originalElectron;
+  else delete require.cache[electronId];
+});
+
+test('a pin is an http(s) page and its name; anything else is refused', () => {
+  assert.deepEqual(pins.sanitizePin({ url: 'https://example.com/a?b=1', title: '  Example  ' }), {
+    url: 'https://example.com/a?b=1',
+    title: 'Example',
+  });
+  // A missing name falls back to the host, without "www.".
+  assert.deepEqual(pins.sanitizePin({ url: 'https://www.example.com' }), {
+    url: 'https://www.example.com/',
+    title: 'example.com',
+  });
+  assert.equal(pins.sanitizePin({ url: 'x', title: 'y'.repeat(500) }), null);
+  assert.equal(pins.sanitizePin({ url: 'https://a.test/', title: 'y'.repeat(500) }).title.length, 200);
+  for (const url of ['javascript:alert(1)', 'blanc://settings/', 'file:///etc/passwd', 'data:text/html,x', 42, null]) {
+    assert.equal(pins.sanitizePin({ url, title: 't' }), null, String(url));
+  }
+  assert.equal(pins.sanitizePin({ url: `https://a.test/${'x'.repeat(5000)}` }), null);
+  assert.equal(pins.sanitizePin(null), null);
+});
+
+test('saved pins are re-sanitized, without repeats, up to the cap', () => {
+  const saved = [
+    { url: 'https://a.test/', title: 'A' },
+    { url: 'https://a.test/', title: 'A again' },
+    { url: 'javascript:alert(1)', title: 'no' },
+    'not an object',
+    ...Array.from({ length: 12 }, (_, i) => ({ url: `https://site-${i}.test/`, title: `Site ${i}` })),
+  ];
+  const result = pins.sanitizePins(saved);
+  assert.equal(result.length, pins.MAX_PINS);
+  assert.deepEqual(result[0], { url: 'https://a.test/', title: 'A' });
+  assert.equal(result[1].url, 'https://site-0.test/');
+  assert.deepEqual(pins.sanitizePins({}), []);
+});
+
+test('pinning adds a page first, once, and stops at the cap', () => {
+  clear();
+  let changes = 0;
+  pins.onChanged(() => { changes += 1; });
+  assert.deepEqual(pins.pin({ url: 'https://b.test/', title: 'B' }), { ok: true });
+  assert.deepEqual(pins.pin({ url: 'https://a.test/x', title: 'A' }), { ok: true });
+  // Pinning a pinned page changes nothing and says nothing.
+  assert.deepEqual(pins.pin({ url: 'https://b.test/', title: 'B again' }), { ok: true });
+  assert.equal(changes, 2);
+  // Newest first, so a fresh pin shows even on a layout with few tiles.
+  assert.deepEqual(pins.listPins().map((pin) => pin.title), ['A', 'B']);
+  assert.equal(pins.isPinned('https://a.test/x'), true);
+  assert.equal(pins.isPinned('https://a.test/'), false);
+  assert.equal(pins.isPinned('blanc://newtab/'), false);
+  assert.deepEqual(pins.pin({ url: 'blanc://settings/', title: 'S' }), { ok: false, reason: 'invalid' });
+
+  for (let i = 0; i < 6; i++) pins.pin({ url: `https://fill-${i}.test/`, title: `Fill ${i}` });
+  assert.equal(pins.isFull(), true);
+  assert.deepEqual(pins.pinState('https://a.test/x'), { pinned: true, full: true });
+  assert.deepEqual(pins.pinState('https://elsewhere.test/'), { pinned: false, full: true });
+  assert.deepEqual(pins.pinState('blanc://newtab/'), { pinned: false, full: true });
+  assert.deepEqual(pins.pin({ url: 'https://late.test/', title: 'Late' }), { ok: false, reason: 'full' });
+  assert.equal(pins.listPins().length, pins.MAX_PINS);
+
+  assert.equal(pins.unpin('https://b.test/'), true);
+  assert.equal(pins.unpin('https://b.test/'), false);
+  assert.equal(pins.isFull(), false);
+  assert.equal(pins.listPins()[0].title, 'Fill 5');
+  // An address not in standard form still finds its pin.
+  assert.equal(pins.isPinned('https://fill-5.test'), true);
+  assert.equal(pins.unpin('https://fill-5.test'), true);
+});
+
+test('the Personal profile writes start-page-pins.json; a named profile its own', async () => {
+  clear();
+  pins.pin({ url: 'https://personal.test/', title: 'Personal' });
+  pins.flushPins();
+  const personal = await waitForJson(path.join(userData, 'start-page-pins.json'),
+    (d) => d.pins?.some((pin) => pin.url === 'https://personal.test/'));
+  assert.equal(personal.version, 1);
+
+  const id = 'profile_pins';
+  await withLocalProfile(id, async () => {
+    assert.deepEqual(pins.listPins(), []);
+    pins.pin({ url: 'https://work.test/', title: 'Work' });
+    pins.flushPins();
+  });
+  const named = await waitForJson(path.join(userData, 'profiles', id, 'start-page-pins.json'),
+    (d) => d.pins?.length === 1);
+  assert.equal(named.pins[0].url, 'https://work.test/');
+  assert.equal(pins.isPinned('https://work.test/'), false, 'Personal never sees the named profile’s pins');
+});
+
+test('Sync sends nothing before the first change, then the list with its clock', () => {
+  const id = 'profile_sync_fresh';
+  withLocalProfile(id, () => {
+    assert.equal(pins.exportForSync(), null);
+    pins.pin({ url: 'https://a.test/', title: 'A' });
+    const sent = pins.exportForSync();
+    assert.deepEqual(sent.value, [{ url: 'https://a.test/', title: 'A' }]);
+    assert.ok(Number.isSafeInteger(sent.at) && sent.at > 0);
+    assert.equal(typeof sent.tie, 'string');
+  });
+});
+
+test('a newer peer list wins whole; an older one changes nothing', () => {
+  withLocalProfile('profile_sync_merge', () => {
+    pins.pin({ url: 'https://local.test/', title: 'Local' });
+    const local = pins.exportForSync();
+    let notices = 0;
+    pins.onChanged(() => { notices += 1; });
+
+    assert.equal(pins.mergeFromSync({ value: [{ url: 'https://old.test/', title: 'Old' }], at: local.at - 1, tie: 'z' }), false);
+    assert.deepEqual(pins.listPins().map((pin) => pin.url), ['https://local.test/']);
+
+    const remote = [
+      { url: 'https://remote.test/a', title: 'Remote' },
+      { url: 'javascript:alert(1)', title: 'Refused' },
+    ];
+    assert.equal(pins.mergeFromSync({ value: remote, at: local.at + 10, tie: 'r' }), true);
+    assert.deepEqual(pins.listPins(), [{ url: 'https://remote.test/a', title: 'Remote' }]);
+    assert.equal(pins.exportForSync().at, local.at + 10, 'the peer clock is kept');
+    assert.ok(notices >= 1, 'open pages hear about it');
+
+    // A later local change stamps past the clock it adopted.
+    pins.unpin('https://remote.test/a');
+    assert.ok(pins.exportForSync().at > local.at + 10);
+  });
+});
+
+test('equal clocks converge; a value this version can’t read still advances the clock', () => {
+  withLocalProfile('profile_sync_tie', () => {
+    pins.pin({ url: 'https://tie.test/', title: 'Tie' });
+    const local = pins.exportForSync();
+    // The smaller tie-breaker wins an equal clock, the way synced settings do.
+    const loser = local.tie + '~';
+    assert.equal(pins.mergeFromSync({ value: [], at: local.at, tie: loser }), false);
+    assert.equal(pins.listPins().length, 1);
+    assert.equal(pins.mergeFromSync({ value: [], at: local.at, tie: '' }), true);
+    assert.deepEqual(pins.listPins(), []);
+
+    pins.pin({ url: 'https://kept.test/', title: 'Kept' });
+    const before = pins.exportForSync();
+    assert.equal(pins.mergeFromSync({ value: { future: 'shape' }, at: before.at + 5, tie: 'x' }), false);
+    assert.deepEqual(pins.listPins().map((pin) => pin.url), ['https://kept.test/']);
+    assert.equal(pins.exportForSync().at, before.at + 5);
+    assert.equal(pins.mergeFromSync({ value: [], at: 'nope' }), false);
+    assert.equal(pins.mergeFromSync(null), false);
+  });
+});

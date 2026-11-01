@@ -161,7 +161,7 @@ function createChromeProtocolHandler({ net, developmentBrandMarkPath = null, str
       defaultPath,
       brandMarkPath: developmentBrandMarkPath,
     });
-    return net.fetch(pathToFileURL(resource).href);
+    return net.fetch(pathToFileURL(resource).href, { bypassCustomProtocolHandlers: true });
   };
 }
 

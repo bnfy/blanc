@@ -2,7 +2,8 @@
 
 // Sync, Bring your tabs and Make your first space are always listed. "Make
 // Blanc your default" joins them only where Blanc can ask the OS for the
-// role (default-browser-status.js: packaged, not Linux).
+// role (default-browser-status.js: packaged, not Linux), and "Connect your
+// iPhone" only where iPhone pairing is offered (design 2026-10-28 §6.1).
 const BASE_TASKS = 3;
 
 function migrationChecklistState({
@@ -13,14 +14,18 @@ function migrationChecklistState({
   spaceComplete,
   defaultAvailable,
   defaultComplete,
+  iphoneAvailable,
+  iphoneComplete,
 } = {}) {
   const defaultShown = defaultAvailable === true;
   const defaultDone = defaultShown && defaultComplete === true;
+  const iphoneShown = iphoneAvailable === true;
+  const iphoneDone = iphoneShown && iphoneComplete === true;
   const syncDone = syncComplete === true;
   const tabsDone = tabsComplete === true;
   const spaceDone = spaceComplete === true;
-  const taskCount = BASE_TASKS + Number(defaultShown);
-  const completedCount = Number(defaultDone) + Number(syncDone) + Number(tabsDone) + Number(spaceDone);
+  const taskCount = BASE_TASKS + Number(defaultShown) + Number(iphoneShown);
+  const completedCount = Number(defaultDone) + Number(syncDone) + Number(tabsDone) + Number(spaceDone) + Number(iphoneDone);
 
   return {
     visible: firstRunComplete === true && dismissed === false && completedCount < taskCount,
@@ -31,6 +36,8 @@ function migrationChecklistState({
     syncComplete: syncDone,
     tabsComplete: tabsDone,
     spaceComplete: spaceDone,
+    iphoneAvailable: iphoneShown,
+    iphoneComplete: iphoneDone,
   };
 }
 
@@ -63,6 +70,21 @@ function defaultTaskIntroduction(settings = {}) {
   };
 }
 
+/** The same one-time patch for "Connect your iPhone", applied where iPhone
+ * pairing is offered: a checklist whose every shown task is done stays
+ * retired. Null once applied. */
+function iphoneTaskIntroduction(settings = {}, { defaultAvailable = false } = {}) {
+  if (settings.iphoneChecklistIntroduced === true) return null;
+  const retired = settings.syncMigrationCompleted === true
+    && settings.tabImportCompleted === true
+    && settings.spaceMigrationCompleted === true
+    && (!defaultAvailable || settings.defaultBrowserMigrationCompleted === true);
+  return {
+    iphoneChecklistIntroduced: true,
+    ...(retired ? { migrationChecklistDismissed: true } : {}),
+  };
+}
+
 function migrationChecklistForTab(checklist, tab, defaultProfileId) {
   if (!checklist || !tab || tab.private || tab.profileId !== defaultProfileId) return null;
   return { ...checklist };
@@ -72,5 +94,6 @@ module.exports = {
   migrationChecklistState,
   spaceTaskIntroduction,
   defaultTaskIntroduction,
+  iphoneTaskIntroduction,
   migrationChecklistForTab,
 };

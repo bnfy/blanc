@@ -20,12 +20,21 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
   const metadata = app.isPackaged ? require('../../package.json') : {};
   const bundled = !app.isPackaged || metadata.blancUblockBundled === true;
   const internalCandidate = app.isPackaged && metadata.blancUblockInternalValidation === true;
+  const ecsQualification = internalCandidate && metadata.blancRuntime === 'ecs'
+    && metadata.blancEcsUblockQualification === true
+    && metadata.blancEcsRuntime === `${process.versions.electron}+wvcus`;
+  // A public ECS build (castLabs' Widevine Electron) enables uBO only through
+  // its own reviewed runtime record, never the internal qualification marker.
+  const ecsRelease = app.isPackaged && !internalCandidate && metadata.blancRuntime === 'ecs'
+    && typeof matrix.ecsRuntime === 'string' && metadata.blancEcsRuntime === matrix.ecsRuntime
+    && matrix.ecsRuntime === `${process.versions.electron}+wvcus`;
+  const runtimeReviewed = matrix.electron === process.versions.electron || ecsRelease;
   const test = !app.isPackaged && process.env.BLANC_UBLOCK_TEST === '1';
   const platform = matrix.platforms[`${process.platform}-${process.arch}`];
   // Exact signed x64 acceptance is native Intel. The same bytes repeatedly
   // time out under Rosetta; use the unavailable-build fallback on that host.
   const translated = process.platform === 'darwin' && process.arch === 'x64' && app.runningUnderARM64Translation === true;
-  const supported = !retired && !translated && !!(test || bundled && ((internalCandidate && platform && matrix.electron === process.versions.electron) || (platform?.enabled === true && matrix.electron === process.versions.electron)));
+  const supported = !retired && !translated && !!(test || bundled && ((internalCandidate && platform && (matrix.electron === process.versions.electron || ecsQualification)) || (platform?.enabled === true && runtimeReviewed)));
   // Build availability is fixed at startup. Runtime failures of an available
   // uBO never change this selection: its provider remains fail closed.
   const effective = selected => selected === 'ublock-origin' && !supported ? 'blanc' : selected;

@@ -18,6 +18,8 @@ const arcSwitchingLedger = JSON.parse(read('docs/website-arc-switching-claims-v1
 const v134Ledger = JSON.parse(read('docs/website-v1.34-claims.json'));
 const cinemaLedger = JSON.parse(read('docs/website-cinematic-homepage-claims-v1.34.json'));
 const v140Ledger = JSON.parse(read('docs/website-v1.40-claims.json'));
+const v145Ledger = JSON.parse(read('docs/website-v1.45-claims.json'));
+const arcWelcomeLedger = JSON.parse(read('docs/website-arc-welcome-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
@@ -59,7 +61,7 @@ test('the v1.15 claim ledger remains paired with its immutable release evidence'
 test('new guide benefit and qualification paragraphs remain covered by the exact-wording ledger', () => {
   for (const slug of ['start-page', 'glance', 'workspaces', 'profiles', 'reopen-closed-tabs', '1password']) {
     const file = `site/src/components/guides/${slug}.astro`;
-    const claims = new Set([...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v140Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording));
+    const claims = new Set([...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v140Ledger.claims, ...v145Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording));
     for (const match of read(file).matchAll(/<(h[123]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
       const wording = normalize(match[2]);
       if (wording.length > 20) assert.ok(claims.has(wording), `${slug}: unrecorded wording: ${wording}`);
@@ -71,7 +73,7 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
   const sources = new Set((ledger.externalSources || []).map(source => source.url));
   for (const file of ['site/src/pages/arc-alternative.astro', 'site/src/pages/ublock-origin-after-chrome.astro']) {
     const page = read(file);
-    const claims = [...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...arcSwitchingLedger.claims, ...v140Ledger.claims].filter(claim => claim.source === file);
+    const claims = [...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...arcSwitchingLedger.claims, ...v140Ledger.claims, ...arcWelcomeLedger.claims].filter(claim => claim.source === file);
     const wording = new Set(claims.map(claim => claim.exactWording));
     for (const match of page.matchAll(/<(h[123]|p|figcaption|th|td)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
       assert.ok(wording.has(normalize(match[2])), `${file}: unrecorded wording: ${normalize(match[2])}`);
@@ -82,6 +84,41 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
       for (const url of claim.externalSources || []) {
         assert.ok(sources.has(url), `${claim.id}: unrecorded external source ${url}`);
         assert.ok(page.includes(`href="${url}"`), `${claim.id}: the page does not link ${url}`);
+      }
+    }
+  }
+});
+
+test('Arc page welcome resolves to public v1.43.1 evidence; any owner waiver expires when a release ships it', () => {
+  const record = arcWelcomeLedger;
+  assert.equal(record.publicRelease, 'v1.43.1');
+  assert.equal(execFileSync('git', ['rev-parse', `${record.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.sourceSha);
+  assert.ok(read(record.releaseEvidence).includes(record.sourceSha));
+  const newestRelease = JSON.parse(read('site/src/data/releases.json'))[0].tag;
+  for (const claim of record.claims) {
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: wording drifted`);
+    assert.ok(claim.evidenceGroups.length, claim.id);
+    for (const key of claim.evidenceGroups) assert.ok(record.evidenceGroups[key]?.qualification, claim.id);
+    if (claim.verdict === 'owner-waived') {
+      // A waiver names the owner's decision and its risk, and lasts only until
+      // a release ships the thing it describes: then it must be re-recorded.
+      const { date, decision, risk, releaseCheck } = claim.ownerWaiver ?? {};
+      assert.ok(date && decision && risk && releaseCheck?.path && releaseCheck.contains, `${claim.id}: incomplete waiver`);
+      assert.ok(read(releaseCheck.path).includes(releaseCheck.contains), `${claim.id}: the waived capability is not on main`);
+      let released;
+      try {
+        released = execFileSync('git', ['show', `${newestRelease}:${releaseCheck.path}`], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+      } catch {
+        assert.fail(`${claim.id}: cannot read ${releaseCheck.path} at ${newestRelease}; check the waiver by hand. ${claim.ownerWaiver.convertWhen}`);
+      }
+      assert.ok(!released.includes(releaseCheck.contains), `${claim.id}: ${newestRelease} ships it; record the claim against that release instead of the waiver`);
+      for (const key of claim.evidenceGroups) {
+        for (const file of record.evidenceGroups[key].evidence) assert.ok(fs.existsSync(path.join(root, file)), `${claim.id}: ${file}`);
+      }
+    } else {
+      assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+      for (const key of claim.evidenceGroups) {
+        for (const file of record.evidenceGroups[key].evidence) execFileSync('git', ['cat-file', '-e', `${record.publicRelease}:${file}`], { cwd: root });
       }
     }
   }
@@ -149,7 +186,7 @@ test('v1.32.0 Arc import, interface-language and /space copy resolves to verifie
   // Any sentence on these pages about importing from Arc or about Blanc's
   // interface languages must be a recorded claim in this ledger, a later one
   // (v1.33, v1.35: Italian since v1.33.0) or the v1.27 one.
-  const recorded = [...v132Ledger.claims, ...v133Ledger.claims, ...ledger.claims, ...arcSwitchingLedger.claims, ...JSON.parse(read('docs/website-v1.35-claims.json')).claims].map(claim => claim.exactWording);
+  const recorded = [...v132Ledger.claims, ...v133Ledger.claims, ...ledger.claims, ...arcSwitchingLedger.claims, ...arcWelcomeLedger.claims, ...JSON.parse(read('docs/website-v1.35-claims.json')).claims].map(claim => claim.exactWording);
   const topic = /\bArc\b.*\b(Spaces?|import|sidebar|Favorites|StorableSidebar)\b|\b(German|Spanish|French|Portuguese|Italian|Dutch|Polish|Russian|Ukrainian|Turkish|Arabic|Hebrew|Hindi|Chinese|Japanese|Korean|Swedish|Danish|Norwegian|Finnish)\b|\binterface languages?\b|\btranslat(e|ed|ion|ions)\b/i;
   for (const file of new Set(v132Ledger.claims.map(claim => claim.source))) {
     const text = read(file);
@@ -243,7 +280,7 @@ test('every sentence on the homepage is recorded in a claims ledger or named as 
   const file = 'site/src/pages/index.astro';
   const source = read(file);
   const recorded = [cinemaLedger, ledger, v132Ledger, v133Ledger, v134Ledger, JSON.parse(read('docs/website-reorder-claims-v1.30.json')),
-    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json')), v140Ledger]
+    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json')), v140Ledger, JSON.parse(read('docs/website-v1.43-claims.json')), v145Ledger, JSON.parse(read('docs/website-homepage-measurement-claims.json'))]
     .flatMap(item => [...item.claims, ...(item.externalClaims || [])])
     .filter(claim => claim.source === file)
     .map(claim => claim.exactWording)
@@ -404,7 +441,7 @@ test('v1.38.0 Start Page wallpaper copy resolves to verified public v1.38.0 evid
   for (const label of v138.labels) assert.ok(normalize(read(label.source)).includes(label.exactWording), `label drifted: ${label.exactWording}`);
   // Every wallpaper sentence on the page is recorded, and no per-space image is promised.
   const raw = read('site/src/pages/features/start-page.astro');
-  const section = raw.slice(raw.indexOf('<section class="feature-copy-grid" aria-labelledby="start-page-wallpaper-title">'), raw.indexOf('aria-labelledby="start-page-section-1"'));
+  const section = raw.slice(raw.indexOf('<section class="feature-copy-grid" aria-labelledby="start-page-wallpaper-title">'), raw.indexOf('aria-labelledby="start-page-clock-title"'));
   assert.ok(section.includes('Your image'), 'the wallpaper section is on the page');
   const recorded = new Set([...v138.claims, ...v138.labels].map(entry => entry.exactWording));
   const sentences = section.split(/<[^>]+>/).map(node => normalize(node)).filter(node => /\p{L}/u.test(node))
@@ -543,6 +580,95 @@ test('every sentence on the bangs page is recorded', () => {
   }
 });
 
+// The runtime Blanc is built on, reworded once public v1.43.0 moved to
+// castLabs' Electron for Content Security.
+test('v1.43 runtime copy resolves to verified public v1.43.1 evidence', () => {
+  const v143 = JSON.parse(read('docs/website-v1.43-claims.json'));
+  assert.equal(v143.publicRelease, 'v1.43.1');
+  assert.equal(execFileSync('git', ['rev-parse', `${v143.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v143.sourceSha);
+  assert.ok(read(v143.releaseEvidence).includes(v143.sourceSha));
+  for (const claim of v143.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = v143.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${v143.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  for (const file of ['site/src/components/guides/foundations.astro', 'site/src/data/support-questions.json']) {
+    const text = normalize(read(file));
+    for (const retired of v143.prohibitedClaims) assert.ok(!text.includes(retired), `${file} still says “${retired}”`);
+  }
+  const runtime = JSON.parse(execFileSync('git', ['show', `${v143.publicRelease}:build/ecs-runtime.json`], { cwd: root, encoding: 'utf8' }));
+  assert.match(runtime.version, /\+wvcus$/);
+});
+
+// Shared Spaces, Recently closed for shared Spaces, Sync without a
+// passphrase and iPhone pairing, recorded once public v1.45.0 shipped them.
+test('v1.45.0 Shared Spaces and Sync copy resolves to verified public v1.45.0 evidence', () => {
+  assert.equal(v145Ledger.publicRelease, 'v1.45.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${v145Ledger.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v145Ledger.sourceSha);
+  assert.ok(read(v145Ledger.releaseEvidence).includes(v145Ledger.sourceSha));
+  for (const claim of v145Ledger.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    assert.ok(claim.evidenceGroups.length, `${claim.id}: no release evidence`);
+    for (const key of claim.evidenceGroups) {
+      const group = v145Ledger.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${v145Ledger.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  for (const file of new Set(v145Ledger.claims.map(claim => claim.source))) {
+    const text = normalize(read(file));
+    for (const retired of v145Ledger.prohibitedClaims) assert.ok(!text.includes(retired), `${file}: still says “${retired}”`);
+  }
+  const notes = execFileSync('git', ['show', `${v145Ledger.publicRelease}:docs/press/release-notes/v1.45.0.md`], { cwd: root, encoding: 'utf8' });
+  assert.match(notes, /\*\*Shared Spaces\.\*\*/);
+  assert.match(notes, /\*\*Turn on Sync without a passphrase\.\*\*/);
+  assert.match(notes, /\*\*Connect your iPhone\.\*\*/);
+});
+
+// The clock's Font & color (F54) and the hero gallery of customized Start
+// Pages, announced once public v1.41.0 shipped them.
+test('v1.41.0 Start Page clock copy resolves to verified public v1.41.0 evidence', () => {
+  const v141 = JSON.parse(read('docs/website-v1.41-claims.json'));
+  assert.equal(v141.publicRelease, 'v1.41.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${v141.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v141.sourceSha);
+  assert.ok(read(v141.releaseEvidence).includes(v141.sourceSha));
+  for (const claim of v141.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = v141.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${v141.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  // Every sentence in the clock section is recorded.
+  const raw = read('site/src/pages/features/start-page.astro');
+  const section = raw.slice(raw.indexOf('aria-labelledby="start-page-clock-title"'), raw.indexOf('aria-labelledby="start-page-section-1"'));
+  const recorded = new Set(v141.claims.map(claim => claim.exactWording));
+  const units = [...section.matchAll(/<(h[1-6]|p)\b[^>]*>([\s\S]*?)<\/\1>/g)].map(match => normalize(match[2]));
+  assert.ok(units.length >= 9, 'every clock heading and paragraph is read');
+  for (const unit of units) assert.ok(recorded.has(unit), `unrecorded clock copy: ${unit}`);
+  // Every gallery caption is a recorded label, and each capture is in the ledger.
+  const designs = JSON.parse(read('site/src/data/start-page-designs.json'));
+  const labels = new Set(v141.labels.map(label => label.exactWording));
+  const captures = new Set(JSON.parse(read('docs/website-captures-v1.41.0.json')).captures.map(capture => capture.file).filter(file => file.includes('/clock-')));
+  for (const design of designs) {
+    assert.ok(labels.has(design.style), `unrecorded caption: ${design.style}`);
+    if (design.credit) assert.ok(labels.has(design.credit), `unrecorded credit: ${design.credit}`);
+    assert.ok(captures.has(`site/public/feature-captures/clock-${design.name}-v1.41.0.png`), `${design.name}: not in the capture ledger`);
+  }
+  assert.equal(designs.length, captures.size);
+  const page = normalize(raw);
+  for (const retired of v141.prohibitedClaims) assert.ok(!page.includes(retired), `start page still says “${retired}”`);
+  const notes = execFileSync('git', ['show', `${v141.publicRelease}:docs/press/release-notes/v1.41.0.md`], { cwd: root, encoding: 'utf8' });
+  assert.match(notes, /\*\*Clock Font & color\.\*\*/);
+});
+
 test('public product captures match their reviewed dimensions, hashes, and source release', () => {
   const manifests = [
     ['docs/website-captures-v1.15.json', historicalLedger.publicRelease, historicalLedger.sourceSha, 10],
@@ -553,6 +679,7 @@ test('public product captures match their reviewed dimensions, hashes, and sourc
     ['docs/website-captures-v1.38.0.json', 'v1.38.0', '87538deee7e8acd0019f25bdae74f22a7481cb2d', 14],
     ['docs/website-captures-v1.40.0.json', 'v1.40.0', '17ed22052bc0e1d0c0ce3920cbcb85c4792d306e', 1],
     ['docs/website-captures-float-island-v1.40.0.json', 'v1.40.0', '17ed22052bc0e1d0c0ce3920cbcb85c4792d306e', 2],
+    ['docs/website-captures-v1.41.0.json', 'v1.41.0', '9298b0916987ea9628bb2bee014717e85cd11628', 35],
   ];
   for (const [file, release, sourceSha, expectedCount] of manifests) {
     const manifest = JSON.parse(read(file));

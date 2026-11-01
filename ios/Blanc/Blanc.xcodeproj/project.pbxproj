@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 110;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -11,6 +11,9 @@
 		502D58322FFEC0EE00B5B1DE /* BlancSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */; };
 		502D58412FFED0A000B5B1DE /* pages in Resources */ = {isa = PBXBuildFile; fileRef = 502D58402FFED0A000B5B1DE /* pages */; };
 		502D58422FFED0A000B5B1DE /* generated in Resources */ = {isa = PBXBuildFile; fileRef = 502D58432FFED0A000B5B1DE /* generated */; };
+		502D58442FFED0A000B5B1DE /* bridges.json in Resources */ = {isa = PBXBuildFile; fileRef = 502D58452FFED0A000B5B1DE /* bridges.json */; };
+		5A5E00012FFF000000B5B1DE /* BlancShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5A5E00022FFF000000B5B1DE /* BlancShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		5A5E00102FFF000000B5B1DE /* SharedLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A5E00112FFF000000B5B1DE /* SharedLink.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -21,7 +24,35 @@
 			remoteGlobalIDString = 502D57F62FFEBF0C00B5B1DE;
 			remoteInfo = Blanc;
 		};
+		502D59072FFEBF0D00B5B1DE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 502D57EF2FFEBF0C00B5B1DE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 502D57F62FFEBF0C00B5B1DE;
+			remoteInfo = Blanc;
+		};
+		5A5E00032FFF000000B5B1DE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 502D57EF2FFEBF0C00B5B1DE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5A5E00052FFF000000B5B1DE;
+			remoteInfo = BlancShare;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		5A5E00042FFF000000B5B1DE /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				5A5E00012FFF000000B5B1DE /* BlancShare.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		502D57F72FFEBF0C00B5B1DE /* Blanc.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Blanc.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -30,6 +61,11 @@
 		502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlancSettings.swift; sourceTree = "<group>"; };
 		502D58402FFED0A000B5B1DE /* pages */ = {isa = PBXFileReference; lastKnownFileType = folder; name = pages; path = ../../src/renderer/pages; sourceTree = "<group>"; };
 		502D58432FFED0A000B5B1DE /* generated */ = {isa = PBXFileReference; lastKnownFileType = folder; name = generated; path = ../../adblock/generated; sourceTree = "<group>"; };
+		502D58452FFED0A000B5B1DE /* bridges.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = bridges.json; path = ../../browser-api/bridges.json; sourceTree = "<group>"; };
+		502D59012FFEBF0D00B5B1DE /* BlancUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BlancUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5A5E00022FFF000000B5B1DE /* BlancShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BlancShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		5A5E00112FFF000000B5B1DE /* SharedLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SharedLink.swift; path = Blanc/SharedLink.swift; sourceTree = "<group>"; };
+		5A5E00162FFF000000B5B1DE /* BlancShare-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "BlancShare-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -41,6 +77,16 @@
 		502D58072FFEBF0D00B5B1DE /* BlancTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = BlancTests;
+			sourceTree = "<group>";
+		};
+		502D59022FFEBF0D00B5B1DE /* BlancUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BlancUITests;
+			sourceTree = "<group>";
+		};
+		5A5E00062FFF000000B5B1DE /* BlancShare */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BlancShare;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -56,6 +102,16 @@
 			files = (
 			);
 		};
+		502D59052FFEBF0D00B5B1DE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		5A5E00072FFF000000B5B1DE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -64,10 +120,15 @@
 			children = (
 				502D58402FFED0A000B5B1DE /* pages */,
 				502D58432FFED0A000B5B1DE /* generated */,
+				502D58452FFED0A000B5B1DE /* bridges.json */,
 				502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */,
 				502D582F2FFEC0C300B5B1DE /* Tokens.swift */,
 				502D57F92FFEBF0C00B5B1DE /* Blanc */,
 				502D58072FFEBF0D00B5B1DE /* BlancTests */,
+				502D59022FFEBF0D00B5B1DE /* BlancUITests */,
+				5A5E00062FFF000000B5B1DE /* BlancShare */,
+				5A5E00162FFF000000B5B1DE /* BlancShare-Info.plist */,
+				5A5E00112FFF000000B5B1DE /* SharedLink.swift */,
 				502D57F82FFEBF0C00B5B1DE /* Products */,
 			);
 			sourceTree = "<group>";
@@ -77,6 +138,8 @@
 			children = (
 				502D57F72FFEBF0C00B5B1DE /* Blanc.app */,
 				502D58042FFEBF0D00B5B1DE /* BlancTests.xctest */,
+				502D59012FFEBF0D00B5B1DE /* BlancUITests.xctest */,
+				5A5E00022FFF000000B5B1DE /* BlancShare.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -91,8 +154,12 @@
 				502D57F32FFEBF0C00B5B1DE /* Sources */,
 				502D57F42FFEBF0C00B5B1DE /* Frameworks */,
 				502D57F52FFEBF0C00B5B1DE /* Resources */,
+				5A5E00042FFF000000B5B1DE /* Embed Foundation Extensions */,
 			);
 			buildRules = (
+			);
+			dependencies = (
+				5A5E00132FFF000000B5B1DE /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				502D57F92FFEBF0C00B5B1DE /* Blanc */,
@@ -123,6 +190,47 @@
 			productReference = 502D58042FFEBF0D00B5B1DE /* BlancTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		502D59032FFEBF0D00B5B1DE /* BlancUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 502D59092FFEBF0D00B5B1DE /* Build configuration list for PBXNativeTarget "BlancUITests" */;
+			buildPhases = (
+				502D59042FFEBF0D00B5B1DE /* Sources */,
+				502D59052FFEBF0D00B5B1DE /* Frameworks */,
+				502D59062FFEBF0D00B5B1DE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				502D59082FFEBF0D00B5B1DE /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				502D59022FFEBF0D00B5B1DE /* BlancUITests */,
+			);
+			name = BlancUITests;
+			productName = BlancUITests;
+			productReference = 502D59012FFEBF0D00B5B1DE /* BlancUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		5A5E00052FFF000000B5B1DE /* BlancShare */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5A5E00122FFF000000B5B1DE /* Build configuration list for PBXNativeTarget "BlancShare" */;
+			buildPhases = (
+				5A5E00092FFF000000B5B1DE /* Sources */,
+				5A5E00072FFF000000B5B1DE /* Frameworks */,
+				5A5E00082FFF000000B5B1DE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				5A5E00062FFF000000B5B1DE /* BlancShare */,
+			);
+			name = BlancShare;
+			productName = BlancShare;
+			productReference = 5A5E00022FFF000000B5B1DE /* BlancShare.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -140,6 +248,13 @@
 						CreatedOnToolsVersion = 27.0;
 						TestTargetID = 502D57F62FFEBF0C00B5B1DE;
 					};
+					502D59032FFEBF0D00B5B1DE = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = 502D57F62FFEBF0C00B5B1DE;
+					};
+					5A5E00052FFF000000B5B1DE = {
+						CreatedOnToolsVersion = 27.0;
+					};
 				};
 			};
 			buildConfigurationList = 502D57F22FFEBF0C00B5B1DE /* Build configuration list for PBXProject "Blanc" */;
@@ -148,6 +263,11 @@
 			knownRegions = (
 				en,
 				Base,
+				de,
+				es,
+				fr,
+				it,
+				"pt-BR",
 			);
 			mainGroup = 502D57EE2FFEBF0C00B5B1DE;
 			minimizedProjectReferenceProxies = 1;
@@ -158,6 +278,8 @@
 			targets = (
 				502D57F62FFEBF0C00B5B1DE /* Blanc */,
 				502D58032FFEBF0D00B5B1DE /* BlancTests */,
+				502D59032FFEBF0D00B5B1DE /* BlancUITests */,
+				5A5E00052FFF000000B5B1DE /* BlancShare */,
 			);
 		};
 /* End PBXProject section */
@@ -168,9 +290,20 @@
 			files = (
 				502D58412FFED0A000B5B1DE /* pages in Resources */,
 				502D58422FFED0A000B5B1DE /* generated in Resources */,
+				502D58442FFED0A000B5B1DE /* bridges.json in Resources */,
 			);
 		};
 		502D58022FFEBF0D00B5B1DE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		502D59062FFEBF0D00B5B1DE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		5A5E00082FFF000000B5B1DE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
 			);
@@ -190,6 +323,17 @@
 			files = (
 			);
 		};
+		502D59042FFEBF0D00B5B1DE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		5A5E00092FFF000000B5B1DE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+				5A5E00102FFF000000B5B1DE /* SharedLink.swift in Sources */,
+			);
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -197,6 +341,16 @@
 			isa = PBXTargetDependency;
 			target = 502D57F62FFEBF0C00B5B1DE /* Blanc */;
 			targetProxy = 502D58052FFEBF0D00B5B1DE /* PBXContainerItemProxy */;
+		};
+		502D59082FFEBF0D00B5B1DE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 502D57F62FFEBF0C00B5B1DE /* Blanc */;
+			targetProxy = 502D59072FFEBF0D00B5B1DE /* PBXContainerItemProxy */;
+		};
+		5A5E00132FFF000000B5B1DE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5A5E00052FFF000000B5B1DE /* BlancShare */;
+			targetProxy = 5A5E00032FFF000000B5B1DE /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -254,7 +408,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -312,7 +466,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -325,19 +479,23 @@
 		502D58172FFEBF0D00B5B1DE /* Debug configuration for PBXNativeTarget "Blanc" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "SunriseDawn Sunrise SunriseDark SunriseSpectrum SunriseAmber";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Blanc.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XYGUCY4498;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -362,19 +520,23 @@
 		502D58182FFEBF0D00B5B1DE /* Release configuration for PBXNativeTarget "Blanc" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "SunriseDawn Sunrise SunriseDark SunriseSpectrum SunriseAmber";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Blanc.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XYGUCY4498;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -404,7 +566,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XYGUCY4498;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = me.bnfy.BlancTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -426,7 +588,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XYGUCY4498;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = me.bnfy.BlancTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -437,6 +599,106 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Blanc.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Blanc";
+			};
+			name = Release;
+		};
+		502D590A2FFEBF0D00B5B1DE /* Debug configuration for PBXNativeTarget "BlancUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XYGUCY4498;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = me.bnfy.BlancUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Blanc;
+			};
+			name = Debug;
+		};
+		502D590B2FFEBF0D00B5B1DE /* Release configuration for PBXNativeTarget "BlancUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XYGUCY4498;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = me.bnfy.BlancUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Blanc;
+			};
+			name = Release;
+		};
+		5A5E00142FFF000000B5B1DE /* Debug configuration for PBXNativeTarget "BlancShare" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XYGUCY4498;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "BlancShare-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Blanc;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = me.bnfy.blanc.share;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		5A5E00152FFF000000B5B1DE /* Release configuration for PBXNativeTarget "BlancShare" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XYGUCY4498;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "BlancShare-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Blanc;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = me.bnfy.blanc.share;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -464,6 +726,22 @@
 			buildConfigurations = (
 				502D581A2FFEBF0D00B5B1DE /* Debug configuration for PBXNativeTarget "BlancTests" */,
 				502D581B2FFEBF0D00B5B1DE /* Release configuration for PBXNativeTarget "BlancTests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		502D59092FFEBF0D00B5B1DE /* Build configuration list for PBXNativeTarget "BlancUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				502D590A2FFEBF0D00B5B1DE /* Debug configuration for PBXNativeTarget "BlancUITests" */,
+				502D590B2FFEBF0D00B5B1DE /* Release configuration for PBXNativeTarget "BlancUITests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		5A5E00122FFF000000B5B1DE /* Build configuration list for PBXNativeTarget "BlancShare" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5A5E00142FFF000000B5B1DE /* Debug configuration for PBXNativeTarget "BlancShare" */,
+				5A5E00152FFF000000B5B1DE /* Release configuration for PBXNativeTarget "BlancShare" */,
 			);
 			defaultConfigurationName = Release;
 		};

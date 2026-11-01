@@ -1,0 +1,279 @@
+{
+  "publicRelease": "v1.45.0",
+  "sourceSha": "6f1bc523d2f0d432d5c4119b9f7ec22a324dbd2d",
+  "releaseEvidence": "docs/release-incidents/2026-10-29-v1.45.0.md",
+  "scope": "Site copy verified against public v1.45.0 on October 29, 2026: /features/workspaces and its Support guide no longer say Spaces never sync; /features/sync and its guide add Shared Spaces (merging only for shared Spaces) and the random key of a sync without a passphrase; /features/reopen-closed-tabs and its guide say a tab closed in a shared Space reaches other computers’ Recently closed as its address and title; /features/security, its guide and the Trust foundations add shared Spaces to what Sync encrypts; and the homepage answer “Can I sync with my phone?” names Blanc for iPhone’s public TestFlight beta and iPhone pairing. The privacy policy and the Shared Spaces FAQ were worded before the release (#1241) and are unchanged.",
+  "prohibitedClaims": [
+    "Blanc Spaces are device-local and profile-scoped. They do not sync across devices",
+    "Saved on this device, within this profile.",
+    "Each machine publishes its own open tabs; nothing merges or rearranges.",
+    "with a key derived from your passphrase, stored server-side",
+    "No. Blanc is a desktop browser.",
+    "end-to-end encrypted with a passphrase only you know"
+  ],
+  "evidenceGroups": {
+    "sharedSpaces": {
+      "evidence": [
+        "src/main/main.js",
+        "src/main/shared-spaces.js",
+        "src/main/shared-spaces-service.js",
+        "src/main/shared-spaces-sharing.js",
+        "spec/acceptance/shared-spaces.feature",
+        "copy/messages/en.json",
+        "docs/press/release-notes/v1.45.0.md",
+        "docs/reviews/2026-10-28-shared-spaces-gate-d-1.45.0.md"
+      ],
+      "qualification": "Since v1.45.0 isSharedSpacesOffered() is true in packaged builds, so Settings → Sync → What syncs → Spaces and groups lets the person choose up to 25 Spaces to share; their open web tabs, tab names, groups, pins and order match on every device with it turned on, and any of them can change them. Off by default, set on each device, Personal profile only; private tabs, internal pages and local files never sync; a change from another device to the tab on screen waits until the person leaves it. Device-validated Mac↔Windows and Mac↔Linux in the Gate D rerun (Linux from the AppImage’s extracted payload); not on Intel Macs, x64 Linux, X11 or with local files. Open-tab snapshots of the Other devices drawer still never merge."
+    },
+    "syncedClosed": {
+      "evidence": [
+        "src/main/synced-closed.js",
+        "src/main/synced-closed-model.js",
+        "spec/acceptance/shared-spaces.feature",
+        "docs/press/release-notes/v1.45.0.md"
+      ],
+      "qualification": "Since v1.45.0 a tab closed in a shared Space closes on the person’s other devices with Shared Spaces on, and their Recently closed lists it (for up to a day) with its address, title and the device it was closed on; its encrypted record stays in sync storage for 30 days. The closed tab’s navigation snapshot never syncs."
+    },
+    "syncWithoutPassphrase": {
+      "evidence": [
+        "src/main/sync.js",
+        "src/main/sync-pairing.js",
+        "copy/messages/en.json",
+        "docs/press/release-notes/v1.45.0.md"
+      ],
+      "qualification": "Since v1.45.0 Turn on Sync starts a sync with a random 32-byte key and random account locator made on the device (sync.js startNew), so nothing derives them; devices join with an eight-character code; the device that started it offers a recovery code copied only to the clipboard. The sync name and passphrase path is unchanged. The code window’s screen-capture exclusion is unverified and never claimed."
+    },
+    "iphonePairing": {
+      "evidence": [
+        "src/main/main.js",
+        "site/src/data/ios-availability.json",
+        "copy/messages/en.json",
+        "docs/press/release-notes/v1.45.0.md"
+      ],
+      "qualification": "Since v1.45.0 (IPHONE_PAIRING_FROM is 1.45) Settings → Sync → Connect your iPhone, and Add device when Sync is on, show a QR code that Blanc for iPhone scans with Pair with your Blanc to join the same Sync, bringing Favorites and the other devices’ tabs. Blanc for iPhone is a public TestFlight beta since October 28, 2026 (build 0.1.0, 202610282005, approved by Beta App Review), not on the App Store; Android has no Blanc app."
+    }
+  },
+  "claims": [
+    {
+      "id": "v145-001",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Your spaces stay in this profile and keep updating as you browse. Nothing about them depends on a subscription.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces"
+      ],
+      "verdict": "verified",
+      "replaces": "site-133-guide-workspaces-06"
+    },
+    {
+      "id": "v145-002",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Saved in this profile. Shared only if you choose.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces"
+      ],
+      "verdict": "verified",
+      "replaces": "website-115-144"
+    },
+    {
+      "id": "v145-003",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Blanc Spaces are profile-scoped and stay on this device unless you share them. Since Blanc 1.45, with Sync on in the Personal profile, you can choose Spaces to keep the same on your other computers. Spaces never move tabs between local profiles. Saving a space preserves its tab setup, not every page’s running state.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces"
+      ],
+      "verdict": "verified",
+      "replaces": "website-115-145"
+    },
+    {
+      "id": "v145-004",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Your spaces stay in this profile and keep updating as you browse. Nothing about them depends on a subscription.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces"
+      ],
+      "verdict": "verified",
+      "replaces": "site-133-workspaces-08"
+    },
+    {
+      "id": "v145-005",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Saved in this profile. Shared only if you choose.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces"
+      ],
+      "verdict": "verified",
+      "replaces": "feature-retained-website-115-144"
+    },
+    {
+      "id": "v145-006",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Blanc Spaces are profile-scoped and stay on this device unless you share them. Since Blanc 1.45, with Sync on in the Personal profile, you can choose Spaces to keep the same on your other computers. Spaces never move tabs between local profiles. Saving a space preserves its tab setup, not every page’s running state.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces"
+      ],
+      "verdict": "verified",
+      "replaces": "feature-retained-website-115-145"
+    },
+    {
+      "id": "v145-007",
+      "source": "site/src/components/guides/sync.astro",
+      "exactWording": "Off until you turn it on. Each machine publishes its own open tabs, and they never merge with another device’s tabs or rearrange them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces"
+      ],
+      "verdict": "verified",
+      "replaces": "website-115-249"
+    },
+    {
+      "id": "v145-008",
+      "source": "site/src/components/guides/sync.astro",
+      "exactWording": "Spaces, if you share them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v145-009",
+      "source": "site/src/components/guides/sync.astro",
+      "exactWording": "Since Blanc 1.45, Spaces you choose to share stay the same on each computer that turns on Spaces and groups: their tabs, tab names, groups and pins merge, and a tab closed in one closes on the others. Off by default, on each device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces",
+        "syncedClosed"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v145-010",
+      "source": "site/src/components/guides/sync.astro",
+      "exactWording": "Tab snapshots ride the same end-to-end encryption as the rest of Blanc sync: encrypted on your device with a key derived from your passphrase, or a random key if you turned on Sync without one, and stored server-side as unreadable blobs. A separate bounded encrypted sidecar can carry source-rasterized PNG favicons, so the receiving device does not contact a remote tab's site merely to draw its row. Private tabs never enter a snapshot, and idle devices age out on their own.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "syncWithoutPassphrase"
+      ],
+      "verdict": "verified",
+      "replaces": "revamp-copy-086"
+    },
+    {
+      "id": "v145-011",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Off until you turn it on. Each machine publishes its own open tabs, and they never merge with another device’s tabs or rearrange them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces"
+      ],
+      "verdict": "verified",
+      "replaces": "feature-retained-website-115-249"
+    },
+    {
+      "id": "v145-012",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Spaces, if you share them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v145-013",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Since Blanc 1.45, Spaces you choose to share stay the same on each computer that turns on Spaces and groups: their tabs, tab names, groups and pins merge, and a tab closed in one closes on the others. Off by default, on each device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces",
+        "syncedClosed"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v145-014",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Tab snapshots ride the same end-to-end encryption as the rest of Blanc sync: encrypted on your device with a key derived from your passphrase, or a random key if you turned on Sync without one, and stored server-side as unreadable blobs. A separate bounded encrypted sidecar can carry source-rasterized PNG favicons, so the receiving device does not contact a remote tab's site merely to draw its row. Private tabs never enter a snapshot, and idle devices age out on their own.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "syncWithoutPassphrase"
+      ],
+      "verdict": "verified",
+      "replaces": "feature-retained-revamp-copy-086"
+    },
+    {
+      "id": "v145-015",
+      "source": "site/src/components/guides/reopen-closed-tabs.astro",
+      "exactWording": "Closed-tab recovery is not a permanent archive or a promise to recover every tab exactly. Private tabs are never recorded, and closed-tab snapshots never go to disk or sync. Since Blanc 1.45, a tab closed in a shared Space reaches your other computers’ Recently closed as its address and title only.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "syncedClosed"
+      ],
+      "verdict": "verified",
+      "replaces": "website-115-191"
+    },
+    {
+      "id": "v145-016",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Closed-tab recovery is not a permanent archive or a promise to recover every tab exactly. Private tabs are never recorded, and closed-tab snapshots never go to disk or sync. Since Blanc 1.45, a tab closed in a shared Space reaches your other computers’ Recently closed as its address and title only.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "syncedClosed"
+      ],
+      "verdict": "verified",
+      "replaces": "feature-retained-website-115-191"
+    },
+    {
+      "id": "v145-017",
+      "source": "site/src/components/guides/security.astro",
+      "exactWording": "Sync is off by default. Favorites, eligible settings, optional open-tab snapshots and, since Blanc 1.45, Spaces you choose to share are encrypted on your device. The current v1 server stores ciphertext under an opaque account locator and cannot read or merge it. The passphrase is never stored or sent, and the retained key is wrapped by the operating system credential service.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces",
+        "syncWithoutPassphrase"
+      ],
+      "verdict": "verified",
+      "replaces": "reddit-463"
+    },
+    {
+      "id": "v145-018",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Sync is off by default. Favorites, eligible settings, optional open-tab snapshots and, since Blanc 1.45, Spaces you choose to share are encrypted on your device. The current v1 server stores ciphertext under an opaque account locator and cannot read or merge it. The passphrase is never stored or sent, and the retained key is wrapped by the operating system credential service.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces",
+        "syncWithoutPassphrase"
+      ],
+      "verdict": "verified",
+      "replaces": "feature-retained-reddit-463"
+    },
+    {
+      "id": "v145-019",
+      "source": "site/src/components/guides/foundations.astro",
+      "exactWording": "If you enable Sync, eligible Favorites, settings, optional open-tab snapshots and, since Blanc 1.45, Spaces you choose to share are encrypted before reaching Blanc’s Cloudflare-hosted service. Cookies, passwords and browsing history are not synced.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces"
+      ],
+      "verdict": "verified",
+      "replaces": "trust-125-378"
+    },
+    {
+      "id": "v145-020",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "On an iPhone, yes: Blanc for iPhone is a public beta on TestFlight. Since Blanc 1.45 you pair it by scanning a code in Settings → Sync, and your Favorites and your other devices’ tabs come with you. Optional sync keeps Favorites, settings and open tabs in step across your computers, end-to-end encrypted. History and passwords never sync.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "iphonePairing",
+        "syncWithoutPassphrase"
+      ],
+      "verdict": "verified",
+      "replaces": "cinema-data-30"
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import path from 'node:path';
 import http from 'node:http';
 import { createHash } from 'node:crypto';
 import { extractFile } from '@electron/asar';
+import { createRequire } from 'node:module';
 import { launchPackagedOverCdp } from './support/packaged-cdp.mjs';
 import poll from './support/poll.js';
 const { waitForValue, clickWhenSettled, expectPageClose } = poll;
@@ -31,6 +32,17 @@ const metadata = readJson('package.json');
 assert.equal(metadata.blancUblockBundled, true, 'Packaged app must actually bundle uBO');
 const pin = readJson('ublock/pinned.json');
 const matrix = readJson('src/main/ublock-platforms.json');
+// The Electron version this exact installed package must report: the reviewed
+// official runtime, or for a public ECS package the pinned ECS runtime, proven
+// from the launched executable's own ASAR metadata by the strict shared
+// verifier (ECS runtime, pin, recognized target, matching archive digest), and
+// covered by that package's own uBO ECS runtime record.
+const ecsPackage = metadata.blancRuntime === 'ecs';
+let expectedElectron = matrix.electron;
+if (ecsPackage) {
+  expectedElectron = createRequire(import.meta.url)('./support/ecs-package-version.cjs').verifyEcsPackageMetadata(metadata);
+  assert.equal(matrix.ecsRuntime, metadata.blancEcsRuntime, 'installed uBO record must cover this ECS runtime');
+}
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-packaged-noscript-'));
 fs.writeFileSync(path.join(temp, 'settings.json'), JSON.stringify({
   onboardingVersion: 1, adblockProvider: 'ublock-origin', adblockEnabled: true,
@@ -66,7 +78,7 @@ let app;
 let stage = 'launch';
 const report = {
   alert: 77, kind: 'packaged-cdp-probe', passed: false,
-  package: { version: metadata.version, ublock: pin.version, electron: matrix.electron,
+  package: { version: metadata.version, ublock: pin.version, runtime: ecsPackage ? 'ecs' : 'official', expectedElectron,
     internalCandidate: metadata.blancUblockInternalValidation === true,
     executableSha256: digest(fs.readFileSync(executable)), asarSha256: digest(fs.readFileSync(asar)) },
   os: process.platform, architecture: null, harnessArchitecture: process.arch, osRelease: os.release(),
@@ -92,7 +104,8 @@ try {
   const settings = await open('blanc://settings/');
   const appInfo = await settings.evaluate(async () => (await window.bowserPages.settings.get()).appInfo);
   assert.equal(appInfo.blancVersion, metadata.version);
-  assert.equal(appInfo.electronVersion, matrix.electron);
+  report.actualElectron = appInfo.electronVersion;
+  assert.equal(appInfo.electronVersion, expectedElectron, 'installed runtime matches the expected runtime');
   assert.equal(appInfo.platform, process.platform);
   report.architecture = appInfo.architecture;
   report.runtimeInfo = appInfo;
@@ -104,7 +117,7 @@ try {
     return state.phase === 'ready';
   }, 'packaged uBO ready', 40000);
   assert.equal(status.supported, true);
-  assert.equal(status.electron, matrix.electron);
+  assert.equal(status.electron, expectedElectron, 'provider reports the expected runtime');
   assert.equal(status.ublock, pin.version);
   report.provider = { active: status.active, phase: status.phase, electron: status.electron, ublock: status.ublock };
   const inspect = page => page.evaluate(() => ({

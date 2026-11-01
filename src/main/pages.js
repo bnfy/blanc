@@ -1,4 +1,4 @@
-const { app, protocol, ipcMain, session, dialog, shell } = require('electron');
+const { app, protocol, ipcMain, session, dialog, shell, webContents } = require('electron');
 const { execFileSync } = require('node:child_process');
 const path = require('path');
 const fs = require('fs');
@@ -8,12 +8,26 @@ const { parseNetscapeBookmarks } = require('./bookmark-import');
 const { createBrowserDataImportService } = require('./browser-data-import');
 
 const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20 MiB
+
+// Swaps an open page's stylesheet for a fresh copy (and so the current surface
+// style), removing the old one only once the new one has loaded, so the page
+// never shows unstyled. The query only defeats the link's own dedupe; the
+// handler resolves the file by name.
+const RESTYLE_SCRIPT = `(() => {
+  const old = document.querySelector('link[rel="stylesheet"][href^="pages.css"]');
+  if (!old) return;
+  const next = old.cloneNode();
+  next.href = 'pages.css?restyle=' + Date.now();
+  next.addEventListener('load', () => old.remove(), { once: true });
+  old.after(next);
+})()`;
 const history = require('./history');
 const archive = require('./archive');
 const downloads = require('./downloads');
 const settings = require('./settings');
 const wallpaper = require('./wallpaper');
 const { settingsForSource } = require('./wallpaper-model');
+const { settingsForClock, clockStyleFromSettings } = require('./start-clock-style');
 const { runOnePasswordVerify } = require('./onepassword-verify-flow');
 const { createDefaultBrowserStatus, requestDefaultBrowser } = require('./default-browser-status');
 const patron = require('./patron');
@@ -48,7 +62,10 @@ const PAGES_DIR = path.join(__dirname, '../renderer/pages');
 /** Must run before app 'ready'. */
 function registerPagesScheme() {
   protocol.registerSchemesAsPrivileged([
+    ...(require('../../package.json').blancRuntime === 'ecs'
+      ? [require('./local-html-preview').LOCAL_HTML_SCHEME] : []),
     { scheme: 'blanc', privileges: { standard: true, secure: true } },
+    { scheme: 'blanc-reader', privileges: { standard: true, secure: true } },
     // The privileged strip + overlay cannot remain on file:// when the
     // GrantFileProtocolExtraPrivileges fuse is disabled. Their handler is a
     // separate, exact allowlist in chrome-protocol.js.
@@ -71,6 +88,7 @@ function setupPages(hooks = {}) {
   });
   const trustLinks = trustLinksForVersion(app.getVersion());
   const onePasswordAvailable = () => hooks.onePasswordAvailable?.() === true;
+  const recentTabOrderAvailable = () => hooks.recentTabOrderAvailable?.() === true;
   const developmentBrandMarkPath = hooks.developmentBrandMarkPath ?? null;
   const developmentDockIconPath = hooks.developmentDockIconPath ?? null;
   const developmentDarkDockIconPath = hooks.developmentDarkDockIconPath ?? null;
@@ -102,6 +120,29 @@ function setupPages(hooks = {}) {
   const stringsScript = hooks.stringsScript ?? (() =>
     stringsScriptFor({ source: fs.readFileSync(path.join(PAGES_DIR, 'strings.en.js'), 'utf8'), formatLocale: 'en', strict: false }));
 
+  // Both files are read once in a packaged build. A dev run reads them per
+  // request so an edited stylesheet shows on the next navigation.
+  const stylesheetCache = new Map();
+  const stylesheet = (surfaceStyle) => {
+    const key = surfaceStyle === 'neutral' ? 'neutral' : 'sunrise';
+    if (stylesheetCache.has(key)) return stylesheetCache.get(key);
+    let css = fs.readFileSync(path.join(PAGES_DIR, 'pages.css'), 'utf8');
+    if (key === 'neutral') css += '\n' + fs.readFileSync(path.join(PAGES_DIR, 'pages-neutral.css'), 'utf8');
+    if (app.isPackaged) stylesheetCache.set(key, css);
+    return css;
+  };
+  // A Surface style change restyles every open internal page (Start Pages,
+  // sheets, Mahjong) in place, with no reload to lose a game or a search.
+  let appliedSurfaceStyle = settings.getSettings().surfaceStyle;
+  settings.onSettingsChanged?.((s) => {
+    if (s.surfaceStyle === appliedSurfaceStyle) return;
+    appliedSurfaceStyle = s.surfaceStyle;
+    for (const wc of webContents?.getAllWebContents?.() ?? []) {
+      if (wc.isDestroyed() || !wc.getURL().startsWith('blanc://')) continue;
+      wc.executeJavaScript(RESTYLE_SCRIPT).catch(() => {});
+    }
+  });
+
   const serveBlanc = (request) => {
     const branding = ublockBrandResourcePath(request.url);
     if (branding) return internalFileResponse(branding);
@@ -120,6 +161,15 @@ function setupPages(hooks = {}) {
       return new Response(stringsScript(), { headers: { 'content-type': 'text/javascript; charset=utf-8' } });
     }
     const name = asset.name;
+    // The stylesheet carries the surface style: Neutral appends its overrides
+    // in the same response, so there is no flash of the Sunrise palette. It
+    // is never cached by Chromium, or a page reloaded after a change would
+    // keep the old palette.
+    if (name === 'pages.css') {
+      return new Response(stylesheet(settings.getSettings().surfaceStyle), {
+        headers: { 'content-type': 'text/css; charset=utf-8', 'cache-control': 'no-store' },
+      });
+    }
     const defaultPath = path.join(PAGES_DIR, name);
     const resource = developmentBrandAssetPath({
       name,
@@ -197,7 +247,16 @@ function setupPages(hooks = {}) {
   handle('pages:tab-handoff:cancel', 'tab-handoff', () =>
     hooks.tabHandoff?.cancel?.() ?? { ok: true });
 
+  handle('pages:bookmarks:capabilities', 'bookmarks', () => ({ editable: true }));
   handle('pages:bookmarks:list', ['bookmarks', 'newtab'], () => bookmarks.listBookmarks());
+  // Start Page pins (start-page-pins.js): one device-local list that the
+  // Start Page and the Favorites page read and change; main tells both when it
+  // moves (pages:pins:changed).
+  handle('pages:pins:list', ['bookmarks', 'newtab'], () => hooks.startPins?.list?.() ?? { max: 0, pins: [] });
+  handleEvent('pages:pins:pin', ['bookmarks', 'newtab'], (event, url, title) =>
+    hooks.startPins?.pin?.(event.sender, { url, title }) ?? { ok: false, reason: 'unavailable' });
+  handleEvent('pages:pins:unpin', ['bookmarks', 'newtab'], (event, url) =>
+    hooks.startPins?.unpin?.(event.sender, url) ?? false);
   handle('pages:bookmarks:remove', 'bookmarks', (id) => {
     bookmarks.removeBookmark(id);
     hooks.onDataChanged?.();
@@ -394,6 +453,7 @@ function setupPages(hooks = {}) {
       architecture: process.arch,
     },
     onePasswordAvailable: onePasswordAvailable(),
+    recentTabOrderAvailable: recentTabOrderAvailable(),
     searchEngines: Object.fromEntries(
       Object.entries(settings.SEARCH_ENGINES).map(([key, { label }]) => [key, label])
     ),
@@ -401,6 +461,8 @@ function setupPages(hooks = {}) {
     languages: hooks.i18n?.languagesInfo() ?? { active: 'en', system: 'en', options: [] },
   }));
   handle('pages:settings:check-for-updates', 'settings', () => hooks.checkForUpdates());
+  handle('pages:settings:drm-status', 'settings', () => hooks.drm?.status() ?? { enabled: false, state: 'unsupported', version: null, canRestart: false });
+  handle('pages:settings:drm-restart', 'settings', () => hooks.drm?.restart() ?? false);
   handle('pages:blocking:status', 'settings', () => hooks.blocking?.status() ?? null);
   handle('pages:blocking:retry', 'settings', () => hooks.blocking?.retry() ?? false);
   handle('pages:blocking:open', 'settings', (tool) => hooks.blocking?.open(tool) ?? false);
@@ -420,6 +482,12 @@ function setupPages(hooks = {}) {
   // it, so pages:settings:set drops it like any unknown key.
   handle('pages:settings:language', 'settings', (code, restart) =>
     hooks.i18n?.changeUiLanguage(code, { restart }) ?? false);
+  // F60 link routing. Targets are names and opaque ids only; the rules'
+  // only write path is settings.setLinkRoutes(), which validates the list.
+  handle('pages:settings:link-targets', 'settings', () =>
+    hooks.linkRoutes?.targets() ?? { profiles: [], spaces: [] });
+  handle('pages:settings:link-routes:set', 'settings', (routes) =>
+    settings.setLinkRoutes(Array.isArray(routes) ? routes : null));
   handle('pages:settings:trust-receipt', 'settings', async () => {
     const current = settings.getSettings();
     const blocker = JSON.parse(fs.readFileSync(path.join(app.getAppPath(), 'adblock/sources/pinned.json'), 'utf8'));
@@ -489,7 +557,19 @@ function setupPages(hooks = {}) {
 
   // Sync: the passphrase arrives once on enable and never leaves main; every
   // response is status-only (enabled/handle/lastSyncedAt/lastError) — no keys.
-  handle('pages:settings:sync-get', 'settings', () => syncStatus(sync.status()));
+  handle('pages:settings:shared-spaces-acknowledge','settings',id=>hooks.sharedSpaces?.acknowledge(id)??false);
+  handle('pages:settings:shared-spaces-open','settings',id=>hooks.sharedSpaces?.open(id)??{ok:false});
+  handle('pages:settings:shared-spaces-status','settings',()=>hooks.sharedSpaces?.status()??{offered:false});
+  handle('pages:settings:shared-spaces-preview','settings',()=>hooks.sharedSpaces?.preview()??{offered:false});
+  handle('pages:settings:shared-spaces-apply','settings',payload=>hooks.sharedSpaces?.apply(payload??{})??{ok:false});
+  // iphonePairing: Connect your iPhone and the QR are offered in this build
+  // (design 2026-10-28 §9); openPairSheet: Finish setup asked for the sheet.
+  handle('pages:settings:sync-get', 'settings', () => ({
+    ...syncStatus(sync.status()),
+    iphonePairing: hooks.syncPairing?.offered?.() === true,
+    openPairSheet: hooks.syncPairing?.takeOpenSheet?.() === true,
+    platform: process.platform,
+  }));
   handle('pages:settings:sync-enable', 'settings', async (payload) => {
     const result = await sync.enable(payload ?? {});
     // Persisted credentials complete the migration task even when the first
@@ -505,9 +585,22 @@ function setupPages(hooks = {}) {
   // lives in sync.json, never settings.json, so it cannot cross sync.
   handle('pages:settings:sync-tabs-set', 'settings', (on) => sync.setSyncTabs(!!on));
   handle('pages:settings:sync-device-name-set', 'settings', (name) => sync.setThisDeviceName(name));
+  // Names and platforms only: Settings → Sync's device list (sync.listDevices).
+  handle('pages:settings:sync-devices', 'settings', () => sync.listDevices());
   // Device pairing (design 2026-10-16): the pairing code crosses to the page
   // for display; the wrapped secret, the key and the recovery code never do.
   handle('pages:settings:sync-pair-begin', 'settings', async () => syncReply(await sync.beginPairing()));
+  // Sync without a passphrase (design 2026-10-28 §5.1): the sync is named in
+  // the interface language; like enabling, it completes the moving-in task.
+  handle('pages:settings:sync-start-new', 'settings', async () => {
+    const result = await sync.startNew({ handle: t('settings.sync.defaultName') });
+    if (result?.status?.enabled === true) settings.setSettings({ syncMigrationCompleted: true });
+    return syncReply(result);
+  });
+  handle('pages:settings:sync-recovery-prompt-dismiss', 'settings', () => sync.dismissRecoveryPrompt());
+  // The sheet with a live code is visible (true) or not; main decides whether
+  // that window is focused enough to watch for the device that takes it.
+  handleEvent('pages:settings:sync-pair-watch', 'settings', (event, visible) => hooks.syncPairing?.watch(event.sender, visible === true) ?? false);
   handle('pages:settings:sync-pair-cancel', 'settings', () => sync.cancelPairing());
   handle('pages:settings:sync-pair-state', 'settings', () => sync.pairingState());
   handle('pages:settings:sync-join-code', 'settings', async (code) => {
@@ -546,6 +639,9 @@ function setupPages(hooks = {}) {
     blockedByDay: hooks.startPage?.blockedByDay?.() ?? [0, 0, 0, 0, 0, 0, 0],
     blockedBarHeights: hooks.startPage?.blockedBarHeights?.() ?? [0, 0, 0, 0, 0, 0, 0],
     remoteDevices: hooks.startPage?.remoteDevices() ?? [],
+    // Pages other devices sent here (M7b), opened or dismissed through the
+    // two handlers below; never in a private Start Page.
+    sentItems: hooks.startPage?.sentItemsFor?.(event.sender) ?? [],
     // Least-privilege projection for the onboarding dialog: only the two
     // settings it can change, so a replay shows what is actually saved.
     onboarding: hooks.startPage?.onboardingState?.() ?? null,
@@ -554,6 +650,9 @@ function setupPages(hooks = {}) {
     // later pages:start:status push, so initial load and live updates agree.
     ...hooks.startPage?.status?.(),
     wallpaperVisible: hooks.startPage?.visibleFor?.(event.sender) === true,
+    // Play the Sunrise when Blanc opens (#1179): true for one Start Page per
+    // launch, decided in main (launch-sunrise.js).
+    launchSunrise: hooks.startPage?.launchSunriseFor?.(event.sender) === true,
     // Per-tab: a private Start Page never receives the custom image.
     wallpaper: hooks.startPage?.wallpaperFor?.(event.sender) ?? null,
     // Per-tab guard: the shared status never carries profile or privacy.
@@ -616,6 +715,13 @@ function setupPages(hooks = {}) {
     if (typeof enabled === 'boolean') settings.setSettings({ newtabFollowSpaceColor: enabled });
     return wallpaperReply(event);
   });
+  // The Billboard clock's Font & Color (synced): any of font, weight, height,
+  // color, tone and style; each is validated on its own and anything else is
+  // ignored. The reply is the clock as now drawn.
+  handle('pages:start:set-clock', 'newtab', (partial) => {
+    const write = settingsForClock(partial);
+    return clockStyleFromSettings(Object.keys(write).length ? settings.setSettings(write) : settings.getSettings());
+  });
   handleEvent('pages:start:choose-wallpaper', ['newtab', 'settings'], async (event) => {
     let file = hooks.wallpaperTestFile?.() ?? null;
     if (!file) {
@@ -650,6 +756,8 @@ function setupPages(hooks = {}) {
     'newtab',
     (id) => hooks.startPage?.focusGroup(String(id)),
   );
+  handle('pages:start:open-sent', 'newtab', (id) => hooks.startPage?.openSent?.(String(id)) === true);
+  handle('pages:start:dismiss-sent', 'newtab', (id) => hooks.startPage?.dismissSent?.(String(id)) === true);
   // The moving-in checklist's "Make your first space" opens the Spaces menu.
   handle('pages:start:open-spaces', 'newtab', () => hooks.startPage?.openSpaces?.() === true);
   // Type-to-open from the start page. Main re-validates the character in
@@ -687,6 +795,8 @@ function setupPages(hooks = {}) {
   );
   // Moving-in checklist: open Settings at an allowlisted section (main owns
   // the allowlist) and persist a one-time dismissal.
+  handleEvent('pages:start:shared-question','newtab',event=>hooks.startPage?.sharedQuestionFor(event.sender)??null);
+  handleEvent('pages:start:shared-question-answer','newtab',(event,id,on)=>hooks.startPage?.sharedQuestionAnswer(event.sender,id,!!on)??false);
   handle('pages:start:open-settings', 'newtab', (section) => hooks.startPage?.openSettingsSection?.(section));
   handle('pages:start:migration-checklist-dismiss', 'newtab', () => hooks.startPage?.dismissMigrationChecklist?.() === true);
   // Patron upgrade pill: closing it snoozes it for 90 days (main owns the clock).

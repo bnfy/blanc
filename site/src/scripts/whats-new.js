@@ -75,8 +75,14 @@ if (root) {
     settleVideos();
   }
 
-  root.classList.add('is-enhanced');
+  // The page may already have painted every view in plain flow. Stacking them
+  // with the crossfade on would fade all the hidden ones out together over
+  // the shown one, so the first switch skips it (is-settling), and the styles
+  // are settled before the crossfade comes back.
+  root.classList.add('is-enhanced', 'is-settling');
   show(indexOfId(decodeURIComponent(location.hash.slice(1))), { updateHash: false });
+  void root.offsetHeight;
+  root.classList.remove('is-settling');
   // A hash names a highlight, not a place to scroll: the page opens at its
   // top, header in view, as it does without one.
   // The browser's own jump to the fragment can land after this script runs,

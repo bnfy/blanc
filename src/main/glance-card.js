@@ -17,11 +17,21 @@ const CARD_MIN_HEIGHT = 280;
 /** How much of the header must stay on screen (the card stays wholly inside
  * the page area, which keeps all of it). */
 const CARD_HEADER_VISIBLE = 48;
-/** The resize ring just outside the border; it also holds the shadow. */
-const CARD_RING = 8;
+/** The resize ring just outside the border; it also holds the shadow, which
+ * falls mostly downward like a window's, so the ring is deepest below the
+ * card. Every pixel of it resizes the card (styles.css .glance-card-edge). */
+const CARD_RING = Object.freeze({ top: 12, side: 20, bottom: 28 });
+/** The card's corner radius, rounder than a Split View pane's because the
+ * card floats; styles.css --glance-card-radius matches it. */
+const CARD_RADIUS = 14;
 /** The header, top border included. */
 const CARD_HEADER_HEIGHT = 40;
-const CARD_BORDER = 1;
+/** The page sits inset in the card's frame below the header, measured from
+ * the card's outer edge (border included), with its own concentric corners:
+ * a view has one radius for all four corners, so a page flush with the
+ * header would curve away under its straight edge. */
+const CARD_PAGE_INSET = 6;
+const CARD_PAGE_RADIUS = CARD_RADIUS - CARD_PAGE_INSET;
 /** A page area smaller than the minimum card: the card fills it less this. */
 const CARD_TINY_MARGIN = 8;
 /** Keyboard move and resize steps. */
@@ -123,13 +133,19 @@ function resizeCardFrame(frame, edge, dx, dy, pageArea) {
 }
 
 /** The views' bounds for a card frame: the chrome view (the frame plus its
- * ring), the header, and the page inside the side and bottom borders. */
-function cardGeometry(frame) {
+ * ring), the frame itself, the header, and the page inset in the frame below
+ * the header. Given the page area, the ring never reaches above it, so a card
+ * at the top leaves the Island's band to the strip (the card can't grow
+ * upward from there anyway). */
+function cardGeometry(frame, pageArea = null) {
+  const top = pageArea ? Math.min(CARD_RING.top, Math.max(0, frame.y - pageArea.y)) : CARD_RING.top;
   return {
-    chrome: rect(frame.x - CARD_RING, frame.y - CARD_RING, frame.width + 2 * CARD_RING, frame.height + 2 * CARD_RING),
+    chrome: rect(frame.x - CARD_RING.side, frame.y - top,
+      frame.width + 2 * CARD_RING.side, frame.height + top + CARD_RING.bottom),
+    frame: rect(frame.x, frame.y, frame.width, frame.height),
     header: rect(frame.x, frame.y, frame.width, CARD_HEADER_HEIGHT),
-    page: rect(frame.x + CARD_BORDER, frame.y + CARD_HEADER_HEIGHT,
-      frame.width - 2 * CARD_BORDER, frame.height - CARD_HEADER_HEIGHT - CARD_BORDER),
+    page: rect(frame.x + CARD_PAGE_INSET, frame.y + CARD_HEADER_HEIGHT,
+      frame.width - 2 * CARD_PAGE_INSET, frame.height - CARD_HEADER_HEIGHT - CARD_PAGE_INSET),
   };
 }
 
@@ -142,8 +158,10 @@ module.exports = {
   CARD_MIN_HEIGHT,
   CARD_HEADER_VISIBLE,
   CARD_RING,
+  CARD_RADIUS,
   CARD_HEADER_HEIGHT,
-  CARD_BORDER,
+  CARD_PAGE_INSET,
+  CARD_PAGE_RADIUS,
   CARD_TINY_MARGIN,
   CARD_KEY_STEP,
   CARD_KEY_STEP_LARGE,

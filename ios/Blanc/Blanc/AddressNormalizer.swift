@@ -17,8 +17,28 @@ struct AddressNormalizer {
         case .google:     base = "https://www.google.com/search?q=\(q)"
         case .bing:       base = "https://www.bing.com/search?q=\(q)"
         case .brave:      base = "https://search.brave.com/search?q=\(q)"
+        case .kagi:       base = "https://kagi.com/search?q=\(q)"
+        // iOS doesn't offer a custom address yet (no `searchEngineTemplate`
+        // field), so a stored `custom` searches the default engine.
+        case .custom:     base = "https://duckduckgo.com/?q=\(q)"
         }
         return URL(string: base)!
+    }
+
+    /// Whether `normalize` would treat the input as an address rather than a
+    /// search, or hand it to the system (desktop's `looksLikeAddress`).
+    static func looksLikeAddress(_ input: String) -> Bool {
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        if OSHandoff.isHandoff(trimmed) { return true }
+        if let r = trimmed.range(of: "://") {
+            let scheme = String(trimmed[trimmed.startIndex..<r.lowerBound]).lowercased()
+            if scheme.range(of: #"^[a-z][a-z0-9+.\-]*$"#, options: .regularExpression) != nil {
+                return !["javascript", "data", "vbscript"].contains(scheme)
+            }
+        }
+        return [#"^localhost(:\d+)?(/|$)"#, #"^(\d{1,3}\.){3}\d{1,3}(:\d+)?(/|$)"#, #"^[^\s]+\.[a-zA-Z]{2,}(/[^\s]*)?$"#]
+            .contains { trimmed.range(of: $0, options: .regularExpression) != nil }
     }
 
     func normalize(_ input: String) -> URL {

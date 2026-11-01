@@ -1,4 +1,6 @@
 import XCTest
+import JavaScriptCore
+import WebKit
 @testable import Blanc
 
 final class PagesBridgeTests: XCTestCase {
@@ -36,11 +38,72 @@ final class PagesBridgeTests: XCTestCase {
 
     // No-op writes resolve to null.
     func testNoOpWrites() {
-        XCTAssertEqual(value("bookmarks", "remove"), .null)
+        XCTAssertEqual(value("bookmarks", "clearFavicon"), .null)
         XCTAssertEqual(value("history", "clear"), .null)
         XCTAssertEqual(value("downloads", "clearFinished"), .null)
         XCTAssertEqual(value("settings", "set"), .null)
         XCTAssertEqual(value("start", "focusGroup"), .null)
+    }
+
+    func testFavoritesAreEditableOnThePhone() {
+        XCTAssertEqual(value("bookmarks", "capabilities"), .object([("editable", .bool(true)), ("import", .bool(false)), ("pins", .bool(false))]))
+    }
+
+    func testImportStillRejects() {
+        for method in ["import", "importBrowser", "browserSources"] {
+            guard case .reject(let message) = PagesBridge.response(group: "bookmarks", method: method, appVersion: "test") else {
+                XCTFail("the phone accepted \(method)")
+                continue
+            }
+            XCTAssertEqual(message, SyncCopy.text("favorites.editOnComputer"))
+        }
+    }
+
+    @MainActor private func managerWithHistory() -> TabsManager {
+        let manager = TabsManager(
+            settingsDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString),
+            sessionDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        manager.historyStore.addVisit(url: URL(string: "https://old.example/")!, title: "Old")
+        manager.historyStore.addVisit(url: URL(string: "https://new.example/")!, title: "New")
+        return manager
+    }
+
+    @MainActor func testHistoryListReturnsEntriesNewestFirst() {
+        let manager = managerWithHistory()
+        let bridge = PagesBridge(manager: manager)
+        guard case .value(let list) = bridge.liveResponse(group: "history", method: "list", args: [["query": "", "limit": 500]]) else {
+            return XCTFail("history.list rejected")
+        }
+        XCTAssertEqual(list.array.map { $0["url"]?.string }, ["https://new.example/", "https://old.example/"])
+        XCTAssertEqual(list.array.first?["title"], .string("New"))
+        XCTAssertEqual(list.array.first?["favicon"], .null)
+        XCTAssertNotNil(list.array.first?["visitedAt"]?.number)
+        guard case .value(let filtered) = bridge.liveResponse(group: "history", method: "list", args: [["query": "old"]]) else {
+            return XCTFail("history.list rejected")
+        }
+        XCTAssertEqual(filtered.array.map { $0["url"]?.string }, ["https://old.example/"])
+        let visitedAt = manager.historyStore.entries[1].visitedAt
+        XCTAssertEqual(bridge.liveResponse(group: "history", method: "remove", args: ["https://old.example/", NSNumber(value: visitedAt)]), .value(.null))
+        XCTAssertEqual(manager.historyStore.entries.map(\.url), ["https://new.example/"])
+    }
+
+    @MainActor func testHistoryClearEmptiesTheStore() {
+        let manager = managerWithHistory()
+        XCTAssertEqual(PagesBridge(manager: manager).liveResponse(group: "history", method: "clear", args: []), .value(.null))
+        XCTAssertTrue(manager.historyStore.entries.isEmpty)
+    }
+
+    @MainActor func testRemoveFavoriteReachesTheEngine() {
+        let manager = TabsManager(
+            settingsDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString),
+            sessionDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        manager.syncEngine.editFavorites {
+            SyncedFavorites.toggle($0, url: "https://fav.example/", title: "Fav", favicon: nil, now: 1, makeId: { "fav-1" }).store
+        }
+        XCTAssertEqual(manager.syncEngine.favorites.map(\.id), ["fav-1"])
+        let bridge = PagesBridge(manager: manager)
+        XCTAssertEqual(bridge.liveResponse(group: "bookmarks", method: "remove", args: ["fav-1"]), .value(.null))
+        XCTAssertTrue(manager.syncEngine.favorites.isEmpty)
     }
 
     // Structured sync/supporter/default-browser shapes match what settings.js reads.
@@ -70,34 +133,57 @@ final class PagesBridgeTests: XCTestCase {
     // start.data has empty groups and a zero blocked count.
     func testStartData() {
         XCTAssertEqual(value("start", "data"),
-                       .object([("groups", .array([])), ("blockedThisWeek", .number(0))]))
+                       PagesBridge.startData())
+    }
+
+    /// The web Settings page's Clear button: offered on iOS, and answered only
+    /// once the clearing is done, so "Cleared." never shows early.
+    @MainActor func testClearBrowsingDataAnswersAfterClearing() async {
+        let store = WKWebsiteDataStore.nonPersistent()
+        let manager = TabsManager(
+            settingsDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString),
+            sessionDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString),
+            siteDataStore: store)
+        await store.httpCookieStore.setCookie(HTTPCookie(properties: [
+            .domain: "example.com", .path: "/", .name: "blanc-bridge", .value: "1",
+            .expires: Date().addingTimeInterval(3600)])!)
+        let result = await PagesBridge(manager: manager).clearBrowsingData()
+        XCTAssertEqual(result, .value(.null))
+        let names = await store.httpCookieStore.allCookies().map(\.name)
+        XCTAssertFalse(names.contains("blanc-bridge"))
+        guard case .object(let pairs) = value("settings", "get"),
+              case .array(let capabilities)? = Dictionary(uniqueKeysWithValues: pairs)["capabilities"] else {
+            return XCTFail("settings.get should list capabilities")
+        }
+        XCTAssertTrue(capabilities.contains(.string("clearBrowsingData")))
     }
 
     // settings.get returns the full bootstrap payload built from the generated
-    // substrate: settings/searchEngines/appIcons/supporterIcons.
+    // substrate: settings/searchEngines/appIcons/capabilities.
     func testSettingsGetShape() {
         guard case .object(let pairs) = value("settings", "get") else {
             return XCTFail("settings.get should be an object")
         }
         let keys = pairs.map(\.0)
-        XCTAssertEqual(keys, ["settings", "searchEngines", "appIcons", "supporterIcons", "capabilities"])
+        XCTAssertEqual(keys, ["settings", "searchEngines", "appIcons", "capabilities"])
 
         let dict = Dictionary(uniqueKeysWithValues: pairs)
-        // 4 search engines, 8 free icons, 3 supporter icons.
-        if case .object(let engines)? = dict["searchEngines"] { XCTAssertEqual(engines.count, 4) }
-        else { XCTFail("searchEngines must be a record") }
-        if case .object(let icons)? = dict["appIcons"] { XCTAssertEqual(icons.count, 8) }
-        else { XCTFail("appIcons must be a record") }
-        if case .object(let sup)? = dict["supporterIcons"] {
-            XCTAssertEqual(sup.map(\.0).sorted(), ["ember", "gold", "plum"])
-        } else { XCTFail("supporterIcons must be a record") }
+        // Every engine and icon in the generated substrate, keyed by the
+        // stored id (`sunrise-dark`, not the Swift case name).
+        if case .object(let engines)? = dict["searchEngines"] {
+            XCTAssertEqual(engines.map(\.0), BlancSearchEngine.allCases.map(\.rawValue))
+        } else { XCTFail("searchEngines must be a record") }
+        if case .object(let icons)? = dict["appIcons"] {
+            XCTAssertEqual(icons.map(\.0), ["sunrise", "sunrise-dark", "sunrise-gold", "sunrise-spectrum", "sunrise-amber"])
+        } else { XCTFail("appIcons must be a record") }
 
         // usagePing comes from BlancSettingsDefaults, not a hardcode.
         if case .object(let s)? = dict["settings"] {
             let sd = Dictionary(uniqueKeysWithValues: s)
             XCTAssertEqual(sd["usagePing"], JSONValue.bool(BlancSettingsDefaults.usagePing))
             XCTAssertEqual(sd["searchEngine"], JSONValue.string(BlancSettingsDefaults.searchEngine.rawValue))
-            XCTAssertEqual(sd["supporterActive"], JSONValue.bool(false))
+            XCTAssertEqual(sd["patronActive"], JSONValue.bool(false))
+            XCTAssertEqual(sd["appIcon"], JSONValue.string("sunrise"))
         } else { XCTFail("settings must be an object") }
     }
 
@@ -114,7 +200,7 @@ final class PagesBridgeTests: XCTestCase {
             if case .string(let s) = val { return s }
             return nil
         }
-        XCTAssertEqual(Set(capStrings), Set(["theme", "searchEngine", "adblockEnabled"]))
+        XCTAssertEqual(Set(capStrings), Set(["theme", "searchEngine", "adblockEnabled", "sync", "clearBrowsingData"]))
     }
 
     // shortcuts.list is stubbed (typeable via the address bar), not rejected.
@@ -133,4 +219,70 @@ final class PagesBridgeTests: XCTestCase {
         case .value: XCTFail("settings.teleport should reject")
         }
     }
+
+    // The shim's member list comes from desktop's bridges.json, bundled as a
+    // resource, so the methods newtab.js calls unguarded exist on iOS too.
+    func testBundledMembersFollowTheDesktopContract() {
+        let names = Set(PagesBridge.bundledMembers.map(\.name))
+        for name in ["start.data", "start.onVisibility", "start.onRemoteTabs", "surface.close", "settings.get"] {
+            XCTAssertTrue(names.contains(name), "missing \(name)")
+        }
+        XCTAssertTrue(PagesBridge.userScriptSource.contains("\"start.onVisibility\""))
+        XCTAssertFalse(PagesBridge.userScriptSource.contains("__BLANC_MEMBERS__"))
+    }
+
+    func testMembersParseFromBridgesJSON() {
+        let json = #"{"bowserPages":{"members":[{"name":"start.data","kind":"invoke","hosts":["newtab"]},{"name":"broken"}]}}"#
+        XCTAssertEqual(PagesBridge.members(fromBridgesJSON: Data(json.utf8)),
+                       [PagesBridge.Member(name: "start.data", kind: "invoke", hosts: ["newtab"])])
+        XCTAssertEqual(PagesBridge.members(fromBridgesJSON: Data("nope".utf8)), [])
+    }
+    // Send to device (M7b): the start page's sent-page members exist on iOS,
+    // and the native strings come from the same catalog.
+    func testSendToDeviceMembersAndCopy() {
+        let names = Set(PagesBridge.bundledMembers.map(\.name))
+        for name in ["start.openSent", "start.dismissSent", "start.onSentItems"] {
+            XCTAssertTrue(names.contains(name), "missing \(name)")
+        }
+        for key in ["sends.section", "sends.dismiss", "tabMenu.sendToDevice", "sends.unavailable", "sends.failed"] {
+            XCTAssertNotEqual(SyncCopy.text(key), key, key)
+        }
+        XCTAssertEqual(SyncCopy.text("sends.sent", ["device": "Mac"]), "Sent to Mac.")
+        XCTAssertEqual(SyncCopy.sendResult(.unavailable, device: "Mac"), SyncCopy.text("sends.unavailable"))
+        XCTAssertFalse(SyncCopy.text("sends.from", ["device": "Mac", "time": "5m ago"]).contains("{"))
+    }
+    func testNativeCopyReadsBundledCatalog() {
+        XCTAssertNotEqual(SyncCopy.text("footer.devices"), "footer.devices")
+        XCTAssertNotEqual(SyncCopy.text("settings.sync.createOnComputer"), "settings.sync.createOnComputer")
+    }
+
+    func testGuardedScriptChecksLiveDocumentOriginBeforeDelivery() throws {
+        for (scheme, host, expected) in [("blanc:", "newtab", 1), ("https:", "example.com", 0), ("blanc:", "bookmarks", 0)] {
+            let context = try XCTUnwrap(JSContext())
+            context.evaluateScript("var window = { location: { protocol: '\(scheme)', host: '\(host)' }, deliveries: 0 };")
+            context.evaluateScript(PagesBridge.guardedScript("window.deliveries += 1;", host: "newtab"))
+            XCTAssertNil(context.exception)
+            XCTAssertEqual(context.evaluateScript("window.deliveries")?.toInt32(), Int32(expected))
+        }
+    }
+    func testFavoritesRefreshOnlyChangesInternalFavoritesSurfaces() throws {
+        let before: JSONValue = .array([])
+        let after: JSONValue = .array([.object([("id", .string("favorite"))])])
+        XCTAssertNil(PagesBridge.favoritesRefreshScript(previous: before, current: before, host: "newtab"))
+        for host in ["settings", "history", "example.com"] {
+            XCTAssertNil(PagesBridge.favoritesRefreshScript(previous: before, current: after, host: host))
+        }
+        for host in ["newtab", "bookmarks"] {
+            let script = try XCTUnwrap(PagesBridge.favoritesRefreshScript(previous: before, current: after, host: host))
+            let context = try XCTUnwrap(JSContext())
+            context.evaluateScript("var reloads = 0; var window = { location: { protocol: 'blanc:', host: '\(host)', reload: function () { reloads += 1; } } };")
+            context.evaluateScript(script)
+            XCTAssertEqual(context.evaluateScript("reloads")?.toInt32(), 1)
+            context.evaluateScript("window.location.protocol = 'https:'; window.location.host = 'example.com';")
+            context.evaluateScript(script)
+            XCTAssertEqual(context.evaluateScript("reloads")?.toInt32(), 1)
+        }
+        XCTAssertNotNil(PagesBridge.favoritesRefreshScript(previous: after, current: before, host: "bookmarks"), "Disabling or switching away must clear rendered Favorites")
+    }
+
 }

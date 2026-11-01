@@ -54,7 +54,28 @@ require.cache[cryptoId].exports = {
 };
 
 const jsonStores = trackJsonStores();
+// Probe 429s now share the real queue's persisted backoff. Advance virtual
+// time through waits while preserving all network, reply and key assertions.
+const clock = require('./support/sync-device').virtualClock();
+test.mock.method(Date, 'now', clock.now);
+const scheduler = require('../../src/main/sync-scheduler');
+const queue = require('../../src/main/sync-request-queue');
+const createScheduler = scheduler.createScheduler;
+const createRequestQueue = queue.createRequestQueue;
+test.mock.method(scheduler, 'createScheduler', options => createScheduler({ ...options, now: clock.now, monotonic: clock.monotonic }));
+test.mock.method(queue, 'createRequestQueue', options => createRequestQueue({ ...options, now: clock.now, setTimer: clock.setTimer, clearTimer: clock.clearTimer }));
 const sync = require('../../src/main/sync');
+async function preflight(credentials) {
+  let done = false;
+  const pending = sync.preflight(credentials).finally(() => { done = true; });
+  for (let n = 0; n < 50 && !done; n++) {
+    await new Promise(resolve => setImmediate(resolve));
+    const delay = clock.nextDelay();
+    if (Number.isFinite(delay)) await clock.advance(delay);
+  }
+  assert.equal(done, true, 'preflight must settle through budget and backoff waits');
+  return pending;
+}
 const creds = { handle: 'preflight-test', passphrase: 'a passphrase long enough to pass' };
 const isZeroed = (buf) => Buffer.isBuffer(buf) && buf.length === 32 && buf.every((b) => b === 0);
 
@@ -67,7 +88,7 @@ test.beforeEach(() => { fetchCalls = []; encryptCalls = 0; });
 
 test('found: a 200 on the settings blob', async () => {
   nextResponse = { status: 200, ok: true, json: async () => ({}) };
-  assert.deepEqual(await sync.preflight(creds), { ok: true, outcome: 'found' });
+  assert.deepEqual(await preflight(creds), { ok: true, outcome: 'found' });
   assert.equal(fetchCalls.length, 1);
   assert.equal(fetchCalls[0].method, 'GET');
   assert.match(fetchCalls[0].url, /\/v1\/blob\/[0-9a-f]+\/settings$/);
@@ -75,28 +96,28 @@ test('found: a 200 on the settings blob', async () => {
 
 test('notFound: a 404 on the settings blob', async () => {
   nextResponse = { status: 404, ok: false };
-  assert.deepEqual(await sync.preflight(creds), { ok: true, outcome: 'notFound' });
+  assert.deepEqual(await preflight(creds), { ok: true, outcome: 'notFound' });
 });
 
 test('rateLimited, error, and offline map to distinct outcomes with error codes', async () => {
   nextResponse = { status: 429, ok: false };
-  let res = await sync.preflight(creds);
+  let res = await preflight(creds);
   assert.equal(res.ok, false); assert.equal(res.outcome, 'rateLimited'); assert.equal(res.error, 'rate-limited');
 
   nextResponse = { status: 500, ok: false };
-  res = await sync.preflight(creds);
+  res = await preflight(creds);
   assert.equal(res.ok, false); assert.equal(res.outcome, 'error'); assert.ok(res.error);
 
   nextResponse = new Error('ENOTFOUND');
-  res = await sync.preflight(creds);
+  res = await preflight(creds);
   assert.equal(res.ok, false); assert.equal(res.outcome, 'offline'); assert.equal(res.error, 'offline');
 });
 
 test('invalid inputs never reach the network', async () => {
   nextResponse = { status: 200, ok: true };
-  let res = await sync.preflight({ handle: 'a', passphrase: creds.passphrase });
+  let res = await preflight({ handle: 'a', passphrase: creds.passphrase });
   assert.equal(res.outcome, 'invalid');
-  res = await sync.preflight({ handle: 'fine', passphrase: 'short' });
+  res = await preflight({ handle: 'fine', passphrase: 'short' });
   assert.equal(res.outcome, 'invalid');
   assert.equal(fetchCalls.length, 0);
 });
@@ -111,7 +132,7 @@ test('preflight zero-fills the derived key on every outcome', async () => {
   ]) {
     nextResponse = response;
     lastKey = null;
-    await sync.preflight(creds);
+    await preflight(creds);
     assert.ok(lastKey, 'deriveKeys ran');
     assert.ok(isZeroed(lastKey), `key must be zeroed after ${response.status ?? 'thrown network error'}`);
   }
@@ -125,7 +146,7 @@ test('preflight writes nothing on any outcome', async () => {
     new Error('offline'),
   ]) {
     nextResponse = response;
-    await sync.preflight(creds);
+    await preflight(creds);
   }
   assert.equal(sync.status().enabled, false);
   assert.equal(sync.status().handle, '');

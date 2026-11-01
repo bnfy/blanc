@@ -42,7 +42,18 @@ When('I mark tab migration complete in the moving-in checklist', async function 
 });
 
 When('I complete every moving-in task', async function () {
-  assert.equal(await this.call('setMigrationChecklistProgress', true, true, true), true);
+  assert.equal(await this.call('setMigrationChecklistProgress', true, true, true, true), true);
+});
+
+// Unpackaged builds offer iPhone pairing, so Finish setup lists Connect your
+// iPhone too (design 2026-10-28 §6.1).
+When('I mark the iPhone connected in the moving-in checklist', async function () {
+  const current = await this.call('migrationChecklistSettings');
+  assert.equal(await this.call('setMigrationChecklistProgress', current.syncComplete, current.tabsComplete, current.spaceComplete, true), true);
+});
+
+When('I choose Connect your iPhone from the moving-in checklist', async function () {
+  assert.equal(await this.call('clickMigrationChecklist', 'iphone'), true, 'Connect your iPhone is reachable from the open popover');
 });
 
 When('I mark the first space complete in the moving-in checklist', async function () {
@@ -61,8 +72,8 @@ Then('the Sync task stays checked at {string}', async function (progress) {
 Then('the moving-in checklist briefly confirms completion', async function () {
   await waitForValue(
     () => this.call('readMigrationChecklistDom'),
-    (dom) => dom?.visible === true && dom.progress === '3/3' && dom.label === 'All moved in',
-    'the moving-in checklist pill to confirm 3/3',
+    (dom) => dom?.visible === true && /^(\d+)\/\1$/.test(dom.progress ?? '') && dom.label === 'All moved in',
+    'the moving-in checklist pill to confirm every task done',
   );
   const dom = await this.call('readMigrationChecklistDom');
   assert.equal(dom.open, false, 'completion never opens the popover on its own');
@@ -74,7 +85,9 @@ Then('the moving-in completion waits behind Settings', async function () {
   assert.equal(surface?.visible, true, 'Settings should still cover the start page');
   const dom = await this.call('readMigrationChecklistDom');
   assert.equal(dom?.visible, true, 'the confirmation must not retire while covered');
-  assert.equal(dom?.progress, '3/3');
+  // Every listed task done, however many the build lists (Connect your
+  // iPhone joins where iPhone pairing is offered).
+  assert.match(dom?.progress ?? '', /^(\d+)\/\1$/);
   assert.equal(dom?.title, 'all moved in');
 });
 

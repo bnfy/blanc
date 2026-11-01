@@ -90,8 +90,10 @@ wallpaper/Linux waivers and earlier updater confirmations remain in their
 original reports:
 
 - **Optional uBlock Origin:** Public v1.39.0 offers full uBO 1.75.0 on
-  Apple Silicon, native Intel Mac, Windows x64 and Linux x64, on official
-  Electron 44.8.0, unchanged since v1.35.0. The move from 44.5.1 passed the real blocking and tools
+  Apple Silicon, native Intel Mac, Windows x64 and Linux x64. Since v1.43.0 it
+  runs on castLabs' Electron for Content Security 44.9.3 (Chromium
+  152.0.7977.167, as on official Electron 44.8.0 from v1.35.0 to v1.42.1), where it
+  passed signed-package uBO acceptance on all four. The move from 44.5.1 passed the real blocking and tools
   suite on all four in hosted CI; the installed-candidate acceptance dates
   from v1.27.0 on 44.5.1. Click the Island shield to choose a blocker and restart
   Blanc to apply it. Blanc Blocker stays the default and protects private
@@ -259,7 +261,8 @@ original reports:
   Switching between spaces is never refused for a limit; to keep memory in
   check Blanc may free up memory from tabs in spaces left a while ago, and
   those tabs reload on return. This is not automatic task detection, an AI
-  workspace, or an agent session, and spaces are not synced.
+  workspace, or an agent session. Spaces aren't synced unless the person
+  turns on Shared Spaces (since v1.45.0, below) and chooses them.
 - **Quiet Tabs:** Eligible inactive background tabs may give back their
   renderer memory and are rebuilt or reloaded when revisited. Dirty,
   uncertain, active, recording, or otherwise ineligible tabs remain awake.
@@ -282,9 +285,11 @@ original reports:
   The sync service holds the wrapped sync secret under an identifier derived
   from the code for at most ten minutes and deletes it when it is read or
   cancelled; it cannot unwrap it without the code. Copy recovery code puts a
-  code on the clipboard only after a native confirmation. Do not claim QR
-  codes, nearby or Bluetooth pairing, accounts or sign-in, or that the service
-  never stores anything.
+  code on the clipboard only after a native confirmation. Do not claim nearby
+  or Bluetooth pairing, accounts or sign-in, or that the service never stores
+  anything. Since v1.45.0 the code is also shown as a QR code, for Blanc for
+  iPhone only (Connect your iPhone, below); don't claim a desktop device can
+  scan it.
 - **Device names:** Since v1.36.0 the user can rename a synced device from the
   Other devices drawer (Rename Device…) or name the current device in Settings
   → Sync; names sync with the settings and show in the drawer, the Quick
@@ -405,6 +410,135 @@ original reports:
   still takes priority on that device, and private tabs never show a color.
   Hand-checked on Windows; the Linux check was waived as above. Don't describe a
   separate image per space; that isn't shipped.
+- **Clock Font & color:** Since v1.41.0 the Billboard Start Page's clock can
+  be styled from Customize → Clock or by right-clicking it: one of four
+  bundled faces (Instrument Sans, Instrument Sans Condensed, Inter, Roboto
+  Flex), a weight, a height set with the face's own width and weight axes
+  (only on faces that allow it), Automatic or one of the eight Spaces colors
+  with a tone, and Glass or Solid. Glass draws as Solid under reduced
+  transparency. Every clock has a shadow. The choices sync with Profile Sync.
+  It is the Billboard layout's clock only, and it isn't macOS's native Liquid
+  Glass. Not yet hand-checked on Windows or Linux.
+- **Start Page pins:** Since v1.41.0 up to eight pages can be pinned, and
+  they come first on every Start Page layout, newest first: from a Billboard
+  tile, a favorite on Ledger, Shelf or Tally, the Favorites page, or Pin to
+  Start Page in a tab's menu (web pages in non-private tabs only). Pins belong
+  to a local profile; Profile Sync carries only the Personal profile's, and
+  private Start Pages show them read-only. Icons come only from the profile's
+  own Favorites or history; nothing is fetched. Not yet hand-checked on
+  Windows or Linux.
+- **Search priority results:** Since v1.42.0 an opt-in, device-local setting
+  (Settings → General, under Island; off by default, never synced) puts the
+  search for what was typed and the search engine's suggestions above open
+  tabs, groups, Spaces, Favorites and history as you type, and Enter searches.
+  It reorders results only; suggestions still follow the Search suggestions
+  setting. Hand-checked on Mac and Windows; the Linux check was waived by the
+  owner, not passed.
+- **Protected video playback:** Since v1.43.0 Blanc runs on castLabs' Electron
+  for Content Security and plays Widevine-protected media on macOS (Apple
+  Silicon and Intel), Windows and Linux. The Widevine component downloads from
+  Google's update service after the update; Settings → Help → Protected media
+  shows when it is ready, and Linux asks for one restart. Netflix and Spotify
+  were tried on an Apple Silicon Mac only. Whether a given site plays depends
+  on that site; never promise a named service, resolution or HDR. The v1.43.0
+  AppImage didn't start on glibc older than 2.38; v1.43.1 needs glibc 2.28, and
+  on October 24, 2026 the public 1.43.1 AppImage played the castLabs VMP Lab
+  test stream on hosted x64 Ubuntu 22.04 and 24.04 (headless, no audio device).
+  Windows needs an x64 PC: Blanc ships no arm64 Windows build, and on Windows
+  on Arm the x64 build runs under emulation, where VMP answers
+  PLATFORM_TAMPERED and Netflix refuses with E100 (1044), observed the same
+  day in a Windows 11 on Arm VM. Say so where Windows streaming is described;
+  never call it a bug.
+- **Sunrise Spectrum and Sunrise Amber:** Since v1.43.0, two more macOS app
+  icons in Settings → General → App icon. macOS only.
+- **Neutral surface style:** Since v1.43.0 an opt-in Surface style setting in
+  Settings → General swaps the Start Page's and utility pages' cream and gold
+  for ink and gray. Sunrise stays the default.
+- **Pinned splits:** Since v1.43.0 a Split View is pinned or unpinned as a
+  whole, and pinned tabs can join a split.
+- **1.44 is v1.44.1:** v1.44.0 was tagged but never published (it was built
+  on official Electron, not ECS). Every 1.44 claim says "since v1.44.1" and
+  never names 1.44.0 as a public release.
+- **Reader Mode:** Since v1.44.1, `/reader` or **Enter Reader Mode** lifts the
+  article out of the page already loaded, on the device. It's free. Pages that
+  aren't articles are refused, so never promise it works on every page.
+- **Move to Space, several tabs at once:** Since v1.44.1 a tab's menu moves it
+  to another Space (or a new one) without leaving the window, and ⌘/Ctrl-click,
+  Shift-click and Shift+arrows select several tabs in the ⌘L panel and
+  vertical tabs for one action. Private tabs can't be moved to a Space.
+- **Send to Device:** Since v1.44.1, to another of the person's synced Blanc
+  devices, through Profile Sync on both; pages wait in **Sent to this device**
+  for 7 days and nothing opens by itself. Private tabs and internal pages can't
+  be sent. Never describe it as working without Profile Sync.
+- **Open links from other apps in a chosen profile or Space:** Since v1.44.1,
+  rules in Settings → Profiles (and `/route`, and the shield popover) send
+  links from other apps to a profile, a Space or a private tab. Device-local,
+  never synced. Tested on Linux in CI and under xvfb; the real-app checks on
+  macOS and Windows (Slack or Mail, the Windows default-browser handoff) are
+  still pending, so don't show or promise a named app or platform.
+- **Copy Link:** Since v1.44.1, ⇧⌘C / Ctrl+Shift+C and `/copy` copy the page's
+  address; ⌥⇧⌘C (macOS) and `/copy clean` copy it without tracking
+  parameters.
+- **Ctrl+Tab by most recent use:** Since v1.44.1 on Linux and Windows only,
+  proven with real OS key input in CI; a hand check on a real Windows keyboard
+  is still pending. On macOS Ctrl+Tab still goes by position: never claim it
+  there. On Windows, Ctrl+Esc opens the Start menu (the switch cancels).
+- **Vertical tab text size and site icons on the Island:** Since v1.44.1, two
+  device-local settings: Default, Large or Extra large vertical tab text, and
+  site icons instead of dots on the Island (off by default; fewer tabs fit).
+- **Pinned tabs on the Island:** Since v1.44.1 every pinned tab, grouped or
+  not, leads the Island's dots, as a rounded square (or a tile with site
+  icons). In the ⌘L panel a grouped pin stays inside its group.
+- **Shared Spaces:** Since v1.45.0. With Sync on, Settings → Sync → What
+  syncs → **Spaces and groups** shares the Spaces the person chooses, up to
+  25; their open tabs, tab names, groups and pinned tabs, in the same order,
+  match on every computer that has it turned on, and any of them can change
+  them. Off by default, set on each device, and in the Personal profile only.
+  End-to-end encrypted like the rest of Sync; private tabs, internal pages
+  and local files never sync. The page on screen never changes under the
+  person: a change from another device waits until they leave that tab.
+  Turning it off keeps a local copy. A deleted Space leaves the 25 at once,
+  and its emptied record stays in sync storage for 30 days. Device-validated
+  Mac↔Windows and Mac↔Linux (Gate D rerun, Linux from the AppImage's
+  extracted payload), not on Intel Macs, x64 Linux or X11, and not with local
+  files. Never say it syncs to the iPhone, between local profiles, or that
+  all Spaces sync automatically.
+- **Recently closed on every device:** Since v1.45.0, only for tabs in a
+  shared Space: closing one closes it on the person's other computers, and
+  their Recently closed lists it for up to a day with the device it was
+  closed on. Only its
+  address and title travel; the closed tab's snapshot never syncs. Closed
+  tabs use sync storage for 30 days.
+- **Turn on Sync without a passphrase:** Since v1.45.0 **Turn on Sync** starts
+  a sync with a random key and account, nothing to name or remember. Devices
+  join with **Add device** and **Add this device with a code**. The device
+  that started it offers a recovery code (copied to the clipboard only after
+  a confirmation), the only way back in if every device is lost. The sync
+  name and passphrase are still under **Other ways**. Never say Blanc can
+  recover a lost sync, and never claim the screen-capture exclusion of the
+  code window: it's best effort and unverified.
+- **Connect your iPhone:** Since v1.45.0, Settings → Sync → **Connect your
+  iPhone** (and the Start Page's Finish setup list) shows a QR code that
+  Blanc for iPhone scans with **Pair with your Blanc** to join the same Sync.
+  Blanc for iPhone is a public beta on TestFlight, not on the App Store: say
+  so wherever it's named. If Sync is off, Blanc asks before turning it on.
+- **Play the Sunrise when Blanc opens:** Since v1.45.0, opt-in in Settings →
+  Appearance and set on each device: the Sunrise plays once on the first
+  Start Page after launch, ends on any click or key and is skipped when the
+  system reduces motion.
+- **Link rules for links opened in a new tab:** Since v1.45.0, opt-in
+  (Settings → Profiles → Open links from other apps → **Also for links I open
+  in a new tab**), set on each device. Links a page opens by itself and links
+  in private tabs stay where they are. Tested in CI only; the real-app checks
+  for link rules are still pending (above).
+- **Vertical tabs show your Space:** Since v1.45.0 the rail's top row shows the
+  current Space's mark, and its footer has a new-group button.
+- **1.45.1 is fixes only:** Since v1.45.1 a shared Space's sync status sits on
+  its own line under its name in the Spaces menu, routine sync no longer shows
+  "Sync is busy; retrying." or "Waiting to upload", and a background-opened
+  link whose rule needs a new window opens that window behind the current one.
+  It adds no feature: describe new capabilities as since v1.45.0, never
+  v1.45.1.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,
@@ -439,8 +573,9 @@ original reports:
 - **Billboard frequently visited sites:** Billboard ranks ordinary browsing
   history on the device and keeps its favicon artwork and hidden-tile choices
   local. Private tabs do not contribute or receive this row. Do not describe
-  the feature as synced, account-based, remotely retained, or semantically
-  organized.
+  the ranking as synced, account-based, remotely retained, or semantically
+  organized. Since v1.41.0 Start Page pins (above) lead the row and can sync;
+  the ranked tiles after them still don't.
 - **Screen and system-audio sharing:** A site request opens Blanc's centered
   confirmation before capture begins. The user chooses a surface, separately
   approves computer audio, and can stop each share from the Island while its

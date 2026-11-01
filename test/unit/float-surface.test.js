@@ -79,7 +79,10 @@ test('the float surface shows one element, slides the whole view height and drop
   assert.match(css, /html\[data-surface="float"\]\[data-float-role="pill"\] #islandPill/);
   assert.match(css, /html\[data-surface="float"\]\[data-float-role="controls"\] #windowControls/);
   assert.match(css, /html\[data-surface="float"\]\[data-float-role="menu"\] #mainMenuButton/);
-  assert.match(css, /html\[data-surface="float"\] #islandPill \{[^}]*box-shadow: var\(--shadow-island-float\);/);
+  // One shadow, on the surface: a second one on the pill box (1px inside it)
+  // drew a ridge along the bottom.
+  assert.match(css, /html\[data-surface="float"\] #islandPill::after \{[^}]*box-shadow: var\(--shadow-island-float\);/);
+  assert.doesNotMatch(css, /html\[data-surface="float"\] #islandPill \{[^}]*box-shadow/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{\s*html\[data-surface="float"\] #chrome \{ transition: none; \}/);
 });
 
@@ -88,7 +91,7 @@ test('every anchor the strip sends is measured on the strip stage, in window coo
   assert.match(js, /const stageRect = \(el\) => \{[\s\S]*?document\.getElementById\('chrome'\)\.getBoundingClientRect\(\)/);
   assert.match(js, /const box = stageRect\(el\);/);
   assert.match(js, /const rect = stageRect\(mainMenuButton\);/);
-  assert.match(js, /return \{ left: stageRect\(pillSpace\)\.left, bottom: stageRect\(islandPill\)\.bottom \};/);
+  assert.match(js, /const bottom = Math\.max\(stageRect\(pillSpace\)\.bottom, stageRect\(islandPill\)\.bottom\);\s*return \{ left: stageRect\(pillSpace\)\.left, bottom \};/);
   assert.match(js, /const r = stageRect\(button\);/);
   assert.equal(js.match(/const r = stageRect\(pill(?:Capture|DisplayShare)\);/g)?.length, 2);
 });

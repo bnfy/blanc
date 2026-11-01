@@ -74,6 +74,13 @@ public enum BlancTokens {
         case .privateBrowsing: return "rgba(245, 245, 245, 0.12)"
         }
     }
+    public static func rowSelected(_ theme: BlancTheme) -> String {
+        switch theme {
+        case .light: return "#728ca6"
+        case .dark: return "#536f8b"
+        case .privateBrowsing: return "#596c83"
+        }
+    }
     public static func sunriseBg(_ theme: BlancTheme) -> String {
         switch theme {
         case .light: return "#f8f2e8"
@@ -156,6 +163,13 @@ public enum BlancTokens {
         case .light: return "inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28)"
         case .dark: return "inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28)"
         case .privateBrowsing: return "inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28)"
+        }
+    }
+    public static func shadowGlanceCard(_ theme: BlancTheme) -> String {
+        switch theme {
+        case .light: return "0 1px 3px rgba(14,14,14,.12), 0 8px 18px -6px rgba(14,14,14,.32)"
+        case .dark: return "0 1px 3px rgba(0,0,0,.3), 0 8px 18px -6px rgba(0,0,0,.42)"
+        case .privateBrowsing: return "0 1px 3px rgba(0,0,0,.3), 0 8px 18px -6px rgba(0,0,0,.42)"
         }
     }
     public static func selectCaret(_ theme: BlancTheme) -> String {

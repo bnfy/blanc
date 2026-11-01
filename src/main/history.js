@@ -1,6 +1,7 @@
 const { JsonStore } = require('./store');
 const { validFavicon } = require('./bookmark-validate');
 const { rankTopSites, siteKey } = require('./top-sites');
+const { pairLinkCode } = require('./sync-pairing');
 
 // Newest entries first. Capped so the JSON file can't grow unbounded.
 const MAX_ENTRIES = 5000;
@@ -29,6 +30,8 @@ function pruneSiteIconsWithoutHistory(data) {
 /** Record a visit; consecutive reloads of the same URL update the existing entry. */
 function addVisit(url, title) {
   if (!isRecordable(url)) return;
+  // A pair link's fragment is a live pairing code (design 2026-10-28 §7.3).
+  if (pairLinkCode(url)) url = 'https://blanc.day/pair';
   ensureStore().update((d) => {
     const last = d.entries[0];
     if (last && last.url === url) {

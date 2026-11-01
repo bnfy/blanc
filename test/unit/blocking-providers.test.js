@@ -276,3 +276,54 @@ test('Settings retry leaves a recovering provider to its own episode', async () 
   await context.retry();
   assert.deepEqual(calls, ['failed']);
 });
+
+test('a public ECS build enables uBO only through its own reviewed runtime record', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../../src/main/blocking-providers.js'), 'utf8');
+  const status = ({ metadata, matrix, electron = '44.9.3', isPackaged = true, arch = 'arm64', translated = false }) => {
+    const module = { exports: {} };
+    vm.runInNewContext(source, { module, process: { env: {}, platform: 'darwin', arch, versions: { electron } },
+      require: name => {
+        if (name === 'electron') return { app: { isPackaged, runningUnderARM64Translation: translated } };
+        if (name === '../../package.json') return metadata;
+        if (name === './blocking-resources') return require('../../src/main/blocking-resources');
+        if (name === './adblock') return { setAdBlockEnabled() {} };
+        if (name === './ublock-provider') return {};
+        if (name === './ublock-platforms.json') return matrix;
+        return require(name);
+      },
+    });
+    const preferences = { adblockProvider: 'ublock-origin', adblockEnabled: true };
+    return module.exports.createBlockingProviders({ settings: { getSettings: () => preferences }, hooks: {}, onStateChange() {} }).status('personal');
+  };
+  const matrix = { electron: '44.8.0', ecsRuntime: '44.9.3+wvcus', ublock: '1.75.0', manifestV2: 'supported',
+    platforms: { 'darwin-arm64': { enabled: true }, 'darwin-x64': { enabled: true } } };
+  const release = { blancUblockBundled: true, blancRuntime: 'ecs', blancEcsRuntime: '44.9.3+wvcus' };
+
+  // Public ECS package, no internal markers: uBO stays the selected, active
+  // provider, with no substituted fallback (its failures stay fail closed).
+  const ok = status({ metadata: release, matrix });
+  assert.equal(ok.supported, true); assert.equal(ok.active, 'ublock-origin'); assert.equal(ok.fallback, null);
+  assert.equal(ok.internalCandidate, false);
+
+  // Each unreviewed case falls back to Blanc Blocker at startup.
+  for (const [label, input] of [
+    ['no ECS record', { metadata: release, matrix: { ...matrix, ecsRuntime: undefined } }],
+    ['different ECS pin', { metadata: { ...release, blancEcsRuntime: '44.9.4+wvcus' }, matrix }],
+    ['runtime is not the pin', { metadata: release, matrix, electron: '44.9.4' }],
+    ['not an ECS package', { metadata: { blancUblockBundled: true, blancEcsRuntime: '44.9.3+wvcus' }, matrix }],
+    ['uBO not bundled', { metadata: { ...release, blancUblockBundled: false }, matrix }],
+    ['platform disabled', { metadata: release, matrix: { ...matrix, platforms: { 'darwin-arm64': { enabled: false } } } }],
+  ]) {
+    const result = status(input);
+    assert.equal(result.supported, false, label); assert.equal(result.active, 'blanc', label); assert.equal(result.fallback, 'ublock-unavailable', label);
+  }
+
+  // Rosetta stays excluded even with the ECS record.
+  const rosetta = status({ metadata: release, matrix, arch: 'x64', translated: true });
+  assert.equal(rosetta.supported, false); assert.match(rosetta.reason, /Rosetta/);
+  assert.equal(status({ metadata: release, matrix, arch: 'x64' }).supported, true);
+
+  // An official build is unaffected by the ECS record.
+  assert.equal(status({ metadata: { blancUblockBundled: true }, matrix, electron: '44.8.0' }).supported, true);
+  assert.equal(status({ metadata: { blancUblockBundled: true }, matrix }).supported, false);
+});

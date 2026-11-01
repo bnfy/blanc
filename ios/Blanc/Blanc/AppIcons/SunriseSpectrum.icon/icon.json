@@ -1,0 +1,110 @@
+{
+  "fill": {
+    "automatic-gradient": "extended-srgb:0.76471,0.78824,0.82353,1.00000"
+  },
+  "fill-specializations": [
+    {
+      "appearance": "dark",
+      "value": {
+        "automatic-gradient": "extended-srgb:0.22745,0.22353,0.25882,1.00000"
+      }
+    }
+  ],
+  "groups": [
+    {
+      "layers": [
+        {
+          "glass": true,
+          "image-name": "spectrum-sun.png",
+          "name": "Sun"
+        },
+        {
+          "glass": true,
+          "image-name": "spectrum-rays.png",
+          "name": "Rays"
+        },
+        {
+          "glass": true,
+          "image-name": "spectrum-water.png",
+          "name": "Water"
+        }
+      ],
+      "shadow": {
+        "kind": "layer-color",
+        "opacity": 0.5
+      },
+      "specular": true,
+      "lighting": "individual",
+      "translucency": {
+        "enabled": true,
+        "value": 0.15
+      }
+    },
+    {
+      "layers": [
+        {
+          "glass": false,
+          "image-name": "spectrum-rim.png",
+          "name": "Rim",
+          "hidden-specializations": [
+            {
+              "appearance": "tinted",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.3
+      },
+      "translucency": {
+        "enabled": false,
+        "value": 0.5
+      }
+    },
+    {
+      "layers": [
+        {
+          "glass": false,
+          "image-name": "spectrum-tile-dark.png",
+          "name": "DarkTile",
+          "hidden-specializations": [
+            {
+              "value": true
+            },
+            {
+              "appearance": "dark",
+              "value": false
+            },
+            {
+              "appearance": "tinted",
+              "value": true
+            }
+          ]
+        },
+        {
+          "glass": false,
+          "image-name": "spectrum-tile.png",
+          "name": "Tile",
+          "hidden-specializations": [
+            {
+              "appearance": "dark",
+              "value": true
+            },
+            {
+              "appearance": "tinted",
+              "value": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "supported-platforms": {
+    "circles": [
+      "watchOS"
+    ],
+    "squares": "shared"
+  }
+}

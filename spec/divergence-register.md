@@ -144,7 +144,8 @@ the trusted-forever/offline-OK posture after unlock. See
 
 **Parity contract:** the *set of colorways offered* and the gating
 (`isAppIconAllowed`) are identical; the launcher-icon change may be less seamless
-on Android — document the chosen UX rather than hiding the gap.
+on Android — document the chosen UX rather than hiding the gap. The iPhone's
+catalog adds one iPhone-only icon and starts with it; see D33.
 
 **Status:** Accepted; Android UX to be finalized.
 
@@ -261,6 +262,8 @@ mobile is a single full-screen surface with system insets.
 *placement/windowing* adapts to the platform. Independent native windows (F32)
 are a desktop-only capability unless a future tablet/foldable contract adopts
 them explicitly; the same applies to the Glance multi-pane surface (F34).
+D30 proposes that contract for the iPhone Duo's inner display (Glance and
+two-pane Split View, F53).
 
 **Status:** Accepted.
 
@@ -697,4 +700,113 @@ either style (the same with a transparent drag view, so it is Windows' own
 hit test). On Linux the window document went `hidden` while the page
 covered it whole and stopped tracking resizes, leaving the floating pill and
 window controls at stale positions after a maximise; on Linux a covered strip
-now keeps one row uncovered (bnfy/blanc#999).
+now keeps one row uncovered (bnfy/blanc#999). Windows does the same: its
+covered strip also went `hidden`, so a pill that grew while covered (more
+tabs, a longer domain) was drawn wider than its view and lost its ends
+(reported on v1.42.0; 2026-10-22 VM check), and a covered strip there keeps
+one row uncovered too (bnfy/blanc#1052).
+
+---
+
+## D30 — Foldable inner display (iPhone Duo)
+**Features:** F1, F6, F34, F53 (and F32 later)
+
+**Why:** iPhone Duo's 7.6" inner display reports regular width and height,
+like an iPad, while its 5.4" outer display is an ordinary compact iPhone. The
+inner display has room for surfaces D11 keeps desktop-only on phones, and D11
+left that door open for "a future tablet/foldable contract".
+
+- **Desktop:** unchanged.
+- **iOS, compact width** (every iPhone, the Duo's outer display, the inner
+  display in system Split View): the phone contract as before; Glance and
+  Split View are not offered.
+- **iOS, regular width** (the Duo's inner display; an iPad would get the same
+  layout): the Island pill stays bottom-centre with a capped width, and the
+  palette opens in place as desktop's panel does. Split View (F53) shows two
+  tabs side by side, never three or four; floating Glance (F34) shows one
+  reference card over the page. When the phone folds, a split shows its
+  focused pane alone and returns on unfolding, and an open Glance closes.
+  Folding and unfolding never reload a page. Controls stay off the fold while
+  the phone is part-folded. Multiple windows (F32) are a later step.
+- **Android:** foldables follow the same size-class rule when Android is
+  built.
+
+**Parity contract:** where a regular-width iOS layout offers Split View or
+Glance, their semantics are desktop's: the focused pane is the active tab and
+the Island serves it, a split is one item in the tab list and the session,
+Close Split is one closed entry, private tabs are never saved, and Glance
+never crosses a workspace. Only the number of panes and the presentation
+differ.
+
+**Status:** Proposed 2026-10-21 in
+`docs/superpowers/specs/2026-10-21-ios-iphone-duo-design.md`. Nothing has
+shipped on iOS.
+
+
+---
+
+## D31 — Reader Mode images in Electron and WebKit
+
+**Feature:** F58. **Status:** Implemented candidate, acceptance/release pending.
+
+Electron can ask the source tab's active blocker about an image before a bounded,
+cookie-free fetch. WKContentRuleList has no equivalent per-request decision API.
+iOS Reader Mode therefore reuses only images the source WKWebView already loaded
+and can copy through an origin-clean canvas. It makes no extra image requests;
+unloaded and cross-origin images without canvas permission are omitted, keeping
+alt text and captions. Both platforms share extraction, sanitization, fonts,
+appearance defaults, manual activation, and original-page return. Broader iOS
+image coverage requires a reviewed blocker-equivalent path first.
+
+---
+
+## D32 — Link routing only on desktop
+**Features:** F60
+
+**Why:** Link routing chooses between local profiles, and Spaces inside them,
+for a link another app hands Blanc. Only desktop has more than one profile
+to choose between. iOS hands every link to the default browser's single
+profile, and Android isn't built yet.
+
+- **Desktop:** ordered domain and contains rules in Settings → Profiles send
+  links from other apps (macOS `open-url`, command-line and second-instance
+  URLs) to a profile, optionally a Space and a private tab.
+- **iOS:** not offered. Links open as they do today.
+- **Android:** not offered until it is built with profiles.
+
+**Parity contract:** a link no rule matches behaves the same everywhere: it
+opens in the window, or app, used last. Links clicked inside Blanc are never
+routed on any platform. If a mobile Blanc gains profiles, it adopts the
+desktop rule model (matching on the parsed host, first match wins, rules
+device-local and never synced) rather than inventing a separate one.
+
+**Status:** Desktop PR 1 implemented on the candidate branch, not shipped in
+public v1.43.1. Revisit when a mobile Blanc has profiles.
+
+---
+
+## D33 — iPhone app icon catalog
+**Features:** F17
+
+**Why:** The owner asked for a layered, reflective iPhone icon in the
+standard Light style (2026-10-29). They chose the iPhone's Sunrise Gold as
+its standard icon and added Sunrise Dawn, which is kept off the Mac for now. iOS 26 and later draw Icon
+Composer packages in Liquid Glass and store the chosen alternate icon
+themselves.
+
+- **Desktop (macOS):** five icons, `sunrise` standard, chosen in Settings →
+  General → App icon and stored as the device-local `appIcon` setting.
+- **iOS:** six icons, the Mac's five plus `sunrise-dawn` (Sunrise Dawn).
+  `sunrise-gold` is the primary icon. They're chosen in Settings → Appearance → App icon and
+  switched with `setAlternateIconName`. iOS remembers the choice, so there's
+  no `appIcon` value in iPhone settings. The iPhone's Sunrise Gold is drawn for
+  the phone: the same cream glass Sunrise on gold, plus a reflection under
+  the water and separate glass pieces.
+- **Android:** not built.
+
+**Parity contract:** shared ids keep the same names and labels, no platform
+reuses a retired id, and every icon is free. `sunrise-dawn` stays out of the
+shared settings schema until the Mac offers it.
+
+**Status:** iPhone implemented, unreleased. Spec:
+`docs/superpowers/specs/2026-10-29-ios-liquid-glass-app-icons-design.md`.

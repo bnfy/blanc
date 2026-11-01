@@ -1,0 +1,18 @@
+{
+  "purpose": "Isolated real-binary Windows CDM lifecycle tests; never packaged or selected for users",
+  "platform": "win32-x64",
+  "previous": {
+    "version": "4.10.3050.0",
+    "source": "https://github.com/mozilla-firefox/firefox/blob/1a3f431ba3781951cec130646414e652fcd509eb/toolkit/content/gmp-sources/widevinecdm.json",
+    "url": "https://www.google.com/dl/release2/chrome_component/acddvywyhts76ngei465tcu7besa_4.10.3050.0/oimompecagnajdejgnnjijobebaeigek_4.10.3050.0_win64_adoev3c5ys462nbqhaead57zg2pa.crx3",
+    "bytes": 22692383,
+    "sha512": "b763712aa4bd9819b7972a40216c08fd32338b14fab7ce4b166e39ce441ad62678bf0e1f25da436ffdb56ff1b1a21e3dbbaf47c0f5918c252e70656f5d0307ac"
+  },
+  "current": {
+    "version": "4.10.3112.0",
+    "source": "https://github.com/mozilla-firefox/firefox/blob/f268f9f0bac68a3e043a0ba9c2f166137fdf733b/toolkit/content/gmp-sources/widevinecdm.json",
+    "url": "https://www.google.com/dl/release2/chrome_component/acomjnhpjyodpde7g3m33u5nkqoa_4.10.3112.0/oimompecagnajdejgnnjijobebaeigek_4.10.3112.0_win64_a5xadnsxzavp7cn4ay5kc6gq6u.crx3",
+    "bytes": 22976546,
+    "sha512": "ae8624becb7619dd9602f416203c54096ae0e23c4c2574c8069e633f9682b0b9bf5bbb95e94fca6610b9581746d5ed648fd41c47d762b174bd5d632937df6689"
+  }
+}

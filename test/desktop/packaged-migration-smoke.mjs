@@ -21,6 +21,8 @@ for (const [label, executable] of [
 }
 
 const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-stable-migration-'));
+const ecsMigration = process.env.BLANC_ECS_MIGRATION === '1';
+if (ecsMigration) fs.writeFileSync(path.join(userDataDir, 'ecs-candidate-profile.json'), JSON.stringify({ candidate: true }), { flag: 'wx', mode: 0o600 });
 const favoriteUrl = 'https://example.com/favorite';
 const sessionUrls = ['https://example.com/', 'https://www.wikipedia.org/'];
 const workspaceId = 'migration_workspace';
@@ -51,7 +53,8 @@ const launch = async (executablePath) => {
   app = await launchPackagedOverCdp({
     executablePath,
     args: [`--user-data-dir=${userDataDir}`],
-    env: { ...process.env, BLANC_TEST: '0' },
+    env: { ...process.env, BLANC_TEST: '0',
+      ...(ecsMigration ? { BLANC_ECS_FULL_PROFILE: userDataDir, BLANC_UPDATE_CHANNEL: 'ecs-migration-disabled' } : {}) },
   });
 };
 
@@ -236,7 +239,14 @@ try {
   const migratedWorkspace = workspaces.workspaces.find((entry) => entry.id === workspaceId);
   assert.ok(migratedWorkspace, 'saved Named Workspace should survive the public-to-candidate handoff');
   assert.equal(migratedWorkspace.name, workspaceName);
-  assert.deepEqual(migratedWorkspace.urls, sessionUrls);
+  // A feature update opens its What's New page once, in the window it
+  // updates (whats-new.js), once that page is live on blanc.day. Here that
+  // window is the saved Space, so the Space may gain exactly that one tab;
+  // every saved tab must still be there, in order.
+  const whatsNewPage = /^https:\/\/blanc\.day\/whats-new\/\d+\.\d+$/;
+  const addedUrls = migratedWorkspace.urls.filter((url) => !sessionUrls.includes(url));
+  assert.ok(addedUrls.length <= 1 && addedUrls.every((url) => whatsNewPage.test(url)), `only the What's New tab may join the Space: ${addedUrls.join(', ')}`);
+  assert.deepEqual(migratedWorkspace.urls.filter((url) => !whatsNewPage.test(url)), sessionUrls);
   assert.equal(workspaces.version, 2, 'candidate should migrate to the versioned workspace recovery format');
   const recoveryCopies = fs.readdirSync(userDataDir).filter((name) => name.startsWith('workspaces.json.before-repair-'));
   for (const [name, bytes] of originalRecoveryCopies) {

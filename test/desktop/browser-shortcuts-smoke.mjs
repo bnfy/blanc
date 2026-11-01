@@ -6,14 +6,20 @@ import http from 'node:http';
 import { _electron } from 'playwright';
 import hook from './support/test-hook-call.js';
 import polling from './support/poll.js';
+import { inMainTurn } from './support/main-turn.js';
+import { openNativeKeys } from './support/native-keys.mjs';
+import tabSwitcher from '../../src/main/tab-switcher.js';
 import runtime from '../../scripts/preflight-electron-runtime.js';
 const { callTestHook: call } = hook;
 const { waitForValue: wait } = polling;
+const { recentOrderAvailable } = tabSwitcher;
 const expected = runtime.verifyElectronRuntime().locked;
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-shortcuts-'));
 const userData = path.join(root, 'profile');
 fs.mkdirSync(`${userData}-Dev`);
-fs.writeFileSync(path.join(`${userData}-Dev`, 'settings.json'), JSON.stringify({ onboardingVersion: 1, adblockEnabled: false, searchSuggestions: false, usagePing: false }));
+// List order keeps synthetic Ctrl+Tab presses switching at once; the
+// most-recent order is exercised below with real OS keys.
+fs.writeFileSync(path.join(`${userData}-Dev`, 'settings.json'), JSON.stringify({ onboardingVersion: 1, adblockEnabled: false, searchSuggestions: false, usagePing: false, tabSwitchOrder: 'list' }));
 const uncaught = path.join(root, 'uncaught.log');
 const server = http.createServer((_req, res) => {
   res.setHeader('Content-Type', 'text/html');
@@ -37,7 +43,7 @@ fs.mkdirSync(crashDumps);
 const press = async (command, key, modifiers, surface = 'active') => {
   const commandState = await call(app, 'browserCommandState');
   const before = commandState.deliveries.length;
-  assert.ok(before < 100, 'Command regression exceeded the bounded diagnostic inventory');
+  assert.ok(before < 200, 'Command regression exceeded the bounded diagnostic inventory');
   lastCommandDiagnostics = { requested: { command, key, modifiers, surface }, state: commandState };
   // Deliver the command from its own event-loop turn. Inspector evaluation can
   // interrupt Node's timer dispatch, and a command that clears the timer being
@@ -99,9 +105,9 @@ try {
     const settingsPage = await wait(async () => (await app.windows()).find(page => page.url().startsWith('blanc://settings/')), Boolean, 'Settings page');
     await settingsPage.locator('a[data-group="help"]').click();
     assert.equal(await settingsPage.locator('#browserCompatibilityCard').isVisible(), true);
-    await press('next-tab', iteration % 2 ? 'PageDown' : 'Tab', ['control'], 'sheet');
+    await press(iteration % 2 ? 'next-tab-in-order' : 'next-tab', iteration % 2 ? 'PageDown' : 'Tab', ['control'], 'sheet');
     await wait(state, value => value.activeTabId !== created.activeTabId, 'tab switched from Settings');
-    await press('previous-tab', iteration % 2 ? 'PageUp' : 'Tab', iteration % 2 ? ['control'] : ['control', 'shift']);
+    await press(iteration % 2 ? 'previous-tab-in-order' : 'previous-tab', iteration % 2 ? 'PageUp' : 'Tab', iteration % 2 ? ['control'] : ['control', 'shift']);
     await wait(state, value => value.activeTabId === created.activeTabId, 'tab restored');
     await press('close-tab', 'W', ['control']);
     await wait(state, value => value.tabOrder.length === count, 'exactly one tab closed');
@@ -145,6 +151,52 @@ try {
   await call(app, 'closeUtilitySurface');
   await press('reload', 'F5', []);
   await press('hard-reload', 'R', ['control', 'shift']);
+  // Copy Link puts the active page's exact address on the clipboard; a blank
+  // tab has nothing to copy and leaves the clipboard alone.
+  await call(app, 'setClipboardText', ['sentinel']);
+  // The survivor rule may have left the initial blank tab active; copy from a
+  // fixture page.
+  const copyTab = (await state()).tabs.find(tab => tab.url === `${origin}/one`);
+  assert.ok(copyTab, 'Copy Link fixture page is open');
+  const copyUrl = copyTab.url;
+  await call(app, 'activateTab', [copyTab.id]);
+  await wait(state, value => value.activeTabId === copyTab.id, 'Copy Link fixture active');
+  await press('copy-link', 'C', ['control', 'shift']);
+  await wait(() => call(app, 'readClipboardText'), value => value === copyUrl, 'active page address copied');
+  await press('new-tab', 'T', ['control']);
+  await wait(state, value => value.tabOrder.length === count + 1, 'blank tab for Copy Link');
+  await wait(() => call(app, 'overlayMode'), value => value === 'panel', 'blank tab panel');
+  await press('copy-link', 'C', ['control', 'shift'], 'overlay');
+  assert.equal(await call(app, 'readClipboardText'), copyUrl, 'a blank tab copies nothing');
+  await press('close-tab', 'W', ['control'], 'overlay');
+  await wait(state, value => value.tabOrder.length === count, 'Copy Link blank tab closed');
+  // Edit → Copy Clean Link (⌥⇧⌘C on macOS; menu only on Windows and Linux,
+  // where Ctrl+Alt is AltGr) copies the address without its tracking parameters.
+  await call(app, 'activateTab', [copyTab.id]);
+  await call(app, 'navigateTab', [copyTab.id, `${origin}/one?utm_source=news&keep=1`]);
+  await wait(state, value => value.tabs.some(tab => tab.id === copyTab.id && tab.url === `${origin}/one?utm_source=news&keep=1` && !tab.isLoading), 'tracking fixture loaded');
+  await app.evaluate(({ Menu, BrowserWindow }) => {
+    const window = BrowserWindow.getAllWindows().find(win => win.webContents.getURL() === 'blanc-chrome://index/');
+    const item = Menu.getApplicationMenu().getMenuItemById('copy-clean-link');
+    if (!item) throw new Error('Missing Edit → Copy Clean Link');
+    item.click(item, window);
+  });
+  await wait(() => call(app, 'readClipboardText'), value => value === `${origin}/one?keep=1`, 'clean address copied');
+  steps++;
+  // /copy and /copy clean in the ⌘L panel do the same as the shortcut and the menu.
+  const slash = async (text) => {
+    await call(app, 'openPalette');
+    await wait(() => call(app, 'overlayMode'), value => value === 'palette', `palette for ${text}`);
+    await addressInput.fill(text);
+    await addressInput.press('Enter');
+  };
+  await call(app, 'setClipboardText', ['sentinel']);
+  await slash('/copy');
+  await wait(() => call(app, 'readClipboardText'), value => value === `${origin}/one?utm_source=news&keep=1`, '/copy copied the address');
+  await slash('/copy clean');
+  await wait(() => call(app, 'readClipboardText'), value => value === `${origin}/one?keep=1`, '/copy clean copied the clean address');
+  await wait(() => call(app, 'overlayMode'), value => value === null, '/copy closes the panel');
+  steps += 2;
   await press('find', 'F', ['control']);
   await wait(() => call(app, 'overlayMode'), value => value === 'find', 'Find');
   await press('settings', ',', ['control'], 'overlay');
@@ -202,7 +254,7 @@ try {
   await press('close-tab', 'W', ['control']);
   assert.equal((await call(app, 'closedEntriesSummary')).at(-1).held, true);
   const priorDeliveries = (await call(app, 'browserCommandState')).deliveries.length;
-  await app.evaluate(({ webContents }, { id, inputCount }) => {
+  await inMainTurn(app, ({ webContents }, { id, inputCount }) => {
     const wc = webContents.fromId(id);
     if (!wc) throw new Error('Closed view should remain parked');
     // Electron and the process-wide external-app activation observer remain;
@@ -212,6 +264,103 @@ try {
     wc.sendInputEvent({ type: 'keyUp', keyCode: 'W', modifiers: ['control'] });
   }, { id: heldContentsId, inputCount });
   assert.equal((await call(app, 'browserCommandState')).deliveries.length, priorDeliveries);
+  // Ctrl+Tab by most recent use (tab-switcher.js), with real OS keys: a
+  // synthetic event skips the native path where a consumed press loses the
+  // Control release (spec §3.4, §10; support/native-keys.mjs).
+  const native = recentOrderAvailable(process.platform)
+    ? await openNativeKeys(app)
+    : { keys: null, reason: `recent order is not available on ${process.platform}` };
+  if (!native.keys) console.log(`Most-recent Ctrl+Tab skipped: ${native.reason}`);
+  else {
+    const keys = (...steps) => native.keys.run(...steps);
+    try {
+      assert.equal(await call(app, 'setTabSwitchOrder', ['recent']), 'recent');
+      const used = [];
+      for (const name of ['recent-1', 'recent-2', 'recent-3']) {
+        const id = await call(app, 'openTab', [`${origin}/${name}`]);
+        await call(app, 'activateTab', [id, true]);
+        await wait(state, value => value.activeTabId === id, `${name} used`);
+        used.push(id);
+      }
+      const settle = 600;
+      const commandState = () => call(app, 'browserCommandState');
+      const cardsBefore = (await commandState()).switcherCardShows;
+      // A tap goes to the previous tab, and tapping again comes back.
+      await keys(['down', 'ctrl'], ['key', 'tab'], ['up', 'ctrl'], settle);
+      await wait(state, value => value.activeTabId === used[1], 'a tap lands on the previous tab');
+      await keys(['down', 'ctrl'], ['key', 'tab'], ['up', 'ctrl'], settle);
+      await wait(state, value => value.activeTabId === used[2], 'a second tap comes back');
+      assert.equal((await commandState()).switcherCardShows, cardsBefore, 'a tap never shows the card');
+      // Held Ctrl: two Tabs step two back, and nothing changes before the release.
+      await keys(['down', 'ctrl'], 150, ['key', 'tab'], 250, ['key', 'tab'], 250);
+      assert.equal((await state()).activeTabId, used[2], 'stepping never switches before the release');
+      let held = await commandState();
+      assert.equal(held.tabSwitchPick, used[0]);
+      assert.equal(held.overlayMode, 'switcher', 'a held switch shows the card');
+      assert.equal(held.switcherCardShows, cardsBefore + 1);
+      assert.notEqual(held.focusedWebContentsId, await app.evaluate(({ webContents }) =>
+        webContents.getAllWebContents().find(wc => wc.getURL() === 'blanc-chrome://overlay/')?.id ?? -1), 'the card never takes focus');
+      await keys(['up', 'ctrl'], settle);
+      await wait(state, value => value.activeTabId === used[0], 'the release lands two back');
+      assert.equal((await commandState()).overlayMode, null, 'landing closes the card');
+      // Esc cancels: the release then changes nothing. Not on Windows, where
+      // Ctrl+Esc is the OS's Start menu key and never reaches Blanc.
+      if (process.platform !== 'win32') {
+        await keys(['down', 'ctrl'], 150, ['key', 'tab'], 250, ['key', 'escape'], 150, ['up', 'ctrl'], settle);
+        assert.equal((await state()).activeTabId, used[0], 'Esc stays where you are');
+        assert.equal((await call(app, 'browserCommandState')).tabSwitchPick, null);
+        assert.equal((await commandState()).overlayMode, null, 'Esc closes the card');
+        steps++;
+      }
+      // Ctrl+W closes the pick, not the current tab; the pick moves one step
+      // older and the release still arrives to land on it (D4). macOS closes
+      // tabs with ⌘W, so there W simply cancels like any other key.
+      let closing = null;
+      if (process.platform !== 'darwin') {
+        await keys(['down', 'ctrl'], 150, ['key', 'tab'], 250);
+        held = await commandState();
+        closing = held.tabSwitchPick;
+        const after = held.tabSwitchOrder[held.tabSwitchOrder.indexOf(closing) + 1] ?? held.tabSwitchOrder[1];
+        await keys(['key', 'w'], 400);
+        await wait(state, value => !value.tabOrder.includes(closing), 'Ctrl+W closes the picked tab');
+        held = await commandState();
+        assert.equal(held.activeTabId, used[0], 'Ctrl+W leaves the current tab open and current');
+        assert.equal(held.tabSwitchPick, after, 'the pick moves one step older');
+        assert.equal(held.overlayMode, 'switcher', 'the card stays open');
+        await keys(['up', 'ctrl'], settle);
+        await wait(state, value => value.activeTabId === after, 'the release after Ctrl+W lands on the new pick');
+        steps++;
+      }
+      // A click on a tile lands on it at once; the release then changes nothing.
+      await keys(['down', 'ctrl'], 150, ['key', 'tab'], 250, ['key', 'tab'], 250);
+      held = await commandState();
+      assert.equal(held.overlayMode, 'switcher');
+      // Click the current tab's neighbour in the order, not the pick, so the
+      // landing proves the click and not the release.
+      const target = used[0];
+      const tile = held.tabSwitchOrder.indexOf(target);
+      assert.ok(tile > 0 && held.tabSwitchPick !== target, 'the clicked tile is not the pick');
+      const rect = await app.evaluate(async ({ webContents }, index) => {
+        const overlay = webContents.getAllWebContents().find(wc => wc.getURL() === 'blanc-chrome://overlay/');
+        return overlay.executeJavaScript(`(() => { const r = document.getElementById('switcher-tile-${index}').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
+      }, tile);
+      const view = held.overlayBounds;
+      assert.ok(view, 'overlay bounds');
+      await keys(['click', view.x + rect.x, view.y + rect.y]);
+      await wait(state, value => value.activeTabId === target, 'a click on a tile lands on it');
+      await keys(['up', 'ctrl'], settle);
+      assert.equal((await state()).activeTabId, target, 'the release after a click changes nothing');
+      assert.equal((await commandState()).overlayMode, null);
+      // Tap, second tap, held step, landing on release, click; Esc and Ctrl+W count above.
+      steps += 5;
+      assert.equal(await call(app, 'setTabSwitchOrder', ['list']), 'list');
+      const open = used.filter(id => id !== closing);
+      for (const id of open) await call(app, 'closeTab', [id]);
+      await wait(state, value => used.every(id => !value.tabOrder.includes(id)), 'most-recent fixtures closed');
+    } finally {
+      native.keys.close();
+    }
+  }
   const primaryBefore = (await call(app, 'windowRuntimes'))[0];
   const otherId = await call(app, 'openNewWindow');
   await wait(() => call(app, 'windowRuntimes'), windows => windows.some(window => window.id === otherId && window.tabs.length === 1), 'second window');

@@ -137,7 +137,15 @@ export async function launchPackagedOverCdp({
         if (!exited) throw new Error(`packaged LaunchServices app would not exit\n${output}`);
         return;
       }
+      // connectOverCDP's close may only disconnect the automation client.
+      // Ask the browser to quit before an AppImage wrapper is reaped; killing
+      // that wrapper first can orphan the core with the profile lock held.
+      try {
+        const session = await browser.newBrowserCDPSession();
+        await Promise.race([session.send('Browser.close').catch(() => {}), delay(1_000)]);
+      } catch {}
       await browser.close().catch(() => {});
+      for (let i = 0; i < 50 && !exited; i += 1) await delay(100);
       if (exited) return;
       child.kill('SIGTERM');
       for (let i = 0; i < 50 && !exited; i += 1) await delay(100);

@@ -43,6 +43,9 @@
   opacity: 0;
   visibility: hidden;
 }
+.wn.is-settling .wn-stage > * {
+  transition: none;
+}
 @media (prefers-reduced-motion: reduce) {
   .wn.is-enhanced .wn-stage > * { transition: none; }
 }

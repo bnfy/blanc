@@ -54,6 +54,16 @@ function compareFeature(a, b) {
   return a1 - b1 || a2 - b2;
 }
 
+// A feature line's first published release: usually X.Y.0, but a line can go
+// public at X.Y.1 (1.44.0 was tagged and never published). Null until any of
+// it is public.
+function firstPublished(release, releases) {
+  const patch = (version) => Number(RELEASE_RE.exec(version)[3]);
+  return releases
+    .filter((r) => featureRelease(r.version) === release)
+    .sort((a, b) => patch(a.version) - patch(b.version))[0] ?? null;
+}
+
 const isSitePath = (url) => typeof url === 'string'
   && ((url.startsWith('/') && !url.startsWith('//')) || url.startsWith('https://blanc.day/'));
 
@@ -96,7 +106,6 @@ function mediaErrors(media, where, publicDir, allowDrafts) {
 // server's preview only.
 export function validateWhatsNew(data, releases, { publicDir, requireEveryRelease = true, allowDrafts = false } = {}) {
   const errors = [];
-  const released = new Set(releases.map((r) => r.version));
   const featureReleases = new Set(releases.map((r) => featureRelease(r.version)).filter(Boolean));
   const paged = new Set();
   let upcoming = null;
@@ -106,11 +115,11 @@ export function validateWhatsNew(data, releases, { publicDir, requireEveryReleas
     const release = pageData.release;
     if (!FEATURE_RE.test(release ?? '')) { errors.push(`page "${release}": release must be major.minor`); continue; }
     paged.add(release);
-    if (!released.has(`${release}.0`)) {
+    if (!firstPublished(release, releases)) {
       // The next release's page deploys before that release publishes (the
       // release gate, scripts/check-whats-new-page.mjs, requires it live).
       const next = [...featureReleases].every((r) => compareFeature(release, r) > 0);
-      if (!next) errors.push(`page ${release}: ${release}.0 is not in releases.json and is not newer than every release`);
+      if (!next) errors.push(`page ${release}: no ${release} release is in releases.json and it is not newer than every release`);
       else if (upcoming) errors.push(`page ${release}: only one page can come ahead of its release (${upcoming} already does)`);
       else upcoming = release;
     }
@@ -175,7 +184,7 @@ export function pageDescription(page) {
 }
 
 // The pages to build, newest first, with the date and changelog anchor of
-// their release's .0 version. A page whose release isn't public yet is
+// their release's first published version (usually .0). A page whose release isn't public yet is
 // upcoming: it builds with no date and links to the changelog itself (its
 // release has no entry there yet), so
 // the release gate can find it live, and stays unlisted until the release is
@@ -183,12 +192,11 @@ export function pageDescription(page) {
 // highlights (current: true), then add those of the EARLIER_PAGES previous
 // pages, newest first, up to MAX_ENTRIES in all; its own always fit.
 export function publishedPages(data, releases) {
-  const byVersion = new Map(releases.map((r) => [r.version, r]));
   const newest = releases.map((r) => featureRelease(r.version)).filter(Boolean).sort(compareFeature).at(-1);
   const pages = (data.pages ?? [])
-    .filter((p) => FEATURE_RE.test(p.release ?? '') && (byVersion.has(`${p.release}.0`) || !newest || compareFeature(p.release, newest) > 0))
+    .filter((p) => FEATURE_RE.test(p.release ?? '') && (firstPublished(p.release, releases) || !newest || compareFeature(p.release, newest) > 0))
     .map((p) => {
-      const release = byVersion.get(`${p.release}.0`);
+      const release = firstPublished(p.release, releases);
       if (!release) {
         return { release: p.release, version: `${p.release}.0`, humanDate: null, anchor: null, upcoming: true, highlights: p.highlights };
       }

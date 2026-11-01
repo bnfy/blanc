@@ -330,7 +330,10 @@ fallback; other failures must be resolved before merge.
    stops tracking resizes, so after a maximise the views are placed from a
    stale island-rect report and the controls' clicks miss. Fixed in
    bnfy/blanc#999: on Linux a covered strip keeps one row uncovered, and
-   all four controls then land on X11 and Wayland.
+   all four controls then land on X11 and Wayland. Windows turned out the
+   same (2026-10-22, reported on v1.42.0): a pill that grew while covered
+   lost its ends to a stale view, so bnfy/blanc#1052 keeps one row there
+   too.
 3. **Native Wayland reveal.** Pointing 7–10px inside the edge or resting
    30px down reveals the pill with the band in place.
 

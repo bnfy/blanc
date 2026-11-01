@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-138 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+156 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -13,6 +13,7 @@
 | `reopenClosedEntry` | tabs | invoke | `tabs:reopen-entry` | `(entryId: ClosedEntryId) => Promise<void>` | all |
 | `forgetClosedEntry` | tabs | invoke | `tabs:forget-closed-entry` | `(entryId: ClosedEntryId) => Promise<boolean>` | all |
 | `clearClosedEntries` | tabs | invoke | `tabs:clear-closed` | `() => Promise<boolean>` | all |
+| `selectTab` | tabs | invoke | `tabs:select` | `(tabId: TabId \| null, mode: 'toggle' \| 'range' \| 'extend-up' \| 'extend-down' \| 'clear') => Promise<TabId \| null>` | all |
 | `switchTab` | tabs | invoke | `tabs:switch` | `(id: TabId) => Promise<void>` | all |
 | `navigate` | navigation | invoke | `tabs:navigate` | `(id: TabId, url: string) => Promise<boolean \| undefined>` | all |
 | `search` | navigation | invoke | `tabs:search` | `(id: TabId, query: string, engine?: string) => Promise<boolean \| string \| undefined>` | all |
@@ -27,6 +28,7 @@
 | `setGroupColor` | groups | invoke | `groups:set-color` | `(groupId: GroupId, color: string \| null) => Promise<GroupColorResult>` | all |
 | `newTabInGroup` | groups | invoke | `groups:new-tab` | `(groupId: GroupId) => Promise<boolean>` | all |
 | `moveGroupToNewWindow` | groups | invoke | `groups:move-to-new-window` | `(groupId: GroupId) => Promise<boolean>` | all |
+| `openGroupSpaceMenu` | groups | invoke | `groups:space-menu` | `(groupId: GroupId, point: Point) => Promise<boolean>` | all |
 | `ungroupGroup` | groups | invoke | `groups:ungroup` | `(groupId: GroupId) => Promise<void>` | all |
 | `activateTabFromRail` | tabs | invoke | `tabs:activate-from-rail` | `(id: TabId) => Promise<boolean>` | all |
 | `setGlanceTab` | glance | invoke | `tabs:set-glance` | `(id: TabId) => Promise<boolean>` | all |
@@ -71,8 +73,10 @@
 | `resetSplit` | split | invoke | `chrome:reset-split` | `(splitId: string) => Promise<boolean>` | all |
 | `onSplitLayout` | split | event | `chrome:split-layout` | `(payload: SplitLayout \| null) => void` | all |
 | `onGlanceStatus` | glance | event | `chrome:glance-status` | `(payload: string) => void` | all |
+| `onPillNotice` | island | event | `chrome:pill-notice` | `(payload: PillNotice) => void` | all |
 | `openIsland` | island | send | `chrome:open-island` | `()` | all |
 | `openIslandCommands` | island | send | `chrome:open-island-commands` | `()` | all |
+| `beginNewGroup` | island | send | `chrome:new-group` | `()` | all |
 | `openIslandTyping` | island | send | `chrome:open-island-typing` | `(char: string)` | all |
 | `openFindBar` | island | send | `chrome:open-find` | `()` | all |
 | `openShieldPopover` | blocking | send | `chrome:open-shield` | `(anchor: ShieldAnchor)` | all |
@@ -83,6 +87,8 @@
 | `openGroupMenu` | groups | send | `chrome:open-group-menu` | `(groupId: GroupId, anchor: GroupMenuAnchor)` | all |
 | `captureStop` | capture | send | `chrome:capture-stop` | `(surfaceId: CaptureSurfaceId)` | all |
 | `captureFocus` | capture | send | `chrome:capture-focus` | `(surfaceId: CaptureSurfaceId)` | all |
+| `switcherPick` | tabs | send | `chrome:switcher-pick` | `(tabId: TabId)` | all |
+| `copyActiveLink` | tabs | send | `chrome:copy-link` | `(clean: boolean)` | all |
 | `stopDisplayShare` | capture | send | `display-capture:stop` | `(shareId: DisplayShareId)` | all |
 | `resolveDisplayPicker` | capture | send | `display-capture:picker-resolve` | `(choice: DisplayPickerChoice)` | all |
 | `openMainMenu` | window | invoke | `chrome:open-main-menu` | `(point: Point) => Promise<boolean>` | all |
@@ -99,8 +105,17 @@
 | `listFavorites` | favorites | invoke | `chrome:favorites-list` | `() => Promise<FavoriteItem[]>` | all |
 | `listRemoteTabs` | sync | invoke | `chrome:remote-tabs-list` | `() => Promise<RemoteDevice[]>` | all |
 | `renameDevice` | sync | invoke | `chrome:rename-device` | `(deviceId: string, name: string \| null) => Promise<boolean>` | all |
+| `listSendTargets` | sync | invoke | `chrome:send-targets` | `() => Promise<SendTarget[]>` | all |
+| `sendTabToDevice` | sync | invoke | `chrome:send-tab` | `(tabId: TabId, deviceId: string) => Promise<SendResult>` | all |
+| `listSentToThisDevice` | sync | invoke | `chrome:sent-list` | `() => Promise<SentItem[]>` | all |
+| `openSentItem` | sync | invoke | `chrome:sent-open` | `(id: string) => Promise<boolean>` | all |
+| `dismissSentItem` | sync | invoke | `chrome:sent-dismiss` | `(id: string) => Promise<boolean>` | all |
 | `cancelWorkspaceAction` | workspaces | send | `chrome:workspaces-cancel` | `()` | all |
 | `listWorkspaces` | workspaces | invoke | `chrome:workspaces-list` | `() => Promise<WorkspacesPayload>` | all |
+| `createSpaceWithLink` | workspaces | invoke | `chrome:workspaces-create-with-link` | `(name: string, identity: SpaceIdentityInput) => Promise<WorkspaceActionResult>` | all |
+| `createSpaceWithTabs` | workspaces | invoke | `chrome:workspaces-create-with-tabs` | `(name: string, identity: SpaceIdentityInput, tabIds: TabId[]) => Promise<WorkspaceActionResult>` | all |
+| `groupTabsByName` | tabs | invoke | `tabs:group-many-by-name` | `(tabIds: TabId[], name: string) => Promise<boolean>` | all |
+| `createSpaceWithTab` | workspaces | invoke | `chrome:workspaces-create-with-tab` | `(name: string, identity: SpaceIdentityInput, tabId: TabId) => Promise<WorkspaceActionResult>` | all |
 | `saveWorkspaceAs` | workspaces | invoke | `chrome:workspaces-save-as` | `(name: string, identity?: SpaceIdentityInput) => Promise<WorkspaceActionResult>` | all |
 | `openWorkspace` | workspaces | invoke | `chrome:workspaces-open` | `(id: WorkspaceId, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
 | `createBlankWorkspace` | workspaces | invoke | `chrome:workspaces-create-blank` | `(name: string, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
@@ -116,12 +131,14 @@
 | `bangIcons` | search | invoke | `chrome:bang-icons` | `(hosts: string[]) => Promise<BangIcon[]>` | all |
 | `onBangIconsChanged` | search | event | `bang-icons:changed` | `(payload: BangIcon) => void` | all |
 | `onRemoteTabsUpdated` | sync | event | `chrome:remote-tabs-updated` | `(payload: RemoteDevice[]) => void` | all |
+| `onSentToThisDeviceUpdated` | sync | event | `chrome:sent-updated` | `(payload: SentItem[]) => void` | all |
 | `onWorkspacesUpdated` | workspaces | event | `chrome:workspaces-updated` | `(payload: WorkspacesPayload) => void` | all |
 | `onWorkspaceAction` | workspaces | event | `overlay:workspace-action` | `(payload: WorkspaceActionEvent) => void` | all |
 | `clearHistory` | history | invoke | `chrome:history-clear` | `() => Promise<void>` | all |
 | `toggleAdblock` | blocking | invoke | `chrome:adblock-toggle` | `() => Promise<ProviderBlockAdsResult \| BlockAdsResult>` | all |
 | `allowAdsOnActiveSite` | blocking | invoke | `chrome:adblock-exempt-active` | `() => Promise<string \| null \| AllowAdsError>` | all |
 | `toggleDarkSiteOnActiveSite` | appearance | invoke | `chrome:dark-site-active` | `() => Promise<DarkSiteResult \| null>` | all |
+| `routeActiveSite` | appearance | invoke | `chrome:route-active` | `(mode: 'toggle' \| 'on' \| 'off') => Promise<RouteResult>` | all |
 | `siteInfoForgetCertificateException` | island | invoke | `chrome:site-info-forget-certificate-exception` | `() => Promise<boolean>` | all |
 | `sleepBackgroundTabs` | tabs | invoke | `chrome:sleep-background-tabs` | `() => Promise<TabId[]>` | all |
 | `inviteFriend` | island | invoke | `chrome:invite-friend` | `() => Promise<InviteFriendResult>` | all |
@@ -144,6 +161,7 @@
 | `onFloatFrame` | island | event | `chrome:float-frame` | `(payload: FloatFrame) => void` | all |
 | `onFloatShown` | island | event | `chrome:float-shown` | `(payload: boolean) => void` | all |
 | `onFindResult` | find | event | `chrome:find-result` | `(payload: FindResult) => void` | all |
+| `toggleReaderMode` | navigation | invoke | `tabs:reader-toggle` | `(id: TabId) => Promise<boolean>` | all |
 
 ## Types
 
@@ -360,6 +378,9 @@ One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only stat
 | `connection` | `ConnectionState \| null` |  |
 | `siteInfo` | `SiteInfo` |  |
 | `splitId` | `string \| null` | The Split View (F53) this tab belongs to, or null. |
+| `syncNotSynced?` | `boolean` |  |
+| `readerAvailable` | `boolean` | Article suitability hint; extraction may still fail. |
+| `readerActive` | `boolean` | The tab is displaying its transient Reader Mode view. |
 
 ### `TabGroup`
 
@@ -412,6 +433,7 @@ A closed entry as renderers see it, projected by projectEntries() in closed-tabs
 | `title` | `string` |  |
 | `favicon` | `string \| null` |  |
 | `tabCount` | `number` |  |
+| `fromName?` | `string` |  |
 
 ### `ShieldProviderControls`
 
@@ -445,6 +467,28 @@ The active tab's shield popover: shieldPopoverModel() plus provider controls.
 | `connection` | `ConnectionState \| null` |  |
 | `controls` | `ShieldProviderControls` |  |
 | `darkSite` | `ShieldDarkSite \| null` |  |
+| `route` | `ShieldRoute \| null` |  |
+
+### `ShieldRoute`
+
+The shield popover's link routing switch (F60): whether links to this site from other apps open in this window's profile (scope 'profile') or Space ('space'); `elsewhere` names the profile, or profile and Space, a rule sends them to instead. Null in private tabs and with fewer than two profiles.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `on` | `boolean` |  |
+| `scope` | `'profile' \| 'space'` |  |
+| `elsewhere` | `string \| null` |  |
+
+### `RouteResult`
+
+The outcome of /route, /route off or the shield popover's link routing switch. Main shows the pill notice.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `ok` | `boolean` |  |
+| `host?` | `string \| null` |  |
+| `on?` | `boolean` |  |
+| `error?` | `'unavailable' \| 'no-host' \| 'too-many' \| 'invalid'` |  |
 
 ### `ShieldDarkSite`
 
@@ -514,12 +558,16 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | Field | Type | Notes |
 | --- | --- | --- |
 | `tabs` | `TabEntry[]` |  |
+| `selectedTabIds` | `TabId[]` |  |
+| `canStartGroup` | `boolean` |  |
 | `activeTabId` | `TabId \| null` |  |
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |
 | `closed` | `ClosedEntrySummary[]` |  |
 | `closedSlot` | `number` | How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
+| `verticalTabsTextSize` | `string` |  |
+| `islandTabIcons` | `boolean` | Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). |
 | `verticalTabsWidth` | `number` |  |
 | `verticalTabsPreferredWidth` | `number` |  |
 | `verticalTabsMinWidth` | `number` |  |
@@ -534,12 +582,16 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | Field | Type | Notes |
 | --- | --- | --- |
 | `tabs` | `TabEntry[]` |  |
+| `selectedTabIds` | `TabId[]` |  |
+| `canStartGroup` | `boolean` |  |
 | `activeTabId` | `TabId \| null` |  |
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |
 | `closed` | `ClosedEntrySummary[]` |  |
 | `closedSlot` | `number` | How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
+| `verticalTabsTextSize` | `string` |  |
+| `islandTabIcons` | `boolean` | Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). |
 | `adblockEnabled` | `boolean` |  |
 | `shieldPopover` | `ShieldPopover \| null` |  |
 | `captureChip` | `CaptureChip` |  |
@@ -661,6 +713,7 @@ An edit to one space: any subset of name, colour and symbol.
 | `name?` | `string` |  |
 | `color?` | `string` |  |
 | `symbol?` | `string` |  |
+| `ackRecovery?` | `boolean` | Dismiss the development-only recovery explanation on this device. |
 
 ### `WorkspaceActionEvent`
 
@@ -670,6 +723,31 @@ A space row's right-click choice, run by the open Spaces menu.
 | --- | --- | --- |
 | `kind` | `'edit' \| 'delete'` |  |
 | `id` | `WorkspaceId` |  |
+
+### `SharedSpaceAdmission`
+
+Local writes held from sync, without page contents; only present on a shared Space in Personal.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `unsyncedTabIds` | `string[]` |  |
+| `reason` | `'full' \| 'tombstones' \| 'tabs' \| 'remote-over-budget' \| 'required-state-over-budget' \| null` |  |
+| `state?` | `'shared' \| 'waiting' \| 'notSynced' \| 'full' \| 'unavailable'` |  |
+| `lastSyncedAt?` | `number` |  |
+| `failed?` | `boolean` |  |
+| `pending?` | `boolean` |  |
+
+### `SharedSpaceLibraryStatus`
+
+Shared-library capacity. Concurrent remote additions are retained even above the local creation limit.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `count` | `number` |  |
+| `limit` | `number` |  |
+| `canAdd` | `boolean` |  |
+| `busy?` | `boolean` |  |
+| `slowed?` | `boolean` |  |
 
 ### `WorkspaceListItem`
 
@@ -686,6 +764,7 @@ A Named Workspace row.
 | `tabCount` | `number` |  |
 | `color` | `string` | Stored #rrggbb, drawn exactly as its tile's fill (D21). |
 | `symbol` | `string` | A space-identity.js symbol id. |
+| `sharedSync?` | `SharedSpaceAdmission` |  |
 
 ### `WorkspacesPayload`
 
@@ -698,6 +777,8 @@ Named Workspaces projection, from workspacesProjection() in main.js.
 | `items` | `WorkspaceListItem[]` |  |
 | `windowTabCount` | `number` | This window's ordinary tabs, for the new-space editor. |
 | `tint` | `SpaceTint` |  |
+| `sharedSync?` | `SharedSpaceLibraryStatus \| undefined` |  |
+| `recoveryNotice?` | `boolean \| null` |  |
 
 ### `ThemeAppearance`
 
@@ -739,7 +820,13 @@ Download activity for the strip, from downloadsActivity() in downloads.js.
 
 Overlay modes; every showOverlay() call in main.js passes one of these literals.
 
-`'panel' \| 'palette' \| 'find' \| 'shield' \| 'capture' \| 'glance' \| 'display-share' \| 'spaces'`
+`'panel' \| 'palette' \| 'find' \| 'shield' \| 'capture' \| 'glance' \| 'display-share' \| 'spaces' \| 'switcher'`
+
+### `PillNotice`
+
+Fixed ids of the pill's brief confirmations; the strip owns their text.
+
+`'link-copied' \| 'clean-link-copied' \| 'route-on' \| 'route-off' \| 'route-limit' \| 'route-unavailable'`
 
 ### `ShieldTrigger`
 
@@ -763,6 +850,7 @@ Sent when main shows the overlay.
 | `prefill` | `string \| null` | Initial input text. |
 | `purpose` | `unknown` | Mode-specific: a string for Glance, an object for panel flows, a model for screen sharing. |
 | `pillRect?` | `Rect \| null` | The resting pill in the overlay's coordinates; absent when replayed after the overlay loads. |
+| `searchPriorityResults` | `boolean` | Settings → Search priority results: search suggestions lead typed results. |
 
 ### `OverlayHidePayload`
 
@@ -795,13 +883,23 @@ Find-in-page counts for the active tab, sent from tab-view.js.
 
 Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js.
 
-`'activation-failed' \| 'busy' \| 'duplicate-name' \| 'future-format' \| 'invalid-name' \| 'invalid-color' \| 'invalid-symbol' \| 'invalid-index' \| 'invalid-record' \| 'limit' \| 'not-found' \| 'protected-pages' \| 'read-failed' \| 'repair-failed' \| 'saved-not-opened' \| 'storage-failed' \| 'unsaved-scratch'`
+`'activation-failed' \| 'busy' \| 'duplicate-name' \| 'future-format' \| 'invalid-name' \| 'invalid-color' \| 'invalid-symbol' \| 'invalid-index' \| 'invalid-record' \| 'limit' \| 'not-found' \| 'protected-pages' \| 'read-failed' \| 'repair-failed' \| 'saved-not-opened' \| 'storage-failed' \| 'unsaved-scratch' \| 'saved-not-moved'`
 
 ### `WorkspaceProtectionReason`
 
 Why a window may not switch workspaces right now, from workspaceProtection() in main.js.
 
 `'permission-or-transition' \| 'active-page'`
+
+### `WorkspaceBlockingTab`
+
+A page that keeps a window from switching space, from blockingPages() in space-switch-guard.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `TabId` |  |
+| `title` | `string` | The tab's label (its custom name or page title), else its site. |
+| `reason` | `'loading' \| 'opener' \| 'capture' \| 'popup'` |  |
 
 ### `WorkspaceAction`
 
@@ -815,10 +913,12 @@ Result of every Named Workspace action. Successes carry the refreshed workspace 
 
 | Field | Type | Notes |
 | --- | --- | --- |
+| `movedCount?` | `number` |  |
 | `ok` | `boolean` |  |
 | `error?` | `WorkspaceErrorCode` |  |
 | `cause?` | `WorkspaceErrorCode` | Why a saved workspace could not be opened (with saved-not-opened). |
 | `reason?` | `WorkspaceProtectionReason` | With protected-pages. |
+| `blockingTabs?` | `WorkspaceBlockingTab[]` | The pages holding the window, in tab order (with protected-pages and active-page). |
 | `tabCount?` | `number` | Unsaved tabs (with unsaved-scratch). |
 | `privateCount?` | `number` | Private tabs among them (with unsaved-scratch). |
 | `decision?` | `string` | Token to send back as a confirmed "discard and switch" (with unsaved-scratch). |
@@ -830,6 +930,8 @@ Result of every Named Workspace action. Successes carry the refreshed workspace 
 | `items?` | `WorkspaceListItem[]` |  |
 | `windowTabCount?` | `number` | This window's ordinary tabs, for the new-space editor. |
 | `tint?` | `SpaceTint` |  |
+| `sharedSync?` | `SharedSpaceLibraryStatus \| undefined` |  |
+| `recoveryNotice?` | `boolean \| null` |  |
 
 ### `SearchEngineId`
 
@@ -916,6 +1018,42 @@ Another device's open tabs, from displayDevices() in tabsync-model.js. Newest fi
 | `updatedAt` | `number` | Epoch milliseconds. |
 | `tabs` | `RemoteTab[]` |  |
 | `groups` | `RemoteGroup[]` |  |
+
+### `SendStatus`
+
+What sending a page reports (M7b addendum §6): sent (never "delivered"), unavailable (the sync Worker doesn't serve the sends store yet), failed (offline, rate limited, a server error) or invalid (a private, internal or inert tab, or a device that isn't a target).
+
+`'sent' \| 'unavailable' \| 'failed' \| 'invalid'`
+
+### `SendResult`
+
+The reply to sendTabToDevice.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `status` | `SendStatus` |  |
+
+### `SendTarget`
+
+Another device of this sync account a page can be sent to, from sync.listSendTargets(): found in the sends store's presence entries or in tab sync, newest first, named as the Other devices drawer names it.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string` |  |
+| `name` | `string` |  |
+| `platform` | `string` |  |
+
+### `SentItem`
+
+A page another device sent to this one that this device hasn't opened or dismissed, from sync.listSentToThisDevice(). Newest first, at most 20, each kept 7 days.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string` |  |
+| `url` | `string` | An http(s) address. |
+| `title` | `string` |  |
+| `sentAt` | `number` | Epoch milliseconds. |
+| `fromName` | `string` | The sending device's name as this device shows it. |
 
 ### `CustomBang`
 
@@ -1125,9 +1263,10 @@ The card's views' bounds in window coordinates (cardGeometry() in glance-card.js
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `chrome` | `Rect` | The card's chrome view: the card plus its 8 px resize ring. |
+| `chrome` | `Rect` | The card's chrome view: the card plus its resize ring (12 px above, less where the card meets the top of the page area; 20 px at the sides; 28 px below). |
+| `frame` | `Rect` | The card itself, border included. |
 | `header` | `Rect` | The card's header, top border included. |
-| `page` | `Rect` | The Glance page's view, inside the side and bottom borders. |
+| `page` | `Rect` | The Glance page's view, inset 6 px in the card's frame below the header. |
 
 ### `GlanceCardMove`
 

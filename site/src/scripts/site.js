@@ -1,4 +1,17 @@
-/* Shared marketing-site behaviour: release resolution and opt-in measurement. */
+/* Shared marketing-site behaviour: release resolution and website measurement. */
+// Until Cloudflare establishes that this visit is outside consent-required
+// regions, only an explicit saved grant enables measurement.
+let measurementOptInRequired = true;
+const measurementRegionReady = fetch('/measurement-region', { cache: 'no-store' })
+  .then(response => response.ok ? response.json() : null)
+  .then(result => { measurementOptInRequired = result?.optInRequired !== false; })
+  .catch(() => { measurementOptInRequired = true; });
+const measurementEnabled = () => {
+  try {
+    const choice = localStorage.getItem('measurement-consent-v2');
+    return choice === 'granted' || (choice === null && !measurementOptInRequired);
+  } catch { return false; }
+};
 const openAIAttribution = (() => {
   const CONSENT_KEY = 'measurement-consent-v2';
   const STORAGE_KEY = 'openai-oppref';
@@ -32,7 +45,7 @@ const openAIAttribution = (() => {
     if (validOppref(landingOppref)) pendingOppref = landingOppref;
 
     const consent = localStorage.getItem(CONSENT_KEY);
-    if (consent === 'granted' && pendingOppref) {
+    if (measurementEnabled() && pendingOppref) {
       sessionStorage.setItem(STORAGE_KEY, pendingOppref);
     } else if (consent === 'denied') {
       pendingOppref = null;
@@ -58,11 +71,11 @@ const openAIAttribution = (() => {
     },
     decorateDownload(link) {
       // Remove old attribution before reading storage, which may now be denied
-      // or unavailable. Add it back only for a currently consented click.
+      // or unavailable. Add it back only while measurement is enabled.
       const url = clearDownloadReference(link);
       if (!url) return;
       try {
-        if (disabled || localStorage.getItem(CONSENT_KEY) !== 'granted') return;
+        if (disabled || !measurementEnabled()) return;
         const oppref = sessionStorage.getItem(STORAGE_KEY);
         if (!validOppref(oppref)) return;
 
@@ -150,7 +163,7 @@ const openAIAttribution = (() => {
   }
 
   // OpenAI's opaque ad-click reference is forwarded only after the site's
-  // measurement consent is granted. The download stays a normal link and the
+  // measurement is enabled. The download stays a normal link and the
   // server-side event path receives no form data or browser identifiers.
   document.addEventListener('click', (event) => {
     const link = event.target.closest('a[data-download-cta], a[data-download-link]');
@@ -159,7 +172,7 @@ const openAIAttribution = (() => {
 })();
 
 // Cloudflare Web Analytics: a cookieless page-view beacon with no persistent
-// identifier. Google analytics and ad attribution are separately opt-in. It only loads on non-legal
+// identifier. Google analytics and ad attribution can be switched off. It only loads on non-legal
 // pages because site.js itself is gated by BaseLayout's `analytics` prop.
 // The token is public (it names the site, not an account); leave it empty to
 // ship without the beacon. EasyPrivacy blocks cloudflareinsights.com, so Blanc
@@ -175,8 +188,8 @@ try {
   }
 } catch {}
 
-// Optional measurement loads only after a saved, explicit grant. No denied-state
-// Google script, pings, or event queue exists on an unconsented visit.
+// Measurement defaults on only in eligible regions after the location check.
+// Denied or inaccessible storage never loads the Google library or queues events.
 (() => {
   const GA_ID = 'G-MN8BLY6GE9';
   const CONSENT_KEY = 'measurement-consent-v2';
@@ -189,9 +202,9 @@ try {
   let disabled = false;
   let returnFocus = null;
   const readChoice = () => {
-    try { return localStorage.getItem(CONSENT_KEY); } catch { return null; }
+    try { return localStorage.getItem(CONSENT_KEY); } catch { return 'denied'; }
   };
-  const allowed = () => !disabled && readChoice() === 'granted';
+  const allowed = () => !disabled && measurementEnabled();
   const showStatus = message => { if (status) status.textContent = message; };
   const loadMeasurement = () => {
     if (loaded || !allowed()) return;
@@ -199,9 +212,19 @@ try {
     window['ga-disable-' + GA_ID] = false;
     window.dataLayer = [];
     window.gtag = function () { if (allowed()) window.dataLayer.push(arguments); };
-    window.gtag('consent', 'default', { analytics_storage: 'granted' });
+    // Only an actual saved opt-in is communicated as consent to Google.
+    if (readChoice() === 'granted') {
+      window.gtag('consent', 'default', { analytics_storage: 'granted', ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'denied' });
+    }
     window.gtag('js', new Date());
     window.gtag('config', GA_ID);
+    // Record only the current page, never replay earlier visits.
+    window.gtag('event', 'landing_page_view', {
+      source_page: document.body.dataset.page || location.pathname,
+    });
+    if (location.pathname.replace(/\/$/, '') === '/download') {
+      window.gtag('event', 'download_page_view', { source_page: '/download' });
+    }
     const script = document.createElement('script');
     script.async = true;
     script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
@@ -261,16 +284,24 @@ try {
     if (loaded) location.reload?.();
   });
   window.addEventListener?.('storage', event => {
-    if ((event.key === CONSENT_KEY || event.key === null) && readChoice() !== 'granted') {
+    if ((event.key === CONSENT_KEY || event.key === null) && readChoice() === 'denied') {
       stopMeasurement();
       if (loaded) location.reload?.();
     }
   });
   document.addEventListener('click', event => {
     if (event.defaultPrevented || !allowed() || typeof window.gtag !== 'function') return;
-    const target = event.target.closest('[data-track]');
+    const target = event.target.closest('[data-track], a[href]');
     if (!target) return;
     let eventName = target.dataset.track;
+    let feature = target.dataset.feature;
+    if (!eventName) {
+      let url;
+      try { url = new URL(target.href, location.href); } catch { return; }
+      if (url.origin !== location.origin || !/^\/features\/[a-z0-9-]+\/?$/.test(url.pathname)) return;
+      eventName = 'feature_cta_click';
+      feature = url.pathname.split('/')[2];
+    }
     let platform = target.dataset.platform;
     if (eventName === 'download_click') {
       // The same CTA can open /download on Mac/mobile or request a Windows/
@@ -291,8 +322,12 @@ try {
       source_page: document.body.dataset.page || location.pathname,
       cta_position: target.dataset.ctaPosition || undefined,
       platform: platform || undefined,
-      feature: target.dataset.feature || undefined,
+      feature: feature || undefined,
     });
   });
   try { loadMeasurement(); } catch { /* Measurement never blocks browsing. */ }
+  measurementRegionReady.then(() => {
+    if (allowed()) { openAIAttribution.grant(); loadMeasurement(); }
+    else if (readChoice() !== 'denied' && banner) showChoice(null);
+  });
 })();

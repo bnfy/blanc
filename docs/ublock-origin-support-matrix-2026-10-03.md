@@ -94,3 +94,23 @@ head `0646b46b`. That is hosted CI on unpackaged builds; the installed-candidate
 acceptance above was recorded for v1.27.0 on Electron 44.5.1 and was not
 repeated. The release record is
 [2026-10-16-v1.35.0.md](release-incidents/2026-10-16-v1.35.0.md).
+
+## Runtime update to Electron 44.9.3 (October 23, 2026, unreleased)
+
+At the owner's request (October 23, 2026), `main` moves from official Electron
+44.8.0 to **44.9.3** for GHSA-jr5w-w6x2-84p9: Electron 44.9.1 blocks the
+compromised eMudhra intermediate certificates in Chromium networking and in
+Node's `tls`/`https`/`fetch`. Chromium (152.0.7977.167) and Node (24.22.0) are
+the same as on 44.8.0. `src/main/ublock-platforms.json` moves its reviewed
+runtime to `44.9.3` with the dependency. uBO 1.75.0, its pinned upstream files
+and the four enabled combinations are unchanged. The four `desktop (…)` jobs
+on the PR head are the blocking and tools evidence the
+[runtime maintenance policy](ublock-origin-shipping-2026-10-03.md#runtime-maintenance-policy)
+requires. This section gets the run link before that PR merges; the release
+record will carry it forward.
+
+44.9.0 also removed Electron's internal `openerSandboxFlags` preference, so
+Blanc can no longer rebuild a page-opened tab with its opener's HTML/CSP
+sandbox. Blanc now marks those tabs and keeps them inert wherever a rebuild
+would be needed (`src/main/document-policy.js`). The same four jobs run
+`test:document-policy:desktop` and `test:modified-links:desktop` on the PR head.

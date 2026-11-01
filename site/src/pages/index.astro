@@ -6,7 +6,6 @@ import HorizonShield from "../components/HorizonShield.astro";
 import SpacesDemo from "../components/SpacesDemo.astro";
 import FloatingIslandWindow from "../components/FloatingIslandWindow.astro";
 import "../styles/home.css";
-import "../styles/reenie-beanie.css";
 import pkg from "../../../package.json";
 import chromiumMark from "../assets/summary-icons/chromium.svg?raw";
 import electronMark from "../assets/summary-icons/electron.svg?raw";
@@ -116,17 +115,17 @@ const comparison = [
   ["Phone and tablet apps", "no", "Desktop only", "yes", ""],
   ["Chrome Web Store extensions", "no", "", "yes", "On desktop"],
   ["Built-in password manager", "no", "1Password fill", "yes", "Google Password Manager"],
-  ["Plays protected streaming video", "no", "", "yes", ""],
+  ["Plays protected streaming video", "yes", "Since Blanc 1.43; on Windows, x64 PCs only", "yes", ""],
   ["Free and open source", "yes", "MIT; name and logo reserved", "part", "Free; built on the open-source Chromium project, under Google’s terms"],
 ];
 const markLabel = { yes: "Yes", no: "No", part: "Partly" };
 const faqs = [
   ["Does Blanc run on Windows and Linux?", "Yes. Blanc runs on macOS 13 or later (Apple Silicon or Intel), Windows 10 or later (64-bit) and 64-bit Linux as an AppImage."],
   ["Will my Chrome extensions work?", "Blanc doesn’t install extensions from the Chrome Web Store. Ad and tracker blocking is built in, and on supported builds you can choose the full uBlock Origin instead."],
-  ["Will my websites work?", "Blanc runs on Chromium, the open-source engine Chrome is built on. Protected streaming video, such as Netflix, doesn’t play in Blanc."],
+  ["Will my websites work?", "Blanc runs on Chromium, the open-source engine Chrome is built on. Since Blanc 1.43 it can also play Widevine-protected streaming video and music; on Windows that needs an x64 PC."],
   ["Is Blanc really free?", "Yes. Every feature, including Blanc Spaces, is free. Blanc Patron is optional support at US$30 a year or US$4 a month, plus tax, and unlocks nothing."],
   ["What does Blanc send?", "Nothing optional until you save your setup choices. Usage measurement (no addresses, searches or page contents) and search suggestions are preselected; turn either off before saving or later in Settings."],
-  ["Can I sync with my phone?", "No. Blanc is a desktop browser. Optional sync keeps Favorites, settings and open tabs in step across your computers, end-to-end encrypted with a passphrase only you know. History and passwords never sync."],
+  ["Can I sync with my phone?", "On an iPhone, yes: Blanc for iPhone is a public beta on TestFlight. Since Blanc 1.45 you pair it by scanning a code in Settings → Sync, and your Favorites and your other devices’ tabs come with you. Optional sync keeps Favorites, settings and open tabs in step across your computers, end-to-end encrypted. History and passwords never sync."],
   ["Does Blanc support passkeys?", "On a Mac with Touch ID, Blanc creates passkeys that stay on that Mac, in Apple’s Secure Enclave. It can’t use passkeys saved in other password managers."],
   ["Can Blanc translate web pages?", "No. Blanc’s own menus and settings are available in English, German, Spanish, French, Italian and Portuguese (Brazil)."],
   ["Does Blanc organize my tabs for me?", "No. You choose what goes in each group and space. Blanc doesn’t guess."],
@@ -172,20 +171,15 @@ const faqs = [
         </div>
         <div class="sun-copy">
           <h1 id="opening-title">A little less browser.</h1>
-          <p class="opening-aside"><span class="opening-note" lang="en">now, none at all</span><svg class="opening-flick" viewBox="0 0 120 14" aria-hidden="true"><path d="M3 9.5c22-4.6 51-6.4 79-4.9 11 .6 22 2 33 4.1" /></svg></p>
           <p class="lead">
-            Tabs, search and commands live in one compact Island. Turn on
-            Auto-hide and it slips out of sight; point at the top edge and it
-            floats back. Free for macOS, Windows and Linux, with ad and tracker
-            blocking on from the first launch.
+            Tabs, search and commands in one compact Island that can hide out
+            of sight. Free, with ad and tracker blocking on from the first launch.
           </p>
           <div class="actions">
-            <a class="planned-action" href="/download" data-download-cta data-track="download_click" data-cta-position="hero" data-handheld-share="hero-share-status" data-handheld-label="Send to my computer" data-handheld-text="Blanc is a desktop browser for macOS, Windows and Linux.">Download Blanc Browser</a><a
-              class="more-link"
-              href="#switch">See how to switch <span aria-hidden="true">›</span></a>
+            <a class="planned-action" href="/download" data-download-cta data-track="download_click" data-cta-position="hero" data-handheld-share="hero-share-status" data-handheld-label="Send to my computer" data-handheld-text="Blanc is a desktop browser for macOS, Windows and Linux.">Download Blanc Browser</a>
           </div>
+          <p class="hero-platforms">For macOS, Windows and Linux</p>
           <p class="handheld-note" data-handheld-note hidden>
-            Blanc is a desktop browser for macOS, Windows and Linux.
             <span id="hero-share-status" role="status" aria-live="polite"></span>
           </p>
           <div class="opening-window">
@@ -659,6 +653,7 @@ const faqs = [
   <ol class="page-notes" slot="footnotes">
     <li id="note-memory">Measured October 19, 2026 on one Apple Silicon Mac with 24 GB of memory, with Blanc 1.38.0 and Chrome 155.0.8059.80: six ad-heavy sites in each browser (five news sites and Speedtest), fresh profiles, no extensions, median of three runs. The figure is physical memory footprint summed across every process the browser starts. Method and raw data are in <a href="https://github.com/bnfy/blanc/tree/main/bench/memory">the Blanc repository</a>.</li>
     <li id="note-chrome">Chrome entries describe a default Chrome install, from Google’s own documentation, read October 15, 2026: <a href="https://support.google.com/chrome/answer/7632919">ad blocking</a>, <a href="https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline">the Manifest V2 timeline</a>, <a href="https://chromewebstore.google.com/detail/ublock-origin-lite/ddkjiahejlhfcafbddmgiahcphecmpfh">uBlock Origin Lite</a>, <a href="https://support.google.com/chrome/answer/95346">downloads and system requirements</a>, <a href="https://support.google.com/chrome_webstore/answer/2664769">extensions</a>, <a href="https://support.google.com/chrome/answer/95606">passwords</a>, <a href="https://developer.chrome.com/docs/chromium">Chromium</a>, <a href="https://support.google.com/chrome/a/answer/16190511">terms</a> and <a href="https://support.google.com/chrome/answer/4410268">protected content</a>.</li>
+    <li id="note-measurement">Google analytics and ad measurement are on by default outside the EEA, UK and Switzerland. <button type="button" data-consent-open aria-controls="consent">Choices</button></li>
   </ol>
   <script src="../scripts/home.js"></script>
 </BaseLayout>

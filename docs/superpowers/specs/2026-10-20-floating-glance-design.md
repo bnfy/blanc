@@ -46,9 +46,12 @@ panes. If you need it for longer, **Keep as split** turns it into a split.
   for the page and does nothing with them. A transparent pixel in a view
   still takes clicks (Electron views can't pass them through), so every view
   the card adds stays tight to what it draws. *(My call: the one exception
-  is a thin ring just outside the border, about 8 px, that holds the resize
-  edges and the shadow. A click there resizes the card, as at the edge of a
-  window, so it isn't lost; the shadow is kept short enough to fit it.)*
+  is a ring just outside the border that holds the resize edges and the
+  shadow. A click there resizes the card, as at the edge of a window, so it
+  isn't lost; the shadow is kept short enough to fit it. October 22, 2026
+  (owner): the ring grew from 8 px all round to 12 px above, 20 px at the
+  sides and 28 px below, for a window shadow deep enough to lift the card
+  off a white page.)*
 - **Anti-goal:** Escape closing the Glance while you're typing in the page
   behind.
 
@@ -115,7 +118,11 @@ panes. If you need it for longer, **Keep as split** turns it into a split.
 - **Look:** the same language as Split View's pane cards (spec D9): rounded
   corners at the pane radius, a 1 px border, darker while the card has
   focus, and a soft shadow so it reads as floating. The page view inside
-  gets matching corners, as split panes do.
+  gets matching corners, as split panes do. *(October 22, 2026, owner: the
+  card's corners are 14 px, and the page sits inset 6 px in the card's frame
+  below the header with 8 px corners of its own, with no line under the
+  header. A view has one radius for all four corners, so a page flush with
+  the header curved away under its straight edge.)*
 - **Header (owner, as proposed):** the GLANCE label, the site (favicon and
   host, with the private chip for a private tab), then:
   - **Back** and **Reload/Stop** for the Glance page, as today.

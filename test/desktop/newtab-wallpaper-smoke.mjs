@@ -5,6 +5,7 @@ import path from 'node:path';
 import { _electron } from 'playwright';
 import testHookCall from './support/test-hook-call.js';
 import poll from './support/poll.js';
+import { inMainTurn } from './support/main-turn.js';
 const { callTestHook } = testHookCall;
 const { waitForValue } = poll;
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-wallpaper-'));
@@ -246,7 +247,7 @@ try {
   if (process.platform === 'darwin') {
     const contentsId = await app.evaluate(({ webContents }) => webContents.getAllWebContents()
       .find((wc) => wc.getURL() === 'blanc://newtab/?private=1').id);
-    const closedWindowId = await app.evaluate(({ BrowserWindow }) => {
+    const closedWindowId = await inMainTurn(app, ({ BrowserWindow }) => {
       const window = BrowserWindow.getAllWindows()[0];
       const id = window.id;
       window.close();

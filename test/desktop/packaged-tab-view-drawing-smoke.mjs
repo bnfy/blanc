@@ -119,10 +119,11 @@ async function activeSession() {
 async function showTab(url) {
   for (let press = 0; press < 4; press++) {
     if ((await activeHost()).includes(hostOf(url))) return;
-    await key(await activeSession(), 'Tab', 'Tab', 9, 2); // Ctrl+Tab
+    // Ctrl+PageDown: by position whatever order Ctrl+Tab uses (tab-switcher.js).
+    await key(await activeSession(), 'PageDown', 'PageDown', 34, 2);
     await sleep(900);
   }
-  if (!(await activeHost()).includes(hostOf(url))) throw new Error(`Ctrl+Tab never showed ${url}`);
+  if (!(await activeHost()).includes(hostOf(url))) throw new Error(`Ctrl+PageDown never showed ${url}`);
 }
 
 const FRAME_PROBE = `new Promise((resolve) => {

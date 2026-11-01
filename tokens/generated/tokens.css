@@ -13,6 +13,7 @@
   --text-dim: #6b6b6b;
   --accent: #111111;
   --accent-dim: rgba(17, 17, 17, 0.08);
+  --row-selected: #728ca6;
   --sunrise-bg: #f8f2e8;
   --sunrise-surface: #f2eade;
   --sunrise-surface-raised: #ffffff;
@@ -48,6 +49,7 @@
   --shadow-pill: inset 0 1px 0 rgba(255,255,255,0.65), inset 1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset -1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset 0 -5px 7px -6px rgba(14,14,14,0.16), inset 0 -1px 0 rgba(14,14,14,0.045), 0 2px 16px -3px rgba(14,14,14,0.10);
   --shadow-island-resting: inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
   --shadow-island-float: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28);
+  --shadow-glance-card: 0 1px 3px rgba(14,14,14,.12), 0 8px 18px -6px rgba(14,14,14,.32);
   --strip-h: 68px;
   --pill-zoom: 1.15;
   --radius: 6px;
@@ -71,6 +73,7 @@
     --text-dim: #9c9c9c;
     --accent: #f5f5f5;
     --accent-dim: rgba(245, 245, 245, 0.12);
+    --row-selected: #536f8b;
     --sunrise-bg: #17130f;
     --sunrise-surface: #2d251d;
     --sunrise-surface-raised: #221d17;
@@ -83,6 +86,7 @@
     --on-danger: #0e0e0e;
     --shadow-island-resting: inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
     --shadow-island-float: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28);
+    --shadow-glance-card: 0 1px 3px rgba(0,0,0,.3), 0 8px 18px -6px rgba(0,0,0,.42);
   }
 }
 :root[data-theme="private"] {
@@ -95,6 +99,7 @@
   --text-dim: #9c9c9c;
   --accent: #f5f5f5;
   --accent-dim: rgba(245, 245, 245, 0.12);
+  --row-selected: #596c83;
   --sunrise-bg: #100d0b;
   --sunrise-surface: #251d17;
   --sunrise-surface-raised: #1a1511;
@@ -107,6 +112,7 @@
   --on-danger: #0a0a0a;
   --shadow-island-resting: inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
   --shadow-island-float: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28);
+  --shadow-glance-card: 0 1px 3px rgba(0,0,0,.3), 0 8px 18px -6px rgba(0,0,0,.42);
 }
 
 /* pages — src/renderer/pages/pages.css */
@@ -119,6 +125,7 @@
   --text-dim: #6b6b6b;
   --accent: #111111;
   --accent-dim: rgba(17, 17, 17, 0.08);
+  --row-selected: #728ca6;
   --sunrise-bg: #f8f2e8;
   --sunrise-surface: #f2eade;
   --sunrise-surface-raised: #ffffff;
@@ -163,6 +170,7 @@
     --text-dim: #9c9c9c;
     --accent: #f5f5f5;
     --accent-dim: rgba(245, 245, 245, 0.12);
+    --row-selected: #536f8b;
     --sunrise-bg: #17130f;
     --sunrise-surface: #2d251d;
     --sunrise-surface-raised: #221d17;
@@ -185,6 +193,7 @@
   --text-dim: #9c9c9c;
   --accent: #f5f5f5;
   --accent-dim: rgba(245, 245, 245, 0.12);
+  --row-selected: #596c83;
   --sunrise-bg: #100d0b;
   --sunrise-surface: #251d17;
   --sunrise-surface-raised: #1a1511;

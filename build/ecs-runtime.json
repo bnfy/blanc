@@ -1,0 +1,13 @@
+{
+  "version": "44.9.3+wvcus",
+  "chromium": "152.0.7977.167",
+  "vendorCommit": "2263925eabe847eed890701134e6168d71c3d0a1",
+  "release": "https://github.com/castlabs/electron-releases/releases/tag/v44.9.3%2Bwvcus",
+  "publishedAt": "2026-10-22T21:31:20Z",
+  "archives": {
+    "darwin-arm64": "3f49f11710e87974b6b7c7acb2c172c1f37c804f319f7c887e0a791bbda8dc6b",
+    "darwin-x64": "99ca1b2c3bb295d7927ef8d17137952385844d67f63dbe827a7214aecca181fe",
+    "linux-x64": "80cb5218ab814597282ebe41d16fb5a98abb0c75370e9195914e40e097359fad",
+    "win32-x64": "1ab1e5aa4566f218873d272af1a57c6162ad83911a69bbd4b0e341c37c6c40fc"
+  }
+}

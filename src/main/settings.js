@@ -12,10 +12,17 @@ const APP_ICON_ASSETS = require('./app-icon-assets');
 const { normalizeHomepage } = require('./top-level-url-policy');
 const { normalizeWash, normalizeWashStyle } = require('./wallpaper-model');
 const { normalizePreset, normalizeFill } = require('./start-page-paint');
+const clockRules = require('./start-clock-style');
 const { AUTO_HIDE_STYLES, normalizeAutoHideStyle } = require('./island-autohide');
+const { TAB_SWITCH_ORDERS, normalizeTabSwitchOrder } = require('./tab-switcher');
+
+// Surface style: the palette of Blanc's own warm pages (utility sheets, the
+// Start Page). Neutral swaps the cream and gold for plain ink and gray.
+const SURFACE_STYLES = ['sunrise', 'neutral'];
 const { migrateSupporter, downgradeMirror, isRecordActive } = require('./patron-model');
 const { DEFAULT_MAPPING, mappingOrDefault, validMapping } = require('./mouse-gestures');
 const { normalizeDeviceNames, setDeviceNameEntry, mergeDeviceNames, deviceNamesEqual } = require('./device-names');
+const { normalizeLinkRoutes, validateLinkRoutes } = require('./link-routes');
 const {
   isValidSearchTemplate,
   searchUrlFromTemplate,
@@ -40,6 +47,7 @@ const isSearchEngineId = (id) => typeof id === 'string' && Object.hasOwn(SEARCH_
 
 const THEMES = ['system', 'light', 'dark'];
 const TAB_LAYOUTS = ['island', 'vertical'];
+const VERTICAL_TABS_TEXT_SIZES = ['default', 'large', 'extra-large'];
 // Start-page layouts (Bowser Design System, "New tab v2" handoff). Same class
 // of preference as the theme — it describes the browser you want, so it syncs.
 const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally'];
@@ -92,16 +100,18 @@ const CHECKLIST_FLAGS = [
   'defaultBrowserMigrationCompleted',
   'defaultChecklistIntroduced',
   'defaultBrowserReminderShown',
+  'iphoneMigrationCompleted',
+  'iphoneChecklistIntroduced',
 ];
 
 // Keys that sync across devices (see the profile-sync spec). Deliberately
-// excludes tabLayout, verticalTabsWidth, appIcon, searchSuggestions, and the
-// device's 1Password integration configuration
+// excludes tabLayout, verticalTabsWidth, verticalTabsTextSize, appIcon,
+// searchSuggestions, and the device's 1Password integration configuration
 // (device-local), usagePing (per-install consent), and supporter (never —
 // that would be license sharing).
 // deviceNames is merged entry by entry (device-names.js), never as one
 // last-writer-wins value, and only setDeviceName() writes it.
-const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper', 'newtabColorWallpaper', 'newtabWallpaperColor', 'newtabWallpaperFill', 'newtabFollowSpaceColor', 'bangsEnabled', 'customBangs', 'deviceNames'];
+const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper', 'newtabColorWallpaper', 'newtabWallpaperColor', 'newtabWallpaperFill', 'newtabFollowSpaceColor', 'newtabClockFont', 'newtabClockWeight', 'newtabClockColor', 'newtabClockTone', 'newtabClockStyle', 'newtabClockHeight', 'bangsEnabled', 'customBangs', 'deviceNames'];
 
 // App icon variants — id maps to src/renderer/pages/icon-<id>.png; order here
 // is also the tile order Settings renders.
@@ -109,6 +119,8 @@ const APP_ICON_LABELS = {
   sunrise: 'Sunrise',
   'sunrise-dark': 'Sunrise Dark',
   'sunrise-gold': 'Sunrise Gold',
+  'sunrise-spectrum': 'Sunrise Spectrum',
+  'sunrise-amber': 'Sunrise Amber',
 };
 const APP_ICONS = Object.keys(APP_ICON_LABELS);
 
@@ -206,6 +218,16 @@ const DEFAULTS = {
   newtabWallpaperColor: 'sage',
   newtabWallpaperFill: 'gradient',
   newtabFollowSpaceColor: false,
+  // The Billboard clock's Font & Color (start-clock-style.js): a bundled face,
+  // its weight, the page's ink or a Spaces preset at a tone, and Solid or
+  // Glass, and how tall the figures stand (percent; the Lock Screen's
+  // stretch). The defaults draw the clock as it was. Synced like the layout.
+  newtabClockFont: 'instrument',
+  newtabClockWeight: 500,
+  newtabClockColor: 'auto',
+  newtabClockTone: 50,
+  newtabClockStyle: 'solid',
+  newtabClockHeight: 100,
   // Show this device's own image on the Start Page when one is stored
   // (wallpaper.js). Device-local like the image itself, so not Profile Synced.
   newtabCustomWallpaper: false,
@@ -219,17 +241,40 @@ const DEFAULTS = {
   // Off keeps it on the theme background. Device-local, not Profile Synced.
   islandSiteColors: true,
   islandHoverOpen: false,
+  // Draw each direct tab on the Island as its site icon instead of a dot
+  // (#1175). Device-local, not Profile Synced.
+  islandTabIcons: false,
+  // Play the Sunrise when Blanc opens (#1179): the first Start Page after
+  // launch draws it once. Off by default; device-local, not Profile Synced.
+  launchSunrise: false,
+  // Search suggestions lead the Island's typed results instead of a strong
+  // local match. Device-local, not Profile Synced.
+  searchPriorityResults: false,
   // Page fills the window; the Island strip returns at the top edge.
   // Device-local, not Profile Synced.
   islandAutoHide: false,
   islandAutoHideStyle: 'float',
+  // Ctrl+Tab steps through tabs in the order they were used ('recent') or
+  // the tab list's order ('list'). Device-local: a habit of the keyboard in
+  // front of you. Only Linux offers 'recent' so far (tab-switcher.js).
+  tabSwitchOrder: 'recent',
+  // Palette of the internal pages; device-local, not Profile Synced.
+  surfaceStyle: 'sunrise',
   // Floating Glance: the card's remembered size and place, as fractions of
   // the page area ({x, y, width, height}, each 0..1), or null for the
   // first-open frame. Device-local, written ONLY by setGlanceFrame().
   glanceFrame: null,
+  // F60 link routing: ordered rules sending links from other apps to a
+  // profile/Space (link-routes.js). Device-local like the profile and Space
+  // ids it names, never in SYNCED_KEYS, written ONLY by setLinkRoutes().
+  linkRoutes: [],
+  // Also route links opened in a new tab from a page inside Blanc (#1199).
+  // Off by default; device-local like linkRoutes.
+  linkRoutesInApp: false,
   // Preferred rail width. The live layout may temporarily cap it to preserve
   // the minimum website pane, but that window-size cap is never persisted.
   verticalTabsWidth: VERTICAL_TABS_DEFAULT_WIDTH,
+  verticalTabsTextSize: 'default',
   // 'off' disables automatic quieting; the manual /sleep command still works.
   tabSleep: '1h',
   tabArchive: 'off',
@@ -291,6 +336,10 @@ const DEFAULTS = {
   defaultBrowserMigrationCompleted: false,
   defaultChecklistIntroduced: false,
   defaultBrowserReminderShown: false,
+  // "Connect your iPhone" completed (an iPhone was seen in this sync) and the
+  // one-time introduction of that task (design 2026-10-28 §6.1).
+  iphoneMigrationCompleted: false,
+  iphoneChecklistIntroduced: false,
   // When the start page's Patron upgrade pill was last closed (ms since the
   // epoch; 0 = never). It stays hidden for 90 days (patron-callout.js).
   // Device-local, never Profile Synced.
@@ -493,9 +542,16 @@ function getSettings() {
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (typeof data.islandSiteColors !== 'boolean') data.islandSiteColors = DEFAULTS.islandSiteColors;
   if (typeof data.islandHoverOpen !== 'boolean') data.islandHoverOpen = DEFAULTS.islandHoverOpen;
+  if (typeof data.islandTabIcons !== 'boolean') data.islandTabIcons = DEFAULTS.islandTabIcons;
+  if (typeof data.launchSunrise !== 'boolean') data.launchSunrise = DEFAULTS.launchSunrise;
+  if (typeof data.searchPriorityResults !== 'boolean') data.searchPriorityResults = DEFAULTS.searchPriorityResults;
   if (typeof data.islandAutoHide !== 'boolean') data.islandAutoHide = DEFAULTS.islandAutoHide;
   data.islandAutoHideStyle = normalizeAutoHideStyle(data.islandAutoHideStyle);
+  data.tabSwitchOrder = normalizeTabSwitchOrder(data.tabSwitchOrder);
+  if (!SURFACE_STYLES.includes(data.surfaceStyle)) data.surfaceStyle = DEFAULTS.surfaceStyle;
   if (!isGlanceFrame(data.glanceFrame)) data.glanceFrame = null;
+  data.linkRoutes = normalizeLinkRoutes(data.linkRoutes);
+  if (typeof data.linkRoutesInApp !== 'boolean') data.linkRoutesInApp = DEFAULTS.linkRoutesInApp;
   if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
   data.darkWebsitesExceptions = normalizeHostnameList(data.darkWebsitesExceptions);
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
@@ -504,6 +560,12 @@ function getSettings() {
   if (normalizePreset(data.newtabWallpaperColor) === null) data.newtabWallpaperColor = DEFAULTS.newtabWallpaperColor;
   if (normalizeFill(data.newtabWallpaperFill) === null) data.newtabWallpaperFill = DEFAULTS.newtabWallpaperFill;
   if (typeof data.newtabFollowSpaceColor !== 'boolean') data.newtabFollowSpaceColor = false;
+  if (clockRules.normalizeFont(data.newtabClockFont) === null) data.newtabClockFont = DEFAULTS.newtabClockFont;
+  if (clockRules.normalizeWeight(data.newtabClockWeight) === null) data.newtabClockWeight = DEFAULTS.newtabClockWeight;
+  if (clockRules.normalizeColor(data.newtabClockColor) === null) data.newtabClockColor = DEFAULTS.newtabClockColor;
+  if (clockRules.normalizeTone(data.newtabClockTone) === null) data.newtabClockTone = DEFAULTS.newtabClockTone;
+  if (clockRules.normalizeStyle(data.newtabClockStyle) === null) data.newtabClockStyle = DEFAULTS.newtabClockStyle;
+  if (clockRules.normalizeHeight(data.newtabClockHeight) === null) data.newtabClockHeight = DEFAULTS.newtabClockHeight;
   if (normalizeWash(data.newtabWallpaperWash) === null) data.newtabWallpaperWash = DEFAULTS.newtabWallpaperWash;
   if (normalizeWashStyle(data.newtabWallpaperStyle) === null) data.newtabWallpaperStyle = DEFAULTS.newtabWallpaperStyle;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
@@ -526,6 +588,7 @@ function getSettings() {
   data.deviceNames = normalizeDeviceNames(data.deviceNames);
   data.homePage = normalizeHomepage(data.homePage, DEFAULTS.homePage);
   data.verticalTabsWidth = normalizeVerticalTabsWidth(data.verticalTabsWidth);
+  if (!VERTICAL_TABS_TEXT_SIZES.includes(data.verticalTabsTextSize)) data.verticalTabsTextSize = DEFAULTS.verticalTabsTextSize;
   if (!isAppIconAllowed(data.appIcon)) data.appIcon = DEFAULTS.appIcon;
   // Read coercion for a corrupted stored state (hand-edited settings.json): custom
   // without a valid template reads back as the default, never as plaintext-capable
@@ -594,14 +657,29 @@ function sanitize(partial) {
   if (normalizePreset(partial.newtabWallpaperColor) !== null) clean.newtabWallpaperColor = partial.newtabWallpaperColor;
   if (normalizeFill(partial.newtabWallpaperFill) !== null) clean.newtabWallpaperFill = partial.newtabWallpaperFill;
   if (typeof partial.newtabFollowSpaceColor === 'boolean') clean.newtabFollowSpaceColor = partial.newtabFollowSpaceColor;
+  Object.assign(clean, clockRules.settingsForClock({
+    font: partial.newtabClockFont,
+    weight: partial.newtabClockWeight,
+    color: partial.newtabClockColor,
+    tone: partial.newtabClockTone,
+    style: partial.newtabClockStyle,
+    height: partial.newtabClockHeight,
+  }));
   if (normalizeWash(partial.newtabWallpaperWash) !== null) clean.newtabWallpaperWash = partial.newtabWallpaperWash;
   if (normalizeWashStyle(partial.newtabWallpaperStyle) !== null) clean.newtabWallpaperStyle = partial.newtabWallpaperStyle;
   if (NEWTAB_LAYOUTS.includes(partial.newtabLayout)) clean.newtabLayout = partial.newtabLayout;
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
+  if (VERTICAL_TABS_TEXT_SIZES.includes(partial.verticalTabsTextSize)) clean.verticalTabsTextSize = partial.verticalTabsTextSize;
   if (typeof partial.islandSiteColors === 'boolean') clean.islandSiteColors = partial.islandSiteColors;
   if (typeof partial.islandHoverOpen === 'boolean') clean.islandHoverOpen = partial.islandHoverOpen;
+  if (typeof partial.islandTabIcons === 'boolean') clean.islandTabIcons = partial.islandTabIcons;
+  if (typeof partial.linkRoutesInApp === 'boolean') clean.linkRoutesInApp = partial.linkRoutesInApp;
+  if (typeof partial.launchSunrise === 'boolean') clean.launchSunrise = partial.launchSunrise;
+  if (typeof partial.searchPriorityResults === 'boolean') clean.searchPriorityResults = partial.searchPriorityResults;
   if (typeof partial.islandAutoHide === 'boolean') clean.islandAutoHide = partial.islandAutoHide;
   if (AUTO_HIDE_STYLES.includes(partial.islandAutoHideStyle)) clean.islandAutoHideStyle = partial.islandAutoHideStyle;
+  if (TAB_SWITCH_ORDERS.includes(partial.tabSwitchOrder)) clean.tabSwitchOrder = partial.tabSwitchOrder;
+  if (SURFACE_STYLES.includes(partial.surfaceStyle)) clean.surfaceStyle = partial.surfaceStyle;
   if (TAB_SLEEP_DELAYS.includes(partial.tabSleep)) clean.tabSleep = partial.tabSleep;
   if (TAB_ARCHIVE_DELAYS.includes(partial.tabArchive)) clean.tabArchive = partial.tabArchive;
   if (typeof partial.mouseGesturesEnabled === 'boolean') clean.mouseGesturesEnabled = partial.mouseGesturesEnabled;
@@ -818,6 +896,17 @@ function setGlanceFrame(frame) {
   return true;
 }
 
+/** The link routing rules' private write path. Validates the whole list
+ * (link-routes.js) and stores all or nothing; setSettings()'s whitelist has
+ * no linkRoutes. Returns { ok, routes } or { ok: false, error, index? }. */
+function setLinkRoutes(routes) {
+  const result = validateLinkRoutes(routes);
+  if (!result.ok) return result;
+  ensureStore().update((data) => { data.linkRoutes = result.routes; });
+  for (const fn of listeners) fn(getSettings());
+  return { ok: true, routes: structuredClone(result.routes) };
+}
+
 function isDynamicWallpaperEnabled() {
   return getSettings().newtabDynamicWallpaper === true;
 }
@@ -1024,6 +1113,9 @@ function markGroupNamesRecased() {
 }
 
 module.exports = {
+  // The per-key LWW clock rules, shared with stores that ride in the settings
+  // payload (start-page-pins.js).
+  syncClock: Object.freeze({ validSyncTimestamp, nextSyncWriteTimestamp, normalizeSyncTieBreaker, remoteWinsSyncTie }),
   groupNamesRecaseDue,
   markGroupNamesRecased,
   SEARCH_ENGINES,
@@ -1048,6 +1140,7 @@ module.exports = {
   setSupporter,
   setUiLanguage,
   setGlanceFrame,
+  setLinkRoutes,
   isPatronActive,
   isDynamicWallpaperEnabled,
   setPatron,

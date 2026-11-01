@@ -12,6 +12,7 @@ function linkMenuItems(params, actions, t) {
   return [
     { label: t('contextMenu.openLinkInNewTab'), click: () => actions.openBackgroundTab(url) },
     { label: t('contextMenu.openLinkInGlance'), click: () => actions.openInGlance(url) },
+    ...(actions.spaceItems?.(url, params.linkText) ?? []),
     { label: t('contextMenu.copyLinkAddress'), click: () => actions.copyLink(url) },
   ];
 }

@@ -1,0 +1,7 @@
+{
+  "public": true,
+  "channel": "testflight",
+  "joinUrl": "https://testflight.apple.com/join/AfczdZne",
+  "since": "2026-10-28",
+  "note": "Blanc for iPhone is a public TestFlight beta, not on the App Store. test/unit/iphone-pairing-offered.test.js reads public before the desktop may set IPHONE_PAIRING_FROM; site/src/pages/pair.astro links joinUrl."
+}

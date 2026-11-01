@@ -6,17 +6,19 @@ drafting copy and may lag behind it.
 
 **October 28 full-prerequisite checkpoint:** 11/12 preview gates are accepted; the owner retained L12 NO-GO pending full prerequisites. The bounded timing/reference exception is authorized, but no timing repetition has passed the CPU-idle admission requirement. Production procedural cosmetics now have unsigned native evidence, including dynamic changes, BFCache and the seven previously unsupported pinned stylesheet-property rules. Signed qualification and the remaining F12 coverage/Decision 2 disposition are still required. See [current F12 status](../experiments/chromium-extension-spike/f12-acceptance-status.md) and [procedural evidence](../experiments/chromium-extension-spike/evidence/f12-procedural-prerequisite-20261028/README.md). Electron builds/repairs remain paused; the Google baseline is separate. No migration, merge or publication approval is inferred.
 
-**Owner decision, updated October 15, 2026: Decision 1 is authorized as a
-time-boxed prototype; shipping Blanc stays on Electron.** The owner declined
-the investigation on October 5 because a Chromium fork needs a near-full build
-for each platform with every four-weekly Chromium major, prompt security
-updates, and a rebase of Blanc's patches each cycle. On October 15 the owner
-explicitly reopened the work and asked for a prototype that includes the Island
-immediately and enables Chrome Web Store extensions. The prototype lives under
-`experiments/chromium-extension-spike/`, retains Chromium's standard extension
-controls during the proof, and must measure the previously assumed build and
-maintenance costs. It does not authorize production migration or release.
-Decision 2 remains required after the kill gate. The Phase 0
+**Superseded, October 26, 2026:** the owner has since reversed the decision
+below. A Chromium fork of Blanc is in active development, meant to eventually
+replace the ECS Electron build. See the Platform direction section of
+`CLAUDE.md`. The October 5 decision is kept here as history.
+
+**Owner decision, October 5, 2026: Decision 1 is no, not now. Blanc stays on
+Electron.** A Chromium fork needs a near-full rebuild for each platform with
+every four-weekly Chromium major, plus prompt security updates and a rebase of
+Blanc's patches each cycle. That is not sustainable for one maintainer on one
+MacBook Pro. The spike (Phase 1) and everything after it are not planned. The
+rest of this file stays as the record of the evaluation. Revisit only if Blanc
+gains dedicated browser-core staffing, if a fork release cycle is shown to fit
+in a few days a month, or if Electron stops loading Manifest V2. The Phase 0
 bridge contract and test vectors stay in use as guards for the Electron build,
 and the Widevine inquiry stays open at no cost. Google replied on October 5,
 2026 by referring Blanc to castlabs, one of its third-party partners; the

@@ -1,0 +1,175 @@
+{
+  "fill": {
+    "linear-gradient": [
+      "extended-srgb:0.95294,0.80392,0.50980,1.00000",
+      "extended-srgb:0.78824,0.54510,0.22745,1.00000"
+    ],
+    "orientation": {
+      "start": {
+        "x": 0.5,
+        "y": 0
+      },
+      "stop": {
+        "x": 0.5,
+        "y": 1
+      }
+    }
+  },
+  "fill-specializations": [
+    {
+      "appearance": "dark",
+      "value": {
+        "linear-gradient": [
+          "extended-srgb:0.16471,0.13333,0.09412,1.00000",
+          "extended-srgb:0.07843,0.06667,0.05098,1.00000"
+        ],
+        "orientation": {
+          "start": {
+            "x": 0.5,
+            "y": 0
+          },
+          "stop": {
+            "x": 0.5,
+            "y": 1
+          }
+        }
+      }
+    }
+  ],
+  "groups": [
+    {
+      "layers": [
+        {
+          "glass": true,
+          "image-name": "water.png",
+          "name": "Water",
+          "fill-specializations": [
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "extended-srgb:0.91373,0.72157,0.37647,1.00000"
+              }
+            }
+          ]
+        }
+      ],
+      "specular": true,
+      "shadow": {
+        "kind": "layer-color",
+        "opacity": 0.55
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.45
+      },
+      "lighting": "individual"
+    },
+    {
+      "layers": [
+        {
+          "glass": true,
+          "image-name": "sun.png",
+          "name": "Sun",
+          "fill-specializations": [
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "extended-srgb:0.94118,0.76863,0.43137,1.00000"
+              }
+            }
+          ]
+        }
+      ],
+      "specular": true,
+      "shadow": {
+        "kind": "layer-color",
+        "opacity": 0.55
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.35
+      },
+      "lighting": "individual"
+    },
+    {
+      "layers": [
+        {
+          "glass": true,
+          "image-name": "rays.png",
+          "name": "Rays",
+          "fill-specializations": [
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "extended-srgb:0.91373,0.72157,0.37647,1.00000"
+              }
+            }
+          ]
+        }
+      ],
+      "specular": true,
+      "shadow": {
+        "kind": "layer-color",
+        "opacity": 0.55
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.35
+      },
+      "lighting": "individual"
+    },
+    {
+      "layers": [
+        {
+          "glass": false,
+          "image-name": "reflection.png",
+          "name": "Reflection",
+          "hidden-specializations": [
+            {
+              "appearance": "tinted",
+              "value": true
+            }
+          ]
+        },
+        {
+          "glass": false,
+          "image-name": "glow.png",
+          "name": "Glow",
+          "hidden-specializations": [
+            {
+              "appearance": "tinted",
+              "value": true
+            }
+          ],
+          "opacity-specializations": [
+            {
+              "appearance": "dark",
+              "value": 0.35
+            }
+          ]
+        },
+        {
+          "glass": false,
+          "image-name": "tile.png",
+          "name": "Tile",
+          "hidden-specializations": [
+            {
+              "appearance": "dark",
+              "value": true
+            },
+            {
+              "appearance": "tinted",
+              "value": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "supported-platforms": {
+    "circles": [
+      "watchOS"
+    ],
+    "squares": "shared"
+  }
+}

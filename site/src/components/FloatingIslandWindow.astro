@@ -27,7 +27,10 @@ const presentation = `
   :host {display:block; width:100%; height:100%; font:13px var(--font-text); letter-spacing:var(--text-tracking); word-spacing:var(--text-word-spacing); color:var(--text);}
   .native-stage {display:grid; place-items:center; height:100%;}
   [hidden] {display:none!important;}
-  #islandPill {margin:0; max-width:none; flex:none; width:max-content; zoom:calc(var(--pill-zoom) * var(--art-scale, 1)); box-shadow: var(--shadow-island-float);}
+  #islandPill {margin:0; max-width:none; flex:none; width:max-content; zoom:calc(var(--pill-zoom) * var(--art-scale, 1));}
+  /* The float view's shadow, on the surface as in the app: on the pill box,
+     1px inside it, a second shadow drew a ridge along the bottom. */
+  #islandPill::after {box-shadow: var(--shadow-island-float);}
 `;
 const { html, css } = namespaceNativeArt({ html: sampleHtml, css: art.css + presentation }, 'float-hero-');
 // Every layer is placed in percent of the captured window, from the ledger.

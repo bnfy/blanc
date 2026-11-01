@@ -3,8 +3,16 @@
     "id": "architecture",
     "q": "What is Blanc built on?",
     "a": [
-      "Blanc uses Chromium to render websites and Electron to package that engine with a desktop runtime. Blanc supplies the floating island, tab management, settings and network-layer blocker. It uses official, unmodified Electron releases.",
+      "Blanc uses Chromium to render websites and Electron to package that engine with a desktop runtime. Blanc supplies the floating island, tab management, settings and network-layer blocker. Since Blanc 1.43 it runs on castLabs’ Electron for Content Security, a build of Electron that can play Widevine-protected video and music.",
       "This lets one small team maintain an app for macOS, Windows and Linux. The trade-off is a bundled runtime and a multi-process memory footprint; it is not a separate web engine or a native system-webview browser."
+    ]
+  },
+  {
+    "id": "protected-streaming",
+    "q": "Does protected streaming video play in Blanc?",
+    "a": [
+      "Yes, since Blanc 1.43. Blanc runs on castLabs’ Electron for Content Security and downloads Google’s Widevine component the first time it starts, so sites can play Widevine-protected video and music on macOS, Windows and Linux. Settings → Help → Protected media shows when the component is ready, and Linux asks for one restart. Whether a given title plays is up to the site.",
+      "On Windows, protected streaming needs an x64 PC. Blanc ships an x64 Windows build; on Windows on Arm it runs through emulation, where Widevine’s platform verification fails and services such as Netflix refuse to play."
     ]
   },
   {
@@ -31,6 +39,23 @@
     "a": [
       "With usage measurement on, Blanc 1.31.0 and later can send two extra events once per installation, only on the day it is installed: one if Blanc is your default browser, and one after three web pages open in regular tabs. Each carries the same install and session IDs, app version, platform, architecture and coarse OS major as the launch event, and nothing else: no addresses, pages or counts. Private tabs and Blanc's own pages are never counted.",
       "Blanc keeps the installation time in install.json on your device so it knows when the first day ends; that time is never sent. The collector keeps a per-installation record for about two days, only to count how many new installations come back the next day, then keeps daily totals. These events are never sent to the Google Analytics mirror."
+    ]
+  },
+  {
+    "id": "sync-retention",
+    "q": "What happens when I turn off Sync or erase the server copy?",
+    "a": [
+      "Turning off Sync without erasing leaves the encrypted server copy in place. Choose the erase option to remove the active copy. Cached encrypted values in Cloudflare KV may remain readable while deletion propagates across its network. This is separate from provider recovery history and backups. If erasure fails, retry from the configured device. Devices that still have Sync enabled can upload data again.",
+      "Automatic deletion of inactive Sync accounts is paused. Cloudflare provides SQLite recovery history covering the preceding 30 days, so deleting the active copy does not establish immediate deletion from provider history or backups. Bananify does not restore production Sync data from that history. See the Privacy Policy for the retention limits we have and have not established."
+    ]
+  },
+  {
+    "id": "shared-spaces",
+    "q": "What does Shared Spaces sync?",
+    "a": [
+      "Starting with Blanc 1.45, Shared Spaces can keep Blanc Spaces you choose the same on each device where you turn it on. It is off by default, a separate choice under Settings → Sync on each device, and only the Personal profile offers it. It uses the same end-to-end encryption as the rest of Sync: the server stores ciphertext it cannot read and sees only that each shared Space exists under a random ID, its size, and when it changes.",
+      "For each chosen Space it carries the Space’s name, color and symbol, and for each web tab the address, page title, any name you gave the tab, whether it is pinned, its group and its place in the order. Private tabs, Blanc’s internal pages and local files never sync; if a shared tab moves to one of them, your other devices keep the last web page it shared. A tab you close in a shared Space appears in your other devices’ Recently closed for up to a day, with its address, title and the name of the device it was closed on, and its encrypted record stays in sync storage for 30 days.",
+      "Turning Shared Spaces off on a device keeps its Spaces there as local copies; your other devices keep syncing, and the server copy stays until you erase Sync. A deleted Space’s contents are emptied, but its encrypted deletion record uses sync storage for 30 days. Each Sync account has a 20 MiB server allowance that also covers favorites, settings and the other Sync data, and up to 25 Spaces can be shared."
     ]
   },
   {

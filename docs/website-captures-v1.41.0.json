@@ -1,0 +1,926 @@
+{
+  "schemaVersion": 1,
+  "status": "public",
+  "release": "v1.41.0",
+  "sourceSha": "9298b0916987ea9628bb2bee014717e85cd11628",
+  "captureDate": "2026-10-21",
+  "timezone": "America/New_York",
+  "replaces": "On /features/start-page: the single Billboard hero capture (billboard-v1.38.0, docs/website-captures-v1.38.0.json) becomes a carousel of these 26 customized Start Pages showing the clock’s Font & color (F54), new in v1.41.0. The v1.38.0 files stay in place with their ledger; the layout gallery below still shows them. The wallpaper and layout galleries below it move from the v1.38.0 captures to v1.41.0 retakes (galleryMethod).",
+  "source": {
+    "artifact": "Public release asset Blanc-1.41.0-arm64.dmg from https://github.com/bnfy/blanc/releases/tag/v1.41.0, checked against the Sigstore-verified SHA256SUMS and mounted read-only; the installed /Applications/Blanc.app and its profile were not used",
+    "dmgSha256": "0dc430235e2d6d80bdf7f82c674c0797426f72501bd6bf3f11c081e93140cebe",
+    "executableSha256": "81d7018750ff0283131c5501b680a17bc89b7bdc3b8fe5921227a994ab3cd02c",
+    "version": "1.41.0",
+    "bundleBuild": "1410",
+    "architecture": "arm64",
+    "teamId": "XYGUCY4498",
+    "verification": "On October 21, 2026, Gatekeeper accepted the mounted app (Notarized Developer ID); the release report records strict deep codesign, the pinned leaf certificate and the stapled ticket for this DMG. It launched as a separate instance in a disposable profile per state.",
+    "releaseEvidence": "docs/release-incidents/2026-10-21-v1.41.0.md"
+  },
+  "settings": {
+    "usagePing": false,
+    "searchSuggestions": false,
+    "adblockEnabled": true,
+    "layout": "billboard",
+    "profile": "Isolated disposable user-data directory per state",
+    "sync": "not configured",
+    "patron": "not configured"
+  },
+  "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_IMAGES=<the samples below, with trim, crop and padding> node scripts/capture-installed-clock.mjs, under caffeinate -d. Each state is a disposable profile seeded with the shared Start Page fixtures (four sample Favorites, their visits, a weekly blocked total of 328), lastRunVersion 1.41.0, a dismissed Patron callout, and the clock style and wallpaper as the app stores them (settings.json newtabClock* and newtabWallpaper*). The released importer runs only behind the native file picker, so the fixture writes the stored image and wallpaper.json as the importer would. Everything drawn is the released app’s own rendering. Each is a native window capture (screencapture -l, 2560×1600) resized to 1440×900 in sRGB with a same-size WebP (quality 85). The page’s pointer is parked in empty space so no tile shows hover controls.",
+  "images": [
+    {
+      "key": "wheat",
+      "title": "Wheat Field with Cypresses",
+      "artist": "Vincent van Gogh",
+      "date": "1889",
+      "source": "https://www.metmuseum.org/art/collection/search/436535",
+      "file": "https://images.metmuseum.org/CRDImages/ep/original/DP-42549-001.jpg",
+      "sha256": "b46d02a42fd3bb13b022cefc5beaa997b1d7a28cd7b53e4413d940aa0dc4014d",
+      "license": "The Met Open Access, public domain (CC0); isPublicDomain true in The Met’s collection API (recorded in docs/website-captures-v1.38.0.json)",
+      "preparation": "3% trimmed from each edge (frame or paper margin), then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "wave",
+      "title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji (Fugaku sanjūrokkei)",
+      "artist": "Katsushika Hokusai",
+      "date": "ca. 1830–32",
+      "source": "https://www.metmuseum.org/art/collection/search/45434",
+      "file": "https://images.metmuseum.org/CRDImages/as/original/DP130155.jpg",
+      "sha256": "cbb9988f2f18b9180a1cc0cf5dbb0e3bbf8f2e85d17930cf6ca9ab36fac36303",
+      "license": "The Met Open Access, public domain (CC0); isPublicDomain true in The Met’s collection API on October 21, 2026",
+      "preparation": "1.5% trimmed from each edge (frame or paper margin), then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "landers",
+      "title": "The Rocky Mountains, Lander's Peak",
+      "artist": "Albert Bierstadt",
+      "date": "1863",
+      "source": "https://www.metmuseum.org/art/collection/search/10154",
+      "file": "https://images.metmuseum.org/CRDImages/ad/original/DT82.jpg",
+      "sha256": "b0159f218c5363e2e6108eb01dde44cf96b10c3e25dc4b431d7d335daf942a2e",
+      "license": "The Met Open Access, public domain (CC0); isPublicDomain true in The Met’s collection API on October 21, 2026",
+      "preparation": "1% trimmed from each edge (frame or paper margin), then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "kanbara",
+      "title": "Evening Snow at Kanbara, from the series \"Fifty-three Stations of the Tōkaidō\"",
+      "artist": "Utagawa Hiroshige",
+      "date": "ca. 1833–34",
+      "source": "https://www.metmuseum.org/art/collection/search/56915",
+      "file": "https://images.metmuseum.org/CRDImages/as/original/DP109333.jpg",
+      "sha256": "298559ae0d7198422392110a3c35a20b7780080813ceb889bdb41c062bd9ac8f",
+      "license": "The Met Open Access, public domain (CC0); isPublicDomain true in The Met’s collection API on October 21, 2026",
+      "preparation": "5% trimmed from each edge (frame or paper margin), then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "cezanne",
+      "title": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley",
+      "artist": "Paul Cézanne",
+      "date": "1882–85",
+      "source": "https://www.metmuseum.org/art/collection/search/435877",
+      "file": "https://images.metmuseum.org/CRDImages/ep/original/DP-20099-001.jpg",
+      "sha256": "034a91583008e7237b6d87effb5d95bd9504632eef925fe14ecd57ffa8fbcae8",
+      "license": "The Met Open Access, public domain (CC0); isPublicDomain true in The Met’s collection API on October 21, 2026",
+      "preparation": "3.5000000000000004% trimmed from each edge (frame or paper margin), then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "oxbow",
+      "title": "View from Mount Holyoke, Northampton, Massachusetts, after a Thunderstorm—The Oxbow",
+      "artist": "Thomas Cole",
+      "date": "1836",
+      "source": "https://www.metmuseum.org/art/collection/search/10497",
+      "file": "https://images.metmuseum.org/CRDImages/ad/original/DP-12550-001.jpg",
+      "sha256": "40c454b6cf712c6ef70cca067fbe551c069d4b9130d06716db05452d16d515c4",
+      "license": "The Met Open Access, public domain (CC0); isPublicDomain true in The Met’s collection API on October 21, 2026",
+      "preparation": "1.5% trimmed from each edge (frame or paper margin), then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "irises",
+      "title": "Irises",
+      "artist": "Vincent van Gogh",
+      "date": "1890",
+      "source": "https://www.metmuseum.org/art/collection/search/436528",
+      "file": "https://images.metmuseum.org/CRDImages/ep/original/DP346474.jpg",
+      "sha256": "6b851d821d565e61817250b272417c79721724f8dba2deaffe9b4c9ca4c35685",
+      "license": "The Met Open Access, public domain (CC0); isPublicDomain true in The Met’s collection API on October 21, 2026",
+      "preparation": "1% trimmed from each edge (frame or paper margin), then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "merced",
+      "title": "Merced River, Yosemite Valley",
+      "artist": "Albert Bierstadt",
+      "date": "1866",
+      "source": "https://www.metmuseum.org/art/collection/search/10150",
+      "file": "https://images.metmuseum.org/CRDImages/ad/original/DT2961.jpg",
+      "sha256": "9ba270ec64d18edceb7207dc1a2c30923da4974f739d3ef0d7765ad71d5e2409",
+      "license": "The Met Open Access, public domain (CC0); isPublicDomain true in The Met’s collection API on October 21, 2026",
+      "preparation": "2.5% trimmed from each edge (frame or paper margin), then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "shono",
+      "title": "Sudden Shower at Shōno, from the series Fifty-three Stations of the Tōkaidō",
+      "artist": "Utagawa Hiroshige",
+      "date": "1834–35",
+      "source": "https://www.metmuseum.org/art/collection/search/36521",
+      "file": "https://images.metmuseum.org/CRDImages/as/original/DP122216.jpg",
+      "sha256": "0d39d07398234b3fc223b4860a65b1987330da9eff223c12a783f81cb6b5fec1",
+      "license": "The Met Open Access, public domain (CC0); isPublicDomain true in The Met’s collection API on October 21, 2026",
+      "preparation": "5% trimmed from each edge (frame or paper margin), then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "pitch",
+      "photographer": "matthew Feeney",
+      "source": "https://unsplash.com/photos/birds-eye-view-of-soccer-field-asnVoy4lDx8",
+      "file": "https://images.unsplash.com/photo-1520692764874-270b6fe97fb3?w=3840&q=90&fm=jpg",
+      "sha256": "630c31bbf3f8decbf3719c232371adea3f5396e14695b6d22314827b20e6c80b",
+      "license": "Unsplash License (free for commercial use, no attribution required; credited anyway). The photo page read “Free to use under the Unsplash License” on October 21, 2026; not Unsplash+. Chosen with no identifiable faces, team or club marks, advertising or brand logos.",
+      "preparation": "used whole, then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "hoop",
+      "photographer": "insung yoon",
+      "source": "https://unsplash.com/photos/basketball-rim-at-night-xF57vRli0NM",
+      "file": "https://images.unsplash.com/photo-1544429156-be53d99d8181?w=3840&q=90&fm=jpg",
+      "sha256": "fd898ff2f5f8cfbade0562847e364d43b39798a2a7bcc68efb097b48c2bda5ec",
+      "license": "Unsplash License (free for commercial use, no attribution required; credited anyway). The photo page read “Free to use under the Unsplash License” on October 21, 2026; not Unsplash+. Chosen with no identifiable faces, team or club marks, advertising or brand logos.",
+      "preparation": "used whole, then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "stage",
+      "photographer": "ActionVance",
+      "source": "https://unsplash.com/photos/crowd-facing-lighted-stage-eXVd7gDPO9A",
+      "file": "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=3840&q=90&fm=jpg",
+      "sha256": "f7d24ea8ba4781ab59d96929bfc76fc470531bbe6670d91f89e67e8bf305f4ee",
+      "license": "Unsplash License (free for commercial use, no attribution required; credited anyway). The photo page read “Free to use under the Unsplash License” on October 21, 2026; not Unsplash+. Chosen with no identifiable faces, team or club marks, advertising or brand logos.",
+      "preparation": "used whole, then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "festival",
+      "photographer": "Aditya Chinchure",
+      "source": "https://unsplash.com/photos/group-of-people-in-front-of-stage-ZhQCZjr9fHo",
+      "file": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=3840&q=90&fm=jpg",
+      "sha256": "2bcc00a9147d6e7b6e2519ea218886a6a278a18e57497724285c1b071cdd764b",
+      "license": "Unsplash License (free for commercial use, no attribution required; credited anyway). The photo page read “Free to use under the Unsplash License” on October 21, 2026; not Unsplash+. Chosen with no identifiable faces, team or club marks, advertising or brand logos.",
+      "preparation": "used whole, then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "track",
+      "photographer": "Austris Augusts",
+      "source": "https://unsplash.com/photos/running-track-with-numbered-lanes-52p1K0d0euM",
+      "file": "https://images.unsplash.com/photo-1474546652694-a33dd8161d66?w=3840&q=90&fm=jpg",
+      "sha256": "f824d440fd8fcd9e7ffa5cf16aecc25ed1b9ea5579ac96a81ab1e46dc6128fdc",
+      "license": "Unsplash License (free for commercial use, no attribution required; credited anyway). The photo page read “Free to use under the Unsplash License” on October 21, 2026; not Unsplash+. Chosen with no identifiable faces, team or club marks, advertising or brand logos.",
+      "preparation": "used whole, then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "dog",
+      "photographer": "Brandon Day",
+      "source": "https://unsplash.com/photos/short-coated-brown-dog-showing-tongue-oCJuJQqvCzc",
+      "file": "https://images.unsplash.com/photo-1457144759132-40d119c2f120?w=3840&q=90&fm=jpg",
+      "sha256": "fcc31221a9f14c5021319c2c55543a62956ac3324e8ee766b7c9015ef9f8d718",
+      "license": "Unsplash License (free for commercial use, no attribution required; credited anyway). The photo page read “Free to use under the Unsplash License” on October 21, 2026; not Unsplash+. Chosen with no identifiable faces, team or club marks, advertising or brand logos.",
+      "preparation": "used whole; the plain black background extended 55.00000000000001% to the left so the dog sits beside the clock, then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "cat",
+      "photographer": "AcidFern",
+      "source": "https://unsplash.com/photos/a-black-and-white-cat-with-a-mustache-on-a-pink-background-mrmoM9BUebw",
+      "file": "https://images.unsplash.com/photo-1679651061374-303af962b1ea?w=3840&q=90&fm=jpg",
+      "sha256": "00a82f8625222e8a6e24627dbc266cc7c70c5bfaa0b2b24497d88c55c203142a",
+      "license": "Unsplash License (free for commercial use, no attribution required; credited anyway). The photo page read “Free to use under the Unsplash License” on October 21, 2026; not Unsplash+. Chosen with no identifiable faces, team or club marks, advertising or brand logos.",
+      "preparation": "cropped 0.2/0/0/0 (left/top/right/bottom), then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "beach",
+      "photographer": "Ittemaldiviano",
+      "source": "https://unsplash.com/photos/green-palm-tree-on-white-sand-beach-during-daytime-jmkMl20jNS0",
+      "file": "https://images.unsplash.com/photo-1603477849227-705c424d1d80?w=3840&q=90&fm=jpg",
+      "sha256": "f025e24e0e71f2a8cd7b0a1692140b679a225e3c837608cc87f5f4dafea73f96",
+      "license": "Unsplash License (free for commercial use, no attribution required; credited anyway). The photo page read “Free to use under the Unsplash License” on October 21, 2026; not Unsplash+. Chosen with no identifiable faces, team or club marks, advertising or brand logos.",
+      "preparation": "used whole, then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "aurora",
+      "photographer": "Jonatan Pie",
+      "source": "https://unsplash.com/photos/aurora-borealis-over-dark-mountain-lake-e2MnKlEFcTg",
+      "file": "https://images.unsplash.com/photo-1504858700536-882c978a3464?w=3840&q=90&fm=jpg",
+      "sha256": "5033a8e8b2f9ebab37332c873d329a1afd184478c1c5a5bef3cf8e6a8b1a9126",
+      "license": "Unsplash License (free for commercial use, no attribution required; credited anyway). The photo page read “Free to use under the Unsplash License” on October 21, 2026; not Unsplash+. Chosen with no identifiable faces, team or club marks, advertising or brand logos.",
+      "preparation": "used whole, then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "skyline",
+      "photographer": "Irina Iriser",
+      "source": "https://unsplash.com/photos/high-rise-buildings-at-nighttime-rhRlzHJcv5w",
+      "file": "https://images.unsplash.com/photo-1535391879778-3bae11d29a24?w=3840&q=90&fm=jpg",
+      "sha256": "e05b900f06a41c48857215701e6e1f4fee81138dbd70024d6f781a9db6beec01",
+      "license": "Unsplash License (free for commercial use, no attribution required; credited anyway). The photo page read “Free to use under the Unsplash License” on October 21, 2026; not Unsplash+. Chosen with no identifiable faces, team or club marks, advertising or brand logos.",
+      "preparation": "used whole, then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    },
+    {
+      "key": "earth",
+      "photographer": "NASA",
+      "source": "https://unsplash.com/photos/view-of-earth-and-satellite-yZygONrUBe8",
+      "file": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=3840&q=90&fm=jpg",
+      "sha256": "07cc1763b4c3a3f3febac160f9b00ba0dc3b8336e0eea95b4132df1c27c55ad6",
+      "license": "Unsplash License (free for commercial use, no attribution required; credited anyway). The photo page read “Free to use under the Unsplash License” on October 21, 2026; not Unsplash+. Chosen with no identifiable faces, team or club marks, advertising or brand logos.",
+      "preparation": "used whole, then fitted inside 3840 px and stored as JPEG without metadata, as the released importer stores an image"
+    }
+  ],
+  "captures": [
+    {
+      "file": "site/public/feature-captures/clock-sheet-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "052d4c6051f91eab7b12d6e4cc5681cfd6c5c63719e8ceb4f5fadf8d71b9ba3f",
+      "capturedAt": "2026-10-22T00:33:38Z",
+      "state": "Billboard over the Sunrise time-of-day wallpaper. The clock was right-clicked and Roboto Flex, Glass and Height 200% picked through the shipped Font & color sheet, which is open.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-sheet-v1.41.0.webp",
+        "sha256": "dc5960f89afea16808a20799bdd241620b227ceb2dbf0afcc1bc727805bb7dd6"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-glass-image-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "4c8500f58b128de28b9ffb3f9e47a93a275f35e90c80674935d968ed80be5f28",
+      "capturedAt": "2026-10-22T00:33:46Z",
+      "state": "Billboard over your own image (wheat) with the spotlight wash at Fade 100%, light theme. Clock: Roboto Flex at weight 600, height 200%, Automatic color, Glass. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-glass-image-v1.41.0.webp",
+        "sha256": "88635b3bcb389bc6967c35386f37414ede1eab1821ff78b2bb606efa53ffcb5d"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-solid-color-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "880bce87aad150c8adcfd4d3c7eb207c2722e3f90a76586387edb80638d2c4c6",
+      "capturedAt": "2026-10-22T00:36:03Z",
+      "state": "Billboard over the Sunrise time-of-day wallpaper, light theme. Clock: Inter at weight 800, height 100%, rose at tone 50, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-solid-color-v1.41.0.webp",
+        "sha256": "131713d32f63c67eaa1598dc618ecda7d712bf8923401e84e91e4f0d410dfb8c"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-solid-condensed-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "76cc1700efb041642e25107ccb2c328402920fda60c7e7cb64527f44712062c1",
+      "capturedAt": "2026-10-22T00:35:37Z",
+      "state": "Billboard over the Sunrise time-of-day wallpaper, light theme. Clock: Instrument Sans Condensed at weight 400, height 100%, sky at tone 35, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-solid-condensed-v1.41.0.webp",
+        "sha256": "d2160887b82cee909ec31d243a20ca5d6c745eaff554b7734ce25b8d21480f8b"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-wave-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "38025e936ff50b8e6305002a3c16e6442112d6a88943ff5509cca49d53553ccc",
+      "capturedAt": "2026-10-22T00:40:41Z",
+      "state": "Billboard over your own image (wave) with the spotlight wash at Fade 100%, light theme. Clock: Roboto Flex at weight 500, height 250%, Automatic color, Glass. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-wave-v1.41.0.webp",
+        "sha256": "8a3198b7faee53d06a9f7b5cfc73dc58261bc06a53f6d52d5d4e24297e1bdfc0"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-landers-peak-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "f1754a9b47f2dd4643598a8292c7b1efb8166f1de32104e5d5fdf2d90ae295dc",
+      "capturedAt": "2026-10-22T00:40:50Z",
+      "state": "Billboard over your own image (landers) with the auto wash at Fade 60%, light theme. Clock: Instrument Sans at weight 600, height 100%, Automatic color, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-landers-peak-v1.41.0.webp",
+        "sha256": "72e75ac8ec7783e139d899a80e927e679ad4d1353e577b6e85db19071d4a2d24"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-kanbara-snow-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "6c48c8959ffc2a035ff78ef9871a29858dc2b87d0caf9ab7a7ce7cae7df16b0e",
+      "capturedAt": "2026-10-22T00:42:21Z",
+      "state": "Billboard over your own image (kanbara) with the spotlight wash at Fade 100%, light theme. Clock: Instrument Sans Condensed at weight 700, height 100%, graphite at tone 40, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-kanbara-snow-v1.41.0.webp",
+        "sha256": "0f9586fbc8135a2f318a8acb048f9d8b080a93059a7f73a08333439c68f45332"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-sainte-victoire-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "a4698dccb92855208ca77112821e404544c66c58e0f499f64a76b99da161ec78",
+      "capturedAt": "2026-10-22T00:42:29Z",
+      "state": "Billboard over your own image (cezanne) with the spotlight wash at Fade 100%, light theme. Clock: Inter at weight 400, height 100%, sage at tone 30, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-sainte-victoire-v1.41.0.webp",
+        "sha256": "f13aaac72caf17be2cb2b1f3cc688697dee3ceeedb7cf92f6aaec4b1dfa5380d"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-oxbow-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "cb85e4184e2909e1f4901deedbe008aaba1b766c2aa3c48ca8ba644487adaa73",
+      "capturedAt": "2026-10-22T00:41:15Z",
+      "state": "Billboard over your own image (oxbow) with the dark wash at Fade 60%, dark theme. Clock: Roboto Flex at weight 400, height 300%, Automatic color, Glass. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-oxbow-v1.41.0.webp",
+        "sha256": "11664dc1815bdd561a1600afd3f0f0a7d1026c8498e73b01278a7328cf125627"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-irises-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "988602db878a965cafa10e6289daed3d3abd622f34a0e31c1bfa108fe0e2bf82",
+      "capturedAt": "2026-10-22T00:42:37Z",
+      "state": "Billboard over your own image (irises) with the spotlight wash at Fade 100%, light theme. Clock: Instrument Sans at weight 700, height 120%, iris at tone 45, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-irises-v1.41.0.webp",
+        "sha256": "214140935b74bdec5902beb4d0ce6584baa1b92f79cbdb1e5174e3b6aeea5c7e"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-merced-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "cbfb3470cc7ec22695c34ef1395b62b0ab01240ff5e39c66a701ebe52c732689",
+      "capturedAt": "2026-10-22T00:41:31Z",
+      "state": "Billboard over your own image (merced) with the spotlight wash at Fade 100%, dark theme. Clock: Instrument Sans Condensed at weight 500, height 100%, Automatic color, Glass. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-merced-v1.41.0.webp",
+        "sha256": "44375b6f13001b65d855b71c3146ea1268fdb79b1b5d5735b68486340e4a11dd"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-shono-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "c0c452f2a27c1ed6add0cea0be6855a434d36142d560d837dc7059b2cee2d46f",
+      "capturedAt": "2026-10-22T00:42:46Z",
+      "state": "Billboard over your own image (shono) with the spotlight wash at Fade 100%, light theme. Clock: Inter at weight 900, height 100%, clay at tone 45, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-shono-v1.41.0.webp",
+        "sha256": "c4affa7c4ba241e5c12d50607952af09ec0bc169106e85d271424c62d7859872"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-pitch-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "88995d7bf766ecc741b6a16c10984b65ec96476df9c134ae640335db26a26780",
+      "capturedAt": "2026-10-22T00:50:04Z",
+      "state": "Billboard over your own image (pitch) with the spotlight wash at Fade 100%, light theme. Clock: Inter at weight 900, height 100%, graphite at tone 40, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-pitch-v1.41.0.webp",
+        "sha256": "ed37193887bce8a8cdf0ace31734ecafea6f835141e6c3164c5bde4d188cf2f6"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-hoop-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "9255d4838ac97ff1f0fe6de6866506bbe3acce9f84c450030cd3b3008265cad6",
+      "capturedAt": "2026-10-22T00:50:13Z",
+      "state": "Billboard over your own image (hoop) with the dark wash at Fade 30%, dark theme. Clock: Roboto Flex at weight 400, height 300%, Automatic color, Glass. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-hoop-v1.41.0.webp",
+        "sha256": "37194af4f8e126b2091344aa18c9070fb6ef0d8ad688625c495ea35dae4c38a8"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-stage-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "151d5fa69e0fc2d9b12ef99b502706583d9e401befdcbabb4718052f9c180ea6",
+      "capturedAt": "2026-10-22T00:52:48Z",
+      "state": "Billboard over your own image (stage) with the dark wash at Fade 60%, dark theme. Clock: Instrument Sans Condensed at weight 700, height 100%, Automatic color, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-stage-v1.41.0.webp",
+        "sha256": "1c192ea1bcfe673bbb9496b8fb07a111539b6bdb3cdc651b7bb34a86549fa877"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-festival-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "90cc7527fbf2655215d7746bd378a6bbf4586ba6008528dc49b32b76d081a2d3",
+      "capturedAt": "2026-10-22T00:50:30Z",
+      "state": "Billboard over your own image (festival) with the dark wash at Fade 20%, dark theme. Clock: Roboto Flex at weight 600, height 250%, Automatic color, Glass. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-festival-v1.41.0.webp",
+        "sha256": "89e958d2bd682f263f7981f1deecc9f8f263a93699b61df83ddb00614d8c6722"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-track-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "6e2fae85df238c5430a638a0a635f18ac072f9daaf4e088924d57e320f8f15fa",
+      "capturedAt": "2026-10-22T00:50:38Z",
+      "state": "Billboard over your own image (track) with the spotlight wash at Fade 100%, light theme. Clock: Instrument Sans at weight 700, height 130%, graphite at tone 40, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-track-v1.41.0.webp",
+        "sha256": "2add6bc82f441edbede69a1a1ec338308a8d9e38d4989557bca4dacf8226d42c"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-dog-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "2e98b509d71f00e7bd5951211f9cec165fd835258d8b87c81d5df4719202bacd",
+      "capturedAt": "2026-10-22T00:54:22Z",
+      "state": "Billboard over your own image (dog) with the dark wash at Fade 20%, dark theme. Clock: Inter at weight 800, height 100%, sand at tone 70, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-dog-v1.41.0.webp",
+        "sha256": "9f934e1dbc236ad0ebbe53f2d1fc51ab83e22b602285988a10563697d1072ab8"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-cat-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "97620fb98e8a8059b828d637a7ae01c3129b588f0806b016d49336d45d5c6a62",
+      "capturedAt": "2026-10-22T00:53:04Z",
+      "state": "Billboard over your own image (cat) with the light wash at Fade 20%, light theme. Clock: Instrument Sans at weight 600, height 100%, rose at tone 35, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-cat-v1.41.0.webp",
+        "sha256": "e1adbfb32d3748ac01909138d3e2939e6033906e3d88b3508edf002e24535c3e"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-beach-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "54a9dbac6c6f68d323a88dc0869ae5125a3380782cb327b7dbd80ac9446667d8",
+      "capturedAt": "2026-10-22T00:51:03Z",
+      "state": "Billboard over your own image (beach) with the spotlight wash at Fade 100%, light theme. Clock: Instrument Sans Condensed at weight 700, height 100%, sky at tone 30, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-beach-v1.41.0.webp",
+        "sha256": "d06923cd47907f1cdfce04c24a0c681e7524492375230e4c533efd14f8085971"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-aurora-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "34970b8b07a8ef012b36c4b6a6561831404af81449b10c9c809ff3845686a52d",
+      "capturedAt": "2026-10-22T00:51:11Z",
+      "state": "Billboard over your own image (aurora) with the dark wash at Fade 20%, dark theme. Clock: Roboto Flex at weight 300, height 300%, Automatic color, Glass. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-aurora-v1.41.0.webp",
+        "sha256": "d85b6dd159f0a4febb18f35cb9065ceb04e3d129682aab0972576d4f4cae1af4"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-skyline-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "4534f941da6550f7baa00bcd76b62f05f34917373881a4a8d6bf608df72c5371",
+      "capturedAt": "2026-10-22T00:51:20Z",
+      "state": "Billboard over your own image (skyline) with the dark wash at Fade 30%, dark theme. Clock: Instrument Sans Condensed at weight 400, height 100%, Automatic color, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-skyline-v1.41.0.webp",
+        "sha256": "2878fb0e716d509bec7ba56fa0d1adb24e49aeac43cad482018d0b26adc0458e"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-earth-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "aa8c797c7bb65a0a653f746d87f227dac49a8b49e61ac68da9283ec58a0c8d8a",
+      "capturedAt": "2026-10-22T00:51:28Z",
+      "state": "Billboard over your own image (earth) with the dark wash at Fade 20%, dark theme. Clock: Inter at weight 200, height 100%, Automatic color, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-earth-v1.41.0.webp",
+        "sha256": "7e234068692c71a32268244d9c256237cec481c6cf4a30b67059175068c03f9b"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-color-iris-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "52196e4cc13f04be4256e9a7fe3b14512eac0b595d0b8bef43885502c74ed989",
+      "capturedAt": "2026-10-22T00:51:36Z",
+      "state": "Billboard over the Color wallpaper, iris with the gradient fill, dark theme. Clock: Roboto Flex at weight 500, height 250%, Automatic color, Glass. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-color-iris-v1.41.0.webp",
+        "sha256": "cffb0e3d72776f741294299c4f34c82ec060fbe693846ded81bab34d5fcf16d5"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-color-sand-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "66401f8cd924359354ee2498ecb1bea55e81f30eb8c951ef1a8e0a44ec30b040",
+      "capturedAt": "2026-10-22T00:51:44Z",
+      "state": "Billboard over the Color wallpaper, sand with the solid fill, light theme. Clock: Instrument Sans at weight 700, height 100%, Automatic color, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-color-sand-v1.41.0.webp",
+        "sha256": "6143b18c4ce57b7d758ba90ddb6fe57ab0de05518e82fe77b166b2db2d98aaaf"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/clock-color-rose-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "4a6384e9f9097525734e69f1a646f83dfed398747743a7cd8946918ff4a468e6",
+      "capturedAt": "2026-10-22T00:51:52Z",
+      "state": "Billboard over the Color wallpaper, rose with the soft fill, light theme. Clock: Instrument Sans Condensed at weight 700, height 100%, rose at tone 25, Solid. Settings stored as the app stores them; Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/renderer/pages/clock-art.js",
+        "v1.41.0:src/main/start-clock-style.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/clock-color-rose-v1.41.0.webp",
+        "sha256": "0d4f80ece60217e21ebeab45bf02958b916af2be76feeaa997492e1be809ee4e"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/start-page-image-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "388b4412e08d679e540c869ed0770ad7c9f9c026432ddc6b572128726b79c374",
+      "capturedAt": "2026-10-22T01:07:42Z",
+      "state": "Billboard over Van Gogh's Wheat Field with Cypresses (The Met, CC0) as the stored image, Wash Spotlight at Fade 100%: the wash sits behind the header, clock, blocked total and favorites, and the painting's edges stay bare. Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/main/wallpaper.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/start-page-image-v1.41.0.webp",
+        "sha256": "fea4c0313bd0cfad05beeb55a36091617592a481a74675098233f9506966ad0f"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/start-page-image-customize-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "43ee030c6125026400e904409d4befdca24894f4e8add1184c1337afa7aff83b",
+      "capturedAt": "2026-10-22T01:07:49Z",
+      "state": "The same image with the Customize popover open: Layout (Billboard), the Clock section added in v1.41.0 (Font & color, Instrument Sans · Solid), Wallpaper Sunrise | Color | Your image with Your image selected, the cover preview, Choose another image… and Remove, Wash with Spotlight selected, and Fade at 100%.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/main/wallpaper.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/start-page-image-customize-v1.41.0.webp",
+        "sha256": "f7a42390762e77b2b0a496cdce6503de23f5aee24f94aa64102426e213c25dd3"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/start-page-color-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "8a1a7b28466b56175847884c770962cd5ffef45e0b32f616f411c1f8ccad33fb",
+      "capturedAt": "2026-10-22T01:07:57Z",
+      "state": "Billboard with the Color wallpaper: the Sky preset (#376694) with the Gradient fill and the page's light-on-color ink. Customize closed.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/main/wallpaper.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/start-page-color-v1.41.0.webp",
+        "sha256": "79eeb13fec4abef37e84beb39b4c50f285a4da72bfe1a9f09484a48c86b29372"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/start-page-color-customize-v1.41.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "89508075c70c8c8e60f5b7a96b51199339bc01bbcbf4f162d42209c9ab2beeaf",
+      "capturedAt": "2026-10-22T01:08:04Z",
+      "state": "The Color wallpaper with the Customize popover open: Layout (Billboard), the Clock section added in v1.41.0 (Font & color, Instrument Sans · Solid), Wallpaper with Color selected, the preview, the eight Spaces swatches with Sky selected, Fill with Gradient selected, and Match each space's color off with its hint.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/main/wallpaper.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/start-page-color-customize-v1.41.0.webp",
+        "sha256": "8350fbd29381c71b5ffdd194d3fa1c723e6dc160c1b5a4735882723a9f771544"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/billboard-v1.41.0.png",
+      "width": 2880,
+      "height": 1800,
+      "sha256": "0a61a0f50c937b98e18af191b106d353cbcd4561bb6593fab2f03f02a32bf9bc",
+      "capturedAt": "2026-10-22T01:07:24Z",
+      "state": "Billboard: date, the clock, 328 ads blocked this week, six frequently visited sites and the Research and Reading group pills, over the Sunrise wallpaper.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/main/wallpaper.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/billboard-v1.41.0.webp",
+        "sha256": "a5ae676c76c1b6c02b6690890901d6487d14c4656cd70724b4a80d8a398ed03b"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/ledger-v1.41.0.png",
+      "width": 2880,
+      "height": 1800,
+      "sha256": "ec5104543bbc6b5a26c841316a53a2e05cd2f9af5f7b684923c7b6a35e6eb862",
+      "capturedAt": "2026-10-22T01:07:22Z",
+      "state": "Ledger: \"Where to?\" with four Favorites on the left and Pick up where you left off (Research, Reading, 2 tabs each) on the right; the footer shows 328 ads blocked this week, v1.41.0, Customize, Mahjong and ⌘L to go anywhere.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/main/wallpaper.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/ledger-v1.41.0.webp",
+        "sha256": "6030ee4a52c1ea58cdd173186d3e245579c31519714fa663a23c38575d213e12"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/shelf-v1.41.0.png",
+      "width": 2880,
+      "height": 1800,
+      "sha256": "643addf8494b857116d0fb94e90c653c39333c5679c52ad4094c144e17b7da52",
+      "capturedAt": "2026-10-22T01:07:26Z",
+      "state": "Shelf: four Favorites as tiles, Pick up where you left off with Research and Reading, and the Blocked card with 328 ads this week.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/main/wallpaper.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/shelf-v1.41.0.webp",
+        "sha256": "53742f8a146a5abde10090492f535a78ad1210d56fd63b6fbf0d02fb54ef807d"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/tally-v1.41.0.png",
+      "width": 2880,
+      "height": 1800,
+      "sha256": "40137689812e12e874c96dda315cf3f9ce480ce9cacc0849c49b30759d41f109",
+      "capturedAt": "2026-10-22T01:07:28Z",
+      "state": "Tally: Favorites and Pick up where you left off beside Blocked this week (328) with a day-by-day chart and 'busiest day tuesday'.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/newtab.html",
+        "v1.41.0:src/renderer/pages/newtab.js",
+        "v1.41.0:src/main/wallpaper.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/tally-v1.41.0.webp",
+        "sha256": "2806109b036b920db6256011a379fa05c309bebd432e5290ba4042472537091b"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/mahjong-v1.41.0.png",
+      "width": 2880,
+      "height": 1800,
+      "sha256": "7f0621d4b153a2f8d80fb890b6c73e61322c9168b9452b9f5d44d6e435e3a948",
+      "capturedAt": "2026-10-22T01:07:32Z",
+      "state": "Standalone Mahjong opened from the Start Page footer: the Daily deal on Pyramid in Burst mode (Auto), 54 pairs left, the tools rail and the empty Burst rack. The Daily board rotates; it was Pyramid on October 21, 2026.",
+      "evidence": [
+        "v1.41.0:src/renderer/pages/mahjong.html",
+        "v1.41.0:src/renderer/pages/mahjong.js",
+        "docs/release-incidents/2026-10-21-v1.41.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/mahjong-v1.41.0.webp",
+        "sha256": "6eeb826131dfb927cbeea19744f099f184d40086d5cad7da0aecb7562f46cd74"
+      }
+    }
+  ],
+  "shownOn": [
+    "site/src/pages/features/start-page.astro (hero fan, components/StartPageGallery.astro, data in site/src/data/start-page-designs.json; the wallpaper and layout galleries)"
+  ],
+  "galleryMethod": "The wallpaper gallery (start-page-image*, start-page-color*) and the layout gallery (billboard, ledger, shelf, tally, mahjong) on /features/start-page are retaken from the same mounted public v1.41.0 DMG with the scripts and settings behind docs/website-captures-v1.38.0.json: BLANC_CAPTURE_VERSION=1.41.0 BLANC_CAPTURE_SCALE=2 node scripts/capture-installed-start-page.mjs (2880×1800 page captures, WebP companions at quality 85) and BLANC_CAPTURE_VERSION=1.41.0 BLANC_CAPTURE_IMAGE=<Wheat Field with Cypresses> BLANC_CAPTURE_WASH=spotlight BLANC_CAPTURE_TRIM=0.03 node scripts/capture-installed-custom-wallpaper.mjs (1440×900 window captures, Sky with the Gradient fill). They replace the v1.38.0 shots, which keep their files and ledger for the pages that still show them."
+}

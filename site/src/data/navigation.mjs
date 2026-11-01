@@ -10,6 +10,8 @@ export const browserMenu = {
     { href: '/download#download-options', label: 'macOS' },
     { href: '/download#dl-win', label: 'Windows' },
     { href: '/download#dl-linux', label: 'Linux' },
+    // Not a download: the iPhone section explains the TestFlight beta.
+    { href: '/download#iphone', label: 'iPhone', beta: true },
   ],
   features: [
     { href: '/features/island', label: 'The Island' },
@@ -23,6 +25,7 @@ export const browserMenu = {
   more: [
     { href: '/features', label: 'All features' },
     { href: '/#compare', label: 'Blanc vs. Chrome' },
+    { href: '/arc-alternative', label: 'Switching from Arc' },
   ],
 };
 

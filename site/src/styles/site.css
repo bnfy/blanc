@@ -326,6 +326,26 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 @media (max-width: 640px) {
   .layout-gallery { grid-template-columns: 1fr; }
 }
+/* The Start Page hero fan (components/StartPageGallery.astro). Without the
+   script, or with reduced motion, it is a still row that scrolls and snaps.
+   Live, every card sits at the middle and the script places it with one
+   transform and a brightness filter, the only properties it animates. */
+.design-fan { --card-w: clamp(240px, 34vw, 520px); position: relative; margin: 8px 0 56px; }
+.design-fan-viewport { position: relative; z-index: 1; overflow-x: auto; overflow-y: hidden; padding: 28px 0 44px; scrollbar-width: none; scroll-snap-type: x mandatory; -webkit-mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent); mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent); }
+.design-fan-viewport::-webkit-scrollbar { display: none; }
+.design-fan-track { display: flex; gap: 16px; width: max-content; margin: 0; padding: 0 12%; list-style: none; }
+.design-fan-card { flex: none; width: var(--card-w); scroll-snap-align: center; }
+.design-fan-card a { display: block; border-radius: 14px; -webkit-user-drag: none; }
+.design-fan-card a:focus-visible { outline: 2px solid var(--site-text); outline-offset: 5px; }
+.design-fan-card img { display: block; width: 100%; height: auto; aspect-ratio: 1440 / 900; border: 0; border-radius: 14px; background: transparent; box-shadow: 0 1px 2px rgba(17, 17, 17, 0.08), 0 22px 48px rgba(17, 17, 17, 0.2); user-select: none; -webkit-user-select: none; }
+.design-fan[data-live="true"] .design-fan-viewport { overflow: hidden; scroll-snap-type: none; cursor: grab; touch-action: pan-y; }
+.design-fan[data-dragging="true"] .design-fan-viewport { cursor: grabbing; }
+.design-fan[data-live="true"] .design-fan-track { position: relative; display: block; width: auto; height: calc(var(--card-w) * 0.625); padding: 0; }
+.design-fan[data-live="true"] .design-fan-card { position: absolute; top: 0; left: 50%; margin-left: calc(var(--card-w) / -2); transform-origin: 50% 50%; will-change: transform, filter; }
+.design-fan-caption { min-height: 1.6em; margin: 0; padding: 0 16px; color: var(--site-text-dim); font-size: 14px; line-height: 1.6; text-align: center; }
+.design-fan-caption.is-shown { animation: design-fan-caption-in 360ms ease-out; }
+@keyframes design-fan-caption-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .design-fan-caption.is-shown { animation: none; } }
 .section-kicker { margin: 0 0 14px; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.17em; text-transform: uppercase; color: var(--site-gold); }
 .download-section-head h2 { margin: 0; font-size: clamp(31px, 4.1vw, 52px); font-weight: 500; letter-spacing: -0.035em; line-height: 1.06; text-wrap: balance; }
 .download-hero h1 { margin: 0; font-family: var(--site-font-display); font-size: clamp(34px, 4.4vw, 56px); font-weight: 400; letter-spacing: 0; line-height: 1.06; text-wrap: balance; font-variant-numeric: lining-nums; }
@@ -458,7 +478,11 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .download-footnote a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--site-border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
 .download-footnote a:is(:hover, :focus-visible) { color: var(--site-gold); border-color: var(--site-gold); }
 /* Release notes follow the platform cards, with spacing in normal flow. */
-.download-whatsnew { margin: 24px 0 96px; text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--site-text-dim); }
+.download-whatsnew { margin: 24px 0; text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--site-text-dim); }
+.download-measurement { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; margin: 0 0 64px; padding: 20px; border: 1px solid var(--site-border); }
+.download-measurement p { flex: 1 1 280px; margin: 0; }
+.download-measurement button { min-height: 44px; padding: 10px 16px; border: 1px solid currentColor; border-radius: 8px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.download-measurement button:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 .download-whatsnew a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--site-border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
 .download-whatsnew a:is(:hover, :focus-visible) { color: var(--site-gold); border-color: var(--site-gold); }
 /* With a detected platform, its download becomes the one primary action
@@ -515,6 +539,16 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .download-columns h3 { margin: 0; font-size: 15px; font-weight: 600; }
 .download-columns p { margin: 8px 0 0; color: var(--site-text-dim); font-size: 14px; line-height: 1.6; }
 .download-columns .text-link { margin-top: 12px; font-size: 13px; }
+.iphone-band { display: grid; grid-template-columns: minmax(0, 1fr) 300px; column-gap: 56px; padding: 0 64px 0 56px; background: var(--site-text); color: var(--site-bg); overflow: hidden; }
+.iphone-band-copy { align-self: center; max-width: 36rem; padding: 56px 0; }
+.iphone-band-label { margin: 0 0 14px; color: rgba(255, 255, 255, 0.6); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+.iphone-band .download-section-head h2 { color: inherit; }
+.iphone-band-copy > p:not([class]) { margin: 18px 0 0; color: rgba(255, 255, 255, 0.72); font-size: 16px; line-height: 1.6; }
+.iphone-band-cta { display: inline-flex; gap: 8px; margin-top: 26px; padding: 11px 20px; border-radius: 999px; background: var(--site-bg); color: var(--site-text); font-size: 14px; font-weight: 500; text-decoration: none; transition: background 0.18s ease, color 0.18s ease; }
+.iphone-band-cta:is(:hover, :focus-visible) { background: var(--site-accent); color: var(--site-bg); }
+.iphone-band-note { margin: 14px 0 0; color: rgba(255, 255, 255, 0.55); font-family: var(--font-mono); font-size: 12px; }
+.iphone-band-shot { align-self: end; height: 430px; margin: 48px 0 0; overflow: hidden; }
+.iphone-band-shot img { display: block; width: 100%; height: auto; border: 6px solid rgba(255, 255, 255, 0.14); border-bottom: 0; border-radius: 46px 46px 0 0; }
 
 /* ---------- changelog ---------- */
 .changelog-page { max-width: 880px; margin: 0 auto; padding: 112px 24px 96px; }
@@ -807,7 +841,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .hero .platforms { margin-top: 12px; white-space: normal; line-height: 1.7; }
   .download-page { padding: 24px 18px 68px; }
   .download-options { margin: 52px 0 0; }
-  .download-whatsnew { margin: 24px 0 64px; }
+  .download-whatsnew { margin: 24px 0; }
   .download-block { padding-bottom: 72px; }
   .install-platforms { grid-template-columns: 1fr; gap: 14px; margin-top: 28px; }
   .install-platform { padding: 22px 22px 24px; }
@@ -818,6 +852,9 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .download-columns { grid-template-columns: 1fr; margin-top: 28px; }
   .download-columns article, .download-columns article + article { padding: 22px 0; border-left: 0; }
   .download-columns article + article { border-top: 1px solid var(--site-border); }
+  .iphone-band { grid-template-columns: 1fr; padding: 0 24px; }
+  .iphone-band-copy { padding: 36px 0 0; }
+  .iphone-band-shot { justify-self: center; width: min(260px, 72vw); height: 340px; margin-top: 36px; }
   .download-options.has-preferred > .platform-card[data-preferred] { min-height: 0; padding: 26px 24px; }
   .download-options.has-preferred > .platform-card[data-preferred]::after { top: 22px; right: 24px; }
   /* Stacked on one column, the tall bottom-aligned cards become mostly-empty
@@ -1087,9 +1124,12 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 
 /* ---------- display headings ---------- */
 /* Every heading on the website is Blubird Display at regular weight and 0
-   tracking (October 15, 2026; it replaced Newsreader). This rule sits last so
-   it wins over the per-section size rules above; those keep their sizes and
-   line heights. Text is Blubird Text; product replicas keep Inter. */
+   tracking (October 15, 2026; it replaced Newsreader). Small Display titles,
+   24px and under, may open up to +0.03em, where the face's own spacing reads
+   tight (owner, October 22, 2026); never negative, and headlines stay at 0.
+   This rule sits last so it wins over the per-section size rules above; those
+   keep their sizes and line heights. Text is Blubird Text; product replicas
+   keep Inter. */
 .download-section-head h2, .release-body h2, .about-proof-row h2, .about-close h2, .feature-close h2, .feature-copy-grid h2, .truth-note h2, .ambassador-section-heading h2, .ambassador-promise h2, .ambassador-apply-intro h2, .memchart-heading h2 {
   font-family: var(--site-font-display); font-weight: 400; letter-spacing: 0; font-optical-sizing: auto;
 }

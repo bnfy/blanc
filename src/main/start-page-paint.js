@@ -19,6 +19,11 @@ const SOFT = Object.freeze({
   light: Object.freeze({ bg: '#f8f2e8', amount: 0.12, dim: '#6b6257' }),
   dark: Object.freeze({ bg: '#17130f', amount: 0.36, dim: '#b8aa98' }),
 });
+// The same under the Neutral surface style (pages-neutral.css .ledger-body).
+const SOFT_NEUTRAL = Object.freeze({
+  light: Object.freeze({ bg: '#fbfaf6', amount: 0.12, dim: '#6a665e' }),
+  dark: Object.freeze({ bg: '#1b1b1b', amount: 0.36, dim: '#a9a69e' }),
+});
 // How far the gradient may move from the color: lighter toward its glow, darker
 // toward its deep corner. The glow is cut back until the ink keeps GLOW_INK,
 // which leaves the dim ink room to stay at MIN_INK on every stop.
@@ -59,12 +64,14 @@ const presetHex = (id) => Identity.PRESETS.find((p) => p.id === id)?.hex ?? null
  * `glow` and `deep` are the gradient's light and dark ends; `ink` and `dim`
  * are the text on Solid and Gradient (white or black, then a quieter tone);
  * `softLight` and `softDark` are the tint Soft draws under each theme, whose
- * text stays the theme's own. Null for anything that is not a color.
+ * text stays the theme's own, on the Sunrise or Neutral surface style's
+ * background. Null for anything that is not a color.
  */
-function colorPaint(hex) {
+function colorPaint(hex, surface = 'sunrise') {
   const base = Identity.normalizeHex(hex);
   if (!base) return null;
   const { on: ink } = Identity.paint(base, 'light');
+  const soft = surface === 'neutral' ? SOFT_NEUTRAL : SOFT;
   // The glow moves toward the ink (lighter under white), so it is the stop
   // that can fail; the deep corner moves away from it and only gains contrast.
   const towardInk = (t) => mix(base, ink, t);
@@ -80,8 +87,8 @@ function colorPaint(hex) {
     deep,
     ink,
     dim: mix(ink, base, dimAmount),
-    softLight: softTint(base, SOFT.light),
-    softDark: softTint(base, SOFT.dark),
+    softLight: softTint(base, soft.light),
+    softDark: softTint(base, soft.dark),
   };
 }
 
@@ -90,15 +97,15 @@ function colorPaint(hex) {
  * it and the window is in a Space, else the chosen preset. Null when nothing
  * can be painted.
  */
-function colorWallpaper({ preset, fill, followSpace, spaceColor }) {
+function colorWallpaper({ preset, fill, followSpace, spaceColor, surface }) {
   const space = followSpace === true ? Identity.normalizeHex(spaceColor) : null;
   const hex = space ?? presetHex(normalizePreset(preset) ?? DEFAULT_PRESET);
-  const paint = colorPaint(hex);
+  const paint = colorPaint(hex, surface);
   if (!paint) return null;
   return { fill: normalizeFill(fill) ?? DEFAULT_FILL, fromSpace: space !== null, ...paint };
 }
 
 module.exports = {
-  FILLS, PRESET_IDS, DEFAULT_PRESET, DEFAULT_FILL, MIN_INK, SOFT,
+  FILLS, PRESET_IDS, DEFAULT_PRESET, DEFAULT_FILL, MIN_INK, SOFT, SOFT_NEUTRAL,
   mix, colorPaint, colorWallpaper, normalizePreset, normalizeFill, presetHex,
 };

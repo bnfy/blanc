@@ -39,6 +39,8 @@ function createIconDocument({
   translucency = { enabled: false, value: 0.5 },
   tileImageName = null,
   darkTileImageName = null,
+  extraLayers = [],
+  rimImageName = null,
 }) {
   const layer = {
     ...(!preserveColor ? {
@@ -61,12 +63,30 @@ function createIconDocument({
       }],
     } : {}),
     groups: [{
-      layers: [layer],
+      // Further parts of a mark drawn in pieces (a sun and its rays), each its
+      // own glass layer so macOS lights them one by one.
+      layers: [layer, ...extraLayers.map((extra) => ({
+        glass,
+        'image-name': extra.imageName,
+        name: extra.layerName,
+      }))],
       shadow,
       ...(specular !== undefined ? { specular } : {}),
       ...(lighting ? { lighting } : {}),
       translucency,
     },
+    // A plain white outline behind the glass mark, its sticker edge. It hides
+    // in Clear and Tinted, where macOS draws the mark over its own glass.
+    ...(rimImageName ? [{
+      layers: [{
+        glass: false,
+        'image-name': rimImageName,
+        name: 'Rim',
+        'hidden-specializations': [{ appearance: 'tinted', value: true }],
+      }],
+      shadow: { kind: 'neutral', opacity: 0.3 },
+      translucency: { enabled: false, value: 0.5 },
+    }] : []),
     // The tile drawn as an image behind the mark, so no appearance recolors
     // it; a dark tile, when given, replaces it in Dark. Both hide in the
     // Clear and Tinted styles ('tinted'), where an opaque image would cover
@@ -149,6 +169,8 @@ module.exports = async function afterPackAppIcons(context) {
         : path.join(sourceIcon, 'Assets');
       const images = [
         definition.imageName ?? 'sunrise-mark.png',
+        ...(definition.extraLayers ?? []).map((extra) => extra.imageName),
+        definition.rimImageName,
         definition.tileImageName,
         definition.darkTileImageName,
       ].filter(Boolean);

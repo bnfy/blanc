@@ -176,11 +176,14 @@ const FLOAT_CHROME_PAD_PX = 8;
  * floating Island go stale after a resize (the pill came back off-centre and
  * the controls sat beside their buttons in the 2026-10-20 VM check). One row
  * left showing keeps it laid out; it paints the page's sampled top colour.
- * macOS and Windows keep a covered document visible and give the page all. */
+ * Windows does the same: its covered strip also went 'hidden', so the pill
+ * grew (more tabs, a longer domain) without reporting it and the floating
+ * pill's ends were cut off by its stale view (2026-10-22 VM check). macOS
+ * keeps a covered document visible and gives the page all. */
 const COVERED_STRIP_ROW_PX = 1;
 
 function coveredStripHeight(platform) {
-  return platform === 'linux' ? COVERED_STRIP_ROW_PX : 0;
+  return platform === 'linux' || platform === 'win32' ? COVERED_STRIP_ROW_PX : 0;
 }
 
 /** Whether the page ignores the strip because the Island floats over it.

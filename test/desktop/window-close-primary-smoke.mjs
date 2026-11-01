@@ -6,6 +6,7 @@ import path from 'node:path';
 import { _electron } from 'playwright';
 import poll from './support/poll.js';
 import testHookCall from './support/test-hook-call.js';
+import { inMainTurn } from './support/main-turn.js';
 
 // Closing the primary window on Windows or Linux while another window stays
 // open. That close removes the primary like any window that is not the last
@@ -117,7 +118,7 @@ try {
   const [primaryWindowId] = await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()
     .filter((w) => w.isVisible() && w.webContents.getURL() === 'blanc-chrome://index/')
     .map((w) => w.id).sort((a, b) => a - b));
-  await app.evaluate(({ BrowserWindow, webContents }, { id, urls }) => {
+  await inMainTurn(app, ({ BrowserWindow, webContents }, { id, urls }) => {
     const owned = webContents.getAllWebContents().filter((wc) => urls.includes(wc.getURL()));
     globalThis.__primaryCloseLivePages = null;
     // Observe before Blanc's closed handler: cleaning up there is too late

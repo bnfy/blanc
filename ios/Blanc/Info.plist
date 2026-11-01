@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  The part of Blanc for iPhone's Info.plist that build settings can't express;
+  Xcode merges it with the generated keys (GENERATE_INFOPLIST_FILE). Blanc
+  declares http and https so it can be chosen as the default browser
+  (com.apple.developer.web-browser); BlancApp opens each link in a new tab.
+  Apple's default-browser requirements restrict the photo library, always-on
+  location, HomeKit, always-on Bluetooth and Health usage keys; add none of
+  those. The camera is not restricted: Pair with your Blanc scans the
+  computer's pairing code (design 2026-10-28 §3, §7.2). Its prompt text is
+  generated into Blanc/InfoPlist.xcstrings from copy/messages; the English
+  base below must match it (test/unit/ios-camera-usage.test.js).
+  CFBundleLocalizations lists the six interface languages (F44) so iOS offers
+  Blanc's own Language setting; Swift reads the matching catalog (M18 §4).
+  BGTaskSchedulerPermittedIdentifiers and the fetch background mode let a
+  Background App Refresh keep the phone in sync (M18 §6, BackgroundRefresh).
+  See docs/ios/app-store-connect.md.
+-->
+<plist version="1.0">
+<dict>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>de</string>
+		<string>es</string>
+		<string>fr</string>
+		<string>it</string>
+		<string>pt-BR</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>me.bnfy.blanc.sync</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Blanc uses the camera only to scan the pairing code on your computer.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleURLName</key>
+			<string>me.bnfy.blanc.web</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>http</string>
+				<string>https</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleURLName</key>
+			<string>me.bnfy.blanc.share</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>blanc-share</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

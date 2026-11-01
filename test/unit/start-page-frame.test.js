@@ -156,8 +156,11 @@ test('surfaces follow one weight ladder with accessibility fallbacks', () => {
   assert.match(js, /new IntersectionObserver\(/);
   assert.match(css, /@media \(prefers-reduced-transparency: reduce\) \{[\s\S]*?backdrop-filter: none;/);
   assert.match(css, /@media \(prefers-contrast: more\) \{[\s\S]*?border-color: var\(--text-dim\);/);
-  assert.match(css, /@media \(prefers-color-scheme: dark\) \{\s*\.bb-clock \{ text-shadow: none; \}/);
-  assert.match(css, /:root\[data-theme="private"\] \.bb-clock \{ text-shadow: none; \}/);
+  // The clock's shadow follows its ink in every theme (newtab.js sets it), so
+  // no theme or wallpaper switches it off.
+  assert.match(all, /\.bb-clock \{[^}]*text-shadow: var\(--clock-shadow, none\);/);
+  assert.doesNotMatch(all, /\.bb-clock \{ text-shadow: none; \}/);
+  assert.match(js, /style\.setProperty\('--clock-shadow', shadow\)/);
   assert.match(css, /\.fav \.tile,\s*\.shelf-tile \.tile,\s*\.bb-fav \.tile \{[^}]*border-radius: 6px;[^}]*box-shadow: var\(--start-shadow-icon\);/s);
   assert.doesNotMatch(all, /\.bb-site-dismiss \{[^}]*box-shadow: 0 2px 8px/s, 'the dismiss button uses the icon shadow');
 });
@@ -172,7 +175,7 @@ test('motion grows surfaces from their source and respects reduced motion', () =
   assert.match(css, /@starting-style \{\s*body\.layout-ready \.start-content > main \{ opacity: 0; \}/);
   assert.match(css, /:active \{[^}]*transform: scale\(0\.98\);/s);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.start-customize-popover,[\s\S]*?transform: none;/);
-  assert.match(js, /requestAnimationFrame\(\(\) => document\.body\.classList\.add\('layout-ready'\)\)/);
+  assert.match(js, /requestAnimationFrame\(\(\) => \{\s*document\.body\.classList\.add\('layout-ready'\);/);
   assert.doesNotMatch(css, /cubic-bezier\([^)]*1\.[0-9]/, 'no overshooting curves');
 });
 

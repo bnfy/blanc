@@ -15,7 +15,9 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 test('the hero window draws the app’s own Island over a published capture', () => {
   const src = read('site/src/components/FloatingIslandWindow.astro');
   assert.match(src, /nativeIslandArt\(\{ styles, document, renderer \}\)/);
-  assert.match(src, /var\(--shadow-island-float\)/); // the float view's own shadow
+  // The float view's own shadow, on the surface only, as in the app.
+  assert.match(src, /#islandPill::after \{box-shadow: var\(--shadow-island-float\);\}/);
+  assert.doesNotMatch(src, /#islandPill \{[^}]*box-shadow/);
   assert.match(src, /float-island-hidden-v1\.40\.0/);
   assert.match(src, /float-island-lights-v1\.40\.0/);
   assert.doesNotMatch(src, /<svg[^>]*class="[^"]*island/); // no hand-drawn pill

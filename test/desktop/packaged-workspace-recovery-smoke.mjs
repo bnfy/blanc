@@ -9,6 +9,8 @@ import fixtures from './support/workspace-fixtures.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../../package.json');
+let expectedElectron = pkg.devDependencies.electron.replace(/^[~^]/, '');
+if (process.env.BLANC_ECS_PACKAGE_ROOT) expectedElectron = require('./support/ecs-package-version.cjs').expectedEcsElectron(process.env.BLANC_ECS_PACKAGE_ROOT);
 const executable = process.env.BLANC_PACKAGED_EXECUTABLE || path.resolve('dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc');
 assert.ok(fs.existsSync(executable), 'Set BLANC_PACKAGED_EXECUTABLE to a packaged Blanc executable');
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-workspace-restart-'));
@@ -18,7 +20,8 @@ const { ELECTRON_RUN_AS_NODE: _ignored, ...cleanEnv } = process.env;
 void _ignored;
 let app;
 let chrome;
-const read = name => JSON.parse(fs.readFileSync(path.join(profile, name), 'utf8'));
+let failed = false;
+const read = name =>JSON.parse(fs.readFileSync(path.join(profile, name), 'utf8'));
 const state = () => chrome.evaluate(() => window.browserAPI.getAllTabs());
 const list = () => chrome.evaluate(() => window.browserAPI.listWorkspaces());
 const ready = () => wait(state, value => value.tabs.length && value.tabs.every(tab => !tab.isLoading), 'settled packaged workspace tabs', 20_000);
@@ -46,7 +49,7 @@ async function launch() {
   const settings = await wait(() => Promise.resolve(app.pages().find(page => page.url().startsWith('blanc://settings/'))), Boolean, 'packaged settings');
   const info = await settings.evaluate(async () => (await window.bowserPages.settings.get()).appInfo);
   assert.equal(info.blancVersion, pkg.version);
-  assert.equal(info.electronVersion, pkg.devDependencies.electron.replace(/^[~^]/, ''));
+  assert.equal(info.electronVersion, expectedElectron);
   assert.equal(info.platform, process.platform);
   await settings.evaluate(() => window.bowserPages.surface.close());
   return info;
@@ -144,7 +147,23 @@ try {
   await quit();
   assertDiskCapture(id);
   console.log(`Packaged Workspace recovery PASS: ${JSON.stringify(runtime)}; new binding, groups/pins, private exclusion, quiet restore/wake, durable deleted recovery; three graceful process exits.`);
+} catch (error) {
+  failed = true;
+  throw error;
 } finally {
+  // Teardown never replaces an earlier failure: it fails only a pass.
   try { if (app) await app.close(); }
-  finally { await fixture.close(); fs.rmSync(profile, { recursive: true, force: true }); }
+  catch (error) {
+    if (!failed) throw error;
+    console.error(`Blanc did not close cleanly: ${error.message}`);
+  } finally {
+    await fixture.close();
+    // Windows can keep a child process's cache file open briefly after Blanc exits.
+    try {
+      fs.rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+    } catch (error) {
+      if (!failed) throw error;
+      console.error(`left ${profile} behind: ${error.code ?? error.message}`);
+    }
+  }
 }

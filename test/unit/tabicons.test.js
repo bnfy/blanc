@@ -37,6 +37,7 @@ let lastResizeOptions = null;
 
 const image = {
   isEmpty: () => false,
+  getSize: () => ({ width: 32, height: 32 }),
   resize: (options) => {
     lastResizeOptions = options;
     return image;

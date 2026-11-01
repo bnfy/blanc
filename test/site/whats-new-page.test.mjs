@@ -243,8 +243,11 @@ test('/whats-new leads to the newest page and is not indexed', async () => {
   const html = await (await fetch(`${baseURL}/whats-new`)).text();
   assert.match(html, /<meta name="robots" content="noindex,follow">/);
   // An upcoming page (its release not public yet) is left out of the redirect.
-  const released = new Set(JSON.parse(fs.readFileSync(path.join(ROOT, 'site/src/data/releases.json'), 'utf8')).map((r) => r.version));
-  const newest = byRelease.find((p) => released.has(`${p.release}.0`));
+  // A feature line is public from its first published version: 1.44 went
+  // public at 1.44.1, since 1.44.0 was never published.
+  const released = new Set(JSON.parse(fs.readFileSync(path.join(ROOT, 'site/src/data/releases.json'), 'utf8'))
+    .map((r) => r.version.split('.').slice(0, 2).join('.')));
+  const newest = byRelease.find((p) => released.has(p.release));
   const { context, page } = await open('/whats-new');
   await page.waitForURL(new RegExp(`/whats-new/${newest.release.replace('.', '\\.')}$`));
   await context.close();

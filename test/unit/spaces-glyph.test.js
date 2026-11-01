@@ -40,5 +40,5 @@ test("the ⌘L footer's button draws exactly the same glyph", () => {
 test('the planet is drawn a little larger than the other glyphs, at the footer line weight', () => {
   const css = read('src/renderer/styles.css');
   assert.match(css, /#footerWorkspace svg \{[^}]*width: 17px;[^}]*height: 17px;[^}]*stroke-width: 2;/);
-  assert.match(css, /\.space-mark\[data-state="neutral"\] \.space-mark-symbol svg \{[^}]*width: 16px;[^}]*height: 16px;[^}]*stroke-width: 2;/);
+  assert.match(css, /\.space-mark:is\(\[data-state="neutral"\], \.vertical-tabs-toolbar \[data-state="none"\]\) \.space-mark-symbol svg \{[^}]*width: 16px;[^}]*height: 16px;[^}]*stroke-width: 2;/);
 });
