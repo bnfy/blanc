@@ -8755,6 +8755,10 @@
     "message": "Blanc usa la cámara solo para escanear el código de vinculación de tu ordenador.",
     "source": "sha256:33e35780a5c9513b300cffeade91be31baeffbcf50c12f4bba2e3d7a8f710519"
   },
+  "ios.photos.addUsage": {
+    "message": "Blanc guarda imágenes en tu fototeca solo cuando se lo pides.",
+    "source": "sha256:b3bbdd9e9e3dc8e519d08c9fd88ae8cc00c2dae1753032dae893b8cc4352cbe0"
+  },
   "ios.settings.shareTabsHelp": {
     "message": "Comparte las pestañas abiertas normales de este iPhone con tus otros dispositivos. Las pestañas privadas nunca se comparten.",
     "source": "sha256:83d7996fbe9b9d874ba434cbe43221a9fd2799fc25d6f692d05310d6844e087b"
