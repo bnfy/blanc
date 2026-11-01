@@ -38,6 +38,8 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Blanc uses the camera only to scan the pairing code on your computer.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Blanc saves images to your photo library only when you ask it to.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

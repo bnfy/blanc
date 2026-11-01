@@ -2481,6 +2481,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ios_pair_link_confirm_body">Continuez uniquement si vous venez de scanner un code sur votre propre ordinateur.</string>
     <string name="ios_pair_pair">Jumeler</string>
     <string name="ios_pair_camera_usage">Blanc utilise l’appareil photo uniquement pour scanner le code de jumelage sur votre ordinateur.</string>
+    <string name="ios_photos_add_usage">Blanc enregistre des images dans votre photothèque uniquement lorsque vous le demandez.</string>
     <string name="ios_settings_share_tabs_help">Partagez les onglets ouverts ordinaires de cet iPhone avec vos autres appareils. Les onglets privés ne sont jamais partagés.</string>
     <string name="ios_settings_disconnect_help">Déconnecter cet iPhone ? Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés.</string>
     <string name="ios_settings_switch_help">Cet iPhone quittera sa synchronisation actuelle. Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés.</string>

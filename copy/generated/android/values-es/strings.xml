@@ -2481,6 +2481,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="ios_pair_link_confirm_body">Continúa solo si acabas de escanear un código en tu propio ordenador.</string>
     <string name="ios_pair_pair">Vincular</string>
     <string name="ios_pair_camera_usage">Blanc usa la cámara solo para escanear el código de vinculación de tu ordenador.</string>
+    <string name="ios_photos_add_usage">Blanc guarda imágenes en tu fototeca solo cuando se lo pides.</string>
     <string name="ios_settings_share_tabs_help">Comparte las pestañas abiertas normales de este iPhone con tus otros dispositivos. Las pestañas privadas nunca se comparten.</string>
     <string name="ios_settings_disconnect_help">¿Desconectar este iPhone? Tus Favoritos y ajustes locales permanecerán aquí. Tus otros dispositivos no se verán afectados.</string>
     <string name="ios_settings_switch_help">Este iPhone saldrá de su sincronización actual. Tus Favoritos y ajustes locales permanecerán aquí. Tus otros dispositivos no se verán afectados.</string>
