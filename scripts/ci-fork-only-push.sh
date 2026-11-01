@@ -13,7 +13,9 @@ no() { echo false; exit 0; }
 [ "${EVENT_NAME:-}" = pull_request ] && [ "${EVENT_ACTION:-}" = synchronize ] || no
 case "${BEFORE:-}" in ''|0000000000000000000000000000000000000000) no ;; esac
 [ -n "${AFTER:-}" ] || no
-git fetch -q --no-tags --filter=blob:none origin "$BEFORE" "$AFTER" 2>/dev/null || no
+# A shallow checkout (parity-guards keeps two levels) hides the ancestry the
+# fast-forward check needs, so both commits come with enough history.
+git fetch -q --no-tags --filter=blob:none --depth=1000 origin "$BEFORE" "$AFTER" 2>/dev/null || no
 git merge-base --is-ancestor "$BEFORE" "$AFTER" 2>/dev/null || no
 changed=$(git -c core.quotePath=false diff --name-only --no-renames "$BEFORE" "$AFTER") || no
 [ -n "$changed" ] || no

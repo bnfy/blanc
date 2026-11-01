@@ -58,6 +58,28 @@ test('only a pull-request push confined to the fork skips', () => {
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
+test('a shallow checkout like CI\'s still sees the push\'s history', () => {
+  // GitHub checks out the PR's merge commit two levels deep: the head commit
+  // is present, but its parents are cut off.
+  const { dir, git, commit } = repo();
+  const base = commit('src/main/main.js', 'a');
+  git('checkout', '-q', '-b', 'pr');
+  commit('chromium/zero.cc', 'z');
+  const before = commit('chromium/one.cc', 'b');
+  const after = commit('chromium/two.cc', 'c');
+  git('checkout', '-q', '--detach', base);
+  commit('README.md', 'main moved on');
+  git('merge', '-q', '--no-ff', '-m', 'merge', 'pr');
+  git('branch', 'merge-ref');
+  const shallow = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-fork-only-shallow-'));
+  execFileSync('git', ['clone', '-q', '--depth', '2', '--branch', 'merge-ref', `file://${dir}`, shallow]);
+  const push = (b, a) => classify(shallow, { EVENT_NAME: 'pull_request', EVENT_ACTION: 'synchronize', BEFORE: b, AFTER: a });
+  assert.equal(push(before, after), 'true');
+  assert.equal(push(after, before), 'false', 'not a fast-forward');
+  fs.rmSync(dir, { recursive: true, force: true });
+  fs.rmSync(shallow, { recursive: true, force: true });
+});
+
 test('the desktop and iOS workflows skip only on a "true" answer', () => {
   const read = (name) => fs.readFileSync(path.join(ROOT, '.github', 'workflows', name), 'utf8');
   for (const name of ['ios.yml', 'ublock-origin.yml']) {
