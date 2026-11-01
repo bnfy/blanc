@@ -1,6 +1,7 @@
 #include "blanc/buildflags.h"
 #include "blanc/island_resources/island_resources.h"
 #include "blanc/browser/ui/browser_api/navigation.h"
+#include "blanc/browser/ui/browser_api/search.h"
 #include "blanc/browser/ui/browser_api/search_choice.h"
 #include "blanc/browser/ui/browser_api/search_default.h"
 #include "blanc/browser/ui/modules/custom_template.h"
@@ -2996,6 +2997,31 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(std::move(list)));
       return;
     }
+    // Shipping's setTestSearchSuggestionFixture and the requests it records
+    // (search.h): a list of strings stands in for the provider; null clears.
+    if (message[1].GetString() == "setSuggestionFixture" && message.size() == 3 &&
+        message[2].is_list() && message[2].GetList().size() == 1) {
+      const base::Value& value = message[2].GetList()[0];
+      auto& fixture = blanc::browser_api::TestSuggestionFixture();
+      if (value.is_list()) {
+        fixture.emplace();
+        for (const auto& item : value.GetList())
+          if (item.is_string()) fixture->push_back(item.GetString());
+      } else {
+        fixture.reset();
+      }
+      blanc::browser_api::TestSuggestionRequests().clear();
+      Reply(id, true, base::Value(true));
+      return;
+    }
+    if (message[1].GetString() == "suggestionRequests") {
+      base::ListValue list;
+      for (const auto& r : blanc::browser_api::TestSuggestionRequests())
+        list.Append(base::DictValue().Set("engine", r.engine).Set("query", r.query)
+            .Set("url", r.url).Set("credentials", r.credentials));
+      Reply(id, true, base::Value(std::move(list)));
+      return;
+    }
     const std::string& method = message[1].GetString();
     // Only existing production policy paths are exposed. Fixture seeds and
     // unsupported shipping hooks must be implemented explicitly, never faked.
@@ -5549,6 +5575,12 @@ class BrowserApiHost : public blanc::browser_api::BrowserApiFactoryBase {
     navigation_ = std::make_unique<blanc::browser_api::Navigation>(
         base::BindRepeating(&BrowserApiHost::Browser, base::Unretained(this)), std::move(receiver));
   }
+  void BindSearch(mojo::PendingReceiver<blanc::browser_api::mojom::Search> receiver,
+      mojo::PendingRemote<blanc::browser_api::mojom::SearchClient> client) override {
+    search_ = std::make_unique<blanc::browser_api::Search>(
+        base::BindRepeating(&BrowserApiHost::Browser, base::Unretained(this)), std::move(receiver),
+        std::move(client));
+  }
 
  private:
   BrowserWindowInterface* Browser() {
@@ -5558,6 +5590,7 @@ class BrowserApiHost : public blanc::browser_api::BrowserApiFactoryBase {
   base::WeakPtr<content::WebContents> contents_;
   mojo::Receiver<blanc::browser_api::mojom::BrowserApiFactory> receiver_;
   std::unique_ptr<blanc::browser_api::Navigation> navigation_;
+  std::unique_ptr<blanc::browser_api::Search> search_;
 };
 
 UI::~UI() = default;

@@ -32,19 +32,6 @@ namespace {
 TemplateURL* BlancCustomEngine(TemplateURLService* service) {
   return service->GetTemplateURLForKeyword(blanc::browser_api::kCustomKeyword);
 }
-// The shipping view of Chromium's selection: a stock engine, "custom" for
-// Blanc's own entry, or "" for anything shipping has no name for.
-blanc::custom_search::Settings CurrentSearch(TemplateURLService* service) {
-  blanc::custom_search::Settings current;
-  if (auto* custom = BlancCustomEngine(service))
-    current.custom_template = blanc::browser_api::FromChromiumPattern(custom->url()).value_or("");
-  const TemplateURL* selected = service->GetDefaultSearchProvider();
-  if (!selected || service->IsExtensionControlledDefaultSearch()) return current;
-  if (selected == BlancCustomEngine(service)) current.engine = "custom";
-  else if (auto name = blanc::browser_api::StockName(selected->prepopulate_id()))
-    current.engine = std::string(*name);
-  return current;
-}
 }  // namespace
 void SearchSettingsHandler::Handle(const base::ListValue& message) {
   if (!IsSettingsPage() || message.size() != 3 || !message[0].is_string() ||
@@ -70,7 +57,7 @@ void SearchSettingsHandler::Handle(const base::ListValue& message) {
     blanc::custom_search::Patch patch;
     if (const auto* engine = partial.FindString("searchEngine")) patch.engine = *engine;
     if (const auto* address = partial.FindString("searchEngineTemplate")) patch.custom_template = *address;
-    const auto previous = CurrentSearch(service);
+    const auto previous = blanc::browser_api::SelectedSearch(service);
     const auto next = (patch.engine || patch.custom_template) && editable
         ? blanc::custom_search::Apply(previous, patch) : std::nullopt;
     if (next && next->custom_template != previous.custom_template && !next->custom_template.empty()) {
@@ -103,7 +90,7 @@ void SearchSettingsHandler::Handle(const base::ListValue& message) {
   } else if (method != "get" || !args.empty()) {
     Reply(id, false, base::Value("Invalid search setting.")); return;
   }
-  const auto current = CurrentSearch(service);
+  const auto current = blanc::browser_api::SelectedSearch(service);
   base::DictValue state;
   state.Set("searchEngine", current.engine);
   state.Set("searchEngineTemplate", current.custom_template);

@@ -30,6 +30,10 @@ test('the engine list is shipping\'s, in order, with its labels', () => {
   const block = source.slice(source.indexOf('const SEARCH_ENGINES = {'), source.indexOf('};', source.indexOf('const SEARCH_ENGINES = {')));
   const shipping = [...block.matchAll(/^\s+(\w+): \{ label: '([^']+)'/gm)].map(m => [m[1], m[2]]);
   assert.deepEqual(Object.entries(page.SEARCH_ENGINES).map(([k, v]) => [k, v ?? 'Custom']), shipping);
+  // The native suggestion service labels its responses with the same names.
+  const choice = read('blanc/browser/ui/browser_api/search_choice.h');
+  const native = [...choice.matchAll(/if \(name == "(\w+)"\) return "([^"]+)";/g)].map(m => [m[1], m[2]]);
+  assert.deepEqual(native, shipping.filter(([k]) => k !== 'custom'));
 });
 
 test('the page has shipping\'s controls with shipping\'s English text', () => {

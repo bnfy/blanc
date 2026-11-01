@@ -34,6 +34,15 @@ inline std::optional<std::string_view> StockName(int prepopulate_id) {
     if (engine.prepopulate_id == prepopulate_id) return engine.name;
   return std::nullopt;
 }
+// Shipping's display name for a stock engine (SEARCH_ENGINES labels).
+inline std::optional<std::string_view> StockLabel(std::string_view name) {
+  if (name == "duckduckgo") return "DuckDuckGo";
+  if (name == "google") return "Google";
+  if (name == "bing") return "Bing";
+  if (name == "brave") return "Brave Search";
+  if (name == "kagi") return "Kagi";
+  return std::nullopt;
+}
 
 // A shipping custom address (one %s) as a Chromium search URL, and back.
 // Braces can't be stored: Chromium reads them as replacement variables, and

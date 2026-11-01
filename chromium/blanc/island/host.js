@@ -944,7 +944,7 @@
     previewSpaceList: () => request('previewSpaceList'),
     previewSpaceOpen: name => request('previewSpaceOpen', [name]),
     listWorkspaces: async () => ({ items: [], tint: 'mark' }),
-    searchSuggestions: async () => [],
+    searchSuggestions: query => typed('searchSuggestions', [String(query)]),
     openFindBar,
     findInPage: (id, query, options = {}) => request('find',
       [nativeId(id), String(query), options.forward !== false, options.findNext !== false]),

@@ -25,7 +25,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   build (`out/BlancRelease`, 57,200 steps) succeeded and its app reports
   those values. Next: the install-over-Electron spike in `blanc-test`, which
   needs an internally signed build; signing waits for the owner.
-- **S1.1 address bar and search on macos-496905d55d71fa94** (targeted runs;
+- **S1.1 address bar and search on macos-d6612d3c59d3f8a2** (targeted runs;
   the recorded S1 baseline stays on macos-790ca4d6d538c894, since
   merge-baseline refuses mixed builds).
   - Typed text means what it does in shipping v1.45.1
@@ -44,17 +44,28 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     gets DuckDuckGo unless policy or an extension controls the engine.
   - The Island's Settings action now opens Blanc's Settings page, as shipping
     does; it links to Chromium's settings for everything not yet ported.
-  - Results: navigation feature 9 pass, 2 fail (was 4/14): the five engine
-    searches, search operator, and three custom address cases now pass.
-    Still failing: live suggestions (the Island fetches none yet) and
-    private-tab suggestions (needs D1 in-window private tabs). The other
-    eight Settings-touching features match the recorded baseline, except
-    "An invalid search engine is rejected" (now passes) and "Search
-    suggestions can be disabled without syncing" (now blocked only on
-    Profile Sync).
-  - Gaps: new tabs from typed text still use the old Google-only path; the
-    custom-address hint says it syncs, which the fork can't yet; page-started
-    blocklist (N6), Bangs, live suggestions and the outbound-isolation check
+  - Live suggestions are shipping's request, sent natively (owner,
+    2026-11-01, over Chromium's omnibox suggest, which would add the page
+    address and Google cookies): the search group moved to the typed
+    interface (`browser_api/search.cc`). Only the typed text goes to the
+    selected stock engine's shipping endpoint; no cookies, no redirects, no
+    cache, 2.5 s, 64 KB, 30 s memory cache of 64 entries; nothing for a
+    custom engine, with suggestions off, from a private tab, or for bang,
+    address, path or credential-shaped text. The rules are
+    `suggestion_policy.cc`, compared with shipping's code over 4,000+ inputs
+    (`tools/suggestion-policy.test.mjs`). Not ported: shipping's
+    first-run-complete check (the fork has no first-run flow yet). Tests
+    use native `setSuggestionFixture`/`suggestionRequests` ops, which also
+    record the credentials mode.
+  - New tabs load the address they are given, as shipping does; the old
+    Google fallback for other text is gone.
+  - Results: navigation feature 10 pass, 1 fail (was 4/14 before S1.1). The
+    remaining failure is the private-tab step of "Autocomplete keeps
+    opted-out, private, and pasted text local" (needs D1 in-window private
+    tabs). Settings and theming fails the same 3 cases as before (theme
+    control, private theme, folding explanations).
+  - Gaps: the custom-address hint says it syncs, which the fork can't yet;
+    page-started blocklist (N6), Bangs and the outbound-isolation check
     remain.
 - **F0.5 S1 finish line reached.** All 253 S1-tagged cases have a real result
   or a named undefined reason on the current candidate: 70 pass, 151 fail, 32
@@ -172,8 +183,7 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.1 rest: live suggestions in the Island, typed text in new tabs,
-   N6, Bangs, outbound isolation. Verify each change with targeted `--only` runs
+1. S1.1 rest: N6, Bangs, outbound isolation. Verify each change with targeted `--only` runs
    merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
    (~2 h) unless development can't continue without it; propose one with
    the reason first.
@@ -224,5 +234,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-b6f5dd15d7f336ce; Windows: none; Linux: none.
+Candidate identities: macOS: macos-d6612d3c59d3f8a2; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

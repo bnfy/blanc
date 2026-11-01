@@ -9,10 +9,7 @@ import {tabPage} from './core.mjs';
 const ADDRESS='addressInput';
 const overlay=w=>w.frame('overlay');
 const inOverlay=(w,fn,arg)=>overlay(w).evaluate(fn,arg);
-// Search providers by the URL each is asked at (shipping search-suggestions.js
-// and the search prefixes extended.steps.js asserts).
-export const SUGGEST=[['duckduckgo','https://duckduckgo.com/ac/'],['google','https://www.google.com/complete/search'],
- ['bing','https://api.bing.com/osjson.aspx'],['brave','https://search.brave.com/api/suggest'],['kagi','https://kagi.com/api/autosuggest']];
+// Search prefixes extended.steps.js asserts.
 export const SEARCH=[['duckduckgo','https://duckduckgo.com/?q='],['google','https://www.google.com/search?q='],
  ['bing','https://www.bing.com/search?q='],['brave','https://search.brave.com/search?q='],['kagi','https://kagi.com/search?q=']];
 // Which provider a URL the fork navigated to belongs to; null when none.
@@ -122,22 +119,8 @@ const readControl=(w,id)=>inSettings(w,a=>{const el=document.getElementById(a.id
 // Inside an already open Settings tab, as shipping reads its sheet: null
 // when Settings isn't open.
 async function settingsEval(w,fn,arg,none=null){const page=await settingsPage(w);return page?page.evaluate(fn,arg):none;}
-// --- Search suggestions: the provider endpoints, served and recorded at the
-// Island host's network layer, where the facade would fetch them. ---
-async function suggestionTap(w){
- const t=w.suggestTap??={requests:[],fixture:null};if(t.installed)return t;t.installed=true;
- const host=w.fixture.host;
- host.on('Fetch.requestPaused',async({requestId,request})=>{
-  const hit=SUGGEST.find(([,u])=>request.url.startsWith(u));const q=new URL(request.url).searchParams;
-  const query=(q.get('q')??q.get('query')??'').trim();
-  // Fetch credentials mode is not observable over CDP; recorded as unknown.
-  t.requests.push({engine:hit?.[0]??null,query,url:request.url,credentials:null});
-  const body=Buffer.from(JSON.stringify([query,t.fixture??[]])).toString('base64');
-  await host.send('Fetch.fulfillRequest',{requestId,responseCode:200,responseHeaders:[{name:'content-type',value:'application/json'}],body}).catch(()=>{});
- });
- await host.send('Fetch.enable',{patterns:SUGGEST.map(([,u])=>({urlPattern:u+'*',requestStage:'Request'}))});
- return t;
-}
+// --- Search suggestions: shipping's fixture and request log, at the native
+// suggestion service's network boundary (browser_api/search.h). ---
 export const commands={
  editAddressInput,pressAddressKey,
  addressInputValue:w=>inOverlay(w,id=>document.getElementById(id)?.value??null,ADDRESS),
@@ -184,8 +167,8 @@ export const commands={
  async stubBangIconServer(w){await w.api('bangIcons',[[]]);throw new UndefinedNativeAdapterError('The fork icon server has no test stub');},
  async bangIconRequests(w){await w.api('bangIcons',[[]]);throw new UndefinedNativeAdapterError('The fork icon server keeps no request log');},
  async bangIconStore(w){await w.api('bangIcons',[[]]);throw new UndefinedNativeAdapterError('The fork icon store is not readable');},
- async setSearchSuggestionFixture(w,suggestions){const t=await suggestionTap(w);t.fixture=Array.isArray(suggestions)?suggestions.filter(s=>typeof s==='string'):[];t.requests.length=0;},
- searchSuggestionRequests:async w=>structuredClone((await suggestionTap(w)).requests),
+ setSearchSuggestionFixture:(w,suggestions)=>w.native('setSuggestionFixture',[Array.isArray(suggestions)?suggestions.filter(s=>typeof s==='string'):[]]),
+ searchSuggestionRequests:w=>w.native('suggestionRequests'),
  // Straight through the bridge, as shipping's overlay calls it.
  requestSearchSuggestions:(w,query)=>w.api('searchSuggestions',[String(query)]),
  openFind:w=>w.api('openFindBar'),
