@@ -208,4 +208,8 @@ void Navigation::Stop(const std::string& id, StopCallback callback) {
   std::move(callback).Run();
 }
 
+void Navigation::ToggleReaderMode(const std::string& id, ToggleReaderModeCallback callback) {
+  std::move(callback).Run(false);
+}
+
 }  // namespace blanc::browser_api

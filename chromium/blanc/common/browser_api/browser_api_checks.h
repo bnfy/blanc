@@ -56,6 +56,18 @@ inline bool IsValidShieldPopoverVariant(std::string_view value) {
          value == "ublock";
 }
 
+inline bool IsValidShieldRouteScope(std::string_view value) {
+  return value == "profile" ||
+         value == "space";
+}
+
+inline bool IsValidRouteResultError(std::string_view value) {
+  return value == "unavailable" ||
+         value == "no-host" ||
+         value == "too-many" ||
+         value == "invalid";
+}
+
 inline bool IsValidCaptureRowKind(std::string_view value) {
   return value == "tab" ||
          value == "popup";
@@ -93,6 +105,22 @@ inline bool IsValidWorkspaceActionEventKind(std::string_view value) {
          value == "delete";
 }
 
+inline bool IsValidSharedSpaceAdmissionReason(std::string_view value) {
+  return value == "full" ||
+         value == "tombstones" ||
+         value == "tabs" ||
+         value == "remote-over-budget" ||
+         value == "required-state-over-budget";
+}
+
+inline bool IsValidSharedSpaceAdmissionState(std::string_view value) {
+  return value == "shared" ||
+         value == "waiting" ||
+         value == "notSynced" ||
+         value == "full" ||
+         value == "unavailable";
+}
+
 inline bool IsValidWorkspaceSaveStatus(std::string_view value) {
   return value == "saved" ||
          value == "pending" ||
@@ -116,7 +144,8 @@ inline bool IsValidOverlayMode(std::string_view value) {
          value == "capture" ||
          value == "glance" ||
          value == "display-share" ||
-         value == "spaces";
+         value == "spaces" ||
+         value == "switcher";
 }
 
 inline bool IsValidShieldTrigger(std::string_view value) {
@@ -130,6 +159,13 @@ inline bool IsValidRestoreTrigger(std::string_view value) {
          value == "capture" ||
          value == "glance-change" ||
          value == "spaces";
+}
+
+inline bool IsValidWorkspaceBlockingTabReason(std::string_view value) {
+  return value == "loading" ||
+         value == "opener" ||
+         value == "capture" ||
+         value == "popup";
 }
 
 inline bool IsValidWorkspaceErrorCode(std::string_view value) {
@@ -149,7 +185,8 @@ inline bool IsValidWorkspaceErrorCode(std::string_view value) {
          value == "repair-failed" ||
          value == "saved-not-opened" ||
          value == "storage-failed" ||
-         value == "unsaved-scratch";
+         value == "unsaved-scratch" ||
+         value == "saved-not-moved";
 }
 
 inline bool IsValidWorkspaceProtectionReason(std::string_view value) {
@@ -161,6 +198,13 @@ inline bool IsValidWorkspaceAction(std::string_view value) {
   return value == "swap" ||
          value == "noop" ||
          value == "focus";
+}
+
+inline bool IsValidSendStatus(std::string_view value) {
+  return value == "sent" ||
+         value == "unavailable" ||
+         value == "failed" ||
+         value == "invalid";
 }
 
 inline bool IsValidSearchEngineId(std::string_view value) {
@@ -207,6 +251,14 @@ inline bool IsValidGlanceCardResizeEdge(std::string_view value) {
          value == "sw";
 }
 
+inline bool IsValidSelectTabMode(std::string_view value) {
+  return value == "toggle" ||
+         value == "range" ||
+         value == "extend-up" ||
+         value == "extend-down" ||
+         value == "clear";
+}
+
 inline bool IsValidResizeSplitAxis(std::string_view value) {
   return value == "x" ||
          value == "y";
@@ -215,6 +267,12 @@ inline bool IsValidResizeSplitAxis(std::string_view value) {
 inline bool IsValidArchiveNoticeDoneAction(std::string_view value) {
   return value == "view" ||
          value == "dismiss";
+}
+
+inline bool IsValidRouteActiveSiteMode(std::string_view value) {
+  return value == "toggle" ||
+         value == "on" ||
+         value == "off";
 }
 
 inline bool IsValidThemePreference(std::string_view value) {

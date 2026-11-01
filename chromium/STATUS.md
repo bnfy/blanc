@@ -93,10 +93,22 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   Codex's copied `handoff-20261030/review-material/`. Removed from the tree
   with owner approval (still in history at aea73a85; the handoff README says
   how to read it).
-- Still failing, all already fixed on `main` (this branch is 328 commits
-  behind): the dependency audit in `substrate` (tab-import companion
-  advisories), Ubuntu `modified-link-clicks`, macOS Intel shield test. Merge
-  main or port the fixes: waiting for the owner.
+- `main` (7c3f5b44) merged in with owner approval for its fixes to the
+  dependency audit, Ubuntu `modified-link-clicks` and the macOS Intel shield
+  test (b4a76889). Conflicts kept both sides: main's Shared Space close
+  wrapper runs inside this branch's window-view drain; this branch's
+  `internalFileResponse` stays in pages.js; versions, lock and SBOMs are
+  main's (ECS 44.9.3). The dependency audit and Electron unit tests pass
+  locally apart from local-environment gaps (Node 20 has no `node:sqlite`; no
+  Electron binary or generated seed in the merge worktree).
+- main's contract adds members, among them `toggleReaderMode` in the
+  navigation group, which the fork serves in C++. Regenerated the typed
+  interface; the fork answers false (no reader mode yet, as shipping answers
+  when a page has none). Chromium's Reading Mode is the native option to
+  raise before porting shipping's reader. Built incrementally as
+  macos-b6f5dd15d7f336ce (18 steps, pinned toolchain); typed-interface and
+  embedded-assets smokes pass (56 resources). The fork smokes need Node 22
+  (`/usr/local/bin/node`); the shell's default Node 20 has no WebSocket.
 
 ## Observed problems to investigate
 - Chromium's teardown watchdog ("Teardown watchdog expired") terminates some test
@@ -208,5 +220,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-496905d55d71fa94; Windows: none; Linux: none.
+Candidate identities: macOS: macos-b6f5dd15d7f336ce; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

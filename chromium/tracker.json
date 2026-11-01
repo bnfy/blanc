@@ -1991,8 +1991,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-496905d55d71fa94",
-      "frameworkSha256": "496905d55d71fa94d184290da888116abb0aaed8fb27974e628a390a9b3d4297",
+      "id": "macos-b6f5dd15d7f336ce",
+      "frameworkSha256": "b6f5dd15d7f336ced152792a78c2c51325bc9acd775c572941a7f95536e7d17c",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"

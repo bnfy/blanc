@@ -120,6 +120,9 @@ struct TabEntry {
   string? connection;
   SiteInfo site_info;
   string? split_id;
+  bool? sync_not_synced;
+  bool reader_available;
+  bool reader_active;
 };
 
 struct TabGroup {
@@ -152,6 +155,7 @@ struct ClosedEntrySummary {
   string title;
   string? favicon;
   double tab_count;
+  string? from_name;
 };
 
 struct ShieldProviderControls {
@@ -177,6 +181,20 @@ struct ShieldPopover {
   string? connection;
   ShieldProviderControls controls;
   ShieldDarkSite? dark_site;
+  ShieldRoute? route;
+};
+
+struct ShieldRoute {
+  bool on;
+  string scope;
+  string? elsewhere;
+};
+
+struct RouteResult {
+  bool ok;
+  string? host;
+  bool? on;
+  string? error;
 };
 
 struct ShieldDarkSite {
@@ -218,12 +236,16 @@ struct GroupRenameResult {
 
 struct TabsSnapshot {
   array<TabEntry> tabs;
+  array<string> selected_tab_ids;
+  bool can_start_group;
   string? active_tab_id;
   string? glance_tab_id;
   array<TabGroup> groups;
   array<ClosedEntrySummary> closed;
   double closed_slot;
   string tab_layout;
+  string vertical_tabs_text_size;
+  bool island_tab_icons;
   double vertical_tabs_width;
   double vertical_tabs_preferred_width;
   double vertical_tabs_min_width;
@@ -234,12 +256,16 @@ struct TabsSnapshot {
 
 struct TabsUpdatedPayload {
   array<TabEntry> tabs;
+  array<string> selected_tab_ids;
+  bool can_start_group;
   string? active_tab_id;
   string? glance_tab_id;
   array<TabGroup> groups;
   array<ClosedEntrySummary> closed;
   double closed_slot;
   string tab_layout;
+  string vertical_tabs_text_size;
+  bool island_tab_icons;
   bool adblock_enabled;
   ShieldPopover? shield_popover;
   CaptureChip capture_chip;
@@ -313,11 +339,29 @@ struct WorkspacePatch {
   string? name;
   string? color;
   string? symbol;
+  bool? ack_recovery;
 };
 
 struct WorkspaceActionEvent {
   string kind;
   string id;
+};
+
+struct SharedSpaceAdmission {
+  array<string> unsynced_tab_ids;
+  string? reason;
+  string? state;
+  double? last_synced_at;
+  bool? failed;
+  bool? pending;
+};
+
+struct SharedSpaceLibraryStatus {
+  double count;
+  double limit;
+  bool can_add;
+  bool? busy;
+  bool? slowed;
 };
 
 struct WorkspaceListItem {
@@ -330,6 +374,7 @@ struct WorkspaceListItem {
   double tab_count;
   string color;
   string symbol;
+  SharedSpaceAdmission? shared_sync;
 };
 
 struct WorkspacesPayload {
@@ -338,6 +383,8 @@ struct WorkspacesPayload {
   array<WorkspaceListItem> items;
   double window_tab_count;
   string tint;
+  SharedSpaceLibraryStatus? shared_sync;
+  bool? recovery_notice;
 };
 
 struct DarkSiteResult {
@@ -363,6 +410,7 @@ struct OverlayShowPayload {
   string? prefill;
   string purpose;
   Rect? pill_rect;
+  bool search_priority_results;
 };
 
 struct OverlayHidePayload {
@@ -380,11 +428,19 @@ struct FindResult {
   double matches;
 };
 
+struct WorkspaceBlockingTab {
+  string id;
+  string title;
+  string reason;
+};
+
 struct WorkspaceActionResult {
+  double? moved_count;
   bool ok;
   string? error;
   string? cause;
   string? reason;
+  array<WorkspaceBlockingTab>? blocking_tabs;
   double? tab_count;
   double? private_count;
   string? decision;
@@ -396,6 +452,8 @@ struct WorkspaceActionResult {
   array<WorkspaceListItem>? items;
   double? window_tab_count;
   string? tint;
+  SharedSpaceLibraryStatus? shared_sync;
+  bool? recovery_notice;
 };
 
 struct HistoryEntry {
@@ -448,6 +506,24 @@ struct RemoteDevice {
   double updated_at;
   array<RemoteTab> tabs;
   array<RemoteGroup> groups;
+};
+
+struct SendResult {
+  string status;
+};
+
+struct SendTarget {
+  string id;
+  string name;
+  string platform;
+};
+
+struct SentItem {
+  string id;
+  string url;
+  string title;
+  double sent_at;
+  string from_name;
 };
 
 struct CustomBang {
@@ -572,6 +648,7 @@ struct FloatFrame {
 
 struct GlanceCard {
   Rect chrome;
+  Rect frame;
   Rect header;
   Rect page;
 };
@@ -600,6 +677,7 @@ interface Tabs {
   ReopenClosedEntry(string entry_id) => ();
   ForgetClosedEntry(string entry_id) => (bool result);
   ClearClosedEntries() => (bool result);
+  SelectTab(string? tab_id, string mode) => (string? result);
   SwitchTab(string id) => ();
   MoveTab(string id, TabMoveTarget target) => (bool result);
   ReorderGroup(string id, string? before_group_id) => (bool result);
@@ -610,6 +688,9 @@ interface Tabs {
   DuplicateTab(string id) => (string? result);
   RenameTab(string id, string? name) => ();
   GetAllTabs() => (TabsSnapshot result);
+  SwitcherPick(string tab_id);
+  CopyActiveLink(bool clean);
+  GroupTabsByName(array<string> tab_ids, string name) => (bool result);
   SleepBackgroundTabs() => (array<string> result);
 };
 
@@ -625,6 +706,7 @@ interface Navigation {
   GoForward(string id) => (bool? result);
   Reload(string id) => (bool? result);
   Stop(string id) => ();
+  ToggleReaderMode(string id) => (bool result);
 };
 
 // Contract group "groups".
@@ -633,6 +715,7 @@ interface Groups {
   SetGroupColor(string group_id, string? color) => (GroupColorResult result);
   NewTabInGroup(string group_id) => (bool result);
   MoveGroupToNewWindow(string group_id) => (bool result);
+  OpenGroupSpaceMenu(string group_id, Point point) => (bool result);
   UngroupGroup(string group_id) => ();
   SetTabGroup(string id, string? group_id) => ();
   GroupTabByName(string id, string name) => ();
@@ -723,6 +806,7 @@ interface SplitClient {
 interface Island {
   OpenIsland();
   OpenIslandCommands();
+  BeginNewGroup();
   OpenIslandTyping(string is_char);
   OpenFindBar();
   SiteInfoForgetCertificateException() => (bool result);
@@ -730,6 +814,7 @@ interface Island {
 };
 
 interface IslandClient {
+  OnPillNotice(string payload);
   OnIslandState(IslandState payload);
   OnIslandCovered();
   OnStripHidden(bool payload);
@@ -761,6 +846,9 @@ interface Workspaces {
   SetWorkspaceSwitcherOpen(bool open);
   CancelWorkspaceAction();
   ListWorkspaces() => (WorkspacesPayload result);
+  CreateSpaceWithLink(string name, SpaceIdentityInput identity) => (WorkspaceActionResult result);
+  CreateSpaceWithTabs(string name, SpaceIdentityInput identity, array<string> tab_ids) => (WorkspaceActionResult result);
+  CreateSpaceWithTab(string name, SpaceIdentityInput identity, string tab_id) => (WorkspaceActionResult result);
   SaveWorkspaceAs(string name, SpaceIdentityInput? identity) => (WorkspaceActionResult result);
   OpenWorkspace(string id, OpenWorkspaceOptions? opts) => (WorkspaceActionResult result);
   CreateBlankWorkspace(string name, OpenWorkspaceOptions? opts) => (WorkspaceActionResult result);
@@ -813,10 +901,16 @@ interface History {
 interface Sync {
   ListRemoteTabs() => (array<RemoteDevice> result);
   RenameDevice(string device_id, string? name) => (bool result);
+  ListSendTargets() => (array<SendTarget> result);
+  SendTabToDevice(string tab_id, string device_id) => (SendResult result);
+  ListSentToThisDevice() => (array<SentItem> result);
+  OpenSentItem(string id) => (bool result);
+  DismissSentItem(string id) => (bool result);
 };
 
 interface SyncClient {
   OnRemoteTabsUpdated(array<RemoteDevice> payload);
+  OnSentToThisDeviceUpdated(array<SentItem> payload);
 };
 
 // Contract group "search".
@@ -834,6 +928,7 @@ interface SearchClient {
 // Contract group "appearance".
 interface Appearance {
   ToggleDarkSiteOnActiveSite() => (DarkSiteResult? result);
+  RouteActiveSite(string mode) => (RouteResult result);
   CycleTheme(string? theme) => (string result);
 };
 

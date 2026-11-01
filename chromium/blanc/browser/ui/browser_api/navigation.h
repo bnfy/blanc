@@ -43,6 +43,9 @@ class Navigation : public mojom::Navigation {
   void GoForward(const std::string& id, GoForwardCallback callback) override;
   void Reload(const std::string& id, ReloadCallback callback) override;
   void Stop(const std::string& id, StopCallback callback) override;
+  // Reader mode is not ported yet: always false, as shipping answers when a
+  // page has no reader view.
+  void ToggleReaderMode(const std::string& id, ToggleReaderModeCallback callback) override;
 
  private:
   content::WebContents* Tab(const std::string& id);
