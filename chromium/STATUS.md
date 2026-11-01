@@ -109,6 +109,10 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   macos-b6f5dd15d7f336ce (18 steps, pinned toolchain); typed-interface and
   embedded-assets smokes pass (56 resources). The fork smokes need Node 22
   (`/usr/local/bin/node`); the shell's default Node 20 has no WebSocket.
+- On 1b99d3b6 every PR check passes except nightly desktop acceptance, which
+  fails a different scenario per run (tab drag and vertical-tab text, then
+  the Billboard pinned site on the one rerun), none in code this branch
+  changes; main passes it nightly. Owner, 2026-11-01: leave it as flaky.
 
 ## Observed problems to investigate
 - Chromium's teardown watchdog ("Teardown watchdog expired") terminates some test
