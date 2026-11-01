@@ -12,6 +12,7 @@ source_set(target_name) {
               "//blanc/browser/ui/browser_api/navigation.cc", "//blanc/browser/ui/browser_api/navigation.h",
               "//blanc/browser/ui/browser_api/search_default.cc", "//blanc/browser/ui/browser_api/search_default.h",
               "//blanc/browser/ui/browser_api/external_handoff.cc", "//blanc/browser/ui/browser_api/external_handoff.h",
+              "//blanc/browser/ui/browser_api/page_handoff.cc", "//blanc/browser/ui/browser_api/page_handoff.h",
               "//blanc/browser/ui/browser_api/search.cc", "//blanc/browser/ui/browser_api/search.h",
               "//blanc/browser/ui/browser_api/suggestion_policy.cc", "//blanc/browser/ui/browser_api/suggestion_policy.h",
               "//blanc/browser/ui/browser_api/search_choice.h" ]

@@ -1,6 +1,7 @@
 #include "blanc/buildflags.h"
 #include "blanc/island_resources/island_resources.h"
 #include "blanc/browser/ui/browser_api/navigation.h"
+#include "blanc/browser/ui/browser_api/page_handoff.h"
 #include "blanc/browser/ui/browser_api/search.h"
 #include "blanc/browser/ui/browser_api/search_choice.h"
 #include "blanc/browser/ui/browser_api/search_default.h"
@@ -2994,6 +2995,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       base::ListValue list;
       for (const auto& [url, prompt] : blanc::browser_api::TestHandoffs())
         list.Append(base::DictValue().Set("url", url).Set("prompt", prompt));
+      Reply(id, true, base::Value(std::move(list)));
+      return;
+    }
+    // Read-only: external launches Blanc's rule recorded instead of passing
+    // to Chromium's handler (page_handoff.h).
+    if (message[1].GetString() == "externalLaunches") {
+      base::ListValue list;
+      for (const auto& [url, decision] : blanc::browser_api::TestExternalLaunches())
+        list.Append(base::DictValue().Set("url", url).Set("decision", decision));
       Reply(id, true, base::Value(std::move(list)));
       return;
     }

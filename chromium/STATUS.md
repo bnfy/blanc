@@ -25,7 +25,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   build (`out/BlancRelease`, 57,200 steps) succeeded and its app reports
   those values. Next: the install-over-Electron spike in `blanc-test`, which
   needs an internally signed build; signing waits for the owner.
-- **S1.1 address bar and search on macos-d6612d3c59d3f8a2** (targeted runs;
+- **S1.1 address bar and search on macos-17d373ff3906d80a** (targeted runs;
   the recorded S1 baseline stays on macos-790ca4d6d538c894, since
   merge-baseline refuses mixed builds).
   - Typed text means what it does in shipping v1.45.1
@@ -64,9 +64,24 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     opted-out, private, and pasted text local" (needs D1 in-window private
     tabs). Settings and theming fails the same 3 cases as before (theme
     control, private theme, folding explanations).
+  - N6: schemes on shipping's deny list (system-command, installer,
+    settings and network-file handlers such as `ms-settings:`, `ssh:`,
+    `x-apple.systempreferences:`) never reach the OS or a prompt, from a
+    page or the address bar: patch 0006 asks Blanc's rule
+    (`browser_api/page_handoff.cc`, on the shipping-compared classifier)
+    first in `HandleExternalProtocol`, and Chromium cancels the navigation
+    silently. Other app links still ask first (V9).
+    `tests/external-launch-smoke.mjs` passes: five deny-list launches (link,
+    `location.href`, iframe, upper case) refused, three app links prompted,
+    the page never leaves. Navigation feature unchanged (10 pass, 1 fail).
+    Not ported: shipping also refuses page-started `chrome-extension:`
+    navigation except the PDF viewer. The fork aims at Web Store extensions,
+    whose web-accessible pages legitimately open that way, so that rule
+    needs an owner decision before it is copied.
+  - Patch series: 0001–0006 touch all 82 pinned upstream files with 256
+    hunks.
   - Gaps: the custom-address hint says it syncs, which the fork can't yet;
-    page-started blocklist (N6), Bangs and the outbound-isolation check
-    remain.
+    Bangs and the outbound-isolation check remain.
 - **F0.5 S1 finish line reached.** All 253 S1-tagged cases have a real result
   or a named undefined reason on the current candidate: 70 pass, 151 fail, 32
   undefined. Per-row results and reasons: [reports/s1-macos.json](reports/s1-macos.json) (+ JUnit).
@@ -176,14 +191,17 @@ through TabRestoreService if its group entries allow it.
 
 ## Native test ops
 Built in d1984adb: slots 4–8 in previewPageCommand; closeWindow. Built for
-S1.1: `handoffs` (typed hand-offs recorded under --blanc-test). Identified, not
+S1.1: `handoffs` (typed hand-offs recorded under --blanc-test),
+`externalLaunches` (every external launch and Blanc's decision),
+`setSuggestionFixture`/`suggestionRequests`. Identified, not
 built: sessionWindows (session.json-shaped projection); certificate decision
 list/forget/cap; history visit + site icon seed; favorite favicon seed;
 first-run/checklist/Patron/launch-Sunrise state once stored; address context menu
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.1 rest: N6, Bangs, outbound isolation. Verify each change with targeted `--only` runs
+1. S1.1 rest: Bangs, outbound isolation; owner decision on page-started
+   `chrome-extension:` navigation. Verify each change with targeted `--only` runs
    merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
    (~2 h) unless development can't continue without it; propose one with
    the reason first.
@@ -234,5 +252,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-d6612d3c59d3f8a2; Windows: none; Linux: none.
+Candidate identities: macOS: macos-17d373ff3906d80a; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->
