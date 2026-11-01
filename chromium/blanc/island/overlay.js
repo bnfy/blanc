@@ -1,5 +1,5 @@
 {
-const __blancAllowed = new Set(["<svg viewBox=\"0 0 16 16\"><path d=\"M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78\"/><path d=\"M13 3v2.78h-2.78\"/></svg>","<svg viewBox=\"0 0 16 16\"><circle cx=\"8\" cy=\"8\" r=\"5\"/><rect class=\"stop-mark\" x=\"6.05\" y=\"6.05\" width=\"3.9\" height=\"3.9\" rx=\"0.8\"/></svg>","<svg viewBox=\"0 0 16 16\"><path d=\"M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5\"/></svg>","<svg viewBox=\"0 0 16 16\"><circle cx=\"8\" cy=\"3.75\" r=\"1.1\"/><circle cx=\"8\" cy=\"8\" r=\"1.1\"/><circle cx=\"8\" cy=\"12.25\" r=\"1.1\"/></svg>","<svg viewBox=\"0 0 16 16\"><path d=\"M5 3h6l-1 5 2 2v1H4v-1l2-2z\"/><path d=\"M8 11v3\"/></svg>","<svg viewBox=\"0 0 16 16\"><path d=\"M2.75 6.25h2.5L9 3.25v9.5l-3.75-3H2.75z\" stroke-linejoin=\"round\"/><path d=\"M11.25 6.5l3 3M14.25 6.5l-3 3\"/></svg>","<svg viewBox=\"0 0 16 16\"><circle cx=\"7\" cy=\"7\" r=\"4.25\"/><path d=\"m10.25 10.25 3 3\"/></svg>","<svg viewBox=\"0 0 16 16\"><rect x=\"3.25\" y=\"7.25\" width=\"9.5\" height=\"6\" rx=\"1.75\"/><path d=\"M5.5 7.25V4.9a2.5 2.5 0 0 1 5 0v2.35\"/></svg>","<svg viewBox=\"0 0 16 16\"><rect x=\"3.25\" y=\"7.25\" width=\"9.5\" height=\"6\" rx=\"1.75\"/><path d=\"M5.5 7.25V4.9a2.6 2.6 0 0 1 5.1-.72\"/></svg>","<svg viewBox=\"0 0 16 16\"><circle cx=\"8\" cy=\"8\" r=\"5.25\"/><circle cx=\"8\" cy=\"8\" r=\"1.5\"/></svg>","<svg viewBox=\"0 0 16 16\"><path d=\"M3.5 6.75h6a3 3 0 0 1 0 6h-3\"/><path d=\"M6.25 4 3.5 6.75l2.75 2.75\"/></svg>","<svg viewBox=\"0 0 16 16\"><rect x=\"2\" y=\"3\" width=\"12\" height=\"10\" rx=\"1.75\"/><path d=\"M8 3v10\"/><rect class=\"glance-mark\" x=\"9.6\" y=\"4.6\" width=\"2.8\" height=\"6.8\" rx=\"0.6\"/></svg>","<svg class=\"caret\" viewBox=\"0 0 10 10\"><path d=\"M3.5 2 L7 5 L3.5 8\"/></svg>","<svg class=\"caret\" viewBox=\"0 0 10 10\"><path d=\"M3.5 2 L7 5 L3.5 8\"/></svg><span class=\"ghead-name\"></span><span class=\"ghead-n\"></span><span class=\"ghead-kbd\"></span>","<svg class=\"caret\" viewBox=\"0 0 10 10\"><path d=\"M3.5 2 L7 5 L3.5 8\"/></svg><span class=\"ghead-name\"></span><span class=\"ghead-n\"></span><span class=\"ghead-n\"></span>","<svg class=\"caret\" viewBox=\"0 0 10 10\"><path d=\"M3.5 2 L7 5 L3.5 8\"/></svg><span class=\"ghead-name\"></span><span class=\"ghead-n\"></span>","<svg class=\"caret\" viewBox=\"0 0 10 10\"><path d=\"M3.5 2 L7 5 L3.5 8\"/></svg><span class=\"ghead-name dim\"></span><span class=\"ghead-n\"></span>"]);
+const __blancAllowed = new Set(["<svg viewBox=\"0 0 16 16\"><path d=\"M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78\"/><path d=\"M13 3v2.78h-2.78\"/></svg>","<svg viewBox=\"0 0 16 16\"><circle cx=\"8\" cy=\"8\" r=\"5\"/><rect class=\"stop-mark\" x=\"6.05\" y=\"6.05\" width=\"3.9\" height=\"3.9\" rx=\"0.8\"/></svg>","<svg viewBox=\"0 0 16 16\"><path d=\"M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5\"/></svg>","<svg viewBox=\"0 0 16 16\"><circle cx=\"8\" cy=\"3.75\" r=\"1.1\"/><circle cx=\"8\" cy=\"8\" r=\"1.1\"/><circle cx=\"8\" cy=\"12.25\" r=\"1.1\"/></svg>","<svg viewBox=\"0 0 16 16\"><path d=\"M5 3h6l-1 5 2 2v1H4v-1l2-2z\"/><path d=\"M8 11v3\"/></svg>","<svg viewBox=\"0 0 16 16\"><path d=\"M6.25 4.5 9.75 8l-3.5 3.5\"/></svg>","<svg viewBox=\"0 0 16 16\"><path d=\"M2.75 6.25h2.5L9 3.25v9.5l-3.75-3H2.75z\" stroke-linejoin=\"round\"/><path d=\"M11.25 6.5l3 3M14.25 6.5l-3 3\"/></svg>","<svg viewBox=\"0 0 16 16\"><circle cx=\"7\" cy=\"7\" r=\"4.25\"/><path d=\"m10.25 10.25 3 3\"/></svg>","<svg viewBox=\"0 0 16 16\"><rect x=\"3.25\" y=\"7.25\" width=\"9.5\" height=\"6\" rx=\"1.75\"/><path d=\"M5.5 7.25V4.9a2.5 2.5 0 0 1 5 0v2.35\"/></svg>","<svg viewBox=\"0 0 16 16\"><rect x=\"3.25\" y=\"7.25\" width=\"9.5\" height=\"6\" rx=\"1.75\"/><path d=\"M5.5 7.25V4.9a2.6 2.6 0 0 1 5.1-.72\"/></svg>","<svg viewBox=\"0 0 16 16\"><circle cx=\"8\" cy=\"8\" r=\"5.25\"/><circle cx=\"8\" cy=\"8\" r=\"1.5\"/></svg>","<svg viewBox=\"0 0 16 16\"><path d=\"M3.5 6.75h6a3 3 0 0 1 0 6h-3\"/><path d=\"M6.25 4 3.5 6.75l2.75 2.75\"/></svg>","<svg viewBox=\"0 0 16 16\"><rect x=\"2.25\" y=\"3\" width=\"11.5\" height=\"3\" rx=\"0.75\"/><path d=\"M3.25 6v6.25c0 .4.35.75.75.75h8c.4 0 .75-.35.75-.75V6M6.5 8.5h3\"/></svg>","<svg viewBox=\"0 0 16 16\"><rect x=\"2\" y=\"3\" width=\"12\" height=\"10\" rx=\"1.75\"/><path d=\"M8 3v10\"/><rect class=\"glance-mark\" x=\"9.6\" y=\"4.6\" width=\"2.8\" height=\"6.8\" rx=\"0.6\"/></svg>","<svg class=\"caret\" viewBox=\"0 0 10 10\"><path d=\"M3.5 2 L7 5 L3.5 8\"/></svg>","<svg class=\"caret\" viewBox=\"0 0 10 10\"><path d=\"M3.5 2 L7 5 L3.5 8\"/></svg><span class=\"ghead-name\"></span><span class=\"ghead-n\"></span><span class=\"ghead-kbd\"></span>","<svg class=\"caret\" viewBox=\"0 0 10 10\"><path d=\"M3.5 2 L7 5 L3.5 8\"/></svg><span class=\"ghead-name\"></span><span class=\"ghead-n\"></span><span class=\"ghead-n\"></span>","<svg class=\"caret\" viewBox=\"0 0 10 10\"><path d=\"M3.5 2 L7 5 L3.5 8\"/></svg><span class=\"ghead-name\"></span><span class=\"ghead-n\"></span>","<svg class=\"caret\" viewBox=\"0 0 10 10\"><path d=\"M3.5 2 L7 5 L3.5 8\"/></svg><span class=\"ghead-name dim\"></span><span class=\"ghead-n\"></span>"]);
 const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createHTML(value) { if (!__blancAllowed.has(value)) throw new TypeError('Unapproved static markup'); return value; }});
 // Renderer for the overlay WebContentsView — the island's expanded states,
 // floating over web content: the command bar ('panel', anchored where the
@@ -18,6 +18,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   const panelAnchor = document.getElementById('panelAnchor');
   const islandPanel = document.getElementById('islandPanel');
   const addressInput = document.getElementById('addressInput');
+  const readerBtn = document.getElementById('readerBtn');
   const panelSiteInfo = document.getElementById('panelSiteInfo');
   const islandList = document.getElementById('islandList');
   const islandHint = document.getElementById('islandHint');
@@ -38,6 +39,10 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   const shieldPopNote = document.getElementById('shieldPopNote');
   const shieldPopDark = document.getElementById('shieldPopDark');
   const shieldPopDarkToggle = document.getElementById('shieldPopDarkToggle');
+  const shieldPopRoute = document.getElementById('shieldPopRoute');
+  const shieldPopRouteLabel = document.getElementById('shieldPopRouteLabel');
+  const shieldPopRouteToggle = document.getElementById('shieldPopRouteToggle');
+  const shieldPopRouteNote = document.getElementById('shieldPopRouteNote');
   const shieldPopSettings = document.getElementById('shieldPopSettings');
   const shieldPopLabel = document.getElementById('shieldPopLabel');
   const shieldPopProvider = document.getElementById('shieldPopProvider');
@@ -59,6 +64,13 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   const capturePop = document.getElementById('capturePop');
   const capturePopHead = document.getElementById('capturePopHead');
   const capturePopRows = document.getElementById('capturePopRows');
+  const switcherCard = document.getElementById('switcherCard');
+  const switcherTiles = document.getElementById('switcherTiles');
+  const switcherTitle = document.getElementById('switcherTitle');
+  const switcherHost = document.getElementById('switcherHost');
+  const switcherStatus = document.getElementById('switcherStatus');
+  /** The Ctrl+Tab card's last payload from main: `{ tabIds, pick }`. */
+  let switcherModel = null;
   const displayShareBackdrop = document.getElementById('displayShareBackdrop');
   const displaySharePicker = document.getElementById('displaySharePicker');
   const displayShareOrigin = document.getElementById('displayShareOrigin');
@@ -117,6 +129,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
    * (arrives in overlay:show's purpose payload; cleared once used, dismissed,
    * or the command is edited away from /group). */
   let pendingGroupTabId = null;
+  let pendingGroupTabIds = null;
   // F46: the tab a menu-initiated "Rename Tab…" targets, like pendingGroupTabId.
   let pendingRenameTabId = null;
   // F46: the exact text a rename prompt was opened with. Enter on it unedited
@@ -157,9 +170,14 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   // Quick Switcher corpora, refreshed each time the panel opens.
   let favorites = [];
   let historyEntries = [];
+  // F52: the profile's archived tabs (projected rows; never private).
+  let archivedEntries = [];
+  // Spec D6: the one-time first-archive notice ({count}), or null.
+  let archiveNotice = null;
   // Other devices' tab snapshots (tab sync). Renderer-local fold state —
   // devices start folded so the panel stays quiet (spec §2).
   let remoteDevices = [];
+  let sentItems = []; // pages other devices sent here (M7b)
   const unfoldedDevices = new Set();
   // Recently closed starts folded — one line like a synced device; unfold to
   // see the reopen rows (Claude island declutter iteration).
@@ -214,6 +232,9 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   // means the row shows the catalog's generic "search" tag.
   let searchProviderLabel = null;
   let suggestionDebounce = null;
+  // Settings → Island: search rows lead typed results even over a strong
+  // local match. Main sends it with every overlay:show.
+  let searchPriorityResults = false;
   let suggestionRequestGeneration = 0;
   let addressInputComposing = false;
   // A paste/drop or text entered while a private tab is active can contain
@@ -291,12 +312,30 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     announce: announceIsland,
     onActiveChange(active) {
       window.browserAPI.setOverlayDragState(active);
+      if (active) window.browserAPI.selectTab(null, 'clear');
       if (!active && renderQueued && !pointerHeld) {
         renderQueued = false;
         renderList();
       }
     },
   });
+  islandList.addEventListener('click', (event) => {
+    const primary = event.target.closest('.row-primary[data-selection-tab-id]');
+    if (!primary || (!event.shiftKey && !(navigator.platform.includes('Mac') ? event.metaKey : event.ctrlKey))) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    primary.focus();
+    window.browserAPI.selectTab(primary.dataset.selectionTabId, event.shiftKey ? 'range' : 'toggle');
+  }, true);
+  islandList.addEventListener('keydown', (event) => {
+    if (!event.shiftKey || event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+    const primary = event.target.closest('.row-primary[data-selection-tab-id]');
+    if (!primary) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    primary.focus();
+    window.browserAPI.selectTab(primary.dataset.selectionTabId, event.key === 'ArrowUp' ? 'extend-up' : 'extend-down').then(id => {
+      requestAnimationFrame(() => islandList.querySelector(`[data-selection-tab-id="${CSS.escape(id ?? '')}"]`)?.focus());
+    });
+  }, true);
   islandList.addEventListener('keydown', (event) => {
     if (!event.altKey || !event.shiftKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return;
     if (!restingList()) return;
@@ -326,6 +365,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     // The group header's ⋮ (tab group colors spec §6).
     more: '<svg viewBox="0 0 16 16"><circle cx="8" cy="3.75" r="1.1"/><circle cx="8" cy="8" r="1.1"/><circle cx="8" cy="12.25" r="1.1"/></svg>',
     pin: '<svg viewBox="0 0 16 16"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg>',
+    // A split row's disclosure (F53): points right when closed, down when open.
+    caret: '<svg viewBox="0 0 16 16"><path d="M6.25 4.5 9.75 8l-3.5 3.5"/></svg>',
     mute: '<svg viewBox="0 0 16 16"><path d="M2.75 6.25h2.5L9 3.25v9.5l-3.75-3H2.75z" stroke-linejoin="round"/><path d="M11.25 6.5l3 3M14.25 6.5l-3 3"/></svg>',
     search: '<svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25"/><path d="m10.25 10.25 3 3"/></svg>',
     secure: '<svg viewBox="0 0 16 16"><rect x="3.25" y="7.25" width="9.5" height="6" rx="1.75"/><path d="M5.5 7.25V4.9a2.5 2.5 0 0 1 5 0v2.35"/></svg>',
@@ -334,6 +375,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     // Reopen: a leftward return arrow — drawn, not the Unicode ↶, which sits
     // baseline-low and renders unevenly across platforms.
     reopen: '<svg viewBox="0 0 16 16"><path d="M3.5 6.75h6a3 3 0 0 1 0 6h-3"/><path d="M6.25 4 3.5 6.75l2.75 2.75"/></svg>',
+    archive: '<svg viewBox="0 0 16 16"><rect x="2.25" y="3" width="11.5" height="3" rx="0.75"/><path d="M3.25 6v6.25c0 .4.35.75.75.75h8c.4 0 .75-.35.75-.75V6M6.5 8.5h3"/></svg>',
     // Glance: a window split down the middle with the far half filled, "this
     // tab goes in the other half". The earlier page-and-sliver glyph read as a
     // video camera. The filled half keeps it apart from the footer's sidebar
@@ -363,6 +405,92 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   }
 
   const isFavoritable = (url) => /^https?:\/\//.test(url || '');
+
+  // ---- Split View (F53): one row per split ------------------------------
+  // A split's tabs collapse into one row (TabSections.rowsOf); its disclosure
+  // lists them as ordinary rows. Which splits are open is this document's.
+  const openSplitRows = new Set();
+
+  /** Row nodes for a run of tabs, a split drawn once. `inGroup` marks rows
+   *  indented under a group header. */
+  function tabRowsFor(tabs, { inGroup = false } = {}) {
+    const byId = new Map(tabs.map((t) => [t.id, t]));
+    return TabSections.rowsOf(tabs.map((t) => t.id), state.tabs).flatMap((row) => {
+      if (row.kind === 'tab') {
+        const node = tabRow(byId.get(row.id));
+        if (inGroup) node.classList.add('in-group');
+        return [node];
+      }
+      return splitRowNodes(row.splitId, row.tabIds.map((id) => byId.get(id)).filter(Boolean), { inGroup });
+    });
+  }
+
+  function splitRowNodes(splitId, tabs, { inGroup = false } = {}) {
+    const split = (state.splits ?? []).find((s) => s.id === splitId);
+    const titles = tabs.map((t) => t.title || blancI18n.t('tab.untitled'));
+    const label = titles.length > 2
+      ? blancI18n.t('split.rowLabelMore', { first: titles[0], count: titles.length - 1 })
+      : blancI18n.t('split.rowLabel', { first: titles[0], second: titles[1] ?? '' });
+    const row = document.createElement('div');
+    row.className = 'island-row split-row'
+      + (tabs.some((t) => t.id === state.activeTabId) ? ' active' : '')
+      + (inGroup ? ' in-group' : '')
+      + ((state.selectedTabIds ?? []).includes(tabs[0]?.id) ? ' selected' : '');
+    row.dataset.splitId = splitId;
+    row.dataset.tabId = tabs[0]?.id;
+    row.setAttribute('role', 'group');
+    row.setAttribute('aria-label', blancI18n.t('split.rowName', { titles: titles.join(' + ') }));
+    row.dataset.i18nIgnore = 'aria-label'; // page titles
+    const primary = document.createElement('button');
+    primary.type = 'button';
+    primary.className = 'row-primary split-row-primary';
+    primary.dataset.selectionTabId = tabs[0]?.id;
+    const icons = document.createElement('span');
+    icons.className = 'split-row-icons';
+    for (const tab of tabs.slice(0, 4)) {
+      const favicon = document.createElement('span');
+      setFavicon(favicon, tab);
+      icons.append(favicon);
+    }
+    const title = document.createElement('span');
+    title.className = 'row-title split-row-title';
+    title.textContent = label;
+    title.dataset.i18nIgnore = '';
+    primary.append(icons, title);
+    primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: label }) + ((state.selectedTabIds ?? []).includes(tabs[0]?.id) ? ', ' + blancI18n.t('rail.state.selected') : ''));
+    primary.dataset.i18nIgnore = 'aria-label';
+    const focused = tabs[Math.min(split?.focusedIndex ?? 0, tabs.length - 1)] ?? tabs[0];
+    primary.addEventListener('click', () => {
+      if (focused) window.browserAPI.switchTab(focused.id);
+      window.browserAPI.closeOverlay();
+    });
+    const open = openSplitRows.has(splitId);
+    const disclosure = document.createElement('button');
+    disclosure.type = 'button';
+    disclosure.className = 'split-row-disclosure' + (open ? ' open' : '');
+    disclosure.dataset.noDrag = '';
+    disclosure.innerHTML = __blancMarkup.createHTML(ICONS.caret);
+    disclosure.setAttribute('aria-expanded', String(open));
+    disclosure.setAttribute('aria-label', blancI18n.t('split.showTabs'));
+    disclosure.dataset.tooltip = blancI18n.t('split.showTabs');
+    disclosure.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (openSplitRows.has(splitId)) openSplitRows.delete(splitId);
+      else openSplitRows.add(splitId);
+      renderList();
+    });
+    row.append(primary, disclosure);
+    const nodes = [row];
+    if (open) {
+      for (const tab of tabs) {
+        const node = tabRow(tab);
+        node.classList.add('in-split');
+        if (inGroup) node.classList.add('in-group');
+        nodes.push(node);
+      }
+    }
+    return nodes;
+  }
 
   function addressDisplayValue(tab) {
     if (!tab) return '';
@@ -556,6 +684,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       const details = [
         ...metadata,
         tab.private ? blancI18n.t('rail.state.private') : '',
+      (state.selectedTabIds ?? []).includes(tab.id) ? blancI18n.t('rail.state.selected') : '',
         tab.asleep ? blancI18n.t('rail.state.quiet') : '',
       ].filter(Boolean).join(', ') || blancI18n.t('glance.picker.openTab');
       row.setAttribute('aria-label', blancI18n.t('glance.picker.optionLabel', { title: title.textContent, details }));
@@ -649,6 +778,10 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     panelSiteInfo.setAttribute('aria-expanded', String(visible && siteInfoOpen));
     if (!visible) siteInfoOpen = false;
 
+    readerBtn.hidden = !tab?.readerAvailable && !tab?.readerActive;
+    readerBtn.setAttribute('aria-pressed', String(tab?.readerActive === true));
+    readerBtn.setAttribute('aria-label', blancI18n.t(tab?.readerActive ? 'reader.exit' : 'reader.enter'));
+    readerBtn.dataset.tooltip = blancI18n.t(tab?.readerActive ? 'reader.exit' : 'reader.enter');
     const verticalTabsActive = state.tabLayout === 'vertical';
     footerTabLayout.dataset.tooltip = verticalTabsActive
       ? blancI18n.t('rail.islandLayout')
@@ -663,7 +796,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     row.className =
       'island-row tab-row' +
       (tab.id === state.activeTabId ? ' active' : '') +
-      (tab.asleep ? ' quiet' : '');
+      (tab.asleep ? ' quiet' : '') +
+      ((state.selectedTabIds ?? []).includes(tab.id) ? ' selected' : '');
     row.dataset.tabId = tab.id;
     row.dataset.dragTab = '';
     row.dataset.pinned = String(!!tab.pinned);
@@ -701,6 +835,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     const primary = document.createElement('button');
     primary.type = 'button';
     primary.className = 'row-primary';
+    primary.dataset.selectionTabId = tab.id;
     // tabDomain() is '' for a blank new tab; filter rather than emit ", ,".
     // The word a person hears is quiet; the field name stays internal.
     const parts = [
@@ -708,10 +843,12 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       tabDomain(tab),
       tab.asleep ? blancI18n.t('rail.state.quiet') : '',
       tab.private ? blancI18n.t('rail.state.private') : '',
+      (state.selectedTabIds ?? []).includes(tab.id) ? blancI18n.t('rail.state.selected') : '',
     ].filter(Boolean);
     primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: parts.join(', ') }));
     if (tab.title) primary.dataset.i18nIgnore = 'aria-label'; // carries the page title
     primary.append(faviconWrap, title);
+    if(tab.syncNotSynced){const mark=document.createElement('span');mark.className='sync-not-synced';mark.textContent='•';mark.setAttribute('aria-label',blancI18n.t('sharedSpaces.unsyncedTab'));mark.title=blancI18n.t('sharedSpaces.unsyncedTab');primary.append(mark);}
     primary.addEventListener('click', () => {
       window.browserAPI.switchTab(tab.id);
       window.browserAPI.closeOverlay();
@@ -1027,8 +1164,9 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       button.addEventListener('click', async () => {
         // A refused name keeps the menu open with its notice; nothing runs.
         if (!(await commitGroupName({ close: false }))) return;
+        const box = button.getBoundingClientRect();
         closeGroupMenu({ commit: false, closeOverlay: true });
-        run();
+        run(box);
       });
       return button;
     };
@@ -1037,6 +1175,14 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     actions.append(
       action(blancI18n.t('groupMenu.newTab'), () => window.browserAPI.newTabInGroup(group.id)),
       action(blancI18n.t('groupMenu.moveToNewWindow'), () => window.browserAPI.moveGroupToNewWindow(group.id), { disabled: holdsEveryTab }),
+    );
+    // Move Group to Space ▸ (D8): shown once the profile has a space, like
+    // Move to Space ▸ in the tab menu. Main lists the spaces in a native menu.
+    if (wsWorkspaces.length) {
+      actions.append(action(blancI18n.t('groupMenu.moveToSpace'),
+        (box) => window.browserAPI.openGroupSpaceMenu(group.id, { x: box.left, y: box.bottom })));
+    }
+    actions.append(
       action(blancI18n.t('groupMenu.ungroup'), () => window.browserAPI.ungroupGroup(group.id)),
       action(blancI18n.t('groupMenu.close'), () => window.browserAPI.closeGroup(group.id)),
     );
@@ -1191,6 +1337,61 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     return row;
   }
 
+  /** "Sent to this device · 2": the inbox heading, which doesn't fold. */
+  function sentHeaderRow(count) {
+    const row = document.createElement('div');
+    row.className = 'island-ghead static sent-head';
+    row.innerHTML = __blancMarkup.createHTML('<span class="ghead-name"></span><span class="ghead-n"></span>');
+    row.querySelector('.ghead-name').textContent = blancI18n.t('sends.section');
+    row.querySelector('.ghead-n').textContent = String(count);
+    return row;
+  }
+
+  /** A page another device sent here: click opens it in a new tab (main
+   * hides it here), × dismisses it. */
+  function sentItemRow(item) {
+    const row = document.createElement('div');
+    row.className = 'island-row sent-row';
+    row.setAttribute('role', 'button');
+    row.tabIndex = 0;
+    row.dataset.sentId = item.id;
+    const favicon = document.createElement('span');
+    setFavicon(favicon, { url: item.url });
+    const text = document.createElement('span');
+    text.className = 'sent-text';
+    const title = document.createElement('span');
+    title.className = 'row-title';
+    title.textContent = item.title || item.url;
+    title.dataset.i18nIgnore = ''; // a page title is data
+    const from = document.createElement('span');
+    from.className = 'row-sub';
+    from.textContent = blancI18n.t('sends.from', { device: item.fromName, time: timeAgo(item.sentAt) });
+    text.append(title, from);
+    const dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.className = 'row-close sent-dismiss';
+    dismiss.dataset.tooltip = blancI18n.t('sends.dismiss');
+    dismiss.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: dismiss.dataset.tooltip, title: title.textContent }));
+    dismiss.dataset.i18nIgnore = 'aria-label'; // carries the page title
+    dismiss.innerHTML = __blancMarkup.createHTML(ICONS.close);
+    dismiss.addEventListener('click', (event) => {
+      event.stopPropagation();
+      window.browserAPI.dismissSentItem(item.id);
+    });
+    row.append(favicon, text, dismiss);
+    const open = () => {
+      window.browserAPI.closeOverlay();
+      window.browserAPI.openSentItem(item.id);
+    };
+    row.addEventListener('click', open);
+    row.addEventListener('keydown', (event) => {
+      if (event.target !== row || (event.key !== 'Enter' && event.key !== ' ')) return;
+      event.preventDefault();
+      open();
+    });
+    return row;
+  }
+
   /** A remote tab row: opens the url as a plain new local tab (ungrouped —
    * no group reconstruction in v1, spec §2). */
   function remoteTabRow(tab, device) {
@@ -1275,6 +1476,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       window.browserAPI.saveFavorite(folder || null);
     } },
     { cmd: '/history', hint: blancI18n.t('slash.history.hint'), run: () => window.browserAPI.openPage('history') },
+    { cmd: '/archive', hint: blancI18n.t('slash.archive.hint'), run: () => window.browserAPI.openPage('history', 'archived') },
     { cmd: '/downloads', hint: blancI18n.t('slash.downloads.hint'), run: () => window.browserAPI.openPage('downloads') },
     { cmd: '/settings', hint: blancI18n.t('slash.settings.hint'), run: () => window.browserAPI.openPage('settings') },
     { cmd: '/sync', hint: blancI18n.t('slash.sync.hint'), run: () => window.browserAPI.openPage('settings', 'sync') },
@@ -1305,7 +1507,9 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       // A context-menu "New Group…" targets the right-clicked tab, not the
       // active one (overlay:show's purpose payload sets the pending target).
       const target = pendingGroupTabId ?? state.activeTabId;
-      if (name && target) window.browserAPI.groupTabByName(target, name);
+      if (pendingGroupTabIds) window.browserAPI.groupTabsByName(pendingGroupTabIds, name);
+      else if (name && target) window.browserAPI.groupTabByName(target, name);
+      pendingGroupTabIds = null;
       pendingGroupTabId = null;
     } },
     { cmd: '/ungroup', hint: blancI18n.t('slash.ungroup.hint'), run: () => state.activeTabId && window.browserAPI.setTabGroup(state.activeTabId, null) },
@@ -1313,10 +1517,35 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       const groupId = activeTab()?.groupId;
       if (groupId) window.browserAPI.closeGroup(groupId);
     } },
+    // Send to device (M7b): the argument names one of the account's other
+    // devices, matched without regard to case. Never offered in a private tab.
+    { cmd: '/send', hint: blancI18n.t('slash.send.hint'), keepOverlay: true,
+      get available() { return !activeTab()?.private; },
+      run: (input) => {
+        const name = commandArgument(input);
+        if (!name) { promptCommand('/send '); return null; }
+        const tabId = state.activeTabId;
+        // The notice shows on the resting list, so the typed command goes.
+        addressInput.value = '';
+        renderList();
+        return sendActiveTabTo(tabId, name);
+      },
+      resultNotice: (result) => sendNotice(result) },
+    // Copy Link (⌘⇧C / Ctrl+Shift+C); "/copy clean" is Copy Clean Link, which
+    // has a chord on macOS only. Main shows the pill's "copied" notice.
+    { cmd: '/copy', hint: blancI18n.t('slash.copy.hint'), run: (input) => {
+      window.browserAPI.copyActiveLink(commandArgument(input).toLowerCase() === 'clean');
+    } },
+    { cmd: '/reader', hint: blancI18n.t('slash.reader.hint'), run: () => window.browserAPI.toggleReaderMode(state.activeTabId) },
     { cmd: '/find', hint: blancI18n.t('slash.find.hint'), run: () => window.browserAPI.openFindBar(), keepOverlay: true },
     { cmd: '/block-ads', hint: blancI18n.t('slash.blockAds.hint'), run: () => window.browserAPI.toggleAdblock() },
     { cmd: '/allow-ads', hint: blancI18n.t('slash.allowAds.hint'), run: () => window.browserAPI.allowAdsOnActiveSite() },
     { cmd: '/dark-site', hint: blancI18n.t('slash.darkSite.hint'), run: () => window.browserAPI.toggleDarkSiteOnActiveSite() },
+    // Link routing (F60): links to this site from other apps open in this
+    // window's profile (and Space); "/route off" removes the rule.
+    { cmd: '/route', hint: blancI18n.t('slash.route.hint'), run: (input) => {
+      window.browserAPI.routeActiveSite(commandArgument(input).toLowerCase() === 'off' ? 'off' : 'on');
+    } },
     { cmd: '/1password', hint: blancI18n.t('slash.1password.hint'),
       available: typeof window.browserAPI.fillLoginFromOnePassword === 'function',
       run: () => window.browserAPI.fillLoginFromOnePassword() },
@@ -1329,7 +1558,26 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     { cmd: '/space', hint: blancI18n.t('slash.space.hint'), aliases: ['/workspace'], keepOverlay: true, clearInput: true, run: runWorkspaceCommand },
     { cmd: '/glance', hint: blancI18n.t('slash.glance.hint'), keepOverlay: true, run: (input) => window.browserAPI.openGlancePicker(commandArgument(input)) },
     { cmd: '/invite', hint: blancI18n.t('slash.invite.hint'), run: () => window.browserAPI.inviteFriend(), keepOverlay: true, clearInput: true, resultNotice: (result) => result === 'copied' ? blancI18n.t('slash.invite.copied') : '' },
-  ].filter((command) => ['/find', '/downloads', '/settings', '/new', '/close', '/save', '/favorites', '/history', '/clear', '/pin', '/mute', '/group', '/ungroup', '/close-group', '/reopen'].includes(command.cmd));
+  ];
+
+  async function sendActiveTabTo(tabId, name) {
+    const targets = await window.browserAPI.listSendTargets();
+    if (!targets.length) return { notice: 'none' };
+    const wanted = name.toLocaleLowerCase();
+    const target = targets.find((t) => t.name.toLocaleLowerCase() === wanted);
+    if (!target) return { notice: 'noMatch', name };
+    const { status } = await window.browserAPI.sendTabToDevice(tabId, target.id);
+    return { status, device: target.name };
+  }
+
+  function sendNotice(result) {
+    if (!result) return '';
+    if (result.notice === 'none') return blancI18n.t('sends.none');
+    if (result.notice === 'noMatch') return blancI18n.t('sends.noMatch', { name: result.name });
+    if (result.status === 'sent') return blancI18n.t('sends.sent', { device: result.device });
+    if (result.status === 'unavailable') return blancI18n.t('sends.unavailable');
+    return blancI18n.t('sends.failed');
+  }
 
   function runCommand(command) {
     // Commands like "/group work" read their argument from the typed input.
@@ -1484,6 +1732,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     title.textContent = entry.tabCount > 1
       ? blancI18n.t('closed.groupTitle', { title: entry.title, count: entry.tabCount })
       : entry.title;
+    if(entry.fromName)title.textContent+=' · '+blancI18n.t('sharedSpaces.closedOn',{device:entry.fromName});
     title.dataset.i18nIgnore = ''; // a closed page or group title is data
     const forget = document.createElement('button');
     forget.type = 'button';
@@ -1508,6 +1757,47 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       reopen();
     });
     return row;
+  }
+
+  /** Spec D6: "Blanc archived N tabs · View Archive ×", once per profile, at
+   *  the top of the resting list where a missing tab would be looked for.
+   *  Shaped like the Recently closed band; both actions end it for good. */
+  function archiveNoticeBand(notice) {
+    const band = document.createElement('div');
+    band.className = 'island-group-band archive-notice';
+    band.setAttribute('role', 'status');
+    const row = document.createElement('div');
+    row.className = 'island-row in-group';
+    const glyph = document.createElement('span');
+    glyph.className = 'closed-glyph';
+    glyph.innerHTML = __blancMarkup.createHTML(ICONS.archive);
+    const title = document.createElement('span');
+    title.className = 'row-title';
+    title.textContent = blancI18n.t('archive.notice.title', { count: notice.count });
+    const view = document.createElement('button');
+    view.type = 'button';
+    view.className = 'closed-clear archive-notice-view';
+    view.textContent = blancI18n.t('archive.notice.view');
+    view.addEventListener('click', (event) => {
+      event.stopPropagation();
+      window.browserAPI.closeOverlay();
+      window.browserAPI.archiveNoticeDone('view');
+    });
+    const dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.className = 'row-close archive-notice-dismiss';
+    dismiss.setAttribute('aria-label', blancI18n.t('archive.notice.dismiss'));
+    dismiss.dataset.tooltip = blancI18n.t('archive.notice.dismiss');
+    dismiss.innerHTML = __blancMarkup.createHTML(ICONS.close);
+    dismiss.addEventListener('click', (event) => {
+      event.stopPropagation();
+      window.browserAPI.archiveNoticeDone('dismiss');
+      archiveNotice = null;
+      renderList();
+    });
+    row.append(glyph, title, view, dismiss);
+    band.append(row);
+    return band;
   }
 
   function commandNoticeRow(text) {
@@ -1630,6 +1920,16 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
         if (s) results.push({ kind: 'remote', title: t.title || t.url, sub: `${hostOfUrl(t.url)} · ${device.name}`, url: t.url, tab: t, score: s + 0.05 });
       }
     }
+    // Archived tabs rank below remote tabs (+0.05) and above history (+0);
+    // the url-keyed dedup below keeps the archived row over a history row.
+    // A private tab's switcher never shows the Archive (F52).
+    const activePrivate = state.tabs.find((t) => t.id === state.activeTabId)?.private;
+    if (!activePrivate) {
+      for (const a of archivedEntries) {
+        const s = matchScore(query, matchableText(a.title, a.url));
+        if (s) results.push({ kind: 'archived', title: a.title || a.url, sub: `${stripUrl(a.url)} · ${blancI18n.t('result.archived')}`, url: a.url, tab: { url: a.url, favicon: a.favicon }, entryId: a.id, score: s + 0.02 });
+      }
+    }
     for (const h of historyEntries) {
       const s = matchScore(query, matchableText(h.title, h.url));
       if (s) results.push({ kind: 'history', title: h.title, sub: stripUrl(h.url), url: h.url, score: s });
@@ -1677,12 +1977,13 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   }
 
   /** Keep six rows total. A confident local match retains the established
-   * Quick-Switcher top slot; otherwise exact search leads, followed by engine
-   * completions and then the weaker local guesses. */
+   * Quick-Switcher top slot unless Search priority results is on; otherwise
+   * exact search leads, followed by engine completions and then the local
+   * matches. */
   function blendedResults(query) {
     const local = switcherResults(query.toLowerCase());
     const search = searchResults(query);
-    if (local[0]?.score >= STRONG_MATCH_SCORE) {
+    if (!searchPriorityResults && local[0]?.score >= STRONG_MATCH_SCORE) {
       return [
         ...local.slice(0, 3),
         ...search.slice(0, 3),
@@ -1728,6 +2029,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     if (result.kind === 'group') window.browserAPI.focusGroup(result.group.id);
     else if (result.kind === 'tab') window.browserAPI.switchTab(result.tab.id);
     else if (result.kind === 'remote') window.browserAPI.createTab(result.url, { focusAddress: false });
+    else if (result.kind === 'archived') window.browserAPI.archiveRestore(result.entryId);
     else if (result.kind === 'search' && state.activeTabId) {
       window.browserAPI.search(state.activeTabId, result.query, result.providerId);
     }
@@ -2353,8 +2655,9 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       // which intercepts 'unsaved-scratch' before it ever becomes a plain
       // commandNotice string).
       if (commandNotice) rows.push(commandNoticeRow(commandNotice));
+      else if (archiveNotice) rows.push(archiveNoticeBand(archiveNotice));
       rows.push(pinned.length
-        ? dragSection('pinned', [pinnedHeaderRow(pinned.length), ...pinned.map(tabRow)])
+        ? dragSection('pinned', [pinnedHeaderRow(TabSections.rowsOf(pinned.map((t) => t.id), state.tabs).length), ...tabRowsFor(pinned)])
         : dragEmptyZone('pinned'));
 
       const clusters = clusterTabs();
@@ -2377,25 +2680,21 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
         if (group) {
           const bandNodes = [groupHeaderRow(group, gtabs.length, clusterIndex + shortcutOffset)];
           // Collapsed: header alone. Open: indent membership under the group.
-          if (!group.collapsed) {
-            for (const t of gtabs) {
-              const row = tabRow(t);
-              row.classList.add('in-group');
-              bandNodes.push(row);
-            }
-          }
+          if (!group.collapsed) bandNodes.push(...tabRowsFor(gtabs, { inGroup: true }));
           rows.push(groupBand(group, bandNodes, gtabs[0].id));
           itemIndex += 1;
         } else {
           let chunk = [];
-          for (const t of gtabs) {
+          // A split is drawn once; Recently closed never lands inside one.
+          for (const row of TabSections.rowsOf(gtabs.map((t) => t.id), state.tabs)) {
             if (due()) {
               if (chunk.length) rows.push(dragSection('loose', chunk));
               chunk = [];
               placeClosed();
             }
-            chunk.push(tabRow(t));
-            itemIndex += 1;
+            const members = row.kind === 'tab' ? [row.id] : row.tabIds;
+            chunk.push(...tabRowsFor(members.map((id) => gtabs.find((t) => t.id === id)).filter(Boolean)));
+            itemIndex += members.length;
           }
           if (chunk.length) rows.push(dragSection('loose', chunk));
         }
@@ -2430,9 +2729,12 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   /** Other devices (spec 2026-10-16 §6): the footer toggle, hidden with no
    * other device to show, and the drawer between the list and the footer. */
   function renderDevicesDrawer(resting, anchor = null) {
-    footerDevices.hidden = !remoteDevices.length;
-    footerDevicesCount.textContent = String(remoteDevices.length);
-    const show = resting && devicesDrawerOpen && remoteDevices.length > 0;
+    // Pages waiting here show the drawer's button even with no device's tabs,
+    // and its count becomes theirs (M7b §5).
+    footerDevices.hidden = !remoteDevices.length && !sentItems.length;
+    footerDevices.classList.toggle('has-sent', sentItems.length > 0);
+    footerDevicesCount.textContent = String(sentItems.length || remoteDevices.length);
+    const show = resting && devicesDrawerOpen && !footerDevices.hidden;
     footerDevices.setAttribute('aria-expanded', String(show));
     islandDrawer.hidden = !show;
     if (!show) {
@@ -2440,6 +2742,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       return;
     }
     const rows = [];
+    if (sentItems.length) rows.push(sentHeaderRow(sentItems.length), ...sentItems.map(sentItemRow));
     for (const device of remoteDevices) {
       rows.push(remoteHeaderRow(device));
       if (unfoldedDevices.has(device.deviceId)) {
@@ -2613,6 +2916,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     shieldPop.hidden = next !== 'shield';
     shieldPopPointer.hidden = next !== 'shield' || !shieldConnected;
     capturePop.hidden = next !== 'capture';
+    switcherCard.hidden = next !== 'switcher';
+    if (next !== 'switcher') switcherModel = null;
     displayShareBackdrop.hidden = next !== 'display-share';
     if (next !== 'display-share') displayShareModel = null;
     glancePickerEl.hidden = next !== 'glance';
@@ -2623,6 +2928,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
         closedSectionOpen = false;
         devicesDrawerOpen = false;
         pendingGroupTabId = null;
+        pendingGroupTabIds = null;
         pendingRenameTabId = null;
         renamePrefill = null;
         namePrompt = null;
@@ -2642,8 +2948,10 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       // tab). Glance's string purposes fall through harmlessly.
       if (purpose && typeof purpose === 'object' && purpose.beginGroupTabId != null) {
         pendingGroupTabId = purpose.beginGroupTabId;
+        pendingGroupTabIds = null;
         pendingRenameTabId = null;
       }
+      if (Array.isArray(purpose?.beginGroupTabIds)) { pendingGroupTabIds = purpose.beginGroupTabIds; pendingGroupTabId = null; }
       // "Rename Tab…" (F46): same atomic payload as New Group… above.
       if (purpose && typeof purpose === 'object' && purpose.renameTabId != null) {
         pendingRenameTabId = purpose.renameTabId;
@@ -2654,12 +2962,14 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       if (purpose && typeof purpose === 'object' && purpose.renameGroupId != null) {
         namePrompt = { kind: 'group', id: purpose.renameGroupId, prefill: prefill ?? '', notice: '' };
         pendingGroupTabId = null;
+        pendingGroupTabIds = null;
         pendingRenameTabId = null;
       }
       // "Rename Device…" from the Other devices drawer: the same prompt.
       if (purpose && typeof purpose === 'object' && purpose.renameDeviceId != null) {
         namePrompt = { kind: 'device', id: purpose.renameDeviceId, prefill: prefill ?? '', notice: '' };
         pendingGroupTabId = null;
+        pendingGroupTabIds = null;
         pendingRenameTabId = null;
       }
       // A workspace row's context menu (main process) has no other channel
@@ -2726,7 +3036,20 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     } else if (next === 'spaces') {
       // The menu is the whole overlay here; data refreshes behind the first paint.
       refreshSwitcherData();
-      if (!reshow) openWorkspaceSwitcher();
+      if (purpose?.spaceMoveError) {
+        workspaceUI.showMoveError(purpose.spaceMoveError.name, purpose.spaceMoveError.error, purpose.spaceMoveError.movedCount);
+      } else if (purpose?.spaceLinkError) {
+        workspaceUI.showLinkError(purpose.spaceLinkError.name, purpose.spaceLinkError.error);
+      } else if (purpose?.newSpaceLinkTitle != null) {
+        workspaceUI.begin('new', null, { start: 'link', tabTitle: purpose.newSpaceLinkTitle });
+      } else if (Array.isArray(purpose?.newSpaceTabIds)) {
+        // From Move Group to Space ▸ the editor names the group (user data).
+        workspaceUI.begin('new', null, { start: 'tabs', tabId: purpose.newSpaceTabIds,
+          tabTitle: typeof purpose.newSpaceGroupName === 'string' ? purpose.newSpaceGroupName : blancI18n.t('tabsMenu.header', { count: purpose.newSpaceTabIds.length }) });
+      } else if (purpose?.newSpaceTabId != null) {
+        const tab = state.tabs.find((item) => item.id === purpose.newSpaceTabId);
+        workspaceUI.begin('new', null, { start: 'tab', tabId: purpose.newSpaceTabId, tabTitle: tab?.customTitle || tab?.title || tab?.url || '' });
+      } else if (!reshow) openWorkspaceSwitcher();
     } else if (next === 'shield') {
       renderShieldPop();
       (shieldChoosing ? shieldPopProvider.querySelector('input:checked:not(:disabled)') || shieldPopBack : shieldPopToggle.hidden ? shieldPopChangeProvider.disabled ? shieldPopSettings : shieldPopChangeProvider : shieldPopToggle).focus();
@@ -2735,6 +3058,57 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     } else if (next === 'capture') {
       renderCapturePop();
       capturePopRows.querySelector('.capture-pop-stop, .display-share-stop')?.focus();
+    } else if (next === 'switcher') {
+      const previousPick = switcherModel ? switcherModel.tabIds[switcherModel.pick] : undefined;
+      switcherModel = purpose?.switcher ?? null;
+      renderSwitcher({ announce: reshow ? 'step' : 'open', previousPick });
+    }
+  }
+
+  // The Ctrl+Tab card draws main's order and pick as they are; it keeps no
+  // order of its own and never takes focus (main reads the keys). A click on a
+  // tile is the one thing it sends back.
+  function renderSwitcher({ announce = null, previousPick } = {}) {
+    const model = switcherModel;
+    const entries = (model?.tabIds ?? [])
+      .map((id) => state.tabs.find((tab) => tab.id === id))
+      .filter(Boolean);
+    const pickId = model?.tabIds[model.pick];
+    const tiles = entries.map((tab, index) => {
+      const li = document.createElement('li');
+      li.className = 'switcher-tile';
+      li.id = `switcher-tile-${index}`;
+      li.setAttribute('role', 'option');
+      li.setAttribute('aria-selected', String(tab.id === pickId));
+      li.setAttribute('aria-label', tab.title || blancI18n.t('tab.untitled'));
+      li.dataset.i18nIgnore = 'aria-label'; // a page title
+      const icon = document.createElement('span');
+      setFavicon(icon, tab);
+      li.append(icon);
+      li.addEventListener('mousedown', (event) => {
+        event.preventDefault();
+        window.browserAPI.switcherPick(tab.id);
+      });
+      return li;
+    });
+    switcherTiles.replaceChildren(...tiles);
+    const picked = entries.find((tab) => tab.id === pickId);
+    const pickIndex = entries.indexOf(picked);
+    if (pickIndex >= 0) {
+      switcherTiles.setAttribute('aria-activedescendant', `switcher-tile-${pickIndex}`);
+      tiles[pickIndex].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    } else {
+      switcherTiles.removeAttribute('aria-activedescendant');
+    }
+    switcherTitle.textContent = picked ? picked.title || blancI18n.t('tab.untitled') : '';
+    switcherTitle.dataset.i18nIgnore = '';
+    switcherHost.textContent = picked ? tabDomain(picked) : '';
+    switcherHost.dataset.i18nIgnore = '';
+    // Opening and each step say where the pick is; a repaint for another
+    // reason (a tab's title loading) says nothing.
+    if (picked && (announce === 'open' || (announce === 'step' && previousPick !== pickId))) {
+      const params = { title: picked.title || blancI18n.t('tab.untitled'), position: pickIndex + 1, count: entries.length };
+      switcherStatus.textContent = blancI18n.t(announce === 'open' ? 'switcher.opened' : 'switcher.step', params);
     }
   }
 
@@ -2907,6 +3281,17 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       shieldPopDarkToggle.setAttribute('aria-checked', String(dark.on));
       document.getElementById('shieldPopDarkNote').hidden = dark.appliesNow;
     }
+    // Link routing (F60): the same rule /route writes, for links from other apps.
+    const route = v.route;
+    shieldPopRoute.hidden = !route;
+    if (route) {
+      shieldPopRouteLabel.textContent = blancI18n.t(route.scope === 'space' ? 'shield.routeSpace' : 'shield.route');
+      shieldPopRouteToggle.classList.toggle('on', route.on);
+      shieldPopRouteToggle.setAttribute('aria-checked', String(route.on));
+      shieldPopRouteNote.textContent = route.elsewhere
+        ? blancI18n.t('shield.routeElsewhere', { destination: route.elsewhere })
+        : blancI18n.t('shield.routeNote');
+    }
   }
 
   shieldPopToggle.addEventListener('click', () => {
@@ -2918,6 +3303,9 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   });
   shieldPopDarkToggle.addEventListener('click', () => {
     window.browserAPI.toggleDarkSiteOnActiveSite();
+  });
+  shieldPopRouteToggle.addEventListener('click', () => {
+    window.browserAPI.routeActiveSite('toggle');
   });
   function providerName(provider) { return provider === 'ublock-origin' ? 'uBlock Origin' : 'Blanc Blocker'; }
 
@@ -3140,7 +3528,45 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     shieldPopPointer.hidden = mode !== 'shield' || !shieldConnected;
     if (Number.isFinite(x)) shieldPopPointer.style.left = `${x}px`;
   });
-  window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
+  // A panel opened by hover closes once the pointer leaves it, until it is
+  // used (hover-panel-leave.js). Capture phase: rows stop their own events.
+  const HoverPanelLeave = globalThis.blancHoverPanelLeave;
+  let hoverLeave = HoverPanelLeave.initialLeaveState();
+  let hoverLeaveTimer = null;
+  function stepHoverLeave(event) {
+    const next = HoverPanelLeave.leaveStep(hoverLeave, event);
+    hoverLeave = next.state;
+    if (next.effect) {
+      clearTimeout(hoverLeaveTimer);
+      hoverLeaveTimer = null;
+    }
+    if (next.effect === 'start') {
+      hoverLeaveTimer = setTimeout(() => {
+        hoverLeaveTimer = null;
+        stepHoverLeave({ type: 'fired' });
+      }, HoverPanelLeave.LEAVE_GRACE_MS);
+    }
+    if (next.effect === 'close') window.browserAPI.closeOverlay('hover-leave');
+  }
+  const onPanelCard = (event) => HoverPanelLeave.pointNearCard(
+    { x: event.clientX, y: event.clientY }, islandPanel.getBoundingClientRect());
+  document.addEventListener('pointermove', (event) => {
+    if (hoverLeave.watching) stepHoverLeave({ type: 'move', inside: onPanelCard(event) });
+  }, { capture: true, passive: true });
+  document.documentElement.addEventListener('mouseleave', () => {
+    if (hoverLeave.watching) stepHoverLeave({ type: 'exit' });
+  });
+  document.addEventListener('keydown', () => stepHoverLeave({ type: 'interact' }), true);
+  for (const type of ['pointerdown', 'wheel']) {
+    document.addEventListener(type, (event) => {
+      if (hoverLeave.watching && onPanelCard(event)) stepHoverLeave({ type: 'interact' });
+    }, { capture: true, passive: true });
+  }
+
+  window.browserAPI.onOverlayShow((show) => {
+    const { mode: next, prefill, purpose, pillRect } = show;
+    searchPriorityResults = show.searchPriorityResults === true;
+    stepHoverLeave({ type: 'open', hoverOpened: next === 'panel' && purpose?.hoverOpened === true });
     const wasOpen = mode === next;
     endOverlayExit();
     // A quick close/reopen can arrive while the old retract timer is still
@@ -3157,6 +3583,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   // Main's overlay before-input owns Escape; when the workspace popover is
   // open it forwards here instead of hideOverlay so editors dismiss first.
   window.browserAPI.onOverlayEscape(() => {
+    if (state.selectedTabIds?.length && ['panel', 'palette'].includes(mode)) { window.browserAPI.selectTab(null, 'clear'); return; }
     if (groupMenu) {
       const fromMode = groupMenu.host === 'mode';
       closeGroupMenu({ commit: false });
@@ -3214,6 +3641,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   }
 
   window.browserAPI.onOverlayHide((payload) => {
+    stepHoverLeave({ type: 'close' });
     islandDrag.cancel();
     hideIslandTip();
     // Closing the overlay any other way than Escape keeps a typed name.
@@ -3254,6 +3682,9 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     shieldPopPointer.hidden = true;
     shieldConnected = false;
     glancePickerEl.hidden = true;
+    switcherCard.hidden = true;
+    switcherModel = null;
+    switcherStatus.textContent = '';
     inputTouched = false;
     siteInfoOpen = false;
     commandResultGeneration += 1;
@@ -3261,6 +3692,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     addressInputComposing = false;
     suppressProviderSuggestions = false;
     pendingGroupTabId = null;
+    pendingGroupTabIds = null;
     pendingRenameTabId = null;
     renamePrefill = null;
     namePrompt = null;
@@ -3298,6 +3730,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   });
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
+    if (state.selectedTabIds?.length && ['panel', 'palette'].includes(mode)) { e.preventDefault(); e.stopPropagation(); window.browserAPI.selectTab(null, 'clear'); return; }
     // Prefer the IPC path (overlay:escape from main) — main's before-input
     // consumes Escape before this listener would see it. Kept as a fallback
     // for harnesses that inject keydown into the document directly.
@@ -3312,7 +3745,9 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       e.stopPropagation();
       return;
     }
-    window.browserAPI.closeOverlay();
+    // An Escape, as main's own path reports it: a surface opened from a
+    // control (the Glance card's Change) hands focus back to it.
+    window.browserAPI.closeOverlay('escape');
   });
 
   /** Layered Esc for the footer workspace popover. Returns true if handled
@@ -3331,6 +3766,10 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       : window.browserAPI.reload(state.activeTabId);
   });
   heartBtn.addEventListener('click', () => window.browserAPI.toggleBookmark());
+  readerBtn.addEventListener('click', () => {
+    window.browserAPI.closeOverlay();
+    window.browserAPI.toggleReaderMode(state.activeTabId);
+  });
   panelSiteInfo.addEventListener('click', () => {
     if (panelSiteInfo.hidden) return;
     siteInfoOpen = !siteInfoOpen;
@@ -3570,16 +4009,22 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   // --- State sync ---
 
   async function refreshSwitcherData() {
-    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload] = await Promise.all([
+    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload, archivedList, notice, sentList] = await Promise.all([
       window.browserAPI.listFavorites(),
       window.browserAPI.listHistory({ limit: 300 }),
       window.browserAPI.listRemoteTabs(),
       window.browserAPI.listWorkspaces(),
       window.browserAPI.bangs(),
+      window.browserAPI.archiveList(),
+      window.browserAPI.archiveNotice(),
+      window.browserAPI.listSentToThisDevice(),
     ]);
     favorites = favoritesList;
     historyEntries = historyList;
+    archivedEntries = Array.isArray(archivedList) ? archivedList : [];
+    archiveNotice = notice ?? null;
     remoteDevices = remoteList;
+    sentItems = Array.isArray(sentList) ? sentList : [];
     applyWorkspacesPayload(workspacesPayload);
     bangsState = bangsPayload;
     // Data lands after the panel already rendered — refresh it.
@@ -3588,6 +4033,10 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
 
   window.browserAPI.onTabsUpdated((payload) => {
     const activeTabChanged = payload.activeTabId !== state.activeTabId;
+    if (JSON.stringify(payload.selectedTabIds ?? []) !== JSON.stringify(state.selectedTabIds ?? [])) {
+      const count = payload.selectedTabIds?.length ?? 0;
+      announceIsland(blancI18n.t(count ? 'tabsSelection.count' : 'tabsSelection.cleared', { count }));
+    }
     state = payload;
     noteBangIconPrivacy();
     islandDrag.notePayload(payload);
@@ -3610,11 +4059,16 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     if (mode === 'glance') renderGlancePicker();
     if (mode === 'shield') renderShieldPop();
     if (mode === 'capture') renderCapturePop();
+    if (mode === 'switcher') renderSwitcher();
   });
   // Cached-first: the panel renders the cache instantly, and this repaints
   // when the panel-open refresh's pull lands (tab sync).
   window.browserAPI.onRemoteTabsUpdated((devices) => {
     remoteDevices = devices;
+    if (mode === 'panel' || mode === 'palette') renderList();
+  });
+  window.browserAPI.onSentToThisDeviceUpdated((items) => {
+    sentItems = Array.isArray(items) ? items : [];
     if (mode === 'panel' || mode === 'palette') renderList();
   });
   // The bang settings changed (Settings, Profile Sync, a bang used, history

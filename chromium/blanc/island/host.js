@@ -963,6 +963,13 @@
     previewSpaceList: () => request('previewSpaceList'),
     previewSpaceOpen: name => request('previewSpaceOpen', [name]),
     listWorkspaces: async () => ({ items: [], tint: 'mark' }),
+    // Tab Archive (F52) and sending tabs (Profile Sync) are not ported yet:
+    // the overlay reads them with favorites and history at startup, so they
+    // answer as shipping does with nothing archived, sent or paired.
+    archiveList: async () => [],
+    archiveNotice: async () => null,
+    listSentToThisDevice: async () => [],
+    listSendTargets: async () => [],
     searchSuggestions: query => typed('searchSuggestions', [String(query)]),
     openFindBar,
     findInPage: (id, query, options = {}) => request('find',

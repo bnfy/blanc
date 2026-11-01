@@ -108,6 +108,18 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     hunks.
   - Gaps: the custom-address and bang hints say they sync, which the fork
     can't yet; the outbound-isolation check remains.
+- **S1.2 started: the Island runs shipping v1.45.1's renderer** (was
+  v1.38.0) on macos-3f969a35b9f9f7ad. `tools/island-renderer.mjs` generates
+  the 11 shipping Island files from the release recorded in
+  `blanc/island-renderer.json`: shipping's code, Trusted Types for its HTML
+  sinks (`tools/trusted-markup.mjs`, from the prototype) and the fork's
+  declared, anchored edits (facade and fork styles, the native extensions
+  slot, the preview-build notice). Regenerating from v1.38.0 reproduces the
+  previous files except the 15-command slash filter (S1.2 wants all 34) and
+  the fork's own split rows (v1.45.1 draws them). The host answers the
+  archive and sent-tab reads the overlay makes at startup with shipping's
+  empty state; other members of later slices still reject. Embedded-assets
+  (58 resources) and typed-interface smokes pass; scenarios not yet run.
 - **F0.5 S1 finish line reached.** All 253 S1-tagged cases have a real result
   or a named undefined reason on the current candidate: 70 pass, 151 fail, 32
   undefined. Per-row results and reasons: [reports/s1-macos.json](reports/s1-macos.json) (+ JUnit).
@@ -281,5 +293,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-56a7b95ab2df8558; Windows: none; Linux: none.
+Candidate identities: macOS: macos-3f969a35b9f9f7ad; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

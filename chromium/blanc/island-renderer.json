@@ -1,0 +1,17 @@
+{
+  "ref": "v1.45.1",
+  "commit": "85883b1afa11375e1300130914d6f40c5388af21",
+  "files": [
+    "index.html",
+    "overlay.html",
+    "overlay.js",
+    "renderer.js",
+    "styles.css",
+    "tab-drag.js",
+    "tab-sections.js",
+    "vertical-tabs.js",
+    "workspace-ui.js",
+    "glance-card-drag.js",
+    "hover-panel-leave.js"
+  ]
+}

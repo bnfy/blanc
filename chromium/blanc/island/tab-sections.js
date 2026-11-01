@@ -8,7 +8,7 @@
 // load it as window.TabSections; main and Node tests require it.
 // Spec: docs/superpowers/specs/2026-10-17-ungrouped-tab-placement-design.md
 //
-// `list` is always [{ id, groupId|null, pinned }] in the window's tab order.
+// `list` is always [{ id, groupId|null, pinned, splitId? }] in the window's tab order.
 (function (root) {
   const isLoose = (tab) => !tab.groupId && !tab.pinned;
   const isShelfPin = (tab) => !tab.groupId && !!tab.pinned;
@@ -130,7 +130,29 @@
     el.style.setProperty('--group-color', color);
   }
 
-  const api = { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, firstTabOf, placeInGroup, paintGroup };
+  /** Rows for `tabIds` as the panel and the rail draw them (Split View, F53):
+   * a split's consecutive tabs collapse into one row. Unknown ids are skipped. */
+  function rowsOf(tabIds, list) {
+    const byId = new Map(list.map((tab) => [tab.id, tab]));
+    const rows = [];
+    for (const id of tabIds) {
+      const tab = byId.get(id);
+      if (!tab) continue;
+      const last = rows[rows.length - 1];
+      if (tab.splitId && last?.kind === 'split' && last.splitId === tab.splitId) last.tabIds.push(id);
+      else if (tab.splitId) rows.push({ kind: 'split', splitId: tab.splitId, tabIds: [id] });
+      else rows.push({ kind: 'tab', id });
+    }
+    return rows;
+  }
+
+  /** Cmd/Ctrl+1–9 targets when a window has no groups: every tab in order,
+   * with a split counted once, at its first tab. */
+  function numberedTabIds(list) {
+    return rowsOf(list.map((tab) => tab.id), list).map((row) => (row.kind === 'split' ? row.tabIds[0] : row.id));
+  }
+
+  const api = { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, firstTabOf, placeInGroup, paintGroup, rowsOf, numberedTabIds };
   if (typeof module !== 'undefined') module.exports = api;
   else root.TabSections = api;
 })(typeof window !== 'undefined' ? window : globalThis);

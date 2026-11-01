@@ -583,6 +583,10 @@
         ghost.classList.add('tab-drag-ghost');
         ghost.removeAttribute('id');
         ghost.setAttribute('aria-hidden', 'true');
+        // The preview lives under body, outside the rail that supplies this
+        // inherited size. Preserve it for both tab rows and group headers.
+        const textSize = win.getComputedStyle(grab).getPropertyValue('--vertical-tab-font-size');
+        if (textSize) ghost.style.setProperty('--vertical-tab-font-size', textSize);
         ghost.style.setProperty('--drag-left', `${r.left}px`);
         ghost.style.setProperty('--drag-width', `${r.width}px`);
         ghost.style.setProperty('--drag-y', `${y - grabOffset}px`);

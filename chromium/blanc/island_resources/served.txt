@@ -8,9 +8,11 @@ browser-api-codec.js
 browser-api.js
 extensions.css
 extensions.js
+glance-card-drag.js
 host.css
 host.html
 host.js
+hover-panel-leave.js
 i18n.js
 icons/chevron-left.svg
 icons/external-link.svg

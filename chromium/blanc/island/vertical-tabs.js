@@ -15,7 +15,51 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
   const newTabShortcut = document.getElementById('verticalTabsNewShortcut');
   const resizeHandle = document.getElementById('verticalTabsResizeHandle');
   const announcer = document.getElementById('verticalTabsAnnouncer');
+  const newGroupButton = document.getElementById('verticalTabsNewGroup');
+  const mainMenuButton = document.getElementById('mainMenuButton');
+  const spaceMark = document.getElementById('pillSpace');
+  const spaceMarkHome = spaceMark ? { parent: spaceMark.parentElement, next: spaceMark.nextElementSibling } : null;
   if (!api || !rail || !list || !useIslandButton || !newTabButton || !resizeHandle) return;
+
+  /** Moves a strip control to `parent` (before `before`, or last), keeping
+   * keyboard focus on it when it had focus. Returns whether it moved. */
+  function moveKeepingFocus(element, parent, before = null) {
+    if (!element || !parent) return false;
+    if (element.parentElement === parent && (before === null ? !element.nextElementSibling : element.nextElementSibling === before)) return false;
+    const hadFocus = document.activeElement === element;
+    parent.insertBefore(element, before);
+    if (hadFocus) element.focus({ preventScroll: true });
+    return true;
+  }
+
+  /** Windows and Linux: the strip's main-menu button sits in the window's
+   * top-left corner, which the rail owns in this layout, so the button moves
+   * into the rail's first row (as the traffic lights do on macOS) and back to
+   * the strip. Living in the rail, it takes the rail's look, stacking and
+   * focus order rather than the strip's tint and auto-hide states. */
+  function placeMainMenuButton(layout) {
+    if (!mainMenuButton) return;
+    if (layout === 'vertical') {
+      const toolbar = useIslandButton.parentElement;
+      if (toolbar.firstElementChild !== mainMenuButton) moveKeepingFocus(mainMenuButton, toolbar, toolbar.firstElementChild);
+    } else {
+      moveKeepingFocus(mainMenuButton, document.getElementById('strip'), document.getElementById('islandPill'));
+    }
+  }
+
+  /** The Island's Space mark moves into the rail's first row while tabs are
+   * vertical, so the row says which Space this is and opens the Spaces menu,
+   * and the Island keeps one copy. It goes back to its place in the Island
+   * otherwise. renderer.js keeps painting it wherever it is, and is told when
+   * it moves (its visibility depends on where it is). */
+  function placeSpaceMark(layout) {
+    if (!spaceMark || !spaceMarkHome) return;
+    const moved = layout === 'vertical'
+      ? moveKeepingFocus(spaceMark, useIslandButton.parentElement, useIslandButton)
+      : moveKeepingFocus(spaceMark, spaceMarkHome.parent, spaceMarkHome.next?.parentElement === spaceMarkHome.parent ? spaceMarkHome.next : null);
+    // The Island-only states (hidden with no Spaces, has-space) follow a move.
+    if (moved) window.blancSpaceMark?.placed();
+  }
 
   const ICONS = {
     close: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
@@ -55,7 +99,9 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
 
   function railSignature(payload) {
     return JSON.stringify({
-      activeTabId: payload.activeTabId, splits: payload.splits,
+      activeTabId: payload.activeTabId,
+      selectedTabIds: payload.selectedTabIds ?? [],
+      verticalTabsTextSize: payload.verticalTabsTextSize,
       groups: (payload.groups || []).map(({ id, name, collapsed, color }) => ({ id, name, collapsed, color: color ?? null })),
       tabs: (payload.tabs || []).map((tab) => ({
         id: tab.id,
@@ -70,7 +116,9 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
         audible: tab.audible,
         asleep: tab.asleep,
         groupId: tab.groupId ?? null,
+        splitId: tab.splitId ?? null,
       })),
+      splits: (payload.splits || []).map(({ id, tabIds, focusedIndex }) => ({ id, tabIds, focusedIndex })),
     });
   }
 
@@ -280,46 +328,6 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
     }
   }
 
-  let railSplits = [];
-  function rowsFor(tabs, activeTabId) {
-    const byId = new Map(tabs.map(tab => [tab.id, tab]));
-    const consumed = new Set();
-    const rows = [];
-    for (const tab of tabs) {
-      if (consumed.has(tab.id)) continue;
-      const split = railSplits.find(s => s.tabIds.includes(tab.id) && s.tabIds.every(id => byId.has(id)));
-      if (!split) { rows.push(tabRow(tab, activeTabId)); continue; }
-      const members = split.tabIds.map(id => byId.get(id));
-      members.forEach(t => consumed.add(t.id));
-      const focused = members[split.focusedIndex] || members[0];
-      const row = document.createElement('div');
-      row.className = 'vertical-tab-row vertical-split-row' + (split.tabIds.includes(activeTabId) ? ' active' : '');
-      row.setAttribute('role', 'listitem'); row.dataset.splitId = split.id;
-      row.dataset.tabId = members[0].id; row.dataset.dragTab = '';
-      row.dataset.bucket = bucketKey(members[0]); row.dataset.pinned = String(!!members[0].pinned);
-      row.dataset.groupId = members[0].groupId ?? ''; row.dataset.dragTitle = members.map(titleFor).join(' + ');
-      const label = members.map(titleFor).join(' + ');
-      row.setAttribute('aria-label', 'Split View: ' + label);
-      const primary = document.createElement('button'); primary.type = 'button';
-      primary.className = 'vertical-tab-primary'; primary.tabIndex = -1;
-      primary.dataset.tabId = focused.id; primary.dataset.focusKey = 'split:' + split.id;
-      primary.setAttribute('aria-label', 'Switch to Split View: ' + label);
-      const icons = document.createElement('span'); icons.className = 'vertical-split-icons';
-      for (const member of members) icons.appendChild(faviconFor(member));
-      const title = document.createElement('span'); title.className = 'vertical-tab-title'; title.textContent = label;
-      primary.append(icons, title); primary.addEventListener('click', () => activateTab(focused));
-      primary.addEventListener('keydown', event => {
-        if (event.altKey && event.shiftKey && ['ArrowUp', 'ArrowDown'].includes(event.key)) {
-          event.preventDefault(); keyboardMove('tab', members[0].id, event.key === 'ArrowUp' ? 'up' : 'down');
-        }
-      });
-      const close = document.createElement('button'); close.type = 'button'; close.className = 'vertical-tab-close';
-      close.textContent = '×'; close.setAttribute('aria-label', 'Close Split View: ' + label);
-      close.addEventListener('click', () => invoke('close split', () => api.closeSplit(focused.id)));
-      row.append(primary, close); rows.push(row);
-    }
-    return rows;
-  }
   function tabRow(tab, activeTabId) {
     const title = titleFor(tab);
     const active = tab.id === activeTabId;
@@ -329,7 +337,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
       (active ? ' active' : '') +
       (tab.private ? ' private' : '') +
       (tab.isLoading ? ' loading' : '') +
-      (tab.asleep ? ' quiet' : '');
+      (tab.asleep ? ' quiet' : '') +
+      ((lastPayload?.selectedTabIds ?? []).includes(tab.id) ? ' selected' : '');
     row.setAttribute('role', 'listitem');
     row.dataset.tabId = tab.id;
     row.dataset.bucket = bucketKey(tab);
@@ -346,6 +355,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
     primary.tabIndex = -1;
     const states = [
       active && blancI18n.t('rail.state.active'),
+      (lastPayload?.selectedTabIds ?? []).includes(tab.id) && blancI18n.t('rail.state.selected'),
       tab.private && blancI18n.t('rail.state.private'),
       tab.pinned && blancI18n.t('rail.state.pinned'),
       tab.isLoading && blancI18n.t('rail.state.loading'),
@@ -452,7 +462,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
     heading.className = 'vertical-tabs-section-heading';
     heading.textContent = label;
     const count = document.createElement('span');
-    count.textContent = String(tabs.length);
+    // A split counts once, as it is drawn (F53).
+    count.textContent = String(TabSections.rowsOf(tabs.map((tab) => tab.id), tabs).length);
     heading.appendChild(count);
     section.appendChild(heading);
     for (const row of rowsFor(tabs, activeTabId)) section.appendChild(row);
@@ -470,6 +481,56 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
     section.setAttribute('aria-label', blancI18n.t('rail.section.tabs'));
     for (const row of rowsFor(tabs, activeTabId)) section.appendChild(row);
     return section;
+  }
+
+  // Split View (F53): a split's tabs are one row (TabSections.rowsOf).
+  // Choosing it shows the split, focused on its last-focused pane.
+  let railSplits = [];
+  function rowsFor(tabs, activeTabId) {
+    const byId = new Map(tabs.map((tab) => [tab.id, tab]));
+    return TabSections.rowsOf(tabs.map((tab) => tab.id), tabs).map((row) => (row.kind === 'tab'
+      ? tabRow(byId.get(row.id), activeTabId)
+      : splitRow(row.splitId, row.tabIds.map((id) => byId.get(id)), activeTabId)));
+  }
+  function splitRow(splitId, members, activeTabId) {
+    const split = railSplits.find((s) => s.id === splitId);
+    const focused = members[Math.min(split?.focusedIndex ?? 0, members.length - 1)] ?? members[0];
+    const titles = members.map((tab) => titleFor(tab));
+    const label = titles.length > 2
+      ? blancI18n.t('split.rowLabelMore', { first: titles[0], count: titles.length - 1 })
+      : blancI18n.t('split.rowLabel', { first: titles[0], second: titles[1] ?? '' });
+    const row = document.createElement('div');
+    row.className = 'vertical-tab-row vertical-split-row'
+      + (members.some((tab) => tab.id === activeTabId) ? ' active' : '')
+      + ((lastPayload?.selectedTabIds ?? []).includes(focused?.id) ? ' selected' : '');
+    row.setAttribute('role', 'listitem');
+    row.dataset.splitId = splitId;
+    if ((lastPayload?.selectedTabIds ?? []).includes(focused?.id)) row.dataset.tabId = focused.id;
+    row.setAttribute('aria-label', blancI18n.t('split.rowName', { titles: titles.join(' + ') }));
+    row.dataset.i18nIgnore = 'aria-label';
+    const primary = document.createElement('button');
+    primary.type = 'button';
+    primary.className = 'vertical-tab-primary';
+    primary.dataset.tabId = focused?.id ?? '';
+    primary.dataset.focusKey = `split:${splitId}`;
+    primary.tabIndex = -1;
+    primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: label }) + ((lastPayload?.selectedTabIds ?? []).includes(focused?.id) ? ', ' + blancI18n.t('rail.state.selected') : ''));
+    primary.dataset.i18nIgnore = 'aria-label';
+    const icons = document.createElement('span');
+    icons.className = 'vertical-split-icons';
+    for (const tab of members.slice(0, 4)) icons.appendChild(faviconFor(tab));
+    const titleEl = document.createElement('span');
+    titleEl.className = 'vertical-tab-title';
+    titleEl.dataset.i18nIgnore = '';
+    titleEl.setAttribute('aria-hidden', 'true');
+    const text = document.createElement('span');
+    text.className = 'vertical-tab-title-text';
+    text.textContent = label;
+    titleEl.appendChild(text);
+    primary.append(icons, titleEl);
+    if (focused) primary.addEventListener('click', () => activateTab(focused));
+    row.appendChild(primary);
+    return row;
   }
 
   // The group menu (tab group colors spec §6): main draws it in the overlay
@@ -604,8 +665,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
     if (!group.collapsed) {
       const pinned = members.filter((tab) => tab.pinned);
       const regular = members.filter((tab) => !tab.pinned);
-      for (const row of rowsFor(pinned, activeTabId)) section.appendChild(row);
-      for (const row of rowsFor(regular, activeTabId)) section.appendChild(row);
+      for (const row of rowsFor([...pinned, ...regular], activeTabId)) section.appendChild(row);
     }
     return section;
   }
@@ -626,6 +686,22 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
     }
   }
 
+  // New group names what it acts on: every selected tab when several are,
+  // else this tab. When main's gate refuses (newGroupTarget), it reads as
+  // unavailable, as the tab menu greys out New Group…, but stays focusable so
+  // keyboard focus isn't dropped. That is display only: a click always asks
+  // main, which re-checks, because not every change to the gate is broadcast.
+  // Attributes are written only when they change, so a shown tooltip isn't
+  // redrawn on every tab update.
+  function renderNewGroupButton(payload) {
+    if (!newGroupButton) return;
+    const label = blancI18n.t((payload.selectedTabIds?.length ?? 0) > 1 ? 'rail.newGroupSelection' : 'rail.newGroup');
+    const unavailable = String(payload.canStartGroup === false);
+    if (newGroupButton.dataset.tooltip !== label) newGroupButton.dataset.tooltip = label;
+    if (newGroupButton.getAttribute('aria-label') !== label) newGroupButton.setAttribute('aria-label', label);
+    if (newGroupButton.getAttribute('aria-disabled') !== unavailable) newGroupButton.setAttribute('aria-disabled', unavailable);
+  }
+
   // A drag (or a settling drop) freezes only the list: the newest payload
   // waits here and is rendered exactly once when the drag ends.
   function render(payload = {}) {
@@ -639,17 +715,29 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
   }
 
   function renderNow(payload = {}) {
+    const previousSelection = lastPayload?.selectedTabIds ?? [];
+    if (JSON.stringify(previousSelection) !== JSON.stringify(payload.selectedTabIds ?? [])) {
+      const count = payload.selectedTabIds?.length ?? 0;
+      announce(blancI18n.t(count ? 'tabsSelection.count' : 'tabsSelection.cleared', { count }));
+    }
     lastPayload = payload;
+    renderNewGroupButton(payload);
     const layout = payload.tabLayout === 'vertical' ? 'vertical' : 'island';
     if (!applyWidthMetrics(payload)) {
       // A vertical payload without main's authoritative width is incomplete;
       // fail closed to Island instead of inventing renderer geometry.
       document.documentElement.dataset.tabLayout = 'island';
+      placeMainMenuButton('island');
+      placeSpaceMark('island');
       rail.hidden = true;
       lastSignature = null;
       return;
     }
     document.documentElement.dataset.tabLayout = layout;
+    placeMainMenuButton(layout);
+    placeSpaceMark(layout);
+    rail.dataset.textSize = ['large', 'extra-large'].includes(payload.verticalTabsTextSize)
+      ? payload.verticalTabsTextSize : 'default';
     rail.hidden = layout !== 'vertical';
     rail.dataset.activeTabId = payload.activeTabId || '';
     if (layout !== 'vertical') {
@@ -671,9 +759,9 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
     const shouldRestoreFocus = !suppressFocusRestore && chromeOwnsFocus;
     pendingFocusKey = null;
     const scrollTop = list.scrollTop;
-    railSplits = payload.splits || [];
     const tabs = payload.tabs || [];
     const groups = payload.groups || [];
+    railSplits = payload.splits || [];
     const activeTabId = payload.activeTabId;
     const knownGroupIds = new Set(groups.map((group) => group.id));
     const fragment = document.createDocumentFragment();
@@ -746,7 +834,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
     onDrop: railMove,
     announce,
     onActiveChange(active) {
-      if (active) return;
+      if (active) { api.selectTab(null, 'clear'); return; }
       const payload = deferredPayload;
       deferredPayload = null;
       if (payload) renderNow(payload);
@@ -755,13 +843,9 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
 
   function keyboardMove(kind, id, direction) {
     if (!lastPayload) return;
-    const hiddenMembers = new Set((lastPayload.splits || []).flatMap(s => s.tabIds.slice(1)));
-    const movePayload = { ...lastPayload, tabs: lastPayload.tabs.filter(t => !hiddenMembers.has(t.id)) };
-    const memberSplit = (lastPayload.splits || []).find(s => s.tabIds.includes(id));
-    if (kind === 'tab' && memberSplit) id = memberSplit.tabIds[0];
     const result = kind === 'group'
       ? dragApi.keyboardGroupMove(lastPayload, id, direction)
-      : dragApi.keyboardTabMove(movePayload, id, direction);
+      : dragApi.keyboardTabMove(lastPayload, id, direction);
     if (!result) return;
     if (result.stop) {
       announce(result.stop === 'top' ? blancI18n.t('rail.move.top') : blancI18n.t('rail.move.bottom'));
@@ -775,6 +859,9 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
   });
   newTabButton.addEventListener('click', () => {
     invokeLeavingRail('create tab', () => api.createTab(null, { focusAddress: true }));
+  });
+  newGroupButton?.addEventListener('click', () => {
+    invokeLeavingRail('start a new group', () => api.beginNewGroup());
   });
   resizeHandle.addEventListener('pointerdown', (event) => {
     if (event.button !== 0) return;
@@ -842,8 +929,28 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-vertical-tabs", {c
     event.stopPropagation();
     commitWidth(nextWidth, (committed) => blancI18n.t('rail.widthAnnounce', { width: committed }));
   });
+  list.addEventListener('click', (event) => {
+    const primary = event.target.closest('.vertical-tab-primary');
+    if (!primary || (!event.shiftKey && !(navigator.platform.includes('Mac') ? event.metaKey : event.ctrlKey))) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    primary.focus();
+    api.selectTab(primary.dataset.tabId, event.shiftKey ? 'range' : 'toggle');
+  }, true);
+  list.addEventListener('keydown', (event) => {
+    if (!event.shiftKey || event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+    const primary = event.target.closest('.vertical-tab-primary');
+    if (!primary) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    primary.focus();
+    api.selectTab(primary.dataset.tabId, event.key === 'ArrowUp' ? 'extend-up' : 'extend-down').then(id => {
+      requestAnimationFrame(() => list.querySelector(`.vertical-tab-primary[data-tab-id="${CSS.escape(id ?? '')}"]`)?.focus());
+    });
+  }, true);
   rail.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape' || !rail.dataset.activeTabId) return;
+    if (lastPayload?.selectedTabIds?.length) {
+      event.preventDefault(); event.stopPropagation(); api.selectTab(null, 'clear'); return;
+    }
     event.preventDefault();
     event.stopPropagation();
     invokeLeavingRail(
