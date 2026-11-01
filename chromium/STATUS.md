@@ -74,10 +74,9 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     `tests/external-launch-smoke.mjs` passes: five deny-list launches (link,
     `location.href`, iframe, upper case) refused, three app links prompted,
     the page never leaves. Navigation feature unchanged (10 pass, 1 fail).
-    Not ported: shipping also refuses page-started `chrome-extension:`
-    navigation except the PDF viewer. The fork aims at Web Store extensions,
-    whose web-accessible pages legitimately open that way, so that rule
-    needs an owner decision before it is copied.
+    Page-started `chrome-extension:` navigation follows Chromium (V10,
+    owner 2026-11-01): Web Store extensions open their declared
+    web-accessible pages that way; shipping refused all but the PDF viewer.
   - Patch series: 0001–0006 touch all 82 pinned upstream files with 256
     hunks.
   - Gaps: the custom-address hint says it syncs, which the fork can't yet;
@@ -180,6 +179,8 @@ Recorded in the spec (§4, §9) and plan:
   `blanc://error` (N5). Rewrite N5's expectations to the approved divergence.
 - V9: page-started external-scheme launches ask first through Chromium's
   prompt; typed addresses hand off directly (N6).
+- V10 (2026-11-01): pages may open extensions' web-accessible
+  `chrome-extension:` pages as Chromium allows.
 Everything else already follows spec §4 (Chromium models, Blanc UI): engines
 and suggestions through TemplateURLService and native suggest with Blanc's
 privacy rules; chrome://settings restyled with Blanc sections (V1); Blanc
@@ -200,8 +201,7 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.1 rest: Bangs, outbound isolation; owner decision on page-started
-   `chrome-extension:` navigation. Verify each change with targeted `--only` runs
+1. S1.1 rest: Bangs, outbound isolation. Verify each change with targeted `--only` runs
    merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
    (~2 h) unless development can't continue without it; propose one with
    the reason first.

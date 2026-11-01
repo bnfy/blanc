@@ -208,7 +208,7 @@ The menu bar structure follows shipping: Profiles, Tabs, Favorites and Help menu
 - Every Blanc WebUI host is an exact allowlist with its own CSP. Bridges are typed (Mojo) with sender validation, replacing the current single `chrome.send` dispatcher before release.
 - Disk-served development assets (`--blanc-prototype-assets`) are **removed** from release builds: assets compile into the resource pak.
 - Permission policy: fullscreen, pointer lock and sanitized clipboard write are allowed. Media (audio and video separately), geolocation and notifications are prompted. Everything else is denied. A prompt that can't be shown is denied unsaved.
-- HTTP auth challenges are refused without a dialog. OS hand-off follows the shipping allow/ask/block lists. Page-initiated `chrome-extension:` navigation is refused, except the PDF viewer.
+- HTTP auth challenges are refused without a dialog. OS hand-off follows the shipping allow/ask/block lists. Page-initiated `chrome-extension:` navigation follows Chromium's own rules (V10).
 - Inherited sandbox flags. Native Chromium carries opener sandbox flags into children, which closes the Electron 44.9 gap (spec decision 4a). Verify, then retire the inert-tab workaround, recorded as divergence V4.
 - Security update SLA, proposed: a Chromium security fix rated High or Critical reaches users within 7 days of Chrome's stable release. Distribution is suspended when this can't be met (the existing owner rule).
 - Signed, notarized macOS builds. Authenticode-signed Windows builds with publisher "Bananify Creative". Linux AppImage covered by the signed `SHA256SUMS`. SBOM and Sigstore as shipping does today.
@@ -293,6 +293,7 @@ Each row has its own status, decided only by the owner. **Until a row is approve
 | V7 | macOS minimum version and Intel support follow the fork's Chromium (the preview needs macOS 26; shipping supports older and Intel) | Upstream minimums | **Proposed, product change.** Open: decision D8 |
 | V8 | Certificate errors show Chromium's warning page and use its proceed decisions instead of `blanc://error` and shipping's session-only continue (N5) | Chromium's interstitial is better maintained and more secure | **Approved** (owner, October 31, 2026) |
 | V9 | A page-started launch of an external scheme (`mailto:`, `tel:` and similar) asks first through Chromium's prompt and remembers the answer per site; addresses the user types still hand off directly (N6) | Chromium's handler is hardened against launch spam | **Approved** (owner, October 31, 2026) |
+| V10 | A page may open an extension's web-accessible pages (`chrome-extension:`) as Chromium allows; shipping refused every page-started `chrome-extension:` navigation except the PDF viewer | Web Store extensions open their own pages this way (V5); Chromium already limits it to resources the extension declares | **Approved** (owner, November 1, 2026) |
 
 ## 10. Release gates for the replacement
 
