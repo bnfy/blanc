@@ -20,7 +20,7 @@ const TLS_HOSTS=['insecure.test','secure.test','badcert.test',...LOCAL_HOSTS];
 import {connect, waitFor, pause} from './cdp.mjs';
 const digest = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 export class NativeFixture {
-  async launch(config, directory, {testHooks=false, privateMode=false, pages=null, diskAssets=true} = {}) {
+  async launch(config, directory, {testHooks=false, privateMode=false, pages=null, diskAssets=true, direct=null} = {}) {
     this.directory=directory; this.connections=[]; this.sockets=new Set();
     if(fs.existsSync(directory))throw Error('Refusing to overwrite fixture');
     if(digest(config.framework)!==config.frameworkSha256||digest(config.executable)!==config.executableSha256)throw Error('Candidate identity mismatch');
@@ -34,7 +34,17 @@ export class NativeFixture {
       this.server=http.createServer((q,r)=>{r.writeHead(200,{'content-type':'text/html'});r.end('<title>Native test fixture</title><p>Local synthetic page</p>');});
       this.server.on('connection',track);
     }
-    this.proxy=net.createServer(s=>{track(s);s.destroy();});
+    // The only egress the browser is given: it records each request's target
+    // (CONNECT host:port, or an absolute URL) and refuses it. With
+    // BLANC_EGRESS_LOG set, each record is appended there as one JSON line
+    // (the outbound-isolation check, tests/outbound/).
+    this.egress=[];
+    this.proxy=net.createServer(s=>{track(s);s.once('data',chunk=>{
+      const [method,target]=chunk.toString('latin1').split('\r\n',1)[0].split(' ');
+      const record={at:new Date().toISOString(),method:method??'',target:target??''};
+      this.egress.push(record);
+      if(process.env.BLANC_EGRESS_LOG)fs.appendFileSync(process.env.BLANC_EGRESS_LOG,JSON.stringify(record)+'\n');
+      s.destroy();});s.setTimeout(5000,()=>s.destroy());});
     for(const s of [this.server,this.proxy].filter(Boolean))await new Promise((resolve,reject)=>{s.once('error',reject);s.listen(0,'127.0.0.1',resolve);});
     this.base=pages?pages.base:`http://127.0.0.1:${this.server.address().port}`;
     let tlsFlags=[];
@@ -54,9 +64,12 @@ export class NativeFixture {
     this.config=config;this.launches=0;this.exits=[];
     this.flags=[`--user-data-dir=${this.profile}`,'--remote-debugging-port=0',
       ...(diskAssets?[`--blanc-prototype-assets=${config.assets}`]:[]),`--blanc-blocker-assets=${config.blockerAssets}`,
-      `--proxy-server=http://127.0.0.1:${this.proxy.address().port}`,`--proxy-bypass-list=127.0.0.1;localhost;${TLS_HOSTS.join(';')}`,
-      `--host-resolver-rules=${TLS_HOSTS.map(h=>'MAP '+h+' 127.0.0.1, ').join('')}MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1`,...tlsFlags,
-      '--disable-background-networking','--disable-quic','--no-first-run','--no-default-browser-check','--use-mock-keychain',
+      // `direct` (outbound-isolation controls only) drops the proxy and the
+      // resolver map and adds its own flags, so the browser itself tries the
+      // paths the OS block must stop.
+      ...(direct?['--no-proxy-server',...direct]:[`--proxy-server=http://127.0.0.1:${this.proxy.address().port}`,`--proxy-bypass-list=127.0.0.1;localhost;${TLS_HOSTS.join(';')}`,
+      `--host-resolver-rules=${TLS_HOSTS.map(h=>'MAP '+h+' 127.0.0.1, ').join('')}MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1`,'--disable-quic']),...tlsFlags,
+      '--disable-background-networking','--no-first-run','--no-default-browser-check','--use-mock-keychain',
       ...(testHooks?['--blanc-test']:[]),...(privateMode?['--incognito']:[])];
     await this.start(this.base+'/initial');
     this.page=await connect((await this.targets()).find(t=>t.url===this.base+'/initial'));this.connections.push(this.page);
