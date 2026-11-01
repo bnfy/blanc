@@ -668,15 +668,6 @@
     return Number.isInteger(n) ? n : -1;
   }
 
-  function destination(value) {
-    const text = String(value ?? '').trim();
-    if (/^https?:\/\//i.test(text)) return text;
-    if (/^[a-z0-9.-]+\.[a-z]{2,}(?:[/:?#]|$)/i.test(text) || /^localhost[:/]/i.test(text)) {
-      return `https://${text}`;
-    }
-    return `https://www.google.com/search?q=${encodeURIComponent(text)}`;
-  }
-
   const implemented = {
     platform: 'darwin',
     startPinMenuState: id => request('startPinMenuState', [nativeId(id)]),
@@ -729,7 +720,9 @@
     getAllTabs: async () => snapshot ?? request('snapshot'),
     createTab: async (url, options) => {
       if (options?.private) throw new Error('Use Chromium’s native private-window command in this prototype.');
-      await request('createTab', [url ? destination(url) : 'chrome://newtab/']);
+      // As in shipping, the address is loaded as given (the browser refuses
+      // what a tab may not open); typed text goes through navigate instead.
+      await request('createTab', [url ? String(url) : 'chrome://newtab/']);
       await refresh();
       if (options?.focusAddress) await show('');
     },
