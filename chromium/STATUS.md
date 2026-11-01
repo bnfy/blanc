@@ -26,8 +26,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   those values. Next: the install-over-Electron spike in `blanc-test`, which
   needs an internally signed build; signing waits for the owner.
 - **S1.1 address bar and search on macos-56a7b95ab2df8558** (targeted runs;
-  the recorded S1 baseline stays on macos-790ca4d6d538c894, since
-  merge-baseline refuses mixed builds).
+  their cases are covered again by the full run on macos-3f969a35b9f9f7ad).
   - Typed text means what it does in shipping v1.45.1
     (`blanc/island/address-input.js`, differential against shipping's code
     over 2,000+ inputs). Familiar links (mailto, tel, facetime, sms) open
@@ -119,10 +118,14 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   the fork's own split rows (v1.45.1 draws them). The host answers the
   archive and sent-tab reads the overlay makes at startup with shipping's
   empty state; other members of later slices still reject. Embedded-assets
-  (58 resources) and typed-interface smokes pass; scenarios not yet run.
-- **F0.5 S1 finish line reached.** All 253 S1-tagged cases have a real result
-  or a named undefined reason on the current candidate: 70 pass, 151 fail, 32
-  undefined. Per-row results and reasons: [reports/s1-macos.json](reports/s1-macos.json) (+ JUnit).
+  (58 resources) and typed-interface smokes pass.
+- **S1 baseline on macos-3f969a35b9f9f7ad (fork 82f8cd80), full run of
+  2026-11-01:** 101 of the 253 S1 cases pass, 119 fail, 33 undefined. Every
+  case that passed on macos-790ca4d6d538c894 (70) still passes; 31 earlier
+  failures now pass (address bar, search, Bangs, external links and the
+  v1.45.1 renderer); one failure became undefined. Across all 627 shipping
+  cases: 101 pass, 163 fail, 361 undefined (most added by the main merge),
+  2 excluded. Per-row results and reasons: [reports/s1-macos.json](reports/s1-macos.json) (+ JUnit).
 - **F0.6 complete (macOS).** Candidate macos-790ca4d6d538c894, built
   incrementally on the pinned toolchain (args and SDK unchanged):
   - Island assets compiled in from `blanc/island/` (`blanc/island_resources`);
@@ -142,9 +145,9 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     with no asset folder) and `tests/typed-interface-smoke.mjs` (host binds; a
     load resolves true; unknown tab and non-web address resolve undefined; a
     Start Page tab's pipe is closed).
-- **Baseline on macos-790ca4d6d538c894 recorded:** full run at f4a4f2fe plus
-  a re-run of the navigation feature at b22cc3f9 (the command-bar test tap
-  read only chrome.send). It matches the previous candidate case for case.
+- **Earlier baseline on macos-790ca4d6d538c894:** full run at f4a4f2fe plus
+  a re-run of the navigation feature at b22cc3f9: 70 pass, 151 fail, 32
+  undefined.
 - Runner: shipping's 24 S1 step files and fixture server load unchanged from
   v1.45.1 (85883b1a); adapters (tests/adapters/) map shipping hooks to the Island
   facade, native dispatch, Island DOM and CDP; fork steps (tests/fork-steps/)
@@ -269,7 +272,7 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | Not run for current candidate (previous baseline is stale) |
+| macOS | 101/627 executable cases pass; 163 failed; 361 undefined/not run; 2 excluded — [baseline](scenarios/baseline-macos-3f969a35b9f9f7ad.json)<br>S1 rows: 101/253 pass; 119 failed; 33 undefined; 0 excluded |
 | Windows | Not run (627 cases) |
 | Linux | Not run (627 cases) |
 
