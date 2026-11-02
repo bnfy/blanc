@@ -8,7 +8,8 @@ const {quotaState,blobView}=require('../../support/sync-quota.cjs');
 const workerModulePromise=import(`data:text/javascript;base64,${fs.readFileSync(require.resolve('../../../cloudflare/sync-worker/src/index.js')).toString('base64')}`);
 
 // versions:false answers the change check as a Worker from before it did.
-async function createSyncFixture({pageSize=2,now=()=>Date.now(),versions=true}={}) {
+async function createSyncFixture({pageSize=2,now=()=>Date.now(),versions:answersVersions=true}={}) {
+  let versions=answersVersions;
   const workerModule=await workerModulePromise,worker=workerModule.default,records=new Map(),expires=new Map(),scope=new AsyncLocalStorage();
   const requests=[],rules=[],clientServers=[],clients=new Map();let race=null,url;
   const raw=k=>{if(expires.has(k)&&expires.get(k)<=now()){expires.delete(k);records.delete(k);}return records.get(k)??null;};
@@ -95,7 +96,7 @@ async function createSyncFixture({pageSize=2,now=()=>Date.now(),versions=true}={
   const server=http.createServer(handler);
   await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});
   url='http://127.0.0.1:'+server.address().port;
-  return {url,env,blobs,loseBlob,requests,inject,dispatch,
+  return {url,env,blobs,loseBlob,requests,inject,dispatch,setVersions:on=>{versions=!!on;},
     quotaUsage:async accountId=>{const ledger=await quotaStates.get(accountId)?.storage.get('ledger');return {bytes:workerModule.AccountQuota.fixedReservationBytes+Object.values(ledger?.stores??{}).reduce((sum,row)=>sum+row.bytes+256,0),stores:8+Object.keys(ledger?.stores??{}).length};},
     clientEndpoint:async name=>{const server=http.createServer(handler);await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});clientServers.push(server);const origin='http://127.0.0.1:'+server.address().port;clients.set(origin,name);return origin;},
     beforeNextPut:(store,before)=>inject({type:'hook',store,before}),

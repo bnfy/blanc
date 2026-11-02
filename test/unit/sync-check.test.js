@@ -30,9 +30,22 @@ test('a network error or a bad body reads as unsupported',async t=>{
     assert.deepEqual(await a.sync.checkVersions(),{supported:false});
   }
 });
-test('a check on a full window is skipped',async t=>{
+test('a check that cannot reach the Worker is skipped, not unsupported',async t=>{
+  const e=await environment(t),off=syncDevice({endpoint:e.fixture.url,fetch:(url,init)=>fetch(url,init),record:{deviceId:'off',enabled:false}});
+  t.after(()=>off.dispose());
+  assert.deepEqual(await off.sync.checkVersions(),{skipped:true});
+  assert.equal(e.fixture.requests.length,0);
+});
+test('a check never takes the request kept for the Choose Spaces sheet',async t=>{
+  // Eight background GETs (all routine work may use with one request kept for
+  // checks) and the sheet's own urgent one make nine: only the reserve is left.
   const e=await environment(t),a=e.device('A');await a.sync.syncNow(['settings']);
-  for(let n=0;n<4;n++)await a.sync.syncNow(['settings','bookmarks']);
-  assert.deepEqual(await a.sync.checkVersions(),{supported:true,skipped:true});
+  for(let n=0;n<3;n++)await a.sync.syncNow(['settings','bookmarks']);
+  await a.sync.syncNow(['bookmarks']);await a.sync.sharedIndexPreview();
+  let done=false;const pending=a.sync.checkVersions().then(()=>{done=true;});
+  await new Promise(r=>setTimeout(r,50));
+  assert.equal(done,false,'the window\'s last request stays free');
   assert.equal(e.fixture.requests.filter(r=>r.store==='versions').length,0);
+  a.sync.resetRequestWindowForTest();await pending;
+  assert.equal(e.fixture.requests.filter(r=>r.store==='versions').length,1);
 });

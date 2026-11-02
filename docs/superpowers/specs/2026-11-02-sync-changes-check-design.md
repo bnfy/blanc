@@ -78,7 +78,7 @@ The same behavior on desktop (`src/main/sync.js`, `sync-request-queue.js`) and i
    - iPhone: every 15 s while the scene is active and the Spaces switch is on, which is the same gate as today's minute pass. With the switch off, the iPhone makes no periodic requests in front, as today.
 
    *(My call on the intervals; see decision 2.)*
-3. **The check goes first.** When a check is due, it runs before rotation work: it is charged to the window like a GET but doesn't wait behind background requests. On desktop it leaves the Choose Spaces sheet's reserved request alone. If the window has no room at all, the check is skipped until the next interval, never queued. This is decided in the queue, not the scheduler, so the scheduler vectors don't change. *(My call.)*
+3. **The check goes first.** When a check is due, it runs before rotation work: it is charged to the window like a GET but doesn't wait behind background requests. On desktop it leaves the Choose Spaces sheet's reserved request alone. Routine work leaves the checks their requests from the moment sync is on (four a minute while in front, one otherwise), so a check always finds room, and the stores it finds changed are fetched ahead of the rotation too. A check that comes due while one waits joins it, so they never pile up. Turning sync off, or a Worker that can't answer the check, frees those requests. This is decided in the queue, not the scheduler, so the scheduler vectors don't change. *(My call. Amended 2026-11-02 during implementation: it first said "skipped, never queued", but a full pass uses more than the window, so checks were skipped for up to a minute after every full pass.)*
 4. **Fetch what changed.**
    - For each fixed store whose named version differs from the remembered one, the client fetches that store: desktop through its ordinary merge-first operation in the usual class (F for the seven, I for `spaces`). When `spaces` changes, class S then fetches the Space blobs whose revision hint moved.
    - On iPhone, `syncFixed` is restructured to fetch only the changed stores. It keeps its order and the writes that depend on one another, and it still treats a missing `settings` as a deleted account only when it actually read `settings`. *(My call; this is the bulk of the iPhone work.)*
@@ -146,7 +146,7 @@ The endpoint returns random version strings for eight fixed store names that eve
 - Fixed stores only, with Space changes learned from the index hints, so no Space ids leave the encrypted index.
 - The versions and fixed-store copies live in the existing `AccountQuota` object, filled on first read for older accounts; KV stays written for rollback.
 - The check counts against the per-account GET limit rather than getting its own budget.
-- The check goes before rotation work, is skipped (not queued) when the window is full, and never uses the sheet's reserved request.
+- The check goes before rotation work, waits for the first free background request when the window is full (amended during implementation; it first said "skipped"), and never uses the sheet's reserved request.
 - Desktop checks every 15 s only while a Blanc window is focused, otherwise every 60 s; the iPhone keeps today's gate (in front, Spaces switch on).
 - Open tabs stay at once a minute.
 - A one-minute retry pass for pending and failed uploads.
