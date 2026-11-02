@@ -38,6 +38,9 @@ private tabs, downloads and permission prompts. It has `runtime.mini` set.
 - **No Spaces.** A mini window can't save, switch to or create a Space
   (`'busy'`). The Island's Space mark and the panel's Spaces button are
   hidden there.
+- **Its last tab closes it.** Closing a mini window's last tab (⌘W, the
+  Island's close button) closes the window. An ordinary window keeps a fresh
+  blank tab instead; a mini window is meant to be put away.
 - **Closes after an hour unused.** Blurring the window starts an hour and
   focusing it cancels it. When the hour is up the window closes, unless a page
   in it is in use (capturing, sharing the screen, playing sound, loading,
@@ -84,5 +87,6 @@ private tabs, downloads and permission prompts. It has `runtime.mini` set.
   - a mini window opens small and isn't saved;
   - the hour's check closes it;
   - Open in Blanc keeps it, and the session saves it;
+  - closing its last tab closes it;
   - a link from another app lands in an ordinary window;
   - the shortcut is off until chosen, then working or reported unavailable.

@@ -45,6 +45,13 @@ Then('the mini window has closed', async function () {
     (all) => !all.some((runtime) => runtime.id === this.miniWindowId && runtime.attached), 'the mini window closed');
 });
 
+When("I close the mini window's only tab", async function () {
+  const runtime = (await this.call('windowRuntimes')).find((candidate) => candidate.id === this.miniWindowId);
+  assert.equal(runtime.tabs.length, 1, 'a mini window opens with one tab');
+  // ⌘W and the Island's close button both close the active tab this way.
+  assert.equal(await this.call('closeTabInWindow', this.miniWindowId, runtime.tabs[0].id), true);
+});
+
 When('I click Open in Blanc in the mini window', async function () {
   await waitForValue(() => this.call('miniWindowChip', this.miniWindowId), (value) => value?.visible === true, 'Open in Blanc');
   assert.equal(await this.call('miniWindowChip', this.miniWindowId, { click: true }).then((value) => value.clicked), true);

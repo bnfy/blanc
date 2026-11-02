@@ -26,6 +26,12 @@ Feature: mini windows
     And another app opens a fixture page while the mini window is focused
     Then the link opens in an ordinary window, not the mini window
 
+  @F61-5 @F61
+  Scenario: closing a mini window's last tab closes the window
+    When I open a mini window
+    And I close the mini window's only tab
+    Then the mini window has closed
+
   @F61-4 @F61
   Scenario: the mini window shortcut is off until chosen
     Then the mini window shortcut is off
