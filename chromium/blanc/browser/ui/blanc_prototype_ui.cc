@@ -4,6 +4,7 @@
 #include "blanc/browser/ui/browser_api/bang_icons.h"
 #include "blanc/browser/ui/browser_api/bangs.h"
 #include "blanc/browser/ui/browser_api/page_handoff.h"
+#include "blanc/browser/ui/browser_api/appearance.h"
 #include "blanc/browser/ui/browser_api/search.h"
 #include "blanc/browser/ui/browser_api/search_choice.h"
 #include "blanc/browser/ui/browser_api/search_default.h"
@@ -135,6 +136,7 @@
 #include "components/history/core/browser/top_sites_observer.h"
 #include "components/keyed_service/core/service_access_type.h"
 #include "components/input/native_web_keyboard_event.h"
+#include "content/public/browser/devtools_agent_host.h"
 #include "content/public/browser/favicon_status.h"
 #include "content/public/browser/navigation_entry.h"
 #include "content/public/browser/web_contents_delegate.h"
@@ -3009,6 +3011,21 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(std::move(list)));
       return;
     }
+    // Read-only: each tab's DevTools target id, so the harness can tell
+    // apart documents that share an address, such as two Start Pages.
+    if (message[1].GetString() == "tabTargets") {
+      base::DictValue targets;
+      if (auto* owner = GetOwner(web_ui()->GetWebContents()); owner && owner->browser) {
+        auto* model = owner->browser->GetTabStripModel();
+        for (int index = 0; index < model->count(); ++index) {
+          auto* contents = model->GetWebContentsAt(index);
+          targets.Set(base::NumberToString(sessions::SessionTabHelper::IdForTab(contents).id()),
+                      content::DevToolsAgentHost::GetOrCreateFor(contents)->GetId());
+        }
+      }
+      Reply(id, true, base::Value(std::move(targets)));
+      return;
+    }
     // Shipping's setTestSearchSuggestionFixture and the requests it records
     // (search.h): a list of strings stands in for the provider; null clears.
     if (message[1].GetString() == "setSuggestionFixture" && message.size() == 3 &&
@@ -5636,6 +5653,13 @@ class BrowserApiHost : public blanc::browser_api::BrowserApiFactoryBase {
         base::BindRepeating(&BrowserApiHost::Browser, base::Unretained(this)), std::move(receiver),
         std::move(client));
   }
+  void BindAppearance(mojo::PendingReceiver<blanc::browser_api::mojom::Appearance> receiver,
+      mojo::PendingRemote<blanc::browser_api::mojom::AppearanceClient> client) override {
+    if (!contents_) return;
+    appearance_ = std::make_unique<blanc::browser_api::Appearance>(
+        Profile::FromBrowserContext(contents_->GetBrowserContext()), std::move(receiver),
+        std::move(client));
+  }
 
  private:
   BrowserWindowInterface* Browser() {
@@ -5646,6 +5670,7 @@ class BrowserApiHost : public blanc::browser_api::BrowserApiFactoryBase {
   mojo::Receiver<blanc::browser_api::mojom::BrowserApiFactory> receiver_;
   std::unique_ptr<blanc::browser_api::Navigation> navigation_;
   std::unique_ptr<blanc::browser_api::Search> search_;
+  std::unique_ptr<blanc::browser_api::Appearance> appearance_;
 };
 
 UI::~UI() = default;

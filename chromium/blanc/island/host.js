@@ -971,6 +971,9 @@
     listSentToThisDevice: async () => [],
     listSendTargets: async () => [],
     searchSuggestions: query => typed('searchSuggestions', [String(query)]),
+    cycleTheme: theme => typed('cycleTheme', [typeof theme === 'string' ? theme : null]),
+    toggleDarkSiteOnActiveSite: () => typed('toggleDarkSiteOnActiveSite', []),
+    routeActiveSite: mode => typed('routeActiveSite', [String(mode)]),
     openFindBar,
     findInPage: (id, query, options = {}) => request('find',
       [nativeId(id), String(query), options.forward !== false, options.findNext !== false]),
@@ -1075,6 +1078,8 @@
   // Events from the typed interface (browser-api.js), only the ones it sends.
   window.addEventListener('blanc-browser-api', (event) => {
     if (event.detail?.event === 'onBangIconsChanged') emit('onBangIconsChanged', event.detail.payload);
+    if (event.detail?.event === 'onThemeAppearance') emit('onThemeAppearance', event.detail.payload);
+    if (event.detail?.event === 'onPageTint') emit('onPageTint', event.detail.payload);
     if (event.detail?.event !== 'onBangsChanged') return;
     bangState = event.detail.payload;
     emit('onBangsChanged', bangState);

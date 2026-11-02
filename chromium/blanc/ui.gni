@@ -18,7 +18,9 @@ source_set(target_name) {
               "//blanc/browser/ui/browser_api/bang_icon_policy.cc", "//blanc/browser/ui/browser_api/bang_icon_policy.h",
               "//blanc/browser/ui/browser_api/search.cc", "//blanc/browser/ui/browser_api/search.h",
               "//blanc/browser/ui/browser_api/suggestion_policy.cc", "//blanc/browser/ui/browser_api/suggestion_policy.h",
-              "//blanc/browser/ui/browser_api/search_choice.h" ]
+              "//blanc/browser/ui/browser_api/search_choice.h",
+              "//blanc/browser/ui/browser_api/appearance.cc", "//blanc/browser/ui/browser_api/appearance.h",
+              "//blanc/browser/ui/browser_api/theme_choice.h" ]
   public_deps = [ "//chrome/browser/ui/views/frame:browser_view_header" ]
   deps = [
     "//blanc:buildflags",

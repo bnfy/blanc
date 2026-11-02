@@ -58,6 +58,9 @@ void SearchSettingsHandler::Handle(const base::ListValue& message) {
     // settings do. Recents are never written from Settings.
     if (auto bangs_on = partial.FindBool("bangsEnabled"))
       prefs->SetBoolean(blanc::browser_api::bangs::kEnabledPref, *bangs_on);
+    // Appearance is Chromium's browser color scheme (appearance.h).
+    if (const auto* theme = partial.FindString("theme"))
+      blanc::browser_api::SetTheme(profile, *theme);
     if (const auto* custom_bangs = partial.FindList("customBangs"))
       prefs->SetList(blanc::browser_api::bangs::kCustomPref,
                      blanc::browser_api::bangs::NormalizeCustomBangs(*custom_bangs));
@@ -103,6 +106,7 @@ void SearchSettingsHandler::Handle(const base::ListValue& message) {
   state.Set("searchEngineTemplate", current.custom_template);
   state.Set("searchSuggestions", prefs->GetBoolean(prefs::kSearchSuggestEnabled));
   state.Set("editable", editable);
+  state.Set("theme", blanc::browser_api::ThemeOf(profile));
   state.Set("bangsEnabled", prefs->GetBoolean(blanc::browser_api::bangs::kEnabledPref));
   state.Set("customBangs", blanc::browser_api::bangs::NormalizeCustomBangs(
       prefs->GetList(blanc::browser_api::bangs::kCustomPref)));

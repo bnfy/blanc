@@ -8,6 +8,11 @@ const same=(a,b)=>String(a).toLocaleLowerCase()===String(b).toLocaleLowerCase();
 export async function tabPage(w,id){
  const tabs=(await w.snapshot()).tabs;const tab=tabs.find(t=>String(t.id)===String(id));
  if(!tab)throw Error('Unknown native tab '+id);
+ // The browser names each tab's DevTools target, so documents that share an
+ // address (two Start Pages) stay apart; older candidates fall back to the
+ // address, which must then be unique.
+ const targetId=(await w.native('tabTargets',[]).catch(()=>null))?.[String(id)];
+ if(targetId){await w.app.refresh();const page=w.app.windows().find(p=>p.targetId===targetId);if(page)return page;}
  // The snapshot names the Start Page blanc://newtab/ and commits it as its
  // blanc-prototype document; its page target says chrome://newtab/. Compare
  // all of them through the shipping URL projection.

@@ -20,6 +20,20 @@
     <section class="settings-group" aria-labelledby="general-title">
       <h2 class="group-title" id="general-title" data-search-i18n="settings.general.title">General</h2>
       <div class="settings-card settings-card--mixed">
+        <h3 class="card-title" data-search-i18n="settings.general.cards.appearance">Appearance</h3>
+        <div class="setting">
+          <div class="label">
+            <span data-search-i18n="settings.general.theme.label">Theme</span>
+            <span class="hint" data-search-i18n="settings.general.theme.hint">System follows your macOS/Windows theme</span>
+          </div>
+          <select id="theme">
+            <option value="system" data-search-i18n="settings.general.theme.system">System</option>
+            <option value="light" data-search-i18n="settings.general.theme.light">Light</option>
+            <option value="dark" data-search-i18n="settings.general.theme.dark">Dark</option>
+          </select>
+        </div>
+      </div>
+      <div class="settings-card settings-card--mixed">
         <h3 class="card-title" data-search-i18n="settings.general.cards.search">Search</h3>
         <div class="setting">
           <div class="label">
