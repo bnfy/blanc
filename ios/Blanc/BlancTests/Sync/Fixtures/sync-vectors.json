@@ -68684,5 +68684,275 @@
       "input": "https://@blanc.day/pair#K7MR4PX2",
       "expected": null
     }
-  ]
+  ],
+  "changes": {
+    "constants": {
+      "FIXED_STORES": [
+        "bookmarks",
+        "settings",
+        "session",
+        "icons",
+        "sends",
+        "closed",
+        "shared",
+        "spaces"
+      ],
+      "CHECK_MS": 15000,
+      "BACKGROUND_CHECK_MS": 60000,
+      "FULL_PASS_MS": 300000,
+      "RETRY_PASS_MS": 60000,
+      "CHECK_RETRY_AFTER_MS": 600000,
+      "OPEN_TABS_MS": 60000,
+      "R_PER_PASS": 5
+    },
+    "changed": [
+      {
+        "name": "unchanged",
+        "input": {
+          "named": {
+            "bookmarks": "v1",
+            "settings": "v1",
+            "session": "v1",
+            "icons": "v1",
+            "sends": "v1",
+            "closed": "v1",
+            "shared": "v1",
+            "spaces": "v1"
+          },
+          "seen": {
+            "bookmarks": "v1",
+            "settings": "v1",
+            "session": "v1",
+            "icons": "v1",
+            "sends": "v1",
+            "closed": "v1",
+            "shared": "v1",
+            "spaces": "v1"
+          },
+          "now": 1000000,
+          "lastOpenTabsFetch": 0
+        },
+        "expected": {
+          "fetch": [],
+          "deferred": []
+        }
+      },
+      {
+        "name": "index moved",
+        "input": {
+          "named": {
+            "bookmarks": "v1",
+            "settings": "v1",
+            "session": "v1",
+            "icons": "v1",
+            "sends": "v1",
+            "closed": "v1",
+            "shared": "v1",
+            "spaces": "v2"
+          },
+          "seen": {
+            "bookmarks": "v1",
+            "settings": "v1",
+            "session": "v1",
+            "icons": "v1",
+            "sends": "v1",
+            "closed": "v1",
+            "shared": "v1",
+            "spaces": "v1"
+          },
+          "now": 1000000,
+          "lastOpenTabsFetch": 0
+        },
+        "expected": {
+          "fetch": [
+            "spaces"
+          ],
+          "deferred": []
+        }
+      },
+      {
+        "name": "appeared and vanished",
+        "input": {
+          "named": {
+            "bookmarks": null,
+            "settings": null,
+            "session": null,
+            "icons": null,
+            "sends": "new",
+            "closed": null,
+            "shared": null,
+            "spaces": null
+          },
+          "seen": {
+            "bookmarks": null,
+            "settings": null,
+            "session": null,
+            "icons": null,
+            "sends": null,
+            "closed": "gone",
+            "shared": null,
+            "spaces": null
+          },
+          "now": 1000000,
+          "lastOpenTabsFetch": 0
+        },
+        "expected": {
+          "fetch": [
+            "sends",
+            "closed"
+          ],
+          "deferred": []
+        }
+      },
+      {
+        "name": "never seen",
+        "input": {
+          "named": {
+            "bookmarks": null,
+            "settings": "v1",
+            "session": null,
+            "icons": null,
+            "sends": null,
+            "closed": null,
+            "shared": null,
+            "spaces": null
+          },
+          "seen": {},
+          "now": 1000000,
+          "lastOpenTabsFetch": 0
+        },
+        "expected": {
+          "fetch": [
+            "settings"
+          ],
+          "deferred": []
+        }
+      },
+      {
+        "name": "open tabs wait",
+        "input": {
+          "named": {
+            "bookmarks": "v1",
+            "settings": "v1",
+            "session": "v2",
+            "icons": "v2",
+            "sends": "v1",
+            "closed": "v1",
+            "shared": "v1",
+            "spaces": "v1"
+          },
+          "seen": {
+            "bookmarks": "v1",
+            "settings": "v1",
+            "session": "v1",
+            "icons": "v1",
+            "sends": "v1",
+            "closed": "v1",
+            "shared": "v1",
+            "spaces": "v1"
+          },
+          "now": 100000,
+          "lastOpenTabsFetch": 80000
+        },
+        "expected": {
+          "fetch": [],
+          "deferred": [
+            "session",
+            "icons"
+          ]
+        }
+      },
+      {
+        "name": "open tabs due",
+        "input": {
+          "named": {
+            "bookmarks": "v2",
+            "settings": "v1",
+            "session": "v2",
+            "icons": "v2",
+            "sends": "v1",
+            "closed": "v1",
+            "shared": "v1",
+            "spaces": "v1"
+          },
+          "seen": {
+            "bookmarks": "v1",
+            "settings": "v1",
+            "session": "v1",
+            "icons": "v1",
+            "sends": "v1",
+            "closed": "v1",
+            "shared": "v1",
+            "spaces": "v1"
+          },
+          "now": 141000,
+          "lastOpenTabsFetch": 80000
+        },
+        "expected": {
+          "fetch": [
+            "bookmarks",
+            "session",
+            "icons"
+          ],
+          "deferred": []
+        }
+      }
+    ],
+    "confirmed": [
+      {
+        "name": "raced",
+        "input": {
+          "named": {
+            "bookmarks": "v2",
+            "settings": "v2",
+            "session": "v2",
+            "icons": "v2",
+            "sends": "v2",
+            "closed": "v2",
+            "shared": "v2",
+            "spaces": "v2"
+          },
+          "store": "spaces",
+          "fetchedVersion": "v1"
+        },
+        "expected": false
+      },
+      {
+        "name": "matched",
+        "input": {
+          "named": {
+            "bookmarks": "v2",
+            "settings": "v2",
+            "session": "v2",
+            "icons": "v2",
+            "sends": "v2",
+            "closed": "v2",
+            "shared": "v2",
+            "spaces": "v2"
+          },
+          "store": "spaces",
+          "fetchedVersion": "v2"
+        },
+        "expected": true
+      },
+      {
+        "name": "still absent",
+        "input": {
+          "named": {
+            "bookmarks": null,
+            "settings": null,
+            "session": null,
+            "icons": null,
+            "sends": null,
+            "closed": null,
+            "shared": null,
+            "spaces": null
+          },
+          "store": "sends",
+          "fetchedVersion": null
+        },
+        "expected": true
+      }
+    ]
+  }
 }
