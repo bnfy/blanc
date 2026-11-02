@@ -6,7 +6,7 @@ function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setT
   // 429s with no answered request between them (M16 §6.2: "Sync is busy;
   // retrying" after two). Other failures leave the count as it is.
   let consecutiveRateLimits=0;
-  const status=()=>({waiting:waiting.length,running:running?1:0,windowFreesAt:scheduler.windowFreesAt(),backoff:scheduler.snapshot().windowLimit<10,consecutiveRateLimits});
+  const status=()=>({waiting:waiting.length,running:running?1:0,windowFreesAt:scheduler.windowFreesAt({reserve:true}),backoff:scheduler.snapshot().windowLimit<10,consecutiveRateLimits});
   function complete(op,outcome,error) {
     op.state=error?.message?.startsWith('cancelled:')?'cancelled':'done';
     for(const waiter of op.waiters) {
@@ -24,16 +24,7 @@ function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setT
     for(let i=waiting.length-1;i>=0;i--)if(predicate(waiting[i]))complete(waiting.splice(i,1)[0],null,makeError('cancelled:'+reason));
     settleDrain();wake();
   }
-  async function pump() {
-    if(running)return;
-    for(let i=waiting.length-1;i>=0;i--) {
-      const reason=waiting[i].cancelled?.();
-      if(reason)complete(waiting.splice(i,1)[0],null,makeError('cancelled:'+reason));
-    }
-    if(!waiting.length){settleDrain();return;}
-    if(!scheduler.canRequest()) {
-      timer=setTimer(()=>{timer=null;wake();},Math.max(1,scheduler.windowFreesAt()-now()));return;
-    }
+  function pickRotation() {
     const work={I:waiting.some(x=>x.class==='I'),S:[],F:[],R:[]};
     for(const op of waiting)if(op.class!=='I')work[op.class].push(op.item);
     for(const k of ['S','R'])work[k].sort((a,b)=>{
@@ -43,8 +34,24 @@ function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setT
     });
     const chosen=scheduler.next(work);
     const pos=waiting.findIndex(x=>x.class===chosen?.class && x.item===chosen?.item);
-    if(pos<0){wake();return;}
-    const op=waiting.splice(pos,1)[0];running=op;op.state='running';
+    return pos<0?null:waiting.splice(pos,1)[0];
+  }
+  async function pump() {
+    if(running)return;
+    for(let i=waiting.length-1;i>=0;i--) {
+      const reason=waiting[i].cancelled?.();
+      if(reason)complete(waiting.splice(i,1)[0],null,makeError('cancelled:'+reason));
+    }
+    if(!waiting.length){settleDrain();return;}
+    // A request a person is waiting on goes first, outside the class
+    // rotation, and leaves the rotation's cursors where they were.
+    const urgent=waiting.find(x=>x.urgent)??null;
+    if(!scheduler.canRequest({reserve:!urgent})) {
+      timer=setTimer(()=>{timer=null;wake();},Math.max(1,scheduler.windowFreesAt({reserve:!urgent})-now()));return;
+    }
+    const op=urgent?waiting.splice(waiting.indexOf(urgent),1)[0]:pickRotation();
+    if(!op){wake();return;}
+    running=op;op.state='running';
     try {
       const reservation=scheduler.record();persist(scheduler.snapshot());
       let outcome;

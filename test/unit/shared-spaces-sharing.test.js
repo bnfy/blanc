@@ -60,6 +60,14 @@ test('a library preview reads the index while consent is off and never publishes
   const result=await d.sync.sharedIndexPreview();assert.equal(result.ok,true);assert.deepEqual(requests,['GET']);
   assert.equal(d.spaces.spaceCount({accountId:d.record.accountId}),1);assert.equal(d.spaces.isEnabled({accountId:d.record.accountId}),false);
 });
+test('confirming soon after the sheet\'s check reuses it; an older or missing check fetches again',async t=>{
+  const {syncDevice}=require('./support/sync-device'),{encrypt}=require('../../src/main/sync-crypto');const requests=[];
+  const d=syncDevice({fetch:async(url,options={})=>{requests.push(options.method??'GET');return {status:200,ok:true,json:async()=>({version:'v',blob:encrypt(Buffer.alloc(32,9),JSON.stringify({v:1,spaces:{[id(1)]:indexEntry()}}))})};}});
+  t.after(()=>d.dispose());
+  assert.equal((await d.sync.sharedIndexPreview({maxAge:30000})).ok,true);assert.equal(requests.length,1,'no earlier check: fetches');
+  assert.equal((await d.sync.sharedIndexPreview({maxAge:30000})).ok,true);assert.equal(requests.length,1,'a check under 30 s old is reused');
+  assert.equal((await d.sync.sharedIndexPreview()).ok,true);assert.equal(requests.length,2,'the sheet\'s own check always fetches');
+});
 test('a dormant Space stays out of the network queue while other shared Spaces sync',async t=>{
   const {syncDevice}=require('./support/sync-device');const requests=[];
   const d=syncDevice({fetch:async(url,options={})=>{requests.push(String(url));return {status:404,ok:false,text:async()=> 'not found'};}});

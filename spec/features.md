@@ -1769,6 +1769,12 @@ not delete its shared record: other devices retain the last shareable web page.
 Only an actual close publishes deletion. The switch is off by default and is
 local to each device. See `acceptance/shared-spaces.feature` and the M16 design.
 
+**Unreleased (owner, 2026-10-31):** the selection sheet opens at once from the
+device's saved index and checks other devices in the background, with no "Sync
+is busy" at that moment. While the switch is on, **Choose Spaces to sync** adds
+more Spaces without switching it off, and a Space saved while it is on is
+shared by itself. A Space left unticked in a sheet stays on the device.
+
 Shipped in public v1.45.0 (October 29, 2026), Personal profile only, up to 25
 shared Spaces, after the Gate D device rerun passed Mac↔Windows and Mac↔Linux
 (`docs/reviews/2026-10-28-shared-spaces-gate-d-1.45.0.md`); evidence in

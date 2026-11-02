@@ -117,3 +117,26 @@ test('resetWindow lets a request waiting on an exhausted window run now and pers
   assert.deepEqual(persisted.at(-1).log,[]);assert.equal(persisted.at(-1).backoffUntil,null);
   await tick();await tick();assert.equal((await send).outcome,'sent');assert.equal(ran,1);assert.equal(queue.status().waiting,0);
 });
+test('background work leaves the window\'s last request for an urgent one, which skips the rotation',async()=>{
+  const {scheduler,queue}=setup();const order=[];
+  const background=Array.from({length:12},(_,i)=>queue.enqueue({class:'F',item:'settings'+i,run:async()=>{order.push('F'+i);}}));
+  await tick();for(let i=0;i<12;i++)await tick();
+  assert.equal(order.length,9,'background stops one short of the 10-request window');
+  assert.equal(scheduler.canRequest({reserve:true}),false);assert.equal(scheduler.canRequest(),true);
+  const before=scheduler.snapshot().nextClass;
+  const urgent=await queue.enqueue({class:'I',item:'spaces',generation:'preview:1',urgent:true,run:async()=>{order.push('I');return 'fresh';}});
+  assert.equal(urgent.outcome,'fresh');assert.equal(order.at(-1),'I');assert.equal(order.length,10);
+  assert.equal(scheduler.snapshot().nextClass,before,'the urgent request leaves the rotation where it was');
+  assert.equal(scheduler.canRequest(),false,'the window itself never grows');
+  void background;
+});
+test('an urgent request goes ahead of waiting background work',async()=>{
+  const {scheduler,queue}=setup();for(let i=0;i<9;i++)scheduler.record();const order=[];
+  const waitingWork=queue.enqueue({class:'S',item:'s1',run:async()=>{order.push('S');}});
+  const urgent=queue.enqueue({class:'I',item:'spaces',generation:'preview:1',urgent:true,run:async()=>{order.push('I');}});
+  await urgent;assert.deepEqual(order,['I']);assert.equal(queue.status().waiting,1);void waitingWork;
+});
+test('a small or backed-off window keeps every request for background work',()=>{
+  let t=0;const scheduler=createScheduler({limit:3,now:()=>t,monotonic:()=>t});
+  scheduler.record();scheduler.record();assert.equal(scheduler.canRequest({reserve:true}),true);scheduler.record();assert.equal(scheduler.canRequest(),false);
+});

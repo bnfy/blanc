@@ -8487,6 +8487,26 @@
     "message": "Änderungen werden wegen der Ratenbegrenzung seltener geprüft.",
     "source": "sha256:f1c8823a2e7f316b056badc328eaf782f6bc1bbb53374c8f552bc060ed7104a7"
   },
+  "sharedSpaces.checking": {
+    "message": "Deine anderen Geräte werden geprüft …",
+    "source": "sha256:f1a6520b3e9864fe44a078a70a065b882ee61deee0b3562db839cae9428694b3"
+  },
+  "sharedSpaces.checkingButton": {
+    "message": "Wird geprüft …",
+    "source": "sha256:7565d86baf0baa97d179f6e2c4bdf64acd8c0668689ba45a824247033632b46a"
+  },
+  "sharedSpaces.share": {
+    "message": "Teilen",
+    "source": "sha256:f51116f0f17066523bae83e638ff4625bca4038dda872a95c6bd33984cb2c57a"
+  },
+  "sharedSpaces.listUpdated": {
+    "message": "Die Liste wurde aktualisiert. Prüfe sie und bestätige noch einmal.",
+    "source": "sha256:9d0b81228efbb1c3436f6daae255e5d04adc73946fb4b1d1977083844c250cd9"
+  },
+  "sharedSpaces.uploading": {
+    "message": "Deine Spaces werden hochgeladen. Du kannst weitersurfen.",
+    "source": "sha256:76e3d65aa8b896d32b04cdd6c30cbcf675a0a751a9c84875dbe95de5fa32098b"
+  },
   "sharedSpaces.unsyncedTab": {
     "message": "Nicht synchronisiert",
     "source": "sha256:7d90f826c48ab9a6c1eaa17d10dab7b9b749059eacf8b2618cf101b4eb63476c"

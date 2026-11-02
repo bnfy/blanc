@@ -6,7 +6,7 @@ const model=require('./shared-spaces-model');
 const { canonical }=require('./tabsync-model');
 const copy=x=>structuredClone(x);
 const empty=()=>({accountId:'',enabled:false,index:{v:1,spaces:{}},knownIndex:{},blobs:{},pending:{},windows:{},
-  recoveries:{},recoveryDone:{},sidecar:{devices:{}},dormantIds:[],draftIds:[],draftPlans:{},askedDeviceIds:[],pairingBaseline:null,recoveryNoticeSeen:false,requestLog:[],nextClass:'I',cursors:{}});
+  recoveries:{},recoveryDone:{},sidecar:{devices:{}},dormantIds:[],draftIds:[],draftPlans:{},askedDeviceIds:[],pairingBaseline:null,knownWorkspaceIds:null,recoveryNoticeSeen:false,requestLog:[],nextClass:'I',cursors:{}});
 let store;
 const ensure=()=>store??=new JsonStore('shared-spaces',empty(),{scope:'profile'});
 const changed=new Set(),remoteChanged=new Set();
@@ -28,6 +28,7 @@ function rebind(accountId) {
   if(!container(sidecar.devices))repairs.sidecar={...sidecar,devices:{}};
   for(const key of ['dormantIds','draftIds','askedDeviceIds'])if(!Array.isArray(s.data[key]))repairs[key]=[];
   if(s.data.pairingBaseline!==null&&!Array.isArray(s.data.pairingBaseline))repairs.pairingBaseline=null;
+  if(s.data.knownWorkspaceIds!=null&&!Array.isArray(s.data.knownWorkspaceIds))repairs.knownWorkspaceIds=null;
   if(Object.keys(repairs).length)s.update(d=>Object.assign(d,repairs));
   return s;
 }

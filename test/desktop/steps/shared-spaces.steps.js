@@ -388,3 +388,94 @@ Given('a Shared Spaces fixture whose shared Work Space has the first Work tab in
  }});
  assert.equal(sharedGroupOf(await sharedCopy(this),workUrl(this,'first'))?.name.v,name,'the group is shared with its Space');
 });
+async function evidence(world,name){
+ if(!process.env.BLANC_SHARED_SPACES_EVIDENCE_DIR)return;const fs=require('node:fs'),path=require('node:path');
+ fs.mkdirSync(process.env.BLANC_SHARED_SPACES_EVIDENCE_DIR,{recursive:true});await world.sharedPage.screenshot({path:path.join(process.env.BLANC_SHARED_SPACES_EVIDENCE_DIR,name+'.png')});
+}
+// Turning the switch on: the sheet opens from the saved index while the
+// fresh check waits (a held fixture GET stands in for a full request window).
+Given('the next Spaces index fetch is held',function(){
+ let release;this.heldIndex=new Promise(resolve=>{release=resolve;});this.releaseIndex=release;
+ this.sharedFixture.inject({type:'hook',method:'GET',store:'spaces',before:()=>this.heldIndex});
+});
+Given('a Shared Spaces fixture with local Work and Private Spaces',{timeout:180000},async function(){
+ await setup(this,false);const made=await this.call('workspaceAction','create','Private');assert.equal(made.ok,true);
+});
+When('I turn on Spaces and groups',{timeout:180000},async function(){
+ this.sharedPage??=await settingsPage(this);const page=this.sharedPage;
+ await page.locator('#sharedSpacesToggle').waitFor({state:'attached',timeout:60000});
+ this.busySeen=page.evaluate(()=>new Promise(resolve=>{const control=document.getElementById('sharedSpacesControl');
+  const seen=()=>/Sync is busy/.test(control.textContent);if(seen())return resolve(true);
+  const observer=new MutationObserver(()=>{if(seen()){observer.disconnect();resolve(true);}});observer.observe(control,{subtree:true,childList:true,characterData:true});
+  setTimeout(()=>{observer.disconnect();resolve(false);},5000);})).catch(()=>false);// a scenario that never asks may end first
+ this.turnedOnAt=Date.now();await page.locator('#sharedSpacesToggle').check();
+});
+Then('the selection sheet is open within a second and is checking other devices',async function(){
+ await this.sharedPage.locator('.shared-spaces-dialog').waitFor({state:'visible',timeout:1000});
+ assert.ok(Date.now()-this.turnedOnAt<1500,'the sheet opened within about a second');
+ assert.equal(await this.sharedPage.locator('.shared-spaces-checking').isVisible(),true);
+ assert.match(await this.sharedPage.locator('.shared-spaces-checking').textContent(),/Checking your other devices/);await evidence(this,'sheet-checking');
+});
+Then('Settings never says Sync is busy',async function(){assert.equal(await this.busySeen,false);});
+When('the held Spaces index fetch is released',function(){this.releaseIndex();});
+Then('the sheet stops checking and the Work Space is still checked',{timeout:60000},async function(){
+ await this.sharedPage.locator('.shared-spaces-checking').waitFor({state:'hidden',timeout:30000});
+ const choice=this.sharedPage.locator('.shared-spaces-choice').filter({hasText:'Work'});assert.equal(await choice.locator('input').isChecked(),true);
+ await this.sharedPage.locator('.shared-spaces-dialog button').filter({hasText:'Cancel'}).click();
+ assert.equal((await this.call('sharedSpacesTest','state')).shared.enabled,false);
+});
+When('I press Turn on in the selection sheet',async function(){
+ await this.sharedPage.locator('.shared-spaces-dialog').waitFor({state:'visible',timeout:10000});
+ await this.sharedPage.locator('.shared-spaces-dialog button').filter({hasText:'Turn on'}).click();
+});
+When('I untick {string} and press Turn on in the selection sheet',{timeout:60000},async function(name){
+ const dialog=this.sharedPage.locator('.shared-spaces-dialog');await dialog.waitFor({state:'visible',timeout:10000});
+ await dialog.locator('.shared-spaces-checking').waitFor({state:'hidden',timeout:30000});
+ await dialog.locator('.shared-spaces-choice').filter({hasText:name}).locator('input').uncheck();
+ await dialog.locator('button').filter({hasText:'Turn on'}).click();await dialog.waitFor({state:'hidden',timeout:60000});
+});
+Then('the Turn on button waits for the check and sharing is still off',async function(){
+ const button=this.sharedPage.locator('.shared-spaces-dialog button').filter({hasText:'Checking'});
+ await button.waitFor({state:'visible',timeout:5000});assert.equal(await button.isDisabled(),true);
+ assert.equal((await this.call('sharedSpacesTest','state')).shared.enabled,false);
+});
+When('I make a new Space {string}',{timeout:60000},async function(name){
+ const made=await this.call('workspaceAction','create',name);assert.equal(made.ok,true);
+});
+async function sharedOnce(world,name){
+ const state=await world.call('sharedSpacesTest','state');if(!state.shared.enabled)return false;
+ const rows=state.workspaces.items.filter(row=>row.name===name);
+ const records=Object.values(state.shared.index.spaces).filter(record=>record.name.v===name&&!record.deleted.v);
+ return rows.length===1&&!!rows[0].sharedSync&&records.length===1;
+}
+Then('the {string} Space is shared once and Spaces sync is on',{timeout:60000},async function(name){
+ await waitForValue(()=>sharedOnce(this,name),Boolean,name+' shared once',30000);
+ if(this.sharedPage)assert.equal(await this.sharedPage.locator('#sharedSpacesToggle').isChecked(),true);
+});
+Then('the {string} Space stays on this device',async function(name){
+ await new Promise(resolve=>setTimeout(resolve,2500));// past the automatic share's settle delay
+ const state=await this.call('sharedSpacesTest','state'),row=state.workspaces.items.find(item=>item.name===name);
+ assert.ok(row);assert.equal(row.sharedSync,undefined);assert.equal(Object.values(state.shared.index.spaces).some(record=>record.name.v===name),false);
+});
+When('I choose Spaces to sync from Settings',async function(){
+ await this.sharedPage.locator('#sharedSpacesChoose').click();
+ await this.sharedPage.locator('.shared-spaces-dialog').waitFor({state:'visible',timeout:1000});
+});
+Then('the {string} Space is listed as Shared',async function(name){
+ const choice=this.sharedPage.locator('.shared-spaces-choice').filter({hasText:name});
+ await choice.locator('.shared-spaces-tag').waitFor({state:'visible',timeout:10000});
+ assert.equal(await choice.locator('input').isDisabled(),true);assert.equal(await choice.locator('input').isChecked(),true);await evidence(this,'choose-with-shared');
+});
+When('I press Share in the selection sheet',{timeout:60000},async function(){
+ const dialog=this.sharedPage.locator('.shared-spaces-dialog');
+ await dialog.locator('button').filter({hasText:'Share'}).click();await dialog.waitFor({state:'hidden',timeout:60000});
+});
+When('I press Cancel in the selection sheet',async function(){
+ const button=this.sharedPage.locator('.shared-spaces-dialog button').filter({hasText:'Cancel'});
+ assert.equal(await button.isDisabled(),false,'Cancel is never disabled');await button.click();
+});
+Then('the selection sheet is closed and Settings says the Spaces are uploading',async function(){
+ await this.sharedPage.locator('.shared-spaces-dialog').waitFor({state:'hidden',timeout:2000});
+ assert.match(await this.sharedPage.locator('#sharedSpacesControl').textContent(),/Uploading your Spaces/);
+ assert.equal(await this.sharedPage.locator('#sharedSpacesToggle').isChecked(),true);await evidence(this,'uploading');
+});
