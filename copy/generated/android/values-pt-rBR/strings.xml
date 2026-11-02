@@ -2555,6 +2555,11 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="slash_reader_hint">Leia este artigo com texto ajustável e menos distrações</string>
     <string name="reader_inter">Inter</string>
     <string name="reader_mono">JetBrains Mono</string>
+    <string name="settings_general_island_size_label">Tamanho da Island</string>
+    <string name="settings_general_island_size_hint">Deixa a Island e os botões maiores. A página desce para abrir espaço.</string>
+    <string name="settings_general_island_size_default">Padrão</string>
+    <string name="settings_general_island_size_large">Grande</string>
+    <string name="settings_general_island_size_extra_large">Muito grande</string>
     <string name="settings_general_vertical_tabs_text_size_label">Tamanho do texto das abas verticais</string>
     <string name="settings_general_vertical_tabs_text_size_hint">Facilite a leitura dos títulos das abas e dos nomes dos grupos na barra lateral de abas verticais.</string>
     <string name="settings_general_vertical_tabs_text_size_default">Padrão</string>

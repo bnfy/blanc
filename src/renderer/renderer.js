@@ -1225,6 +1225,10 @@
   });
 
   function render() {
+    // Island size (#1292): CSS scales the pill and the strip; the strip's
+    // ResizeObserver then reports the new height to main.
+    document.documentElement.dataset.islandSize = ['large', 'extra-large'].includes(state.islandSize)
+      ? state.islandSize : 'default';
     requestAnimationFrame(() => reportIslandRect());
     // Split View headers follow their pages (title, Back, loading).
     // The rail is a presentation of this same trusted payload, not another

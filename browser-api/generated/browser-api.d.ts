@@ -316,6 +316,8 @@ export interface TabsSnapshot {
   verticalTabsTextSize: string;
   /** Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). */
   islandTabIcons: boolean;
+  /** The resting Island's size: default, large or extra-large (device-local setting, #1292). */
+  islandSize: string;
   verticalTabsWidth: number;
   verticalTabsPreferredWidth: number;
   verticalTabsMinWidth: number;
@@ -340,6 +342,8 @@ export interface TabsUpdatedPayload {
   verticalTabsTextSize: string;
   /** Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). */
   islandTabIcons: boolean;
+  /** The resting Island's size: default, large or extra-large (device-local setting, #1292). */
+  islandSize: string;
   adblockEnabled: boolean;
   shieldPopover: ShieldPopover | null;
   captureChip: CaptureChip;

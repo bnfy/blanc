@@ -529,6 +529,21 @@
     document.getElementById('tabLayoutSetting')?.remove();
   }
 
+  if (supports('islandSize')) {
+    const islandSize = document.getElementById('islandSize');
+    const showIslandSize = (value) => { islandSize.value = ['large', 'extra-large'].includes(value) ? value : 'default'; };
+    showIslandSize(settings.islandSize);
+    islandSize.addEventListener('change', async () => {
+      try {
+        showIslandSize((await window.bowserPages.settings.set({ islandSize: islandSize.value })).islandSize);
+      } catch {
+        window.bowserPages.settings.get().then(({ settings: saved }) => showIslandSize(saved.islandSize), () => {});
+      }
+    });
+  } else {
+    document.getElementById('islandSizeSetting')?.remove();
+  }
+
   if (supports('tabLayout')) {
     const textSize = document.getElementById('verticalTabsTextSize');
     textSize.value = settings.verticalTabsTextSize ?? 'default';

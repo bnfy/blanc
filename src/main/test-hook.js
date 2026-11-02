@@ -1165,6 +1165,7 @@ function install(refs) {
     // ---- settings ----
     setAdblock(on) { settings.setSettings({ adblockEnabled: !!on }); },
     setIslandTabIcons(on) { return settings.setSettings({ islandTabIcons: !!on }).islandTabIcons; },
+    setIslandSize(size) { return settings.setSettings({ islandSize: size }).islandSize; },
     // The launch Sunrise plays once per launch; acceptance rearms that launch.
     setLaunchSunrise(on) {
       const saved = settings.setSettings({ launchSunrise: !!on }).launchSunrise;
@@ -4175,6 +4176,7 @@ function install(refs) {
         newtabLayout: 'billboard',
         verticalTabsWidth: 248,
         verticalTabsTextSize: 'default',
+        islandSize: 'default',
         appIcon: 'sunrise',
         adblockExceptions: [],
         bangsEnabled: true,
