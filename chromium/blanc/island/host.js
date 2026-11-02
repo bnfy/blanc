@@ -37,6 +37,7 @@
   const subscribers = new Map();
   const overlayShowDocuments = new WeakMap();
   const strip = document.getElementById('strip');
+  const floatPill = document.getElementById('floatPill');
   const overlay = document.getElementById('overlay');
   const tooltip = document.createElement('div');
   tooltip.id = 'prototypeTooltip';
@@ -81,6 +82,12 @@
     if (event === 'onSplitLayout') queueMicrotask(() => {
       if (subscribers.get(event)?.has(callback)) callback(currentSplitLayout());
     });
+    // The floating pill's document can load after its frame was placed.
+    if (event === 'onFloatFrame' || event === 'onFloatShown') queueMicrotask(() => {
+      if (!subscribers.get(event)?.has(callback)) return;
+      if (event === 'onFloatFrame' && floatView.frame) callback(floatView.frame);
+      if (event === 'onFloatShown' && floatView.shown) callback(true);
+    });
     return () => subscribers.get(event)?.delete(callback);
   }
 
@@ -121,7 +128,7 @@
   function paintHeader() {
     const active = snapshot?.tabs.find(tab => tab.id === snapshot.activeTabId);
     const theme = active?.private ? null : snapshot?.installedTheme;
-    for (const doc of [document, strip.contentDocument, overlay.contentDocument])
+    for (const doc of [document, strip.contentDocument, floatPill.contentDocument, overlay.contentDocument])
       window.BlancInstalledTheme.apply(doc, theme);
     const color = active?.private ? '#0a0a0a'
       : theme?.frame ? theme.frame
@@ -994,7 +1001,7 @@
     openIslandTyping: (character) => show(character),
     openIslandCommands: () => show('/'),
     closeOverlay: close,
-    reportIslandRect: (rect) => { pillRect = rect; reportGeometry(); },
+    reportIslandRect: (rect) => { pillRect = rect; reportGeometry(); syncFloat(); },
     reportChromeLayout: () => {},
     reportPanelDrawn: () => emit('onIslandCovered'),
     // Shared panel cleanup runs even though this prototype has no workspace actions.
@@ -1117,10 +1124,15 @@
   // A setting turned off, or anything else that ends eligibility, ends a dwell.
   function settleHover() {
     hookHover(strip.contentDocument, strip);
+    hookHover(floatPill.contentDocument, floatPill);
     hookHover(overlay.contentDocument, overlay);
     if (hover.state.dwelling && !hoverEligible()) hoverStepWith({ type: 'ineligible' });
   }
-  window.blancPrototypeEvent = (kind) => { if (kind === 'settings') refresh().then(settleHover, settleHover); };
+  window.blancPrototypeEvent = (kind) => {
+    if (kind === 'settings') refresh().then(settleHover, settleHover);
+    // Native revealed or hid the Island (island_autohide_controller.inc).
+    if (kind === 'autohide') refresh().catch(() => {});
+  };
 
   // ---- Auto-hide (F1-15…): native lays the window out and decides when the
   // Island shows (island_autohide_controller.inc). The strip draws its
@@ -1130,8 +1142,10 @@
   let introTip = false;
   function syncAutoHide() {
     const state = snapshot?.islandAutoHide;
-    const hidden = state?.stripHidden === true;
+    // Shipping's stripCovered: hidden, or floating under its pill.
+    const hidden = state?.stripHidden === true || state?.floating === true;
     if (hidden !== stripHiddenSent) { stripHiddenSent = hidden; emit('onStripHidden', hidden); }
+    syncFloat();
     const intro = state?.introducing === true && !opened && !extensionsOpened && !paneMenu;
     if (intro === introTip) return;
     introTip = intro;
@@ -1153,12 +1167,81 @@
     tooltip.style.top = `${pillRect.y + pillRect.height + 6}px`;
   }
 
+  // The float style draws the revealed Island as a copy of the strip in its
+  // own frame over the page, as shipping's float view: shipping's own policy
+  // (island-autohide.js) places it and decides when it shows, the document
+  // slides the pill in and out (renderer.js, styles.css), and native claims
+  // clicks only inside the frame while it shows. macOS has no float views for
+  // the window controls or the menu button.
+  const AutoHide = window.BlancIslandAutoHide;
+  const floatPlatform = /Mac/.test(navigator.platform) ? 'darwin' : /Win/.test(navigator.platform) ? 'win32' : 'linux';
+  const floatView = { shown: false, frame: null, frameKey: '', claimKey: '', hideTimer: null };
+  function setFloatShown(shown, now = false) {
+    const changed = floatView.shown !== shown;
+    floatView.shown = shown;
+    clearTimeout(floatView.hideTimer);
+    floatView.hideTimer = null;
+    if (shown) {
+      floatPill.classList.add('shown');
+      if (changed) emit('onFloatShown', true);
+      return;
+    }
+    if (changed) emit('onFloatShown', false);
+    // The frame stays visible until its pill has slid out (shipping's
+    // setIslandFloatShown).
+    const hide = () => { floatView.hideTimer = null; if (!floatView.shown) floatPill.classList.remove('shown'); };
+    if (now || matchMedia('(prefers-reduced-motion: reduce)').matches) hide();
+    else floatView.hideTimer = setTimeout(hide, AutoHide.SLIDE_OUT_MS + 32);
+  }
+  function claimFloat() {
+    const frame = floatPill.dataset.wanted === 'true' && floatView.frame;
+    const args = frame ? [floatView.shown, frame.x, frame.y, frame.width, frame.height] : [false, 0, 0, 0, 0];
+    const key = JSON.stringify(args);
+    if (key === floatView.claimKey) return;
+    floatView.claimKey = key;
+    request('floatFrame', args).catch(error => notice(error.message));
+  }
+  function syncFloat() {
+    const state = snapshot?.islandAutoHide;
+    const root = document.documentElement;
+    root.toggleAttribute('data-strip-covered', state?.floating === true || (layout === 'vertical' && state?.stripHidden === true));
+    root.style.setProperty('--rail-w', layout === 'vertical' ? `${railWidth}px` : '0px');
+    const wanted = AutoHide.floatViewsWanted({ autoHide: state?.enabled === true, style: state?.style, platform: floatPlatform }).pill;
+    floatPill.dataset.wanted = String(wanted);
+    if (!wanted) {
+      setFloatShown(false, true);
+      claimFloat();
+      return;
+    }
+    const bounds = AutoHide.floatViewBounds(pillRect, { windowWidth: innerWidth, windowHeight: state.windowHeight || innerHeight,
+      side: AutoHide.FLOAT_SIDE_PX, bottom: AutoHide.FLOAT_BOTTOM_PX });
+    if (bounds) {
+      const frame = { role: 'pill', x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height, stageWidth: innerWidth };
+      const key = JSON.stringify(frame);
+      if (key !== floatView.frameKey) {
+        floatView.frameKey = key;
+        floatView.frame = frame;
+        Object.assign(floatPill.style, { left: `${frame.x}px`, top: `${frame.y}px`, width: `${frame.width}px`, height: `${frame.height}px` });
+        emit('onFloatFrame', frame);
+      }
+    }
+    setFloatShown(AutoHide.floatViewsShown({ floating: state.floating === true, islandVisible: state.stripHidden !== true,
+      platform: floatPlatform }).pill && !!bounds);
+    claimFloat();
+  }
+
   window.BlancPrototypeHost = {
     api,
     apiForDocument,
     hoverState: () => ({ ...hover.state }),
     // Whether the how-to tip is on screen (shipping's introTipShown).
     autoHideIntroShown: () => introTip && !tooltip.hidden,
+    // The floating pill's frame as shipping's floatViewState reports its
+    // view: null unless the float style wants one.
+    floatViewState: () => floatPill.dataset.wanted !== 'true' ? null : {
+      attached: true, shown: floatView.shown, visible: floatPill.classList.contains('shown'),
+      bounds: floatView.frame && { x: floatView.frame.x, y: floatView.frame.y, width: floatView.frame.width, height: floatView.frame.height },
+    },
     // Where the pointer last rested over the strip, which closing the panel
     // samples (shipping's sampledWindowCursor); the harness sets it.
     setLastPointer: (point) => { hover.lastPoint = point && { x: Number(point.x), y: Number(point.y) }; return true; },
@@ -1187,12 +1270,14 @@
   // load, so the frames start only once it exists. A src in the markup let a
   // fast relaunch load the overlay first and leave its bridge undefined.
   strip.src = strip.dataset.src;
+  floatPill.src = floatPill.dataset.src;
   overlay.src = overlay.dataset.src;
 
   window.addEventListener('unhandledrejection', (event) => {
     notice(event.reason?.message ?? String(event.reason));
   });
   window.addEventListener('resize', reportGeometry);
+  window.addEventListener('resize', () => syncFloat());
   // Events from the typed interface (browser-api.js), only the ones it sends.
   window.addEventListener('blanc-browser-api', (event) => {
     if (event.detail?.event === 'onBangIconsChanged') emit('onBangIconsChanged', event.detail.payload);

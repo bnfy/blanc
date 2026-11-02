@@ -2,6 +2,14 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background:
 iframe { position: absolute; inset: 0; width: 100%; border: 0; }
 #strip { height: 68px; }
 #overlay { height: 100%; }
+/* Auto-hide's floating pill (float style): a tight frame onto a copy of the
+   strip, placed by host.js as shipping places its float view. While the page
+   covers the strip, the strip keeps laying out (it reports the pill's place)
+   but shows only the vertical rail's column. */
+#floatPill { visibility: hidden; }
+#floatPill.shown { visibility: visible; }
+:root[data-strip-covered] #strip { clip-path: inset(0 calc(100% - var(--rail-w, 0px)) 0 0); }
+:root[data-strip-covered] #headerBackdrop { display: none; }
 [hidden] { display: none !important; }
 #status {
   position: fixed; left: 8px; right: 8px; bottom: 2px; z-index: 10;

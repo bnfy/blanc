@@ -4,15 +4,14 @@
 // Island waits above it. The top edge reveals it, or a rest just below the
 // edge does, after a dwell. It hides again once the pointer has left it.
 // Anything open from the Island keeps it revealed (an open surface makes the
-// host taller than the strip, `Owner::height`). Revealing slides the page
-// down and the Island in above it, as shipping does. The page's own moves
-// reach the Island, but so do none while the pointer sits over a band the
-// window keeps or outside it, so a hidden Island in the window in front
-// samples the cursor. Included inside blanc_prototype_ui.cc's anonymous
-// namespace, after Owner.
-//
-// Push style only so far (the page moves down for the Island); shipping's
-// float style follows.
+// host taller than the strip, `Owner::height`). In the push style revealing
+// slides the page down and the Island in above it; in the float style (the
+// default) the page keeps the whole window and the host slides its floating
+// pill in over it, claiming only that pill (`Owner::float_bounds`). The
+// page's own moves reach the Island, but none do while the pointer sits over
+// a band the window keeps or outside it, so a hidden Island in the window in
+// front samples the cursor. Included inside blanc_prototype_ui.cc's
+// anonymous namespace, after Owner.
 
 namespace autohide = blanc::island_autohide;
 
@@ -36,6 +35,10 @@ bool AutoHideOn(Owner* owner) {
   return IslandPrefsFor(owner)->GetBoolean(std::string(autohide::kPref));
 }
 
+std::string_view AutoHideStyle(Owner* owner) {
+  return autohide::NormalizeStyle(IslandPrefsFor(owner)->GetString(std::string(autohide::kStylePref)));
+}
+
 BrowserView* BrowserViewFor(Owner* owner) {
   return BrowserView::GetBrowserViewForBrowser(owner->browser);
 }
@@ -45,26 +48,51 @@ bool WindowActive(Owner* owner) {
 }
 
 bool AutoHidePinned(Owner* owner) {
-  return autohide::IslandPinned(owner->height > 68, false, owner->autohide_intro.IsRunning());
+  return autohide::IslandPinned(owner->height > 68, owner->autohide_test_hold, owner->autohide_intro.IsRunning());
 }
 
-// The vertical rail keeps its column with the strip in it, so it has nowhere
-// to hide to yet; until it can, the vertical layout keeps the Island shown.
+// Both layouts hide: in the vertical one the rail keeps its column and only
+// the strip over the page pane goes (the host clips the strip to the rail).
 bool AutoHideApplies(Owner* owner) {
-  return AutoHideOn(owner) && !owner->vertical;
+  return AutoHideOn(owner);
+}
+
+bool IslandFloating(Owner* owner) {
+  return autohide::FloatingLayout(AutoHideApplies(owner), AutoHideStyle(owner));
 }
 
 bool StripHiddenFor(Owner* owner) {
   return autohide::StripHidden(AutoHideApplies(owner), owner->autohide_revealed, AutoHidePinned(owner));
 }
 
-// Where the page starts once the layout settles (shipping's pageTopFor).
+// Where the page starts once the layout settles (shipping's pageTopFor): a
+// floating Island never moves it.
 int TargetPageTop(Owner* owner, int base) {
-  return StripHiddenFor(owner) ? 0 : base;
+  return IslandFloating(owner) || StripHiddenFor(owner) ? 0 : base;
+}
+
+// The host learns of a reveal or hide at once, not at its next snapshot, so
+// the floating pill slides as the Island changes.
+void NotifyAutoHide(Owner* owner) {
+  auto* host = owner->view ? owner->view->GetWebContents() : nullptr;
+  if (!host || host->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
+      !host->GetPrimaryMainFrame()->IsRenderFrameLive()) return;
+  host->GetPrimaryMainFrame()->ExecuteJavaScript(u"window.blancPrototypeEvent?.('autohide')",
+                                                 base::NullCallback());
 }
 
 void Relayout(Owner* owner) {
   if (auto* view = BrowserViewFor(owner)) view->InvalidateLayout();
+}
+
+// A setting or style change takes effect in the same task, as shipping's
+// resizeActiveView sets the page's bounds at once: anything reading the page
+// afterwards sees the new layout, not the old one.
+void RelayoutNow(Owner* owner) {
+  if (auto* view = BrowserViewFor(owner)) {
+    view->InvalidateLayout();
+    view->DeprecatedLayoutImmediately();
+  }
 }
 
 struct RevealGeometry {
@@ -107,6 +135,7 @@ bool IslandHeldAt(Owner* owner, std::optional<autohide::Point> point, const Reve
   state.height = geometry.content.height();
   state.reach_above = geometry.reach_above;
   state.left = geometry.left;
+  state.floating = IslandFloating(owner);
   return autohide::PointHoldsIsland(point, state);
 }
 
@@ -136,7 +165,7 @@ void WatchAutoHideReveal(Owner* owner) {
         const auto point = SampledCursor(owner, geometry);
         const auto dwell = autohide::RevealDwellStep(owner->autohide_dwell, point,
             base::TimeTicks::Now().since_origin().InMillisecondsF(), geometry.content.width(),
-            geometry.left, false);
+            geometry.left, IslandFloating(owner));
         owner->autohide_dwell = dwell.dwell;
         if (IslandHeldAt(owner, point, geometry) || dwell.reveal) {
           RevealIsland(owner);
@@ -179,20 +208,22 @@ void SlideIsland(Owner* owner, double from, double to) {
 }
 
 // Move the Island in or out. A slide under way continues from where the
-// page is now.
+// page is now; a floating Island leaves the page where it is.
 void SetIslandRevealed(Owner* owner, bool revealed) {
   if (owner->autohide_revealed == revealed) return;
   const double from = owner->autohide_slide ? owner->autohide_slide->top : CurrentPageTop(owner);
   owner->autohide_revealed = revealed;
   auto* view = BrowserViewFor(owner);
-  SlideIsland(owner, from, view ? TargetPageTop(owner, BaseHeaderHeight(view)) : 0);
+  if (IslandFloating(owner)) SlideIsland(owner, 0, 0);
+  else SlideIsland(owner, from, view ? TargetPageTop(owner, BaseHeaderHeight(view)) : 0);
   if (revealed) StopAutoHideWatch(owner);
   else WatchAutoHideReveal(owner);
+  NotifyAutoHide(owner);
 }
 
 void ScheduleAutoHideCheck(Owner* owner) {
   if (owner->autohide_hide.IsRunning()) return;
-  owner->autohide_hide.Start(FROM_HERE, base::Milliseconds(autohide::HideCheckDelay(false)),
+  owner->autohide_hide.Start(FROM_HERE, base::Milliseconds(autohide::HideCheckDelay(IslandFloating(owner))),
       base::BindOnce([](Owner* owner) {
         if (!AutoHideApplies(owner) || !owner->autohide_revealed) return;
         const auto geometry = RevealGeometryFor(owner);
@@ -244,17 +275,45 @@ void ApplyAutoHide(Owner* owner) {
   owner->autohide_slide_timer.Stop();
   owner->autohide_slide.reset();
   const bool on = AutoHideApplies(owner);
+  if (!IslandFloating(owner)) owner->float_frame = owner->float_bounds = gfx::Rect();
   owner->autohide_revealed = on && WindowActive(owner);
   if (on && owner->autohide_revealed) {
     owner->autohide_intro.Start(FROM_HERE, base::Milliseconds(autohide::kIntroMs),
         base::BindOnce([](Owner* owner) {
           Relayout(owner);
           ScheduleAutoHideCheck(owner);
+          NotifyAutoHide(owner);
         }, base::Unretained(owner)));
   }
-  Relayout(owner);
+  RelayoutNow(owner);
   if (!owner->autohide_revealed) WatchAutoHideReveal(owner);
+  NotifyAutoHide(owner);
 }
+
+// The style changed: the Island stays as it is (shown or hidden) and the
+// page takes the new style's place at once, as shipping's
+// applyIslandAutoHideStyle relays the active view out.
+void ApplyAutoHideStyle(Owner* owner) {
+  owner->autohide_slide_timer.Stop();
+  owner->autohide_slide.reset();
+  owner->autohide_dwell.reset();
+  owner->autohide_hide.Stop();
+  if (!IslandFloating(owner)) owner->float_frame = owner->float_bounds = gfx::Rect();
+  if (owner->autohide_revealed) ScheduleAutoHideCheck(owner);
+  RelayoutNow(owner);
+  NotifyAutoHide(owner);
+}
+
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+// Acceptance only (shipping's holdIslandInWindow): reveal and hold, or let go.
+void HoldIslandForTest(Owner* owner, bool on) {
+  owner->autohide_test_hold = on;
+  if (on) RevealIsland(owner);
+  else if (owner->autohide_revealed) ScheduleAutoHideCheck(owner);
+  Relayout(owner);
+  NotifyAutoHide(owner);
+}
+#endif
 
 // The page top the layout uses now: the slide's while one runs.
 int AutoHidePageTop(Owner* owner, int base) {
@@ -274,13 +333,13 @@ base::DictValue AutoHideState(Owner* owner) {
   }
   return base::DictValue()
       .Set("enabled", AutoHideOn(owner))
-      .Set("style", "push")
+      .Set("style", AutoHideStyle(owner))
       .Set("revealed", owner->autohide_revealed)
       .Set("introducing", owner->autohide_intro.IsRunning())
       .Set("sliding", owner->autohide_slide.has_value())
       .Set("reducedMotion", gfx::Animation::PrefersReducedMotion())
       .Set("stripHidden", StripHiddenFor(owner))
-      .Set("floating", false)
+      .Set("floating", IslandFloating(owner))
       .Set("pageY", view ? TargetPageTop(owner, BaseHeaderHeight(view)) : 0)
       .Set("chromeHeight", view ? BaseHeaderHeight(view) : 68)
       .Set("coveredStripPx", 0)

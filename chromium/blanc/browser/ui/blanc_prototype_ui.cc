@@ -744,6 +744,9 @@ class Owner : public base::SupportsUserData::Data,
   // Auto-hide (F1): shipping's per-window runtime fields (islandRevealed,
   // islandRevealDwell, lastPointer, its timers and islandSlide).
   bool autohide_revealed = false;
+  // Acceptance only, as shipping's testHoldIsland: held up as an open popup
+  // would hold it, without a pointer or a focused window.
+  bool autohide_test_hold = false;
   std::optional<blanc::island_autohide::Dwell> autohide_dwell;
   std::optional<gfx::PointF> last_pointer;
   base::OneShotTimer autohide_watch;
@@ -781,6 +784,11 @@ class Owner : public base::SupportsUserData::Data,
   int rail_width = 248;
   gfx::Rect extension_bounds;
   gfx::Rect interactive_bounds;
+  // Auto-hide's floating pill (Island view coordinates): its frame, which the
+  // Island view grows to hold, and while it shows the only part of the
+  // strip's band a floating Island claims.
+  gfx::Rect float_frame;
+  gfx::Rect float_bounds;
   base::DictValue split_geometry;
   std::array<int, 2> split_corner_widths = {240, 240};
   std::vector<gfx::Rect> split_hit_regions;
@@ -1155,6 +1163,7 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
   bool DoesIntersectRect(const views::View*, const gfx::Rect& rect) const override {
     auto* owner = GetOwner(const_cast<IslandView*>(this)->GetWebContents());
     if (!owner) return GetLocalBounds().Intersects(rect);
+    if (owner->float_bounds.Intersects(rect)) return true;
     if (!owner->split_geometry.empty()) {
       if (gfx::Rect(0, 0, width(), 68).Intersects(rect)) return true;
       for (const auto& region : owner->split_hit_regions)
@@ -1165,9 +1174,11 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
     // Below the strip the Island owns only what it draws there (the rail and
     // the open surface's own rectangle, which the palette's scrim makes the
     // whole window), so the page beside Find, the panel or the shield
-    // popover stays clickable, as with shipping's separate overlay view.
+    // popover stays clickable, as with shipping's separate overlay view. A
+    // hidden or floating strip claims no band (HeaderHeight is 0); the rail
+    // keeps its whole column.
     return gfx::Rect(0, 0, width(), HeaderHeight(const_cast<views::View*>(parent()))).Intersects(rect) ||
-        (owner->vertical && gfx::Rect(0, 68, owner->rail_width, std::max(0, height() - 68)).Intersects(rect)) ||
+        (owner->vertical && gfx::Rect(0, 0, owner->rail_width, height()).Intersects(rect)) ||
         (owner->height > 68 && owner->interactive_bounds.Intersects(rect));
   }
 };
@@ -1923,6 +1934,11 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       // Auto-hide (F1): the strip draws its covered state and the how-to tip.
       .Set("islandAutoHide", base::DictValue()
           .Set("enabled", AutoHideOn(owner))
+          .Set("style", AutoHideStyle(owner))
+          .Set("floating", IslandFloating(owner))
+          .Set("revealed", owner->autohide_revealed)
+          // The floating pill's frame is clamped to the window, as shipping's.
+          .Set("windowHeight", BrowserViewFor(owner) ? BrowserViewFor(owner)->height() : 0)
           .Set("stripHidden", StripHiddenFor(owner))
           .Set("introducing", owner->autohide_intro.IsRunning()))
       .Set("verticalTabsWidth", owner->rail_width)
@@ -2854,6 +2870,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
                                                                 base::Unretained(this)));
     island_prefs_.Add(std::string(blanc::island_autohide::kPref),
                       base::BindRepeating(&Handler::OnIslandAutoHideChanged, base::Unretained(this)));
+    island_prefs_.Add(std::string(blanc::island_autohide::kStylePref),
+                      base::BindRepeating(&Handler::OnIslandAutoHideStyleChanged, base::Unretained(this)));
+  }
+  void OnIslandAutoHideStyleChanged() {
+    if (auto* owner = GetOwner(web_ui()->GetWebContents())) ApplyAutoHideStyle(owner);
+    OnIslandSettingChanged();
   }
   void OnIslandAutoHideChanged() {
     if (auto* owner = GetOwner(web_ui()->GetWebContents())) ApplyAutoHide(owner);
@@ -3099,6 +3121,21 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs()->SetBoolean(
           std::string(blanc::island_autohide::kPref), message[2].GetList()[0].GetBool());
       Reply(id, true, base::Value(message[2].GetList()[0].GetBool()));
+      return;
+    }
+    if (message[1].GetString() == "setIslandAutoHideStyle" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_string()) {
+      const std::string style(blanc::island_autohide::NormalizeStyle(message[2].GetList()[0].GetString()));
+      Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs()->SetString(
+          std::string(blanc::island_autohide::kStylePref), style);
+      Reply(id, true, base::Value(style));
+      return;
+    }
+    if (message[1].GetString() == "holdIsland" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_bool()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      if (owner) HoldIslandForTest(owner, message[2].GetList()[0].GetBool());
+      Reply(id, !!owner, base::Value(!!owner));
       return;
     }
     if (message[1].GetString() == "autoHideState") {
@@ -4752,6 +4789,17 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value());
       return;
     }
+    // Auto-hide's floating pill: its frame, and whether it shows.
+    if (method == "floatFrame" && args.size() == 5 && args[0].is_bool() &&
+        std::all_of(args.begin() + 1, args.end(), [](const auto& v) { return v.is_int(); })) {
+      owner->float_frame = IslandFloating(owner)
+          ? gfx::Rect(args[1].GetInt(), args[2].GetInt(), std::max(0, args[3].GetInt()), std::max(0, args[4].GetInt()))
+          : gfx::Rect();
+      owner->float_bounds = args[0].GetBool() ? owner->float_frame : gfx::Rect();
+      if (owner->view->parent()) owner->view->parent()->InvalidateLayout();
+      reply(true, base::Value());
+      return;
+    }
     if (method == "focusPage" && args.empty()) {
       // Escape and outside clicks hand focus back to the page, as Electron's
       // hideOverlay does, instead of parking it in the hidden overlay.
@@ -5895,10 +5943,11 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
               std::move(callback).Run(base::MakeRefCounted<base::RefCountedString>(script));
               return;
             }
-            // Only the exact private Start Page query aliases the shared
-            // static asset; arbitrary queries never become filesystem paths.
-            const std::string asset_path = path == "pages/newtab.html?private=1"
-                ? "pages/newtab.html" : path;
+            // Only the exact private Start Page query and the floating
+            // pill's surface query alias their shared static assets;
+            // arbitrary queries never become filesystem paths.
+            const std::string asset_path = path == "pages/newtab.html?private=1" ? "pages/newtab.html"
+                : path == "index.html?surface=float" ? "index.html" : path;
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
             // Build outputs such as the compiled bindings exist only embedded.
             if (!root.empty() && !blanc::island_resources::IsGenerated(asset_path)) {
@@ -6069,9 +6118,10 @@ bool IsCaption(views::View* parent, int x, int y) {
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
   if (!view || !view->GetVisible()) return false;
   auto* owner = GetOwner(view->GetWebContents());
-  // While the page covers the strip, a thin band along the page pane's top
-  // is the window's only drag handle, as shipping's #dragBand.
-  if (owner && StripHiddenFor(owner) && !owner->autohide_slide)
+  // While the page covers the strip (hidden, or floating), a thin band along
+  // the page pane's top is the window's only drag handle, as shipping's
+  // #dragBand.
+  if (owner && (StripHiddenFor(owner) || IslandFloating(owner)) && !owner->autohide_slide)
     return y >= 0 && y < 6 && x >= RailWidth(parent);
   if (y < view->y() || y >= view->y() + 68) return false;
   return owner && !owner->interactive_bounds.Contains(x, y - view->y());
@@ -6168,12 +6218,16 @@ void LayoutIsland(views::View* parent, int top) {
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
   if (!view) return;
   auto* owner = GetOwner(view->GetWebContents());
-  // Auto-hide moves the Island with the page's top: above the window while
-  // hidden, sliding in above the page as it moves down.
-  if (owner) top += HeaderHeight(parent) - BaseHeaderHeight(parent);
+  // Auto-hide's push style moves the Island with the page's top: above the
+  // window while hidden, sliding in above the page as it moves down. The
+  // rail keeps its column, and a floating Island stays at the top.
+  if (owner && !owner->vertical && !IslandFloating(owner)) top += HeaderHeight(parent) - BaseHeaderHeight(parent);
   const int available = std::max(0, parent->height() - top);
   view->SetBounds(0, top, parent->width(),
-                  std::min(owner && (owner->vertical || !owner->split_geometry.empty()) ? available : owner ? std::max(owner->height, HeaderHeight(parent)) : 68, available));
+                  std::min(owner && (owner->vertical || !owner->split_geometry.empty()) ? available
+                           : owner ? std::max({owner->height, HeaderHeight(parent),
+                                               IslandFloating(owner) ? owner->float_frame.bottom() : 0})
+                           : 68, available));
   if (!owner) return;
   auto* browser_view = static_cast<BrowserView*>(parent);
   if (!browser_view->toolbar()) return;
@@ -6196,6 +6250,9 @@ void LayoutIsland(views::View* parent, int top) {
   const bool resized = extensions->width() != bounds.width();
   extensions->SetBoundsRect(bounds);
   if (resized) extensions->OnPinnedActionsChanged();
-  extensions->SetVisible(owner->height == 68 && !bounds.IsEmpty());
+  // A hidden strip has none showing; a floating Island shows them only while
+  // its pill does, where the pill copies the strip's place for them.
+  extensions->SetVisible(owner->height == 68 && !bounds.IsEmpty() && !StripHiddenFor(owner) &&
+                         !(IslandFloating(owner) && owner->float_bounds.IsEmpty()));
 }
 }  // namespace blanc_prototype
