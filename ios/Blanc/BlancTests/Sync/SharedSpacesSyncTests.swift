@@ -273,6 +273,21 @@ import CryptoKit
         XCTAssertEqual(f.state.state.lastSyncedAt, syncedAt, "no empty pass")
     }
 
+    func testASpaceMadeHereWithNoWebPagesStillUploads() async throws {
+        let f = try await make(spaces: true)
+        let spaceId = id(1)
+        // Its only tab is the New Tab page, which is never shared: nothing is pending.
+        try f.engine.sharedState.noteLocalSpace(id: spaceId, blob: blob(spaceId, []), edits: nil)
+        var entry = try indexEntry(spaceId, rev: "x")
+        for key in ["rev", "revAt", "revBy"] { entry[key] = nil }
+        try f.engine.sharedState.setIndex(.object([("v", .number(1)), ("spaces", .object([(spaceId, entry)]))]))
+        await pass(f)
+        let uploaded = try await f.transport.value(account, name: "space-" + spaceId, key: f.key)
+        XCTAssertEqual(uploaded?["tabs"], .object([]), "the empty Space exists on the Worker")
+        let index = try await f.transport.value(account, name: "spaces", key: f.key)
+        XCTAssertNotNil(index?["spaces"]?[spaceId], "and the index names it for other devices")
+    }
+
     // MARK: The window
 
     func testFixedStoresAndTwentyFiveSpacesNeverExceedTenGetsInAnyMinute() async throws {

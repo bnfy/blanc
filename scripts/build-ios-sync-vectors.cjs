@@ -180,6 +180,9 @@ try {
     const result=spaces.pushPlan({...input,encryptFn:t=>crypt.encrypt(Buffer.alloc(32),t)});
     return entry(stale?'recovery excluded':'new record upload',input,{...result,recover:[...result.recover],unsynced:[...result.unsynced]});
   });
+  const emptyInput={fetchedBlob:null,fetchedVersion:null,localBlob:{v:1,spaceId:pipeSpace,groups:{},tabs:{}},pending:{},lastMergeAt:1000,now:2000,deviceId:'a',firstUpload:true};
+  const emptyResult=spaces.pushPlan({...emptyInput,encryptFn:t=>crypt.encrypt(Buffer.alloc(32),t)});
+  vectors.spacesPipeline.push(entry('empty Space never published uploads',emptyInput,{...emptyResult,recover:[...emptyResult.recover],unsynced:[...emptyResult.unsynced]}));
   const expiredTab={...pipeTab,deleted:pipeField(true)};
   const expiredInput={...pipeInput,fetchedBlob:pipeInput.localBlob,localBlob:{...pipeInput.localBlob,tabs:{[pipeId]:expiredTab}},pending:{tabs:{[pipeId]:{deleted:expiredTab.deleted}}},lastMergeAt:spaces.LIMITS.tombstoneMs+199,now:spaces.LIMITS.tombstoneMs+200};
   const expiredResult=spaces.pushPlan({...expiredInput,encryptFn:t=>crypt.encrypt(Buffer.alloc(32),t)});

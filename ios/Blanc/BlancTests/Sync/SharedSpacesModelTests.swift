@@ -211,7 +211,8 @@ final class SharedSpacesPlanTests: XCTestCase {
       lastMergeAt: i["lastMergeAt"]?.intValue, now: i["now"]!.intValue!,
       deviceId: i["deviceId"]!.string!, encrypt: SharedSpacesModelTests.encrypt(),
       lastPublishable: opt(i["lastPublishable"]),
-      admissionOrder: i["admissionOrder"]?.array.compactMap(\.string) ?? [])
+      admissionOrder: i["admissionOrder"]?.array.compactMap(\.string) ?? [],
+      firstUpload: i["firstUpload"]?.bool ?? false)
   }
 
   func testPipelineMatchesVectors() throws {

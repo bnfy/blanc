@@ -436,7 +436,7 @@ function admit({candidate,changes=[],encryptFn,finish=blob=>blob}) {
   for (const unit of changes) unsynced.add(unit.id);
   return {blob:null,unsynced,reason:changes.some(u=>u.required)?'required-state-over-budget':'remote-over-budget'};
 }
-function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, lastMergeAt, now, deviceId, encryptFn, lastPublishable, admissionOrder=[]}) {
+function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, lastMergeAt, now, deviceId, encryptFn, lastPublishable, admissionOrder=[], firstUpload=false}) {
   const local=sanitizeBlob(localBlob), remote=sanitizeBlob(fetchedBlob), relay=relayBlob(fetchedBlob);
   // Only an actual missing blob may start an empty remote. An unreadable
   // response must not be overwritten with a locally understood older schema.
@@ -486,7 +486,12 @@ function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, last
     for(const unit of [...changes].sort((a,b)=>a.clock-b.clock || (a.key<b.key?-1:1)))unit.admissionRank=ranks.get(unit.key)??next++;
   }
   const admission=admit({candidate:mergedBlob,changes,encryptFn,finish:blob=>relayInto(blob,relay,now,expiredRecords)});
-  const changed=admission.blob && canonical(admission.blob)!==canonical(relay??fetched);
+  // A Space this device made that the Worker has never named (firstUpload)
+  // uploads even when it holds nothing (its only tab is the New Tab page),
+  // so other devices learn of it. One the Worker named whose blob is gone is
+  // never recreated empty.
+  const creates=firstUpload&&fetchedBlob==null&&!published;
+  const changed=admission.blob && (creates || canonical(admission.blob)!==canonical(relay??fetched));
   const upload=changed?{blob:admission.blob,rev:revisionOf(admission.blob),ifVersion:fetchedVersion}:null;
   // Proposal only: caller may publish this revision after the blob PUT succeeds.
   // Identity fields remain in the separately merged index, never guessed here.
