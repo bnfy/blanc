@@ -50,6 +50,13 @@ function step(css,{hasText}={}){
 export class Locator{
  constructor(page,selectors,index=null){this.page=page;this.selectors=selectors;this.index=index;}
  locator(selector,options){return new Locator(this.page,[...this.selectors,step(selector,options)],this.index===null?null:this.index);}
+ // Playwright's filter({hasText}): the last selector keeps only matches
+ // whose text contains it, as locator(css,{hasText}) does.
+ filter({hasText,...rest}={}){
+  const last=this.selectors.at(-1);
+  if(Object.keys(rest).length||hasText==null||typeof last!=='string')throw new UndefinedNativeAdapterError('Locator shim filters by hasText on a plain selector only');
+  return new Locator(this.page,[...this.selectors.slice(0,-1),step(last,{hasText})],this.index);
+ }
  first(){return new Locator(this.page,this.selectors,0);}
  last(){return new Locator(this.page,this.selectors,-1);}
  nth(i){return new Locator(this.page,this.selectors,i);}
