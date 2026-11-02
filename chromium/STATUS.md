@@ -245,7 +245,18 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.1 rest: outbound isolation. Verify each change with targeted `--only` runs
+1. S1.1 rest: outbound isolation found Chromium's own background services
+   (2026-11-01, macos-3f969a35b9f9f7ad, pf block on `blanc-test` plus the
+   recording proxy). Controls were all blocked and logged, and the leak probe
+   passed (an ordinary prefix reached only duckduckgo.com; a credential, card
+   number, bang, suggestions-off and private-window query sent nothing). But
+   every launch contacts `update.googleapis.com` (component updater) and
+   `clients2.google.com/time` (secure network time), and a page with a form
+   queries `content-autofill.googleapis.com` (autofill server predictions).
+   Shipping Blanc makes none of these. Turning them off is a native change
+   waiting for the owner's decision; then the full check runs again
+   (`tests/outbound/`: `setup.sh --refresh`, `sudo root.sh start`,
+   `user.sh` in `blanc-test`, `sudo root.sh stop`, `analyze.mjs`). Verify each change with targeted `--only` runs
    merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
    (~2 h) unless development can't continue without it; propose one with
    the reason first.

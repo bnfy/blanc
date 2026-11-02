@@ -26,12 +26,16 @@ else
   chmod 1777 "$DIR/results"
   git clone -q --local "$REPO" "$DIR/repo"
   git -C "$DIR/repo" checkout -q --detach "$(git -C "$REPO" rev-parse HEAD)"
-  mkdir -p "$DIR/repo/node_modules/@cucumber"
-  cp -R "$REPO/node_modules/@cucumber/cucumber-expressions" "$DIR/repo/node_modules/@cucumber/"
-  for dep in $(/usr/local/bin/node -e "console.log(Object.keys(require('$REPO/node_modules/@cucumber/cucumber-expressions/package.json').dependencies||{}).join(' '))"); do
-    cp -R "$REPO/node_modules/$dep" "$DIR/repo/node_modules/"
-  done
 fi
+# The one npm package the harness needs, with every dependency it pulls in.
+for dep in $(/usr/local/bin/node -e "
+const seen=new Set(),walk=n=>{if(seen.has(n))return;seen.add(n);
+  for(const d of Object.keys(require('$REPO/node_modules/'+n+'/package.json').dependencies||{}))walk(d);};
+walk('@cucumber/cucumber-expressions');console.log([...seen].join(' '))"); do
+  mkdir -p "$DIR/repo/node_modules/$(dirname "$dep")"
+  rm -rf "$DIR/repo/node_modules/$dep"
+  cp -R "$REPO/node_modules/$dep" "$DIR/repo/node_modules/$dep"
+done
 BLOCKER=$(/usr/local/bin/node -e "console.log(require('$CONFIG').blockerAssets)")
 cp -R "$BLOCKER" "$DIR/blocker-assets"
 /usr/local/bin/node -e "
