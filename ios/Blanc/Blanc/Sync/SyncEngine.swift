@@ -92,6 +92,9 @@ private final class Box<T> {
   private var closedRevision = 0
   private let queue: SyncRequestQueue
   private var lastPreview: (at: Int64, ok: Bool)?
+  /// Versions the pass in progress read or wrote, remembered once it has
+  /// applied what it read (design 2026-11-02).
+  private var passVersions: [String: String?]?
   private var reconciling: [UUID: Task<Void, Never>] = [:]
 
   init(
@@ -175,6 +178,29 @@ private final class Box<T> {
     if let error { throw error }
     try check(g)
     return box.value
+  }
+  /// The version this phone last read or wrote for each fixed store, for the
+  /// current account: the change check fetches only stores named otherwise.
+  var seenVersions: [String: String?] {
+    let s = stateStore.state
+    guard s.enabled, let id = s.accountId, let seen = s.seenVersions, seen.accountId == id else { return [:] }
+    return seen.stores
+  }
+  private func noteSeen(_ stores: [String: String?], accountId: String) {
+    let fixed = stores.filter { SyncChanges.fixedStores.contains($0.key) }
+    guard !fixed.isEmpty, stateStore.state.accountId == accountId else { return }
+    try? stateStore.update {
+      if $0.seenVersions?.accountId != accountId { $0.seenVersions = SeenVersions(accountId: accountId, stores: [:]) }
+      for (store, version) in fixed { $0.seenVersions?.stores[store] = .some(version) }
+    }
+  }
+  /// A version read or written: into the pass's set while one runs, else at once.
+  private func remember(_ store: String, _ version: String?, _ snap: AccountSnapshot) {
+    if passVersions != nil {
+      passVersions?[store] = .some(version)
+    } else {
+      noteSeen([store: version], accountId: snap.accountId)
+    }
   }
   /// Resolves once no request waits or runs, reconciliation reads included.
   func requestsSettled() async {
@@ -464,6 +490,7 @@ private final class Box<T> {
           $0.accountId = nil
           $0.lastError = nil
           $0.lastSyncedAt = nil
+          $0.seenVersions = nil
         }
         try stateStore.clearData(keeping: [.bookmarks])
         try secrets.deleteKey()
@@ -573,8 +600,14 @@ private final class Box<T> {
     for (store, read) in reads {
       switch await read.value {
       case .success(let item):
-        guard let item else { continue }
-        do { pulled[store] = (item.version, try decode(item.blob, key: snap.key)) } catch {
+        guard let item else {
+          passVersions?[store.rawValue] = .some(nil)
+          continue
+        }
+        do {
+          pulled[store] = (item.version, try decode(item.blob, key: snap.key))
+          passVersions?[store.rawValue] = .some(item.version)
+        } catch {
           if optional.contains(store) { unavailable.insert(store) } else { failure = failure ?? error }
         }
       case .failure(let error):
@@ -594,6 +627,8 @@ private final class Box<T> {
   private func syncFixed(_ snap: AccountSnapshot, consent: Bool) async throws {
     let g = snap.generation
     let ownId = stateStore.state.deviceId
+    passVersions = [:]
+    defer { passVersions = nil }
     do {
       let (pulled, unavailable) = try await readFixed(snap, consent: consent)
       let iconsUnavailable = unavailable.contains(.icons)
@@ -785,6 +820,7 @@ private final class Box<T> {
         $0.lastError = nil
         $0.lastSyncedAt = clock()
       }
+      noteSeen(passVersions ?? [:], accountId: snap.accountId)
       settingsSink(settings)
       refreshViews()
       onChanged?()
@@ -860,10 +896,11 @@ private final class Box<T> {
       if current?.1.canonical() == value.canonical() { return value }
       do {
         let blob = try SyncCrypto.seal(Data(value.jsStringify().utf8), key: snap.key)
-        _ = try await request {
+        let version = try await request {
           try await client.put(snap.accountId, store, ifVersion: current?.0, blob: blob)
         }
         try check(snap.generation)
+        remember(store.rawValue, version, snap)
         return value
       } catch SyncError.rateLimited {
         // A PUT the Worker refused for load backs the window off like a GET's 429.
@@ -879,6 +916,7 @@ private final class Box<T> {
         // recreate it with ifVersion null.
         guard let latest else { throw SyncError.accountGone }
         current = (latest.version, try decode(latest.blob, key: snap.key))
+        remember(store.rawValue, latest.version, snap)
         if store == .settings {
           var merged = SyncedSettings(payload: value)
           if let current { merged.merge(remote: SyncedSettings(payload: current.1)) }
@@ -1689,6 +1727,7 @@ private final class Box<T> {
       try decode(fetched.blob, key: snap.key)
     }
     if let remote, try sharedState.mergeIndex(remote) { reportMerged(["index"]) }
+    remember("spaces", item?.version, snap)
     let payload = try sharedState.exportIndex(deviceId: stateStore.state.deviceId, now: clock())
     if remote == nil, payload["spaces"]?.pairs.isEmpty ?? true { return .done }
     if let remote, remote.canonical() == payload.canonical() {
@@ -1699,9 +1738,10 @@ private final class Box<T> {
     guard try JSONEncoder().encode(blob).count <= 524_288 - 4096 else { throw SyncError.tooLarge }
     try check(g)
     do {
-      _ = try await request {
+      let version = try await request {
         try await client.put(snap.accountId, storeName: "spaces", ifVersion: item?.version, blob: blob)
       }
+      remember("spaces", version, snap)
     } catch SyncError.conflict {
       try check(g)
       if attempt < 3 { return .retry }

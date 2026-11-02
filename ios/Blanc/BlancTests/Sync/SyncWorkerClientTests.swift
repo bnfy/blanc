@@ -95,3 +95,39 @@ extension SyncWorkerClientTests {
         } catch { XCTAssertEqual(error as? SyncError, .conflict(version: "v2")) }
     }
 }
+extension SyncWorkerClientTests {
+    private var account: String { String(repeating: "a", count: 64) }
+    private func versions(_ status: Int, _ body: String) async throws -> [String: String?]? {
+        try await SyncWorkerClient(transport: StubSyncTransport(status: status, body: Data(body.utf8))).versions(account)
+    }
+    func testVersionsReadsEveryFixedStore() async throws {
+        let transport = RecordingSyncTransport(status: 200, body: Data(#"{"v":1,"stores":{"bookmarks":"b1","settings":"s1","session":null,"icons":null,"sends":"x","closed":null,"shared":null,"spaces":"i9"}}"#.utf8))
+        let named = try await SyncWorkerClient(transport: transport).versions(account)
+        XCTAssertEqual(named?["settings"], .some("s1"))
+        XCTAssertEqual(named?["spaces"], .some("i9"))
+        XCTAssertEqual(named?["session"], .some(nil), "a store not written yet is named null")
+        XCTAssertEqual(named?.count, 8)
+        let calls = await transport.calls
+        XCTAssertEqual(calls.map(\.0), ["GET"]); XCTAssertEqual(calls.map(\.1), ["v1/versions/" + account])
+    }
+    func testVersionsWithoutALedgerIsUnsupported() async throws {
+        let named = try await versions(200, #"{"v":1,"stores":null}"#)
+        XCTAssertNil(named)
+    }
+    func testAnOlderWorkerIsUnsupported() async throws {
+        let named = try await versions(404, "not found")
+        XCTAssertNil(named)
+    }
+    func testABadBodyOrAServerErrorIsUnsupported() async throws {
+        for (status, body) in [(200, "{"), (200, #"{"v":2,"stores":{}}"#), (200, #"{"v":1,"stores":{"settings":"s1"}}"#), (200, #"{"v":1,"stores":{"bookmarks":1,"settings":null,"session":null,"icons":null,"sends":null,"closed":null,"shared":null,"spaces":null}}"#), (500, ""), (503, "")] {
+            let named = try await versions(status, body)
+            XCTAssertNil(named, "\(status) \(body)")
+        }
+    }
+    func testVersionsRateLimitedThrows() async throws {
+        do {
+            _ = try await versions(429, "")
+            XCTFail("a 429 read as unsupported")
+        } catch { XCTAssertEqual(error as? SyncError, .rateLimited) }
+    }
+}

@@ -654,3 +654,27 @@ final class MemorySyncTransport: SyncTransport, @unchecked Sendable {
     }
 
 }
+
+// MARK: The change check's remembered versions (design 2026-11-02)
+extension SyncEngineTests {
+    func testAPassRemembersEachFixedStoresVersion() async throws {
+        let f = try await make()
+        await f.engine.syncNow()
+        XCTAssertEqual(f.engine.seenVersions["settings"], .some("1"), "the settings read")
+        XCTAssertEqual(f.engine.seenVersions["bookmarks"], .some(nil), "a store not on the Worker is remembered as absent")
+        addFavorite(f.engine, "https://fav.example/")
+        await f.engine.syncNow()
+        XCTAssertEqual(f.engine.seenVersions["bookmarks"], .some("1"), "the version this phone's own upload got")
+    }
+    func testAnotherAccountOrSyncOffStartsEmpty() async throws {
+        let f = try await make()
+        await f.engine.syncNow()
+        XCTAssertFalse(f.engine.seenVersions.isEmpty)
+        try f.state.update { $0.accountId = accountB }
+        XCTAssertTrue(f.engine.seenVersions.isEmpty, "versions belong to the account that read them")
+        try f.state.update { $0.accountId = accountA }
+        _ = await f.engine.disable()
+        XCTAssertTrue(f.engine.seenVersions.isEmpty)
+        XCTAssertNil(f.state.state.seenVersions)
+    }
+}

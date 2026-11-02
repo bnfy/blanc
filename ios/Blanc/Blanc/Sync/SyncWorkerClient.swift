@@ -175,6 +175,31 @@ nonisolated struct SyncWorkerClient: Sendable {
     else { throw SyncError.notFound }
     return version
   }
+  /// The change check (design 2026-11-02): each fixed store's version, null
+  /// for one not written yet. Nil when the Worker can't answer it: an older
+  /// Worker (404), an account with no ledger (`stores: null`), a server or
+  /// network error, or a body it can't read. A 429 throws, as for any request.
+  func versions(_ accountId: String) async throws -> [String: String?]? {
+    let status: Int, body: Data
+    do {
+      (status, body) = try await request("GET", "v1/versions/\(try locator(accountId))")
+    } catch SyncError.rateLimited { throw SyncError.rateLimited } catch SyncError.pairInvalid {
+      throw SyncError.pairInvalid
+    } catch { return nil }
+    guard status == 200,
+      let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+      object["v"] as? Int == 1, let stores = object["stores"] as? [String: Any]
+    else { return nil }
+    var named: [String: String?] = [:]
+    for store in SyncChanges.fixedStores {
+      switch stores[store] {
+      case let version as String: named[store] = .some(version)
+      case is NSNull: named[store] = .some(nil)
+      default: return nil
+      }
+    }
+    return named
+  }
   func deleteAccount(_ accountId: String) async throws {
     let (status, _) = try await request("DELETE", "v1/blob/\(locator(accountId))")
     guard status != 404 else { throw SyncError.notFound }
