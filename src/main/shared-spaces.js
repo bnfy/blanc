@@ -102,7 +102,8 @@ function mergeSpace(id,remote,version,ctx,encryptFn) {
   const local=entry?.blob??remote??{v:1,spaceId:id,tabs:{},groups:{}};
   const before=copy(s.data.pending[id]??{});
   const plan=model.pushPlan({fetchedBlob:remote,fetchedVersion:version,localBlob:local,pending:before,
-    lastMergeAt:entry?.mergedAt,now:Date.now(),deviceId:ctx.deviceId,encryptFn,lastPublishable:entry?.lastPublishable,admissionOrder:retryOrder});
+    lastMergeAt:entry?.mergedAt,now:Date.now(),deviceId:ctx.deviceId,encryptFn,lastPublishable:entry?.lastPublishable,admissionOrder:retryOrder,
+    firstUpload:!s.data.knownIndex[id]&&!entry?.lastPublishable});
   s.update(d=>{
     if(plan.recover.size) {
       const recovery=d.recoveries[id]??={tabs:{},groups:{}};

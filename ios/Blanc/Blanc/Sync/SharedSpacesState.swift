@@ -258,7 +258,8 @@ import Foundation
     var plan = try Model.pushPlan(
       fetchedBlob: remote, fetchedVersion: version, localBlob: local, pending: before,
       lastMergeAt: entry?["mergedAt"]?.intValue, now: now, deviceId: deviceId, encrypt: encrypt,
-      lastPublishable: entry?["lastPublishable"], admissionOrder: retryOrder)
+      lastPublishable: entry?["lastPublishable"], admissionOrder: retryOrder,
+      firstUpload: data["knownIndex"]?[id] == nil && entry?["lastPublishable"] == nil)
     if !plan.recover.isEmpty {
       var recovery = data["recoveries"]?[id] ?? .object([("tabs", .object([])), ("groups", .object([]))])
       for kind in ["tabs", "groups"] {

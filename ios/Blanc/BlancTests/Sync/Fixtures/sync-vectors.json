@@ -18754,6 +18754,57 @@
       }
     },
     {
+      "name": "empty Space never published uploads",
+      "input": {
+        "fetchedBlob": null,
+        "fetchedVersion": null,
+        "localBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {}
+        },
+        "pending": {},
+        "lastMergeAt": 1000,
+        "now": 2000,
+        "deviceId": "a",
+        "firstUpload": true
+      },
+      "expected": {
+        "upload": {
+          "blob": {
+            "v": 1,
+            "spaceId": "00000000000000000000000000000063",
+            "groups": {},
+            "tabs": {}
+          },
+          "rev": "79fd3888cde66f21",
+          "ifVersion": null
+        },
+        "pendingAfter": {},
+        "expiredRecords": {
+          "tabs": [],
+          "groups": []
+        },
+        "recover": [],
+        "unsynced": [],
+        "mergedBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {}
+        },
+        "nextLastMergeAt": 2000,
+        "indexEntry": {
+          "id": "00000000000000000000000000000063",
+          "rev": "79fd3888cde66f21",
+          "at": 2000,
+          "by": "a"
+        },
+        "reason": null
+      }
+    },
+    {
       "name": "expired deletion clears retained state and pending",
       "input": {
         "fetchedBlob": {

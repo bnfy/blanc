@@ -231,3 +231,14 @@ test('a first upload that finds the Space already on the server merges with it i
   assert.deepEqual(puts.map(r=>r.status),[200,409,200],'the blind upload is refused, then merged and sent again');
   assert.deepEqual(Object.keys(e.read(store).tabs).sort(),[id(1),id(2)]);
 });
+test('a new Space with no web pages still uploads and joins the index',async t=>{
+  const e=await environment(t),a=e.device('A');
+  // Its only tab is the New Tab page, which is never shared: nothing is pending.
+  const empty={...blob(),tabs:{}};a.spaces.noteLocalSpace(sid,empty,{},a.ctx);a.spaces.setIndex(index(),a.ctx);
+  const before=e.fixture.requests.length;
+  await e.drive(a.sync.syncNow([store]));
+  const sent=e.fixture.requests.slice(before).map(r=>`${r.method} ${r.store}`);
+  assert.deepEqual(sent,[`PUT ${store}`,'GET spaces','PUT spaces']);
+  assert.deepEqual(e.read(store).tabs,{});
+  assert.ok(e.read('spaces').spaces[sid],'the index names the Space, so other devices see it');
+});

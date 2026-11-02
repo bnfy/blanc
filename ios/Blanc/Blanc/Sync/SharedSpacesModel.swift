@@ -858,7 +858,7 @@ extension SharedSpacesModel {
   static func pushPlan(fetchedBlob: JSONValue?, fetchedVersion: String?, localBlob: JSONValue?,
     pending: JSONValue?, lastMergeAt: Int64?, now: Int64, deviceId: String,
     encrypt: (String) throws -> SyncEnvelope, lastPublishable: JSONValue?,
-    admissionOrder: [String] = []) throws -> PushPlan
+    admissionOrder: [String] = [], firstUpload: Bool = false) throws -> PushPlan
   {
     let local = sanitizeBlob(localBlob)
     let remote = sanitizeBlob(fetchedBlob)
@@ -955,8 +955,12 @@ extension SharedSpacesModel {
     let admission = admit(
       candidate: mergedBlob, changes: changes, encrypt: encrypt,
       finish: { (blob: JSONValue) -> JSONValue in relayInto(blob, relay, now: now, retired: retired) })
+    // A Space this phone made that the Worker has never named (`firstUpload`)
+    // uploads even when it holds nothing, so other devices learn of it; one
+    // the Worker named whose blob is gone is never recreated empty.
+    let creates = firstUpload && !isPresent(fetchedBlob) && published == nil
     var upload: JSONValue?
-    if let blob = admission.blob, blob.canonical() != (relay ?? fetched).canonical() {
+    if let blob = admission.blob, creates || blob.canonical() != (relay ?? fetched).canonical() {
       upload = .object([
         ("blob", blob), ("rev", .string(revisionOf(blob))),
         ("ifVersion", fetchedVersion.map(JSONValue.string) ?? .null),
