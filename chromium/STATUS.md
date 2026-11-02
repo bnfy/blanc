@@ -14,6 +14,16 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **Release-candidate readiness tracker:**
+  https://claude.ai/artifact/BKaBQpYoAMMeUmqBfVbBPA (private to the owner).
+  It shows each shipping acceptance case's latest macOS result (the full run
+  of 2026-11-01 overlaid by every targeted run since, so it mixes
+  candidates), the tracker rows' stages per platform and the gates outside
+  the code. Refresh it after each piece of work: `node chromium/tools/
+  rc-readiness.mjs --baseline <evidence>/s1-full-renderer-2/baseline.json
+  --runs <evidence> --out <dir>`, upload the three files to the dashboard
+  and point its datasets at them. Gates live in that tool; edit them with
+  this file.
 - F0.1/F0.2/F0.4/F0.8 as before.
 - **F0.3 channel identity built; identity spike pending.** Patch 0005 gives
   each channel its own data folder (`CrProductDirName`) and Keychain item:
@@ -198,6 +208,20 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     need Glance as a floating card, F1-34 Settings opened as a page, F1-35
     private tabs (D1). F1-36 is Windows/Linux. island-and-commands, settings-and-theming and
     navigation-and-context-menu show no regressions.
+  - Slash commands (F7), candidate macos-e2945bdaad7e13f8 (2026-11-02): the
+    overlay offers 32 of shipping's 34; /dark-site and /1password are absent
+    because their members are (owner decisions above; one renderer edit
+    gives /dark-site shipping's availability check). The host now answers
+    /rename and the tab menu's Rename Tab… and Reset Tab Title (native tab
+    names), /sleep (each background tab through native's quiet check),
+    /copy and /copy clean (shipping's clean-link.js, native copy, the pill's
+    notice), /reader (Chromium's Reading Mode, owner's choice), /invite
+    (shipping's invite-friend.js; the mail app, or the clipboard without
+    one) and grouping a selection. /send answers shipping's "no devices"
+    (no Blanc Sync yet), /private waits for D1 (S1.4) and /glance for a
+    floating Glance. Six F46 rename cases pass; a probe in an isolated
+    profile checked /sleep, /copy, /reader and /invite, which no shipping
+    case covers. Seven features show no regressions.
 - **S1 baseline on macos-3f969a35b9f9f7ad (fork 82f8cd80), full run of
   2026-11-01:** 101 of the 253 S1 cases pass, 119 fail, 33 undefined. Every
   case that passed on macos-790ca4d6d538c894 (70) still passes; 31 earlier
@@ -295,6 +319,7 @@ Most failures on the previous candidate are real product gaps, clustered:
 Recorded in the spec (§4, §9) and plan:
 - D1: port shipping's in-window private tabs (deep tab/profile patch, isolated
   in `blanc/private/`). S1.4 unblocked.
+- 2026-11-02: /reader is Chromium's Reading Mode, not shipping's reader.
 - Pinned tabs stay in their group, as shipped (custom change to Chromium's tab
   collections).
 - V8: Chromium's certificate warning page and proceed decisions replace
@@ -336,9 +361,8 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.2 rest: all 34 slash commands (deferred features
-   answer with shipping's unavailable copy), zoom, copy/clean link, and the
-   browserAPI members the host doesn't answer yet. Verify each change with targeted `--only` runs
+1. S1.2 rest: zoom, and the browserAPI members the host doesn't answer
+   yet. Verify each change with targeted `--only` runs
    merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
    (~2 h) unless development can't continue without it; propose one with
    the reason first.
