@@ -228,6 +228,18 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     floating Glance. Six F46 rename cases pass; a probe in an isolated
     profile checked /sleep, /copy, /reader and /invite, which no shipping
     case covers. Seven features show no regressions.
+  - S1.2 finished (2026-11-02, macos-d94c3474bbd96627). Zoom needs nothing of
+    its own: the page commands are Chromium's zoom (IDC_ZOOM_*), as
+    shipping's ⌘+/⌘−/⌘0 menu, and F23-1 passes. Of shipping's 127 browserAPI
+    members the host answers 85 (two more are absent by the owner's choice);
+    it now also answers beginNewGroup, openGroupMenu and duplicateTab, plus
+    the hook beginRenameGroup (four F3 cases pass), and closing or replacing
+    the rail's group menu tells the rail. The 40 it still refuses belong to
+    later slices: Glance (S3), Spaces and their
+    group menu (S3), Ctrl+Tab's switcherPick (S3), Tab Archive (S3), sync
+    and sent tabs (S4), capture and screen sharing (S5), the blocking
+    provider (D2), the permission prompt (S1.6), the certificate exception
+    (N5) and the window buttons and main menu (Windows/Linux).
 - **S1 baseline on macos-3f969a35b9f9f7ad (fork 82f8cd80), full run of
   2026-11-01:** 101 of the 253 S1 cases pass, 119 fail, 33 undefined. Every
   case that passed on macos-790ca4d6d538c894 (70) still passes; 31 earlier
@@ -367,8 +379,9 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.2 rest: zoom, and the browserAPI members the host doesn't answer
-   yet. Verify each change with targeted `--only` runs
+1. S1.4: in-window private tabs (D1), which F4 and every case with a
+   private step wait on; then the utility sheet over Chromium's
+   bookmarks/history/downloads/settings pages. Verify each change with targeted `--only` runs
    merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
    (~2 h) unless development can't continue without it; propose one with
    the reason first.
