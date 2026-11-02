@@ -220,8 +220,21 @@ Console).
 
 Releases don't deploy the site. After a release: `npm run site:changelog`,
 commit `releases.json`, update the Feature Roadmap, re-pin the Bangs page to
-the new tag (`npm run site:bangs -- --ref <tag> --release <tag>`), then
-`npm run site:deploy`.
+the new tag (`npm run site:bangs -- --ref <tag> --release <tag>`), after a
+feature release re-check `/compare`, then `npm run site:deploy`.
+
+**Compare page (`/compare`):** `src/pages/compare.astro` renders the
+owner-approved chart in `src/data/compare.json` (Blanc next to Crest, Arc,
+Helium and Brave; spec
+`docs/superpowers/specs/2026-11-02-compare-page-design.md`). Every cell is a
+claim in `docs/website-compare-claims-<release>.json`, answers about other
+browsers cite first-party pages the page links, and a cell whose pages are
+silent reads `Not stated.`. It is re-checked after each Blanc feature release
+(`test/unit/site-compare-data.test.js` fails until `checkedAgainst` moves),
+every month for the other browsers, and when Arc ends on December 22, 2026
+(a build after `endsOn` drops its column). Procedure and schedule:
+`docs/compare-page-maintenance.md`. Changed cell wording needs the owner's
+approval.
 
 **Feature Roadmap (`/roadmap`):** `src/pages/roadmap.astro` renders the
 hand-edited `src/data/roadmap.json` (Now / Next / Later, no dates) plus a

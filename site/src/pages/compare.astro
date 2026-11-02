@@ -1,0 +1,161 @@
+---
+// Blanc next to Crest, Arc, Helium and Brave. The chart is data
+// (src/data/compare.json); every answer is recorded with its evidence in
+// docs/website-compare-claims-v1.45.1.json, and answers about other browsers
+// link the first-party pages they came from. Spec:
+// docs/superpowers/specs/2026-11-02-compare-page-design.md; upkeep:
+// docs/compare-page-maintenance.md.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import data from '../data/compare.json';
+import { visibleColumns, endedColumns } from '../lib/compare.mjs';
+import '../styles/compare.css';
+
+// A column with an end date (Arc) leaves the chart on the first build after it.
+const now = new Date();
+const columns = visibleColumns(data, now);
+const ended = endedColumns(data, now);
+const others = columns.filter((column) => column.id !== 'blanc');
+const rows = new Map(data.rows.map((row) => [row.id, row]));
+const sourcesFor = (id) => data.sources.filter((source) => source.column === id);
+const linkText = (url) => url.replace(/^https:\/\//, '').replace(/\/$/, '');
+---
+<BaseLayout
+  title={"Compare Blanc with Crest, Arc, Helium and Brave | Blanc"}
+  description={"Blanc next to Crest, Arc, Helium and Brave: platforms, cost, extensions, ad blocking, Spaces, sync and AI, with a first-party source for every answer."}
+  path="/compare"
+  page="compare"
+  current="features"
+>
+  <script type="application/ld+json" is:inline slot="head">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blanc.day/"},{"@type":"ListItem","position":2,"name":"Compare browsers","item":"https://blanc.day/compare"}]}
+</script>
+
+<main id="main-content" class="compare-page">
+  <section class="compare-hero" aria-labelledby="compare-title">
+    <div class="compare-hero-inner">
+      <nav class="breadcrumb compare-breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><span aria-current="page">compare</span></nav>
+      <h1 id="compare-title">How Blanc compares</h1>
+      <p>Blanc next to Crest, Arc, Helium and Brave, on the questions that decide a switch.</p>
+      <div class="compare-actions">
+        <a class="compare-cta" href="/download" data-track="feature_cta_click" data-feature="compare" data-cta-position="hero">Download Blanc</a>
+        <a class="compare-cta compare-cta--glass" href="#chart-title">See the comparison</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="compare-body">
+    <section class="compare-choices" aria-label="What Blanc chose">
+      <article class="compare-choice">
+        <span class="compare-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 20h8M12 17v3"/></svg></span>
+        <h2>Every desktop</h2>
+        <p>One browser for macOS, Windows and Linux, so your Favorites and settings can follow you between computers.</p>
+      </article>
+      <article class="compare-choice">
+        <span class="compare-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span>
+        <h2>Blocking from the first launch</h2>
+        <p>Ads and trackers are blocked in every tab, private tabs included, with full uBlock Origin if you want it.</p>
+      </article>
+      <article class="compare-choice">
+        <span class="compare-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.5c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8"/><path d="M9.5 9.5h.01M14.5 9.5h.01"/></svg></span>
+        <h2>Just a browser, by choice</h2>
+        <p>Free, open source and no account to make. No built-in AI assistant: Blanc keeps to browsing.</p>
+      </article>
+    </section>
+
+    <section class="compare-chart" aria-labelledby="chart-title">
+      <div class="compare-chart-head">
+        <h2 id="chart-title">Side by side</h2>
+        <p class="compare-checked">Checked November 2, 2026 against Blanc v1.45.1.</p>
+      </div>
+      {ended.map((column) => <p class="compare-ended">{column.endedNote}</p>)}
+      <p class="compare-hint" data-compare-hint hidden>Choose a browser’s name to bring its column forward.</p>
+      <div class="compare-scroller" role="region" tabindex="0" aria-label="Comparison chart, scrolls sideways on small screens">
+        <table class="compare-table" data-compare-table>
+          <caption class="sr-only">Blanc compared with Crest, Arc, Helium and Brave</caption>
+          <thead>
+            <tr>
+              <th scope="col" class="compare-corner"><span class="compare-corner-label">Question</span></th>
+              {columns.map((column) => (
+                <th scope="col" data-col={column.id} class={column.id === 'blanc' ? 'compare-lane' : undefined}>
+                  <button type="button" class="compare-focus" aria-pressed="false">
+                    <span>{column.name}</span>
+                    {column.note && <span class="compare-ends">{column.note}</span>}
+                  </button>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          {data.groups.map((group) => (
+            <tbody>
+              <tr class="compare-group"><th scope="rowgroup" colspan={columns.length + 1}>{group.label}</th></tr>
+              {group.rows.map((id) => (
+                <tr>
+                  <th scope="row">{rows.get(id).label}</th>
+                  {columns.map((column) => {
+                    const { text } = rows.get(id).cells[column.id];
+                    return <td data-col={column.id} class={column.id === 'blanc' ? 'compare-lane' : undefined}>{text === data.notStated ? <span class="compare-absent">{text}</span> : text}</td>;
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          ))}
+        </table>
+      </div>
+    </section>
+
+    <section class="compare-know" aria-labelledby="know-title">
+      <h2 id="know-title">Good to know before you switch</h2>
+      <ul>
+        <li><p><strong>Extensions.</strong> Blanc doesn’t install extensions from the Chrome Web Store. If one is essential to you, check that first.</p></li>
+        <li><p><strong>Phones.</strong> Blanc for iPhone is a public beta on TestFlight; there is no Android app.</p></li>
+        <li><p><strong>Coming from Arc?</strong> Blanc brings your Arc Spaces over, with folders as tab groups. <a href="/arc-alternative">See how the import works</a>.</p></li>
+      </ul>
+    </section>
+
+    <section class="compare-sources" aria-labelledby="sources-title">
+      <h2 id="sources-title">Sources</h2>
+      <p>Blanc’s answers come from its v1.45.1 release and the <a href="/changelog">release notes</a>. Answers about other browsers come from these pages, read on November 2, 2026.</p>
+      <p>“Not stated” means the pages listed for that browser don’t say.</p>
+      <div class="compare-source-groups">
+        {others.map((column) => (
+          <div class="compare-source-group">
+            <h3>{column.name}</h3>
+            <ul>
+              {sourcesFor(column.id).map((source) => <li><a href={source.url}>{linkText(source.url)}</a></li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="compare-close" aria-labelledby="close-title">
+      <h2 id="close-title">A little less browser.</h2>
+      <p>Free for macOS, Windows and Linux.</p>
+      <a class="compare-cta" href="/download" data-track="feature_cta_click" data-feature="compare" data-cta-position="feature-close">Download Blanc</a>
+    </section>
+  </div>
+</main>
+</BaseLayout>
+
+<script>
+  // Choosing a browser's name brings its column forward; choosing it again,
+  // or another name, moves the focus. Without scripting the chart reads as is.
+  const table = document.querySelector('[data-compare-table]');
+  const hint = document.querySelector('[data-compare-hint]');
+  if (table instanceof HTMLTableElement && hint) {
+    hint.hidden = false;
+    table.addEventListener('click', (event) => {
+      const button = event.target instanceof Element ? event.target.closest('.compare-focus') : null;
+      const column = button?.closest('th')?.dataset.col;
+      if (!column) return;
+      const next = table.dataset.focus === column ? '' : column;
+      if (next) table.dataset.focus = next; else delete table.dataset.focus;
+      for (const cell of table.querySelectorAll('[data-col]')) {
+        cell.classList.toggle('is-focus', cell instanceof HTMLElement && cell.dataset.col === next);
+      }
+      for (const other of table.querySelectorAll('.compare-focus')) {
+        other.setAttribute('aria-pressed', String(other.closest('th')?.dataset.col === next));
+      }
+    });
+  }
+</script>

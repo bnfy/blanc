@@ -25,6 +25,7 @@ export const browserMenu = {
   more: [
     { href: '/features', label: 'All features' },
     { href: '/#compare', label: 'Blanc vs. Chrome' },
+    { href: '/compare', label: 'Compare browsers' },
     { href: '/arc-alternative', label: 'Switching from Arc' },
   ],
 };
