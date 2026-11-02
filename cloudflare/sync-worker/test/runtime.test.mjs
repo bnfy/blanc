@@ -100,3 +100,14 @@ test('fixed stores read from the object survive eviction and keep KV written',{t
  const read=await worker.fetch(base+'settings');assert.equal(read.status,200);
  assert.equal((await read.json()).version,second.body.version);
 });
+
+test('versions survive eviction and match GET versions',{timeout:120000},async t=>{
+ const server=createTestHarness({root,workers:[{configPath:'./wrangler.toml'}]});t.after(()=>server.close());await server.listen();
+ const worker=server.getWorker(),account='e'.repeat(64),base='/v1/blob/'+account+'/';
+ assert.deepEqual(await (await worker.fetch('/v1/versions/'+account)).json(),{v:1,stores:null});
+ for(const store of ['settings','spaces']){const r=await worker.fetch(base+store,{method:'PUT',body:JSON.stringify({blob:{ct:store},ifVersion:null})});assert.equal(r.status,200);await r.arrayBuffer();}
+ await worker.evictDurableObject('ACCOUNT_QUOTA',{name:account});
+ const {stores}=await (await worker.fetch('/v1/versions/'+account)).json();
+ for(const store of ['settings','spaces'])assert.equal(stores[store],(await (await worker.fetch(base+store)).json()).version);
+ assert.equal(stores.bookmarks,null);
+});

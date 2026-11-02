@@ -185,7 +185,7 @@ async function handlePut(env, accountId, store, body) {
   const stored = JSON.stringify({ version, blob: body.blob });
   if (env.ACCOUNT_QUOTA) {
     const quota = env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId));
-    const response = await quota.fetch('https://quota.invalid/write', { method: 'POST', body: JSON.stringify({ accountId, store, stored, ifVersion: body.ifVersion ?? null, kv }) });
+    const response = await quota.fetch('https://quota.invalid/write', { method: 'POST', body: JSON.stringify({ accountId, store, stored, version, ifVersion: body.ifVersion ?? null, kv }) });
     if (response.status === 507) return json({ error: 'account-quota' }, 507);
     if (response.status === 409 || response.status === 503) return response;
     if (!response.ok) return json({ error: 'quota unavailable' }, 503);
@@ -251,12 +251,17 @@ export class AccountQuota {
   // undefined (unknown). Copies carry FIXED_COPY_EPOCH: after a rollback to a
   // Worker that wrote KV alone, rolling forward with a new epoch drops them.
   epoch() { return String(this.env.FIXED_COPY_EPOCH ?? '1'); }
-  async fixedRecord(store, kv) {
+  async fixedCopy(store, kv) {
     const copy = await this.state.storage.get('fixed:' + store);
-    if (copy && copy.epoch === this.epoch()) return copy.stored === null ? null : JSON.parse(copy.stored);
+    if (copy && copy.epoch === this.epoch()) return copy;
     if (kv === undefined) return undefined;
-    await this.state.storage.put('fixed:' + store, { epoch: this.epoch(), stored: kv ?? null });
-    return kv ? JSON.parse(kv) : null;
+    const adopted = { epoch: this.epoch(), version: kv ? JSON.parse(kv).version : null, stored: kv ?? null };
+    await this.state.storage.put('fixed:' + store, adopted);
+    return adopted;
+  }
+  async fixedRecord(store, kv) {
+    const copy = await this.fixedCopy(store, kv);
+    return copy === undefined ? undefined : copy.stored === null ? null : JSON.parse(copy.stored);
   }
   async commitBlob(ledger, store, stored) {
     await this.state.storage.transaction(async tx => {
@@ -280,7 +285,7 @@ export class AccountQuota {
   async handle(request) {
     if (request.method !== 'POST') return new Response('method not allowed', { status: 405 });
     const path = new URL(request.url).pathname;
-    if (!['/read', '/write', '/delete-store', '/delete-account'].includes(path)) return new Response('method not allowed', { status: 405 });
+    if (!['/read', '/write', '/delete-store', '/delete-account', '/versions'].includes(path)) return new Response('method not allowed', { status: 405 });
     let body;
     try { body = await request.json(); } catch { return json({ error: 'bad quota request' }, 400); }
     if (!body || !/^[0-9a-f]{64}$/.test(body.accountId)) return json({ error: 'bad quota request' }, 400);
@@ -292,6 +297,8 @@ export class AccountQuota {
     // A fixed store of an account the object hasn't met is answered from the
     // KV value the Worker passes, as before the object existed, again without
     // creating storage.
+    // Like a read, the versions check never creates a ledger.
+    if (path === '/versions' && !this.initializing && await this.state.storage.get('ledger') == null) return json({ stores: null });
     if (path === '/read' && !this.initializing && await this.state.storage.get('ledger') == null) {
       if (!STORES.has(body.store)) return json({ record: null });
       return json(body.kv === undefined ? { missing: true } : { record: body.kv ? JSON.parse(body.kv) : null });
@@ -299,6 +306,16 @@ export class AccountQuota {
     this.initializing ??= this.bootstrap(body.accountId);
     const ledger = await this.initializing;
     if (ledger.accountId !== body.accountId) return json({ error: 'wrong account' }, 400);
+    // Each fixed store's version; stores with no copy yet come back as
+    // `missing`, and the Worker asks again with their KV values (`kv`).
+    if (path === '/versions') {
+      const stores = {}, missing = [];
+      for (const store of STORES) {
+        const copy = await this.fixedCopy(store, body.kv?.[store]);
+        if (copy === undefined) missing.push(store); else stores[store] = copy.version;
+      }
+      return json(missing.length ? { missing } : { stores });
+    }
     if (path === '/read') {
       if (STORES.has(body.store)) {
         const record = await this.fixedRecord(body.store, body.kv);
@@ -339,11 +356,11 @@ export class AccountQuota {
     if (STORES.has(body.store)) {
       // Unknown (no copy, no KV value passed: a caller that compared already,
       // as the Worker did before the object kept copies) writes without a check.
-      const current = await this.fixedRecord(body.store, body.kv);
-      if (current !== undefined && (body.ifVersion ?? null) !== (current?.version ?? null)) return json({ error: 'conflict', version: current?.version ?? null }, 409);
+      const current = await this.fixedCopy(body.store, body.kv);
+      if (current !== undefined && (body.ifVersion ?? null) !== current.version) return json({ error: 'conflict', version: current.version }, 409);
       // The copy first: it is what reads and conflicts use. KV follows so a
       // rollback to a Worker without copies still finds every write.
-      await this.state.storage.put('fixed:' + body.store, { epoch: this.epoch(), stored: body.stored });
+      await this.state.storage.put('fixed:' + body.store, { epoch: this.epoch(), version: body.version ?? JSON.parse(body.stored).version, stored: body.stored });
       await this.env.SYNC.put(blobKey(body.accountId, body.store), body.stored);
       return json({}, 200); // The permanent reserve never changes.
     }
@@ -360,6 +377,28 @@ export class AccountQuota {
     await this.commitBlob(next, body.store, body.stored);
     return json({}, 200);
   }
+}
+
+// The change check (design 2026-11-02): each fixed store's version, never a
+// Space id. It costs one GET of the account's budget.
+async function handleVersions(env, accountId) {
+  if (await rateLimited(env, accountId)) return json({ error: 'rate-limited' }, 429);
+  if (!env.ACCOUNT_QUOTA) return unavailable('quota unavailable');
+  const object = env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId));
+  const ask = async (extra) => {
+    const response = await object.fetch('https://quota.invalid/versions', { method: 'POST', body: JSON.stringify({ accountId, ...extra }) });
+    return response.ok ? response.json() : null;
+  };
+  try {
+    let answer = await ask();
+    if (answer?.missing) {
+      const kv = {};
+      for (const store of answer.missing) kv[store] = await env.SYNC.get(blobKey(accountId, store));
+      answer = await ask({ kv });
+    }
+    if (!answer || answer.missing) return unavailable('quota unavailable');
+    return json({ v: 1, stores: answer.stores });
+  } catch { return unavailable('quota unavailable'); }
 }
 
 async function readBoundedJson(request, maxBytes = MAX_REQUEST_BYTES) {
@@ -426,6 +465,12 @@ export default {
         return handlePairPost(env, id, parsed.body);
       }
       return new Response('method not allowed', { status: 405 });
+    }
+    const versions = url.pathname.match(/^\/v1\/versions\/([0-9a-f]{64})$/);
+    if (versions) {
+      if (await ipRateLimited(env, ip)) return json({ error: 'rate-limited' }, 429);
+      if (request.method !== 'GET') return new Response('method not allowed', { status: 405 });
+      return handleVersions(env, versions[1]);
     }
     const m = url.pathname.match(/^\/v1\/blob\/([0-9a-f]{64})(?:\/([^/]+))?$/);
     if (!m) return new Response('not found', { status: 404 });
