@@ -116,8 +116,9 @@ panes. If you need it for longer, **Keep as split** turns it into a split.
 ### The card
 
 - **Look:** the same language as Split View's pane cards (spec D9): rounded
-  corners at the pane radius, a 1 px border, darker while the card has
-  focus, and a soft shadow so it reads as floating. The page view inside
+  corners at the pane radius and a soft shadow so it reads as floating.
+  *(November 2, 2026, owner: no border on the card and no line around the
+  page, focused or not; the header's brighter GLANCE label marks focus.)* The page view inside
   gets matching corners, as split panes do. *(October 22, 2026, owner: the
   card's corners are 14 px, and the page sits inset 6 px in the card's frame
   below the header with 8 px corners of its own, with no line under the

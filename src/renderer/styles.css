@@ -474,8 +474,7 @@ html { --stage-w: 100vw; }
    the geometry rides --split-x/y/w/h. */
 /* Shared with the corner tab document, so a card and its tab agree. */
 .split-panes,
-.split-tab-surface,
-.glance-card {
+.split-tab-surface {
   --split-pane-radius: 8px;
   --split-pane-focused-border: var(--text-dim);
 }
@@ -4541,7 +4540,10 @@ html[data-surface="glance"] .glance-card {
   width: var(--glance-card-w);
   height: var(--glance-card-h);
   box-sizing: border-box;
-  border: 1px solid var(--border);
+  /* No visible border, focused or not (owner, November 2, 2026): the shadow
+     sets the card off the page. It stays 1 px wide and transparent because
+     the header, resize edges and page inset are measured inside it. */
+  border: 1px solid transparent;
   border-radius: var(--glance-card-radius);
   background: var(--surface-raised);
   /* Kept inside the ring: a view clips what it draws past its edge. */
@@ -4558,7 +4560,6 @@ html[data-surface="glance"] .glance-card {
 @media (prefers-reduced-motion: reduce) {
   html[data-surface="glance"] .glance-card { transition: none; }
 }
-html[data-surface="glance"] .glance-card.focused { border-color: var(--split-pane-focused-border); }
 /* The resize edges fill the whole ring outside the border, so no click there
    is lost. The side and bottom edges also cover the frame around the page
    (the Glance page's view sits above them), and each corner reaches the
@@ -4585,23 +4586,10 @@ html[data-surface="glance"] .glance-card-edge[data-edge="ne"],
 html[data-surface="glance"] .glance-card-edge[data-edge="sw"] { cursor: nesw-resize; }
 html[data-surface="glance"] .glance-card-edge[data-edge="nw"],
 html[data-surface="glance"] .glance-card-edge[data-edge="se"] { cursor: nwse-resize; }
-/* The focused-pane cue: a line around the page, in the frame just outside
-   the Glance page's view, alongside the card's darker border. */
-html[data-surface="glance"] .glance-card::after {
-  content: "";
-  position: absolute;
-  left: calc(var(--glance-page-inset) - 2px);
-  right: calc(var(--glance-page-inset) - 2px);
-  bottom: calc(var(--glance-page-inset) - 2px);
-  top: 38px; /* one above the page, below the 40 px header (39 inside the border) */
-  border: 1px solid transparent;
-  border-radius: calc(var(--glance-card-radius) - var(--glance-page-inset) + 1px);
-  pointer-events: none;
-  transition: border-color 120ms ease;
-}
-html[data-surface="glance"] .glance-card.focused::after { border-color: var(--split-pane-focused-border); }
-/* No line under the header: the page's inset frame and its own rounded
-   corners set it apart (glance-card.js CARD_PAGE_INSET). */
+/* No line under the header or around the page, focused or not (owner,
+   November 2, 2026): the page's inset frame and its own rounded corners set
+   it apart (glance-card.js CARD_PAGE_INSET), and the header's brighter
+   eyebrow is the focus cue. */
 html[data-surface="glance"] .glance-header {
   position: relative;
   z-index: 2;
