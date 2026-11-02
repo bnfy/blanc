@@ -159,6 +159,13 @@ test('nothing is shared by itself while the switch is off, or the first time aft
   addRow(h,'newest','Newest');
   assert.deepEqual(await h.service.autoShare(),{ok:true,shared:['newest']});
 });
+test('turning the switch on with no Spaces still shares the next Space made',async t=>{
+  const h=setup(t);h.setRows([]);await h.service.preview({local:true});
+  assert.equal((await h.service.apply({enabled:true,selections:[]})).ok,true);
+  assert.deepEqual(h.d.spaces.snapshot(h.sync.sharedContext()).knownWorkspaceIds,[],'an empty list, not an earlier version\'s none');
+  addRow(h,'first','First');
+  assert.deepEqual(await h.service.autoShare(),{ok:true,shared:['first']});
+});
 test('a Space too large to share by itself stays here and is not retried',async t=>{
   const h=setup(t);await h.service.apply({enabled:true,selections:[{id:'local',mode:'copy'}]});
   addRow(h,'big','Big');h.sync.sharedPayloadFits=()=>false;let fetches=0;h.sync.sharedIndexPreview=async()=>{fetches++;return {ok:true};};

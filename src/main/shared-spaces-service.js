@@ -22,9 +22,11 @@ function createSharingService({sync,spaces,workspaces,offered,now=Date.now,ids,i
   // that, while the switch is on, joins the library by itself (autoShare);
   // one they left unticked stays on this device until they choose it.
   const shown=new Set();
+  // With none to add, a state with no list still gets one, so a switch
+  // turned on with no Spaces doesn't read as an earlier version's.
   function markKnown(ids,ctx) {
-    if(!ids.length)return;
     const store=spaces.rebind(ctx.accountId);
+    if(!ids.length&&Array.isArray(store.data.knownWorkspaceIds))return;
     store.update(data=>{data.knownWorkspaceIds=[...new Set([...(data.knownWorkspaceIds??[]),...ids])];});persist(ctx);
   }
   const isShared=(row,enabled)=>enabled&&row.sharedLink==='active'&&!!row.sharedId;
