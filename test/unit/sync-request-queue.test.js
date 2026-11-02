@@ -151,3 +151,15 @@ test('an upload that downloads nothing runs on a full window and is not charged;
   await advance(60000);assert.equal((await upload).outcome,'stored');await routine;
   assert.deepEqual(order.slice(1).sort(),['F','S1']);assert.equal(scheduler.snapshot().log.length,2,'the retry is charged');
 });
+test('a change check runs ahead of waiting rotation work',async()=>{
+  const {queue}=setup();const order=[];
+  const routine=queue.enqueue({class:'F',item:'settings',run:async()=>{order.push('F');}});
+  const check=queue.enqueue({class:'C',item:'versions',skipIfBusy:true,run:async()=>{order.push('C');return 'named';}});
+  assert.equal((await check).outcome,'named');await routine;assert.deepEqual(order,['C','F']);
+});
+test('a change check on a full window is skipped, not queued',async()=>{
+  const {scheduler,queue}=setup();for(let i=0;i<9;i++)scheduler.record();let ran=false;
+  const check=await queue.enqueue({class:'C',item:'versions',skipIfBusy:true,run:async()=>{ran=true;}});
+  assert.deepEqual(check.outcome,{skipped:true});assert.equal(ran,false);assert.equal(queue.status().waiting,0);
+  assert.equal(scheduler.canRequest(),true,'the reserved request is still free for the sheet');
+});

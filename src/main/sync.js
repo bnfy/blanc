@@ -11,6 +11,7 @@ const sharedSpaces = require('./shared-spaces');
 const syncedClosed = require('./synced-closed');
 const { createScheduler } = require('./sync-scheduler');
 const { createRequestQueue } = require('./sync-request-queue');
+const { FIXED_STORES } = require('./sync-changes');
 const { unsyncedTabIds } = require('./shared-spaces-adapter');
 const { deviceName } = require('./device-name');
 const { resolveDeviceName } = require('./device-names');
@@ -926,6 +927,33 @@ function seenVersions() {
   const d=ensureStore().data;
   return d.seenVersions?.accountId===d.accountId&&d.accountId?{...d.seenVersions.stores}:{};
 }
+/** The change check (design 2026-11-02): GET /v1/versions, charged like a GET
+ * but outside the class rotation, and skipped rather than queued when the
+ * window has no room for background work. {supported:false} for an older
+ * Worker (404), an account with no ledger (stores:null), a 5xx, a network
+ * error or a body it can't read; a 429 throws like any request. */
+async function checkVersions() {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, checkVersions);
+  const d=ensureStore().data;
+  if (suspended || !d.enabled || !d.accountId || !bananifyServiceAllowed(SYNC_ENDPOINT)) return {supported:false};
+  const gen=syncGen,accountId=d.accountId;
+  const pending=getRequestQueue().enqueue({class:'C',item:'versions',generation:'check:'+gen,skipIfBusy:true,
+    cancelled:()=>suspended||gen!==syncGen?'generation':null,
+    run:async()=>{
+      let response;
+      try {response=await net.fetch(`${ACTIVE_SYNC_ENDPOINT}/v1/versions/${accountId}`);} catch {return {supported:false};}
+      if(response.status===429)throw new SyncError('rate-limited');
+      if(!response.ok)return {supported:false};
+      let body;try {body=await response.json();} catch {return {supported:false};}
+      const stores=body?.v===1&&body.stores&&typeof body.stores==='object'?body.stores:null;
+      if(!stores||!FIXED_STORES.every(store=>stores[store]===null||typeof stores[store]==='string'))return {supported:false};
+      return {supported:true,named:Object.fromEntries(FIXED_STORES.map(store=>[store,stores[store]]))};
+    }});
+  queueBarrier();const result=await pending;
+  if(result.error?.message==='rate-limited')throw result.error;
+  if(result.error)return {supported:false};
+  return result.outcome?.skipped?{supported:true,skipped:true}:result.outcome;
+}
 function spaceDescriptor(id,kind='S') {
   return {name:'space-'+id,class:kind,spaceId:id,optional:true,spaces:true};
 }
@@ -1393,6 +1421,7 @@ module.exports = {
   resetRequestWindowForTest,
   sharedStatus,
   seenVersions,
+  checkVersions,
   spaceStatus,
   setSyncSpaces,
   status,

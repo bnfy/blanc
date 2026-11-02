@@ -7,7 +7,8 @@ const {AsyncLocalStorage}=require('node:async_hooks');
 const {quotaState,blobView}=require('../../support/sync-quota.cjs');
 const workerModulePromise=import(`data:text/javascript;base64,${fs.readFileSync(require.resolve('../../../cloudflare/sync-worker/src/index.js')).toString('base64')}`);
 
-async function createSyncFixture({pageSize=2,now=()=>Date.now()}={}) {
+// versions:false answers the change check as a Worker from before it did.
+async function createSyncFixture({pageSize=2,now=()=>Date.now(),versions=true}={}) {
   const workerModule=await workerModulePromise,worker=workerModule.default,records=new Map(),expires=new Map(),scope=new AsyncLocalStorage();
   const requests=[],rules=[],clientServers=[],clients=new Map();let race=null,url;
   const raw=k=>{if(expires.has(k)&&expires.get(k)<=now()){expires.delete(k);records.delete(k);}return records.get(k)??null;};
@@ -64,8 +65,9 @@ async function createSyncFixture({pageSize=2,now=()=>Date.now()}={}) {
       &&(!rule.spacesOnly||['spaces','closed','shared'].includes(event.store)||event.store?.startsWith('space-'));
   }
   async function dispatch(request) {
-    const path=new URL(request.url).pathname,parts=path.match(/^\/v1\/blob\/([0-9a-f]{64})(?:\/([^/]+))?$/);
+    const path=new URL(request.url).pathname,check=path.match(/^\/v1\/versions\/([0-9a-f]{64})$/),parts=check?[,check[1],'versions']:path.match(/^\/v1\/blob\/([0-9a-f]{64})(?:\/([^/]+))?$/);
     const event={url:request.url,client:clients.get(new URL(request.url).origin)??'A',method:request.method,accountId:parts?.[1],store:parts?.[2],at:now()};requests.push(event);
+    if(check&&!versions){event.status=404;return new Response('not found',{status:404});}
     const fault=rules.find(rule=>matches(rule,event));if(fault)fault.remaining--;
     if(fault?.type==='network'){event.status='network';throw new Error('Injected network failure');}
     if(fault?.type==='429'){event.status=429;return Response.json({error:'rate-limited'},{status:429});}

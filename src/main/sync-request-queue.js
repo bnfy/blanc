@@ -50,10 +50,15 @@ function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setT
     // A request a person is waiting on goes first, outside the class
     // rotation, and leaves the rotation's cursors where they were.
     const urgent=free?null:waiting.find(x=>x.urgent)??null;
-    if(!free&&!scheduler.canRequest({reserve:!urgent})) {
+    // A change check goes next, also outside the rotation and charged like
+    // any GET. It never waits for the window or takes the reserved request:
+    // with no room it is skipped, and the next interval sends another.
+    const check=free||urgent?null:waiting.find(x=>x.skipIfBusy)??null;
+    if(check&&!scheduler.canRequest({reserve:true})){complete(waiting.splice(waiting.indexOf(check),1)[0],{skipped:true},null);settleDrain();wake();return;}
+    if(!free&&!check&&!scheduler.canRequest({reserve:!urgent})) {
       timer=setTimer(()=>{timer=null;wake();},Math.max(1,scheduler.windowFreesAt({reserve:!urgent})-now()));return;
     }
-    const op=free||urgent?waiting.splice(waiting.indexOf(free??urgent),1)[0]:pickRotation();
+    const op=free||urgent||check?waiting.splice(waiting.indexOf(free??urgent??check),1)[0]:pickRotation();
     if(!op){wake();return;}
     running=op;op.state='running';
     try {
