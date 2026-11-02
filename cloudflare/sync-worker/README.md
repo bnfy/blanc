@@ -56,7 +56,10 @@ Design: `docs/superpowers/specs/2026-10-05-sync-storage-budget-design.md`.
   Following the owner’s October 26 decision, new Space ciphertext lives only in
   the account Durable Object’s SQLite storage. Its value, byte charge and slot
   commit in one transaction; there is no KV mirror or separate pending intent.
-  Fixed stores stay in KV. Requests are serialized per account. A successful
+  Fixed stores are still written to KV, and (since the change-check design of
+  2026-11-02, not yet deployed) the object also keeps a copy of each, which
+  GETs and conflict checks use; see "Change check" below. Requests are
+  serialized per account. A successful
   replacement settles its charge atomically with its ciphertext. Quota exhaustion returns
   `507 {"error":"account-quota"}` without storing the candidate blob. A
   per-Space DELETE releases its value and quota reservation after the retained
@@ -99,6 +102,36 @@ Never set `CLEANUP_ENABLED` until every account has a marker:
 `node scripts/backfill-seen-markers.mjs`, then
 `node scripts/backfill-seen-markers.mjs --verify` must exit 0.
 
+## Change check (design 2026-11-02, not deployed)
+
+Design: `docs/superpowers/specs/2026-11-02-sync-changes-check-design.md`.
+
+- **Fixed stores are read from the account object.** KV caches a read at the
+  location that served it for up to about a minute, so a device could read a
+  fixed store older than another device's write, and a PUT checked against
+  that stale read could overwrite it. The object now keeps a copy of each
+  fixed store (`fixed:<store>` in its storage, with its version beside it)
+  and is what GETs and `ifVersion` checks use. KV is still written on every
+  PUT, after the copy.
+- **The object still never reads KV.** For a store it has no copy of yet (an
+  account last written before this deploy), it answers `missing`, and the
+  Worker reads KV once and hands it the value to keep.
+- **`GET /v1/versions/:accountId`** lists each fixed store's version from those
+  copies. It is throttled per IP and then charged to the account's GET limit
+  like any GET.
+- **Copies adopted from KV are provisional for two minutes.** The KV value the
+  Worker hands over may be cached at its location, so for `PROVISIONAL_MS`
+  (120 s) after a copy is first adopted the Worker re-reads KV on each request
+  and the object keeps the newest. A write through the object settles a copy
+  at once. A deleted account's stores therefore can't come back from a cached
+  read, and a write made just before the deploy isn't pinned to its older value.
+- **Rollback.** Rolling back to a Worker without copies is safe: it reads and
+  writes KV, which stays complete (KV is written before the copy). **Before
+  rolling forward again, increase `FIXED_COPY_EPOCH`** in `wrangler.toml`
+  (committed as `"1"`; a value set only in the dashboard is overwritten by the
+  next deploy). Never reuse a value: copies tagged with it would be trusted
+  again. Copies from another epoch are adopted again from KV, provisionally.
+
 ## Local dev
 
 `wrangler dev` serves on http://127.0.0.1:8787; temporarily point
@@ -111,6 +144,9 @@ Never set `CLEANUP_ENABLED` until every account has a marker:
 - `DELETE /v1/blob/:accountId` → 204 (completed account wipe) | 503
 - `DELETE /v1/blob/:accountId/space-<id>` → 204 (one retired Space blob and
   its quota charge; fixed stores reject this method)
+- `GET /v1/versions/:accountId` → `{"v":1,"stores":{bookmarks,settings,session,icons,sends,closed,shared,spaces: version|null}}`,
+  or `{"v":1,"stores":null}` for an account with no ledger | 429 | 503. The
+  change check (below); it never lists Space blobs and never creates storage.
 - `POST /v1/pair/:pairId` `{ blob }` → 201 | 409 `{"error":"exists"}` | 400 | 413 (4 KiB cap).
   Device pairing (design 2026-10-16): the sender parks its wrapped sync secret
   under an id derived from an eight-character code; stored with a 600 s TTL.
