@@ -831,11 +831,18 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
       sharedSpaces.forgetRetiredSpace(id,run.ctx);
     }
   }
-  const getRes = await net.fetch(url);
+  // A Space no device has uploaded yet is sent without a download: the
+  // queue doesn't charge it, and a store that exists after all answers 409,
+  // whose retry downloads and merges as usual.
+  const firstUpload = attempt === 0 && !!desc.noGet;
+  if (firstUpload && !sharedSpaces.neverUploaded(desc.spaceId, run.ctx)) return { retry: true };
+  const getRes = firstUpload ? null : await net.fetch(url);
   if (run.stale()) throw new SyncError('stale');
-  const canDeleteSpaceStores=getRes.headers?.get?.('X-Blanc-Space-Delete')==='1';
-  let version = null, remote = null, missing = false;
-  if (getRes.status === 200) {
+  const canDeleteSpaceStores=getRes?.headers?.get?.('X-Blanc-Space-Delete')==='1';
+  let version = null, remote = null, missing = firstUpload;
+  if (firstUpload) {
+    // Nothing to read: version stays null, which the PUT sends as ifVersion.
+  } else if (getRes.status === 200) {
     let body;
     try { body = await getRes.json(); } catch { throw new SyncError('server'); }
     if (run.stale()) throw new SyncError('stale');
@@ -893,7 +900,7 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     stored = true;
     desc.stored?.(payload,run.ctx);
     await cleanupRetiredSpaces(payload);
-    return desc.spaceId ? { spaceStored: true } : null;
+    return desc.spaceId ? { spaceStored: true, firstUpload } : null;
   } finally {
     if (plan) sharedSpaces.settleSpace(desc.spaceId,plan,{blobStored:stored},run.ctx);
   }
@@ -988,7 +995,7 @@ async function syncNow(names = null, { onOutcome } = {}) {
   function enqueue(desc) {
     const cancelled=()=>cancelledRequest(gen,ctx,desc);
     const record=sharedSpaces.rebind(ctx.accountId).data;
-    const job=queue.enqueue({class:desc.class??'F',item:desc.name,generation:gen,spaces:!!desc.spaces,
+    const job=queue.enqueue({class:desc.class??'F',item:desc.name,generation:gen,spaces:!!desc.spaces,noGet:!!desc.noGet,urgent:!!desc.urgent,
       priority:desc.spaceId && Object.keys(record.pending[desc.spaceId]??{}).some(k=>k!=='index')?0:1,cancelled,
       run:async({attempt})=>{
         let key;
@@ -1026,7 +1033,7 @@ async function syncNow(names = null, { onOutcome } = {}) {
       const name='space-'+id;
       if(names && !names.includes(name))continue;
       const pending=state.pending[id];
-      if(names || state.index.spaces[id]?.deleted?.v===true || pending && Object.keys(pending).some(k=>k!=='index') || state.index.spaces[id]?.rev!==state.blobs[id]?.rev)enqueue(spaceDescriptor(id));
+      if(names || state.index.spaces[id]?.deleted?.v===true || pending && Object.keys(pending).some(k=>k!=='index') || state.index.spaces[id]?.rev!==state.blobs[id]?.rev)enqueue({...spaceDescriptor(id),noGet:sharedSpaces.neverUploaded(id,ctx)});
       if(!names)enqueue(spaceDescriptor(id,'R'));
       initialIds.add(id);
     }
@@ -1042,7 +1049,9 @@ async function syncNow(names = null, { onOutcome } = {}) {
       const more=[...new Set([...sharedSpaces.spaceIds(ctx),...sharedSpaces.deletedSpaceIds(ctx)])].filter(id=>!initialIds.has(id));const offset=jobs.length;
       addSpaces(more);results.push(...await Promise.all(jobs.slice(offset)));
     }
-    if(results.some(x=>x.outcome?.spaceStored||x.outcome?.needsIndex))results.push(await enqueue({...STORES.find(x=>x.name==='spaces')}));
+    // A new Space reaches other devices only once the index names it, so
+    // that update goes ahead of routine work, like the sheet's check.
+    if(results.some(x=>x.outcome?.spaceStored||x.outcome?.needsIndex))results.push(await enqueue({...STORES.find(x=>x.name==='spaces'),urgent:results.some(x=>x.outcome?.firstUpload)}));
   }
   // A dead generation never stamps status onto its successor. Optional stores
   // still cannot conceal a required-store error or advance its freshness.

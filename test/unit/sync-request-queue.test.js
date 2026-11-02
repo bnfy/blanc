@@ -140,3 +140,14 @@ test('a small or backed-off window keeps every request for background work',()=>
   let t=0;const scheduler=createScheduler({limit:3,now:()=>t,monotonic:()=>t});
   scheduler.record();scheduler.record();assert.equal(scheduler.canRequest({reserve:true}),true);scheduler.record();assert.equal(scheduler.canRequest(),false);
 });
+test('an upload that downloads nothing runs on a full window and is not charged; its retry is',async()=>{
+  const {scheduler,queue,advance}=setup();for(let i=0;i<10;i++)scheduler.record();const order=[];
+  const routine=queue.enqueue({class:'F',item:'settings',run:async()=>{order.push('F');}});
+  const upload=queue.enqueue({class:'S',item:'s1',noGet:true,run:async({attempt})=>{order.push('S'+attempt);return attempt===0?{retry:true}:'stored';}});
+  await tick();await tick();
+  assert.deepEqual(order,['S0'],'the first upload goes at once, ahead of work waiting on the window');
+  assert.equal(scheduler.snapshot().log.length,10,'it is not charged to the window');
+  await tick();assert.deepEqual(order,['S0'],'the retry downloads first, so it waits for the window like any request');
+  await advance(60000);assert.equal((await upload).outcome,'stored');await routine;
+  assert.deepEqual(order.slice(1).sort(),['F','S1']);assert.equal(scheduler.snapshot().log.length,2,'the retry is charged');
+});

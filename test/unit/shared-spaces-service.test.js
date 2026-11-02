@@ -142,8 +142,9 @@ test('a Space saved while the switch is on is shared by itself; one left unticke
   const h=setup(t);addRow(h,'kept','Private');await h.service.preview({local:true});
   await h.service.apply({enabled:true,selections:[{id:'local',mode:'copy'}]});
   assert.deepEqual(await h.service.autoShare(),{ok:true,shared:[]});assert.equal(h.rows[1].sharedId,undefined,'the unticked Space stays on this device');
-  addRow(h,'new','Default');
+  addRow(h,'new','Default');let fetches=0;h.sync.sharedIndexPreview=async()=>{fetches++;return {ok:true};};
   assert.deepEqual(await h.service.autoShare(),{ok:true,shared:['new']});
+  assert.equal(fetches,0,'it plans from the index routine sync keeps, so the upload needs no extra request');
   assert.ok(h.rows[2].sharedId);assert.equal(h.rows[2].sharedLink,'active');assert.equal(h.rows[1].sharedId,undefined);
   assert.deepEqual(await h.service.autoShare(),{ok:true,shared:[]},'nothing is shared twice');
   assert.equal(h.d.spaces.spaceCount(h.sync.sharedContext()),2);
