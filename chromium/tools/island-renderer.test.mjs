@@ -88,3 +88,26 @@ test('the host places the floating pill with shipping\'s auto-hide module', () =
       assert.deepEqual(plain(host.floatViewBounds(rect, {windowWidth, windowHeight, side: 20, bottom: 24})),
         plain(shipping.floatViewBounds(rect, {windowWidth, windowHeight, side: 20, bottom: 24})), JSON.stringify({rect, windowWidth}));
 });
+
+// /copy clean and /invite run shipping's own rules in the host.
+test('the host cleans links and writes invites with shipping\'s modules', () => {
+  const load = file => {
+    const window = {};
+    vm.runInNewContext(generate(record.ref)[file], {window, URL});
+    const module = {exports: {}};
+    vm.runInNewContext(execFileSync('git', ['show', `${record.ref}:src/main/${file}`], {cwd: root, encoding: 'utf8'}), {module, URL});
+    return [Object.values(window)[0], module.exports];
+  };
+  const plain = value => JSON.parse(JSON.stringify(value ?? null));
+  const [clean, shippingClean] = load('clean-link.js');
+  assert.deepEqual(plain(Object.keys(clean)), plain(Object.keys(shippingClean)));
+  for (const url of ['https://example.com/a?utm_source=x&id=1#top', 'https://example.com/?%75tm_medium=y&fbclid=z', 'http://example.com/p?keep=1&gclid=2',
+    'https://example.com/#?utm_source=fragment', 'file:///Users/me/page.html', 'chrome://settings/', 'not a url', 'https://example.com/plain'])
+    assert.equal(clean.cleanLinkForCopy(url), shippingClean.cleanLinkForCopy(url), url);
+  const [invite, shippingInvite] = load('invite-friend.js');
+  assert.deepEqual(plain(Object.keys(invite)), plain(Object.keys(shippingInvite)));
+  const t = (key, values) => `${key}${values ? JSON.stringify(values) : ''}\n&?é`;
+  assert.deepEqual(plain(invite.inviteMessage(t)), plain(shippingInvite.inviteMessage(t)));
+  assert.equal(invite.inviteMailto(invite.inviteMessage(t)), shippingInvite.inviteMailto(shippingInvite.inviteMessage(t)));
+  assert.equal(invite.INVITE_URL, shippingInvite.INVITE_URL);
+});

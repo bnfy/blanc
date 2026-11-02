@@ -1540,7 +1540,9 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     { cmd: '/find', hint: blancI18n.t('slash.find.hint'), run: () => window.browserAPI.openFindBar(), keepOverlay: true },
     { cmd: '/block-ads', hint: blancI18n.t('slash.blockAds.hint'), run: () => window.browserAPI.toggleAdblock() },
     { cmd: '/allow-ads', hint: blancI18n.t('slash.allowAds.hint'), run: () => window.browserAPI.allowAdsOnActiveSite() },
-    { cmd: '/dark-site', hint: blancI18n.t('slash.darkSite.hint'), run: () => window.browserAPI.toggleDarkSiteOnActiveSite() },
+    { cmd: '/dark-site', hint: blancI18n.t('slash.darkSite.hint'),
+      available: typeof window.browserAPI.toggleDarkSiteOnActiveSite === 'function',
+      run: () => window.browserAPI.toggleDarkSiteOnActiveSite() },
     // Link routing (F60): links to this site from other apps open in this
     // window's profile (and Space); "/route off" removes the rule.
     { cmd: '/route', hint: blancI18n.t('slash.route.hint'), run: (input) => {

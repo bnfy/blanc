@@ -6,6 +6,7 @@ blocking-settings.html
 blocking-settings.js
 browser-api-codec.js
 browser-api.js
+clean-link.js
 extensions.css
 extensions.js
 glance-card-drag.js
@@ -20,6 +21,7 @@ icons/search.svg
 icons/settings.svg
 index.html
 installed-theme.js
+invite-friend.js
 island-autohide.js
 island-hover-open.js
 language-settings.js

@@ -16,6 +16,8 @@
   ],
   "mainFiles": [
     "island-hover-open.js",
-    "island-autohide.js"
+    "island-autohide.js",
+    "clean-link.js",
+    "invite-friend.js"
   ]
 }

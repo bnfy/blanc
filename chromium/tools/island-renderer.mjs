@@ -22,9 +22,11 @@ export const FILES = ['index.html', 'overlay.html', 'overlay.js', 'renderer.js',
   'tab-sections.js', 'vertical-tabs.js', 'workspace-ui.js', 'glance-card-drag.js', 'hover-panel-leave.js'];
 // Shipping's pure main-process modules the Island host runs as they are,
 // wrapped so a document can load them: the host holds the state shipping's
-// main process holds (hover-open's dwell and auto-hide's floating pill, S1.2).
-// Each exposes its exports on window under the given name.
-export const MAIN_FILES = {'island-hover-open.js': 'BlancIslandHoverOpen', 'island-autohide.js': 'BlancIslandAutoHide'};
+// main process holds (hover-open's dwell and auto-hide's floating pill, S1.2),
+// and runs the pure rules behind /copy clean and /invite. Each exposes its
+// exports on window under the given name.
+export const MAIN_FILES = {'island-hover-open.js': 'BlancIslandHoverOpen', 'island-autohide.js': 'BlancIslandAutoHide',
+  'clean-link.js': 'BlancCleanLink', 'invite-friend.js': 'BlancInviteFriend'};
 // Trusted Types policy names, per hardened script.
 const HARDEN = {'overlay.js': 'overlay', 'renderer.js': 'renderer', 'vertical-tabs.js': 'vertical-tabs'};
 const PREVIEW_META = fs.readFileSync(path.join(root, 'tools/preview-build-meta.html'), 'utf8').trimEnd();
@@ -53,6 +55,13 @@ export const EDITS = {
     // blanc-chrome://float/, so the host names the surface in its address.
     ["  const floatSurface = window.location.hostname === 'float';\n",
       "  const floatSurface = window.location.hostname === 'float' || window.location.search === '?surface=float';\n"],
+  ],
+  'overlay.js': [
+    // Dark websites come from the Dark Reader extension in the Chromium
+    // builds (owner, 2026-11-02), so /dark-site is offered only where the
+    // host has the member, as /1password is.
+    ["    { cmd: '/dark-site', hint: blancI18n.t('slash.darkSite.hint'), run: () => window.browserAPI.toggleDarkSiteOnActiveSite() },\n",
+      "    { cmd: '/dark-site', hint: blancI18n.t('slash.darkSite.hint'),\n      available: typeof window.browserAPI.toggleDarkSiteOnActiveSite === 'function',\n      run: () => window.browserAPI.toggleDarkSiteOnActiveSite() },\n"],
   ],
 };
 
