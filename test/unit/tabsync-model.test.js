@@ -163,15 +163,34 @@ test('retractedEntry: null when never published; keeps an existing retraction cl
   assert.deepEqual(m.retractedEntry(existing, NOW), existing);
 });
 
-test('ownEntryFor: consent gating — off retracts (or omits), on publishes', () => {
+test('ownEntryFor: consent gating — off publishes presence alone, on publishes tabs', () => {
   const snapshot = { tabs: [aTab()], groups: [] };
   const args = { snapshot, name: 'MacBook Air', platform: 'darwin', now: NOW };
-  assert.equal(m.ownEntryFor({ syncTabs: false, prev: null, ...args }), null);
-  assert.deepEqual(m.ownEntryFor({ syncTabs: false, prev: entry(), ...args }), { retracted: true, updatedAt: NOW });
+  const presence = { name: 'MacBook Air', platform: 'darwin', updatedAt: NOW, tabs: [], groups: [] };
+  // Every device announces itself (Settings → Sync lists every device); no tab
+  // ever leaves a device that doesn't share them.
+  assert.deepEqual(m.ownEntryFor({ syncTabs: false, prev: null, ...args }), presence);
+  // Turning sharing off: a fresh clock beats every stale copy of the tabs.
+  const shared = entry({ updatedAt: NOW - HOUR });
+  const off = m.ownEntryFor({ syncTabs: false, prev: shared, ...args });
+  assert.deepEqual(off, presence);
+  assert.deepEqual(m.mergeDevices({ d1: shared }, { d1: off }, { now: NOW }).d1, off);
   const published = m.ownEntryFor({ syncTabs: true, prev: null, ...args });
   assert.deepEqual(published.tabs, snapshot.tabs);
   // no snapshot available (provider not registered yet) → treated as off
-  assert.equal(m.ownEntryFor({ syncTabs: true, prev: null, snapshot: null, name: 'x', platform: 'darwin', now: NOW }), null);
+  assert.deepEqual(m.ownEntryFor({ syncTabs: true, prev: null, snapshot: null, name: 'MacBook Air', platform: 'darwin', now: NOW }), presence);
+});
+
+test('presenceEntry: keeps its clock until something changes or the heartbeat is due, and no drawer lists it', () => {
+  const args = { name: 'MacBook Air', platform: 'darwin' };
+  const first = m.presenceEntry({ prev: null, ...args, now: NOW - HOUR });
+  assert.equal(m.presenceEntry({ prev: first, ...args, now: NOW }).updatedAt, NOW - HOUR, 'unchanged presence never re-uploads');
+  assert.equal(m.presenceEntry({ prev: first, ...args, name: 'Studio', now: NOW }).updatedAt, NOW, 'a new name republishes');
+  const stale = { ...first, updatedAt: NOW - 25 * HOUR };
+  assert.equal(m.heartbeatDue(stale, NOW), true, 'presence rides the daily heartbeat');
+  assert.equal(m.presenceEntry({ prev: stale, ...args, now: NOW }).updatedAt, NOW);
+  assert.deepEqual(m.displayDevices({ d1: first }, 'own', { now: NOW }), [], 'Other devices drawers hide a device without tabs');
+  assert.deepEqual(m.sanitizeEntry(first), first, 'merges keep it intact');
 });
 
 test('heartbeatDue: 24h threshold, never for retractions or missing entries', () => {

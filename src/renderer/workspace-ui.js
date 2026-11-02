@@ -28,6 +28,15 @@
   // The workspace and deleted-workspace cap: MAX_WORKSPACES in main's
   // workspaces-model.js (a unit test keeps the two equal).
   const WORKSPACE_LIMIT = 25;
+  // A refused switch names this many blocking pages; the rest are counted.
+  const BLOCKING_SHOWN = 3;
+  // Why a page holds its window, from space-switch-guard.js in main.
+  const BLOCKING_REASONS = {
+    loading: 'ws.decision.blocked.loading',
+    opener: 'ws.decision.blocked.opener',
+    capture: 'ws.decision.blocked.capture',
+    popup: 'ws.decision.blocked.popup',
+  };
   const errors = {
     'duplicate-name': t('ws.error.duplicateName'),
     'invalid-name': t('ws.error.invalidName'),
@@ -369,8 +378,11 @@
       main.title = t('ws.row.title', { name: workspace.name, context, count: workspace.tabCount });
       main.setAttribute('aria-label', main.title);
       if (workspace.active) main.setAttribute('aria-current', 'true');
-      main.append(tile(workspace), dataEl('span', 'ws-row-name', workspace.name), el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
-      if(workspace.sharedSync){const mark=dataEl('span','ws-sync-mark',t('sharedSpaces.'+({full:'fullState',unavailable:'unavailableState'}[workspace.sharedSync.state]??workspace.sharedSync.state),{time:new Date(workspace.sharedSync.lastSyncedAt??0).toLocaleString()}));mark.setAttribute('role','status');main.append(mark);if(workspace.sharedSync.reason)mark.title=t(workspace.sharedSync.reason==='tombstones'?'sharedSpaces.tombstones':'sharedSpaces.capacity');}
+      // A shared Space's sync status is a second line under its name, so the
+      // name keeps the row's width beside the count or Show window.
+      let label = dataEl('span', 'ws-row-name', workspace.name);
+      if(workspace.sharedSync){const mark=dataEl('span','ws-sync-mark',t('sharedSpaces.'+({full:'fullState',unavailable:'unavailableState'}[workspace.sharedSync.state]??workspace.sharedSync.state),{time:new Date(workspace.sharedSync.lastSyncedAt??0).toLocaleString()}));mark.setAttribute('role','status');if(workspace.sharedSync.reason)mark.title=t(workspace.sharedSync.reason==='tombstones'?'sharedSpaces.tombstones':'sharedSpaces.capacity');const text=el('span','ws-row-text');text.append(label,mark);label=text;}
+      main.append(tile(workspace), label, el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
       main.addEventListener('keydown', (event) => {
         if (!event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
         event.preventDefault(); event.stopPropagation();
@@ -434,7 +446,7 @@
     }
     function renderList() {
       const nodes = [];
-      if(data.sharedSync){nodes.push(el('p','ws-sync-status',t('sharedSpaces.count',data.sharedSync)));if(data.sharedSync.slowed)nodes.push(el('p','ws-sync-status',t('sharedSpaces.slowed')));else if(data.sharedSync.busy)nodes.push(el('p','ws-sync-status',t('sharedSpaces.busy')));}
+      if(data.sharedSync){nodes.push(el('p','ws-sync-status',t('sharedSpaces.count',data.sharedSync)));if(data.sharedSync.busy)nodes.push(el('p','ws-sync-status',t('sharedSpaces.busy')));else if(data.sharedSync.slowed)nodes.push(el('p','ws-sync-status',t('sharedSpaces.slowed')));}
       if(data.recoveryNotice){nodes.push(el('p','ws-sync-status',t('sharedSpaces.recoveryNote')));nodes.push(button(t('sharedSpaces.cancel'),'dismiss-recovery',()=>run(()=>api.updateWorkspace('',{ackRecovery:true}),()=>{})));}
       if (!data.items.length) nodes.push(el('p', 'ws-empty', t('ws.list.emptyHint')));
       data.items.forEach((workspace, index) => nodes.push(spaceRow(workspace, index)));
@@ -586,17 +598,35 @@
       const target = data.items.find((w) => w.id === action.id) ?? action.identity ?? Identity.defaultsFor(data.items);
       const head = el('div', 'ws-decision-head');
       const text = el('div', 'ws-decision-text');
+      const blocking = protectedPages && Array.isArray(result.blockingTabs) ? result.blockingTabs : [];
       text.append(dataEl('h2', 'ws-decision-title', t('ws.decision.title', { name: action.name })),
-        el('p', 'ws-switcher-confirm-msg', protectedPages
-          ? t('ws.decision.protected')
-          : t(result.privateCount === result.tabCount ? 'ws.decision.closePrivate' : 'ws.decision.closeUnsaved', { count: result.tabCount })));
+        el('p', 'ws-switcher-confirm-msg', !protectedPages
+          ? t(result.privateCount === result.tabCount ? 'ws.decision.closePrivate' : 'ws.decision.closeUnsaved', { count: result.tabCount })
+          : blocking.length ? t('ws.decision.blockedHint', { count: blocking.length }) : t('ws.decision.protected')));
       head.append(tile(target), text);
+      box.append(head);
+      if (blocking.length) box.append(renderBlockingTabs(blocking));
       const actions = el('div', 'ws-decision-actions');
       if (!protectedPages && result.tabCount > result.privateCount) actions.append(button(t('ws.decision.saveThenSwitch'), 'save-first', () => beginNew({ start: 'window', original: state }), 'ws-pill primary'));
       actions.append(button(t('ws.decision.newWindow'), 'new-window', () => openAction(action, { newWindow: true }), 'ws-pill'));
       if (!protectedPages) actions.append(button(t('ws.decision.closeAndSwitch'), 'close-and-switch', () => openAction(action, { decision: result.decision }), 'ws-pill danger-text'));
       actions.append(button(t('common.cancel'), 'cancel', cancel, 'ws-pill quiet'));
-      box.append(head, actions); return box;
+      box.append(actions); return box;
+    }
+    // The pages holding this window (#1140), each with a way to go to it.
+    function renderBlockingTabs(blocking) {
+      const rows = el('ul', 'ws-blocking');
+      for (const page of blocking.slice(0, BLOCKING_SHOWN)) {
+        const row = el('li', 'ws-blocking-row');
+        const show = button(t('ws.decision.showTab'), `show-tab:${page.id}`, () => {
+          api.switchTab(page.id); state = { kind: 'list' }; close({ force: true }); api.closeOverlay();
+        }, 'ws-pill');
+        show.setAttribute('aria-label', t('ws.decision.showTabLabel', { title: page.title }));
+        row.append(el('span', 'ws-blocking-text', t(BLOCKING_REASONS[page.reason] ?? 'ws.decision.blocked.loading', { title: page.title })), show);
+        rows.append(row);
+      }
+      if (blocking.length > BLOCKING_SHOWN) rows.append(el('li', 'ws-blocking-more', t('ws.decision.blockedMore', { count: blocking.length - BLOCKING_SHOWN })));
+      return rows;
     }
     function renderRecovery() {
       const box = el('section', 'ws-recovery');

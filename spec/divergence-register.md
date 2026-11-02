@@ -144,7 +144,8 @@ the trusted-forever/offline-OK posture after unlock. See
 
 **Parity contract:** the *set of colorways offered* and the gating
 (`isAppIconAllowed`) are identical; the launcher-icon change may be less seamless
-on Android — document the chosen UX rather than hiding the gap.
+on Android — document the chosen UX rather than hiding the gap. The iPhone's
+catalog adds one iPhone-only icon and starts with it; see D33.
 
 **Status:** Accepted; Android UX to be finalized.
 
@@ -756,3 +757,56 @@ unloaded and cross-origin images without canvas permission are omitted, keeping
 alt text and captions. Both platforms share extraction, sanitization, fonts,
 appearance defaults, manual activation, and original-page return. Broader iOS
 image coverage requires a reviewed blocker-equivalent path first.
+
+---
+
+## D32 — Link routing only on desktop
+**Features:** F60
+
+**Why:** Link routing chooses between local profiles, and Spaces inside them,
+for a link another app hands Blanc. Only desktop has more than one profile
+to choose between. iOS hands every link to the default browser's single
+profile, and Android isn't built yet.
+
+- **Desktop:** ordered domain and contains rules in Settings → Profiles send
+  links from other apps (macOS `open-url`, command-line and second-instance
+  URLs) to a profile, optionally a Space and a private tab.
+- **iOS:** not offered. Links open as they do today.
+- **Android:** not offered until it is built with profiles.
+
+**Parity contract:** a link no rule matches behaves the same everywhere: it
+opens in the window, or app, used last. Links clicked inside Blanc are never
+routed on any platform. If a mobile Blanc gains profiles, it adopts the
+desktop rule model (matching on the parsed host, first match wins, rules
+device-local and never synced) rather than inventing a separate one.
+
+**Status:** Desktop PR 1 implemented on the candidate branch, not shipped in
+public v1.43.1. Revisit when a mobile Blanc has profiles.
+
+---
+
+## D33 — iPhone app icon catalog
+**Features:** F17
+
+**Why:** The owner asked for a layered, reflective iPhone icon in the
+standard Light style (2026-10-29). They chose the iPhone's Sunrise Gold as
+its standard icon and added Sunrise Dawn, which is kept off the Mac for now. iOS 26 and later draw Icon
+Composer packages in Liquid Glass and store the chosen alternate icon
+themselves.
+
+- **Desktop (macOS):** five icons, `sunrise` standard, chosen in Settings →
+  General → App icon and stored as the device-local `appIcon` setting.
+- **iOS:** six icons, the Mac's five plus `sunrise-dawn` (Sunrise Dawn).
+  `sunrise-gold` is the primary icon. They're chosen in Settings → Appearance → App icon and
+  switched with `setAlternateIconName`. iOS remembers the choice, so there's
+  no `appIcon` value in iPhone settings. The iPhone's Sunrise Gold is drawn for
+  the phone: the same cream glass Sunrise on gold, plus a reflection under
+  the water and separate glass pieces.
+- **Android:** not built.
+
+**Parity contract:** shared ids keep the same names and labels, no platform
+reuses a retired id, and every icon is free. `sunrise-dawn` stays out of the
+shared settings schema until the Mac offers it.
+
+**Status:** iPhone implemented, unreleased. Spec:
+`docs/superpowers/specs/2026-10-29-ios-liquid-glass-app-icons-design.md`.

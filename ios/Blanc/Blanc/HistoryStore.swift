@@ -47,7 +47,8 @@ struct HistoryEntry: Codable, Equatable {
   /// A reload or redirect back to the newest page updates it instead of adding a visit.
   func addVisit(url: URL, title: String) {
     guard ["http", "https"].contains(url.scheme?.lowercased() ?? "") else { return }
-    let address = url.absoluteString
+    // A pair link's fragment is a live pairing code (design 2026-10-28 §7.3).
+    let address = PairLink.code(from: url) == nil ? url.absoluteString : "https://blanc.day/pair"
     if entries.first?.url == address {
       entries[0].visitedAt = clock()
       if !title.isEmpty { entries[0].title = title }

@@ -125,6 +125,9 @@ body.sheet .page { box-shadow: 0 30px 90px rgba(20, 20, 20, 0.22), 0 2px 10px rg
   --start-shadow-float: 0 24px 60px -32px rgba(20, 20, 20, 0.7);
 }
 
+.sync-sheet { box-shadow: 0 24px 64px rgba(20, 20, 20, 0.28); }
+.sync-sheet::backdrop { background: rgba(20, 20, 20, 0.32); }
+
 .ledger-body[data-wallpaper-style="light"],
 .ledger-body[data-wallpaper-fill="solid"][data-wallpaper-ink="dark"],
 .ledger-body[data-wallpaper-fill="gradient"][data-wallpaper-ink="dark"] {

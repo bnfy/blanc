@@ -50,7 +50,9 @@ App-icon colorways:
 Platform-packaged forms of the same mark:
 
 - `build/windows-icons/icon-sunrise.ico`
-- `ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/icon-sunrise.png`
+- `ios/Blanc/Blanc/AppIcons/` — the iPhone app icons (Icon Composer packages)
+- `ios/Blanc/Blanc/Assets.xcassets/AppIconPreview-*.imageset/` — their
+  previews in the iPhone App icon picker
 - `src/renderer/pages/icon.svg`
 - `site/public/sunrise-hero-mark.png` and `src/renderer/sunrise-hero-mark.png` —
   the original gold Sunrise mark for the website and blocker dialog

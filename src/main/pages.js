@@ -88,6 +88,7 @@ function setupPages(hooks = {}) {
   });
   const trustLinks = trustLinksForVersion(app.getVersion());
   const onePasswordAvailable = () => hooks.onePasswordAvailable?.() === true;
+  const recentTabOrderAvailable = () => hooks.recentTabOrderAvailable?.() === true;
   const developmentBrandMarkPath = hooks.developmentBrandMarkPath ?? null;
   const developmentDockIconPath = hooks.developmentDockIconPath ?? null;
   const developmentDarkDockIconPath = hooks.developmentDarkDockIconPath ?? null;
@@ -452,6 +453,7 @@ function setupPages(hooks = {}) {
       architecture: process.arch,
     },
     onePasswordAvailable: onePasswordAvailable(),
+    recentTabOrderAvailable: recentTabOrderAvailable(),
     searchEngines: Object.fromEntries(
       Object.entries(settings.SEARCH_ENGINES).map(([key, { label }]) => [key, label])
     ),
@@ -480,6 +482,12 @@ function setupPages(hooks = {}) {
   // it, so pages:settings:set drops it like any unknown key.
   handle('pages:settings:language', 'settings', (code, restart) =>
     hooks.i18n?.changeUiLanguage(code, { restart }) ?? false);
+  // F60 link routing. Targets are names and opaque ids only; the rules'
+  // only write path is settings.setLinkRoutes(), which validates the list.
+  handle('pages:settings:link-targets', 'settings', () =>
+    hooks.linkRoutes?.targets() ?? { profiles: [], spaces: [] });
+  handle('pages:settings:link-routes:set', 'settings', (routes) =>
+    settings.setLinkRoutes(Array.isArray(routes) ? routes : null));
   handle('pages:settings:trust-receipt', 'settings', async () => {
     const current = settings.getSettings();
     const blocker = JSON.parse(fs.readFileSync(path.join(app.getAppPath(), 'adblock/sources/pinned.json'), 'utf8'));
@@ -552,9 +560,16 @@ function setupPages(hooks = {}) {
   handle('pages:settings:shared-spaces-acknowledge','settings',id=>hooks.sharedSpaces?.acknowledge(id)??false);
   handle('pages:settings:shared-spaces-open','settings',id=>hooks.sharedSpaces?.open(id)??{ok:false});
   handle('pages:settings:shared-spaces-status','settings',()=>hooks.sharedSpaces?.status()??{offered:false});
-  handle('pages:settings:shared-spaces-preview','settings',()=>hooks.sharedSpaces?.preview()??{offered:false});
+  handle('pages:settings:shared-spaces-preview','settings',options=>hooks.sharedSpaces?.preview({local:options?.local===true})??{offered:false});
   handle('pages:settings:shared-spaces-apply','settings',payload=>hooks.sharedSpaces?.apply(payload??{})??{ok:false});
-  handle('pages:settings:sync-get', 'settings', () => syncStatus(sync.status()));
+  // iphonePairing: Connect your iPhone and the QR are offered in this build
+  // (design 2026-10-28 §9); openPairSheet: Finish setup asked for the sheet.
+  handle('pages:settings:sync-get', 'settings', () => ({
+    ...syncStatus(sync.status()),
+    iphonePairing: hooks.syncPairing?.offered?.() === true,
+    openPairSheet: hooks.syncPairing?.takeOpenSheet?.() === true,
+    platform: process.platform,
+  }));
   handle('pages:settings:sync-enable', 'settings', async (payload) => {
     const result = await sync.enable(payload ?? {});
     // Persisted credentials complete the migration task even when the first
@@ -570,9 +585,22 @@ function setupPages(hooks = {}) {
   // lives in sync.json, never settings.json, so it cannot cross sync.
   handle('pages:settings:sync-tabs-set', 'settings', (on) => sync.setSyncTabs(!!on));
   handle('pages:settings:sync-device-name-set', 'settings', (name) => sync.setThisDeviceName(name));
+  // Names and platforms only: Settings → Sync's device list (sync.listDevices).
+  handle('pages:settings:sync-devices', 'settings', () => sync.listDevices());
   // Device pairing (design 2026-10-16): the pairing code crosses to the page
   // for display; the wrapped secret, the key and the recovery code never do.
   handle('pages:settings:sync-pair-begin', 'settings', async () => syncReply(await sync.beginPairing()));
+  // Sync without a passphrase (design 2026-10-28 §5.1): the sync is named in
+  // the interface language; like enabling, it completes the moving-in task.
+  handle('pages:settings:sync-start-new', 'settings', async () => {
+    const result = await sync.startNew({ handle: t('settings.sync.defaultName') });
+    if (result?.status?.enabled === true) settings.setSettings({ syncMigrationCompleted: true });
+    return syncReply(result);
+  });
+  handle('pages:settings:sync-recovery-prompt-dismiss', 'settings', () => sync.dismissRecoveryPrompt());
+  // The sheet with a live code is visible (true) or not; main decides whether
+  // that window is focused enough to watch for the device that takes it.
+  handleEvent('pages:settings:sync-pair-watch', 'settings', (event, visible) => hooks.syncPairing?.watch(event.sender, visible === true) ?? false);
   handle('pages:settings:sync-pair-cancel', 'settings', () => sync.cancelPairing());
   handle('pages:settings:sync-pair-state', 'settings', () => sync.pairingState());
   handle('pages:settings:sync-join-code', 'settings', async (code) => {
@@ -622,6 +650,9 @@ function setupPages(hooks = {}) {
     // later pages:start:status push, so initial load and live updates agree.
     ...hooks.startPage?.status?.(),
     wallpaperVisible: hooks.startPage?.visibleFor?.(event.sender) === true,
+    // Play the Sunrise when Blanc opens (#1179): true for one Start Page per
+    // launch, decided in main (launch-sunrise.js).
+    launchSunrise: hooks.startPage?.launchSunriseFor?.(event.sender) === true,
     // Per-tab: a private Start Page never receives the custom image.
     wallpaper: hooks.startPage?.wallpaperFor?.(event.sender) ?? null,
     // Per-tab guard: the shared status never carries profile or privacy.

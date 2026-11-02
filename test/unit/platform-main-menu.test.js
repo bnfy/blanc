@@ -216,6 +216,22 @@ test('Edit exposes the copy-clean-link chord only on macOS', () => {
   assert.doesNotMatch(main, /'(?:CmdOrCtrl|Ctrl)\+Alt\+Shift\+C'/);
 });
 
+test('with vertical tabs the menu button moves into the rail instead of hiding under it', () => {
+  const styles = fs.readFileSync(path.join(ROOT, 'src/renderer/styles.css'), 'utf8');
+  const rail = fs.readFileSync(path.join(ROOT, 'src/renderer/vertical-tabs.js'), 'utf8');
+
+  // The rail owns the window's top-left corner in this layout, so the button
+  // changes parent with the layout (F28-19 drives it in the real app).
+  // It keeps keyboard focus across the move.
+  assert.match(rail, /function moveKeepingFocus\(element, parent, before = null\) \{[\s\S]*?const hadFocus = document\.activeElement === element;\s*parent\.insertBefore\(element, before\);\s*if \(hadFocus\) element\.focus\(\{ preventScroll: true \}\);/);
+  assert.match(rail, /function placeMainMenuButton\(layout\) \{[\s\S]*?if \(layout === 'vertical'\) \{[\s\S]*?moveKeepingFocus\(mainMenuButton, toolbar, toolbar\.firstElementChild\);[\s\S]*?\} else \{\s*moveKeepingFocus\(mainMenuButton, document\.getElementById\('strip'\), document\.getElementById\('islandPill'\)\);/);
+  assert.equal(rail.match(/placeMainMenuButton\((?:'island'|layout)\);/g)?.length, 2,
+    'every path that sets the layout places the button');
+  // In the rail's row it takes the row's own button look.
+  assert.match(styles, /\.vertical-tabs-toolbar #mainMenuButton \{[^}]*position: static;[^}]*width: 28px;[^}]*height: 28px;/);
+  assert.match(styles, /\.vertical-tabs-toolbar #mainMenuButton:hover,\s*\.vertical-tabs-toolbar #mainMenuButton\[aria-expanded="true"\] \{[^}]*background: var\(--surface\);/);
+});
+
 test('chrome markup and IPC keep one native menu definition', () => {
   const html = fs.readFileSync(path.join(ROOT, 'src/renderer/index.html'), 'utf8');
   const renderer = fs.readFileSync(path.join(ROOT, 'src/renderer/renderer.js'), 'utf8');

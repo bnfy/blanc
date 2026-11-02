@@ -7,7 +7,7 @@ const ctx = require('../support/context');
 const { waitForValue, expectPageClose } = require('../support/poll');
 const { startWorkspaceFixtures } = require('../support/workspace-fixtures');
 
-const tags = '@F41-12 or @F41-13 or @F41-14';
+const tags = '@F41-12 or @F41-13 or @F41-14 or @F41-80 or @F41-81 or @F41-82';
 const pageAt = url => waitForValue(() => Promise.resolve(ctx.app.context().pages().find(page => page.url() === url)), Boolean, `workspace fixture ${url}`);
 Before({ tags }, async function () { this.lifecycleFixture = await startWorkspaceFixtures(); });
 After({ tags }, async function () { await this.lifecycleFixture?.close(); });
@@ -47,27 +47,49 @@ Then('the POST response stays live without reposting or leaking page state to di
   }
 });
 
+/** The relying page in its own saved space, with a second space to switch to. */
+async function openRelyingWorkspace(world) {
+  world.loginTab = await world.call('openTab', world.lifecycleFixture.base + '/relying');
+  const relying = await pageAt(world.lifecycleFixture.base + '/relying');
+  await world.waitForState(state => state.tabs.every(tab => !tab.isLoading));
+  world.loginWorkspace = (await world.call('workspaceAction', 'save', 'Login workspace')).workspace.id;
+  const target = await world.call('workspaceAction', 'create', 'Login away'); assert.equal(target.ok, true); world.loginTarget = target.workspaceId;
+  await world.waitForState(state => state.tabs.every(tab => !tab.isLoading));
+  assert.equal((await world.call('workspaceAction', 'open', world.loginWorkspace)).ok, true);
+  world.loginIdentity = await world.call('workspacePageIdentity', world.loginTab);
+  return relying;
+}
 Given('a named workspace with an active sign-in {word} opener family', async function (mode) {
   assert.ok(['popup', 'tab'].includes(mode)); this.loginMode = mode;
-  this.loginTab = await this.call('openTab', this.lifecycleFixture.base + '/relying');
-  const relying = await pageAt(this.lifecycleFixture.base + '/relying');
-  await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
-  this.loginWorkspace = (await this.call('workspaceAction', 'save', 'Login workspace')).workspace.id;
-  const target = await this.call('workspaceAction', 'create', 'Login away'); assert.equal(target.ok, true); this.loginTarget = target.workspaceId;
-  await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
-  assert.equal((await this.call('workspaceAction', 'open', this.loginWorkspace)).ok, true);
-  this.loginIdentity = await this.call('workspacePageIdentity', this.loginTab);
+  const relying = await openRelyingWorkspace(this);
   await relying.locator('#' + mode).click();
   this.loginChild = await pageAt(this.lifecycleFixture.base.replace('127.0.0.1', 'localhost') + '/provider?mode=' + mode);
   assert.equal(await this.loginChild.evaluate(() => !!window.opener), true);
   await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
+});
+Given('a named workspace with a sign-in tab opened in the background', async function () {
+  // Cmd/Ctrl+click on a control whose script calls window.open, as GitHub and
+  // YouTube open links: the child keeps window.opener, yet the click's
+  // modifier makes it a background tab the person set aside to read (#1140).
+  const relying = await openRelyingWorkspace(this);
+  await relying.locator('#tab').click({ modifiers: [process.platform === 'darwin' ? 'Meta' : 'Control'] });
+  this.loginChild = await pageAt(this.lifecycleFixture.base.replace('127.0.0.1', 'localhost') + '/provider?mode=tab');
+  assert.equal(await this.loginChild.evaluate(() => !!window.opener), true, 'the site script keeps the child connected to its opener');
+  await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
+  assert.equal((await this.call('state')).activeTabId, this.loginTab, 'a modifier click opens the tab in the background');
 });
 When('I try switching workspaces during fixture sign-in', async function () {
   this.loginGuard = await this.call('workspaceAction', 'open', this.loginTarget);
   this.loginForcedGuard = await this.call('workspaceAction', 'open', this.loginTarget, { force: true, decision: 'not-a-valid-decision' });
 });
 Then('the switch is refused and the sign-in callback still reaches its opener', async function () {
-  for (const result of [this.loginGuard, this.loginForcedGuard]) assert.deepEqual(result, { ok: false, error: 'protected-pages', reason: 'active-page' });
+  // The refusal names the page holding the window (#1140): the relying page
+  // while its pop-up is open, else the sign-in tab connected to it.
+  const tabs = (await this.call('state')).tabs;
+  const blocking = this.loginMode === 'popup'
+    ? { id: this.loginTab, title: 'Workspace lifecycle fixture', reason: 'popup' }
+    : { id: tabs.find(tab => tab.url.includes('/provider?mode=tab')).id, title: 'Workspace lifecycle fixture', reason: 'opener' };
+  for (const result of [this.loginGuard, this.loginForcedGuard]) assert.deepEqual(result, { ok: false, error: 'protected-pages', reason: 'active-page', blockingTabs: [blocking] });
   assert.equal((await this.call('workspaceAction', 'list')).items.find(workspace => workspace.active)?.id, this.loginWorkspace);
   assert.equal(await this.call('workspacePageIdentity', this.loginTab), this.loginIdentity);
   assert.equal(await this.loginChild.evaluate(() => !!window.opener), true);
@@ -81,4 +103,25 @@ Then('the switch is refused and the sign-in callback still reaches its opener', 
   await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
   assert.equal((await this.call('workspaceAction', 'open', this.loginWorkspace)).ok, true);
   assert.equal(await this.call('workspacePageIdentity', this.loginTab), this.loginIdentity);
+});
+
+When('the page that opened the sign-in tab closes', async function () {
+  await this.call('closeTab', this.loginTab);
+  await waitForValue(() => this.call('state'), state => !state.tabs.some(tab => tab.id === this.loginTab), 'the opener tab closes');
+  assert.equal(await this.loginChild.evaluate(() => !!window.opener), false, 'the sign-in tab has lost its opener');
+});
+Given('a named workspace whose page keeps loading a frame', async function () {
+  await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
+  this.loginWorkspace = (await this.call('workspaceAction', 'save', 'Busy frame workspace')).workspace.id;
+  const target = await this.call('workspaceAction', 'create', 'Busy frame away'); assert.equal(target.ok, true); this.loginTarget = target.workspaceId;
+  await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
+  assert.equal((await this.call('workspaceAction', 'open', this.loginWorkspace)).ok, true);
+  this.frameTab = await this.call('openTab', this.lifecycleFixture.base + '/busy-frame');
+  await waitForValue(() => Promise.resolve(this.lifecycleFixture.requests.pages['/slow-frame'] ?? 0), count => count >= 2, 'the frame keeps reloading');
+  await this.waitForState(state => state.tabs.some(tab => tab.id === this.frameTab && tab.isLoading));
+});
+Then('switching workspaces is accepted', async function () {
+  const result = await this.call('workspaceAction', 'open', this.loginTarget);
+  assert.equal(result.ok, true, `switch refused: ${JSON.stringify(result)}`);
+  assert.equal((await this.call('workspaceAction', 'list')).items.find(workspace => workspace.active)?.id, this.loginTarget);
 });

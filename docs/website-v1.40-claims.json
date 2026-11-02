@@ -418,19 +418,9 @@
       "verdict": "verified"
     },
     {
-      "id": "v140-032",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "now, none at all",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "floatStyle"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "v140-033",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Tabs, search and commands live in one compact Island. Turn on Auto-hide and it slips out of sight; point at the top edge and it floats back. Free for macOS, Windows and Linux, with ad and tracker blocking on from the first launch.",
+      "exactWording": "Tabs, search and commands in one compact Island that can hide out of sight. Free, with ad and tracker blocking on from the first launch.",
       "subject": "Blanc",
       "evidenceGroups": [
         "islandFacts",
@@ -438,6 +428,16 @@
         "platformsAndBlocking"
       ],
       "verdict": "qualified"
+    },
+    {
+      "id": "v140-035",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "For macOS, Windows and Linux",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "platformsAndBlocking"
+      ],
+      "verdict": "verified"
     },
     {
       "id": "v140-034",

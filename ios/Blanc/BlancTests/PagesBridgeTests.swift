@@ -1,5 +1,6 @@
 import XCTest
 import JavaScriptCore
+import WebKit
 @testable import Blanc
 
 final class PagesBridgeTests: XCTestCase {
@@ -135,6 +136,28 @@ final class PagesBridgeTests: XCTestCase {
                        PagesBridge.startData())
     }
 
+    /// The web Settings page's Clear button: offered on iOS, and answered only
+    /// once the clearing is done, so "Cleared." never shows early.
+    @MainActor func testClearBrowsingDataAnswersAfterClearing() async {
+        let store = WKWebsiteDataStore.nonPersistent()
+        let manager = TabsManager(
+            settingsDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString),
+            sessionDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString),
+            siteDataStore: store)
+        await store.httpCookieStore.setCookie(HTTPCookie(properties: [
+            .domain: "example.com", .path: "/", .name: "blanc-bridge", .value: "1",
+            .expires: Date().addingTimeInterval(3600)])!)
+        let result = await PagesBridge(manager: manager).clearBrowsingData()
+        XCTAssertEqual(result, .value(.null))
+        let names = await store.httpCookieStore.allCookies().map(\.name)
+        XCTAssertFalse(names.contains("blanc-bridge"))
+        guard case .object(let pairs) = value("settings", "get"),
+              case .array(let capabilities)? = Dictionary(uniqueKeysWithValues: pairs)["capabilities"] else {
+            return XCTFail("settings.get should list capabilities")
+        }
+        XCTAssertTrue(capabilities.contains(.string("clearBrowsingData")))
+    }
+
     // settings.get returns the full bootstrap payload built from the generated
     // substrate: settings/searchEngines/appIcons/capabilities.
     func testSettingsGetShape() {
@@ -177,7 +200,7 @@ final class PagesBridgeTests: XCTestCase {
             if case .string(let s) = val { return s }
             return nil
         }
-        XCTAssertEqual(Set(capStrings), Set(["theme", "searchEngine", "adblockEnabled", "sync"]))
+        XCTAssertEqual(Set(capStrings), Set(["theme", "searchEngine", "adblockEnabled", "sync", "clearBrowsingData"]))
     }
 
     // shortcuts.list is stubbed (typeable via the address bar), not rejected.

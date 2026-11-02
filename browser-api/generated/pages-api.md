@@ -102,6 +102,8 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `settings.chooseWallpaper` | invoke | `pages:start:choose-wallpaper` | settings | Pick an image file for the Start Page wallpaper and show it. |
 | `settings.removeWallpaper` | invoke | `pages:start:remove-wallpaper` | settings | Delete the stored Start Page image and return to Sunrise. |
 | `settings.language` | invoke | `pages:settings:language` | settings | Choose the interface language; optionally relaunch to apply it. |
+| `settings.linkTargets` | invoke | `pages:settings:link-targets` | settings | Where link routing rules can point: live profiles and Spaces, ids and names only. |
+| `settings.setLinkRoutes` | invoke | `pages:settings:link-routes:set` | settings | Replace the link routing rules; main validates the whole list and stores all or nothing. |
 | `settings.blockingStatus` | invoke | `pages:blocking:status` | settings | Blocking provider status. |
 | `settings.blockingRetry` | invoke | `pages:blocking:retry` | settings | Retry a blocking provider that failed to start. |
 | `settings.blockingOpen` | invoke | `pages:blocking:open` | settings | Open a managed uBlock Origin tool view. |
@@ -118,12 +120,17 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `settings.syncNow` | invoke | `pages:settings:sync-now` | settings | Sync now, then return the new status. |
 | `settings.syncTabsSet` | invoke | `pages:settings:sync-tabs-set` | settings | Turn open-tab sync on or off; main coerces to boolean. |
 | `settings.syncDeviceNameSet` | invoke | `pages:settings:sync-device-name-set` | settings | Name this device as the user's other devices list it, then return the new status. An empty name restores the computer's name; main ignores a non-string. |
+| `settings.syncDevices` | invoke | `pages:settings:sync-devices` | settings | This device's platform and the other devices this sync knows of (devices sharing their open tabs plus Send to Device presence), as names and platforms only. No device ids or keys cross. |
 | `settings.syncPairBegin` | invoke | `pages:settings:sync-pair-begin` | settings | Park this device's wrapped sync secret under a fresh pairing code; returns the code and expiry for display. No key crosses. |
 | `settings.syncPairCancel` | invoke | `pages:settings:sync-pair-cancel` | settings | Retract the current pairing code. |
 | `settings.syncPairState` | invoke | `pages:settings:sync-pair-state` | settings | The live pairing code and expiry, so a reopened Settings page can resume the countdown. |
 | `settings.syncJoinCode` | invoke | `pages:settings:sync-join-code` | settings | Join an existing sync from the off state with a pairing or recovery code; status-only reply. |
 | `settings.syncSwitchCode` | invoke | `pages:settings:sync-switch-code` | settings | Leave the current sync for the one behind a code, optionally erasing the old server copy; status-only reply. |
 | `settings.syncRecoveryCodeCopy` | invoke | `pages:settings:sync-recovery-code-copy` | settings | Copy the recovery code to the clipboard from main behind a native dialog. The reply never carries the code. |
+| `settings.syncStartNew` | invoke | `pages:settings:sync-start-new` | settings | Turn on Sync with a generated account, no name or passphrase; status-only reply with whether the first pass reached the server. |
+| `settings.syncRecoveryPromptDismiss` | invoke | `pages:settings:sync-recovery-prompt-dismiss` | settings | Hide the recovery-code prompt on this device for good. |
+| `settings.syncPairWatch` | invoke | `pages:settings:sync-pair-watch` | settings | Report whether the sheet with a live pairing code is visible, so main watches for the device that takes it. |
+| `settings.onSyncPairJoined` | event | `pages:settings:sync-pair-joined` | settings | The device that took the live pairing code arrived: its name and platform only. |
 | `settings.welcomeTour` | invoke | `pages:settings:welcome-tour` | settings | Replay the welcome tour. |
 | `settings.onePasswordStatus` | invoke | `pages:settings:onepassword-status` | settings | 1Password fill status. Main registers this handler only when 1Password fill is available. |
 | `settings.onePasswordVerify` | invoke | `pages:settings:onepassword-verify` | settings | Verify a 1Password account. Registered only when 1Password fill is available. |
@@ -144,7 +151,7 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `diagnostics.status` | invoke | `pages:diagnostics:status` | settings | Local diagnostics status. |
 | `diagnostics.export` | invoke | `pages:diagnostics:export` | settings | Export local diagnostics through a native save dialog. |
 | `diagnostics.clear` | invoke | `pages:diagnostics:clear` | settings | Clear local diagnostics. |
-| `settings.sharedSpacesPreview` | invoke | `pages:settings:shared-spaces-preview` | settings | Development-only Shared Spaces consent and selection. |
+| `settings.sharedSpacesPreview` | invoke | `pages:settings:shared-spaces-preview` | settings | Shared Spaces selection sheet choices; {local: true} answers from this device's saved index without a network fetch. |
 | `settings.sharedSpacesApply` | invoke | `pages:settings:shared-spaces-apply` | settings | Development-only Shared Spaces consent and selection. |
 | `settings.sharedSpacesStatus` | invoke | `pages:settings:shared-spaces-status` | settings | Development-only Shared Spaces consent and selection. |
 | `settings.sharedSpacesOpen` | invoke | `pages:settings:shared-spaces-open` | settings | Development-only Shared Spaces consent and selection. |

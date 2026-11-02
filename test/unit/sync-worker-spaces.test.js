@@ -1,8 +1,9 @@
 'use strict';
+const {attachQuota}=require('../support/sync-quota.cjs');
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
-const worker=import(`data:text/javascript;base64,${fs.readFileSync(require.resolve('../../cloudflare/sync-worker/src/index.js')).toString('base64')}`).then(m=>m.default);
+const worker=import(`data:text/javascript;base64,${fs.readFileSync(require.resolve('../../cloudflare/sync-worker/src/index.js')).toString('base64')}`);
 const account='a'.repeat(64), other='b'.repeat(64);
 const sid=n=>n.toString(16).padStart(32,'0');
 function storage(vars={}) {
@@ -14,7 +15,7 @@ function storage(vars={}) {
   }};
 }
 async function request(env,method,store,body,who=account,headers={}) {
-  return (await worker).fetch(new Request(`https://sync.test/v1/blob/${who}${store?'/'+store:''}`,{method,headers,...(body===undefined?{}:{body:typeof body==='string'?body:JSON.stringify(body),duplex:'half'})}),env);
+  const mod=await worker;if(!env.ACCOUNT_QUOTA)attachQuota(env,mod.AccountQuota);return mod.default.fetch(new Request(`https://sync.test/v1/blob/${who}${store?'/'+store:''}`,{method,headers,...(body===undefined?{}:{body:typeof body==='string'?body:JSON.stringify(body),duplex:'half'})}),env);
 }
 
 test('space blobs and new fixed stores retain round trips and optimistic versions',async()=>{
@@ -64,7 +65,7 @@ test('Space reads share the account throttle and preserve the new-account budget
 test('scheduled cleanup removes orphan Space blobs only for inactive accounts',async()=>{
   const env=storage({CLEANUP_ENABLED:'true'});
   env.records.set(`blob:${account}:space-${sid(1)}`,'{}');env.records.set(`blob:${other}:space-${sid(2)}`,'{}');env.records.set(`seen:${other}`,'{}');
-  let job;(await worker).scheduled({},env,{waitUntil:p=>{job=p;}});await job;
+  let job;(await worker).default.scheduled({},env,{waitUntil:p=>{job=p;}});await job;
   assert.equal(env.records.has(`blob:${account}:space-${sid(1)}`),false);assert.ok(env.records.has(`blob:${other}:space-${sid(2)}`));
 });
 
@@ -87,6 +88,6 @@ test('a fixed-store delete failure does not erase the activity marker',async()=>
   env.SYNC.list=async()=>({keys:[],list_complete:true});
   const remove=env.SYNC.delete;
   env.SYNC.delete=async key=>{if(key===`blob:${account}:bookmarks`)throw new Error('storage unavailable');return remove(key);};
-  await assert.rejects(request(env,'DELETE'),/storage unavailable/);
+  assert.equal((await request(env,'DELETE')).status,503);
   assert.equal(env.records.has(`seen:${account}`),true);
 });

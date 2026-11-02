@@ -201,6 +201,10 @@ BLANC_RELEASE_OPERATOR=terminal \
 BLANC_COSIGN_IDENTITY='anthony@bnfy.me' \
 BLANC_COSIGN_OIDC_ISSUER='https://github.com/login/oauth' \
 BLANC_RELEASE_MODE=stable \
+BLANC_RELEASE_RUNTIME=ecs \
+BLANC_EVS_PYTHON="$HOME/.config/evs/venv/bin/python" \
+EVS_CONFIG_FILE="$HOME/.config/evs/config.json" \
+EVS_CACHE_FILE="$HOME/.config/evs/cache.json" \
 BLANC_RELEASE_PLATFORMS=mac,windows,linux \
 BLANC_MAC_ARCHES=arm64,x64 \
 npm run release
@@ -215,6 +219,10 @@ BLANC_RELEASE_OPERATOR=agent \
 BLANC_COSIGN_IDENTITY='anthony@bnfy.me' \
 BLANC_COSIGN_OIDC_ISSUER='https://github.com/login/oauth' \
 BLANC_RELEASE_MODE=stable \
+BLANC_RELEASE_RUNTIME=ecs \
+BLANC_EVS_PYTHON="$HOME/.config/evs/venv/bin/python" \
+EVS_CONFIG_FILE="$HOME/.config/evs/config.json" \
+EVS_CACHE_FILE="$HOME/.config/evs/cache.json" \
 BLANC_RELEASE_PLATFORMS=mac,windows,linux \
 BLANC_MAC_ARCHES=arm64,x64 \
 npm run release

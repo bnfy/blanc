@@ -29,7 +29,6 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         // top-level methods) to avoid optional-literal pattern ambiguity.
         switch (group ?? "", method) {
         case ("", "appVersion"): return .value(.string(appVersion))
-        case ("", "clearBrowsingData"): return .value(.null)
 
         case ("bookmarks", "list"): return .value(.array([]))
         // Favorites edit on the phone; importing (F30) and Start Page pins stay on the computer.
@@ -54,13 +53,13 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
             return .value(.object([
                 ("ok", .bool(false)),
                 ("created", .bool(false)),
-                ("message", .string("Sync isn’t available in this build yet.")),
+                ("message", .string(SyncCopy.text("ios.pages.syncUnavailable"))),
                 ("status", disabledStatus),
             ]))
         case ("settings", "activateSupporter"):
             return .value(.object([
                 ("ok", .bool(false)),
-                ("message", .string("Supporter activation isn’t available in this build yet.")),
+                ("message", .string(SyncCopy.text("ios.pages.supporterUnavailable"))),
             ]))
 
         case ("permissions", "list"): return .value(.object([]))
@@ -98,7 +97,8 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
     /// values track `BlancSettingsDefaults`. `theme`/`searchEngine`/`adblockEnabled`
     /// are parameterized so the live store can override the defaults;
     /// `capabilities` lists the features this platform actually implements, so
-    /// `settings.js` hides the rest (iOS ships only theme/searchEngine/adblock).
+    /// `settings.js` hides the rest (iOS ships theme, search engine, blocker, Sync
+    /// and Clear cookies, cache & site data).
     private static func settingsBootstrap(
         theme: BlancThemePreference = BlancSettingsDefaults.theme,
         searchEngine: BlancSearchEngine = BlancSettingsDefaults.searchEngine,
@@ -129,6 +129,7 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
                 .string("searchEngine"),
                 .string("adblockEnabled"),
                 .string("sync"),
+                .string("clearBrowsingData"),
             ])),
         ])
     }
@@ -292,6 +293,19 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         };
       }
       window.bowserPages = api;
+      // The utility pages open as ordinary tabs above the Island, not as
+      // desktop's card over a scrim. Marked before any page script runs:
+      // sheet.js and history.js read the mark, ios-pages.css draws the page.
+      if (typeof document !== 'undefined' && ['history', 'bookmarks', 'shortcuts', 'downloads'].indexOf(host) !== -1) {
+        const root = document.documentElement;
+        root.dataset.platform = 'ios';
+        const viewport = document.createElement('meta');
+        viewport.name = 'viewport';
+        viewport.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
+        const style = document.createElement('link');
+        style.rel = 'stylesheet'; style.href = 'ios-pages.css';
+        root.append(viewport, style);
+      }
       if (typeof document !== 'undefined' && location.hostname === 'newtab') {
         document.addEventListener('DOMContentLoaded', function () {
           const viewport = document.createElement('meta');
@@ -337,7 +351,7 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         let args = body["args"] as? [Any] ?? []
         let documentURL = webView.url
         if group == "start", method == "renderNativeClock" {
-            let tab = ((manager?.tabs ?? []) + (manager?.startPreviews ?? [])).first { $0.webView === webView }
+            let tab = ((manager?.tabs ?? []) + (manager?.startPreviews ?? [])).first { $0.existingWebView === webView }
             let rendered = tab?.nativeClock.render(args.first as? [String: Any], in: webView) ?? false
             resolve(id, result: .value(.bool(rendered)), in: webView, host: host)
             return
@@ -369,12 +383,28 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
             }
             return
         }
+        if group == nil, method == "clearBrowsingData" {
+            Task { [weak self, weak webView] in
+                guard let self else { return }
+                let result = await self.clearBrowsingData()
+                guard let webView, webView.url == documentURL else { return }
+                self.resolve(id, result: result, in: webView, host: host)
+            }
+            return
+        }
         var result = liveResponse(group: group, method: method, args: args, appVersion: version)
         if group == "start", method == "data", let layout = manager?.previewLayout(for: webView), case .value(var data) = result {
             data["layout"] = .string(layout.rawValue)
             result = .value(data)
         }
         resolve(id, result: result, in: webView, host: host)
+    }
+
+    /// The web Settings page's Clear button, answered once the clearing is done
+    /// so the page never says "Cleared." early.
+    func clearBrowsingData() async -> BridgeResult {
+        await manager?.clearSiteData()
+        return .value(.null)
     }
 
     /// The answer to a call the sender checks above allowed, using live app state.
@@ -561,6 +591,13 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         case "syncPairBegin": return await engine.beginPairing()
         case "syncPairCancel": await engine.cancelPairing(); return .object([("ok", .bool(true))])
         case "syncPairState": return engine.pairingStatus()
+        // Settings → Sync's device list, as desktop's sync.listDevices: names
+        // and platforms only, never a device id.
+        case "syncDevices":
+            return .object([
+                ("platform", .string("ios")),
+                ("devices", .array(engine.sendTargets.map { .object([("name", .string($0.name)), ("platform", .string($0.platform))]) })),
+            ])
         case "syncJoinCode": return await engine.joinWithCode(args.first as? String ?? "")
         case "syncSwitchCode": return await engine.switchWithCode(options["code"] as? String ?? "", wipeRemote: options["wipeRemote"] as? Bool ?? false)
         case "syncRecoveryCodeCopy":

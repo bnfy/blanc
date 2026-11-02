@@ -315,7 +315,7 @@ test('release authentication uses an explicit interactive operator, 1Password de
     assert.match(instructions, /gh auth status/);
     assert.match(instructions, /before asking the user to reauthenticate|Do not ask the user to run `gh auth login`/);
   }
-  assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.43.1}'));
+  assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.45.1}'));
   assert.ok(releaseScript.includes('${BLANC_COSIGN_REDIRECT_PORT:-49197}'));
   assert.ok(releaseScript.includes('http://127.0.0.1:$COSIGN_REDIRECT_PORT/auth/callback'));
   assert.match(releaseScript, /Sigstore callback port \$COSIGN_REDIRECT_PORT is already in use/);
@@ -379,9 +379,13 @@ test('release resume reuses only a stamped, unchanged build and never skips pref
   assert.doesNotMatch(releaseScript.slice(tagPush), /should_run|RESUME_FROM/);
 });
 
-test('an ECS release is opt-in, needs the EVS account and the reviewed uBO record, and verifies its own package', () => {
+test('the release runtime is chosen explicitly, ECS needs the EVS account and the reviewed uBO record, and verifies its own package', () => {
   const releaseScript = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/release.sh'), 'utf8');
-  assert.match(releaseScript, /RELEASE_RUNTIME="\$\{BLANC_RELEASE_RUNTIME:-official\}"/);
+  // No default: an unset runtime once built 1.44.0 on official Electron after
+  // 1.43.x had shipped ECS (Widevine), which would have dropped DRM on update.
+  assert.match(releaseScript, /RELEASE_RUNTIME="\$\{BLANC_RELEASE_RUNTIME:-\}"/);
+  assert.doesNotMatch(releaseScript, /BLANC_RELEASE_RUNTIME:-official/);
+  assert.match(releaseScript, /BLANC_RELEASE_RUNTIME must be explicitly set to ecs or official\./);
   assert.match(releaseScript, /for var in BLANC_EVS_PYTHON EVS_CONFIG_FILE EVS_CACHE_FILE/);
   assert.match(releaseScript, /matrix\.ecsRuntime !== pin\.version/);
   assert.match(releaseScript, /BLANC_ECS_RELEASE_PIPELINE=1 node scripts\/build-ecs-production\.cjs --release --mac/);

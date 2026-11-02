@@ -3,6 +3,7 @@ const model=require('./shared-spaces-model');
 const adapter=require('./shared-spaces-adapter');
 const copy=value=>structuredClone(value);
 function projectSpace(blob) {
+  const {DOCUMENT_POLICY_VERSION}=require('./document-policy');
   const clean=model.sanitizeBlob(blob);if(!clean)throw new TypeError('Invalid Space');
   const ids=model.orderOf(clean.tabs).filter(id=>!clean.tabs[id].deleted.v);
   const groupIds=model.orderOf(clean.groups).filter(id=>!clean.groups[id].deleted.v);
@@ -10,6 +11,7 @@ function projectSpace(blob) {
     meta:ids.map(id=>({title:clean.tabs[id].nav.v.title,customTitle:clean.tabs[id].name.v})),
     pinned:ids.map(id=>clean.tabs[id].pinned.v),groupIds:ids.map(id=>model.effectiveGroup(clean,clean.tabs[id])),
     groups:groupIds.map(id=>({id,name:clean.groups[id].name.v,color:clean.groups[id].color.v,collapsed:clean.groups[id].collapsed.v})),
+    documentPolicy:DOCUMENT_POLICY_VERSION,inheritsDocumentPolicy:ids.map(()=>false),localFiles:ids.map(()=>false),
     activeIndex:Math.max(0,ids.indexOf(model.activeTabId(clean))),sectionOrder:true};
 }
 function planSharing(index,workspaces,selections,{now,deviceId,ids,encryptFn}) {
@@ -58,8 +60,8 @@ function reconcileCapture(previous,blob) {
   const groups=new Map(projected.groups.map(group=>[group.id,group]));
   for(const group of previous.groups??[])if(rows.some(row=>row.local&&row.group===group.id))groups.set(group.id,group);
   return {...previous,urls:rows.map(row=>row.url),tabIds:rows.map(row=>row.id),meta:rows.map(row=>row.meta),pinned:rows.map(row=>row.pinned),groupIds:rows.map(row=>row.group),groups:[...groups.values()],
-    localFiles:rows.map(row=>row.local&&previous.localFiles?.[row.old]===true),documentPolicy:DOCUMENT_POLICY_VERSION,
-    inheritsDocumentPolicy:rows.map(row=>row.local&&restoredMarker(previous,row.old)),
+    localFiles:rows.map(row=>row.local===true&&previous.localFiles?.[row.old]===true),documentPolicy:DOCUMENT_POLICY_VERSION,
+    inheritsDocumentPolicy:rows.map(row=>row.local===true&&restoredMarker(previous,row.old)),
     ...(previous.splitIds?.length===previous.urls.length?{splitIds:rows.map(row=>row.old===undefined?null:previous.splitIds[row.old])}:{}),
     activeIndex:active<0?Math.max(0,rows.findIndex(row=>row.id===projected.tabIds[projected.activeIndex])):active};
 }

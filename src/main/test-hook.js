@@ -63,6 +63,8 @@ function install(refs) {
     // `(fn) => bindWindowRuntime(primaryRuntime, fn)`; every method below is
     // wrapped with it, once, mechanically, at the end of this function.
     bindRoot,
+    rearmLaunchSunrise,
+    pairingProtectedWindow,
     bangIcons,
     clearRecentBangsAndIcons,
     tabs,
@@ -200,6 +202,7 @@ function install(refs) {
     persistedSessionData,
     serializedTabsPayload,
     sleepTab,
+    quietRefusal,
     wakeTab,
     runSleepSweep,
     createSplitFromTabs,
@@ -1161,6 +1164,14 @@ function install(refs) {
 
     // ---- settings ----
     setAdblock(on) { settings.setSettings({ adblockEnabled: !!on }); },
+    setIslandTabIcons(on) { return settings.setSettings({ islandTabIcons: !!on }).islandTabIcons; },
+    // The launch Sunrise plays once per launch; acceptance rearms that launch.
+    setLaunchSunrise(on) {
+      const saved = settings.setSettings({ launchSunrise: !!on }).launchSunrise;
+      rearmLaunchSunrise();
+      return saved;
+    },
+    setTabSwitchOrder(order) { settings.setSettings({ tabSwitchOrder: order }); return settings.getSettings().tabSwitchOrder; },
     async probeOnePasswordUtilityProcess() {
       const result = await probeOnePasswordPackage();
       return {
@@ -1241,6 +1252,25 @@ function install(refs) {
         visible: ['Ledger', 'Billboard', 'Shelf', 'Tally']
           .filter((name) => getComputedStyle(document.getElementById('layout' + name)).display !== 'none'),
       }))()`);
+    },
+    // The launch Sunrise on the active Start Page: absent once it has ended
+    // (or was never due), else whether it shows and how far it has got.
+    readLaunchSunrise() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const scene = document.getElementById('launchSunrise');
+        if (!scene) return { present: false, layoutReady: document.body.classList.contains('layout-ready') };
+        const style = getComputedStyle(scene);
+        return {
+          present: true,
+          shown: !scene.hidden && style.display !== 'none',
+          pointerEvents: style.pointerEvents,
+          animations: scene.getAnimations({ subtree: true }).map((animation) => animation.animationName).sort(),
+          layoutReady: document.body.classList.contains('layout-ready'),
+        };
+      })()`);
     },
     readMigrationChecklistDom() {
       const tab = tabs.get(getActiveTabId());
@@ -1441,6 +1471,7 @@ function install(refs) {
         sync: 'migrationSyncAction',
         tabs: 'migrationTabsAction',
         space: 'migrationSpaceAction',
+        iphone: 'migrationIphoneAction',
         hide: 'migrationChecklistHide',
         compact: 'migrationChecklistCompact',
       };
@@ -1472,6 +1503,7 @@ function install(refs) {
         syncMigrationCompleted: false,
         tabImportCompleted: false,
         spaceMigrationCompleted: false,
+        iphoneMigrationCompleted: false,
       });
       const current = settings.getSettings();
       return {
@@ -1497,8 +1529,12 @@ function install(refs) {
         return document.getElementById('patronCallout').hidden;
       })()`);
     },
-    setMigrationChecklistProgress(syncComplete, tabsComplete, spaceComplete = false) {
-      settings.setSettings({ syncMigrationCompleted: !!syncComplete, tabImportCompleted: !!tabsComplete, spaceMigrationCompleted: !!spaceComplete });
+    // iphoneComplete undefined keeps the stored value (design 2026-10-28 §6.1).
+    setMigrationChecklistProgress(syncComplete, tabsComplete, spaceComplete = false, iphoneComplete) {
+      settings.setSettings({
+        syncMigrationCompleted: !!syncComplete, tabImportCompleted: !!tabsComplete, spaceMigrationCompleted: !!spaceComplete,
+        ...(iphoneComplete === undefined ? {} : { iphoneMigrationCompleted: !!iphoneComplete }),
+      });
       return true;
     },
     migrationChecklistSettings() {
@@ -2689,8 +2725,18 @@ function install(refs) {
           toggleShown: !document.getElementById('shieldPopToggle').hidden,
           connection: row && !row.hidden ? 'Connection · ' + document.getElementById('shieldPopConnectionValue').textContent : null,
           header: document.querySelector('.shield-pop-state')?.textContent.trim() ?? '',
+          route: document.getElementById('shieldPopRoute')?.hidden === false ? {
+            label: document.getElementById('shieldPopRouteLabel').textContent,
+            on: document.getElementById('shieldPopRouteToggle').getAttribute('aria-checked') === 'true',
+            note: document.getElementById('shieldPopRouteNote').textContent,
+          } : null,
         };
       })()`);
+    },
+    clickShieldRouteToggle() {
+      const wc = getOverlayWebContents();
+      if (!wc) throw new Error('overlay webContents unavailable');
+      return wc.executeJavaScript(`document.getElementById('shieldPopRouteToggle').click()`);
     },
     clickShieldPopoverToggle() {
       const wc = getOverlayWebContents();
@@ -2979,6 +3025,56 @@ function install(refs) {
       if (!wc) return false;
       return wc.executeJavaScript(`(() => { const b = document.querySelector('.hint-toggle'); b?.click(); return !!b; })()`);
     },
+    /** Settings → Profiles → Open links from other apps (F60): read the
+     * group, or drive its controls the way a person does. */
+    async settingsLinkRoutes(action, ...args) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const [action, ...args] = ${JSON.stringify([String(action), ...args])};
+        const card = document.getElementById('linkRoutesCard');
+        if (!card) return null;
+        const rows = () => [...document.querySelectorAll('#linkRoutesList .link-route-row')];
+        const fire = (element, ...events) => { for (const type of events) element.dispatchEvent(new Event(type, { bubbles: true })); };
+        if (action === 'state') {
+          return {
+            ready: card.dataset.ready === 'true',
+            shown: !card.hidden,
+            fallback: card.querySelector('.link-route-fallback')?.textContent ?? '',
+            rows: rows().map((row) => {
+              const [profile, space] = row.querySelectorAll('select');
+              const input = row.querySelector('input[type="text"]');
+              return {
+                label: row.getAttribute('aria-label'),
+                value: input.value,
+                invalid: input.getAttribute('aria-invalid') === 'true',
+                error: row.querySelector('.field-error')?.textContent ?? '',
+                note: row.querySelector('.link-route-note')?.textContent ?? '',
+                profileId: profile.value,
+                spaceId: space.value || null,
+                private: row.querySelector('input[type="checkbox"]').checked,
+              };
+            }),
+          };
+        }
+        if (action === 'add') { document.getElementById('linkRouteAdd').click(); return rows().length; }
+        const row = rows()[args[0]];
+        if (!row) return false;
+        if (action === 'fill') {
+          const input = row.querySelector('input[type="text"]');
+          input.value = args[1];
+          fire(input, 'input', 'change');
+          return true;
+        }
+        if (action === 'profile') {
+          const select = row.querySelectorAll('select')[0];
+          select.value = args[1];
+          fire(select, 'change');
+          return select.value === args[1];
+        }
+        return false;
+      })()`);
+    },
     async settingsCreateProfile(name) {
       const wc = getUtilitySheetWebContents();
       if (!wc) return false;
@@ -3226,6 +3322,11 @@ function install(refs) {
             .map((dot) => dot.title),
           overflowText: overflow?.textContent ?? '',
           overflowLabel: overflow?.getAttribute('aria-label') ?? '',
+          // Site icons instead of dots (#1175): the row's mode and, per
+          // direct tab, whether it draws an icon at rest.
+          iconsMode: document.getElementById('pillDots')?.classList.contains('icons') === true,
+          iconCount: document.querySelectorAll('#pillDots .island-dot > .dot-icon').length,
+          peekCount: document.querySelectorAll('#pillDots .island-dot > .dot-peek').length,
         };
       })()`);
     },
@@ -3610,6 +3711,13 @@ function install(refs) {
     // Settings → Sync device pairing (design 2026-10-16): the off-state code
     // path as the person sees it, and the clicks/typing that drive it. Reads
     // DOM state only; the pairing code itself never appears in this record.
+    // Design 2026-10-28 §6.2: which windows ask to be left out of capture.
+    windowsContentProtected() {
+      // Blanc's own record of the window it protected: macOS 27 keeps
+      // isContentProtected() true after protection is lifted (see main.js).
+      const win = pairingProtectedWindow?.();
+      return win && !win.isDestroyed() ? 1 : 0;
+    },
     settingsSyncPairingDom() {
       const wc = getUtilitySheetWebContents();
       if (!wc || !wc.getURL().startsWith('blanc://settings')) return null;
@@ -3624,6 +3732,27 @@ function install(refs) {
           connectDisabled: !!byId('syncCodeSubmit')?.disabled,
           codeValue: byId('syncCode')?.value ?? '',
           status: byId('syncCodeStatus')?.textContent ?? '',
+          // Design 2026-10-28: Turn on Sync, Other ways, the on state and the sheet.
+          turnOnVisible: visible(byId('syncTurnOn')),
+          firstPath: document.querySelector('#syncPaths button')?.id ?? '',
+          otherWays: [...document.querySelectorAll('#syncOtherWays .sync-path')].map((b) => b.id),
+          syncOn: visible(byId('syncActive')),
+          handle: byId('syncStatusHandle')?.textContent ?? '',
+          recoveryPromptVisible: visible(byId('syncRecoveryPrompt')),
+          sheetOpen: !!byId('syncPairingDialog')?.open,
+          // Open is not enough: a modal inside a hidden ancestor opens at 0×0.
+          sheetVisible: !!byId('syncPairingDialog')?.open && byId('syncPairingDialog').getBoundingClientRect().width > 0,
+          sheetCode: byId('syncPairingDialog')?.open && !byId('syncPairing')?.hidden ? (byId('syncPairingCode')?.textContent ?? '') : '',
+          joinedTitle: byId('syncPairingDialog')?.open && !byId('syncPairingJoined')?.hidden ? (byId('syncPairingJoinedTitle')?.textContent ?? '') : '',
+          askingSpaces: !!byId('syncPairingDialog')?.open && !byId('syncPairingQuestion')?.hidden && !byId('syncPairingJoined')?.hidden,
+          doneVisible: !!byId('syncPairingDialog')?.open && !byId('syncPairingJoined')?.hidden,
+          // Connect your iPhone (design 2026-10-28 §6.1–§6.2).
+          connectIphoneVisible: visible(byId('syncConnectIphone')),
+          startShown: !!byId('syncPairingDialog')?.open && !byId('syncPairingStart')?.hidden,
+          sheetTitle: byId('syncPairingDialog')?.open ? (!byId('syncPairingStart')?.hidden ? byId('syncPairingStartTitle') : byId('syncPairingTitle'))?.textContent ?? '' : '',
+          // An <svg> has no .hidden property: judge the QR by what's drawn.
+          qrPath: byId('syncPairingQr')?.getBoundingClientRect().width > 0 ? (byId('syncPairingQr')?.firstElementChild?.getAttribute('d') ?? '') : '',
+          qrViewBox: byId('syncPairingQr')?.getAttribute('viewBox') ?? '',
         };
       })()`);
     },
@@ -3636,6 +3765,12 @@ function install(refs) {
         if (action === 'choose-code') { document.getElementById('syncPathCode').click(); return true; }
         if (action === 'use-passphrase') { document.getElementById('syncUsePassphrase').click(); return true; }
         if (action === 'back') { document.getElementById('syncCodeBack').click(); return true; }
+        if (action === 'turn-on') { document.getElementById('syncTurnOn').click(); return true; }
+        if (action === 'add-device') { document.getElementById('syncAddDevice').click(); return true; }
+        if (action === 'spaces-not-now') { document.getElementById('syncPairingSpacesNotNow').click(); return true; }
+        if (action === 'connect-iphone') { document.getElementById('syncConnectIphone').click(); return true; }
+        if (action === 'continue') { document.getElementById('syncPairingContinue').click(); return true; }
+        if (action === 'add-this-first') { document.getElementById('syncPairingAddThisFirst').click(); return true; }
         if (action === 'type-code') {
           const input = document.getElementById('syncCode');
           input.value = value;
@@ -3851,6 +3986,12 @@ function install(refs) {
     // Every method drives the real main-process implementation; a mirror here
     // would keep the acceptance suite green if the shipping code regressed.
     async sleepTab(id) { return sleepTab(id); },
+    // quietTab refuses whenever anything is uncertain and records why; the
+    // desktop smokes read the reason so a refusal can't fail them silently.
+    async quietTabOutcome(id) {
+      const rested = await sleepTab(id);
+      return { rested, reason: rested ? null : (quietRefusal(id) ?? 'unknown') };
+    },
     async wakeTab(id, navigateTo = null) { return wakeTab(id, { navigateTo }); },
     async wakeTabAtIndex(id, atIndex) { return wakeTab(id, { atIndex }); },
     async sleepBackgroundTabsNow() { return sleepBackgroundTabsNow(); },
@@ -3890,6 +4031,13 @@ function install(refs) {
       const wc = tabs.get(id)?.view?.webContents;
       if (!wc || wc.isDestroyed()) return null;
       return terminateRenderer(wc);
+    },
+    /** For the acceptance harness's self-test: an uncaught main-process
+     *  exception, which the BLANC_TEST handler logs before exiting. */
+    raiseMainProcessExceptionForTest() {
+      // Late enough that this call's reply reaches the harness first.
+      setTimeout(() => { throw new Error('acceptance harness: synthetic main-process exception'); }, 100);
+      return true;
     },
     sleepState(id) {
       const snapshots = getSleepSnapshots();
@@ -3996,6 +4144,7 @@ function install(refs) {
       pushRemoteDevices([]);
       // A device a scenario renamed shows its published name again.
       for (const id of Object.keys(settings.getDeviceNames())) settings.setDeviceName(id, '');
+      settings.setLinkRoutes([]);
       setWindowContentSize(1280, 800);
       // A fresh tab first so closing the rest never empties the window.
       const keep = createTab(newTabUrl());
@@ -4025,6 +4174,7 @@ function install(refs) {
         tabLayout: 'island',
         newtabLayout: 'billboard',
         verticalTabsWidth: 248,
+        verticalTabsTextSize: 'default',
         appIcon: 'sunrise',
         adblockExceptions: [],
         bangsEnabled: true,
@@ -4034,6 +4184,9 @@ function install(refs) {
         tabSleep: '1h',
         tabArchive: 'off',
         islandHoverOpen: false,
+        islandTabIcons: false,
+        launchSunrise: false,
+        linkRoutesInApp: false,
         islandAutoHide: false,
         islandAutoHideStyle: 'float',
         surfaceStyle: 'sunrise',

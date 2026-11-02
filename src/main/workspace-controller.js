@@ -11,7 +11,7 @@ function createWorkspaceController(adapter) {
   const key = (runtime, target) => `${runtime.profileId}:${target}`;
   function authorize(runtime, target, options) {
     const protection = adapter.protection(runtime);
-    if (protection.blocked) return { ok: false, error: 'protected-pages', reason: protection.reason };
+    if (protection.blocked) return { ok: false, error: 'protected-pages', reason: protection.reason, ...(protection.pages && { blockingTabs: protection.pages }) };
     if (!protection.tabCount) return null;
     const fingerprint = adapter.fingerprint(runtime);
     const old = decisions.get(runtime.id);

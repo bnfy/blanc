@@ -26,6 +26,13 @@ test('an exhausted window makes a send wait rather than fail and exposes its nex
   await tick();assert.equal(done,false);assert.equal(queue.status().waiting,1);assert.ok(queue.status().windowFreesAt>1800000000000);
   await advance(60000);assert.equal((await send).outcome,'sent');assert.equal(ran,1);
 });
+test('variable persistence latency cannot compress actual GET dispatches into one window',async()=>{
+ let t=0,wake,writes=0;const sent=[],scheduler=createScheduler({limit:1,now:()=>t,monotonic:()=>t});
+ const queue=createRequestQueue({scheduler,now:()=>t,persist:()=>{if(++writes===1)t+=25;},setTimer:fn=>{wake=fn;return 1;},clearTimer:()=>{wake=null;}});
+ const request=()=>queue.enqueue({class:'F',item:'settings',run:async()=>{sent.push(t);}});
+ await request();const second=request();await tick();t=60000;wake?.();await tick();assert.equal(sent.length,1);
+ t=60025;wake?.();await second;assert.deepEqual(sent,[25,60025]);
+});
 test('generation, disable, suspended, consent-off and unavailable cancel waiting work without running it',async()=>{
   for(const reason of ['generation','disabled','suspended','consent-off','unavailable']) {
     const {scheduler,queue}=setup(1);scheduler.record();let ran=false,outcomes=0;
@@ -54,9 +61,24 @@ test('a request-log persistence failure prevents the GET and leaves the queue dr
   const result=await Promise.race([op,new Promise(r=>setTimeout(()=>r({error:new Error('queue wedged')}),30))]);
   assert.equal(result.error.message,'disk full');assert.equal(ran,false);assert.equal(queue.status().running,0);
 });
+test('rate limits count only in a row: another error keeps the count, an answered request clears it',async()=>{
+  const {queue,advance}=setup();const fail=message=>()=>{throw new Error(message);};
+  assert.equal(queue.status().consecutiveRateLimits,0);
+  await queue.enqueue({class:'F',item:'settings',run:fail('http-429')});
+  assert.equal(queue.status().consecutiveRateLimits,1);
+  await queue.enqueue({class:'F',item:'bookmarks',run:fail('rate-limited')});
+  assert.equal(queue.status().consecutiveRateLimits,2);
+  await queue.enqueue({class:'F',item:'session',run:fail('http-500')});
+  assert.equal(queue.status().consecutiveRateLimits,2);
+  // Two 429s shrank the window to three requests: the answered one waits for it.
+  const answered=queue.enqueue({class:'S',item:'s1',run:async()=>'stored'});
+  await advance(60000);assert.equal((await answered).outcome,'stored');
+  assert.equal(queue.status().consecutiveRateLimits,0);
+  await queue.settled();
+});
 test('failed persistence of a 429 backoff still completes every caller and drains',async()=>{
   const scheduler=createScheduler();let writes=0,callbacks=0;
-  const queue=createRequestQueue({scheduler,persist:()=>{if(++writes===2)throw new Error('disk full during backoff');}});
+  const queue=createRequestQueue({scheduler,persist:()=>{if(++writes===3)throw new Error('disk full during backoff');}});
   const op=queue.enqueue({class:'F',item:'settings',run:()=>{throw new Error('http-429');},onOutcome:()=>callbacks++});
   const result=await Promise.race([op,new Promise(r=>setTimeout(()=>r({error:new Error('queue wedged')}),50))]);
   assert.equal(result.error.message,'disk full during backoff');assert.equal(callbacks,1);
@@ -84,4 +106,48 @@ test('continuous requested work and focus refreshes cannot starve any class or i
   assert.equal(new Set(events.filter(x=>x.kind==='R').map(x=>x.item)).size,25);
   assert.equal(new Set(events.filter(x=>x.kind==='F').map(x=>x.item)).size,7);
   queue.cancelWhere(()=>true,'disabled');await Promise.all(calls);assert.equal(outcomes,calls.length);
+});
+test('resetWindow lets a request waiting on an exhausted window run now and persists the empty log',async()=>{
+  let t=0,wake,persisted=[];const scheduler=createScheduler({limit:10,now:()=>1800000000000+t,monotonic:()=>t});
+  const queue=createRequestQueue({scheduler,persist:s=>persisted.push(s),now:()=>1800000000000+t,setTimer:fn=>{wake=fn;return 1;},clearTimer:()=>{wake=null;}});
+  for(let i=0;i<10;i++)scheduler.record();let ran=0;
+  const send=queue.enqueue({class:'F',item:'sends',run:async()=>{ran++;return 'sent';}});
+  await tick();assert.equal(queue.status().waiting,1);assert.equal(ran,0);
+  queue.resetWindow();
+  assert.deepEqual(persisted.at(-1).log,[]);assert.equal(persisted.at(-1).backoffUntil,null);
+  await tick();await tick();assert.equal((await send).outcome,'sent');assert.equal(ran,1);assert.equal(queue.status().waiting,0);
+});
+test('background work leaves the window\'s last request for an urgent one, which skips the rotation',async()=>{
+  const {scheduler,queue}=setup();const order=[];
+  const background=Array.from({length:12},(_,i)=>queue.enqueue({class:'F',item:'settings'+i,run:async()=>{order.push('F'+i);}}));
+  await tick();for(let i=0;i<12;i++)await tick();
+  assert.equal(order.length,9,'background stops one short of the 10-request window');
+  assert.equal(scheduler.canRequest({reserve:true}),false);assert.equal(scheduler.canRequest(),true);
+  const before=scheduler.snapshot().nextClass;
+  const urgent=await queue.enqueue({class:'I',item:'spaces',generation:'preview:1',urgent:true,run:async()=>{order.push('I');return 'fresh';}});
+  assert.equal(urgent.outcome,'fresh');assert.equal(order.at(-1),'I');assert.equal(order.length,10);
+  assert.equal(scheduler.snapshot().nextClass,before,'the urgent request leaves the rotation where it was');
+  assert.equal(scheduler.canRequest(),false,'the window itself never grows');
+  void background;
+});
+test('an urgent request goes ahead of waiting background work',async()=>{
+  const {scheduler,queue}=setup();for(let i=0;i<9;i++)scheduler.record();const order=[];
+  const waitingWork=queue.enqueue({class:'S',item:'s1',run:async()=>{order.push('S');}});
+  const urgent=queue.enqueue({class:'I',item:'spaces',generation:'preview:1',urgent:true,run:async()=>{order.push('I');}});
+  await urgent;assert.deepEqual(order,['I']);assert.equal(queue.status().waiting,1);void waitingWork;
+});
+test('a small or backed-off window keeps every request for background work',()=>{
+  let t=0;const scheduler=createScheduler({limit:3,now:()=>t,monotonic:()=>t});
+  scheduler.record();scheduler.record();assert.equal(scheduler.canRequest({reserve:true}),true);scheduler.record();assert.equal(scheduler.canRequest(),false);
+});
+test('an upload that downloads nothing runs on a full window and is not charged; its retry is',async()=>{
+  const {scheduler,queue,advance}=setup();for(let i=0;i<10;i++)scheduler.record();const order=[];
+  const routine=queue.enqueue({class:'F',item:'settings',run:async()=>{order.push('F');}});
+  const upload=queue.enqueue({class:'S',item:'s1',noGet:true,run:async({attempt})=>{order.push('S'+attempt);return attempt===0?{retry:true}:'stored';}});
+  await tick();await tick();
+  assert.deepEqual(order,['S0'],'the first upload goes at once, ahead of work waiting on the window');
+  assert.equal(scheduler.snapshot().log.length,10,'it is not charged to the window');
+  await tick();assert.deepEqual(order,['S0'],'the retry downloads first, so it waits for the window like any request');
+  await advance(60000);assert.equal((await upload).outcome,'stored');await routine;
+  assert.deepEqual(order.slice(1).sort(),['F','S1']);assert.equal(scheduler.snapshot().log.length,2,'the retry is charged');
 });

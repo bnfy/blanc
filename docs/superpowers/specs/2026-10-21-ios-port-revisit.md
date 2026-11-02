@@ -239,7 +239,7 @@ TestFlight build is the companion, not a generic browser.
 | **M9** | Private tabs | F4 | Implemented 2026-10-24 (same plan as M8), unreleased |
 | **M10** | Groups and Spaces from sync, shown read-only on the phone; the full shared slash-command set; Find in page (Bangs moved after iOS 1.0, owner 2026-10-24) | F3, F41 (read), F7, F8 | After M11 |
 | **Duo-2** | Two-pane Split View and floating Glance at regular width (the Duo's inner display) | F53, F34, D30 | With M10 |
-| **M11** | Tab gestures: swipe the pill sideways to switch tabs, flick a tab up to close it ([feedback plan §7](2026-10-23-ios-user-feedback-plan.md)) | F56 | Next: [design](2026-10-24-ios-m11-tab-gestures-design.md), [plan](../plans/2026-10-24-ios-m11-tab-gestures.md); before M10 (owner, 2026-10-24) |
+| **M11** | Tab gestures: swipe the pill sideways to switch tabs, flick a tab up to close it ([feedback plan §7](2026-10-23-ios-user-feedback-plan.md)) | F56 | Implemented, unreleased (the tab grid's cards close with a sideways swipe); [design](2026-10-24-ios-m11-tab-gestures-design.md), [plan](../plans/2026-10-24-ios-m11-tab-gestures.md); before M10 (owner, 2026-10-24) |
 | **Beta** | First TestFlight upload, with the default-browser entitlement | D4 | Cut line |
 | Later | Editing groups and Spaces on the phone, downloads, permissions, passkeys, Quiet Tabs semantics, interface language (D27), the full filter pipeline (M15, now including `WKWebExtension` DNR and user-script cosmetics as options) | F3, F11, F13, F24, F31, F44, F12 | After the beta |
 | Later (Duo-3) | The side list from synced groups and Spaces, tabletop video, multiple windows | F28, F32, D30 | After the beta |

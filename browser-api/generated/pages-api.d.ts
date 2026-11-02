@@ -257,6 +257,10 @@ export interface SettingsPagesAPI {
     removeWallpaper: () => Promise<unknown>;
     /** Choose the interface language; optionally relaunch to apply it. IPC: invoke `pages:settings:language`. */
     language: (code: unknown, restart: unknown) => Promise<unknown>;
+    /** Where link routing rules can point: live profiles and Spaces, ids and names only. IPC: invoke `pages:settings:link-targets`. */
+    linkTargets: () => Promise<unknown>;
+    /** Replace the link routing rules; main validates the whole list and stores all or nothing. IPC: invoke `pages:settings:link-routes:set`. */
+    setLinkRoutes: (routes: unknown) => Promise<unknown>;
     /** Blocking provider status. IPC: invoke `pages:blocking:status`. */
     blockingStatus: () => Promise<unknown>;
     /** Retry a blocking provider that failed to start. IPC: invoke `pages:blocking:retry`. */
@@ -289,6 +293,8 @@ export interface SettingsPagesAPI {
     syncTabsSet: (on: unknown) => Promise<unknown>;
     /** Name this device as the user's other devices list it, then return the new status. An empty name restores the computer's name; main ignores a non-string. IPC: invoke `pages:settings:sync-device-name-set`. */
     syncDeviceNameSet: (name: unknown) => Promise<unknown>;
+    /** This device's platform and the other devices this sync knows of (devices sharing their open tabs plus Send to Device presence), as names and platforms only. No device ids or keys cross. IPC: invoke `pages:settings:sync-devices`. */
+    syncDevices: () => Promise<unknown>;
     /** Park this device's wrapped sync secret under a fresh pairing code; returns the code and expiry for display. No key crosses. IPC: invoke `pages:settings:sync-pair-begin`. */
     syncPairBegin: () => Promise<unknown>;
     /** Retract the current pairing code. IPC: invoke `pages:settings:sync-pair-cancel`. */
@@ -301,6 +307,14 @@ export interface SettingsPagesAPI {
     syncSwitchCode: (payload: unknown) => Promise<unknown>;
     /** Copy the recovery code to the clipboard from main behind a native dialog. The reply never carries the code. IPC: invoke `pages:settings:sync-recovery-code-copy`. */
     syncRecoveryCodeCopy: () => Promise<unknown>;
+    /** Turn on Sync with a generated account, no name or passphrase; status-only reply with whether the first pass reached the server. IPC: invoke `pages:settings:sync-start-new`. */
+    syncStartNew: () => Promise<unknown>;
+    /** Hide the recovery-code prompt on this device for good. IPC: invoke `pages:settings:sync-recovery-prompt-dismiss`. */
+    syncRecoveryPromptDismiss: () => Promise<unknown>;
+    /** Report whether the sheet with a live pairing code is visible, so main watches for the device that takes it. IPC: invoke `pages:settings:sync-pair-watch`. */
+    syncPairWatch: (visible: unknown) => Promise<unknown>;
+    /** The device that took the live pairing code arrived: its name and platform only. IPC: event `pages:settings:sync-pair-joined`. */
+    onSyncPairJoined: (callback: (payload: unknown) => void) => void;
     /** Replay the welcome tour. IPC: invoke `pages:settings:welcome-tour`. */
     welcomeTour: () => Promise<unknown>;
     /** 1Password fill status. Main registers this handler only when 1Password fill is available. IPC: invoke `pages:settings:onepassword-status`. */
@@ -313,8 +327,8 @@ export interface SettingsPagesAPI {
     trustReceipt: () => Promise<unknown>;
     /** Open a release, verification, SBOM or provenance link for this version. IPC: invoke `pages:settings:open-trust-link`. */
     openTrustLink: (kind: unknown) => Promise<unknown>;
-    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-preview`. */
-    sharedSpacesPreview: () => Promise<unknown>;
+    /** Shared Spaces selection sheet choices; {local: true} answers from this device's saved index without a network fetch. IPC: invoke `pages:settings:shared-spaces-preview`. */
+    sharedSpacesPreview: (options: unknown) => Promise<unknown>;
     /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-apply`. */
     sharedSpacesApply: (payload: unknown) => Promise<unknown>;
     /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-status`. */

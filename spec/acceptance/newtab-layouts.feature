@@ -235,3 +235,15 @@ Feature: Start page layouts
     Given local history contains repeated visits for the Billboard
     When I open a new tab
     Then the Billboard content is centered between the window top and the footer at 1280x800, 900x900, 700x1000 and 1440x600
+
+  @F35-19 @desktop
+  Scenario: Play the Sunrise when Blanc opens
+    Given the launch Sunrise is turned off
+    When I open a new tab
+    Then the start page does not play the Sunrise
+    Given the launch Sunrise is turned on
+    When I open a new tab
+    Then the start page plays the Sunrise over its layout, without taking clicks
+    And the Sunrise removes itself when it ends
+    When I open a new tab
+    Then the start page does not play the Sunrise

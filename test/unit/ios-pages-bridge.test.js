@@ -85,3 +85,32 @@ test('the iOS shim stays off non-blanc documents', () => {
   vm.runInNewContext(template.replace('__BLANC_MEMBERS__', '[]'), { window, location: { protocol: 'https:', host: 'example.com' } });
   assert.equal(window.bowserPages, undefined);
 });
+
+test('the iOS shim marks only the utility pages as phone pages', () => {
+  const template = /userScriptTemplate = #"""\n([\s\S]*?)\n\s*"""#/.exec(PAGES_BRIDGE)[1];
+  for (const host of ['history', 'bookmarks', 'shortcuts', 'downloads', 'newtab', 'settings', 'error', 'mahjong']) {
+    const appended = [];
+    const root = { dataset: {}, append: (...nodes) => appended.push(...nodes) };
+    const document = {
+      documentElement: root,
+      createElement: (tag) => ({ tag }),
+      addEventListener() {},
+    };
+    const window = { webkit: { messageHandlers: { blancPages: { postMessage() {} } } } };
+    vm.runInNewContext(template.replace('__BLANC_MEMBERS__', '[]'),
+      { window, document, location: { protocol: 'blanc:', host, hostname: host }, console });
+    const phone = ['history', 'bookmarks', 'shortcuts', 'downloads'].includes(host);
+    assert.equal(root.dataset.platform, phone ? 'ios' : undefined, host);
+    assert.equal(appended.some((n) => n.tag === 'link' && n.href === 'ios-pages.css'), phone, host);
+  }
+});
+
+test('every phone page rule is scoped to the iOS mark, so none reaches desktop', () => {
+  const css = read('src/renderer/pages/ios-pages.css').replace(/\/\*[\s\S]*?\*\//g, '');
+  const selectors = [...css.matchAll(/([^{}]+)\{/g)].flatMap((m) => m[1].split(','));
+  assert.ok(selectors.length > 10);
+  for (const selector of selectors) assert.match(selector.trim(), /^:root\[data-platform="ios"\]/, selector);
+  for (const file of ['pages.css', 'history.html', 'bookmarks.html', 'shortcuts.html']) {
+    assert.ok(!read(`src/renderer/pages/${file}`).includes('ios-pages.css'), `${file} must not load it`);
+  }
+});

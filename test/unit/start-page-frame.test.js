@@ -175,7 +175,7 @@ test('motion grows surfaces from their source and respects reduced motion', () =
   assert.match(css, /@starting-style \{\s*body\.layout-ready \.start-content > main \{ opacity: 0; \}/);
   assert.match(css, /:active \{[^}]*transform: scale\(0\.98\);/s);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.start-customize-popover,[\s\S]*?transform: none;/);
-  assert.match(js, /requestAnimationFrame\(\(\) => document\.body\.classList\.add\('layout-ready'\)\)/);
+  assert.match(js, /requestAnimationFrame\(\(\) => \{\s*document\.body\.classList\.add\('layout-ready'\);/);
   assert.doesNotMatch(css, /cubic-bezier\([^)]*1\.[0-9]/, 'no overshooting curves');
 });
 

@@ -3,7 +3,10 @@
 // to re-enter the rotation, releasing its turn without completing its callers.
 function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setTimeout,clearTimer=clearTimeout,makeError=message=>new Error(message)}={}) {
   const waiting=[];let running=null,timer=null,scheduled=false,drain=[];
-  const status=()=>({waiting:waiting.length,running:running?1:0,windowFreesAt:scheduler.windowFreesAt(),backoff:scheduler.snapshot().windowLimit<10});
+  // 429s with no answered request between them (M16 §6.2: "Sync is busy;
+  // retrying" after two). Other failures leave the count as it is.
+  let consecutiveRateLimits=0;
+  const status=()=>({waiting:waiting.length,running:running?1:0,windowFreesAt:scheduler.windowFreesAt({reserve:true}),backoff:scheduler.snapshot().windowLimit<10,consecutiveRateLimits});
   function complete(op,outcome,error) {
     op.state=error?.message?.startsWith('cancelled:')?'cancelled':'done';
     for(const waiter of op.waiters) {
@@ -21,16 +24,7 @@ function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setT
     for(let i=waiting.length-1;i>=0;i--)if(predicate(waiting[i]))complete(waiting.splice(i,1)[0],null,makeError('cancelled:'+reason));
     settleDrain();wake();
   }
-  async function pump() {
-    if(running)return;
-    for(let i=waiting.length-1;i>=0;i--) {
-      const reason=waiting[i].cancelled?.();
-      if(reason)complete(waiting.splice(i,1)[0],null,makeError('cancelled:'+reason));
-    }
-    if(!waiting.length){settleDrain();return;}
-    if(!scheduler.canRequest()) {
-      timer=setTimer(()=>{timer=null;wake();},Math.max(1,scheduler.windowFreesAt()-now()));return;
-    }
+  function pickRotation() {
     const work={I:waiting.some(x=>x.class==='I'),S:[],F:[],R:[]};
     for(const op of waiting)if(op.class!=='I')work[op.class].push(op.item);
     for(const k of ['S','R'])work[k].sort((a,b)=>{
@@ -40,11 +34,34 @@ function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setT
     });
     const chosen=scheduler.next(work);
     const pos=waiting.findIndex(x=>x.class===chosen?.class && x.item===chosen?.item);
-    if(pos<0){wake();return;}
-    const op=waiting.splice(pos,1)[0];running=op;op.state='running';
+    return pos<0?null:waiting.splice(pos,1)[0];
+  }
+  async function pump() {
+    if(running)return;
+    for(let i=waiting.length-1;i>=0;i--) {
+      const reason=waiting[i].cancelled?.();
+      if(reason)complete(waiting.splice(i,1)[0],null,makeError('cancelled:'+reason));
+    }
+    if(!waiting.length){settleDrain();return;}
+    // An upload that downloads nothing first (a Space no device has yet)
+    // costs the window nothing, so it never waits on it; a 409 sends it
+    // back to download and merge, which is charged like any request.
+    const free=waiting.find(x=>x.noGet&&!x.attempt)??null;
+    // A request a person is waiting on goes first, outside the class
+    // rotation, and leaves the rotation's cursors where they were.
+    const urgent=free?null:waiting.find(x=>x.urgent)??null;
+    if(!free&&!scheduler.canRequest({reserve:!urgent})) {
+      timer=setTimer(()=>{timer=null;wake();},Math.max(1,scheduler.windowFreesAt({reserve:!urgent})-now()));return;
+    }
+    const op=free||urgent?waiting.splice(waiting.indexOf(free??urgent),1)[0]:pickRotation();
+    if(!op){wake();return;}
+    running=op;op.state='running';
     try {
-      scheduler.record();persist(scheduler.snapshot());
-      const outcome=await op.run({attempt:op.attempt});
+      const reservation=op===free?null:scheduler.record();if(reservation)persist(scheduler.snapshot());
+      let outcome;
+      try {outcome=await op.run({attempt:op.attempt});}
+      finally {if(reservation){scheduler.settle(reservation);persist(scheduler.snapshot());}}
+      consecutiveRateLimits=0;
       const cancelled=op.cancelled?.();
       if(cancelled)complete(op,null,makeError('cancelled:'+cancelled));
       else if(outcome?.retry){op.attempt++;op.state='waiting';waiting.push(op);}
@@ -52,6 +69,7 @@ function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setT
     } catch(error) {
       let failure=error;
       if(['rate-limited','http-429'].includes(error.message)) {
+        consecutiveRateLimits++;
         scheduler.onRateLimited();
         try {persist(scheduler.snapshot());}catch(persistError){failure=persistError;}
       }
@@ -62,11 +80,14 @@ function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setT
     const promise=new Promise(resolve=>{
       let op=waiting.find(x=>x.class===request.class && x.item===request.item && x.generation===request.generation);
       if(!op){op={...request,state:'waiting',attempt:0,waiters:[]};waiting.push(op);}
+      else {if(request.urgent)op.urgent=true;if(request.noGet)op.noGet=true;}
       op.waiters.push({resolve,onOutcome});
     });wake();return promise;
   }
+  // Acceptance harness only: free the window and run whatever waited on it.
+  function resetWindow() {scheduler.resetWindow();persist(scheduler.snapshot());wake();}
   const settled=()=>!running&&!waiting.length?Promise.resolve():new Promise(resolve=>drain.push(resolve));
   const runningSettled=()=>running?new Promise(resolve=>running.waiters.push({resolve:()=>resolve()})):Promise.resolve();
-  return {enqueue,cancelWhere,status,settled,runningSettled};
+  return {enqueue,cancelWhere,status,settled,runningSettled,resetWindow};
 }
 module.exports={createRequestQueue};

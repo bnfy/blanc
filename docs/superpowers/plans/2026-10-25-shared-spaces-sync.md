@@ -295,6 +295,18 @@ PR C merges with the switch **unpackaged-only**: `isSharedSpacesOffered()` retur
 
 ## PR D: acceptance, records, security review, the switch in packaged builds
 
+**Owner decisions (2026-10-25):** a shared tab that moves to an internal page,
+local file or other excluded page retains its last shareable web record and
+does not publish deletion. Unbounded account storage is rejected: PR D adds a
+reviewed account-wide Worker quota and fixture enforcement, with
+`NEW_ACCOUNT_DAILY_LIMIT` independently set to 10. Worker deployment,
+real-device validation, merge and PR E remain separately blocked.
+The public privacy page remains release-backed and unchanged in PR D; its
+Shared Spaces disclosure is prepared only with the release evidence in PR E.
+Deleted Spaces immediately publish empty encrypted content to release bytes;
+their index tombstone and store slot remain for 30 days before final DELETE.
+Dormant links and tab-close tombstones do not immediately release storage.
+
 **Merge gate:** PR D is the shipping feature PR. Keep it open until the Gate D below is satisfied against its exact head. Removing the packaged-build guard on this branch enables private validation candidates; it does not authorize merging or publishing that branch.
 
 ### Task 11: Two-device scenarios, two complete clients, crashes
@@ -304,18 +316,32 @@ PR C merges with the switch **unpackaged-only**: `isSharedSpacesOffered()` retur
 **Interfaces:**
 - The in-process peer driver covers the breadth; **two complete clients** (two Electron instances against one fixture) cover the convergence core, because a simulated peer cannot stand in for a second real client's queue, baselines and timing.
 
-- [ ] Write the remaining scenarios of spec §13 with the peer driver: two "Work"; cold start applies a deferred close; Space-full shows, names the tombstone case, clears after expiry (test clock); off, edit, on again rejoins without duplicating; a replica stale past the retention gets "kept on this device" with 25 Spaces present and a second stale merge adds nothing; a 429 slows every class evenly and recovers; a lost index write is caught by reconciliation (test clock); two same-version PUTs both succeed and the loser's pending set replays; a stale read does not roll a Space back; a disappearing write stays lost and the status says "Not synced since"; a shared tab shows once and a same-URL unshared tab still; a stale sidecar leaves tabs visible.
-- [ ] Write the two-client scenarios (`@two-clients`, Linux CI): a tab opened on A appears quiet on B and vice versa within the window; a close on A lands in B's band once; a navigation of B's active tab from A defers until B switches tabs; both turned off, edited, and on again converge without duplicates; both windows' request logs stay under 10 per trailing minute and the fixture's per-account counter never sees 429.
-- [ ] Add the crash scenarios with `crashAndRelaunch`: a merge then SIGKILL before the next save; a deferred change applying at cold start; a crash between the blob write and the index write (the index entry is retried from pending; the Space is reachable or retried, never half).
-- [ ] Remove the packaged-build guard; `packaged build offers no switch` becomes `packaged build offers the switch`.
+- [x] Write the remaining scenarios of spec §13 with the peer driver: two "Work"; cold start applies a deferred close; Space-full shows, names the tombstone case, clears after expiry (test clock); off, edit, on again rejoins without duplicating; a replica stale past the retention gets "kept on this device" with 25 Spaces present and a second stale merge adds nothing; a 429 slows every class evenly and recovers; a lost index write is caught by reconciliation (test clock); two same-version PUTs both succeed and the loser's pending set replays; a stale read does not roll a Space back; a disappearing write stays lost and the status says "Not synced since"; a shared tab shows once and a same-URL unshared tab still; a stale sidecar leaves tabs visible.
+- [x] Write the two-client scenarios (`@two-clients`, Linux CI): a tab opened on A appears quiet on B and vice versa within the window; a close on A lands in B's band once; a navigation of B's active tab from A defers until B switches tabs; both turned off, edited, and on again converge without duplicates; both windows' request logs stay under 10 per trailing minute and the fixture's per-account counter never sees 429.
+- [x] Add the crash scenarios with `crashAndRelaunch`: a merge then SIGKILL before the next save; a deferred change applying at cold start; a crash between the blob write and the index write (the index entry is retried from pending; the Space is reachable or retried, never half).
+- [x] Remove the packaged-build guard; `packaged build offers no switch` becomes `packaged build offers the switch`.
 - [ ] Bind the steps; add the ids to the `runnable` profile; run `npm run test:acceptance:dry` and `npm run test:acceptance:desktop` on Linux (the `@two-clients` scenarios included). Expected: PASS. Commit.
+
+PR D candidate status: all bindings are runnable and all 20 Shared Spaces
+scenarios pass in targeted local macOS runs. The final two-client audit retains
+the strict request limit; reservations are charged through completion to cover
+variable log-persistence and network latency. Linux CI is still a separate
+pending check; the checkbox above does not claim it has passed. Evidence is in
+`docs/security-reviews/2026-10-25-shared-spaces-pr-d.md`.
+
+Review corrections after `cc1937358`: two-client convergence now uses ordinary
+autosave and scheduled discovery after joining, without forced capture/pulls.
+Retention/expiry, dedupe and backoff acceptance now drive actual device stores
+through the Worker fixture, including on-disk unsynced writes and real drawer
+projection. Updated regression and native results are recorded in the candidate
+evidence file. The Linux CI and Gate D checkboxes remain pending.
 
 ### Task 12: Spec, parity, privacy and security records
 
-**Files:** `spec/features.md` (F41: replace "never sync"; add F57 Shared Spaces), `spec/parity-matrix.md` (F41 desktop SHIPPED with sync, iOS PLANNED M17), `site/` privacy label text (in this PR only), `docs/security-assessment.md` (a shared-Spaces row under Profile Sync, R3/R5 stated), `test/unit/*` claim tests that read those files
+**Files:** `spec/features.md` (F41: replace "never sync"; add F57 Shared Spaces), `spec/parity-matrix.md` (F41 desktop SHIPPED with sync, iOS PLANNED M17), `docs/security-assessment.md` (a shared-Spaces row under Profile Sync, R3/R5 stated), `test/unit/*` claim tests that read those files. Owner review defers public privacy/FAQ text until release evidence is available in PR E.
 
-- [ ] Update the records; run `npm run test:unit` (the ledger tests) and `npm run site:build`'s SEO checks if the privacy page changed. Expected: PASS. Commit.
-- [ ] Security review against `docs/security-assessment.md` R3/R5 (§12): what travels, consent, the bearer-locator statement, the non-atomic statement, the hostile-navigation path through the deferred queue and the navigation guards, the queue's cancellation reasons against a credential change. Record the sign-off in the assessment.
+- [x] Update the records; run `npm run test:unit` (the ledger tests) and `npm run site:build`'s SEO checks if the privacy page changed. Expected: PASS. Commit. Public privacy/FAQ pages are unchanged under the owner's release hold; no site build is needed for this candidate.
+- [x] Security review against `docs/security-assessment.md` R3/R5 (§12): what travels, consent, the bearer-locator statement, the non-atomic statement, the hostile-navigation path through the deferred queue and the navigation guards, the queue's cancellation reasons against a credential change. Record the sign-off in the assessment.
 
 ### Gate D: affected-platform validation before PR D merges
 

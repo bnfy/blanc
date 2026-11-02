@@ -16,7 +16,8 @@ const { deviceName } = require('./device-name');
 const { resolveDeviceName } = require('./device-names');
 const { deriveKeys, encrypt, decrypt } = require('./sync-crypto');
 const pairingCodes = require('./sync-pairing');
-const { wipeDecision } = require('./sync-wipe');
+const { createPairWatch } = require('./sync-pair-watch');
+const { wipeDecision, responseCode } = require('./sync-wipe');
 const {
   SyncKeyStorageError,
   protectSyncKey,
@@ -68,8 +69,9 @@ function ensureStore() {
   if (store) return store;
   store = new JsonStore('sync', {
     enabled: false, handle: '', accountId: '', protectedKey: '', key: '',
-    lastSyncedAt: 0, lastError: null,
+    lastSyncedAt: 0, lastError: null, erasurePending: false,
     deviceId: '', syncTabs: false, syncSpaces: false,
+    origin: '', recoveryPromptDismissed: false,
   });
   // One-time migration from pre-hardening profiles. The old field is erased
   // only after the wrapped replacement has reached disk; otherwise sync stays
@@ -250,6 +252,13 @@ function invalidateGeneration(reason='generation') {
   syncGen+=1;
   requestQueue?.cancelWhere(()=>true,reason);
 }
+/** Acceptance harness only (sharedSpacesTest "resetRequestWindow"): empty the
+ * persisted request log and free the window, so a scenario whose own requests
+ * crossed it stops waiting. Whatever was waiting on the window runs now. */
+async function resetRequestWindowForTest() {
+  getRequestQueue().resetWindow();
+  return true;
+}
 function getRequestQueue() {
   if(requestQueue)return requestQueue;
   const data=sharedSpaces.rebind(ensureStore().data.accountId).data;
@@ -294,10 +303,13 @@ function status() {
   const chosen = d.deviceId ? settings.getDeviceNames()[d.deviceId] : null;
   return {
     enabled: d.enabled, handle: d.handle, lastSyncedAt: d.lastSyncedAt,
-    lastError: keyProtectionError || d.lastError, syncTabs: !!d.syncTabs,
+    lastError: keyProtectionError || (d.erasurePending ? 'erasure-pending' : d.lastError), erasurePending: !!d.erasurePending, syncTabs: !!d.syncTabs,
     // What this device is called on the others ('' = no chosen name) and the
     // name it publishes, which stays the computer's (device-name.js).
     deviceName: chosen?.name ?? '', deviceNamePublished: deviceName(),
+    // 'generated' only on the device that started a sync without a passphrase
+    // (design 2026-10-28 §5.4); never synced.
+    origin: d.origin === 'generated' ? 'generated' : '', recoveryPromptDismissed: !!d.recoveryPromptDismissed,
   };
 }
 
@@ -319,7 +331,7 @@ function passphraseStrong(p) {
 function errorCode(err) {
   const code = err instanceof SyncError ? err.message : '';
   if(code==='payload-too-large')return 'rejected:413';
-  if (['bad-passphrase', 'rate-limited', 'conflict', 'server', 'pair-not-found', 'pair-unavailable', 'pair-invalid'].includes(code)) return code;
+  if (['bad-passphrase', 'rate-limited', 'conflict', 'server', 'account-quota', 'erasure-pending', 'pair-not-found', 'pair-unavailable', 'pair-invalid'].includes(code)) return code;
   if (/^http-4/.test(code)) return `rejected:${code.slice(5)}`;
   if (/^http-5/.test(code)) return 'server-error';
   return 'offline';
@@ -353,6 +365,38 @@ async function enable({ handle, passphrase }) {
   return { ok: res.ok, error: res.error, created, status: status() };
 }
 
+/** A sync without a passphrase (design 2026-10-28 §5.1): the account is
+ * random, so nothing ever derives it. The recovery code is the way back in. */
+async function startNew({ handle } = {}) {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, () => startNew({ handle }));
+  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE, status: status() };
+  if (ensureStore().data.enabled) return { ok: false, error: 'sync-on', status: status() };
+  const name = String(handle ?? '').trim();
+  const key = crypto.randomBytes(32);
+  const accountId = crypto.randomBytes(32).toString('hex');
+  try {
+    const adopted = adoptCredentials({ handle: name.length >= 2 ? name : 'My Blanc', accountId, key });
+    if (!adopted.ok) return { ...adopted, status: status() };
+  } finally {
+    key.fill(0);
+  }
+  const syncStore = ensureStore();
+  syncStore.update((d) => { d.origin = 'generated'; d.recoveryPromptDismissed = false; });
+  syncStore.flush();
+  const res = await syncNow();
+  // A pass a disable or switch abandoned returns ok without stamping; only a
+  // stamp on this account means the Worker holds it.
+  const now = ensureStore().data;
+  const synced = !!res.ok && now.enabled && now.accountId === accountId && now.lastSyncedAt > 0;
+  return { ok: true, synced, error: res.error, status: status() };
+}
+
+function dismissRecoveryPrompt() {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, dismissRecoveryPrompt);
+  ensureStore().update((d) => { d.recoveryPromptDismissed = true; });
+  return { ok: true };
+}
+
 /** The part of enable() every credential source shares — the passphrase
  * path, a pairing code, a recovery code: protect the key, become this
  * identity, persist, and refresh icons. The caller still owns `key` and
@@ -380,9 +424,10 @@ function adoptCredentials({ handle, accountId, key, protectedKey }) {
   const previousAccount=syncStore.data.accountId;
   syncStore.update((d) => {
     d.enabled = true; d.handle = handle; d.accountId = accountId;
-    d.protectedKey = protectedKey; d.key = ''; d.lastError = null;
-    if(previousAccount!==accountId)d.syncSpaces=false;
+    d.protectedKey = protectedKey; d.key = ''; d.lastError = null; d.erasurePending = false;
+    if(previousAccount!==accountId){d.syncSpaces=false;d.lastSyncedAt=0;d.origin='';}
   });
+  if(previousAccount!==accountId)lastJoined=null;
   if (!syncStore.flush()) {
     syncStore.data.enabled = false;
     syncStore.data.handle = '';
@@ -403,7 +448,30 @@ function adoptCredentials({ handle, accountId, key, protectedKey }) {
 // beyond the Settings page that displays it.
 const PAIR_ATTEMPTS = 3;
 const pairingShownListeners=new Set();
-let pairing = null; // { code, pairId, expiresAt }
+const pairingJoinedListeners = new Set();
+const pairingLiveListeners = new Set();
+let pairing = null; // { code, pairId, expiresAt, expiry }
+let lastJoined = null; // { name, platform } of the device that took the last code
+const setCodeLive = (live) => { for (const listener of pairingLiveListeners) listener(live); };
+
+// The device that takes the code announces itself (design 2026-10-28 §6.3).
+const pairWatch = createPairWatch({
+  read: () => syncNow(['session']),
+  devices: () => listSendTargets(),
+  onJoined: ({ id, name, platform }) => {
+    const current = pairing;
+    if (!current) return;
+    pairing = null;
+    clearTimeout(current.expiry);
+    lastJoined = { name, platform };
+    // The claim already consumed the entry; a stale read could have missed that.
+    net.fetch(pairUrl(current.pairId), { method: 'DELETE' }).catch(() => {});
+    setCodeLive(false);
+    for (const listener of pairingJoinedListeners) listener({ deviceId: id, name, platform });
+  },
+});
+tabsync.onRemoteChanged(() => pairWatch.check());
+sends.onChanged(() => pairWatch.check());
 
 const pairUrl = (pairId) => `${ACTIVE_SYNC_ENDPOINT}/v1/pair/${pairId}`;
 
@@ -423,6 +491,9 @@ async function beginPairing() {
   const d = ensureStore().data;
   if (!d.enabled || !d.accountId || !d.protectedKey) return { ok: false, error: keyProtectionError || 'sync-off' };
   if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE };
+  // A code for an account the Worker doesn't hold yet would be consumed by a
+  // device that then can't join (design 2026-10-28 §5.1).
+  if (!d.lastSyncedAt) return { ok: false, error: 'not-ready' };
   // One live code at a time: a previous entry is retracted before another is parked.
   if (pairing) await cancelPairing();
   const gen = syncGen;
@@ -460,7 +531,18 @@ async function beginPairing() {
         return { ok: false, error: 'sync-off' };
       }
       const expiresAt = Date.now() + pairingCodes.PAIR_TTL_MS;
-      pairing = { code, pairId, expiresAt };
+      const current = { code, pairId, expiresAt, expiry: null };
+      current.expiry = setTimeout(() => {
+        if (pairing !== current) return;
+        pairing = null;
+        pairWatch.stop();
+        setCodeLive(false);
+      }, pairingCodes.PAIR_TTL_MS);
+      current.expiry.unref?.();
+      pairing = current;
+      lastJoined = null;
+      pairWatch.start({ expiresAt });
+      setCodeLive(true);
       for(const listener of pairingShownListeners)listener();
       return { ok: true, code, expiresAt };
     }
@@ -474,19 +556,33 @@ async function cancelPairing() {
   if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, cancelPairing);
   const current = pairing;
   pairing = null;
+  lastJoined = null;
   if (current) {
+    clearTimeout(current.expiry);
+    pairWatch.stop();
+    setCodeLive(false);
     try { await net.fetch(pairUrl(current.pairId), { method: 'DELETE' }); } catch { /* it expires on its own */ }
   }
   return { ok: true };
 }
 
+/** Settings reports whether the sheet with a live code is visible in a
+ * focused window; the watch reads only then. */
+function setPairingWatch(active) {
+  pairWatch.setActive(active);
+}
+
 function pairingState() {
-  if (!pairing) return { active: false };
+  if (!pairing) return { active: false, joined: lastJoined };
   if (Date.now() >= pairing.expiresAt) {
+    // The timer may run late (a sleeping Mac): end the code here as it would.
+    clearTimeout(pairing.expiry);
     pairing = null;
-    return { active: false };
+    pairWatch.stop();
+    setCodeLive(false);
+    return { active: false, joined: null };
   }
-  return { active: true, code: pairing.code, expiresAt: pairing.expiresAt };
+  return { active: true, code: pairing.code, expiresAt: pairing.expiresAt, joined: null };
 }
 
 /** The secret behind a code: fetched once from the Worker for a pairing code,
@@ -599,6 +695,7 @@ async function copyRecoveryCode({ texts } = {}) {
     });
     if (response !== 0) return { ok: false, error: 'cancelled' };
     clipboard.writeText(pairingCodes.encodeRecoveryCode({ v: 1, handle: d.handle, accountId: d.accountId, key: key.toString('base64') }));
+    ensureStore().update((data) => { data.recoveryPromptDismissed = true; });
     return { ok: true };
   } finally {
     key?.fill(0);
@@ -658,6 +755,7 @@ async function disable({ wipeRemote = false } = {}) {
   clearOptionalMissingRetries();
   tabicons.cancelCaptures();
   if (pairing) cancelPairing().catch(() => {});
+  lastJoined = null; // a join belongs to the sync it happened in
   try {
     await passSettled;
     const d = ensureStore().data;
@@ -672,21 +770,25 @@ async function disable({ wipeRemote = false } = {}) {
       let outcome;
       try {
         const res = await net.fetch(`${ACTIVE_SYNC_ENDPOINT}/v1/blob/${d.accountId}`, { method: 'DELETE' });
-        outcome = { status: res.status };
+        outcome = { status: res.status, code: responseCode(res.status, await responseText(res)) };
       } catch {
         outcome = { error: true };
       }
       const decision = wipeDecision(outcome);
       if (!decision.clearCredentials) {
+        if (decision.error === 'erasure-pending') ensureStore().update(s => { s.erasurePending = true; s.lastError = decision.error; });
         return { ok: false, error: decision.error, status: status() };
       }
     } else if (d.enabled && d.accountId && d.protectedKey) {
       await retractSends(d).catch(() => {});
       await retractSends(d,'closed',syncedClosed.retractedOwn).catch(() => {});
+      // Every device announces itself in the open-tabs store, sharing or not,
+      // so leaving takes this one off the others' device lists at once.
+      await retractSends(d,'session',()=>({retracted:true,updatedAt:Date.now()})).catch(() => {});
     }
     ensureStore().update((s) => {
       s.enabled = false; s.handle = ''; s.accountId = '';
-      s.protectedKey = ''; s.key = ''; s.lastError = null;
+      s.protectedKey = ''; s.key = ''; s.lastError = null; s.erasurePending = false;
       s.syncSpaces = false;
     });
     keyProtectionError = null;
@@ -717,10 +819,30 @@ async function responseText(res) {
  * before it merges, exports, or writes anything. */
 async function syncOne(accountId, key, desc, run, attempt = 0) {
   const url = `${ACTIVE_SYNC_ENDPOINT}/v1/blob/${accountId}/${desc.name}`;
-  const getRes = await net.fetch(url);
+  async function cleanupRetiredSpaces(payload) {
+    // Earlier v1 Workers treated every DELETE, even one with a store suffix,
+    // as an account wipe. A supported Spaces store alone is not sufficient.
+    if(desc.name!=='spaces'||!canDeleteSpaceStores)return;
+    for(const id of sharedSpaces.retiredSpaceIds(run.ctx))if(!payload.spaces?.[id]) {
+      const removed=await net.fetch(`${ACTIVE_SYNC_ENDPOINT}/v1/blob/${accountId}/space-${id}`,{method:'DELETE'});
+      if(run.stale())throw new SyncError('stale');
+      if(!removed.ok)throw new SyncError(responseCode(removed.status, await responseText(removed)));
+      requestQueue?.cancelWhere(op=>op.item==='space-'+id,'retired');
+      sharedSpaces.forgetRetiredSpace(id,run.ctx);
+    }
+  }
+  // A Space no device has uploaded yet is sent without a download: the
+  // queue doesn't charge it, and a store that exists after all answers 409,
+  // whose retry downloads and merges as usual.
+  const firstUpload = attempt === 0 && !!desc.noGet;
+  if (firstUpload && !sharedSpaces.neverUploaded(desc.spaceId, run.ctx)) return { retry: true };
+  const getRes = firstUpload ? null : await net.fetch(url);
   if (run.stale()) throw new SyncError('stale');
-  let version = null, remote = null, missing = false;
-  if (getRes.status === 200) {
+  const canDeleteSpaceStores=getRes?.headers?.get?.('X-Blanc-Space-Delete')==='1';
+  let version = null, remote = null, missing = firstUpload;
+  if (firstUpload) {
+    // Nothing to read: version stays null, which the PUT sends as ifVersion.
+  } else if (getRes.status === 200) {
     let body;
     try { body = await getRes.json(); } catch { throw new SyncError('server'); }
     if (run.stale()) throw new SyncError('stale');
@@ -733,14 +855,22 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     if (desc.optional && await responseText(getRes) === 'unknown store') return { unavailable: true };
     if (run.stale()) throw new SyncError('stale');
     missing = true;
-  } else throw new SyncError(`http-${getRes.status}`);
+  } else throw new SyncError(responseCode(getRes.status, await responseText(getRes)));
   let plan = null, stored = false;
   try {
     let payload;
     if (desc.spaceId) {
-      plan = sharedSpaces.exportSpace(desc.spaceId,remote,version,run.ctx,text=>encrypt(key,text));
-      if (!plan.upload) return { missing, needsIndex: !!plan.indexEntry };
-      payload = plan.upload.blob;
+      if(sharedSpaces.deletedSpaceIds(run.ctx).includes(desc.spaceId)) {
+        // Keep the encrypted index tombstone for 30 days, but release the
+        // content bytes as soon as deletion is known. Never replay tab edits
+        // from the deleted Space into this compact record.
+        payload={v:1,spaceId:desc.spaceId,groups:{},tabs:{}};
+        if(missing || sharedSpaces.equals(remote,payload))return {missing};
+      } else {
+        plan = sharedSpaces.exportSpace(desc.spaceId,remote,version,run.ctx,text=>encrypt(key,text));
+        if (!plan.upload) return { missing, needsIndex: !!plan.indexEntry };
+        payload = plan.upload.blob;
+      }
     } else {
       // Rejecting an oversized sidecar for display must not let our smaller
       // cache overwrite its peer bindings. Hold publication in that case.
@@ -751,8 +881,8 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
       }
       payload = desc.export(run.ctx);
       if(desc.name==='shared'&&payload===null)return {blocked:true};
-      if (missing && desc.optional && desc.hasPublishableContent && !desc.hasPublishableContent(payload, run.ctx)) return { missing: true };
-      if (remote && desc.equals?.(payload, remote)) { desc.stored?.(payload,run.ctx); return; }
+      if (missing && desc.optional && desc.hasPublishableContent && !desc.hasPublishableContent(payload, run.ctx)) {await cleanupRetiredSpaces(payload);return { missing: true };}
+      if (remote && desc.equals?.(payload, remote)) { desc.stored?.(payload,run.ctx);await cleanupRetiredSpaces(payload);return; }
     }
     const blob = encrypt(key, JSON.stringify(payload));
     if (Buffer.byteLength(JSON.stringify(blob),'utf8') > 524288-4096) throw new SyncError('payload-too-large');
@@ -764,11 +894,13 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     if (run.stale()) throw new SyncError('stale');
     if (putRes.status === 409 && attempt < 3) return { retry: true };
     if (putRes.status === 409) throw new SyncError('conflict');
+    if (putRes.status === 507) throw new SyncError('account-quota');
     if (desc.optional && putRes.status === 404) return { unavailable: true };
-    if (!putRes.ok) throw new SyncError(`http-${putRes.status}`);
+    if (!putRes.ok) throw new SyncError(responseCode(putRes.status, await responseText(putRes)));
     stored = true;
     desc.stored?.(payload,run.ctx);
-    return desc.spaceId ? { spaceStored: true } : null;
+    await cleanupRetiredSpaces(payload);
+    return desc.spaceId ? { spaceStored: true, firstUpload } : null;
   } finally {
     if (plan) sharedSpaces.settleSpace(desc.spaceId,plan,{blobStored:stored},run.ctx);
   }
@@ -782,7 +914,7 @@ function cancelledRequest(gen,ctx,desc) {
   if (gen!==syncGen) return 'generation';
   if (!ensureStore().data.enabled) return 'disabled';
   if (desc.spaces && !sharedSpaces.isEnabled(ctx)) return 'consent-off';
-  if(desc.spaceId&&(sharedSpaces.isDormant(desc.spaceId,ctx)||sharedSpaces.isDraft(desc.spaceId,ctx)))return 'consent-off';
+  if(desc.spaceId&&!sharedSpaces.deletedSpaceIds(ctx).includes(desc.spaceId)&&(sharedSpaces.isDormant(desc.spaceId,ctx)||sharedSpaces.isDraft(desc.spaceId,ctx)))return 'consent-off';
   if (desc.spaces && spacesUnavailable && !desc.retryAvailability) return 'unavailable';
   return null;
 }
@@ -790,6 +922,7 @@ function sharedStatus() {
   if(!isDefaultLocalProfile())return {enabled:false,available:false,spaces:0,spaceLimit:25,canAdd:false,waiting:0,running:0,windowFreesAt:0,backoff:false};
   const ctx={accountId:ensureStore().data.accountId};
   return {enabled:sharedSpaces.isEnabled(ctx),available:!spacesUnavailable,
+    accountFull:ensureStore().data.lastError==='account-quota',
     spaces:sharedSpaces.spaceCount(ctx),spaceLimit:25,canAdd:sharedSpaces.canAddSpace(ctx),
     ...(requestQueue?.status()??{waiting:0,running:0,windowFreesAt:0,backoff:false})};
 }
@@ -810,12 +943,18 @@ function setSyncSpaces(on) {
   if(ensureStore().data.enabled)schedule(1000);
   return sharedStatus();
 }
-async function sharedIndexPreview() {
-  if(!isDefaultLocalProfile())return withLocalProfile(DEFAULT_PROFILE_ID,sharedIndexPreview);
+// The last index the Choose Spaces sheet fetched. Confirming within maxAge
+// of it reuses that check instead of spending another request.
+let lastIndexPreview={at:0,gen:-1,accountId:''};
+async function sharedIndexPreview({maxAge=0}={}) {
+  if(!isDefaultLocalProfile())return withLocalProfile(DEFAULT_PROFILE_ID,()=>sharedIndexPreview({maxAge}));
   if(!bananifyServiceAllowed(SYNC_ENDPOINT))return {ok:false,error:SERVICE_UNAVAILABLE};
   const data=ensureStore().data,ctx=tabSyncContext(),gen=syncGen;
   if(!data.enabled||!data.protectedKey)return {ok:false,error:'sync-off'};
-  const pending=getRequestQueue().enqueue({class:'I',item:'spaces',generation:'preview:'+gen,
+  if(maxAge>0&&lastIndexPreview.gen===gen&&lastIndexPreview.accountId===ctx.accountId&&Date.now()-lastIndexPreview.at<=maxAge)return {ok:true};
+  // Someone is waiting on this one (the Choose Spaces sheet): it skips the
+  // class rotation and may use the window's reserved last request.
+  const pending=getRequestQueue().enqueue({class:'I',item:'spaces',generation:'preview:'+gen,urgent:true,
     cancelled:()=>suspended||gen!==syncGen?'generation':null,
     run:async()=>{
       let key;
@@ -830,7 +969,8 @@ async function sharedIndexPreview() {
         }
         if(!response.ok)throw new SyncError('http-'+response.status);
         const payload=await response.json();if(gen!==syncGen)throw new SyncError('stale');
-        sharedSpaces.mergeIndex(JSON.parse(decrypt(key,payload.blob)),ctx);return {ok:true};
+        sharedSpaces.mergeIndex(JSON.parse(decrypt(key,payload.blob)),ctx);
+        lastIndexPreview={at:Date.now(),gen,accountId:ctx.accountId};return {ok:true};
       } finally {key?.fill(0);}
     }});
   queueBarrier();const result=await pending;return result.error?{ok:false,error:errorCode(result.error)}:result.outcome;
@@ -855,7 +995,7 @@ async function syncNow(names = null, { onOutcome } = {}) {
   function enqueue(desc) {
     const cancelled=()=>cancelledRequest(gen,ctx,desc);
     const record=sharedSpaces.rebind(ctx.accountId).data;
-    const job=queue.enqueue({class:desc.class??'F',item:desc.name,generation:gen,spaces:!!desc.spaces,
+    const job=queue.enqueue({class:desc.class??'F',item:desc.name,generation:gen,spaces:!!desc.spaces,noGet:!!desc.noGet,urgent:!!desc.urgent,
       priority:desc.spaceId && Object.keys(record.pending[desc.spaceId]??{}).some(k=>k!=='index')?0:1,cancelled,
       run:async({attempt})=>{
         let key;
@@ -893,23 +1033,25 @@ async function syncNow(names = null, { onOutcome } = {}) {
       const name='space-'+id;
       if(names && !names.includes(name))continue;
       const pending=state.pending[id];
-      if(names || pending && Object.keys(pending).some(k=>k!=='index') || state.index.spaces[id]?.rev!==state.blobs[id]?.rev)enqueue(spaceDescriptor(id));
+      if(names || state.index.spaces[id]?.deleted?.v===true || pending && Object.keys(pending).some(k=>k!=='index') || state.index.spaces[id]?.rev!==state.blobs[id]?.rev)enqueue({...spaceDescriptor(id),noGet:sharedSpaces.neverUploaded(id,ctx)});
       if(!names)enqueue(spaceDescriptor(id,'R'));
       initialIds.add(id);
     }
   }
   if(consent && !spacesUnavailable) {
-    const ids=sharedSpaces.spaceIds(ctx);
+    const ids=[...new Set([...sharedSpaces.spaceIds(ctx),...sharedSpaces.deletedSpaceIds(ctx)])];
     if(names)for(const name of names)if(/^space-[0-9a-f]{32}$/.test(name)&&!ids.includes(name.slice(6)))ids.push(name.slice(6));
     addSpaces(ids);
   }
   let results=await Promise.all(jobs);
   if(gen===syncGen && ensureStore().data.enabled && consent && !spacesUnavailable && !suspended) {
     if(!names) {
-      const more=sharedSpaces.spaceIds(ctx).filter(id=>!initialIds.has(id));const offset=jobs.length;
+      const more=[...new Set([...sharedSpaces.spaceIds(ctx),...sharedSpaces.deletedSpaceIds(ctx)])].filter(id=>!initialIds.has(id));const offset=jobs.length;
       addSpaces(more);results.push(...await Promise.all(jobs.slice(offset)));
     }
-    if(results.some(x=>x.outcome?.spaceStored||x.outcome?.needsIndex))results.push(await enqueue({...STORES.find(x=>x.name==='spaces')}));
+    // A new Space reaches other devices only once the index names it, so
+    // that update goes ahead of routine work, like the sheet's check.
+    if(results.some(x=>x.outcome?.spaceStored||x.outcome?.needsIndex))results.push(await enqueue({...STORES.find(x=>x.name==='spaces'),urgent:results.some(x=>x.outcome?.firstUpload)}));
   }
   // A dead generation never stamps status onto its successor. Optional stores
   // still cannot conceal a required-store error or advance its freshness.
@@ -917,10 +1059,11 @@ async function syncNow(names = null, { onOutcome } = {}) {
   if(!ensureStore().data.enabled)return {ok:false,error:'sync-off'};
   if(keyProtectionError)return {ok:false,error:keyProtectionError};
   const required=results.filter(x=>!x.desc.optional);
-  const firstError=required.find(x=>x.error && !x.error.message.startsWith('cancelled:'))?.error;
-  if(required.length)ensureStore().update(state=>{
-    if(firstError)state.lastError=errorCode(firstError);
-    else if(!skippedRequiredSelected){state.lastError=null;state.lastSyncedAt=Date.now();}
+  const quotaError=(results.find(x=>x.error?.message==='erasure-pending')??results.find(x=>x.error?.message==='account-quota'))?.error;
+  const firstError=required.find(x=>x.error && !x.error.message.startsWith('cancelled:'))?.error??quotaError;
+  if(required.length||quotaError||ensureStore().data.lastError==='account-quota')ensureStore().update(state=>{
+    if(firstError){state.lastError=errorCode(firstError);if(state.lastError==='erasure-pending')state.erasurePending=true;}
+    else if(!skippedRequiredSelected){state.lastError=null;if(required.length)state.lastSyncedAt=Date.now();}
   });
   return firstError?{ok:false,error:keyProtectionError||errorCode(firstError)}:{ok:true};
 }
@@ -1054,7 +1197,8 @@ function renameRemoteDevice(deviceId, name, devices = listRemoteDevices()) {
   return true;
 }
 
-/** Leaving a sync (M7b §3): publish this device's sends entry as retracted,
+/** Leaving a sync (M7b §3): publish this device's entry in a per-device
+ * store (sends, closed, session) as retracted,
  * best effort and bounded, so the account's other devices stop offering it
  * as a target and drop its items. Never creates the store. Runs inside
  * disable()'s barrier, after the last pass has settled. */
@@ -1063,7 +1207,7 @@ async function retractSends(d,storeName='sends',makeRetraction=sends.retractedOw
   // Departure is already best effort (offline/old Workers may prevent it).
   // Do not refill/bypass the request window, or leave a delayed GET behind
   // after disable resolves. Erase-server-copy still uses the separate DELETE.
-  if(!requestScheduler.canRequest())return;
+  if(!requestScheduler.canRequest({reserve:true}))return;
   const accountId=d.accountId,protectedKey=d.protectedKey,gen=syncGen,ownId=tabSyncContext().deviceId;
   const cancelled=()=>gen!==syncGen||ensureStore().data.accountId!==accountId?'generation':null;
   const operation=queue.enqueue({class:'F',item:storeName,generation:'leave:'+storeName+':'+gen,cancelled,run:async({attempt})=>{
@@ -1096,6 +1240,17 @@ function listSendTargets() {
   const names = settings.getDeviceNames();
   return sends.targets(ctx, tabsync.getDeviceEntries(ctx), {})
     .map(({ id, name, platform }) => ({ id, name: resolveDeviceName(names, id, name), platform }));
+}
+
+/** Settings → Sync's device list: this device's platform, then every other
+ * device this sync knows of. Those are the Send to Device targets (devices
+ * sharing their open tabs, plus Send to Device presence), so a device that
+ * does neither isn't listed; Settings says so. No ids or keys reach the page. */
+function listDevices() {
+  return {
+    platform: process.platform,
+    devices: listSendTargets().map(({ name, platform }) => ({ name, platform })),
+  };
 }
 
 /** Pages other devices sent here that this device hasn't opened or dismissed. */
@@ -1189,8 +1344,10 @@ function init() {
     const ctx = tabSyncContext();
     // Presence (M7b §3): a device that doesn't share tabs stays a target.
     if (sends.heartbeatDue(ctx)) syncNow(['sends']).catch(() => {});
-    if (!d.syncTabs) return;
+    // Its open-tabs entry is presence alone then (tabsync-model presenceEntry),
+    // and stays listed in Settings → Sync only while it keeps this heartbeat.
     if (tabsync.heartbeatDue(ctx)) scheduleSession(5000);
+    if (!d.syncTabs) return;
     if (tabicons.heartbeatDue(ctx)) scheduleIcons(5000);
   }), 60 * 60 * 1000).unref?.();
 }
@@ -1204,6 +1361,8 @@ module.exports = {
   enable,
   preflight,
   disable,
+  startNew,
+  dismissRecoveryPrompt,
   beginPairing,
   cancelPairing,
   pairingState,
@@ -1211,6 +1370,7 @@ module.exports = {
   switchWithCode,
   copyRecoveryCode,
   syncNow,
+  resetRequestWindowForTest,
   sharedStatus,
   spaceStatus,
   setSyncSpaces,
@@ -1219,12 +1379,16 @@ module.exports = {
   setTabStateReady,
   refreshSession,
   onPairingShown:listener=>pairingShownListeners.add(listener),
+  onPairingJoined: (listener) => pairingJoinedListeners.add(listener),
+  onPairingCodeLive: (listener) => pairingLiveListeners.add(listener),
+  setPairingWatch,
   pairingDevices:()=>listSendTargets().map(({id,name})=>({deviceId:id,name})),
   setSharedVisibilityProvider:provider=>{sharedVisibility=provider;},
   listRemoteDevices,
   renameRemoteDevice,
   setThisDeviceName,
   listSendTargets,
+  listDevices,
   listSentToThisDevice,
   hideSentItem,
   sendTab,

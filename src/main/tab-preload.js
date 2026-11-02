@@ -258,6 +258,8 @@ if (window.location.protocol === 'blanc:') {
         chooseWallpaper: () => invoke('pages:start:choose-wallpaper'),
         removeWallpaper: () => invoke('pages:start:remove-wallpaper'),
         language: (code, restart) => invoke('pages:settings:language', code, restart),
+        linkTargets: () => invoke('pages:settings:link-targets'),
+        setLinkRoutes: (routes) => invoke('pages:settings:link-routes:set', routes),
         onAppearance: (callback) => {
           ipcRenderer.on('pages:settings:appearance', (_event, status) => callback(status));
         },
@@ -265,7 +267,7 @@ if (window.location.protocol === 'blanc:') {
         sharedSpacesAcknowledge: (id) => invoke('pages:settings:shared-spaces-acknowledge', id),
         sharedSpacesOpen: (id) => invoke('pages:settings:shared-spaces-open', id),
         sharedSpacesStatus: () => invoke('pages:settings:shared-spaces-status'),
-        sharedSpacesPreview: () => invoke('pages:settings:shared-spaces-preview'),
+        sharedSpacesPreview: (options) => invoke('pages:settings:shared-spaces-preview', options),
         sharedSpacesApply: (payload) => invoke('pages:settings:shared-spaces-apply', payload),
         syncGet: () => invoke('pages:settings:sync-get'),
         syncEnable: (payload) => invoke('pages:settings:sync-enable', payload),
@@ -274,12 +276,19 @@ if (window.location.protocol === 'blanc:') {
         syncNow: () => invoke('pages:settings:sync-now'),
         syncTabsSet: (on) => invoke('pages:settings:sync-tabs-set', on),
         syncDeviceNameSet: (name) => invoke('pages:settings:sync-device-name-set', name),
+        syncDevices: () => invoke('pages:settings:sync-devices'),
         syncPairBegin: () => invoke('pages:settings:sync-pair-begin'),
         syncPairCancel: () => invoke('pages:settings:sync-pair-cancel'),
         syncPairState: () => invoke('pages:settings:sync-pair-state'),
         syncJoinCode: (code) => invoke('pages:settings:sync-join-code', code),
         syncSwitchCode: (payload) => invoke('pages:settings:sync-switch-code', payload),
         syncRecoveryCodeCopy: () => invoke('pages:settings:sync-recovery-code-copy'),
+        syncStartNew: () => invoke('pages:settings:sync-start-new'),
+        syncRecoveryPromptDismiss: () => invoke('pages:settings:sync-recovery-prompt-dismiss'),
+        syncPairWatch: (visible) => invoke('pages:settings:sync-pair-watch', visible),
+        onSyncPairJoined: (callback) => {
+          ipcRenderer.on('pages:settings:sync-pair-joined', (_event, device) => callback(device));
+        },
         welcomeTour: () => invoke('pages:settings:welcome-tour'),
         onePasswordStatus: () => invoke('pages:settings:onepassword-status'),
         onePasswordVerify: (account) => invoke('pages:settings:onepassword-verify', account),

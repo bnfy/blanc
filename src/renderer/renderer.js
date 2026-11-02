@@ -133,6 +133,14 @@
       window.blancRailGroupMenu?.open(groupHeader.dataset.groupId);
       return;
     }
+    // The Space mark in the rail's first row opens the Spaces menu, as a
+    // click does; on the Island it is part of the pill and its menu.
+    const railSpaceMark = e.target.closest('.vertical-tabs-toolbar #pillSpace');
+    if (railSpaceMark) {
+      e.preventDefault();
+      railSpaceMark.click();
+      return;
+    }
     if (!e.target.closest('#islandPill') && window.__blancCtxRowTabId == null) {
       e.preventDefault();
     }
@@ -605,6 +613,10 @@
   const PILL_NOTICE_KEYS = {
     'link-copied': 'pill.notice.linkCopied',
     'clean-link-copied': 'pill.notice.cleanLinkCopied',
+    'route-on': 'pill.notice.routeOn',
+    'route-off': 'pill.notice.routeOff',
+    'route-limit': 'pill.notice.routeLimit',
+    'route-unavailable': 'pill.notice.routeUnavailable',
   };
   const PILL_NOTICE_MS = 1600;
   let pillNoticeKey = null;
@@ -739,6 +751,8 @@
       floatSurface ? root.style.getPropertyValue('--float-stage-width') : window.innerWidth,
       root.dataset.platform, state.tabLayout, root.style.getPropertyValue('--vertical-tabs-w'),
       shown, state.tabs.length, state.activeTabId, pillDomain.textContent,
+      // Site icons are wider than dots, so switching starts a fresh fit.
+      state.islandTabIcons === true,
     ].join('|');
   }
 
@@ -760,6 +774,7 @@
     const dotsSig = dotsSignature();
     if (dotsSig !== lastDotsSig) {
       lastDotsSig = dotsSig;
+      pillDots.classList.toggle('icons', state.islandTabIcons === true);
       pillDots.replaceChildren(...islandDots());
     }
   }
@@ -920,54 +935,73 @@
    * narrow for its controls (fitIslandDots). */
   let dotBudget = DOT_CAP;
   let dotFitKey = '';
+  /** The last non-pinned tab that was active, so an active pin can keep
+   * showing the section the person came from (#1174). */
+  let lastSectionTabId = null;
 
   /** The resting Island is current context, not a false total-tab map:
-   * standalone pins stay globally reachable, followed by the active section
-   * (named group, loose tabs, or the pinned shelf itself). Every node remains
-   * one real tab. A window-wide +N accounts for everything not directly shown.
+   * every pinned tab stays reachable, grouped or not, in tab order, followed
+   * by the active section (named group or loose tabs) without its pins, so
+   * no tab is drawn twice. With a pin active, the section is its own group
+   * when that has other tabs, else the section the person was last on.
+   * Every node remains one real tab. A window-wide +N accounts for
+   * everything not directly shown.
    *
    * Eight is a hard total budget. When pins + the active section exceed it,
-   * retain the active tab, then as many standalone pins as fit, then use the
-   * remaining slots for an active-containing window of the current section.
-   * Quiet state is deliberately irrelevant: discarding a renderer must not
-   * make its tab disappear, move, or churn the dot DOM. */
+   * retain the active tab, then as many pins as fit, then use the remaining
+   * slots for an active-containing window of the current section. Quiet
+   * state is deliberately irrelevant: discarding a renderer must not make
+   * its tab disappear, move, or churn the dot DOM. */
   function islandTabPresentation() {
     const tab = activeTab();
     if (!tab) return { pinned: [], section: [], shown: [], hidden: 0 };
 
-    const standalonePins = state.tabs.filter((t) => t.pinned && !t.groupId);
-    const activeIsStandalonePin = tab.pinned && !tab.groupId;
+    // Every pin, grouped or not, leads the Island; a pin keeps its group's
+    // tint, so its group stays recognizable there.
+    const pins = state.tabs.filter((t) => t.pinned);
 
-    const activeWindow = (members, capacity) => {
+    const activeWindow = (members, capacity, focus = tab) => {
       if (members.length <= capacity) return members;
-      const activeIdx = Math.max(0, members.indexOf(tab));
+      const activeIdx = Math.max(0, members.indexOf(focus));
       const start = activeIdx < capacity
         ? 0
         : Math.min(activeIdx - (capacity - 1), members.length - capacity);
       return members.slice(start, start + capacity);
     };
 
-    // The pinned shelf is already the active section in this case. Return it
-    // as one set so no artificial section gap or duplicate active dot appears.
-    if (activeIsStandalonePin) {
-      const pinned = activeWindow(standalonePins, dotBudget);
+    const byId = new Map(state.tabs.map((t) => [t.id, t]));
+    // A section's tabs without its pins, which the shelf already shows.
+    const membersOf = (entry) => entry.tabIds.map((id) => byId.get(id)).filter((t) => t && !t.pinned);
+    const sections = TabSections.sectionsOf(state.tabs).filter((entry) => membersOf(entry).length);
+
+    // An active pin keeps the pins and a section, so a pinned tab doesn't
+    // push every other tab into +N: its own group when that has other tabs,
+    // else the section the person was last on (the first when none is known
+    // yet). With only pins, the shelf is the whole set: no section gap and
+    // no duplicate active dot.
+    if (tab.pinned) {
+      const entry = (tab.groupId && sections.find((e) => e.groupId === tab.groupId))
+        ?? sections.find((e) => e.tabIds.includes(lastSectionTabId)) ?? sections[0];
+      const pinned = activeWindow(pins, entry ? Math.max(1, dotBudget - 1) : dotBudget);
+      const members = entry ? membersOf(entry) : [];
+      const anchor = members.find((t) => t.id === lastSectionTabId) ?? members[0];
+      const section = entry ? activeWindow(members, dotBudget - pinned.length, anchor) : [];
+      const shown = [...pinned, ...section];
       return {
         pinned,
-        section: [],
-        shown: pinned,
-        hidden: Math.max(0, state.tabs.length - pinned.length),
+        section,
+        shown,
+        hidden: Math.max(0, state.tabs.length - shown.length),
       };
     }
+    lastSectionTabId = tab.id;
 
     // Reserve one slot for the active tab before applying pinned-first
-    // priority. Any additional standalone pins remain included in +N.
-    const pinned = standalonePins.slice(0, Math.max(0, dotBudget - 1));
+    // priority. Any additional pins remain included in +N.
+    const pinned = pins.slice(0, Math.max(0, dotBudget - 1));
     // The active tab's group, or its run of ungrouped tabs (tab-sections.js:
     // ungrouped tabs between groups form separate runs, spec 2026-10-17).
-    const byId = new Map(state.tabs.map((t) => [t.id, t]));
-    const sectionMembers = (TabSections.sectionsOf(state.tabs)
-      .find((entry) => entry.tabIds.includes(tab.id))?.tabIds ?? [tab.id])
-      .map((id) => byId.get(id));
+    const sectionMembers = membersOf(sections.find((entry) => entry.tabIds.includes(tab.id)) ?? { tabIds: [tab.id] });
     const section = activeWindow(sectionMembers, dotBudget - pinned.length);
     const shown = [...pinned, ...section];
     return {
@@ -1003,6 +1037,7 @@
   function dotsSignature() {
     const { pinned, shown, hidden } = islandTabPresentation();
     return JSON.stringify({
+      icons: state.islandTabIcons === true,
       // The first active-section dot gains spacing after the pinned set, so a
       // pin/group move can change the DOM even if the visible ids do not.
       pinnedCount: pinned.length,
@@ -1039,7 +1074,9 @@
       'island-dot' +
       (t.id === state.activeTabId ? ' active' : '') +
       (t.isLoading ? ' loading' : '') +
-      (t.private ? ' private' : '');
+      (t.private ? ' private' : '') +
+      // A pinned tab's dot is a rounded square (#1176), wherever it sits.
+      (t.pinned ? ' pinned' : '');
     TabSections.paintGroup(dot, dotGroup, 'dot-group-colored');
     const dotTitle = t.title || blancI18n.t('tab.untitled');
     dot.dataset.tooltip = dotTitle;
@@ -1051,10 +1088,11 @@
     // Hover/focus peek: the dot blooms into its tab's favicon so you can tell
     // which site it holds before switching. Reuses the pill favicon rendering
     // (has-icon / internal / loading / fallback); the native title tooltip
-    // still carries the exact page title a beat later.
-    const peek = document.createElement('span');
-    setFavicon(peek, t, 'dot-peek favicon');
-    dot.appendChild(peek);
+    // still carries the exact page title a beat later. With site icons on
+    // (#1175) the icon is drawn at rest instead, so there is nothing to peek.
+    const icon = document.createElement('span');
+    setFavicon(icon, t, state.islandTabIcons === true ? 'dot-icon favicon' : 'dot-peek favicon');
+    dot.appendChild(icon);
     dot.addEventListener('click', (e) => {
       e.stopPropagation(); // switch without expanding
       window.browserAPI.switchTab(t.id);
@@ -1085,19 +1123,32 @@
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
   // The menu lines up with the mark but hangs from the Island's bottom edge,
-  // so it never covers the Island (spec D18).
+  // so it never covers the Island (spec D18). In the vertical tabs rail's first
+  // row (vertical-tabs.js placeSpaceMark) it hangs from whichever is lower, the
+  // mark or the Island, so it covers neither.
   function spacesAnchor() {
-    return { left: stageRect(pillSpace).left, bottom: stageRect(islandPill).bottom };
+    const bottom = Math.max(stageRect(pillSpace).bottom, stageRect(islandPill).bottom);
+    return { left: stageRect(pillSpace).left, bottom };
   }
+  const spaceMarkOnIsland = () => islandPill.contains(pillSpace);
+  // What depends on where the mark is. On the Island it hides with no Spaces
+  // and marks the Island as carrying one; in the rail's first row it always
+  // shows (with no Spaces, the Spaces glyph offers them) and leaves the Island
+  // alone. vertical-tabs.js calls placed() whenever it moves the mark.
+  function placeSpaceMarkState() {
+    const state = pillSpace.dataset.state || 'none';
+    pillSpace.hidden = state === 'none' && spaceMarkOnIsland();
+    islandPill.classList.toggle('has-space', state === 'space' && spaceMarkOnIsland());
+  }
+  window.blancSpaceMark = Object.freeze({ placed: placeSpaceMarkState });
   function renderSpaceMark() {
     const items = Array.isArray(spaces.items) ? spaces.items : [];
     const index = items.findIndex((w) => w.active);
     const bound = index >= 0 ? items[index] : null;
     const state = bound ? 'space' : items.length ? 'neutral' : 'none';
     const widthBefore = pillSpace.hidden ? 0 : pillSpace.getBoundingClientRect().width;
-    pillSpace.hidden = state === 'none';
     pillSpace.dataset.state = state;
-    islandPill.classList.toggle('has-space', state === 'space');
+    placeSpaceMarkState();
     document.documentElement.dataset.spaceTint = spaces.tint || 'mark';
     if (bound) {
       // The quiet mark: the space's exact colour fills the square behind its
@@ -1143,8 +1194,11 @@
     for (const node of [pillSpaceSymbol, pillSpaceName]) {
       node.animate([{ transform: `translateY(${7 * dir}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, easing });
     }
-    for (const node of [pillDots, pillFavicon, pillDomain]) {
-      node.animate([{ transform: `translateX(${10 * dir}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, easing });
+    // The Island's page cluster follows the mark only when the mark is on it.
+    if (spaceMarkOnIsland()) {
+      for (const node of [pillDots, pillFavicon, pillDomain]) {
+        node.animate([{ transform: `translateX(${10 * dir}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, easing });
+      }
     }
     const widthAfter = pillSpace.hidden ? 0 : pillSpace.getBoundingClientRect().width;
     if (widthBefore && widthAfter && widthBefore !== widthAfter) {
@@ -1674,7 +1728,9 @@
     // Windows and Linux: where the window controls and the main-menu button
     // sit, so a floating Island can draw its copies of them in place.
     const controlsBox = isMac ? null : boxOf(windowControls);
-    // With vertical tabs the rail covers the strip's menu button: never float it.
+    // With vertical tabs the menu button lives in the rail's first row, which
+    // the page never covers (vertical-tabs.js placeMainMenuButton): never
+    // float it.
     const menuBox = isMac || state.tabLayout === 'vertical' ? null : boxOf(mainMenuButton);
     const rect = {
       x: (r.left + r.width / 2) - width / 2,

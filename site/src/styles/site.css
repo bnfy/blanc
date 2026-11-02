@@ -539,6 +539,16 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .download-columns h3 { margin: 0; font-size: 15px; font-weight: 600; }
 .download-columns p { margin: 8px 0 0; color: var(--site-text-dim); font-size: 14px; line-height: 1.6; }
 .download-columns .text-link { margin-top: 12px; font-size: 13px; }
+.iphone-band { display: grid; grid-template-columns: minmax(0, 1fr) 300px; column-gap: 56px; padding: 0 64px 0 56px; background: var(--site-text); color: var(--site-bg); overflow: hidden; }
+.iphone-band-copy { align-self: center; max-width: 36rem; padding: 56px 0; }
+.iphone-band-label { margin: 0 0 14px; color: rgba(255, 255, 255, 0.6); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+.iphone-band .download-section-head h2 { color: inherit; }
+.iphone-band-copy > p:not([class]) { margin: 18px 0 0; color: rgba(255, 255, 255, 0.72); font-size: 16px; line-height: 1.6; }
+.iphone-band-cta { display: inline-flex; gap: 8px; margin-top: 26px; padding: 11px 20px; border-radius: 999px; background: var(--site-bg); color: var(--site-text); font-size: 14px; font-weight: 500; text-decoration: none; transition: background 0.18s ease, color 0.18s ease; }
+.iphone-band-cta:is(:hover, :focus-visible) { background: var(--site-accent); color: var(--site-bg); }
+.iphone-band-note { margin: 14px 0 0; color: rgba(255, 255, 255, 0.55); font-family: var(--font-mono); font-size: 12px; }
+.iphone-band-shot { align-self: end; height: 430px; margin: 48px 0 0; overflow: hidden; }
+.iphone-band-shot img { display: block; width: 100%; height: auto; border: 6px solid rgba(255, 255, 255, 0.14); border-bottom: 0; border-radius: 46px 46px 0 0; }
 
 /* ---------- changelog ---------- */
 .changelog-page { max-width: 880px; margin: 0 auto; padding: 112px 24px 96px; }
@@ -842,6 +852,9 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .download-columns { grid-template-columns: 1fr; margin-top: 28px; }
   .download-columns article, .download-columns article + article { padding: 22px 0; border-left: 0; }
   .download-columns article + article { border-top: 1px solid var(--site-border); }
+  .iphone-band { grid-template-columns: 1fr; padding: 0 24px; }
+  .iphone-band-copy { padding: 36px 0 0; }
+  .iphone-band-shot { justify-self: center; width: min(260px, 72vw); height: 340px; margin-top: 36px; }
   .download-options.has-preferred > .platform-card[data-preferred] { min-height: 0; padding: 26px 24px; }
   .download-options.has-preferred > .platform-card[data-preferred]::after { top: 22px; right: 24px; }
   /* Stacked on one column, the tall bottom-aligned cards become mostly-empty

@@ -42,6 +42,23 @@
     ]
   },
   {
+    "id": "sync-retention",
+    "q": "What happens when I turn off Sync or erase the server copy?",
+    "a": [
+      "Turning off Sync without erasing leaves the encrypted server copy in place. Choose the erase option to remove the active copy. Cached encrypted values in Cloudflare KV may remain readable while deletion propagates across its network. This is separate from provider recovery history and backups. If erasure fails, retry from the configured device. Devices that still have Sync enabled can upload data again.",
+      "Automatic deletion of inactive Sync accounts is paused. Cloudflare provides SQLite recovery history covering the preceding 30 days, so deleting the active copy does not establish immediate deletion from provider history or backups. Bananify does not restore production Sync data from that history. See the Privacy Policy for the retention limits we have and have not established."
+    ]
+  },
+  {
+    "id": "shared-spaces",
+    "q": "What does Shared Spaces sync?",
+    "a": [
+      "Starting with Blanc 1.45, Shared Spaces can keep Blanc Spaces you choose the same on each device where you turn it on. It is off by default, a separate choice under Settings → Sync on each device, and only the Personal profile offers it. It uses the same end-to-end encryption as the rest of Sync: the server stores ciphertext it cannot read and sees only that each shared Space exists under a random ID, its size, and when it changes.",
+      "For each chosen Space it carries the Space’s name, color and symbol, and for each web tab the address, page title, any name you gave the tab, whether it is pinned, its group and its place in the order. Private tabs, Blanc’s internal pages and local files never sync; if a shared tab moves to one of them, your other devices keep the last web page it shared. A tab you close in a shared Space appears in your other devices’ Recently closed for up to a day, with its address, title and the name of the device it was closed on, and its encrypted record stays in sync storage for 30 days.",
+      "Turning Shared Spaces off on a device keeps its Spaces there as local copies; your other devices keep syncing, and the server copy stays until you erase Sync. A deleted Space’s contents are emptied, but its encrypted deletion record uses sync storage for 30 days. Each Sync account has a 20 MiB server allowance that also covers favorites, settings and the other Sync data, and up to 25 Spaces can be shared."
+    ]
+  },
+  {
     "id": "open-source",
     "q": "Is Blanc open source?",
     "a": [

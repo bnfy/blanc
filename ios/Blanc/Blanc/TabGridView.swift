@@ -5,15 +5,35 @@ struct TabGridView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var style: BrowserStyle { BrowserStyle(scheme: colorScheme) }
+    /// The group being renamed, or the tab a new group is being made for.
+    @State private var naming: Naming?
+    @State private var newSpaceTab: UUID?
+
+    private enum Naming: Identifiable {
+        case rename(TabGroup), newGroup(UUID)
+        var id: String {
+            switch self { case .rename(let g): "rename-\(g.id)"; case .newGroup(let t): "new-\(t)" }
+        }
+    }
+
+    private var columns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 16, alignment: .top), count: sizeClass == .regular ? 3 : 2)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Open tabs").font(BrowserStyle.font(24, semibold: true))
+                if let space = manager.shownSpace {
+                    SpaceTile(color: space.color, symbol: space.symbol, size: 28)
+                    Text(space.name).font(BrowserStyle.font(24, semibold: true)).lineLimit(1)
+                } else {
+                    Text(SyncCopy.text("ios.tabs.openTabs")).font(BrowserStyle.font(24, semibold: true))
+                }
                 Text("\(manager.tabs.count)").font(.system(size: 14)).foregroundStyle(style.secondary)
                 Spacer()
-                Button("Done") { dismiss() }
+                Button(SettingsCopy.text("done")) { dismiss() }
                     .font(BrowserStyle.font(16, semibold: true))
                     .frame(minWidth: 44, minHeight: 44)
             }
@@ -22,9 +42,22 @@ struct TabGridView: View {
 
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16, alignment: .top), count: sizeClass == .regular ? 3 : 2), spacing: 24) {
-                        ForEach(manager.tabs) { tab in
-                            card(tab).id(tab.id)
+                    VStack(alignment: .leading, spacing: 20) {
+                        ForEach(manager.displaySections, id: \.id) { section in
+                            if let group = section.group {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    GroupHeader(group: group, count: section.tabs.count, manager: manager, style: style) {
+                                        naming = .rename(group)
+                                    }
+                                    if group.collapsed {
+                                        tucked(group, count: section.tabs.count)
+                                    } else {
+                                        cards(section.tabs)
+                                    }
+                                }
+                            } else {
+                                cards(section.tabs)
+                            }
                         }
                     }
                     .padding(20)
@@ -37,7 +70,7 @@ struct TabGridView: View {
                 manager.createTab()
                 dismiss()
             } label: {
-                Label("New tab", systemImage: "plus")
+                Label(SyncCopy.text("tab.new"), systemImage: "plus")
                     .font(BrowserStyle.font(16, semibold: true))
                     .frame(maxWidth: .infinity, minHeight: 48)
                     .background(style.raised, in: RoundedRectangle(cornerRadius: 16))
@@ -46,19 +79,65 @@ struct TabGridView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
         }
+        .overlay(alignment: .bottom) {
+            UndoBanner(manager: manager, style: style).padding(.bottom, 76)
+        }
         .foregroundStyle(style.text)
         .background(style.surface.ignoresSafeArea())
         .background(TabPreviewRenderer(tabs: manager.tabs).allowsHitTesting(false).accessibilityHidden(true))
         .buttonStyle(.plain)
         .accessibilityIdentifier("tabs.grid")
+        .sheet(item: $naming) { current in
+            switch current {
+            case .rename(let group):
+                GroupNameSheet(title: SyncCopy.text("groupMenu.nameLabel"), confirm: SyncCopy.text("ws.editor.done"),
+                               initial: group.name) { name in
+                    GroupNameSheet.refusal(name) { try manager.renameGroup(group.id, to: name) }
+                }
+            case .newGroup(let tab):
+                GroupNameSheet(title: SyncCopy.text("tabMenu.newGroup"), confirm: SyncCopy.text("tabGroups.create"),
+                               initial: "") { name in
+                    GroupNameSheet.refusal(name) { _ = try withAnimation { try manager.createGroup(named: name, with: tab) } }
+                }
+            }
+        }
+        .sheet(item: Binding(get: { newSpaceTab.map(SpaceEditorTarget.newWithTab) }, set: { if $0 == nil { newSpaceTab = nil } })) { target in
+            SpaceEditor(manager: manager, target: target)
+        }
+    }
+
+    private func cards(_ tabs: [TabModel]) -> some View {
+        LazyVGrid(columns: columns, spacing: 24) {
+            ForEach(tabs) { tab in
+                SwipeToClose(reduceMotion: reduceMotion) {
+                    withAnimation { manager.closeTab(tab.id) }
+                } content: {
+                    card(tab)
+                }
+                .id(tab.id)
+            }
+        }
+    }
+
+    private func tucked(_ group: TabGroup, count: Int) -> some View {
+        Button { withAnimation { manager.setGroupCollapsed(group.id, false) } } label: {
+            Text(SyncCopy.plural("tabGroups.tucked", count: count))
+                .font(BrowserStyle.font(14))
+                .foregroundStyle(style.secondary)
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                .padding(.horizontal, 14)
+                .background(style.raised, in: RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(style.border))
+                .contentShape(Rectangle())
+        }
+        .accessibilityIdentifier("group.tucked")
     }
 
     private func card(_ tab: TabModel) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Button {
-                manager.setActive(tab.id)
-                dismiss()
-            } label: {
+            // A tap rather than a Button: a Button also fires when a sideways
+            // swipe that closes the card lifts inside it.
+            Group {
                 ZStack {
                     style.raised
                     if let image = tab.thumbnail {
@@ -79,8 +158,29 @@ struct TabGridView: View {
                     manager.activeTabId == tab.id ? style.text : style.border,
                     lineWidth: manager.activeTabId == tab.id ? 2 : 1))
             }
-            .accessibilityLabel("Switch to \(title(tab))")
+            .contentShape(Rectangle())
+            .onTapGesture { select(tab) }
+            .contextMenu {
+                TabMoveMenu(manager: manager, tab: tab, newGroup: { naming = .newGroup(tab.id) }, newSpace: { newSpaceTab = tab.id })
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { select(tab) }
+            .accessibilityAction(named: SyncCopy.text("settings.gesture.action.closeTab")) {
+                withAnimation { manager.closeTab(tab.id) }
+            }
+            .accessibilityIdentifier("tab.card")
+            .accessibilityLabel(SyncCopy.text("ios.tabs.switchTo", ["title": title(tab)]))
             .accessibilityAddTraits(manager.activeTabId == tab.id ? .isSelected : [])
+            .overlay(alignment: .topLeading) {
+                if manager.isUnsynced(tab) {
+                    Circle().fill(style.secondary).frame(width: 8, height: 8)
+                        .padding(12)
+                        .accessibilityElement()
+                        .accessibilityLabel(SyncCopy.text("sharedSpaces.unsyncedTab"))
+                        .accessibilityIdentifier("tab.unsynced")
+                }
+            }
             .overlay(alignment: .topTrailing) {
                 Button { manager.closeTab(tab.id) } label: {
                     Image(systemName: "xmark")
@@ -91,7 +191,7 @@ struct TabGridView: View {
                         .frame(width: 44, height: 44)
                         .contentShape(Rectangle())
                 }
-                .accessibilityLabel("Close \(title(tab))")
+                .accessibilityLabel(SyncCopy.text("ios.tabs.close", ["title": title(tab)]))
             }
             Text(title(tab)).font(BrowserStyle.font(14, semibold: true)).lineLimit(1)
             if let host = tab.currentURL.host, tab.currentURL.scheme != "blanc" {
@@ -100,8 +200,53 @@ struct TabGridView: View {
         }
     }
 
-    private func title(_ tab: TabModel) -> String {
-        if tab.currentURL == TabsManager.newTabURL { return "Start Page" }
-        return tab.pageTitle.isEmpty ? (tab.currentURL.host ?? tab.currentURL.absoluteString) : tab.pageTitle
+    private func select(_ tab: TabModel) {
+        manager.setActive(tab.id)
+        dismiss()
+    }
+
+    private func title(_ tab: TabModel) -> String { TabTitle.display(tab) }
+}
+
+/// M11: swiping a tab's card sideways closes the tab, the card following the
+/// finger and fading as it goes. Left closes; a drag to the right resists and
+/// springs back. With Reduce Motion the card only fades.
+private struct SwipeToClose<Content: View>: View {
+    let reduceMotion: Bool
+    let close: () -> Void
+    @ViewBuilder let content: Content
+    @State private var dx: CGFloat = 0
+    @State private var isSwiping = false
+    @GestureState private var isDragging = false
+
+    var body: some View {
+        content
+            .offset(x: reduceMotion ? 0 : dx)
+            .opacity(1 - min(abs(dx) / 240, 0.7))
+            .onChange(of: isDragging) { _, dragging in
+                // A cancelled drag gets no onEnded: put the card back.
+                guard !dragging, isSwiping else { return }
+                isSwiping = false
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { dx = 0 }
+            }
+            .simultaneousGesture(DragGesture(minimumDistance: 20)
+                .updating($isDragging) { _, dragging, _ in dragging = true }
+                .onChanged { value in
+                    if !isSwiping {
+                        guard IslandSwipe.isSideways(value.translation) else { return }
+                        isSwiping = true
+                    }
+                    let x = value.translation.width
+                    dx = x < 0 ? x : x * 0.25
+                }
+                .onEnded { value in
+                    guard isSwiping else { return }
+                    isSwiping = false
+                    if value.translation.width < -100 || value.predictedEndTranslation.width < -200 {
+                        withAnimation(.easeOut(duration: 0.2)) { dx = -400 } completion: { close() }
+                    } else {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { dx = 0 }
+                    }
+                })
     }
 }

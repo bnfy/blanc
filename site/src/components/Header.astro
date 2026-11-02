@@ -56,9 +56,13 @@ const hrefFor = (href) =>
                   <li>
                     <a href={link.href}>
                       {link.label}
-                      <svg class="site-browser-download" viewBox="0 0 16 16" aria-hidden="true">
-                        <path d="M8 2.5v7M5 7l3 3 3-3M3 12.5h10" />
-                      </svg>
+                      {link.beta ? (
+                        <span class="site-browser-beta">Beta</span>
+                      ) : (
+                        <svg class="site-browser-download" viewBox="0 0 16 16" aria-hidden="true">
+                          <path d="M8 2.5v7M5 7l3 3 3-3M3 12.5h10" />
+                        </svg>
+                      )}
                     </a>
                   </li>
                 ))

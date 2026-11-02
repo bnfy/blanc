@@ -205,6 +205,13 @@
         </div>
         <p id="shieldPopDarkNote" class="shield-pop-note" hidden data-i18n="shield.darkNote">Applies while Blanc is dark.</p>
       </div>
+      <div id="shieldPopRoute" class="shield-pop-dark" hidden>
+        <div class="shield-pop-head">
+          <div class="shield-pop-state"><span id="shieldPopRouteLabel" data-i18n="shield.route">Open links to this site in this profile</span></div>
+          <button id="shieldPopRouteToggle" role="switch" aria-checked="false" aria-labelledby="shieldPopRouteLabel" aria-describedby="shieldPopRouteNote"><span class="knob"></span></button>
+        </div>
+        <p id="shieldPopRouteNote" class="shield-pop-note" data-i18n="shield.routeNote">For links from other apps.</p>
+      </div>
       <div class="shield-pop-metadata">
         <div id="shieldPopConnection" hidden><span data-i18n="shield.connection">Connection</span><span id="shieldPopConnectionValue"></span></div>
         <button id="shieldPopSettings" class="shield-pop-footer"><span data-i18n="shield.settings">Blocking settings</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
@@ -229,6 +236,16 @@
   <section id="capturePop" class="capture-pop" hidden>
     <header id="capturePopHead" class="capture-pop-head" data-i18n="capture.pop.inUse">in use</header>
     <ul id="capturePopRows" class="capture-pop-rows"></ul>
+  </section>
+  <!-- Ctrl+Tab by most recent use (spec 2026-10-24-mru-tab-switcher-design.md
+       §3.3). Never focused: main reads every key, the page keeps focus. -->
+  <section id="switcherCard" class="switcher-card" hidden>
+    <ul id="switcherTiles" class="switcher-tiles" role="listbox" aria-label="Tab switcher" data-i18n-aria-label="switcher.label"></ul>
+    <div class="switcher-caption">
+      <span id="switcherTitle" class="switcher-title"></span>
+      <span id="switcherHost" class="switcher-host"></span>
+    </div>
+    <div id="switcherStatus" class="sr-only" aria-live="polite" aria-atomic="true"></div>
   </section>
   <script src="tab-sections.js"></script>
   <script src="tab-drag.js"></script>

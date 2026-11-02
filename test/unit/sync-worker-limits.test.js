@@ -1,9 +1,11 @@
+'use strict';
+const {attachQuota}=require('../support/sync-quota.cjs');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const crypto = require('node:crypto');
 const { encrypt, decrypt } = require('../../src/main/sync-crypto');
-const workerPromise = import(`data:text/javascript;base64,${fs.readFileSync(require.resolve('../../cloudflare/sync-worker/src/index.js')).toString('base64')}`).then((m) => m.default);
+const workerPromise = import(`data:text/javascript;base64,${fs.readFileSync(require.resolve('../../cloudflare/sync-worker/src/index.js')).toString('base64')}`);
 const account = 'a'.repeat(64);
 const key = `blob:${account}:bookmarks`;
 const url = `https://sync.example.test/v1/blob/${account}/bookmarks`;
@@ -21,7 +23,7 @@ function storage() {
   } };
 }
 async function send(env, body, headers = {}) {
-  return (await workerPromise).fetch(new Request(url, { method: 'PUT', body, headers, duplex: 'half' }), env);
+  const mod=await workerPromise;if(!env.ACCOUNT_QUOTA)attachQuota(env,mod.AccountQuota);return mod.default.fetch(new Request(url, { method: 'PUT', body, headers, duplex: 'half' }), env);
 }
 const blobBody = (size) => JSON.stringify({ blob: { ct: 'x'.repeat(size - 9) } });
 
@@ -80,7 +82,7 @@ test('chunked Unicode JSON decodes across byte boundaries and malformed JSON nev
 });
 
 test('v1 encrypted records, version responses, conflicts and locator-only deletion stay compatible', async () => {
-  const worker = await workerPromise;
+  const mod=await workerPromise,worker=mod.default;
   const env = storage();
   const secret = crypto.randomBytes(32);
   const blob = encrypt(secret, '{"legacy":"record"}');
@@ -98,7 +100,7 @@ test('v1 encrypted records, version responses, conflicts and locator-only deleti
   assert.equal([...env.records.keys()].some((key) => key.startsWith('blob:')), false, 'R3 remains: the locator alone authorizes deletion');
 });
 
-test('R5 residual concurrency: same-version writers both succeed and a pending write can survive deletion', async () => {
+test('R5 residual concurrency: same-version writers succeed and an old fixed-only writer can survive deletion', async () => {
   const env = storage();
   const results = await Promise.all([send(env, '{"blob":{"ct":"one"}}'), send(env, '{"blob":{"ct":"two"}}')]);
   assert.deepEqual(results.map((r) => r.status), [200, 200]);
@@ -107,16 +109,18 @@ test('R5 residual concurrency: same-version writers both succeed and a pending w
   const put = env.SYNC.put;
   env.SYNC.put = async (key, value) => { await new Promise((resolve) => { finish = resolve; }); await put(key, value); };
   const version = JSON.parse(env.records.get(key)).version;
-  const pending = send(env, JSON.stringify({ blob: {}, ifVersion: version }));
+  // A legacy fixed-only invocation already running at cutover is outside the
+  // new accountant. New-account requests themselves drain before wiping.
+  const pending = env.SYNC.put(key,JSON.stringify({version,blob:{}}));
   while (!finish) await new Promise((resolve) => setImmediate(resolve));
-  await (await workerPromise).fetch(new Request(`https://sync.example.test/v1/blob/${account}`, { method: 'DELETE' }), env);
+  await (await workerPromise).default.fetch(new Request(`https://sync.example.test/v1/blob/${account}`, { method: 'DELETE' }), env);
   finish();
-  assert.equal((await pending).status, 200);
+  await pending;
   assert.equal(env.records.has(key), true, 'v1 has no atomic deletion fence');
 });
 
 test('sends is a known store and other names stay unknown', async () => {
-  const worker = await workerPromise;
+  const mod=await workerPromise,worker=mod.default;
   const env = storage();
   const sendsUrl = `https://sync.example.test/v1/blob/${account}/sends`;
   const put = await worker.fetch(new Request(sendsUrl, { method: 'PUT', body: JSON.stringify({ blob: { ct: 'sent' }, ifVersion: null }), duplex: 'half' }), env);

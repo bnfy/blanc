@@ -7,6 +7,7 @@ const sharp = require('sharp');
 const { createIco } = require('./build-windows-icons');
 const { pngsEquivalent } = require('./png-equivalence');
 const { colorwaySources } = require('./app-icon-colorways');
+const { iosAppIconFiles } = require('./ios-app-icons');
 
 const ROOT = path.join(__dirname, '..');
 const SOURCE = path.join(ROOT, 'assets/blanc-mark.svg');
@@ -55,7 +56,7 @@ const SQUARE_EXPORT_BOX = { left: 170, top: 170, width: 684, height: 684 };
 // rays and half-sun, whose water lines collapse into noise at that scale.
 const SUNRISE_CROP = { left: 356, top: 356, width: 3380, height: 3380 };
 const SUNRISE_FAVICON_CROP = { left: 356, top: 356, width: 3380, height: 2265 };
-// The static "enhanced" Sunrise icons (Windows, Linux, iOS, the media kit and
+// The static "enhanced" Sunrise icons (Windows, Linux, the media kit and
 // the square exports): the gold mark edge to edge on a solid field, its
 // bounding box at these fractions of the canvas.
 const SUNRISE_ENHANCED_BOX = { left: 0.1357, top: 0.0990, right: 0.8652, bottom: 0.8380 };
@@ -676,7 +677,7 @@ async function main() {
   const master = await sunriseMaster();
 
   // The enhanced Sunrise icons. The light 1024px one is the static icon for
-  // Windows, Linux and iOS; the 4096px ones are the media kit's masters.
+  // Windows and Linux; the 4096px ones are the media kit's masters.
   const enhanced = {};
   for (const [id, field] of Object.entries(SUNRISE_ENHANCED_FIELDS)) {
     enhanced[id] = {
@@ -719,7 +720,6 @@ async function main() {
   }
 
   await emit('build/icon.png', platformIcon);
-  await emit('ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/icon-sunrise.png', platformIcon);
   await emit('src/renderer/pages/icon.svg', standaloneMarkSvg(artwork));
   await emit('src/renderer/pages/sunrise-favicon-mark.png', sunrise.faviconMotif);
   await emit('src/renderer/pages/sunrise-mark.png', sunrise.motif);
@@ -747,6 +747,11 @@ async function main() {
 
   for (const [file, source] of Object.entries(colorwaySources())) {
     await emit(file, await raster(source, ICON_CANVAS));
+  }
+
+  // The iPhone's Icon Composer packages, after the Mac layers they reuse.
+  for (const [file, contents] of Object.entries(await iosAppIconFiles())) {
+    await emit(file, contents);
   }
 
   await buildSiteAssets(sunrise);

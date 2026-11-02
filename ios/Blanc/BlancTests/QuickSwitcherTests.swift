@@ -132,4 +132,24 @@ final class QuickSwitcherTests: XCTestCase {
         let fuzzy = QuickSwitcher.search(query: "mvsp", tabs: [], remote: [], favorites: [], history: history)
         XCTAssertNil(QuickSwitcher.goTarget(query: "mvsp", results: fuzzy), "a weak match never takes Go")
     }
+    func testGroupsAndSpacesRankAboveTabs() {
+        let tab = TabModel(url: URL(string: "https://research.example/")!)
+        tab.pageTitle = "Research notes"
+        let group = TabGroup(id: String(repeating: "a", count: 32), name: "Research")
+        tab.groupId = group.id
+        let results = QuickSwitcher.search(query: "research", tabs: [tab], remote: [], favorites: [],
+                                           groups: [group], sets: [(id: "s", name: "Research lab", count: 3)])
+        XCTAssertEqual(results.prefix(2).map(\.id).sorted(), ["group:" + group.id, "set:s"])
+        XCTAssertEqual(results.last?.localTabID, tab.id)
+        XCTAssertEqual(results.first { $0.groupId != nil }?.subtitle, "1 tab")
+    }
+
+    /// M17c: another device's Space (switch off) is found by name, labelled
+    /// with its device, and ranks above tabs.
+    func testRemoteSpacesMatchByName() {
+        let results = QuickSwitcher.search(query: "trav", tabs: [], remote: [], favorites: [],
+                                           remoteSpaces: [(id: "s1", name: "Travel", device: "MacBook Pro")])
+        XCTAssertEqual(results.first?.remoteSpaceId, "s1")
+        XCTAssertEqual(results.first?.subtitle, "On MacBook Pro")
+    }
 }

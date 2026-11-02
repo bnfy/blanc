@@ -176,37 +176,42 @@ test('favicon capture is a no-op until tab state is ready', async () => {
   }
 });
 
-test('turning share-tabs off before restore still publishes retractions', async () => {
+test('turning share-tabs off before restore still withdraws the tabs at once', async () => {
   // Consent-off must not wait for snapshot providers: quitting during a blocked
   // adblock startup would otherwise leave this device's tabs visible remotely.
+  // The open-tabs entry becomes this device's presence alone (no tabs, a fresh
+  // clock, so Settings → Sync still lists it); its icons are retracted.
   requests.length = 0;
   serveTabRemotes = true;
   // Consent-off schedules its own prompt session + icons pass (scheduleTabs(1000)).
   // Await that real pass rather than also calling syncNow(): a second, direct
   // pass raced the 1 s timer on slow runners and PUT each store twice
-  // (Windows CI on #675). Exactly one retraction PUT per store is still required,
-  // so a genuine double publish stays a failure.
+  // (Windows CI on #675). Exactly one PUT per store is still required, so a
+  // genuine double publish stays a failure.
   sync.setSyncTabs(false);
   const putsSoFar = () => requests.filter(({ method }) => method === 'PUT');
-  await waitFor(() => putsSoFar().length >= 2, 'both retraction PUTs');
+  await waitFor(() => putsSoFar().length >= 2, 'both withdrawal PUTs');
   // JsonStore saves are debounced and written off the main thread.
-  await waitForJson(path.join(tmp, 'tab-sync.json'), (json) => json.devices?.[DEVICE_ID]?.retracted === true);
+  const presenceOnly = (entry) => !!entry && !entry.retracted && Array.isArray(entry.tabs) && entry.tabs.length === 0;
+  await waitForJson(path.join(tmp, 'tab-sync.json'), (json) => presenceOnly(json.devices?.[DEVICE_ID]));
   await waitForJson(path.join(tmp, 'tab-icons.json'), (json) => json.devices?.[DEVICE_ID]?.retracted === true);
 
-  assert.equal(readDevices('tab-sync.json')[DEVICE_ID].retracted, true);
+  assert.ok(presenceOnly(readDevices('tab-sync.json')[DEVICE_ID]));
   assert.equal(readDevices('tab-icons.json')[DEVICE_ID].retracted, true);
 
   const puts = putsSoFar();
   assert.deepEqual(
     puts.map(({ url }) => url.split('/').pop()).sort(),
     ['icons', 'session'],
-    'both tab stores must PUT the consent retraction'
+    'both tab stores must PUT the consent change'
   );
-  for (const put of puts) {
-    const body = JSON.parse(put.body);
-    const payload = JSON.parse(decrypt(key, body.blob));
-    assert.equal(payload.devices[DEVICE_ID].retracted, true);
-  }
+  const published = Object.fromEntries(puts.map((put) => {
+    const payload = JSON.parse(decrypt(key, JSON.parse(put.body).blob));
+    return [put.url.split('/').pop(), payload.devices[DEVICE_ID]];
+  }));
+  assert.ok(presenceOnly(published.session), 'no tab leaves the device; its presence does');
+  assert.ok(published.session.name.length > 0);
+  assert.equal(published.icons.retracted, true);
   serveTabRemotes = false;
 });
 

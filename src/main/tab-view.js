@@ -675,7 +675,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   const applyWindowOpenPolicy = (targetWc) => {
     installExternalNavigationHandlers(targetWc, boundToTab(handOffToOs),
       (url, source, event) => deps.allowManagedExtensionNavigation?.(tab, targetWc, url, source, event) === true);
-    targetWc.setWindowOpenHandler(boundToTab(({ url: targetUrl, disposition, referrer }) => {
+    targetWc.setWindowOpenHandler(boundToTab(({ url: targetUrl, disposition, referrer, postBody }) => {
       if (getOwner().resident) return { action: 'deny' };
       if (isForbiddenTopLevelUrl(targetUrl)) return { action: 'deny' };
       if (isUtilityUrl(targetUrl)) {
@@ -686,6 +686,10 @@ function wireTabView(tab, view, { owner, adopted }) {
       const source = targetWc.getURL();
       const managedExtension = /^chrome-extension:/i.test(targetUrl) && deps.allowManagedExtensionNavigation?.(tab, targetWc, targetUrl, source, { isMainFrame: true }) === true;
       if (!managedExtension && handOffToOs(targetUrl, { source })) return { action: 'deny' };
+      // A link rule may send a link the person opened in a new tab to another
+      // profile or Space (#1199). Popups ('new-window', opener intact), form
+      // posts and anything a page opened on its own stay (routeInAppLink).
+      if (!managedExtension && deps.routeInAppLink?.(tab, targetWc, targetUrl, disposition, { postBody })) return { action: 'deny' };
       if (disposition === 'new-window') {
         return {
           action: 'allow',
@@ -719,6 +723,11 @@ function wireTabView(tab, view, { owner, adopted }) {
           const newId = createTab(targetUrl, {
             private: tab.private, view: childView, managedExtension,
             openerTabId: childView ? tab.id : null,
+            // Chromium reads the disposition from the click's modifiers even
+            // when the page's own script calls window.open, so a background
+            // child is one the person asked for, not a hand-off: it keeps
+            // its opener for Quiet Tabs but never holds a space switch.
+            openedInBackground: disposition === 'background-tab',
             // Every page-opened child may carry its opener's HTML/CSP sandbox.
             // Electron applies it to the WebContents it built and tells Blanc
             // nothing about it, so the record is marked from birth and Blanc
@@ -757,11 +766,13 @@ function wireTabView(tab, view, { owner, adopted }) {
     openBackgroundTab: boundToTab((targetUrl) => {
       if (handOffToOs(targetUrl)) return;
       if (isForbiddenTopLevelUrl(targetUrl)) return;
+      if (deps.routeInAppLink?.(tab, null, targetUrl, 'background-tab', { fromMenu: true })) return;
       createTab(targetUrl, { private: tab.private });
     }),
     openTab: boundToTab((targetUrl) => {
       if (handOffToOs(targetUrl)) return;
       if (isForbiddenTopLevelUrl(targetUrl)) return;
+      if (deps.routeInAppLink?.(tab, null, targetUrl, 'foreground-tab', { fromMenu: true })) return;
       const role = foregroundOpenRole(getOwner(), tab.id);
       showOpenedTab(createTab(targetUrl, { private: tab.private }), role);
     }),

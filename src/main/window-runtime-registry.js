@@ -214,6 +214,8 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     islandAutoHideIntroGeneration: 0,
     /** Pending detach of the overlay view while its panel retracts. */
     overlayExitTimer: null,
+    /** Pending show of the Ctrl+Tab card, 150 ms into a held switch. */
+    switcherCardTimer: null,
   };
   runtimes.push(runtime);
   return runtime;

@@ -5,6 +5,7 @@
 // recovery state here contains only the normal session columns, never pages.
 const crypto = require('crypto');
 const fs = require('fs');
+const { isDeepStrictEqual } = require('util');
 const { JsonStore } = require('./store');
 const { activeLocalProfileId, withLocalProfile } = require('./local-profile-context');
 const model = require('./workspaces-model');
@@ -203,6 +204,10 @@ function createRepository({ store = new JsonStore('workspaces', model.EMPTY_FILE
           name,color,symbol,createdAt:current?.createdAt??clock(),updatedAt:clock(),revision:(current?.revision??-1)+1,
           ...(sharedId?{sharedId,sharedLink:'active'}:{recoveredFrom})});
         if(!workspace)return {error:'not-found'};
+        // Every sync pass reconciles each closed shared Space: one that didn't
+        // change keeps its record, revision and file untouched.
+        const stored=row=>JSON.parse(JSON.stringify({...row,updatedAt:0,revision:0}));
+        if(current&&isDeepStrictEqual(stored(workspace),stored(model.normalizeWorkspace(current))))return {workspace:current,file:data,unchanged:true};
         return {workspace,file:{...data,workspaces:current?data.workspaces.map(row=>row.id===current.id?workspace:row):[...data.workspaces,workspace]}};
       });
     },
@@ -210,7 +215,9 @@ function createRepository({ store = new JsonStore('workspaces', model.EMPTY_FILE
       return mutate(data=>{
         const rank=new Map(ids.map((id,index)=>[id,index]));
         const shared=data.workspaces.filter(row=>rank.has(row.sharedId)).sort((a,b)=>rank.get(a.sharedId)-rank.get(b.sharedId));let at=0;
-        return {file:{...data,workspaces:data.workspaces.map(row=>rank.has(row.sharedId)?shared[at++]:row)}};
+        const workspaces=data.workspaces.map(row=>rank.has(row.sharedId)?shared[at++]:row);
+        if(workspaces.every((row,index)=>row===data.workspaces[index]))return {file:data,unchanged:true};
+        return {file:{...data,workspaces}};
       });
     },
     clearSharedLinks() {

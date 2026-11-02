@@ -56,8 +56,16 @@ function diffWindow(displayedBaseline,windowState,now,deviceId,ids=defaultId) {
   positions('groups',groupOrder);
   const tabOrder=[],seenTabs=new Set();
   for(let n=0;n<(windowState.urls?.length??0);n++) {
-    if(!safeUrl(windowState.urls[n])||windowState.private?.[n]===true||restoredMarker(windowState,n))continue;
     let id=windowState.tabIds?.[n];
+    if(!safeUrl(windowState.urls[n])||windowState.private?.[n]===true||restoredMarker(windowState,n)) {
+      // A bound tab that temporarily moves outside the shareable web surface
+      // keeps its last published record. The local URL is never serialized,
+      // and browsing locally cannot close the tab on another device.
+      if(validId(id)&&baseline.tabs[id]?.deleted?.v!==true&&!seenTabs.has(id)) {
+        seenTabs.add(id);tabIds[n]=id;tabOrder.push(id);
+      }
+      continue;
+    }
     if(!validId(id)||seenTabs.has(id)||baseline.tabs[id]?.deleted?.v===true)id=fresh();
     seenTabs.add(id);tabIds[n]=id;tabOrder.push(id);
     const meta=windowState.meta?.[n]??{},group=groupBindings[windowState.groupIds?.[n]]??null;

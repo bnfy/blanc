@@ -19,12 +19,13 @@ final class SettingsUITests: XCTestCase {
         let input = app.textFields["island.address"]
         XCTAssertTrue(input.waitForExistence(timeout: 5))
         input.tap(); input.typeText(command + "\n")
-        XCTAssertTrue(app.navigationBars[command == "/sync" ? "Sync" : "Settings"].waitForExistence(timeout: 5))
+        // 15 s like the launch wait: right after a relaunch, a busy CI
+        // simulator has taken over 5 s to show Settings.
+        XCTAssertTrue(app.navigationBars[command == "/sync" ? "Sync" : "Settings"].waitForExistence(timeout: 15))
     }
     private func tap(_ id: String) {
         let element = app.descendants(matching: .any).matching(identifier: id).firstMatch
-        if !element.isHittable { app.swipeUp() }
-        XCTAssertTrue(element.waitForExistence(timeout: 5), id)
+        XCTAssertTrue(app.reveal(element), id)
         element.tap()
     }
     private func capture(_ name: String) {
@@ -86,15 +87,54 @@ final class SettingsUITests: XCTestCase {
         app.buttons["Remove site: example.com"].tap()
         XCTAssertFalse(app.buttons["Remove site: example.com"].exists)
     }
+    func testClearSiteDataAsksFirst() {
+        open(); tap("settings.privacy")
+        tap("settings.clearSiteData")
+        let alert = app.alerts.firstMatch
+        XCTAssertTrue(alert.waitForExistence(timeout: 5))
+        alert.buttons["Cancel"].tap()
+        XCTAssertFalse(app.staticTexts["settings.clearSiteData.done"].exists)
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH 'Removes cookies, cache, and site data'")).firstMatch.waitForExistence(timeout: 5))
+        tap("settings.clearSiteData")
+        XCTAssertTrue(alert.waitForExistence(timeout: 5))
+        capture("Native Settings — clear site data")
+        alert.buttons["Clear cookies, cache & site data"].tap()
+        XCTAssertTrue(app.staticTexts["settings.clearSiteData.done"].waitForExistence(timeout: 5))
+        // A second clear starts fresh: the old "Cleared." goes when it is asked for.
+        tap("settings.clearSiteData")
+        XCTAssertTrue(alert.waitForExistence(timeout: 5))
+        alert.buttons["Cancel"].tap()
+        XCTAssertFalse(app.staticTexts["settings.clearSiteData.done"].exists)
+    }
+    /// Pair with your Blanc leads (design 2026-10-28 §7.1); a simulator has no
+    /// camera to scan with, so it lands on the code field with a hint.
+    func testPairWithBlancLeadsAndFallsBackToTheCodeField() {
+        open("/sync")
+        let pair = app.buttons["settings.pairWithBlanc"]
+        XCTAssertTrue(pair.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.descendants(matching: .any)["settings.syncCode"].exists, "other ways wait one level deeper")
+        XCTAssertFalse(app.descendants(matching: .any)["settings.deviceName"].exists, "nothing of the connected state while Sync is off")
+        XCTAssertFalse(app.buttons["settings.syncNow"].exists)
+        capture("Native Settings — Sync off, Pair with your Blanc")
+        pair.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["settings.syncCode"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Type the code shown on your computer."].exists)
+        // Further down the list; on a shorter screen it isn't built yet.
+        let handle = app.descendants(matching: .any)["settings.syncHandle"]
+        XCTAssertTrue(app.reveal(handle), "the passphrase path is there too")
+    }
     func testSyncPairingAndDisconnectConfirmation() {
         open("/sync")
+        tap("settings.otherWays")
         let code = app.textViews["settings.syncCode"]
         // TextField(axis: .vertical) is exposed as a text view on current iOS.
         let input = code.exists ? code : app.textFields["settings.syncCode"]
         input.tap(); input.typeText("K7MR-4PX2")
         XCTAssertTrue(app.buttons["settings.connect"].isEnabled)
         tap("settings.connect")
-        XCTAssertTrue(app.textFields["settings.deviceName"].waitForExistence(timeout: 20), app.debugDescription)
+        // Connecting rebuilds the list; on a short sheet the name row can end up
+        // above the part that's shown.
+        XCTAssertTrue(app.reveal(app.textFields["settings.deviceName"], timeout: 20), app.debugDescription)
         capture("Native Settings — Sync connected")
         app.swipeUp()
         tap("settings.disconnect")
@@ -102,7 +142,7 @@ final class SettingsUITests: XCTestCase {
         app.alerts.buttons["Cancel"].tap()
         XCTAssertTrue(app.switches["settings.shareTabs"].exists)
         tap("settings.disconnect"); app.alerts.buttons["Disconnect"].tap()
-        XCTAssertTrue(app.descendants(matching: .any)["settings.syncCode"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["settings.pairWithBlanc"].waitForExistence(timeout: 10))
     }
     func testBlockingPopoverOpensNativePrivacySheet() {
         open(); tap("settings.privacy")
@@ -149,13 +189,56 @@ final class SettingsUITests: XCTestCase {
     func testSyncFailureRemainsRetryable() {
         app.terminate(); launch(reset: true, extra: ["-BlancUITestSettingsOffline"])
         open("/sync")
+        tap("settings.otherWays")
         let code = app.textViews["settings.syncCode"]
         let input = code.exists ? code : app.textFields["settings.syncCode"]
         input.tap(); input.typeText("K7MR-4PX2")
         XCTAssertTrue(app.buttons["settings.connect"].isEnabled)
         tap("settings.connect")
-        XCTAssertTrue(app.staticTexts["settings.syncError"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.reveal(app.staticTexts["settings.syncError"], timeout: 15))
         XCTAssertTrue(app.buttons["settings.connect"].isEnabled)
         capture("Native Settings — Sync error")
+    }
+    /// iOS confirms every icon change with its own alert, shown by SpringBoard.
+    private func dismissIconChangedNotice() {
+        // It can come from either, and on a busy CI simulator it can take
+        // more than 5 s, so both are watched for one longer window.
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let buttons = [springboard.alerts.buttons["OK"], app.alerts.buttons["OK"]]
+        let deadline = Date().addingTimeInterval(20)
+        while Date() < deadline {
+            for ok in buttons where ok.waitForExistence(timeout: 1) { ok.tap(); return }
+        }
+        XCTFail("iOS did not confirm the icon change")
+    }
+    private func appIcon(_ id: String) -> XCUIElement { app.buttons["appIcon.\(id)"] }
+    func testAppIconPicker() {
+        let ids = ["sunrise-gold", "sunrise-dawn", "sunrise", "sunrise-dark", "sunrise-spectrum", "sunrise-amber"]
+        open()
+        tap("settings.appIcon")
+        for id in ids { XCTAssertTrue(appIcon(id).waitForExistence(timeout: 5), id) }
+        XCTAssertEqual(ids.filter { appIcon($0).isSelected }, ["sunrise-gold"])
+        capture("Native Settings — App icon")
+        appIcon("sunrise-dawn").tap()
+        dismissIconChangedNotice()
+        XCTAssertTrue(appIcon("sunrise-dawn").waitForSelection())
+        app.terminate(); launch(reset: false)
+        open(); tap("settings.appIcon")
+        XCTAssertTrue(appIcon("sunrise-dawn").waitForSelection(), "the choice survives a relaunch")
+        appIcon("sunrise-gold").tap()
+        dismissIconChangedNotice()
+        XCTAssertTrue(appIcon("sunrise-gold").waitForSelection())
+        XCTAssertFalse(appIcon("sunrise-dawn").isSelected)
+    }
+}
+
+private extension XCUIElement {
+    func waitForSelection(timeout: TimeInterval = 5) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if isSelected { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
+        return isSelected
     }
 }

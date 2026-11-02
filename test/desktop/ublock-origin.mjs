@@ -23,6 +23,8 @@ fs.writeFileSync(path.join(dir + '-Dev', 'settings.json'), JSON.stringify({
 // own startup waits are 2 + 45 + 45 s plus extraction and native loading, so
 // wait longer than that: a stall must be reported by the provider, not here.
 const COLD_START_MS = 100000;
+// uBO's own pages (dashboard panes) render once its background page answers.
+const UBO_UI_LOAD_MS = 30_000;
 const hits = [];
 const methods = [];
 const socketUpgrades = [];
@@ -132,7 +134,11 @@ try {
   assert.equal(await electron.evaluate(({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').getBackgroundThrottling()), false);
   await call('blockingOpen', 'dashboard');
   const dashboard = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/dashboard.html')), Boolean, 'original dashboard');
-  await dashboard.frameLocator('#iframe').locator('[data-setting-name="collapseBlocked"]').waitFor({ timeout: 5000 });
+  // The dashboard loads its first pane only once uBO's background page
+  // answers, which right after a cold start can take well over 5 s on a busy
+  // runner (self-hosted macOS, October 2026); like the popup's .loading in
+  // shield-provider.mjs, its first load gets 30 s.
+  await dashboard.frameLocator('#iframe').locator('[data-setting-name="collapseBlocked"]').waitFor({ timeout: UBO_UI_LOAD_MS });
   const dashboardId = (await call('state')).tabs.find(tab => tab.url.includes('/dashboard.html')).id;
   await call('blockingOpen', 'dashboard');
   assert.deepEqual((await call('state')).tabs.filter(tab => tab.url.includes('/dashboard.html')).map(tab => tab.id), [dashboardId], 'repeat dashboard actions reuse the owning profile tab');
@@ -140,7 +146,7 @@ try {
   // response; visible HTML alone does not establish that initialization ended.
   await waitForValue(async () => Promise.all(['cloudStorageEnabled', 'prefetchingDisabled'].map(name =>
     dashboard.frameLocator('#iframe').locator(`[data-setting-name="${name}"]`).isDisabled())),
-  disabled => disabled.every(Boolean), 'unsupported controls disabled after settings response', 5000);
+  disabled => disabled.every(Boolean), 'unsupported controls disabled after settings response', UBO_UI_LOAD_MS);
   await dashboard.locator('[data-pane="1p-filters.html"]').dispatchEvent('click');
   const filters = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/1p-filters.html')), Boolean, 'original My filters');
   await filters.locator('.CodeMirror').waitFor();

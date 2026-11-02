@@ -56,7 +56,7 @@
   const valid = (s) => trimmed(s.handle).length >= 2 && passphraseStrong(String(s.passphrase ?? ''));
   const creds = (s) => ({ handle: trimmed(s.handle), passphrase: String(s.passphrase ?? '') });
   const none = (state) => ({ state, effect: null });
-  const busy = (s) => s.phase === 'pending' || s.phase === 'enabling' || s.phase === 'joining';
+  const busy = (s) => s.phase === 'pending' || s.phase === 'enabling' || s.phase === 'joining' || s.phase === 'turning-on';
   // Any move away from an in-flight attempt strands its reply.
   const nextToken = (s) => (busy(s) ? s.token + 1 : s.token);
   const enableEffect = (state) => ({
@@ -66,6 +66,15 @@
 
   function transition(state, event) {
     switch (event.type) {
+      // Sync without a passphrase (design 2026-10-28 §5.2).
+      case 'turn-on': {
+        if (busy(state)) return none(state);
+        const token = state.token + 1;
+        return { state: { ...state, path: null, token, phase: 'turning-on', notice: null }, effect: { type: 'turn-on', token } };
+      }
+      case 'turn-on-reply':
+        if (state.phase !== 'turning-on' || event.token !== state.token) return none(state);
+        return none({ ...state, phase: 'idle', notice: event.ok ? null : { kind: 'turn-on', message: String(event.message ?? '') } });
       case 'choose':
         if (event.path !== 'start' && event.path !== 'join' && event.path !== 'code') return none(state);
         return none({ ...state, path: event.path, phase: 'idle', notice: null, token: nextToken(state) });
@@ -144,16 +153,18 @@
       fieldsVisible: join || start,
       setupTitle: code ? t('settings.sync.setup.codeTitle')
         : join ? t('settings.sync.setup.joinTitle')
-          : (start ? t('settings.sync.startSyncingFromThis') : t('settings.sync.syncSetupTitle')),
+          : (start ? t('settings.sync.startSyncingFromThis') : t('settings.sync.off.title')),
       setupIntro: code ? t('settings.sync.addThisDeviceHint')
         : join ? t('settings.sync.setup.joinIntro')
-          : (start ? t('settings.sync.syncSetupIntro') : t('settings.sync.setup.intro')),
+          : (start ? t('settings.sync.syncSetupIntro') : t('settings.sync.off.body')),
       handleHint: join ? t('settings.sync.setup.joinHandleHint') : t('settings.sync.setup.handleHint'),
       passphraseHint: join ? t('settings.sync.setup.joinPassphraseHint') : t('settings.sync.setup.passphraseHint'),
       submitLabel: join || code ? t('settings.sync.setup.connect') : t('settings.sync.syncSubmit'),
       finishTitle: join ? t('settings.sync.setup.joinTitle') : t('settings.sync.syncFinishTitle'),
       finishHint: join ? t('settings.sync.setup.joinFinishHint') : t('settings.sync.syncFinishHint'),
       submitDisabled: busy(state) || (code ? !codeValid(state) : !valid(state)),
+      turnOnDisabled: busy(state),
+      turnOnNotice: state.notice?.kind === 'turn-on' ? state.notice.message : '',
       showNotFound: state.phase === 'notFound',
       noticeText: state.notice ? (NOTICES[state.notice.kind] ?? state.notice.message) : '',
     };

@@ -239,6 +239,22 @@ export interface ShieldPopover {
   connection: ConnectionState | null;
   controls: ShieldProviderControls;
   darkSite: ShieldDarkSite | null;
+  route: ShieldRoute | null;
+}
+
+/** The shield popover's link routing switch (F60): whether links to this site from other apps open in this window's profile (scope 'profile') or Space ('space'); `elsewhere` names the profile, or profile and Space, a rule sends them to instead. Null in private tabs and with fewer than two profiles. */
+export interface ShieldRoute {
+  on: boolean;
+  scope: 'profile' | 'space';
+  elsewhere: string | null;
+}
+
+/** The outcome of /route, /route off or the shield popover's link routing switch. Main shows the pill notice. */
+export interface RouteResult {
+  ok: boolean;
+  host?: string | null;
+  on?: boolean;
+  error?: 'unavailable' | 'no-host' | 'too-many' | 'invalid';
 }
 
 /** The shield popover's Dark website switch. `on` describes the site while Blanc is dark (what /dark-site flips); `appliesNow` is whether Blanc is dark now. */
@@ -289,6 +305,7 @@ export interface GroupRenameResult {
 export interface TabsSnapshot {
   tabs: TabEntry[];
   selectedTabIds: TabId[];
+  canStartGroup: boolean;
   activeTabId: TabId | null;
   glanceTabId: TabId | null;
   groups: TabGroup[];
@@ -296,6 +313,9 @@ export interface TabsSnapshot {
   /** How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
   closedSlot: number;
   tabLayout: TabLayout;
+  verticalTabsTextSize: string;
+  /** Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). */
+  islandTabIcons: boolean;
   verticalTabsWidth: number;
   verticalTabsPreferredWidth: number;
   verticalTabsMinWidth: number;
@@ -309,6 +329,7 @@ export interface TabsSnapshot {
 export interface TabsUpdatedPayload {
   tabs: TabEntry[];
   selectedTabIds: TabId[];
+  canStartGroup: boolean;
   activeTabId: TabId | null;
   glanceTabId: TabId | null;
   groups: TabGroup[];
@@ -316,6 +337,9 @@ export interface TabsUpdatedPayload {
   /** How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
   closedSlot: number;
   tabLayout: TabLayout;
+  verticalTabsTextSize: string;
+  /** Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). */
+  islandTabIcons: boolean;
   adblockEnabled: boolean;
   shieldPopover: ShieldPopover | null;
   captureChip: CaptureChip;
@@ -502,10 +526,10 @@ export interface DownloadsActivity {
 }
 
 /** Overlay modes; every showOverlay() call in main.js passes one of these literals. */
-export type OverlayMode = 'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces';
+export type OverlayMode = 'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces' | 'switcher';
 
 /** Fixed ids of the pill's brief confirmations; the strip owns their text. */
-export type PillNotice = 'link-copied' | 'clean-link-copied';
+export type PillNotice = 'link-copied' | 'clean-link-copied' | 'route-on' | 'route-off' | 'route-limit' | 'route-unavailable';
 
 /** Which strip control opened the shield popover. */
 export type ShieldTrigger = 'shield' | 'insecure';
@@ -552,6 +576,14 @@ export type WorkspaceErrorCode = 'activation-failed' | 'busy' | 'duplicate-name'
 /** Why a window may not switch workspaces right now, from workspaceProtection() in main.js. */
 export type WorkspaceProtectionReason = 'permission-or-transition' | 'active-page';
 
+/** A page that keeps a window from switching space, from blockingPages() in space-switch-guard.js. */
+export interface WorkspaceBlockingTab {
+  id: TabId;
+  /** The tab's label (its custom name or page title), else its site. */
+  title: string;
+  reason: 'loading' | 'opener' | 'capture' | 'popup';
+}
+
 /** What a successful open or create did: swapped this window, found it already here, or focused another window. */
 export type WorkspaceAction = 'swap' | 'noop' | 'focus';
 
@@ -564,6 +596,8 @@ export interface WorkspaceActionResult {
   cause?: WorkspaceErrorCode;
   /** With protected-pages. */
   reason?: WorkspaceProtectionReason;
+  /** The pages holding the window, in tab order (with protected-pages and active-page). */
+  blockingTabs?: WorkspaceBlockingTab[];
   /** Unsaved tabs (with unsaved-scratch). */
   tabCount?: number;
   /** Private tabs among them (with unsaved-scratch). */
@@ -1255,6 +1289,11 @@ export interface BlancBrowserAPI {
    */
   openIslandCommands(): void;
   /**
+   * Start a new group from the active tab: the panel opens prefilled with /group, bound to that tab (the vertical tabs rail's New group button).
+   * IPC: send `chrome:new-group`.
+   */
+  beginNewGroup(): void;
+  /**
    * Expand the island panel, seeding the input with a typed character.
    * IPC: send `chrome:open-island-typing`.
    */
@@ -1305,6 +1344,16 @@ export interface BlancBrowserAPI {
    * IPC: send `chrome:capture-focus`.
    */
   captureFocus(surfaceId: CaptureSurfaceId): void;
+  /**
+   * Land on a Ctrl+Tab card entry the user clicked; main ignores it unless the card is showing and offered that tab.
+   * IPC: send `chrome:switcher-pick`.
+   */
+  switcherPick(tabId: TabId): void;
+  /**
+   * Copy the current tab's address (/copy), or its tracking-free form when clean is true (/copy clean).
+   * IPC: send `chrome:copy-link`.
+   */
+  copyActiveLink(clean: boolean): void;
   /**
    * Stop a screen share.
    * IPC: send `display-capture:stop`.
@@ -1550,6 +1599,11 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:dark-site-active`.
    */
   toggleDarkSiteOnActiveSite(): Promise<DarkSiteResult | null>;
+  /**
+   * Link routing (F60): send links to the active site from other apps to this window's profile and Space ('on', /route), remove that rule ('off', /route off), or flip it (the shield popover's switch).
+   * IPC: invoke `chrome:route-active`.
+   */
+  routeActiveSite(mode: 'toggle' | 'on' | 'off'): Promise<RouteResult>;
   /**
    * Stop allowing the active tab's origin past its certificate warning for this session, close that session's connections, and reload the tab. Resolves false when there was nothing to forget.
    * IPC: invoke `chrome:site-info-forget-certificate-exception`.

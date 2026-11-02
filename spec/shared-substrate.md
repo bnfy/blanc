@@ -82,7 +82,8 @@ languages) carry translations with per-entry source hashes that only
 `npm run copy:ack` advances. `npm run copy:build` emits the desktop runtime
 catalogs (`src/renderer/pages/strings.<locale>.js`), the locale registry, iOS
 `Localizable.xcstrings` and Android per-locale resources; the legacy English
-`SlashCommands.strings`/`slash_commands.xml` stay for the existing iOS consumer.
+`slash_commands.xml` stays for Android. The iPhone reads slash hints from the
+catalog (`slash.<command>.hint`) like every other native string.
 `npm run copy:check` guards translations, glossary terms, the files
 `copy/i18n-scope.json` marks guarded, and the hand-synced slash copies until
 they move to `t()`. See `copy/README.md`.

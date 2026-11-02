@@ -119,10 +119,10 @@ Italian followed in October 2026; it reaches users with the next public release.
 ## Mobile output
 
 `generated/ios/Localizable.xcstrings` and `generated/android/values[-xx]/strings.xml`
-are generated for every language. The legacy English `SlashCommands.strings` and
-`slash_commands.xml` stay generated because `ios/Blanc/Blanc/SlashCommand.swift`
-reads them. Commands with a `platforms` allowlist are omitted from the legacy
-mobile files (`/1password` is macOS only).
+are generated for every language. The legacy English `slash_commands.xml` stays
+generated for Android; commands with a `platforms` allowlist are omitted from it
+(`/1password` is macOS only). The iPhone reads slash hints from the catalog
+(`slash.<command>.hint`), so they follow the app's language.
 
 ## Slash commands
 

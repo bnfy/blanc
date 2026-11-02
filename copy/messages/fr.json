@@ -141,6 +141,14 @@
     "message": "Assombrir ce site, ou le laisser tel quel",
     "source": "sha256:ff525b1b76f536964552a68e8b19248c6a27a4a86602a2c1828d86555e32945e"
   },
+  "slash.route.hint": {
+    "message": "Ouvrir ici les liens vers ce site venant d’autres apps ; ajoutez « off » pour arrêter",
+    "source": "sha256:dde0466c9fa15b0ec6901bc25f656a64c01a53ce19da21df6ef743d50b5e6b88"
+  },
+  "slash.route.doc": {
+    "message": "Ouvrir les liens vers ce site venant d’autres apps dans le profil ou le Space de cette fenêtre ; avec off, arrêter",
+    "source": "sha256:435c11c48179fa813a76e4702acd3a911b562b542f5b7ae16ab4a39b0b628343"
+  },
   "slash.1password.hint": {
     "message": "Remplir un identifiant depuis 1Password",
     "source": "sha256:91e7b778054c9d197be7303b3d3a465541d01d31c472ba9e75e7513fc3c5c91a"
@@ -244,6 +252,22 @@
   "pill.notice.linkCopied": {
     "message": "Lien copié",
     "source": "sha256:da3f613d76760b8fce41b8708d0815baed0ebf3477d27dd561ed32ee01445658"
+  },
+  "pill.notice.routeOn": {
+    "message": "Les liens s’ouvrent ici",
+    "source": "sha256:d540633c81dce670022a30e63ff965dec1be40cb6e0e283c7bec6ac74a7a1550"
+  },
+  "pill.notice.routeOff": {
+    "message": "Règle supprimée",
+    "source": "sha256:affffd5d45c41df157533387394fe5b4e90902c0ee660edeeb19990822fb35cf"
+  },
+  "pill.notice.routeLimit": {
+    "message": "Trop de règles",
+    "source": "sha256:cb855a71b54e200a54c6d150aecb94754932f81128fd12450f972efd1befd0c0"
+  },
+  "pill.notice.routeUnavailable": {
+    "message": "Impossible ici",
+    "source": "sha256:00b45bc2b285b4c817da0776d06afd062ec57e659ba825e31dbd87d5d8dda130"
   },
   "pill.commands": {
     "message": "Commandes (/)",
@@ -445,6 +469,14 @@
   "rail.list": {
     "message": "Onglets ouverts",
     "source": "sha256:4d0ae95789443450dc66977a93c6c9640c5c4c53fc324a69e63a9cd0501f2ea0"
+  },
+  "rail.newGroup": {
+    "message": "Placer cet onglet dans un nouveau groupe",
+    "source": "sha256:5d814955b5e6348ed40946ed2f0b9924bf09c270b79de54bdc8c0121532fb1c6"
+  },
+  "rail.newGroupSelection": {
+    "message": "Placer les onglets sélectionnés dans un nouveau groupe",
+    "source": "sha256:6488b668050c349e403f5c14fecc7511967ce19eef43dc93c95475052d306026"
   },
   "rail.resize": {
     "message": "Redimensionner les onglets verticaux",
@@ -1014,6 +1046,38 @@
     "message": "Cette fenêtre contient des pages qui doivent rester ouvertes. Ouvrez le Space dans une autre fenêtre, ou terminez l’opération en cours sur la page et réessayez.",
     "source": "sha256:1cf3c1878235dc614fa0bc52fde05df78c3aa3aa9a5103872758a6339907f81f"
   },
+  "ws.decision.blocked.loading": {
+    "message": "« {title} » est encore en cours de chargement.",
+    "source": "sha256:6dc8e622ed9031c808be4544b2426dbba89fe25afcaf8941a841ea3a5c78b0ad"
+  },
+  "ws.decision.blocked.opener": {
+    "message": "« {title} » est encore reliée à la page qui l’a ouverte, comme pendant une connexion.",
+    "source": "sha256:37fb414ceb6199453cb2729789df83a3ffc82394cb315621be991101a7382457"
+  },
+  "ws.decision.blocked.capture": {
+    "message": "« {title} » utilise votre caméra, votre micro ou votre écran.",
+    "source": "sha256:748bb29e4ccca5b33ee0ebf799fb110ca6e1b5f9e02fcb49375bd2bde5c4aabf"
+  },
+  "ws.decision.blocked.popup": {
+    "message": "« {title} » a une fenêtre pop-up ouverte.",
+    "source": "sha256:4197dac905641253eba747220cfb56b2420bd81304324497c333f826085c5d55"
+  },
+  "ws.decision.blockedHint": {
+    "message": "{count, plural, one {Cette page doit rester ouverte. Terminez ce qu’elle fait ou fermez-la, ou ouvrez le Space dans une autre fenêtre.} many {Ces pages doivent rester ouvertes. Terminez ce qu’elles font ou fermez-les, ou ouvrez le Space dans une autre fenêtre.} other {Ces pages doivent rester ouvertes. Terminez ce qu’elles font ou fermez-les, ou ouvrez le Space dans une autre fenêtre.}}",
+    "source": "sha256:fc92f8e4e1049e26ac4bde96d9ee8169abfde0d036f08dfb803bdbd29110643b"
+  },
+  "ws.decision.blockedMore": {
+    "message": "{count, plural, one {et # autre page} many {et # autres pages} other {et # autres pages}}",
+    "source": "sha256:9dc36a79388ce41717cd7a9bc72268a29215cb07356aa89af804295e2861631a"
+  },
+  "ws.decision.showTab": {
+    "message": "Afficher",
+    "source": "sha256:89ed6ce468d90f5fb8f5ef509c5250b6a57cb164fcb490af0a4091ed5551f691"
+  },
+  "ws.decision.showTabLabel": {
+    "message": "Afficher {title}",
+    "source": "sha256:7def82161f8ac0d7f81f454c1ab0767f7c4bee9d8f462db0dda6fdd521112943"
+  },
   "ws.decision.closePrivate": {
     "message": "{count, plural, one {# onglet privé va se fermer. Les brouillons de page ne sont pas enregistrés sur le disque.} many {# onglets privés vont se fermer. Les brouillons de page ne sont pas enregistrés sur le disque.} other {# onglets privés vont se fermer. Les brouillons de page ne sont pas enregistrés sur le disque.}}",
     "source": "sha256:685e4c4d3c2abe14a4d58f9333744d51d4e7cb0f2ede5a327d197d08e7627031"
@@ -1229,6 +1293,22 @@
   "shield.darkNote": {
     "message": "S’applique tant que Blanc est sombre.",
     "source": "sha256:29cbc4c053936adc34d23fe294929603a8459491e410dafd089bdbca5a3f72ad"
+  },
+  "shield.route": {
+    "message": "Ouvrir les liens vers ce site dans ce profil",
+    "source": "sha256:dfd40b3ad4c2bc89627a8737b6ddbfbc204e10a08991a46633aae58151ce26c6"
+  },
+  "shield.routeSpace": {
+    "message": "Ouvrir les liens vers ce site dans ce Space",
+    "source": "sha256:2ec81bd8186da179ab34b9f7f2b2f7f849b4ec0d9bfc6fe60f2b37f40c016236"
+  },
+  "shield.routeNote": {
+    "message": "Pour les liens d’autres apps.",
+    "source": "sha256:10b18d615b1e48b5c895ea29403091094d48ae553532fee6b5610e027c245877"
+  },
+  "shield.routeElsewhere": {
+    "message": "Les liens d’autres apps s’ouvrent maintenant dans {destination}.",
+    "source": "sha256:72a7ce9a1f009f4cb90727d488e7ce313f2a558d50e3786fbfda3e997cf6e66a"
   },
   "shield.connection": {
     "message": "Connexion",
@@ -1656,7 +1736,7 @@
   },
   "menu.nextTab": {
     "message": "Onglet suivant",
-    "source": "sha256:12ca40176db7453b154628a13c40288eb1b4ca366f30e6aa973011e104b44441"
+    "source": "sha256:7c0223dd3c091d292ae82a106172645f32fb368fea60ad26646b02d027e803d6"
   },
   "menu.previousTab": {
     "message": "Onglet précédent",
@@ -3407,6 +3487,14 @@
     "message": "Sombre",
     "source": "sha256:b41d9e243478bf2d60d3d59b40422deee5a9e90cd02e1020c4f289dd2678f98a"
   },
+  "settings.general.launchSunrise.label": {
+    "message": "Afficher le lever de soleil à l’ouverture de Blanc",
+    "source": "sha256:c603d9f86a22aa0c15545c1419ca30df3a433562d6226998c7232879cec13a78"
+  },
+  "settings.general.launchSunrise.hint": {
+    "message": "La première page d’accueil après le lancement affiche une fois le lever de soleil. Ignoré si votre système réduit les animations.",
+    "source": "sha256:2af5d31146b9261a5261151ba2596e956e4c36cbce400dd7512b795192981c94"
+  },
   "settings.general.surfaceStyle.label": {
     "message": "Style des surfaces",
     "source": "sha256:5e57966143767a6d07bf80d17a8f24f3a007e1acb52331eff3df9116e5e82b35"
@@ -3450,6 +3538,16 @@
     "message": "Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer.",
     "note": "Settings → General: explanation under a setting.",
     "source": "sha256:6a86198b7bfd2f7ff14e2ef0eb16790a53a6f2b428fc5600f8a9e417e3504936"
+  },
+  "settings.general.islandTabIcons.label": {
+    "message": "Afficher les icônes des sites dans l’Island",
+    "note": "Settings → General: setting name.",
+    "source": "sha256:07319322d085961d1f3218a5b85373d016c4718dda53afb6c15ca15b10c61b66"
+  },
+  "settings.general.islandTabIcons.hint": {
+    "message": "Affiche l’icône du site de chaque onglet au lieu d’un point. Les icônes prennent plus de place : moins d’onglets y tiennent.",
+    "note": "Settings → General: explanation under a setting.",
+    "source": "sha256:9c6f58227a47c1d7876bde4dec2fa5726dde3c79776bdcbeac75230a470eea81"
   },
   "settings.general.islandAutoHide.label": {
     "message": "Masquer automatiquement l’Island",
@@ -3580,6 +3678,34 @@
   "settings.general.tabSleep.6h": {
     "message": "Après 6 heures",
     "source": "sha256:e369a2475ed758f1ff998ad2cdb0344051f06ffe8e4b10fd39688cfc3b564edb"
+  },
+  "settings.general.tabSwitchOrder.label": {
+    "message": "Changer d’onglet avec Ctrl+Tab",
+    "source": "sha256:b4eea66cf23fea0dd823e0eca62cb9bc2bf9a3b26e963fef4a6e55da47422cf2"
+  },
+  "switcher.label": {
+    "message": "Sélecteur d’onglets",
+    "source": "sha256:730755b221421afe873892a3785472a1f808def67b8c67f1ed52f9670c9b620e"
+  },
+  "switcher.opened": {
+    "message": "Changer d’onglet, {title}, {position} sur {count}",
+    "source": "sha256:a9c62606702bc3a72c3c5c17d6d7d4f71cdaca8801a8a672d11d05351ace3ea9"
+  },
+  "switcher.step": {
+    "message": "{title}, {position} sur {count}",
+    "source": "sha256:e7c1baa4853a8382e5de5e9c8441840ba5c5ae23e833d6291895b184b05e7ca8"
+  },
+  "settings.general.tabSwitchOrder.hint": {
+    "message": "Maintenez Ctrl et appuyez sur Tab pour revenir aux onglets utilisés en dernier, puis relâchez Ctrl pour changer. Échap vous laisse où vous êtes.",
+    "source": "sha256:a1bc7a2aaa5992538e4b286c9711a02136ac03f7e0b81a2febded17a22892803"
+  },
+  "settings.general.tabSwitchOrder.recent": {
+    "message": "Dans l’ordre où vous les avez utilisés",
+    "source": "sha256:a55a18693b898163b09b865118594e02e3ed5451128acbe81ba66b8938a956a4"
+  },
+  "settings.general.tabSwitchOrder.list": {
+    "message": "Dans l’ordre de la liste des onglets",
+    "source": "sha256:0e315b305f59dff6c13aa32616734cb834b59612a4cf99ad2e6a7d41b7a57e64"
   },
   "settings.general.tabArchive.label": {
     "message": "Archiver les onglets inactifs",
@@ -3873,10 +3999,6 @@
     "message": "Favoris et réglages",
     "source": "sha256:cd7adad03202d4fa5699465da81449321058a17adab36510e30e5171aef46e04"
   },
-  "settings.sync.thisDevicesOpenTabs": {
-    "message": "Onglets ouverts de cet appareil",
-    "source": "sha256:7e47afadaae890115a563bfbfbea6bd20c871ed1c94493ff627dd306b1f35e43"
-  },
   "settings.sync.lastError": {
     "message": "Dernière erreur",
     "source": "sha256:1dbf1c3b2146d465a62f9b90f9dea08e65a1bb3f4e0ff06124c188a9f2dc7cbc"
@@ -3887,7 +4009,15 @@
   },
   "settings.sync.syncDisable": {
     "message": "Désactiver",
-    "source": "sha256:7f787675426fdd484c9ade065403e43964fc813937041fa0a9640fad46dbb490"
+    "source": "sha256:f0d6e7347bbc925a4e670fb79b8276216645e5c07f13314c0e97fcd60f9f5c6b"
+  },
+  "settings.sync.turnOff.title": {
+    "message": "Désactiver la synchronisation",
+    "source": "sha256:8e14ed15b67ed12c52d7b45e8c1390a7d5fcd5252bd8916768acf848dd2a90eb"
+  },
+  "settings.sync.turnOff.hint": {
+    "message": "Cet appareil cesse de se synchroniser. Ses favoris et réglages restent tels quels.",
+    "source": "sha256:b5a1a6396344203e20f1f23c19a68d4d88226d993e22af471686243ca17dd1ae"
   },
   "settings.profiles.title": {
     "message": "Profils",
@@ -4242,12 +4372,8 @@
     "source": "sha256:185ccffbd3d1b0b7ac8fe703bb2a5af825fc03e4214b122ebf164d3fae5803b9"
   },
   "settings.sync.syncWipe": {
-    "message": "supprimer aussi les données synchronisées",
-    "source": "sha256:ae66751de4940f5f0e7feaf06c03d815fbadf1984bb7f08b98ca88180d4d0e2c"
-  },
-  "settings.sync.syncTabsShare": {
-    "message": "partager les onglets ouverts de cet appareil avec vos autres appareils",
-    "source": "sha256:62ce644bbbfcb4d4fa361f75f4eea3a9b8e9aaec8e82b7dc490ab4e9637f8916"
+    "message": "Supprimer aussi les données synchronisées",
+    "source": "sha256:d656e0266117b8f6f63022f08364ce32128913465698811095c30de371977178"
   },
   "settings.general.newtabDynamicWallpaper.syncedHint": {
     "message": "Le fond suit l’heure locale de cet ordinateur. Le choix activé ou désactivé est synchronisé entre les appareils.",
@@ -4637,6 +4763,174 @@
     "message": "Impossible de charger les profils.",
     "source": "sha256:607124b2d0c4000a2cae3418f97d95c5ab84d81ecdc5b8d627e675d02b995bfe"
   },
+  "settings.linkRoutes.title": {
+    "message": "Ouvrir les liens d’autres apps",
+    "source": "sha256:38a8f4f43803c6553932d894f0d015091aa8e7bff6d633fa8ef1e5bbeda8e252"
+  },
+  "settings.linkRoutes.hint": {
+    "message": "Quand une autre app ouvre un lien dans Blanc, la première règle qui correspond choisit le profil, et éventuellement le Space, où il s’ouvre. Les règles restent sur cet appareil.",
+    "source": "sha256:40218d63e7c2480dc5215578160ea9cd79e2ef7e76eeb69bcaa6e7731002dae4"
+  },
+  "settings.linkRoutes.inApp.label": {
+    "message": "Aussi pour les liens que j’ouvre dans un nouvel onglet",
+    "source": "sha256:e58ac94adcaaae313e09fa42360bb7ffcc493110256cf715b30fd6cf3e6ca23e"
+  },
+  "settings.linkRoutes.inApp.hint": {
+    "message": "Un lien que vous ouvrez dans un nouvel onglet depuis une page suit la règle qui pointe vers un autre profil ou Space. Les liens des onglets privés et des fenêtres de connexion restent où ils sont.",
+    "source": "sha256:2aa6a2a5fbeb40b917b08d9109388a0126d713237599fde7a26df9dba3670990"
+  },
+  "linkRoutes.announce.opened": {
+    "message": "Règle de liens : ouvert dans {destination}",
+    "source": "sha256:36524f3f2fb10d92deb00dbf13a6fbc457070232d8e360303984bcd07af7fab2"
+  },
+  "settings.linkRoutes.fallback": {
+    "message": "Tout le reste : la dernière fenêtre utilisée",
+    "source": "sha256:50add5e3e37cbc88e614962dbabeff994ef03bd438272d6ac8ee8a17de67605a"
+  },
+  "settings.linkRoutes.add": {
+    "message": "Ajouter une règle",
+    "source": "sha256:0cf4bfb4aa5b0eec136c1c86c0a91d9d006a4f22eb819eb95555e28d6f5c83fe"
+  },
+  "settings.linkRoutes.linksTo": {
+    "message": "Liens vers",
+    "source": "sha256:3001324968138f7580e3c01c40b34f35955780226d82b65c372563c963ddc8fd"
+  },
+  "settings.linkRoutes.linksContaining": {
+    "message": "Liens contenant",
+    "source": "sha256:df2a1a507db447f1896acc1fe4ef297c61d17b93f946d6fbd553510b1b37c349"
+  },
+  "settings.linkRoutes.openIn": {
+    "message": "s’ouvrent dans",
+    "source": "sha256:7b89f81e04fe56d85edeec515a5ba3cce3404f61a558c63c1303c279363aef2a"
+  },
+  "settings.linkRoutes.domainLabel": {
+    "message": "Domaine",
+    "source": "sha256:74dc3abb531fc3dbbb44394c93be78a3964b9746ac2266e698aa2296566843ce"
+  },
+  "settings.linkRoutes.containsLabel": {
+    "message": "Texte dans l’adresse",
+    "source": "sha256:f715b9e7154071392627adc2e4f5df5b28bb2e09c1e73bfb3da9bc1b094efefa"
+  },
+  "settings.linkRoutes.domainPlaceholder": {
+    "message": "example.com",
+    "source": "sha256:2f1644224e80ada75257ec42ddb225499e5dea9a414e1d9bc0d847c55653f8a2"
+  },
+  "settings.linkRoutes.containsPlaceholder": {
+    "message": "/teams/design",
+    "source": "sha256:ead8752651b3b4acff58e45a46e17aff9899499684152839e00a8d07068c90c7"
+  },
+  "settings.linkRoutes.profileLabel": {
+    "message": "Profil",
+    "source": "sha256:7f750b44554428c6fd6da891f0a3c6247781f2323ccb56fc08838ead19e7cd6c"
+  },
+  "settings.linkRoutes.spaceLabel": {
+    "message": "Space",
+    "source": "sha256:0bcb4a557a0952e05d9a6b0bbcc2340baaed1a987fdb14e7fde57c1acb3edb23"
+  },
+  "settings.linkRoutes.anyWindow": {
+    "message": "N’importe quelle fenêtre",
+    "source": "sha256:e2c077e4feda534ad476df769f45817e37a0e56a8b67746bab154b7e0f29adfd"
+  },
+  "settings.linkRoutes.private": {
+    "message": "Onglet privé",
+    "source": "sha256:44201759c4a61248de625810e96f78dc0adf22657acfc48efb3d05dc67013a67"
+  },
+  "settings.linkRoutes.profileDeleted": {
+    "message": "Profil supprimé",
+    "source": "sha256:f9eca0afb915085ff54e0c82e24143d0ba64e5d27b32be0be791e60ea03f2c08"
+  },
+  "settings.linkRoutes.spaceDeleted": {
+    "message": "Space supprimé",
+    "source": "sha256:b375c1ca04933e58f5570d2fb1e1034f314770e7a09a3c4f6c1b86a5b587ed50"
+  },
+  "settings.linkRoutes.profileDeletedNote": {
+    "message": "Son profil a été supprimé, donc cette règle est ignorée.",
+    "source": "sha256:d0968df27ce69af94121806e872e59b66a124ef92b4069938bb29e67f065ed0a"
+  },
+  "settings.linkRoutes.spaceDeletedNote": {
+    "message": "Son Space a été supprimé, donc cette règle est ignorée. Annulez la suppression ou choisissez un autre Space.",
+    "source": "sha256:e39e4d3abde6a1951dd9ed4a2df368f4744aa785ae269bc77d681e417ffb5001"
+  },
+  "settings.linkRoutes.destinationSpace": {
+    "message": "{profile}, {space}",
+    "source": "sha256:1a95d408b0459d8d66d72d6f757b81c1e2028b94804a21254594d9dd438ce003"
+  },
+  "settings.linkRoutes.destinationPrivate": {
+    "message": "{destination}, dans un onglet privé",
+    "source": "sha256:9456e86371dc2c00839ae61a9b246f09ff6822049df78a00a7618be0b6f9b9cc"
+  },
+  "settings.linkRoutes.summaryDomain": {
+    "message": "Les liens vers {value} s’ouvrent dans {destination}",
+    "source": "sha256:2008fd8b5ecb24f002a8371d79756565c0b2ecfb7ae4b28bcd0bd5cff0255c64"
+  },
+  "settings.linkRoutes.summaryContains": {
+    "message": "Les liens contenant {value} s’ouvrent dans {destination}",
+    "source": "sha256:204c5923c1014421cb30349ef825b5934f09049201867646c5db4fc0ed045c6c"
+  },
+  "settings.linkRoutes.summaryNew": {
+    "message": "Nouvelle règle, ouverture dans {destination}",
+    "source": "sha256:6f97acc0f4f4e61094e5d1dd886529dc472badda1638df9bc56da2a44dad4506"
+  },
+  "settings.linkRoutes.more": {
+    "message": "Plus d’options pour cette règle",
+    "source": "sha256:2b15a1d0038845b7d388d68fcb183818c04d8a39e7907ab480d87b0278ca8be8"
+  },
+  "settings.linkRoutes.moveUp": {
+    "message": "Monter",
+    "source": "sha256:9ff79e934df66f755f282f1f3064b9383d861c5ce549bbad0919bf368d80c6c8"
+  },
+  "settings.linkRoutes.moveDown": {
+    "message": "Descendre",
+    "source": "sha256:d32d14e436ab90fa834252fb3101e21a65580431469296e4293318904c0ab664"
+  },
+  "settings.linkRoutes.matchContains": {
+    "message": "Correspondre aux adresses contenant…",
+    "source": "sha256:5ddf99c8e17e36c6693556e5fb001b8e06adeecd610696426e9be99786a76200"
+  },
+  "settings.linkRoutes.matchDomain": {
+    "message": "Correspondre à un domaine…",
+    "source": "sha256:1e4d0cb437924d9a6261953c8012c546d679ca88ce50c0fd3c8042a3a717c105"
+  },
+  "settings.linkRoutes.delete": {
+    "message": "Supprimer",
+    "source": "sha256:36c0a91692dee62807cbad5e8a59d08c819b2534126cc6d09cd5345e4f820072"
+  },
+  "settings.linkRoutes.deleted": {
+    "message": "Règle supprimée.",
+    "source": "sha256:e3ddeae03304df1f1fddf33f57f121a13f031a7faf9e76767ce5d4df2a63d2bf"
+  },
+  "settings.linkRoutes.moved": {
+    "message": "Déplacée en position {position} sur {count}.",
+    "source": "sha256:bda12525a9804ec09946147acc776fe46af7ad8c681ba62cd0c549b3cd1ccbbd"
+  },
+  "settings.linkRoutes.invalidDomain": {
+    "message": "Saisissez un domaine comme example.com, sans chemin ni port.",
+    "source": "sha256:25b1838d173a7645f9b5c48a8457603e146d38a6eef93c814a0a1e6df957a74b"
+  },
+  "settings.linkRoutes.invalidContains": {
+    "message": "Ce texte ne peut pas être utilisé.",
+    "source": "sha256:37f07a1e591b8bfd3f5e5ac9c159de648d7b61562a200ec030ca0e8c6c9d7bfb"
+  },
+  "settings.linkRoutes.tooLong": {
+    "message": "200 caractères au maximum.",
+    "source": "sha256:3b3f25d37b7eef19bc29853ab34745e80d4f5b45e95046b85d3d60e5194dcd00"
+  },
+  "settings.linkRoutes.keptHost": {
+    "message": "Seul le domaine a été conservé : {host}",
+    "source": "sha256:5afa2fd26c35cd4524d35d9e1f95881383c85227f16a5daa6c9fe25aa797bd7b"
+  },
+  "settings.linkRoutes.limit": {
+    "message": "Vous pouvez avoir jusqu’à {count} règles.",
+    "source": "sha256:4cc80f7442aba77c6a6c2e00ab8e58a4602db3bf50910c45a59b1583ad648a90"
+  },
+  "settings.linkRoutes.saveFailed": {
+    "message": "Impossible d’enregistrer les règles.",
+    "source": "sha256:1246339483c0c4b27c549ccd272c138d5ddb516e5075da9146b1783bd7da18bd"
+  },
+  "settings.linkRoutes.loadFailed": {
+    "message": "Impossible de charger les règles.",
+    "source": "sha256:9b436bec0d8173a1be60dcf473e80f70ff42c892d468315e4c49af6d2081941e"
+  },
   "settings.sync.lastSynced": {
     "message": "Dernière synchronisation : {when}",
     "source": "sha256:ec9e505c180944c07460c8a8bc41c2e563cf16ca347d5a4aafaa8c9197fedff2"
@@ -4644,14 +4938,6 @@
   "settings.sync.notSynced": {
     "message": "Pas encore synchronisé",
     "source": "sha256:736f6a6e724597553e912c9e79aec3e6feced37159a8e440a5dfb1235e8d31e2"
-  },
-  "settings.sync.sharing": {
-    "message": "Partagés",
-    "source": "sha256:d4989b13c2beb7bc7435d7ce6c1b5f795f5fc61d303b889fc2322bc02e53693e"
-  },
-  "settings.sync.notShared": {
-    "message": "Non partagés",
-    "source": "sha256:8d7e1eec1472e29da80a2bcc66aa02648eb1302d5552e27013b07b4341d2f789"
   },
   "settings.sync.turningOn": {
     "message": "Activation de la synchronisation…",
@@ -4725,6 +5011,82 @@
     "message": "Ajouter un autre appareil",
     "source": "sha256:f2685746e9bb506c73833ba5d1e14e1534854427b3ab01cf38aa9e094bd93e8e"
   },
+  "settings.sync.what.title": {
+    "message": "Ce qui est synchronisé",
+    "source": "sha256:c35e03d48e1b6436142c7ce4761409fc3e993026253141848da4541d3fa413a2"
+  },
+  "settings.sync.what.favorites": {
+    "message": "Favoris",
+    "source": "sha256:eb6de4bf3c91c1517769a63ad4043c11178de070ec60ce3351e593a887fab8e7"
+  },
+  "settings.sync.what.settings": {
+    "message": "Réglages",
+    "source": "sha256:43356a5c105b12917f5ca2d42757ef4b35c162ef61904740a26cc20a591c29eb"
+  },
+  "settings.sync.what.always": {
+    "message": "Toujours activé",
+    "source": "sha256:de249071e6dd03979aea2e62cd96f0403d570be54748ac3e16c9384c25066e2b"
+  },
+  "settings.sync.what.tabs": {
+    "message": "Onglets ouverts",
+    "source": "sha256:cc47e5b9260b5b13a5324712bfe400a816fab37fd50fab315b8eb2ce19dc8d65"
+  },
+  "settings.sync.what.tabsHint": {
+    "message": "De cet appareil",
+    "source": "sha256:ec356845b1c0bd9bad46d3277925331e8d7c0f75e352e8907f13408851f109d5"
+  },
+  "settings.sync.what.spaces": {
+    "message": "Spaces et groupes",
+    "source": "sha256:4cd7c81759578035df9fa327c5a6aa87d99c4f20f9513d494b763b9faed42f23"
+  },
+  "settings.sync.what.spacesHint": {
+    "message": "Sur cet appareil",
+    "source": "sha256:be0f2a3628a8e4debcfc009ba53e43f187c126b190e2363ebb9e23f1933b01e5"
+  },
+  "settings.sync.devices.title": {
+    "message": "Appareils",
+    "source": "sha256:af960101069f8a17a7208c35d2598ee7ecd4929d0ad62db3fdebd823e166dc4f"
+  },
+  "settings.sync.devices.add": {
+    "message": "Ajouter un appareil",
+    "source": "sha256:6fa6276903dfb8d3aa2bb634a0d4725b19a016901c5b90bed83293dc7612b5d2"
+  },
+  "settings.sync.devices.thisDevice": {
+    "message": "Cet appareil",
+    "source": "sha256:b3aef50482ad194b133fec2a0ee2d24aab57a23c42f8a1400a4db5b37e2e4091"
+  },
+  "settings.sync.devices.platform.darwin": {
+    "message": "Mac",
+    "source": "sha256:9c351bad4d6a94f97f6d5806fb7fa3c99aeec905a11c73c35ab5887b373210f0"
+  },
+  "settings.sync.devices.platform.win32": {
+    "message": "Windows",
+    "source": "sha256:33e9b9d7e6881b61b14a94b71a4275616b3adb60bf7050a2d79149c2b5ab14be"
+  },
+  "settings.sync.devices.platform.linux": {
+    "message": "Linux",
+    "source": "sha256:038263045ce82f17006066ff4253e3d1cfec40886079915f92c683a5988a8b35"
+  },
+  "settings.sync.devices.platform.ios": {
+    "message": "iPhone",
+    "source": "sha256:87390a642f0d1037d05d893211bbb455a5d5517caba8f584491f682ec41684b3"
+  },
+  "settings.sync.devices.platform.unknown": {
+    "message": "Appareil",
+    "source": "sha256:a0ae45e0aaf0979a3bd2d4e657c1863339f629e53df153005c838cfb59cb2d4b"
+  },
+  "settings.sync.devices.missing": {
+    "message": "Un appareil manque ? Mettez Blanc à jour dessus ou activez-y « Onglets ouverts ».",
+    "source": "sha256:8849ef9d6a703e40b9956b0fd570615512831aac4e8a1a847c0a94fa929f512f"
+  },
+  "settings.sync.more.title": {
+    "message": "Plus d’options",
+    "source": "sha256:43f8c2e74ba87e0d496afef3bd5f0f70c78379108238cf706237db9bc8429ee2"
+  },
+  "settings.sync.more.hint": {
+    "message": "Code de récupération, rejoindre une autre synchronisation et désactiver la synchronisation",
+    "source": "sha256:79795525f1825fc2d47ca0908364b950b2bc5e3ff665a3754878627604cb5254"
+  },
   "settings.sync.pairing.instruction": {
     "message": "Sur votre autre appareil, ouvrez Réglages → Synchronisation, choisissez « Ajouter cet appareil à ma synchronisation » et saisissez ce code.",
     "source": "sha256:716bde0e975f43357a82fffdcc9dbf9300d21f048b22f253074cd951b9de43e9"
@@ -4745,9 +5107,141 @@
     "message": "Ce code a expiré. Créez-en un nouveau quand vous serez prêt.",
     "source": "sha256:fb765737b44a84b45256841c8eea53f94784d274babbf3ceb07eaf1727245fbd"
   },
+  "settings.sync.sheet.notReady": {
+    "message": "La synchronisation est activée, mais le serveur n’a pas encore pu être joint. Blanc continuera d’essayer.",
+    "source": "sha256:0ae69718e25a1e5cf96b8e81352e541156aa10f8db296ee2181c3e4cd94d5d1e"
+  },
+  "settings.sync.off.title": {
+    "message": "Synchronisez votre Blanc",
+    "source": "sha256:29b6b34570f33d6d8f8379c4b882cd5b87b2591401ea4b1adfa0e353f9fb1525"
+  },
+  "settings.sync.off.body": {
+    "message": "Favoris, réglages et, si vous le souhaitez, onglets ouverts, chiffrés de bout en bout.",
+    "source": "sha256:88fec416d0ccf8ffec085baadc54f17852a21f15f7002c3dda5a473b8945736e"
+  },
+  "settings.sync.off.turnOn": {
+    "message": "Activer la synchronisation",
+    "source": "sha256:581574ccee47c5a4dd5a56c048228bdbbded1ca2e4f7f35c4760c62c9cbf10d7"
+  },
+  "settings.sync.off.haveCode": {
+    "message": "Vous synchronisez déjà un autre appareil ?",
+    "source": "sha256:3426075d57dc0745205927e7c7f5dce5649626744542b1c676692c362c56b517"
+  },
+  "settings.sync.off.addWithCode": {
+    "message": "Ajouter cet appareil avec un code",
+    "source": "sha256:f4c30ebdc9aa2ddbc3a6c0e576e118baeaf8b192d818b722dcec5e27a49ca33d"
+  },
+  "settings.sync.off.otherWays": {
+    "message": "Autres méthodes",
+    "source": "sha256:6d32322f3c53a09b610468450b2e64ffa4ce3c9ab65cb388a73f47221011f526"
+  },
+  "settings.sync.off.usePassphrase": {
+    "message": "Utiliser un nom de synchronisation et une phrase secrète",
+    "source": "sha256:9618be7b281691c73e4ba3d2874bb4bee11fc098712afd0a6c8f4031c6746972"
+  },
+  "settings.sync.off.startWithPassphrase": {
+    "message": "Commencer avec un nom et une phrase secrète",
+    "source": "sha256:c5a1aa2f5ad83d1f400e00626c8c4cf1d880d52b03a77a798f436322699921ed"
+  },
+  "settings.sync.defaultName": {
+    "message": "Mon Blanc",
+    "source": "sha256:3245562c650b8845846d68eefd6b05831bd68bbea0bcdfa232c8280d14f7a99e"
+  },
+  "settings.sync.startedToast": {
+    "message": "La synchronisation est activée. Ajoutez vos autres appareils ici.",
+    "source": "sha256:4a8493423920747bd1ece41de5e56c6bf8310d99f4f1f64285cce0691fbe974c"
+  },
+  "settings.sync.sheet.joined": {
+    "message": "{device} a rejoint la synchronisation.",
+    "source": "sha256:4d52f6bdf4da00ff1848406d519baef95d75bab9e3006232f1c14e18cc40d6b0"
+  },
+  "settings.sync.sheet.joinedBody": {
+    "message": "Vos favoris et réglages y sont maintenant. Ses onglets ouverts restent privés tant que vous ne choisissez pas de les partager depuis cet appareil.",
+    "source": "sha256:f80922127558730b6673ee392aff66652585c65b9a88a363c4e5c92e67355fd0"
+  },
+  "settings.sync.sheet.yourIphone": {
+    "message": "Votre iPhone",
+    "source": "sha256:cb4e406f63d5d23f974137c1eefeb78272292808d62e7a8a9a39c0f4ac06d44b"
+  },
+  "settings.sync.sheet.yourDevice": {
+    "message": "Votre nouvel appareil",
+    "source": "sha256:9abe459d5cbc7c0a929b319e440d8cc85ecbf4e3985f42af4eca7e3a9989d37f"
+  },
+  "settings.sync.sheet.spacesQuestion": {
+    "message": "Garder les Spaces et les groupes synchronisés avec cet appareil ?",
+    "source": "sha256:5b13c1e62ba1826a0a39ef22704eb54974dca12646001c346d7eb7d21ee1e25c"
+  },
+  "settings.sync.sheet.done": {
+    "message": "Terminé",
+    "source": "sha256:81ef045e6037eed260af3e8cbdf81f1a837ff04e307a892d2854b7581052a6ca"
+  },
+  "settings.sync.connectIphone": {
+    "message": "Connecter votre iPhone",
+    "source": "sha256:03770d3610fc1335f37f37b540f2d905e8b1fb7ffafd8487d76d56b5e5bdfa0e"
+  },
+  "settings.sync.sheet.scanIphone": {
+    "message": "Sur votre iPhone, ouvrez Blanc et choisissez « Jumeler avec votre Blanc ». Visez ce code.",
+    "source": "sha256:fdfb75ff413994792e20e48f33eba71a511e56cd82fd5356b858d8174e4a8c78"
+  },
+  "settings.sync.sheet.orType": {
+    "message": "Ou saisissez-le dans Réglages → Synchronisation :",
+    "source": "sha256:157d47ac23c2ab1daca04b124f52c5258f4ee990944adedb728e7cb21557012d"
+  },
+  "settings.sync.sheet.startBody": {
+    "message": "Cela active la synchronisation sur ce Mac. Aucun nom ni phrase secrète n’est nécessaire.",
+    "source": "sha256:8a3c6d5577f831eed2621ff9107f213bd9074b619c8ed91f250ea2c2fb4fa1c3"
+  },
+  "settings.sync.sheet.startBodyGeneric": {
+    "message": "Cela active la synchronisation sur cet ordinateur. Aucun nom ni phrase secrète n’est nécessaire.",
+    "source": "sha256:7b360c5daa2d69a5fcce42f9084112de91030356339ef2913a94fb4a6b77c883"
+  },
+  "settings.sync.sheet.continue": {
+    "message": "Continuer",
+    "source": "sha256:14fc281305915e6e6f2d59dd80e081abc3e5abe45962c4ec88a0714106ca0bd8"
+  },
+  "settings.sync.sheet.makingCode": {
+    "message": "Création du code…",
+    "source": "sha256:347eab3e88dba078b43f28e46b237dc8a2ff93371aa41518ac2bf406f6713f54"
+  },
+  "settings.sync.sheet.alreadySync": {
+    "message": "Vous synchronisez déjà un autre ordinateur ?",
+    "source": "sha256:505577a9919cf0dd4610cc2decf0e3d12ad0199ffa9cfaa3fd8524867fe9f99a"
+  },
+  "settings.sync.sheet.addThisFirst": {
+    "message": "Ajoutez d’abord ce Mac avec un code",
+    "source": "sha256:293acfc9903543962c6ef1c6ebd40dadfe9eaff0f3c22e519a845cc904b4adb1"
+  },
+  "settings.sync.sheet.addThisFirstGeneric": {
+    "message": "Ajoutez d’abord cet ordinateur avec un code",
+    "source": "sha256:3be82e92dda779aa49b1ca18b32ba8c2506164b27482f86ae024688a959cdf9f"
+  },
+  "settings.sync.recoveryPrompt.title": {
+    "message": "Gardez un moyen de revenir",
+    "source": "sha256:5ae0359c6628fbea64426a4190c812ae2fd7679f6e247f2934817a1091ea7f91"
+  },
+  "settings.sync.recoveryPrompt.body": {
+    "message": "Cette synchronisation n’a pas de phrase secrète. Si vous perdez un jour tous vos appareils, son code de récupération sera le seul moyen d’accéder à vos données synchronisées. Enregistrez-le dans votre gestionnaire de mots de passe.",
+    "source": "sha256:30460c2eb15f761db66a8c79f70bedcca805ca9b1c28b263741e1c79cbf729e5"
+  },
+  "settings.sync.recoveryPrompt.copy": {
+    "message": "Copier le code de récupération",
+    "source": "sha256:d053331eaafbb9fdf560559677e11ac2a63249bbd277a61461fb968411e891d1"
+  },
+  "settings.sync.recoveryPrompt.notNow": {
+    "message": "Pas maintenant",
+    "source": "sha256:48c190708fecd5a49ca1956ed31549febfa3bbc3099840d44b9fe61cdb6462c1"
+  },
   "settings.sync.switch.open": {
     "message": "Se connecter à une autre synchronisation avec un code",
     "source": "sha256:a8f93780fed5e33ab8a57b5f836c7f471ca6d2b2c04d7f1a88a0628dbb93dbf4"
+  },
+  "settings.sync.switch.hint": {
+    "message": "Déplace cet appareil vers une autre synchronisation, avec un code provenant de l’un de ses appareils.",
+    "source": "sha256:0b1515703345738df9befd818bf764e6290b1c544ab245b3e050ccf30bbb177d"
+  },
+  "settings.sync.switch.enterCode": {
+    "message": "Saisir un code",
+    "source": "sha256:3fc8ba08d8ccfc11f1e3cf63241f527cdfd0d65cc9d02859655c18f417fff254"
   },
   "settings.sync.switch.title": {
     "message": "Cet appareil va quitter sa synchronisation actuelle, « {name} ».",
@@ -4768,6 +5262,18 @@
   "settings.sync.recovery.copy": {
     "message": "Copier le code de récupération",
     "source": "sha256:45c4b77a5c682e067f3793752189c885140807cd1586068ffcf1e04ee5be7a91"
+  },
+  "settings.sync.recovery.title": {
+    "message": "Code de récupération",
+    "source": "sha256:c2129945b582dc7fe87d67c9937645380b4d7ea6ed80a732091db43debe12c02"
+  },
+  "settings.sync.recovery.hint": {
+    "message": "Permet à un appareil de rejoindre cette synchronisation même si aucun de vos autres appareils n’est à portée de main. Conservez-le dans votre gestionnaire de mots de passe.",
+    "source": "sha256:3e4453ea02b4534c5c027c9306ff05834fc26c0ebdf1d4e606dfe4d652969ad8"
+  },
+  "settings.sync.recovery.copyShort": {
+    "message": "Copier",
+    "source": "sha256:196a0bba2ead170565055d0f234b5f842f749f0a7cc153759441dc4ba6268b8d"
   },
   "settings.sync.recovery.copied": {
     "message": "Copié. Collez-le dans votre gestionnaire de mots de passe.",
@@ -5164,6 +5670,10 @@
   "newtab.checklist.sync": {
     "message": "Configurer la synchronisation",
     "source": "sha256:8d1a9026412142cea09277c1e944933ba157f35e0219072d6b29eb88c6cd62fd"
+  },
+  "newtab.checklist.iphone": {
+    "message": "Connecter votre iPhone",
+    "source": "sha256:f5f72a919d120cfac757343a4bd2e1cafb3c72d47b0dcaac6dc5868f785ccafb"
   },
   "newtab.checklist.tabs": {
     "message": "Récupérer vos onglets",
@@ -7873,129 +8383,149 @@
     "message": "Envoyer la page de cet onglet vers un autre appareil synchronisé",
     "source": "sha256:1d542be7aafa7207a6c34f1c5e2cf7af7ca4ccfa459231580cb7bd0215988b97"
   },
-  "sharedSpaces.switch": {
-    "message": "Synchroniser les Spaces et les groupes sur cet appareil",
-    "source": "sha256:c02b1330d0aebe0038d68ab7853e3248ed9c0cb053c485c6d84f21705521d43a"
-  },
   "sharedSpaces.title": {
     "message": "Choisir les Spaces à synchroniser",
-    "source": "sha256:5a18823d575c4e530e97fff1dd445b7fcd198705aa312fc5733c58777aa6d4ad"
+    "source": "sha256:17dd183a834d3a570144c807730a8a4af6bd162adf3cfe025719433dbbf992d7"
   },
   "sharedSpaces.explanation": {
     "message": "Partagez ces Spaces entre les appareils de ce compte. Les onglets ouverts, leurs noms, les groupes et les onglets épinglés seront synchronisés.",
-    "source": "sha256:9cbe2cc56e90aae7ebfbce1c8db73a465559d1fcb865fe6df0eed6533bff312c"
+    "source": "sha256:1d91dd0648efa04549cd2c35f9d107d840ca55cacf1683b8547c1470a13738fa"
   },
   "sharedSpaces.cancel": {
     "message": "Annuler",
-    "source": "sha256:25584d4829d0a0d6eac5f5e811cb3a80bf4060707641932d680fd3bf6b139842"
+    "source": "sha256:11d77a9d1ba3b43e66068c009afb94e929868df3911591d344792a5629d51bc9"
   },
   "sharedSpaces.confirm": {
     "message": "Activer",
-    "source": "sha256:232a70a711593256d6bd4ab2a793561c933e60647dd79c7506fb39364af73c56"
+    "source": "sha256:5ec0a52a094aba28d1c35b6cbc823f6366d11020fc617a9d1fff0717829d0059"
   },
   "sharedSpaces.count": {
     "message": "{count} Spaces partagés sur {limit}",
-    "source": "sha256:22332d672d6af04147d262c050d71c0ee7ec273f33c9b75f4ed9c13465dc55d2"
+    "source": "sha256:98f02769dc388f74279cb7481dd740dc0f6857317573341c547ca0e47d8b07d4"
   },
   "sharedSpaces.tabs": {
     "message": "{count} onglets",
-    "source": "sha256:08b2f776dccb417d5c5a2ab808e9c2ea63def60febda472b33507f99fd511cea"
+    "source": "sha256:9ff1dc03997d80d21c4dbaa77033cee1653e2ce15f2d0c9e7aabe38827f88144"
   },
   "sharedSpaces.rejoin": {
     "message": "Rejoindre à nouveau",
-    "source": "sha256:aeee20618ec647f7a65634e57aaafb267dff265abd9b78487df097301a858f37"
+    "source": "sha256:df49e4163fc9e156aa84d268b7d84cbe73f408857aee6f8445d8e17728f8f5f3"
   },
   "sharedSpaces.copy": {
     "message": "Ajouter une copie",
-    "source": "sha256:76ae87f2b2fb2d94adf81d9a7750657555df2c2c7603ae98dd6a2217c14ff824"
+    "source": "sha256:4660a978b679dfcbaa0d94a6a1c886eb60ec2b5cf5378d429c68ced9622e6e42"
   },
   "sharedSpaces.full": {
     "message": "Ce Space est trop volumineux. Divisez-le d’abord en Spaces plus petits.",
-    "source": "sha256:7d28403181d90bc1152fc7554361724000f1c481857422f927d734d695a68107"
+    "source": "sha256:d8bd2be940048c55d96cdbc9f7a4435dfeb4378d99187b485c2c84c5f8f49492"
+  },
+  "sharedSpaces.accountFull": {
+    "message": "Le stockage de synchronisation des Spaces est plein. Supprimez un Space pour libérer le stockage de son contenu. Un Space supprimé conserve un petit enregistrement dans le stockage de synchronisation pendant 30 jours.",
+    "source": "sha256:cff08bd2527d5a9183b5e76c058a03193c110bb5fcc1edc46b6aa41bf6ac1d8f"
   },
   "sharedSpaces.unavailable": {
     "message": "La synchronisation des Spaces est indisponible. Les favoris, les réglages, les onglets ouverts et Envoyer à un appareil restent disponibles.",
-    "source": "sha256:6c7e105189e3d937b8eb7698c6657fd4a623e7a839e822e3c8d0a8e8367332b1"
+    "source": "sha256:35dd44d0b48eca6f5358eda30556a6a48db149d79dba74f9fd0e404ba7b24d5b"
   },
   "sharedSpaces.recoveryName": {
     "message": "{name} · conservé sur cet appareil",
-    "source": "sha256:d5de7ee0869538f52b1327005844a5a5fdc65abd3bdcdfff5f1c56348f8d07eb"
+    "source": "sha256:34f5b42ccb24bb6e84229c753b691fc427b225fc59ae03d6f735a061c5c926db"
   },
   "sharedSpaces.shared": {
     "message": "Partagé",
-    "source": "sha256:7ab17682809b51881292d18af880a4c99dfdc6e488bce5d9870f5f16142673e1"
+    "source": "sha256:71bdbc2806e4bd97018ca0c6e505041e912712f7f19b54b2fff8c45d2abf1acb"
   },
   "sharedSpaces.waiting": {
     "message": "En attente d’envoi",
-    "source": "sha256:b7545a2b1b00d3bd690b31f2e45e2f8f9bec2df0673cab028cb03f74c0d1548b"
+    "source": "sha256:b5e83667c9c5ac66c6666caa1f0381df8affc2d84daa409f8eaeb9cf0942244e"
   },
   "sharedSpaces.notSynced": {
     "message": "Non synchronisé depuis {time}",
-    "source": "sha256:95bbaf22532f2e467c33a531a7bc6770e4e53ef56cb2ffd6bacd127efac56fff"
+    "source": "sha256:c0fab0f24952a1f9ee56a324924e7a1f7dfd7af9ba31e52c6eb2d45081cf7ba2"
   },
   "sharedSpaces.fullState": {
     "message": "Plein pour la synchronisation",
-    "source": "sha256:ef8014f48cb6f9b5b917f57de8b9a5a2c25e98e1ca6890c6872cc55242de7f9c"
+    "source": "sha256:358dbbaace867aa628569f833796561557b2d12bf004ec540eedecfa67f9bf1f"
   },
   "sharedSpaces.unavailableState": {
     "message": "La synchronisation des Spaces est indisponible",
-    "source": "sha256:d86946b151048eaaf96ff3a8d10f731aa139921acd8b801bd047f3bac5b637c5"
+    "source": "sha256:819772f143cf74cdf8097f705b55552064146671ab07e8420fc6145c5b974fb6"
   },
   "sharedSpaces.closedOn": {
     "message": "Fermé sur {device}",
-    "source": "sha256:6b2ff6c80fc0e524064036b9d082cd04faef50bc3f3b2c6d1eaa79807b96d29b"
+    "source": "sha256:11bdea9e2f3148fc78acdfad933bf3ff4ba1fcc7ff13ef72135a106eda280651"
   },
   "sharedSpaces.split": {
     "message": "Ouvrir pour diviser…",
-    "source": "sha256:483a4fdaf6329b555b5543d14438a252dc4dac862f6f17d31a8fc2e360c809cb"
+    "source": "sha256:c12a7cdbbc5f340d5ed027d212c637b7bb252e15ab45ae2fb40a741ec91f14af"
   },
   "sharedSpaces.splitHint": {
     "message": "Déplacez des onglets vers un autre Space, puis réessayez.",
-    "source": "sha256:3add56a10780753f7ecceb15788ee558e9b7231a3460330cff28a9c7cfec889d"
+    "source": "sha256:cc00bd2e0d1845f04349e6a5a0204c78ac87aeb19b6782df4d3deb5881aa1ca8"
   },
   "sharedSpaces.accountLine": {
     "message": "Chaque appareil qui active cette option peut modifier ces Spaces.",
-    "source": "sha256:4214d845051c85c5a378436df7d90f99e62895f391e86fc3972a54fe5872bf66"
+    "source": "sha256:f8b26f3b7ffeae11f14e36c05bfe1d89f320edd7b4f1556b8e46bbf7aad9f720"
   },
   "sharedSpaces.offLine": {
     "message": "La désactivation conserve une copie locale. Les autres appareils continuent la synchronisation.",
-    "source": "sha256:95b4a0a22f4e929a7668a793c4f45e60ce37257e06115eae9c922af707e704bb"
+    "source": "sha256:7cbd3d30504cc4c52253db2a81b22afaf6b22ef5729e60db8d9c0594dcc24d97"
   },
   "sharedSpaces.tombstones": {
     "message": "Les onglets fermés occupent de l’espace de synchronisation pendant 30 jours.",
-    "source": "sha256:e3ce6c214cca3fe6a61b8fb7b62a3873da543710db6a8349df69a047c8e6cebb"
+    "source": "sha256:eec385b0147b2513a4eae11cf57f357069f3471dddf6fbb63f0d616aafc71445"
   },
   "sharedSpaces.capacity": {
     "message": "Ce Space est plein pour la synchronisation. Les modifications locales sont conservées.",
-    "source": "sha256:e47ce8a86a5eed56f90df7fa70919c8d8bc702011e85ffd06a38ec605a92c453"
+    "source": "sha256:38ab0900300bf6ef37752cc97999b7999c98a2a776adac4987b88eca3a15574a"
   },
   "sharedSpaces.busy": {
     "message": "La synchronisation est occupée ; nouvel essai.",
-    "source": "sha256:26e3af6153cc1eb99dfff5009b773c400a6f9c000a9b92929806605936806588"
+    "source": "sha256:0e24cd71e9ef5ac7bba2e225c3a3c427fa1b7b5796c302aa9ba0d51b1a321b13"
   },
   "sharedSpaces.slowed": {
     "message": "La limite de requêtes ralentit la recherche de modifications.",
-    "source": "sha256:7d602ab74a3facc17eb511ccbe56fc75f6ecf9e1c5f81cc06912831bcf64ff36"
+    "source": "sha256:f1c8823a2e7f316b056badc328eaf782f6bc1bbb53374c8f552bc060ed7104a7"
+  },
+  "sharedSpaces.checking": {
+    "message": "Vérification de vos autres appareils…",
+    "source": "sha256:f1a6520b3e9864fe44a078a70a065b882ee61deee0b3562db839cae9428694b3"
+  },
+  "sharedSpaces.checkingButton": {
+    "message": "Vérification…",
+    "source": "sha256:7565d86baf0baa97d179f6e2c4bdf64acd8c0668689ba45a824247033632b46a"
+  },
+  "sharedSpaces.share": {
+    "message": "Partager",
+    "source": "sha256:f51116f0f17066523bae83e638ff4625bca4038dda872a95c6bd33984cb2c57a"
+  },
+  "sharedSpaces.listUpdated": {
+    "message": "La liste a été mise à jour. Vérifiez-la, puis confirmez à nouveau.",
+    "source": "sha256:9d0b81228efbb1c3436f6daae255e5d04adc73946fb4b1d1977083844c250cd9"
+  },
+  "sharedSpaces.uploading": {
+    "message": "Envoi de vos Spaces en cours. Vous pouvez continuer à naviguer.",
+    "source": "sha256:76e3d65aa8b896d32b04cdd6c30cbcf675a0a751a9c84875dbe95de5fa32098b"
   },
   "sharedSpaces.unsyncedTab": {
     "message": "Non synchronisé",
-    "source": "sha256:3d8185c5372f7eed81d6f7d3a7cf6a368ec4a96829cd3faa7329969e01851e09"
+    "source": "sha256:7d90f826c48ab9a6c1eaa17d10dab7b9b749059eacf8b2618cf101b4eb63476c"
   },
   "sharedSpaces.pairQuestion": {
     "message": "{name} a rejoint votre synchronisation. Activer les Spaces ici ?",
-    "source": "sha256:a3ac719eff0d70ceb42bb370e3b4cc289152d14045d34f8fc137320db7377cca"
+    "source": "sha256:c330207c5497dbc1cfa4cdc64dcef2af6a6b360d5d344e79943663d4b8237c13"
   },
   "sharedSpaces.pairDetail": {
     "message": "Cet appareil pourra modifier les Spaces partagés de votre compte.",
-    "source": "sha256:0f429a126d20e307b355977ed531669ff3371ffab44bed5beac8c0fe3e84a6dd"
+    "source": "sha256:d14af0171be2e3ce504e5ff6d9ea26ccb4d631162b3334c14aad689882816ad3"
   },
   "sharedSpaces.notNow": {
     "message": "Pas maintenant",
-    "source": "sha256:1ce162f407963e3efc46cbe4be00ca28ed94ae5f76ece576a1a64346b974d3ab"
+    "source": "sha256:715058de0e8b94ba2ac2136e8b05693bd9f45c6bf7263cda14af5aa01399f3b3"
   },
   "sharedSpaces.recoveryNote": {
     "message": "Un Space de récupération local conserve les onglets absents d’une ancienne copie partagée.",
-    "source": "sha256:ca7b8b4278e3debe18cf507f99911dd03d156c3947f0c697cfbb5e8f21232e9d"
+    "source": "sha256:755501130c4e662bdf96ee343a1903ceba580bb7839b21ac32e00c10f8c606a8"
   },
   "ios.settings.privacy": {
     "message": "Confidentialité",
@@ -8177,6 +8707,78 @@
     "message": "Sur un appareil déjà synchronisé, ouvrez Réglages → Sync → Ajouter un autre appareil. Saisissez son code ici ou collez votre code de récupération.",
     "source": "sha256:d432e4a3c44c6419df05bb640405f1c5bd48d3ee06af09fa36d7b4b61e9fc824"
   },
+  "ios.settings.syncOffTitle": {
+    "message": "Synchroniser avec votre Blanc",
+    "source": "sha256:ee3de7257cd08fbdc824482c49797b8926da917b8690e9f2bddc0565c1b5dded"
+  },
+  "ios.settings.syncOffBody": {
+    "message": "Récupérez vos favoris, réglages et onglets ouverts depuis votre ordinateur.",
+    "source": "sha256:fe55388bda49ae7e2a1948ad03ede009f05d3077218347f03c6af7a91be925ec"
+  },
+  "ios.settings.pairWithBlanc": {
+    "message": "Jumeler avec votre Blanc",
+    "source": "sha256:f4ff507108240b130e35c0d09e4a9e365f97ae91750be478393ca843c5acd495"
+  },
+  "ios.settings.otherWays": {
+    "message": "Autres façons de rejoindre",
+    "source": "sha256:fdd3f5f9dfe163c36cfb370bce2e23a81f747534b1eaa7e022af6194a6c66681"
+  },
+  "ios.settings.enterCode": {
+    "message": "Saisir un code de jumelage",
+    "source": "sha256:63dff747e37b247c82d4923709ea60ff8b6c9d4ac9e9fe1e96bfa72d4ef73b35"
+  },
+  "ios.settings.usePassphrase": {
+    "message": "Utiliser un nom de synchronisation et une phrase secrète",
+    "source": "sha256:f3778d6a90e9dc418885ff74604ede5514de434088e59d1cb24ff18f85e43295"
+  },
+  "ios.settings.typeCodeShown": {
+    "message": "Saisissez le code affiché sur votre ordinateur.",
+    "source": "sha256:2418162f6865cf8d2e69a356c2535cd3fc30dff6a750c07c4a0f12b8680f5e61"
+  },
+  "ios.pair.scanTitle": {
+    "message": "Visez le code sur votre ordinateur",
+    "source": "sha256:d81ee175a6cc5f02a68cb9c99e752a3ef52e37201dbf2cecab7d7bc8b962f40b"
+  },
+  "ios.pair.typeInstead": {
+    "message": "Saisir le code à la place",
+    "source": "sha256:a889bfb18ca87f91907f04ce21ed63feb5904a79099de382514974c05fe222f9"
+  },
+  "ios.pair.notBlanc": {
+    "message": "Ce n’est pas un code de jumelage Blanc.",
+    "source": "sha256:6170429eeee9968fcaa2b8f878a35a1b1e936ea7db7d1211d9a9cba89d4e2848"
+  },
+  "ios.pair.connecting": {
+    "message": "Connexion…",
+    "source": "sha256:d9d0f872008c34e33c93ece64f47a19319d6aca2005ffc13fc61f353fb675e67"
+  },
+  "ios.pair.cameraOff": {
+    "message": "L’accès à l’appareil photo est désactivé pour Blanc.",
+    "source": "sha256:20549cc694a477e263a2dd47ac6bef032c4b5f8c00363905109ca7dfdf9741ec"
+  },
+  "ios.pair.openSettings": {
+    "message": "Ouvrir Réglages",
+    "source": "sha256:c5668046f4a0243154a64c88e068fc709363345c327c7740bbe1f4bbd2b2d8ef"
+  },
+  "ios.pair.linkConfirmTitle": {
+    "message": "Jumeler avec le Blanc de votre ordinateur ?",
+    "source": "sha256:4410234c39cd5375a352e6ddf93a4bba2b8b9cbe9ff4ba6af6aaa24f41d96c0c"
+  },
+  "ios.pair.linkConfirmBody": {
+    "message": "Continuez uniquement si vous venez de scanner un code sur votre propre ordinateur.",
+    "source": "sha256:fa075f9baf1ae566eb20beb9840c78333daa26eebd61e659154c007cc958899b"
+  },
+  "ios.pair.pair": {
+    "message": "Jumeler",
+    "source": "sha256:098181ed9c612ac6f5819debdd1329eec49a9b5f90f59a5588ae3b846a0d3e14"
+  },
+  "ios.pair.cameraUsage": {
+    "message": "Blanc utilise l’appareil photo uniquement pour scanner le code de jumelage sur votre ordinateur.",
+    "source": "sha256:33e35780a5c9513b300cffeade91be31baeffbcf50c12f4bba2e3d7a8f710519"
+  },
+  "ios.photos.addUsage": {
+    "message": "Blanc enregistre des images dans votre photothèque uniquement lorsque vous le demandez.",
+    "source": "sha256:b3bbdd9e9e3dc8e519d08c9fd88ae8cc00c2dae1753032dae893b8cc4352cbe0"
+  },
   "ios.settings.shareTabsHelp": {
     "message": "Partagez les onglets ouverts ordinaires de cet iPhone avec vos autres appareils. Les onglets privés ne sont jamais partagés.",
     "source": "sha256:83d7996fbe9b9d874ba434cbe43221a9fd2799fc25d6f692d05310d6844e087b"
@@ -8192,6 +8794,10 @@
   "ios.settings.timeOfDay": {
     "message": "Heure de la journée",
     "source": "sha256:a63140cd67b709307ec00e3b47a43a3c21f83ae9f61fa0dc82d64b4046761936"
+  },
+  "tabs.closedToast": {
+    "message": "Onglet fermé",
+    "source": "sha256:830144e66230b8d0ce0c20b18183750232adea66ec19652e1315c3a7287cf08d"
   },
   "tabMenu.newSpace": {
     "message": "Nouveau Space…",
@@ -8301,6 +8907,30 @@
     "message": "{count} onglets déplacés vers {name}. Les autres sont restés ici.",
     "source": "sha256:85a9da370663e1476aa1b2bce59cfe9d40a4719ecbf6eb636f487d31da2c415b"
   },
+  "sync.error.erasurePending": {
+    "message": "La copie sur le serveur est toujours en cours de suppression. Réessayez pour terminer la suppression, ou désactivez la synchronisation sans effacer les données.",
+    "source": "sha256:9fca28f75e8f0202e782be8ce6e4dd9096ff1b367d109582dfa8f5d5a8bcc660"
+  },
+  "settings.sync.tryAgain": {
+    "message": "Réessayer",
+    "source": "sha256:9a3dd573e6c2ddc13a475a86f7ca941999f15c4fe666db42df4ad94772f923ac"
+  },
+  "menu.nextTabInOrder": {
+    "message": "Onglet suivant dans l’ordre de la liste",
+    "source": "sha256:40e1b7243bd95c969cdf1c8c43e75e3a5c69fdbc5ba40c2f0d90e93e6299cb12"
+  },
+  "menu.previousTabInOrder": {
+    "message": "Onglet précédent dans l’ordre de la liste",
+    "source": "sha256:59d0988b21d1f252b3a9d75e30527d6519e5092347249b4a6b1762f3f2a69846"
+  },
+  "slash.copy.hint": {
+    "message": "Copier le lien de cette page — ajoutez « clean » pour retirer les paramètres de suivi",
+    "source": "sha256:c943befa1145a690327874749e7d7318e5d3dc40dcf5777b253b0d75a1df1999"
+  },
+  "slash.copy.doc": {
+    "message": "Copier le lien de cette page ; avec clean, sans paramètres de suivi",
+    "source": "sha256:0f48927cacd58733093898a175f574ec7f93173df849f2509b9a68e0adbf36e1"
+  },
   "reader.title": {
     "message": "Mode lecture",
     "source": "sha256:b13787c87b6607b274f6cff82b603f73b2ad445a4783ae5d8206a264a813c558"
@@ -8390,5 +9020,253 @@
     "message": "JetBrains Mono",
     "note": "Reader Mode font family name; keep the font name unchanged.",
     "source": "sha256:3c0883b4aaec8dc4b7089202a5de987c2590516927f130dcd0dc686532968e13"
+  },
+  "settings.general.verticalTabsTextSize.label": {
+    "message": "Taille du texte des onglets verticaux",
+    "source": "sha256:980577e5feb9a37e9a7c0a9a232897f11b858680a721d83b919cc47860c1a532"
+  },
+  "settings.general.verticalTabsTextSize.hint": {
+    "message": "Facilitez la lecture des titres des onglets et des noms des groupes dans la barre latérale des onglets verticaux.",
+    "source": "sha256:3df2d1c042fb52ee6369ccd4845682082a37ad69a8e3fee9e33ee825f4bde3d0"
+  },
+  "settings.general.verticalTabsTextSize.default": {
+    "message": "Par défaut",
+    "source": "sha256:8292a6907893aa574476ae2de1d5e0cfd49e8637ab4611b17fa308d64c4d408a"
+  },
+  "settings.general.verticalTabsTextSize.large": {
+    "message": "Grande",
+    "source": "sha256:7923ea0a25aae6c16f0d882d18bd07a8df207c1b0821fceb7398dbe2661462d0"
+  },
+  "settings.general.verticalTabsTextSize.extraLarge": {
+    "message": "Très grande",
+    "source": "sha256:b190d1a2e4582b543524201e108e5f45e3d03df1164f5ca4ebc3ffb474cd7786"
+  },
+  "spaces.thisIPhone": {
+    "message": "Cet iPhone",
+    "source": "sha256:872a9b15efd10d5c23b321f11d4d2d26630ac2b462424389c61a940f04e7887c"
+  },
+  "spaces.menuLabel": {
+    "message": "Spaces",
+    "source": "sha256:8e891bb692010b9fa0e4ac71d8f835de61caa035dce16f05c8933e0618b7924a"
+  },
+  "spaces.menuEdit": {
+    "message": "Modifier",
+    "source": "sha256:5c1c1bc5cf089e67cf31b21324d0d1cf2d873e3352edfc6a146ec9af1df35633"
+  },
+  "tabGroups.tucked": {
+    "message": "{count, plural, one {# onglet replié} many {# onglets repliés} other {# onglets repliés}}",
+    "source": "sha256:11b310a3fc8305cd1e2d7918f3e1fdb3e011c51de7e691c65a8767732b695c1b"
+  },
+  "tabGroups.closedToast": {
+    "message": "Groupe fermé",
+    "source": "sha256:25bd8178da107ebad3440c0640993042d5e10bece585773bd6e310612703c6c0"
+  },
+  "groupMenu.rename": {
+    "message": "Renommer…",
+    "source": "sha256:03e51c78c49ded9dd48090751e0972998eb6e266e88fe5a4eb3b579d0f458f94"
+  },
+  "tabGroups.create": {
+    "message": "Créer",
+    "source": "sha256:15101ac2f3a2ba0792e1e01b46cd69b8ec3da3c7ed0aa662d99dda58a294944f"
+  },
+  "sharedSpaces.switch.iphone": {
+    "message": "Garder les Spaces et les groupes synchronisés sur cet iPhone",
+    "source": "sha256:37f571fc1dc4b0a7299b0c4062eee63119c24848a52820fa96405910b0ea0683"
+  },
+  "sharedSpaces.switch.line.iphone": {
+    "message": "Les onglets de vos Spaces partagés sont synchronisés depuis cet iPhone.",
+    "source": "sha256:3a52ae761ef984f6537ac718ef7cedb34fe1f6b59d01620d9daeb0218cb6c242"
+  },
+  "sharedSpaces.waitingCount": {
+    "message": "{count, plural, one {# Space partagé vous attend} many {# Spaces partagés vous attendent} other {# Spaces partagés vous attendent}}",
+    "source": "sha256:2e30e9b95bb7ab71904d864a6c45ebecfd63d96ba2d49b4de07d12b34fd4640a"
+  },
+  "sharedSpaces.saveThisIPhone": {
+    "message": "Enregistrer Cet iPhone comme Space",
+    "source": "sha256:29322ed63d9fca7aca123a8d29dc57c0a922a43fb008c9200098b0b7ae357249"
+  },
+  "sharedSpaces.recoveryName.iphone": {
+    "message": "{name} · conservé sur cet iPhone",
+    "source": "sha256:4fc90d0e3a8eda549190a942e5b17c1a84a1ce47c17803da49681e2132c32c38"
+  },
+  "sharedSpaces.deletedEverywhere": {
+    "message": "Supprimé partout. Annuler garde une copie sur cet iPhone.",
+    "source": "sha256:8321dabd3f5afe88f2cecd37514c421fa323e4e7f662a13e0a34b282c1f484ec"
+  },
+  "spaces.onDevice": {
+    "message": "Sur {device}",
+    "source": "sha256:f96f089a83e4896dadf5b98e8940db57c21ba031def7a2c1f7c207babb2f1a04"
+  },
+  "bringSpace.action": {
+    "message": "Copier sur l’iPhone",
+    "source": "sha256:ea5b99999b3b68bd5611ae0e535c7372be51f0cdc24fdf62fef0d03d1dd70d3e"
+  },
+  "bringSpace.copyNote": {
+    "message": "Cette copie ne changera pas quand le Space changera sur {device}. Activez la synchronisation des Spaces pour les garder identiques.",
+    "source": "sha256:324eb708aca4bbb9df8e37cc1bd44c53f147f99bf019a882f8471286d3417b2b"
+  },
+  "ios.island.searchOrSwitch": {
+    "message": "Rechercher ou changer d’onglet, {domain}",
+    "source": "sha256:6a4e9accf21d0aafff517e4db3902c4801972392afd84ed77006a88d1248d7da"
+  },
+  "ios.island.showAllTabs": {
+    "message": "Afficher tous les onglets",
+    "source": "sha256:e2efa8d586ca74d46ebbc79c602d0acc0d90df79d36c13e5de34d4c55e450ba7"
+  },
+  "ios.island.reload": {
+    "message": "Actualiser la page",
+    "source": "sha256:a97b578f423dbbb6a41916f986dab254f7855930346ab81e04fe955ed8fd29ed"
+  },
+  "ios.island.stop": {
+    "message": "Arrêter le chargement",
+    "source": "sha256:7afd60900cf4554c372a6974840bee623d3a7ad10fa18559cd951051493b6ba8"
+  },
+  "ios.island.pageActions": {
+    "message": "Actions de la page",
+    "source": "sha256:0b926606bca19deecf9e0d633786f8643b649905978b53d66a1453980a9215f7"
+  },
+  "ios.island.collapse": {
+    "message": "Réduire l’Island",
+    "source": "sha256:ab5674348d6cbc0f0e6397f7be9b29a93ebebdff3030e6407f5bb74b573a381b"
+  },
+  "ios.palette.placeholder": {
+    "message": "Rechercher, saisir une adresse ou une /commande",
+    "source": "sha256:e0ba598be2d25b91629b28568d437a2bf5cfc137f9adda1e32015dc3c6ad766c"
+  },
+  "ios.palette.clear": {
+    "message": "Effacer la recherche",
+    "source": "sha256:7dc3e0f52e8780622c64687b25f32d4e77e0bf76d0e87fdc893604d6393947c5"
+  },
+  "ios.palette.noCommand": {
+    "message": "Aucune commande correspondante",
+    "source": "sha256:46f9241e122af9ca6ed4da4c5cce2318315350f01562f5d908c625f7a9d38008"
+  },
+  "ios.palette.noMatches": {
+    "message": "Aucun résultat. Appuyez sur Retour pour l’ouvrir comme adresse ou recherche.",
+    "source": "sha256:46db92f26b57de707da442b42408e8bf0086343fd07da52e5967f9e4912de2cf"
+  },
+  "ios.tabs.openTabs": {
+    "message": "Onglets ouverts",
+    "source": "sha256:89493dd0e4a5f4bb1e277a1821982fe52cd694db0d06e69eecdddbbb74ed1fce"
+  },
+  "ios.tabs.switchTo": {
+    "message": "Passer à {title}",
+    "source": "sha256:eff16f99e05eb28baf7b54a215f7612bf6f576bd23c9f9e07cc5a00925e5153b"
+  },
+  "ios.tabs.close": {
+    "message": "Fermer {title}",
+    "source": "sha256:04158d21da4cbc8e28ee2921408f8bb38ca24995cac5ef4dc9a2c164a2301a5f"
+  },
+  "ios.tabs.startPage": {
+    "message": "Page d’accueil",
+    "source": "sha256:4e8ae1c7ee2f2179b161c4e72ecd4359cadcb7773ec464d2b419ae8c54873b37"
+  },
+  "ios.pages.syncUnavailable": {
+    "message": "La synchronisation n’est pas encore disponible dans cette version.",
+    "source": "sha256:a8737dd7c1add2a3aaf1880f00867467b0de9d4cdb92cf6bf248626545ff7bcd"
+  },
+  "ios.pages.supporterUnavailable": {
+    "message": "L’activation Supporter n’est pas encore disponible dans cette version.",
+    "source": "sha256:90821821255f3f0c6fe3394872eaf70c7fe37daf295f702bb71ad107749bcad4"
+  },
+  "ios.settings.backgroundRefreshOff": {
+    "message": "L’actualisation en arrière-plan est désactivée pour Blanc : les modifications des autres appareils arrivent quand vous l’ouvrez. Activez-la dans Réglages iOS → Apps → Blanc.",
+    "source": "sha256:e841bda25782ede1ff5a1d1388cd791f8beabc9e2b266433bd9f7972f2f36b3c"
+  },
+  "ios.welcome.title": {
+    "message": "Votre Blanc, dans votre poche.",
+    "source": "sha256:9b3d61d7c90b5e7efb6caab1e5abe9561db5d8701d0cfc23ad3291cc847fb9d1"
+  },
+  "ios.welcome.body": {
+    "message": "Récupérez les onglets, les Spaces et les favoris de Blanc sur votre ordinateur.",
+    "source": "sha256:9cae8f7c784f5c23d22ef226a6915d9672df23dba2df337951c3ed2ce54ed05b"
+  },
+  "ios.welcome.browse": {
+    "message": "Naviguer sans associer",
+    "source": "sha256:ecd9e570c80e0f6da7dac1a7102b6535c324446cf6594610290fa61bb0132621"
+  },
+  "ios.welcome.connected": {
+    "message": "Connecté à « {name} »",
+    "source": "sha256:2f0367be9cb0d9ce8d9b96a4ddbaabc1c6323fdebfbaf15b2d3dc7e6a24b745c"
+  },
+  "ios.welcome.arrived": {
+    "message": "Voici ce qui est arrivé",
+    "source": "sha256:3ff8bdb1638442a56bbc78e24ac90261b6c8ff0b93b2d199a1fe9d9d427bc64f"
+  },
+  "ios.welcome.tabsOn": {
+    "message": "Onglets ouverts sur {device}",
+    "source": "sha256:edd22c9961e9db4e48b0947c43f4ace21f61b7fd1b383334bafb64674628c525"
+  },
+  "ios.welcome.settings": {
+    "message": "Vos réglages",
+    "source": "sha256:729c2dd0519e8a3272ff918faaca2cfc3ca92016addc0553fd98f0338e1fd149"
+  },
+  "ios.welcome.spaces": {
+    "message": "Spaces",
+    "source": "sha256:e4cbd9f668f63fdcbb9761cc02e98e23c5f1ad1cf77b54bb546deac1b213f5b4"
+  },
+  "ios.welcome.spacesLater": {
+    "message": "Pour récupérer aussi vos Spaces, activez Synchroniser les Spaces et groupes dans Réglages → Synchronisation sur votre ordinateur.",
+    "source": "sha256:1f0fda47015de4858ea41c5fb4111088252b9d6c0965458c021eb5e5d56d4684"
+  },
+  "ios.welcome.arriving": {
+    "message": "Récupération en cours…",
+    "source": "sha256:1b0c4dc0a387ef0bc43db6546275531c2c3fa1461e85120b817f97d24b5177ed"
+  },
+  "ios.welcome.continue": {
+    "message": "Continuer",
+    "source": "sha256:6182633248d8992fae9a8ada716e18eab4b6c272d6381ec5046e2297c6fb894a"
+  },
+  "ios.welcome.shareTitle": {
+    "message": "Partager depuis cet iPhone",
+    "source": "sha256:61dd993df0201b989d53efd771e1d61505b3e653e4c43fdc60c1edc0ad5498fd"
+  },
+  "ios.welcome.shareBody": {
+    "message": "Les deux restent désactivés jusqu’à ce que vous les activiez. Vous pourrez les modifier dans Réglages → Synchronisation.",
+    "source": "sha256:8a81a001677bb25429863d7754431e93c3916de0846173acf9df6399edac60fc"
+  },
+  "ios.welcome.privacyTitle": {
+    "message": "Votre confidentialité",
+    "source": "sha256:950bbe27c11bb8c7c0b89b6dfdfe7ccec9c24e7603cd96eaa46c46e77f2c0851"
+  },
+  "ios.welcome.measureUsage": {
+    "message": "Mesurer l’utilisation",
+    "source": "sha256:c6c97f27c0d10c04d7cd53cb65297f25fff5d651582ae85d836b0a48d2f31681"
+  },
+  "ios.welcome.measureUsageHelp": {
+    "message": "À chaque ouverture, Blanc envoie un comptage anonyme : un identifiant aléatoire pour cette installation, la version de l’app et celle d’iOS. Jamais ce que vous consultez. Voir blanc.day/privacy.",
+    "source": "sha256:918daf894fa3d224ceb4594a9ca31bb335ea73f40215009a0e188c3b261689bc"
+  },
+  "ios.welcome.showAgain": {
+    "message": "Revoir l’accueil",
+    "source": "sha256:5193b208da3381efbc3013b02fcea8b4ff3963097364e92b45a4d10b75d2252c"
+  },
+  "ios.defaultBrowser.title": {
+    "message": "Ouvrir les liens dans Blanc",
+    "source": "sha256:d98401352c1303df48cf7676b9dd1090dac64380213c20d729ab892a3f17ece8"
+  },
+  "ios.defaultBrowser.body": {
+    "message": "Faites de Blanc votre navigateur par défaut pour que les liens de Messages, Mail et d’autres apps s’ouvrent ici.",
+    "source": "sha256:82d16fe99342aba834b37a486f0fda627dfcfdd6ae0b8ce9de9ef4a719e0b3cc"
+  },
+  "ios.defaultBrowser.open": {
+    "message": "Ouvrir Réglages",
+    "source": "sha256:c7f8376259555fc14e0368f6e041e52f49438236a47d26231d93ad2dff19f7a2"
+  },
+  "ios.defaultBrowser.notNow": {
+    "message": "Pas maintenant",
+    "source": "sha256:cfe84c0551203d42ce3b6d44fa297327be292799ab997b39fa3aaba9b5194f1e"
+  },
+  "ios.defaultBrowser.done": {
+    "message": "Blanc est votre navigateur par défaut",
+    "source": "sha256:6d88e5b37f862547ddb4cf2035d328f753a69d0119c436e25bfe3b2bf4493a46"
+  },
+  "ios.defaultBrowser.row": {
+    "message": "Navigateur par défaut",
+    "source": "sha256:b5803da601d3c1a88a2059b33b8bc50de137e473880f94681514a814776d910e"
+  },
+  "ios.defaultBrowser.notBlanc": {
+    "message": "Pas Blanc",
+    "source": "sha256:0faee873d1f38ea949b3c0c4c7a50891b19d285b32dd49efef488caa805b880b"
   }
 }

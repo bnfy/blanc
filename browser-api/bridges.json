@@ -1441,6 +1441,33 @@
         "doc": "Choose the interface language; optionally relaunch to apply it."
       },
       {
+        "name": "settings.linkTargets",
+        "kind": "invoke",
+        "channel": "pages:settings:link-targets",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Where link routing rules can point: live profiles and Spaces, ids and names only."
+      },
+      {
+        "name": "settings.setLinkRoutes",
+        "kind": "invoke",
+        "channel": "pages:settings:link-routes:set",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "routes",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Replace the link routing rules; main validates the whole list and stores all or nothing."
+      },
+      {
         "name": "settings.blockingStatus",
         "kind": "invoke",
         "channel": "pages:blocking:status",
@@ -1652,6 +1679,17 @@
         "doc": "Name this device as the user's other devices list it, then return the new status. An empty name restores the computer's name; main ignores a non-string."
       },
       {
+        "name": "settings.syncDevices",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-devices",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "This device's platform and the other devices this sync knows of (devices sharing their open tabs plus Send to Device presence), as names and platforms only. No device ids or keys cross."
+      },
+      {
         "name": "settings.syncPairBegin",
         "kind": "invoke",
         "channel": "pages:settings:sync-pair-begin",
@@ -1726,6 +1764,55 @@
         "params": [],
         "returns": "unknown",
         "doc": "Copy the recovery code to the clipboard from main behind a native dialog. The reply never carries the code."
+      },
+      {
+        "name": "settings.syncStartNew",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-start-new",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Turn on Sync with a generated account, no name or passphrase; status-only reply with whether the first pass reached the server."
+      },
+      {
+        "name": "settings.syncRecoveryPromptDismiss",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-recovery-prompt-dismiss",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Hide the recovery-code prompt on this device for good."
+      },
+      {
+        "name": "settings.syncPairWatch",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-pair-watch",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "visible",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Report whether the sheet with a live pairing code is visible, so main watches for the device that takes it."
+      },
+      {
+        "name": "settings.onSyncPairJoined",
+        "kind": "event",
+        "channel": "pages:settings:sync-pair-joined",
+        "hosts": [
+          "settings"
+        ],
+        "payload": "unknown",
+        "doc": "The device that took the live pairing code arrived: its name and platform only.",
+        "unsubscribe": false
       },
       {
         "name": "settings.welcomeTour",
@@ -1997,9 +2084,14 @@
         "hosts": [
           "settings"
         ],
-        "params": [],
+        "params": [
+          {
+            "name": "options",
+            "type": "unknown"
+          }
+        ],
         "returns": "unknown",
-        "doc": "Development-only Shared Spaces consent and selection."
+        "doc": "Shared Spaces selection sheet choices; {local: true} answers from this device's saved index without a network fetch."
       },
       {
         "name": "settings.sharedSpacesApply",

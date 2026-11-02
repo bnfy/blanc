@@ -3,7 +3,7 @@
   "reviewedAt": "2026-10-02",
   "publicDesktopBaseline": "ff55d5948f5c71e802ba2ac464659ef96e055ca9",
   "implementationCommit": "90cdccebbf0ca2bd0d12c7d312c1be506183a527",
-  "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered. Help/Settings and page-tint boundary entries updated on the codex/blanc-trust-app source preview; implementationCommit remains the original inventory baseline, not a claim that this branch has completed an independent audit. The Linux sandbox refusal entries (linux-sandbox-launch.js and its main.js call site) were updated for setup-guide dialog buttons; no IPC channels changed. The feat/drag-reorder-tabs-groups branch updated only the drag-reorder channel deltas for main.js and preload.js (removed tabs:reorder and tabs:reorder-within-bucket; added tabs:move, groups:reorder and overlay:drag-state); their sha256 values and a broader reconciliation of older unlisted channels remain pending. Since October 7, 2026 every boundary entry's sha256 and literalChannels follow the current file, and scripts/audit-surface-inventory.mjs (npm run audit-inventory:check, also run by the unit suite) fails on drift; that script documents the extraction rule. A matching hash records which source an entry describes, not that it was reviewed: reviewedAt and implementationCommit still name the original review. The same change added the uBO bridge and popup preloads, the Dark websites preload and the three scoped capture wrappers that sessions actually register to preloads, plus scoped-session-preload.js, the main-process helper that verifies a wrapper against its pinned capture preload before registration; none of these new entries has been through the original review. Reader Mode adds a dedicated sandbox and sender-bound reader IPC plus a bounded image broker; its inventory records implementation inputs, not independent security review or platform release acceptance.",
+  "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered. Help/Settings and page-tint boundary entries updated on the codex/blanc-trust-app source preview; implementationCommit remains the original inventory baseline, not a claim that this branch has completed an independent audit. The Linux sandbox refusal entries (linux-sandbox-launch.js and its main.js call site) were updated for setup-guide dialog buttons; no IPC channels changed. The feat/drag-reorder-tabs-groups branch updated only the drag-reorder channel deltas for main.js and preload.js (removed tabs:reorder and tabs:reorder-within-bucket; added tabs:move, groups:reorder and overlay:drag-state); their sha256 values and a broader reconciliation of older unlisted channels remain pending. Since October 7, 2026 every boundary entry's sha256 and literalChannels follow the current file, and scripts/audit-surface-inventory.mjs (npm run audit-inventory:check, also run by the unit suite) fails on drift; that script documents the extraction rule. A matching hash records which source an entry describes, not that it was reviewed: reviewedAt and implementationCommit still name the original review. The same change added the uBO bridge and popup preloads, the Dark websites preload and the three scoped capture wrappers that sessions actually register to preloads, plus scoped-session-preload.js, the main-process helper that verifies a wrapper against its pinned capture preload before registration; none of these new entries has been through the original review. Reader Mode adds a dedicated sandbox and sender-bound reader IPC plus a bounded image broker; its inventory records implementation inputs, not independent security review or platform release acceptance. Link routing for links opened in a new tab (#1199) adds link-route-preload.js, a main-frame-only session preload that sends one link-activation channel to main; it has not been through the original review.",
   "preloads": [
     "src/main/badge-api-preload.js",
     "src/main/capture-preload-linux.js",
@@ -13,6 +13,7 @@
     "src/main/dark-websites-preload.js",
     "src/main/display-capture-helper-preload.js",
     "src/main/fill-status-preload.js",
+    "src/main/link-route-preload.js",
     "src/main/preload.js",
     "src/main/reader-preload.js",
     "src/main/scoped-capture-preload-linux.js",
@@ -68,19 +69,19 @@
     },
     {
       "file": "cloudflare/ping-worker/src/first-seen.js",
-      "sha256": "29ad31e189ab3bb5b31fb222792311fd1428dee414ac98cd00342d577854cbc9",
+      "sha256": "aa1ce64a1dd562a7ba6fd53038ee95621f7031037218c275082c2c22544f0ced",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
     {
       "file": "cloudflare/ping-worker/src/index.js",
-      "sha256": "d126441cab7447543bfcd254d8ce3087e9c77a2bd0376e34ad3ebb766295753f",
+      "sha256": "7232de6e86e9d20f85ad98f41244dc41ecec13df1db404fdfa4781ac84bf3a47",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
     {
       "file": "cloudflare/sync-worker/src/index.js",
-      "sha256": "f0b9a4962dd4097ee08e8b8a2580d29d67e51043760513564f839244f46d2e19",
+      "sha256": "af0c77e55123f03b181465f384cd4625f6edae49a065e571a966787ff6ce48e4",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -238,6 +239,14 @@
       "role": "privileged implementation or service"
     },
     {
+      "file": "src/main/link-route-preload.js",
+      "sha256": "e282fa7e7049edf6bf00834cb92a50273a5cfd4e5708ba0f00c59ec52bbe36a4",
+      "literalChannels": [
+        "link-route:activated"
+      ],
+      "role": "preload"
+    },
+    {
       "file": "src/main/linux-sandbox-launch.js",
       "sha256": "36a99069340d4391567e020e686b918978878a2e6b14bb1ab4b43f7c495dc3ea",
       "literalChannels": [],
@@ -251,7 +260,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "7f0a1a1fc50c9f4028cc42037492049a8a42eaf13245d8a7b5d6689b705ff0ca",
+      "sha256": "8155fe84c72a494e59cd40cf15c9807a91049488453dd9e45d5bebe07e47124e",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -260,6 +269,7 @@
         "before-mouse-event",
         "before-quit",
         "blur",
+        "browser-window-blur",
         "browser-window-focus",
         "capture:permission-changed",
         "capture:permission-query",
@@ -277,6 +287,7 @@
         "chrome:blocking-provider",
         "chrome:capture-focus",
         "chrome:capture-stop",
+        "chrome:copy-link",
         "chrome:cycle-theme",
         "chrome:dark-site-active",
         "chrome:downloads",
@@ -298,6 +309,7 @@
         "chrome:island-rect",
         "chrome:island-state",
         "chrome:layout",
+        "chrome:new-group",
         "chrome:onepassword-fill",
         "chrome:open-capture",
         "chrome:open-find",
@@ -316,6 +328,7 @@
         "chrome:rename-device",
         "chrome:reset-split",
         "chrome:resize-split",
+        "chrome:route-active",
         "chrome:search-suggestions",
         "chrome:send-tab",
         "chrome:send-targets",
@@ -332,6 +345,7 @@
         "chrome:split-layout",
         "chrome:split-remove",
         "chrome:strip-hidden",
+        "chrome:switcher-pick",
         "chrome:theme-appearance",
         "chrome:tooltip-hide",
         "chrome:tooltip-show",
@@ -372,6 +386,7 @@
         "groups:space-menu",
         "groups:ungroup",
         "input-event",
+        "link-route:activated",
         "login",
         "open-file",
         "open-url",
@@ -389,6 +404,7 @@
         "pages:blocking:status",
         "pages:pins:changed",
         "pages:settings:appearance",
+        "pages:settings:sync-pair-joined",
         "pages:start:remote-tabs",
         "pages:start:sent-items",
         "pages:start:status",
@@ -499,7 +515,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "a42b429ccded3aea3ba3878c6ab4929d6136bd73bd6028ece2a1e7e110582b77",
+      "sha256": "30ba5622820c6283b841c89f7da2829029ff36635b3445727c498c26ea19347f",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -557,6 +573,8 @@
         "pages:settings:drm-status",
         "pages:settings:get",
         "pages:settings:language",
+        "pages:settings:link-routes:set",
+        "pages:settings:link-targets",
         "pages:settings:onepassword-status",
         "pages:settings:onepassword-verify",
         "pages:settings:open-onepassword-app",
@@ -569,6 +587,7 @@
         "pages:settings:shared-spaces-status",
         "pages:settings:supporter-activate",
         "pages:settings:sync-device-name-set",
+        "pages:settings:sync-devices",
         "pages:settings:sync-disable",
         "pages:settings:sync-enable",
         "pages:settings:sync-get",
@@ -577,8 +596,11 @@
         "pages:settings:sync-pair-begin",
         "pages:settings:sync-pair-cancel",
         "pages:settings:sync-pair-state",
+        "pages:settings:sync-pair-watch",
         "pages:settings:sync-preflight",
         "pages:settings:sync-recovery-code-copy",
+        "pages:settings:sync-recovery-prompt-dismiss",
+        "pages:settings:sync-start-new",
         "pages:settings:sync-switch-code",
         "pages:settings:sync-tabs-set",
         "pages:settings:trust-receipt",
@@ -641,7 +663,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "32120a30d381e42faabaab326c7912ba667061cfdf6c7426235d7780c8a1cd7b",
+      "sha256": "f22fdd3da2335968ae4f9cbf66c954ba159dcd0812c719637e8c10847cd54953",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -657,6 +679,7 @@
         "chrome:blocking-provider",
         "chrome:capture-focus",
         "chrome:capture-stop",
+        "chrome:copy-link",
         "chrome:cycle-theme",
         "chrome:dark-site-active",
         "chrome:downloads",
@@ -678,6 +701,7 @@
         "chrome:island-rect",
         "chrome:island-state",
         "chrome:layout",
+        "chrome:new-group",
         "chrome:onepassword-fill",
         "chrome:open-capture",
         "chrome:open-find",
@@ -696,6 +720,7 @@
         "chrome:rename-device",
         "chrome:reset-split",
         "chrome:resize-split",
+        "chrome:route-active",
         "chrome:search-suggestions",
         "chrome:send-tab",
         "chrome:send-targets",
@@ -712,6 +737,7 @@
         "chrome:split-layout",
         "chrome:split-remove",
         "chrome:strip-hidden",
+        "chrome:switcher-pick",
         "chrome:theme-appearance",
         "chrome:tooltip-hide",
         "chrome:tooltip-show",
@@ -936,7 +962,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "91db50538f7f3416c1c5a35dbc9357939934ce15d469dd564b542146ec931ddf",
+      "sha256": "95fbe103c873417275d0382ae1a010f959bc1799823db0e90b25189f9c790562",
       "literalChannels": [
         "before-quit"
       ],
@@ -950,7 +976,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "c51ebcb4785ea2afe8d03176c884638559d47c377f4bcea40a63f20dfb266a6d",
+      "sha256": "b1c9163a2e555eba26ed2b28967d4a458052b8a527d93d0827b49a5504f7b1c0",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1010,6 +1036,8 @@
         "pages:settings:drm-status",
         "pages:settings:get",
         "pages:settings:language",
+        "pages:settings:link-routes:set",
+        "pages:settings:link-targets",
         "pages:settings:onepassword-status",
         "pages:settings:onepassword-verify",
         "pages:settings:open-onepassword-app",
@@ -1022,6 +1050,7 @@
         "pages:settings:shared-spaces-status",
         "pages:settings:supporter-activate",
         "pages:settings:sync-device-name-set",
+        "pages:settings:sync-devices",
         "pages:settings:sync-disable",
         "pages:settings:sync-enable",
         "pages:settings:sync-get",
@@ -1029,9 +1058,13 @@
         "pages:settings:sync-now",
         "pages:settings:sync-pair-begin",
         "pages:settings:sync-pair-cancel",
+        "pages:settings:sync-pair-joined",
         "pages:settings:sync-pair-state",
+        "pages:settings:sync-pair-watch",
         "pages:settings:sync-preflight",
         "pages:settings:sync-recovery-code-copy",
+        "pages:settings:sync-recovery-prompt-dismiss",
+        "pages:settings:sync-start-new",
         "pages:settings:sync-switch-code",
         "pages:settings:sync-tabs-set",
         "pages:settings:trust-receipt",
@@ -1100,7 +1133,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "bbc50dd74a258414ebfa3579d98590685d02b3b00c143c13ce78c69c461d11b2",
+      "sha256": "83cf296d7abda8e716a350defc5521474ca5bb491bcd3dd9cd6a2f4524e3f441",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

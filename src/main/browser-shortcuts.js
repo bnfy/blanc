@@ -19,8 +19,12 @@ const COMMANDS = Object.freeze({
   history: { labelKey: 'menu.showHistory', primary: 'CmdOrCtrl+Y', desktopPrimary: 'Ctrl+H', aliases: ['Ctrl+Y'] },
   downloads: { labelKey: 'menu.downloads', primary: 'CmdOrCtrl+Shift+J', desktopPrimary: 'Ctrl+J', aliases: ['Ctrl+Shift+J'] },
   settings: { labelKey: 'menu.settings', primary: 'CmdOrCtrl+,' },
-  'next-tab': { labelKey: 'menu.nextTab', primary: 'Ctrl+Tab', aliases: ['Ctrl+PageDown'] },
-  'previous-tab': { labelKey: 'menu.previousTab', primary: 'Ctrl+Shift+Tab', aliases: ['Ctrl+PageUp'] },
+  // Ctrl+Tab follows Settings → Switch tabs with Ctrl+Tab (most recent use or
+  // list order, tab-switcher.js); Ctrl+PageDown/PageUp always go by position.
+  'next-tab': { labelKey: 'menu.nextTab', primary: 'Ctrl+Tab' },
+  'previous-tab': { labelKey: 'menu.previousTab', primary: 'Ctrl+Shift+Tab' },
+  'next-tab-in-order': { labelKey: 'menu.nextTabInOrder', primary: 'Ctrl+PageDown' },
+  'previous-tab-in-order': { labelKey: 'menu.previousTabInOrder', primary: 'Ctrl+PageUp' },
   // Arc's Copy URL key. Chrome gives this chord to DevTools' element picker
   // on every platform, so no page expects to receive it.
   'copy-link': { labelKey: 'tabMenu.copyLink', primary: 'CmdOrCtrl+Shift+C' },
@@ -75,17 +79,25 @@ function createBrowserCommandExecutor(actions, { platform = process.platform } =
   };
 }
 
-function installBrowserShortcuts({ webContents, getRuntime, ownsSurface, execute, platform = process.platform, observe = () => {} }) {
+/** `consumes(id)` false lets a command's key press reach the page too: Ctrl+Tab
+ * in most-recent order, whose Control release must still arrive (a consumed
+ * press takes the following key releases with it), and whose repeats step.
+ * `defers(id)` true leaves the press alone entirely, for the application
+ * menu's accelerator to run: Ctrl+W during a Ctrl+Tab switch, which must
+ * neither be consumed nor run twice. */
+function installBrowserShortcuts({ webContents, getRuntime, ownsSurface, execute, platform = process.platform, observe = () => {}, consumes = () => true, defers = () => false }) {
   if (platform !== 'win32' && platform !== 'linux') return;
   webContents.on('before-input-event', (event, input) => {
     const id = matchBrowserShortcut(input, platform);
     if (!id || webContents.isDestroyed()) return;
     const runtime = getRuntime();
     if (!runtime || !ownsSurface(runtime, webContents)) return;
+    if (defers(id, runtime)) return;
     // This suppresses both page input and Electron's menu accelerator. Repeats
     // are consumed too, so holding Ctrl+W cannot close an entire workspace.
-    event.preventDefault();
-    if (input.isAutoRepeat) return;
+    const consumed = consumes(id);
+    if (consumed) event.preventDefault();
+    if (input.isAutoRepeat && consumed) return;
     const handled = execute(id, runtime, webContents);
     observe({ id, runtimeId: runtime.id, webContentsId: webContents.id, handled });
   });

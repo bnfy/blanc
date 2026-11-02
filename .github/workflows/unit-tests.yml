@@ -2,8 +2,8 @@ name: Unit tests
 
 # Runs the unit suite on Windows and macOS for every pull request. Parity guards
 # already run it on Linux for every pull request; the uBlock Origin workflow
-# runs it on all four desktop targets, but only for the paths it filters on, so
-# a test-only change otherwise never ran on Windows or macOS (#608). No path
+# runs it on all four desktop targets only nightly and on manual runs, so a
+# test-only change otherwise never runs on Windows or macOS (#608). No path
 # filter here on purpose: a platform-specific failure can come from any file.
 # It also runs on every push to main: main doesn't require a pull request to be
 # up to date before merging, so two pull requests that each passed are only
@@ -27,8 +27,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-15]
+    # GitHub-hosted, even with the self-hosted Mac set up: there it waited a
+    # median 24 minutes (up to 72) for one of its two VM slots (October 26,
+    # 2026). docs/ci-self-hosted-macos-runner.md
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    # Windows usually finishes in about 6 minutes, but a slow runner hit 15
+    # twice on October 30, 2026 (the sync-pairing tests ran a minute each).
+    timeout-minutes: 25
     env:
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
     steps:

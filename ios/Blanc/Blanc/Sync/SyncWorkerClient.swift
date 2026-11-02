@@ -37,6 +37,17 @@ private nonisolated final class NoSyncRedirects: NSObject, URLSessionTaskDelegat
 
 nonisolated enum SyncStore: String, CaseIterable, Sendable {
   case bookmarks, settings, session, icons, sends
+  /// Shared Spaces (M16 §9): the index and the two sidecars; each Space's
+  /// own blob is the store `space-<32 lowercase hex>`.
+  case spaces, closed, shared
+  /// The Worker's store segment for Space `id`, or nil for a bad id.
+  static func spaceName(_ id: String) -> String? {
+    SharedSpacesModel.isId(id) ? "space-" + id : nil
+  }
+  static func isValidName(_ name: String) -> Bool {
+    if SyncStore(rawValue: name) != nil { return true }
+    return name.hasPrefix("space-") && SharedSpacesModel.isId(String(name.dropFirst(6)))
+  }
 }
 nonisolated enum SyncError: Error, Equatable {
   case notFound
@@ -45,8 +56,12 @@ nonisolated enum SyncError: Error, Equatable {
   case pairNotFound, pairUnavailable, pairInvalid, offline
   case server(Int)
   case stale, storage, syncOn, syncOff, createOnComputer, wipeUnsupported, accountGone
-  /// An older Worker that doesn't serve this store (M7b's `sends`).
+  /// An older Worker that doesn't serve this store (M7b's `sends`, M16's Spaces stores).
   case unknownStore
+  /// A store name the Worker would never serve (not a `SyncStore`, not `space-<id>`).
+  case invalidStore
+  /// A queued request dropped before it ran (consent off, the pass aborted).
+  case cancelled
   var code: String {
     switch self {
     case .notFound: "not-found"
@@ -68,6 +83,8 @@ nonisolated enum SyncError: Error, Equatable {
     case .wipeUnsupported: "wipe-unsupported"
     case .accountGone: "account-gone"
     case .unknownStore: "unknown-store"
+    case .invalidStore: "invalid-store"
+    case .cancelled: "cancelled"
     }
   }
 }
@@ -100,10 +117,19 @@ nonisolated struct SyncWorkerClient: Sendable {
     else { throw SyncError.pairInvalid }
     return id
   }
+  private func storePath(_ accountId: String, _ name: String) throws -> String {
+    guard SyncStore.isValidName(name) else { throw SyncError.invalidStore }
+    return "v1/blob/\(try locator(accountId))/\(name)"
+  }
   func get(_ accountId: String, _ store: SyncStore) async throws -> (
     version: String, blob: SyncEnvelope
+  )? { try await get(accountId, storeName: store.rawValue) }
+  /// GET a fixed store or `space-<id>`. A blob not yet written is nil; `404
+  /// unknown store` (an older Worker) throws `unknownStore`.
+  func get(_ accountId: String, storeName: String) async throws -> (
+    version: String, blob: SyncEnvelope
   )? {
-    let (status, body) = try await request("GET", "v1/blob/\(locator(accountId))/\(store.rawValue)")
+    let (status, body) = try await request("GET", try storePath(accountId, storeName))
     if status == 404 {
       if String(decoding: body, as: UTF8.self) == "unknown store" { throw SyncError.unknownStore }
       return nil
@@ -119,7 +145,11 @@ nonisolated struct SyncWorkerClient: Sendable {
   }
   func put(_ accountId: String, _ store: SyncStore, ifVersion: String?, blob: SyncEnvelope)
     async throws -> String
+  { try await put(accountId, storeName: store.rawValue, ifVersion: ifVersion, blob: blob) }
+  func put(_ accountId: String, storeName: String, ifVersion: String?, blob: SyncEnvelope)
+    async throws -> String
   {
+    let path = try storePath(accountId, storeName)
     struct Body: Encodable {
       let ifVersion: String?
       let blob: SyncEnvelope
@@ -135,8 +165,7 @@ nonisolated struct SyncWorkerClient: Sendable {
       }
     }
     let (status, data) = try await request(
-      "PUT", "v1/blob/\(locator(accountId))/\(store.rawValue)",
-      JSONEncoder().encode(Body(ifVersion: ifVersion, blob: blob)))
+      "PUT", path, JSONEncoder().encode(Body(ifVersion: ifVersion, blob: blob)))
     if status == 404, String(decoding: data, as: UTF8.self) == "unknown store" {
       throw SyncError.unknownStore
     }

@@ -256,7 +256,7 @@ on a phone and gets `N/A`. "Exists" means the prototype already has it.
 | F21 | Telemetry | **1.0**, launch ping only | One `/ping` per app session, behind the privacy step's consent; no product events and no first-day signals (those are desktop's, keyed to desktop versions). Needed for the kill criteria's retention figures. The ping Worker allows only `darwin`, `win32` and `linux` today (`ALLOWED_PLATFORMS`), so M18 adds `ios` with its own version namespace (the app's own version, starting at 1.0.0, counted apart from desktop's); a Worker change the owner deploys, like `sends`. `installId` is a per-install UUID in the app container, reset by a reinstall, as on desktop. |
 | F22 | Distribution & updates | **1.0** | The App Store (D9); TestFlight for the beta. |
 | F23 | Zoom | **1.0** | Native pinch and reflow (D10); nothing to build. |
-| F24 | AutoFill & passkeys | **1.0**, verify | WebKit provides password AutoFill and, with the passkey browser entitlement, passkeys for any site inside `WKWebView`. Apple assigned that entitlement to the account on 2026-09-22 (associated app ID `me.bnfy.bowser`; the iOS App ID `me.bnfy.blanc` needs the capability enabled in the portal). 1.0 verifies both on a real iPhone and claims only what passes. No Blanc code expected. |
+| F24 | AutoFill & passkeys | **1.0**, verify | WebKit provides password AutoFill and, with the default-browser entitlement, passkeys for any site inside `WKWebView`. (Corrected 2026-10-28: the entitlement Apple assigned on 2026-09-22 is the macOS-only passkey entitlement, on the desktop app's `me.bnfy.bowser`; it can't be enabled for `me.bnfy.blanc`. See [docs/ios/app-store-connect.md](../../ios/app-store-connect.md).) 1.0 verifies both on a real iPhone and claims only what passes. No Blanc code expected. |
 | F25 | Encrypted DNS | after | D17: a per-app DNS setting isn't available to a `WKWebView` app; the system setting applies. |
 | F26 | WebRTC privacy | after | D18. |
 | F27 | Tab Sync | **1.0** | M7a shipped it; 1.0 shows other devices' tabs under their groups (the snapshot already carries them) and their Spaces (§4). |
@@ -310,18 +310,18 @@ documents stay correct.
 | M | Delivers | Status |
 |---|---|---|
 | M6.5 | Re-baseline | Done (#1030) |
-| M7a | Join a sync, read devices' tabs, publish own | Merged (#1068); real-iPhone check is a gate before TestFlight |
-| M7b | Send to device | Desktop and iOS in draft (#1088, #1096); Worker deploy pending |
-| M8 | Favorites editable, History live | |
-| M9 | Private tabs | |
-| **M16** | **Shared Spaces, groups and Recently closed: the desktop protocol** (its own design; Worker stores; desktop UI for the switch, merges, remote closes; desktop-to-desktop Spaces sync). Ships as a public desktop feature release first (§4.7). | New; built in the parallel desktop Spaces session |
-| **M17** | **Shared Spaces on iPhone**: the Space mark and menu, groups in the switcher, Bring a Space, the Recently closed band, the per-device switch | New |
-| M10 | The full shared slash-command set, Find in page, the shield chip and per-site allow (Bangs moved after 1.0, owner 2026-10-24) | After M11 |
-| M11 | Tab gestures and the card strip (F56) ([design](2026-10-24-ios-m11-tab-gestures-design.md), [plan](../plans/2026-10-24-ios-m11-tab-gestures.md)) | Next, before M10 (owner, 2026-10-24) |
-| Duo-1 | Edge to edge on both Duo displays, the regular-width pill and palette, fold continuity, CI on the Duo simulator | Only "no letterboxing" and the regular-width pill are in 1.0; the rest of the Duo design (Duo-2, Duo-3) is after |
-| **M18** | **First minute and release readiness**: the walkthrough (§3), default browser, share-sheet target, Background App Refresh, six languages, App Store listing | New |
-| Beta | TestFlight, the real-iPhone gate, kill criteria armed | |
-| **1.0** | App Store | |
+| M7a | Join a sync, read devices' tabs, publish own | Merged (#1068); real-iPhone check passed 2026-10-28 |
+| M7b | Send to device | Merged (desktop #1088, iPhone #1096) |
+| M8 | Favorites editable, History live | Merged (#1107) |
+| M9 | Private tabs | Merged (#1110) |
+| **M16** | **Shared Spaces, groups and Recently closed: the desktop protocol** | Shipped in desktop v1.45.0 (design #1105, plan #1108, Worker accepted #1216) |
+| **M17** | **Shared Spaces on iPhone**: the Space mark and menu, groups in the switcher, Bring a Space, the Recently closed band, the per-device switch | Merged (#1220 design, #1225 M17a, #1229 M17b, #1247 M17c) |
+| M10 | The full shared slash-command set, Find in page, the shield chip and per-site allow | Merged (#1221) |
+| M11 | Tab gestures and the card strip (F56) | Merged (#1131) |
+| Duo-1 | Edge to edge on both Duo displays, the regular-width Island and palette | Merged (#1275, #1276); Duo-2 and Duo-3 after 1.0 |
+| **M18** | **First minute and release readiness**: the walkthrough (§3), default browser, share-sheet target, Background App Refresh, six languages, the launch ping, App Store listing ([design](2026-10-30-ios-m18-first-minute-release-readiness-design.md)) | In progress |
+| Beta | TestFlight, the real-iPhone gate, kill criteria armed | Public TestFlight beta live since 2026-10-28; kill criteria wait on the M18 launch ping |
+| **1.0** | App Store | Waits on M18 and Apple's default-browser grant |
 
 Order rationale: M8 and M9 are small and make the phone a real browser for
 testers early; M16 is desktop work and can run while M9 does; M17 needs M16
@@ -347,13 +347,13 @@ settled; M18 is last because it depends on everything it introduces.
   criteria (waitlist, TestFlight seven-day return, pairing rate, 30-day
   retention) are armed at the beta and decide whether 1.0 ships at all.
 - **Owner actions outside the code:** the default-browser entitlement
-  (`com.apple.developer.web-browser`) is **not yet requested** (owner,
-  2026-10-24; the September 22 grant was the passkey entitlement). The owner
-  files it now, and **1.0 does not ship until Apple grants it**. The project
-  carries neither entitlement yet: no entitlements file, no signing
-  entitlement setting, and no Blanc provisioning profile on the build Mac.
-  M18 adds `Blanc.entitlements` with both and a profile that includes them;
-  the first signed build is the proof.
+  (`com.apple.developer.web-browser`) was requested on 2026-10-28 and
+  refiled the same day as `P2X5BCD4C9` with the public TestFlight link; it
+  is waiting on Apple (`docs/ios/app-store-connect.md` item 4). **1.0 does
+  not ship until Apple grants it.** `Blanc.entitlements` exists, wired for
+  both configurations and empty; the key goes in only together with the
+  portal switch, in the change that also turns on M18's default-browser
+  offer.
 
   **Filing the default-browser request** (Apple's page "Preparing your app to
   be the default web browser," read 2026-10-24): the form is
@@ -361,9 +361,8 @@ settled; M18 is last because it depends on everything it introduces.
   (behind an Apple Developer sign-in; it can also request
   `com.apple.developer.browser.app-installation` in the same submission).
   Apple's requirements, and where the project stands:
-  - declares the HTTP and HTTPS schemes in `Info.plist` — **not yet**; the
-    project generates its Info.plist, so M18 adds `CFBundleURLTypes` for
-    `http` and `https` (a custom Info.plist or the build setting);
+  - declares the HTTP and HTTPS schemes in `Info.plist` — met (#1224,
+    `CFBundleURLTypes` in `ios/Blanc/Info.plist`);
   - no `UIWebView` — met (`WKWebView` only);
   - on launch, a field for a URL, search, or bookmarks — met (the pill);
   - opens an http(s) URL at the destination and renders it as served — met
@@ -377,10 +376,11 @@ settled; M18 is last because it depends on everything it introduces.
   With the entitlement, the app may not claim Universal Links for specific
   domains, and managed entitlements need manual signing in Xcode (Apple's
   forum guidance), which the release build setup in M18 accounts for. The passkey browser
-  entitlement (`com.apple.developer.web-browser.public-key-credential`) was
-  assigned to the account on 2026-09-22 (Apple's email; associated app ID
-  `me.bnfy.bowser`): enable the capability on the iOS App ID `me.bnfy.blanc`
-  in the portal, and M18 adds it to `Blanc.entitlements`. The Worker deploys (sync stores and the ping Worker's
+  entitlement (`com.apple.developer.web-browser.public-key-credential`)
+  assigned on 2026-09-22 is macOS-only (the portal's platform list, checked
+  2026-10-28) and belongs to the desktop app's `me.bnfy.bowser`; on iPhone,
+  passkeys come with the default-browser entitlement. The App Store setup and
+  its status are in `docs/ios/app-store-connect.md`. The Worker deploys (sync stores and the ping Worker's
   `ios`). The App Store account, listing and screenshots sign-off.
 
 ## 9. Left to the builder
@@ -417,8 +417,8 @@ settled; M18 is last because it depends on everything it introduces.
     device when the person next comes to that tab (§4.3, §4.6).
 11. iOS telemetry is the launch ping in its own version namespace, after a
     ping Worker change; no first-day signals (§6 F21).
-12. Passkeys are in 1.0, verified on a real iPhone, since the entitlement is
-    granted (§6 F24).
+12. Passkeys are in 1.0, verified on a real iPhone, once the default-browser
+    entitlement is granted (§6 F24).
 
 ## 11. Open questions for the owner
 

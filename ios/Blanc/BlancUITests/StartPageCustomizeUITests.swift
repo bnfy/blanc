@@ -11,12 +11,7 @@ final class StartPageCustomizeUITests: XCTestCase {
     app.launch()
   }
 
-  func testHoldingTheStartPageOpensItsSettings() throws {
-    // A synthesized touch on a web view crashes Blanc built with the iOS 26
-    // SDK under iOS 26 on CI, on main too (UIKit aborts in
-    // -[UIGestureRecognizer _delayTouchesForEvent:]). Runs on iOS 27.
-    try XCTSkipIf(ProcessInfo.processInfo.operatingSystemVersion.majorVersion < 27,
-                  "synthesized web-view touches crash on iOS 26 CI")
+  func testHoldingTheStartPageOpensItsSettings() {
     let page = app.webViews.firstMatch
     XCTAssertTrue(page.waitForExistence(timeout: 15))
     XCTAssertFalse(app.buttons["Customize"].exists, "the floating Customize button is gone on iPhone")

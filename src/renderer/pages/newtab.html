@@ -170,6 +170,13 @@
                 <span class="page-sr-only migration-task-status" data-i18n="newtab.checklist.notCompleted">Not completed</span>
               </a>
             </li>
+            <li id="migrationIphoneTask" hidden>
+              <button id="migrationIphoneAction" class="migration-task" type="button">
+                <span class="migration-task-check" aria-hidden="true"></span>
+                <span class="migration-task-label" data-i18n="newtab.checklist.iphone">Connect your iPhone</span>
+                <span class="page-sr-only migration-task-status" data-i18n="newtab.checklist.notCompleted">Not completed</span>
+              </button>
+            </li>
             <li id="migrationSpaceTask">
               <button id="migrationSpaceAction" class="migration-task" type="button">
                 <span class="migration-task-check" aria-hidden="true"></span>
@@ -449,6 +456,18 @@
       <button id="obBack" class="ob-btn-secondary" type="button" data-i18n="onboarding.back">Back</button>
       <span class="ob-dots" id="obDots"><span></span><span></span><span></span><span></span><span></span><span></span></span>
       <button id="obNext" class="ob-btn-primary" type="button" data-i18n="onboarding.continue">Continue</button>
+    </div>
+  </div>
+
+  <!-- Play the Sunrise when Blanc opens (#1179): the website's Sunrise,
+       drawn from the app's own mark, over the finished page. -->
+  <div id="launchSunrise" class="launch-sunrise" aria-hidden="true" hidden>
+    <div class="launch-sunrise-sky"></div>
+    <div class="launch-sunrise-mark">
+      <div class="launch-sunrise-reflect"><img src="sunrise-mark.png" alt="" /></div>
+      <div class="launch-sunrise-horizon"><img src="sunrise-mark.png" alt="" /></div>
+      <div class="launch-sunrise-rays"><img src="sunrise-mark.png" alt="" /></div>
+      <div class="launch-sunrise-disc-clip"><img class="launch-sunrise-disc" src="sunrise-mark.png" alt="" /></div>
     </div>
   </div>
 

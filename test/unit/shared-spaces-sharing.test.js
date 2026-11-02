@@ -6,6 +6,14 @@ const id=n=>n.toString(16).padStart(32,'0'),f=(v,c=10)=>({v,c,by:'old'});
 const workspace=(key='local')=>({id:key,name:'Work',color:'#426c4c',symbol:'briefcase',urls:['https://one.test/'],meta:[{title:'One'}],pinned:[false],groupIds:[null],groups:[],activeIndex:0});
 const options=()=>{let n=100;return {now:1000,deviceId:'desktop',ids:()=>id(n++),encryptFn:()=>({ct:'fits'})};};
 const indexEntry=()=>({name:f('Work'),color:f('#426c4c'),symbol:f('briefcase'),pos:f(model.keyFor('','',id(1))),deleted:f(false)});
+test('a first imported Space explicitly marks every projected tab as an ordinary web page',()=>{
+  const plan=sharing.planSharing({v:1,spaces:{}},[workspace()],[{id:'local',mode:'copy'}],options());
+  const capture=sharing.projectSpace(plan.items[0].blob),policy=require('../../src/main/document-policy');
+  assert.equal(capture.documentPolicy,policy.DOCUMENT_POLICY_VERSION);
+  assert.deepEqual(capture.inheritsDocumentPolicy,[false]);assert.deepEqual(capture.localFiles,[false]);
+  const normalized=require('../../src/main/session-workspace').entryFrom(capture);
+  assert.equal(policy.restoredMarker(normalized,0),false);
+});
 test('first sharing creates fresh Space and tab ids with current field clocks',()=>{
   assert.equal(typeof sharing.planSharing,'function');const w=workspace();w.tabIds=[id(1)];
   const result=sharing.planSharing({v:1,spaces:{}},[w],[{id:w.id,mode:'copy'}],options());
@@ -52,6 +60,14 @@ test('a library preview reads the index while consent is off and never publishes
   const result=await d.sync.sharedIndexPreview();assert.equal(result.ok,true);assert.deepEqual(requests,['GET']);
   assert.equal(d.spaces.spaceCount({accountId:d.record.accountId}),1);assert.equal(d.spaces.isEnabled({accountId:d.record.accountId}),false);
 });
+test('confirming soon after the sheet\'s check reuses it; an older or missing check fetches again',async t=>{
+  const {syncDevice}=require('./support/sync-device'),{encrypt}=require('../../src/main/sync-crypto');const requests=[];
+  const d=syncDevice({fetch:async(url,options={})=>{requests.push(options.method??'GET');return {status:200,ok:true,json:async()=>({version:'v',blob:encrypt(Buffer.alloc(32,9),JSON.stringify({v:1,spaces:{[id(1)]:indexEntry()}}))})};}});
+  t.after(()=>d.dispose());
+  assert.equal((await d.sync.sharedIndexPreview({maxAge:30000})).ok,true);assert.equal(requests.length,1,'no earlier check: fetches');
+  assert.equal((await d.sync.sharedIndexPreview({maxAge:30000})).ok,true);assert.equal(requests.length,1,'a check under 30 s old is reused');
+  assert.equal((await d.sync.sharedIndexPreview()).ok,true);assert.equal(requests.length,2,'the sheet\'s own check always fetches');
+});
 test('a dormant Space stays out of the network queue while other shared Spaces sync',async t=>{
   const {syncDevice}=require('./support/sync-device');const requests=[];
   const d=syncDevice({fetch:async(url,options={})=>{requests.push(String(url));return {status:404,ok:false,text:async()=> 'not found'};}});
@@ -93,4 +109,26 @@ test('recovery normalizes missing legacy columns without shifting appended tab i
  const result=sharing.recoveryCapture({urls:['https://local.test/'],groups:[]},remote);
  assert.deepEqual(result.tabIds,[null,Object.keys(remote.tabs)[0]]);
  assert.deepEqual(result.inheritsDocumentPolicy,[false,false]);assert.equal(result.meta.length,2);
+});
+test('repeated reconciliation keeps shared tabs reopenable after persistence',()=>{
+  const plan=sharing.planSharing({v:1,spaces:{}},[workspace()],[{id:'local',mode:'copy'}],options());
+  const blob=plan.items[0].blob,policy=require('../../src/main/document-policy');
+  let capture=sharing.projectSpace(blob);
+  for(let pass=0;pass<3;pass++) {
+    capture=JSON.parse(JSON.stringify(sharing.reconcileCapture(capture,blob)));
+    assert.deepEqual(capture.inheritsDocumentPolicy,[false]);
+    assert.deepEqual(capture.localFiles,[false]);
+    const normalized=require('../../src/main/session-workspace').entryFrom(capture);
+    assert.equal(policy.restoredMarker(normalized,0),false);
+  }
+});
+test('new remote rows get explicit false policy flags beside restricted local rows',()=>{
+  const plan=sharing.planSharing({v:1,spaces:{}},[workspace()],[{id:'local',mode:'copy'}],options());
+  const previous={...workspace(),urls:['file:///tmp/local.html'],tabIds:[null],documentPolicy:1,inheritsDocumentPolicy:[true],localFiles:[true]};
+  const capture=JSON.parse(JSON.stringify(sharing.reconcileCapture(previous,plan.items[0].blob)));
+  assert.deepEqual(capture.inheritsDocumentPolicy,[true,false]);
+  assert.deepEqual(capture.localFiles,[true,false]);
+  const policy=require('../../src/main/document-policy');
+  assert.equal(policy.restoredMarker(capture,0),true);
+  assert.equal(policy.restoredMarker(capture,1),false);
 });

@@ -127,12 +127,23 @@ function retractedEntry(prev, now) {
   return { retracted: true, updatedAt: now };
 }
 
-/** The consent gate (spec §3) as one pure decision: publishing only while
- * syncTabs is on AND a live snapshot exists; otherwise retract (or omit —
- * null — when this device never published). */
+/** A device that doesn't share its tabs still announces itself, so Settings →
+ * Sync can list every device: its name and platform with no tabs. Every
+ * Other devices drawer already hides an entry without tabs (displayDevices
+ * here; TabSnapshots.devices on iOS; every released desktop), and released
+ * versions keep such an entry through their merges. Its fresh clock beats
+ * every stale copy of the tabs this device shared before, as a retraction
+ * does, and it rides the same daily heartbeat as a sharing device. */
+function presenceEntry({ prev, name, platform, now }) {
+  return buildOwnEntry({ prev, snapshot: { tabs: [], groups: [] }, name, platform, now });
+}
+
+/** The consent gate (spec §3) as one pure decision: tabs are published only
+ * while syncTabs is on AND a live snapshot exists; otherwise the device
+ * publishes its presence alone. Leaving the sync retracts it (sync.js). */
 function ownEntryFor({ syncTabs, prev, snapshot, name, platform, now }) {
   if (syncTabs && snapshot) return buildOwnEntry({ prev, snapshot, name, platform, now });
-  return retractedEntry(prev, now);
+  return presenceEntry({ prev, name, platform, now });
 }
 
 /** A continuously running device with stable tabs must republish at least
@@ -206,6 +217,6 @@ module.exports = {
   PRUNE_MS, HEARTBEAT_MS, BUDGET_BYTES,
   canonical, fingerprint, sanitizeEntry, winner,
   mergeDevices, rebindDevices,
-  buildOwnEntry, retractedEntry, ownEntryFor, heartbeatDue,
+  buildOwnEntry, retractedEntry, presenceEntry, ownEntryFor, heartbeatDue,
   devicesEqual, applyBudget, exportDevices, displayDevices,
 };

@@ -6,9 +6,11 @@ const {deriveKeys,encrypt,decrypt}=require('../../../src/main/sync-crypto');
 const model=require('../../../src/main/shared-spaces-model');
 const ctx=require('../support/context');
 const {waitForValue}=require('../support/poll');
+const {callTestHook}=require('../support/test-hook-call');
+const {overlayPage,runSlashCommand}=require('../support/overlay');
 const handle='Shared Spaces acceptance',passphrase='correct horse battery staple Shared Spaces';
-Before({tags:'@F57',timeout:180000},async function(){
- this.sharedFixture=await createSyncFixture();await ctx.relaunch({BLANC_TEST_SYNC_ENDPOINT:this.sharedFixture.url});
+Before({tags:'@F57 and not @peer-driver',timeout:180000},async function(){
+ this.sharedFixture=await createSyncFixture();await ctx.relaunch({BLANC_TEST_SYNC_ENDPOINT:this.sharedFixture.url},{freshProfile:true});
  if(process.platform==='linux'){
   const storage=await ctx.app.evaluate(({safeStorage})=>({available:safeStorage.isEncryptionAvailable(),backend:safeStorage.getSelectedStorageBackend()}));
   assert.equal(storage.available,true,`Shared Spaces requires secure OS storage (${storage.backend})`);
@@ -17,14 +19,19 @@ Before({tags:'@F57',timeout:180000},async function(){
  await this.call('reset');
  this.sharedKey=deriveKeys(handle,passphrase);
 });
-After({tags:'@F57',timeout:180000},async function(scenario){
+After({tags:'@F57 and not @peer-driver',timeout:180000},async function(scenario){
  if(scenario.result?.message)process.stderr.write(scenario.result.message+'\n');
- try{await this.call('sharedSpacesTest','disable');await ctx.relaunch();}finally{await this.sharedFixture?.close();this.sharedKey?.key.fill(0);}
+ // The relaunch back to the main profile runs even when the app died during
+ // the scenario and disable throws; otherwise later scenarios would be healed
+ // onto this temporary profile, with a sync endpoint that is about to close.
+ try{if(this.sharedPeer){await callTestHook(this.sharedPeer,'sharedSpacesTest',['disable']);await ctx.closePeerApp(this.sharedPeer);}await this.call('sharedSpacesTest','disable');}
+ finally{try{await ctx.relaunch();}finally{await this.sharedFixture?.close();this.sharedKey?.key.fill(0);}}
 });
-async function setup(world,shared){
+async function setup(world,shared,{beforeSave=null}={}){
  world.firstTab=await world.call('openTab',world.fixtureUrl('shared-first'));
  world.secondTab=await world.call('openTab',world.fixtureUrl('shared-second'));
  await world.waitForState(s=>s.tabs.filter(t=>[world.firstTab,world.secondTab].includes(t.id)).every(t=>!t.isLoading));
+ if(beforeSave)await beforeSave();
  const saved=await world.call('workspaceAction','save','Work');assert.equal(saved.ok,true);
  const listing=await world.call('workspaceAction','list'),workspace=listing.items.find(row=>row.name==='Work');
  world.expectedSharedTabCount=(await world.call('workspaceAction','saved-urls',workspace.id)).filter(url=>/^https?:/.test(url)).length;
@@ -66,6 +73,7 @@ When('device B adds a tab to Work',{timeout:180000},async function(){
 });
 Then('the remote tab appears quiet',async function(){const state=await this.waitForState(s=>s.tabs.some(t=>t.url===this.remoteUrl));const tab=state.tabs.find(t=>t.url===this.remoteUrl);assert.equal(tab.asleep,true);});
 When('device B closes the background Work tab',{timeout:180000},async function(){
+ await this.call('sharedSpacesTest','resetRequestWindow');
  await editPeer(this,blob=>{const id=Object.keys(blob.tabs).find(id=>blob.tabs[id].nav.v.url===this.fixtureUrl('shared-first'));assert.ok(id);this.closedRecord=id;blob.tabs[id].deleted=model.field(true,Date.now()+1,'device-b');});
 });
 Then('its parked page appears once in Recently closed',async function(){
@@ -86,4 +94,388 @@ Then('the sheet reports Spaces unavailable and Favorites still sync',{timeout:18
  await waitForValue(()=>this.sharedPage.locator('#sharedSpacesControl').textContent(),text=>text.includes('Spaces sync is unavailable'),'unavailable notice',120000);
  assert.equal(await this.sharedPage.locator('#sharedSpacesToggle').isChecked(),false);
  const result=await this.call('sharedSpacesTest','pull',['bookmarks']);assert.equal(result.ok,true);assert.ok(this.sharedFixture.requests.some(r=>r.store==='bookmarks'&&r.status===200));
+});
+When('the shared tab navigates to an internal page',{timeout:180000},async function(){
+ const state=await this.call('sharedSpacesTest','state'),sid=Object.keys(state.shared.blobs)[0];this.sid=sid;
+ const blob=state.shared.blobs[sid].blob;this.retainedRecord=Object.keys(blob.tabs).find(id=>blob.tabs[id].nav.v.url===this.fixtureUrl('shared-second'));
+ assert.ok(this.retainedRecord);this.retainedNav=blob.tabs[this.retainedRecord].nav.v;
+ await this.call('navigateTab',this.secondTab,'blanc://mahjong/');
+ await this.waitForState(s=>s.tabs.some(t=>t.id===this.secondTab&&t.url.startsWith('blanc://mahjong/')));
+ await this.call('sharedSpacesTest','capture');
+});
+Then('device B still sees its last shareable web page',{timeout:180000},async function(){
+ await this.call('sharedSpacesTest','pull',['space-'+this.sid]);
+ const response=await fetch(`${this.sharedFixture.url}/v1/blob/${this.sharedKey.accountId}/space-${this.sid}`);assert.equal(response.status,200);
+ const stored=await response.json(),blob=JSON.parse(decrypt(this.sharedKey.key,stored.blob)),record=blob.tabs[this.retainedRecord];
+ assert.equal(record.deleted.v,false);assert.deepEqual(record.nav.v,this.retainedNav);
+});
+When('the account storage is full and I delete Work',{timeout:180000},async function(){
+ const state=await this.call('sharedSpacesTest','state');this.sid=Object.keys(state.shared.blobs)[0];
+ const usage=(await this.sharedFixture.quotaUsage(this.sharedKey.accountId)).bytes;
+ this.sharedFixture.env.ACCOUNT_STORAGE_QUOTA_BYTES=String(usage);
+ this.quotaProbe=()=>fetch(`${this.sharedFixture.url}/v1/blob/${this.sharedKey.accountId}/space-${'d'.repeat(32)}`,{method:'PUT',body:JSON.stringify({ifVersion:null,blob:encrypt(this.sharedKey.key,JSON.stringify({probe:'x'.repeat(100)}))})});
+ const refused=await this.quotaProbe();assert.equal(refused.status,507);assert.deepEqual(await refused.json(),{error:'account-quota'});
+ const local=state.workspaces.items.find(row=>row.name==='Work');assert.ok(local);
+ assert.equal((await this.call('workspaceAction','remove',local.id)).ok,true);
+ await this.call('sharedSpacesTest','pull',['space-'+this.sid]);
+});
+Then('the next encrypted write succeeds without waiting for retention expiry',{timeout:180000},async function(){
+ const saved=this.sharedFixture.blobs.get(`blob:${this.sharedKey.accountId}:space-${this.sid}`);assert.ok(saved);
+ const compact=JSON.parse(decrypt(this.sharedKey.key,JSON.parse(saved).blob));assert.deepEqual(compact.tabs,{});assert.deepEqual(compact.groups,{});
+ assert.equal((await this.quotaProbe()).status,200);
+ const state=await this.call('sharedSpacesTest','state');assert.equal(state.shared.index.spaces[this.sid].deleted.v,true);
+});
+Given('a second complete desktop client sharing Work',{timeout:300000},async function(){
+ const endpoint=await this.sharedFixture.clientEndpoint('B');
+ this.sharedPeer=await ctx.launchPeerApp({BLANC_TEST_SYNC_ENDPOINT:endpoint});
+ this.peerCall=(method,...args)=>callTestHook(this.sharedPeer,method,args);
+ await this.peerCall('reset');assert.equal((await this.peerCall('sharedSpacesTest','enable',{handle,passphrase})).ok,true);
+ assert.equal((await this.peerCall('sharedSpacesTest','apply',{enabled:true,selections:[]})).ok,true);
+ await this.peerCall('sharedSpacesTest','pull');
+ const state=await waitForValue(()=>this.peerCall('sharedSpacesTest','state'),s=>s.workspaces.items.some(w=>w.name==='Work'),'peer Work import',15000);
+ const work=state.workspaces.items.find(w=>w.name==='Work');assert.equal((await this.peerCall('workspaceAction','open',work.id)).ok,true);
+ this.sid=Object.keys(state.shared.blobs)[0];
+});
+Then('both complete clients exchange quiet tabs in both directions',{timeout:600000},async function(){
+ const a=this.call.bind(this),b=this.peerCall;
+ this.fromA=this.fixtureUrl('two-client-a');this.fromB=this.fixtureUrl('two-client-b');
+ // After joining, use ordinary autosave and scheduled synchronization only.
+ // Explicit capture/pull hooks here would hide broken automatic discovery.
+ this.newA=await a('openTab',this.fromA);
+ let state=await waitForValue(()=>b('state'),s=>s.tabs.some(t=>t.url===this.fromA),'automatic A tab on B',300000);assert.equal(state.tabs.find(t=>t.url===this.fromA).asleep,true);
+ this.newB=await b('openTab',this.fromB);
+ state=await waitForValue(()=>a('state'),s=>s.tabs.some(t=>t.url===this.fromB),'automatic B tab on A',300000);assert.equal(state.tabs.find(t=>t.url===this.fromB).asleep,true);
+});
+Then('a complete client defers active navigation until its tab changes',{timeout:600000},async function(){
+ const a=this.call.bind(this),b=this.peerCall,state=await b('state');this.peerActive=state.activeTabId;
+ const active=state.tabs.find(t=>t.id===this.peerActive);assert.equal(active.url,this.fromB);
+ const local=(await a('state')).tabs.find(t=>t.url===this.fromB);this.peerNavigated=this.fixtureUrl('two-client-nav');
+ await a('activateTab',local.id);
+ await this.waitForState(s=>s.tabs.some(t=>t.id===local.id&&!t.asleep&&!t.isLoading));
+ await a('navigateTab',local.id,this.peerNavigated);
+ await this.waitForState(s=>s.tabs.some(t=>t.id===local.id&&t.url===this.peerNavigated&&!t.isLoading));
+ await waitForValue(()=>b('sharedSpacesTest','state'),s=>Object.values(s.shared.windows).some(w=>w.accepted.some(row=>row.op==='nav'&&row.value?.v?.url===this.peerNavigated)),'automatic deferred navigation receipt',300000);
+ assert.equal((await b('state')).tabs.find(t=>t.id===this.peerActive).url,this.fromB);
+ await b('openTab',this.fixtureUrl('two-client-unprotect'));
+ await waitForValue(()=>b('state'),s=>s.tabs.some(t=>t.id===this.peerActive&&t.url===this.peerNavigated),'deferred navigation applied',15000);
+});
+Then('a complete client receives one remote close entry',{timeout:600000},async function(){
+ const a=this.call.bind(this),b=this.peerCall;
+ await b('openTab',this.fixtureUrl('two-client-close-unprotect'));
+ await a('closeTab',this.newA);
+ await waitForValue(()=>b('state'),s=>!s.tabs.some(t=>t.url===this.fromA),'automatic remote close applied',300000);
+ const state=await waitForValue(()=>b('sharedSpacesTest','state'),s=>s.closed.some(row=>row.title.includes('two-client-a')),'automatic remote close band',300000);assert.equal(state.closed.filter(row=>row.title.includes('two-client-a')).length,1,JSON.stringify(state.closed));
+});
+Then('both complete clients rejoin dormant edits without duplicate tabs',{timeout:600000},async function(){
+ const a=this.call.bind(this),b=this.peerCall;
+ for(const call of [a,b])assert.equal((await call('sharedSpacesTest','apply',{enabled:false})).ok,true);
+ const urls=[this.fixtureUrl('dormant-a'),this.fixtureUrl('dormant-b')];await a('openTab',urls[0]);await b('openTab',urls[1]);
+ for(const call of [a,b]){const state=await call('sharedSpacesTest','state'),work=state.workspaces.items.find(w=>w.name==='Work');assert.equal((await call('sharedSpacesTest','apply',{enabled:true,selections:[{id:work.id,mode:'rejoin'}]})).ok,true);}
+ for(const call of [a,b]){const state=await waitForValue(()=>call('state'),s=>urls.every(url=>s.tabs.some(t=>t.url===url)),'automatic dormant rejoin',300000);for(const url of urls)assert.equal(state.tabs.filter(t=>t.url===url).length,1);}
+});
+Then('the complete clients stay within their request budgets',{timeout:60000},async function(){
+ const gets=this.sharedFixture.requests.filter(r=>r.method==='GET');
+ for(const client of ['A','B']){const rows=gets.filter(r=>r.client===client),times=rows.map(r=>r.at);assert.ok(times.length>10,'audit the complete history across multiple windows');for(const at of times)assert.ok(times.filter(time=>time>at-60000&&time<=at).length<=10,client+' exceeded its rolling GET window: '+JSON.stringify(rows.filter(r=>r.at>at-60000&&r.at<=at).map(r=>({store:r.store,offset:r.at-at,status:r.status}))));}
+ const minutes=new Map();for(const r of gets){const minute=Math.floor(r.at/60000);minutes.set(minute,(minutes.get(minute)??0)+1);}for(const count of minutes.values())assert.ok(count<=20);
+ assert.equal(this.sharedFixture.requests.some(r=>r.status===429),false);
+});
+Then('the Shared Spaces peer driver verifies {string}',{timeout:180000},async function(name){
+ await require('../support/shared-spaces-peer-cases').runPeerCase(name);
+});
+When('device B closes the active Work tab',{timeout:180000},async function(){
+ await this.call('sharedSpacesTest','resetRequestWindow');
+ this.closedActiveUrl=this.fixtureUrl('shared-second');
+ await editPeer(this,blob=>{const id=Object.keys(blob.tabs).find(id=>blob.tabs[id].nav.v.url===this.closedActiveUrl);assert.ok(id);blob.tabs[id].deleted=model.field(true,Date.now()+1,'device-b');});
+ const state=await this.call('sharedSpacesTest','state');assert.ok(Object.values(state.shared.windows).some(w=>w.accepted.some(row=>row.op==='close')),'remote close must be durably deferred before crashing');
+});
+When('the Shared Spaces client crashes and restores',{timeout:180000},async function(){await ctx.crashAndRelaunch();});
+Then('cold restore applies the deferred close and resumes persistence',async function(){
+ const state=await this.state();assert.equal(state.tabs.some(t=>t.url===this.closedActiveUrl),false);
+ assert.equal(await this.call('startupReady'),true);
+ const shared=await this.call('sharedSpacesTest','state');assert.equal(Object.values(shared.shared.windows).some(w=>w.accepted.some(row=>row.op==='close')),false);
+});
+Then('the merged remote tab survives the crash without a duplicate',async function(){
+ const state=await this.state();assert.equal(state.tabs.filter(t=>t.url===this.remoteUrl).length,1);
+ assert.equal(await this.call('startupReady'),true);
+});
+When('an index write fails after the new Space blob succeeds',{timeout:180000},async function(){
+ this.indexFault=this.sharedFixture.inject({type:'network',method:'PUT',store:'spaces',times:Infinity});
+ const state=await this.call('sharedSpacesTest','state'),row=state.workspaces.items.find(w=>w.name==='Work');
+ assert.equal((await this.call('sharedSpacesTest','apply',{enabled:true,selections:[{id:row.id,mode:'copy'}]})).ok,true);
+ this.sid=Object.keys((await this.call('sharedSpacesTest','state')).shared.blobs)[0];
+ assert.ok(this.sharedFixture.blobs.has(`blob:${this.sharedKey.accountId}:space-${this.sid}`));
+ assert.equal(this.sharedFixture.env.records.has(`blob:${this.sharedKey.accountId}:spaces`),false);
+});
+Then('the restored client retries the missing index entry',{timeout:300000},async function(){
+ await this.call('sharedSpacesTest','resetRequestWindow');
+ this.indexFault.remaining=0;
+ await this.call('sharedSpacesTest','pull',['space-'+this.sid,'spaces']);
+ const raw=this.sharedFixture.env.records.get(`blob:${this.sharedKey.accountId}:spaces`);assert.ok(raw);
+ const index=JSON.parse(decrypt(this.sharedKey.key,JSON.parse(raw).blob));assert.ok(index.spaces[this.sid]);
+ assert.ok(this.sharedFixture.blobs.has(`blob:${this.sharedKey.accountId}:space-${this.sid}`));
+});
+
+When('erasing the server copy fails once', {timeout:180000}, async function(){
+ this.sharedPage=await settingsPage(this);
+ const remove=this.sharedFixture.env.SYNC.delete;let fail=true;
+ this.sharedFixture.env.SYNC.delete=async key=>{if(fail){fail=false;throw Error('erase failed once');}return remove(key);};
+ // Turning sync off lives under More options in Settings → Sync.
+ await this.sharedPage.locator('.sync-more').evaluate(details=>{details.open=true;});
+ await this.sharedPage.locator('#syncWipe').check();
+ await this.sharedPage.locator('#syncDisable').click();
+});
+Then('Settings keeps the credentials and offers an erasure retry', {timeout:180000}, async function(){
+ await waitForValue(()=>this.sharedPage.locator('#syncStatusError').textContent(),text=>text.includes('server copy is still being erased'),'pending erasure message');
+ assert.equal(await this.sharedPage.locator('#syncEraseRetry').isVisible(),true);
+ assert.equal(await this.sharedPage.locator('#syncDisable').isVisible(),true);
+ assert.equal(await this.sharedPage.locator('#syncWipe').isEnabled(),true);
+ const state=await this.sharedPage.evaluate(()=>window.bowserPages.settings.syncGet());assert.equal(state.enabled,true);
+});
+When('I retry erasing the server copy', {timeout:180000}, async function(){
+ await this.sharedPage.locator('#syncEraseRetry').click();
+});
+Then('the erasure completes and sync turns off', {timeout:180000}, async function(){
+ await waitForValue(()=>this.sharedPage.locator('#syncEraseRetry').isVisible(),v=>!v,'erasure retry cleared');
+ const state=await this.sharedPage.evaluate(()=>window.bowserPages.settings.syncGet());assert.equal(state.enabled,false);
+ assert.equal([...this.sharedFixture.blobs.keys()].some(k=>k.startsWith(`blob:${this.sharedKey.accountId}:`)),false);
+ assert.equal(this.sharedFixture.requests.filter(r=>r.method==='DELETE'&&!r.store&&r.status===204).length,1);
+});
+Given('the background Work tab has unsaved input',{timeout:60000},async function(){
+ assert.notEqual((await this.state()).activeTabId,this.firstTab,'the first Work tab is in the background');
+ await this.call('workspacePageScript',this.firstTab,"(()=>{const i=document.createElement('input');i.id='draft';document.body.append(i);i.value='typed draft';return true;})()");
+});
+When('device B navigates the background Work tab',{timeout:180000},async function(){
+ this.backgroundUrl=this.fixtureUrl('shared-first');
+ await editPeer(this,blob=>{const id=Object.keys(blob.tabs).find(id=>blob.tabs[id].nav.v.url===this.backgroundUrl);assert.ok(id);this.navigated=id;blob.tabs[id].nav=model.field({url:this.fixtureUrl('remote-navigation'),title:'Remote navigation'},Date.now()+1,'device-b');});
+});
+Then('the background tab keeps its page and its input',{timeout:60000},async function(){
+ const tab=(await this.state()).tabs.find(t=>t.id===this.firstTab);assert.equal(tab.url,this.backgroundUrl);
+ assert.equal(await this.call('workspacePageScript',this.firstTab,"document.getElementById('draft')?.value"),'typed draft');
+});
+When('its input is cleared and Shared Spaces applies again',{timeout:180000},async function(){
+ await this.call('workspacePageScript',this.firstTab,"document.getElementById('draft').remove()");
+ // A tab switch is one of the passes that retries deferred rows; switching
+ // back leaves the first tab in the background again, now with nothing unsaved.
+ const active=(await this.state()).activeTabId;
+ await this.call('activateTab',this.firstTab);await this.waitForState(s=>s.activeTabId===this.firstTab);
+ await this.call('activateTab',active);await this.waitForState(s=>s.activeTabId===active);
+});
+Then('the background tab follows the remote navigation',{timeout:60000},async function(){
+ await this.waitForState(s=>s.tabs.some(t=>t.id===this.firstTab&&t.url===this.fixtureUrl('remote-navigation')),{timeout:30000});
+});
+// Gate D B1: a quit while a change is held must close no tab. Like Gate D's
+// iana.org, the background tab is loaded, untouched and alone in a group that
+// existed before the Space was shared.
+Given('a Shared Spaces fixture whose shared Work Space has a tab alone in a group',{timeout:180000},async function(){
+ await setup(this,true,{beforeSave:async()=>{
+  await this.call('groupTabByName',this.firstTab,'Held');
+  await this.waitForState(s=>s.tabs.some(t=>t.id===this.firstTab&&t.groupId));
+ }});
+ assert.notEqual((await this.state()).activeTabId,this.firstTab,'the grouped Work tab is in the background');
+ const state=await this.call('sharedSpacesTest','state'),blob=Object.values(state.shared.blobs)[0].blob;
+ const record=Object.values(blob.tabs).find(r=>r.nav.v.url===this.fixtureUrl('shared-first'));
+ assert.ok(record?.groupId.v&&blob.groups[record.groupId.v]?.deleted.v===false,'the group is shared');
+});
+// An unpackaged Blanc keeps its data in "<profile>-Dev".
+const sharedStoreOnDisk=profileDir=>JSON.parse(require('node:fs').readFileSync(require('node:path').join(profileDir+'-Dev','shared-spaces.json'),'utf8'));
+When('the Shared Spaces client quits normally and relaunches',{timeout:180000},async function(){
+ const state=await this.call('sharedSpacesTest','state');
+ assert.ok(Object.values(state.shared.windows).some(w=>w.accepted.some(row=>row.op==='nav'&&row.id===this.navigated)),'the active navigation is held before the quit');
+ this.deviceId=state.context.deviceId;
+ await ctx.quitAndRelaunch(profileDir=>{this.storeAtQuit=sharedStoreOnDisk(profileDir);});
+});
+Then('the quit saved no closed Work tab and kept the held navigation',function(){
+ const saved=this.storeAtQuit,blob=saved.blobs[this.sid].blob;
+ const closed=Object.values(blob.tabs).filter(r=>r.deleted.v===true).map(r=>`${r.nav.v.url} (by ${r.deleted.by===this.deviceId?'this device':r.deleted.by})`);
+ assert.deepEqual(closed,[],'the quit must not close a Work tab');
+ assert.deepEqual(Object.entries(saved.pending[this.sid]?.tabs??{}).filter(([,edit])=>edit.deleted).map(([id])=>id),[],'no close is queued to send');
+ assert.equal(Object.values(blob.groups).some(g=>g.deleted.v===true),false,'the group stays');
+ assert.ok(Object.values(saved.windows).some(w=>w.spaceId===this.sid&&w.accepted.some(row=>row.op==='nav'&&row.id===this.navigated)),'the held navigation is still saved for the next launch');
+});
+Then('the relaunched client applies the held navigation and keeps every Work tab',{timeout:180000},async function(){
+ const remote=this.fixtureUrl('remote-navigation');
+ const state=await this.waitForState(s=>s.tabs.some(t=>t.url===remote),{timeout:30000});
+ const first=state.tabs.filter(t=>t.url===this.fixtureUrl('shared-first'));
+ assert.equal(first.length,1,'the grouped Work tab is still open');assert.ok(first[0].groupId,'and still grouped');
+ assert.equal(state.tabs.filter(t=>t.url===remote).length,1);
+ assert.equal(state.tabs.some(t=>t.url===this.oldUrl),false,'the held navigation replaced the old page');
+ const shared=await this.call('sharedSpacesTest','state');
+ assert.equal(Object.values(shared.shared.windows).some(w=>w.accepted.length),false,'nothing is still held');
+ await this.call('sharedSpacesTest','resetRequestWindow');
+ await this.call('sharedSpacesTest','pull',['space-'+this.sid]);
+ const response=await fetch(`${this.sharedFixture.url}/v1/blob/${this.sharedKey.accountId}/space-${this.sid}`);assert.equal(response.status,200);
+ const blob=JSON.parse(decrypt(this.sharedKey.key,(await response.json()).blob));
+ assert.deepEqual(Object.values(blob.tabs).filter(r=>r.deleted.v===true).map(r=>r.nav.v.url),[],'the other device keeps every Work tab');
+ assert.equal(blob.tabs[this.navigated].nav.v.url,remote);
+ assert.equal(Object.values(blob.groups).some(g=>g.deleted.v===true),false,'the other device keeps the group');
+});
+// A group made after the Space was shared: by the group command, the rail's
+// New group button, a rename and color here or on device B, and a tab moved
+// into it. Remote passes (a tab switch, a sync) must leave it intact.
+const {PRESETS}=require('../../../src/renderer/space-identity');
+const presetHex=id=>{const preset=PRESETS.find(p=>p.id===id);assert.ok(preset,`a group color named ${id}`);return preset.hex;};
+const workTab=(world,which)=>({first:world.firstTab,second:world.secondTab})[which];
+const workUrl=(world,which)=>world.fixtureUrl({first:'shared-first',second:'shared-second'}[which]);
+async function sharedCopy(world){
+ // Send this device's edits, then read what device B would receive. Sharing
+ // the Space fills the request window, so free it rather than wait it out:
+ // these steps check what the copy holds, not the budget.
+ await world.call('sharedSpacesTest','resetRequestWindow');
+ await world.call('sharedSpacesTest','capture');
+ const state=await world.call('sharedSpacesTest','state');world.sid??=Object.keys(state.shared.blobs)[0];
+ await world.call('sharedSpacesTest','pull',['space-'+world.sid]);
+ const response=await fetch(`${world.sharedFixture.url}/v1/blob/${world.sharedKey.accountId}/space-${world.sid}`);assert.equal(response.status,200);
+ return JSON.parse(decrypt(world.sharedKey.key,(await response.json()).blob));
+}
+function sharedGroupOf(blob,url){
+ const record=Object.values(blob.tabs).find(r=>r.nav.v.url===url&&r.deleted.v!==true);assert.ok(record,`the shared copy has ${url}`);
+ const group=blob.groups[record.groupId.v];
+ return group&&group.deleted.v!==true?group:null;
+}
+async function localGroupOf(world,which){
+ const state=await world.state(),tab=state.tabs.find(t=>t.id===workTab(world,which));
+ return state.groups.find(g=>g.id===tab?.groupId)??null;
+}
+When('I put the first Work tab in a new group {string} with the group command',{timeout:60000},async function(name){
+ await this.call('activateTab',this.firstTab);await this.waitForState(s=>s.activeTabId===this.firstTab);
+ await runSlashCommand(this,`/group ${name}`);
+ await this.waitForState(s=>{const tab=s.tabs.find(t=>t.id===this.firstTab);return s.groups.some(g=>g.id===tab?.groupId&&g.name===name);});
+});
+When('I switch to the {word} Work tab',{timeout:60000},async function(which){
+ const id=workTab(this,which);await this.call('activateTab',id);await this.waitForState(s=>s.activeTabId===id);
+});
+Then('the {string} group keeps the {word} Work tab here and in the shared copy',{timeout:180000},async function(name,which){
+ const blob=await sharedCopy(this);
+ assert.equal((await localGroupOf(this,which))?.name,name,'the tab is still in the group on this device');
+ assert.equal(sharedGroupOf(blob,workUrl(this,which))?.name.v,name,'device B sees the tab in the group');
+});
+When('I rename the group {string} to {string} and color it {string}',{timeout:60000},async function(from,to,color){
+ assert.equal(await this.call('beginRenameGroupByName',from),true,`a group named ${from}`);
+ await waitForValue(()=>this.call('overlayRendererMode'),m=>m==='panel','the rename prompt');
+ const page=await overlayPage();await page.fill('#addressInput',to);await page.press('#addressInput','Enter');
+ await this.waitForState(s=>s.groups.some(g=>g.name===to));
+ assert.equal(await this.call('setGroupColorByName',to,presetHex(color)),true);
+});
+Then('the shared copy has the group {string} colored {string} holding the first Work tab',{timeout:180000},async function(name,color){
+ const group=sharedGroupOf(await sharedCopy(this),workUrl(this,'first'));
+ assert.deepEqual(group&&{name:group.name.v,color:group.color.v},{name,color:presetHex(color)});
+});
+When('device B renames the group {string} to {string} and colors it {string}',{timeout:180000},async function(from,to,color){
+ await editPeer(this,blob=>{
+  const id=Object.keys(blob.groups).find(id=>blob.groups[id].name.v===from&&blob.groups[id].deleted.v!==true);assert.ok(id,`device B has the group ${from}`);
+  const f=v=>model.field(v,Date.now()+1,'device-b');blob.groups[id].name=f(to);blob.groups[id].color=f(presetHex(color));
+ });
+});
+Then('this device shows the group {string} colored {string} holding the first Work tab',{timeout:60000},async function(name,color){
+ await this.waitForState(s=>{const tab=s.tabs.find(t=>t.id===this.firstTab),group=s.groups.find(g=>g.id===tab?.groupId);return group?.name===name&&group.color===presetHex(color);},{timeout:30000});
+});
+When('I move the second Work tab into {string}',async function(name){
+ await this.call('groupTabByName',this.secondTab,name);
+ await this.waitForState(s=>{const tab=s.tabs.find(t=>t.id===this.secondTab);return s.groups.some(g=>g.id===tab?.groupId&&g.name===name);});
+});
+Then('the shared copy has the group {string} colored {string} holding both Work tabs',{timeout:180000},async function(name,color){
+ const blob=await sharedCopy(this);
+ for(const which of ['first','second']) {
+  const group=sharedGroupOf(blob,workUrl(this,which));
+  assert.deepEqual(group&&{name:group.name.v,color:group.color.v},{name,color:presetHex(color)},`the ${which} Work tab`);
+ }
+ assert.equal((await localGroupOf(this,'first'))?.id,(await localGroupOf(this,'second'))?.id,'one group here');
+});
+Given('a Shared Spaces fixture whose shared Work Space has the first Work tab in a group {string}',{timeout:180000},async function(name){
+ await setup(this,true,{beforeSave:async()=>{
+  await this.call('groupTabByName',this.firstTab,name);
+  await this.waitForState(s=>s.tabs.some(t=>t.id===this.firstTab&&t.groupId));
+ }});
+ assert.equal(sharedGroupOf(await sharedCopy(this),workUrl(this,'first'))?.name.v,name,'the group is shared with its Space');
+});
+async function evidence(world,name){
+ if(!process.env.BLANC_SHARED_SPACES_EVIDENCE_DIR)return;const fs=require('node:fs'),path=require('node:path');
+ fs.mkdirSync(process.env.BLANC_SHARED_SPACES_EVIDENCE_DIR,{recursive:true});await world.sharedPage.screenshot({path:path.join(process.env.BLANC_SHARED_SPACES_EVIDENCE_DIR,name+'.png')});
+}
+// Turning the switch on: the sheet opens from the saved index while the
+// fresh check waits (a held fixture GET stands in for a full request window).
+Given('the next Spaces index fetch is held',function(){
+ let release;this.heldIndex=new Promise(resolve=>{release=resolve;});this.releaseIndex=release;
+ this.sharedFixture.inject({type:'hook',method:'GET',store:'spaces',before:()=>this.heldIndex});
+});
+Given('a Shared Spaces fixture with local Work and Private Spaces',{timeout:180000},async function(){
+ await setup(this,false);const made=await this.call('workspaceAction','create','Private');assert.equal(made.ok,true);
+});
+When('I turn on Spaces and groups',{timeout:180000},async function(){
+ this.sharedPage??=await settingsPage(this);const page=this.sharedPage;
+ await page.locator('#sharedSpacesToggle').waitFor({state:'attached',timeout:60000});
+ this.busySeen=page.evaluate(()=>new Promise(resolve=>{const control=document.getElementById('sharedSpacesControl');
+  const seen=()=>/Sync is busy/.test(control.textContent);if(seen())return resolve(true);
+  const observer=new MutationObserver(()=>{if(seen()){observer.disconnect();resolve(true);}});observer.observe(control,{subtree:true,childList:true,characterData:true});
+  setTimeout(()=>{observer.disconnect();resolve(false);},5000);})).catch(()=>false);// a scenario that never asks may end first
+ this.turnedOnAt=Date.now();await page.locator('#sharedSpacesToggle').check();
+});
+Then('the selection sheet is open within a second and is checking other devices',async function(){
+ await this.sharedPage.locator('.shared-spaces-dialog').waitFor({state:'visible',timeout:1000});
+ assert.ok(Date.now()-this.turnedOnAt<1500,'the sheet opened within about a second');
+ assert.equal(await this.sharedPage.locator('.shared-spaces-checking').isVisible(),true);
+ assert.match(await this.sharedPage.locator('.shared-spaces-checking').textContent(),/Checking your other devices/);await evidence(this,'sheet-checking');
+});
+Then('Settings never says Sync is busy',async function(){assert.equal(await this.busySeen,false);});
+When('the held Spaces index fetch is released',function(){this.releaseIndex();});
+Then('the sheet stops checking and the Work Space is still checked',{timeout:60000},async function(){
+ await this.sharedPage.locator('.shared-spaces-checking').waitFor({state:'hidden',timeout:30000});
+ const choice=this.sharedPage.locator('.shared-spaces-choice').filter({hasText:'Work'});assert.equal(await choice.locator('input').isChecked(),true);
+ await this.sharedPage.locator('.shared-spaces-dialog button').filter({hasText:'Cancel'}).click();
+ assert.equal((await this.call('sharedSpacesTest','state')).shared.enabled,false);
+});
+When('I press Turn on in the selection sheet',async function(){
+ await this.sharedPage.locator('.shared-spaces-dialog').waitFor({state:'visible',timeout:10000});
+ await this.sharedPage.locator('.shared-spaces-dialog button').filter({hasText:'Turn on'}).click();
+});
+When('I untick {string} and press Turn on in the selection sheet',{timeout:60000},async function(name){
+ const dialog=this.sharedPage.locator('.shared-spaces-dialog');await dialog.waitFor({state:'visible',timeout:10000});
+ await dialog.locator('.shared-spaces-checking').waitFor({state:'hidden',timeout:30000});
+ await dialog.locator('.shared-spaces-choice').filter({hasText:name}).locator('input').uncheck();
+ await dialog.locator('button').filter({hasText:'Turn on'}).click();await dialog.waitFor({state:'hidden',timeout:60000});
+});
+Then('the Turn on button waits for the check and sharing is still off',async function(){
+ const button=this.sharedPage.locator('.shared-spaces-dialog button').filter({hasText:'Checking'});
+ await button.waitFor({state:'visible',timeout:5000});assert.equal(await button.isDisabled(),true);
+ assert.equal((await this.call('sharedSpacesTest','state')).shared.enabled,false);
+});
+When('I make a new Space {string}',{timeout:60000},async function(name){
+ const made=await this.call('workspaceAction','create',name);assert.equal(made.ok,true);
+});
+async function sharedOnce(world,name){
+ const state=await world.call('sharedSpacesTest','state');if(!state.shared.enabled)return false;
+ const rows=state.workspaces.items.filter(row=>row.name===name);
+ const records=Object.values(state.shared.index.spaces).filter(record=>record.name.v===name&&!record.deleted.v);
+ return rows.length===1&&!!rows[0].sharedSync&&records.length===1;
+}
+Then('the {string} Space is shared once and Spaces sync is on',{timeout:60000},async function(name){
+ await waitForValue(()=>sharedOnce(this,name),Boolean,name+' shared once',30000);
+ if(this.sharedPage)assert.equal(await this.sharedPage.locator('#sharedSpacesToggle').isChecked(),true);
+});
+Then('the {string} Space stays on this device',async function(name){
+ await new Promise(resolve=>setTimeout(resolve,2500));// past the automatic share's settle delay
+ const state=await this.call('sharedSpacesTest','state'),row=state.workspaces.items.find(item=>item.name===name);
+ assert.ok(row);assert.equal(row.sharedSync,undefined);assert.equal(Object.values(state.shared.index.spaces).some(record=>record.name.v===name),false);
+});
+When('I choose Spaces to sync from Settings',async function(){
+ await this.sharedPage.locator('#sharedSpacesChoose').click();
+ await this.sharedPage.locator('.shared-spaces-dialog').waitFor({state:'visible',timeout:1000});
+});
+Then('the {string} Space is listed as Shared',async function(name){
+ const choice=this.sharedPage.locator('.shared-spaces-choice').filter({hasText:name});
+ await choice.locator('.shared-spaces-tag').waitFor({state:'visible',timeout:10000});
+ assert.equal(await choice.locator('input').isDisabled(),true);assert.equal(await choice.locator('input').isChecked(),true);await evidence(this,'choose-with-shared');
+});
+When('I press Share in the selection sheet',{timeout:60000},async function(){
+ const dialog=this.sharedPage.locator('.shared-spaces-dialog');
+ await dialog.locator('button').filter({hasText:'Share'}).click();await dialog.waitFor({state:'hidden',timeout:60000});
+});
+When('I press Cancel in the selection sheet',async function(){
+ const button=this.sharedPage.locator('.shared-spaces-dialog button').filter({hasText:'Cancel'});
+ assert.equal(await button.isDisabled(),false,'Cancel is never disabled');await button.click();
+});
+Then('the selection sheet is closed and Settings says the Spaces are uploading',async function(){
+ await this.sharedPage.locator('.shared-spaces-dialog').waitFor({state:'hidden',timeout:2000});
+ assert.match(await this.sharedPage.locator('#sharedSpacesControl').textContent(),/Uploading your Spaces/);
+ assert.equal(await this.sharedPage.locator('#sharedSpacesToggle').isChecked(),true);await evidence(this,'uploading');
 });

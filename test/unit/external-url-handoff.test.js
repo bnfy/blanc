@@ -272,3 +272,173 @@ test('app activate preserves the chosen runtime/profile and flushes its pending 
   context.app.activate();
   assert.equal(calls.length, 3);
 });
+
+test('routed links go to their destination window; others keep the window used last', () => {
+  const { matchLinkRoute, resolveRoutedRuntime } = require('../../src/main/link-routes');
+  const f = harness();
+  const routes = [
+    { id: 'a', match: { kind: 'domain', value: 'jira.example.com' }, destination: { profileId: 'work', spaceId: null, private: false } },
+    { id: 'b', match: { kind: 'domain', value: 'gone.example' }, destination: { profileId: 'deleted', spaceId: null, private: false } },
+    { id: 'c', match: { kind: 'contains', value: '/private/' }, destination: { profileId: 'work', spaceId: null, private: true } },
+  ];
+  const fresh = [];
+  const routed = createExternalUrlHandoff({
+    application: f.application,
+    isReady: () => true,
+    isQuitting: () => false,
+    routeFor: (url) => matchLinkRoute(routes, url, { isLiveProfile: (id) => id !== 'deleted' })?.destination ?? null,
+    getRuntime: (preferred, destination) => destination
+      ? resolveRoutedRuntime(destination, preferred, {
+        runtimes: f.runtimes.filter((runtime) => runtime.window),
+        focusOrder: () => 0,
+        openSpace: () => null,
+        openProfileWindow: (profileId) => {
+          const runtime = { profileId, chromeReady: true, window: null };
+          fresh.push(runtime);
+          f.runtimes.push(runtime);
+          return runtime;
+        },
+      })
+      : externalWindowRuntime(f.runtimes, preferred ?? f.state.focused, f.primary, f.state.focused),
+    ensureWindow(runtime) {
+      if (!runtime.window) runtime.window = Object.assign(new EventEmitter(), { isDestroyed: () => false });
+    },
+    isWindowReady: (runtime) => runtime.chromeReady,
+    withRuntime(runtime, fn) { f.state.current = runtime; try { fn(); } finally { f.state.current = null; } },
+    createTab(url, options) {
+      f.created.push({ id: f.created.length + 1, url, runtime: f.state.current, private: options?.destination?.private === true });
+      f.createdOptions.push(options);
+      return f.created.length;
+    },
+    activateTab(id) { f.activated.push(id); },
+    revealWindow(window) { f.revealed.push(window); },
+  });
+
+  routed.open(['https://jira.example.com/browse/X-1']);
+  assert.equal(f.created[0].runtime, f.work, 'a matched link goes to its profile');
+  assert.deepEqual(f.revealed, [f.work.window]);
+
+  routed.open(['https://gone.example/']);
+  assert.equal(f.created[1].runtime, f.primary, 'a deleted profile falls through to the window used last');
+  assert.equal(f.createdOptions[1], undefined, 'an unmatched link is created exactly as before');
+
+  routed.open(['https://other.test/private/x']);
+  assert.equal(f.created[2].runtime, f.work);
+  assert.equal(f.created[2].private, true);
+  assert.deepEqual(fresh, []);
+});
+
+test('a multi-URL handoff routes each URL, keeps order per window and reveals only the last', () => {
+  const { matchLinkRoute, resolveRoutedRuntime } = require('../../src/main/link-routes');
+  const f = harness();
+  const routes = [{ id: 'w', match: { kind: 'domain', value: 'work.test' }, destination: { profileId: 'work', spaceId: null, private: false } }];
+  const handler = createExternalUrlHandoff({
+    application: f.application,
+    isReady: () => true,
+    isQuitting: () => false,
+    routeFor: (url) => matchLinkRoute(routes, url)?.destination ?? null,
+    getRuntime: (preferred, destination) => destination
+      ? resolveRoutedRuntime(destination, preferred, { runtimes: f.runtimes, focusOrder: () => 0, openSpace: () => null, openProfileWindow: () => null })
+      : externalWindowRuntime(f.runtimes, preferred ?? f.state.focused, f.primary, f.state.focused),
+    ensureWindow() {},
+    isWindowReady: (runtime) => runtime.chromeReady,
+    withRuntime(runtime, fn) { f.state.current = runtime; try { fn(); } finally { f.state.current = null; } },
+    createTab(url) { f.created.push({ id: f.created.length + 1, url, profileId: f.state.current.profileId }); return f.created.length; },
+    activateTab(id) { f.activated.push(id); },
+    revealWindow(window) { f.revealed.push(window); },
+  });
+  f.work.chromeReady = false;
+  f.primary.chromeReady = false;
+  handler.open(['https://work.test/1', 'https://home.test/', 'https://work.test/2', 'https://home.test/last']);
+  // The earlier URLs' window taking focus by itself doesn't cancel the reveal.
+  f.application.emit('browser-window-focus', {}, f.work.window);
+  f.work.chromeReady = true;
+  f.primary.chromeReady = true;
+  handler.flush();
+  assert.deepEqual(f.created.map((tab) => [tab.url, tab.profileId]), [
+    ['https://work.test/1', 'work'], ['https://home.test/', 'personal'],
+    ['https://work.test/2', 'work'], ['https://home.test/last', 'personal'],
+  ]);
+  assert.deepEqual(f.activated, [4]);
+  assert.deepEqual(f.revealed, [f.primary.window]);
+  f.noListeners();
+});
+
+// #1199: a link opened in a new tab from a page, whose rule sent it elsewhere.
+test('openRouted opens a decided destination, revealing it only for a foreground link', () => {
+  const { resolveRoutedRuntime } = require('../../src/main/link-routes');
+  const f = harness();
+  const options = [];
+  const handler = createExternalUrlHandoff({
+    application: f.application,
+    isReady: () => true,
+    isQuitting: () => f.state.quitting,
+    routeFor: () => { throw new Error('openRouted never asks the rules again'); },
+    getRuntime: (preferred, destination, placement) => {
+      placements.push(placement);
+      return destination
+        ? resolveRoutedRuntime(destination, preferred, { runtimes: f.runtimes, focusOrder: () => 0, openSpace: () => null, openProfileWindow: () => null })
+        : externalWindowRuntime(f.runtimes, preferred ?? f.state.focused, f.primary, f.state.focused);
+    },
+    ensureWindow() {},
+    isWindowReady: (runtime) => runtime.chromeReady,
+    withRuntime(runtime, fn) { f.state.current = runtime; try { fn(); } finally { f.state.current = null; } },
+    createTab(url, tabOptions) {
+      options.push(tabOptions);
+      f.created.push({ id: f.created.length + 1, url, profileId: f.state.current.profileId });
+      return f.created.length;
+    },
+    activateTab(id) { f.activated.push(id); },
+    revealWindow(window) { f.revealed.push(window); },
+  });
+  const work = { profileId: 'work', spaceId: null, private: false };
+  const placements = [];
+
+  handler.openRouted('https://x.test/background', work, { activate: false });
+  assert.deepEqual(placements.at(-1), { background: true }, 'a window it opens is shown without focus');
+  assert.deepEqual(f.created.map((tab) => [tab.url, tab.profileId]), [['https://x.test/background', 'work']]);
+  assert.deepEqual(options[0], { destination: work });
+  assert.deepEqual(f.activated, []);
+  assert.deepEqual(f.revealed, []);
+
+  handler.openRouted('https://x.test/foreground', work);
+  assert.deepEqual(placements.at(-1), { background: false });
+  assert.deepEqual(f.created.at(-1), { id: 2, url: 'https://x.test/foreground', profileId: 'work' });
+  assert.deepEqual(f.activated, [2]);
+  assert.deepEqual(f.revealed, [f.work.window]);
+
+  // Only web URLs, only with a destination, never while quitting.
+  handler.openRouted('file:///etc/passwd', work);
+  handler.openRouted('https://x.test/none', null);
+  f.state.quitting = true;
+  handler.openRouted('https://x.test/quitting', work);
+  assert.equal(f.created.length, 2);
+  f.noListeners();
+});
+
+test('a link routed from inside Blanc leaves a pending reveal for a link from another app alone', () => {
+  const f = harness();
+  const handler = createExternalUrlHandoff({
+    application: f.application,
+    isReady: () => true,
+    isQuitting: () => false,
+    getRuntime: (preferred, destination) => (destination ? f.work : preferred ?? f.primary),
+    ensureWindow() {},
+    isWindowReady: (runtime) => runtime.chromeReady,
+    withRuntime(runtime, fn) { f.state.current = runtime; try { fn(); } finally { f.state.current = null; } },
+    createTab(url) { f.created.push({ url, profileId: f.state.current.profileId }); return f.created.length; },
+    activateTab(id) { f.activated.push(id); },
+    revealWindow(window) { f.revealed.push(window); },
+  });
+  // Another app's link waits for its window's chrome.
+  f.primary.chromeReady = false;
+  handler.open(['https://from-app.test/']);
+  handler.openRouted('https://x.test/', { profileId: 'work', spaceId: null, private: false });
+  // Its window coming forward isn't the user moving away.
+  f.application.emit('browser-window-focus', {}, f.work.window);
+  f.primary.chromeReady = true;
+  handler.flush();
+  assert.deepEqual(f.created.map((tab) => tab.url), ['https://x.test/', 'https://from-app.test/']);
+  assert.deepEqual(f.revealed, [f.work.window, f.primary.window], 'both still come forward');
+  f.noListeners();
+});

@@ -22,7 +22,12 @@
       "command": "/history"
     },
     {
-      "command": "/archive"
+      "command": "/archive",
+      "platforms": [
+        "macos",
+        "windows",
+        "linux"
+      ]
     },
     {
       "command": "/downloads"
@@ -87,6 +92,12 @@
       }
     },
     {
+      "command": "/copy",
+      "doc": {
+        "command": "/copy [clean]"
+      }
+    },
+    {
       "command": "/reader"
     },
     {
@@ -99,7 +110,18 @@
       "command": "/allow-ads"
     },
     {
-      "command": "/dark-site"
+      "command": "/dark-site",
+      "platforms": [
+        "macos",
+        "windows",
+        "linux"
+      ]
+    },
+    {
+      "command": "/route",
+      "doc": {
+        "command": "/route [off]"
+      }
     },
     {
       "command": "/1password",
@@ -125,7 +147,12 @@
       "command": "/glance",
       "doc": {
         "command": "/glance <text>"
-      }
+      },
+      "platforms": [
+        "macos",
+        "windows",
+        "linux"
+      ]
     },
     {
       "command": "/invite"

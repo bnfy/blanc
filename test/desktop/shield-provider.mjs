@@ -10,7 +10,10 @@ import poll from './support/poll.js';
 import popupFocusTrace from './support/popup-focus-trace.js';
 import hooks from './support/test-hook-call.js';
 import { inMainTurn } from './support/main-turn.js';
-const { waitForValue, clickWhenSettled } = poll;
+const { clickWhenSettled } = poll;
+// Waits here get 20 s, not poll.js's 5 s: on a slow Intel runner the uBO
+// Dashboard tab had not opened 5 s after its link was clicked (October 2026).
+const waitForValue = (read, predicate, label, timeout = 20_000) => poll.waitForValue(read, predicate, label, timeout);
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-shield-provider-'));
 fs.mkdirSync(dir + '-Dev');
 const settingsFile = path.join(dir + '-Dev', 'settings.json');
@@ -78,6 +81,14 @@ const providerRadio = (overlay, provider) => overlay.locator(`[name="shieldProvi
 // displays, which stalls Playwright's frame-counted stability check while the
 // target sits still (see clickWhenSettled). Every pointer action in this
 // suite therefore waits for a settled box instead.
+// uBO's popup clears its .loading class only after uBO's own background page
+// answers. On the slower Intel runners that has taken longer than the 8 s
+// default (October 2026), so the popup alone gets a longer wait.
+const POPUP_LOAD_TIMEOUT_MS = 30_000;
+async function popupLoaded(popup) {
+  await popup.locator('body:not(.loading)').waitFor({ timeout: POPUP_LOAD_TIMEOUT_MS });
+}
+
 async function choose(overlay, provider) {
   const radio = providerRadio(overlay, provider);
   await clickWhenSettled(radio, `${provider} choice`);
@@ -390,7 +401,7 @@ try {
   await overlay.screenshot({ animations: 'disabled', path: 'output/playwright/shield-provider-ubo.png' });
   await clickWhenSettled(overlay.locator('#shieldPopUblock'), '#shieldPopUblock');
   const popup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'original popup');
-  await popup.locator('body:not(.loading)').waitFor();
+  await popupLoaded(popup);
   await popup.locator('#switch').waitFor();
   assert.equal(await electron.evaluate(async ({ webContents }, id) => {
     webContents.fromId(id).focus();
@@ -398,6 +409,11 @@ try {
     return webContents.getAllWebContents().some(wc => !wc.isDestroyed() && wc.getURL().includes('/popup-fenix.html'));
   }, regularContents), true, 'a webpage focus transition cannot dismiss controls');
   assert.equal(await electron.evaluate(({ webContents }, id) => webContents.fromId(id).listenerCount('before-mouse-event'), regularContents), outsideListeners + 1);
+  // The page took focus just above; hand it back to the controls, as a click
+  // on them would, before typing into them. Keys sent to an unfocused macOS
+  // window can stall (Intel, October 2026).
+  await electron.evaluate(({ webContents }) => webContents.getAllWebContents()
+    .find(wc => !wc.isDestroyed() && wc.getURL().includes('/popup-fenix.html'))?.focus());
   assert.equal(await popup.locator('#blancMore').getAttribute('aria-expanded'), 'false');
   await popup.locator('#blancMore').press('Enter');
   await popup.locator('#no-scripting').waitFor({ state: 'visible' });
@@ -418,19 +434,19 @@ try {
   assert.equal(await electron.evaluate(({ webContents }, id) => webContents.fromId(id).listenerCount('before-mouse-event'), regularContents), outsideListeners, 'Back removes outside input observers');
   await clickWhenSettled(overlay.locator('#shieldPopUblock'), '#shieldPopUblock');
   const dashboardPopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'styled popup reopened');
-  await dashboardPopup.locator('body:not(.loading)').waitFor();
+  await popupLoaded(dashboardPopup);
   await clickWhenSettled(dashboardPopup.locator('a[href="dashboard.html"] span').last(), 'Dashboard link', { closesPage: true });
   await waitForValue(async () => (await electron.windows()).some(page => page.url().includes('/dashboard.html')), Boolean, 'Dashboard link opens a managed tab');
   await call('activateTab', regular);
   overlay = await openShield(); await clickWhenSettled(overlay.locator('#shieldPopUblock'), '#shieldPopUblock');
   const loggerPopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup for logger');
-  await loggerPopup.locator('body:not(.loading)').waitFor();
+  await popupLoaded(loggerPopup);
   await clickWhenSettled(loggerPopup.locator('a[href="logger-ui.html#_"] span').last(), 'Logger link', { closesPage: true });
   await waitForValue(async () => (await electron.windows()).some(page => page.url().includes('/logger-ui.html')), Boolean, 'Logger link opens a managed tab');
   await call('activateTab', regular);
   overlay = await openShield(); await clickWhenSettled(overlay.locator('#shieldPopUblock'), '#shieldPopUblock');
   const outsidePopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup for outside click');
-  await outsidePopup.locator('body:not(.loading)').waitFor();
+  await popupLoaded(outsidePopup);
   await inMainTurn(electron, ({ webContents }, id) => {
     const wc = webContents.fromId(id);
     wc.sendInputEvent({ type: 'mouseDown', x: 1000, y: 150, button: 'left', clickCount: 1 });
@@ -441,7 +457,7 @@ try {
   stage = 'outside input on a later woken view';
   overlay = await openShield(); await clickWhenSettled(overlay.locator('#shieldPopUblock'), '#shieldPopUblock');
   const laterPopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup before later tab creation');
-  await laterPopup.locator('body:not(.loading)').waitFor();
+  await popupLoaded(laterPopup);
   const laterTab = await call('createQuietTab', url, 'Later outside-click fixture');
   assert.equal(await call('wakeTab', laterTab), true);
   const laterContents = (await call('state')).tabs.find(tab => tab.id === laterTab).webContentsId;
@@ -458,7 +474,7 @@ try {
   stage = 'original uBO popup Escape';
   overlay = await openShield(); await clickWhenSettled(overlay.locator('#shieldPopUblock'), '#shieldPopUblock');
   const escapePopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup for Escape');
-  await escapePopup.locator('body:not(.loading)').waitFor();
+  await popupLoaded(escapePopup);
   await escapePopup.locator('#switch').waitFor();
   await inMainTurn(electron, ({ webContents }) => {
     const wc = webContents.getAllWebContents().find(item => item.getURL().includes('/popup-fenix.html'));
@@ -476,7 +492,7 @@ try {
   });
   await clickWhenSettled(overlay.locator('#shieldPopUblock'), '#shieldPopUblock');
   const secondPopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'original popup reopened');
-  await secondPopup.locator('body:not(.loading)').waitFor();
+  await popupLoaded(secondPopup);
   await secondPopup.locator('#switch').waitFor();
   await call('openPanel');
   await overlay.locator('#islandPanel').waitFor({ state: 'visible' });

@@ -1611,12 +1611,15 @@
         {
           "tabs": [],
           "selectedTabIds": [],
+          "canStartGroup": true,
           "activeTabId": "tab-id-1",
           "glanceTabId": "tab-id-1",
           "groups": [],
           "closed": [],
           "closedSlot": 1,
           "tabLayout": "island",
+          "verticalTabsTextSize": "tabs-snapshot-1",
+          "islandTabIcons": true,
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
           "verticalTabsMinWidth": 1,
@@ -1685,6 +1688,7 @@
           "selectedTabIds": [
             "tab-id-1"
           ],
+          "canStartGroup": true,
           "activeTabId": "tab-id-1",
           "glanceTabId": "tab-id-1",
           "groups": [
@@ -1706,6 +1710,8 @@
           ],
           "closedSlot": 1,
           "tabLayout": "island",
+          "verticalTabsTextSize": "tabs-snapshot-1",
+          "islandTabIcons": true,
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
           "verticalTabsMinWidth": 1,
@@ -2953,6 +2959,46 @@
               "clean-link-copied"
             ]
           ]
+        },
+        {
+          "emit": [
+            "route-on"
+          ],
+          "callbacks": [
+            [
+              "route-on"
+            ]
+          ]
+        },
+        {
+          "emit": [
+            "route-off"
+          ],
+          "callbacks": [
+            [
+              "route-off"
+            ]
+          ]
+        },
+        {
+          "emit": [
+            "route-limit"
+          ],
+          "callbacks": [
+            [
+              "route-limit"
+            ]
+          ]
+        },
+        {
+          "emit": [
+            "route-unavailable"
+          ],
+          "callbacks": [
+            [
+              "route-unavailable"
+            ]
+          ]
         }
       ]
     },
@@ -2994,6 +3040,28 @@
             {
               "kind": "send",
               "channel": "chrome:open-island-commands",
+              "args": []
+            }
+          ]
+        }
+      ]
+    },
+    "beginNewGroup": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:new-group",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:new-group",
               "args": []
             }
           ]
@@ -3342,6 +3410,73 @@
               "channel": "chrome:capture-focus",
               "args": [
                 "capture-surface-id-1"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "switcherPick": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:switcher-pick",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "tab-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:switcher-pick",
+              "args": [
+                "tab-id-1"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "copyActiveLink": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:copy-link",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            true
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:copy-link",
+              "args": [
+                true
+              ]
+            }
+          ]
+        },
+        {
+          "label": "clean = false",
+          "args": [
+            false
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:copy-link",
+              "args": [
+                false
               ]
             }
           ]
@@ -4290,6 +4425,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -4429,6 +4571,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -4598,6 +4747,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -4728,6 +4884,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -4862,6 +5025,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -4996,6 +5166,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -5083,6 +5260,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -5170,6 +5354,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -5257,6 +5448,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -5373,6 +5571,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -5462,6 +5667,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -5549,6 +5761,13 @@
           "error": "activation-failed",
           "cause": "activation-failed",
           "reason": "permission-or-transition",
+          "blockingTabs": [
+            {
+              "id": "tab-id-1",
+              "title": "workspace-blocking-tab-1",
+              "reason": "loading"
+            }
+          ],
           "tabCount": 1,
           "privateCount": 1,
           "decision": "workspace-action-result-1",
@@ -6229,6 +6448,73 @@
         null
       ]
     },
+    "routeActiveSite": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:route-active",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "toggle"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:route-active",
+              "args": [
+                "toggle"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "mode = \"on\"",
+          "args": [
+            "on"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:route-active",
+              "args": [
+                "on"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "mode = \"off\"",
+          "args": [
+            "off"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:route-active",
+              "args": [
+                "off"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        },
+        {
+          "ok": true,
+          "host": "route-result-1",
+          "on": true,
+          "error": "unavailable"
+        }
+      ]
+    },
     "siteInfoForgetCertificateException": {
       "kind": "invoke",
       "platforms": [
@@ -6540,12 +6826,15 @@
             {
               "tabs": [],
               "selectedTabIds": [],
+              "canStartGroup": true,
               "activeTabId": "tab-id-1",
               "glanceTabId": "tab-id-1",
               "groups": [],
               "closed": [],
               "closedSlot": 1,
               "tabLayout": "island",
+              "verticalTabsTextSize": "tabs-updated-payload-1",
+              "islandTabIcons": true,
               "adblockEnabled": true,
               "shieldPopover": {
                 "variant": "site",
@@ -6570,6 +6859,11 @@
                 "darkSite": {
                   "on": true,
                   "appliesNow": true
+                },
+                "route": {
+                  "on": true,
+                  "scope": "profile",
+                  "elsewhere": "shield-route-1"
                 }
               },
               "captureChip": {
@@ -6593,12 +6887,15 @@
               {
                 "tabs": [],
                 "selectedTabIds": [],
+                "canStartGroup": true,
                 "activeTabId": "tab-id-1",
                 "glanceTabId": "tab-id-1",
                 "groups": [],
                 "closed": [],
                 "closedSlot": 1,
                 "tabLayout": "island",
+                "verticalTabsTextSize": "tabs-updated-payload-1",
+                "islandTabIcons": true,
                 "adblockEnabled": true,
                 "shieldPopover": {
                   "variant": "site",
@@ -6623,6 +6920,11 @@
                   "darkSite": {
                     "on": true,
                     "appliesNow": true
+                  },
+                  "route": {
+                    "on": true,
+                    "scope": "profile",
+                    "elsewhere": "shield-route-1"
                   }
                 },
                 "captureChip": {
@@ -6706,6 +7008,7 @@
               "selectedTabIds": [
                 "tab-id-1"
               ],
+              "canStartGroup": true,
               "activeTabId": "tab-id-1",
               "glanceTabId": "tab-id-1",
               "groups": [
@@ -6727,6 +7030,8 @@
               ],
               "closedSlot": 1,
               "tabLayout": "island",
+              "verticalTabsTextSize": "tabs-updated-payload-1",
+              "islandTabIcons": true,
               "adblockEnabled": true,
               "shieldPopover": {
                 "variant": "site",
@@ -6751,6 +7056,11 @@
                 "darkSite": {
                   "on": true,
                   "appliesNow": true
+                },
+                "route": {
+                  "on": true,
+                  "scope": "profile",
+                  "elsewhere": "shield-route-1"
                 }
               },
               "captureChip": {
@@ -6866,6 +7176,7 @@
                 "selectedTabIds": [
                   "tab-id-1"
                 ],
+                "canStartGroup": true,
                 "activeTabId": "tab-id-1",
                 "glanceTabId": "tab-id-1",
                 "groups": [
@@ -6887,6 +7198,8 @@
                 ],
                 "closedSlot": 1,
                 "tabLayout": "island",
+                "verticalTabsTextSize": "tabs-updated-payload-1",
+                "islandTabIcons": true,
                 "adblockEnabled": true,
                 "shieldPopover": {
                   "variant": "site",
@@ -6911,6 +7224,11 @@
                   "darkSite": {
                     "on": true,
                     "appliesNow": true
+                  },
+                  "route": {
+                    "on": true,
+                    "scope": "profile",
+                    "elsewhere": "shield-route-1"
                   }
                 },
                 "captureChip": {

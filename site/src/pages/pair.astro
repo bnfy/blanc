@@ -1,0 +1,57 @@
+---
+// blanc.day/pair (design 2026-10-28 §7.3): the link inside the QR that Blanc
+// on a computer shows for pairing an iPhone. Blanc for iPhone reads the code
+// from the link's fragment and never loads this page; another browser loads
+// it when the iPhone's Camera app opens the link. The fragment holds the
+// pairing code and any script could read it, so this page deliberately skips
+// BaseLayout (its header, footer, newsletter, chat and measurement all run
+// scripts) and ships none at all. site/public/_headers sets script-src 'none'
+// for /pair as well; test/site/pair-page.test.mjs holds both.
+import '@fontsource-variable/inter';
+import '../styles/site.css';
+import '../styles/revamp.css';
+import '../styles/blubird.css';
+import { SITE_ORIGIN } from '../lib/site-origin.mjs';
+import ios from '../data/ios-availability.json';
+
+const title = 'Pair your iPhone with Blanc';
+const description = 'Open Blanc on your iPhone and choose Pair with your Blanc in Settings → Sync to scan the pairing code on your computer.';
+---
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title}</title>
+<meta name="description" content={description}>
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#1b1a18">
+<link rel="canonical" href={`${SITE_ORIGIN}/pair`}>
+<link rel="icon" href="/favicon.ico?v=sunrise" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=sunrise">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=sunrise">
+</head>
+<body>
+<header class="site-header revamp-header">
+  <nav class="site-nav revamp-nav" aria-label="Primary navigation">
+    <a class="site-brand" href="/" aria-label="Blanc Browser home"
+      ><span class="site-lockup site-lockup--small" aria-hidden="true"
+        ><img class="site-lockup-mark" src="/lockup/sunrise-mark-256.webp" width="256" height="256" alt=""
+        /><img class="site-lockup-word" src="/lockup/blanc-word-small-ink.svg" width="2466" height="762" alt=""
+      /></span></a>
+  </nav>
+</header>
+<main id="main-content" class="tab-handoff-landing">
+  <section class="tab-handoff-card" aria-labelledby="pair-title">
+    <h1 id="pair-title">Pair your iPhone with Blanc</h1>
+    <p class="tab-handoff-status">Open Blanc on your iPhone, choose <strong>Pair with your Blanc</strong> in Settings → Sync, and point it at the code on your computer.</p>
+    <p class="tab-handoff-status">This page can’t pair your iPhone. Nothing on it reads the code or sends it anywhere.</p>
+    <div class="tab-handoff-fallback">
+      <p>Don’t have Blanc for iPhone yet? It’s in a public beta through Apple’s TestFlight.</p>
+      <a href={ios.joinUrl} rel="noopener noreferrer">Join the beta on TestFlight <span aria-hidden="true">↗</span></a>
+      <p>Needs iOS 18.4 or later and Apple’s free TestFlight app.</p>
+    </div>
+  </section>
+</main>
+</body>
+</html>

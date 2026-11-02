@@ -43,7 +43,7 @@ final class StartPageHold: NSObject, WKScriptMessageHandler {
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard message.frameInfo.isMainFrame, let webView = message.webView, let manager,
-              let tab = manager.tabs.first(where: { $0.webView === webView }) else { return }
+              let tab = manager.tabs.first(where: { $0.existingWebView === webView }) else { return }
         manager.startPageHeld(tab)
     }
 }

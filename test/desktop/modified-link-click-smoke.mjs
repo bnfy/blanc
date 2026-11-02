@@ -7,12 +7,17 @@ import { _electron } from 'playwright';
 import testHookCall from './support/test-hook-call.js';
 import poll from './support/poll.js';
 import { inMainTurn } from './support/main-turn.js';
+import tempProfile from './support/temp-profile.js';
 
 // Native modifier/button events exercise Electron's deferred background-tab
 // contents (#468), including document sandbox/referrer inheritance, profile
 // sessions, foreground focus, and recreation of restricted tab contents.
 const { callTestHook } = testHookCall;
-const { waitForValue } = poll;
+// Waits for something to happen get 20 s, not poll.js's 5 s: on a busy CI
+// runner a background child has still been loading its page after 5 s
+// (October 2026).
+const waitForValue = (read, predicate, label, timeout = 20_000) => poll.waitForValue(read, predicate, label, timeout);
+const { removeTempProfile } = tempProfile;
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-modified-click-'));
 const profile = path.join(root, 'profile');
 const uncaught = path.join(root, 'uncaught.log');
@@ -214,10 +219,10 @@ try {
   await new Promise((resolve) => server.close(resolve));
   const error = fs.existsSync(uncaught) ? fs.readFileSync(uncaught, 'utf8') : '';
   // Windows can keep a child process's cache file open briefly after Blanc
-  // exits. Cleanup never replaces an earlier failure; it fails only a pass.
-  try {
-    fs.rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
-  } catch (cleanupError) {
+  // exits; a file still held after the retries is left behind (temp-profile.js).
+  // Any other cleanup error never replaces an earlier failure; it fails only a pass.
+  const cleanupError = removeTempProfile(root);
+  if (cleanupError) {
     if (!failed && !error) throw cleanupError;
     console.error(`left ${root} behind: ${cleanupError.code ?? cleanupError.message}`);
   }

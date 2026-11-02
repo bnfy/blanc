@@ -20,13 +20,26 @@ function createScheduler({limit=10,windowMs=60000,log=[],nextClass='I',cursors={
       recoverAt=cap===limit?null:recoverAt+steps*60000;
     }
   }
-  const canRequest=()=>{refresh();return events.length<cap;};
-  function windowFreesAt() {
-    refresh();return events.length<cap?now():now()+Math.max(0,windowMs-(monotonic()-events[events.length-cap].at));
+  // The queue reserves the window's last request for a fetch the person is
+  // waiting on (the Choose Spaces sheet's index check): background work asks
+  // with {reserve:true} and leaves it free, so that fetch never waits up to a
+  // minute behind routine sync. The window itself never grows, and small or
+  // backed-off windows keep every request. Without the option these are the
+  // window's hard limit, which the iOS vectors share.
+  const room=reserve=>reserve&&cap>=4?cap-1:cap;
+  const canRequest=({reserve=false}={})=>{refresh();return events.length<room(reserve);};
+  function windowFreesAt({reserve=false}={}) {
+    refresh();const n=room(reserve);return events.length<n?now():now()+Math.max(0,windowMs-(monotonic()-events[events.length-n].at));
   }
   function record() {
     if(!canRequest())throw new RangeError('Sync request window exhausted');
-    events.push({wall:now(),at:monotonic()});
+    const event={wall:now(),at:monotonic()};events.push(event);return event;
+  }
+  // Charge through completion, not just reservation: persisting the log and
+  // network latency can otherwise compress actual dispatch/arrival windows.
+  function settle(event) {
+    event.wall=now();event.at=monotonic();
+    if(!events.includes(event))events.push(event);
   }
   function pick(work={}) {
     if(!canRequest())return null;
@@ -50,9 +63,12 @@ function createScheduler({limit=10,windowMs=60000,log=[],nextClass='I',cursors={
     }
     return null;
   }
+  // Acceptance harness only (sync.resetRequestWindowForTest): forget every
+  // recorded request and any back-off, as if the window had just opened.
+  function resetWindow() {events=[];cap=limit;recoverAt=null;}
   function onRateLimited() {refresh();cap=Math.max(Math.min(3,limit),Math.floor(cap/2));recoverAt=monotonic()+360000;}
   function snapshot() {refresh();return {log:events.map(e=>e.wall),nextClass:next,cursors:{...items},windowLimit:cap,
     backoffUntil:recoverAt===null?null:now()+Math.max(0,recoverAt-monotonic()-60000)};}
-  return {canRequest,record,next:pick,markIndexDue:()=>{indexDue=true;},onRateLimited,snapshot,windowFreesAt};
+  return {canRequest,record,settle,next:pick,markIndexDue:()=>{indexDue=true;},onRateLimited,resetWindow,snapshot,windowFreesAt};
 }
 module.exports={createScheduler};

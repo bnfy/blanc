@@ -66,6 +66,16 @@ test('duplicate tab bindings create distinct records and unsupported URLs never 
   assert.equal(diff.tabIds[1],id(10));assert.equal(diff.tabIds[2],null);
   assert.equal(Object.values(diff.nextBaseline.tabs).some(t=>t.nav.v.url.startsWith('file:')),false);
 });
+test('internal and local navigation retain the last shareable page without publishing a delete',()=>{
+  for(const url of ['blanc://settings/','file:///Users/me/private.html']) {
+    const c=capture();c.urls[0]=url;c.meta[0].title='Local only';
+    const diff=adapter.diffWindow(baseline(),c,200,'b',ids());
+    assert.equal(diff.tabIds[0],id(1));
+    assert.equal(diff.edits.tabs?.[id(1)],undefined);
+    assert.equal(diff.nextBaseline.tabs[id(1)].deleted.v,false);
+    assert.deepEqual(diff.nextBaseline.tabs[id(1)].nav.v,{url:'https://one.test/',title:'One'});
+  }
+});
 test('reordering keeps every position valid and strictly ordered',()=>{
   const c=capture();c.urls.reverse();c.meta.reverse();c.tabIds.reverse();c.activeIndex=1;
   const diff=adapter.diffWindow(baseline(),c,200,'b',ids()),a=diff.nextBaseline.tabs[id(2)],b=diff.nextBaseline.tabs[id(1)];
