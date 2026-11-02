@@ -2,7 +2,12 @@
 // decides it. Valid only if every negative control appears in the pf log.
 // Passes only if the proxy log names nothing but the selected engines and the
 // sites the scenarios themselves visit, the pf log has no blocked attempt
-// outside a control, and the leak probe passed.
+// during the run outside a control, and the leak probe passed. pf can match
+// only by user, so the test account's own macOS services are blocked too:
+// blocks before the run starts or after it ends are that background, and a
+// block during the run to an address that background also reached (or to a
+// multicast or link-local address) is reported as background, not a failure.
+// A control's address never counts as background.
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -23,7 +28,9 @@ export function hostOf(target) {
   try { return /^[a-z]+:\/\//i.test(target) ? new URL(target).hostname : target.replace(/:\d+$/, '').replace(/^\[|\]$/g, ''); } catch { return target; }
 }
 
-export function judge({controls, pflog, egress, leak, scenarioHosts}) {
+const LOCAL = /^(22[4-9]|23\d)\.|^169\.254\.|^ff0|^fe80:/i;
+
+export function judge({controls, pflog, egress, leak, scenarioHosts, run}) {
   const problems = [];
   const windows = [];
   const missingRoute = [];
@@ -34,15 +41,25 @@ export function judge({controls, pflog, egress, leak, scenarioHosts}) {
     if (!pflog.some(p => p.at >= from && p.at <= to && p.address === c.address && p.port === c.port))
       problems.push(`control ${c.name} (${c.address}:${c.port}) was not seen in the pf log: the run is invalid`);
   }
-  const unexplained = pflog.filter(p => !windows.some(([from, to]) => p.at >= from && p.at <= to));
-  for (const p of unexplained) problems.push(`blocked attempt outside every control: ${p.line}`);
+  if (!run || !(run.start < run.end)) problems.push('the run has no start and end time: the run is invalid');
+  const during = p => run && p.at >= run.start && p.at <= run.end;
+  const controlAddresses = new Set(controls.map(c => c.address));
+  const seenIdle = new Set(pflog.filter(p => !during(p) && !controlAddresses.has(p.address)).map(p => p.address));
+  const background = new Map();
+  for (const p of pflog) {
+    if (!during(p) || windows.some(([from, to]) => p.at >= from && p.at <= to)) continue;
+    if (seenIdle.has(p.address) || LOCAL.test(p.address))
+      background.set(p.address, (background.get(p.address) ?? 0) + 1);
+    else problems.push(`blocked attempt during the run outside every control: ${p.line}`);
+  }
   const allowed = new Set([...ENGINE_HOSTS, ...scenarioHosts]);
   const hosts = new Map();
   for (const r of egress) hosts.set(hostOf(r.target), (hosts.get(hostOf(r.target)) ?? 0) + 1);
   for (const [host, count] of hosts) if (!allowed.has(host)) problems.push(`proxy saw ${count} request(s) to ${host}, not an engine or a scenario site`);
   if (leak?.status !== 'passed') problems.push(`leak probe ${leak?.status ?? 'missing'}: ${leak?.error ?? ''}`);
   return {verdict: problems.length ? 'fail' : 'pass', problems, missingRoute, egressHosts: Object.fromEntries(hosts),
-    pflogLines: pflog.length, controls: controls.length};
+    pflogLines: pflog.length, controls: controls.length, idleBlocks: pflog.filter(p => !during(p)).length,
+    backgroundDuringRun: Object.fromEntries(background)};
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
@@ -58,7 +75,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const egress = read('egress.jsonl').split('\n').filter(Boolean).map(l => JSON.parse(l));
   const features = ['navigation-and-context-menu', 'island-and-commands'].map(f => fs.readFileSync(path.join(root, `spec/acceptance/${f}.feature`), 'utf8')).join('\n');
   const scenarioHosts = [...features.matchAll(/https?:\/\/([a-z0-9.-]+)/gi)].map(m => m[1].toLowerCase());
-  const report = judge({controls, pflog: parsePflog(read('pflog.txt')), egress, leak: json('leak.json'), scenarioHosts});
+  // user.sh's log: "<UTC ISO time> <step>" per step, the last one "Done".
+  const steps = [...read('user.log').matchAll(/^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ) (.*)$/gm)];
+  const run = steps.length > 1 && /^Done/.test(steps.at(-1)[2])
+    ? {start: Date.parse(steps[0][1]) - 1000, end: Date.parse(steps.at(-1)[1]) + 5000} : null;
+  const report = judge({controls, pflog: parsePflog(read('pflog.txt')), egress, leak: json('leak.json'), scenarioHosts, run});
   fs.writeFileSync(path.join(results, 'verdict.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify(report, null, 2));
   if (report.verdict !== 'pass') process.exitCode = 1;
