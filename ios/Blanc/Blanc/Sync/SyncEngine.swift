@@ -517,15 +517,18 @@ private final class Box<T> {
       throw SyncError.badPassphrase
     }
   }
-  func syncNow() async {
+  /// A full pass, or with `only` a pass over just those stores (the ones a
+  /// change check found moved): unread stores are neither merged nor written.
+  /// A pass already running serves a partial one; a full one runs again after.
+  func syncNow(only: Set<SyncStore>? = nil) async {
     guard !transitioning, stateStore.state.enabled else { return }
     if let task = passTask {
-      rerunRequested = true
+      if only == nil { rerunRequested = true }
       await task.value
       return
     }
     let g = generation
-    let task = Task { await self.runPass(generation: g) }
+    let task = Task { await self.runPass(generation: g, only: only) }
     passTask = task
     await task.value
     if generation == g {
@@ -539,15 +542,18 @@ private final class Box<T> {
   /// One pass: the fixed stores (read together, then merged and written), and
   /// with the Spaces switch on the index and the Space blobs beside them.
   /// Every GET waits for its turn in the request window (M16 §6.2).
-  private func runPass(generation g: Int) async {
+  private func runPass(generation g: Int, only: Set<SyncStore>? = nil) async {
     var spaces: Task<Void, Never>?
     do {
       let snap = try snapshot()
       try check(g)
       sharedState.rebind(accountId: snap.accountId)
       let consent = spacesConsent
-      if consent { spaces = Task { await self.syncSpaces(snap) } }
-      try await syncFixed(snap, consent: consent)
+      if consent, only == nil || only!.contains(.spaces) {
+        spaces = Task { await self.syncSpaces(snap, full: only == nil) }
+      }
+      let fixed = only?.subtracting([.spaces])
+      if fixed?.isEmpty != true { try await syncFixed(snap, consent: consent, only: fixed) }
       await spaces?.value
     } catch {
       await spaces?.value
@@ -563,13 +569,15 @@ private final class Box<T> {
   /// merge it without writing), and `expired` drops the reads still waiting
   /// for their turn once Background App Refresh's time is up.
   private func readFixed(
-    _ snap: AccountSnapshot, consent: Bool, sidecar: Bool = true, expired: @escaping () -> Bool = { false }
+    _ snap: AccountSnapshot, consent: Bool, sidecar: Bool = true, only: Set<SyncStore>? = nil,
+    expired: @escaping () -> Bool = { false }
   ) async throws -> (
     pulled: [SyncStore: (String, JSONValue)], unavailable: Set<SyncStore>
   ) {
     let g = snap.generation
-    let stores: [SyncStore] =
+    let stores: [SyncStore] = (
       [.bookmarks, .settings, .session, .icons, .sends] + (consent ? [.closed] : []) + (consent && sidecar ? [.shared] : [])
+    ).filter { only?.contains($0) ?? true }
     // Favicons, sent pages and the Spaces sidecars are optional, as on
     // desktop: a missing, broken or busy store (or an older Worker without it)
     // keeps the phone's last copy and never blocks the rest or sets lastError.
@@ -624,35 +632,47 @@ private final class Box<T> {
     if let failure { throw failure }
     return (pulled, unavailable)
   }
-  private func syncFixed(_ snap: AccountSnapshot, consent: Bool) async throws {
+  private func syncFixed(_ snap: AccountSnapshot, consent: Bool, only: Set<SyncStore>? = nil) async throws {
     let g = snap.generation
     let ownId = stateStore.state.deviceId
     passVersions = [:]
     defer { passVersions = nil }
     do {
-      let (pulled, unavailable) = try await readFixed(snap, consent: consent)
+      let (pulled, readUnavailable) = try await readFixed(snap, consent: consent, only: only)
+      // A store this pass doesn't read is left as it is, like one that can't be read.
+      let unread = Set(SyncStore.allCases).subtracting(only ?? Set(SyncStore.allCases))
+      let unavailable = readUnavailable.union(unread)
       let iconsUnavailable = unavailable.contains(.icons)
       let sendsUnavailable = unavailable.contains(.sends)
       let closedRevisionBefore = closedRevision
+      let previousMembership = session["membership"]
       // Desktop creates the settings store when a sync starts, so its absence
       // means the sync was deleted (Settings → Sync → delete synced data). The
       // phone joins only: it stops and says so rather than recreating it.
-      guard pulled[.settings] != nil else { throw SyncError.accountGone }
+      guard pulled[.settings] != nil || unread.contains(.settings) else { throw SyncError.accountGone }
       // Stage all reads/authentication before applying anything or writing remotely.
       var mergedSettings = settings
       if let data = pulled[.settings]?.1 {
         mergedSettings.merge(remote: SyncedSettings(payload: data))
       }
-      var mergedSession = TabSnapshots.merge(
-        local: session["devices"] ?? .object([]),
-        remote: pulled[.session]?.1["devices"] ?? .object([]), ownId: stateStore.state.deviceId,
-        now: clock())
-      mergedSession = .object([("devices", mergedSession)])
+      var mergedSession: JSONValue =
+        unread.contains(.session)
+        ? .object([("devices", session["devices"] ?? .object([]))])
+        : .object([
+          (
+            "devices",
+            TabSnapshots.merge(
+              local: session["devices"] ?? .object([]),
+              remote: pulled[.session]?.1["devices"] ?? .object([]), ownId: stateStore.state.deviceId,
+              now: clock())
+          )
+        ])
       // Every device announces itself, so Settings → Sync can list it: a
       // phone that doesn't share its tabs publishes its presence alone (no
       // tabs). It never creates a missing tab list, which would recreate data
       // deleted from desktop; desktop creates that list.
       let announcesPresence = !stateStore.state.syncTabs && pulled[.session] != nil
+      let publishesSession = !unread.contains(.session) && (stateStore.state.syncTabs || announcesPresence)
       // With the Spaces switch on the snapshot's tabs carry their shared Space,
       // and a change of membership alone gives the entry a fresh clock
       // (desktop's tabsync), so an older sidecar binding can't tie and win.
@@ -670,7 +690,7 @@ private final class Box<T> {
       let snapshotGroups = stateStore.state.syncTabs ? (sharedGroupsSource?() ?? []) : []
       let membership: String? =
         consent && sharedSource != nil && stateStore.state.syncTabs ? TabSnapshots.membership(snapshotTabs) : nil
-      if stateStore.state.syncTabs || announcesPresence {
+      if publishesSession {
         let previous = mergedSession["devices"]?[stateStore.state.deviceId]
         mergedSession = replacingOwn(
           in: mergedSession,
@@ -690,9 +710,12 @@ private final class Box<T> {
           )
         ])
       let favoritesBeforeWrite = favoritesRevision
-      let mergedFavorites = SyncedFavorites.merge(
-        local: stateStore.load(.bookmarks) ?? .object([]),
-        remote: pulled[.bookmarks]?.1 ?? .object([]), now: Double(clock()))
+      let mergedFavorites =
+        unread.contains(.bookmarks)
+        ? stateStore.load(.bookmarks) ?? .object([])
+        : SyncedFavorites.merge(
+          local: stateStore.load(.bookmarks) ?? .object([]),
+          remote: pulled[.bookmarks]?.1 ?? .object([]), now: Double(clock()))
       var mergedSendDevices = sends["devices"] ?? .object([])
       if !sendsUnavailable {
         mergedSendDevices = withOwnPresence(
@@ -703,19 +726,22 @@ private final class Box<T> {
       // Preserve a concurrent local settings edit made during a GET.
       mergedSettings.merge(remote: settings)
       let revisionBeforeWrite = settingsRevision
-      let savedSettings = try await writeMerged(
-        .settings, payload: mergedSettings.payload(), remote: pulled[.settings], snapshot: snap)
+      let savedSettings =
+        unread.contains(.settings)
+        ? mergedSettings.payload()
+        : try await writeMerged(.settings, payload: mergedSettings.payload(), remote: pulled[.settings], snapshot: snap)
       try check(g)
       // Never create an account's Favorites store just to hold nothing.
       var savedFavorites = mergedFavorites
-      if pulled[.bookmarks] != nil || !(mergedFavorites["items"]?.array ?? []).isEmpty
-        || !(mergedFavorites["tombstones"]?.array ?? []).isEmpty
+      if !unread.contains(.bookmarks),
+        pulled[.bookmarks] != nil || !(mergedFavorites["items"]?.array ?? []).isEmpty
+          || !(mergedFavorites["tombstones"]?.array ?? []).isEmpty
       {
         savedFavorites = try await writeMerged(
           .bookmarks, payload: mergedFavorites, remote: pulled[.bookmarks], snapshot: snap)
         try check(g)
       }
-      if stateStore.state.syncTabs || announcesPresence {
+      if publishesSession {
         let uploadedSession = try await writeMerged(
           .session,
           payload: .object([
@@ -807,7 +833,7 @@ private final class Box<T> {
       session = mergedSession
       // Kept locally beside the snapshot: what the last published entry's
       // membership was, for the next entry's clock.
-      session["membership"] = membership.map(JSONValue.string)
+      session["membership"] = publishesSession ? membership.map(JSONValue.string) : previousMembership
       icons = mergedIcons
       sends = localSends(devices: mergedSendDevices)
       closed = mergedClosed
@@ -1568,7 +1594,8 @@ private final class Box<T> {
   /// class S for Spaces with pending writes or a moved revision, class R for
   /// every Space (not awaited: it rotates on across passes), then the index
   /// again when a blob was written, so the blob always lands first (§3.6).
-  private func syncSpaces(_ snap: AccountSnapshot) async {
+  /// A pass a change check started (`full: false`) leaves class R out.
+  private func syncSpaces(_ snap: AccountSnapshot, full: Bool = true) async {
     let g = snap.generation
     var served = Set<String>()
     var pushes: [Task<SpaceOutcome, Never>] = []
@@ -1581,7 +1608,7 @@ private final class Box<T> {
     let before = Set(sharedState.spaceIds + sharedState.deletedSpaceIds)
     let index = Task { () async -> SpaceOutcome in await self.syncIndex(snap) }
     push(before.sorted(by: utf16Less))
-    for id in before.sorted(by: utf16Less) { reconcile(id, snap) }
+    if full { for id in before.sorted(by: utf16Less) { reconcile(id, snap) } }
     _ = await index.value
     var wrote = false
     for task in pushes {
@@ -1593,7 +1620,7 @@ private final class Box<T> {
     let after = Set(sharedState.spaceIds + sharedState.deletedSpaceIds)
     let offset = pushes.count
     push(after.sorted(by: utf16Less))
-    for id in after.subtracting(before).sorted(by: utf16Less) { reconcile(id, snap) }
+    if full { for id in after.subtracting(before).sorted(by: utf16Less) { reconcile(id, snap) } }
     for task in pushes[offset...] {
       let outcome = await task.value
       wrote = wrote || outcome.stored || outcome.needsIndex

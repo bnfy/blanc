@@ -329,6 +329,23 @@ import CryptoKit
         XCTAssertEqual(sidecar?["forUpdatedAt"], session?["updatedAt"])
         XCTAssertEqual(sidecar?["tabs"]?.array.count, 2)
     }
+    func testAChangedSessionStillUpdatesTheSidecarBindingAfterItsUpload() async throws {
+        let f = try await make(spaces: true, sharing: true)
+        let spaceId = id(1)
+        try await f.transport.install(account, .session, .object([("devices", .object([]))]), key: f.key)
+        var tabs = [SnapshotTab(url: "https://shared.example/", title: "Shared", sharedSpaceId: spaceId),
+                    SnapshotTab(url: "https://own.example/", title: "Own")]
+        f.engine.sharedTabsSource = { tabs }
+        await pass(f)
+        tabs[1].sharedSpaceId = spaceId
+        f.clock.advance(1000)
+        await f.engine.syncNow(only: [.session])
+        await f.engine.requestsSettled()
+        let session = try await f.transport.value(account, .session, key: f.key)?["devices"]?[f.own]
+        let binding = f.engine.sharedState.exportSidecar(deviceId: f.own)?["devices"]?[f.own]
+        XCTAssertEqual(binding?["forUpdatedAt"], session?["updatedAt"], "the binding describes the entry just uploaded")
+        XCTAssertEqual(binding?["tabs"]?.array.count, 2)
+    }
     func testTheSnapshotPublishesGroupsAndNoSpaceWithTheSwitchOff() async throws {
         let f = try await make(spaces: false, sharing: true)
         try await f.transport.install(account, .session, .object([("devices", .object([]))]), key: f.key)

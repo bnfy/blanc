@@ -678,3 +678,38 @@ extension SyncEngineTests {
         XCTAssertNil(f.state.state.seenVersions)
     }
 }
+
+// MARK: A pass over only the stores that changed (design 2026-11-02)
+extension SyncEngineTests {
+    func testOnlySettingsReadsOneStore() async throws {
+        let f = try await make()
+        try await f.transport.install(accountA, .bookmarks, .object([("items", .array([])), ("tombstones", .array([]))]), key: f.key)
+        try await f.transport.install(accountA, .settings, settings("dark", at: 200), key: f.key)
+        await f.engine.syncNow(only: [.settings])
+        let requests = await f.transport.records()
+        XCTAssertEqual(requests.map(\.method), ["GET"])
+        XCTAssertEqual(requests.map(\.path), ["v1/blob/\(accountA)/settings"])
+        XCTAssertEqual(f.state.load(.settings)?["values"]?["theme"], .string("dark"), "what it read is applied")
+        XCTAssertEqual(f.engine.seenVersions.keys.sorted(), ["settings"])
+        XCTAssertNil(f.state.state.lastError)
+    }
+    func testAMissingSettingsEndsTheAccountOnlyWhenSettingsWasRead() async throws {
+        let f = try await make()
+        await f.transport.remove(accountA, .settings)
+        await f.engine.syncNow(only: [.bookmarks])
+        XCTAssertNil(f.state.state.lastError, "a pass that didn't read settings can't tell")
+        await f.engine.syncNow(only: [.settings])
+        XCTAssertEqual(f.state.state.lastError, SyncError.accountGone.code)
+    }
+    func testAPhoneEditStillGoesOutInAFullPass() async throws {
+        let f = try await make()
+        addFavorite(f.engine, "https://fav.example/")
+        await f.engine.syncNow(only: [.settings])
+        let before = try await f.transport.value(accountA, .bookmarks, key: f.key)
+        XCTAssertNil(before, "a store not read is never written")
+        XCTAssertEqual(f.engine.favorites.map(\.url), ["https://fav.example/"], "and the phone's copy stays")
+        await f.engine.syncNow()
+        let after = try await f.transport.value(accountA, .bookmarks, key: f.key)
+        XCTAssertEqual(favoriteURLs(after), ["https://fav.example/"])
+    }
+}
