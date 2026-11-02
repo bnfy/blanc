@@ -2625,4 +2625,16 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="ios_default_browser_done">Blanc es tu navegador predeterminado</string>
     <string name="ios_default_browser_row">Navegador predeterminado</string>
     <string name="ios_default_browser_not_blanc">No es Blanc</string>
+    <string name="menu_new_mini_window">Nueva miniventana</string>
+    <string name="mini_open_in_blanc">Abrir en Blanc</string>
+    <string name="mini_open_in_blanc_title">Conservar esta miniventana como una ventana normal de Blanc</string>
+    <string name="mini_open_in_blanc_label">Abrir en Blanc: conservar esta miniventana como una ventana normal de Blanc</string>
+    <string name="settings_general_mini_window_label">Atajo de la miniventana</string>
+    <string name="settings_general_mini_window_hint">Abre una pequeña ventana de Blanc sobre la app en la que estás, mientras Blanc está abierto. Una miniventana no se guarda y se cierra tras una hora sin usarla. Abrir en Blanc la conserva.</string>
+    <string name="settings_general_mini_window_unavailable">Otra app usa este atajo o tu escritorio no lo permite. Elige otro.</string>
+    <string name="settings_general_mini_window_off">Desactivado</string>
+    <string name="settings_general_mini_window_shortcut_alt_cmd_n">⌥⌘N</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Espacio</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Espacio</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Mayús+Espacio</string>
 </resources>

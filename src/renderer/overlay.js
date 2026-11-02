@@ -4028,6 +4028,8 @@
   }
 
   window.browserAPI.onTabsUpdated((payload) => {
+    // Mini Window (#1138): no Spaces button in a mini window (CSS).
+    document.documentElement.toggleAttribute('data-mini-window', payload.miniWindow === true);
     const activeTabChanged = payload.activeTabId !== state.activeTabId;
     if (JSON.stringify(payload.selectedTabIds ?? []) !== JSON.stringify(state.selectedTabIds ?? [])) {
       const count = payload.selectedTabIds?.length ?? 0;
@@ -4089,6 +4091,7 @@
   });
   window.browserAPI.getAllTabs().then((payload) => {
     state = payload;
+    document.documentElement.toggleAttribute('data-mini-window', payload.miniWindow === true);
     if (mode === 'glance') renderGlancePicker();
   });
 

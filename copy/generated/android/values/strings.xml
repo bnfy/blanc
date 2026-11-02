@@ -2550,4 +2550,16 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_default_browser_done">Blanc is your default browser</string>
     <string name="ios_default_browser_row">Default browser</string>
     <string name="ios_default_browser_not_blanc">Not Blanc</string>
+    <string name="menu_new_mini_window">New Mini Window</string>
+    <string name="mini_open_in_blanc">Open in Blanc</string>
+    <string name="mini_open_in_blanc_title">Keep this mini window as an ordinary Blanc window</string>
+    <string name="mini_open_in_blanc_label">Open in Blanc — keep this mini window as an ordinary Blanc window</string>
+    <string name="settings_general_mini_window_label">Mini window shortcut</string>
+    <string name="settings_general_mini_window_hint">Opens a small Blanc window over the app you\'re in, while Blanc is running. A mini window isn\'t saved, and closes after an hour unused. Open in Blanc keeps it.</string>
+    <string name="settings_general_mini_window_unavailable">Another app is using this shortcut, or your desktop doesn\'t allow it. Choose another.</string>
+    <string name="settings_general_mini_window_off">Off</string>
+    <string name="settings_general_mini_window_shortcut_alt_cmd_n">⌥⌘N</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Spacebar</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Spacebar</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Shift+Spacebar</string>
 </resources>

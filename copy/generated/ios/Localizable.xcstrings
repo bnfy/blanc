@@ -104304,6 +104304,510 @@
           }
         }
       }
+    },
+    "menu.newMiniWindow": {
+      "comment": "Menu command (File menu, macOS Dock menu) that opens a mini window: a small Blanc window that isn't saved and closes after an hour unused. Title case like the other menu commands.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Mini Window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neues Mini-Fenster"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva miniventana"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelle mini-fenêtre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuova minifinestra"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nova minijanela"
+          }
+        }
+      }
+    },
+    "mini.openInBlanc": {
+      "comment": "Button at the front of the Island in a mini window (a small window that isn't saved), and a File menu command there: keeps the mini window as an ordinary Blanc window. Keep \"Blanc\" untranslated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in Blanc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Blanc öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir en Blanc"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir dans Blanc"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri in Blanc"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir no Blanc"
+          }
+        }
+      }
+    },
+    "mini.openInBlanc.title": {
+      "comment": "Tooltip of the Island's Open in Blanc button in a mini window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep this mini window as an ordinary Blanc window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Mini-Fenster als normales Blanc-Fenster behalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conservar esta miniventana como una ventana normal de Blanc"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garder cette mini-fenêtre comme une fenêtre Blanc ordinaire"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tieni questa minifinestra come una normale finestra di Blanc"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter esta minijanela como uma janela comum do Blanc"
+          }
+        }
+      }
+    },
+    "mini.openInBlanc.label": {
+      "comment": "Accessible name of the Island's Open in Blanc button in a mini window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in Blanc — keep this mini window as an ordinary Blanc window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Blanc öffnen – dieses Mini-Fenster als normales Blanc-Fenster behalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir en Blanc: conservar esta miniventana como una ventana normal de Blanc"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir dans Blanc : garder cette mini-fenêtre comme une fenêtre Blanc ordinaire"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri in Blanc: tieni questa minifinestra come una normale finestra di Blanc"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir no Blanc: manter esta minijanela como uma janela comum do Blanc"
+          }
+        }
+      }
+    },
+    "settings.general.miniWindow.label": {
+      "comment": "Settings → General: setting name. A keyboard shortcut that works in every app and opens a mini window (a small Blanc window).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mini window shortcut"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurzbefehl für Mini-Fenster"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atajo de la miniventana"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raccourci de la mini-fenêtre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scorciatoia della minifinestra"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atalho da minijanela"
+          }
+        }
+      }
+    },
+    "settings.general.miniWindow.hint": {
+      "comment": "Settings → General: explanation under the Mini window shortcut setting. \"Open in Blanc\" is the name of the button in a mini window (mini.openInBlanc).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens a small Blanc window over the app you're in, while Blanc is running. A mini window isn't saved, and closes after an hour unused. Open in Blanc keeps it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnet ein kleines Blanc-Fenster über der App, in der du gerade bist, solange Blanc läuft. Ein Mini-Fenster wird nicht gespeichert und schließt sich nach einer Stunde ohne Nutzung. „In Blanc öffnen“ behält es."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre una pequeña ventana de Blanc sobre la app en la que estás, mientras Blanc está abierto. Una miniventana no se guarda y se cierra tras una hora sin usarla. Abrir en Blanc la conserva."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvre une petite fenêtre Blanc par-dessus l’app où vous êtes, tant que Blanc est ouvert. Une mini-fenêtre n’est pas enregistrée et se ferme après une heure sans utilisation. Ouvrir dans Blanc la garde."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apre una piccola finestra di Blanc sopra l’app in cui ti trovi, mentre Blanc è aperto. Una minifinestra non viene salvata e si chiude dopo un’ora di inutilizzo. Apri in Blanc la tiene."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre uma pequena janela do Blanc sobre o app em que você está, enquanto o Blanc está aberto. Uma minijanela não é salva e fecha após uma hora sem uso. Abrir no Blanc a mantém."
+          }
+        }
+      }
+    },
+    "settings.general.miniWindow.unavailable": {
+      "comment": "Settings → General: shown under the Mini window shortcut setting when the chosen shortcut can't be used.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another app is using this shortcut, or your desktop doesn't allow it. Choose another."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine andere App verwendet diesen Kurzbefehl, oder dein Desktop erlaubt ihn nicht. Wähle einen anderen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otra app usa este atajo o tu escritorio no lo permite. Elige otro."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une autre app utilise ce raccourci, ou votre bureau ne l’autorise pas. Choisissez-en un autre."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un’altra app usa questa scorciatoia, oppure il tuo desktop non la consente. Scegline un’altra."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outro app está usando este atalho, ou sua área de trabalho não permite. Escolha outro."
+          }
+        }
+      }
+    },
+    "settings.general.miniWindow.off": {
+      "comment": "Settings → General → Mini window shortcut: option (no shortcut; the default).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desactivado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désactivé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disattivata"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desativado"
+          }
+        }
+      }
+    },
+    "settings.general.miniWindow.shortcut.altCmdN": {
+      "comment": "Settings → General → Mini window shortcut: option on macOS, Option-Command-N. Keep the symbols.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥⌘N"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥⌘N"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥⌘N"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥⌘N"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥⌘N"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥⌘N"
+          }
+        }
+      }
+    },
+    "settings.general.miniWindow.shortcut.ctrlAltSpaceMac": {
+      "comment": "Settings → General → Mini window shortcut: option on macOS, Control-Option-Spacebar. Translate only the name of the spacebar key.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃⌥Spacebar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃⌥Leertaste"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃⌥Espacio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃⌥Espace"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃⌥Spazio"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃⌥Espaço"
+          }
+        }
+      }
+    },
+    "settings.general.miniWindow.shortcut.ctrlAltSpace": {
+      "comment": "Settings → General → Mini window shortcut: option on Windows and Linux. Use the key names keyboards in your language print (for example Strg in German).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Alt+Spacebar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strg+Alt+Leertaste"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Alt+Espacio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Alt+Espace"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Alt+Spazio"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Alt+Espaço"
+          }
+        }
+      }
+    },
+    "settings.general.miniWindow.shortcut.ctrlShiftSpace": {
+      "comment": "Settings → General → Mini window shortcut: option on Windows and Linux. Use the key names keyboards in your language print (for example Strg and Umschalt in German).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Shift+Spacebar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strg+Umschalt+Leertaste"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Mayús+Espacio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Maj+Espace"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Maiusc+Spazio"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Shift+Espaço"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

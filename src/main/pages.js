@@ -454,6 +454,9 @@ function setupPages(hooks = {}) {
     },
     onePasswordAvailable: onePasswordAvailable(),
     recentTabOrderAvailable: recentTabOrderAvailable(),
+    // Mini Window (#1138): the shortcut choices this platform offers and
+    // whether the chosen one is working ('off', 'on' or 'unavailable').
+    miniWindow: hooks.miniWindow?.status?.() ?? { choices: [], status: 'off' },
     searchEngines: Object.fromEntries(
       Object.entries(settings.SEARCH_ENGINES).map(([key, { label }]) => [key, label])
     ),

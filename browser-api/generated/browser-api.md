@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-156 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+157 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -141,6 +141,7 @@
 | `routeActiveSite` | appearance | invoke | `chrome:route-active` | `(mode: 'toggle' \| 'on' \| 'off') => Promise<RouteResult>` | all |
 | `siteInfoForgetCertificateException` | island | invoke | `chrome:site-info-forget-certificate-exception` | `() => Promise<boolean>` | all |
 | `sleepBackgroundTabs` | tabs | invoke | `chrome:sleep-background-tabs` | `() => Promise<TabId[]>` | all |
+| `keepMiniWindow` | island | invoke | `chrome:mini-keep` | `() => Promise<boolean>` | all |
 | `inviteFriend` | island | invoke | `chrome:invite-friend` | `() => Promise<InviteFriendResult>` | all |
 | `fillLoginFromOnePassword` | passwords | invoke | `chrome:onepassword-fill` | `() => Promise<FillLoginSuccess \| FillLoginFailure \| false>` | darwin, win32, linux |
 | `cycleTheme` | appearance | invoke | `chrome:cycle-theme` | `(theme?: ThemePreference) => Promise<ThemePreference>` | all |
@@ -568,6 +569,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | `tabLayout` | `TabLayout` |  |
 | `verticalTabsTextSize` | `string` |  |
 | `islandTabIcons` | `boolean` | Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). |
+| `miniWindow` | `boolean` | This window is a mini window (#1138): small, never saved, with Open in Blanc on the Island. |
 | `verticalTabsWidth` | `number` |  |
 | `verticalTabsPreferredWidth` | `number` |  |
 | `verticalTabsMinWidth` | `number` |  |
@@ -592,6 +594,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | `tabLayout` | `TabLayout` |  |
 | `verticalTabsTextSize` | `string` |  |
 | `islandTabIcons` | `boolean` | Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). |
+| `miniWindow` | `boolean` | This window is a mini window (#1138): small, never saved, with Open in Blanc on the Island. |
 | `adblockEnabled` | `boolean` |  |
 | `shieldPopover` | `ShieldPopover \| null` |  |
 | `captureChip` | `CaptureChip` |  |

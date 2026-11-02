@@ -260,7 +260,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "8155fe84c72a494e59cd40cf15c9807a91049488453dd9e45d5bebe07e47124e",
+      "sha256": "b8b0d3ec5ce55bf92127bf0e79e3c485d17a1051783ae5615c4a77c8a15b0e45",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -309,6 +309,7 @@
         "chrome:island-rect",
         "chrome:island-state",
         "chrome:layout",
+        "chrome:mini-keep",
         "chrome:new-group",
         "chrome:onepassword-fill",
         "chrome:open-capture",
@@ -515,7 +516,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "30ba5622820c6283b841c89f7da2829029ff36635b3445727c498c26ea19347f",
+      "sha256": "3a942c4c62bbd671e83d1e90383f3c8c0dce8b51860bf5f3e1353007ecb3a2fd",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -663,7 +664,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "f22fdd3da2335968ae4f9cbf66c954ba159dcd0812c719637e8c10847cd54953",
+      "sha256": "61b13ec4e7d6da6e7fe5e5ac4642bf9904bf7e490f437d46a909b0ce86f64882",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -701,6 +702,7 @@
         "chrome:island-rect",
         "chrome:island-state",
         "chrome:layout",
+        "chrome:mini-keep",
         "chrome:new-group",
         "chrome:onepassword-fill",
         "chrome:open-capture",

@@ -238,6 +238,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   routeActiveSite: (mode) => ipcRenderer.invoke('chrome:route-active', mode),
   siteInfoForgetCertificateException: () => ipcRenderer.invoke('chrome:site-info-forget-certificate-exception'),
   sleepBackgroundTabs: () => ipcRenderer.invoke('chrome:sleep-background-tabs'),
+  keepMiniWindow: () => ipcRenderer.invoke('chrome:mini-keep'),
   inviteFriend: () => ipcRenderer.invoke('chrome:invite-friend'),
   ...(ONE_PASSWORD_AVAILABLE ? {
     fillLoginFromOnePassword: () => ipcRenderer.invoke('chrome:onepassword-fill'),

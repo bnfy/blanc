@@ -2625,4 +2625,16 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ios_default_browser_done">Blanc è il tuo browser predefinito</string>
     <string name="ios_default_browser_row">Browser predefinito</string>
     <string name="ios_default_browser_not_blanc">Non Blanc</string>
+    <string name="menu_new_mini_window">Nuova minifinestra</string>
+    <string name="mini_open_in_blanc">Apri in Blanc</string>
+    <string name="mini_open_in_blanc_title">Tieni questa minifinestra come una normale finestra di Blanc</string>
+    <string name="mini_open_in_blanc_label">Apri in Blanc: tieni questa minifinestra come una normale finestra di Blanc</string>
+    <string name="settings_general_mini_window_label">Scorciatoia della minifinestra</string>
+    <string name="settings_general_mini_window_hint">Apre una piccola finestra di Blanc sopra l’app in cui ti trovi, mentre Blanc è aperto. Una minifinestra non viene salvata e si chiude dopo un’ora di inutilizzo. Apri in Blanc la tiene.</string>
+    <string name="settings_general_mini_window_unavailable">Un’altra app usa questa scorciatoia, oppure il tuo desktop non la consente. Scegline un’altra.</string>
+    <string name="settings_general_mini_window_off">Disattivata</string>
+    <string name="settings_general_mini_window_shortcut_alt_cmd_n">⌥⌘N</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Spazio</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Spazio</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Maiusc+Spazio</string>
 </resources>

@@ -2625,4 +2625,16 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ios_default_browser_done">Blanc est votre navigateur par défaut</string>
     <string name="ios_default_browser_row">Navigateur par défaut</string>
     <string name="ios_default_browser_not_blanc">Pas Blanc</string>
+    <string name="menu_new_mini_window">Nouvelle mini-fenêtre</string>
+    <string name="mini_open_in_blanc">Ouvrir dans Blanc</string>
+    <string name="mini_open_in_blanc_title">Garder cette mini-fenêtre comme une fenêtre Blanc ordinaire</string>
+    <string name="mini_open_in_blanc_label">Ouvrir dans Blanc : garder cette mini-fenêtre comme une fenêtre Blanc ordinaire</string>
+    <string name="settings_general_mini_window_label">Raccourci de la mini-fenêtre</string>
+    <string name="settings_general_mini_window_hint">Ouvre une petite fenêtre Blanc par-dessus l’app où vous êtes, tant que Blanc est ouvert. Une mini-fenêtre n’est pas enregistrée et se ferme après une heure sans utilisation. Ouvrir dans Blanc la garde.</string>
+    <string name="settings_general_mini_window_unavailable">Une autre app utilise ce raccourci, ou votre bureau ne l’autorise pas. Choisissez-en un autre.</string>
+    <string name="settings_general_mini_window_off">Désactivé</string>
+    <string name="settings_general_mini_window_shortcut_alt_cmd_n">⌥⌘N</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Espace</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Espace</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Maj+Espace</string>
 </resources>
