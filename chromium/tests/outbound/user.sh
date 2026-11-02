@@ -31,9 +31,12 @@ trap 'kill $NETTOP 2>/dev/null' EXIT
 say() { echo "$(stamp) $1" | tee -a "$OUT/user.log"; }
 run() { say "$1"; shift; caffeinate -d -i "$@"; }
 run "controls (before)" $NODE tests/outbound/controls.mjs "$CFG" "$OUT/controls-before.json"
-run "F5 scenarios" $NODE tests/runner.mjs "$CFG" "$OUT/navigation" --only=navigation-and-context-menu > "$OUT/navigation.log" 2>&1
+# The runner never overwrites a result folder, so each run gets its own.
+SCEN=$OUT/scenarios-$(date -u '+%Y%m%dT%H%M%SZ')
+mkdir -p "$SCEN"
+run "F5 scenarios" $NODE tests/runner.mjs "$CFG" "$SCEN/navigation" --only=navigation-and-context-menu > "$OUT/navigation.log" 2>&1
 for L in 469 477 485 493 508 517 532 543 558 565 573 591 599 608 621 632 640 651; do
-  run "F47 line $L" $NODE tests/runner.mjs "$CFG" "$OUT/bangs-$L" --only=island-and-commands.feature:$L: > "$OUT/bangs-$L.log" 2>&1
+  run "F47 line $L" $NODE tests/runner.mjs "$CFG" "$SCEN/bangs-$L" --only=island-and-commands.feature:$L: > "$OUT/bangs-$L.log" 2>&1
 done
 run "leak probe" $NODE tests/outbound/leak-probe.mjs "$CFG" "$OUT/leak.json"
 run "controls (after)" $NODE tests/outbound/controls.mjs "$CFG" "$OUT/controls-after.json"

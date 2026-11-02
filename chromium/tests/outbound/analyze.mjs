@@ -6,8 +6,10 @@
 // the leak probe passed. pf can match only by user, so the test account's own
 // macOS services are blocked too: a block during the run is that background
 // only if nettop saw another process, and no Blanc process, connect to its
-// address (or the address is multicast or link-local). A block nobody was seen
-// making fails the run.
+// address (or the address is multicast or link-local). nettop samples once a
+// second and can miss a short attempt, so an address nobody was seen using
+// takes the owners of its /24 (IPv6: /64) instead; a block with no owner even
+// there fails the run.
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -51,6 +53,16 @@ export function parseNettop(text) {
   return owners;
 }
 
+// The owners of an address, or failing that of its /24 (IPv6: /64), and
+// whether they came from the network rather than the address itself.
+const networkOf = a => a.includes(':') ? a.split(':').slice(0, 4).join(':') : a.split('.').slice(0, 3).join('.');
+export function ownersOf(owners, address) {
+  if (owners?.has(address)) return {names: [...owners.get(address)], near: false};
+  const names = new Set();
+  for (const [other, who] of owners ?? []) if (networkOf(other) === networkOf(address)) for (const n of who) names.add(n);
+  return {names: [...names], near: names.size > 0};
+}
+
 export function hostOf(target) {
   try { return /^[a-z]+:\/\//i.test(target) ? new URL(target).hostname : target.replace(/:\d+$/, '').replace(/^\[|\]$/g, ''); } catch { return target; }
 }
@@ -88,9 +100,9 @@ export function judge({controls, pflog, egress, leak, scenarioHosts, run, owners
   const unexplained = new Map();
   for (const p of pflog) {
     if (!during(p) || windows.some(([from, to]) => p.at >= from && p.at <= to)) continue;
-    const names = [...(owners?.get(p.address) ?? [])];
+    const {names, near} = ownersOf(owners, p.address);
     if (LOCAL.test(p.address) || (names.length && !names.some(n => BLANC.test(n)))) {
-      const key = `${p.address} (${names.join(', ') || 'multicast or link-local'})`;
+      const key = `${p.address} (${names.length ? (near ? 'near ' : '') + names.join(', ') : 'multicast or link-local'})`;
       background.set(key, (background.get(key) ?? 0) + 1);
     } else {
       const key = `${p.address}:${p.port} (${names.join(', ') || 'no process seen'})`;

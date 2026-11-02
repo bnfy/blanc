@@ -88,6 +88,15 @@ test('blocks only other processes made, and multicast, are the account\'s backgr
   assert.equal(report.outsideRun, 1);
 });
 
+test('an address nettop missed takes its network\'s owners, and only theirs', () => {
+  const report = judge({...base, pflog: parsePflog(LOG + '\n' + block('17:05:00.000000', '17.253.3.10'))});
+  assert.equal(report.verdict, 'pass', JSON.stringify(report.problems));
+  assert.deepEqual(report.backgroundDuringRun, {'17.253.3.10 (near cloudd)': 1});
+  assert.match(judge({...base, pflog: parsePflog(LOG + '\n' + block('17:05:00.000000', '142.250.1.9'))}).problems.join('\n'),
+    /142\.250\.1\.9:443 \(Blanc Prototype Helper\)/, 'a network a Blanc process used');
+  assert.equal(judge({...base, pflog: parsePflog(LOG + '\n' + block('17:05:00.000000', '17.253.4.10'))}).verdict, 'fail', 'another /24');
+});
+
 test('a run without times or without a nettop log is invalid', () => {
   assert.equal(judge({...base, run: null, pflog: parsePflog(LOG)}).verdict, 'fail');
   assert.match(judge({...base, owners: new Map(), pflog: parsePflog(LOG)}).problems.join('\n'), /nettop saw no connections/);
