@@ -40,17 +40,22 @@ export default function register(step){
   await until(this,read,t=>ordinal(t)===start,'previous match');
   assert.notEqual(ordinal(next),start);
  });
- // Clickable means no Island view lies over the page outside the capsule:
- // the Island's native view is the host document's viewport, and the page
- // starts below the resting strip.
+ // Clickable means views' own targeting sends a click beside the capsule to
+ // the page, while the capsule and the strip stay the Island's; points are in
+ // the Island document, whose viewport is the Island view.
  step('the page content outside the find bar remains clickable',async function(){
   const g=await this.hostEval(`(()=>{const strip=document.querySelector('#strip').getBoundingClientRect();
    const frame=document.querySelector('#overlay').getBoundingClientRect();
    const bar=document.querySelector('#overlay').contentDocument.getElementById('findBar').getBoundingClientRect();
    return {width:innerWidth,height:innerHeight,pageTop:strip.bottom,bar:{left:frame.left+bar.left,top:frame.top+bar.top,right:frame.left+bar.right,bottom:frame.top+bar.bottom}};})()`);
-  const coveredRows=Math.max(0,g.height-g.pageTop);
-  const covered=coveredRows*g.width-Math.max(0,Math.min(g.bar.bottom,g.height)-Math.max(g.bar.top,g.pageTop))*(g.bar.right-g.bar.left);
-  assert.equal(covered,0,`Island view covers ${covered}px² of page outside the find capsule: ${jsLiteral(g)}`);
+  const r=Math.round,mid=r((g.bar.top+g.bar.bottom)/2),below=r(Math.min(g.height-2,g.bar.bottom+20));
+  const points={beside:[r(Math.max(4,g.bar.left-30)),mid],right:[r(Math.min(g.width-4,g.bar.right+30)),mid],
+   below:[r((g.bar.left+g.bar.right)/2),below],capsule:[r((g.bar.left+g.bar.right)/2),mid],strip:[4,r(g.pageTop/2)]};
+  const hit={};for(const [name,[x,y]] of Object.entries(points))hit[name]=await this.native('hitTarget',[x,y]);
+  const page=['beside','right'].concat(below>g.bar.bottom?['below']:[]);
+  for(const name of page)assert.equal(hit[name],'other',`a click ${name} the find bar should reach the page: ${jsLiteral({hit,points,g})}`);
+  assert.equal(hit.capsule,'island','the find bar keeps its own clicks');
+  assert.equal(hit.strip,'island','the strip keeps its own clicks');
  });
  // ---- F10-1: a visit is recorded with the final page title ----
  step('I visit {string} with title {string}',async function(name,title){

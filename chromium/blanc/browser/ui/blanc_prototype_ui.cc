@@ -1124,9 +1124,12 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
       return (owner->vertical && gfx::Rect(0, 68, owner->rail_width, height()).Intersects(rect)) ||
           (owner->height > 68 && owner->interactive_bounds.Intersects(rect));
     }
-    if (!owner->vertical) return GetLocalBounds().Intersects(rect);
+    // Below the strip the Island owns only what it draws there (the rail and
+    // the open surface's own rectangle, which the palette's scrim makes the
+    // whole window), so the page beside Find, the panel or the shield
+    // popover stays clickable, as with shipping's separate overlay view.
     return gfx::Rect(0, 0, width(), HeaderHeight(const_cast<views::View*>(parent()))).Intersects(rect) ||
-        gfx::Rect(0, 68, owner->rail_width, std::max(0, height() - 68)).Intersects(rect) ||
+        (owner->vertical && gfx::Rect(0, 68, owner->rail_width, std::max(0, height() - 68)).Intersects(rect)) ||
         (owner->height > 68 && owner->interactive_bounds.Intersects(rect));
   }
 };
@@ -3009,6 +3012,21 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       for (const auto& [url, decision] : blanc::browser_api::TestExternalLaunches())
         list.Append(base::DictValue().Set("url", url).Set("decision", decision));
       Reply(id, true, base::Value(std::move(list)));
+      return;
+    }
+    // Read-only: whether a click at (x, y) in the Island document would reach
+    // the Island view, as views' own event targeting decides.
+    if (message[1].GetString() == "hitTarget" && message[2].GetList().size() == 2 &&
+        message[2].GetList()[0].is_int() && message[2].GetList()[1].is_int()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      views::View* parent = owner && owner->view ? owner->view->parent() : nullptr;
+      if (!parent) { reject("The Island view has no parent."); return; }
+      const gfx::Point point(owner->view->x() + message[2].GetList()[0].GetInt(),
+                             owner->view->y() + message[2].GetList()[1].GetInt());
+      bool island = false;
+      for (views::View* hit = parent->GetEventHandlerForPoint(point); hit; hit = hit->parent())
+        island = island || hit == owner->view;
+      Reply(id, true, base::Value(island ? "island" : "other"));
       return;
     }
     // Read-only: each tab's DevTools target id, so the harness can tell
