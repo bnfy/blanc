@@ -20,6 +20,7 @@ const cinemaLedger = JSON.parse(read('docs/website-cinematic-homepage-claims-v1.
 const v140Ledger = JSON.parse(read('docs/website-v1.40-claims.json'));
 const v145Ledger = JSON.parse(read('docs/website-v1.45-claims.json'));
 const arcWelcomeLedger = JSON.parse(read('docs/website-arc-welcome-claims.json'));
+const compareLedger = JSON.parse(read('docs/website-compare-claims-v1.45.1.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
@@ -70,10 +71,10 @@ test('new guide benefit and qualification paragraphs remain covered by the exact
 });
 
 test('search landing pages are fully covered by the exact-wording ledger and link their external sources', () => {
-  const sources = new Set((ledger.externalSources || []).map(source => source.url));
+  const sources = new Set([...(ledger.externalSources || []), ...compareLedger.externalSources].map(source => source.url));
   for (const file of ['site/src/pages/arc-alternative.astro', 'site/src/pages/ublock-origin-after-chrome.astro']) {
     const page = read(file);
-    const claims = [...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...arcSwitchingLedger.claims, ...v140Ledger.claims, ...arcWelcomeLedger.claims].filter(claim => claim.source === file);
+    const claims = [...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...arcSwitchingLedger.claims, ...v140Ledger.claims, ...arcWelcomeLedger.claims, ...compareLedger.claims].filter(claim => claim.source === file);
     const wording = new Set(claims.map(claim => claim.exactWording));
     for (const match of page.matchAll(/<(h[123]|p|figcaption|th|td)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
       assert.ok(wording.has(normalize(match[2])), `${file}: unrecorded wording: ${normalize(match[2])}`);
@@ -87,6 +88,63 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
       }
     }
   }
+});
+
+test('the compare chart resolves to public v1.45.1 and every other-browser answer to a page it links', () => {
+  const record = compareLedger;
+  assert.equal(record.publicRelease, 'v1.45.1');
+  assert.equal(execFileSync('git', ['rev-parse', `${record.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.sourceSha);
+  assert.ok(read(record.releaseEvidence).includes(record.sourceSha));
+  for (const group of Object.values(record.evidenceGroups)) {
+    assert.ok(group.qualification && group.evidence.length);
+    for (const file of group.evidence) execFileSync('git', ['cat-file', '-e', `${record.publicRelease}:${file}`], { cwd: root });
+  }
+  const recorded = new Map(record.externalSources.map(source => [source.url, source]));
+  for (const source of recorded.values()) assert.ok(source.publisher && source.accessedAt && source.supports, source.url);
+  const pageFile = 'site/src/pages/compare.astro';
+  const dataFile = 'site/src/data/compare.json';
+  const data = JSON.parse(read(dataFile));
+  const wording = file => new Set(record.claims.filter(claim => claim.source === file).map(claim => claim.exactWording));
+  // The page's own copy: every heading and paragraph written in the page.
+  // Elements that print data ({…}) are covered by the data file below.
+  const page = read(pageFile);
+  const pageWording = wording(pageFile);
+  for (const match of page.matchAll(/<(h[123]|p|figcaption|th|td)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
+    if (match[2].includes('{')) continue;
+    assert.ok(pageWording.has(normalize(match[2])), `${pageFile}: unrecorded wording: ${normalize(match[2])}`);
+  }
+  // The chart itself: every label, answer and column note in the data.
+  const dataWording = wording(dataFile);
+  const strings = [
+    ...data.rows.flatMap(row => [row.label, ...Object.values(row.cells).map(cell => cell.text)]),
+    ...data.columns.flatMap(column => [column.note, column.endedNote].filter(Boolean)),
+    ...data.groups.map(group => group.label),
+  ];
+  for (const text of strings) assert.ok(dataWording.has(text), `${dataFile}: unrecorded wording: ${text}`);
+  // Each answer is recorded for its own row and browser, resting on the same
+  // pages the chart cites for it (a Not stated answer cites all of them).
+  const urlOf = new Map(data.sources.map(source => [source.id, source.url]));
+  for (const row of data.rows) {
+    for (const [column, cell] of Object.entries(row.cells)) {
+      const claim = record.claims.find(entry => entry.source === dataFile && entry.row === row.id && entry.column === column);
+      assert.ok(claim, `${row.id}/${column}: no claim for this cell`);
+      assert.equal(claim.exactWording, cell.text, `${row.id}/${column}: recorded answer differs`);
+      if (column === 'blanc') continue;
+      const ids = cell.sources.length ? cell.sources : data.sources.filter(source => source.column === column).map(source => source.id);
+      assert.deepEqual([...claim.externalSources].sort(), [...new Set(ids.map(id => urlOf.get(id)))].sort(), `${row.id}/${column}: sources differ`);
+    }
+  }
+  // A claim about another product rests on recorded first-party pages the chart links.
+  const linked = new Set(data.sources.map(source => source.url));
+  for (const url of linked) assert.ok(recorded.has(url), `unrecorded source ${url}`);
+  for (const claim of record.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording) || read(claim.source).includes(claim.exactWording), `${claim.id}: wording drifted`);
+    for (const key of claim.evidenceGroups) assert.ok(record.evidenceGroups[key], `${claim.id}: ${key}`);
+    if (claim.evidenceGroups.length === 0) assert.ok(claim.externalSources?.length, `${claim.id}: no release evidence or external source`);
+    for (const url of claim.externalSources || []) assert.ok(recorded.has(url) && linked.has(url), `${claim.id}: ${url}`);
+  }
+  assert.match(page, /href=\{source\.url\}/, 'the page links every source');
 });
 
 test('Arc page welcome resolves to public v1.43.1 evidence; any owner waiver expires when a release ships it', () => {
