@@ -4,6 +4,7 @@
     "chrome/BUILD.gn": "b6974ae3ce56e4ca1e096f79478b92a8271ddd4dff389354c88fa4a681cc5cb1",
     "chrome/android/java/src/org/chromium/chrome/browser/common/ChromeIsolatedWorldIds.java": "fac8c3f2c9c3603068452fb14892e5f2df510375441a95cede80d118c9a4d12b",
     "chrome/app/app-Info.plist": "b9086affccae0673758bbf886e836ad637e4bc9b37849498498a06f69c8edba5",
+    "chrome/app/chrome_main_delegate.cc": "061dca08e0a9643b6c01172244bcec8056c77a56fcb176a3c64de0df87b796bb",
     "chrome/app/theme/chromium/BRANDING": "15ac20cb8744ebac0815961059231baefa71fd4ed3023cb2094aaf8a34ae423b",
     "chrome/app/theme/chromium/mac/Assets.car": "961218f6eef627cad9b6ef7401f1774efd9c1cbcd3eebd299d7843415a1fcbb7",
     "chrome/app/theme/chromium/mac/app.icns": "a1c2b17191234ee4ab1259d4fb5056ef340cc64345c1a7d2b504c632812ff062",

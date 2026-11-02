@@ -103,8 +103,9 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     request to blanc.day has not been exercised.
   - Bang scenarios: 16 of 18 pass; the two private-tab ones need D1.
     Navigation and settings features unchanged.
-  - Patch series: 0001–0007 touch all 82 pinned upstream files with 257
-    hunks.
+  - Patch series: 0001–0008 touch all 83 pinned upstream files with 259
+    hunks (0008, `chrome_main_delegate.cc`, turns off Chromium's background
+    services; see Next).
   - Gaps: the custom-address and bang hints say they sync, which the fork
     can't yet; the outbound-isolation check remains.
 - **S1.2 started: the Island runs shipping v1.45.1's renderer** (was
@@ -283,7 +284,7 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | 101/627 executable cases pass; 163 failed; 361 undefined/not run; 2 excluded — [baseline](scenarios/baseline-macos-3f969a35b9f9f7ad.json)<br>S1 rows: 101/253 pass; 119 failed; 33 undefined; 0 excluded |
+| macOS | Not run for current candidate (previous baseline is stale) |
 | Windows | Not run (627 cases) |
 | Linux | Not run (627 cases) |
 
@@ -307,5 +308,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-3f969a35b9f9f7ad; Windows: none; Linux: none.
+Candidate identities: macOS: macos-92a5c23a766fdc5e; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->
