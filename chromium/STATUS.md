@@ -104,10 +104,33 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   - Bang scenarios: 16 of 18 pass; the two private-tab ones need D1.
     Navigation and settings features unchanged.
   - Patch series: 0001–0008 touch all 83 pinned upstream files with 259
-    hunks (0008, `chrome_main_delegate.cc`, turns off Chromium's background
-    services; see Next).
+    hunks.
+  - **Outbound isolation passes on macos-92a5c23a766fdc5e (2026-11-01).**
+    Run as `blanc-test` with a pf block on that user (owner-approved anchor),
+    the fixture's recording proxy and nettop's per-process connection log
+    (`tests/outbound/`: `setup.sh --refresh`, `sudo root.sh start`, `user.sh`
+    in `blanc-test`, `sudo root.sh stop`, `analyze.mjs`). Every negative
+    control (Node and browser: TCP, QUIC, DNS, DoH, DoT, STUN) was blocked
+    and logged; the F5 and 18 F47 scenarios ran (16 of 18 pass, as before);
+    the proxy saw only the engines and the sites the scenarios choose; the
+    leak probe passed (an ordinary prefix reached only duckduckgo.com; a
+    credential, card number, bang, suggestions-off and private-window query
+    sent nothing); the only other blocks were multicast.
+    - The first run found Chromium's component updater, secure network time
+      and autofill server predictions reaching Google, which shipping never
+      does. Patch 0008 (`blanc/common/background_services.h`, owner's go-ahead)
+      applies Chromium's own `--disable-component-update` and disables
+      `NetworkTimeServiceQuerying` and `AutofillServerCommunication` at the
+      earliest startup callback; `tests/background-services-smoke.mjs` sees
+      all three on the old build and none on the new.
+    - Not covered: IPv6 (the control had no route on this network) and the
+      macOS system resolver, which pf can't block per user (the scenarios
+      resolve nothing themselves: `--host-resolver-rules` maps everything
+      else to NOTFOUND). A block counts as the account's background only if
+      nettop saw a non-Blanc process use that address or, when its 1 s
+      sampling missed it, that /24.
   - Gaps: the custom-address and bang hints say they sync, which the fork
-    can't yet; the outbound-isolation check remains.
+    can't yet.
 - **S1.2 started: the Island runs shipping v1.45.1's renderer** (was
   v1.38.0) on macos-3f969a35b9f9f7ad. `tools/island-renderer.mjs` generates
   the 11 shipping Island files from the release recorded in
@@ -246,18 +269,10 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.1 rest: outbound isolation found Chromium's own background services
-   (2026-11-01, macos-3f969a35b9f9f7ad, pf block on `blanc-test` plus the
-   recording proxy). Controls were all blocked and logged, and the leak probe
-   passed (an ordinary prefix reached only duckduckgo.com; a credential, card
-   number, bang, suggestions-off and private-window query sent nothing). But
-   every launch contacts `update.googleapis.com` (component updater) and
-   `clients2.google.com/time` (secure network time), and a page with a form
-   queries `content-autofill.googleapis.com` (autofill server predictions).
-   Shipping Blanc makes none of these. Turning them off is a native change
-   waiting for the owner's decision; then the full check runs again
-   (`tests/outbound/`: `setup.sh --refresh`, `sudo root.sh start`,
-   `user.sh` in `blanc-test`, `sudo root.sh stop`, `analyze.mjs`). Verify each change with targeted `--only` runs
+1. S1.2 rest: all 34 slash commands (deferred features answer with
+   shipping's unavailable copy), the Shield hit region, Find, zoom, theming,
+   language with relaunch, copy/clean link, and the browserAPI members the
+   host doesn't answer yet. Verify each change with targeted `--only` runs
    merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
    (~2 h) unless development can't continue without it; propose one with
    the reason first.
