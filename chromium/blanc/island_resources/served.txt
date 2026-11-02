@@ -20,6 +20,7 @@ icons/search.svg
 icons/settings.svg
 index.html
 installed-theme.js
+language-settings.js
 overlay.html
 overlay.js
 pages/bangs-catalog.js

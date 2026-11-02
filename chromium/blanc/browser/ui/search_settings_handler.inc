@@ -50,6 +50,12 @@ void SearchSettingsHandler::Handle(const base::ListValue& message) {
   auto* prefs = profile->GetPrefs();
   const bool editable = !service->is_default_search_managed() &&
                         !service->IsExtensionControlledDefaultSearch();
+  // Shipping's Relaunch to apply (Settings → Language).
+  if (method == "relaunch" && args.empty()) {
+    Reply(id, true, base::Value());
+    chrome::AttemptRestart();
+    return;
+  }
   if (method == "set" && args.size() == 1 && args[0].is_dict()) {
     const auto& partial = args[0].GetDict();
     if (auto suggestions = partial.FindBool("searchSuggestions"))
@@ -58,6 +64,12 @@ void SearchSettingsHandler::Handle(const base::ListValue& message) {
     // settings do. Recents are never written from Settings.
     if (auto bangs_on = partial.FindBool("bangsEnabled"))
       prefs->SetBoolean(blanc::browser_api::bangs::kEnabledPref, *bangs_on);
+    // The interface language is device-wide and applies after a relaunch.
+    if (const auto* language = partial.FindString("uiLanguage");
+        language && blanc::ui_language::IsChoice(*language)) {
+      g_browser_process->local_state()->SetString(std::string(blanc::ui_language::kPref), *language);
+      g_browser_process->local_state()->CommitPendingWrite();
+    }
     // Appearance is Chromium's browser color scheme (appearance.h).
     if (const auto* theme = partial.FindString("theme"))
       blanc::browser_api::SetTheme(profile, *theme);
@@ -107,6 +119,7 @@ void SearchSettingsHandler::Handle(const base::ListValue& message) {
   state.Set("searchSuggestions", prefs->GetBoolean(prefs::kSearchSuggestEnabled));
   state.Set("editable", editable);
   state.Set("theme", blanc::browser_api::ThemeOf(profile));
+  state.Set("uiLanguage", g_browser_process->local_state()->GetString(std::string(blanc::ui_language::kPref)));
   state.Set("bangsEnabled", prefs->GetBoolean(blanc::browser_api::bangs::kEnabledPref));
   state.Set("customBangs", blanc::browser_api::bangs::NormalizeCustomBangs(
       prefs->GetList(blanc::browser_api::bangs::kCustomPref)));

@@ -8,7 +8,8 @@ const searchCopy = {"en":{"settings.general.title":"General","settings.general.c
 const SEARCH_ENGINES = { duckduckgo: 'DuckDuckGo', google: 'Google', bing: 'Bing', brave: 'Brave Search', kagi: 'Kagi', custom: null };
 if (typeof module !== 'undefined') module.exports = { searchCopy, SEARCH_ENGINES };
 if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded', async () => {
-  const requested = (navigator.languages?.[0] || navigator.language || 'en').toLowerCase();
+  // The launch's interface language when strings.js resolved one (F44).
+  const requested = (window.blancStrings?.locale || navigator.languages?.[0] || navigator.language || 'en').toLowerCase();
   const locale = Object.keys(searchCopy).find(key => key.toLowerCase() === requested)
     || Object.keys(searchCopy).find(key => key.toLowerCase().split('-')[0] === requested.split('-')[0]) || 'en';
   const t = key => searchCopy[locale][key] || searchCopy.en[key] || key;

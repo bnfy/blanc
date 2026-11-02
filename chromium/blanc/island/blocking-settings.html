@@ -6,10 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Settings</title>
   <link rel="stylesheet" href="pages/pages.css">
+  <script src="ui-language.js"></script>
+  <script src="strings.js"></script>
+  <script src="i18n.js"></script>
   <script src="blocking-settings-adapter.js" defer></script>
   <script src="blocking-settings.js" defer></script>
   <script src="search-settings-adapter.js" defer></script>
   <script src="search-settings.js" defer></script>
+  <script src="language-settings.js" defer></script>
   <script src="pages/bangs-catalog.js" defer></script>
   <script src="pages/bangs.js" defer></script>
   <script src="bang-settings.js" defer></script>
@@ -31,6 +35,14 @@
             <option value="light" data-search-i18n="settings.general.theme.light">Light</option>
             <option value="dark" data-search-i18n="settings.general.theme.dark">Dark</option>
           </select>
+        </div>
+        <div class="setting" id="uiLanguageSetting" hidden>
+          <div class="label">
+            <span data-language-i18n="settings.language.label">Language</span>
+            <span class="hint" data-language-i18n="settings.language.hint">Translations are machine-generated.</span>
+          </div>
+          <select id="uiLanguage" aria-label="Language"></select>
+          <button id="uiLanguageRelaunch" type="button" hidden data-language-i18n="settings.language.relaunch">Relaunch to apply</button>
         </div>
       </div>
       <div class="settings-card settings-card--mixed">

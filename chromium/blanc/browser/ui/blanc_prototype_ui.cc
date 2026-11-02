@@ -5,6 +5,7 @@
 #include "blanc/browser/ui/browser_api/bangs.h"
 #include "blanc/browser/ui/browser_api/page_handoff.h"
 #include "blanc/browser/ui/browser_api/appearance.h"
+#include "blanc/browser/ui/ui_language.h"
 #include "blanc/browser/ui/browser_api/search.h"
 #include "blanc/browser/ui/browser_api/search_choice.h"
 #include "blanc/browser/ui/browser_api/search_default.h"
@@ -2671,6 +2672,14 @@ class IslandExtensionMenu : public extensions::ExtensionContextMenuModel {
   base::RepeatingClosure closed_;
 };
 
+// The interface language for this launch, read once so a change in Settings
+// applies after a relaunch, as in shipping (ui_language.h).
+const std::optional<std::string>& LaunchUiLanguage() {
+  static const base::NoDestructor<std::optional<std::string>> pin(blanc::ui_language::Pin(
+      g_browser_process->local_state()->GetString(std::string(blanc::ui_language::kPref))));
+  return *pin;
+}
+
 #include "blanc/browser/ui/blocking_settings_handler.inc"
 #include "blanc/browser/ui/search_settings_handler.inc"
 
@@ -3012,6 +3021,22 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       for (const auto& [url, decision] : blanc::browser_api::TestExternalLaunches())
         list.Append(base::DictValue().Set("url", url).Set("decision", decision));
       Reply(id, true, base::Value(std::move(list)));
+      return;
+    }
+    // Shipping's raw settings write for the interface language, so a stored
+    // value Settings would refuse (a language no longer offered) can be set,
+    // and the read that checks it is kept.
+    if (message[1].GetString() == "setStoredUiLanguage" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_string() && message[2].GetList()[0].GetString().size() <= 32) {
+      g_browser_process->local_state()->SetString(std::string(blanc::ui_language::kPref),
+                                                  message[2].GetList()[0].GetString());
+      g_browser_process->local_state()->CommitPendingWrite();
+      Reply(id, true, base::Value());
+      return;
+    }
+    if (message[1].GetString() == "storedUiLanguage") {
+      Reply(id, true, base::Value(g_browser_process->local_state()->GetString(
+          std::string(blanc::ui_language::kPref))));
       return;
     }
     // Read-only: whether a click at (x, y) in the Island document would reach
@@ -5742,6 +5767,15 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
               std::move(callback).Run(bytes);
               return;
             }
+            // Blanc's documents load this before strings.js: the launch's
+            // pinned language, or null to follow the browser's languages.
+            if (path == "ui-language.js") {
+              const auto& pin = LaunchUiLanguage();
+              const std::string script = "window.__blancUiLanguage=" +
+                  (pin ? "\"" + *pin + "\"" : std::string("null")) + ";\n";
+              std::move(callback).Run(base::MakeRefCounted<base::RefCountedString>(script));
+              return;
+            }
             // Only the exact private Start Page query aliases the shared
             // static asset; arbitrary queries never become filesystem paths.
             const std::string asset_path = path == "pages/newtab.html?private=1"
@@ -5781,6 +5815,7 @@ ToolbarButtonProvider* ToolbarProvider(BrowserWindowInterface* browser,
 std::unique_ptr<views::WebView> CreateIsland(
     BrowserWindowInterface* browser) {
   blanc::browser_api::EnsureBlancDefaultSearch(browser->GetProfile()->GetOriginalProfile());
+  LaunchUiLanguage();  // Frozen with the first window.
   auto view = std::make_unique<IslandView>(browser->GetProfile());
   view->SetID(kIslandViewId);
   auto owner = std::make_unique<Owner>(browser);

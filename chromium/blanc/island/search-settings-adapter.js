@@ -16,6 +16,6 @@
     chrome.send('blancSearchSettings', [id, method, args]);
   });
   window.blancSearchSettings = Object.freeze({
-    get: () => send('get'), set: partial => send('set', [partial]),
+    get: () => send('get'), set: partial => send('set', [partial]), relaunch: () => send('relaunch'),
   });
 })();

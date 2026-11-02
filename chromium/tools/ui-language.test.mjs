@@ -68,3 +68,28 @@ test('pin, then strings.js, chooses what shipping\'s resolveLocale chooses', () 
     }
   }
 });
+
+test('Settings offers shipping\'s languages and resolves "system" as shipping does', async () => {
+  const {createRequire} = await import('node:module');
+  const page = createRequire(import.meta.url)(path.join(root, 'blanc/island/language-settings.js'));
+  assert.deepEqual(page.UI_LANGUAGES, selectable.map(({code, endonym}) => ({code, endonym})));
+  const module = {exports: {}};
+  vm.runInNewContext(show('src/main/i18n.js'), {module, exports: module.exports,
+    require: () => ({createTranslator: () => () => ''})});
+  const codes = selectable.map(l => l.code);
+  for (const preferred of [['de-DE'], ['pt-PT', 'fr'], ['ja'], [], ['zh_TW', 'it'], ['PT-br'], ['es-419'], ['en-GB']])
+    assert.equal(page.resolveSystem(preferred), module.exports.resolveLocale({setting: 'system', preferred, selectable: codes}).locale, String(preferred));
+  // Shipping's own row model gives the same rows and relaunch answers.
+  const model = {exports: {}};
+  vm.runInNewContext(show('src/renderer/pages/settings-language-model.js'), {module: model, self: undefined});
+  const t = (key, params) => `${key}:${JSON.stringify(params ?? {})}`;
+  for (const uiLanguage of ['system', 'de', 'ja', 'pt-BR']) {
+    const languages = {active: 'en', system: 'de', options: page.UI_LANGUAGES};
+    const plain = v => JSON.parse(JSON.stringify(v));
+    assert.deepEqual(plain(page.languageRow({uiLanguage, languages, t})), plain(model.exports.languageRow({uiLanguage, languages, t})));
+    for (const value of ['system', 'en', 'de']) assert.equal(page.needsRelaunch(value, languages), model.exports.needsRelaunch(value, languages));
+  }
+  const strings = fs.readFileSync(path.join(root, 'blanc/island/strings.js'), 'utf8');
+  for (const key of ['settings.language.label', 'settings.language.hint', 'settings.language.relaunch', 'settings.language.system'])
+    assert.ok(strings.includes(`"${key}":`), key);
+});

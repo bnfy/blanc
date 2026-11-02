@@ -28,13 +28,14 @@ const PREVIEW_META = fs.readFileSync(path.join(root, 'tools/preview-build-meta.h
 export const EDITS = {
   'index.html': [
     // The Island facade and the fork's own styles load around shipping's.
-    ['  <script src="strings.js"></script>\n', '  <script src="adapter.js"></script>\n  <script src="strings.js"></script>\n'],
+    // The launch's interface language (F44) is pinned before strings.js reads it.
+    ['  <script src="strings.js"></script>\n', '  <script src="adapter.js"></script>\n  <script src="ui-language.js"></script>\n  <script src="strings.js"></script>\n'],
     ['  <link rel="stylesheet" href="styles.css" />\n', '  <link rel="stylesheet" href="styles.css" />\n  <link rel="stylesheet" href="prototype.css" />\n'],
     // Chromium's extension controls sit in the pill's action cluster.
     ['<div id="pillActions" class="pill-btns"></div>', '<div id="pillActions" class="pill-btns"><span id="nativeExtensions" aria-hidden="true"></span></div>'],
   ],
   'overlay.html': [
-    ['  <script src="strings.js"></script>\n', '  <script src="adapter.js"></script>\n  <script src="strings.js"></script>\n'],
+    ['  <script src="strings.js"></script>\n', '  <script src="adapter.js"></script>\n  <script src="ui-language.js"></script>\n  <script src="strings.js"></script>\n'],
     ['  <link rel="stylesheet" href="styles.css" />\n', '  <link rel="stylesheet" href="styles.css" />\n  <link rel="stylesheet" href="prototype.css" />\n' + PREVIEW_META + '\n'],
     // The preview build's security and update notice (not a release).
     ['      <div id="islandHint"></div>\n', '      <button id="previewStatusLink" class="preview-notice-button" type="button" hidden>Security &amp; updates</button>\n<div id="islandHint"></div>\n'],

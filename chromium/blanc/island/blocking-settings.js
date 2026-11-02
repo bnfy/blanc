@@ -11,7 +11,8 @@ function normalizeBlockingHostname(input) {
 if (typeof module !== 'undefined') module.exports = { normalizeBlockingHostname };
 if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded', () => {
   // Injected only into the trusted settings document by the native host.
-  const requested = (navigator.languages?.[0] || navigator.language || 'en').toLowerCase();
+  // The launch's interface language when strings.js resolved one (F44).
+  const requested = (window.blancStrings?.locale || navigator.languages?.[0] || navigator.language || 'en').toLowerCase();
   const locale = Object.keys(blockingCopy).find(key => key.toLowerCase() === requested)
     || Object.keys(blockingCopy).find(key => key.toLowerCase().split('-')[0] === requested.split('-')[0]) || 'en';
   const t = (key, vars = {}) => (blockingCopy[locale][key] || blockingCopy.en[key] || key)

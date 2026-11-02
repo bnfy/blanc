@@ -2,6 +2,7 @@
 // defined. Each follows its Gherkin text and spec row; no shipping source.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import http from 'node:http';
 import path from 'node:path';
 import {tabPage} from '../adapters/core.mjs';
 const overlay=w=>w.frame('overlay');
@@ -21,7 +22,9 @@ const palette=page=>page.evaluate(()=>document.documentElement.dataset.theme==='
 // argument as a URL, so the runner closes that stray tab after the start.
 const LABELS={System:'system',English:'en',Deutsch:'de'};
 const stripLang=w=>w.frame('strip').evaluate(()=>document.documentElement.lang);
-const noStoredLanguage=what=>{throw Error(`${what}: the fork stores no interface language choice (strings.js follows the browser language)`);};
+// The stored choice is the native interface-language preference
+// (blanc/browser/ui/ui_language.h); a launch reads it once.
+const storeLanguage=(w,value)=>w.native('setStoredUiLanguage',[String(value)]);
 export default function register(step){
  // F6-1: a favorite saved through the Island's own heart, on its page.
  step('a favorite for {string}',async function(name){
@@ -98,16 +101,17 @@ export default function register(step){
  // Setting labels (System, English, Deutsch) are a stored choice; codes are
  // the resolved language the Island document is drawn in.
  step('the interface language is {string}',async function(value){
-  if(value in LABELS){
-   if(LABELS[value]==='system'){assert.equal(await this.frame('strip').evaluate(()=>window.__blancUiLanguage??null),null,'no language should be pinned');return;}
-   noStoredLanguage('Pinning '+value);
-  }
+  // A label names the stored choice, before Blanc starts; a code names the
+  // language this launch draws the Island in.
+  if(value in LABELS){await storeLanguage(this,LABELS[value]);return;}
   await this.waitFor(()=>stripLang(this),l=>l===value,'interface language '+value,5000);
  });
  step('the user chooses {string} in Settings',async function(label){
   await this.api('openPage',['settings']);
   await this.waitForState(s=>s.tabs.some(t=>t.url.includes('settings')));
   this.settingsPage=await tabPage(this,(await this.snapshot()).activeTabId);
+  // The row fills once Settings has read the stored choice.
+  await this.waitFor(()=>this.settingsPage.evaluate(code=>[...(document.getElementById('uiLanguage')?.options??[])].some(o=>o.value===code),LABELS[label]),Boolean,'the '+label+' option',5000).catch(()=>{});
   const chosen=await this.settingsPage.evaluate(code=>{const c=document.getElementById('uiLanguage');if(!c)return false;
    c.value=code;c.dispatchEvent(new Event('change',{bubbles:true}));return c.value===code;},LABELS[label]);
   assert(chosen,`Fork Settings has no #uiLanguage control offering ${label}`);
@@ -116,8 +120,26 @@ export default function register(step){
   await this.waitFor(()=>this.settingsPage.evaluate(()=>{const b=document.getElementById('uiLanguageRelaunch');return !!b&&!b.hidden;}),Boolean,'relaunch offer',5000);
  });
  step('after a relaunch the interface language is {string}',async function(code){await this.relaunch();await this.waitFor(()=>stripLang(this),l=>l===code,'interface language '+code,5000);});
- step('the stored interface language is {string}',()=>noStoredLanguage('Storing a language'));
- step('the stored interface language is still {string}',()=>noStoredLanguage('Reading the stored language'));
- step('a page is loaded with the interface language {string} and again with {string}',()=>noStoredLanguage('Switching the interface language'));
+ step('the stored interface language is {string}',async function(value){await storeLanguage(this,value);});
+ step('the stored interface language is still {string}',async function(value){assert.equal(await this.native('storedUiLanguage',[]),value);});
+ // A loopback page records the Accept-Language each load sends, once per
+ // launch in each interface language.
+ step('a page is loaded with the interface language {string} and again with {string}',async function(first,second){
+  const seen=[];const server=http.createServer((q,r)=>{seen.push(q.headers['accept-language']??null);r.writeHead(200,{'content-type':'text/html'});r.end('<title>Language probe</title>');});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  try{
+   for(const label of [first,second]){
+    await storeLanguage(this,LABELS[label]);await this.relaunch();
+    const before=seen.length;await this.call('openTab',`http://127.0.0.1:${server.address().port}/probe`);
+    await this.waitFor(async()=>seen.length,n=>n>before,'the probe page request',10000);
+    assert.equal(await this.frame('strip').evaluate(()=>document.documentElement.lang),label==='English'?'en':LABELS[label],'the launch draws the chosen language');
+   }
+  }finally{server.close();}
+  this.acceptLanguages=seen;
+ });
+ step('the Accept-Language header is the same both times',function(){
+  assert.ok(this.acceptLanguages?.length>=2,'two probe loads');
+  assert.equal(new Set(this.acceptLanguages).size,1,'Accept-Language: '+JSON.stringify(this.acceptLanguages));
+ });
  step('no restart was required',async function(){assert.equal(await this.hostEval('performance.timeOrigin'),this.hostOrigin);});
 }
