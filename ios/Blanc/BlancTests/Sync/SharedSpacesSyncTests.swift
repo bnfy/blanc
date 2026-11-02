@@ -96,25 +96,25 @@ import CryptoKit
         f.transport.records().filter { $0.method == "GET" && $0.path.hasSuffix("/spaces") }.count
     }
 
-    func testWhileOpenTheSpacesSwitchChecksEveryMinute() async throws {
+    func testWhileOpenTheSpacesSwitchTicksEvery15Seconds() async throws {
         let f = try await make(spaces: true)
         let minutes = Minutes()
-        f.engine.foregroundWait = { _ in await minutes.wait() }
+        var asked: [Int64] = []
+        f.engine.foregroundWait = { ms in asked.append(ms); f.clock.advance(ms); return await minutes.wait() }
         f.engine.startForegroundChecks()
         f.engine.startForegroundChecks()
         try await untilWaiting(minutes, f)
         XCTAssertEqual(minutes.started, 1, "a second start doesn't add a second loop")
-        XCTAssertEqual(indexReads(f), 0, "the first check comes a minute after Blanc opens")
+        XCTAssertEqual(indexReads(f), 0, "nothing before the first tick")
         minutes.end(); try await untilWaiting(minutes, f)
-        XCTAssertEqual(indexReads(f), 1)
-        minutes.end(); try await untilWaiting(minutes, f)
-        XCTAssertEqual(indexReads(f), 2)
+        XCTAssertEqual(indexReads(f), 1, "the first tick passes: none has run since Blanc opened")
+        XCTAssertEqual(asked, [15_000, 15_000])
         f.engine.stopForegroundChecks(); minutes.end(false)
     }
     func testLeavingTheForegroundStopsTheChecks() async throws {
         let f = try await make(spaces: true)
         let minutes = Minutes()
-        f.engine.foregroundWait = { _ in await minutes.wait() }
+        f.engine.foregroundWait = { ms in f.clock.advance(ms); return await minutes.wait() }
         f.engine.startForegroundChecks()
         try await untilWaiting(minutes, f)
         f.engine.stopForegroundChecks()
@@ -132,12 +132,106 @@ import CryptoKit
     func testWithTheSpacesSwitchOffTheChecksDoNothing() async throws {
         let f = try await make(spaces: false)
         let minutes = Minutes()
-        f.engine.foregroundWait = { _ in await minutes.wait() }
+        f.engine.foregroundWait = { ms in f.clock.advance(ms); return await minutes.wait() }
         f.engine.startForegroundChecks()
         try await untilWaiting(minutes, f)
         minutes.end(); try await untilWaiting(minutes, f)
         XCTAssertTrue(f.transport.records().isEmpty, "without Shared Spaces the phone syncs on changes and on coming back, as before")
         f.engine.stopForegroundChecks(); minutes.end(false)
+    }
+
+    // MARK: The change check (design 2026-11-02)
+
+    private func blobGets(_ f: Fixture, since n: Int = 0) -> [String] {
+        f.transport.records().dropFirst(n).filter { $0.method == "GET" && $0.path.hasPrefix("v1/blob/") }
+            .map { String($0.path.split(separator: "/").last ?? "") }
+    }
+    private func versionChecks(_ f: Fixture) -> Int {
+        f.transport.records().filter { $0.method == "GET" && $0.path.hasPrefix("v1/versions/") }.count
+    }
+    /// Blanc in front: the loop runs (its waits never end on their own), so
+    /// routine work leaves the checks their share from the first pass.
+    private func holdForeground(_ f: Fixture) {
+        f.engine.foregroundWait = { _ in (try? await Task.sleep(for: .seconds(3600))) != nil }
+        f.engine.startForegroundChecks()
+        addTeardownBlock { @MainActor in f.engine.stopForegroundChecks() }
+    }
+    /// `seconds` of foreground ticks, one every 15 s.
+    private func inFront(_ f: Fixture, seconds: Int) async {
+        for _ in 0..<(seconds / 15) {
+            f.clock.advance(15_000)
+            await f.engine.foregroundTick()
+            await f.engine.requestsSettled()
+        }
+    }
+
+    func testForegroundChecksEvery15SecondsAndFetchesOnlyWhatMoved() async throws {
+        let f = try await make(spaces: true)
+        f.transport.serveVersions()
+        holdForeground(f)
+        await pass(f)
+        let afterPass = f.transport.records().count
+        await inFront(f, seconds: 45)
+        XCTAssertEqual(versionChecks(f), 3, "a check every 15 s")
+        XCTAssertEqual(blobGets(f, since: afterPass), [], "nothing moved, nothing downloaded")
+        try f.transport.install(account, .settings, .object([("values", .object([("theme", .string("dark"))])), ("meta", .object([("theme", .number(200))])), ("tieBreakers", .object([]))]), key: f.key)
+        let before = f.transport.records().count
+        await inFront(f, seconds: 15)
+        XCTAssertEqual(blobGets(f, since: before), ["settings"], "only the store that moved")
+        XCTAssertEqual(f.state.load(.settings)?["values"]?["theme"], .string("dark"))
+    }
+    func testANewSpaceArrivesWithinOneCheck() async throws {
+        let f = try await make(spaces: true)
+        f.transport.serveVersions()
+        holdForeground(f)
+        await pass(f)
+        let ids = try await installSpaces(f, 1)
+        await inFront(f, seconds: 15)
+        XCTAssertNotNil(f.engine.sharedState.blob(ids[0]), "the Space came with the index")
+    }
+    func testARacedReadIsFetchedAgainAtTheNextCheck() async throws {
+        let f = try await make(spaces: true)
+        f.transport.serveVersions()
+        holdForeground(f)
+        await pass(f)
+        f.transport.nameAhead("settings")
+        let before = f.transport.records().count
+        await inFront(f, seconds: 30)
+        XCTAssertEqual(blobGets(f, since: before), ["settings", "settings"], "the store stays changed until a read matches")
+    }
+    func testAnOlderWorkerKeepsTheMinutePass() async throws {
+        let f = try await make(spaces: true)
+        await pass(f)
+        await inFront(f, seconds: 120)
+        XCTAssertEqual(versionChecks(f), 1, "the check isn't asked again for ten minutes")
+        XCTAssertEqual(indexReads(f), 3, "a full pass every minute, as before")
+        await inFront(f, seconds: 600)
+        XCTAssertEqual(versionChecks(f), 2, "then it is tried once more")
+    }
+    func testNoChecksWithTheSpacesSwitchOff() async throws {
+        let f = try await make(spaces: false)
+        f.transport.serveVersions()
+        await inFront(f, seconds: 120)
+        XCTAssertTrue(f.transport.records().isEmpty, "without Shared Spaces, no periodic requests in front")
+    }
+    func testAFullPassReReadsAtMostFiveSpaceBlobs() async throws {
+        let f = try await make(spaces: true)
+        f.transport.serveVersions()
+        _ = try await installSpaces(f, 12)
+        holdForeground(f)
+        await pass(f)
+        await inFront(f, seconds: 15)
+        var seen = Set<String>()
+        for round in 0..<2 {
+            let before = f.transport.records().count
+            f.clock.advance(SyncChanges.fullPassMs)
+            await f.engine.foregroundTick()
+            await f.engine.requestsSettled()
+            let reads = blobGets(f, since: before).filter { $0.hasPrefix("space-") }
+            XCTAssertEqual(reads.count, 5, "round \(round)")
+            XCTAssertTrue(seen.isDisjoint(with: reads), "the next pass continues where the last stopped")
+            seen.formUnion(reads)
+        }
     }
 
     // MARK: The window

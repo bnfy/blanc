@@ -34,6 +34,8 @@ final class MemorySyncTransport: SyncTransport, @unchecked Sendable {
     private var held: CheckedContinuation<Void, Never>?
     private var retired: Set<String> = []
     private var stampClock: TestClock?
+    private var versionsServed = false
+    private var namedAhead: Set<String> = []
     private var stamps: [Stamp] = []
     private func locked<T>(_ body: () throws -> T) rethrows -> T { lock.lock(); defer { lock.unlock() }; return try body() }
     func records() -> [Request] { locked { requests } }
@@ -43,9 +45,14 @@ final class MemorySyncTransport: SyncTransport, @unchecked Sendable {
     /// An older Worker that doesn't serve `store` at all (M7b's `sends`).
     func retire(_ store: SyncStore) { _ = locked { retired.insert(store.rawValue) } }
     func retire(name: String) { _ = locked { retired.insert(name) } }
+    /// A Worker with the change check (`GET v1/versions/<account>`); without it, a 404 as from an older Worker.
+    func serveVersions() { locked { versionsServed = true } }
+    /// The check names `name` one version past what a GET returns, as when the read raced a newer write.
+    func nameAhead(_ name: String) { _ = locked { namedAhead.insert(name) } }
     func install(_ account: String, name: String, _ value: JSONValue, key: SymmetricKey) throws {
         let sealed = try SyncCrypto.seal(Data(value.jsStringify().utf8), key: key)
-        locked { blobs["v1/blob/\(account)/\(name)"] = (1, sealed) }
+        // A new copy is a new version, as on the Worker.
+        locked { blobs["v1/blob/\(account)/\(name)"] = ((blobs["v1/blob/\(account)/\(name)"]?.0 ?? 0) + 1, sealed) }
     }
     func value(_ account: String, name: String, key: SymmetricKey) throws -> JSONValue? {
         guard let (_, blob) = locked({ blobs["v1/blob/\(account)/\(name)"] }) else { return nil }
@@ -74,7 +81,14 @@ final class MemorySyncTransport: SyncTransport, @unchecked Sendable {
         let response: (status: Int, body: Data)
         let exactKey = method + " " + path
         let failureKey = failures[exactKey] != nil ? exactKey : (failures.keys.first { $0.hasSuffix("/") && exactKey.hasPrefix($0) } ?? exactKey)
-        if let store = path.split(separator: "/").last.map(String.init), retired.contains(store), path.hasPrefix("v1/blob/") {
+        if method == "GET", versionsServed, path.hasPrefix("v1/versions/") {
+            let account = String(path.dropFirst("v1/versions/".count))
+            var stores: [String: Any] = [:]
+            for name in SyncChanges.fixedStores {
+                stores[name] = blobs["v1/blob/\(account)/\(name)"].map { String($0.0 + (namedAhead.contains(name) ? 1 : 0)) } ?? NSNull()
+            }
+            response = (200, try JSONSerialization.data(withJSONObject: ["v": 1, "stores": stores]))
+        } else if let store = path.split(separator: "/").last.map(String.init), retired.contains(store), path.hasPrefix("v1/blob/") {
             response = (404, Data("unknown store".utf8))
         } else if var pending = failures[failureKey], !pending.isEmpty {
             let status = pending.removeFirst(); failures[failureKey] = pending
@@ -498,9 +512,9 @@ final class MemorySyncTransport: SyncTransport, @unchecked Sendable {
     func testForegroundDoesNotRepeatACompletedPassWithinAMinute() async throws {
         let f = try await make()
         await f.engine.appDidBecomeActive()
-        let first = await f.transport.records().count
+        let first = await f.transport.records().filter { $0.path.hasPrefix("v1/blob/") }.count
         await f.engine.appDidBecomeActive()
-        let second = await f.transport.records().count
+        let second = await f.transport.records().filter { $0.path.hasPrefix("v1/blob/") }.count
         XCTAssertEqual(first, second)
         XCTAssertGreaterThan(first, 0)
     }

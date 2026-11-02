@@ -95,6 +95,21 @@ private final class Box<T> {
   /// Versions the pass in progress read or wrote, remembered once it has
   /// applied what it read (design 2026-11-02).
   private var passVersions: [String: String?]?
+  /// The change check's rhythm (design 2026-11-02).
+  private struct Cadence {
+    /// nil until a check is answered; false while the Worker can't answer it.
+    var checkSupported: Bool?
+    var checkRetryAt: Int64 = 0
+    var lastCheck: Int64 = 0
+    var lastFullPass: Int64 = 0
+    var lastRetryPass: Int64 = 0
+    var lastOpenTabsFetch: Int64 = 0
+    /// Fixed stores whose last pass failed, for the retry pass.
+    var failedFixed = Set<SyncStore>()
+    /// The index revision each Space was last fetched for by a check's pass.
+    var askedRev: [String: String] = [:]
+  }
+  private var cadence = Cadence()
   private var reconciling: [UUID: Task<Void, Never>] = [:]
 
   init(
@@ -397,6 +412,8 @@ private final class Box<T> {
   /// Another account (or none): the Spaces state starts clean with its switch
   /// off, and the Recently closed cache goes with the old account.
   private func resetSpaces(accountId: String) {
+    cadence = Cadence()
+    updateCheckShare()
     sharedState.rebind(accountId: accountId)
     closed = Self.emptyClosed
     closedInbox = []
@@ -544,6 +561,13 @@ private final class Box<T> {
   /// Every GET waits for its turn in the request window (M16 §6.2).
   private func runPass(generation g: Int, only: Set<SyncStore>? = nil) async {
     var spaces: Task<Void, Never>?
+    if only == nil {
+      let now = clock()
+      cadence.lastFullPass = now
+      cadence.lastRetryPass = now
+      cadence.lastOpenTabsFetch = now
+    }
+    let stores = (only ?? Set(SyncStore.allCases)).subtracting([.spaces])
     do {
       let snap = try snapshot()
       try check(g)
@@ -555,9 +579,11 @@ private final class Box<T> {
       let fixed = only?.subtracting([.spaces])
       if fixed?.isEmpty != true { try await syncFixed(snap, consent: consent, only: fixed) }
       await spaces?.value
+      if g == generation { cadence.failedFixed.subtract(stores) }
     } catch {
       await spaces?.value
       guard g == generation else { return }
+      if (error as? SyncError) != .cancelled { cadence.failedFixed.formUnion(stores) }
       let code = (error as? SyncError)?.code ?? "offline"
       try? stateStore.update { $0.lastError = code }
       onChanged?()
@@ -1118,6 +1144,15 @@ private final class Box<T> {
   }
   func appDidBecomeActive() async {
     applyInbox()
+    // With a Worker that answers the change check, coming back is a check,
+    // until a full pass is due (on launch, and five minutes after the last).
+    let now = clock()
+    if stateStore.state.enabled, cadence.checkSupported != false, cadence.lastFullPass > 0,
+      now - cadence.lastFullPass < SyncChanges.fullPassMs
+    {
+      if now - cadence.lastCheck < SyncChanges.checkMs - 1000 { return }
+      if await checkAndFetch(now) { return }
+    }
     guard lastForeground == nil || clock() - lastForeground! >= 60_000 else { return }
     lastForeground = clock()
     // A focus refresh makes the index due; it waits its turn and never moves
@@ -1196,7 +1231,7 @@ private final class Box<T> {
     onChanged?()
   }
 
-  /// While Blanc is open with the Spaces switch on, a pass every minute, as
+  /// While Blanc is open with the Spaces switch on, a tick every 15 s, as
   /// desktop's: another device's changes arrive without a change here or a
   /// trip through the background.
   var foregroundWait: (Int64) async -> Bool = { (ms: Int64) async -> Bool in
@@ -1206,15 +1241,84 @@ private final class Box<T> {
   func startForegroundChecks() {
     guard foregroundChecks == nil else { return }
     foregroundChecks = Task { [weak self] in
-      while let wait = self?.foregroundWait, await wait(60_000), !Task.isCancelled {
-        guard let self, self.spacesConsent else { continue }
-        await self.syncNow()
+      while let wait = self?.foregroundWait, await wait(SyncChanges.checkMs), !Task.isCancelled {
+        await self?.foregroundTick()
       }
     }
+    updateCheckShare()
   }
   func stopForegroundChecks() {
     foregroundChecks?.cancel()
     foregroundChecks = nil
+    updateCheckShare()
+  }
+  /// Routine work leaves four requests a minute for checks while they run.
+  private func updateCheckShare() {
+    queue.checkShare = foregroundChecks != nil && spacesConsent && cadence.checkSupported != false ? 4 : 0
+  }
+  /// One tick of the rhythm (design 2026-11-02): a check every 15 s, a retry
+  /// pass every minute and a full pass every five. Against a Worker that
+  /// can't answer the check, today's full pass every minute, with the check
+  /// tried again after ten. With the Spaces switch off, nothing, as before.
+  func foregroundTick() async {
+    updateCheckShare()
+    guard stateStore.state.enabled, !transitioning, spacesConsent else { return }
+    // A second of tolerance: a timer can fire a little early, and a pass
+    // stamps itself a moment after the tick that started it.
+    let now = clock()
+    func due(_ last: Int64, _ interval: Int64) -> Bool { now - last >= interval - 1000 }
+    if cadence.checkSupported == false, now < cadence.checkRetryAt {
+      if due(cadence.lastFullPass, 60_000) { await syncNow() }
+      return
+    }
+    // The check first, so a full pass that comes due can't take its turn.
+    if due(cadence.lastCheck, SyncChanges.checkMs) { await checkAndFetch(now) }
+    if due(cadence.lastFullPass, cadence.checkSupported == false ? 60_000 : SyncChanges.fullPassMs) {
+      await syncNow()
+      return
+    }
+    if cadence.checkSupported == true, due(cadence.lastRetryPass, SyncChanges.retryPassMs) { await retryPass(now) }
+  }
+  /// Checks, then downloads only the stores whose version moved (a moved
+  /// index brings the Space blobs it names at a new revision). False when the
+  /// Worker can't answer the check.
+  @discardableResult private func checkAndFetch(_ now: Int64) async -> Bool {
+    cadence.lastCheck = now
+    // During a 429 backoff checks pause, leaving the reduced window to sync.
+    guard !transitioning, !queue.backedOff, let snap = try? snapshot() else { return true }
+    let answer = Box<[String: String?]??>(nil)
+    let error = await queue.check(cancelled: staleCheck(snap.generation)) { [weak self] in
+      guard let self else { throw SyncError.stale }
+      answer.value = .some(try await self.request { try await self.client.versions(snap.accountId) })
+    }
+    guard error == nil, snap.generation == generation, let result = answer.value else { return true }
+    guard let named = result else {
+      cadence.checkSupported = false
+      cadence.checkRetryAt = now + SyncChanges.checkRetryAfterMs
+      updateCheckShare()
+      return false
+    }
+    cadence.checkSupported = true
+    updateCheckShare()
+    let fetch = SyncChanges.changedStores(
+      named: named, seen: seenVersions, now: now, lastOpenTabsFetch: cadence.lastOpenTabsFetch
+    ).fetch
+    if fetch.contains("session") || fetch.contains("icons") { cadence.lastOpenTabsFetch = now }
+    var stores = Set(fetch.compactMap(SyncStore.init(rawValue:)))
+    // Space blobs the index names at a revision this phone doesn't hold,
+    // whichever pass downloaded that index; each revision once.
+    if spacesConsent, sharedState.spaceIds.contains(where: movedSinceAsked) { stores.insert(.spaces) }
+    if !stores.isEmpty { await syncNow(only: stores) }
+    return true
+  }
+  /// What waits to upload or failed: fixed stores whose last pass failed,
+  /// and with the Spaces switch on, Spaces with writes or a failure and an
+  /// index receipt to publish.
+  private func retryPass(_ now: Int64) async {
+    cadence.lastRetryPass = now
+    var stores = cadence.failedFixed
+    if spacesConsent, sharedState.hasPendingUploads { stores.insert(.spaces) }
+    if !stores.isEmpty { await syncNow(only: stores) }
   }
   private func refreshViews() {
     var names: [String: String] = [:]
@@ -1585,6 +1689,11 @@ private final class Box<T> {
     }
     return nil
   }
+  /// The index names Space `id` at a revision this phone doesn't hold, and
+  /// no check's pass has asked for that revision yet.
+  private func movedSinceAsked(_ id: String) -> Bool {
+    sharedState.revisionDiffers(id) && cadence.askedRev[id] != sharedState.indexRevision(id)
+  }
   private func needsSync(_ id: String) -> Bool {
     sharedState.deletedSpaceIds.contains(id) || sharedState.hasPendingEdits(id)
       || sharedState.revisionDiffers(id)
@@ -1600,15 +1709,27 @@ private final class Box<T> {
     var served = Set<String>()
     var pushes: [Task<SpaceOutcome, Never>] = []
     func push(_ ids: [String]) {
-      for id in ids where !served.contains(id) && needsSync(id) {
+      for id in ids
+      where !served.contains(id) && (full ? needsSync(id) : sharedState.hasPendingEdits(id) || movedSinceAsked(id)) {
         served.insert(id)
+        if !full { cadence.askedRev[id] = sharedState.indexRevision(id) }
         pushes.append(Task { () async -> SpaceOutcome in await self.syncSpace(id, cls: "S", snap) })
       }
     }
     let before = Set(sharedState.spaceIds + sharedState.deletedSpaceIds)
     let index = Task { () async -> SpaceOutcome in await self.syncIndex(snap) }
     push(before.sorted(by: utf16Less))
-    if full { for id in before.sorted(by: utf16Less) { reconcile(id, snap) } }
+    // While the change check works, class R re-reads at most five Spaces a
+    // pass, continuing after its cursor; otherwise every Space, as before.
+    var rBudget = full ? (cadence.checkSupported == true ? SyncChanges.rPerPass : Int.max) : 0
+    func reconcileNext(_ ids: [String]) {
+      guard rBudget > 0, !ids.isEmpty else { return }
+      let after = queue.snapshot.cursors["R"].map { String($0.dropFirst("space-".count)) } ?? ""
+      let start = rBudget < ids.count ? (ids.firstIndex { utf16Less(after, $0) } ?? 0) : 0
+      for n in 0..<min(rBudget, ids.count) { reconcile(ids[(start + n) % ids.count], snap) }
+      rBudget -= min(rBudget, ids.count)
+    }
+    reconcileNext(before.sorted(by: utf16Less))
     _ = await index.value
     var wrote = false
     for task in pushes {
@@ -1620,7 +1741,7 @@ private final class Box<T> {
     let after = Set(sharedState.spaceIds + sharedState.deletedSpaceIds)
     let offset = pushes.count
     push(after.sorted(by: utf16Less))
-    if full { for id in after.subtracting(before).sorted(by: utf16Less) { reconcile(id, snap) } }
+    reconcileNext(after.subtracting(before).sorted(by: utf16Less))
     for task in pushes[offset...] {
       let outcome = await task.value
       wrote = wrote || outcome.stored || outcome.needsIndex

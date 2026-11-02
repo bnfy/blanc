@@ -81,6 +81,20 @@ nonisolated struct SyncScheduler {
     if events.count < cap { return now() }
     return now() + max(0, windowMs - (monotonic() - events[events.count - cap].at))
   }
+  /// Room for routine work while `keep` requests stay free for change checks
+  /// (design 2026-11-02), as far as the window allows: a window of 4 or more
+  /// always leaves routine work one, and a smaller one keeps nothing back.
+  private func room(keeping keep: Int) -> Int { keep <= 0 || cap < 4 ? cap : max(1, cap - min(keep, cap - 1)) }
+  mutating func canRequest(keeping keep: Int) -> Bool {
+    refresh()
+    return events.count < room(keeping: keep)
+  }
+  mutating func windowFreesAt(keeping keep: Int) -> Int64 {
+    refresh()
+    let n = room(keeping: keep)
+    if events.count < n { return now() }
+    return now() + max(0, windowMs - (monotonic() - events[events.count - n].at))
+  }
   mutating func record() throws -> Event {
     guard canRequest() else { throw Failure.windowExhausted }
     let event = Event(id: eventSerial, wall: now(), at: monotonic())
