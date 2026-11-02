@@ -20,9 +20,23 @@ function createScheduler({limit=10,windowMs=60000,log=[],nextClass='I',cursors={
       recoverAt=cap===limit?null:recoverAt+steps*60000;
     }
   }
-  const canRequest=()=>{refresh();return events.length<cap;};
-  function windowFreesAt() {
-    refresh();return events.length<cap?now():now()+Math.max(0,windowMs-(monotonic()-events[events.length-cap].at));
+  // The queue reserves the window's last request for a fetch the person is
+  // waiting on (the Choose Spaces sheet's index check): background work asks
+  // with {reserve:true} and leaves it free, so that fetch never waits up to a
+  // minute behind routine sync. The window itself never grows, and small or
+  // backed-off windows keep every request. Without the option these are the
+  // window's hard limit, which the iOS vectors share.
+  // A number keeps that many free (the queue also keeps requests for the
+  // change check, design 2026-11-02), as far as the window allows: at least
+  // one is kept in a window of 4 or more, and background work always gets one.
+  const room=reserve=>{
+    if(!reserve||cap<4)return cap;
+    const keep=reserve===true?1:Math.floor(reserve);
+    return Math.max(1,cap-Math.max(1,Math.min(keep,cap-1)));
+  };
+  const canRequest=({reserve=false}={})=>{refresh();return events.length<room(reserve);};
+  function windowFreesAt({reserve=false}={}) {
+    refresh();const n=room(reserve);return events.length<n?now():now()+Math.max(0,windowMs-(monotonic()-events[events.length-n].at));
   }
   function record() {
     if(!canRequest())throw new RangeError('Sync request window exhausted');

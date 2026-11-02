@@ -100,10 +100,12 @@ test('v1 encrypted records, version responses, conflicts and locator-only deleti
   assert.equal([...env.records.keys()].some((key) => key.startsWith('blob:')), false, 'R3 remains: the locator alone authorizes deletion');
 });
 
-test('R5 residual concurrency: same-version writers succeed and an old fixed-only writer can survive deletion', async () => {
+test('R5 concurrency: one of two same-version fixed writers wins, and an old fixed-only writer can survive deletion', async () => {
   const env = storage();
+  // The account object compares fixed stores too (design 2026-11-02), so the
+  // KV read-then-write race that let both succeed is gone.
   const results = await Promise.all([send(env, '{"blob":{"ct":"one"}}'), send(env, '{"blob":{"ct":"two"}}')]);
-  assert.deepEqual(results.map((r) => r.status), [200, 200]);
+  assert.deepEqual(results.map((r) => r.status).sort(), [200, 409]);
   assert.equal([...env.records.keys()].filter((k) => k.startsWith('blob:')).length, 1);
   let finish;
   const put = env.SYNC.put;

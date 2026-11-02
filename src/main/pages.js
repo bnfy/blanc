@@ -454,6 +454,9 @@ function setupPages(hooks = {}) {
     },
     onePasswordAvailable: onePasswordAvailable(),
     recentTabOrderAvailable: recentTabOrderAvailable(),
+    // Mini Window (#1138): the shortcut choices this platform offers and
+    // whether the chosen one is working ('off', 'on' or 'unavailable').
+    miniWindow: hooks.miniWindow?.status?.() ?? { choices: [], status: 'off' },
     searchEngines: Object.fromEntries(
       Object.entries(settings.SEARCH_ENGINES).map(([key, { label }]) => [key, label])
     ),
@@ -560,7 +563,7 @@ function setupPages(hooks = {}) {
   handle('pages:settings:shared-spaces-acknowledge','settings',id=>hooks.sharedSpaces?.acknowledge(id)??false);
   handle('pages:settings:shared-spaces-open','settings',id=>hooks.sharedSpaces?.open(id)??{ok:false});
   handle('pages:settings:shared-spaces-status','settings',()=>hooks.sharedSpaces?.status()??{offered:false});
-  handle('pages:settings:shared-spaces-preview','settings',()=>hooks.sharedSpaces?.preview()??{offered:false});
+  handle('pages:settings:shared-spaces-preview','settings',options=>hooks.sharedSpaces?.preview({local:options?.local===true})??{offered:false});
   handle('pages:settings:shared-spaces-apply','settings',payload=>hooks.sharedSpaces?.apply(payload??{})??{ok:false});
   // iphonePairing: Connect your iPhone and the QR are offered in this build
   // (design 2026-10-28 §9); openPairSheet: Finish setup asked for the sheet.

@@ -8777,6 +8777,26 @@
     "message": "Checking for changes is slowed by rate limiting.",
     "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
+  "sharedSpaces.checking": {
+    "message": "Checking your other devices…",
+    "note": "Choose Spaces to sync sheet: quiet line while this device fetches the latest list of shared Spaces. The sheet is already usable."
+  },
+  "sharedSpaces.checkingButton": {
+    "message": "Checking…",
+    "note": "Choose Spaces to sync sheet: the confirm button while it waits for the check of other devices to finish before saving."
+  },
+  "sharedSpaces.share": {
+    "message": "Share",
+    "note": "Choose Spaces to sync sheet, opened while Spaces sync is already on: confirm button that shares the ticked Spaces."
+  },
+  "sharedSpaces.listUpdated": {
+    "message": "The list was updated. Check it, then confirm again.",
+    "note": "Choose Spaces to sync sheet: shown when the check of other devices changed the choices after the person pressed confirm."
+  },
+  "sharedSpaces.uploading": {
+    "message": "Uploading your Spaces. You can keep browsing.",
+    "note": "Settings → Sync, under Spaces and groups: quiet line after Turn on or Share while the chosen Spaces upload in the background. Clears when the upload finishes."
+  },
   "sharedSpaces.unsyncedTab": {
     "message": "Not synced",
     "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
@@ -9045,6 +9065,10 @@
     "message": "Blanc uses the camera only to scan the pairing code on your computer.",
     "note": "iOS camera permission prompt (NSCameraUsageDescription). Generated into ios/Blanc/Blanc/InfoPlist.xcstrings."
   },
+  "ios.photos.addUsage": {
+    "message": "Blanc saves images to your photo library only when you ask it to.",
+    "note": "iOS permission prompt for saving to Photos (NSPhotoLibraryAddUsageDescription), shown the first time someone saves an image from a page. Add-only: Blanc never reads the library. Generated into ios/Blanc/Blanc/InfoPlist.xcstrings."
+  },
   "ios.settings.shareTabsHelp": {
     "message": "Share this phone’s regular open tabs with your other devices. Private tabs are never shared.",
     "note": "Native iOS Settings sheet: shareTabsHelp."
@@ -9285,6 +9309,26 @@
   "reader.mono": {
     "message": "JetBrains Mono",
     "note": "Reader Mode font family name; keep the font name unchanged."
+  },
+  "settings.general.islandSize.label": {
+    "message": "Island size",
+    "note": "Desktop Settings, General → Island: label of the dropdown that sets the resting Island's size (#1292)."
+  },
+  "settings.general.islandSize.hint": {
+    "message": "Make the Island and its buttons bigger. The page moves down to make room.",
+    "note": "Desktop Settings, General → Island: hint under Island size. The strip grows with the Island, so web pages start lower."
+  },
+  "settings.general.islandSize.default": {
+    "message": "Default",
+    "note": "Desktop Settings, General → Island size option."
+  },
+  "settings.general.islandSize.large": {
+    "message": "Large",
+    "note": "Desktop Settings, General → Island size option."
+  },
+  "settings.general.islandSize.extraLarge": {
+    "message": "Extra large",
+    "note": "Desktop Settings, General → Island size option."
   },
   "settings.general.verticalTabsTextSize.label": {
     "message": "Vertical tab text size",
@@ -9533,5 +9577,55 @@
   "ios.defaultBrowser.notBlanc": {
     "message": "Not Blanc",
     "note": "iOS Settings: the default-browser row's value when another browser is the default or iOS didn't say."
+  },
+  "menu.newMiniWindow": {
+    "message": "New Mini Window",
+    "note": "Menu command (File menu, macOS Dock menu) that opens a mini window: a small Blanc window that isn't saved and closes after an hour unused. Title case like the other menu commands."
+  },
+  "mini.openInBlanc": {
+    "message": "Open in Blanc",
+    "note": "Button at the front of the Island in a mini window (a small window that isn't saved), and a File menu command there: keeps the mini window as an ordinary Blanc window. Keep \"Blanc\" untranslated.",
+    "maxLength": 18
+  },
+  "mini.openInBlanc.title": {
+    "message": "Keep this mini window as an ordinary Blanc window",
+    "note": "Tooltip of the Island's Open in Blanc button in a mini window."
+  },
+  "mini.openInBlanc.label": {
+    "message": "Open in Blanc — keep this mini window as an ordinary Blanc window",
+    "note": "Accessible name of the Island's Open in Blanc button in a mini window."
+  },
+  "settings.general.miniWindow.label": {
+    "message": "Mini window shortcut",
+    "note": "Settings → General: setting name. A keyboard shortcut that works in every app and opens a mini window (a small Blanc window)."
+  },
+  "settings.general.miniWindow.hint": {
+    "message": "Opens a small Blanc window over the app you're in, while Blanc is running. A mini window isn't saved, and closes after an hour unused. Open in Blanc keeps it.",
+    "note": "Settings → General: explanation under the Mini window shortcut setting. \"Open in Blanc\" is the name of the button in a mini window (mini.openInBlanc)."
+  },
+  "settings.general.miniWindow.unavailable": {
+    "message": "Another app is using this shortcut, or your desktop doesn't allow it. Choose another.",
+    "note": "Settings → General: shown under the Mini window shortcut setting when the chosen shortcut can't be used."
+  },
+  "settings.general.miniWindow.off": {
+    "message": "Off",
+    "note": "Settings → General → Mini window shortcut: option (no shortcut; the default).",
+    "maxLength": 19
+  },
+  "settings.general.miniWindow.shortcut.altCmdN": {
+    "message": "⌥⌘N",
+    "note": "Settings → General → Mini window shortcut: option on macOS, Option-Command-N. Keep the symbols."
+  },
+  "settings.general.miniWindow.shortcut.ctrlAltSpaceMac": {
+    "message": "⌃⌥Spacebar",
+    "note": "Settings → General → Mini window shortcut: option on macOS, Control-Option-Spacebar. Translate only the name of the spacebar key."
+  },
+  "settings.general.miniWindow.shortcut.ctrlAltSpace": {
+    "message": "Ctrl+Alt+Spacebar",
+    "note": "Settings → General → Mini window shortcut: option on Windows and Linux. Use the key names keyboards in your language print (for example Strg in German)."
+  },
+  "settings.general.miniWindow.shortcut.ctrlShiftSpace": {
+    "message": "Ctrl+Shift+Spacebar",
+    "note": "Settings → General → Mini window shortcut: option on Windows and Linux. Use the key names keyboards in your language print (for example Strg and Umschalt in German)."
   }
 }

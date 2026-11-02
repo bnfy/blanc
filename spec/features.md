@@ -26,7 +26,11 @@ toolbar (Bowser Design System "Island Chrome").
   draws each direct tab as its site icon instead, and fewer fit before `+N`;
   a pinned tab's dot is a rounded square), favicon,
   domain, shield count (F12), a private chip when private (F4), and a trailing
-  action cluster (reload / favorite / close tab / downloads). The resting pill
+  action cluster (reload / favorite / close tab / downloads). On desktop,
+  Settings → General → **Island size** (Default, Large, Extra large;
+  device-local, never synced) scales the resting pill and everything in it,
+  and the strip that holds it grows with it, so pages start lower. The
+  expanded panel keeps its size. The resting pill
   carries **no group name** — group identity is named in full in the panel
   (F3). Each dot always represents one tab; making a tab quiet (F31) never
   removes, moves, or restyles its dot. In
@@ -1769,6 +1773,12 @@ not delete its shared record: other devices retain the last shareable web page.
 Only an actual close publishes deletion. The switch is off by default and is
 local to each device. See `acceptance/shared-spaces.feature` and the M16 design.
 
+**Unreleased (owner, 2026-10-31):** the selection sheet opens at once from the
+device's saved index and checks other devices in the background, with no "Sync
+is busy" at that moment. While the switch is on, **Choose Spaces to sync** adds
+more Spaces without switching it off, and a Space saved while it is on is
+shared by itself. A Space left unticked in a sheet stays on the device.
+
 Shipped in public v1.45.0 (October 29, 2026), Personal profile only, up to 25
 shared Spaces, after the Gate D device rerun passed Mac↔Windows and Mac↔Linux
 (`docs/reviews/2026-10-28-shared-spaces-gate-d-1.45.0.md`); evidence in
@@ -1787,6 +1797,16 @@ does. A Space's name, colour, symbol and order are written when changed on
 the phone, never by comparison at sync time. The two-device check against
 the deployed Worker passed on October 29, 2026 (desktop v1.45.0 on macOS
 and an iPhone Air on iOS 27.2).
+
+**iOS, unreleased (owner, 2026-10-31; parity with desktop's change of that
+date):** while the switch is on, a Space made on the phone is shared by
+itself about 1.5 s after the change settles. A Space the person saw in a
+Choose Spaces sheet and left unticked stays on the phone until they choose
+it; one that can't be shared (too many tabs, too large, no room) stays on
+the phone and is offered in the sheet. The phone keeps the Spaces already
+offered as `knownWorkspaceIds` in `shared-spaces.json`, as desktop does; a
+phone switched on by an older build counts the Spaces it holds as already
+offered, so the update shares nothing on its own.
 
 ## F58 — Reader Mode (desktop and iOS candidate)
 
@@ -1831,10 +1851,11 @@ the candidate branch; not shipped in public v1.43.1.
   you used them (default) or in the order of the tab list. Device-local, never
   synced. Ctrl+PageDown / Ctrl+PageUp always go by list position.
 - **Platforms.** Recent order needs Blanc to see the Ctrl release; it ships
-  only where that has been proven with real keys (Linux and Windows).
+  only where that has been proven with real keys (Linux, Windows and macOS).
   Elsewhere Ctrl+Tab keeps going by position and the setting is hidden. On
   Windows, Ctrl+Esc is the Start menu, so Esc can't cancel; Blanc losing focus
-  cancels the switch.
+  cancels the switch. On macOS, where ⌘W closes tabs, Ctrl+W during a switch
+  cancels like any other key.
 - **Card.** From the second step (or 150 ms into a held Ctrl), a row of
   favicon tiles under the Island shows the pick raised, with its title and
   host. It never takes focus; a click on a tile switches at once; Ctrl+W closes
@@ -1899,3 +1920,27 @@ candidate branch (PR 1); not shipped in public v1.43.1.
   write its host to settings; the pill says so.
 - **Mobile.** Not applicable until a mobile Blanc has profiles to route
   between (D32).
+
+## F61 — Mini Window (desktop)
+
+A small Blanc window opened over the app the person is in, to look something
+up or open a link without going back to the Blanc window (#1138). Design:
+`docs/superpowers/specs/2026-11-02-mini-window-design.md`. Implemented on the
+candidate branch (PR 1); not in a public release.
+
+- **Opening one.** File → New Mini Window, the macOS Dock menu, or an opt-in
+  shortcut that works in any app while Blanc runs (Settings → General → Mini
+  window shortcut; off by default, device-local). The choices are ⌥⌘N or ⌃⌥Space
+  on macOS, and Ctrl+Alt+Space or Ctrl+Shift+Space on Windows and Linux. A
+  chord that can't be used is reported in Settings.
+- **The window.** 760 × 600 on the display under the pointer, a new tab with
+  the Island's search focused. Otherwise an ordinary window: the same Island,
+  blocking and permissions.
+- **Ephemeral.** Never saved with the session, never where a link from
+  another app or a link rule opens, and holds no Space. Closes by itself after
+  an hour without focus, unless a page in it is in use or has unsaved work.
+  Its pages stay in History. Closing its last tab (⌘W) closes the window
+  rather than leaving a blank tab.
+- **Open in Blanc.** The Island's leading button (and a File menu item) keeps
+  it as an ordinary window: a new window's size, saved from then on.
+- **Mobile.** Not applicable.

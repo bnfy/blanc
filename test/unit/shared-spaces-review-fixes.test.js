@@ -42,7 +42,9 @@ test('a selection-only change gets a Space-sync turn instead of waiting for reco
   }});
   d.spaces.setEnabled(true,d.ctx);
   d.spaces.rebind(d.ctx.accountId).update(s=>{
-    s.nextClass='S';s.requestLog=Array(9).fill(clock.now());
+    s.nextClass='S';
+    // One request left for background work (the last is reserved).
+    s.requestLog=Array(8).fill(clock.now());
     for(const spaceId of [...Array.from({length:24},(_,n)=>id(n+10)),sid]) {
       const b={...blob(),spaceId},rev=m.revisionOf(b);remotes['space-'+spaceId]=b;
       s.index.spaces[spaceId]={name:f('Work'),color:f('#426c4c'),symbol:f('briefcase'),pos:f(m.keyFor('','',spaceId)),deleted:f(false),rev};

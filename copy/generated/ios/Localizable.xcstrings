@@ -95731,6 +95731,216 @@
         }
       }
     },
+    "sharedSpaces.checking": {
+      "comment": "Choose Spaces to sync sheet: quiet line while this device fetches the latest list of shared Spaces. The sheet is already usable.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking your other devices…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine anderen Geräte werden geprüft …"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobando tus otros dispositivos…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification de vos autres appareils…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controllo degli altri dispositivi…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificando seus outros dispositivos…"
+          }
+        }
+      }
+    },
+    "sharedSpaces.checkingButton": {
+      "comment": "Choose Spaces to sync sheet: the confirm button while it waits for the check of other devices to finish before saving.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird geprüft …"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobando…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controllo…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificando…"
+          }
+        }
+      }
+    },
+    "sharedSpaces.share": {
+      "comment": "Choose Spaces to sync sheet, opened while Spaces sync is already on: confirm button that shares the ticked Spaces.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teilen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partager"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Condividi"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartilhar"
+          }
+        }
+      }
+    },
+    "sharedSpaces.listUpdated": {
+      "comment": "Choose Spaces to sync sheet: shown when the check of other devices changed the choices after the person pressed confirm.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The list was updated. Check it, then confirm again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Liste wurde aktualisiert. Prüfe sie und bestätige noch einmal."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La lista se actualizó. Revísala y vuelve a confirmar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La liste a été mise à jour. Vérifiez-la, puis confirmez à nouveau."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’elenco è stato aggiornato. Controllalo, poi conferma di nuovo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A lista foi atualizada. Confira e confirme de novo."
+          }
+        }
+      }
+    },
+    "sharedSpaces.uploading": {
+      "comment": "Settings → Sync, under Spaces and groups: quiet line after Turn on or Share while the chosen Spaces upload in the background. Clears when the upload finishes.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploading your Spaces. You can keep browsing."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Spaces werden hochgeladen. Du kannst weitersurfen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subiendo tus Spaces. Puedes seguir navegando."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoi de vos Spaces en cours. Vous pouvez continuer à naviguer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caricamento degli Spaces in corso. Puoi continuare a navigare."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviando seus Spaces. Você pode continuar navegando."
+          }
+        }
+      }
+    },
     "sharedSpaces.unsyncedTab": {
       "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",
@@ -98545,6 +98755,48 @@
         }
       }
     },
+    "ios.photos.addUsage": {
+      "comment": "iOS permission prompt for saving to Photos (NSPhotoLibraryAddUsageDescription), shown the first time someone saves an image from a page. Add-only: Blanc never reads the library. Generated into ios/Blanc/Blanc/InfoPlist.xcstrings.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc saves images to your photo library only when you ask it to."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc speichert Bilder nur dann in deiner Fotomediathek, wenn du es möchtest."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc guarda imágenes en tu fototeca solo cuando se lo pides."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc enregistre des images dans votre photothèque uniquement lorsque vous le demandez."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc salva le immagini nella tua libreria foto solo quando glielo chiedi."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Blanc salva imagens na sua fototeca só quando você pedir."
+          }
+        }
+      }
+    },
     "ios.settings.shareTabsHelp": {
       "comment": "Native iOS Settings sheet: shareTabsHelp.",
       "extractionState": "manual",
@@ -101253,6 +101505,216 @@
           "stringUnit": {
             "state": "translated",
             "value": "JetBrains Mono"
+          }
+        }
+      }
+    },
+    "settings.general.islandSize.label": {
+      "comment": "Desktop Settings, General → Island: label of the dropdown that sets the resting Island's size (#1292).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island size"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Größe der Island"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tamaño de la Island"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taille de l’Island"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dimensione dell’Island"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tamanho da Island"
+          }
+        }
+      }
+    },
+    "settings.general.islandSize.hint": {
+      "comment": "Desktop Settings, General → Island: hint under Island size. The strip grows with the Island, so web pages start lower.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make the Island and its buttons bigger. The page moves down to make room."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Macht die Island und ihre Schaltflächen größer. Die Seite rückt nach unten, um Platz zu machen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agranda la Island y sus botones. La página baja para dejar sitio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agrandit l’Island et ses boutons. La page descend pour lui faire de la place."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingrandisce l’Island e i suoi pulsanti. La pagina scende per farle spazio."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deixa a Island e os botões maiores. A página desce para abrir espaço."
+          }
+        }
+      }
+    },
+    "settings.general.islandSize.default": {
+      "comment": "Desktop Settings, General → Island size option.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Predeterminado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Par défaut"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Predefinita"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Padrão"
+          }
+        }
+      }
+    },
+    "settings.general.islandSize.large": {
+      "comment": "Desktop Settings, General → Island size option.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Large"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Groß"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grande"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grande"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grande"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grande"
+          }
+        }
+      }
+    },
+    "settings.general.islandSize.extraLarge": {
+      "comment": "Desktop Settings, General → Island size option.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extra large"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sehr groß"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muy grande"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Très grande"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Molto grande"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muito grande"
           }
         }
       }
@@ -104049,6 +104511,510 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não é o Blanc"
+          }
+        }
+      }
+    },
+    "menu.newMiniWindow": {
+      "comment": "Menu command (File menu, macOS Dock menu) that opens a mini window: a small Blanc window that isn't saved and closes after an hour unused. Title case like the other menu commands.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Mini Window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neues Mini-Fenster"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva miniventana"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelle mini-fenêtre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuova minifinestra"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nova minijanela"
+          }
+        }
+      }
+    },
+    "mini.openInBlanc": {
+      "comment": "Button at the front of the Island in a mini window (a small window that isn't saved), and a File menu command there: keeps the mini window as an ordinary Blanc window. Keep \"Blanc\" untranslated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in Blanc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Blanc öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir en Blanc"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir dans Blanc"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri in Blanc"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir no Blanc"
+          }
+        }
+      }
+    },
+    "mini.openInBlanc.title": {
+      "comment": "Tooltip of the Island's Open in Blanc button in a mini window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep this mini window as an ordinary Blanc window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Mini-Fenster als normales Blanc-Fenster behalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conservar esta miniventana como una ventana normal de Blanc"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garder cette mini-fenêtre comme une fenêtre Blanc ordinaire"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tieni questa minifinestra come una normale finestra di Blanc"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter esta minijanela como uma janela comum do Blanc"
+          }
+        }
+      }
+    },
+    "mini.openInBlanc.label": {
+      "comment": "Accessible name of the Island's Open in Blanc button in a mini window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in Blanc — keep this mini window as an ordinary Blanc window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Blanc öffnen – dieses Mini-Fenster als normales Blanc-Fenster behalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir en Blanc: conservar esta miniventana como una ventana normal de Blanc"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir dans Blanc : garder cette mini-fenêtre comme une fenêtre Blanc ordinaire"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri in Blanc: tieni questa minifinestra come una normale finestra di Blanc"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir no Blanc: manter esta minijanela como uma janela comum do Blanc"
+          }
+        }
+      }
+    },
+    "settings.general.miniWindow.label": {
+      "comment": "Settings → General: setting name. A keyboard shortcut that works in every app and opens a mini window (a small Blanc window).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mini window shortcut"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurzbefehl für Mini-Fenster"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atajo de la miniventana"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raccourci de la mini-fenêtre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scorciatoia della minifinestra"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atalho da minijanela"
+          }
+        }
+      }
+    },
+    "settings.general.miniWindow.hint": {
+      "comment": "Settings → General: explanation under the Mini window shortcut setting. \"Open in Blanc\" is the name of the button in a mini window (mini.openInBlanc).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens a small Blanc window over the app you're in, while Blanc is running. A mini window isn't saved, and closes after an hour unused. Open in Blanc keeps it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnet ein kleines Blanc-Fenster über der App, in der du gerade bist, solange Blanc läuft. Ein Mini-Fenster wird nicht gespeichert und schließt sich nach einer Stunde ohne Nutzung. „In Blanc öffnen“ behält es."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre una pequeña ventana de Blanc sobre la app en la que estás, mientras Blanc está abierto. Una miniventana no se guarda y se cierra tras una hora sin usarla. Abrir en Blanc la conserva."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvre une petite fenêtre Blanc par-dessus l’app où vous êtes, tant que Blanc est ouvert. Une mini-fenêtre n’est pas enregistrée et se ferme après une heure sans utilisation. Ouvrir dans Blanc la garde."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apre una piccola finestra di Blanc sopra l’app in cui ti trovi, mentre Blanc è aperto. Una minifinestra non viene salvata e si chiude dopo un’ora di inutilizzo. Apri in Blanc la tiene."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre uma pequena janela do Blanc sobre o app em que você está, enquanto o Blanc está aberto. Uma minijanela não é salva e fecha após uma hora sem uso. Abrir no Blanc a mantém."
+          }
+        }
+      }
+    },
+    "settings.general.miniWindow.unavailable": {
+      "comment": "Settings → General: shown under the Mini window shortcut setting when the chosen shortcut can't be used.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another app is using this shortcut, or your desktop doesn't allow it. Choose another."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine andere App verwendet diesen Kurzbefehl, oder dein Desktop erlaubt ihn nicht. Wähle einen anderen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otra app usa este atajo o tu escritorio no lo permite. Elige otro."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une autre app utilise ce raccourci, ou votre bureau ne l’autorise pas. Choisissez-en un autre."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un’altra app usa questa scorciatoia, oppure il tuo desktop non la consente. Scegline un’altra."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outro app está usando este atalho, ou sua área de trabalho não permite. Escolha outro."
+          }
+        }
+      }
+    },
+    "settings.general.miniWindow.off": {
+      "comment": "Settings → General → Mini window shortcut: option (no shortcut; the default).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desactivado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désactivé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disattivata"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desativado"
+          }
+        }
+      }
+    },
+    "settings.general.miniWindow.shortcut.altCmdN": {
+      "comment": "Settings → General → Mini window shortcut: option on macOS, Option-Command-N. Keep the symbols.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥⌘N"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥⌘N"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥⌘N"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥⌘N"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥⌘N"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥⌘N"
+          }
+        }
+      }
+    },
+    "settings.general.miniWindow.shortcut.ctrlAltSpaceMac": {
+      "comment": "Settings → General → Mini window shortcut: option on macOS, Control-Option-Spacebar. Translate only the name of the spacebar key.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃⌥Spacebar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃⌥Leertaste"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃⌥Espacio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃⌥Espace"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃⌥Spazio"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃⌥Espaço"
+          }
+        }
+      }
+    },
+    "settings.general.miniWindow.shortcut.ctrlAltSpace": {
+      "comment": "Settings → General → Mini window shortcut: option on Windows and Linux. Use the key names keyboards in your language print (for example Strg in German).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Alt+Spacebar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strg+Alt+Leertaste"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Alt+Espacio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Alt+Espace"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Alt+Spazio"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Alt+Espaço"
+          }
+        }
+      }
+    },
+    "settings.general.miniWindow.shortcut.ctrlShiftSpace": {
+      "comment": "Settings → General → Mini window shortcut: option on Windows and Linux. Use the key names keyboards in your language print (for example Strg and Umschalt in German).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Shift+Spacebar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strg+Umschalt+Leertaste"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Mayús+Espacio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Maj+Espace"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Maiusc+Spazio"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl+Shift+Espaço"
           }
         }
       }

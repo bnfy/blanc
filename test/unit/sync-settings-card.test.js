@@ -150,7 +150,7 @@ test('the shared Spaces control is a What syncs tile beside Open tabs, its note 
   assert.match(js, /anchor\.after\(tile\)/);
   // The acceptance steps read the unavailable notice from #sharedSpacesControl.
   assert.match(js, /row\.className='sync-what-note';row\.id='sharedSpacesControl'/);
-  assert.match(js, /row\.append\(detail,note\);anchor\.parentElement\.after\(row\)/);
+  assert.match(js, /row\.append\(detail,actions,note\);anchor\.parentElement\.after\(row\)/);
 });
 
 test('settings.js drives the flow through the reducer and performs effects once', () => {

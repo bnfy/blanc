@@ -2343,6 +2343,11 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="shared_spaces_capacity">This Space is full for sync. Its local changes are kept.</string>
     <string name="shared_spaces_busy">Sync is busy; retrying.</string>
     <string name="shared_spaces_slowed">Checking for changes is slowed by rate limiting.</string>
+    <string name="shared_spaces_checking">Checking your other devices…</string>
+    <string name="shared_spaces_checking_button">Checking…</string>
+    <string name="shared_spaces_share">Share</string>
+    <string name="shared_spaces_list_updated">The list was updated. Check it, then confirm again.</string>
+    <string name="shared_spaces_uploading">Uploading your Spaces. You can keep browsing.</string>
     <string name="shared_spaces_unsynced_tab">Not synced</string>
     <string name="shared_spaces_pair_question">%1$s joined your sync. Turn on Spaces here?</string>
     <string name="shared_spaces_pair_detail">Turning this on lets this device change shared Spaces across your sync account.</string>
@@ -2410,6 +2415,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_pair_link_confirm_body">Continue only if you just scanned a code on your own computer.</string>
     <string name="ios_pair_pair">Pair</string>
     <string name="ios_pair_camera_usage">Blanc uses the camera only to scan the pairing code on your computer.</string>
+    <string name="ios_photos_add_usage">Blanc saves images to your photo library only when you ask it to.</string>
     <string name="ios_settings_share_tabs_help">Share this phone’s regular open tabs with your other devices. Private tabs are never shared.</string>
     <string name="ios_settings_disconnect_help">Disconnect this phone? Your local Favorites and settings stay here. Your other devices are not affected.</string>
     <string name="ios_settings_switch_help">This phone will leave its current sync. Your local Favorites and settings stay here. Your other devices are not affected.</string>
@@ -2476,6 +2482,11 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="slash_reader_hint">Read this article with adjustable text and fewer distractions</string>
     <string name="reader_inter">Inter</string>
     <string name="reader_mono">JetBrains Mono</string>
+    <string name="settings_general_island_size_label">Island size</string>
+    <string name="settings_general_island_size_hint">Make the Island and its buttons bigger. The page moves down to make room.</string>
+    <string name="settings_general_island_size_default">Default</string>
+    <string name="settings_general_island_size_large">Large</string>
+    <string name="settings_general_island_size_extra_large">Extra large</string>
     <string name="settings_general_vertical_tabs_text_size_label">Vertical tab text size</string>
     <string name="settings_general_vertical_tabs_text_size_hint">Make tab titles and group names easier to read in the vertical tab sidebar.</string>
     <string name="settings_general_vertical_tabs_text_size_default">Default</string>
@@ -2544,4 +2555,16 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_default_browser_done">Blanc is your default browser</string>
     <string name="ios_default_browser_row">Default browser</string>
     <string name="ios_default_browser_not_blanc">Not Blanc</string>
+    <string name="menu_new_mini_window">New Mini Window</string>
+    <string name="mini_open_in_blanc">Open in Blanc</string>
+    <string name="mini_open_in_blanc_title">Keep this mini window as an ordinary Blanc window</string>
+    <string name="mini_open_in_blanc_label">Open in Blanc — keep this mini window as an ordinary Blanc window</string>
+    <string name="settings_general_mini_window_label">Mini window shortcut</string>
+    <string name="settings_general_mini_window_hint">Opens a small Blanc window over the app you\'re in, while Blanc is running. A mini window isn\'t saved, and closes after an hour unused. Open in Blanc keeps it.</string>
+    <string name="settings_general_mini_window_unavailable">Another app is using this shortcut, or your desktop doesn\'t allow it. Choose another.</string>
+    <string name="settings_general_mini_window_off">Off</string>
+    <string name="settings_general_mini_window_shortcut_alt_cmd_n">⌥⌘N</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Spacebar</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Spacebar</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Shift+Spacebar</string>
 </resources>

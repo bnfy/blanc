@@ -69,3 +69,17 @@ test('resetWindow forgets every recorded request and any back-off, and restart c
   assert.equal(s.snapshot().backoffUntil,null);
   let n=0;while(s.canRequest()){s.record();n++;}assert.equal(n,10);
 });
+test('background work leaves the last request of a full window free',()=>{
+  const s=createScheduler({now:()=>1000,monotonic:()=>1000});
+  let n=0;while(s.canRequest({reserve:true})){s.record();n++;}assert.equal(n,9);
+  assert.equal(s.windowFreesAt({reserve:true}),61000);assert.equal(s.windowFreesAt(),1000);
+  assert.equal(s.canRequest(),true);s.record();assert.equal(s.canRequest(),false);
+});
+test('a numeric reserve leaves that many requests free, and small windows keep at least one free',()=>{
+  let t=0;const s=createScheduler({limit:10,now:()=>t,monotonic:()=>t});
+  for(let i=0;i<5;i++)s.record();
+  assert.equal(s.canRequest({reserve:5}),false,'five kept: background stops at five');
+  assert.equal(s.canRequest({reserve:true}),true);assert.equal(s.canRequest(),true);
+  const small=createScheduler({limit:5,now:()=>t,monotonic:()=>t});for(let i=0;i<4;i++)small.record();
+  assert.equal(small.canRequest({reserve:5}),false,'never more than the window allows, never below one kept');
+});

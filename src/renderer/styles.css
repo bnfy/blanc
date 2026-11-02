@@ -1237,6 +1237,24 @@ body > .tab-drag-ghost[aria-hidden="true"] {
 
 /* ---------- Island: resting pill ---------- */
 
+/* Settings → General → Island size (#1292): the resting pill, everything in
+   it and the strip that holds it grow together, keeping the pill's margins.
+   Main sizes the page from the strip's reported height (chrome:layout), and
+   every surface anchored to the Island measures its rect, so nothing else
+   needs to know. */
+:root[data-island-size="large"] {
+  --pill-zoom: 1.3;
+  --island-resting-height: 50px;
+  --island-resting-radius: 19px;
+  --strip-h: 76px;
+}
+:root[data-island-size="extra-large"] {
+  --pill-zoom: 1.45;
+  --island-resting-height: 56px;
+  --island-resting-radius: 21px;
+  --strip-h: 84px;
+}
+
 #islandPill {
   display: flex;
   align-items: center;
@@ -1607,6 +1625,37 @@ body > .tab-drag-ghost[aria-hidden="true"] {
 .pill-slash:hover::before,
 .pill-shortcut:hover::before { border-color: var(--accent); }
 .pill-slash[hidden] { display: none; }
+
+/* Mini Window (#1138): Open in Blanc leads the Island in a mini window, in
+   the place the Space mark takes in an ordinary one (a mini window holds no
+   Space, so the mark and the panel's Spaces button are hidden there). */
+#pillMiniOpen {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px 0 6px;
+  margin-right: -2px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-text);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  flex: 0 0 auto;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+#pillMiniOpen svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+#pillMiniOpen:hover,
+#pillMiniOpen:focus-visible { background: var(--accent-dim); border-color: transparent; }
+#pillMiniOpen:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+#pillMiniOpen[hidden] { display: none; }
+:root[data-mini-window] #pillSpace,
+:root[data-mini-window] #footerWorkspace { display: none !important; }
 
 /* Quick exit chips — clicking one closes the tab. Shared geometry; the
    private chip is a quiet label that fills in on hover, while the source

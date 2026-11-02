@@ -2414,6 +2414,11 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="shared_spaces_capacity">Questo Space è pieno per la sincronizzazione. Le modifiche locali vengono conservate.</string>
     <string name="shared_spaces_busy">Sincronizzazione occupata; nuovo tentativo.</string>
     <string name="shared_spaces_slowed">Il limite di richieste rallenta il controllo delle modifiche.</string>
+    <string name="shared_spaces_checking">Controllo degli altri dispositivi…</string>
+    <string name="shared_spaces_checking_button">Controllo…</string>
+    <string name="shared_spaces_share">Condividi</string>
+    <string name="shared_spaces_list_updated">L’elenco è stato aggiornato. Controllalo, poi conferma di nuovo.</string>
+    <string name="shared_spaces_uploading">Caricamento degli Spaces in corso. Puoi continuare a navigare.</string>
     <string name="shared_spaces_unsynced_tab">Non sincronizzato</string>
     <string name="shared_spaces_pair_question">%1$s si è unito alla sincronizzazione. Attivare gli Spaces qui?</string>
     <string name="shared_spaces_pair_detail">Questo dispositivo potrà modificare gli Spaces condivisi dell’account.</string>
@@ -2481,6 +2486,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ios_pair_link_confirm_body">Continua solo se hai appena scansionato un codice sul tuo computer.</string>
     <string name="ios_pair_pair">Abbina</string>
     <string name="ios_pair_camera_usage">Blanc usa la fotocamera solo per scansionare il codice di abbinamento sul computer.</string>
+    <string name="ios_photos_add_usage">Blanc salva le immagini nella tua libreria foto solo quando glielo chiedi.</string>
     <string name="ios_settings_share_tabs_help">Condividi le normali schede aperte di questo iPhone con gli altri dispositivi. Le schede private non vengono mai condivise.</string>
     <string name="ios_settings_disconnect_help">Disconnettere questo iPhone? I preferiti e le impostazioni locali restano qui. Gli altri dispositivi non sono interessati.</string>
     <string name="ios_settings_switch_help">Questo iPhone lascerà la sincronizzazione attuale. I preferiti e le impostazioni locali restano qui. Gli altri dispositivi non sono interessati.</string>
@@ -2549,6 +2555,11 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="slash_reader_hint">Leggi questo articolo con testo regolabile e meno distrazioni</string>
     <string name="reader_inter">Inter</string>
     <string name="reader_mono">JetBrains Mono</string>
+    <string name="settings_general_island_size_label">Dimensione dell’Island</string>
+    <string name="settings_general_island_size_hint">Ingrandisce l’Island e i suoi pulsanti. La pagina scende per farle spazio.</string>
+    <string name="settings_general_island_size_default">Predefinita</string>
+    <string name="settings_general_island_size_large">Grande</string>
+    <string name="settings_general_island_size_extra_large">Molto grande</string>
     <string name="settings_general_vertical_tabs_text_size_label">Dimensione del testo delle schede verticali</string>
     <string name="settings_general_vertical_tabs_text_size_hint">Leggi più facilmente i titoli delle schede e i nomi dei gruppi nella barra laterale delle schede verticali.</string>
     <string name="settings_general_vertical_tabs_text_size_default">Predefinita</string>
@@ -2619,4 +2630,16 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ios_default_browser_done">Blanc è il tuo browser predefinito</string>
     <string name="ios_default_browser_row">Browser predefinito</string>
     <string name="ios_default_browser_not_blanc">Non Blanc</string>
+    <string name="menu_new_mini_window">Nuova minifinestra</string>
+    <string name="mini_open_in_blanc">Apri in Blanc</string>
+    <string name="mini_open_in_blanc_title">Tieni questa minifinestra come una normale finestra di Blanc</string>
+    <string name="mini_open_in_blanc_label">Apri in Blanc: tieni questa minifinestra come una normale finestra di Blanc</string>
+    <string name="settings_general_mini_window_label">Scorciatoia della minifinestra</string>
+    <string name="settings_general_mini_window_hint">Apre una piccola finestra di Blanc sopra l’app in cui ti trovi, mentre Blanc è aperto. Una minifinestra non viene salvata e si chiude dopo un’ora di inutilizzo. Apri in Blanc la tiene.</string>
+    <string name="settings_general_mini_window_unavailable">Un’altra app usa questa scorciatoia, oppure il tuo desktop non la consente. Scegline un’altra.</string>
+    <string name="settings_general_mini_window_off">Disattivata</string>
+    <string name="settings_general_mini_window_shortcut_alt_cmd_n">⌥⌘N</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Spazio</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Spazio</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Maiusc+Spazio</string>
 </resources>

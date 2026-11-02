@@ -6,7 +6,7 @@ const model=require('./shared-spaces-model');
 const { canonical }=require('./tabsync-model');
 const copy=x=>structuredClone(x);
 const empty=()=>({accountId:'',enabled:false,index:{v:1,spaces:{}},knownIndex:{},blobs:{},pending:{},windows:{},
-  recoveries:{},recoveryDone:{},sidecar:{devices:{}},dormantIds:[],draftIds:[],draftPlans:{},askedDeviceIds:[],pairingBaseline:null,recoveryNoticeSeen:false,requestLog:[],nextClass:'I',cursors:{}});
+  recoveries:{},recoveryDone:{},sidecar:{devices:{}},dormantIds:[],draftIds:[],draftPlans:{},askedDeviceIds:[],pairingBaseline:null,knownWorkspaceIds:null,recoveryNoticeSeen:false,requestLog:[],nextClass:'I',cursors:{}});
 let store;
 const ensure=()=>store??=new JsonStore('shared-spaces',empty(),{scope:'profile'});
 const changed=new Set(),remoteChanged=new Set();
@@ -28,6 +28,7 @@ function rebind(accountId) {
   if(!container(sidecar.devices))repairs.sidecar={...sidecar,devices:{}};
   for(const key of ['dormantIds','draftIds','askedDeviceIds'])if(!Array.isArray(s.data[key]))repairs[key]=[];
   if(s.data.pairingBaseline!==null&&!Array.isArray(s.data.pairingBaseline))repairs.pairingBaseline=null;
+  if(s.data.knownWorkspaceIds!=null&&!Array.isArray(s.data.knownWorkspaceIds))repairs.knownWorkspaceIds=null;
   if(Object.keys(repairs).length)s.update(d=>Object.assign(d,repairs));
   return s;
 }
@@ -205,11 +206,19 @@ function retiredSpaceIds(ctx,now=Date.now()) {
   // forever when the device was offline throughout the retention window.
   return Object.entries(d.index.spaces).filter(([,record])=>record.deleted?.v===true&&now-record.deleted.c>=model.LIMITS.tombstoneMs).map(([id])=>id);
 }
+// A Space this device made that has never met the server: never merged
+// with a download (no rev, not even null) and never published. Its upload
+// can skip the download, because nobody else can have its id yet.
+function neverUploaded(id,ctx) {
+  const d=rebind(ctx.accountId).data,entry=d.blobs[id],record=d.index.spaces[id];
+  return !!entry&&!Object.hasOwn(entry,'rev')&&!entry.lastPublishable&&!entry.lastPublishedAt&&!!record&&record.deleted?.v!==true
+    &&(record.createdBy===undefined||record.createdBy===ctx.deviceId);
+}
 function forgetRetiredSpace(id,ctx) {
   const s=rebind(ctx.accountId);s.update(d=>{delete d.index.spaces[id];delete d.knownIndex[id];delete d.blobs[id];delete d.pending[id];delete d.recoveries[id];for(const [key,row] of Object.entries(d.windows))if(row?.spaceId===id)delete d.windows[key];});
 }
 module.exports={rebind,snapshot,setEnabled,isEnabled,setDormant,isDormant,isDraft,noteLocalSpace,setIndex,mergeIndex,exportIndex,settleIndex,
-  mergeSpace,exportSpace:mergeSpace,settleSpace,spaceIds,spaceCount,canAddSpace,deletedSpaceIds,retiredSpaceIds,forgetRetiredSpace,exportSidecar,mergeSidecar,setOwnSidecar,
+  mergeSpace,exportSpace:mergeSpace,settleSpace,spaceIds,spaceCount,canAddSpace,deletedSpaceIds,retiredSpaceIds,forgetRetiredSpace,neverUploaded,exportSidecar,mergeSidecar,setOwnSidecar,
   equals:(a,b)=>canonical(a)===canonical(b),hasPublishableContent:payload=>Object.keys(payload?.spaces??{}).length>0,
   onChanged:fn=>changed.add(fn),onRemoteChanged:fn=>remoteChanged.add(fn),
   onSyncDisabled:()=>{rebind('');notify(remoteChanged);}};

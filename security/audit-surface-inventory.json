@@ -81,7 +81,7 @@
     },
     {
       "file": "cloudflare/sync-worker/src/index.js",
-      "sha256": "af0c77e55123f03b181465f384cd4625f6edae49a065e571a966787ff6ce48e4",
+      "sha256": "4fcd6fe77d0dddd211cdf1edc25fcb1eec712548b1dcb29c7ce55a6cd420514e",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -260,7 +260,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "695155305b4a52f7708b1fc7376aec46e972e6bdc6557c812de8d10055c6747c",
+      "sha256": "7e202dd1214c926fc886c424d87ff7b06510dbc6d5bd6ca7d118371a6dfd3dd6",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -309,6 +309,7 @@
         "chrome:island-rect",
         "chrome:island-state",
         "chrome:layout",
+        "chrome:mini-keep",
         "chrome:new-group",
         "chrome:onepassword-fill",
         "chrome:open-capture",
@@ -515,7 +516,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "1435fef1dc18a83cbd3f94ec42b9021bfbcd00ff867a7309e0c1c708ceba94ec",
+      "sha256": "dba1c80a4164321e1036b8e16100f502f09ef842f42d3ce1af8370c255a19157",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -663,7 +664,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "f22fdd3da2335968ae4f9cbf66c954ba159dcd0812c719637e8c10847cd54953",
+      "sha256": "61b13ec4e7d6da6e7fe5e5ac4642bf9904bf7e490f437d46a909b0ce86f64882",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -701,6 +702,7 @@
         "chrome:island-rect",
         "chrome:island-state",
         "chrome:layout",
+        "chrome:mini-keep",
         "chrome:new-group",
         "chrome:onepassword-fill",
         "chrome:open-capture",
@@ -962,7 +964,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "4132d370ad00c9a114ca75faeef4e48b05ffd5c30cf81cc6ac4620be37901a06",
+      "sha256": "f26dcf6bb2adaf6e27869b3384bac189f9898a8d8d80f7cb625b2e525397949e",
       "literalChannels": [
         "before-quit"
       ],
@@ -976,7 +978,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "721f9379baacc433f90c54771f2518d6f32d6e5e066b4c5f3096cf78b9c25ecf",
+      "sha256": "b1c9163a2e555eba26ed2b28967d4a458052b8a527d93d0827b49a5504f7b1c0",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",

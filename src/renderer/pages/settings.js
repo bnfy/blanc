@@ -7,6 +7,7 @@
     capabilities,
     onePasswordAvailable,
     recentTabOrderAvailable,
+    miniWindow,
     languages,
   } =
     await window.bowserPages.settings.get();
@@ -529,6 +530,21 @@
     document.getElementById('tabLayoutSetting')?.remove();
   }
 
+  if (supports('islandSize')) {
+    const islandSize = document.getElementById('islandSize');
+    const showIslandSize = (value) => { islandSize.value = value || 'default'; };
+    showIslandSize(settings.islandSize);
+    islandSize.addEventListener('change', async () => {
+      try {
+        showIslandSize((await window.bowserPages.settings.set({ islandSize: islandSize.value })).islandSize);
+      } catch {
+        window.bowserPages.settings.get().then(({ settings: saved }) => showIslandSize(saved.islandSize), () => {});
+      }
+    });
+  } else {
+    document.getElementById('islandSizeSetting')?.remove();
+  }
+
   if (supports('tabLayout')) {
     const textSize = document.getElementById('verticalTabsTextSize');
     textSize.value = settings.verticalTabsTextSize ?? 'default';
@@ -708,6 +724,41 @@
     });
   } else {
     document.getElementById('tabSwitchOrderSetting')?.remove();
+  }
+
+  // Mini Window (#1138): the global shortcut, from the choices this platform
+  // offers (mini-window.js). Off by default; the status line says when the
+  // chosen chord can't be used.
+  if (supports('miniWindowShortcut') && Array.isArray(miniWindow?.choices) && miniWindow.choices.length) {
+    const select = document.getElementById('miniWindowShortcut');
+    const status = document.getElementById('miniWindowStatus');
+    const mac = appInfo?.platform === 'darwin';
+    const labelKeys = {
+      'alt-cmd-n': 'settings.general.miniWindow.shortcut.altCmdN',
+      'ctrl-alt-space': mac ? 'settings.general.miniWindow.shortcut.ctrlAltSpaceMac' : 'settings.general.miniWindow.shortcut.ctrlAltSpace',
+      'ctrl-shift-space': 'settings.general.miniWindow.shortcut.ctrlShiftSpace',
+    };
+    for (const id of miniWindow.choices) {
+      if (!labelKeys[id]) continue;
+      const option = document.createElement('option');
+      option.value = id;
+      option.textContent = t(labelKeys[id]);
+      select.append(option);
+    }
+    const show = (value, state) => {
+      select.value = [...select.options].some((option) => option.value === value) ? value : 'off';
+      status.hidden = state !== 'unavailable';
+    };
+    show(settings.miniWindowShortcut, miniWindow.status);
+    select.addEventListener('change', async () => {
+      try {
+        await window.bowserPages.settings.set({ miniWindowShortcut: select.value });
+      } catch { /* shown from the saved state below */ }
+      const fresh = await window.bowserPages.settings.get().catch(() => null);
+      if (fresh) show(fresh.settings.miniWindowShortcut, fresh.miniWindow?.status);
+    });
+  } else {
+    document.getElementById('miniWindowSetting')?.remove();
   }
 
   if (supports('tabSleep')) {

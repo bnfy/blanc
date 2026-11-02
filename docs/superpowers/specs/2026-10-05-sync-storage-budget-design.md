@@ -229,3 +229,7 @@ Deployment remains on hold. Before deployment the owner must explicitly
 accept this exposure or require reviewed enforceable quota/retention controls.
 The new-account-limit decision is separate. No automatic destructive cleanup
 or changed limit is authorized by the M16 protocol PR.
+
+## Change-check addendum (2026-11-02, not deployed)
+
+The account object now also keeps a copy of each fixed store, which GETs and conflict checks use, and lists their versions at `GET /v1/versions/:accountId` (`docs/superpowers/specs/2026-11-02-sync-changes-check-design.md`). Fixed stores are still written to KV, the eight fixed reservations are unchanged (the copies are the same ciphertext under the same permanent reserve), and the object still never reads KV: the Worker passes it the KV value for a store it has no copy of yet. The activity marker, the new-account budget and cleanup are unchanged.

@@ -8487,6 +8487,26 @@
     "message": "El límite de solicitudes ralentiza la búsqueda de cambios.",
     "source": "sha256:f1c8823a2e7f316b056badc328eaf782f6bc1bbb53374c8f552bc060ed7104a7"
   },
+  "sharedSpaces.checking": {
+    "message": "Comprobando tus otros dispositivos…",
+    "source": "sha256:f1a6520b3e9864fe44a078a70a065b882ee61deee0b3562db839cae9428694b3"
+  },
+  "sharedSpaces.checkingButton": {
+    "message": "Comprobando…",
+    "source": "sha256:7565d86baf0baa97d179f6e2c4bdf64acd8c0668689ba45a824247033632b46a"
+  },
+  "sharedSpaces.share": {
+    "message": "Compartir",
+    "source": "sha256:f51116f0f17066523bae83e638ff4625bca4038dda872a95c6bd33984cb2c57a"
+  },
+  "sharedSpaces.listUpdated": {
+    "message": "La lista se actualizó. Revísala y vuelve a confirmar.",
+    "source": "sha256:9d0b81228efbb1c3436f6daae255e5d04adc73946fb4b1d1977083844c250cd9"
+  },
+  "sharedSpaces.uploading": {
+    "message": "Subiendo tus Spaces. Puedes seguir navegando.",
+    "source": "sha256:76e3d65aa8b896d32b04cdd6c30cbcf675a0a751a9c84875dbe95de5fa32098b"
+  },
   "sharedSpaces.unsyncedTab": {
     "message": "Sin sincronizar",
     "source": "sha256:7d90f826c48ab9a6c1eaa17d10dab7b9b749059eacf8b2618cf101b4eb63476c"
@@ -8755,6 +8775,10 @@
     "message": "Blanc usa la cámara solo para escanear el código de vinculación de tu ordenador.",
     "source": "sha256:33e35780a5c9513b300cffeade91be31baeffbcf50c12f4bba2e3d7a8f710519"
   },
+  "ios.photos.addUsage": {
+    "message": "Blanc guarda imágenes en tu fototeca solo cuando se lo pides.",
+    "source": "sha256:b3bbdd9e9e3dc8e519d08c9fd88ae8cc00c2dae1753032dae893b8cc4352cbe0"
+  },
   "ios.settings.shareTabsHelp": {
     "message": "Comparte las pestañas abiertas normales de este iPhone con tus otros dispositivos. Las pestañas privadas nunca se comparten.",
     "source": "sha256:83d7996fbe9b9d874ba434cbe43221a9fd2799fc25d6f692d05310d6844e087b"
@@ -8996,6 +9020,26 @@
     "message": "JetBrains Mono",
     "note": "Reader Mode font family name; keep the font name unchanged.",
     "source": "sha256:3c0883b4aaec8dc4b7089202a5de987c2590516927f130dcd0dc686532968e13"
+  },
+  "settings.general.islandSize.label": {
+    "message": "Tamaño de la Island",
+    "source": "sha256:5b677c1f7b3bd64d58dc35d4510ae26968c48d9adf0d8a492dc509aae7d539ea"
+  },
+  "settings.general.islandSize.hint": {
+    "message": "Agranda la Island y sus botones. La página baja para dejar sitio.",
+    "source": "sha256:48c1d3a1a214af35519502d499581a6d02de870bcacc9b805359bb539b21f58d"
+  },
+  "settings.general.islandSize.default": {
+    "message": "Predeterminado",
+    "source": "sha256:ff21948bae12e207abf2eb10170dcc542a289349152b11bb45cf2bfecf684e53"
+  },
+  "settings.general.islandSize.large": {
+    "message": "Grande",
+    "source": "sha256:903afe8f378e91e5d24a80ca2f438442b54b016211e752bd6318a4b17a81a898"
+  },
+  "settings.general.islandSize.extraLarge": {
+    "message": "Muy grande",
+    "source": "sha256:49b07d55c85367e18b84af51bf3cc2d8772cc2b3a3b6a08c1363c2a9b1092bea"
   },
   "settings.general.verticalTabsTextSize.label": {
     "message": "Tamaño del texto de las pestañas verticales",
@@ -9244,5 +9288,53 @@
   "ios.defaultBrowser.notBlanc": {
     "message": "No es Blanc",
     "source": "sha256:0faee873d1f38ea949b3c0c4c7a50891b19d285b32dd49efef488caa805b880b"
+  },
+  "menu.newMiniWindow": {
+    "message": "Nueva miniventana",
+    "source": "sha256:62d7994d5bc6b97b50844ebee54ff1f2f2d22d6aa35f997e31257a4691a959fe"
+  },
+  "mini.openInBlanc": {
+    "message": "Abrir en Blanc",
+    "source": "sha256:244f5331c43bbc46edbda91f86f419bd4bf8dadc4fd5036f3b9e1189b8095f00"
+  },
+  "mini.openInBlanc.title": {
+    "message": "Conservar esta miniventana como una ventana normal de Blanc",
+    "source": "sha256:a5aacb4d8eebdc2d6a40ac90d4d9001ffb7ac3e03473611000c6d7ccf9a371a6"
+  },
+  "mini.openInBlanc.label": {
+    "message": "Abrir en Blanc: conservar esta miniventana como una ventana normal de Blanc",
+    "source": "sha256:2a3abd0192e7db866dc79f7990b6bcd02f67183db434a555f0385bb96f3d6006"
+  },
+  "settings.general.miniWindow.label": {
+    "message": "Atajo de la miniventana",
+    "source": "sha256:4488c3586ecb8d4ec9773227c5ec6ba1b7055b54699ddcc96c66e27ff255f62e"
+  },
+  "settings.general.miniWindow.hint": {
+    "message": "Abre una pequeña ventana de Blanc sobre la app en la que estás, mientras Blanc está abierto. Una miniventana no se guarda y se cierra tras una hora sin usarla. Abrir en Blanc la conserva.",
+    "source": "sha256:b184a8e1a2b228742c80ae0fcb833f173447ffc70c060eb08ef7194c46796e8e"
+  },
+  "settings.general.miniWindow.unavailable": {
+    "message": "Otra app usa este atajo o tu escritorio no lo permite. Elige otro.",
+    "source": "sha256:73999e1c29162cdb9edfc53dc46f36bc9ddb977fe00e54a659be2737eb534dce"
+  },
+  "settings.general.miniWindow.off": {
+    "message": "Desactivado",
+    "source": "sha256:eaece69f698fc2a5ae0a6425a005236f0ee6e179db7bbe523beadd781b36720a"
+  },
+  "settings.general.miniWindow.shortcut.altCmdN": {
+    "message": "⌥⌘N",
+    "source": "sha256:61f6b03678f0ff104b7b31c75bf517ce6969545c84abf75f64091cc0f3d9acb9"
+  },
+  "settings.general.miniWindow.shortcut.ctrlAltSpaceMac": {
+    "message": "⌃⌥Espacio",
+    "source": "sha256:cda016970ef473927380c668c2c91e25fa6ca39f7b3c8577f530df2db38ff06f"
+  },
+  "settings.general.miniWindow.shortcut.ctrlAltSpace": {
+    "message": "Ctrl+Alt+Espacio",
+    "source": "sha256:b2c2f80b33307545dc01b1242229898063ee7b63438df0474b55cd0fb5c4a09d"
+  },
+  "settings.general.miniWindow.shortcut.ctrlShiftSpace": {
+    "message": "Ctrl+Mayús+Espacio",
+    "source": "sha256:5f579d29dff6300530617e41e4a883a52c075e51ffb3573d781ced720a7601a8"
   }
 }

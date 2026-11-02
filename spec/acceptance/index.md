@@ -47,6 +47,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Interface language | `interface-language.feature` | F44 (D27) |
 | Arc Spaces import | `arc-spaces-import.feature` | F45 |
 | Link routing | `link-routing.feature` | F60 |
+| Mini Window | `mini-window.feature` | F61 |
 
 ## Grid
 
@@ -300,6 +301,11 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F60-3 | Deleting a profile removes its rules and its links fall through | — | ✅ | ➖ | ➖ |
 | F60-4 | The shield popover makes and removes the rule for the site in view | — | ✅ | ➖ | ➖ |
 | F60-5 | `/route` and `/route off` write and remove the rule; a private tab can't | — | ✅ | ➖ | ➖ |
+| F61-1 | A mini window opens small, isn't saved, and closes after an hour unused | — | ✅ | ➖ | ➖ |
+| F61-2 | Open in Blanc keeps a mini window as an ordinary window | — | ✅ | ➖ | ➖ |
+| F61-3 | A link from another app never opens in a mini window | — | ✅ | ➖ | ➖ |
+| F61-4 | The mini window shortcut is off until chosen | — | ✅ | ➖ | ➖ |
+| F61-5 | Closing a mini window's last tab closes the window | — | ✅ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance

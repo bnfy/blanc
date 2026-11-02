@@ -28,6 +28,10 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     profileId,
     closing: false,
     resident: false,
+    // A mini window (#1138, mini-window.js): small, never saved, never a
+    // link's destination, and closed after an hour unused.
+    mini: false,
+    miniIdleTimer: null,
     workspaceTransition: false,
     authenticationPrompts: 0,
     window: null,

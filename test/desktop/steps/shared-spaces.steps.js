@@ -388,3 +388,128 @@ Given('a Shared Spaces fixture whose shared Work Space has the first Work tab in
  }});
  assert.equal(sharedGroupOf(await sharedCopy(this),workUrl(this,'first'))?.name.v,name,'the group is shared with its Space');
 });
+async function evidence(world,name){
+ if(!process.env.BLANC_SHARED_SPACES_EVIDENCE_DIR)return;const fs=require('node:fs'),path=require('node:path');
+ fs.mkdirSync(process.env.BLANC_SHARED_SPACES_EVIDENCE_DIR,{recursive:true});await world.sharedPage.screenshot({path:path.join(process.env.BLANC_SHARED_SPACES_EVIDENCE_DIR,name+'.png')});
+}
+// Turning the switch on: the sheet opens from the saved index while the
+// fresh check waits (a held fixture GET stands in for a full request window).
+Given('the next Spaces index fetch is held',function(){
+ let release;this.heldIndex=new Promise(resolve=>{release=resolve;});this.releaseIndex=release;
+ this.sharedFixture.inject({type:'hook',method:'GET',store:'spaces',before:()=>this.heldIndex});
+});
+Given('a Shared Spaces fixture with local Work and Private Spaces',{timeout:180000},async function(){
+ await setup(this,false);const made=await this.call('workspaceAction','create','Private');assert.equal(made.ok,true);
+});
+When('I turn on Spaces and groups',{timeout:180000},async function(){
+ this.sharedPage??=await settingsPage(this);const page=this.sharedPage;
+ await page.locator('#sharedSpacesToggle').waitFor({state:'attached',timeout:60000});
+ this.busySeen=page.evaluate(()=>new Promise(resolve=>{const control=document.getElementById('sharedSpacesControl');
+  const seen=()=>/Sync is busy/.test(control.textContent);if(seen())return resolve(true);
+  const observer=new MutationObserver(()=>{if(seen()){observer.disconnect();resolve(true);}});observer.observe(control,{subtree:true,childList:true,characterData:true});
+  setTimeout(()=>{observer.disconnect();resolve(false);},5000);})).catch(()=>false);// a scenario that never asks may end first
+ this.turnedOnAt=Date.now();await page.locator('#sharedSpacesToggle').check();
+});
+Then('the selection sheet is open within a second and is checking other devices',async function(){
+ await this.sharedPage.locator('.shared-spaces-dialog').waitFor({state:'visible',timeout:1000});
+ assert.ok(Date.now()-this.turnedOnAt<1500,'the sheet opened within about a second');
+ assert.equal(await this.sharedPage.locator('.shared-spaces-checking').isVisible(),true);
+ assert.match(await this.sharedPage.locator('.shared-spaces-checking').textContent(),/Checking your other devices/);await evidence(this,'sheet-checking');
+});
+Then('Settings never says Sync is busy',async function(){assert.equal(await this.busySeen,false);});
+When('the held Spaces index fetch is released',function(){this.releaseIndex();});
+Then('the sheet stops checking and the Work Space is still checked',{timeout:60000},async function(){
+ await this.sharedPage.locator('.shared-spaces-checking').waitFor({state:'hidden',timeout:30000});
+ const choice=this.sharedPage.locator('.shared-spaces-choice').filter({hasText:'Work'});assert.equal(await choice.locator('input').isChecked(),true);
+ await this.sharedPage.locator('.shared-spaces-dialog button').filter({hasText:'Cancel'}).click();
+ assert.equal((await this.call('sharedSpacesTest','state')).shared.enabled,false);
+});
+When('I press Turn on in the selection sheet',async function(){
+ await this.sharedPage.locator('.shared-spaces-dialog').waitFor({state:'visible',timeout:10000});
+ await this.sharedPage.locator('.shared-spaces-dialog button').filter({hasText:'Turn on'}).click();
+});
+When('I untick {string} and press Turn on in the selection sheet',{timeout:60000},async function(name){
+ const dialog=this.sharedPage.locator('.shared-spaces-dialog');await dialog.waitFor({state:'visible',timeout:10000});
+ await dialog.locator('.shared-spaces-checking').waitFor({state:'hidden',timeout:30000});
+ await dialog.locator('.shared-spaces-choice').filter({hasText:name}).locator('input').uncheck();
+ await dialog.locator('button').filter({hasText:'Turn on'}).click();await dialog.waitFor({state:'hidden',timeout:60000});
+});
+Then('the Turn on button waits for the check and sharing is still off',async function(){
+ const button=this.sharedPage.locator('.shared-spaces-dialog button').filter({hasText:'Checking'});
+ await button.waitFor({state:'visible',timeout:5000});assert.equal(await button.isDisabled(),true);
+ assert.equal((await this.call('sharedSpacesTest','state')).shared.enabled,false);
+});
+When('I make a new Space {string}',{timeout:60000},async function(name){
+ const made=await this.call('workspaceAction','create',name);assert.equal(made.ok,true);
+});
+async function sharedOnce(world,name){
+ const state=await world.call('sharedSpacesTest','state');if(!state.shared.enabled)return false;
+ const rows=state.workspaces.items.filter(row=>row.name===name);
+ const records=Object.values(state.shared.index.spaces).filter(record=>record.name.v===name&&!record.deleted.v);
+ return rows.length===1&&!!rows[0].sharedSync&&records.length===1;
+}
+Then('the {string} Space is shared once and Spaces sync is on',{timeout:60000},async function(name){
+ await waitForValue(()=>sharedOnce(this,name),Boolean,name+' shared once',30000);
+ if(this.sharedPage)assert.equal(await this.sharedPage.locator('#sharedSpacesToggle').isChecked(),true);
+});
+Then('the {string} Space stays on this device',async function(name){
+ await new Promise(resolve=>setTimeout(resolve,2500));// past the automatic share's settle delay
+ const state=await this.call('sharedSpacesTest','state'),row=state.workspaces.items.find(item=>item.name===name);
+ assert.ok(row);assert.equal(row.sharedSync,undefined);assert.equal(Object.values(state.shared.index.spaces).some(record=>record.name.v===name),false);
+});
+When('I choose Spaces to sync from Settings',async function(){
+ await this.sharedPage.locator('#sharedSpacesChoose').click();
+ await this.sharedPage.locator('.shared-spaces-dialog').waitFor({state:'visible',timeout:1000});
+});
+Then('the {string} Space is listed as Shared',async function(name){
+ const choice=this.sharedPage.locator('.shared-spaces-choice').filter({hasText:name});
+ await choice.locator('.shared-spaces-tag').waitFor({state:'visible',timeout:10000});
+ assert.equal(await choice.locator('input').isDisabled(),true);assert.equal(await choice.locator('input').isChecked(),true);await evidence(this,'choose-with-shared');
+});
+When('I press Share in the selection sheet',{timeout:60000},async function(){
+ const dialog=this.sharedPage.locator('.shared-spaces-dialog');
+ await dialog.locator('button').filter({hasText:'Share'}).click();await dialog.waitFor({state:'hidden',timeout:60000});
+});
+When('I press Cancel in the selection sheet',async function(){
+ const button=this.sharedPage.locator('.shared-spaces-dialog button').filter({hasText:'Cancel'});
+ assert.equal(await button.isDisabled(),false,'Cancel is never disabled');await button.click();
+});
+Then('the selection sheet is closed and Settings says the Spaces are uploading',async function(){
+ await this.sharedPage.locator('.shared-spaces-dialog').waitFor({state:'hidden',timeout:2000});
+ assert.match(await this.sharedPage.locator('#sharedSpacesControl').textContent(),/Uploading your Spaces/);
+ assert.equal(await this.sharedPage.locator('#sharedSpacesToggle').isChecked(),true);await evidence(this,'uploading');
+});
+// The change check (design 2026-11-02): another device's new Space reaches
+// this one on its next check, or on the minute pass without the check.
+// Setting up turns sync on and shares Work, which uses the request window;
+// the device is then put past that burst, as it is once it has run a while.
+Given('Blanc is in front',async function(){assert.equal(await this.call('sharedSpacesTest','foreground',true),true);await this.call('sharedSpacesTest','resetRequestWindow');});
+Given('the sync Worker can\'t answer change checks',function(){this.sharedFixture.setVersions(false);});
+When('another device shares a new Space {string}',{timeout:60000},async function(name){
+ const {accountId,key}=this.sharedKey,base=`${this.sharedFixture.url}/v1/blob/${accountId}/`,sid=require('node:crypto').randomBytes(16).toString('hex');
+ const field=v=>({v,c:Date.now(),by:'peer'}),tabId=require('node:crypto').randomBytes(16).toString('hex');
+ const blob={v:1,spaceId:sid,groups:{},tabs:{[tabId]:{nav:field({url:this.fixtureUrl('shared-first'),title:'Peer tab'}),name:field(null),pinned:field(false),groupId:field(null),pos:field(model.keyFor('','',tabId)),deleted:field(false)}}};
+ const put=async(store,body)=>{const r=await fetch(base+store,{method:'PUT',body:JSON.stringify(body)});return r;};
+ assert.equal((await put('space-'+sid,{ifVersion:null,blob:encrypt(key,JSON.stringify(blob))})).status,200);
+ for(let attempt=0;attempt<3;attempt++){
+  const current=await fetch(base+'spaces'),record=current.status===200?await current.json():null;
+  const index=record?JSON.parse(decrypt(key,record.blob)):{v:1,spaces:{}};
+  index.spaces[sid]={name:field(name),color:field('#426c4c'),symbol:field('briefcase'),pos:field(model.keyFor('','',sid)),deleted:field(false),
+   rev:model.revisionOf(blob),revAt:Date.now(),revBy:'peer',createdAt:Date.now(),createdBy:'peer'};
+  const written=await put('spaces',{ifVersion:record?.version??null,blob:encrypt(key,JSON.stringify(index))});
+  if(written.status===200)return;assert.equal(written.status,409);
+ }
+ assert.fail('the peer could not update the Spaces index');
+});
+Then('the {string} Space appears here within {int} seconds',{timeout:120000},async function(name,seconds){
+ const started=Date.now();
+ // Other windows on the test machine can take focus, which slows the check
+ // to once a minute; the scenario measures a device whose window stays in front.
+ try{await waitForValue(async()=>{await this.call('sharedSpacesTest','foreground',true);return (await this.call('workspaceAction','list')).items.some(row=>row.name===name);},Boolean,name+' arrives',seconds*1000);}
+ catch(error){
+  // What the device holds and asked for, for the failure report.
+  const st=await this.call('sharedSpacesTest','state');
+  process.stderr.write('[F57] '+JSON.stringify({cadence:await this.call('sharedSpacesTest','cadence'),check:await this.call('sharedSpacesTest','check'),index:Object.fromEntries(Object.entries(st.shared.index.spaces).map(([k,v])=>[k,v.name?.v])),blobs:Object.keys(st.shared.blobs),checks:this.sharedFixture.requests.filter(r=>r.store==='versions').length,last:this.sharedFixture.requests.slice(-12).map(r=>r.method+' '+r.store+' '+(r.status??''))})+'\n');throw error;}
+ process.stderr.write(`[F57] ${name} arrived after ${((Date.now()-started)/1000).toFixed(1)} s\n`);
+});
+

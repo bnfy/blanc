@@ -11,6 +11,7 @@ const sharedSpaces = require('./shared-spaces');
 const syncedClosed = require('./synced-closed');
 const { createScheduler } = require('./sync-scheduler');
 const { createRequestQueue } = require('./sync-request-queue');
+const { FIXED_STORES, CHECK_MS, BACKGROUND_CHECK_MS, FULL_PASS_MS, RETRY_PASS_MS, CHECK_RETRY_AFTER_MS, R_PER_PASS, changedStores } = require('./sync-changes');
 const { unsyncedTabIds } = require('./shared-spaces-adapter');
 const { deviceName } = require('./device-name');
 const { resolveDeviceName } = require('./device-names');
@@ -269,6 +270,7 @@ function getRequestQueue() {
     s.update(d=>{d.requestLog=state.log;d.nextClass=state.nextClass;d.cursors=state.cursors;d.windowLimit=state.windowLimit;d.backoffUntil=state.backoffUntil;});
     if(!s.flush())throw new SyncError('request-log-save-failed');
   }});
+  shareForChecks();
   return requestQueue;
 }
 function queueBarrier() {passSettled=getRequestQueue().settled();return passSettled;}
@@ -436,6 +438,7 @@ function adoptCredentials({ handle, accountId, key, protectedKey }) {
     return { ok: false, error: 'credentials-save-failed' };
   }
   keyProtectionError = null;
+  startCadence();
   if(previousAccount!==accountId)for(const listener of accountListeners)listener();
   refreshTabIcons().catch(() => {});
   return { ok: true };
@@ -745,6 +748,9 @@ async function disable({ wipeRemote = false } = {}) {
   clearTimeout(iconTimer);
   iconTimer = null;
   iconPendingSince = 0;
+  // Checks end with sync: routine work (the leave below included) gets the
+  // whole window again, and a later sync starts the rhythm afresh.
+  resetCadence();
   // Barrier (PR #41 re-review): a dispatched PUT can't be recalled, and a
   // stale check after its response can't undo the server mutation. So before
   // touching the server or the credentials: (1) block new passes, (2) strand
@@ -789,7 +795,7 @@ async function disable({ wipeRemote = false } = {}) {
     ensureStore().update((s) => {
       s.enabled = false; s.handle = ''; s.accountId = '';
       s.protectedKey = ''; s.key = ''; s.lastError = null; s.erasurePending = false;
-      s.syncSpaces = false;
+      s.syncSpaces = false; s.seenVersions = undefined;
     });
     keyProtectionError = null;
     // The cached device map must not outlive the account it came from — and
@@ -831,11 +837,18 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
       sharedSpaces.forgetRetiredSpace(id,run.ctx);
     }
   }
-  const getRes = await net.fetch(url);
+  // A Space no device has uploaded yet is sent without a download: the
+  // queue doesn't charge it, and a store that exists after all answers 409,
+  // whose retry downloads and merges as usual.
+  const firstUpload = attempt === 0 && !!desc.noGet;
+  if (firstUpload && !sharedSpaces.neverUploaded(desc.spaceId, run.ctx)) return { retry: true };
+  const getRes = firstUpload ? null : await net.fetch(url);
   if (run.stale()) throw new SyncError('stale');
-  const canDeleteSpaceStores=getRes.headers?.get?.('X-Blanc-Space-Delete')==='1';
-  let version = null, remote = null, missing = false;
-  if (getRes.status === 200) {
+  const canDeleteSpaceStores=getRes?.headers?.get?.('X-Blanc-Space-Delete')==='1';
+  let version = null, remote = null, missing = firstUpload;
+  if (firstUpload) {
+    // Nothing to read: version stays null, which the PUT sends as ifVersion.
+  } else if (getRes.status === 200) {
     let body;
     try { body = await getRes.json(); } catch { throw new SyncError('server'); }
     if (run.stale()) throw new SyncError('stale');
@@ -849,6 +862,7 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     if (run.stale()) throw new SyncError('stale');
     missing = true;
   } else throw new SyncError(responseCode(getRes.status, await responseText(getRes)));
+  if (!desc.spaceId) noteSeenVersion(accountId, desc.name, version ?? null);
   let plan = null, stored = false;
   try {
     let payload;
@@ -891,14 +905,63 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     if (desc.optional && putRes.status === 404) return { unavailable: true };
     if (!putRes.ok) throw new SyncError(responseCode(putRes.status, await responseText(putRes)));
     stored = true;
+    if (!desc.spaceId) {
+      const written = typeof putRes.json === 'function' ? await putRes.json().catch(() => null) : null;
+      if (typeof written?.version === 'string') noteSeenVersion(accountId, desc.name, written.version);
+    }
     desc.stored?.(payload,run.ctx);
     await cleanupRetiredSpaces(payload);
-    return desc.spaceId ? { spaceStored: true } : null;
+    return desc.spaceId ? { spaceStored: true, firstUpload } : null;
   } finally {
     if (plan) sharedSpaces.settleSpace(desc.spaceId,plan,{blobStored:stored},run.ctx);
   }
 }
 
+/** The version this device last read or wrote for each fixed store, per
+ * account (design 2026-11-02): the change check fetches only stores whose
+ * version the Worker names differently. A read that raced a newer write
+ * records the older version, so that store stays changed. */
+function noteSeenVersion(accountId, store, version) {
+  ensureStore().update(d=>{
+    if(d.seenVersions?.accountId!==accountId)d.seenVersions={accountId,stores:{}};
+    d.seenVersions.stores[store]=version;
+  });
+}
+function seenVersions() {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, seenVersions);
+  const d=ensureStore().data;
+  return d.seenVersions?.accountId===d.accountId&&d.accountId?{...d.seenVersions.stores}:{};
+}
+/** The change check (design 2026-11-02): GET /v1/versions, charged like a GET
+ * but ahead of the class rotation, waiting for the first request background
+ * work may use (never the reserve). {supported:false} for an older
+ * Worker (404), an account with no ledger (stores:null), a 5xx, a network
+ * error or a body it can't read; a 429 throws like any request. A check
+ * that never reaches the Worker (sync off, paused for a switch, cancelled)
+ * is {skipped:true}: it says nothing about the Worker. */
+async function checkVersions() {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, checkVersions);
+  const d=ensureStore().data;
+  if (suspended || !d.enabled || !d.accountId || !bananifyServiceAllowed(SYNC_ENDPOINT)) return {skipped:true};
+  const gen=syncGen,accountId=d.accountId;
+  const pending=getRequestQueue().enqueue({class:'C',item:'versions',generation:'check:'+gen,ahead:true,
+    cancelled:()=>suspended||gen!==syncGen?'generation':null,
+    run:async()=>{
+      let response;
+      try {response=await net.fetch(`${ACTIVE_SYNC_ENDPOINT}/v1/versions/${accountId}`);} catch {return {supported:false};}
+      if(response.status===429)throw new SyncError('rate-limited');
+      if(!response.ok)return {supported:false};
+      let body;try {body=await response.json();} catch {return {supported:false};}
+      const stores=body?.v===1&&body.stores&&typeof body.stores==='object'?body.stores:null;
+      if(!stores||!FIXED_STORES.every(store=>stores[store]===null||typeof stores[store]==='string'))return {supported:false};
+      return {supported:true,named:Object.fromEntries(FIXED_STORES.map(store=>[store,stores[store]]))};
+    }});
+  queueBarrier();const result=await pending;
+  if(result.error?.message==='rate-limited')throw result.error;
+  if(result.error?.message?.startsWith('cancelled:'))return {skipped:true};
+  if(result.error)return {supported:false};
+  return result.outcome;
+}
 function spaceDescriptor(id,kind='S') {
   return {name:'space-'+id,class:kind,spaceId:id,optional:true,spaces:true};
 }
@@ -936,12 +999,18 @@ function setSyncSpaces(on) {
   if(ensureStore().data.enabled)schedule(1000);
   return sharedStatus();
 }
-async function sharedIndexPreview() {
-  if(!isDefaultLocalProfile())return withLocalProfile(DEFAULT_PROFILE_ID,sharedIndexPreview);
+// The last index the Choose Spaces sheet fetched. Confirming within maxAge
+// of it reuses that check instead of spending another request.
+let lastIndexPreview={at:0,gen:-1,accountId:''};
+async function sharedIndexPreview({maxAge=0}={}) {
+  if(!isDefaultLocalProfile())return withLocalProfile(DEFAULT_PROFILE_ID,()=>sharedIndexPreview({maxAge}));
   if(!bananifyServiceAllowed(SYNC_ENDPOINT))return {ok:false,error:SERVICE_UNAVAILABLE};
   const data=ensureStore().data,ctx=tabSyncContext(),gen=syncGen;
   if(!data.enabled||!data.protectedKey)return {ok:false,error:'sync-off'};
-  const pending=getRequestQueue().enqueue({class:'I',item:'spaces',generation:'preview:'+gen,
+  if(maxAge>0&&lastIndexPreview.gen===gen&&lastIndexPreview.accountId===ctx.accountId&&Date.now()-lastIndexPreview.at<=maxAge)return {ok:true};
+  // Someone is waiting on this one (the Choose Spaces sheet): it skips the
+  // class rotation and may use the window's reserved last request.
+  const pending=getRequestQueue().enqueue({class:'I',item:'spaces',generation:'preview:'+gen,urgent:true,
     cancelled:()=>suspended||gen!==syncGen?'generation':null,
     run:async()=>{
       let key;
@@ -956,7 +1025,8 @@ async function sharedIndexPreview() {
         }
         if(!response.ok)throw new SyncError('http-'+response.status);
         const payload=await response.json();if(gen!==syncGen)throw new SyncError('stale');
-        sharedSpaces.mergeIndex(JSON.parse(decrypt(key,payload.blob)),ctx);return {ok:true};
+        sharedSpaces.mergeIndex(JSON.parse(decrypt(key,payload.blob)),ctx);
+        lastIndexPreview={at:Date.now(),gen,accountId:ctx.accountId};return {ok:true};
       } finally {key?.fill(0);}
     }});
   queueBarrier();const result=await pending;return result.error?{ok:false,error:errorCode(result.error)}:result.outcome;
@@ -970,8 +1040,8 @@ function sharedPayloadFits(blob) {
 /** Callers attach to queued operations, never to a stale in-flight fetch.
  * Only a waiting operation can coalesce: its export will see every mutation
  * that preceded dispatch. Running operations have their own immutable ctx. */
-async function syncNow(names = null, { onOutcome } = {}) {
-  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID,()=>syncNow(names,{onOutcome}));
+async function syncNow(names = null, { onOutcome, ahead = false } = {}) {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID,()=>syncNow(names,{onOutcome,ahead}));
   const d=ensureStore().data;
   if (suspended || !d.enabled || !d.accountId || !d.protectedKey) return {ok:false,error:keyProtectionError||'sync-off'};
   if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return {ok:false,error:SERVICE_UNAVAILABLE};
@@ -981,7 +1051,7 @@ async function syncNow(names = null, { onOutcome } = {}) {
   function enqueue(desc) {
     const cancelled=()=>cancelledRequest(gen,ctx,desc);
     const record=sharedSpaces.rebind(ctx.accountId).data;
-    const job=queue.enqueue({class:desc.class??'F',item:desc.name,generation:gen,spaces:!!desc.spaces,
+    const job=queue.enqueue({class:desc.class??'F',item:desc.name,generation:gen,spaces:!!desc.spaces,noGet:!!desc.noGet,urgent:!!desc.urgent,ahead:!!desc.ahead||ahead,
       priority:desc.spaceId && Object.keys(record.pending[desc.spaceId]??{}).some(k=>k!=='index')?0:1,cancelled,
       run:async({attempt})=>{
         let key;
@@ -993,6 +1063,7 @@ async function syncNow(names = null, { onOutcome } = {}) {
         } finally {key?.fill(0);}
       },
       onOutcome:(outcome,error)=>{
+        if(!desc.spaceId&&!error?.message?.startsWith('cancelled:')){if(error)cadence.failedFixed.add(desc.name);else cadence.failedFixed.delete(desc.name);}
         if(ensureStore().data.accountId===ctx.accountId&&desc.spaceId&&sharedSpaces.rebind(ctx.accountId).data.blobs[desc.spaceId])sharedSpaces.rebind(ctx.accountId).update(data=>{if(error)data.blobs[desc.spaceId].failedAt=Date.now();else delete data.blobs[desc.spaceId].failedAt;});
         if(desc.spaces && outcome?.unavailable) {
           spacesUnavailable=true;spacesRetryAt=Date.now()+OPTIONAL_MISSING_RETRY_MS;
@@ -1013,14 +1084,24 @@ async function syncNow(names = null, { onOutcome } = {}) {
     enqueue({...base,retryAvailability:base.name==='spaces'&&retryAvailability});
   }
   const initialIds=new Set();
+  if(!names)Object.assign(cadence,{lastFullPass:Date.now(),lastRetryPass:Date.now(),lastOpenTabsFetch:Date.now()});
+  // While the change check works, a full pass re-reads at most R_PER_PASS
+  // Space blobs, continuing after the class R cursor; otherwise all of them.
+  let reconcile=null;
+  if(!names&&cadence.checkSupported===true) {
+    const all=[...new Set([...sharedSpaces.spaceIds(ctx),...sharedSpaces.deletedSpaceIds(ctx)])].sort();
+    getRequestQueue();const after=String(requestScheduler.snapshot().cursors?.R??'').replace(/^space-/,'');
+    const start=Math.max(0,all.findIndex(id=>id>after));
+    reconcile=new Set(Array.from({length:Math.min(R_PER_PASS,all.length)},(_,n)=>all[(start+n)%all.length]));
+  }
   function addSpaces(ids) {
     const state=sharedSpaces.rebind(ctx.accountId).data;
     for(const id of ids) {
       const name='space-'+id;
       if(names && !names.includes(name))continue;
       const pending=state.pending[id];
-      if(names || state.index.spaces[id]?.deleted?.v===true || pending && Object.keys(pending).some(k=>k!=='index') || state.index.spaces[id]?.rev!==state.blobs[id]?.rev)enqueue(spaceDescriptor(id));
-      if(!names)enqueue(spaceDescriptor(id,'R'));
+      if(names || state.index.spaces[id]?.deleted?.v===true || pending && Object.keys(pending).some(k=>k!=='index') || state.index.spaces[id]?.rev!==state.blobs[id]?.rev)enqueue({...spaceDescriptor(id),noGet:sharedSpaces.neverUploaded(id,ctx)});
+      if(!names&&(!reconcile||reconcile.has(id)))enqueue(spaceDescriptor(id,'R'));
       initialIds.add(id);
     }
   }
@@ -1035,7 +1116,9 @@ async function syncNow(names = null, { onOutcome } = {}) {
       const more=[...new Set([...sharedSpaces.spaceIds(ctx),...sharedSpaces.deletedSpaceIds(ctx)])].filter(id=>!initialIds.has(id));const offset=jobs.length;
       addSpaces(more);results.push(...await Promise.all(jobs.slice(offset)));
     }
-    if(results.some(x=>x.outcome?.spaceStored||x.outcome?.needsIndex))results.push(await enqueue({...STORES.find(x=>x.name==='spaces')}));
+    // A new Space reaches other devices only once the index names it, so
+    // that update goes ahead of routine work, like the sheet's check.
+    if(results.some(x=>x.outcome?.spaceStored||x.outcome?.needsIndex))results.push(await enqueue({...STORES.find(x=>x.name==='spaces'),urgent:results.some(x=>x.outcome?.firstUpload)}));
   }
   // A dead generation never stamps status onto its successor. Optional stores
   // still cannot conceal a required-store error or advance its freshness.
@@ -1050,6 +1133,85 @@ async function syncNow(names = null, { onOutcome } = {}) {
     else if(!skippedRequiredSelected){state.lastError=null;if(required.length)state.lastSyncedAt=Date.now();}
   });
   return firstError?{ok:false,error:keyProtectionError||errorCode(firstError)}:{ok:true};
+}
+
+// The change check's rhythm (design 2026-11-02). One timer every CHECK_MS
+// picks what is due: a check (15 s while a Blanc window is focused, else a
+// minute), the retry pass (a minute) or the full pass (five minutes). When
+// the Worker can't answer the check, today's minute pass, and the check is
+// tried again after CHECK_RETRY_AFTER_MS.
+const cadence={off:true,foreground:false,lastOutcome:null,checkSupported:null,checkRetryAt:0,lastCheck:0,lastFullPass:0,lastRetryPass:0,lastOpenTabsFetch:0,failedFixed:new Set(),askedRev:new Map()};
+function setForeground(focused){cadence.foreground=!!focused;shareForChecks();}
+function resetCadence(){Object.assign(cadence,{off:true,checkSupported:null,checkRetryAt:0,lastCheck:0,lastFullPass:0,lastRetryPass:0,lastOpenTabsFetch:0});cadence.failedFixed.clear();cadence.askedRev.clear();shareForChecks();}
+// Sync is on: checks begin, and routine work leaves them their requests.
+function startCadence(){if(cadence.off){cadence.off=false;shareForChecks();}}
+// Routine work leaves the check its requests from the start, four a minute in
+// front (one every 15 s) and one otherwise, so the first check after a full
+// pass finds room; a Worker that can't answer the check (404) frees them, and
+// so does turning sync off.
+function shareForChecks(){requestQueue?.setCheckShare(cadence.off||cadence.checkSupported===false?0:(cadence.foreground?4:1));}
+let tickCount=0;
+async function tick() {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, tick);
+  tickCount++;
+  const d=ensureStore().data;if(suspended||!d.enabled)return;
+  startCadence();
+  // A second of tolerance on every interval: the timer can fire a little
+  // early, and a pass stamps itself a moment after the tick that started it.
+  const now=Date.now(),due=(last,interval)=>now-last>=interval-1000;
+  if(cadence.checkSupported===false&&now<cadence.checkRetryAt){if(due(cadence.lastFullPass,60000))await syncNow();return;}
+  // The check first, so a full pass that comes due can't take its turn.
+  if(due(cadence.lastCheck,cadence.foreground?CHECK_MS:BACKGROUND_CHECK_MS))await checkAndFetch(now);
+  if(due(cadence.lastFullPass,cadence.checkSupported===false?60000:FULL_PASS_MS)){await syncNow();return;}
+  if(cadence.checkSupported===true&&due(cadence.lastRetryPass,RETRY_PASS_MS))await retryPass(now);
+}
+/** Check, then download only the fixed stores whose version moved, and the
+ * Space blobs whose revision hint moved with the index. */
+async function checkAndFetch(now=Date.now()) {
+  cadence.lastCheck=now;
+  // During a 429 backoff checks pause, leaving the reduced window to sync.
+  if(requestQueue?.status().backoff)return true;
+  let result;try {result=await checkVersions();} catch(error) {cadence.lastOutcome={threw:error.message};return true;}
+  cadence.lastOutcome=result;
+  if(result.skipped)return true;
+  if(!result.supported){cadence.checkSupported=false;cadence.checkRetryAt=now+CHECK_RETRY_AFTER_MS;shareForChecks();return false;}
+  cadence.checkSupported=true;shareForChecks();
+  const {fetch}=changedStores({named:result.named,seen:seenVersions(),now,lastOpenTabsFetch:cadence.lastOpenTabsFetch});
+  if(fetch.includes('session')||fetch.includes('icons'))cadence.lastOpenTabsFetch=now;
+  // What a check found goes ahead like the check itself: it is the point of
+  // the check, and never more than a few stores.
+  if(fetch.length)await syncNow(fetch,{ahead:true});
+  // Then the Space blobs the index names but this device lacks or holds at
+  // another revision, whichever pass downloaded that index (a full pass may
+  // have, in which case the check sees its version already seen). Each
+  // (Space, revision) once: the passes retry one that won't download.
+  if(sharedSpaces.isEnabled(tabSyncContext())) {
+    const ctx=tabSyncContext(),state=sharedSpaces.rebind(ctx.accountId).data;
+    const moved=sharedSpaces.spaceIds(ctx).filter(id=>{
+      const rev=state.index.spaces[id]?.rev;
+      if(state.blobs[id]&&state.blobs[id].rev===rev)return false;
+      return !(cadence.askedRev.has(id)&&cadence.askedRev.get(id)===rev);
+    });
+    for(const id of moved)cadence.askedRev.set(id,state.index.spaces[id]?.rev);
+    if(moved.length)await syncNow(moved.map(id=>'space-'+id),{ahead:true});
+  }
+  return true;
+}
+/** What is waiting to upload or failed: fixed stores whose last attempt
+ * failed, Space blobs with a pending set or a failure, and the index when it
+ * has a receipt to publish. */
+async function retryPass(now=Date.now()) {
+  cadence.lastRetryPass=now;
+  const ctx=tabSyncContext(),names=[...cadence.failedFixed];
+  if(sharedSpaces.isEnabled(ctx)) {
+    const state=sharedSpaces.rebind(ctx.accountId).data;
+    for(const id of sharedSpaces.spaceIds(ctx)) {
+      const pending=state.pending[id]??{};
+      if(Object.keys(pending).some(k=>k!=='index')||state.blobs[id]?.failedAt)names.push('space-'+id);
+    }
+    if(Object.values(state.pending).some(p=>p?.index))names.push('spaces');
+  }
+  if(names.length)await syncNow([...new Set(names)]);
 }
 
 function schedule(delay = 4000) {
@@ -1113,6 +1275,15 @@ function refreshSession() {
   const d = ensureStore().data;
   if (!d.enabled) return;
   const now = Date.now();
+  // With a Worker that answers the change check, a refresh is a check; one
+  // that can't (now or found just now) gets the fixed downloads below.
+  if (cadence.checkSupported !== false) {
+    if (now - cadence.lastCheck >= CHECK_MS - 1000) checkAndFetch(now).then((supported) => { if (!supported) fixedRefresh(Date.now()); }).catch(() => {});
+    return;
+  }
+  fixedRefresh(now);
+}
+function fixedRefresh(now) {
   if (now - lastSessionRefresh < 60_000) return;
   lastSessionRefresh = now;
   if(sharedSpaces.isEnabled(tabSyncContext())){getRequestQueue();requestScheduler.markIndexDue();}
@@ -1191,7 +1362,7 @@ async function retractSends(d,storeName='sends',makeRetraction=sends.retractedOw
   // Departure is already best effort (offline/old Workers may prevent it).
   // Do not refill/bypass the request window, or leave a delayed GET behind
   // after disable resolves. Erase-server-copy still uses the separate DELETE.
-  if(!requestScheduler.canRequest())return;
+  if(!requestScheduler.canRequest({reserve:true}))return;
   const accountId=d.accountId,protectedKey=d.protectedKey,gen=syncGen,ownId=tabSyncContext().deviceId;
   const cancelled=()=>gen!==syncGen||ensureStore().data.accountId!==accountId?'generation':null;
   const operation=queue.enqueue({class:'F',item:storeName,generation:'leave:'+storeName+':'+gen,cancelled,run:async({attempt})=>{
@@ -1297,7 +1468,7 @@ function init() {
   settings.onSettingsChanged(onDefaultLocalChange);
   sharedSpaces.onChanged(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>{if(ensureStore().data.enabled && sharedSpaces.isEnabled(tabSyncContext()) && !applyingRemote)schedule();}));
   syncedClosed.onChanged(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>{if(ensureStore().data.enabled && !applyingRemote)schedule();}));
-  setInterval(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>{if(ensureStore().data.enabled)syncNow().catch(()=>{});}),60000).unref?.();
+  setInterval(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>{if(ensureStore().data.enabled)tick().catch(()=>{});}),CHECK_MS).unref?.();
   bookmarks.onChanged(() => {
     if (isDefaultLocalProfile()) onDefaultLocalChange();
   });
@@ -1356,6 +1527,12 @@ module.exports = {
   syncNow,
   resetRequestWindowForTest,
   sharedStatus,
+  seenVersions,
+  checkVersions,
+  setForeground,
+  tick,
+  // Acceptance diagnostics only: the check rhythm's state.
+  cadenceForTest:()=>({...cadence,failedFixed:[...cadence.failedFixed],askedRev:Object.fromEntries(cadence.askedRev),now:Date.now(),ticks:tickCount}),
   spaceStatus,
   setSyncSpaces,
   status,

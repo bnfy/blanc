@@ -316,6 +316,10 @@ export interface TabsSnapshot {
   verticalTabsTextSize: string;
   /** Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). */
   islandTabIcons: boolean;
+  /** This window is a mini window (#1138): small, never saved, with Open in Blanc on the Island. */
+  miniWindow: boolean;
+  /** The resting Island's size: default, large or extra-large (device-local setting, #1292). */
+  islandSize: string;
   verticalTabsWidth: number;
   verticalTabsPreferredWidth: number;
   verticalTabsMinWidth: number;
@@ -340,6 +344,10 @@ export interface TabsUpdatedPayload {
   verticalTabsTextSize: string;
   /** Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). */
   islandTabIcons: boolean;
+  /** This window is a mini window (#1138): small, never saved, with Open in Blanc on the Island. */
+  miniWindow: boolean;
+  /** The resting Island's size: default, large or extra-large (device-local setting, #1292). */
+  islandSize: string;
   adblockEnabled: boolean;
   shieldPopover: ShieldPopover | null;
   captureChip: CaptureChip;
@@ -1614,6 +1622,11 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:sleep-background-tabs`.
    */
   sleepBackgroundTabs(): Promise<TabId[]>;
+  /**
+   * Open in Blanc (#1138): keep this mini window as an ordinary, saved Blanc window. Resolves to false when this window isn't a mini window.
+   * IPC: invoke `chrome:mini-keep`.
+   */
+  keepMiniWindow(): Promise<boolean>;
   /**
    * Open a prefilled invite email in the person's own mail app (/invite). Blanc sends nothing; without a mail app the invite is copied instead.
    * IPC: invoke `chrome:invite-friend`.

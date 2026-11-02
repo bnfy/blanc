@@ -1,4 +1,4 @@
-const { app, BrowserWindow, View, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences, desktopCapturer, screen } = require('electron');
+const { app, BrowserWindow, View, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences, desktopCapturer, screen, globalShortcut } = require('electron');
 // Playwright's loader forces --password-store=basic before loading this entry.
 // Sync acceptance uses a real, unlocked CI keyring: select it before ready,
 // after that loader, without relaxing safeStorage's plaintext-fallback guard.
@@ -28,6 +28,7 @@ const {
   windowStateName,
   windowStatePersistenceOptions,
 } = require('./window-state-persistence');
+const miniWindow = require('./mini-window');
 
 // Electron's default uncaught-exception path raises a native modal dialog,
 // which can leave the acceptance runner reporting green while app.close()
@@ -368,6 +369,7 @@ const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link')
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const { HOVER_OPEN_DWELL_MS, initialHoverState, pointInRect, hoverStep } = require('./island-hover-open');
 const islandAutoHideModule = require('./island-autohide');
+const { stripHeightFor, scaleForIslandSize } = require('./island-size');
 const {
   installPlatformMainMenuShortcut,
   menuLabelText,
@@ -983,9 +985,11 @@ function tabImportRelayOrigin() {
 }
 
 function tabHandoffRuntime() {
+  // Never a mini window (#1138): tabs from another device belong in an
+  // ordinary window.
   const preferred = focusedRuntime ?? primaryRuntime;
-  if (preferred?.window && !preferred.window.isDestroyed()) return preferred;
-  return windowRuntimes.all().find((runtime) => runtime.window && !runtime.window.isDestroyed())
+  if (preferred?.window && !preferred.window.isDestroyed() && !preferred.mini) return preferred;
+  return windowRuntimes.all().find((runtime) => runtime.window && !runtime.window.isDestroyed() && !runtime.mini)
     ?? primaryRuntime;
 }
 
@@ -1959,7 +1963,7 @@ let runtimeFocusSerial = 0;
 let linkRouteSpaceSerial = 0;
 
 const isLiveBrowserRuntime = (runtime) => windowRuntimes.all().includes(runtime)
-  && !runtime.closing && !runtime.resident && runtime.window && !runtime.window.isDestroyed();
+  && !runtime.closing && !runtime.resident && !runtime.mini && runtime.window && !runtime.window.isDestroyed();
 
 /** The window a routed link opens in (link-routes.js resolveRoutedRuntime):
  * a Space that isn't showing opens in a new window (D2); if that is refused
@@ -3602,6 +3606,7 @@ let onePasswordConfigurationKey = JSON.stringify([
   initialPresentationSettings.onePasswordAccount,
 ]);
 let verticalTabsTextSize = initialPresentationSettings.verticalTabsTextSize;
+let islandSize = initialPresentationSettings.islandSize;
 let islandTabIcons = initialPresentationSettings.islandTabIcons === true;
 // This is the saved preference, not necessarily the current rendered width.
 // calculateChromeLayout temporarily caps it when the window is too narrow to
@@ -4406,8 +4411,10 @@ function syncIslandFloat(runtime = rt()) {
     const bounds = islandAutoHideModule.floatViewBounds(floatElementRect(runtime, role), {
       windowWidth: content.width,
       windowHeight: content.height,
-      side: pill ? islandAutoHideModule.FLOAT_SIDE_PX : islandAutoHideModule.FLOAT_CHROME_PAD_PX,
-      bottom: pill ? islandAutoHideModule.FLOAT_BOTTOM_PX : islandAutoHideModule.FLOAT_CHROME_PAD_PX,
+      // The pill's shadow is drawn inside its zoom, so it grows with the
+      // Island size (#1292).
+      side: pill ? scaleForIslandSize(islandAutoHideModule.FLOAT_SIDE_PX, islandSize) : islandAutoHideModule.FLOAT_CHROME_PAD_PX,
+      bottom: pill ? scaleForIslandSize(islandAutoHideModule.FLOAT_BOTTOM_PX, islandSize) : islandAutoHideModule.FLOAT_CHROME_PAD_PX,
     });
     if (bounds) {
       const frame = { role, x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height, stageWidth: content.width };
@@ -7205,6 +7212,8 @@ function currentTabsPayload() {
     tabLayout,
     verticalTabsTextSize,
     islandTabIcons,
+    islandSize,
+    miniWindow: rt().mini === true,
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
     ...captureBroadcastState(serialized),
@@ -8934,6 +8943,8 @@ function scratchGuardResult(runtime) {
  * saved, so re-applying them would close and recreate every tab (destroying
  * any private tab in the window) just to arrive back where it started. */
 function saveCurrentWindowAsWorkspace(runtime, name, identity = {}) {
+  // A mini window (#1138) holds no Space; "Open in Blanc" first.
+  if (runtime.mini) return { ok: false, error: 'busy' };
   return withWindowRuntime(runtime, () => {
     // No prior NAMED selection exists yet for this window, so a private or
     // provisional active tab falls back to the first persistable tab — the
@@ -8968,10 +8979,12 @@ function saveCurrentWindowAsWorkspace(runtime, name, identity = {}) {
 
 /** Open through the single testable controller; the renderer cannot bypass its guards. */
 function switchWindowToWorkspace(runtime, workspaceId, options = {}) {
+  if (runtime.mini) return { ok: false, error: 'busy' };
   return withWindowRuntime(runtime, () => workspaceController.open(runtime, workspaceId, options));
 }
 
 function createBlankWorkspaceAndSwitch(runtime, name, options = {}) {
+  if (runtime.mini) return { ok: false, error: 'busy' };
   return withWindowRuntime(runtime, () => { runtime.workspaceIncoming = null; return workspaceController.create(runtime, name, options); });
 }
 
@@ -10457,7 +10470,10 @@ function closeTab(id) {
       setActiveTab(rt().tabOrder[Math.min(closedIndex, rt().tabOrder.length - 1)]);
     } else if (hasLiveWindow()) {
       rt().activeTabId = null;
-      openReplacementTab();
+      // A mini window (#1138) is put away with its last tab, rather than
+      // left holding a fresh blank one.
+      if (rt().mini) rt().window.close();
+      else openReplacementTab();
     } else {
       // Quitting or window already gone — don't spawn replacement tabs.
       rt().activeTabId = null;
@@ -11382,7 +11398,19 @@ function workspacesProjection() {
 // Set once the Start Page hooks exist: a Space created, switched or recolored
 // repaints any Start Page following its Space's color.
 let onSpacesChangedForStartPage = () => {};
+// A Space saved while Spaces sync is on joins the library by itself, a
+// moment after the change settles (sharedSharing.autoShare).
+let sharedAutoShareTimer = null;
+function scheduleSharedAutoShare() {
+  clearTimeout(sharedAutoShareTimer);
+  sharedAutoShareTimer = setTimeout(() => {
+    sharedAutoShareTimer = null;
+    if (isSharedSpacesOffered()) withLocalProfile(DEFAULT_PROFILE_ID, () => sharedSharing.autoShare())
+      .catch((error) => console.warn('[shared-spaces] auto-share:', error.message));
+  }, 1500);
+}
 function broadcastWorkspacesUpdated() {
+  scheduleSharedAutoShare();
   onSpacesChangedForStartPage();
   forEachWindowRuntime((runtime) => {
     const payload = workspacesProjection();
@@ -11793,6 +11821,8 @@ function registerIpcHandlers() {
     tabLayout,
     verticalTabsTextSize,
     islandTabIcons,
+    islandSize,
+    miniWindow: rt().mini === true,
     ...verticalTabsMetrics(),
   }));
   chromeHandle('tabs:find', (_e, id, query, options) => {
@@ -12258,6 +12288,8 @@ function registerIpcHandlers() {
   chromeHandle('chrome:route-active', (_event, mode) => routeActiveSite(mode));
   chromeHandle('chrome:site-info-forget-certificate-exception', () => forgetActiveCertificateException());
   chromeHandle('chrome:sleep-background-tabs', () => sleepBackgroundTabsNow());
+  // Mini Window (#1138): the Island's Open in Blanc keeps this window.
+  chromeHandle('chrome:mini-keep', () => keepMiniWindow(rt()));
   chromeHandle('chrome:invite-friend', () => inviteFriendNow());
   chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
     const order = ['system', 'light', 'dark'];
@@ -12574,6 +12606,10 @@ function buildMenuForRuntime(runtime) {
       label: t('menu.file'),
       submenu: [
         command('new-window'),
+        // Mini Window (#1138): a small window that isn't saved; "Open in
+        // Blanc" (shown in one) keeps it as an ordinary window.
+        { label: t('menu.newMiniWindow'), click: bound(() => openMiniWindow()) },
+        ...(runtime.mini ? [{ label: t('mini.openInBlanc'), click: bound(() => keepMiniWindow(runtime)) }] : []),
         { label: t('menu.newProfileWindow'), click: bound(() => openNewProfileWindow()) },
         command('new-tab'),
         command('new-private-tab'),
@@ -13157,6 +13193,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
   if (runtime.window && !runtime.window.isDestroyed()) return runtime;
   runtime.closing = false;
   runtime.chromeReady = false;
+  // The strip reports its height only once it has drawn at the saved Island
+  // size (#1292), so pages start there rather than jumping down.
+  runtime.chromeHeight = stripHeightFor(islandSize);
   sessionHeldForQuit = false;
   installProfileSessionPolicies(runtime.profileId);
   const localProfile = localProfiles.getLocalProfile(runtime.profileId);
@@ -13173,7 +13212,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
     // maximized/fullscreen state, changed displays, and off-screen recovery.
     // runtime.id is stable across session restore and unique among live
     // windows, which is exactly the native persistence API's naming contract.
-    ...windowStatePersistenceOptions(runtime.id),
+    // A mini window (#1138) isn't saved, so it keeps no placement either: it
+    // opens small on the display under the pointer.
+    ...(runtime.mini ? miniWindowPlacement() : windowStatePersistenceOptions(runtime.id)),
     title: profileWindowTitle(localProfile),
     show: !inactive,
     backgroundColor: chromeBackgroundColor(),
@@ -13236,6 +13277,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
     }));
   }
   rt().window.on('focus', bindWindowRuntime(runtime, () => {
+    clearMiniWindowIdle(runtime);
     focusedRuntime = runtime;
     if (!runtime.islandRevealed) watchIslandReveal(runtime);
     runtimeFocusSerials.set(runtime, ++runtimeFocusSerial);
@@ -13248,6 +13290,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
   }));
   rt().window.on('blur', bindWindowRuntime(runtime, () => {
     stopIslandRevealWatch(runtime);
+    armMiniWindowIdle(runtime);
     tabSwitcher.cancel(runtime);
     suppressIslandHover(runtime);
     hidePillTooltip(runtime);
@@ -13272,7 +13315,10 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
     sessionCloseEffect: () => windowCloseSessionEffect({
       platform: process.platform,
       isPrimaryWindow: runtime === primaryRuntime,
-      otherOpenWindows: windowRuntimes.all().filter((candidate) => candidate !== runtime
+      isMiniWindow: runtime.mini === true,
+      // Mini windows don't count (#1138): closing the last ordinary Windows or
+      // Linux window still quits Blanc, closing them too.
+      otherOpenWindows: windowRuntimes.all().filter((candidate) => candidate !== runtime && !candidate.mini
         && candidate.window && !candidate.window.isDestroyed() && !candidate.closing).length,
     }),
     // A normal close destroys its pages. Commit the final named capture and
@@ -13285,7 +13331,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
     // writable by retrying. Preserve that file, but do not trap every scratch
     // window from a newer Blanc version on screen.
     beforeWindowClose: (effect) => {
-      if (sessionReadOnly || effect === 'dock') return { ok: true };
+      if (sessionReadOnly || effect === 'dock' || effect === 'mini') return { ok: true };
       if (effect === 'quit') {
         const result = checkpointWorkspaceSession(runtime);
         if (result.ok) sessionHeldForQuit = true;
@@ -13332,6 +13378,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
     clearIslandHoverTimer(runtime);
     clearIslandAutoHideTimer(runtime);
+    clearMiniWindowIdle(runtime);
     endIslandAutoHideIntro(runtime);
     stopIslandRevealWatch(runtime);
     stopIslandSlide(runtime);
@@ -13371,6 +13418,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
       isPrimaryWindow: runtime === primaryRuntime,
       closeEffect: dockReopenLifecycle.closeSessionEffect(),
     });
+    // The last ordinary Windows or Linux window quits Blanc: mini windows go
+    // with it (they are never saved), so window-all-closed still quits.
+    if (dockReopenLifecycle.closeSessionEffect() === 'quit') closeMiniWindows();
     if (clearPersistedWindowState) {
       runtime.closing = true;
       // The close event durably checkpointed before native teardown.
@@ -13599,6 +13649,7 @@ function openNewWindow(options = {}) {
     id: createWindowRuntimeId(),
     profileId,
   });
+  if (options.mini === true) runtime.mini = true;
   createMainWindow(runtime);
   return withWindowRuntime(runtime, () => {
     let tabId = null;
@@ -13636,6 +13687,134 @@ function openNewWindow(options = {}) {
     return runtime.id;
   });
 }
+
+// ---- Mini Window (#1138, F61; mini-window.js) ------------------------------
+// A small ordinary Blanc window with `runtime.mini` set: never saved
+// (savesSessionEntry), never a link's destination (externalWindowRuntime,
+// isLiveBrowserRuntime, tabHandoffRuntime), holds no Space, and closes by
+// itself after an hour unfocused. "Open in Blanc" clears the flag, making it an
+// ordinary window that is saved from then on.
+
+/** Size and place of a new mini window: on the display under the pointer. */
+function miniWindowPlacement() {
+  let workArea = null;
+  try { workArea = screen.getDisplayNearestPoint(screen.getCursorScreenPoint()).workArea; } catch { /* headless */ }
+  return miniWindow.miniWindowBounds(workArea);
+}
+
+/** The profile a mini window opens in: the last ordinary window's. */
+function miniWindowProfileId() {
+  const candidates = windowRuntimes.all().filter((runtime) => !runtime.mini && !runtime.resident && !runtime.closing);
+  const recent = [focusedRuntime, ...candidates.sort((a, b) =>
+    (runtimeFocusSerials.get(b) ?? 0) - (runtimeFocusSerials.get(a) ?? 0))]
+    .find((runtime) => runtime && !runtime.mini && candidates.includes(runtime));
+  const profileId = recent?.profileId ?? DEFAULT_PROFILE_ID;
+  return localProfiles.getLocalProfile(profileId) && !profileDeletions.hasPendingProfileDeletion(profileId)
+    ? profileId : DEFAULT_PROFILE_ID;
+}
+
+/** Open a mini window: a blank page with the Island's search focused. */
+function openMiniWindow() {
+  try {
+    return openNewWindow({ profileId: miniWindowProfileId(), mini: true });
+  } catch {
+    return null;
+  }
+}
+
+function clearMiniWindowIdle(runtime) {
+  if (runtime.miniIdleTimer) clearTimeout(runtime.miniIdleTimer);
+  runtime.miniIdleTimer = null;
+}
+
+/** Start (or restart) the hour after which an unused mini window closes. */
+function armMiniWindowIdle(runtime, delay = miniWindow.MINI_WINDOW_IDLE_MS) {
+  clearMiniWindowIdle(runtime);
+  if (!runtime.mini || runtime.closing || !runtime.window || runtime.window.isDestroyed()) return;
+  runtime.miniIdleTimer = setTimeout(bindWindowRuntime(runtime, () => {
+    runtime.miniIdleTimer = null;
+    expireMiniWindow(runtime);
+  }), delay);
+  runtime.miniIdleTimer.unref?.();
+}
+
+/** Close an unused mini window, unless a page in it is in use or holds work
+ * a close would lose; then it waits another hour. Its pages stay in History. */
+async function expireMiniWindow(runtime, { ignoreFocus = false } = {}) {
+  const live = () => runtime.mini && !runtime.closing && runtime.window && !runtime.window.isDestroyed()
+    && windowRuntimes.all().includes(runtime);
+  const focused = () => !ignoreFocus && runtime.window.isFocused();
+  if (!live()) return 'gone';
+  if (focused()) return 'focused';
+  const pages = runtime.tabOrder.map((id) => tabs.get(id));
+  const inUse = !miniWindow.miniWindowMayExpire(pages.map((tab) => tab && { ...tab, popupChildren: popupChildCounts.get(tab.id) ?? 0 }));
+  let unsaved = false;
+  if (!inUse) {
+    for (const tab of pages) {
+      const wc = liveContents(tab);
+      if (wc && (await probeTabDirty(tab, wc)).unsaved) { unsaved = true; break; }
+    }
+  }
+  if (!live()) return 'gone';
+  if (focused()) return 'focused';
+  if (inUse || unsaved) { armMiniWindowIdle(runtime); return inUse ? 'in-use' : 'unsaved'; }
+  runtime.window.close();
+  return 'closed';
+}
+
+/** Close every mini window (the last ordinary window on Windows or Linux
+ * quits Blanc). */
+function closeMiniWindows() {
+  for (const runtime of windowRuntimes.all()) {
+    if (runtime.mini && runtime.window && !runtime.window.isDestroyed()) runtime.window.close();
+  }
+}
+
+/** "Open in Blanc": keep this mini window as an ordinary Blanc window, the
+ * size of a new one, on the same display. Saved with the session from now
+ * on, and no longer closes by itself. */
+function keepMiniWindow(runtime = rt()) {
+  if (!runtime?.mini || runtime.closing || !runtime.window || runtime.window.isDestroyed()) return false;
+  runtime.mini = false;
+  clearMiniWindowIdle(runtime);
+  let workArea = null;
+  try { workArea = screen.getDisplayMatching(runtime.window.getBounds()).workArea; } catch { /* headless */ }
+  runtime.window.setBounds(miniWindow.ordinaryWindowBounds(workArea));
+  withWindowRuntime(runtime, () => {
+    broadcastTabs(); // persists the session, now with this window
+    buildMenu(runtime);
+  });
+  return true;
+}
+
+// The global shortcut (Settings → General → Mini window shortcut). Off by
+// default; registered only while Blanc runs, and only the one chosen.
+let miniWindowShortcutRegistered = null;
+let miniWindowShortcutStatus = 'off';
+let appliedMiniWindowShortcut = null;
+function syncMiniWindowShortcut(choice = settings.getSettings().miniWindowShortcut) {
+  appliedMiniWindowShortcut = choice;
+  const accelerator = miniWindow.miniWindowAccelerator(choice, process.platform);
+  if (accelerator === miniWindowShortcutRegistered && miniWindowShortcutStatus !== 'unavailable') return miniWindowShortcutStatus;
+  if (miniWindowShortcutRegistered) {
+    try { globalShortcut.unregister(miniWindowShortcutRegistered); } catch { /* already gone */ }
+    miniWindowShortcutRegistered = null;
+  }
+  if (!accelerator) { miniWindowShortcutStatus = 'off'; return miniWindowShortcutStatus; }
+  let registered = false;
+  try {
+    registered = globalShortcut.register(accelerator, bindWindowRuntime(primaryRuntime, () => openMiniWindow()));
+  } catch { registered = false; }
+  if (registered) miniWindowShortcutRegistered = accelerator;
+  // Another app holds the chord, or the desktop refuses global shortcuts.
+  miniWindowShortcutStatus = registered ? 'on' : 'unavailable';
+  return miniWindowShortcutStatus;
+}
+app.on('will-quit', () => {
+  if (!miniWindowShortcutRegistered) return;
+  try { globalShortcut.unregister(miniWindowShortcutRegistered); } catch { /* already gone */ }
+  miniWindowShortcutRegistered = null;
+});
 
 /** Make `runtime` the owner of a tab that has left another window. Re-homes
  * the per-tab listener set too: wireTabView binds its owner runtime once at
@@ -14633,6 +14812,7 @@ function windowRuntimeSnapshots() {
     attached: !!runtime.window && !runtime.window.isDestroyed(),
     workspaceId: runtime.workspaceId ?? null,
     resident: !!runtime.resident,
+    mini: runtime.mini === true,
   }));
 }
 
@@ -15052,6 +15232,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     actions: {
       newWindow: () => openNewWindow(),
       newPrivateWindow: () => openNewWindow({ private: true }),
+      newMiniWindow: () => openMiniWindow(),
       focusActiveWindow: () => focusDockActiveWindow(),
     },
   });
@@ -15530,7 +15711,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         return true;
       },
     },
-    sharedSpaces: { acknowledge:id=>sharedSharing.acknowledge(id), open:id=>{if(!isSharedSpacesOffered()||rt().profileId!==DEFAULT_PROFILE_ID)return {ok:false};return switchWindowToWorkspace(rt(),String(id));}, status:()=>{const openSheet=!!rt().sharedShowSheet;rt().sharedShowSheet=false;return {offered:isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID,...sync.sharedStatus(),question:sharedSharing.question(),openSheet};}, preview:()=>sharedSharing.preview(), apply:payload=>sharedSharing.apply(payload) },
+    sharedSpaces: { acknowledge:id=>sharedSharing.acknowledge(id), open:id=>{if(!isSharedSpacesOffered()||rt().profileId!==DEFAULT_PROFILE_ID)return {ok:false};return switchWindowToWorkspace(rt(),String(id));}, status:()=>{const openSheet=!!rt().sharedShowSheet;rt().sharedShowSheet=false;return {offered:isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID,...sync.sharedStatus(),question:sharedSharing.question(),openSheet};}, preview:options=>sharedSharing.preview(options), apply:payload=>sharedSharing.apply(payload) },
     drm: require('./drm-controls').createDrmControls({ support: drmSupport, restart: restartApp }),
     stringsScript: () => mainI18n.stringsScript(),
     i18n: mainI18n,
@@ -15794,6 +15975,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     },
     onePasswordAvailable: () => ONE_PASSWORD_AVAILABLE,
     recentTabOrderAvailable: () => RECENT_TAB_ORDER_AVAILABLE,
+    miniWindow: {
+      status: () => ({
+        choices: miniWindow.miniWindowShortcutChoices(process.platform),
+        status: miniWindowShortcutStatus,
+      }),
+    },
     // Settings status card (Task 9): presence is a hint, Verify is truth.
     onePasswordAppDetected: () => findOnePasswordApp() !== null,
     onePasswordDeviceSupported: () => ONE_PASSWORD_DEVICE_SUPPORTED,
@@ -15859,6 +16046,40 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   if (acceptanceTestMode) {
     require('./test-hook').install({
       rearmLaunchSunrise: () => launchSunrise.rearm(Date.now()),
+      // Mini Window (#1138). `expire` runs the hour's check now, as if the
+      // window had been left unused that long.
+      miniWindowTest: {
+        open: () => openMiniWindow(),
+        keep: (id) => keepMiniWindow(windowRuntimes.all().find((runtime) => String(runtime.id) === String(id))),
+        expire: async (id) => {
+          const runtime = windowRuntimes.all().find((candidate) => String(candidate.id) === String(id));
+          return runtime ? expireMiniWindow(runtime, { ignoreFocus: true }) : 'gone';
+        },
+        state: (id) => {
+          const runtime = windowRuntimes.all().find((candidate) => String(candidate.id) === String(id));
+          if (!runtime?.window || runtime.window.isDestroyed()) return null;
+          return { mini: runtime.mini === true, bounds: runtime.window.getBounds(), idleArmed: !!runtime.miniIdleTimer };
+        },
+        shortcutStatus: () => miniWindowShortcutStatus,
+        // The Island's Open in Blanc button in that window's own strip.
+        chip: async (id, { click = false } = {}) => {
+          const runtime = windowRuntimes.all().find((candidate) => String(candidate.id) === String(id));
+          const wc = runtime?.window && !runtime.window.isDestroyed() ? runtime.window.webContents : null;
+          if (!wc) return null;
+          return wc.executeJavaScript(`(() => {
+            const chip = document.getElementById('pillMiniOpen');
+            const space = document.getElementById('pillSpace');
+            const visible = !!chip && !chip.hidden && chip.getBoundingClientRect().width > 0;
+            if (${click === true} && visible) chip.click();
+            return {
+              visible,
+              clicked: ${click === true} && visible,
+              miniAttribute: document.documentElement.hasAttribute('data-mini-window'),
+              spaceMarkShown: !!space && getComputedStyle(space).display !== 'none',
+            };
+          })()`);
+        },
+      },
       // The window Blanc last asked to be left out of capture. Electron 44's
       // isContentProtected() keeps reporting true after setContentProtection(false)
       // on macOS 27 for apps launched by LaunchServices or Terminal, though
@@ -15868,9 +16089,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if(action==='enable')return sync.enable(payload);
         if(action==='pairingPeer'){sharedSharing.armPairing();require('./tabsync').mergeFromSync({devices:{'pseudo-peer':{name:'zzz-peer',platform:'linux',updatedAt:Date.now(),tabs:[],groups:[]}}},sync.sharedContext());return true;}
         if(action==='disable')return sync.disable({wipeRemote:false});
-        if(action==='apply')return sharedSharing.apply(payload);
+        if(action==='apply')return sharedSharing.apply(payload,{waitForUpload:true});
         if(action==='pull')return sync.syncNow(payload);
         if(action==='resetRequestWindow')return sync.resetRequestWindowForTest();
+        if(action==='foreground'){sync.setForeground(payload!==false);return true;}
+        if(action==='check'){try{return await sync.checkVersions();}catch(error){return {threw:error.message};}}
+        if(action==='cadence')return sync.cadenceForTest();
         if(action==='capture'){captureSharedSpaceEdits(rt());return true;}
         if(action==='state')return {shared:sharedSpaceState.snapshot(sync.sharedContext()),context:sync.sharedContext(),closed:sharedClosedBand(rt()),parked:(rt().closedEntries??[]).map(entry=>({id:entry.id,sharedTabId:entry.sharedTabId,held:!!entry.view})),workspaces:workspacesProjection()};
         return null;
@@ -16487,7 +16711,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // 'pages:settings:set' IPC handler — not only from already-bound callers here.
   settings.onRecentBangsChanged(() => broadcastBangsChanged());
   let appliedTabArchive = settings.getSettings().tabArchive;
+  syncMiniWindowShortcut();
   settings.onSettingsChanged((s) => {
+    if (s.miniWindowShortcut !== appliedMiniWindowShortcut) {
+      appliedMiniWindowShortcut = s.miniWindowShortcut;
+      syncMiniWindowShortcut(s.miniWindowShortcut);
+    }
     if (s.tabArchive !== appliedTabArchive) {
       appliedTabArchive = s.tabArchive;
       resetArchiveGrace();
@@ -16539,6 +16768,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     }
     if ((s.islandTabIcons === true) !== islandTabIcons) {
       islandTabIcons = s.islandTabIcons === true;
+      forEachWindowRuntime(() => broadcastTabs(), { liveOnly: true });
+    }
+    if (s.islandSize !== islandSize) {
+      islandSize = s.islandSize;
       forEachWindowRuntime(() => broadcastTabs(), { liveOnly: true });
     }
     const nextDarkWebsitesKey = JSON.stringify([s.darkWebsites, s.darkWebsitesExceptions]);
@@ -16662,7 +16895,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // Failures are swallowed and surfaced only in Settings (never startup).
     sync.init();
     // Freshness pull when Blanc regains focus (tab-sync spec §6; throttled inside).
-    app.on('browser-window-focus', () => sync.refreshSession());
+    // Focus also sets the change check's pace: every 15 s while a Blanc window
+    // is focused, every minute otherwise (design 2026-11-02).
+    app.on('browser-window-focus', () => { sync.setForeground(true); sync.refreshSession(); });
+    app.on('browser-window-blur', () => sync.setForeground(false));
+    // A full pass on wake: the five-minute pass may have slept through changes.
+    powerMonitor.on('resume', () => { sync.syncNow().catch(() => {}); });
     // Best-effort final push — fire-and-forget, never blocks quit (spec §6).
     app.on('before-quit', bindWindowRuntime(primaryRuntime, () => { sync.syncNow().catch(() => {}); }));
     // A sync pull that merged in favorites from another device refreshes the

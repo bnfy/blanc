@@ -64,6 +64,7 @@ function install(refs) {
     // wrapped with it, once, mechanically, at the end of this function.
     bindRoot,
     rearmLaunchSunrise,
+    miniWindowTest,
     pairingProtectedWindow,
     bangIcons,
     clearRecentBangsAndIcons,
@@ -1165,6 +1166,17 @@ function install(refs) {
     // ---- settings ----
     setAdblock(on) { settings.setSettings({ adblockEnabled: !!on }); },
     setIslandTabIcons(on) { return settings.setSettings({ islandTabIcons: !!on }).islandTabIcons; },
+    // Mini Window (#1138).
+    openMiniWindow() { return miniWindowTest.open(); },
+    keepMiniWindow(id) { return miniWindowTest.keep(id); },
+    expireMiniWindow(id) { return miniWindowTest.expire(id); },
+    miniWindowState(id) { return miniWindowTest.state(id); },
+    miniWindowChip(id, options) { return miniWindowTest.chip(id, options); },
+    setMiniWindowShortcut(id) {
+      const saved = settings.setSettings({ miniWindowShortcut: id }).miniWindowShortcut;
+      return { saved, status: miniWindowTest.shortcutStatus() };
+    },
+    setIslandSize(size) { return settings.setSettings({ islandSize: size }).islandSize; },
     // The launch Sunrise plays once per launch; acceptance rearms that launch.
     setLaunchSunrise(on) {
       const saved = settings.setSettings({ launchSunrise: !!on }).launchSunrise;
@@ -4175,6 +4187,8 @@ function install(refs) {
         newtabLayout: 'billboard',
         verticalTabsWidth: 248,
         verticalTabsTextSize: 'default',
+        miniWindowShortcut: 'off',
+        islandSize: 'default',
         appIcon: 'sunrise',
         adblockExceptions: [],
         bangsEnabled: true,

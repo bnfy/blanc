@@ -2414,6 +2414,11 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="shared_spaces_capacity">Este Space está cheio para sincronização. As alterações locais são mantidas.</string>
     <string name="shared_spaces_busy">A sincronização está ocupada; tentando novamente.</string>
     <string name="shared_spaces_slowed">O limite de solicitações está reduzindo a frequência de verificação.</string>
+    <string name="shared_spaces_checking">Verificando seus outros dispositivos…</string>
+    <string name="shared_spaces_checking_button">Verificando…</string>
+    <string name="shared_spaces_share">Compartilhar</string>
+    <string name="shared_spaces_list_updated">A lista foi atualizada. Confira e confirme de novo.</string>
+    <string name="shared_spaces_uploading">Enviando seus Spaces. Você pode continuar navegando.</string>
     <string name="shared_spaces_unsynced_tab">Não sincronizado</string>
     <string name="shared_spaces_pair_question">%1$s entrou na sua sincronização. Ativar Spaces aqui?</string>
     <string name="shared_spaces_pair_detail">Este dispositivo poderá alterar os Spaces compartilhados da conta.</string>
@@ -2481,6 +2486,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="ios_pair_link_confirm_body">Continue só se você acabou de escanear um código no seu próprio computador.</string>
     <string name="ios_pair_pair">Parear</string>
     <string name="ios_pair_camera_usage">O Blanc usa a câmera só para escanear o código de pareamento do seu computador.</string>
+    <string name="ios_photos_add_usage">O Blanc salva imagens na sua fototeca só quando você pedir.</string>
     <string name="ios_settings_share_tabs_help">Compartilhe as abas abertas normais deste iPhone com seus outros dispositivos. Abas privadas nunca são compartilhadas.</string>
     <string name="ios_settings_disconnect_help">Desconectar este iPhone? Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados.</string>
     <string name="ios_settings_switch_help">Este iPhone sairá da sincronização atual. Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados.</string>
@@ -2549,6 +2555,11 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="slash_reader_hint">Leia este artigo com texto ajustável e menos distrações</string>
     <string name="reader_inter">Inter</string>
     <string name="reader_mono">JetBrains Mono</string>
+    <string name="settings_general_island_size_label">Tamanho da Island</string>
+    <string name="settings_general_island_size_hint">Deixa a Island e os botões maiores. A página desce para abrir espaço.</string>
+    <string name="settings_general_island_size_default">Padrão</string>
+    <string name="settings_general_island_size_large">Grande</string>
+    <string name="settings_general_island_size_extra_large">Muito grande</string>
     <string name="settings_general_vertical_tabs_text_size_label">Tamanho do texto das abas verticais</string>
     <string name="settings_general_vertical_tabs_text_size_hint">Facilite a leitura dos títulos das abas e dos nomes dos grupos na barra lateral de abas verticais.</string>
     <string name="settings_general_vertical_tabs_text_size_default">Padrão</string>
@@ -2619,4 +2630,16 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="ios_default_browser_done">O Blanc é seu navegador padrão</string>
     <string name="ios_default_browser_row">Navegador padrão</string>
     <string name="ios_default_browser_not_blanc">Não é o Blanc</string>
+    <string name="menu_new_mini_window">Nova minijanela</string>
+    <string name="mini_open_in_blanc">Abrir no Blanc</string>
+    <string name="mini_open_in_blanc_title">Manter esta minijanela como uma janela comum do Blanc</string>
+    <string name="mini_open_in_blanc_label">Abrir no Blanc: manter esta minijanela como uma janela comum do Blanc</string>
+    <string name="settings_general_mini_window_label">Atalho da minijanela</string>
+    <string name="settings_general_mini_window_hint">Abre uma pequena janela do Blanc sobre o app em que você está, enquanto o Blanc está aberto. Uma minijanela não é salva e fecha após uma hora sem uso. Abrir no Blanc a mantém.</string>
+    <string name="settings_general_mini_window_unavailable">Outro app está usando este atalho, ou sua área de trabalho não permite. Escolha outro.</string>
+    <string name="settings_general_mini_window_off">Desativado</string>
+    <string name="settings_general_mini_window_shortcut_alt_cmd_n">⌥⌘N</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Espaço</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Espaço</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Shift+Espaço</string>
 </resources>
