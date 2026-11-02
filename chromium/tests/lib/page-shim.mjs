@@ -163,7 +163,7 @@ export class Page{
  bringToFront(){return this.cdp.send('Page.bringToFront');}
 }
 // Shipping URLs for the Island's documents and its internal pages.
-export const ISLAND_FRAMES={'blanc-chrome://overlay/':'overlay','blanc-chrome://index/':'strip'};
+export const ISLAND_FRAMES={'blanc-chrome://overlay/':'overlay','blanc-chrome://index/':'strip','blanc-chrome://float/':'floatPill'};
 export function shippingPageUrl(url){
  if(url==='chrome://newtab/'||url.startsWith('chrome://new-tab-page'))return 'blanc://newtab/';
  // The fork's chrome://newtab/ commits its Start Page document here.

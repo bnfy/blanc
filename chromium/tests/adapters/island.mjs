@@ -47,10 +47,24 @@ async function windowOf(w){
  return w.fixture.browser.send('Browser.getWindowForTarget',{targetId:page.targetId});
 }
 const strip=w=>w.frame('strip');const overlay=w=>w.frame('overlay');
+// macOS floats only the pill (shipping's floatViewsWanted): no window
+// controls or menu button of the fork's own.
+const floatPill=(w,role)=>{if(role!=='pill')throw new UndefinedNativeAdapterError('The fork floats only the pill (macOS): no '+role+' view');return w.frame('floatPill');};
 // The strip paints from the host's snapshot poll; read it after the host's
 // own refresh has carried the native state that the step just changed.
 const painted=w=>w.hostEval('window.BlancPrototypeHost.refresh().then(()=>new Promise(r=>setTimeout(r,50)))');
 const frameRect=(w,id)=>w.hostEval(`(()=>{const f=document.getElementById(${jsLiteral(id)});if(!f||f.hidden)return null;const r=f.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}})()`);
+// The floating pill's frame, as shipping's floatViewState reports its view.
+// Above every page and the sheet: views' own targeting gives its middle to
+// the Island view.
+async function floatViewState(w,role='pill'){
+ if(role!=='pill')return null;
+ const state=await w.hostEval('window.BlancPrototypeHost.floatViewState()');
+ if(!state)return null;
+ const b=state.bounds;
+ const above=!!b&&state.shown&&await w.native('hitTarget',[Math.round(b.x+b.width/2),Math.round(b.y+Math.min(b.height-1,30))])==='island';
+ return {...state,aboveTabsAndSheet:above};
+}
 // Blink dispatches mouse moves with the next frame, after CDP has answered;
 // Electron's input-event reaches shipping's main process before
 // sendInputEvent returns. Waiting two frames gives the move to its listeners
@@ -209,9 +223,10 @@ export const island={
   await w.hostEval('window.BlancPrototypeHost.refresh()');
   return value;
  },
- setIslandAutoHideStyle:(w,style)=>{
-  if(String(style)!=='push')throw new UndefinedNativeAdapterError('The fork\'s auto-hide pushes the page; its float style is not built yet');
-  return 'push';
+ async setIslandAutoHideStyle(w,style){
+  const value=await w.native('setIslandAutoHideStyle',[String(style)]);
+  await w.hostEval('window.BlancPrototypeHost.refresh()');
+  return value;
  },
  // ---- surfaces the fork Island does not have ----
  // Shipping's hover-open state, held by the host (host.js, F1).
@@ -234,16 +249,38 @@ export const island={
   const local={x:point.x-bounds.x,y:point.y-bounds.y};
   if(await w.native('setTestCursorPoint',[local])!==true)return false;
   const state=await w.native('autoHideState');
-  const islandTop=state.pageY-state.chromeHeight;
+  // Only the horizontal push style moves the Island with the page.
+  const islandTop=state.floating||(await w.snapshot()).tabLayout==='vertical'?0:state.pageY-state.chromeHeight;
   return w.hostEval(`window.BlancPrototypeHost.setLastPointer(${JSON.stringify({x:local.x-strip.x,y:local.y-islandTop-strip.y})})`);
  },
  setCursorSamplingUnavailable:(w,on)=>w.native('setCursorSamplingUnavailable',[on===true]),
- holdIslandInWindow:undef('The fork has no floating Island to hold'),
- floatEval:undef('The fork has no floating Island views'),
- floatViewState:undef('The fork has no floating Island views'),
- floatControlsState:undef('The fork has no floating Island views'),
- sendFloatMouseInput:undef('The fork has no floating Island views'),
- floatWebContentsIds:undef('The fork has no floating Island views'),
- floatPillWebContentsId:undef('The fork has no floating Island views'),
- chromeSurfaceRegistered:undef('The fork has no per-window chrome surface registry (float views)'),
+ // Shipping's acceptance hold, for this window's Island.
+ async holdIslandInWindow(w,runtimeId,on){
+  if(String(runtimeId)!=='primary')throw new UndefinedNativeAdapterError('The fork holds only the primary window\'s Island');
+  const held=await w.native('holdIsland',[on===true]);
+  await w.hostEval('window.BlancPrototypeHost.refresh()');
+  return held;
+ },
+ // The floating pill is a frame of the Island host (host.js), shipping's
+ // float view: its document, its native frame and input into it.
+ floatEval:(w,role,script)=>floatPill(w,role).evalExpression(String(script)),
+ floatViewState,
+ floatControlsState:undef('The fork floats only the pill (macOS): no window controls or menu button views'),
+ sendFloatMouseInput:(w,role,input)=>{floatPill(w,role);return frameInput(w,'floatPill',input);},
+ // A window's float surfaces live and die with its Island host, so each is
+ // named by that host's target and its frame.
+ async floatWebContentsIds(w,runtimeId){
+  const id=String(runtimeId);
+  const {targets}=await w.fixture.browser.send('Target.getTargets');
+  const host=id==='primary'?null:targets.find(t=>t.targetId===id);
+  if(id!=='primary'&&!host)return [];
+  return [`${id}:floatPill`];
+ },
+ floatPillWebContentsId:undef('The fork\'s floating pill is a frame of the Island host, not its own web contents'),
+ async chromeSurfaceRegistered(w,surface){
+  const [id]=String(surface).split(':');
+  if(id==='primary')return true;
+  const {targets}=await w.fixture.browser.send('Target.getTargets');
+  return targets.some(t=>t.targetId===id);
+ },
 };

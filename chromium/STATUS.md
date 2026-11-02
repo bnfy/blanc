@@ -174,20 +174,30 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     `blanc.island.hover_open` (patch 0010, off by default) on Settings'
     Island card. 13 of the 14 hover cases pass; F1-13 waits for Blanc's
     permission prompt (S1.6), as F13-1 does.
-  - Auto-hide, push style (F1), candidate macos-e4163098d874a7d4
-    (2026-11-02): shipping's policy (`island-autohide.js`) is native C++
+  - Auto-hide (F1), candidate macos-f87420ebc97e9415 (2026-11-02):
+    shipping's policy (`island-autohide.js`) is native C++
     (`island_autohide.h`), compiled beside shipping's module and compared
     over every input grid in `tools/island-autohide.test.mjs`. A per-window
     controller samples the cursor while the strip is hidden, reveals at the
-    top edge or after the rest below it, holds while a surface is open or
-    the how-to tip shows, and slides page and Island together (none under
-    Reduce Motion). While hidden the window drags only by a 6 px band, as
-    shipping's `#dragBand`. Setting: `blanc.island.auto_hide` (patch 0010,
-    off) on Settings' Island card. 9 of the 10 push cases pass; F1-27
-    fails because the vertical layout keeps the Island shown (its strip and
-    rail are one document). Float style, shipping's default, is not built:
-    its 17 cases answer undefined. island-and-commands, settings-and-theming
-    and navigation-and-context-menu show no regressions against hover-open.
+    top edge (or, pushing, after the rest below it), holds while a surface is
+    open or the how-to tip shows, and hides once the pointer leaves. Push
+    slides page and Island together (none under Reduce Motion). Float, the
+    default, leaves the page at the top: the host shows the strip document a
+    second time in a frame tight around the pill (`?surface=float`, one
+    renderer edit), placed and shown by shipping's own module (wrapped as
+    `island-autohide.js`), and native claims clicks only inside that frame
+    while it shows. The vertical layout hides too: the rail keeps its column
+    and the host clips the strip to it. While the strip is covered the window
+    drags only by a 6 px band, as `#dragBand`. Settings: `blanc.island.
+    auto_hide` and `blanc.island.auto_hide_style` (patch 0010; off, float)
+    on the Island card. 21 of island-and-commands' 27 macOS auto-hide cases
+    pass, F1-27 included (the four in Glance and Split View were not run).
+    F1-28 and F1-38 fail only where macOS's window buttons should hide with
+    the Island (needs an Objective-C++ file in the UI target; asked the
+    owner, not built). F1-33 and F1-39 need Glance as a floating card,
+    F1-34 Settings opened as a page, F1-35 private tabs (D1). F1-36 is
+    Windows/Linux. island-and-commands, settings-and-theming and
+    navigation-and-context-menu show no regressions.
 - **S1 baseline on macos-3f969a35b9f9f7ad (fork 82f8cd80), full run of
   2026-11-01:** 101 of the 253 S1 cases pass, 119 fail, 33 undefined. Every
   case that passed on macos-790ca4d6d538c894 (70) still passes; 31 earlier
@@ -272,7 +282,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
 ## Reading the failures
 Most failures on the previous candidate are real product gaps, clustered:
 - Settings opens chrome://settings (no Blanc controls): 42 Island hover/auto-hide
-  cases (hover-open's and push-style auto-hide's now pass in targeted runs), search engine, suggestions, theme, bang and tab-icon settings.
+  cases (hover-open's and auto-hide's now pass), search engine, suggestions, theme, bang and tab-icon settings.
 - Private tabs refused (in-window private tabs not built yet; D1 decided): F4 and every case with a private step.
 - Facade gaps: Bangs disabled, no bangIcons, no beginRenameGroup, /allow-ads and
   /block-ads absent from the command list, search hard-coded to Google.
@@ -314,17 +324,17 @@ S1.1: `handoffs` (typed hand-offs recorded under --blanc-test),
 `tabTargets`, `hitTarget`, `setStoredUiLanguage`/`storedUiLanguage`,
 `setIslandHoverOpen` (the host's `hoverState`/`setLastPointer` stand in for
 shipping's hover hooks), `setIslandAutoHide`, `autoHideState`,
-`setTestCursorPoint`, `setCursorSamplingUnavailable` and `captionAt` (the
-native window-drag answer at a point). Identified, not
+`setTestCursorPoint`, `setCursorSamplingUnavailable`, `captionAt` (the
+native window-drag answer at a point), `setIslandAutoHideStyle` and
+`holdIsland` (shipping's `holdIslandInWindow`). Identified, not
 built: sessionWindows (session.json-shaped projection); certificate decision
 list/forget/cap; history visit + site icon seed; favorite favicon seed;
 first-run/checklist/Patron/launch-Sunrise state once stored; address context menu
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.2 rest: auto-hide's float style (a float-pill surface running the
-   strip document in float mode, the style preference and Settings select,
-   the window buttons on macOS) and the vertical layout (F1-27), all 34 slash commands (deferred features
+1. S1.2 rest: macOS window buttons hiding with the Island (F1-28, F1-38;
+   an Objective-C++ file, awaiting the owner), all 34 slash commands (deferred features
    answer with shipping's unavailable copy), zoom, copy/clean link, and the
    browserAPI members the host doesn't answer yet. Verify each change with targeted `--only` runs
    merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
