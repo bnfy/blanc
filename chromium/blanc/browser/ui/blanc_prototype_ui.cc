@@ -242,6 +242,13 @@ bool IsFavoritable(const GURL& url) {
   return url.SchemeIsHTTPOrHTTPS();
 }
 
+// The profile a tab's own actions belong to. A private tab (D1) may sit in an
+// ordinary window, so Favorites, Start Page pins and other per-tab actions ask
+// the tab, not the window.
+Profile* TabProfile(content::WebContents* tab) {
+  return Profile::FromBrowserContext(tab->GetBrowserContext());
+}
+
 // The regular profile's bookmarks, once loaded. Private windows get none:
 // Electron never populates Favorites from private tabs, and Chromium shares
 // the regular model with incognito, so the guard lives here, not in the model.
@@ -897,7 +904,9 @@ class Owner : public base::SupportsUserData::Data,
   int find_ordinal_ = 0;
   std::string find_query_;
   bool CanTint() const {
-    if (closing_ || !web_contents() || browser->GetProfile()->IsOffTheRecord()) return false;
+    // A private tab's site never tints the Island (shipping samples nothing
+    // from it), in a private window or an ordinary one.
+    if (closing_ || !web_contents() || web_contents()->GetBrowserContext()->IsOffTheRecord()) return false;
     const auto& url = web_contents()->GetPrimaryMainFrame()->GetLastCommittedURL();
     return url.SchemeIsHTTPOrHTTPS() || url.SchemeIs("chrome-extension") ||
         url == GURL("chrome://blanc-prototype/pages/newtab.html");
@@ -1369,7 +1378,7 @@ class PersistentSplitData : public base::SupportsUserData::Data {
 void MarkPersistentSplit(BrowserWindowInterface* browser, content::WebContents* tab, bool enabled, bool focused = false) {
   if (enabled) tab->SetUserData(kPersistentSplitKey, std::make_unique<PersistentSplitData>(focused));
   else tab->RemoveUserData(kPersistentSplitKey);
-  if (!browser->GetProfile()->IsOffTheRecord())
+  if (!browser->GetProfile()->IsOffTheRecord() && !blanc::private_tabs::IsPrivateTab(tab))
     if (auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile()))
       service->AddTabExtraData(browser->GetSessionID(), sessions::SessionTabHelper::IdForTab(tab), kPersistentSplitKey, enabled ? (focused ? "2" : "1") : "0");
 }
@@ -1609,8 +1618,17 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
     groups.Append(base::DictValue().Set("name", base::UTF16ToUTF8(v->title()))
         .Set("color", static_cast<int>(v->color())).Set("collapsed", v->is_collapsed()));
   }
+  // A Space never holds a private tab (shipping), so private tabs are left
+  // out and the active index counts only the tabs the Space keeps.
+  int active = 0;
   for (int i = 0; i < model->count(); ++i) {
     auto* tab = model->GetWebContentsAt(i);
+    if (blanc::private_tabs::IsPrivateTab(tab)) {
+      // A split is saved whole or not at all.
+      if (model->GetSplitForTab(i)) return std::nullopt;
+      continue;
+    }
+    if (i == model->active_index()) active = static_cast<int>(tabs.size());
     // In-flight navigation and unload-sensitive forms remain ineligible.
     if (tab->IsLoading() ||
         tab->NeedToFireBeforeUnload()) return std::nullopt;
@@ -1649,7 +1667,18 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
     }
     tabs.Append(base::DictValue().Set("url", url.spec()).Set("pinned", model->IsTabPinned(i)).Set("group", group_index));
   }
-  auto record = base::DictValue().Set("tabs", std::move(tabs)).Set("groups", std::move(groups)).Set("active", model->active_index());
+  if (tabs.empty()) return std::nullopt;
+  // Groups only private tabs referenced stay out, as in shipping's session
+  // file, and the kept tabs' group indexes follow.
+  std::vector<int> remap(groups.size(), -1);
+  base::ListValue kept_groups;
+  for (auto& entry : tabs) {
+    const int group = entry.GetDict().FindInt("group").value_or(-1);
+    if (group < 0) continue;
+    if (remap[group] < 0) { remap[group] = static_cast<int>(kept_groups.size()); kept_groups.Append(groups[group].Clone()); }
+    entry.GetDict().Set("group", remap[group]);
+  }
+  auto record = base::DictValue().Set("tabs", std::move(tabs)).Set("groups", std::move(kept_groups)).Set("active", active);
   // Keep unsplit legacy records byte-shape compatible with existing journals.
   if (!splits.empty()) { record.Set("splits", std::move(splits)); record.Set("splitIds", std::move(split_ids)); }
   if (!ValidSpace(record)) return std::nullopt;
@@ -5184,10 +5213,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       return;
     }
     if (method == "startPinMenuState" && args.size() == 1) {
-      reply(true, base::Value(StartPinMenuState(profile, tab))); return;
+      reply(true, base::Value(StartPinMenuState(TabProfile(tab), tab))); return;
     }
     if (method == "toggleStartPin" && args.size() == 2 && args[1].is_string()) {
-      reply(true, base::Value(ToggleStartPinFromTab(profile, tab, args[1].GetString()))); return;
+      reply(true, base::Value(ToggleStartPinFromTab(TabProfile(tab), tab, args[1].GetString()))); return;
     }
     if (method == "find" || method == "stopFind") {
       if (index != model->active_index()) {
@@ -5223,9 +5252,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (method == "toggleBookmark" || method == "saveFavorite") {
       // The Island's heart and /save act on the tab it names; main re-reads
       // the committed page here rather than trusting a renderer-supplied URL.
-      if (!CanEditFavorites(profile)) {
-        reply(false, base::Value(profile->IsOffTheRecord()
-            ? "Favorites are unavailable in private windows."
+      // A private tab is never a Favorite, as in shipping, in any window.
+      auto* tab_profile = TabProfile(tab);
+      if (!CanEditFavorites(tab_profile)) {
+        reply(false, base::Value(tab_profile->IsOffTheRecord()
+            ? "Favorites are unavailable in private tabs."
             : "Favorites editing is disabled."));
         return;
       }
@@ -5234,11 +5265,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         reply(false, base::Value("Wait for the page to finish loading."));
         return;
       }
-      auto* favorites = LoadedBookmarkModel(profile);
+      auto* favorites = LoadedBookmarkModel(tab_profile);
       const GURL& url = tab->GetPrimaryMainFrame()->GetLastCommittedURL();
       if (!favorites || !IsFavoritable(url)) {
-        reply(false, base::Value(profile->IsOffTheRecord()
-            ? "Favorites are unavailable in private windows."
+        reply(false, base::Value(tab_profile->IsOffTheRecord()
+            ? "Favorites are unavailable in private tabs."
             : "Only web pages can be Favorites."));
         return;
       }
@@ -5525,8 +5556,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
                args[2].is_string() && args[3].is_string() && args[4].is_string()) {
       auto* frame = tab->GetPrimaryMainFrame();
       const GURL committed = frame ? frame->GetLastCommittedURL() : GURL();
+      auto* tab_profile = TabProfile(tab);
       const bool visible = BlancSearchVisibleMatches(tab->GetVisibleURL(), committed,
-          !profile->IsOffTheRecord(), profile->IsIncognitoProfile() && profile->IsPrimaryOTRProfile());
+          !tab_profile->IsOffTheRecord(), tab_profile->IsIncognitoProfile() && tab_profile->IsPrimaryOTRProfile());
       if (!frame || args[4].GetString() != base::NumberToString(owner->search_selection_epoch) || !BlancSearchIntentCurrent(index == model->active_index(),
               tab->GetController().GetPendingEntry() != nullptr, visible,
               base::NumberToString(frame->GetNavigationId()), args[2].GetString(),

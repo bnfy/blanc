@@ -256,12 +256,18 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   regular-tab control, found no private page in Recently closed, history,
   the relaunched session or any profile file, and a private tab's
   `target=_blank` and ⌘-click children private in the same window. Eight
-  features show no regressions. Not yet: the 49 window-level privacy checks
-  in `blanc_prototype_ui.cc` (Favorites, Start Page pins, recent bangs and
-  others) still ask the window's profile, so a private tab in an ordinary
-  window gets the ordinary window's answer there; the macOS menu still
-  labels ⌘⇧N "New Incognito Window"; the private theme's quick-exit chip is
-  unchecked (F4-2 has no steps).
+  features show no regressions. The native privacy checks now ask the tab
+  where the action is the tab's (shipping's rule): a private tab is never a
+  Favorite or a Start Page pin, never tints the Island, has no split state
+  recorded, and is left out of a saved Space (a split holding one is not
+  saved; groups only private tabs used stay out); search matches its own
+  profile. The rest stay with the window by design (Recently closed, window
+  identity, history list, themes, Spaces recovery); the Start Page and the
+  host's recent bangs already asked the tab. A probe found Favorites and pins
+  refused for a private tab and allowed for a regular control, and no
+  private address in any profile file after a Space save and a relaunch.
+  Not yet: the macOS menu still labels ⌘⇧N "New Incognito Window", and the
+  private theme's quick-exit chip is unchecked (F4-2 has no steps).
 - **S1 baseline on macos-3f969a35b9f9f7ad (fork 82f8cd80), full run of
   2026-11-01:** 101 of the 253 S1 cases pass, 119 fail, 33 undefined. Every
   case that passed on macos-790ca4d6d538c894 (70) still passes; 31 earlier
@@ -404,9 +410,8 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.4 rest: move the 49 window-level privacy checks to the tab's own
-   profile, then the menu label. Then the utility sheet over Chromium's
-   bookmarks/history/downloads/settings pages. Verify each change with targeted `--only` runs
+1. The utility sheet over Chromium's bookmarks/history/downloads/settings
+   pages; the ⌘⇧N menu label with it. Verify each change with targeted `--only` runs
    merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
    (~2 h) unless development can't continue without it; propose one with
    the reason first.
@@ -457,5 +462,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-9a5d7b24b423658f; Windows: none; Linux: none.
+Candidate identities: macOS: macos-36a2a32e820bc60d; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->
