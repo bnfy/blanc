@@ -148,6 +148,8 @@
 #include "ui/views/controls/webview/unhandled_keyboard_event_handler.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/browser_commands.h"
+#include "chrome/browser/ui/navigator/browser_navigator.h"
+#include "chrome/browser/ui/navigator/browser_navigator_params.h"
 #include "chrome/app/chrome_command_ids.h"
 #include "ui/base/models/list_selection_model.h"
 #include "chrome/browser/ui/exclusive_access/exclusive_access_manager.h"
@@ -203,6 +205,7 @@
 #include "ui/display/screen.h"
 #include "ui/gfx/animation/animation.h"
 #include "blanc/browser/ui/island_autohide.h"
+#include "blanc/private/private_tabs.h"
 #include "build/build_config.h"
 #if BUILDFLAG(IS_MAC)
 #include "blanc/browser/ui/window_buttons_mac.h"
@@ -806,7 +809,7 @@ class Owner : public base::SupportsUserData::Data,
   // image rather than on every 300ms snapshot. Private windows report none,
   // as Electron does for private tabs.
   std::string TabFavicon(int tab_id, content::WebContents* contents) {
-    if (browser->GetProfile()->IsOffTheRecord()) return std::string();
+    if (contents->GetBrowserContext()->IsOffTheRecord()) return std::string();
     // NavigationEntry::GetFavicon() is non-const; the status is read only.
     auto* entry = contents->GetController().GetLastCommittedEntry();
     const content::FaviconStatus* status =
@@ -1857,7 +1860,8 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("muted", contents->IsAudioMuted())
                     .Set("siteMuted", AudioHost(contents).empty() ? base::Value() : base::Value(audio->SiteMuted()))
                     .Set("audible", contents->IsCurrentlyAudible())
-                    .Set("private", browser->GetProfile()->IsOffTheRecord())
+                    // A private tab may sit in an ordinary window (D1).
+                    .Set("private", contents->GetBrowserContext()->IsOffTheRecord())
                     .Set("groupId", group ? base::Value(group->ToString()) : base::Value()));
   }
   owner->PruneFaviconCache(live_tab_ids);
@@ -3502,10 +3506,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           cancelled_(std::move(cancelled)) {}
     void WebContentsDestroyed() override {
       // Match TabRestoreService's exclusion of initial tabs and an unpinned
-      // New Tab with no other navigation. Pinned/navigated New Tabs still need
-      // their historical entry flushed; the surviving session always does.
+      // New Tab with no other navigation, and of private tabs, which are never
+      // recorded (D1). Pinned/navigated New Tabs still need their historical
+      // entry flushed; the surviving session always does.
       auto& controller = web_contents()->GetController();
-      without_history_ = controller.IsInitialBlankNavigation() ||
+      without_history_ = blanc::private_tabs::IsPrivateTab(web_contents()) ||
+                         controller.IsInitialBlankNavigation() ||
                          controller.GetEntryCount() == 0 ||
           (!pinned_ && controller.GetEntryCount() == 1 &&
            controller.GetEntryAtIndex(0)->GetVirtualURL() ==
@@ -4866,8 +4872,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value());
       return;
     }
-    if (method == "createTab" && args.size() == 1 && args[0].is_string()) {
+    if (method == "createTab" && (args.size() == 1 || (args.size() == 2 && args[1].is_bool())) &&
+        args[0].is_string()) {
       const GURL url(args[0].GetString());
+      const bool make_private = args.size() == 2 && args[1].GetBool();
       if (!url.SchemeIsHTTPOrHTTPS() && url != GURL("chrome://newtab/") &&
           url != GURL("chrome://extensions/") &&
           url != GURL("chrome://settings/") &&
@@ -4883,7 +4891,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       const auto weak_self = weak_factory_.GetWeakPtr();
       const auto weak_browser = browser->GetWeakPtr();
       CreatedSearchTabCapture capture(model, model->GetActiveWebContents());
-      auto* returned = chrome::AddAndReturnTabAt(browser, url, -1, true);
+      // A private tab (D1) is born in the window profile's private profile.
+      if (make_private && browser->GetProfile()->IsOffTheRecord()) {
+        reply(false, base::Value("This window is already private.")); return;
+      }
+      auto* returned = make_private ? NewPrivateTab(browser, url) : chrome::AddAndReturnTabAt(browser, url, -1, true);
       if (!weak_self || !weak_browser || !weak_owner) return;
       auto created = capture.Match(returned);
       if (!created || weak_owner->search_selection_epoch != start_epoch + 1) {
@@ -6122,6 +6134,19 @@ bool OpenIsland(BrowserWindowInterface* browser, bool new_tab,
 bool IsIslandWindow(const BrowserWindowInterface* browser) {
   return IsEnabled() && browser &&
       browser->GetType() == BrowserWindowInterface::Type::TYPE_NORMAL;
+}
+
+content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL& url) {
+  if (!IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return nullptr;
+  // Chromium's navigator makes the tab: asked for with the window profile's
+  // private profile, it creates the contents there (blanc/private).
+  NavigateParams params(browser->GetProfile()->GetPrimaryOTRProfile(/*create_if_needed=*/true),
+                        url.is_empty() ? GURL("chrome://newtab/") : url, ui::PAGE_TRANSITION_TYPED);
+  params.browser = browser;
+  params.disposition = WindowOpenDisposition::kNewForegroundTab;
+  params.tabstrip_add_types = AddTabTypes::ADD_ACTIVE;
+  Navigate(&params);
+  return params.navigated_or_inserted_contents;
 }
 
 bool HasIsland(views::View* parent) {

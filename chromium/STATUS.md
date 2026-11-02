@@ -119,7 +119,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     request to blanc.day has not been exercised.
   - Bang scenarios: 16 of 18 pass; the two private-tab ones need D1.
     Navigation and settings features unchanged.
-  - Patch series: 0001–0010 touch all 83 pinned upstream files with 261
+  - Patch series: 0001–0011 touch all 86 pinned upstream files with 273
     hunks.
   - **Outbound isolation passes on macos-92a5c23a766fdc5e (2026-11-01).**
     Run as `blanc-test` with a pf block on that user (owner-approved anchor),
@@ -240,6 +240,28 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     and sent tabs (S4), capture and screen sharing (S5), the blocking
     provider (D2), the permission prompt (S1.6), the certificate exception
     (N5) and the window buttons and main menu (Windows/Linux).
+- **S1.4 in-window private tabs (D1), candidate macos-9a5d7b24b423658f
+  (2026-11-02):** a private tab is web contents in the window profile's
+  incognito profile, in an ordinary window (`blanc/private/private_tabs.h`,
+  patch 0011). Chromium's navigator keeps a private tab's links and children
+  private, creates their contents in that profile, and turns an incognito
+  disposition into a private tab here; ⌘⇧N, /private and the Island's private
+  tab open one. Private tabs are kept out of session restore
+  (`session_service_base.cc`), Recently closed, whether the tab or its window
+  closes (`content_live_tab.cc`), and tab sync (`tab_contents_synced_tab_
+  delegate.cc`); history already follows the tab's own profile. The snapshot
+  reports privacy per tab. F4-4 and F4-5 pass; F4-1, F4-2, F4-3 and F4-6 have
+  no shipping step definitions (shipping's backlog). Six more cases with a
+  private step pass. A probe in an isolated profile, each check beside a
+  regular-tab control, found no private page in Recently closed, history,
+  the relaunched session or any profile file, and a private tab's
+  `target=_blank` and ⌘-click children private in the same window. Eight
+  features show no regressions. Not yet: the 49 window-level privacy checks
+  in `blanc_prototype_ui.cc` (Favorites, Start Page pins, recent bangs and
+  others) still ask the window's profile, so a private tab in an ordinary
+  window gets the ordinary window's answer there; the macOS menu still
+  labels ⌘⇧N "New Incognito Window"; the private theme's quick-exit chip is
+  unchecked (F4-2 has no steps).
 - **S1 baseline on macos-3f969a35b9f9f7ad (fork 82f8cd80), full run of
   2026-11-01:** 101 of the 253 S1 cases pass, 119 fail, 33 undefined. Every
   case that passed on macos-790ca4d6d538c894 (70) still passes; 31 earlier
@@ -336,7 +358,10 @@ Most failures on the previous candidate are real product gaps, clustered:
 ## Native-versus-port decisions (owner, 2026-10-31)
 Recorded in the spec (§4, §9) and plan:
 - D1: port shipping's in-window private tabs (deep tab/profile patch, isolated
-  in `blanc/private/`). S1.4 unblocked.
+  in `blanc/private/`). Built in S1.4. Owner, 2026-11-02: private tabs use
+  Chromium's incognito profile (the window profile's primary off-the-record
+  profile); its session lasts until Blanc quits, as shipping's; ⌘⇧N opens a
+  private tab in the current window instead of an incognito window.
 - 2026-11-02: /reader is Chromium's Reading Mode, not shipping's reader.
 - Pinned tabs stay in their group, as shipped (custom change to Chromium's tab
   collections).
@@ -379,8 +404,8 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.4: in-window private tabs (D1), which F4 and every case with a
-   private step wait on; then the utility sheet over Chromium's
+1. S1.4 rest: move the 49 window-level privacy checks to the tab's own
+   profile, then the menu label. Then the utility sheet over Chromium's
    bookmarks/history/downloads/settings pages. Verify each change with targeted `--only` runs
    merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
    (~2 h) unless development can't continue without it; propose one with
@@ -432,5 +457,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-d94c3474bbd96627; Windows: none; Linux: none.
+Candidate identities: macOS: macos-9a5d7b24b423658f; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->
