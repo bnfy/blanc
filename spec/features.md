@@ -1788,6 +1788,16 @@ the phone, never by comparison at sync time. The two-device check against
 the deployed Worker passed on October 29, 2026 (desktop v1.45.0 on macOS
 and an iPhone Air on iOS 27.2).
 
+**iOS, unreleased (owner, 2026-10-31; parity with desktop's change of that
+date):** while the switch is on, a Space made on the phone is shared by
+itself about 1.5 s after the change settles. A Space the person saw in a
+Choose Spaces sheet and left unticked stays on the phone until they choose
+it; one that can't be shared (too many tabs, too large, no room) stays on
+the phone and is offered in the sheet. The phone keeps the Spaces already
+offered as `knownWorkspaceIds` in `shared-spaces.json`, as desktop does; a
+phone switched on by an older build counts the Spaces it holds as already
+offered, so the update shares nothing on its own.
+
 ## F58 — Reader Mode (desktop and iOS candidate)
 
 Free, manually activated article reading, implemented on the candidate branch;

@@ -442,4 +442,112 @@ import XCTest
     XCTAssertEqual(row.id, id(0x102))
     XCTAssertEqual(m.closedDeviceName(row), "macbook")
   }
+
+  // MARK: New Spaces share by themselves (desktop #1290)
+
+  func liveLibraryCount(_ m: TabsManager) -> Int { SharedSpacesSharing.liveCount(m.syncEngine.sharedState.data["index"]) }
+
+  func testASpaceMadeWhileTheSwitchIsOnSharesItselfOnceTheChangeSettles() async throws {
+    let m = try sharedOn()
+    m.sharedAutoShareDelay = .milliseconds(20)
+    let reading = try m.createSpace(name: "Reading", color: "#376694", symbol: "book")
+    XCTAssertNil(m.spaces.first { $0.id == reading }?.sharedId, "not before the change settles")
+    for _ in 0..<100 where m.spaces.first(where: { $0.id == reading })?.sharedId == nil {
+      try await Task.sleep(for: .milliseconds(20))
+    }
+    let shared = try XCTUnwrap(m.spaces.first { $0.id == reading })
+    let rid = try XCTUnwrap(shared.sharedId, "shared by itself")
+    XCTAssertEqual(shared.link, .active)
+    let state = m.syncEngine.sharedState
+    XCTAssertEqual(state.data["index"]?["spaces"]?[rid]?["name"]?["v"], .string("Reading"))
+    XCTAssertEqual(state.data["index"]?["spaces"]?[rid]?["createdBy"], .string("phone"))
+    XCTAssertTrue(state.knownSpaceIds?.contains(reading) == true)
+    XCTAssertEqual(m.autoShareSpaces(), [], "shared once")
+    XCTAssertEqual(liveLibraryCount(m), 2)
+  }
+
+  func testASpaceLeftUntickedInTheSheetStaysOnThisIPhone() throws {
+    let m = try localSpaces()
+    let notes = try m.createSpace(name: "Notes", color: "#376694", symbol: "book")
+    let reading = try XCTUnwrap(m.spaces.first { $0.name == "Reading" }).id
+    XCTAssertEqual(Set(m.sharingRows().map(\.id)).count, 3, "Reading, Archive and Notes are listed")
+    XCTAssertNil(m.turnOnSharedSpaces([(id: reading, mode: .copy)]))
+    XCTAssertEqual(m.autoShareSpaces(), [])
+    XCTAssertNil(m.spaces.first { $0.id == notes }?.sharedId, "left unticked: stays here")
+    XCTAssertNil(m.spaces.first { $0.name == "Archive" }?.sharedId)
+    let later = try m.createSpace(name: "Later", color: "#426c4c", symbol: "book")
+    XCTAssertEqual(m.autoShareSpaces(), [later], "a Space made after the sheet shares itself")
+    XCTAssertNil(m.spaces.first { $0.id == notes }?.sharedId)
+    // Choose Spaces to sync, switch still on: Notes joins, nothing twice.
+    let rows = m.sharingRows()
+    XCTAssertEqual(rows.filter(\.shared).map(\.name).sorted(), ["Later", "Reading"])
+    XCTAssertNil(m.turnOnSharedSpaces([(id: notes, mode: .copy), (id: later, mode: .copy)]))
+    XCTAssertNotNil(m.spaces.first { $0.id == notes }?.sharedId)
+    XCTAssertEqual(liveLibraryCount(m), 3, "Reading, Later and Notes, each once")
+  }
+
+  func testASpaceThatCantBeSharedStaysLocalAndIsOfferedInTheSheet() throws {
+    let m = try sharedOn()
+    let big = try m.createSpace(name: "Big", color: "#376694", symbol: "book")
+    m.show(set: big)
+    for n in 1...501 { m.createTab(url: URL(string: "https://example.test/b\(n)")!, title: "B\(n)", quiet: true) }
+    m.show(set: TabSets.iphoneId)
+    XCTAssertEqual(m.autoShareSpaces(), [])
+    XCTAssertNil(m.spaces.first { $0.id == big }?.sharedId, "too many tabs: stays here")
+    XCTAssertTrue(m.syncEngine.sharedState.knownSpaceIds?.contains(big) == true, "not retried")
+    XCTAssertEqual(m.sharingRows().first { $0.id == big }?.reason, .tabs, "offered in the sheet with its reason")
+    XCTAssertEqual(liveLibraryCount(m), 1)
+  }
+
+  func testWithNoRoomInTheLibraryANewSpaceStaysLocal() throws {
+    let m = try sharedOn()
+    var spaces: [(String, JSONValue)] = []
+    for n in 1...24 {
+      spaces.append((id(0x900 + n), .object([("name", f(.string("S\(n)"))), ("color", f(.string("#426c4c"))),
+        ("symbol", f(.string("book"))), ("pos", f(.string(try M.keyFor("", "", id(0x900 + n))))),
+        ("deleted", f(.bool(false)))])))
+    }
+    try m.syncEngine.sharedState.setIndex(.object([("v", .number(1)), ("spaces", .object(spaces))]))
+    XCTAssertEqual(liveLibraryCount(m), 25)
+    let extra = try m.createSpace(name: "Extra", color: "#376694", symbol: "book")
+    XCTAssertEqual(m.autoShareSpaces(), [])
+    XCTAssertNil(m.spaces.first { $0.id == extra }?.sharedId)
+    XCTAssertTrue(m.syncEngine.sharedState.knownSpaceIds?.contains(extra) == true)
+  }
+
+  func testASwitchTurnedOnByAnOlderBuildSharesNothingOnItsOwn() throws {
+    try writeSync(enabled: true)
+    let m = TabsManager(settingsDirectory: settingsDir, sessionDirectory: sessionDir)
+    let reading = try m.createSpace(name: "Reading", color: "#426c4c", symbol: "book")
+    let notes = try m.createSpace(name: "Notes", color: "#376694", symbol: "book")
+    // An older build's state: the switch on, no list of offered Spaces.
+    let state = m.syncEngine.sharedState
+    state.rebind(accountId: "account")
+    XCTAssertTrue(state.setEnabled(true))
+    XCTAssertNil(state.knownSpaceIds)
+    m.sharedSyncChanged()
+    XCTAssertTrue(m.sharedAdapterEnabled)
+    XCTAssertEqual(Set(state.knownSpaceIds ?? []), [reading, notes], "what was here counts as offered")
+    XCTAssertEqual(m.autoShareSpaces(), [])
+    XCTAssertTrue(m.spaces.allSatisfy { $0.sharedId == nil }, "the update shares nothing on its own")
+    let later = try m.createSpace(name: "Later", color: "#426c4c", symbol: "book")
+    XCTAssertEqual(m.autoShareSpaces(), [later], "a Space made after the update shares itself")
+  }
+
+  func testTurningOnWithNoSpacesStillSharesTheNextOne() throws {
+    try writeSync(enabled: true)
+    let m = TabsManager(settingsDirectory: settingsDir, sessionDirectory: sessionDir)
+    XCTAssertEqual(m.sharingRows(), [])
+    XCTAssertNil(m.turnOnSharedSpaces([]))
+    XCTAssertEqual(m.syncEngine.sharedState.knownSpaceIds, [], "an empty list, not an older build's none")
+    let first = try m.createSpace(name: "First", color: "#426c4c", symbol: "book")
+    XCTAssertEqual(m.autoShareSpaces(), [first])
+  }
+
+  func testNothingSharesItselfWithTheSwitchOff() throws {
+    let m = try localSpaces()
+    XCTAssertEqual(m.autoShareSpaces(), [])
+    XCTAssertTrue(m.spaces.allSatisfy { $0.sharedId == nil })
+    XCTAssertFalse(m.syncEngine.sharedState.isEnabled)
+  }
 }
