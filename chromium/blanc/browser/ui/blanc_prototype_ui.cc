@@ -210,6 +210,10 @@
 
 namespace blanc_prototype {
 namespace {
+
+// Shipping's islandHoverOpen (F1): off by default.
+constexpr char kIslandHoverOpenPref[] = "blanc.island.hover_open";
+
 constexpr char kOwnerKey[] = "blanc-prototype-owner";
 constexpr int kIslandViewId = 0x424c;
 // Electron's Quick Switcher asks for 300 entries; the bridge never returns more.
@@ -1879,6 +1883,10 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("glanceTabId", owner->glance_reference >= 0 ? base::Value(owner->glance_reference) : base::Value())
       .Set("focusedTabId", focused ? base::Value(sessions::SessionTabHelper::IdForTab(focused).id()) : base::Value())
       .Set("tabLayout", owner->vertical ? "vertical" : "island")
+      // Hover-open (F1) asks for both: the setting, and whether this window
+      // is the one in front, as shipping's islandHoverEligible does.
+      .Set("islandHoverOpen", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kIslandHoverOpenPref))
+      .Set("windowActive", browser->GetWindow() && browser->GetWindow()->IsActive())
       .Set("verticalTabsWidth", owner->rail_width)
       .Set("verticalTabsPreferredWidth", owner->rail_width)
       .Set("verticalTabsMinWidth", 200).Set("verticalTabsMaxWidth", 360)
@@ -2801,6 +2809,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
 #endif
     auto_timer_.Start(FROM_HERE, base::Seconds(30),
         base::BindRepeating(&Handler::AutoTick, weak_factory_.GetWeakPtr()));
+    // The Island hears Island setting changes at once, so turning hover-open
+    // off ends a dwell already under way.
+    island_prefs_.Init(Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs());
+    island_prefs_.Add(kIslandHoverOpenPref, base::BindRepeating(&Handler::OnIslandSettingChanged,
+                                                                base::Unretained(this)));
+  }
+  void OnIslandSettingChanged() {
+    if (IsJavascriptAllowed())
+      web_ui()->CallJavascriptFunctionUnsafe("blancPrototypeEvent", base::Value("settings"));
   }
   void OnJavascriptDisallowed() override {
     auto_timer_.Stop();
@@ -3023,6 +3040,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(std::move(list)));
       return;
     }
+    // Shipping's setIslandHoverOpen hook: the preference Settings writes.
+    if (message[1].GetString() == "setIslandHoverOpen" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_bool()) {
+      Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs()->SetBoolean(
+          kIslandHoverOpenPref, message[2].GetList()[0].GetBool());
+      Reply(id, true, base::Value(message[2].GetList()[0].GetBool()));
+      return;
+    }
     // Shipping's raw settings write for the interface language, so a stored
     // value Settings would refuse (a language no longer offered) can be set,
     // and the read that checks it is kept.
@@ -3206,6 +3231,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   }
   static constexpr char kQuietDelay[] = "blanc.prototype.quiet_delay";
   base::RepeatingTimer auto_timer_;
+  PrefChangeRegistrar island_prefs_;
   bool auto_running_ = false;
   int64_t last_auto_wall_ = 0;
   base::TimeTicks auto_grace_ = base::TimeTicks::Now();
