@@ -386,11 +386,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # macOS only nightly and on manual runs (see `on:` above), on the
-        # self-hosted Mac when vars.MAC_RUNNER_LABELS is set. Every pull request
-        # would queue three more jobs for it. docs/ci-self-hosted-macos-runner.md
+        # macOS only nightly and on manual runs (see `on:` above), and always
+        # GitHub-hosted: the smoke posts real key events, and hosted macOS
+        # images already grant the runner Accessibility. Granting it on the
+        # self-hosted Mac would let every job drive that machine's keyboard and
+        # mouse. docs/ci-self-hosted-macos-runner.md
         os: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest", "windows-latest"]') }}
-    runs-on: ${{ (matrix.os == 'macos-latest' && vars.MAC_RUNNER_LABELS != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.MAC_RUNNER_LABELS) || matrix.os }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

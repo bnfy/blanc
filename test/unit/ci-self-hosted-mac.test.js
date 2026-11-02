@@ -22,7 +22,17 @@ test('every runs-on that can pick the self-hosted Mac also refuses forks', () =>
       assert.ok(line.includes("vars.MAC_RUNNER_LABELS != ''"), `${name}: falls back to the hosted runner when unset`);
     }
   }
-  assert.equal(uses, 4, 'three parity-guards desktop jobs and the uBO desktop job');
+  assert.equal(uses, 3, 'two parity-guards desktop jobs and the uBO desktop job');
+});
+
+test('the browser-shortcuts macOS leg stays GitHub-hosted', () => {
+  // Its smoke posts real key events (native-keys-mac.swift), which needs
+  // Accessibility. Hosted macOS images grant the runner that already; on the
+  // self-hosted Mac it would let every job drive the machine's keyboard and mouse.
+  const job = read('parity-guards.yml').split(/\n  (?=[a-z-]+:\n)/).find((block) => block.startsWith('browser-shortcuts:'));
+  assert.ok(job, 'browser-shortcuts job');
+  assert.match(job, /^\s*runs-on: \$\{\{ matrix\.os \}\}$/m);
+  assert.ok(!job.includes('MAC_RUNNER_LABELS'));
 });
 
 test('Intel, iOS, the unit suite and the release workflows stay on GitHub-hosted runners', () => {
