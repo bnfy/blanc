@@ -174,7 +174,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     `blanc.island.hover_open` (patch 0010, off by default) on Settings'
     Island card. 13 of the 14 hover cases pass; F1-13 waits for Blanc's
     permission prompt (S1.6), as F13-1 does.
-  - Auto-hide (F1), candidate macos-f87420ebc97e9415 (2026-11-02):
+  - Auto-hide (F1), candidate macos-55a329977de3035f (2026-11-02):
     shipping's policy (`island-autohide.js`) is native C++
     (`island_autohide.h`), compiled beside shipping's module and compared
     over every input grid in `tools/island-autohide.test.mjs`. A per-window
@@ -188,15 +188,15 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     `island-autohide.js`), and native claims clicks only inside that frame
     while it shows. The vertical layout hides too: the rail keeps its column
     and the host clips the strip to it. While the strip is covered the window
-    drags only by a 6 px band, as `#dragBand`. Settings: `blanc.island.
+    drags only by a 6 px band, as `#dragBand`. macOS's window buttons hide
+    with the strip in both styles and stay in the vertical layout, through
+    `window_buttons_mac.mm` in Blanc's UI target (owner-approved, 2026-11-02;
+    the state reports what AppKit draws). Settings: `blanc.island.
     auto_hide` and `blanc.island.auto_hide_style` (patch 0010; off, float)
-    on the Island card. 21 of island-and-commands' 27 macOS auto-hide cases
-    pass, F1-27 included (the four in Glance and Split View were not run).
-    F1-28 and F1-38 fail only where macOS's window buttons should hide with
-    the Island (needs an Objective-C++ file in the UI target; asked the
-    owner, not built). F1-33 and F1-39 need Glance as a floating card,
-    F1-34 Settings opened as a page, F1-35 private tabs (D1). F1-36 is
-    Windows/Linux. island-and-commands, settings-and-theming and
+    on the Island card. 23 of island-and-commands' 27 macOS auto-hide cases
+    pass (the four in Glance and Split View were not run). F1-33 and F1-39
+    need Glance as a floating card, F1-34 Settings opened as a page, F1-35
+    private tabs (D1). F1-36 is Windows/Linux. island-and-commands, settings-and-theming and
     navigation-and-context-menu show no regressions.
 - **S1 baseline on macos-3f969a35b9f9f7ad (fork 82f8cd80), full run of
   2026-11-01:** 101 of the 253 S1 cases pass, 119 fail, 33 undefined. Every
@@ -333,8 +333,7 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.2 rest: macOS window buttons hiding with the Island (F1-28, F1-38;
-   an Objective-C++ file, awaiting the owner), all 34 slash commands (deferred features
+1. S1.2 rest: all 34 slash commands (deferred features
    answer with shipping's unavailable copy), zoom, copy/clean link, and the
    browserAPI members the host doesn't answer yet. Verify each change with targeted `--only` runs
    merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
@@ -387,5 +386,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-f87420ebc97e9415; Windows: none; Linux: none.
+Candidate identities: macOS: macos-55a329977de3035f; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

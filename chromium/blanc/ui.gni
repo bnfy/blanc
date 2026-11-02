@@ -295,6 +295,8 @@ source_set(target_name) {
     ]
   }
   if (is_mac) {
+    sources += [ "//blanc/browser/ui/window_buttons_mac.h", "//blanc/browser/ui/window_buttons_mac.mm" ]
+    frameworks = [ "AppKit.framework" ]
     deps += [
       "//chrome/browser/ui/views/frame:immersive_mode_overlay_views_mac",
       "//chrome/browser:global_keyboard_shortcuts_mac",

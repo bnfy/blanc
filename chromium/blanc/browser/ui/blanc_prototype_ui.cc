@@ -201,6 +201,10 @@
 #include "ui/display/screen.h"
 #include "ui/gfx/animation/animation.h"
 #include "blanc/browser/ui/island_autohide.h"
+#include "build/build_config.h"
+#if BUILDFLAG(IS_MAC)
+#include "blanc/browser/ui/window_buttons_mac.h"
+#endif
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/views/controls/webview/webview.h"
 #include "url/gurl.h"
@@ -789,6 +793,8 @@ class Owner : public base::SupportsUserData::Data,
   // strip's band a floating Island claims.
   gfx::Rect float_frame;
   gfx::Rect float_bounds;
+  // The traffic lights' state last set by auto-hide (macOS).
+  std::optional<bool> window_buttons_visible;
   base::DictValue split_geometry;
   std::array<int, 2> split_corner_widths = {240, 240};
   std::vector<gfx::Rect> split_hit_regions;
@@ -6222,6 +6228,7 @@ void LayoutIsland(views::View* parent, int top) {
   // window while hidden, sliding in above the page as it moves down. The
   // rail keeps its column, and a floating Island stays at the top.
   if (owner && !owner->vertical && !IslandFloating(owner)) top += HeaderHeight(parent) - BaseHeaderHeight(parent);
+  if (owner) SyncWindowButtons(owner);
   const int available = std::max(0, parent->height() - top);
   view->SetBounds(0, top, parent->width(),
                   std::min(owner && (owner->vertical || !owner->split_geometry.empty()) ? available

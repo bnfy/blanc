@@ -315,6 +315,22 @@ void HoldIslandForTest(Owner* owner, bool on) {
 }
 #endif
 
+// macOS draws its traffic lights over the window's top-left corner; while
+// the strip is hidden they would sit on the page, so they come and go with
+// the Island in both styles. The vertical rail owns that corner in its own
+// right, so there they stay (shipping's syncWindowButtons). Every layout
+// passes here, so each change of state reaches the buttons.
+void SyncWindowButtons(Owner* owner) {
+#if BUILDFLAG(IS_MAC)
+  auto* view = BrowserViewFor(owner);
+  if (!view || !view->GetWidget()) return;
+  const bool visible = owner->vertical || !StripHiddenFor(owner);
+  if (owner->window_buttons_visible == visible) return;
+  owner->window_buttons_visible = visible;
+  blanc::SetWindowButtonsVisible(view->GetWidget()->GetNativeWindow(), visible);
+#endif
+}
+
 // The page top the layout uses now: the slide's while one runs.
 int AutoHidePageTop(Owner* owner, int base) {
   if (owner->autohide_slide) return static_cast<int>(std::round(owner->autohide_slide->top));
@@ -331,7 +347,13 @@ base::DictValue AutoHideState(Owner* owner) {
     bounds = base::Value(base::DictValue().Set("x", origin.x()).Set("y", origin.y())
         .Set("width", rect.width()).Set("height", rect.height()));
   }
-  return base::DictValue()
+  base::DictValue state;
+#if BUILDFLAG(IS_MAC)
+  // What macOS draws, not what was asked for.
+  if (view && view->GetWidget())
+    state.Set("windowButtonsVisible", blanc::WindowButtonsVisible(view->GetWidget()->GetNativeWindow()));
+#endif
+  return std::move(state)
       .Set("enabled", AutoHideOn(owner))
       .Set("style", AutoHideStyle(owner))
       .Set("revealed", owner->autohide_revealed)
