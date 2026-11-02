@@ -1,0 +1,18 @@
+{"name":"native-row-pin-unpin"}
+node:internal/modules/run_main:122
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert.ok(order.indexOf(B)<order.indexOf(A))
+
+    at file:///private/tmp/blanc-task0/native-tab-controls.mjs:9:71 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+Node.js v22.14.0

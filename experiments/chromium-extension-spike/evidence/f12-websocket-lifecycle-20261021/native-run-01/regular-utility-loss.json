@@ -1,0 +1,131 @@
+{
+  "label": "regular-utility-loss",
+  "kind": "regular",
+  "mode": "utility-loss",
+  "arrivals": [
+    {
+      "host": "page.blanc-fixture.test",
+      "origin": "https://page.blanc-fixture.test",
+      "path": "/socket",
+      "protocol": "blanc-fixture"
+    }
+  ],
+  "faults": [
+    {
+      "code": "plaintext-refused",
+      "authority": "clients2.google.com"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "accounts.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "accounts.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    }
+  ],
+  "events": [
+    "positive-control",
+    "utility-stopped",
+    "native-pending-confirmed",
+    "utility-killed"
+  ],
+  "processes": {
+    "browserPid": 16342,
+    "utilityPid": 16381
+  },
+  "ownerTarget": {
+    "targetId": "614495A31332CA8D3EAD16CBB2C95F7E",
+    "type": "page",
+    "title": "Pending socket fixture",
+    "url": "https://page.blanc-fixture.test/entry",
+    "attached": true,
+    "canAccessOpener": false,
+    "browserContextId": "41D77023524C6F5F7F1E51643A1395FC"
+  },
+  "pendingId": "07382FC3C31BCF90CDBD73D9BAAD2A85",
+  "recovery": {
+    "error": true
+  },
+  "records": [
+    {
+      "event": "websocket-pending",
+      "private": false,
+      "request_id": "F747B42187A065F9145E23F302D1C7B7",
+      "url": "wss://page.blanc-fixture.test/socket"
+    },
+    {
+      "context_alive": true,
+      "decision": "allow",
+      "engine_result": 0,
+      "event": "websocket-decision",
+      "initiator_origin": "https://page.blanc-fixture.test",
+      "owner": "document-or-dedicated-worker",
+      "private": false,
+      "request_id": "F747B42187A065F9145E23F302D1C7B7",
+      "source_contract": "websocket-initiator-origin",
+      "url": "wss://page.blanc-fixture.test/socket"
+    },
+    {
+      "event": "websocket-pending",
+      "private": false,
+      "request_id": "07382FC3C31BCF90CDBD73D9BAAD2A85",
+      "url": "wss://page.blanc-fixture.test/socket"
+    },
+    {
+      "context_alive": true,
+      "decision": "block",
+      "engine_result": -1,
+      "event": "websocket-decision",
+      "initiator_origin": "https://page.blanc-fixture.test",
+      "owner": "document-or-dedicated-worker",
+      "private": false,
+      "request_id": "07382FC3C31BCF90CDBD73D9BAAD2A85",
+      "source_contract": "websocket-initiator-origin",
+      "url": "wss://page.blanc-fixture.test/socket"
+    },
+    {
+      "event": "websocket-pending",
+      "private": false,
+      "request_id": "0FBE150D7CA9006DA1CB673AAB7604AC",
+      "url": "wss://page.blanc-fixture.test/socket"
+    },
+    {
+      "context_alive": true,
+      "decision": "block",
+      "engine_result": -1,
+      "event": "websocket-decision",
+      "initiator_origin": "https://page.blanc-fixture.test",
+      "owner": "document-or-dedicated-worker",
+      "private": false,
+      "request_id": "0FBE150D7CA9006DA1CB673AAB7604AC",
+      "source_contract": "websocket-initiator-origin",
+      "url": "wss://page.blanc-fixture.test/socket"
+    }
+  ],
+  "passed": true
+}

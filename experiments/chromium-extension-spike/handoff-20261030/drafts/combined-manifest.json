@@ -1,0 +1,223 @@
+{
+  "scope": "unpromoted paired candidate with document-bound site policy, deferred POST-safe reload, security warning and hit-region changes; no GN graph, linked browser or native runtime qualification",
+  "baseNativeManifestSha256": "110bcc50c6ed691fae847ac372480638f7b1dd518cc53feeb83018eec59d834d",
+  "baseAssetsManifestSha256": "4fa40f24d95cd2a00a1b90b33c7c397690e182d33c13c92d77b7dfa67b4d636d",
+  "nativeFiles": {
+    "chrome/browser/prefs/BUILD.gn": {
+      "stagedSha256": "313849ff60e86e8a882ae215a1005519c563028d68fc55c259fcfba38b35ada0",
+      "activeSha256": "35816aa86f0103cc9bd4a8828eba61124ecd42ebe92b79b8dfb821e46c4c7a4d"
+    },
+    "chrome/browser/prefs/browser_prefs.cc": {
+      "stagedSha256": "10385c0427d818e79ab0bcd0e2585494071dba6673766a461d84b5e38957ab9f",
+      "activeSha256": "986a3f88130b005ec08b3c9cca0290d4bbe37bcc807edb22d8cc64a538bd3c23"
+    },
+    "chrome/browser/ui/blanc_bangs/bang_catalog.cc": {
+      "stagedSha256": "263626e1b7534488f851d2d5ef3f6cf9b5c7531eff28b4cc70eb13937052b6bf",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_catalog.h": {
+      "stagedSha256": "3e30c875135fbb1aac3d05c5aa761cf318f7b221d224fc02a4809dfcbcb13422",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_catalog_service.cc": {
+      "stagedSha256": "7f38e64113aeed397a8f0dfd9500b61c4ca0af7f0c10b9415108035bb55dede1",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_catalog_service.h": {
+      "stagedSha256": "a1ad39658df77790d138e82156cf07cbb6db0091a285c891208350b5b3943554",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_custom.cc": {
+      "stagedSha256": "387b4b32e13ed76249bfd7406346fe6ab3a01251e8419a8e1d18ac438e560bdc",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_custom.h": {
+      "stagedSha256": "cea30488c251f8a490c5fc81c57394328b2d3b8fd78d58cbee1e904142911209",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_disk_confirmation.cc": {
+      "stagedSha256": "5d72ca23bc4ab167bb53849dfaa5e63dbcd3420303d7c4b4171fe95e562e24cf",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_disk_confirmation.h": {
+      "stagedSha256": "8aeb24e8ca0f235f1d2eada582b4fd82e9ec493be16610d348b44a384f3e6b21",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_mutation.cc": {
+      "stagedSha256": "0ada5c0a7f5800d5dbf76b2feee2bb4664e5918804325933c89e6f177e97a4e0",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_mutation.h": {
+      "stagedSha256": "909540e7996fe4bc101e70ccf0e2da30bee1a03436a873bee5f06c8993e055ca",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_navigation.cc": {
+      "stagedSha256": "ccef36e4937e3272e33634bd8315146a89d2e3b2593b2b57b8e76d69a80572ad",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_navigation.h": {
+      "stagedSha256": "8492a0c6f88491d4012405588c90995a77e3f18d77ac7e2c4afb35351e347353",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_pref_registration.h": {
+      "stagedSha256": "1a5a9987b10985040b7550eca3b33ebd291e96e2088a5095b4f494333107eabe",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_prefs.cc": {
+      "stagedSha256": "26d07903a85c5125482f3333398f3d2b823bc1b0dddeee4b7860d18487abbb8c",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_prefs.h": {
+      "stagedSha256": "08c623d6c31ae62c15ccdccbc0069cd282e67a9d3c18ce97697f01bd796c38af",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_profile.cc": {
+      "stagedSha256": "1703ece9e3eb4d77d5fa0db3fe31dbc3573faf44d4b3259b8b6ed819a058aeb4",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_profile.h": {
+      "stagedSha256": "965dbeb46187b4e73e440abcffccfcbe9c36c3d68772715de337d06167a10618",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_resolver.cc": {
+      "stagedSha256": "96fb17c5ddd47f6acdf2b7e315e0a922cf2f341556b91d2b14df9620aab7fcca",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_resolver.h": {
+      "stagedSha256": "ba3f8ee9c46ef9d7f34b688398b9daea42c7c8e3e92d265e08ac1211d32ee90a",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_settings_handler.inc": {
+      "stagedSha256": "031539b637a62bc10f70c8d6fe21b0b408475a94ff475476ea8922b8b2874d19",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_syntax.cc": {
+      "stagedSha256": "3c75a3feb5d3214d62dc05d4e72973750f8b4fc6512b809aae4f91f1774df1c5",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_syntax.h": {
+      "stagedSha256": "42dea8c0298c0299a0b73db758e9479f4292d5320d3e0b82466a7fa99ed56965",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_write_gate.h": {
+      "stagedSha256": "d0feef9c44b120070ec029c2a19f1eb59f62bea40de9928f1cbbe112917a8e70",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_write_rollback.cc": {
+      "stagedSha256": "5672457730575c070ed2976bd3852250fd7dac94929f04fe9b79fad58056d06c",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_bangs/bang_write_rollback.h": {
+      "stagedSha256": "d3e5779428e92d0cb640eafb6daeb2eb28de1c77284f05b47ec674503764f244",
+      "activeSha256": null
+    },
+    "chrome/browser/ui/blanc_prototype_ui.cc": {
+      "stagedSha256": "9960280a7a6d1388bc700cf9852cd2a91756010330548672dfc21f7917eb350e",
+      "activeSha256": "55dff8eab93eca09fe8535e855287c4478c8d9e9119a2f31bd47961f31774ece"
+    },
+    "chrome/browser/ui/blocking_settings_handler.inc": {
+      "stagedSha256": "c3fd5cb8dced6521ce878f15f62dfa4749ff120e130ef63109bfdeeb90d1b984",
+      "activeSha256": "c3fd5cb8dced6521ce878f15f62dfa4749ff120e130ef63109bfdeeb90d1b984"
+    },
+    "chrome/browser/ui/views/frame/BUILD.gn": {
+      "stagedSha256": "fad0fabec252616ea65da248d72e90728e9738bef9457b7b9018d8f9c5ce324c",
+      "activeSha256": "d32d45ed1371119a4adf4d7731eca39f3989570e2349cf24a16ae2bc7e2c3276"
+    }
+  },
+  "assetFiles": {
+    "adapter.js": "955f8a952ccebe4e339da3a7d61f1ea76ddb734fc91c40f522a95b6634be3007",
+    "bang-settings.css": "d00b16822eaecece090b78ad8022e6c518b6f6b54dbc446f710e0486c6fb67ee",
+    "bang-settings.html": "973dfff723bdd75fb1364714791acc0b712e5abba40bf784a57eaeb02b548a51",
+    "bang-settings.js": "548ea7ad0176d651a70260654dba74194d6544f115fbdc74875343153232975e",
+    "blanc-bangs-catalog.json": "6b59aa17e2a8466ba812a06c0b3d81a39fe4d97d497edfae5061d184caa8fe7e",
+    "blocking-settings-adapter.js": "c0b6718e70aa39828d8a90ba4c3d3382ef1af6224b3416113c7922541d1e124f",
+    "blocking-settings.html": "c5691f7b77fc23adfb6f377c5435e4bb8e474ff7e70a70d391d01ad3eb9c332e",
+    "blocking-settings.js": "d854d9e9c1208735c64d878345eb01cee82a0b5884f0920298a28caa0f6ccdaa",
+    "extensions.css": "c91af1c5bb163ce53458080c2bf2bb92704caac221120dbb0800610f3bd406ee",
+    "extensions.js": "e6c24a5f8fb1559e077045c3707a0dd33d3e58a8af7c16c5a5365eb9cf74ca4d",
+    "glance/card-bridge.js": "713343647e9f30201588fbd5de0b6d160695bc547b3af09ef9cc253acca0d785",
+    "glance/card-surface.js": "80fe086c93ab3a196e7268cc43ebfed653086e47b6b85e9cadbbf532473f0d95",
+    "glance/card.html": "e6c3f9a0d8c765fe1d708372b4ba0ced507848d8453d272ab219171b694ea6e2",
+    "glance/glance-card-drag.js": "3876836179a5f062d77c899c8d90efbb3a4c1b4b7d37bbcfae727501383fef37",
+    "glance/i18n.js": "5749b9e67f1876fdd535f6f47908d8a3982ee7c5868b2e23dc50085a1ab27793",
+    "glance/pages/instrument-sans-latin-wdth-normal.woff2": "8b74e9bc6e415d564a5ffd32125c92ffd50b1635043e77543cb871e0a3cfcaf2",
+    "glance/pages/inter-latin.woff2": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4",
+    "glance/pages/sunrise-favicon-mark.png": "ee5ab81f089be18c5fe2c6d261c1e4132a507a05225a0f4948d8a2158c37e353",
+    "glance/panel-left.svg": "e5ef535508042a015df99b9016b20787e158e35df775e1a811abad410e409bfc",
+    "glance/shipping-styles.css": "ea3fad28774860522e237b43bb386b1877a6b2547d726253921794f6438129db",
+    "glance/strings.js": "09ec0263948e4742c0f185df01d5236db3add6c92dabe98a4de96bb396ed6f10",
+    "host.css": "c16f3126d4c411387a4a2022a2a4af44d881c9824089a663d306343e31885df3",
+    "host.html": "52724eaac5ac4407ed56f969da73812dee21d1b327b3f9604b89a2f7612ab733",
+    "host.js": "f01194469e14cd3c10cc42b28814fe34c8b6f78c904d9e80a9c2805f76141949",
+    "i18n.js": "5749b9e67f1876fdd535f6f47908d8a3982ee7c5868b2e23dc50085a1ab27793",
+    "icons/chevron-left.svg": "83b0681aa38bf55e9d52a1e4b4cced624abe1fe7678ecafda133a574f1161d93",
+    "icons/external-link.svg": "3891241b8c3bfc3a8a930078f26ffc5a7e9763da6d0162ace2050b28d4c1d1fe",
+    "icons/search.svg": "9322d964b61cf729b3a81210568d5a97eaf4a1f3239f25a056fda3013bf35611",
+    "icons/settings.svg": "3c7bee2696ce0c2d48d34e813f4fcda31f0ad21ab9309aee3751cde4280ad737",
+    "index.html": "5b2d6ab1ab869bec1021c4803ded6d3cc2cc4f6472bdcbe91c03ba062095afdf",
+    "installed-theme.js": "23493f31da733ca0d72c82da7bc888304d36d66a5484a9eed245c0efd1dec433",
+    "mac-icon/Assets.car": "66a32d12bed6d48587c6fcb792d25063b5b77f18ae873fd5a2f66e715c8828eb",
+    "mac-icon/BlancDK.icns": "d34201f7710f10d7943193f4afb3bda378acba1b96381468245f553d7234a8c1",
+    "mac-icon/manifest.json": "aa11c5ed7b187827d1a312aef495cf3fb8755d48e83b7bfe5b351d36c9f3b56c",
+    "overlay.html": "1c7d264fe6dab9dcfa9f71c52affa46bf72b138a8342ef309ccc3280be651bbd",
+    "overlay.js": "5f4cb293f4f384091cf10563f40a8f4e82ba5fdac9016aece6544f5cee006662",
+    "pages/bangs-catalog.js": "8129954e3909f0c0bc6a738d5f9b3164965c2822c7aeb344dcf87814f16e756e",
+    "pages/bangs.js": "72c301416757bd8d587203865c1c13e33e1dfaa6776fc00bf7123bfbb1d2ebc0",
+    "pages/billboard-clock-adapter.js": "b9660858aa66a2bd05df4cce185777e98d8466e80fe904d99d45a80f48192bdf",
+    "pages/caveat-latin.woff2": "d0b7b931b8980049327e8f8f9ac264617c8200b8422d62e886473d3d9527bad3",
+    "pages/clock-art.js": "7a083e6d57477fa8bbaa04e16cd8c912573abce96553670a4ed5b617f3ead319",
+    "pages/clock-ink.js": "5427d609bc1d9fc8413a0a11b55fca753e117bc75c6871f0c94d31fce648c16f",
+    "pages/close.svg": "c01aed78767c6a5ce62887881338450f038b0bfc0bb62651e608bdbd237168bb",
+    "pages/i18n.js": "5749b9e67f1876fdd535f6f47908d8a3982ee7c5868b2e23dc50085a1ab27793",
+    "pages/icon-sunrise-dark.png": "7d5242612ea1bc54532ca7ff6124a03d29ec2bf6f43c0485f27fb1e765fce326",
+    "pages/icon-sunrise.png": "ecfb27402a864a8c7ca5aa6bf5cf83670f95fe0af889a5b8a7883fcc3e904248",
+    "pages/installed-theme.js": "23493f31da733ca0d72c82da7bc888304d36d66a5484a9eed245c0efd1dec433",
+    "pages/instrument-sans-latin-wdth-normal.woff2": "8b74e9bc6e415d564a5ffd32125c92ffd50b1635043e77543cb871e0a3cfcaf2",
+    "pages/inter-latin.woff2": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4",
+    "pages/jetbrains-mono-latin.woff2": "2c32b9b3ee358c119e210f6f5195f9bd34894d78a785ff2e95d60e718e400af4",
+    "pages/newtab-adapter.js": "167c341d88ed40213f3cbbe746e20203dc43a1b81d515265e54d103ac141ebf4",
+    "pages/newtab-prototype.css": "0d5c60f962dc5228e14cdbb7961e41ed3e3b672045a3d62f39a9b697675da225",
+    "pages/newtab-shared-spaces.js": "2db5af963383cc37c0046be8c565f252ad6edc8c40c24c97959d52c641a86896",
+    "pages/newtab-wallpaper.js": "c079ac33cbde79bb96f6cbc76254dc7f44a87586bde31b4c9452269be30c9580",
+    "pages/newtab.html": "0b0d72259c39366fe77b6e7ca94df1dce576792bf540010a1726b2e85763d685",
+    "pages/newtab.js": "0ee1a3d08ff1dbcb8ec3161c25f485febe767c0c1793244c620b28d0a723318e",
+    "pages/onboarding-guard.js": "1fc049bbf420dff38fa0f8bf87a08f76c123a120b6076ecce9fbbbb85bd3a3b9",
+    "pages/onboarding-island-dark.png": "ab97411877170a2083c3daa8186963faeb5fff3b27cdf4f7e5ed81c4865f9079",
+    "pages/onboarding-island-light.png": "467e249215c2f31359b1185864d5635de68d2d37cf0c5e49c5d446540eb74cac",
+    "pages/onboarding.js": "daef0ad071ce3e5ea598e075ca71c287ece9c86227c1087cfa734e862aa184d8",
+    "pages/pages-neutral.css": "e81ab36c4d09331bc18d43dddee888cfca182faceffe618c5e08ed3134f3f986",
+    "pages/pages.css": "9eb750bd3aca7286ddd44cfcab6afddf1f18a706bcffb8933f9274cbb17970aa",
+    "pages/roboto-flex-clock.woff2": "f327fc1ef274fbe54d9ba50784ad1968e90597de4633820d2f1508731f1b90e8",
+    "pages/select-caret-dark.svg": "bbbe8d0be60d98f847504a6230172897ef15a5f526b95b70cb0c3caf6014fa1f",
+    "pages/select-caret.svg": "ac8c5ab581fef7e9f4ad790469e5bd1d916683b19c330766ac55e382e7b16853",
+    "pages/shipping-clock-style.js": "3681ef58aea17a54962ec4bf49773cd719b192820b89cfad467358e04eb8ff85",
+    "pages/space-identity.js": "eb08327c21b1f26ede0709942b5f37067f9e8e925616ef5dda804c845b5c9e3d",
+    "pages/start-page-day.png": "4a10b44351e7ebb7774663fd10e8a69067198684afcd524b929b75dfa08f5955",
+    "pages/start-page-dusk.png": "5c0940099310921b66dfb3f8cebaa6b1b986a7aa355e3c735bd4d0c3d5aa2772",
+    "pages/start-page-night.png": "f61f38ce140214979d0577d0362d8da58215ccc765491acc65b5a9a7a76c0669",
+    "pages/start-page-paint.js": "6ecc9c121a2975e61e0da740eab269711b14e1dc4da844f3a2ea7107ff9c861d",
+    "pages/start-page-sunrise.png": "4757c6450f317f4380ec416065c70e314d3046ca53eccb877fd51d0412216451",
+    "pages/start-pins.js": "639ce632ade63206bb9f98143ce72d812d8adcc33491e4095bd96e7e2bb0fe0c",
+    "pages/start-site-name.js": "6524d6586a8991999ee01855d51d2e185936548db045e33bec03e3a99363868a",
+    "pages/strings.js": "f46308138986ec9709c5e0b2029861e05059eb02d0e30d938a22a09a6c17645a",
+    "pages/sunrise-favicon-mark.png": "ee5ab81f089be18c5fe2c6d261c1e4132a507a05225a0f4948d8a2158c37e353",
+    "pages/sunrise-mark.png": "cccdd5335d743552eff18ea7e63284005bf99246854acf64e0a241b2c3fbb3c3",
+    "pages/type-to-open.js": "62724f58203e25bc28e7b7750c824dac0515639aaf05a6d3b8a703f85375b98e",
+    "panel-left.svg": "e5ef535508042a015df99b9016b20787e158e35df775e1a811abad410e409bfc",
+    "prototype.css": "48bab491d24a26aed776b9d568ef5e063ac6273c66e2ec5603d88db30a2cc66c",
+    "renderer.js": "288253ddf5bc2ec673ceb20811afd3e1b71d8988984f8fb0604acf769a0f9641",
+    "selection-tab-sections.js": "3e30fbc4dd29173feeda65fbf07af0455898a5f91fc002815644f7efcd74fd78",
+    "shield-model.js": "8977978103d5dbedf6f56e3ad5da15e8e45fe04cda1cf0e16b6c10cef6506923",
+    "space-identity.js": "eb08327c21b1f26ede0709942b5f37067f9e8e925616ef5dda804c845b5c9e3d",
+    "space-picker.js": "e3a3b5a0c963c82b532078551a0b191c7ae243cea20d749af6e230f4de96ea26",
+    "strings.js": "09ec0263948e4742c0f185df01d5236db3add6c92dabe98a4de96bb396ed6f10",
+    "styles.css": "952489aa5d488e73d05536c2950c8175a657abb5bcbad35af591d8b62bd5c2b7",
+    "sunrise-hero-mark.png": "ff24ef691d8b9523d6696ebfa833614ba29855cbad4e86cf37c44b5ec3c866aa",
+    "tab-drag.js": "2ed9df14d2f1768e5e45423769d7cbec10abe092b65a1f4708fced65ac0f1e7e",
+    "tab-sections.js": "b77839cc86205ac0ca7f1097ca8d6436f52981992ae402c72b883a681ea8a39f",
+    "tab-selection.js": "6dc7576d8cb2a6e74964a9f3b3ce56dcafc4d3bbf78f4156486a220921ce96ea",
+    "vertical-tabs.js": "c0e3c46236025fbbd08c9789be721c675a93ed77fa0b4f33365041067f5f5461",
+    "workspace-ui.js": "f7707ac61cc9f83238bde15d9ff25eead9839fc1e72b8ee361b0786c614a979b"
+  },
+  "predecessorManifestSha256": "f950af39c23e9025661ce86e42a3fab0b324541b79550fe63b94df19ae5b4aff"
+}

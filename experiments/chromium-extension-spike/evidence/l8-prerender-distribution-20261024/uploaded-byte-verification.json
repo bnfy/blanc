@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Blanc-Chromium-Preview-157.0.8103.15-14706b0e-arm64.zip",
+    "sha256": "18a0c2ca240f2200fee3e8b250fbade27b7b86ec1c1dd77c21a538a6776aa8cc",
+    "size": 243869929,
+    "matched": true
+  },
+  {
+    "name": "Blanc-Chromium-Preview-157.0.8103.15-14706b0e.cdx.json",
+    "sha256": "8df04669d231979c6c955d94d9c0308ee65e21fd42015bf3092c7bb557ff7a0a",
+    "size": 182479,
+    "matched": true
+  },
+  {
+    "name": "Blanc-Chromium-Preview-157.0.8103.15-14706b0e.files.json",
+    "sha256": "6e0dcc107c38c78d6b66a7ebc9906908c95a5ab36020627c97c729b0e6a29568",
+    "size": 114932,
+    "matched": true
+  },
+  {
+    "name": "Blanc-Chromium-Preview-157.0.8103.15-14706b0e.provenance.json",
+    "sha256": "241b54c22f7f17aaa7c0e8808fae4e1dac20b6f0d2349746246ebf56c895f0a1",
+    "size": 7712,
+    "matched": true
+  },
+  {
+    "name": "SHA256SUMS",
+    "sha256": "0632e7d689b069da788cbce6540f694b01d6de4fde881f89c12667e98788d23a",
+    "size": 494,
+    "matched": true
+  },
+  {
+    "name": "SHA256SUMS.sigstore.json",
+    "sha256": "a38801a3dd3280441465c9711b8498da3dc93bfa66517ecb60edda3bb3ef9d07",
+    "size": 6439,
+    "matched": true
+  }
+]

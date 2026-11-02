@@ -1,0 +1,39 @@
+{
+  "method": "CUA native accessibility and physical input; protocol only for fixture handler arming and postcancel fetch",
+  "private": {
+    "pid": 43008,
+    "checks": [
+      "Native title/body and Keep open/Quit Blanc labels exposed in accessibility tree",
+      "Keep open dismisses dialog and persistent status remains reachable",
+      "Escape dismisses dialog and focus returns to recovery button",
+      "Space opens recovery options",
+      "Real native text input activates fixture page",
+      "Recovery Quit enters ordinary beforeunload Leave site prompt",
+      "Cancel preserves page text and recovery status",
+      "Fresh fetch after canceled quit still refuses",
+      "Explicit recovery action reopens dialog after veto",
+      "Quit with fixture handler disarmed exits exact owned browser PID"
+    ],
+    "exitVerified": true
+  },
+  "regular": {
+    "pid": 50325,
+    "checks": [
+      "Native title/body and Keep open/Quit Blanc labels exposed in accessibility tree",
+      "Space opens recovery options",
+      "Real native text input activates fixture page",
+      "Recovery Quit enters ordinary beforeunload Leave site prompt",
+      "Cancel preserves page text and recovery status",
+      "Fresh fetch after canceled quit still refuses",
+      "Explicit recovery action reopens dialog after veto",
+      "Quit with fixture handler disarmed exits exact owned browser PID"
+    ],
+    "exitVerified": true
+  },
+  "qualifications": [
+    "No audio VoiceOver claim",
+    "No signed candidate acceptance",
+    "Regular background window required native Raise; not product failure",
+    "UI tool postexit read created empty noargs PID47802; explicitly closed only that instance"
+  ]
+}

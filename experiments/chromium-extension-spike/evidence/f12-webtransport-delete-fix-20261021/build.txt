@@ -1,0 +1,1 @@
+Guarded incremental build33.43s/6steps; preflight1action, finalguard0. No GN/toolchain/cache change. Full log /private/tmp/blanc-wt-delete-fix-build.log. Only Blanc-owned native source changed; prior upstream56/134 unchanged, not recounted.

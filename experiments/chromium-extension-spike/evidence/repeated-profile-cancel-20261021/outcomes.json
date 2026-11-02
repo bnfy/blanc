@@ -1,0 +1,32 @@
+[
+  {
+    "schedule": "blanc-repeat-delete-cancel-clear",
+    "pass": false,
+    "checkpoints": 17,
+    "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ {\n+   success: true\n+ }\n- null\n    at file:///private/tmp/blanc-repeat-delete-cancel-clear/test.mjs:34:630"
+  },
+  {
+    "schedule": "blanc-repeat-delete-cancel-held-clear",
+    "pass": false,
+    "checkpoints": 14,
+    "error": "Error: CDP target disconnected\n    at ws.onclose (file:///private/tmp/blanc-repeat-delete-cancel-held-clear/cdp.mjs:2:482)\n    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:831:20)\n    at WebSocket.dispatchEvent (node:internal/event_target:766:26)\n    at fireEvent (node:internal/deps/undici/undici:11655:14)\n    at Socket.onSocketClose (node:internal/deps/undici/undici:12054:7)\n    at Socket.emit (node:events:536:35)\n    at TCP.<anonymous> (node:net:343:12)"
+  },
+  {
+    "schedule": "blanc-repeat-delete-cancel-held-clear-valid",
+    "pass": true,
+    "checkpoints": 30,
+    "error": null
+  },
+  {
+    "schedule": "blanc-repeat-delete-cancel-held-encrypted",
+    "pass": false,
+    "checkpoints": 14,
+    "error": "Error: CDP target disconnected\n    at ws.onclose (file:///private/tmp/blanc-repeat-delete-cancel-held-encrypted/cdp.mjs:2:482)\n    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:831:20)\n    at WebSocket.dispatchEvent (node:internal/event_target:766:26)\n    at fireEvent (node:internal/deps/undici/undici:11655:14)\n    at Socket.onSocketClose (node:internal/deps/undici/undici:12054:7)\n    at Socket.emit (node:events:536:35)\n    at TCP.<anonymous> (node:net:343:12)"
+  },
+  {
+    "schedule": "blanc-repeat-delete-cancel-held-encrypted-valid",
+    "pass": true,
+    "checkpoints": 30,
+    "error": null
+  }
+]

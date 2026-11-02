@@ -1,0 +1,50 @@
+[
+  {
+    "file": "content/browser/service_worker/service_worker_register_job.cc",
+    "sha256": "785f794fa932a20f68a13f5ea17bb93024e0a21a48b0413cb667db5fc41b6e5a",
+    "excerpts": [
+      {
+        "firstLine": 677,
+        "lastLine": 692,
+        "text": "  context_->NotifyWillCreateURLLoaderFactory(scope_);\n\n  // The network restrictions of the creator (e.g., frame) must be\n  // enforced for service worker script fetches.\n  scoped_refptr<network::SharedURLLoaderFactory> loader_factory =\n      context_->wrapper()->GetLoaderFactoryForUpdateCheck(\n          scope_,\n          network::mojom::ClientSecurityState::New(\n              creator_policy_container_policies_.cross_origin_embedder_policy,\n              creator_policy_container_policies_.is_web_secure_context,\n              creator_policy_container_policies_.ip_address_space,\n              DeriveLocalNetworkAccessRequestPolicy(\n                  creator_policy_container_policies_,\n                  LocalNetworkAccessRequestContext::kWorker),\n              creator_policy_container_policies_.document_isolation_policy),\n          creator_network_restrictions_id_);"
+      },
+      {
+        "firstLine": 717,
+        "lastLine": 739,
+        "text": "  ServiceWorkerVersion* version_to_update = registration()->GetNewestVersion();\n  base::TimeDelta time_since_last_check =\n      base::Time::Now() - registration()->last_update_check();\n  std::vector<storage::mojom::ServiceWorkerResourceRecordPtr> resources =\n      version_to_update->script_cache_map()->GetResources();\n  int64_t script_resource_id =\n      version_to_update->script_cache_map()->LookupResourceId(script_url_);\n  CHECK_NE(script_resource_id, blink::mojom::kInvalidServiceWorkerResourceId,\n           base::NotFatalUntil::M159);\n  const std::optional<std::string> script_sha256_chekcsum =\n      version_to_update->script_cache_map()->LookupSha256Checksum(script_url_);\n\n  update_checker_ = std::make_unique<ServiceWorkerUpdateChecker>(\n      std::move(resources), script_url_, script_resource_id,\n      script_sha256_chekcsum, version_to_update, std::move(loader_factory),\n      force_bypass_cache_, worker_script_type_,\n      registration()->update_via_cache(), time_since_last_check, context_,\n      outside_fetch_client_settings_object_.Clone(),\n      creator_network_restrictions_id_, network_restrictions_id_,\n      creator_policy_container_policies_.Clone());\n  update_checker_->Start(\n      base::BindOnce(&ServiceWorkerRegisterJob::OnUpdateCheckFinished,\n                     weak_factory_.GetWeakPtr()));"
+      }
+    ]
+  },
+  {
+    "file": "content/browser/service_worker/service_worker_context_wrapper.cc",
+    "sha256": "64fe54718ac5b32d34028b33a2a02af323a414f23db2ee067d7a6c2e0514072c",
+    "excerpts": [
+      {
+        "firstLine": 1942,
+        "lastLine": 1955,
+        "text": "ServiceWorkerContextWrapper::GetLoaderFactoryForUpdateCheck(\n    const GURL& scope,\n    network::mojom::ClientSecurityStatePtr client_security_state,\n    const base::UnguessableToken& creator_network_restrictions_id) {\n  DCHECK_CURRENTLY_ON(BrowserThread::UI);\n  // TODO(crbug.com/40767578): Do we want to instrument this with\n  // devtools? It is currently not recorded at all.\n  return GetLoaderFactoryForBrowserInitiatedRequest(\n      scope,\n      /*version_id=*/std::nullopt, std::move(client_security_state),\n      // The network restrictions of the creator (e.g., frame) must be\n      // enforced for service worker script fetches.\n      creator_network_restrictions_id);\n}"
+      },
+      {
+        "firstLine": 1972,
+        "lastLine": 2017,
+        "text": "ServiceWorkerContextWrapper::GetLoaderFactoryForBrowserInitiatedRequest(\n    const GURL& scope,\n    std::optional<int64_t> version_id,\n    network::mojom::ClientSecurityStatePtr client_security_state,\n    const base::UnguessableToken& creator_network_restrictions_id) {\n  DCHECK_CURRENTLY_ON(BrowserThread::UI);\n\n  // TODO(falken): Replace this with URLLoaderInterceptor.\n  if (loader_factory_for_test_)\n    return loader_factory_for_test_;\n\n  if (!storage_partition()) {\n    return nullptr;\n  }\n\n  const url::Origin scope_origin = url::Origin::Create(scope);\n\n  mojo::PendingRemote<network::mojom::URLLoaderFactory> remote;\n  network::URLLoaderFactoryBuilder factory_builder;\n  mojo::PendingRemote<network::mojom::TrustedURLLoaderHeaderClient>\n      header_client;\n  bool bypass_redirect_checks = false;\n  // Here we give nullptr for |factory_override|, because CORS is no-op for\n  // requests for this factory.\n  // TODO(yhirano): Use |factory_override| because someday not just CORS but\n  // ORB/CORP will use the factory and those are not no-ops for it\n  GetContentClient()->browser()->WillCreateURLLoaderFactory(\n      storage_partition_->browser_context(), /*frame=*/nullptr,\n      ChildProcessHost::kInvalidUniqueID,\n      ContentBrowserClient::URLLoaderFactoryType::kServiceWorkerScript,\n      scope_origin, net::IsolationInfo(),\n      /*navigation_id=*/std::nullopt, ukm::kInvalidSourceIdObj, factory_builder,\n      &header_client, &bypass_redirect_checks,\n      /*disable_secure_dns=*/nullptr,\n      /*factory_override=*/nullptr,\n      /*navigation_response_task_runner=*/nullptr,\n      /*is_for_network_service=*/true);\n\n  // If we have a version_id, we are fetching a worker main script. We have a\n  // DevtoolsAgentHost ready for the worker and we can add the devtools override\n  // before instantiating the URLFactoryLoader.\n  if (auto params = devtools_instrumentation::WillCreateURLLoaderFactoryParams::\n          ForServiceWorkerMainScript(this, version_id)) {\n    params->Run(\n        /*is_navigation=*/true, /*is_download=*/false, factory_builder,\n        /*factory_override=*/nullptr, &header_client);"
+      }
+    ]
+  },
+  {
+    "file": "content/browser/service_worker/service_worker_single_script_update_checker.cc",
+    "sha256": "f6ffad1d53e0b275f38a7fec8e06719283a0d7861d74dd9fa4dd8ca86173f695",
+    "excerpts": [
+      {
+        "firstLine": 151,
+        "lastLine": 164,
+        "text": "  TRACE_EVENT(\"ServiceWorker\",\n              \"ServiceWorkerSingleScriptUpdateChecker::\"\n              \"ServiceWorkerSingleScriptUpdateChecker\",\n              perfetto::Flow::FromPointer(this), \"script_url\",\n              script_url.spec(), \"main_script_url\", main_script_url.spec());\n\n  network::ResourceRequest resource_request =\n      service_worker_loader_helpers::CreateRequestForServiceWorkerScript(\n          script_url, storage_key, is_main_script_, worker_script_type,\n          *fetch_client_settings_object, *browser_context);\n\n  uint32_t options = network::mojom::kURLLoadOptionNone;\n  if (is_main_script_) {\n    // Request SSLInfo. It will be persisted in service worker storage and"
+      },
+      {
+        "firstLine": 197,
+        "lastLine": 231,
+        "text": "\n  // Service worker update checking doesn't have a relevant frame and tab, so\n  // that `web_contents_getter` returns nullptr and the frame id is set to\n  // an invalid FrameTreeNodeId.\n  base::RepeatingCallback<WebContents*()> web_contents_getter =\n      base::BindRepeating([]() -> WebContents* { return nullptr; });\n  std::vector<std::unique_ptr<blink::URLLoaderThrottle>> throttles =\n      CreateContentBrowserURLLoaderThrottles(\n          resource_request, browser_context, std::move(web_contents_getter),\n          /*navigation_ui_data=*/nullptr, FrameTreeNodeId(),\n          /*navigation_id=*/std::nullopt);\n\n  if (network_restrictions_id_) {\n    auto* storage_partition = static_cast<StoragePartitionImpl*>(\n        browser_context->GetStoragePartitionForUrl(scope_));\n    // Use a throttle to enforce network restrictions (like connection\n    // allowlists) inherited from the creator for this script update check.\n    if (auto throttle = NetworkRestrictionsWorkerThrottle::Create(\n            storage_partition->GetWeakPtr(), *network_restrictions_id_,\n            creator_policies_.Clone(),\n            /*ancestor_render_frame_host=*/nullptr,\n            /*is_service_worker=*/true)) {\n      throttles.push_back(std::move(throttle));\n    }\n  }\n\n  network_client_remote_.Bind(\n      network_client_receiver_.BindNewPipeAndPassRemote());\n  network_loader_ = blink::ThrottlingURLLoader::CreateLoaderAndStart(\n      network::SharedURLLoaderFactory::Create(loader_factory->Clone()),\n      std::move(throttles), GlobalRequestID::MakeBrowserInitiated().request_id,\n      options, &resource_request, network_client_remote_.get(),\n      kUpdateCheckTrafficAnnotation,\n      base::SingleThreadTaskRunner::GetCurrentDefault());\n  CHECK_EQ(network_loader_state_,"
+      }
+    ]
+  }
+]

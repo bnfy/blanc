@@ -1,0 +1,58 @@
+[
+  {
+    "schedule": "delete-clear",
+    "pass": true,
+    "diagnostic_checkpoints": 11,
+    "initial_limited_window_inspection": false,
+    "error": null
+  },
+  {
+    "schedule": "delete-encrypted",
+    "pass": true,
+    "diagnostic_checkpoints": 11,
+    "initial_limited_window_inspection": false,
+    "error": null
+  },
+  {
+    "schedule": "owner-clear",
+    "pass": false,
+    "diagnostic_checkpoints": 8,
+    "initial_limited_window_inspection": true,
+    "error": "AssertionError [ERR_ASSERTION]: abandoned ratio record retained\n\n1 !== 0\n\n    at file:///private/tmp/blanc-ratio-pending-owner-clear/test.mjs:29:135"
+  },
+  {
+    "schedule": "owner-clear-allwindows",
+    "pass": false,
+    "diagnostic_checkpoints": 8,
+    "initial_limited_window_inspection": false,
+    "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(!restoredTabs.some(t=>t.url.includes('#cancel-')))\n\n    at file:///private/tmp/blanc-ratio-pending-owner-clear-allwindows/test.mjs:28:523"
+  },
+  {
+    "schedule": "owner-clear-allwindows-settled",
+    "pass": false,
+    "diagnostic_checkpoints": 11,
+    "initial_limited_window_inspection": false,
+    "error": "AssertionError [ERR_ASSERTION]: abandoned ratio record retained\n\n1 !== 0\n\n    at file:///private/tmp/blanc-ratio-pending-owner-clear-allwindows-settled/test.mjs:29:135"
+  },
+  {
+    "schedule": "owner-encrypted",
+    "pass": false,
+    "diagnostic_checkpoints": 8,
+    "initial_limited_window_inspection": true,
+    "error": "AssertionError [ERR_ASSERTION]: abandoned ratio record retained\n\n1 !== 0\n\n    at file:///private/tmp/blanc-ratio-pending-owner-encrypted/test.mjs:29:135"
+  },
+  {
+    "schedule": "owner-encrypted-allwindows",
+    "pass": false,
+    "diagnostic_checkpoints": 8,
+    "initial_limited_window_inspection": false,
+    "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(!restoredTabs.some(t=>t.url.includes('#cancel-')))\n\n    at file:///private/tmp/blanc-ratio-pending-owner-encrypted-allwindows/test.mjs:28:523"
+  },
+  {
+    "schedule": "owner-encrypted-allwindows-settled",
+    "pass": false,
+    "diagnostic_checkpoints": 11,
+    "initial_limited_window_inspection": false,
+    "error": "AssertionError [ERR_ASSERTION]: abandoned ratio record retained\n\n1 !== 0\n\n    at file:///private/tmp/blanc-ratio-pending-owner-encrypted-allwindows-settled/test.mjs:29:135"
+  }
+]

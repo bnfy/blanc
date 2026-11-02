@@ -1,0 +1,14 @@
+{
+  "status": "affected checks and final inventory passed",
+  "affectedChecksExecuted": true,
+  "checksPassed": 20,
+  "buildGuardActions": 0,
+  "signedCandidate": false,
+  "scope": "No signing, publication, Electron, Google baseline or latency work",
+  "finalInventory": {
+    "upstreamFiles": 77,
+    "hunks": 186,
+    "cleanDependencies": 151,
+    "withinBudget": true
+  }
+}

@@ -1,0 +1,22 @@
+"use strict";
+// The reviewed verifier still checks exact leaf, CA signature, host and validity.
+const {createVerifier:singleVerifier}=require('./single-fixture-trust.cjs');
+exports.createVerifier=function(material){
+  const byHost=new Map();
+  for(const entry of material.entries){
+    const verify=singleVerifier(entry);
+    for(const host of entry.hosts){
+      if(byHost.has(host))throw new Error('Duplicate fixture host');
+      byHost.set(host,verify);
+    }
+  }
+  return (host,pem,now)=>{
+    const accepted=byHost.get(host)?.(host,pem,now)===true;
+    if(!accepted&&process.env.BLANC_F12_TRUST_LOG){
+      const fs=require('node:fs'),{X509Certificate}=require('node:crypto');
+      let fingerprint='invalid';try{fingerprint=new X509Certificate(pem).fingerprint256;}catch{ /* Malformed certificates remain rejected and recorded as invalid. */ }
+      fs.appendFileSync(process.env.BLANC_F12_TRUST_LOG,JSON.stringify({kind:'fixture-pin-refusal',host,fingerprint,knownHost:byHost.has(host)})+'\n');
+    }
+    return accepted;
+  };
+};

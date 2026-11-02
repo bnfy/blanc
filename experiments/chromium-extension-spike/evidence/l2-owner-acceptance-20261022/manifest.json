@@ -1,0 +1,14 @@
+{
+  "report.json": "28d1d2d532c53e2a77d2001cbbdcdf2a55583b5e311567070f9464e094f1cdcf",
+  "acceptance.json": "18e2728337c3cc6f943591fdb09ea3784d0beeaa25c1b2cd57ea431b94dc6940",
+  "shipping.log.gz": "27c6f26a5615f6ae81f39db03d799d4cdefa10a9bb896f13a66a7da640bb7227",
+  "stage4-removal.json": "fb9a80195d3f482059a8ff5c697e235c94910762b04455bc08112caf6eeeaa94",
+  "preview.log.gz": "21c4835668e3172be8d7b79f3dc0b86eb27cd0819ccd831b300c957e1d13542c",
+  "verify.mjs": "9a50b8c6dc29ebc238a5a194d6bdcc1b17199fff5ae217000747dcd539f32efc",
+  "README.md": "1ab5a12b753441627d2a750d87d87ebfce7de8d5e8202104527f4ceb133bd687",
+  "control.log.gz": "03f1ea8b089e0439afa51cbdacef67fa19b102100c94063451e93d7c0e0cfd1a",
+  "owner-instructions.json": "c8f51702591cd86f7bc01076c807c37d1b41f19d01965ddc661e1993eb2e0e8e",
+  "stage2-restarted.json": "60ac7158bff2552549cc9b5b2d321e8483e7d8bb172b0350f1f7c62a653c545d",
+  "control.mjs": "886c75f5cbf235891fbd454a0fdffb8e0033e375e20093259b3d159fe397fafa",
+  "stage3-restarted.json": "60ac7158bff2552549cc9b5b2d321e8483e7d8bb172b0350f1f7c62a653c545d"
+}

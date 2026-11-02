@@ -1,0 +1,396 @@
+{
+  "cmdT": {
+    "tabs": [
+      {
+        "id": 60441973,
+        "url": "chrome://newtab/",
+        "active": false
+      },
+      {
+        "id": 60441974,
+        "url": "chrome://newtab/",
+        "active": true
+      }
+    ],
+    "input": {
+      "value": "",
+      "focused": "addressInput",
+      "visibility": "visible"
+    }
+  },
+  "islandPlus": {
+    "tabs": [
+      {
+        "id": 60441973,
+        "url": "chrome://newtab/",
+        "active": false
+      },
+      {
+        "id": 60441974,
+        "url": "chrome://newtab/",
+        "active": false
+      },
+      {
+        "id": 60441975,
+        "url": "chrome://newtab/",
+        "active": true
+      }
+    ],
+    "input": {
+      "value": "",
+      "focused": "addressInput",
+      "visibility": "visible"
+    }
+  },
+  "firstCharacter": {
+    "tabs": [
+      {
+        "id": 60441973,
+        "url": "chrome://newtab/",
+        "active": false
+      },
+      {
+        "id": 60441974,
+        "url": "chrome://newtab/",
+        "active": false
+      },
+      {
+        "id": 60441975,
+        "url": "chrome://newtab/",
+        "active": true
+      }
+    ],
+    "input": {
+      "value": "e",
+      "focused": "addressInput",
+      "visibility": "visible"
+    }
+  },
+  "fullInput": {
+    "tabs": [
+      {
+        "id": 60441973,
+        "url": "chrome://newtab/",
+        "active": false
+      },
+      {
+        "id": 60441974,
+        "url": "chrome://newtab/",
+        "active": false
+      },
+      {
+        "id": 60441975,
+        "url": "chrome://newtab/",
+        "active": true
+      }
+    ],
+    "input": {
+      "value": "example.com",
+      "focused": "addressInput",
+      "visibility": "visible"
+    }
+  },
+  "physicalNavigation": {
+    "tabs": [
+      {
+        "id": 60441973,
+        "url": "chrome://newtab/",
+        "active": false
+      },
+      {
+        "id": 60441974,
+        "url": "chrome://newtab/",
+        "active": false
+      },
+      {
+        "id": 60441975,
+        "url": "https://example.com/",
+        "active": true
+      }
+    ],
+    "input": {
+      "value": "example.com",
+      "focused": "",
+      "visibility": "visible"
+    }
+  },
+  "nativeCustomize": true,
+  "nativeLayout_ledger": "ledger",
+  "nativeLayout_shelf": "shelf",
+  "nativeLayout_tally": "tally",
+  "nativeLayout_billboard": "billboard",
+  "visibleWallpaper": {
+    "visible": "visible",
+    "phase": "day",
+    "toggle": "true",
+    "images": []
+  },
+  "nativeExtensionPopup": {
+    "url": "chrome-extension://nngceckbapebfimnlniiiahkandclblb/popup/index.html#/default-password-manager-prompt",
+    "text": "Make Bitwarden your browser's default password manager\n1\n\nSelect Continue.\n\n2\n\nSelect Allow from the browser prompt to give Bitwarden permission to change your settings.\n\n3\n\nWe'll turn off your browser's built-in password manager so you can enjoy a secure login experience.\n\nContinue\nSkip"
+  },
+  "resize": [
+    {
+      "requested": 600,
+      "bounds": {
+        "left": 375,
+        "top": 57,
+        "width": 600,
+        "height": 700,
+        "windowState": "normal"
+      },
+      "layout": {
+        "width": 600,
+        "height": 632,
+        "scrollWidth": 600,
+        "footer": {
+          "x": 0,
+          "y": 546,
+          "width": 600,
+          "height": 86,
+          "top": 546,
+          "right": 600,
+          "bottom": 632,
+          "left": 0
+        },
+        "customize": {
+          "x": 260.3203125,
+          "y": 558.6484375,
+          "width": 79.359375,
+          "height": 28,
+          "top": 558.6484375,
+          "right": 339.6796875,
+          "bottom": 586.6484375,
+          "left": 260.3203125
+        }
+      }
+    },
+    {
+      "requested": 500,
+      "bounds": {
+        "left": 375,
+        "top": 57,
+        "width": 500,
+        "height": 700,
+        "windowState": "normal"
+      },
+      "layout": {
+        "width": 500,
+        "height": 632,
+        "scrollWidth": 500,
+        "footer": {
+          "x": 0,
+          "y": 546,
+          "width": 500,
+          "height": 86,
+          "top": 546,
+          "right": 500,
+          "bottom": 632,
+          "left": 0
+        },
+        "customize": {
+          "x": 210.3203125,
+          "y": 558.6484375,
+          "width": 79.359375,
+          "height": 28,
+          "top": 558.6484375,
+          "right": 289.6796875,
+          "bottom": 586.6484375,
+          "left": 210.3203125
+        }
+      }
+    },
+    {
+      "requested": 1200,
+      "bounds": {
+        "left": 375,
+        "top": 57,
+        "width": 1200,
+        "height": 700,
+        "windowState": "normal"
+      },
+      "layout": {
+        "width": 1200,
+        "height": 632,
+        "scrollWidth": 1200,
+        "footer": {
+          "x": 0,
+          "y": 578,
+          "width": 1200,
+          "height": 54,
+          "top": 578,
+          "right": 1200,
+          "bottom": 632,
+          "left": 0
+        },
+        "customize": {
+          "x": 560.3203125,
+          "y": 591,
+          "width": 79.359375,
+          "height": 28,
+          "top": 591,
+          "right": 639.6796875,
+          "bottom": 619,
+          "left": 560.3203125
+        }
+      }
+    }
+  ],
+  "trafficLights": {
+    "expectedInset": 20,
+    "output": "AXCloseButton Optional((395.0, 77.0, 16.0, 16.0))\nAXMinimizeButton Optional((418.0, 77.0, 16.0, 16.0))\nAXZoomButton Optional((441.0, 77.0, 16.0, 16.0))"
+  },
+  "physicalResizeDrag": {
+    "left": 375,
+    "top": 57,
+    "width": 695,
+    "height": 747,
+    "windowState": "normal"
+  },
+  "smallLayouts": [
+    {
+      "layout": "ledger",
+      "width": 500,
+      "height": 632,
+      "scrollWidth": 500,
+      "customize": {
+        "x": 210.3203125,
+        "y": 558.6484375,
+        "width": 79.359375,
+        "height": 28,
+        "top": 558.6484375,
+        "right": 289.6796875,
+        "bottom": 586.6484375,
+        "left": 210.3203125
+      }
+    },
+    {
+      "layout": "shelf",
+      "width": 500,
+      "height": 632,
+      "scrollWidth": 500,
+      "customize": {
+        "x": 210.3203125,
+        "y": 558.6484375,
+        "width": 79.359375,
+        "height": 28,
+        "top": 558.6484375,
+        "right": 289.6796875,
+        "bottom": 586.6484375,
+        "left": 210.3203125
+      }
+    },
+    {
+      "layout": "tally",
+      "width": 500,
+      "height": 632,
+      "scrollWidth": 500,
+      "customize": {
+        "x": 210.3203125,
+        "y": 558.6484375,
+        "width": 79.359375,
+        "height": 28,
+        "top": 558.6484375,
+        "right": 289.6796875,
+        "bottom": 586.6484375,
+        "left": 210.3203125
+      }
+    },
+    {
+      "layout": "billboard",
+      "width": 500,
+      "height": 632,
+      "scrollWidth": 500,
+      "customize": {
+        "x": 210.3203125,
+        "y": 558.6484375,
+        "width": 79.359375,
+        "height": 28,
+        "top": 558.6484375,
+        "right": 289.6796875,
+        "bottom": 586.6484375,
+        "left": 210.3203125
+      }
+    },
+    {
+      "layout": "ledger",
+      "width": 600,
+      "height": 632,
+      "scrollWidth": 600,
+      "customize": {
+        "x": 260.3203125,
+        "y": 558.6484375,
+        "width": 79.359375,
+        "height": 28,
+        "top": 558.6484375,
+        "right": 339.6796875,
+        "bottom": 586.6484375,
+        "left": 260.3203125
+      }
+    },
+    {
+      "layout": "shelf",
+      "width": 600,
+      "height": 632,
+      "scrollWidth": 600,
+      "customize": {
+        "x": 260.3203125,
+        "y": 558.6484375,
+        "width": 79.359375,
+        "height": 28,
+        "top": 558.6484375,
+        "right": 339.6796875,
+        "bottom": 586.6484375,
+        "left": 260.3203125
+      }
+    },
+    {
+      "layout": "tally",
+      "width": 600,
+      "height": 632,
+      "scrollWidth": 600,
+      "customize": {
+        "x": 260.3203125,
+        "y": 558.6484375,
+        "width": 79.359375,
+        "height": 28,
+        "top": 558.6484375,
+        "right": 339.6796875,
+        "bottom": 586.6484375,
+        "left": 260.3203125
+      }
+    },
+    {
+      "layout": "billboard",
+      "width": 600,
+      "height": 632,
+      "scrollWidth": 600,
+      "customize": {
+        "x": 260.3203125,
+        "y": 558.6484375,
+        "width": 79.359375,
+        "height": 28,
+        "top": 558.6484375,
+        "right": 339.6796875,
+        "bottom": 586.6484375,
+        "left": 260.3203125
+      }
+    }
+  ],
+  "cleanedTabs": [
+    {
+      "id": 60441833,
+      "windowId": 60441832,
+      "url": "chrome://newtab/",
+      "active": true
+    }
+  ],
+  "finalPage": {
+    "actualURL": "chrome://blanc-prototype/pages/newtab.html",
+    "layout": "billboard",
+    "preferences": null,
+    "visibility": "visible"
+  },
+  "method": "Native CGEvent keyboard, clicks and corner drag; CDP observation and window sizing; unmodified live screenshots.",
+  "date": "2026-10-16"
+}

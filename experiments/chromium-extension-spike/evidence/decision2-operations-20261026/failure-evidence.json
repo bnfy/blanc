@@ -1,0 +1,26 @@
+[
+  {
+    "id": 121757779679,
+    "excerpt": [
+      "2026-10-26T18:12:46.7113718Z Electron runtime verified: 44.9.1",
+      "2026-10-26T18:12:50.7740549Z AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+      "2026-10-26T18:12:50.7742131Z - 'SecurityError'",
+      "2026-10-26T18:12:50.7743103Z     at file:///home/runner/work/blanc/blanc/test/desktop/modified-link-click-smoke.mjs:168:20 {",
+      "2026-10-26T18:12:50.7744927Z   actual: 'allowed',",
+      "2026-10-26T18:12:50.7745353Z   expected: 'SecurityError',",
+      "2026-10-26T18:12:51.1401324Z Electron runtime verified: 44.9.1"
+    ]
+  },
+  {
+    "id": 121757779092,
+    "excerpt": [
+      "2026-10-26T18:12:58.4128591Z Electron runtime verified: 44.9.1\r",
+      "2026-10-26T18:13:12.7700119Z AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\r",
+      "2026-10-26T18:13:12.7701095Z - 'SecurityError'\r",
+      "2026-10-26T18:13:12.7701714Z     at file:///D:/a/blanc/blanc/test/desktop/modified-link-click-smoke.mjs:168:20 {\r",
+      "2026-10-26T18:13:12.7702702Z   actual: 'allowed',\r",
+      "2026-10-26T18:13:12.7703975Z   expected: 'SecurityError',\r",
+      "2026-10-26T18:13:13.8243482Z Electron runtime verified: 44.9.1\r"
+    ]
+  }
+]

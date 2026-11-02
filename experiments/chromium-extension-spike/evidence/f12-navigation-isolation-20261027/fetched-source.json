@@ -1,0 +1,30 @@
+[
+  {
+    "path": "src/third_party/libvpx/source/libvpx",
+    "pin": "d603b5421220b05fd37c5bb6439eb0398cc1f1fe",
+    "officialSource": "https://chromium.googlesource.com/webm/libvpx.git",
+    "exit": 0,
+    "view": "/private/tmp/blanc-f12-navigation-isolation-20261027/dependency-retry-git-views/0"
+  },
+  {
+    "path": "src/third_party/pdfium",
+    "pin": "4e6f5ead3e8eef06e8a8482ec4afff4b52845e18",
+    "officialSource": "https://pdfium.googlesource.com/pdfium.git",
+    "exit": 0,
+    "view": "/private/tmp/blanc-f12-navigation-isolation-20261027/dependency-retry-git-views/1"
+  },
+  {
+    "path": "src/third_party/skia",
+    "pin": "ac947b5f02facc8237e889c3977c3a670d9d4664",
+    "officialSource": "https://skia.googlesource.com/skia.git",
+    "exit": 0,
+    "view": "/private/tmp/blanc-f12-navigation-isolation-20261027/dependency-retry-git-views/2"
+  },
+  {
+    "path": "src/third_party/webrtc",
+    "pin": "95554e4a0c5c343fdc989387d9d0ce18e2a2294b",
+    "officialSource": "https://webrtc.googlesource.com/src.git",
+    "exit": 0,
+    "view": "/private/tmp/blanc-f12-navigation-isolation-20261027/dependency-retry-git-views/3"
+  }
+]

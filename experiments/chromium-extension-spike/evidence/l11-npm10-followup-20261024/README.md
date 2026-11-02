@@ -1,0 +1,9 @@
+# npm 10 worker override compatibility — October 24, 2026
+
+Reviewed PR head `6a9781bdbb88afb45abcfe00b1fc3d95d38cd3cb`, with complete check pagination. Substrate now passes, confirming the undici audit repair. CodeQL reports no new alerts in changed code. Some other checks are still pending in the archived snapshot; no all-green claim. Two Electron modified-link tests still fail at line168: actual `allowed`, expected `SecurityError`; no runtime change, rerun or weakened assertion is made for those failures.
+
+The new actionable failure is tab-handoff job120894170206: its **worker** dependency install (before companion/runtime steps) fails `npm ci` under npm10.9.9 with `Missing: undici@7.29.1 from lock file`. The earlier commentary calling this a companion failure is corrected here. npm11 accepted the nested miniflare override, so the previous local clean-install evidence did not cover CI's resolver.
+
+The fix moves the same `undici: 7.30.1` pin from a nested miniflare override to the worker's top-level overrides. The worker lockfile and dependency versions do not change. No advisory suppression or downgrade. Exact npm10.9.9 negative control reproduces the original EUSAGE; the fixed worker and unchanged companion lock plans pass. A real clean worker install and all five local Workers runtime assertions pass; all four dependency-policy checks remain clean, with the same three explicitly VEX-accounted companion advisories.
+
+The first restricted-network negative-control attempt lacked registry access; an offline attempt returned ENOTCACHED. Those are setup limitations, not product failures. The registry-enabled negative control establishes the exact CI error. No Chromium/Electron compilation, app launch, signing or profile mutation. Google baseline remains separate, latency deferred. New-head CI remains required after publication.

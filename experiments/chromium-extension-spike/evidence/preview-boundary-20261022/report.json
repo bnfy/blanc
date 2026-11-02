@@ -1,0 +1,50 @@
+{
+  "app": "/private/tmp/blanc-preview-keychain-repair/Blanc Chromium Preview.app",
+  "checks": [
+    {
+      "name": "trusted Island operational",
+      "pass": true
+    },
+    {
+      "name": "web page has no privileged bridge",
+      "pass": true,
+      "details": {
+        "host": "undefined",
+        "send": "undefined",
+        "newtab": "undefined"
+      }
+    },
+    {
+      "name": "web iframe cannot acquire privileged host",
+      "pass": true,
+      "details": {
+        "blocked": true
+      }
+    },
+    {
+      "name": "web fetch denied: chrome://blanc-prototype/host.js",
+      "pass": true
+    },
+    {
+      "name": "web fetch denied: chrome://blanc-prototype/../../etc/passwd",
+      "pass": true
+    },
+    {
+      "name": "web fetch denied: file:///etc/passwd",
+      "pass": true
+    },
+    {
+      "name": "boundary probes leave owner tabs intact",
+      "pass": true,
+      "details": [
+        "blanc://newtab/",
+        "http://127.0.0.1:9800/"
+      ]
+    },
+    {
+      "name": "clean exit",
+      "pass": true
+    }
+  ],
+  "complete": true
+}

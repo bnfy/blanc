@@ -1,0 +1,8 @@
+{
+  "mainLoopMarkerPresent": true,
+  "restorationMarkerPresent": true,
+  "allRestorationAfterMainLoop": true,
+  "finalStapledCandidate": true,
+  "source": "6b9a05a00f321bfbde617c181103d5a455ff45f3",
+  "scope": "Functional event order only, no latency measurement"
+}

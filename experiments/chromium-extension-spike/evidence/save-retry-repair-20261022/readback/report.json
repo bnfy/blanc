@@ -1,0 +1,13 @@
+{
+  "app": "/private/tmp/blanc-save-retry-repair/Blanc Chromium Preview.app",
+  "profile": "/private/tmp/blanc-save-retry-repair/readback/isolated-home/Library/Application Support/Blanc Chromium Preview",
+  "mockKeychain": false,
+  "checks": [],
+  "state": {
+    "urls": [
+      "blanc://newtab/"
+    ],
+    "selected": 0
+  },
+  "complete": true
+}

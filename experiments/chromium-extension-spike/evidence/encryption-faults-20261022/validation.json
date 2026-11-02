@@ -1,0 +1,11 @@
+{
+  "final_starts": 8,
+  "restored_with_exact_state_and_clean_exit": 7,
+  "withheld_callback_no_timeout_observed": true,
+  "initial_inconclusive_delay_and_automatic_restore_assumptions_retained": true,
+  "provider_failures_recover_via_clear_store": true,
+  "original_profile_unchanged": true,
+  "google_dev_unchanged": true,
+  "real_os_provider_failure_tested": false,
+  "historical_stall_cause_established": false
+}

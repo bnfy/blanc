@@ -1,0 +1,23 @@
+{
+  "profiles": [
+    {
+      "path": "/private/tmp/blanc-f12-production-clients-20261024/profile",
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-f12-production-clients-20261024/profile-identity",
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-f12-production-clients-20261024/profile-identity-final",
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-f12-production-clients-20261024/profile-identity-scoped",
+      "removed": true
+    }
+  ],
+  "permanentOrGoogleProfilesUsed": false,
+  "electronStarted": false,
+  "normalExitRecordedForAllAttempts": true
+}

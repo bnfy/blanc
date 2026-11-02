@@ -1,0 +1,9 @@
+{
+  "kinds": [
+    "private"
+  ],
+  "modes": [
+    "shutdown-veto"
+  ],
+  "lastWindow": true
+}

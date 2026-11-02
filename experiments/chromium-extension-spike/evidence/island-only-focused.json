@@ -1,0 +1,47 @@
+{
+  "checkedAt": "2026-10-16T14:12:46.495Z",
+  "windowId": 60440603,
+  "fixtureId": 60440604,
+  "method": "Physical macOS CGEvent mouse and keyboard, DevTools geometry and state readback",
+  "results": [
+    {
+      "name": "Island extension menu launches 1Password",
+      "result": "pass",
+      "detail": {
+        "url": "chrome-extension://aeblfdkhhhdcdjpifhhbdiojplfjncoa/app/app.html#/page/welcome?language=en",
+        "text": "Start setup\nAdd account\n\nIf you have a 1Password account, sign in to get started.\n\nCreate your 1Password account\nSign in\nLearn how to use 1Password (tutorial)\nPin the 1Password extension to your browser's toolbar",
+        "expectedBrand": "1Password"
+      }
+    },
+    {
+      "name": "Header whitespace drags native window",
+      "result": "pass",
+      "detail": {
+        "before": {
+          "left": 477,
+          "top": 30
+        },
+        "after": {
+          "left": 527,
+          "top": 70
+        }
+      }
+    },
+    {
+      "name": "Browser fullscreen retains usable Island and extension popup",
+      "result": "pass",
+      "detail": {
+        "fullscreen": "fullscreen",
+        "restored": "normal"
+      }
+    },
+    {
+      "name": "No host error banner after supported interactions",
+      "result": "pass",
+      "detail": {
+        "text": "",
+        "visible": false
+      }
+    }
+  ]
+}

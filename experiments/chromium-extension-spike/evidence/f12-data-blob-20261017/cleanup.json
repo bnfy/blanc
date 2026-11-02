@@ -1,0 +1,48 @@
+{
+  "inspection": "ps pid,args executable prefix, not truncated comm field",
+  "ownedRuntimeProcesses": [],
+  "reports": {
+    "contexts01": {
+      "completed": false,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    "contexts02": {
+      "completed": false,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    "contexts03": {
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    "exceptions01": {
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    "frames01": {
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    "dedup": {
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    "gate-safety": {
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    }
+  }
+}

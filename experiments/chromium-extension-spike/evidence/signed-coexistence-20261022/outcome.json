@@ -1,0 +1,25 @@
+{
+  "head": "cf2c103d4144a7adb507d2d8fd2f0bb2625cbfcf",
+  "previewArchiveSha256": "7725b7886208b1aa047609cf0b48e9bb03604447238edb384208fd459fd51923",
+  "shipping": "1.42.1 (1421)",
+  "status": "failed",
+  "repeatRendererErrors": [
+    {
+      "reason": 332,
+      "symbol": "RFH_INVALID_DOCUMENT_SEQUENCE_NUMBER",
+      "observed": 2
+    }
+  ],
+  "restoredDocumentProbes": [
+    {
+      "url": "http://127.0.0.1:9820/preview/two",
+      "result": "Runtime.evaluate timeout"
+    },
+    {
+      "url": "http://127.0.0.1:9820/preview/one",
+      "result": "Runtime.evaluate timeout"
+    }
+  ],
+  "googleDevTabsUnchanged": true,
+  "fixtureProfilesRetainedForDiagnosis": true
+}

@@ -8,12 +8,12 @@
   "files": {
     "src/main/capture-preload-playout.js": "63b7ecc1eec07d5b6e1ee61fded120471d8e9f94f91501cb82a44821ac602e46",
     "src/main/capture-preload.js": "4096ec7549f3954d281c0be3f64ef2d8ffe14d0ea267cdbe934ab03e62ef9000",
-    "src/main/display-capture-broker-playout.js": "07f205ceda6a24d2d6774f8ec2c82eb3ebf5ce9e9d070aa03a2db2523c31487e",
-    "src/main/display-capture-broker.js": "46228b61a18720fcd908ca09e9f10355b036eec2180397c95e2cd991c6bd500f",
+    "src/main/display-capture-broker-playout.js": "edd2ab973d1cdf54d6c77e148653e1ecb5bf584ed081bf35e9aea4f863f2f2d3",
+    "src/main/display-capture-broker.js": "05113dffbf389782f2c07deadd84efb4e56813ffa354d0278f34f0cae8d75d6c",
     "src/renderer/display-capture-helper-playout.js": "7ed0bc4108a7a709e73fe1dc410501f62434fd06f5ebb2acc99770df4278e1b4",
     "src/renderer/display-capture-helper.js": "60b4686765ea56fe40dea5d3b0096024ee9a92988c8d898730cfa4140c632554",
     "src/main/capture-preload-linux.js": "4096ec7549f3954d281c0be3f64ef2d8ffe14d0ea267cdbe934ab03e62ef9000",
-    "src/main/display-capture-broker-linux.js": "46228b61a18720fcd908ca09e9f10355b036eec2180397c95e2cd991c6bd500f",
+    "src/main/display-capture-broker-linux.js": "05113dffbf389782f2c07deadd84efb4e56813ffa354d0278f34f0cae8d75d6c",
     "src/renderer/display-capture-helper-linux.js": "60b4686765ea56fe40dea5d3b0096024ee9a92988c8d898730cfa4140c632554"
   },
   "sharedFiles": {

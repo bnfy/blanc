@@ -1,0 +1,61 @@
+{
+  "tabs": [
+    {
+      "audible": false,
+      "blockedCount": 0,
+      "bookmarked": false,
+      "canGoBack": false,
+      "canGoForward": false,
+      "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+      "groupId": null,
+      "id": "1871329972",
+      "isLoading": false,
+      "muted": false,
+      "pageBg": "",
+      "pinned": false,
+      "private": false,
+      "siteMuted": null,
+      "title": "New Tab",
+      "url": "blanc://newtab/"
+    },
+    {
+      "audible": false,
+      "blockedCount": 0,
+      "bookmarked": false,
+      "canGoBack": false,
+      "canGoForward": false,
+      "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACxklEQVR4nKRRzYsURxT/varq3plpZ5jMZOMiGDas5pBbdkkgkENIBHPKLSQELyH4HwSSkOQQAh48JBfRg/+BBxG9eFBQEQRBF3cVEXVERV3W0dntj5nuqa56vlo/8O5rqqve9/v9nsI7itnY2PiIiL6YTqdedHLOkdaaxSaXDnqIYxH32hf0OI6V2C4Za+03vV7vaJ7nUEpBErcqV1XlvPc26BIYNRoN/bprKJokCYbD4X4lQVWapk6OlWlsWZauKIqrKysrc/1+vx3O6urqnNiuBN9oNLIhNuRI8crITwWR0UJ3qus6jLBrcXHxUJ6mhYd8tU8mVbVbfMoYQwFPyAm5Rm5+ixPyzrHM3BHnDyxFwQJLO3BdQ4jx0m4Lk0iAzIGDQAx5ZtIvrcSNJqdF4TnPXxZPElLb2gqTMcE79jKrQKeQa8Lor5gBtxLyRYbq9EnYq5eVGz5FwKN6fZhPP8fMnm+hk22EongztRF2ERmN2vTA9wfI/zsAd+8O6TiGABYIEjVcR319GXTxDLd//Rvx/AKapLa2psIyKYoRPV3n8YG/4KSI7r4n1BGoyCHd4Ky8oy7sjbvY/O131A/WoKRBJOWNlVUnSuOf6ydob7bGu5I2jdNN7szvhPvsK0Tbm2hXl1DlD6GiBUb+HH7tGPPHfwgdwkG30eXH6Tofntzk4dJO+vfsQ24tfULL3x/EscEsYRP4cek73tv5k5DdBPQM8fSCs5OfmRsfyI6qurWaPiKXbrrjCx1/bc748st9/v/lWR7ceuYGg2fu4KlZfzv7qcbEeZdRjXLk1PQuTSrdUBhP1/K6hGpGcdU05sjXH5pRd06TLLTT7+lOr6cphs6i7Qbvt7TuKEMdE3tXIsvxxGDHL6fya/v3NKza4W1pz89Y2kdDNO2UsqrcWlesE7T8E7iNjBy3PCGKJuPJo93zOEd4R3kBAAD//xxn/xgAAAAGSURBVAMAqdGG8jQgzhsAAAAASUVORK5CYII=",
+      "groupId": null,
+      "id": "1871329975",
+      "isLoading": false,
+      "muted": false,
+      "pageBg": "#ffffff",
+      "pinned": false,
+      "private": false,
+      "siteMuted": false,
+      "title": "Shaded Purple - Chrome Web Store",
+      "url": "https://chromewebstore.google.com/detail/shaded-purple/ilncmopnkmdbmioemmookjmhcelhlklf"
+    },
+    {
+      "audible": false,
+      "blockedCount": 0,
+      "bookmarked": false,
+      "canGoBack": false,
+      "canGoForward": false,
+      "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+      "groupId": null,
+      "id": "1871329973",
+      "isLoading": false,
+      "muted": false,
+      "pageBg": "",
+      "pinned": false,
+      "private": false,
+      "siteMuted": null,
+      "title": "New Tab",
+      "url": "blanc://newtab/"
+    }
+  ],
+  "active": "1871329975",
+  "radius": "14px",
+  "shadow": "rgba(14, 14, 14, 0.035) 0px -1px 0px 0px inset, rgba(14, 14, 14, 0.24) 0px 5px 18px -12px"
+}

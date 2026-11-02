@@ -1,0 +1,64 @@
+{
+  "checkedAt": "2026-10-16T14:15:50.756Z",
+  "windowId": 60440705,
+  "fixtureId": 60440706,
+  "method": "Physical macOS CGEvent mouse and keyboard, DevTools geometry and state readback",
+  "results": [
+    {
+      "name": "Minimum-width window keeps Island and extension menu accessible",
+      "result": "pass",
+      "detail": {
+        "width": 500,
+        "pill": {
+          "x": 85,
+          "y": 11.5,
+          "width": 330,
+          "height": 44,
+          "top": 11.5,
+          "right": 415,
+          "bottom": 55.5,
+          "left": 85
+        },
+        "extensions": {
+          "x": 276.7578125,
+          "y": 17.3984375,
+          "width": 80,
+          "height": 32.1953125,
+          "top": 17.3984375,
+          "right": 356.7578125,
+          "bottom": 49.59375,
+          "left": 276.7578125
+        }
+      }
+    },
+    {
+      "name": "Native minimize button and restore preserve the Island",
+      "result": "pass",
+      "detail": {
+        "minimized": "minimized",
+        "restored": true
+      }
+    },
+    {
+      "name": "Page fullscreen hides Island and returns the whole viewport",
+      "result": "pass",
+      "detail": {
+        "fullscreen": true,
+        "width": 1920,
+        "height": 1080
+      }
+    },
+    {
+      "name": "Normal Web Store Add to Chrome opens a visible native permission prompt",
+      "result": "pass",
+      "detail": {
+        "listing": "https://chromewebstore.google.com/detail/dark-reader/eimadpbcbfnmbkopoojfekhnkhdbieeh",
+        "normalButton": true,
+        "nativePrompt": true,
+        "cancelled": true,
+        "installed": false,
+        "dialog": "0 AXSheet title=Add \"Dark Reader\"? desc= help= value= rect=(853.0, 382.0, 448.0, 196.0)\n1  AXGroup title=Add \"Dark Reader\"? desc= help= value= rect=(853.0, 382.0, 448.0, 196.0)\n7        AXHeading title=Add \"Dark Reader\"? desc=Add \"Dark Reader\"? help= value= rect=(925.0, 402.0, 356.0, 22.0)\n10       AXScrollArea title= desc= help= value= rect=(853.0, 450.0, 448.0, 48.0)\n14           AXStaticText title= desc= help= value=It can: rect=(873.0, 450.0, 408.0, 20.0)\n16            AXStaticText title= desc= help= value=Read and change all your data on all websites rect=(873.0, 478.0, 408.0, 20.0)\n20       AXButton title=Cancel desc=Cancel help= value= rect=(1075.0, 522.0, 76.0, 36.0)\n21       AXButton title=Add extension desc=Add extension help= value= rect=(1159.0, 522.0, 122.0, 36.0)\n"
+      }
+    }
+  ]
+}

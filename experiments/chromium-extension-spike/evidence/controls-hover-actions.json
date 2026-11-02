@@ -1,0 +1,41 @@
+{
+  "rects": [
+    {
+      "x": 819.796875,
+      "y": 20.5,
+      "width": 26,
+      "height": 26,
+      "top": 20.5,
+      "right": 845.796875,
+      "bottom": 46.5,
+      "left": 819.796875
+    },
+    {
+      "x": 846.9453125,
+      "y": 20.5,
+      "width": 26,
+      "height": 26,
+      "top": 20.5,
+      "right": 872.9453125,
+      "bottom": 46.5,
+      "left": 846.9453125
+    },
+    {
+      "x": 874.09375,
+      "y": 20.5,
+      "width": 26,
+      "height": 26,
+      "top": 20.5,
+      "right": 900.09375,
+      "bottom": 46.5,
+      "left": 874.09375
+    }
+  ],
+  "gaps": [
+    1.1484375,
+    1.1484375
+  ],
+  "reload": true,
+  "close": true,
+  "originalTabsPreserved": true
+}

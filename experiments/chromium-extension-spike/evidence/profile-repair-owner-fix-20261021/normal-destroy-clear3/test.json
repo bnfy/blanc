@@ -1,0 +1,305 @@
+{
+  "checks": [
+    {
+      "name": "named Space saved before cancellation",
+      "value": true
+    },
+    {
+      "name": "existing other owner settled",
+      "value": {
+        "activeTabId": "1457418668",
+        "adblockEnabled": false,
+        "closed": [
+          {
+            "id": "1457418666",
+            "tabCount": 1,
+            "title": "about:blank",
+            "url": "about:blank"
+          }
+        ],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "1457418668",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": true,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "cbe698ca-b06c-4a33-9c87-327094e696e2",
+        "splitGeometry": {},
+        "splits": [],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1457418668",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "#ffffff",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#decoy"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 1
+      }
+    },
+    {
+      "name": "close awaits unload outcome",
+      "value": true
+    },
+    {
+      "name": "actual write boundary intercepted",
+      "value": {
+        "pid": 31876,
+        "path": "/private/tmp/blanc-profile-normal-destroy-clear3/profile/Default/Sessions/Session_13437069184839413",
+        "mode": "write-error",
+        "op": "write",
+        "errno": 5
+      }
+    },
+    {
+      "name": "write failure rejects durability",
+      "value": {
+        "error": "{\"exceptionId\":1,\"text\":\"Uncaught (in promise) Error: Split history/session persistence failed; recovery is not acknowledged.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"5\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"5\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"86\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Split history/session persistence failed; recovery is not acknowledged.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-1476036434722540846.1.9\"}}"
+      }
+    },
+    {
+      "name": "normal binary keeps profile repair pending after initial EIO",
+      "value": true
+    },
+    {
+      "name": "targets after source close",
+      "value": [
+        {
+          "description": "",
+          "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9297/devtools/page/099108F77CD90B7D27962F99953C6ADE",
+          "id": "099108F77CD90B7D27962F99953C6ADE",
+          "title": "chrome://webui-toolbar.top-chrome",
+          "type": "browser_ui",
+          "url": "chrome://webui-toolbar.top-chrome/",
+          "webSocketDebuggerUrl": "ws://127.0.0.1:9297/devtools/page/099108F77CD90B7D27962F99953C6ADE"
+        },
+        {
+          "description": "",
+          "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9297/devtools/page/AF0A5D50E5002F49C1A5271677CA1DC1",
+          "id": "AF0A5D50E5002F49C1A5271677CA1DC1",
+          "title": "Split rail fixture",
+          "type": "page",
+          "url": "http://127.0.0.1:9298/#decoy",
+          "webSocketDebuggerUrl": "ws://127.0.0.1:9297/devtools/page/AF0A5D50E5002F49C1A5271677CA1DC1"
+        },
+        {
+          "description": "",
+          "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9297/devtools/page/92FE3B14F6C99C56611DC7B8B2C9C9FC",
+          "id": "92FE3B14F6C99C56611DC7B8B2C9C9FC",
+          "title": "Blanc Chromium prototype",
+          "type": "page",
+          "url": "chrome://blanc-prototype/host.html",
+          "webSocketDebuggerUrl": "ws://127.0.0.1:9297/devtools/page/92FE3B14F6C99C56611DC7B8B2C9C9FC"
+        },
+        {
+          "description": "",
+          "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9297/devtools/page/B6999F4436D8E0F5955C9E0332EA354A",
+          "id": "B6999F4436D8E0F5955C9E0332EA354A",
+          "title": "Omnibox Popup",
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "webSocketDebuggerUrl": "ws://127.0.0.1:9297/devtools/page/B6999F4436D8E0F5955C9E0332EA354A"
+        },
+        {
+          "description": "",
+          "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9297/devtools/page/618CE70210A6D368A1EB88284555D6E8",
+          "id": "618CE70210A6D368A1EB88284555D6E8",
+          "title": "Omnibox Popup",
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+          "webSocketDebuggerUrl": "ws://127.0.0.1:9297/devtools/page/618CE70210A6D368A1EB88284555D6E8"
+        },
+        {
+          "description": "",
+          "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9297/devtools/page/DF4DD0BE39A653F794903048BF737F75",
+          "id": "DF4DD0BE39A653F794903048BF737F75",
+          "title": "Omnibox Popup",
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+          "webSocketDebuggerUrl": "ws://127.0.0.1:9297/devtools/page/DF4DD0BE39A653F794903048BF737F75"
+        },
+        {
+          "description": "",
+          "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9297/devtools/page/552FFC72C9948E2B8B10E4A2ECBC5BB6",
+          "id": "552FFC72C9948E2B8B10E4A2ECBC5BB6",
+          "title": "Blanc Chromium prototype",
+          "type": "page",
+          "url": "chrome://blanc-prototype/host.html",
+          "webSocketDebuggerUrl": "ws://127.0.0.1:9297/devtools/page/552FFC72C9948E2B8B10E4A2ECBC5BB6"
+        },
+        {
+          "description": "",
+          "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9297/devtools/page/17A7BE875C10893562BFF23B16D64B4D",
+          "id": "17A7BE875C10893562BFF23B16D64B4D",
+          "title": "Omnibox Popup",
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "webSocketDebuggerUrl": "ws://127.0.0.1:9297/devtools/page/17A7BE875C10893562BFF23B16D64B4D"
+        },
+        {
+          "description": "",
+          "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9297/devtools/page/DA9396F2F784333E0DC3F71D98329CF3",
+          "id": "DA9396F2F784333E0DC3F71D98329CF3",
+          "title": "chrome://webui-toolbar.top-chrome",
+          "type": "browser_ui",
+          "url": "chrome://webui-toolbar.top-chrome/",
+          "webSocketDebuggerUrl": "ws://127.0.0.1:9297/devtools/page/DA9396F2F784333E0DC3F71D98329CF3"
+        },
+        {
+          "description": "",
+          "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9297/devtools/page/C696BC1BDCC8AC960DFF5E533602F8EF",
+          "id": "C696BC1BDCC8AC960DFF5E533602F8EF",
+          "title": "Service Worker chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+          "type": "service_worker",
+          "url": "chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+          "webSocketDebuggerUrl": "ws://127.0.0.1:9297/devtools/page/C696BC1BDCC8AC960DFF5E533602F8EF"
+        },
+        {
+          "description": "",
+          "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9297/devtools/page/CE1793D26FACE5288E7B7CDDA2F12636",
+          "id": "CE1793D26FACE5288E7B7CDDA2F12636",
+          "title": "Service Worker chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+          "type": "service_worker",
+          "url": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+          "webSocketDebuggerUrl": "ws://127.0.0.1:9297/devtools/page/CE1793D26FACE5288E7B7CDDA2F12636"
+        }
+      ]
+    },
+    {
+      "name": "original owner host destroyed after initial EIO; decoy survives",
+      "value": true
+    },
+    {
+      "name": "other owner history close acknowledged after initial partial-close EIO",
+      "value": true
+    },
+    {
+      "name": "crashed after reconciliation and retry acknowledgement",
+      "value": true
+    },
+    {
+      "name": "actual restart state after boundary",
+      "value": [
+        {
+          "activeTabId": "1457418732",
+          "adblockEnabled": false,
+          "closed": [
+            {
+              "id": "1457418733",
+              "tabCount": 1,
+              "title": "about:blank",
+              "url": "about:blank"
+            },
+            {
+              "id": "1457418734",
+              "tabCount": 1,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#cancel-left"
+            },
+            {
+              "id": "1457418735",
+              "tabCount": 1,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#cross-owner-retry"
+            }
+          ],
+          "displayShares": [],
+          "extensionsWidth": 26,
+          "focusedTabId": "1457418732",
+          "glanceTabId": null,
+          "groups": [],
+          "initialWindowSaveFailed": false,
+          "initialWindowSaved": false,
+          "installedTheme": {},
+          "spaceAutosaveError": "",
+          "spaceBusy": false,
+          "spaceName": "",
+          "spaceWindowIdentity": "cbe698ca-b06c-4a33-9c87-327094e696e2",
+          "splitGeometry": {},
+          "splits": [],
+          "tabLayout": "island",
+          "tabs": [
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "1457418731",
+              "isLoading": true,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": false,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#decoy"
+            },
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "1457418732",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": null,
+              "title": "about:blank",
+              "url": "about:blank"
+            }
+          ],
+          "verticalTabsDefaultWidth": 248,
+          "verticalTabsMaxWidth": 360,
+          "verticalTabsMinWidth": 200,
+          "verticalTabsPreferredWidth": 248,
+          "verticalTabsWidth": 248,
+          "closedSlot": 0
+        }
+      ]
+    },
+    {
+      "name": "other owner survives abrupt restart exactly once",
+      "value": true
+    },
+    {
+      "name": "destroyed source stays closed after restart",
+      "value": true
+    },
+    {
+      "name": "restart remains usable with fresh acknowledged history",
+      "value": true
+    }
+  ],
+  "pass": true
+}

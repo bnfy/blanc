@@ -1,0 +1,7 @@
+{
+  "noticeSuiteUsesFrozenClone": true,
+  "allFilesAndSymlinksIdenticalToFinalMasterAfterTests": true,
+  "regularFiles": 458,
+  "symlinks": 5,
+  "purpose": "Bind the sixteen notice checks on their non-mutated test clone to the exact final signed candidate."
+}

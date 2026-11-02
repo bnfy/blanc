@@ -1,0 +1,20 @@
+import {captureSpace} from '/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/space-capture.mjs';
+import fs from 'node:fs';import http from 'node:http';import assert from 'node:assert/strict';import {spawn} from 'node:child_process';import {connect,pause} from '/private/tmp/blanc-cdp.mjs';
+const root='/private/tmp/blanc-native-split',profile=root+'/profile3',port=9277;
+const config=JSON.parse(fs.readFileSync('/private/tmp/blanc-prerender-followup-build/config.json'));
+const clients=[];let proc;const proof={checks:[]};const record=(name,value)=>{proof.checks.push({name,value});fs.writeFileSync(root+'/runtime.json',JSON.stringify(proof,null,2))};
+const wait=async(fn,test)=>{for(let i=0;i<200;i++){let x=await fn().catch(()=>null);if(test(x))return x;await pause(100)}throw Error('wait timeout')};
+const server=http.createServer((q,r)=>{r.setHeader('Content-Type','text/html');r.end('<title>Split fixture</title><h1>'+q.url+'</h1><input id="text">')});await new Promise(r=>server.listen(9278,'127.0.0.1',r));
+const list=()=>fetch(`http://127.0.0.1:${port}/json/list`).then(r=>r.json());const attach=async t=>{let c=await connect(t);clients.push(c);return c};
+const api=(h,m,...a)=>h.eval(`BlancPrototypeHost.api.${m}(...${JSON.stringify(a)})`);
+async function start(restart=false){const log=fs.openSync(root+'/browser.log','a');proc=spawn(config.chromium,[`--user-data-dir=${profile}`,`--remote-debugging-port=${port}`,`--blanc-prototype-assets=${config.ui}`,'--no-first-run','--no-default-browser-check','--use-mock-keychain',...(restart?['--restore-last-session','--hide-crash-restore-bubble']:['chrome://newtab/'])],{stdio:['ignore',log,log]});await wait(list,x=>x?.some(t=>t.url.includes('host.html')));let h=await attach((await list()).find(t=>t.url.includes('host.html')));await wait(()=>h.eval('typeof BlancPrototypeHost'),x=>x==='object');return h}
+try{
+let h=await start();for(const name of ['left','right'])await api(h,'createTab',`http://127.0.0.1:9278/${name}`);await pause(1500);let s=await api(h,'getAllTabs');let left=s.tabs.find(t=>t.url.endsWith('/left')),right=s.tabs.find(t=>t.url.endsWith('/right'));
+assert.equal(await api(h,'previewSplitPair',left.id,right.id),true);await pause(500);s=await api(h,'getAllTabs');assert.equal(s.splits.length,1);assert.equal(s.glanceTabId,null);record('native split snapshot',s);assert.equal(captureSpace(s).splits.length,1);record('PR993 adapter accepts native IDs',captureSpace(s));
+await api(h,'switchTab',right.id);await pause(300);assert.equal((await api(h,'getAllTabs')).splits[0].focusedIndex,1);await api(h,'previewSpaceSave','Split');record('save',await api(h,'previewSpaceList'));
+await api(h,'previewGlanceClose',left.id);await pause(500);await api(h,'previewSpaceSave','Plain');await pause(2000);await api(h,'previewSpaceOpen','Split');s=await wait(()=>api(h,'getAllTabs'),s=>s?.splits?.length===1&&!s.spaceBusy);assert.equal(s.splits[0].focusedIndex,1);record('reopen split with right focus',s);
+await pause(2000);await api(h,'previewSpaceOpen','Plain');await wait(()=>api(h,'getAllTabs'),s=>s?.splits?.length===0&&!s.spaceBusy);await pause(2000);await api(h,'previewSpaceOpen','Split');s=await wait(()=>api(h,'getAllTabs'),s=>s?.splits?.length===1&&!s.spaceBusy);record('split plain round trip',s);
+// Actual abrupt browser exit, keeping only this disposable profile.
+await pause(2500);proc.kill('SIGKILL');await new Promise(r=>proc.once('exit',r));clients.forEach(c=>c.close());await pause(1500);h=await start(true);s=await wait(()=>api(h,'getAllTabs'),s=>s?.splits?.length===1);record('native session crash restore',s);assert.equal(s.splits[0].focusedIndex,1);
+let b=await attach(await fetch(`http://127.0.0.1:${port}/json/version`).then(r=>r.json()));await b.send('Browser.close');await new Promise(r=>proc.once('exit',r));proof.pass=true;
+}catch(e){proof.pass=false;proof.error=String(e);if(proc?.exitCode===null)proc.kill('SIGTERM')}finally{clients.forEach(c=>c.close());server.close();fs.writeFileSync(root+'/runtime.json',JSON.stringify(proof,null,2));console.log(JSON.stringify(proof,null,2))}if(!proof.pass)process.exitCode=1;

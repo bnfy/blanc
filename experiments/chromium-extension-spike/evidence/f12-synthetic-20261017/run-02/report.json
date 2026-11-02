@@ -1,0 +1,40 @@
+{
+  "kind": "synthetic-electron-script-probe",
+  "passed": false,
+  "started": "2026-10-17T18:54:24.053Z",
+  "runs": [
+    {
+      "kind": "regular",
+      "letter": "a",
+      "runId": "63210d9c-7a97-4ead-b6cc-8667ebcb178a",
+      "requests": 20,
+      "faults": 1
+    },
+    {
+      "kind": "regular",
+      "letter": "b",
+      "runId": "da6127d7-87b5-4e7c-9e6b-6d2806086309",
+      "requests": 20,
+      "faults": 1
+    }
+  ],
+  "sourceAsarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+  "acceptanceCorpusRequests": 0,
+  "nativeBuilds": 0,
+  "cleanup": {
+    "sourceAsarUnchanged": true,
+    "ownedChildrenExited": true,
+    "disposableTreeRemoved": true
+  },
+  "sourceHashes": {
+    "generate.mjs": "e0b697cb95091025e6fc785ff66b7a24814e394aaca3f160dfa2460aac5d2d20",
+    "transport.mjs": "bd5629e80f1e155e535453a576ef1a69f7d80ac7669a216786961d0d5b93e7ab",
+    "run.mjs": "c01ded45185d06bb6a41813fda6fae8da8e602c7115645c54964086d0cf07be4",
+    "coverage.json": "4af0b13922516ebf000af2ad403be7a802b9fff9b746a5b833af165dc536eac7"
+  },
+  "fixtureCandidates": 12,
+  "bundleSha256": "5776d55101a0b982b9a5a223cefdc475f45cce64234fc127f501b16c911421e3",
+  "error": "synthetic-probe-failed",
+  "failedStage": "regular-compare",
+  "finished": "2026-10-17T18:54:27.731Z"
+}

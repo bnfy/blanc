@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-17T16:39:01.832Z",
+  "originalResolver": "function resolveTabDrop(model, source, y) {\n    if (!model || !source || !(y >= model.top && y <= model.bottom)) return null;\n    for (const section of model.sections) {\n      const h = section.kind === 'group' ? section.header : null;\n      if (!h || !inside(y, h)) continue;\n      const quarter = (h.bottom - h.top) / 4;\n      if (y >= h.top + quarter && y <= h.bottom - quarter) {\n        return {\n          intent: { kind: 'tab', id: source.id, groupId: section.groupId, beforeId: null },\n          indicator: { type: 'header', groupId: section.groupId },\n        };\n      }\n    }\n    let best = null;\n    for (const slot of tabSlots(model, source.id)) {\n      if (!best || Math.abs(slot.y - y) < Math.abs(best.y - y)) best = slot;\n    }\n    if (!best) return null;\n    const allowed = source.pinned ? best.pinned : best.unpinned;\n    if (!allowed) return null;\n    return {\n      intent: {\n        kind: 'tab', id: source.id, groupId: best.groupId,\n        beforeId: source.pinned ? best.pinnedBefore : best.unpinnedBefore,\n      },\n      indicator: { type: 'line', y: best.y },\n    };\n  }",
+  "fixedSourceSha256": "5e44cbbe3359fb677331fcf07f8102a293abef33cd3aaa374fdf637831d9c046",
+  "fixedResult": {
+    "intent": {
+      "kind": "tab",
+      "id": "3fbfaf2d-6cba-4cfa-a24e-11eaf575d68a",
+      "groupId": null,
+      "beforeId": "0aada5ae-7a65-43ed-ab66-337f4e642706"
+    },
+    "indicator": {
+      "type": "line",
+      "y": 65
+    }
+  },
+  "scope": "Actual installed Electron geometry; replacement resolver evaluated in isolated Electron renderer, not a packaged release or fresh native gesture test.",
+  "originalResolverMatchesBranch": true
+}

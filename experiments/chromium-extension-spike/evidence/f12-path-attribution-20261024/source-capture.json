@@ -1,0 +1,90 @@
+{
+  "chromiumHead": "1aa07b638799e59656559ae6c6649d4b197f555e",
+  "nativeFiles": [
+    {
+      "path": "content/public/common/content_features.cc",
+      "sha256": "671705a6c704571494cdd629342b151910487f07fd488fcb024f3c30d38c86bf",
+      "excerpts": [
+        {
+          "start": 840,
+          "end": 858,
+          "text": "840:         false};\n841: \n842: // Allow starting prefetch request from off the main thread. Please see\n843: // crbug.com/452389538 for more details.\n844: BASE_FEATURE(kPrefetchOffTheMainThread, base::FEATURE_DISABLED_BY_DEFAULT);\n845: const base::FeatureParam<bool>\n846:     kPrefetchOffTheMainThreadUpdateMissingHeaderCache{\n847:         &kPrefetchOffTheMainThread, \"update_missing_header_cache\", true};\n848: // Consults `ContentBrowserClient::WillCreateURLLoaderFactory()` for\n849: // PrePrefetch requests. Use `false` for keeping the existing behavior before\n850: // this param is introduced.\n851: const base::FeatureParam<bool>\n852:     kPrefetchOffTheMainThreadCheckWillCreateURLLoaderFactory{\n853:         &kPrefetchOffTheMainThread, \"check_will_create_url_loader_factory\",\n854:         false};\n855: \n856: // Use code paths for prefetch/prerender integration.\n857: // See also `kPrerender2FallbackPrefetchSpecRules`.\n858: BASE_FEATURE(kPrefetchPrerenderIntegration, base::FEATURE_ENABLED_BY_DEFAULT);"
+        }
+      ]
+    },
+    {
+      "path": "content/browser/preloading/prefetch/prefetch_features.cc",
+      "sha256": "3b2406b938f3919390ca15af1ed018c79bc1d1396903a1e9356636efe45d6c2d",
+      "excerpts": [
+        {
+          "start": 103,
+          "end": 109,
+          "text": "103: const base::FeatureParam<size_t> kMaxNumberOfModeratePrefetchesPerPage{\n104:     &kPrefetchModerateLimit, \"max_number_of_moderate_prefetches_per_page\", 2};\n105: \n106: BASE_FEATURE(kPrefetchOffTheMainThreadForceForTesting,\n107:              base::FEATURE_DISABLED_BY_DEFAULT);\n108: \n109: BASE_FEATURE(kPrefetchCancelUnrelatedPrefetch,"
+        }
+      ]
+    },
+    {
+      "path": "content/browser/preloading/prefetch/prefetch_url_loader_factory_utils.cc",
+      "sha256": "5c2fa0db4f64db7378fb7f5f58c843d966128e291a78e96872012565b4847907",
+      "excerpts": [
+        {
+          "start": 129,
+          "end": 181,
+          "text": "129: mojo::PendingRemote<network::mojom::URLLoaderFactory>\n130: CreatePrePrefetchURLLoaderFactoryOnUI(BrowserContext* browser_context) {\n131:   CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M159);\n132:   CHECK(browser_context);\n133:   TRACE_EVENT0(\"loading\", \"CreatePrePrefetchURLLoaderFactoryOnUI\");\n134: \n135:   // This is the same default network context that should be used in normal\n136:   // prefetch's `URLLoaderFactory` on the UI thread, created via\n137:   // `PrefetchContainer::GetOrCreateDefaultNetworkContextURLLoaderFactory()`.\n138:   network::mojom::NetworkContext* network_context =\n139:       browser_context->GetDefaultStoragePartition()->GetNetworkContext();\n140: \n141:   if (features::kPrefetchOffTheMainThreadCheckWillCreateURLLoaderFactory\n142:           .Get()) {\n143:     // Creates the same URLLoaderFactory as the PrefetchContainer's default\n144:     // network context's URLLoaderFactory. This is only for Android WebView\n145:     // prefetches, assuming:\n146:     // - Always browser-initiated.\n147:     // - Referring origin is always `std::nullopt` (see\n148:     //   `BrowserContext::StartBrowserPrefetchRequest()`).\n149:     return CreatePrefetchURLLoaderFactory<\n150:         mojo::PendingRemote<network::mojom::URLLoaderFactory>>(\n151:         network_context, browser_context,\n152:         /*referring_origin=*/std::nullopt,\n153:         /*renderer_initiator_info=*/nullptr);\n154:   }\n155: \n156:   mojo::PendingRemote<network::mojom::URLLoaderFactory> pending_factory;\n157:   if (g_url_loader_factory_for_testing) {\n158:     CHECK_IS_TEST();\n159:     g_url_loader_factory_for_testing->Clone(\n160:         pending_factory.InitWithNewPipeAndPassReceiver());\n161:   } else {\n162:     // Unlike `CreatePrefetchURLLoaderFactory()`, this does use\n163:     // `url_loader_factory::HeaderClientOption::kDisallow` and null\n164:     // `url_loader_factory::ContentClientParams`. The interceptors that would be\n165:     // added by `ContentClientParams` will be added/executed when the\n166:     // PrePrefetch is consumed by a `PrefetchContainer`.\n167:     pending_factory = url_loader_factory::CreatePendingRemote(\n168:         ContentBrowserClient::URLLoaderFactoryType::kPrefetch,\n169:         url_loader_factory::TerminalParams::ForNetworkContext(\n170:             network_context,\n171:             CreatePrefetchURLLoaderFactoryParams(\n172:                 // Pre-prefetches are browser-initiated without a referring\n173:                 // frame/context, so no creator restrictions apply.\n174:                 network::GetNoOpNetworkRestrictionsId()),\n175:             url_loader_factory::HeaderClientOption::kDisallow),\n176:         /*content_client_params=*/std::nullopt);\n177:   }\n178:   return pending_factory;\n179: }\n180: \n181: }  // namespace content"
+        }
+      ]
+    },
+    {
+      "path": "content/browser/preloading/prefetch/prefetch_service.cc",
+      "sha256": "d551eb52fc443483ef5f65a9a2913474ba789b78da296ca346ec47a4ffe45db4",
+      "excerpts": [
+        {
+          "start": 502,
+          "end": 611,
+          "text": "502: \n503: base::WeakPtr<PrefetchContainer>\n504: PrefetchService::CreatePrefetchContainerFromPrePrefetchForTesting(  // IN-TEST\n505:     std::unique_ptr<const PrefetchRequest> prefetch_request) {\n506:   CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M159);\n507:   CHECK(base::FeatureList::IsEnabled(\n508:       features::kPrefetchOffTheMainThreadForceForTesting));\n509:   CHECK(GetBrowserContext());\n510: \n511:   std::unique_ptr<PrePrefetchHandle> pre_prefetch_handle;\n512:   std::unique_ptr<PrePrefetchService> pre_prefetch_service =\n513:       PrePrefetchService::Create(\n514:           GetBrowserContext(),\n515:           /*embedder_non_ui_thread_update_headers_callbacks=*/{},\n516:           /*initial_origin_hint=*/\n517:           url::Origin::Create(prefetch_request->key().url()),\n518:           /*initial_javascript_enabled_hint=*/\n519:           prefetch_request->is_javascript_enabled(),\n520:           /*initial_should_append_variations_header_hint=*/\n521:           prefetch_request->should_append_variations_header());\n522: \n523:   base::WaitableEvent event(base::WaitableEvent::ResetPolicy::MANUAL,\n524:                             base::WaitableEvent::InitialState::NOT_SIGNALED);\n525:   base::ThreadPool::PostTask(\n526:       FROM_HERE, {base::MayBlock()},\n527:       base::BindOnce(\n528:           [](PrePrefetchService* service_ptr,\n529:              std::unique_ptr<const PrefetchRequest> prefetch_request,\n530:              std::unique_ptr<PrePrefetchHandle>* pre_prefetch_handle,\n531:              base::WaitableEvent* event) {\n532:             base::ScopedAllowBaseSyncPrimitivesForTesting allow_blocking;\n533:             CHECK(service_ptr);\n534:             CHECK(prefetch_request);\n535:             *pre_prefetch_handle =\n536:                 static_cast<PrePrefetchServiceImpl*>(service_ptr)\n537:                     ->StartPrePrefetchRequestForTesting(  // IN-TEST\n538:                         std::move(prefetch_request));\n539:             event->Signal();\n540:           },\n541:           pre_prefetch_service.get(), std::move(prefetch_request),\n542:           &pre_prefetch_handle, base::Unretained(&event)));\n543: \n544:   {\n545:     base::ScopedAllowBaseSyncPrimitivesForTesting allow_blocking;\n546:     event.Wait();\n547:   }\n548: \n549:   if (!pre_prefetch_handle) {\n550:     return nullptr;\n551:   }\n552: \n553:   std::unique_ptr<PrePrefetchContainer> pre_prefetch_container =\n554:       static_cast<PrePrefetchHandleImpl&>(*pre_prefetch_handle)\n555:           .TakePrePrefetchContainerOnUI();\n556:   CHECK(pre_prefetch_container);\n557:   std::unique_ptr<const PrefetchRequest> prefetch_request_of_pre_prefetch =\n558:       pre_prefetch_container->TakePrefetchRequestOnUI();\n559:   return CreatePrefetchContainer(std::move(prefetch_request_of_pre_prefetch),\n560:                                  std::move(pre_prefetch_container));\n561: }\n562: \n563: base::WeakPtr<PrefetchContainer> PrefetchService::CreatePrefetchContainer(\n564:     std::unique_ptr<const PrefetchRequest> prefetch_request,\n565:     std::unique_ptr<PrePrefetchContainer> pre_prefetch_container) {\n566:   if (base::FeatureList::IsEnabled(\n567:           features::kPrefetchOffTheMainThreadForceForTesting)) {\n568:     const bool is_eligible_for_force_pre_prefetch = [&]() {\n569:       // If `pre_prefetch_container` is non-null, it's already from the\n570:       // off-the-main-thread path and thus don't force the off-the-main-thread\n571:       // path again.\n572:       if (pre_prefetch_container) {\n573:         return false;\n574:       }\n575: \n576:       const auto origin = url::Origin::Create(prefetch_request->key().url());\n577: \n578:       // Currently off-the-main-thread prefetch is only for same-site requests.\n579:       if (prefetch_request->IsCrossSiteRequest(origin)) {\n580:         return false;\n581:       }\n582: \n583:       // Also don't trigger off-the-main-thread prefetch if still we need a\n584:       // proxy. This mirrors the condition for\n585:       // `PreloadingEligibility::kSameSiteCrossOriginPrefetchRequiredProxy`.\n586:       if (prefetch_request->IsProxyRequiredForURL(origin) &&\n587:           !ShouldPrefetchBypassProxyForTestHost(\n588:               prefetch_request->key().url().GetHost())) {\n589:         return false;\n590:       }\n591: \n592:       return true;\n593:     }();\n594: \n595:     if (is_eligible_for_force_pre_prefetch) {\n596:       base::WeakPtr<PrefetchContainer> prefetch_container =\n597:           CreatePrefetchContainerFromPrePrefetchForTesting(  // IN-TEST\n598:               std::move(prefetch_request));\n599:       // While theoretically `prefetch_container` can be null here, we `CHECK()`\n600:       // here just to simplify the tests, assuming such theoretical failures\n601:       // don't occur on the existing tests.\n602:       CHECK(prefetch_container);\n603:       return prefetch_container;\n604:     }\n605:   }\n606: \n607:   auto owned_prefetch_container = PrefetchContainer::Create(\n608:       base::PassKey<PrefetchService>(), std::move(prefetch_request),\n609:       std::move(pre_prefetch_container));\n610:   const base::WeakPtr<PrefetchContainer> prefetch_container =\n611:       owned_prefetch_container->GetWeakPtr();"
+        }
+      ]
+    },
+    {
+      "path": "content/browser/preloading/prefetch/pre_prefetch_service_impl.cc",
+      "sha256": "6425181de7f258f6a00610416ccce865bce94d3a28e58a255d3b0bb2dfb84436",
+      "excerpts": [
+        {
+          "start": 309,
+          "end": 327,
+          "text": "309: // static\n310: std::unique_ptr<PrePrefetchService> PrePrefetchService::Create(\n311:     BrowserContext* browser_context,\n312:     std::vector<PrePrefetchUpdateHeadersCallback>\n313:         embedder_non_ui_thread_update_headers_callbacks,\n314:     std::optional<url::Origin> initial_origin_hint,\n315:     std::optional<bool> initial_javascript_enabled_hint,\n316:     std::optional<bool> initial_should_append_variations_header_hint) {\n317:   CHECK(base::FeatureList::IsEnabled(features::kPrefetchOffTheMainThread));\n318:   CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M159);\n319:   return std::make_unique<PrePrefetchServiceImpl>(\n320:       browser_context,\n321:       std::move(embedder_non_ui_thread_update_headers_callbacks),\n322:       initial_origin_hint, initial_javascript_enabled_hint,\n323:       initial_should_append_variations_header_hint);\n324: }\n325: \n326: PrePrefetchServiceImpl::PrePrefetchServiceImpl(\n327:     BrowserContext* browser_context,"
+        },
+        {
+          "start": 370,
+          "end": 408,
+          "text": "370: }\n371: \n372: std::unique_ptr<PrePrefetchHandle>\n373: PrePrefetchServiceImpl::StartPrePrefetchRequest(\n374:     const GURL& url,\n375:     const std::string& histogram_suffix,\n376:     bool javascript_enabled,\n377:     std::optional<net::HttpNoVarySearchData> no_vary_search_hint,\n378:     std::optional<PrefetchPriority> priority,\n379:     const net::HttpRequestHeaders& additional_headers,\n380:     std::unique_ptr<PrefetchRequestStatusListener> request_status_listener,\n381:     base::TimeDelta ttl,\n382:     bool should_append_variations_header,\n383:     bool should_disable_block_until_head_timeout,\n384:     bool should_bypass_http_cache) {\n385:   CHECK(!BrowserThread::CurrentlyOn(content::BrowserThread::UI),\n386:         base::NotFatalUntil::M159);\n387:   TRACE_EVENT(\"loading\", \"PrePrefetchServiceImpl::StartPrePrefetchRequest\",\n388:               \"url\", url);\n389: \n390:   std::unique_ptr<const PrefetchRequest> prefetch_request =\n391:       PrefetchRequest::CreateBrowserInitiatedWithoutWebContentsOffTheMainThread(\n392:           browser_context_weak_on_ui_thread_, url,\n393:           PrefetchType(PreloadingTriggerType::kEmbedder,\n394:                        /*use_prefetch_proxy=*/false),\n395:           histogram_suffix, blink::mojom::Referrer(), javascript_enabled,\n396:           /*referring_origin=*/std::nullopt, std::move(no_vary_search_hint),\n397:           priority,\n398:           /*attempt=*/nullptr, additional_headers,\n399:           std::move(request_status_listener), ttl,\n400:           should_append_variations_header,\n401:           should_disable_block_until_head_timeout, should_bypass_http_cache);\n402: \n403:   return StartPrePrefetchRequestInternal(std::move(prefetch_request));\n404: }\n405: \n406: std::unique_ptr<PrePrefetchHandle>\n407: PrePrefetchServiceImpl::StartPrePrefetchRequestForTesting(  // IN-TEST\n408:     std::unique_ptr<const PrefetchRequest> prefetch_request) {"
+        }
+      ]
+    }
+  ],
+  "callerSearch": {
+    "command": [
+      "rg",
+      "-n",
+      "StartPrePrefetchRequest\\(",
+      "chrome",
+      "content",
+      "android_webview",
+      "--glob",
+      "*.cc",
+      "--glob",
+      "*.h"
+    ],
+    "roots": [
+      "chrome",
+      "content",
+      "android_webview"
+    ],
+    "matches": "android_webview/browser/prefetch/aw_prefetch_manager.cc:291:int AwPrefetchManager::StartPrePrefetchRequest(\nandroid_webview/browser/prefetch/aw_prefetch_manager.cc:430:    pre_prefetch_handle = aw_pre_prefetch_service_->StartPrePrefetchRequest(\nandroid_webview/browser/prefetch/aw_prefetch_manager.h:47://   - `StartPrePrefetchRequest()` is called from the worker thread.\nandroid_webview/browser/prefetch/aw_prefetch_manager.h:112:  AwPrefetchKey StartPrePrefetchRequest(\nandroid_webview/browser/prefetch/aw_prefetch_manager_unittest.cc:325:            return manager_ptr->StartPrePrefetchRequest(\ncontent/public/browser/pre_prefetch_service.h:64:  StartPrePrefetchRequest(\ncontent/browser/preloading/prefetch/pre_prefetch_service_impl.cc:131:  void StartPrePrefetchRequest(\ncontent/browser/preloading/prefetch/pre_prefetch_service_impl.cc:373:PrePrefetchServiceImpl::StartPrePrefetchRequest(\ncontent/browser/preloading/prefetch/pre_prefetch_service_impl.h:92:  [[nodiscard]] std::unique_ptr<PrePrefetchHandle> StartPrePrefetchRequest(\ncontent/browser/preloading/prefetch/prefetch_service_unittest.cc:1165:              return service_ptr->StartPrePrefetchRequest(\ncontent/browser/preloading/prefetch/pre_prefetch_service_impl_unittest.cc:117:            return service_ptr->StartPrePrefetchRequest(\ncontent/browser/preloading/prefetch/pre_prefetch_service_impl_unittest.cc:146:// Test that `PrePrefetchServiceCore::StartPrePrefetchRequest()` currently fails\ncontent/browser/preloading/prefetch/pre_prefetch_service_impl_unittest.cc:172:            return service_ptr->StartPrePrefetchRequest(\ncontent/browser/preloading/prefetch/pre_prefetch_service_impl_unittest.cc:219:            return service_ptr->StartPrePrefetchRequest(\ncontent/browser/preloading/prefetch/pre_prefetch_service_impl_unittest.cc:250:            return service_ptr->StartPrePrefetchRequest(\ncontent/browser/preloading/prefetch/pre_prefetch_service_impl_unittest.cc:300:            *handle1_ptr = service_ptr->StartPrePrefetchRequest(\ncontent/browser/preloading/prefetch/pre_prefetch_service_impl_unittest.cc:311:            *handle2_ptr = service_ptr->StartPrePrefetchRequest(\ncontent/browser/preloading/prefetch/pre_prefetch_service_impl_unittest.cc:375:            return service_ptr->StartPrePrefetchRequest(\ncontent/browser/preloading/prefetch/pre_prefetch_service_impl_unittest.cc:447:            return service_ptr->StartPrePrefetchRequest(\ncontent/browser/preloading/prefetch/pre_prefetch_service_impl_unittest.cc:507:            return service_ptr->StartPrePrefetchRequest(\ncontent/browser/preloading/prefetch/nav_prefetch_browsertest.cc:797:              return service_ptr->StartPrePrefetchRequest(\n"
+  },
+  "limits": [
+    "Source capture is not installed runtime feature state",
+    "Search is limited to recorded source roots and C++ files",
+    "No runtime interception or no-leak pass inferred"
+  ]
+}

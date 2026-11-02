@@ -1,0 +1,249 @@
+{
+  "label": "private-utility-loss",
+  "feature": true,
+  "events": [
+    {
+      "name": "sender-destroyed",
+      "at": 1793206886146
+    },
+    {
+      "name": "owned-utility-terminated",
+      "at": 1793206886297,
+      "pid": 57697
+    },
+    {
+      "name": "reset-first-connection",
+      "at": 1793206886598
+    }
+  ],
+  "attempts": [
+    {
+      "url": "https://retry.blanc-fixture.test/retry",
+      "at": 1793206886042,
+      "headers": {
+        "host": "retry.blanc-fixture.test",
+        "connection": "keep-alive",
+        "sec-ch-ua-platform": "\"macOS\"",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0",
+        "accept": "*/*",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-dest": "empty",
+        "referer": "https://retry.blanc-fixture.test/page",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "en-US,en;q=0.9"
+      }
+    }
+  ],
+  "traces": [
+    {
+      "args": {
+        "request_id": 407424
+      },
+      "cat": "loading",
+      "dur": 237,
+      "name": "KeepAliveURLLoaderFactories::CreateLoaderAndStart",
+      "ph": "X",
+      "pid": 57675,
+      "tdur": 217,
+      "tid": 2361847,
+      "ts": 62927221930,
+      "tts": 829506
+    },
+    {
+      "args": {
+        "request_id": 407424,
+        "url": "https://retry.blanc-fixture.test/retry"
+      },
+      "cat": "loading",
+      "dur": 20,
+      "name": "KeepAliveURLLoader::KeepAliveURLLoader",
+      "ph": "X",
+      "pid": 57675,
+      "tdur": 19,
+      "tid": 2361847,
+      "ts": 62927222070,
+      "tts": 829631
+    },
+    {
+      "args": {
+        "request_id": 407424
+      },
+      "cat": "loading",
+      "dur": 67,
+      "name": "KeepAliveURLLoader::Start",
+      "ph": "X",
+      "pid": 57675,
+      "tdur": 65,
+      "tid": 2361847,
+      "ts": 62927222099,
+      "tts": 829658
+    },
+    {
+      "args": {
+        "context_digest": "7793A92F97A3A99BE4039B6C7D9E74F8A71F601FFDA12AE0DC0E554780946185",
+        "hook_to_decision_us": 2395,
+        "request_digest": "68FC6D2C71DB21D36519F66412313396C0C56CF84E0492E9EFB79ED6EEC7E15E",
+        "result": 0
+      },
+      "cat": "disabled-by-default-blanc.latency",
+      "name": "Blanc.DecisionTiming",
+      "ph": "I",
+      "pid": 57675,
+      "s": "t",
+      "tid": 2361847,
+      "ts": 62927224691,
+      "tts": 830020
+    },
+    {
+      "args": {
+        "request_id": 407424
+      },
+      "cat": "loading",
+      "dur": 9,
+      "name": "KeepAliveURLLoader::OnURLLoaderDisconnected",
+      "ph": "X",
+      "pid": 57675,
+      "tdur": 7,
+      "tid": 2361847,
+      "ts": 62927333148,
+      "tts": 844142
+    },
+    {
+      "args": {
+        "request_id": 407424
+      },
+      "cat": "loading",
+      "dur": 4,
+      "name": "KeepAliveURLLoader::ForwardingClient::OnDisconnected",
+      "ph": "X",
+      "pid": 57675,
+      "tdur": 3,
+      "tid": 2361847,
+      "ts": 62927333419,
+      "tts": 844410
+    },
+    {
+      "args": {
+        "request_id": 407424
+      },
+      "cat": "loading",
+      "dur": 65,
+      "name": "KeepAliveURLLoader::OnComplete",
+      "ph": "X",
+      "pid": 57675,
+      "tdur": 51,
+      "tid": 2361847,
+      "ts": 62927783771,
+      "tts": 1061133
+    },
+    {
+      "args": {
+        "request_id": -12
+      },
+      "cat": "loading",
+      "dur": 129,
+      "name": "KeepAliveURLLoader::Start",
+      "ph": "X",
+      "pid": 57675,
+      "tdur": 107,
+      "tid": 2361847,
+      "ts": 62928784414,
+      "tts": 1072820
+    },
+    {
+      "args": {
+        "context_digest": "AFFA05EA7CF054AC9B8C39583A4649C01F89D63F7FCFD6F99867306B2C32F5DF",
+        "hook_to_decision_us": 29,
+        "request_digest": "68FC6D2C71DB21D36519F66412313396C0C56CF84E0492E9EFB79ED6EEC7E15E",
+        "result": -1
+      },
+      "cat": "disabled-by-default-blanc.latency",
+      "name": "Blanc.DecisionTiming",
+      "ph": "I",
+      "pid": 57675,
+      "s": "t",
+      "tid": 2361847,
+      "ts": 62928784628,
+      "tts": 1073012
+    },
+    {
+      "args": {
+        "request_id": -12
+      },
+      "cat": "loading",
+      "dur": 80,
+      "name": "KeepAliveURLLoader::OnComplete",
+      "ph": "X",
+      "pid": 57675,
+      "tdur": 78,
+      "tid": 2361847,
+      "ts": 62928784666,
+      "tts": 1073049
+    },
+    {
+      "args": {
+        "loader_id": 1
+      },
+      "cat": "loading",
+      "dur": 75,
+      "name": "KeepAliveURLLoaderFactoriesBase::RemoveLoader",
+      "ph": "X",
+      "pid": 57675,
+      "tdur": 73,
+      "tid": 2361847,
+      "ts": 62928784671,
+      "tts": 1073054
+    },
+    {
+      "args": {
+        "request_id": -12
+      },
+      "cat": "loading",
+      "dur": 8,
+      "name": "KeepAliveURLLoader::~KeepAliveURLLoader",
+      "ph": "X",
+      "pid": 57675,
+      "tdur": 8,
+      "tid": 2361847,
+      "ts": 62928784673,
+      "tts": 1073056
+    },
+    {
+      "args": {
+        "url": "https://retry.blanc-fixture.test/retry"
+      },
+      "cat": "loading",
+      "id2": {
+        "local": "0x17"
+      },
+      "name": "KeepAliveURLLoader",
+      "ph": "b",
+      "pid": 57675,
+      "tid": 2361847,
+      "ts": 62927222075
+    }
+  ],
+  "decisions": [
+    {
+      "context_digest": "7793A92F97A3A99BE4039B6C7D9E74F8A71F601FFDA12AE0DC0E554780946185",
+      "hook_to_decision_us": 2395,
+      "request_digest": "68FC6D2C71DB21D36519F66412313396C0C56CF84E0492E9EFB79ED6EEC7E15E",
+      "result": 0
+    },
+    {
+      "context_digest": "AFFA05EA7CF054AC9B8C39583A4649C01F89D63F7FCFD6F99867306B2C32F5DF",
+      "hook_to_decision_us": 29,
+      "request_digest": "68FC6D2C71DB21D36519F66412313396C0C56CF84E0492E9EFB79ED6EEC7E15E",
+      "result": -1
+    }
+  ],
+  "source": {
+    "browserKind": "chromium",
+    "kind": "private",
+    "isOffTheRecord": true,
+    "version": "157.0.8103.15"
+  }
+}

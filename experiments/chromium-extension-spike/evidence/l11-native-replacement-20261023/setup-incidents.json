@@ -1,0 +1,12 @@
+[
+  {
+    "event": "Initial remote retrieval rejected space-containing source path",
+    "action": "Retrieved the space-free parent; checksum transfer also completed.",
+    "productFailure": false
+  },
+  {
+    "event": "Restricted local codesign verification reported invalid signature",
+    "resolution": "Same signed app verifies successfully with access to macOS trust services; original remote signed app also verifies. Not evidence of transfer corruption.",
+    "productFailure": false
+  }
+]

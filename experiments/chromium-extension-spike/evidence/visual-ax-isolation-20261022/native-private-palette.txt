@@ -1,0 +1,39 @@
+The following is a diff from the previous accessibility tree for Window: "New Incognito Tab" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 52-54, 59
+~						58 button (disabled) Back, Help: Click to go back, hold to see history
+~					98 container
++						99 container Blanc Island
++							100 HTML content Blanc, URL: chrome://blanc-prototype/index.html
++								101 container
++									102 button Search, tabs & commands (Ctrl/Cmd+L)
++										103 container
++											104 button (disabled) Back
++											105 button (disabled) Forward
++										106 button Switch to New Incognito Tab
++										107 text Search or type a URL
++										108 button New tab
++										109 button Private
++										110 container
++											111 button Reload
++											112 button Close tab
++						113 container Blanc address and tabs
++							114 HTML content Blanc Overlay, URL: chrome://blanc-prototype/overlay.html
++								115 container
++									116 container
++										117 text field (settable) Search, enter address, or / for commands
++										118 button (disabled) Back
++										119 button (disabled) Forward
++										120 button Reload
++										121 button Collapse island
++										122 container New Incognito Tab
++											123 button Switch to New Incognito Tab, private
++											124 button Pin tab
++											125 button Close tab
++										126 button New tab ⌘T
++										127 button Favorites
++										128 button History
++										129 button Downloads
++										130 toggle button Vertical tabs, Value: 0
++										131 text Private tab · Nothing here is saved to history
++	132 menu button Window sharing
+The focused UI element is 117 text field (settable) Search, enter address, or / for commands

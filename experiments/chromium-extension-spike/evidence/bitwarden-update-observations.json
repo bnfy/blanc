@@ -1,0 +1,28 @@
+[
+  {
+    "time": "2026-10-16T13:00:13.864Z",
+    "extensions": []
+  },
+  {
+    "time": "2026-10-16T13:02:38.530Z",
+    "extensions": [
+      {
+        "id": "nngceckbapebfimnlniiiahkandclblb",
+        "name": "Bitwarden Password Manager",
+        "version": "2026.9.3",
+        "state": "ENABLED"
+      }
+    ]
+  },
+  {
+    "time": "2026-10-16T13:02:49.571Z",
+    "extensions": [
+      {
+        "id": "nngceckbapebfimnlniiiahkandclblb",
+        "name": "Bitwarden Password Manager",
+        "version": "2026.10.0",
+        "state": "ENABLED"
+      }
+    ]
+  }
+]

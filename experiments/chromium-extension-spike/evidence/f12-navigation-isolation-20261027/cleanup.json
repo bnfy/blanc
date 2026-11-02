@@ -1,0 +1,23 @@
+{
+  "checked_pids": [
+    "89781",
+    "89797",
+    "89824",
+    "89831"
+  ],
+  "ps_output": "",
+  "removed": [
+    "after/profile-regular",
+    "after/profile-private"
+  ],
+  "exit_codes": [
+    {
+      "code": 0,
+      "signal": null
+    },
+    {
+      "code": 0,
+      "signal": null
+    }
+  ]
+}

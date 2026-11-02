@@ -1,0 +1,31 @@
+{
+  "kind": "synthetic-electron-resource-replay",
+  "selectionMode": "full",
+  "referrerMode": "default",
+  "passed": false,
+  "started": "2026-10-17T19:04:26.405Z",
+  "runs": [],
+  "sourceAsarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+  "acceptanceCorpusRequests": 0,
+  "nativeBuilds": 0,
+  "cleanup": {
+    "sourceAsarUnchanged": true,
+    "ownedChildrenExited": true,
+    "disposableTreeRemoved": true
+  },
+  "sourceHashes": {
+    "generate.mjs": "e27cbbe3051e35bd4fc1a66d32e4648952cd03ae996c7f0c17d438748aa965b5",
+    "transport.mjs": "220129a09f193dd70e89cd429695dedd1c5cd6d4f2aec8b487fd12fe58b106c0",
+    "stability.mjs": "450a78e27d1f6df22c131140c290a5040884393f251fc61878d0d9043020a386",
+    "run.mjs": "a06c3f9dca0a0bd2da13588e58b7e895983a1f5fcb211a3f78e2389952fceab7",
+    "coverage.json": "4af0b13922516ebf000af2ad403be7a802b9fff9b746a5b833af165dc536eac7",
+    "page.mjs": "a9681d7410d051fa01c507f8aeae91fb631025e001f75b614e0aa4a90e9fc518",
+    "certificate-set.mjs": "02aac7229046d1a324c218904afc6513cb64d3c5f9d1b85be4a56ee041acbf14",
+    "fixture-trust.cjs": "664cfb6e2b7d1299c45515bd0b3ea557b0daf4be23576b89542af0d86ff8d6bf"
+  },
+  "fixtureCandidates": 5127,
+  "bundleSha256": "58ccd12b765303d9ca3dcecb56a223156aa7664c623d1aa3e2b10c579bb226ea",
+  "error": "synthetic-probe-failed",
+  "failedStage": "regular-a",
+  "finished": "2026-10-17T19:04:43.191Z"
+}

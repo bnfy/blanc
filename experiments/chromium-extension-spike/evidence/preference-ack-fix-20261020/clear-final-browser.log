@@ -1,0 +1,11 @@
+[29662:8424504:1020/133950.520859:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[29662:8424404:1020/133950.639076:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/c810292e-1d43-4dab-874e-2bd0ee0a76c8
+[29662:8424404:1020/133951.297503:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[29662:8424404:1020/133951.298542:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[29691:8425085:1020/133956.542845:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[29691:8425058:1020/133956.640131:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/e79e13a3-73d2-4943-a591-ef5239acdffb
+[29691:8425058:1020/134000.168258:ERROR:base/process/kill_posix.cc:33] waitpid(29698): No child processes (10)

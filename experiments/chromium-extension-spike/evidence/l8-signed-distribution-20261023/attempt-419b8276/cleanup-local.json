@@ -1,0 +1,13 @@
+{
+  "removedOwnedPaths": [
+    "test-app",
+    "test-profile",
+    "tests/core/profile-final",
+    "tests/core/downloads",
+    "tests/recovery/node22-home"
+  ],
+  "signedMasterRetained": true,
+  "currentOwnerProfiles": "9875/9873 untouched",
+  "GoogleBaseline": "untouched",
+  "permanentProfiles": "untouched"
+}

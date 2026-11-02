@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-10-16T12:57:23.212Z",
+  "extension": [
+    {
+      "id": "fmkadmapgofadopljbjfkapdkoienihi",
+      "name": "React Developer Tools",
+      "version": "8.0.0",
+      "enabled": true,
+      "installType": "normal",
+      "updateUrl": "https://clients2.google.com/service/update2/crx"
+    }
+  ],
+  "buttons": [
+    {
+      "text": "Remove from Chrome",
+      "disabled": false
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "source": "experiments/chromium-extension-spike/evidence/decision2-operations-20261026/workload.json",
+  "sourceSha256": "9ced2378d6f7b1837edfa57d6740efd7d7f4729142101016617cf7475072740f",
+  "independentlyRecomputedJobSeconds": 4156.0,
+  "nonSkippedJobs": 26,
+  "nativeRebaseSeconds": null,
+  "ownerAttentionSeconds": null,
+  "totalMonthlyCost": null,
+  "currency": null,
+  "costInputs": [
+    {
+      "item": "Actions storage/cache",
+      "actualAmount": null,
+      "requiredSource": "Account usage and billing export for stated period"
+    },
+    {
+      "item": "Developer ID signing",
+      "actualAmount": null,
+      "requiredSource": "Actual membership renewal charge and coverage period; project allocation basis"
+    },
+    {
+      "item": "Hardware",
+      "actualAmount": null,
+      "requiredSource": "Existing asset acquisition record and explicit allocation basis, or separately labelled incremental cash basis"
+    },
+    {
+      "item": "Power",
+      "actualAmount": null,
+      "requiredSource": "Measured energy and actual tariff, or explicitly unmeasured"
+    },
+    {
+      "item": "Owner effort",
+      "actualAmount": null,
+      "requiredSource": "Prospective active intervals on genuine update, not build duration"
+    }
+  ],
+  "acceptance": false,
+  "newRuntimeTests": false
+}

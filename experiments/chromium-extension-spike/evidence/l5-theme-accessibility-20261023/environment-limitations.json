@@ -1,0 +1,5 @@
+{
+  "scopeInitial": "Sandbox denied binding 127.0.0.1:9890 before test execution; permitted rerun passed 19 checks.",
+  "finalAuditInitial": "Sandboxed codesign returned invalid signature; same candidate outside sandbox passed strict signature and hash identity without modification.",
+  "initialSourceTests": "Only nine Store tests executed on initial command; complete final run passed all 16 tests."
+}

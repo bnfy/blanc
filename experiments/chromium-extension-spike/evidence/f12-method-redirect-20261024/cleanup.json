@@ -1,0 +1,12 @@
+[
+  {
+    "path": "/private/tmp/blanc-f12-method-redirect-20261024/profile-private",
+    "process_absent": true,
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/blanc-f12-method-redirect-20261024/profile-regular",
+    "process_absent": true,
+    "removed": true
+  }
+]

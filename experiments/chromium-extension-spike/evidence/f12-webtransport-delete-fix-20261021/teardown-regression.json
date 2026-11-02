@@ -1,0 +1,1698 @@
+{
+  "results": [
+    {
+      "kind": "regular",
+      "mode": "service-stop",
+      "events": [
+        "positive-control",
+        "utility-stopped",
+        "native-pending",
+        "service-version-stopped",
+        "utility-resumed"
+      ],
+      "browserContextId": "590736C8CEA7F44855860A8A5A33A918",
+      "versionEvents": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "stopped",
+          "status": "new",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 0,
+          "controlledClients": []
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "stopped",
+          "status": "new",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618867.945504,
+          "controlledClients": []
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "starting",
+          "status": "new",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618867.945504,
+          "controlledClients": []
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "starting",
+          "status": "new",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618867.945504,
+          "controlledClients": [],
+          "targetId": "106F52B1DFA40CB4EEAF376B973DCE88"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "starting",
+          "status": "installing",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618867.945504,
+          "controlledClients": [],
+          "targetId": "106F52B1DFA40CB4EEAF376B973DCE88"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "installing",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618867.945504,
+          "controlledClients": [],
+          "targetId": "106F52B1DFA40CB4EEAF376B973DCE88"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "installed",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618867.945504,
+          "controlledClients": [],
+          "targetId": "106F52B1DFA40CB4EEAF376B973DCE88"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "activating",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618867.945504,
+          "controlledClients": [],
+          "targetId": "106F52B1DFA40CB4EEAF376B973DCE88"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "activating",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618867.945504,
+          "controlledClients": [
+            "ADBE87DA53A1A88D8CCDE92238B16888"
+          ],
+          "targetId": "106F52B1DFA40CB4EEAF376B973DCE88"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618867.945504,
+          "controlledClients": [
+            "ADBE87DA53A1A88D8CCDE92238B16888"
+          ],
+          "targetId": "106F52B1DFA40CB4EEAF376B973DCE88"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "stopping",
+          "status": "activated",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618867.945504,
+          "controlledClients": [
+            "ADBE87DA53A1A88D8CCDE92238B16888"
+          ],
+          "targetId": "106F52B1DFA40CB4EEAF376B973DCE88"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "stopped",
+          "status": "activated",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618867.945504,
+          "controlledClients": [
+            "ADBE87DA53A1A88D8CCDE92238B16888"
+          ]
+        }
+      ],
+      "owner": {
+        "targetId": "106F52B1DFA40CB4EEAF376B973DCE88",
+        "type": "service_worker",
+        "title": "Service Worker http://127.0.0.1:64676/service.js",
+        "url": "http://127.0.0.1:64676/service.js",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "590736C8CEA7F44855860A8A5A33A918"
+      },
+      "version": {
+        "versionId": "0",
+        "registrationId": "0",
+        "scriptURL": "http://127.0.0.1:64676/service.js",
+        "runningStatus": "running",
+        "status": "activated",
+        "scriptLastModified": 0,
+        "scriptResponseTime": 1792618867.945504,
+        "controlledClients": [
+          "ADBE87DA53A1A88D8CCDE92238B16888"
+        ],
+        "targetId": "106F52B1DFA40CB4EEAF376B973DCE88"
+      },
+      "processes": {
+        "browserPid": 23681,
+        "utilityPid": 23698
+      },
+      "pendingId": "A640A1DA188C8645159FCC8EA7EF07C7",
+      "targetsAfterStop": [
+        {
+          "targetId": "E69BE953643AEA0F7ADAC1A22D1D22D1",
+          "type": "browser_ui",
+          "title": "Omnibox Popup",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "590736C8CEA7F44855860A8A5A33A918"
+        },
+        {
+          "targetId": "6AD21249A01D266F150CCDCAC49151D3",
+          "type": "page",
+          "title": "Blanc Chromium prototype",
+          "url": "chrome://blanc-prototype/host.html",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "590736C8CEA7F44855860A8A5A33A918"
+        },
+        {
+          "targetId": "94F729D3F5FF1566019CB1BE6401EE95",
+          "type": "page",
+          "title": "about:blank",
+          "url": "about:blank",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "590736C8CEA7F44855860A8A5A33A918"
+        },
+        {
+          "targetId": "ADBE87DA53A1A88D8CCDE92238B16888",
+          "type": "page",
+          "title": "WT lifecycle",
+          "url": "http://127.0.0.1:64676/",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "590736C8CEA7F44855860A8A5A33A918"
+        }
+      ],
+      "targetDestroyed": false,
+      "pendingArrivals": [],
+      "pendingRecords": [
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "A640A1DA188C8645159FCC8EA7EF07C7",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64676",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "A640A1DA188C8645159FCC8EA7EF07C7",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        }
+      ],
+      "recovery": {
+        "ready": true,
+        "echo": "blanc-http3-proof"
+      },
+      "passed": true,
+      "records": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "DAFA4EC3610BB0A43C91F446DBA91650",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "F4C5E034136E46AF2C8141749895C534",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1456631,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -6,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "http://127.0.0.1:64676",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64676",
+          "url": "http://127.0.0.1:64676/"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "23694.2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "773A4ACA79AC44A6951B00C281004F9D",
+          "factory_isolation_top_origin": "http://127.0.0.1:64676",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 3269,
+          "initiator_origin": "http://127.0.0.1:64676",
+          "initiator_present": true,
+          "loader_request_id": 734317,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64676/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64676",
+          "url": "http://127.0.0.1:64676/client.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "23694.4",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "773A4ACA79AC44A6951B00C281004F9D",
+          "factory_isolation_top_origin": "http://127.0.0.1:64676",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 495,
+          "initiator_origin": "http://127.0.0.1:64676",
+          "initiator_present": true,
+          "loader_request_id": 734318,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64676/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "image",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64676",
+          "url": "http://127.0.0.1:64676/favicon.ico"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "E1C893F97CC51B72A711DD8DA4CFED78",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64676",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "E1C893F97CC51B72A711DD8DA4CFED78",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "106F52B1DFA40CB4EEAF376B973DCE88",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "0450C03E272511A85EB487658A512468",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "service-worker-script",
+          "factory_type": 5,
+          "frame_role": "unresolved",
+          "frame_state": "not-associated",
+          "hook_to_decision_us": 409,
+          "initiator_origin": "http://127.0.0.1:64676",
+          "initiator_present": true,
+          "loader_request_id": -7,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64676/",
+          "request_isolation_top_origin": "http://127.0.0.1:64676",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "unresolved",
+          "url": "http://127.0.0.1:64676/service.js"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "A640A1DA188C8645159FCC8EA7EF07C7",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64676",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "A640A1DA188C8645159FCC8EA7EF07C7",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "E927CA63727B792573FBC523048AA144",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64676",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "E927CA63727B792573FBC523048AA144",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        }
+      ]
+    },
+    {
+      "kind": "private",
+      "mode": "service-stop",
+      "events": [
+        "positive-control",
+        "utility-stopped",
+        "native-pending",
+        "service-version-stopped",
+        "utility-resumed"
+      ],
+      "browserContextId": "DD7F5DF11B616F2BB8E59EE92701F38F",
+      "versionEvents": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "stopped",
+          "status": "new",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 0,
+          "controlledClients": []
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "stopped",
+          "status": "new",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618873.380235,
+          "controlledClients": []
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "starting",
+          "status": "new",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618873.380235,
+          "controlledClients": []
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "starting",
+          "status": "new",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618873.380235,
+          "controlledClients": [],
+          "targetId": "45C0CDB79315320D308B5A6DCC34412D"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "starting",
+          "status": "installing",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618873.380235,
+          "controlledClients": [],
+          "targetId": "45C0CDB79315320D308B5A6DCC34412D"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "installing",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618873.380235,
+          "controlledClients": [],
+          "targetId": "45C0CDB79315320D308B5A6DCC34412D"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "installed",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618873.380235,
+          "controlledClients": [],
+          "targetId": "45C0CDB79315320D308B5A6DCC34412D"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "activating",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618873.380235,
+          "controlledClients": [],
+          "targetId": "45C0CDB79315320D308B5A6DCC34412D"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "activating",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618873.380235,
+          "controlledClients": [
+            "34F156BA6EF45F4FE202D49CB6CC97DB"
+          ],
+          "targetId": "45C0CDB79315320D308B5A6DCC34412D"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618873.380235,
+          "controlledClients": [
+            "34F156BA6EF45F4FE202D49CB6CC97DB"
+          ],
+          "targetId": "45C0CDB79315320D308B5A6DCC34412D"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "stopping",
+          "status": "activated",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618873.380235,
+          "controlledClients": [
+            "34F156BA6EF45F4FE202D49CB6CC97DB"
+          ],
+          "targetId": "45C0CDB79315320D308B5A6DCC34412D"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "stopped",
+          "status": "activated",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618873.380235,
+          "controlledClients": [
+            "34F156BA6EF45F4FE202D49CB6CC97DB"
+          ]
+        }
+      ],
+      "owner": {
+        "targetId": "45C0CDB79315320D308B5A6DCC34412D",
+        "type": "service_worker",
+        "title": "Service Worker http://127.0.0.1:64676/service.js",
+        "url": "http://127.0.0.1:64676/service.js",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "DD7F5DF11B616F2BB8E59EE92701F38F"
+      },
+      "version": {
+        "versionId": "0",
+        "registrationId": "0",
+        "scriptURL": "http://127.0.0.1:64676/service.js",
+        "runningStatus": "running",
+        "status": "activated",
+        "scriptLastModified": 0,
+        "scriptResponseTime": 1792618873.380235,
+        "controlledClients": [
+          "34F156BA6EF45F4FE202D49CB6CC97DB"
+        ],
+        "targetId": "45C0CDB79315320D308B5A6DCC34412D"
+      },
+      "processes": {
+        "browserPid": 23714,
+        "utilityPid": 23733
+      },
+      "pendingId": "661A4D3673C4F698D8A0DC892E49B8E3",
+      "targetsAfterStop": [
+        {
+          "targetId": "DF1FD5AC47CC78C9A1A92210E9378951",
+          "type": "page",
+          "title": "Blanc Chromium prototype",
+          "url": "chrome://blanc-prototype/host.html",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "DD7F5DF11B616F2BB8E59EE92701F38F"
+        },
+        {
+          "targetId": "CD8226B61DE4172B4F94B1F601573495",
+          "type": "browser_ui",
+          "title": "Omnibox Popup",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "FE21AB340747FB37BEE0B8975FC301C6"
+        },
+        {
+          "targetId": "3B5CA59979B192D0218D720151443A1E",
+          "type": "page",
+          "title": "Blanc Chromium prototype",
+          "url": "chrome://blanc-prototype/host.html",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "FE21AB340747FB37BEE0B8975FC301C6"
+        },
+        {
+          "targetId": "4876BF096A6B7FC83EC220A5C064D8C3",
+          "type": "page",
+          "title": "about:blank",
+          "url": "about:blank",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "FE21AB340747FB37BEE0B8975FC301C6"
+        },
+        {
+          "targetId": "C7290A53A88C21008FF368E381650DCE",
+          "type": "browser_ui",
+          "title": "Omnibox Popup",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "attached": false,
+          "canAccessOpener": false,
+          "browserContextId": "DD7F5DF11B616F2BB8E59EE92701F38F"
+        },
+        {
+          "targetId": "34F156BA6EF45F4FE202D49CB6CC97DB",
+          "type": "page",
+          "title": "WT lifecycle",
+          "url": "http://127.0.0.1:64676/",
+          "attached": true,
+          "canAccessOpener": false,
+          "browserContextId": "DD7F5DF11B616F2BB8E59EE92701F38F"
+        }
+      ],
+      "targetDestroyed": false,
+      "pendingArrivals": [],
+      "pendingRecords": [
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "661A4D3673C4F698D8A0DC892E49B8E3",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64676",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "661A4D3673C4F698D8A0DC892E49B8E3",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        }
+      ],
+      "recovery": {
+        "ready": true,
+        "echo": "blanc-http3-proof"
+      },
+      "passed": true,
+      "records": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "5011707D9E1B5F23F37C153A1699C968",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "957645C134B4C9D10F2B0A5A8857D459",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1501097,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -8,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "http://127.0.0.1:64676",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64676",
+          "url": "http://127.0.0.1:64676/"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "23729.2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "E65C01F5509920A642CF071F7F76EC04",
+          "factory_isolation_top_origin": "http://127.0.0.1:64676",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 5810,
+          "initiator_origin": "http://127.0.0.1:64676",
+          "initiator_present": true,
+          "loader_request_id": 377997,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64676/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64676",
+          "url": "http://127.0.0.1:64676/client.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "23729.4",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "E65C01F5509920A642CF071F7F76EC04",
+          "factory_isolation_top_origin": "http://127.0.0.1:64676",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 351,
+          "initiator_origin": "http://127.0.0.1:64676",
+          "initiator_present": true,
+          "loader_request_id": 377998,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64676/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "image",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64676",
+          "url": "http://127.0.0.1:64676/favicon.ico"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "266E7FC6063F5144C440524D8E7FFDEF",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64676",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "266E7FC6063F5144C440524D8E7FFDEF",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "45C0CDB79315320D308B5A6DCC34412D",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "7B20B9052B4B0FB4AA97A4605C54B587",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "service-worker-script",
+          "factory_type": 5,
+          "frame_role": "unresolved",
+          "frame_state": "not-associated",
+          "hook_to_decision_us": 360,
+          "initiator_origin": "http://127.0.0.1:64676",
+          "initiator_present": true,
+          "loader_request_id": -11,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64676/",
+          "request_isolation_top_origin": "http://127.0.0.1:64676",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "unresolved",
+          "url": "http://127.0.0.1:64676/service.js"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "661A4D3673C4F698D8A0DC892E49B8E3",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64676",
+          "owner": "frame-less-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "661A4D3673C4F698D8A0DC892E49B8E3",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "BB95CF128E7D94196141A38C87F9A380",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64676",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "BB95CF128E7D94196141A38C87F9A380",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        }
+      ]
+    },
+    {
+      "kind": "private",
+      "mode": "context-close",
+      "events": [
+        "positive-control",
+        "utility-stopped",
+        "native-pending",
+        "private-context-removed",
+        "service-target-destroyed",
+        "utility-resumed"
+      ],
+      "browserContextId": "AA0ADE03DA1BD068653A95C0B8926B9D",
+      "versionEvents": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "stopped",
+          "status": "new",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 0,
+          "controlledClients": []
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "stopped",
+          "status": "new",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618878.786284,
+          "controlledClients": []
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "starting",
+          "status": "new",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618878.786284,
+          "controlledClients": []
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "starting",
+          "status": "new",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618878.786284,
+          "controlledClients": [],
+          "targetId": "FBEACD06CC6416929559703BFBDACD66"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "starting",
+          "status": "installing",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618878.786284,
+          "controlledClients": [],
+          "targetId": "FBEACD06CC6416929559703BFBDACD66"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "installing",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618878.786284,
+          "controlledClients": [],
+          "targetId": "FBEACD06CC6416929559703BFBDACD66"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "installed",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618878.786284,
+          "controlledClients": [],
+          "targetId": "FBEACD06CC6416929559703BFBDACD66"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "activating",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618878.786284,
+          "controlledClients": [],
+          "targetId": "FBEACD06CC6416929559703BFBDACD66"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "activating",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618878.786284,
+          "controlledClients": [
+            "26F760319BAE4B8776C6165362A7352E"
+          ],
+          "targetId": "FBEACD06CC6416929559703BFBDACD66"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618878.786284,
+          "controlledClients": [
+            "26F760319BAE4B8776C6165362A7352E"
+          ],
+          "targetId": "FBEACD06CC6416929559703BFBDACD66"
+        }
+      ],
+      "owner": {
+        "targetId": "FBEACD06CC6416929559703BFBDACD66",
+        "type": "service_worker",
+        "title": "Service Worker http://127.0.0.1:64676/service.js",
+        "url": "http://127.0.0.1:64676/service.js",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "AA0ADE03DA1BD068653A95C0B8926B9D"
+      },
+      "version": {
+        "versionId": "0",
+        "registrationId": "0",
+        "scriptURL": "http://127.0.0.1:64676/service.js",
+        "runningStatus": "running",
+        "status": "activated",
+        "scriptLastModified": 0,
+        "scriptResponseTime": 1792618878.786284,
+        "controlledClients": [
+          "26F760319BAE4B8776C6165362A7352E"
+        ],
+        "targetId": "FBEACD06CC6416929559703BFBDACD66"
+      },
+      "processes": {
+        "browserPid": 23738,
+        "utilityPid": 23757
+      },
+      "pendingId": "44CE52756170DF5F77E0DF67095B2F57",
+      "pendingArrivals": [],
+      "pendingRecords": [
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "44CE52756170DF5F77E0DF67095B2F57",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "context_alive": false,
+          "decision": "block",
+          "engine_result": -1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64676",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": true,
+          "request_id": "44CE52756170DF5F77E0DF67095B2F57",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        }
+      ],
+      "recovery": {
+        "ready": true,
+        "echo": "blanc-http3-proof"
+      },
+      "passed": true,
+      "records": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "20572D9ED4573210EC892F584301A1BF",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "297237BE1EDE07E047A6B120AB2E64F0",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1476733,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -8,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "http://127.0.0.1:64676",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64676",
+          "url": "http://127.0.0.1:64676/"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "23753.2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "3B7621A9C89CF59E10CBD971A215D755",
+          "factory_isolation_top_origin": "http://127.0.0.1:64676",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 3848,
+          "initiator_origin": "http://127.0.0.1:64676",
+          "initiator_present": true,
+          "loader_request_id": 1018155,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64676/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64676",
+          "url": "http://127.0.0.1:64676/client.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "23753.4",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "3B7621A9C89CF59E10CBD971A215D755",
+          "factory_isolation_top_origin": "http://127.0.0.1:64676",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 499,
+          "initiator_origin": "http://127.0.0.1:64676",
+          "initiator_present": true,
+          "loader_request_id": 1018156,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64676/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "image",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64676",
+          "url": "http://127.0.0.1:64676/favicon.ico"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "B1084EA3C97FBB8664192D59823C0807",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64676",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "profile_unavailable": false,
+          "request_id": "B1084EA3C97FBB8664192D59823C0807",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "FBEACD06CC6416929559703BFBDACD66",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "187CCDA61C690BD2400B8C58B804133E",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "service-worker-script",
+          "factory_type": 5,
+          "frame_role": "unresolved",
+          "frame_state": "not-associated",
+          "hook_to_decision_us": 433,
+          "initiator_origin": "http://127.0.0.1:64676",
+          "initiator_present": true,
+          "loader_request_id": -11,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64676/",
+          "request_isolation_top_origin": "http://127.0.0.1:64676",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "unresolved",
+          "url": "http://127.0.0.1:64676/service.js"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "44CE52756170DF5F77E0DF67095B2F57",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "context_alive": false,
+          "decision": "block",
+          "engine_result": -1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64676",
+          "owner": "frame-less-worker",
+          "private": false,
+          "profile_unavailable": true,
+          "request_id": "44CE52756170DF5F77E0DF67095B2F57",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "8834714817F9F99F0DBE697D2911E82E",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "5C5B4FA69E70F31B83981A738E698232",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 559,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -12,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "http://127.0.0.1:64676",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64676",
+          "url": "http://127.0.0.1:64676/"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "23760.2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "A401CE8A796D5D63BBA6355BFF2AAD62",
+          "factory_isolation_top_origin": "http://127.0.0.1:64676",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 877,
+          "initiator_origin": "http://127.0.0.1:64676",
+          "initiator_present": true,
+          "loader_request_id": 13191,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64676/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64676",
+          "url": "http://127.0.0.1:64676/client.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "23760.4",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "A401CE8A796D5D63BBA6355BFF2AAD62",
+          "factory_isolation_top_origin": "http://127.0.0.1:64676",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 401,
+          "initiator_origin": "http://127.0.0.1:64676",
+          "initiator_present": true,
+          "loader_request_id": 13192,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64676/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "image",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64676",
+          "url": "http://127.0.0.1:64676/favicon.ico"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "700B8CD3B58F79AB73F50CCE86F31505",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64676",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "700B8CD3B58F79AB73F50CCE86F31505",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        }
+      ]
+    },
+    {
+      "kind": "regular",
+      "mode": "browser-close",
+      "events": [
+        "positive-control",
+        "utility-stopped",
+        "native-pending",
+        "owned-browser-disconnected"
+      ],
+      "browserContextId": "7697F4A0D0EF3332E36D0061DB6F28BD",
+      "versionEvents": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "stopped",
+          "status": "new",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 0,
+          "controlledClients": []
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "stopped",
+          "status": "new",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618883.868512,
+          "controlledClients": []
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "starting",
+          "status": "new",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618883.868512,
+          "controlledClients": []
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "starting",
+          "status": "new",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618883.868512,
+          "controlledClients": [],
+          "targetId": "B26F547843D08A4E92A0801F0B84A581"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "starting",
+          "status": "installing",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618883.868512,
+          "controlledClients": [],
+          "targetId": "B26F547843D08A4E92A0801F0B84A581"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "installing",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618883.868512,
+          "controlledClients": [],
+          "targetId": "B26F547843D08A4E92A0801F0B84A581"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "installed",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618883.868512,
+          "controlledClients": [],
+          "targetId": "B26F547843D08A4E92A0801F0B84A581"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "activating",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618883.868512,
+          "controlledClients": [],
+          "targetId": "B26F547843D08A4E92A0801F0B84A581"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "activating",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618883.868512,
+          "controlledClients": [
+            "28D5AF50EF6F70140867161B94F7A18C"
+          ],
+          "targetId": "B26F547843D08A4E92A0801F0B84A581"
+        },
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:64676/service.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792618883.868512,
+          "controlledClients": [
+            "28D5AF50EF6F70140867161B94F7A18C"
+          ],
+          "targetId": "B26F547843D08A4E92A0801F0B84A581"
+        }
+      ],
+      "owner": {
+        "targetId": "B26F547843D08A4E92A0801F0B84A581",
+        "type": "service_worker",
+        "title": "Service Worker http://127.0.0.1:64676/service.js",
+        "url": "http://127.0.0.1:64676/service.js",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "7697F4A0D0EF3332E36D0061DB6F28BD"
+      },
+      "version": {
+        "versionId": "0",
+        "registrationId": "0",
+        "scriptURL": "http://127.0.0.1:64676/service.js",
+        "runningStatus": "running",
+        "status": "activated",
+        "scriptLastModified": 0,
+        "scriptResponseTime": 1792618883.868512,
+        "controlledClients": [
+          "28D5AF50EF6F70140867161B94F7A18C"
+        ],
+        "targetId": "B26F547843D08A4E92A0801F0B84A581"
+      },
+      "processes": {
+        "browserPid": 23762,
+        "utilityPid": 23778
+      },
+      "pendingId": "3552C7E2F850604002B1CD2031ADAAC8",
+      "utilityAliveAfterClose": false,
+      "pendingArrivals": [],
+      "pendingRecords": [
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "3552C7E2F850604002B1CD2031ADAAC8",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        }
+      ],
+      "passed": true,
+      "records": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "79B8F87FBBDA1862889E5FEA8EA01401",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "5D91D79F87C3CA03FC4912783CC67745",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1441433,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -6,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "http://127.0.0.1:64676",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64676",
+          "url": "http://127.0.0.1:64676/"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "23775.2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "B3DEB421B5F521C0DCEA6A5C460753F6",
+          "factory_isolation_top_origin": "http://127.0.0.1:64676",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 3605,
+          "initiator_origin": "http://127.0.0.1:64676",
+          "initiator_present": true,
+          "loader_request_id": 520573,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64676/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64676",
+          "url": "http://127.0.0.1:64676/client.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "23775.4",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "B3DEB421B5F521C0DCEA6A5C460753F6",
+          "factory_isolation_top_origin": "http://127.0.0.1:64676",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 380,
+          "initiator_origin": "http://127.0.0.1:64676",
+          "initiator_present": true,
+          "loader_request_id": 520574,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64676/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "image",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64676",
+          "url": "http://127.0.0.1:64676/favicon.ico"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "7349B6D6C17727C985B38C68A3A9426D",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64676",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "profile_unavailable": false,
+          "request_id": "7349B6D6C17727C985B38C68A3A9426D",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "B26F547843D08A4E92A0801F0B84A581",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "E704960BE24A9111B5FF50680C223AD2",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "service-worker-script",
+          "factory_type": 5,
+          "frame_role": "unresolved",
+          "frame_state": "not-associated",
+          "hook_to_decision_us": 399,
+          "initiator_origin": "http://127.0.0.1:64676",
+          "initiator_present": true,
+          "loader_request_id": -7,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64676/",
+          "request_isolation_top_origin": "http://127.0.0.1:64676",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "unresolved",
+          "url": "http://127.0.0.1:64676/service.js"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "3552C7E2F850604002B1CD2031ADAAC8",
+          "url": "https://page.blanc-fixture.test:59463/transport"
+        }
+      ]
+    }
+  ],
+  "serverRows": [
+    {
+      "event": "ready"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:59463",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64676"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:59463",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64676"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:59463",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64676"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:59463",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64676"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:59463",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64676"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:59463",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64676"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:59463",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64676"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    }
+  ],
+  "errors": []
+}

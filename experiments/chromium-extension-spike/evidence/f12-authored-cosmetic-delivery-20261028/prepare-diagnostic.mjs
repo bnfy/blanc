@@ -1,0 +1,10 @@
+import fs from 'node:fs';import path from 'node:path';import {createHash} from 'node:crypto';
+const home=path.resolve('..'),src='/Users/anthonyjloria/Projects/BlancChromium157Recovery/src',production=path.join(home,'artifacts/procedural-properties-combined-20261028'),out=path.join(home,'artifacts/cosmetic-authored-diagnostic-20261028');
+if(fs.existsSync(out))throw Error('diagnostic already exists');fs.cpSync(production,out,{recursive:true});
+const rules=['operator.blanc-fixture.test##.text:has-text(Sponsored)','operator.blanc-fixture.test###styled:matches-css(color: rgb(255, 0, 0))','operator.blanc-fixture.test##.leaf:upward(1)','operator.blanc-fixture.test###xpath-root:xpath(.//span[@data-ad="yes"])','operator.blanc-fixture.test##+js(no-setTimeout-if, blancTimerTarget)'];
+let script=fs.readFileSync(path.join(out,'engine.js'),'utf8');const anchor='globalThis.blancProceduralImport=';if(script.split(anchor).length!==2)throw Error('injection anchor');script=script.replace(anchor,'engine.update({newCosmeticFilters:'+JSON.stringify(rules)+'.map(rule=>{const parsed=CosmeticFilter.parse(rule);if(!parsed)throw Error("fixture rule parse");return parsed})});'+anchor);
+const hash=createHash('sha256').update(script).digest('hex');fs.writeFileSync(path.join(out,'engine.js'),script);
+const header=path.join(src,'chrome/services/blanc_blocker/bundle_hash.h');fs.copyFileSync(header,path.join(out,'production-bundle_hash.h'));
+const newHeader='// Diagnostic-only authored cosmetic rules; restore production after tests.\ninline constexpr char kBlancBlockerBundleSha256[] = "'+hash+'";\n';fs.writeFileSync(path.join(out,'bundle_hash.h'),newHeader);
+fs.writeFileSync(path.join(out,'diagnostic.json'),JSON.stringify({scope:'authored rules appended for missing delivery checks; not production lists or a release candidate',rules,baseEngineHash:JSON.parse(fs.readFileSync(path.join(production,'manifest.json'))).bundleSha256,engineHash:hash,onlyNativeDelta:header},null,2));
+fs.writeFileSync(header,newHeader);console.log(hash);

@@ -1,0 +1,30 @@
+TAP version 13
+# Subtest: renderer permits only packaged static markup
+ok 1 - renderer permits only packaged static markup
+  ---
+  duration_ms: 37.6265
+  ...
+# Subtest: overlay permits only packaged static markup
+ok 2 - overlay permits only packaged static markup
+  ---
+  duration_ms: 26.385666
+  ...
+# Subtest: vertical-tabs permits only packaged static markup
+ok 3 - vertical-tabs permits only packaged static markup
+  ---
+  duration_ms: 7.534583
+  ...
+# Subtest: dynamic row markup is refused
+ok 4 - dynamic row markup is refused
+  ---
+  duration_ms: 0.211875
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 128.33075

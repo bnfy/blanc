@@ -1,0 +1,29 @@
+{
+  "scope": "same renderer bundle in isolated Chromium world; CSS property grouping only, not production broker or signed acceptance",
+  "bundleSha256": "1eaa47ff71302f3eff0b56f9d9e2d4a702ff6c565dc655e0dc2dd7fe40f829ee",
+  "checks": [
+    {
+      "name": "media",
+      "hidden": false,
+      "neutralVisible": true,
+      "temporaryMarkersCleared": true,
+      "revealedAfterRuleRemoval": true
+    },
+    {
+      "name": "supports",
+      "hidden": false,
+      "neutralVisible": true,
+      "temporaryMarkersCleared": true,
+      "revealedAfterRuleRemoval": true
+    },
+    {
+      "name": "layer",
+      "hidden": false,
+      "neutralVisible": true,
+      "temporaryMarkersCleared": true,
+      "revealedAfterRuleRemoval": true
+    }
+  ],
+  "passed": false,
+  "cleanup": true
+}

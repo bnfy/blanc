@@ -1,0 +1,274 @@
+{
+  "app": "/private/tmp/blanc-l11-signed-replacement/Blanc Chromium Preview.app",
+  "scope": "signed default settings; no feature overrides; no page debugger before activation; kill exact disposable blocker utility after armed timer",
+  "runs": [
+    {
+      "mode": "regular",
+      "checks": [
+        {
+          "name": "native profile mode matches schedule",
+          "pass": true,
+          "details": {
+            "private": false
+          }
+        },
+        {
+          "name": "real prerender observed before activation",
+          "pass": true,
+          "details": {
+            "state": "ready",
+            "was": "true"
+          }
+        },
+        {
+          "name": "blocker loss prevents prerender activation",
+          "pass": false,
+          "details": {
+            "url": "http://127.0.0.1:61902/target",
+            "title": "Prerender target",
+            "activationStart": 1597.3999999761581,
+            "body": ""
+          }
+        },
+        {
+          "name": "fresh network also refuses after blocker loss",
+          "pass": true,
+          "details": {
+            "ok": false,
+            "error": "TypeError: Failed to fetch"
+          }
+        },
+        {
+          "name": "clean native exit",
+          "pass": true,
+          "details": {
+            "code": 0,
+            "signal": null
+          }
+        }
+      ],
+      "events": [],
+      "args": [
+        "--user-data-dir=/private/tmp/blanc-prerender-acceptance-20261024/final-verified-loss/regular/profile",
+        "--remote-debugging-port=0",
+        "--no-first-run"
+      ],
+      "observationsBeforeActivation": [
+        {
+          "state": "ready",
+          "was": "true"
+        }
+      ],
+      "beforeClickHits": [
+        {
+          "url": "/entry?mode=regular",
+          "purpose": null
+        },
+        {
+          "url": "/favicon.ico",
+          "purpose": null
+        },
+        {
+          "url": "/target",
+          "purpose": "prefetch;prerender"
+        },
+        {
+          "url": "/observed?state=ready&was=true",
+          "purpose": "prefetch;prerender"
+        }
+      ],
+      "privateProfile": false,
+      "killedUtility": {
+        "pid": 23368,
+        "parentPid": 23349
+      },
+      "postLossTargets": [
+        {
+          "id": "57E9BAF6983B2204697D434A498AF9B0",
+          "url": "http://127.0.0.1:61902/target",
+          "type": "page"
+        }
+      ],
+      "postLossPage": {
+        "url": "http://127.0.0.1:61902/target",
+        "title": "Prerender target",
+        "activationStart": 1597.3999999761581,
+        "body": ""
+      },
+      "freshFetch": {
+        "ok": false,
+        "error": "TypeError: Failed to fetch"
+      },
+      "observations": [
+        {
+          "state": "ready",
+          "was": "true"
+        },
+        {
+          "state": "armed"
+        }
+      ],
+      "hits": [
+        {
+          "url": "/entry?mode=regular",
+          "purpose": null
+        },
+        {
+          "url": "/favicon.ico",
+          "purpose": null
+        },
+        {
+          "url": "/target",
+          "purpose": "prefetch;prerender"
+        },
+        {
+          "url": "/observed?state=ready&was=true",
+          "purpose": "prefetch;prerender"
+        },
+        {
+          "url": "/command",
+          "purpose": null
+        },
+        {
+          "url": "/observed?state=armed",
+          "purpose": null
+        }
+      ]
+    },
+    {
+      "mode": "private",
+      "checks": [
+        {
+          "name": "native profile mode matches schedule",
+          "pass": true,
+          "details": {
+            "private": true
+          }
+        },
+        {
+          "name": "real prerender observed before activation",
+          "pass": true,
+          "details": {
+            "state": "ready",
+            "was": "true"
+          }
+        },
+        {
+          "name": "blocker loss prevents prerender activation",
+          "pass": false,
+          "details": {
+            "url": "http://127.0.0.1:61902/target",
+            "title": "Prerender target",
+            "activationStart": 1598.9000000357628,
+            "body": ""
+          }
+        },
+        {
+          "name": "fresh network also refuses after blocker loss",
+          "pass": true,
+          "details": {
+            "ok": false,
+            "error": "TypeError: Failed to fetch"
+          }
+        },
+        {
+          "name": "clean native exit",
+          "pass": true,
+          "details": {
+            "code": 0,
+            "signal": null
+          }
+        }
+      ],
+      "events": [],
+      "args": [
+        "--user-data-dir=/private/tmp/blanc-prerender-acceptance-20261024/final-verified-loss/private/profile",
+        "--remote-debugging-port=0",
+        "--no-first-run",
+        "--incognito"
+      ],
+      "observationsBeforeActivation": [
+        {
+          "state": "ready",
+          "was": "true"
+        }
+      ],
+      "beforeClickHits": [
+        {
+          "url": "/entry?mode=private",
+          "purpose": null
+        },
+        {
+          "url": "/favicon.ico",
+          "purpose": null
+        },
+        {
+          "url": "/target",
+          "purpose": "prefetch;prerender"
+        },
+        {
+          "url": "/observed?state=ready&was=true",
+          "purpose": "prefetch;prerender"
+        }
+      ],
+      "privateProfile": true,
+      "killedUtility": {
+        "pid": 23405,
+        "parentPid": 23386
+      },
+      "postLossTargets": [
+        {
+          "id": "E78EB963F7573607645E0E97B580F2E4",
+          "url": "http://127.0.0.1:61902/target",
+          "type": "page"
+        }
+      ],
+      "postLossPage": {
+        "url": "http://127.0.0.1:61902/target",
+        "title": "Prerender target",
+        "activationStart": 1598.9000000357628,
+        "body": ""
+      },
+      "freshFetch": {
+        "ok": false,
+        "error": "TypeError: Failed to fetch"
+      },
+      "observations": [
+        {
+          "state": "ready",
+          "was": "true"
+        },
+        {
+          "state": "armed"
+        }
+      ],
+      "hits": [
+        {
+          "url": "/entry?mode=private",
+          "purpose": null
+        },
+        {
+          "url": "/favicon.ico",
+          "purpose": null
+        },
+        {
+          "url": "/target",
+          "purpose": "prefetch;prerender"
+        },
+        {
+          "url": "/observed?state=ready&was=true",
+          "purpose": "prefetch;prerender"
+        },
+        {
+          "url": "/command",
+          "purpose": null
+        },
+        {
+          "url": "/observed?state=armed",
+          "purpose": null
+        }
+      ]
+    }
+  ],
+  "complete": true
+}

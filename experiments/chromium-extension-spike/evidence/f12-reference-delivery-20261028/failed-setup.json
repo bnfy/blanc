@@ -1,0 +1,15 @@
+{
+  "complete": false,
+  "scope": "reference diagnostic authored rules; same retained native page and rules, not pinned production selection or an Electron repair",
+  "rules": [
+    "operator.blanc-fixture.test##.text:has-text(Sponsored)",
+    "operator.blanc-fixture.test###styled:matches-css(color: rgb(255, 0, 0))",
+    "operator.blanc-fixture.test##.leaf:upward(1)",
+    "operator.blanc-fixture.test###xpath-root:xpath(.//span[@data-ad=\"yes\"])",
+    "operator.blanc-fixture.test##+js(no-setTimeout-if, blancTimerTarget)"
+  ],
+  "checks": [],
+  "sources": [],
+  "error": "Error: electronApplication.evaluate: ReferenceError: require is not defined\n    at eval (eval at evaluate (:311:30), <anonymous>:2:21)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+  "cleanup": true
+}

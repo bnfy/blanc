@@ -1,0 +1,104 @@
+{
+  "method": "Actual browser bridge and DOM navigation; physical keyboard/mouse not asserted",
+  "favoriteNavigation": "https://example.com/?blanc-native-newtab-probe=1",
+  "activeTypingBridge": true,
+  "inactiveTypingBridge": {
+    "allowed": false,
+    "message": "Start page is not active"
+  },
+  "sizes": [
+    {
+      "width": 600,
+      "height": 352,
+      "scrollWidth": 600,
+      "footer": {
+        "x": 0,
+        "y": 266,
+        "width": 600,
+        "height": 86,
+        "top": 266,
+        "right": 600,
+        "bottom": 352,
+        "left": 0
+      },
+      "customize": {
+        "x": 260.3203125,
+        "y": 278.6484375,
+        "width": 79.359375,
+        "height": 28,
+        "top": 278.6484375,
+        "right": 339.6796875,
+        "bottom": 306.6484375,
+        "left": 260.3203125
+      },
+      "requestedWindowSize": [
+        600,
+        420
+      ]
+    },
+    {
+      "width": 600,
+      "height": 352,
+      "scrollWidth": 600,
+      "footer": {
+        "x": 0,
+        "y": 266,
+        "width": 600,
+        "height": 86,
+        "top": 266,
+        "right": 600,
+        "bottom": 352,
+        "left": 0
+      },
+      "customize": {
+        "x": 260.3203125,
+        "y": 278.6484375,
+        "width": 79.359375,
+        "height": 28,
+        "top": 278.6484375,
+        "right": 339.6796875,
+        "bottom": 306.6484375,
+        "left": 260.3203125
+      },
+      "requestedWindowSize": [
+        500,
+        420
+      ]
+    },
+    {
+      "width": 600,
+      "height": 352,
+      "scrollWidth": 600,
+      "footer": {
+        "x": 0,
+        "y": 266,
+        "width": 600,
+        "height": 86,
+        "top": 266,
+        "right": 600,
+        "bottom": 352,
+        "left": 0
+      },
+      "customize": {
+        "x": 260.3203125,
+        "y": 278.6484375,
+        "width": 79.359375,
+        "height": 28,
+        "top": 278.6484375,
+        "right": 339.6796875,
+        "bottom": 306.6484375,
+        "left": 260.3203125
+      },
+      "requestedWindowSize": [
+        1200,
+        900
+      ]
+    }
+  ],
+  "popover": true,
+  "persistedForRestart": {
+    "layout": "shelf",
+    "dynamicWallpaperEnabled": true
+  },
+  "sizeTestLimit": "Mac locked: all observed content widths remained 600px. Physical resize and visual verification at other sizes remain pending."
+}

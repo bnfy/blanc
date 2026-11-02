@@ -1,0 +1,12 @@
+{
+  "sourceRevision": "7065f9c04f0a0493f172a6e67b389ac742e37f6f",
+  "artifactSha256": "af05c6cf9414f8818c304be7fbbe3a4585a7bcfa01d5790aa61fa6bf5faee2ff",
+  "date": "2026-10-23",
+  "machine": "Owner MacBook Pro, macOS 27.2",
+  "launch": "Owner opened verified Downloads app normally; no restore flag supplied",
+  "question": "On the MacBook, open Downloads → Blanc Chromium Preview normally. Confirm Shelf and Bitwarden are still present. Open example.com and example.org, select example.org, then Cmd+Q and reopen that same app twice. Do both tabs and the selected tab survive both restarts, and does Bitwarden’s popup still work? If launch is blocked or stalls, stop and report it.",
+  "ownerAnswer": "Both restarts passed",
+  "acceptedScope": "Owner confirms the requested normal-launch, two restart, tab/selection and persistent Shelf/Bitwarden popup checks. This is a human confirmation, not a new automated observation.",
+  "separateOpenFinding": "Earlier nonregular-session sequence stalled in synchronous session restoration; subsequent passes do not resolve its cause. L6/L8 remain open.",
+  "profileHandling": "No profile was copied over, deleted or altered by this evidence update. Google baseline remains separate."
+}

@@ -1,0 +1,47 @@
+{
+  "reviewedHead": "3bcb44026174c36166c5a270f6f4fb523619aa3c",
+  "candidateSource": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "candidateArchiveSha256": "18a0c2ca240f2200fee3e8b250fbade27b7b86ec1c1dd77c21a538a6776aa8cc",
+  "counts": {
+    "success": 25,
+    "failure": 2,
+    "skipped": 2,
+    "pending": 0
+  },
+  "paginationComplete": true,
+  "commitStatuses": [],
+  "codeql": "No new alerts in code changed by this pull request",
+  "dependencyPolicy": {
+    "desktop": "pass",
+    "site": "pass",
+    "tab-import-worker": "pass",
+    "tab-import-companions": "pass; 3 existing VEX-accounted advisories"
+  },
+  "nativeImplementationUnchangedSinceAcceptedCandidate": true,
+  "changesSinceCandidate": "documentation/evidence only",
+  "remainingFailures": [
+    {
+      "name": "modified-link-clicks (windows-latest)",
+      "jobId": 120930424054,
+      "assertion": "actual allowed; expected SecurityError at test/desktop/modified-link-click-smoke.mjs:168",
+      "runtime": "Electron"
+    },
+    {
+      "name": "modified-link-clicks (ubuntu-latest)",
+      "jobId": 120930424032,
+      "assertion": "actual allowed; expected SecurityError at test/desktop/modified-link-click-smoke.mjs:168",
+      "runtime": "Electron"
+    }
+  ],
+  "skipped": [
+    "installed-intel",
+    "linux-native-diagnostics"
+  ],
+  "chromiumRelevantActionableFailures": [],
+  "L11": "OPEN: original all-green repository requirement not satisfied",
+  "newRuntimeTestsRun": 0,
+  "buildsRun": 0,
+  "electron": "paused",
+  "latency": "deferred",
+  "googleBaseline": "not used or changed"
+}

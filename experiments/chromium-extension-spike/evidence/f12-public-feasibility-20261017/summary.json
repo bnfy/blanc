@@ -1,0 +1,26 @@
+{
+  "sample": "fixed ten public entrypoints; not a representative tracker sample",
+  "documents_attempted": 10,
+  "documents_admitted": 0,
+  "documents_refused": 10,
+  "refusals": [
+    {
+      "destination": "document",
+      "reason": "vary-unsupported",
+      "count": 7
+    },
+    {
+      "destination": "document",
+      "reason": "status-unsupported",
+      "count": 3
+    },
+    {
+      "destination": "empty",
+      "reason": "body-type-unsupported",
+      "count": 1
+    }
+  ],
+  "acceptance_corpus_requests": 0,
+  "raw_recordings_persisted": 0,
+  "subresource_distribution_measured": false
+}

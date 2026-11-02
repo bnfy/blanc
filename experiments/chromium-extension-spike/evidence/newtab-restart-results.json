@@ -1,0 +1,111 @@
+{
+  "url": "chrome://blanc-prototype/pages/newtab.html",
+  "title": "New Tab",
+  "layout": "shelf",
+  "prefs": {
+    "layout": "shelf",
+    "dynamicWallpaperEnabled": true
+  },
+  "data": {
+    "layout": "shelf",
+    "dynamicWallpaperEnabled": true,
+    "groups": [],
+    "remoteDevices": [],
+    "blockedThisWeek": 0,
+    "topSites": [
+      {
+        "key": "127.0.0.1",
+        "title": "Blanc fixture a",
+        "url": "http://127.0.0.1:18763/a"
+      },
+      {
+        "key": "127.0.0.1",
+        "title": "New Tab",
+        "url": "http://127.0.0.1:18765/pages/newtab.html"
+      },
+      {
+        "key": "chromewebstore.google.com",
+        "title": "Tampermonkey - Chrome Web Store",
+        "url": "https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo"
+      },
+      {
+        "key": "chromewebstore.google.com",
+        "title": "1Password \u2013 Password Manager - Chrome Web Store",
+        "url": "https://chromewebstore.google.com/detail/1password-%E2%80%93-password-mana/aeblfdkhhhdcdjpifhhbdiojplfjncoa"
+      },
+      {
+        "key": "chromewebstore.google.com",
+        "title": "Grammarly: AI Writing Assistant and Grammar Checker App - Chrome Web Store",
+        "url": "https://chromewebstore.google.com/detail/grammarly-for-chrome/kbfnbcaeplbcioakkpcpgfkobkghlhen"
+      },
+      {
+        "key": "chromewebstore.google.com",
+        "title": "MetaMask - Chrome Web Store",
+        "url": "https://chromewebstore.google.com/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn"
+      },
+      {
+        "key": "127.0.0.1",
+        "title": "Script Installation | Tampermonkey",
+        "url": "http://127.0.0.1:18764/blanc-smoke.user.js"
+      },
+      {
+        "key": "blanc.day",
+        "title": "Blanc Browser \u2014 A Minimal Browser with Built-in Ad Blocking",
+        "url": "https://blanc.day/"
+      },
+      {
+        "key": "chrome.google.com",
+        "title": "Web Store",
+        "url": "https://chrome.google.com/webstore?hl=en"
+      }
+    ],
+    "wallpaperVisible": false
+  },
+  "bookmarks": [],
+  "tabs": [
+    {
+      "id": 60441833,
+      "url": "chrome://newtab/",
+      "windowId": 60441832
+    }
+  ],
+  "restoredOriginalPreferences": null,
+  "extensionsBeforeFinalRestart": [
+    {
+      "id": "aeblfdkhhhdcdjpifhhbdiojplfjncoa",
+      "name": "1Password \u2013 Password Manager",
+      "version": "8.12.41.1",
+      "state": "ENABLED"
+    },
+    {
+      "id": "dhdgffkkebhmkfjojejmpbldmpobfkfo",
+      "name": "Tampermonkey",
+      "version": "5.5.1",
+      "state": "ENABLED"
+    },
+    {
+      "id": "fmkadmapgofadopljbjfkapdkoienihi",
+      "name": "React Developer Tools",
+      "version": "8.0.0",
+      "state": "ENABLED"
+    },
+    {
+      "id": "kbfnbcaeplbcioakkpcpgfkobkghlhen",
+      "name": "Grammarly: AI Writing Assistant and Grammar Checker App",
+      "version": "14.1338.0",
+      "state": "ENABLED"
+    },
+    {
+      "id": "nkbihfbeogaeaoehlefnkodbefgpgknn",
+      "name": "MetaMask",
+      "version": "13.52.0",
+      "state": "ENABLED"
+    },
+    {
+      "id": "nngceckbapebfimnlniiiahkandclblb",
+      "name": "Bitwarden Password Manager",
+      "version": "2026.10.0",
+      "state": "ENABLED"
+    }
+  ]
+}

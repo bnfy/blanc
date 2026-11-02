@@ -1,0 +1,9 @@
+{
+  pass: false,
+  checks: 5,
+  error: 'AssertionError [ERR_ASSERTION]: The input did not match the regular expression /persistence failed or timed out/. Input:\n' +
+    '\n' +
+    "'timeout Runtime.callFunctionOn'\n" +
+    '\n' +
+    '    at file:///private/tmp/blanc-internal-cycle-encrypted/test.mjs:25:105'
+}

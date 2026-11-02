@@ -1,0 +1,432 @@
+{
+  "headRevision": "9ce2d81f4854681f6386d569db80495da98d292e",
+  "checks": [
+    {
+      "id": 120741991094,
+      "name": "CodeQL",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/runs/120741991094",
+      "output": {
+        "title": "No new alerts in code changed by this pull request",
+        "summary": "[View all branch alerts](/bnfy/blanc/security/code-scanning?query=pr%3A1028+tool%3ACodeQL+is%3Aopen).",
+        "text": null,
+        "annotations_count": 0
+      }
+    },
+    {
+      "id": 120741048829,
+      "name": "unit (macos-15)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159500/job/120741048829",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    },
+    {
+      "id": 120741048707,
+      "name": "unit (windows-latest)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159500/job/120741048707",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 0
+      }
+    },
+    {
+      "id": 120740909287,
+      "name": "modified-link-clicks (ubuntu-latest)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "failure",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740909287",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 2
+      }
+    },
+    {
+      "id": 120740909273,
+      "name": "workspace-regressions (macos-latest)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740909273",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    },
+    {
+      "id": 120740909235,
+      "name": "favorites-import (macos-latest)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740909235",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    },
+    {
+      "id": 120740909234,
+      "name": "favorites-import (windows-latest)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740909234",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 0
+      }
+    },
+    {
+      "id": 120740909228,
+      "name": "browser-shortcuts (macos-latest)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740909228",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    },
+    {
+      "id": 120740909206,
+      "name": "workspace-regressions (ubuntu-latest)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740909206",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    },
+    {
+      "id": 120740909171,
+      "name": "oauth-compatibility",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740909171",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    },
+    {
+      "id": 120740909168,
+      "name": "browser-shortcuts (windows-latest)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740909168",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 0
+      }
+    },
+    {
+      "id": 120740909164,
+      "name": "favorites-import (ubuntu-latest)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740909164",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    },
+    {
+      "id": 120740909163,
+      "name": "browser-shortcuts (ubuntu-latest)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740909163",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    },
+    {
+      "id": 120740909147,
+      "name": "quiet-tabs (ubuntu-latest)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740909147",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    },
+    {
+      "id": 120740909145,
+      "name": "modified-link-clicks (windows-latest)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "failure",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740909145",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    },
+    {
+      "id": 120740909139,
+      "name": "workspace-regressions (windows-latest)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740909139",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 0
+      }
+    },
+    {
+      "id": 120740909131,
+      "name": "quiet-tabs (windows-latest)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740909131",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 0
+      }
+    },
+    {
+      "id": 120740909115,
+      "name": "tab-handoff",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740909115",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    },
+    {
+      "id": 120740902131,
+      "name": "installed-intel",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "skipped",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050180776/job/120740902131",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 0
+      }
+    },
+    {
+      "id": 120740902105,
+      "name": "linux-native-diagnostics",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "skipped",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050180776/job/120740902105",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 0
+      }
+    },
+    {
+      "id": 120740900906,
+      "name": "desktop (macos-15)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050180776/job/120740900906",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    },
+    {
+      "id": 120740900896,
+      "name": "desktop (macos-15-intel)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050180776/job/120740900896",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 0
+      }
+    },
+    {
+      "id": 120740900871,
+      "name": "ordinary-package",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050180776/job/120740900871",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    },
+    {
+      "id": 120740900785,
+      "name": "desktop (windows-latest)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050180776/job/120740900785",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 0
+      }
+    },
+    {
+      "id": 120740900690,
+      "name": "desktop (ubuntu-latest)",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050180776/job/120740900690",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    },
+    {
+      "id": 120740827624,
+      "name": "changes",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740827624",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    },
+    {
+      "id": 120740827612,
+      "name": "build",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159523/job/120740827612",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    },
+    {
+      "id": 120740827574,
+      "name": "substrate",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "failure",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740827574",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 2
+      }
+    },
+    {
+      "id": 120740827483,
+      "name": "javascript",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159549/job/120740827483",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 2
+      }
+    },
+    {
+      "id": 120740827446,
+      "name": "acceptance-wiring",
+      "head_sha": "9ce2d81f4854681f6386d569db80495da98d292e",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/bnfy/blanc/actions/runs/40050159492/job/120740827446",
+      "output": {
+        "title": null,
+        "summary": null,
+        "text": null,
+        "annotations_count": 1
+      }
+    }
+  ],
+  "statuses": [],
+  "annotations": [],
+  "hasMore": false,
+  "job": null,
+  "jobs": [],
+  "log": null,
+  "logTruncated": false
+}

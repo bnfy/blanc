@@ -1,0 +1,14 @@
+{
+  "checks": [
+    {
+      "name": "named Space saved before cancellation",
+      "value": true
+    },
+    {
+      "name": "close awaits unload outcome",
+      "value": true
+    }
+  ],
+  "pass": false,
+  "error": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at file:///private/tmp/blanc-mutation-only-clear-3/test.mjs:23:174"
+}

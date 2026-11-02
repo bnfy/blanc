@@ -1,0 +1,11 @@
+{
+  "source": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "archiveSha256": "18a0c2ca240f2200fee3e8b250fbade27b7b86ec1c1dd77c21a538a6776aa8cc",
+  "signer": "anthony@bnfy.me",
+  "issuer": "https://github.com/login/oauth",
+  "manifestSha256": "0632e7d689b069da788cbce6540f694b01d6de4fde881f89c12667e98788d23a",
+  "bundleSha256": "a38801a3dd3280441465c9711b8498da3dc93bfa66517ecb60edda3bb3ef9d07",
+  "pinnedVerificationPassed": true,
+  "tamperedManifestRejected": true,
+  "tamperedArtifactRejected": true
+}

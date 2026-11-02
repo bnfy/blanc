@@ -1,0 +1,68 @@
+{
+  "scope": "standalone same-bundle evaluator in isolated browser world; not production rule selection",
+  "results": [
+    {
+      "pattern": "Partner",
+      "hidden": true,
+      "neutralVisible": true,
+      "inlineVisible": true,
+      "noMarkers": true,
+      "revealed": true,
+      "restored": true
+    },
+    {
+      "pattern": "*data:image*",
+      "hidden": true,
+      "neutralVisible": true,
+      "inlineVisible": true,
+      "noMarkers": true,
+      "revealed": true,
+      "restored": true
+    },
+    {
+      "pattern": "base64",
+      "hidden": true,
+      "neutralVisible": true,
+      "inlineVisible": true,
+      "noMarkers": true,
+      "revealed": true,
+      "restored": true
+    },
+    {
+      "pattern": "data:",
+      "hidden": true,
+      "neutralVisible": true,
+      "inlineVisible": true,
+      "noMarkers": true,
+      "revealed": true,
+      "restored": true
+    },
+    {
+      "pattern": "float: right; margin-top: 30px; width: 50%;",
+      "hidden": true,
+      "neutralVisible": true,
+      "inlineVisible": true,
+      "noMarkers": true,
+      "revealed": true,
+      "restored": true
+    },
+    {
+      "pattern": "height: 300px; width: 315px;",
+      "hidden": true,
+      "neutralVisible": true,
+      "inlineVisible": true,
+      "noMarkers": true,
+      "revealed": true,
+      "restored": true
+    },
+    {
+      "pattern": "image/",
+      "hidden": true,
+      "neutralVisible": true,
+      "inlineVisible": true,
+      "noMarkers": true,
+      "revealed": true,
+      "restored": true
+    }
+  ]
+}

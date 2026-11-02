@@ -1,0 +1,52 @@
+[
+  {
+    "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+    "sha256": "e435953c2135e132c58bfd0437daa4298e4f49983aa917b01c2fdd41418ea978",
+    "bytes": 76016
+  },
+  {
+    "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype Framework.framework/Blanc Prototype Framework",
+    "sha256": "322e53ccca721596856617523c19504c3063a450d63e5c1d754000c2ca938929",
+    "bytes": 595852848
+  },
+  {
+    "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/chrome/services/blanc_blocker/blocker_proxy.cc",
+    "sha256": "cbd4aac70f8cc1bb696cc8deab0380500e8dd294e3c113f3b4a860067f9854f9",
+    "bytes": 35735
+  },
+  {
+    "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/content/browser/websockets/websocket_connector_impl.cc",
+    "sha256": "2f8172dc8996441e28a72b781120a528a348a32bb08899145dfc955e42f749e8",
+    "bytes": 10551
+  },
+  {
+    "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/chrome/browser/chrome_content_browser_client.cc",
+    "sha256": "5e52a452168bc58ecc43bc6ed2c2a89b668ac03d8567670474ca222ba23fd456",
+    "bytes": 407791
+  },
+  {
+    "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/content/public/browser/blanc_websocket_gate.h",
+    "sha256": "2e542a56bb7527d2c70f7a8635fe9b689cda749887dd659cce3f45485ff768b2",
+    "bytes": 502
+  },
+  {
+    "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/native/blocker/prepare.mjs",
+    "sha256": "24b9b550d76d18472d0cd795a172f13e0386c41fa467530be90284c7d81bd340",
+    "bytes": 9262
+  },
+  {
+    "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/fixtures/replay/synthetic/websocket-run.mjs",
+    "sha256": "a435a153ac46c1db36a8d48ebc3a852b566a12fc623fd34b96f774972f2da5d4",
+    "bytes": 7308
+  },
+  {
+    "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/fixtures/replay/synthetic/websocket-handshake.mjs",
+    "sha256": "d6c01cee3035988d4a8716237132ee111416a5b1ddef1f7d86867e7aec0bf7d2",
+    "bytes": 1404
+  },
+  {
+    "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/fixtures/replay/pipeline/transport.mjs",
+    "sha256": "4f32dff75fb64c874002eb3dabf56df92c95881cf1f68cb359edd4e8405fc2f6",
+    "bytes": 2900
+  }
+]

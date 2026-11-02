@@ -1,0 +1,38 @@
+{
+  "checks": {
+    "clear-identity": true,
+    "clear-reset-before": true,
+    "clear-reset-during": true,
+    "clear-rotate-before": true,
+    "clear-rotate-during": true,
+    "encrypted-identity": true,
+    "encrypted-reset-before": true,
+    "encrypted-reset-during": true,
+    "encrypted-rotate-before": true,
+    "encrypted-rotate-during": true,
+    "encrypted-normal": true
+  },
+  "build_wrapper_seconds": {
+    "diagnostic-build": 38.36,
+    "normal-build": 38.86,
+    "final-guard": 3.58
+  },
+  "normal_source_restored": true,
+  "normal_footprint": {
+    "files": 49,
+    "hunks": 114,
+    "basis": "prior measured49/114, only Blanc-owned diagnostic changed and restored"
+  },
+  "diagnostic_maximum": {
+    "files": 49,
+    "hunks": 114
+  },
+  "limitations": [
+    "final matrix uses cleanly primed profiles and explicit diagnostic crash-bubble bypass",
+    "no power-loss or arbitrary rebuild/rotation schedule qualification",
+    "normal binary smoke is encrypted save/switch/crash restore; diagnostic operations removed"
+  ],
+  "native_input": "pending",
+  "latency": "deferred",
+  "electron_diagnostic_build": "unapproved"
+}

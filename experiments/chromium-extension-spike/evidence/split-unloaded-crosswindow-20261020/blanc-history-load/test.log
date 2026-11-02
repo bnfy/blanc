@@ -1,0 +1,7 @@
+{
+  pass: false,
+  checks: 0,
+  error: 'Error: {"exceptionId":2,"text":"Uncaught (in promise) Error: Tab no longer exists in this window.","lineNumber":73,"columnNumber":64,"scriptId":"4","stackTrace":{"callFrames":[{"functionName":"window.blancPrototypeReply","scriptId":"4","url":"chrome://blanc-prototype/host.js","lineNumber":72,"columnNumber":63},{"functionName":"","scriptId":"30","url":"","lineNumber":0,"columnNumber":0}]},"exception":{"type":"object","subtype":"error","className":"Error","description":"Error: Tab no longer exists in this window.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1","objectId":"4540809242991044687.1.4"}}\n' +
+    '    at call (file:///private/tmp/blanc-history-load/test.mjs:8:334)\n' +
+    '    at async file:///private/tmp/blanc-history-load/test.mjs:24:14'
+}

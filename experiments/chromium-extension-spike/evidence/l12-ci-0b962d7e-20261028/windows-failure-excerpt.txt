@@ -1,0 +1,11 @@
+2026-10-28T18:01:35.9404014Z HEAD is now at 770941e Merge 0b962d7ea8a615a4d4c2a4593f34c7944d4fcdb4 into 5d19ffefe835b3400b481947d7e641c1e6016d6e
+2026-10-28T18:02:03.9101886Z Electron runtime verified: 44.9.1
+2026-10-28T18:02:11.4298389Z AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+2026-10-28T18:02:11.4299073Z + actual - expected
+2026-10-28T18:02:11.4299416Z + 'allowed'
+2026-10-28T18:02:11.4299731Z - 'SecurityError'
+2026-10-28T18:02:11.4300439Z     at file:///D:/a/blanc/blanc/test/desktop/modified-link-click-smoke.mjs:168:20 {
+2026-10-28T18:02:11.4301982Z   actual: 'allowed',
+2026-10-28T18:02:11.4302347Z   expected: 'SecurityError',
+2026-10-28T18:02:11.5153131Z ##[error]Process completed with exit code 1.
+2026-10-28T18:02:12.8147334Z Electron runtime verified: 44.9.1

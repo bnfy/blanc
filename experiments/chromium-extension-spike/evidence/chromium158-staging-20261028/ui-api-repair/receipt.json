@@ -1,0 +1,9 @@
+{
+  "sourceSha256": "17e5c6dbd16505f50d812c6d44df91e067072807f25ac95b850f0553981dd676",
+  "changes": [
+    "Forward new GetActionAppMenuForTesting interface method to existing delegate",
+    "Rename four NEW_FOREGROUND_TAB uses to upstream kNewForegroundTab"
+  ],
+  "isolatedObjectPassed": true,
+  "runtimePassed": false
+}

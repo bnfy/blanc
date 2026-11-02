@@ -1,0 +1,9 @@
+file:///private/tmp/blanc-task0/lib.mjs:17
+export async function until(fn,label,timeout=10000){const start=Date.now();while(Date.now()-start<timeout){const r=await fn();if(r)return r;await pause(150);}throw Error('Timed out: '+label);}
+                                                                                                                                                                    ^
+
+Error: Timed out: coalesced TopSites render
+    at until (file:///private/tmp/blanc-task0/lib.mjs:17:165)
+    at async file:///private/tmp/blanc-task0/clear-verify.mjs:2:82
+
+Node.js v22.14.0

@@ -1,0 +1,500 @@
+diff --git a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
+index d7092a1..d38d2bb 100644
+--- a/chrome/browser/BUILD.gn
++++ b/chrome/browser/BUILD.gn
+@@ -1089,7 +1089,7 @@ source_set("core") {
+     ":startup_data",
+     ":unexpire_flags",
+     ":universal_web_contents_observers",
+-    "//chrome/services/blanc_blocker:browser",
++    "//blanc",
+     "//base/allocator:buildflags",
+     "//build/config/linux/dbus:buildflags",
+     "//chrome/browser/accessibility",
+diff --git a/chrome/browser/chrome_content_browser_client.cc b/chrome/browser/chrome_content_browser_client.cc
+index 65bd0f3..23b06ea 100644
+--- a/chrome/browser/chrome_content_browser_client.cc
++++ b/chrome/browser/chrome_content_browser_client.cc
+@@ -3,10 +3,10 @@
+ // found in the LICENSE file.
+ 
+ #include "chrome/browser/chrome_content_browser_client.h"
+-#include "content/public/common/blanc_research_build.h"
+-#include "chrome/services/blanc_blocker/blocker_proxy.h"
+-#include "content/public/browser/blanc_url_loader_gate.h"
+-#include "content/public/browser/blanc_websocket_gate.h"
++#include "blanc/content/public/common/blanc_research_build.h"
++#include "blanc/services/blocker/blocker_proxy.h"
++#include "blanc/content/public/browser/blanc_url_loader_gate.h"
++#include "blanc/content/public/browser/blanc_websocket_gate.h"
+ 
+ #include <algorithm>
+ #include <iterator>
+diff --git a/chrome/browser/chrome_content_browser_client_receiver_bindings.cc b/chrome/browser/chrome_content_browser_client_receiver_bindings.cc
+index 16d998b..05ff712 100644
+--- a/chrome/browser/chrome_content_browser_client_receiver_bindings.cc
++++ b/chrome/browser/chrome_content_browser_client_receiver_bindings.cc
+@@ -5,7 +5,7 @@
+ // This file exposes services from the browser to child processes.
+ 
+ #include "base/feature_list.h"
+-#include "content/public/common/blanc_research_build.h"
++#include "blanc/content/public/common/blanc_research_build.h"
+ #include "base/functional/bind.h"
+ #include "base/metrics/histogram_functions.h"
+ #include "base/task/single_thread_task_runner.h"
+@@ -14,7 +14,7 @@
+ #include "chrome/browser/chrome_browser_interface_binders.h"
+ #include "chrome/browser/chrome_browser_interface_binders_webui.h"
+ #include "chrome/browser/chrome_content_browser_client.h"
+-#include "chrome/services/blanc_blocker/blocker_proxy.h"
++#include "blanc/services/blocker/blocker_proxy.h"
+ #include "chrome/browser/chrome_content_browser_client_parts.h"
+ #include "chrome/browser/content_settings/content_settings_manager_delegate.h"
+ #include "chrome/browser/facilitated_payments/facilitated_payments_driver_binder.h"
+diff --git a/chrome/browser/extensions/component_extensions_allowlist/allowlist.cc b/chrome/browser/extensions/component_extensions_allowlist/allowlist.cc
+index 1bbd59e..a483f85 100644
+--- a/chrome/browser/extensions/component_extensions_allowlist/allowlist.cc
++++ b/chrome/browser/extensions/component_extensions_allowlist/allowlist.cc
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "chrome/browser/extensions/component_extensions_allowlist/allowlist.h"
+-#include "content/public/common/blanc_research_build.h"
++#include "blanc/content/public/common/blanc_research_build.h"
+ 
+ #include <stddef.h>
+ 
+diff --git a/chrome/browser/extensions/component_loader.cc b/chrome/browser/extensions/component_loader.cc
+index edc8673..8291b9d 100644
+--- a/chrome/browser/extensions/component_loader.cc
++++ b/chrome/browser/extensions/component_loader.cc
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "chrome/browser/extensions/component_loader.h"
+-#include "content/public/common/blanc_research_build.h"
++#include "blanc/content/public/common/blanc_research_build.h"
+ 
+ #include <optional>
+ #include <string>
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+index 2896076..2b06974 100644
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -1715,7 +1715,7 @@ std::string GetCountry() {
+ }
+ 
+ void RegisterLocalState(PrefRegistrySimple* registry) {
+-#if __has_include("chrome/browser/ui/blanc_prototype_ui.h")
++#if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
+   registry->RegisterStringPref("blanc.prototype.quiet_delay", "1h");
+ #endif
+   // Call outs to individual subsystems that register Local State (browser-wide)
+@@ -2052,20 +2052,20 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
+ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
+                           const std::string& locale) {
+   TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");
+-#if __has_include("chrome/browser/ui/blanc_prototype_ui.h")
++#if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
+   registry->RegisterStringPref("blanc.prototype.start_layout", "");
+ #endif
+-#if __has_include("chrome/browser/ui/blanc_prototype_ui.h")
++#if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
+   registry->RegisterListPref("blanc.prototype.start_page_pins");
+ #endif
+-#if __has_include("chrome/browser/ui/blanc_prototype_ui.h")
++#if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
+   registry->RegisterDictionaryPref("blanc.prototype.billboard_clock");
+ #endif
+-#if __has_include("chrome/browser/ui/blanc_prototype_ui.h")
++#if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
+   registry->RegisterBooleanPref("blanc.blocking.enabled", true);
+   registry->RegisterListPref("blanc.blocking.exceptions");
+ #endif
+-#if __has_include("chrome/browser/ui/blanc_prototype_ui.h")
++#if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
+   registry->RegisterStringPref("blanc.prototype.preference_write", "");
+ #endif
+   // User prefs. Please keep this list alphabetized.
+diff --git a/chrome/browser/sessions/session_restore.cc b/chrome/browser/sessions/session_restore.cc
+index 14398b1..ad5461e 100644
+--- a/chrome/browser/sessions/session_restore.cc
++++ b/chrome/browser/sessions/session_restore.cc
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+ 
+-#include "chrome/browser/ui/blanc_prototype_ui.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ #include "chrome/browser/sessions/session_restore.h"
+ 
+ #include <stddef.h>
+diff --git a/chrome/browser/sessions/session_service_base.cc b/chrome/browser/sessions/session_service_base.cc
+index a20252b..65764fd 100644
+--- a/chrome/browser/sessions/session_service_base.cc
++++ b/chrome/browser/sessions/session_service_base.cc
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+ 
+-#include "chrome/browser/ui/blanc_prototype_ui.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ #include "chrome/browser/sessions/session_service_base.h"
+ 
+ #include <stddef.h>
+diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui/browser_command_controller.cc
+index b834d54..8e35ab0 100644
+--- a/chrome/browser/ui/browser_command_controller.cc
++++ b/chrome/browser/ui/browser_command_controller.cc
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "chrome/browser/ui/browser_command_controller.h"
+-#include "chrome/browser/ui/blanc_prototype_ui.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ 
+ #include <stddef.h>
+ 
+diff --git a/chrome/browser/ui/browser_commands.cc b/chrome/browser/ui/browser_commands.cc
+index 90e1027..7f4a5fb 100644
+--- a/chrome/browser/ui/browser_commands.cc
++++ b/chrome/browser/ui/browser_commands.cc
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "chrome/browser/ui/browser_commands.h"
+-#include "chrome/browser/ui/blanc_prototype_ui.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ 
+ #include <algorithm>
+ #include <cmath>
+diff --git a/chrome/browser/ui/browser_live_tab_context.cc b/chrome/browser/ui/browser_live_tab_context.cc
+index fc4000e..81712ff 100644
+--- a/chrome/browser/ui/browser_live_tab_context.cc
++++ b/chrome/browser/ui/browser_live_tab_context.cc
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+ 
+-#include "chrome/browser/ui/blanc_prototype_ui.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ #include "chrome/browser/ui/browser_live_tab_context.h"
+ 
+ #include <algorithm>
+diff --git a/chrome/browser/ui/browser_tab_restorer.cc b/chrome/browser/ui/browser_tab_restorer.cc
+index 36f3027..f4b8cb8 100644
+--- a/chrome/browser/ui/browser_tab_restorer.cc
++++ b/chrome/browser/ui/browser_tab_restorer.cc
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+ 
+-#include "chrome/browser/ui/blanc_prototype_ui.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ #include "base/memory/ptr_util.h"
+ #include "base/memory/raw_ptr.h"
+ #include "base/metrics/user_metrics.h"
+diff --git a/chrome/browser/ui/views/extensions/extensions_toolbar_button.cc b/chrome/browser/ui/views/extensions/extensions_toolbar_button.cc
+index db35f12..36d9e6c 100644
+--- a/chrome/browser/ui/views/extensions/extensions_toolbar_button.cc
++++ b/chrome/browser/ui/views/extensions/extensions_toolbar_button.cc
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "chrome/browser/ui/views/extensions/extensions_toolbar_button.h"
+-#include "chrome/browser/ui/blanc_prototype_ui.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ 
+ #include "base/feature_list.h"
+ #include "base/metrics/user_metrics.h"
+diff --git a/chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc b/chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc
+index bb30916..620de69 100644
+--- a/chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc
++++ b/chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "chrome/browser/ui/views/extensions/extensions_toolbar_desktop.h"
+-#include "chrome/browser/ui/blanc_prototype_ui.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ 
+ #include <algorithm>
+ #include <memory>
+diff --git a/chrome/browser/ui/views/frame/BUILD.gn b/chrome/browser/ui/views/frame/BUILD.gn
+index 8a2378b..01f69e7 100644
+--- a/chrome/browser/ui/views/frame/BUILD.gn
++++ b/chrome/browser/ui/views/frame/BUILD.gn
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//blanc/ui.gni")
+ import("//build/config/features.gni")
+ import("//build/config/ozone.gni")
+ import("//build/config/ui.gni")
+@@ -707,7 +708,7 @@ source_set("windows_icon_painter") {
+ # into the browser view can depend on it without depending on :ui, which would
+ # be circular for the many targets that :ui itself depends on.
+ source_set("browser_view_header") {
+-  public = [ "browser_view.h", "//chrome/browser/ui/blanc_prototype_ui.h" ]
++  public = [ "browser_view.h", "//blanc/browser/ui/blanc_prototype_ui.h" ]
+   public_deps = [
+     ":browser_view_layout_params",
+     ":browser_widget",
+@@ -750,7 +751,7 @@ source_set("browser_view_header") {
+ }
+ 
+ source_set("browser_view") {
+-  sources = [ "browser_view.cc", "//chrome/browser/ui/blanc_prototype_ui.cc", "//chrome/browser/ui/blanc_tab_name_rules.h" ]
++  sources = [ "browser_view.cc" ]
+   public_deps = [ ":browser_view_header" ]
+   deps = [
+     "//chrome/browser/bookmarks",
+@@ -3342,3 +3343,5 @@ source_set("browser_widget_impl") {
+     deps += [ "//media" ]
+   }
+ }
++
++blanc_ui("blanc_ui") {}
+diff --git a/chrome/browser/ui/views/frame/browser_frame_view_mac.mm b/chrome/browser/ui/views/frame/browser_frame_view_mac.mm
+index 58e13a0..749cbad 100644
+--- a/chrome/browser/ui/views/frame/browser_frame_view_mac.mm
++++ b/chrome/browser/ui/views/frame/browser_frame_view_mac.mm
+@@ -8,7 +8,7 @@
+ #include <vector>
+ 
+ #include "base/command_line.h"
+-#include "chrome/browser/ui/blanc_prototype_ui.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ #include "base/containers/fixed_flat_map.h"
+ #include "base/functional/bind.h"
+ #include "base/i18n/rtl.h"
+diff --git a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm b/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
+index 51d4099..54217cf 100644
+--- a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
++++ b/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #import "chrome/browser/ui/views/frame/browser_native_widget_mac.h"
+-#include "chrome/browser/ui/blanc_prototype_ui.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ 
+ #include <array>
+ 
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+index 97e70ef..69e4482 100644
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -83,7 +83,7 @@
+ #include "chrome/browser/ui/browser_active_state_manager/browser_active_state_manager.h"
+ #include "chrome/browser/ui/browser_command_controller.h"
+ #include "chrome/browser/ui/browser_commands.h"
+-#include "chrome/browser/ui/blanc_prototype_ui.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ #include "chrome/browser/ui/browser_element_identifiers.h"
+ #include "chrome/browser/ui/browser_init_state.h"
+ #include "chrome/browser/ui/browser_tabstrip.h"
+diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+index 42454a3..37e0299 100644
+--- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
++++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.h"
+-#include "chrome/browser/ui/blanc_prototype_ui.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ 
+ #include <algorithm>
+ #include <memory>
+diff --git a/chrome/browser/ui/views/frame/multi_contents_view.cc b/chrome/browser/ui/views/frame/multi_contents_view.cc
+index 92bfaa3..5ed452a 100644
+--- a/chrome/browser/ui/views/frame/multi_contents_view.cc
++++ b/chrome/browser/ui/views/frame/multi_contents_view.cc
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "chrome/browser/ui/views/frame/multi_contents_view.h"
+-#include "chrome/browser/ui/blanc_prototype_ui.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ 
+ #include <algorithm>
+ #include <cstdlib>
+diff --git a/chrome/browser/ui/webui/chrome_web_ui_configs.cc b/chrome/browser/ui/webui/chrome_web_ui_configs.cc
+index 0e9c05c..490c1d9 100644
+--- a/chrome/browser/ui/webui/chrome_web_ui_configs.cc
++++ b/chrome/browser/ui/webui/chrome_web_ui_configs.cc
+@@ -4,7 +4,7 @@
+ 
+ #include "chrome/browser/ui/webui/chrome_web_ui_configs.h"
+ 
+-#include "chrome/browser/ui/blanc_prototype_ui.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ 
+ #include "build/android_buildflags.h"
+ #include "build/branding_buildflags.h"
+diff --git a/chrome/renderer/BUILD.gn b/chrome/renderer/BUILD.gn
+index e391a04..53a2283 100644
+--- a/chrome/renderer/BUILD.gn
++++ b/chrome/renderer/BUILD.gn
+@@ -128,7 +128,7 @@ static_library("renderer") {
+ 
+   deps = [
+     ":process_state",
+-    "//chrome/services/blanc_blocker:mojom",
++    "//blanc/services/blocker:mojom",
+     "//base/allocator:buildflags",
+     "//build:chromeos_buildflags",
+     "//chrome:resources",
+diff --git a/chrome/renderer/chrome_content_renderer_client.cc b/chrome/renderer/chrome_content_renderer_client.cc
+index 0d09ecb..48eb205 100644
+--- a/chrome/renderer/chrome_content_renderer_client.cc
++++ b/chrome/renderer/chrome_content_renderer_client.cc
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "chrome/renderer/chrome_content_renderer_client.h"
+-#include "chrome/services/blanc_blocker/blocker.mojom.h"
++#include "blanc/services/blocker/blocker.mojom.h"
+ #include "content/public/renderer/render_frame_observer.h"
+ #include "third_party/blink/public/platform/browser_interface_broker_proxy.h"
+ #include "third_party/blink/public/web/web_script_source.h"
+@@ -1491,8 +1491,8 @@ ChromeContentRendererClient::CreateSpeechRecognitionClient(
+ }
+ #endif  // BUILDFLAG(ENABLE_SPEECH_SERVICE)
+ 
+-#include "chrome/services/blanc_blocker/document_start_renderer.inc"
+-#include "chrome/services/blanc_blocker/cosmetic_renderer.inc"
++#include "blanc/services/blocker/document_start_renderer.inc"
++#include "blanc/services/blocker/cosmetic_renderer.inc"
+ 
+ void ChromeContentRendererClient::RunScriptsAtDocumentStart(
+     content::RenderFrame* render_frame) {
+diff --git a/chrome/utility/BUILD.gn b/chrome/utility/BUILD.gn
+index 03c2cb3..3c9f8db 100644
+--- a/chrome/utility/BUILD.gn
++++ b/chrome/utility/BUILD.gn
+@@ -30,7 +30,7 @@ static_library("utility") {
+ 
+   public_deps = []
+   deps = [
+-    "//chrome/services/blanc_blocker:service",
++    "//blanc/services/blocker:service",
+     "//base",
+     "//build:chromeos_buildflags",
+     "//chrome:resources",
+diff --git a/chrome/utility/services.cc b/chrome/utility/services.cc
+index a0d7159..75ff34a 100644
+--- a/chrome/utility/services.cc
++++ b/chrome/utility/services.cc
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "chrome/utility/services.h"
+-#include "chrome/services/blanc_blocker/blocker_service.h"
++#include "blanc/services/blocker/blocker_service.h"
+ 
+ #include <memory>
+ #include <utility>
+diff --git a/content/browser/loader/url_loader_factory_utils.cc b/content/browser/loader/url_loader_factory_utils.cc
+index 29ec227..2bb0aaa 100644
+--- a/content/browser/loader/url_loader_factory_utils.cc
++++ b/content/browser/loader/url_loader_factory_utils.cc
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "content/browser/loader/url_loader_factory_utils.h"
+-#include "content/public/browser/blanc_url_loader_gate.h"
++#include "blanc/content/public/browser/blanc_url_loader_gate.h"
+ #include "mojo/public/cpp/bindings/remote.h"
+ 
+ #include <variant>
+diff --git a/content/browser/renderer_host/render_frame_host_impl.cc b/content/browser/renderer_host/render_frame_host_impl.cc
+index 0e6242a..e799680 100644
+--- a/content/browser/renderer_host/render_frame_host_impl.cc
++++ b/content/browser/renderer_host/render_frame_host_impl.cc
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "content/browser/renderer_host/render_frame_host_impl.h"
+-#include "content/public/browser/blanc_document_token.h"
++#include "blanc/content/public/browser/blanc_document_token.h"
+ 
+ #include <algorithm>
+ #include <cstdint>
+diff --git a/content/browser/service_worker/service_worker_update_checker.cc b/content/browser/service_worker/service_worker_update_checker.cc
+index 5b7a701..db36f31 100644
+--- a/content/browser/service_worker/service_worker_update_checker.cc
++++ b/content/browser/service_worker/service_worker_update_checker.cc
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "content/browser/service_worker/service_worker_update_checker.h"
+-#include "content/browser/service_worker/blanc_update_identity.inc"
++#include "blanc/content/browser/service_worker/blanc_update_identity.inc"
+ 
+ #include <algorithm>
+ #include <utility>
+diff --git a/content/browser/websockets/websocket_connector_impl.cc b/content/browser/websockets/websocket_connector_impl.cc
+index fb32c40..0ef1f46 100644
+--- a/content/browser/websockets/websocket_connector_impl.cc
++++ b/content/browser/websockets/websocket_connector_impl.cc
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "content/browser/websockets/websocket_connector_impl.h"
+-#include "content/public/browser/blanc_websocket_gate.h"
++#include "blanc/content/public/browser/blanc_websocket_gate.h"
+ 
+ #include <algorithm>
+ 
+diff --git a/content/public/browser/BUILD.gn b/content/public/browser/BUILD.gn
+index 09f6dbf..e357b4f 100644
+--- a/content/public/browser/BUILD.gn
++++ b/content/public/browser/BUILD.gn
+@@ -493,7 +493,7 @@ source_set("browser_sources") {
+     "visibility.h",
+     "weak_document_ptr.cc",
+     "weak_document_ptr.h",
+-    "blanc_document_token.h",
++    "//blanc/content/public/browser/blanc_document_token.h",
+     "web_authentication_delegate.cc",
+     "web_authentication_delegate.h",
+     "web_authentication_request_proxy.h",
+diff --git a/extensions/browser/api/execute_code_function.cc b/extensions/browser/api/execute_code_function.cc
+index 9eab693..83e0527 100644
+--- a/extensions/browser/api/execute_code_function.cc
++++ b/extensions/browser/api/execute_code_function.cc
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "extensions/browser/api/execute_code_function.h"
+-#include "content/public/common/blanc_research_build.h"
++#include "blanc/content/public/common/blanc_research_build.h"
+ 
+ #include <algorithm>
+ #include <optional>
+diff --git a/extensions/browser/script_executor.cc b/extensions/browser/script_executor.cc
+index 7ace6df..048122d 100644
+--- a/extensions/browser/script_executor.cc
++++ b/extensions/browser/script_executor.cc
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "extensions/browser/script_executor.h"
+-#include "content/public/common/blanc_research_build.h"
++#include "blanc/content/public/common/blanc_research_build.h"
+ #include "base/command_line.h"
+ 
+ #include <algorithm>
+@@ -25,7 +25,7 @@
+ #include "content/public/browser/navigation_controller.h"
+ #include "content/public/browser/navigation_entry.h"
+ #include "content/public/browser/render_frame_host.h"
+-#include "content/public/browser/blanc_document_token.h"
++#include "blanc/content/public/browser/blanc_document_token.h"
+ #include "content/public/browser/render_process_host.h"
+ #include "content/public/browser/render_view_host.h"
+ #include "content/public/browser/web_contents.h"

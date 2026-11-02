@@ -1,0 +1,16 @@
+--- a/experiments/chromium-extension-spike/prototype/host.html
++++ b/experiments/chromium-extension-spike/prototype/host.html
+@@ -13,2 +13,2 @@
+-  <iframe id="strip" src="index.html" title="Blanc Island"></iframe>
+-  <iframe id="overlay" src="overlay.html" title="Blanc address and tabs" hidden></iframe>
++  <iframe id="strip" data-src="index.html" title="Blanc Island"></iframe>
++  <iframe id="overlay" data-src="overlay.html" title="Blanc address and tabs" hidden></iframe>
+--- a/experiments/chromium-extension-spike/prototype/host.js
++++ b/experiments/chromium-extension-spike/prototype/host.js
+@@ -322,0 +323,6 @@
++  // Child adapters synchronously read BlancPrototypeHost.api. Start their
++  // navigation only after the bridge exists; deferred host scripts can otherwise
++  // lose the startup race to a cached iframe during session restore.
++  strip.src = strip.dataset.src;
++  overlay.src = overlay.dataset.src;
++

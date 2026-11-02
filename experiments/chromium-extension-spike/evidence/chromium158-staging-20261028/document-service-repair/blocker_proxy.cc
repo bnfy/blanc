@@ -1,0 +1,963 @@
+#include "chrome/services/blanc_blocker/blocker_proxy.h"
+#include "content/public/common/blanc_research_build.h"
+#include "chrome/browser/profiles/nuke_profile_directory_utils.h"
+#include "content/public/browser/navigation_throttle.h"
+#include "content/public/browser/navigation_throttle_registry.h"
+#include "content/public/browser/navigation_handle.h"
+#include "third_party/blink/public/mojom/loader/referrer.mojom.h"
+#include <deque>
+#include "net/base/registry_controlled_domains/registry_controlled_domain.h"
+#include <map>
+#include "base/json/json_reader.h"
+#include "base/task/single_thread_task_runner.h"
+#include "content/public/browser/document_service.h"
+#include "content/public/browser/mojo_binder_policy_map.h"
+#include "content/public/browser/web_contents.h"
+#include "components/sessions/content/session_tab_helper.h"
+#include "services/network/public/cpp/resource_request_body.h"
+#include <memory>
+#include "base/command_line.h"
+#include "base/files/file_util.h"
+#include "base/functional/bind.h"
+#include "base/json/json_writer.h"
+#include "base/no_destructor.h"
+#include "base/memory/weak_ptr.h"
+#include "base/supports_user_data.h"
+#include "base/strings/string_number_conversions.h"
+#include "base/strings/string_util.h"
+#include "base/task/thread_pool.h"
+#include "base/timer/timer.h"
+#include "base/unguessable_token.h"
+#include "base/trace_event/trace_event.h"
+#include "chrome/services/blanc_blocker/blocker.mojom.h"
+#include "chrome/services/blanc_blocker/bundle_hash.h"
+#include "content/public/browser/browser_context.h"
+#include "content/public/browser/content_browser_client.h"
+#include "content/public/browser/render_frame_host.h"
+#include "content/public/browser/render_process_host.h"
+#include "services/network/public/mojom/websocket.mojom.h"
+#include "services/network/public/mojom/web_transport.mojom.h"
+#include "content/public/browser/weak_document_ptr.h"
+#include "content/public/browser/service_process_host.h"
+#include "crypto/hash.h"
+#include "extensions/browser/process_manager.h"
+#include "extensions/browser/extension_api_frame_id_map.h"
+#include "mojo/public/cpp/bindings/callback_helpers.h"
+#include "mojo/public/cpp/bindings/receiver.h"
+#include "mojo/public/cpp/bindings/remote.h"
+#include "mojo/public/cpp/system/data_pipe.h"
+#include "net/base/net_errors.h"
+#include "ipc/constants.mojom.h"
+#include "net/http/http_response_headers.h"
+#include "net/url_request/redirect_info.h"
+#include "services/network/public/cpp/resource_request.h"
+#include "services/network/public/cpp/self_deleting_url_loader_factory.h"
+#include "services/network/public/cpp/url_loader_completion_status.h"
+#include "services/network/public/cpp/url_loader_factory_builder.h"
+#include "services/network/public/cpp/wrapper_shared_url_loader_factory.h"
+#include "services/network/public/mojom/url_loader.mojom.h"
+#include "services/network/public/mojom/early_hints.mojom.h"
+#include "services/network/public/mojom/url_response_head.mojom.h"
+#include "url/origin.h"
+namespace blanc {
+namespace {
+using DecisionCallback = base::OnceCallback<void(int)>;
+
+void Record(base::DictValue value) {
+#if BLANC_RESEARCH_HOOKS
+  // Private events never reach diagnostic serialization or the disk writer.
+  const auto* kind = value.FindString("profile_kind");
+  if (value.FindBool("private").value_or(false) || (kind && *kind == "private")) return;
+  // Disabled by default, including in private profiles. The acceptance harness
+  // explicitly opts its disposable instance into local, ordered observations.
+  auto file = base::CommandLine::ForCurrentProcess()->GetSwitchValuePath("blanc-blocker-log");
+  if (file.empty()) return;
+  auto json = base::WriteJson(value);
+  if (!json) return;
+  static base::NoDestructor<scoped_refptr<base::SequencedTaskRunner>> writer(
+      base::ThreadPool::CreateSequencedTaskRunner({base::MayBlock(), base::TaskShutdownBehavior::BLOCK_SHUTDOWN}));
+  (*writer)->PostTask(FROM_HERE, base::BindOnce([](base::FilePath path, std::string line) {
+    base::AppendToFile(path, line);
+  }, file, *json + "\n"));
+#else
+  static_cast<void>(value);
+#endif
+}
+class Engine {
+ public:
+  static Engine& Get() { static base::NoDestructor<Engine> engine; return *engine; }
+  Engine() = default;
+  const char* Health() const {
+    if (failed_) return "unavailable";
+    if (ready_) return "ready";
+    return started_ ? "initializing" : "not-started";
+  }
+  void Decide(std::string url, std::string type, std::string referrer, DecisionCallback callback) {
+    if (failed_) { std::move(callback).Run(-1); return; }
+    if (!started_) Start();
+    if (!ready_) {
+      if (waiting_.size() >= 4096) { std::move(callback).Run(-1); return; }
+      waiting_.push_back(base::BindOnce(&Engine::Decide, base::Unretained(this),
+                        std::move(url), std::move(type), std::move(referrer), std::move(callback)));
+      return;
+    }
+    if (inflight_ >= 256) { std::move(callback).Run(-1); return; }
+    ++inflight_;
+    service_->Decide(url, type, referrer, mojo::WrapCallbackWithDefaultInvokeIfNotRun(
+      base::BindOnce([](Engine* self, DecisionCallback cb, int result) {
+        --self->inflight_; std::move(cb).Run(result);
+      }, base::Unretained(this), std::move(callback)), -1));
+  }
+  void Cosmetics(std::string input, base::OnceCallback<void(bool, const std::string&)> callback) {
+    if (failed_) { std::move(callback).Run(false, ""); return; }
+    if (!started_) Start();
+    if (!ready_) {
+      if (waiting_.size() >= 4096) { std::move(callback).Run(false, ""); return; }
+      waiting_.push_back(base::BindOnce(&Engine::Cosmetics, base::Unretained(this), std::move(input), std::move(callback)));
+      return;
+    }
+    if (inflight_ >= 256) { std::move(callback).Run(false, ""); return; }
+    ++inflight_;
+    service_->Cosmetics(input, mojo::WrapCallbackWithDefaultInvokeIfNotRun(
+      base::BindOnce([](Engine* self, base::OnceCallback<void(bool, const std::string&)> cb,
+                       bool ready, const std::string& output) {
+        --self->inflight_; std::move(cb).Run(ready && !self->failed_, output);
+      }, base::Unretained(this), std::move(callback)), false, std::string()));
+  }
+  void Fail() {
+    failed_ = true; ready_ = false; startup_.Stop(); service_.reset();
+    auto pending = std::move(waiting_);
+    for (auto& callback : pending) std::move(callback).Run();
+  }
+ private:
+  void Start() {
+    started_ = true;
+    startup_.Start(FROM_HERE, base::Seconds(30), base::BindOnce(&Engine::Fail, base::Unretained(this)));
+    auto file = base::CommandLine::ForCurrentProcess()->GetSwitchValuePath("blanc-blocker-assets").AppendASCII("engine.js");
+    base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
+      base::BindOnce([](base::FilePath path) {
+        std::string script;
+        if (!base::ReadFileToStringWithMaxSize(path, &script, 16 * 1024 * 1024)) return std::string();
+        if (base::ToLowerASCII(base::HexEncode(crypto::hash::Sha256(script))) != kBlancBlockerBundleSha256) return std::string();
+        return script;
+      }, file), base::BindOnce(&Engine::Loaded, base::Unretained(this)));
+  }
+  void Loaded(std::string script) {
+    if (failed_) return;
+    if (script.empty()) { Fail(); return; }
+    service_ = content::ServiceProcessHost::Launch<mojom::Blocker>(
+        content::ServiceProcessHost::Options().WithDisplayName("Blanc Blocker").Pass());
+    service_.set_disconnect_handler(base::BindOnce(&Engine::Fail, base::Unretained(this)));
+    service_->Initialize(script, base::BindOnce(&Engine::Initialized, base::Unretained(this)));
+  }
+  void Initialized(bool ready) {
+    if (failed_) return;
+    if (!ready) { Fail(); return; }
+    ready_ = true; startup_.Stop();
+    base::DictValue event; event.Set("event", "engine-ready");
+    event.Set("bundle_sha256", kBlancBlockerBundleSha256); Record(std::move(event));
+    auto pending = std::move(waiting_);
+    for (auto& callback : pending) std::move(callback).Run();
+  }
+  bool started_ = false, ready_ = false, failed_ = false;
+  int inflight_ = 0;
+  std::deque<base::OnceClosure> waiting_;
+  mojo::Remote<mojom::Blocker> service_;
+  base::OneShotTimer startup_;
+};
+#include "chrome/services/blanc_blocker/cosmetic_document.inc"
+
+// Prerender activation skips NavigationThrottle, including the response gate.
+// Its earlier allow cannot authorize a commit after the engine becomes unavailable.
+class ActivationGate : public content::CommitDeferringCondition {
+ public:
+  explicit ActivationGate(content::NavigationHandle& navigation)
+      : content::CommitDeferringCondition(navigation) {}
+  const char* TraceEventName() const override { return "BlancActivationGate"; }
+  Result WillCommitNavigation(base::OnceClosure resume) override {
+    resume_ = std::move(resume);
+    timer_.Start(FROM_HERE, base::Seconds(35), base::BindOnce(
+        &ActivationGate::Complete, weak_.GetWeakPtr(), -1));
+    // A disconnected engine may reply synchronously. Return kDefer first.
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+        base::BindOnce(&ActivationGate::Decide, weak_.GetWeakPtr()));
+    return Result::kDefer;
+  }
+ private:
+  void Decide() {
+    auto& navigation = GetNavigationHandle();
+    // Activation conditions run before the sanitized referrer is initialized.
+    // The browser-provided initiator origin is already available at this stage.
+    const auto& initiator = navigation.GetInitiatorOrigin();
+    Engine::Get().Decide(navigation.GetURL().spec(), "mainFrame",
+        initiator && !initiator->opaque() ? initiator->GetURL().spec() : "",
+        base::BindOnce(&ActivationGate::Complete, weak_.GetWeakPtr()));
+  }
+  void Complete(int result) {
+    timer_.Stop();
+    weak_.InvalidateWeakPtrs();
+    if (result == 0) {
+      std::move(resume_).Run();
+      return;
+    }
+    // Stop cancels the navigation and may destroy this condition immediately.
+    // Do not run the resume closure or access members after this call.
+    GetNavigationHandle().GetWebContents()->Stop();
+  }
+  base::OnceClosure resume_;
+  base::OneShotTimer timer_;
+  base::WeakPtrFactory<ActivationGate> weak_{this};
+};
+// Cached/prefetched navigation responses can skip the URL-loader adapter.
+// Revalidate before commit, with weak callbacks tied to this navigation.
+class NavigationResponseGate : public content::NavigationThrottle {
+ public:
+  explicit NavigationResponseGate(content::NavigationThrottleRegistry& registry)
+      : content::NavigationThrottle(registry) {}
+  const char* GetNameForLogging() override { return "BlancResponseGate"; }
+  ThrottleCheckResult WillProcessResponse() override {
+    if (!navigation_handle()->GetURL().SchemeIsHTTPOrHTTPS()) return PROCEED;
+    timer_.Start(FROM_HERE, base::Seconds(35), base::BindOnce(
+        &NavigationResponseGate::Complete, weak_.GetWeakPtr(), -1));
+    // Engine failure may reply synchronously; defer first, then ask it.
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+        base::BindOnce(&NavigationResponseGate::Decide, weak_.GetWeakPtr()));
+    return DEFER;
+  }
+ private:
+  void Decide() {
+    Engine::Get().Decide(navigation_handle()->GetURL().spec(),
+        navigation_handle()->IsInMainFrame() ? "mainFrame" : "subFrame",
+        navigation_handle()->GetReferrer().url.spec(),
+        base::BindOnce(&NavigationResponseGate::Complete, weak_.GetWeakPtr()));
+  }
+  void Complete(int result) {
+    timer_.Stop();
+    weak_.InvalidateWeakPtrs();
+    base::DictValue event;
+    event.Set("event", "navigation-response-decision");
+    event.Set("url", navigation_handle()->GetURL().spec());
+    event.Set("engine_result", result);
+    event.Set("decision", result == 0 ? "allow" : "block");
+    event.Set("private", navigation_handle()->GetWebContents()->GetBrowserContext()->IsOffTheRecord());
+    Record(std::move(event));
+    if (result == 0) { Resume(); return; }
+    CancelDeferredNavigation(ThrottleCheckResult(CANCEL, net::ERR_BLOCKED_BY_CLIENT));
+  }
+  base::OneShotTimer timer_;
+  base::WeakPtrFactory<NavigationResponseGate> weak_{this};
+};
+// One bounded, self-owned pending handshake. No raw profile/document pointers
+// survive the asynchronous engine decision. Disconnect/timeout invalidates the
+// engine reply; the existing network factory owns all original connection args.
+class SocketDecision {
+ public:
+  SocketDecision(base::WeakPtr<content::BrowserContext> context,
+      content::WeakDocumentPtr document, bool document_scoped,
+      std::string origin, content::ContentBrowserClient::WebSocketFactory factory,
+      GURL url, std::vector<network::mojom::HttpHeaderPtr> headers,
+      mojo::PendingRemote<network::mojom::WebSocketHandshakeClient> client,
+      mojo::PendingRemote<network::mojom::WebSocketAuthenticationHandler> auth,
+      mojo::PendingRemote<network::mojom::TrustedHeaderClient> trusted)
+      : context_(std::move(context)), document_(std::move(document)),
+        document_scoped_(document_scoped), origin_(std::move(origin)),
+        factory_(std::move(factory)), url_(std::move(url)),
+        headers_(std::move(headers)), client_(std::move(client)),
+        auth_(std::move(auth)), trusted_(std::move(trusted)) {}
+  void Begin() {
+    Lifecycle("websocket-pending");
+    client_.set_disconnect_handler(base::BindOnce(&SocketDecision::Abandon,
+                                                 weak_.GetWeakPtr()));
+    timeout_.Start(FROM_HERE, base::Seconds(35),
+        base::BindOnce(&SocketDecision::TimedOut, weak_.GetWeakPtr()));
+    // WebSocket has an initiator Origin rather than an HTTP referrer. Keep this
+    // contract explicit; do not claim HTTP-referrer parity from this adapter.
+    Engine::Get().Decide(url_.spec(), "webSocket", origin_,
+        base::BindOnce(&SocketDecision::Done, weak_.GetWeakPtr()));
+  }
+ private:
+  void Lifecycle(const char* stage) {
+    base::DictValue event;
+    event.Set("event", stage);
+    event.Set("request_id", request_id_);
+    event.Set("url", url_.spec());
+    event.Set("private", context_ ? context_->IsOffTheRecord() : true);
+    Record(std::move(event));
+  }
+  void Abandon() { Lifecycle("websocket-abandoned"); delete this; }
+  void TimedOut() { Lifecycle("websocket-timeout"); Done(-1); }
+  void Done(int result) {
+    if (!context_ || (document_scoped_ && !document_.AsRenderFrameHostIfValid()))
+      result = -1;
+    timeout_.Stop();
+    base::DictValue event;
+    event.Set("event", "websocket-decision");
+    event.Set("request_id", request_id_);
+    event.Set("url", url_.spec());
+    event.Set("initiator_origin", origin_);
+    event.Set("source_contract", "websocket-initiator-origin");
+    event.Set("owner", document_scoped_ ? "document-or-dedicated-worker" : "frame-less-worker");
+    event.Set("private", context_ ? context_->IsOffTheRecord() : true);
+    event.Set("context_alive", !!context_);
+    event.Set("engine_result", result);
+    event.Set("decision", result == 0 ? "allow" : "block");
+    Record(std::move(event));
+    if (result == 0) {
+      std::move(factory_).Run(url_, std::move(headers_), client_.Unbind(),
+                             std::move(auth_), std::move(trusted_));
+    } else {
+      client_->OnFailure("Blocked by Blanc Blocker", net::ERR_BLOCKED_BY_CLIENT, -1);
+    }
+    delete this;
+  }
+  const std::string request_id_ = base::UnguessableToken::Create().ToString();
+  base::WeakPtr<content::BrowserContext> context_;
+  content::WeakDocumentPtr document_;
+  bool document_scoped_;
+  std::string origin_;
+  content::ContentBrowserClient::WebSocketFactory factory_;
+  GURL url_;
+  std::vector<network::mojom::HttpHeaderPtr> headers_;
+  mojo::Remote<network::mojom::WebSocketHandshakeClient> client_;
+  mojo::PendingRemote<network::mojom::WebSocketAuthenticationHandler> auth_;
+  mojo::PendingRemote<network::mojom::TrustedHeaderClient> trusted_;
+  base::OneShotTimer timeout_;
+  base::WeakPtrFactory<SocketDecision> weak_{this};
+};
+class TransportDecision {
+ public:
+  TransportDecision(base::WeakPtr<content::BrowserContext> context,
+      content::WeakDocumentPtr document, bool document_scoped,
+      std::string origin, GURL url,
+      content::ContentBrowserClient::WillCreateWebTransportCallback callback,
+      mojo::PendingRemote<network::mojom::WebTransportHandshakeClient> client)
+      : context_(std::move(context)), document_(std::move(document)),
+        document_scoped_(document_scoped), origin_(std::move(origin)),
+        url_(std::move(url)), callback_(std::move(callback)),
+        client_(std::move(client)) {}
+  void Begin() {
+    Lifecycle("webtransport-pending");
+    client_.set_disconnect_handler(base::BindOnce(&TransportDecision::Abandon,
+                                                 weak_.GetWeakPtr()));
+    timeout_.Start(FROM_HERE, base::Seconds(35),
+        base::BindOnce(&TransportDecision::TimedOut, weak_.GetWeakPtr()));
+    // WebTransport is classified as other, not WebSocket; its source is the
+    // initiator origin, never an invented HTTP referrer.
+    Engine::Get().Decide(url_.spec(), "other", origin_,
+        base::BindOnce(&TransportDecision::Done, weak_.GetWeakPtr()));
+  }
+ private:
+  void Lifecycle(const char* stage) {
+    base::DictValue event;
+    event.Set("event", stage);
+    event.Set("request_id", request_id_);
+    event.Set("url", url_.spec());
+    event.Set("private", context_ ? context_->IsOffTheRecord() : true);
+    Record(std::move(event));
+  }
+  void Abandon() { Lifecycle("webtransport-abandoned"); delete this; }
+  void TimedOut() { Lifecycle("webtransport-timeout"); Done(-1); }
+  void Done(int result) {
+    // A deleted profile may remain allocated while workers/proxies drain.
+    // WeakPtr validity alone does not authorize a new network connection.
+    const bool profile_unavailable = !context_ || context_->ShutdownStarted() ||
+        IsProfileDirectoryMarkedForDeletion(context_->GetPath());
+    if (profile_unavailable ||
+        (document_scoped_ && !document_.AsRenderFrameHostIfValid()))
+      result = -1;
+    timeout_.Stop();
+    base::DictValue event;
+    event.Set("event", "webtransport-decision");
+    event.Set("request_id", request_id_);
+    event.Set("url", url_.spec());
+    event.Set("initiator_origin", origin_);
+    event.Set("source_contract", "webtransport-initiator-origin");
+    event.Set("owner", document_scoped_ ? "document-or-dedicated-worker" : "frame-less-worker");
+    event.Set("private", context_ ? context_->IsOffTheRecord() : true);
+    event.Set("context_alive", !!context_);
+    event.Set("profile_unavailable", profile_unavailable);
+    event.Set("engine_result", result);
+    event.Set("decision", result == 0 ? "allow" : "block");
+    Record(std::move(event));
+    if (result == 0) {
+      std::move(callback_).Run(client_.Unbind(), std::nullopt);
+    } else {
+      std::move(callback_).Run(client_.Unbind(),
+          network::mojom::WebTransportError::New(
+              net::ERR_BLOCKED_BY_CLIENT, 0, "Blocked by Blanc Blocker", false));
+    }
+    delete this;
+  }
+  const std::string request_id_ = base::UnguessableToken::Create().ToString();
+  base::WeakPtr<content::BrowserContext> context_;
+  content::WeakDocumentPtr document_;
+  bool document_scoped_;
+  std::string origin_;
+  GURL url_;
+  content::ContentBrowserClient::WillCreateWebTransportCallback callback_;
+  mojo::Remote<network::mojom::WebTransportHandshakeClient> client_;
+  base::OneShotTimer timeout_;
+  base::WeakPtrFactory<TransportDecision> weak_{this};
+};
+std::string Type(const network::ResourceRequest& request) {
+  if (request.is_fetch_like_api) return "xhr";
+  using D = network::mojom::RequestDestination;
+  switch (request.destination) {
+    case D::kDocument: return "mainFrame";
+    case D::kIframe: case D::kFrame: case D::kFencedframe: return "subFrame";
+    case D::kStyle: case D::kXslt: return "stylesheet";
+    case D::kScript: case D::kWorker: case D::kSharedWorker: case D::kServiceWorker: return "script";
+    case D::kImage: return "image";
+    case D::kFont: return "font";
+    case D::kAudio: case D::kVideo: case D::kTrack: return "media";
+    case D::kObject: case D::kEmbed: return "object";
+    case D::kReport: return "cspReport";
+    default: return request.keepalive ? "ping" : "other";
+  }
+}
+struct Context {
+  base::WeakPtr<content::BrowserContext> browser_context;
+  std::string factory_instance;
+  bool private_profile;
+  content::GlobalRenderFrameHostId frame;
+  int factory_type;
+  net::IsolationInfo isolation_info;
+};
+#if BLANC_RESEARCH_HOOKS
+// Offline component prototype only. Cancel while unready; never queue a request
+// which might already have traversed an empty extension webRequest engine.
+struct UboHold : public base::SupportsUserData::Data {
+  content::WeakDocumentPtr document;
+  uint64_t generation = 0;
+  bool ready = false;
+};
+UboHold& UboState(content::BrowserContext* context) {
+  static const char key = 0;
+  auto* state = static_cast<UboHold*>(context->GetUserData(&key));
+  if (!state) {
+    auto owned = std::make_unique<UboHold>();
+    state = owned.get(); context->SetUserData(&key, std::move(owned));
+  }
+  return *state;
+}
+#include "chrome/services/blanc_blocker/document_start.inc"
+bool UboProbe() {
+  return base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-reload-probe");
+}
+bool UboBackground(const Context& context, const network::ResourceRequest& request) {
+  if (!context.browser_context) return false;
+  auto* frame = content::RenderFrameHost::FromID(context.frame);
+  const GURL background("chrome-extension://oddhmofgkplblkmckempfepikkophank/background.html");
+  auto* manager = extensions::ProcessManager::Get(context.browser_context.get());
+  return !context.private_profile && frame && !frame->GetParent() &&
+      manager && manager->GetBackgroundHostForRenderFrameHost(frame) &&
+      manager->GetBackgroundHostForRenderFrameHost(frame) ==
+          manager->GetBackgroundHostForExtension("oddhmofgkplblkmckempfepikkophank") &&
+      frame->GetBrowserContext() == context.browser_context.get() &&
+      frame->GetLastCommittedURL() == background && request.request_initiator &&
+      *request.request_initiator == url::Origin::Create(background);
+}
+#endif  // BLANC_RESEARCH_HOOKS
+const char* FactoryKind(int value) {
+  using F = content::ContentBrowserClient::URLLoaderFactoryType;
+  switch (static_cast<F>(value)) {
+    case F::kWorkerMainResource: return "worker-script";
+    case F::kWorkerSubResource: return "worker-subresource";
+    case F::kServiceWorkerScript: return "service-worker-script";
+    case F::kServiceWorkerSubResource: return "service-worker-subresource";
+    default: return "other";
+  }
+}
+// One request owns both Mojo sides. Cancellation and disconnect delete it and
+// invalidate every pending decision callback. The underlying loader is never
+// started until the utility replies; redirect hops pass through the same gate.
+class Request : public network::mojom::URLLoader, public network::mojom::URLLoaderClient {
+ public:
+  Request(Context context, scoped_refptr<network::SharedURLLoaderFactory> factory,
+      mojo::PendingReceiver<network::mojom::URLLoader> receiver, int32_t id, uint32_t options,
+      const network::ResourceRequest& request, mojo::PendingRemote<network::mojom::URLLoaderClient> client,
+      const net::MutableNetworkTrafficAnnotationTag& annotation)
+      : context_(context), factory_(std::move(factory)), id_(id), options_(options), request_(request),
+        annotation_(annotation), receiver_(this, std::move(receiver)), client_(std::move(client)), incoming_(this) {
+    // Snapshot the actual originating frame before an asynchronous decision can
+    // outlive it. Worker factories may intentionally have no associated frame.
+    auto* frame = content::RenderFrameHost::FromID(context_.frame);
+    frame_state_ = frame ? "live-at-entry" : context_.frame == content::GlobalRenderFrameHostId()
+        ? "not-associated" : "gone-at-entry";
+    if (frame) {
+      top_origin_ = frame->GetMainFrame()->GetLastCommittedOrigin().Serialize();
+      frame_role_ = frame->GetParent() ? "sub" : "main";
+    }
+    receiver_.set_disconnect_handler(base::BindOnce(&Request::Destroy, base::Unretained(this)));
+    client_.set_disconnect_handler(base::BindOnce(&Request::Destroy, base::Unretained(this)));
+  }
+  void Begin(base::TimeTicks entered) {
+#if BLANC_RESEARCH_HOOKS
+    if (UboProbe() && request_.url.host() == "blanc-ubo-control.invalid") {
+      bool ok = false;
+      if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start") && UboBackground(context_, request_) && request_.url.SchemeIs("http") && !request_.url.has_port()) {
+        uint64_t generation = 0; auto& state = UboState(context_.browser_context.get());
+        const bool current = base::StringToUint64(request_.url.query(), &generation) && generation == state.generation && state.ready && state.document.AsRenderFrameHostIfValid() == content::RenderFrameHost::FromID(context_.frame);
+        if (request_.url.path() == "/work" && request_.method == "GET") {
+          base::ListValue work;
+          if (current) for (auto& [id, job] : Jobs(context_.browser_context.get()).jobs) {
+            if (job.offered || job.generation != generation || !job.document.AsRenderFrameHostIfValid()) continue;
+            job.offered = true; base::DictValue value; value.Set("token", id); value.Set("url", job.url); value.Set("tabId", job.tab_id); value.Set("frameId", job.frame_id); value.Set("ancestors", job.ancestors.Clone()); work.Append(std::move(value));
+          }
+          ReplyControl(current ? 200 : 409, base::WriteJson(work).value_or("[]")); return;
+        }
+        if (request_.url.path() == "/early-deliveries" && request_.method == "GET") {
+          const bool owner = base::StringToUint64(request_.url.query(), &generation) && generation > 0 && generation == state.generation &&
+              state.document.AsRenderFrameHostIfValid() == content::RenderFrameHost::FromID(context_.frame);
+          if (!owner) { ReplyControl(403, "{}"); return; }
+          base::DictValue result; result.Set("pending", static_cast<int>(PendingDeliveries(context_.browser_context.get())));
+          base::DictValue event = result.Clone(); event.Set("event", "ubo-early-deliveries"); Record(std::move(event));
+          ReplyControl(200, base::WriteJson(result).value_or("{}")); return;
+        }
+        // Lifetime query is available while held, but only to the same live
+        // provider document/generation. The JS barrier queries only document IDs
+        // previously validated by LateContext, never arbitrary absent IDs.
+        if (request_.url.path() == "/delivery-document" && request_.method == "POST") {
+          std::string body;
+          if (request_.request_body) for (const auto& element : *request_.request_body->elements()) {
+            if (element.type() != network::DataElement::Tag::kBytes) { body.clear(); break; }
+            body += element.As<network::DataElementBytes>().AsStringView();
+            if (body.size() > 1024) { body.clear(); break; }
+          }
+          auto parsed = base::JSONReader::ReadDict(body, base::JSON_PARSE_RFC);
+          const auto* document = parsed ? parsed->FindString("documentId") : nullptr;
+          auto id = extensions::ExtensionApiFrameIdMap::DocumentIdFromString(document ? *document : "");
+          const bool owner = base::StringToUint64(request_.url.query(), &generation) && generation > 0 && generation == state.generation &&
+              state.document.AsRenderFrameHostIfValid() == content::RenderFrameHost::FromID(context_.frame);
+          if (!owner || !document || id.is_empty()) { ReplyControl(403, "{}"); return; }
+          auto* frame = extensions::ExtensionApiFrameIdMap::Get()->GetRenderFrameHostByDocumentId(id);
+          if (frame && frame->GetBrowserContext() != context_.browser_context.get()) { ReplyControl(403, "{}"); return; }
+          // No IsActive/renderer-live check: BFCache, prerender and crashed-but-
+          // retained documents must not be mistaken for destroyed documents.
+          base::DictValue result; result.Set("documentId", *document);
+          result.Set("exists", frame != nullptr);
+          base::DictValue event = result.Clone(); event.Set("event", "ubo-delivery-document");
+          event.Set("active", frame && frame->IsActive()); Record(std::move(event));
+          ReplyControl(200, base::WriteJson(result).value_or("{}")); return;
+        }
+        if (request_.url.path() == "/late-context" && request_.method == "POST") {
+          std::string body;
+          if (request_.request_body) for (const auto& element : *request_.request_body->elements()) {
+            if (element.type() != network::DataElement::Tag::kBytes) { body.clear(); break; }
+            body += element.As<network::DataElementBytes>().AsStringView();
+            if (body.size() > 64 * 1024) { body.clear(); break; }
+          }
+          auto parsed = base::JSONReader::ReadDict(body, base::JSON_PARSE_RFC);
+          auto result = current && parsed ? LateContext(context_.browser_context.get(), *parsed) : std::nullopt;
+          ReplyControl(result ? 200 : 403, result ? base::WriteJson(*result).value_or("{}") : "{}"); return;
+        }
+        if (request_.url.path() == "/script" && request_.method == "POST") {
+          std::string body;
+          if (request_.request_body) for (const auto& element : *request_.request_body->elements()) {
+            if (element.type() != network::DataElement::Tag::kBytes) { body.clear(); break; }
+            body += element.As<network::DataElementBytes>().AsStringView();
+            if (body.size() > 1024 * 1024) { body.clear(); break; }
+          }
+          auto parsed = base::JSONReader::ReadDict(body, base::JSON_PARSE_RFC);
+          if (current && parsed) {
+            const auto* token = parsed->FindString("token"); const auto* code = parsed->FindString("code");
+            auto& jobs = Jobs(context_.browser_context.get()).jobs;
+            auto it = token ? jobs.find(*token) : jobs.end();
+            if (it != jobs.end() && code && it->second.offered && it->second.generation == generation && it->second.document.AsRenderFrameHostIfValid()) {
+              // Establish the lease before replying to the synchronous renderer call.
+              const std::string delivery = code->empty() ? "" : *token;
+              if (!delivery.empty()) Jobs(context_.browser_context.get()).deliveries.emplace(delivery, it->second.document);
+              auto callback = std::move(it->second.callback); jobs.erase(it); ok = true; std::move(callback).Run(true, *code, delivery);
+            }
+          }
+          ReplyControl(ok ? 204 : 403, ""); return;
+        }
+      }
+      if (UboBackground(context_, request_) && request_.method == "GET" &&
+          request_.url.SchemeIs("http") && !request_.url.has_port()) {
+        uint64_t generation = 0;
+        auto* frame = content::RenderFrameHost::FromID(context_.frame);
+        auto& state = UboState(context_.browser_context.get());
+        const bool same = state.document.AsRenderFrameHostIfValid() == frame;
+        if (base::StringToUint64(request_.url.query(), &generation) && generation > 0) {
+          if (request_.url.path() == "/begin" && ((!same && generation == 1) ||
+              (same && generation == state.generation + 1))) {
+            state.document = frame->GetWeakDocumentPtr();
+            state.generation = generation; state.ready = false; CancelScripts(context_.browser_context.get()); ok = true;
+          } else if (request_.url.path() == "/ready" && same && generation == state.generation && PendingDeliveries(context_.browser_context.get()) == 0) {
+            state.ready = true; ok = true;
+          }
+        }
+      }
+      base::DictValue event; event.Set("event", "ubo-control");
+      event.Set("action", request_.url.path()); event.Set("accepted", ok); Record(std::move(event));
+      if (!ok) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }
+      auto head = network::mojom::URLResponseHead::New();
+      head->headers = net::HttpResponseHeaders::TryToCreate(
+          "HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: chrome-extension://oddhmofgkplblkmckempfepikkophank\r\n\r\n");
+      mojo::ScopedDataPipeProducerHandle producer;
+      mojo::ScopedDataPipeConsumerHandle consumer;
+      if (mojo::CreateDataPipe(nullptr, producer, consumer) != MOJO_RESULT_OK) {
+        Complete(net::ERR_FAILED); return;
+      }
+      producer.reset();
+      client_->OnReceiveResponse(std::move(head), std::move(consumer), std::nullopt);
+      Complete(net::OK); return;
+    }
+#endif
+    Gate(base::BindOnce(&Request::Start, weak_.GetWeakPtr()), entered);
+  }
+  ~Request() override = default;
+  void FollowRedirect(network::HttpRequestHeadersUpdateParams headers, const std::optional<GURL>& url) override {
+    const perfetto::DynamicCategory category("disabled-by-default-blanc.attribution");
+    bool tracing = false;
+    TRACE_EVENT_CATEGORY_GROUP_ENABLED(category, &tracing);
+    if (tracing && request_.devtools_request_id) {
+      const auto digest = crypto::hash::Sha256(*request_.devtools_request_id);
+      TRACE_EVENT_INSTANT(category, "Blanc.RedirectFollow",
+                          "request_digest", base::HexEncode(digest),
+                          "replacement_url", url.has_value(),
+                          "removed_headers", static_cast<int>(headers.removed_headers.size()),
+                          "modified_headers", static_cast<int>(headers.modified_headers.GetHeaderVector().size()),
+                          "forwarded", redirect_pending_ && !url);
+    }
+    // Forward all validation to the real loader. A caller-supplied replacement
+    // URL is not yet supported: refuse rather than evaluate a different hop.
+    if (!redirect_pending_ || url) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }
+    redirect_pending_ = false;
+    loader_->FollowRedirect(std::move(headers), url);
+  }
+  void SetPriority(net::RequestPriority priority, int32_t intra) override {
+    priority_ = priority; intra_ = intra;
+    if (loader_) loader_->SetPriority(priority, intra);
+  }
+  void OnReceiveEarlyHints(network::mojom::EarlyHintsPtr hints) override { client_->OnReceiveEarlyHints(std::move(hints)); }
+  void OnReceiveResponse(network::mojom::URLResponseHeadPtr head, mojo::ScopedDataPipeConsumerHandle body,
+                         std::optional<mojo_base::BigBuffer> metadata) override {
+    client_->OnReceiveResponse(std::move(head), std::move(body), std::move(metadata));
+  }
+  void OnReceiveRedirect(const net::RedirectInfo& info, network::mojom::URLResponseHeadPtr head) override {
+    const auto entered = base::TimeTicks::Now();
+    request_.UpdateOnRedirect(info); ++redirect_index_;
+    Gate(base::BindOnce([](base::WeakPtr<Request> self, net::RedirectInfo redirect,
+                          network::mojom::URLResponseHeadPtr response) {
+      if (!self) return;
+      self->redirect_pending_ = true;
+      self->client_->OnReceiveRedirect(redirect, std::move(response));
+    }, weak_.GetWeakPtr(), info, std::move(head)), entered);
+  }
+  void OnUploadProgress(int64_t current, int64_t total, OnUploadProgressCallback cb) override { client_->OnUploadProgress(current, total, std::move(cb)); }
+  void OnTransferSizeUpdated(int32_t diff) override { client_->OnTransferSizeUpdated(diff); }
+  void OnComplete(const network::URLLoaderCompletionStatus& status) override {
+    if (completed_) return;
+    completed_ = true; timeout_.Stop(); client_->OnComplete(status);
+    // Keep the downstream loader/client endpoints alive until the consumer
+    // closes them. Completion on one Mojo pipe does not order disconnects on
+    // another; do not destroy the proxy while the response is being consumed.
+  }
+ private:
+  void ReplyControl(int status, const std::string& body) {
+    auto head = network::mojom::URLResponseHead::New();
+    head->headers = net::HttpResponseHeaders::TryToCreate("HTTP/1.1 " + base::NumberToString(status) + " Result\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: chrome-extension://oddhmofgkplblkmckempfepikkophank\r\n\r\n");
+    mojo::ScopedDataPipeProducerHandle producer; mojo::ScopedDataPipeConsumerHandle consumer;
+    MojoCreateDataPipeOptions options{sizeof(options), MOJO_CREATE_DATA_PIPE_FLAG_NONE, 1, static_cast<uint32_t>(std::max<size_t>(body.size(), 1))};
+    if (mojo::CreateDataPipe(&options, producer, consumer) != MOJO_RESULT_OK) { Complete(net::ERR_FAILED); return; }
+    if (!body.empty()) { size_t written = 0; if (producer->WriteData(base::as_byte_span(body), MOJO_WRITE_DATA_FLAG_ALL_OR_NONE, written) != MOJO_RESULT_OK) { Complete(net::ERR_FAILED); return; } }
+    producer.reset(); client_->OnReceiveResponse(std::move(head), std::move(consumer), std::nullopt); Complete(net::OK);
+  }
+  void Destroy() { delete this; }
+  void Complete(int error) { OnComplete(network::URLLoaderCompletionStatus(error)); }
+  void Gate(base::OnceClosure allowed, base::TimeTicks entered) {
+    if (!context_.browser_context) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }
+    if (!request_.url.SchemeIsHTTPOrHTTPS()) { std::move(allowed).Run(); return; }
+    start_ = entered;
+#if BLANC_RESEARCH_HOOKS
+    if (UboProbe() && !context_.private_profile) {
+      // Exact background-document list acquisition must not deadlock the hold.
+      auto& state = UboState(context_.browser_context.get());
+      const bool ready = state.ready && state.document.AsRenderFrameHostIfValid();
+      if (!ready && !UboBackground(context_, request_)) {
+        base::DictValue event; event.Set("event", "ubo-hold-cancel"); Record(std::move(event));
+        Complete(net::ERR_BLOCKED_BY_CLIENT); return;
+      }
+      std::move(allowed).Run(); return;
+    }
+#endif
+    timeout_.Start(FROM_HERE, base::Seconds(35), base::BindOnce(&Request::TimedOut, weak_.GetWeakPtr()));
+    Engine::Get().Decide(request_.url.spec(), Type(request_), request_.referrer.spec(),
+      base::BindOnce(&Request::Decided, weak_.GetWeakPtr(), std::move(allowed)));
+  }
+  void TraceDecision(int result, bool timed_out = false) {
+    const perfetto::DynamicCategory decision_category("disabled-by-default-blanc.attribution");
+    bool tracing = false;
+    TRACE_EVENT_CATEGORY_GROUP_ENABLED(decision_category, &tracing);
+    if (tracing && request_.devtools_request_id) {
+      // Preserve the DevTools ID; expose only a one-way join key, not URLs or
+      // caller-controlled ID text. Redirect hops retain the same request ID.
+      const auto digest = crypto::hash::Sha256(*request_.devtools_request_id);
+      TRACE_EVENT_INSTANT(decision_category, "Blanc.RequestDecision",
+                          "request_digest", base::HexEncode(digest),
+                          "method", request_.method,
+                          "redirect_index", redirect_index_,
+                          "private", context_.private_profile,
+                          "result", result);
+    }
+    constexpr std::string_view prefix = "blanc-trace-update/";
+    if (request_.devtools_request_id &&
+        request_.devtools_request_id->size() == prefix.size() + 32 &&
+        base::StartsWith(*request_.devtools_request_id, prefix) &&
+        base::ContainsOnlyChars(request_.devtools_request_id->substr(prefix.size()),
+                                "0123456789ABCDEF")) {
+      const perfetto::DynamicCategory category("disabled-by-default-blanc.attribution");
+      TRACE_EVENT_INSTANT(category,
+                          "Blanc.BlockerDecision",
+                          "request_token", *request_.devtools_request_id,
+                          "result", result);
+      if (timed_out) {
+        TRACE_EVENT_INSTANT(category, "Blanc.BlockerTimeout",
+                            "request_token", *request_.devtools_request_id);
+      }
+    }
+  }
+  void TimedOut() {
+    TraceDecision(-1, true);
+    Log(-1); Complete(net::ERR_BLOCKED_BY_CLIENT); Engine::Get().Fail();
+  }
+  void Log(int result) {
+    const auto elapsed = base::TimeTicks::Now() - start_;
+    const auto type = Type(request_);
+    const perfetto::DynamicCategory latency_category("disabled-by-default-blanc.latency");
+    bool timing = false;
+    TRACE_EVENT_CATEGORY_GROUP_ENABLED(latency_category, &timing);
+    if (timing && request_.devtools_request_id) {
+      // Explicit local tracing only. Bind timing to independently observed
+      // context without restoring URL/private-profile diagnostic file logging.
+      base::ListValue context;
+      context.Append(request_.url.spec());
+      context.Append(request_.method);
+      context.Append(type);
+      context.Append(request_.request_initiator ? request_.request_initiator->Serialize() : "absent");
+      context.Append(type == "mainFrame" ? url::Origin::Create(request_.url).Serialize() : top_origin_);
+      context.Append(type == "mainFrame" ? "main" : frame_role_);
+      context.Append(context_.private_profile ? "private" : "regular");
+      context.Append(redirect_index_);
+      context.Append(request_.referrer.spec());
+      const auto serialized = base::WriteJson(context);
+      if (serialized) {
+        TRACE_EVENT_INSTANT(latency_category, "Blanc.DecisionTiming",
+            "request_digest", base::HexEncode(crypto::hash::Sha256(*request_.devtools_request_id)),
+            "context_digest", base::HexEncode(crypto::hash::Sha256(*serialized)),
+            "hook_to_decision_us", elapsed.InMicrosecondsF(), "result", result);
+      }
+    }
+    base::DictValue event;
+    event.Set("event", "decision"); event.Set("url", request_.url.spec());
+    event.Set("method", request_.method); event.Set("resource_type", type);
+    event.Set("referrer", request_.referrer.spec());
+    event.Set("initiator_present", request_.request_initiator.has_value());
+    event.Set("initiator_origin", request_.request_initiator ? request_.request_initiator->Serialize() : "absent");
+    event.Set("top_frame_origin", type == "mainFrame" ? url::Origin::Create(request_.url).Serialize() :
+              top_origin_);
+    event.Set("frame_role", type == "mainFrame" ? "main" : frame_role_);
+    event.Set("frame_state", frame_state_);
+    event.Set("factory_kind", FactoryKind(context_.factory_type));
+    // Transport identity only: never substitute for a worker/client context.
+    event.Set("factory_instance", context_.factory_instance);
+    event.Set("loader_request_id", id_);
+    event.Set("devtools_request_id", request_.devtools_request_id.value_or("absent"));
+    // Isolation metadata is NOT a document/client origin. StorageKey can reduce
+    // it to a schemeful site; never substitute it for the required frame fields.
+    const auto& factory_top = context_.isolation_info.top_frame_origin();
+    event.Set("factory_isolation_top_origin", factory_top ? factory_top->Serialize() : "absent");
+    const auto request_top = request_.trusted_params
+        ? request_.trusted_params->isolation_info.top_frame_origin() : std::nullopt;
+    event.Set("request_isolation_top_origin", request_top ? request_top->Serialize() : "absent");
+    event.Set("profile_kind", context_.private_profile ? "private" : "regular");
+    event.Set("factory_type", context_.factory_type); event.Set("redirect_index", redirect_index_);
+    event.Set("decision", result == 0 ? "allow" : "block"); event.Set("engine_result", result);
+    event.Set("status", result == 0 || result == 1 ? "ready" : result == 2 ? "unsupported-resource-redirect" : "engine-error");
+    event.Set("hook_to_decision_us", elapsed.InMicrosecondsF());
+    Record(std::move(event));
+  }
+  void Decided(base::OnceClosure allowed, int result) {
+    if (completed_) return;
+    if (!context_.browser_context) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }
+    timeout_.Stop();
+    TraceDecision(result);
+    // Measure through application of the decision, not just receipt of the Mojo
+    // reply. Capture time before optional context/logging work adds overhead.
+    if (result != 0) Complete(net::ERR_BLOCKED_BY_CLIENT);
+    else std::move(allowed).Run();
+    Log(result);
+  }
+  void Start() {
+    factory_->CreateLoaderAndStart(loader_.BindNewPipeAndPassReceiver(), id_, options_, request_,
+                                   incoming_.BindNewPipeAndPassRemote(), annotation_);
+    incoming_.set_disconnect_handler(base::BindOnce(&Request::Complete, weak_.GetWeakPtr(), net::ERR_FAILED));
+    if (priority_) loader_->SetPriority(*priority_, intra_);
+  }
+  Context context_;
+  std::string top_origin_ = "unresolved";
+  std::string frame_role_ = "unresolved";
+  std::string frame_state_;
+  scoped_refptr<network::SharedURLLoaderFactory> factory_;
+  int32_t id_; uint32_t options_;
+  network::ResourceRequest request_;
+  net::MutableNetworkTrafficAnnotationTag annotation_;
+  mojo::Receiver<network::mojom::URLLoader> receiver_;
+  mojo::Remote<network::mojom::URLLoaderClient> client_;
+  mojo::Remote<network::mojom::URLLoader> loader_;
+  mojo::Receiver<network::mojom::URLLoaderClient> incoming_;
+  std::optional<net::RequestPriority> priority_;
+  int32_t intra_ = 0; int redirect_index_ = 0; bool redirect_pending_ = false; bool completed_ = false;
+  base::TimeTicks start_;
+  base::OneShotTimer timeout_;
+  base::WeakPtrFactory<Request> weak_{this};
+};
+class Factory : public network::SelfDeletingURLLoaderFactory {
+ public:
+  Factory(mojo::PendingReceiver<network::mojom::URLLoaderFactory> receiver,
+          mojo::PendingRemote<network::mojom::URLLoaderFactory> remote, Context context,
+          base::SelfDeletingPassKey key)
+      : network::SelfDeletingURLLoaderFactory(std::move(receiver), key), context_(context),
+        target_(base::MakeRefCounted<network::WrapperSharedURLLoaderFactory>(std::move(remote))) {}
+  void CreateLoaderAndStart(mojo::PendingReceiver<network::mojom::URLLoader> receiver,
+      int32_t id, uint32_t options, const network::ResourceRequest& request,
+      mojo::PendingRemote<network::mojom::URLLoaderClient> client,
+      const net::MutableNetworkTrafficAnnotationTag& annotation) override {
+    if (!request.url.SchemeIsHTTPOrHTTPS()) {
+      target_->CreateLoaderAndStart(std::move(receiver), id, options, request, std::move(client), annotation);
+      return;
+    }
+    const auto entered = base::TimeTicks::Now();
+    auto* proxy = new Request(context_, target_, std::move(receiver), id, options, request, std::move(client), annotation);
+    proxy->Begin(entered);
+  }
+ private:
+  ~Factory() override = default;
+  Context context_;
+  scoped_refptr<network::SharedURLLoaderFactory> target_;
+};
+}
+const char* BlockerHealth() { return Engine::Get().Health(); }
+content::ContentBrowserClient::WebSocketFactory WrapWebSocketFactory(
+    int process_id, int frame_routing_id, const url::Origin& initiator_origin,
+    content::ContentBrowserClient::WebSocketFactory factory) {
+  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets"))
+    return factory;
+  auto* process = content::RenderProcessHost::FromID(process_id);
+  // Preserve the separate experimental uBO provider. Its regular-profile socket
+  // coverage is not qualified here; private fallback remains Blanc Blocker.
+#if BLANC_RESEARCH_HOOKS
+  if (UboProbe() && process && !process->GetBrowserContext()->IsOffTheRecord())
+    return factory;
+#endif
+  auto* frame = content::RenderFrameHost::FromID(process_id, frame_routing_id);
+  auto context = process ? process->GetBrowserContext()->GetWeakPtr()
+                         : base::WeakPtr<content::BrowserContext>();
+  auto document = frame ? frame->GetWeakDocumentPtr() : content::WeakDocumentPtr();
+  const bool document_scoped = frame_routing_id != IPC::mojom::kRoutingIdNone;
+  return base::BindOnce(
+      [](base::WeakPtr<content::BrowserContext> context,
+         content::WeakDocumentPtr document, bool document_scoped,
+         std::string origin, content::ContentBrowserClient::WebSocketFactory factory,
+         const GURL& url, std::vector<network::mojom::HttpHeaderPtr> headers,
+         mojo::PendingRemote<network::mojom::WebSocketHandshakeClient> client,
+         mojo::PendingRemote<network::mojom::WebSocketAuthenticationHandler> auth,
+         mojo::PendingRemote<network::mojom::TrustedHeaderClient> trusted) {
+        (new SocketDecision(std::move(context), std::move(document), document_scoped,
+             std::move(origin), std::move(factory), url, std::move(headers),
+             std::move(client), std::move(auth), std::move(trusted)))->Begin();
+      }, std::move(context), std::move(document), document_scoped,
+      initiator_origin.Serialize(), std::move(factory));
+}
+content::ContentBrowserClient::WillCreateWebTransportCallback WrapWebTransportCallback(
+    int process_id, int frame_routing_id, const GURL& url,
+    const url::Origin& initiator_origin,
+    content::ContentBrowserClient::WillCreateWebTransportCallback callback) {
+  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets"))
+    return callback;
+  auto* process = content::RenderProcessHost::FromID(process_id);
+#if BLANC_RESEARCH_HOOKS
+  if (UboProbe() && process && !process->GetBrowserContext()->IsOffTheRecord())
+    return callback;
+#endif
+  auto* frame = content::RenderFrameHost::FromID(process_id, frame_routing_id);
+  auto context = process ? process->GetBrowserContext()->GetWeakPtr()
+                         : base::WeakPtr<content::BrowserContext>();
+  auto document = frame ? frame->GetWeakDocumentPtr() : content::WeakDocumentPtr();
+  return base::BindOnce(
+      [](base::WeakPtr<content::BrowserContext> context,
+         content::WeakDocumentPtr document, bool document_scoped,
+         GURL url, std::string origin,
+         content::ContentBrowserClient::WillCreateWebTransportCallback callback,
+         mojo::PendingRemote<network::mojom::WebTransportHandshakeClient> client,
+         std::optional<network::mojom::WebTransportErrorPtr> error) {
+        // Preserve extension rejection and the connector's original callback.
+        if (error) {
+          std::move(callback).Run(std::move(client), std::move(error));
+          return;
+        }
+        (new TransportDecision(std::move(context), std::move(document),
+            document_scoped, std::move(origin), std::move(url),
+            std::move(callback), std::move(client)))->Begin();
+      }, std::move(context), std::move(document),
+      frame_routing_id != IPC::mojom::kRoutingIdNone, url,
+      initiator_origin.Serialize(), std::move(callback));
+}
+void BindCosmetics(content::RenderFrameHost* frame, mojo::PendingReceiver<mojom::Cosmetics> receiver) {
+  base::MakeSelfDeleting<CosmeticDocument>(*frame, std::move(receiver));
+}
+void SetDocumentStartPrerenderPolicy(content::MojoBinderPolicyMap& policy_map) {
+  // Read-only engine selection, bound to this prerender document. Existing
+  // activation protection still rejects activation after utility loss.
+  policy_map.SetNonAssociatedPolicy<mojom::Cosmetics>(content::MojoBinderNonAssociatedPolicy::kGrant);
+#if BLANC_RESEARCH_HOOKS
+  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start")) return;
+  // A deferred binder would deadlock the synchronous document-start request.
+  // Cancel speculative documents rather than bypassing protection or granting
+  // this experimental interface new prerender capabilities. Active loads retain
+  // the ordinary document gate; prerender support remains unqualified.
+  policy_map.SetNonAssociatedPolicy<mojom::DocumentStart>(
+      content::MojoBinderNonAssociatedPolicy::kCancel);
+#endif
+}
+void BindDocumentStart(content::RenderFrameHost* frame, mojo::PendingReceiver<mojom::DocumentStart> receiver) {
+#if BLANC_RESEARCH_HOOKS
+  new DocumentScript(*frame, std::move(receiver));
+#endif
+}
+std::unique_ptr<content::CommitDeferringCondition> MaybeCreateActivationGate(
+    content::NavigationHandle& navigation,
+    content::CommitDeferringCondition::NavigationType type) {
+  if (type != content::CommitDeferringCondition::NavigationType::kPrerenderedPageActivation ||
+      !navigation.GetURL().SchemeIsHTTPOrHTTPS()) return nullptr;
+  auto* command = base::CommandLine::ForCurrentProcess();
+  if (!command->HasSwitch("blanc-blocker-assets")) return nullptr;
+#if BLANC_RESEARCH_HOOKS
+  if (command->HasSwitch("blanc-ubo-component-probe")) return nullptr;
+#endif
+  return std::make_unique<ActivationGate>(navigation);
+}
+void AddNavigationResponseGate(content::NavigationThrottleRegistry& registry) {
+  auto* command = base::CommandLine::ForCurrentProcess();
+  if (!command->HasSwitch("blanc-blocker-assets")) return;
+#if BLANC_RESEARCH_HOOKS
+  if (command->HasSwitch("blanc-ubo-component-probe")) return;
+#endif
+  registry.AddThrottle(std::make_unique<NavigationResponseGate>(registry));
+}
+bool MaybeProxy(content::BrowserContext* context, content::RenderFrameHost* frame,
+                int factory_type, const net::IsolationInfo& isolation_info,
+                network::URLLoaderFactoryBuilder& builder) {
+  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets")
+#if BLANC_RESEARCH_HOOKS
+      && !UboProbe()
+#endif
+      ) return false;
+  auto [receiver, remote] = builder.Append();
+  base::MakeSelfDeleting<Factory>(std::move(receiver), std::move(remote),
+      Context{context->GetWeakPtr(), base::UnguessableToken::Create().ToString(), context->IsOffTheRecord(), frame ? frame->GetGlobalId() : content::GlobalRenderFrameHostId(), factory_type, isolation_info});
+  return true;
+}
+}

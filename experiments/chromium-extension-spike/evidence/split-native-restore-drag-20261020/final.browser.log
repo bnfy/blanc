@@ -1,0 +1,6 @@
+[30930:327316:1020/165135.655302:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[30930:327267:1020/165135.947611:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9291/devtools/browser/4734f227-c81a-46e4-a3c7-8d109dda16f0
+[31005:328443:1020/165201.033060:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up day.blanc.prototype.MachPortRendezvousServer.1: Permission denied (1100)
+[31005:328443:1020/165201.033234:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)

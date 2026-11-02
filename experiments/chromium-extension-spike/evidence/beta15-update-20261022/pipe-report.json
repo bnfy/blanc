@@ -1,0 +1,52 @@
+{
+  "app": "/private/tmp/blanc-beta15-upgrade/Blanc Chromium Preview.app",
+  "checks": [
+    {
+      "name": "selected encrypted session is a FIFO with no writer",
+      "pass": true,
+      "details": {
+        "file": "/private/tmp/blanc-beta15-upgrade/pipe-profile/Default/Sessions_Encrypted/Session_13437240216917612"
+      }
+    },
+    {
+      "name": "signed candidate rejects pipe and becomes responsive",
+      "pass": true,
+      "details": [
+        "blanc://newtab/",
+        "http://127.0.0.1:9780/a",
+        "http://127.0.0.1:9780/b"
+      ]
+    },
+    {
+      "name": "native shutdown exits0 without watchdog",
+      "pass": true,
+      "details": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "name": "no watchdog message",
+      "pass": true,
+      "details": true
+    },
+    {
+      "name": "original regular encrypted record still restores saved tabs",
+      "pass": true,
+      "details": [
+        "blanc://newtab/",
+        "http://127.0.0.1:9780/a",
+        "http://127.0.0.1:9780/b"
+      ]
+    },
+    {
+      "name": "native shutdown exits0 without watchdog",
+      "pass": true,
+      "details": {
+        "code": 0,
+        "signal": null
+      }
+    }
+  ],
+  "complete": true
+}

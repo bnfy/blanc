@@ -1,0 +1,9 @@
+{
+  "verified": true,
+  "extensionRepeatPasses": 4,
+  "permissionDeniedGaps": 4,
+  "unresolvedBlobGaps": 8,
+  "directMechanismPasses": 16,
+  "fullAcceptance": false,
+  "latencyMeasured": false
+}

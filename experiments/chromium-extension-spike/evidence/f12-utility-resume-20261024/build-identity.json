@@ -1,0 +1,17 @@
+{
+  "source_base": "9e3a3a4f6f8d235d559bc91a34aaa608e2b4f6b2",
+  "repair_sha256": "56ee39ecc5d2d41fa99b0f50fdd6ab5c2221da53193a26f8dc233b7ea53665b7",
+  "framework_sha256": "32d9ed330d7ab6f7e2af9a1611f23f30531a0783eaebe58acf69e37e98f6ed93",
+  "build": {
+    "planned_actions": 2,
+    "actual_steps": 8,
+    "duration_seconds": 31.23,
+    "result": "success",
+    "final_guard_actions": 0
+  },
+  "files": {
+    "experiments/chromium-extension-spike/native/blocker/blocker_service.cc": "dc57f01b48543be19d8a3997fa859b5c706f4247559fea4cad88cd53efab0336",
+    "experiments/chromium-extension-spike/native/blocker/blocker_service.h": "5f148e2b71b50e496226b599859a75814b2cf4579ad71f5e00733068ba2e0ad0"
+  },
+  "signed_candidate_changed": false
+}

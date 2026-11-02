@@ -1,0 +1,78 @@
+NOT APPLIED: speculative ownership change removed after fixture correction.
+--- original
++++ discarded
+@@ -58,6 +58,7 @@
+ #include "chrome/browser/sessions/tab_restore_service_factory.h"
+ #include "chrome/browser/ui/browser_live_tab_context.h"
+ #include "components/sessions/core/tab_restore_service.h"
++#include "components/sessions/core/tab_restore_service_observer.h"
+ #include "components/prefs/pref_service.h"
+ #include "components/sessions/core/live_tab.h"
+ #include "chrome/browser/bookmarks/bookmark_model_factory.h"
+@@ -3156,10 +3157,65 @@
+ // PR993: numbered shortcuts select clusters when groups exist; otherwise a
+ // persistent split counts once, at its first pane. Cyclic next/previous still
+ // visits individual panes, matching the Electron reference.
++// One pending native restore per profile. A later explicit request owns the
++// completion, even when the previous window is still finishing its teardown.
++class PendingIslandRestore : public base::SupportsUserData::Data,
++                             public sessions::TabRestoreServiceObserver {
++ public:
++  static constexpr char kKey[] = "BlancPendingIslandRestore";
++  PendingIslandRestore(Profile* profile, sessions::TabRestoreService* service)
++      : profile_(profile), service_(service) { service_->AddObserver(this); }
++  ~PendingIslandRestore() override {
++    if (service_) service_->RemoveObserver(this);
++  }
++  void SetOwner(BrowserWindowInterface* browser) {
++    if (browser_ == browser) return;
++    closed_ = {};
++    browser_ = browser;
++    closed_ = browser->RegisterBrowserDidClose(base::BindRepeating(
++        &PendingIslandRestore::OwnerClosed, base::Unretained(this)));
++  }
++  void TabRestoreServiceLoaded(sessions::TabRestoreService*) override {
++    auto* browser = browser_.get();
++    // Detach before dispatch: restoration can synchronously publish history.
++    auto keep_alive = profile_->TakeUserData(kKey);
++    service_->RemoveObserver(this);
++    service_ = nullptr;
++    closed_ = {};
++    if (browser) chrome::RestoreTab(browser);
++  }
++  void TabRestoreServiceDestroyed(sessions::TabRestoreService*) override {
++    service_ = nullptr;
++    browser_ = nullptr;
++    closed_ = {};
++  }
++ private:
++  void OwnerClosed(BrowserWindowInterface*) {
++    browser_ = nullptr;
++    profile_->RemoveUserData(kKey);
++  }
++  raw_ptr<Profile> profile_;
++  raw_ptr<sessions::TabRestoreService> service_;
++  raw_ptr<BrowserWindowInterface> browser_ = nullptr;
++  base::CallbackListSubscription closed_;
++};
++
+ bool RestoreClosedSplitFromCommand(BrowserWindowInterface* browser) {
+   if (!IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return false;
+   auto* service = ClosedService(browser->GetProfile());
+-  if (!service || !service->IsLoaded() || service->entries().empty()) return false;
++  if (!service) return false;
++  if (!service->IsLoaded()) {
++    auto* pending = static_cast<PendingIslandRestore*>(
++        browser->GetProfile()->GetUserData(PendingIslandRestore::kKey));
++    if (!pending) {
++      auto owned = std::make_unique<PendingIslandRestore>(browser->GetProfile(), service);
++      pending = owned.get();
++      browser->GetProfile()->SetUserData(PendingIslandRestore::kKey, std::move(owned));
++    }
++    pending->SetOwner(browser);
++    return true;
++  }
++  if (service->entries().empty()) return false;
+   const auto focus = ClosedSplitFocus(*service->entries().front());
+   if (!focus) return false;
+   auto* context = BrowserLiveTabContext::From(browser);

@@ -1,0 +1,9 @@
+{
+  "removed": [
+    "/private/tmp/blanc-pref-provider/clear/chromium-profile",
+    "/private/tmp/blanc-pref-provider/encrypted/chromium-profile",
+    "/private/tmp/blanc-pref-provider/provider/chromium-profile",
+    "/private/tmp/blanc-pref-provider/normal-clear/chromium-profile"
+  ],
+  "retainedPreviewUntouched": true
+}

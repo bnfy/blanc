@@ -1,0 +1,1879 @@
+{
+  "archiveSha256": "08e34d602a46a6c381421850eb09ed5c05e73b1ac5221f8cc69054677b717f8e",
+  "files": {
+    "Contents/CodeResources": {
+      "sha256": "ea83b3d54699b69192219ab68ff64f3b3ce323886c37434e8f04eee7d14af0de",
+      "size": 1989
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Blanc Prototype Framework": {
+      "sha256": "7e88fdb8ea8f976c9c3c9f202e57908a723f1239c498342f12435bd69df11c0e",
+      "size": 596467504
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Alerts).app/Contents/Info.plist": {
+      "sha256": "914652caa92268b976682d1170fc29ea2302248abd8a4d618180c5ba27baa1eb",
+      "size": 1876
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Alerts).app/Contents/MacOS/Blanc Prototype Helper (Alerts)": {
+      "sha256": "494326af58810dc3d4316e4871c275fc920ca22580467cfb99103aba793a06a0",
+      "size": 101328
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Alerts).app/Contents/PkgInfo": {
+      "sha256": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
+      "size": 8
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Alerts).app/Contents/Resources/Assets.car": {
+      "sha256": "78e0f110a403ff1f6febdf819d60e2ff7a01d224a6dba70b0629862b19efe42a",
+      "size": 2187608
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Alerts).app/Contents/Resources/app.icns": {
+      "sha256": "d34201f7710f10d7943193f4afb3bda378acba1b96381468245f553d7234a8c1",
+      "size": 59552
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Alerts).app/Contents/Resources/base.lproj/InfoPlist.strings": {
+      "sha256": "69f616ef64cf6f367fbd8de4e218db91a9c5e58215a4057bfcb530f77a3199a7",
+      "size": 86
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Alerts).app/Contents/_CodeSignature/CodeResources": {
+      "sha256": "190b8170bdee76bdca78eb34f1530446c1bf6c3349f49b33da072102f4abac89",
+      "size": 3035
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/Info.plist": {
+      "sha256": "00f2a80102f0af51941a4f702366c949604b48c0a2f380b7b8a8313e2fc4fb75",
+      "size": 1903
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Alerts)": {
+      "sha256": "bf91342c834ef853cc30e0d7620abc9f417b5d5a0d871d6a2cf45dd200fe6f13",
+      "size": 51840
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/PkgInfo": {
+      "sha256": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
+      "size": 8
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/Resources/Assets.car": {
+      "sha256": "78e0f110a403ff1f6febdf819d60e2ff7a01d224a6dba70b0629862b19efe42a",
+      "size": 2187608
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/Resources/app.icns": {
+      "sha256": "d34201f7710f10d7943193f4afb3bda378acba1b96381468245f553d7234a8c1",
+      "size": 59552
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/Resources/base.lproj/InfoPlist.strings": {
+      "sha256": "69f616ef64cf6f367fbd8de4e218db91a9c5e58215a4057bfcb530f77a3199a7",
+      "size": 86
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/_CodeSignature/CodeResources": {
+      "sha256": "190b8170bdee76bdca78eb34f1530446c1bf6c3349f49b33da072102f4abac89",
+      "size": 3035
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif GPU).app/Contents/Info.plist": {
+      "sha256": "680ee9dad66c91f3927214dda4f1b0a1e556f0fbd85537b62219b92bbd2ed685",
+      "size": 1577
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif GPU).app/Contents/MacOS/Blanc Prototype Helper (Aperitif GPU)": {
+      "sha256": "c1c40578fa2264afffefa593258d2e8c4bb5e4c86de708fa9381508b50fa9fc9",
+      "size": 52224
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif GPU).app/Contents/PkgInfo": {
+      "sha256": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
+      "size": 8
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif GPU).app/Contents/_CodeSignature/CodeResources": {
+      "sha256": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b",
+      "size": 2200
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/Info.plist": {
+      "sha256": "65b60acc8bbea8082f505f5c363e188a9555495329d2a8c19bc68849c5751cd6",
+      "size": 1601
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)": {
+      "sha256": "8acf2af20cc63f18f7c2c7d6c48c2081692ea5844b03f2645b2f1f4e3b5f09fe",
+      "size": 52240
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/PkgInfo": {
+      "sha256": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
+      "size": 8
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/_CodeSignature/CodeResources": {
+      "sha256": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b",
+      "size": 2200
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/Info.plist": {
+      "sha256": "5095077084fd2c653d015fac99ff0956350828b5722b695346b10ffc76ca6010",
+      "size": 1565
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif)": {
+      "sha256": "9d1178e8431052e08728b267dd2b850ab76efd6f58431779cc395a64d67ce6c0",
+      "size": 51776
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/PkgInfo": {
+      "sha256": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
+      "size": 8
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/_CodeSignature/CodeResources": {
+      "sha256": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b",
+      "size": 2200
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (GPU).app/Contents/Info.plist": {
+      "sha256": "8e1bbccbc34caf50d2d849fc74a73dfeb4a95a24da7e16e1b9c8fade2cb18183",
+      "size": 1550
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (GPU).app/Contents/MacOS/Blanc Prototype Helper (GPU)": {
+      "sha256": "362c9f28d337ad5798ef233d2734759269dcfcdbeb85d921e8316dfb4218460f",
+      "size": 101712
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (GPU).app/Contents/PkgInfo": {
+      "sha256": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
+      "size": 8
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (GPU).app/Contents/_CodeSignature/CodeResources": {
+      "sha256": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b",
+      "size": 2200
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Renderer).app/Contents/Info.plist": {
+      "sha256": "7214f09ffe33904780efcb0d38e9ac3bf4e302e85de1f1149918ea32f6c9ee31",
+      "size": 1574
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Renderer).app/Contents/MacOS/Blanc Prototype Helper (Renderer)": {
+      "sha256": "439332bcd23c420945302945c157b1291e5fb624b99ed6dfcf793defadfd8fff",
+      "size": 101728
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Renderer).app/Contents/PkgInfo": {
+      "sha256": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
+      "size": 8
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Renderer).app/Contents/_CodeSignature/CodeResources": {
+      "sha256": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b",
+      "size": 2200
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper.app/Contents/Info.plist": {
+      "sha256": "fb1bd1be77979d030eebff365bfaa3fd844eeb9e1beaac39da22c71e58d9c432",
+      "size": 1532
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper.app/Contents/MacOS/Blanc Prototype Helper": {
+      "sha256": "b720e3643231677a07f1ac21a5fe0fc31a530b3a05977fd46215936745cfd69e",
+      "size": 101264
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper.app/Contents/PkgInfo": {
+      "sha256": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
+      "size": 8
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper.app/Contents/_CodeSignature/CodeResources": {
+      "sha256": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b",
+      "size": 2200
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/app_mode_loader": {
+      "sha256": "88af7a7638a176b6a1415a33e91a10c9664b69c3243094c09c2690fb367c0c56",
+      "size": 1720288
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/chrome_crashpad_handler": {
+      "sha256": "b3b20295cb5ef1e63cca1ccd05064fffb80e659e04ac4080fdc211d19eea2982",
+      "size": 3046672
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/web_app_shortcut_copier": {
+      "sha256": "4b436a14ab468b4242c25e09f6976ee004d54ccc4f08e29112795c91cbec439e",
+      "size": 51600
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Libraries/IwaKeyDistribution/iwa-key-distribution.pb": {
+      "sha256": "274f2cc20e5627c35d54cef0b5798f0a43bbc560fd52aa61a044a518c881a7d6",
+      "size": 3917
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Libraries/IwaKeyDistribution/manifest.json": {
+      "sha256": "313d7ea9fb517aea7819f0f70ad56a26a7410cae164433ce80f9e88c5be4379c",
+      "size": 115
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Libraries/MEIPreload/manifest.json": {
+      "sha256": "44844cf3dde6e80087ae0e6bf0d9326d7ef7d23326d24ac83af0850be26923d2",
+      "size": 238
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Libraries/MEIPreload/preloaded_data.pb": {
+      "sha256": "c6070a157b4e28d16fbccbd233e93846ddb070c85e1a1bc64469b7a5f1424fad",
+      "size": 8254
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Libraries/PrivacySandboxAttestationsPreloaded/manifest.json": {
+      "sha256": "51c311a4ba03140bcd1c827f8d93dba50cadda736925903b26e95609275dbffd",
+      "size": 122
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Libraries/PrivacySandboxAttestationsPreloaded/privacy-sandbox-attestations.dat": {
+      "sha256": "59e345dc13aedee9ea46b92e58300ecaca944aaea9384c7af885400ac2ae8806",
+      "size": 7624
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Libraries/libaperitif.dylib": {
+      "sha256": "5cf5c5b5913666bfd90bd981cfaab11914bb6986607b257a76abe256f67ba3fb",
+      "size": 101248
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Libraries/libvk_swiftshader.dylib": {
+      "sha256": "33c1857d10fc39d5fe7b0e1615f95a99a314503adfc853887c573d4ba5ee4513",
+      "size": 21981104
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Libraries/libvulkan.dylib": {
+      "sha256": "7c5ee3d04c0a860a82eef9ddb0a50116b9a174e715b953fd7ca07cff754b7d21",
+      "size": 557168
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Libraries/vk_swiftshader_icd.json": {
+      "sha256": "d717d915e31e7c27948b80b36ab34e2d897888114c5c7d0af835f93eb53e58f5",
+      "size": 110
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/Info.plist": {
+      "sha256": "0db7c636e47ac94ec434c35249a686c8678caace400f279b9b0ba27e43cce04f",
+      "size": 1089
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/af.lproj/locale.pak": {
+      "sha256": "3e6ec71766c40573daf4ddcea0972a33d3376d15393ecc3ac46d7db45414dfa6",
+      "size": 658075
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/af_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/af_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/af_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/am.lproj/locale.pak": {
+      "sha256": "51abefe1d709470ed7f1cdb45b91c2364e5aef44e901deb4462a216eee5dd9fe",
+      "size": 1063134
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/am_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/am_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/am_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/app_mode-Info.plist": {
+      "sha256": "c0a0e591c8597fa266b6a7f4c307a4c78cd167cfc6db83a83c6e28a6be93ce81",
+      "size": 1589
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ar.lproj/locale.pak": {
+      "sha256": "9da1c2b3bd43b36c5fb476e6ca00e4fbfe0725f0e5563ef943890de190c662d8",
+      "size": 1183619
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ar_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ar_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ar_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ar_XB.lproj/locale.pak": {
+      "sha256": "668e0a20fcf7f8d2cc94c573351b8ea15ded5fad8265e195c0501846463d0f3a",
+      "size": 1088924
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ar_XB_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ar_XB_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ar_XB_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/bg.lproj/locale.pak": {
+      "sha256": "97cc2b5d1a31da47d6d525ee92b862aca8f86c297b60b1853916453c72807b5a",
+      "size": 1215963
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/bg_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/bg_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/bg_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/bn.lproj/locale.pak": {
+      "sha256": "6d8a1d2fe96d5dcaf35071c09b075f0d46b225e81aa2e1c2d182aa10252378b3",
+      "size": 1554272
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/bn_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/bn_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/bn_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ca.lproj/locale.pak": {
+      "sha256": "4e4c86f6d815f0ba72aa4c99962b8882d179d25fc687150ab73728bec48acadf",
+      "size": 750093
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ca_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ca_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ca_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/chrome_100_percent.pak": {
+      "sha256": "bea3da15a80bd79bfb241a02e00abbf08de6a3eb0b618e65bb7f43256b168cd5",
+      "size": 520096
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/chrome_200_percent.pak": {
+      "sha256": "585d1e031f5d644a22b76d5ad85fe145434ef61d7e79520eface6924129fd0c2",
+      "size": 1002638
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/cs.lproj/locale.pak": {
+      "sha256": "d1fc5ac5a3f167dd9ef18334792b1aa04cf6dbb43ff59708abcdce78dda6c55f",
+      "size": 775549
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/cs_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/cs_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/cs_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/da.lproj/locale.pak": {
+      "sha256": "c17639b941adfa0334e02acc289fa1ebfe1fb84a6e03036ad7d7f523514b9f18",
+      "size": 696450
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/da_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/da_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/da_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/de.lproj/locale.pak": {
+      "sha256": "08dbe012c96fe8fe9cd7813b115e7796f803556b0828f2f360367f4a553652cb",
+      "size": 753525
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/de_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/de_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/de_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/el.lproj/locale.pak": {
+      "sha256": "9fbeeee04f501b02f29bf0684bbc5740351f68970d1405b08438d0bfc194b77a",
+      "size": 1333374
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/el_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/el_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/el_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/en.lproj/locale.pak": {
+      "sha256": "13af4411adbccdfbab86e9b549d520be59772170fcf07200de2f4353835e966a",
+      "size": 610263
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/en_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/en_GB.lproj/locale.pak": {
+      "sha256": "8effaa98a9ce82599b761ca188a438761bcf210f0b03892dc0eaefed3731e9fd",
+      "size": 601470
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/en_GB_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/en_GB_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/en_GB_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/en_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/en_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/en_XA.lproj/locale.pak": {
+      "sha256": "790eb4e808fbb8617f61b92ff4dfec8359142c921c183a3a36195a2a9cf8fcf7",
+      "size": 1360180
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/en_XA_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/en_XA_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/en_XA_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/es.lproj/locale.pak": {
+      "sha256": "6bf1f779ab8f3b64c9519bcec8c60a49bd3e45ab95dca68e681244ccaaff82ed",
+      "size": 729842
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/es_419.lproj/locale.pak": {
+      "sha256": "08a58af230dde1a5ba7bc8f9a4fc16ae94290347c8bfbf27778b1f234cbdc1ec",
+      "size": 735193
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/es_419_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/es_419_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/es_419_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/es_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/es_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/es_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/et.lproj/locale.pak": {
+      "sha256": "998c2739acba30437f3cff58539749d97a38bd37fb70721269b5a1558ff36d9f",
+      "size": 669961
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/et_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/et_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/et_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/fa.lproj/locale.pak": {
+      "sha256": "6af2b61322488d4ee9cb29a205a426bea9228f45d6296f087f9bceb87be181e0",
+      "size": 1101007
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/fa_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/fa_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/fa_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/fi.lproj/locale.pak": {
+      "sha256": "a6adf703fc19e7dab604da0c8360dfdaff0b4cd162870a3878259dd42127d5bd",
+      "size": 681625
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/fi_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/fi_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/fi_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/fil.lproj/locale.pak": {
+      "sha256": "cda0284c25251755c6415c7dc9f491cdd55dcb9c3c71f9a04891399cc2d57392",
+      "size": 770519
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/fil_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/fil_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/fil_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/fr.lproj/locale.pak": {
+      "sha256": "1834c7550e0f9a4e25a51d695ccb0d4c7cc78522b2619f3fe2c33f69e2fbd6bc",
+      "size": 799510
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/fr_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/fr_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/fr_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/gpu_shader_cache.bin": {
+      "sha256": "d3fc3a27c1d9a651f5d470e0f6ef2e06094ec5ad58c68b497b22b312442fdb8d",
+      "size": 968826
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/gu.lproj/locale.pak": {
+      "sha256": "0b77b3994b09bac562ff3f828dcb126abb2c02d4ff07a3e018918a51edd3eae8",
+      "size": 1540821
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/gu_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/gu_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/gu_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/he.lproj/locale.pak": {
+      "sha256": "94fbe9ceff945d6312e06a42fcde754e297c483e8b10432c0fc571b2809b079c",
+      "size": 968328
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/he_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/he_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/he_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/hi.lproj/locale.pak": {
+      "sha256": "a32abf2f8263e97e565781c50debd2e189f7eb9a839028367a7d3c4142444f91",
+      "size": 1643311
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/hi_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/hi_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/hi_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/hr.lproj/locale.pak": {
+      "sha256": "ee6ad62c28f06b7787b193bff2d8705366507914ae5906521df0ffa2b5a564b3",
+      "size": 745981
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/hr_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/hr_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/hr_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/hu.lproj/locale.pak": {
+      "sha256": "b779eddbbb266a741cefd6e2035724f7f72905687100a87677ba64f85b95ed70",
+      "size": 793276
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/hu_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/hu_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/hu_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/icudtl.dat": {
+      "sha256": "e1ed8f674bb8449731b79cae956042da59f9ecbd37c8d3f86586a22b4836e5b2",
+      "size": 10824576
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/id.lproj/locale.pak": {
+      "sha256": "6b87ee38866245f3f733153e94ab83fa90639d134aead856444f1ade4cf1c37c",
+      "size": 662678
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/id_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/id_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/id_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/install.sh": {
+      "sha256": "1b541faca17a7a1a124d9e288fd27bf66785f3667d788243383ab17700489b69",
+      "size": 6377
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/it.lproj/locale.pak": {
+      "sha256": "9b13a3144d953f54affafef3b3e1e6771aa8381528b842902d94ce0d5f01f9fc",
+      "size": 725436
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/it_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/it_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/it_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ja.lproj/locale.pak": {
+      "sha256": "4074146e903131f388e31bc78dbe3a7978187d05b3b366bc7744b7ea17025131",
+      "size": 878301
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ja_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ja_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ja_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/kn.lproj/locale.pak": {
+      "sha256": "63e0af16879978f38eb7cc0cce26bac6ba72d0769cbff765889bf45cadaf5a1c",
+      "size": 1770155
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/kn_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/kn_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/kn_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ko.lproj/locale.pak": {
+      "sha256": "b950110ea8cb01e9a8917cdcbe1d6c3daa4e8afd2fd8613484877e6dad62e070",
+      "size": 748973
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ko_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ko_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ko_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/lt.lproj/locale.pak": {
+      "sha256": "b58d6ead9f66d4d26c9783ba21c7ffff6ddf3665d52164bd92d5b4644ca308d7",
+      "size": 812132
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/lt_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/lt_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/lt_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/lv.lproj/locale.pak": {
+      "sha256": "1360ff55f16f7b18fec5cd409e82af683107ef98a29468dabff00eeca81c4b81",
+      "size": 807635
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/lv_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/lv_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/lv_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ml.lproj/locale.pak": {
+      "sha256": "d7425e469e023dd93795d40042eb135fbe4a60e3d2a1e16cedab87209607ffa1",
+      "size": 1814342
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ml_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ml_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ml_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/mr.lproj/locale.pak": {
+      "sha256": "cbe3d61dfadcfbf7a5dc4cd52aceab680acefb3b1fa39c85007b27d6d540dbd3",
+      "size": 1506037
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/mr_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/mr_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/mr_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ms.lproj/locale.pak": {
+      "sha256": "a00d229e5f23f7bd53c176839dac0d605d3a964c8b5f4856f928927c382f5129",
+      "size": 697382
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ms_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ms_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ms_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/nb.lproj/locale.pak": {
+      "sha256": "a6aa5b2b92703754a9d81897893f612835ee69ed6d1dd7bb2cd70b05b181dc34",
+      "size": 661054
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/nb_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/nb_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/nb_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/nl.lproj/locale.pak": {
+      "sha256": "d2746b0d72261472baf7ab0ea1d0abf3de9f580297c3fca05b2907e166e3bbec",
+      "size": 690020
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/nl_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/nl_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/nl_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/pl.lproj/locale.pak": {
+      "sha256": "e7706ffc50ff52488e606776267e94c42a2dfd9fffbfeaf3fc403891833a9a7e",
+      "size": 776711
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/pl_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/pl_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/pl_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/product_logo_32.png": {
+      "sha256": "c29f2c754d619246062db49e4ba1c3b8e96fcce18ec4524f5ef371172af385ad",
+      "size": 822
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/pt_BR.lproj/locale.pak": {
+      "sha256": "3c621b5df458112d637d9b0385a25d5b2bb5eb0cdb43a1acfd21653e86e8550e",
+      "size": 725873
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/pt_BR_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/pt_BR_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/pt_BR_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/pt_PT.lproj/locale.pak": {
+      "sha256": "0391374cf5d8fec781c201b7cf9d532347935aa641142fc400a55ffeca2a423f",
+      "size": 727643
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/pt_PT_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/pt_PT_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/pt_PT_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/resources.pak": {
+      "sha256": "efb1ad267bb75b156ee6aef9758722922626421b3e7624d53ab2568fcef54982",
+      "size": 21786422
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ro.lproj/locale.pak": {
+      "sha256": "0fbec4a6ecb8d98b54bdfc99fbc3e89ab080b460f8c8647ec30b566fc3dbfc3b",
+      "size": 753518
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ro_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ro_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ro_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ru.lproj/locale.pak": {
+      "sha256": "de0386acb2d4e25fc70054ec4c87b96db33314e0da37771c0f9da8f151acdb9f",
+      "size": 1246787
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ru_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ru_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ru_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sk.lproj/locale.pak": {
+      "sha256": "d44820f72f53f8e56708a567d5ef3048d104416c92692b7757a918ef2bcecd64",
+      "size": 787509
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sk_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sk_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sk_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sl.lproj/locale.pak": {
+      "sha256": "928d0c417586895b8ceb86f3746dec20a8edf5678a62d9cdc55673a1fc36f4e2",
+      "size": 752491
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sl_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sl_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sl_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sr.lproj/locale.pak": {
+      "sha256": "6fde9dd4ffc0f867db6477d8764f438258b0bc6cced1e7953704166e7dbe2b68",
+      "size": 1153543
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sr_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sr_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sr_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sv.lproj/locale.pak": {
+      "sha256": "e43431d00860a9db8ab782a761f9f7887b0b865accb4aaf0859347b8c8a82c98",
+      "size": 672443
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sv_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sv_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sv_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sw.lproj/locale.pak": {
+      "sha256": "368e9056833d58ccfd2b8b5d16c158b4586f8108ea90b413973e8aa201c6610c",
+      "size": 713187
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sw_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sw_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/sw_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ta.lproj/locale.pak": {
+      "sha256": "4975e9eabcf36cc6b3413891ad4c953cd41d9379df36289c7e09b469b1158a01",
+      "size": 1805065
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ta_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ta_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ta_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/te.lproj/locale.pak": {
+      "sha256": "14dc7a4bfcc2244439833a555184824b95ee81c8ecf50ad80814f31425c150a0",
+      "size": 1673640
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/te_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/te_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/te_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/th.lproj/locale.pak": {
+      "sha256": "832ed91a44a4f017d9ea9a1d7b2ad38781a10b8707d701b6bda0d46f4b046f33",
+      "size": 1402763
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/th_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/th_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/th_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/tr.lproj/locale.pak": {
+      "sha256": "93c1b8d8585e995f0ddf39ce900fd4a9bf67d8adec5e98e1890bea0d0000c6f8",
+      "size": 726997
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/tr_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/tr_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/tr_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/uk.lproj/locale.pak": {
+      "sha256": "e2a22bf9dadc944452cb31db73b9b74a3786a2be9669f6d6b9ff86643c3d2adc",
+      "size": 1256316
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/uk_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/uk_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/uk_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ur.lproj/locale.pak": {
+      "sha256": "b4a712060317ac31b6bc28887fe7b43e130513cb05d9f1c5c21dae261296035d",
+      "size": 1078179
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ur_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ur_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/ur_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/v8_context_snapshot.arm64.bin": {
+      "sha256": "c173336d3ca2b5f9a20e9175148537a9f5c785092d8fc7d969e9953c4a03d928",
+      "size": 3033168
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/vi.lproj/locale.pak": {
+      "sha256": "5032da770d6321b8c4782c53905da016bb1bc7cdc6e4834ba1302f2c7d6b481b",
+      "size": 859659
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/vi_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/vi_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/vi_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/webui_code_cache.arm64.pak": {
+      "sha256": "dfa32277d14c85fcc8640ce04dc9f3bdf871dae85ba2e146aebce1abf073dfa7",
+      "size": 5714486
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/zh_CN.lproj/locale.pak": {
+      "sha256": "49fd16459f116ddc41b8de59388a8bbfce5ba8dc68d06dcb45a65c78cc3b17f7",
+      "size": 617764
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/zh_CN_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/zh_CN_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/zh_CN_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/zh_TW.lproj/locale.pak": {
+      "sha256": "11a42215754161bd0e713eab86d6db8de78895a8923b84424bef8a2f2a05dd57",
+      "size": 611444
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/zh_TW_FEMININE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/zh_TW_MASCULINE.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Resources/zh_TW_NEUTER.lproj/locale.pak": {
+      "sha256": "ca73097bd968b363b7145e86b64f3c595e533808b0763dc8863a27fc363cfa51",
+      "size": 18
+    },
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/_CodeSignature/CodeResources": {
+      "sha256": "10801a34f7c37bbfa7edc621da0fafde089d72539a4432704f99cc6da1c3d533",
+      "size": 95105
+    },
+    "Contents/Info.plist": {
+      "sha256": "66e4bcdf18dc9ef9df847b576a373adca544d5838c69222f3f7812b1f9b2ae15",
+      "size": 14868
+    },
+    "Contents/MacOS/Blanc Preview Launcher": {
+      "sha256": "229f66783c90754ef198f1434e4f4db76cee09bd726d46179b0cd64f2c5b837d",
+      "size": 53344
+    },
+    "Contents/MacOS/Blanc Prototype": {
+      "sha256": "78e18eee5d41cc99492f1c4bfcea84d4b6791bd9d227d313b58449681697194e",
+      "size": 52832
+    },
+    "Contents/PkgInfo": {
+      "sha256": "c03e793ff8a6b3a8ba2d0bfb36e24c527396ec58b8d246538f1e53651d70c66e",
+      "size": 8
+    },
+    "Contents/Resources/Assets.car": {
+      "sha256": "78e0f110a403ff1f6febdf819d60e2ff7a01d224a6dba70b0629862b19efe42a",
+      "size": 2187608
+    },
+    "Contents/Resources/BlancAssets/adapter.js": {
+      "sha256": "54e561319035e5a21a0921f31a73420b4709e2dad80f4644622136ed82cfb6b4",
+      "size": 7107
+    },
+    "Contents/Resources/BlancAssets/extensions.css": {
+      "sha256": "c91af1c5bb163ce53458080c2bf2bb92704caac221120dbb0800610f3bd406ee",
+      "size": 6884
+    },
+    "Contents/Resources/BlancAssets/extensions.js": {
+      "sha256": "e6c24a5f8fb1559e077045c3707a0dd33d3e58a8af7c16c5a5365eb9cf74ca4d",
+      "size": 14338
+    },
+    "Contents/Resources/BlancAssets/host.css": {
+      "sha256": "c16f3126d4c411387a4a2022a2a4af44d881c9824089a663d306343e31885df3",
+      "size": 6031
+    },
+    "Contents/Resources/BlancAssets/host.html": {
+      "sha256": "daec6220bc75ce60517ca7bf866e121b29ecca099f771d4c8ba88b2f99e4b32c",
+      "size": 2191
+    },
+    "Contents/Resources/BlancAssets/host.js": {
+      "sha256": "53840280b2fe2c8286de92c1ccd048d84c326f5837f0fd94574b29c0c12e2b72",
+      "size": 35351
+    },
+    "Contents/Resources/BlancAssets/i18n.js": {
+      "sha256": "5749b9e67f1876fdd535f6f47908d8a3982ee7c5868b2e23dc50085a1ab27793",
+      "size": 11627
+    },
+    "Contents/Resources/BlancAssets/icons/chevron-left.svg": {
+      "sha256": "83b0681aa38bf55e9d52a1e4b4cced624abe1fe7678ecafda133a574f1161d93",
+      "size": 238
+    },
+    "Contents/Resources/BlancAssets/icons/external-link.svg": {
+      "sha256": "3891241b8c3bfc3a8a930078f26ffc5a7e9763da6d0162ace2050b28d4c1d1fe",
+      "size": 332
+    },
+    "Contents/Resources/BlancAssets/icons/search.svg": {
+      "sha256": "9322d964b61cf729b3a81210568d5a97eaf4a1f3239f25a056fda3013bf35611",
+      "size": 273
+    },
+    "Contents/Resources/BlancAssets/icons/settings.svg": {
+      "sha256": "3c7bee2696ce0c2d48d34e813f4fcda31f0ad21ab9309aee3751cde4280ad737",
+      "size": 824
+    },
+    "Contents/Resources/BlancAssets/index.html": {
+      "sha256": "5b2d6ab1ab869bec1021c4803ded6d3cc2cc4f6472bdcbe91c03ba062095afdf",
+      "size": 9545
+    },
+    "Contents/Resources/BlancAssets/installed-theme.js": {
+      "sha256": "23493f31da733ca0d72c82da7bc888304d36d66a5484a9eed245c0efd1dec433",
+      "size": 2412
+    },
+    "Contents/Resources/BlancAssets/mac-icon/Assets.car": {
+      "sha256": "66a32d12bed6d48587c6fcb792d25063b5b77f18ae873fd5a2f66e715c8828eb",
+      "size": 2187608
+    },
+    "Contents/Resources/BlancAssets/mac-icon/BlancDK.icns": {
+      "sha256": "d34201f7710f10d7943193f4afb3bda378acba1b96381468245f553d7234a8c1",
+      "size": 59552
+    },
+    "Contents/Resources/BlancAssets/mac-icon/manifest.json": {
+      "sha256": "aa11c5ed7b187827d1a312aef495cf3fb8755d48e83b7bfe5b351d36c9f3b56c",
+      "size": 717
+    },
+    "Contents/Resources/BlancAssets/overlay.html": {
+      "sha256": "49240504a1cee826034dd8c6a58bd6af2c65f476c139cb1f7ac18ea98fb6e2b3",
+      "size": 17754
+    },
+    "Contents/Resources/BlancAssets/overlay.js": {
+      "sha256": "3f2aa810d475515062e032ccc6b90af23a351c0d84f74c546d79aed5e742ee50",
+      "size": 175282
+    },
+    "Contents/Resources/BlancAssets/pages/bangs-catalog.js": {
+      "sha256": "8129954e3909f0c0bc6a738d5f9b3164965c2822c7aeb344dcf87814f16e756e",
+      "size": 1503008
+    },
+    "Contents/Resources/BlancAssets/pages/bangs.js": {
+      "sha256": "72c301416757bd8d587203865c1c13e33e1dfaa6776fc00bf7123bfbb1d2ebc0",
+      "size": 7793
+    },
+    "Contents/Resources/BlancAssets/pages/caveat-latin.woff2": {
+      "sha256": "d0b7b931b8980049327e8f8f9ac264617c8200b8422d62e886473d3d9527bad3",
+      "size": 48836
+    },
+    "Contents/Resources/BlancAssets/pages/close.svg": {
+      "sha256": "c01aed78767c6a5ce62887881338450f038b0bfc0bb62651e608bdbd237168bb",
+      "size": 192
+    },
+    "Contents/Resources/BlancAssets/pages/i18n.js": {
+      "sha256": "5749b9e67f1876fdd535f6f47908d8a3982ee7c5868b2e23dc50085a1ab27793",
+      "size": 11627
+    },
+    "Contents/Resources/BlancAssets/pages/icon-sunrise-dark.png": {
+      "sha256": "7d5242612ea1bc54532ca7ff6124a03d29ec2bf6f43c0485f27fb1e765fce326",
+      "size": 157369
+    },
+    "Contents/Resources/BlancAssets/pages/icon-sunrise.png": {
+      "sha256": "ecfb27402a864a8c7ca5aa6bf5cf83670f95fe0af889a5b8a7883fcc3e904248",
+      "size": 166180
+    },
+    "Contents/Resources/BlancAssets/pages/installed-theme.js": {
+      "sha256": "23493f31da733ca0d72c82da7bc888304d36d66a5484a9eed245c0efd1dec433",
+      "size": 2412
+    },
+    "Contents/Resources/BlancAssets/pages/instrument-sans-latin-wdth-normal.woff2": {
+      "sha256": "8b74e9bc6e415d564a5ffd32125c92ffd50b1635043e77543cb871e0a3cfcaf2",
+      "size": 57332
+    },
+    "Contents/Resources/BlancAssets/pages/inter-latin.woff2": {
+      "sha256": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4",
+      "size": 48432
+    },
+    "Contents/Resources/BlancAssets/pages/jetbrains-mono-latin.woff2": {
+      "sha256": "2c32b9b3ee358c119e210f6f5195f9bd34894d78a785ff2e95d60e718e400af4",
+      "size": 31340
+    },
+    "Contents/Resources/BlancAssets/pages/newtab-adapter.js": {
+      "sha256": "910a3c0271a05fd351e4643c7db3435874e2450b8224f4bffd2deac2fe68376d",
+      "size": 14123
+    },
+    "Contents/Resources/BlancAssets/pages/newtab-prototype.css": {
+      "sha256": "dfef55d4112245075ad0de7b4c3a2381cd8a1a8d8279269a9f4c50553b25b27c",
+      "size": 3717
+    },
+    "Contents/Resources/BlancAssets/pages/newtab-wallpaper.js": {
+      "sha256": "c079ac33cbde79bb96f6cbc76254dc7f44a87586bde31b4c9452269be30c9580",
+      "size": 7515
+    },
+    "Contents/Resources/BlancAssets/pages/newtab.html": {
+      "sha256": "1b196f2b91b9f92b7e4ee2c29803297e9fd0c4cd83a474359dcbe96c330c6a47",
+      "size": 30278
+    },
+    "Contents/Resources/BlancAssets/pages/newtab.js": {
+      "sha256": "ab24bdb2a68615ba83d9e99f8d10122c35bfebd6fcd5f20e6590c91e3c0f3bf5",
+      "size": 54904
+    },
+    "Contents/Resources/BlancAssets/pages/onboarding-island-dark.png": {
+      "sha256": "ab97411877170a2083c3daa8186963faeb5fff3b27cdf4f7e5ed81c4865f9079",
+      "size": 13509
+    },
+    "Contents/Resources/BlancAssets/pages/onboarding-island-light.png": {
+      "sha256": "467e249215c2f31359b1185864d5635de68d2d37cf0c5e49c5d446540eb74cac",
+      "size": 12909
+    },
+    "Contents/Resources/BlancAssets/pages/pages.css": {
+      "sha256": "c58e8f556864dbaf0d0b4b27a7fa7a94652f26c8065673fa07a4680bfbb3e796",
+      "size": 151326
+    },
+    "Contents/Resources/BlancAssets/pages/select-caret-dark.svg": {
+      "sha256": "bbbe8d0be60d98f847504a6230172897ef15a5f526b95b70cb0c3caf6014fa1f",
+      "size": 211
+    },
+    "Contents/Resources/BlancAssets/pages/select-caret.svg": {
+      "sha256": "ac8c5ab581fef7e9f4ad790469e5bd1d916683b19c330766ac55e382e7b16853",
+      "size": 211
+    },
+    "Contents/Resources/BlancAssets/pages/space-identity.js": {
+      "sha256": "eb08327c21b1f26ede0709942b5f37067f9e8e925616ef5dda804c845b5c9e3d",
+      "size": 7673
+    },
+    "Contents/Resources/BlancAssets/pages/start-page-day.png": {
+      "sha256": "4a10b44351e7ebb7774663fd10e8a69067198684afcd524b929b75dfa08f5955",
+      "size": 1311762
+    },
+    "Contents/Resources/BlancAssets/pages/start-page-dusk.png": {
+      "sha256": "5c0940099310921b66dfb3f8cebaa6b1b986a7aa355e3c735bd4d0c3d5aa2772",
+      "size": 1243226
+    },
+    "Contents/Resources/BlancAssets/pages/start-page-night.png": {
+      "sha256": "f61f38ce140214979d0577d0362d8da58215ccc765491acc65b5a9a7a76c0669",
+      "size": 1319580
+    },
+    "Contents/Resources/BlancAssets/pages/start-page-paint.js": {
+      "sha256": "0da869256b7909e7157837f1e16876e22deb48a580fa0b8187eef4636bbbf55c",
+      "size": 4696
+    },
+    "Contents/Resources/BlancAssets/pages/start-page-sunrise.png": {
+      "sha256": "4757c6450f317f4380ec416065c70e314d3046ca53eccb877fd51d0412216451",
+      "size": 1085936
+    },
+    "Contents/Resources/BlancAssets/pages/start-site-name.js": {
+      "sha256": "6524d6586a8991999ee01855d51d2e185936548db045e33bec03e3a99363868a",
+      "size": 1728
+    },
+    "Contents/Resources/BlancAssets/pages/strings.js": {
+      "sha256": "2891ec68299d07bd8746b6570f5e7d5eb899f453493415d0e8e17705bd86f7b8",
+      "size": 113124
+    },
+    "Contents/Resources/BlancAssets/pages/sunrise-favicon-mark.png": {
+      "sha256": "ee5ab81f089be18c5fe2c6d261c1e4132a507a05225a0f4948d8a2158c37e353",
+      "size": 132399
+    },
+    "Contents/Resources/BlancAssets/pages/sunrise-mark.png": {
+      "sha256": "cccdd5335d743552eff18ea7e63284005bf99246854acf64e0a241b2c3fbb3c3",
+      "size": 144384
+    },
+    "Contents/Resources/BlancAssets/pages/type-to-open.js": {
+      "sha256": "62724f58203e25bc28e7b7750c824dac0515639aaf05a6d3b8a703f85375b98e",
+      "size": 1784
+    },
+    "Contents/Resources/BlancAssets/panel-left.svg": {
+      "sha256": "e5ef535508042a015df99b9016b20787e158e35df775e1a811abad410e409bfc",
+      "size": 313
+    },
+    "Contents/Resources/BlancAssets/prototype.css": {
+      "sha256": "1cbd6d309ddd75a02847f71d621e05fee55a35bcb05324da741f46cfa16e2b30",
+      "size": 6406
+    },
+    "Contents/Resources/BlancAssets/renderer.js": {
+      "sha256": "288253ddf5bc2ec673ceb20811afd3e1b71d8988984f8fb0604acf769a0f9641",
+      "size": 78283
+    },
+    "Contents/Resources/BlancAssets/space-identity.js": {
+      "sha256": "eb08327c21b1f26ede0709942b5f37067f9e8e925616ef5dda804c845b5c9e3d",
+      "size": 7673
+    },
+    "Contents/Resources/BlancAssets/space-picker.js": {
+      "sha256": "e3a3b5a0c963c82b532078551a0b191c7ae243cea20d749af6e230f4de96ea26",
+      "size": 5493
+    },
+    "Contents/Resources/BlancAssets/strings.js": {
+      "sha256": "2891ec68299d07bd8746b6570f5e7d5eb899f453493415d0e8e17705bd86f7b8",
+      "size": 113124
+    },
+    "Contents/Resources/BlancAssets/styles.css": {
+      "sha256": "952489aa5d488e73d05536c2950c8175a657abb5bcbad35af591d8b62bd5c2b7",
+      "size": 151236
+    },
+    "Contents/Resources/BlancAssets/sunrise-hero-mark.png": {
+      "sha256": "ff24ef691d8b9523d6696ebfa833614ba29855cbad4e86cf37c44b5ec3c866aa",
+      "size": 36499
+    },
+    "Contents/Resources/BlancAssets/tab-drag.js": {
+      "sha256": "2ed9df14d2f1768e5e45423769d7cbec10abe092b65a1f4708fced65ac0f1e7e",
+      "size": 28330
+    },
+    "Contents/Resources/BlancAssets/tab-sections.js": {
+      "sha256": "b77839cc86205ac0ca7f1097ca8d6436f52981992ae402c72b883a681ea8a39f",
+      "size": 5640
+    },
+    "Contents/Resources/BlancAssets/vertical-tabs.js": {
+      "sha256": "c0e3c46236025fbbd08c9789be721c675a93ed77fa0b4f33365041067f5f5461",
+      "size": 37637
+    },
+    "Contents/Resources/BlancAssets/workspace-ui.js": {
+      "sha256": "f7707ac61cc9f83238bde15d9ff25eead9839fc1e72b8ee361b0786c614a979b",
+      "size": 42897
+    },
+    "Contents/Resources/BlancBlocker/engine.js": {
+      "sha256": "6f5947ad20511daf0defd7ee1d01981b01af200f709ccc746b48a7df6855d797",
+      "size": 8391698
+    },
+    "Contents/Resources/BlancBlocker/licenses/@ghostery_adblocker-LICENSE": {
+      "sha256": "9a5743e68333a1959b266bee6905ee8ef1250f799c01a5f1bd98211e00cddd3a",
+      "size": 16789
+    },
+    "Contents/Resources/BlancBlocker/licenses/@ghostery_adblocker-extended-selectors-LICENSE": {
+      "sha256": "9a5743e68333a1959b266bee6905ee8ef1250f799c01a5f1bd98211e00cddd3a",
+      "size": 16789
+    },
+    "Contents/Resources/BlancBlocker/licenses/@ghostery_url-parser-LICENSE": {
+      "sha256": "6e3496aca922d1041d0795f9f654a322b2fad023bb90eeed0ea59d6ad7176d23",
+      "size": 16786
+    },
+    "Contents/Resources/BlancBlocker/licenses/@remusao_guess-url-type-LICENSE": {
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "size": 16725
+    },
+    "Contents/Resources/BlancBlocker/licenses/@remusao_small-LICENSE": {
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "size": 16725
+    },
+    "Contents/Resources/BlancBlocker/licenses/@remusao_smaz-LICENSE": {
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "size": 16725
+    },
+    "Contents/Resources/BlancBlocker/licenses/@remusao_smaz-compress-LICENSE": {
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "size": 16725
+    },
+    "Contents/Resources/BlancBlocker/licenses/@remusao_smaz-decompress-LICENSE": {
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "size": 16725
+    },
+    "Contents/Resources/BlancBlocker/licenses/@remusao_trie-LICENSE": {
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "size": 16725
+    },
+    "Contents/Resources/BlancBlocker/licenses/procedural-renderer-LICENSE-MPL-2.0": {
+      "sha256": "9a5743e68333a1959b266bee6905ee8ef1250f799c01a5f1bd98211e00cddd3a",
+      "size": 16789
+    },
+    "Contents/Resources/BlancBlocker/licenses/tldts-experimental-LICENSE": {
+      "sha256": "c64182d48160db948b6aa97a984f1a32974ce4d2053900361264cd33853796cb",
+      "size": 1078
+    },
+    "Contents/Resources/BlancBlocker/manifest.json": {
+      "sha256": "7b4a39d65c9192372e86928aa025e6fd09d50256f8b7ff717b844fdc4bb4a67f",
+      "size": 84962
+    },
+    "Contents/Resources/Compliance/ASSET-LICENSE.md": {
+      "sha256": "f97f97266eeca7ae54873dafaf3f6b87106a35e5544cad7a855b9f3f3211d58e",
+      "size": 6683
+    },
+    "Contents/Resources/Compliance/LICENSE": {
+      "sha256": "2ed3f1dce1cdce4260ece8e13f7bb6e367be1b9766b479624c0f4c4cf6701369",
+      "size": 1074
+    },
+    "Contents/Resources/Compliance/LICENSE.chromium": {
+      "sha256": "368cca1106be99d39ecd32a38d8305585d802a475effb66380b91ffc9bcf709b",
+      "size": 1536
+    },
+    "Contents/Resources/Compliance/THIRD-PARTY-NOTICES.txt": {
+      "sha256": "db8f42d3755e254172689badafda71b23c22093b7b339ea18d54138d95b08a6d",
+      "size": 886
+    },
+    "Contents/Resources/Compliance/chromium-credits.html": {
+      "sha256": "57eb5ce011902e2f6e15faa0be51b4e06354f9f0d512c0c794f189d93d9e38b8",
+      "size": 2360784
+    },
+    "Contents/Resources/Compliance/chromium.spdx.json": {
+      "sha256": "e03328ee8885fd547d98fbd47a6ad22c82c27b171cffa9c73091addb2a905d95",
+      "size": 2586227
+    },
+    "Contents/Resources/Compliance/licenses/@ghostery_adblocker-LICENSE": {
+      "sha256": "9a5743e68333a1959b266bee6905ee8ef1250f799c01a5f1bd98211e00cddd3a",
+      "size": 16789
+    },
+    "Contents/Resources/Compliance/licenses/@ghostery_adblocker-extended-selectors-LICENSE": {
+      "sha256": "9a5743e68333a1959b266bee6905ee8ef1250f799c01a5f1bd98211e00cddd3a",
+      "size": 16789
+    },
+    "Contents/Resources/Compliance/licenses/@ghostery_url-parser-LICENSE": {
+      "sha256": "6e3496aca922d1041d0795f9f654a322b2fad023bb90eeed0ea59d6ad7176d23",
+      "size": 16786
+    },
+    "Contents/Resources/Compliance/licenses/@remusao_guess-url-type-LICENSE": {
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "size": 16725
+    },
+    "Contents/Resources/Compliance/licenses/@remusao_small-LICENSE": {
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "size": 16725
+    },
+    "Contents/Resources/Compliance/licenses/@remusao_smaz-LICENSE": {
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "size": 16725
+    },
+    "Contents/Resources/Compliance/licenses/@remusao_smaz-compress-LICENSE": {
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "size": 16725
+    },
+    "Contents/Resources/Compliance/licenses/@remusao_smaz-decompress-LICENSE": {
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "size": 16725
+    },
+    "Contents/Resources/Compliance/licenses/@remusao_trie-LICENSE": {
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "size": 16725
+    },
+    "Contents/Resources/Compliance/licenses/caveat-OFL.txt": {
+      "sha256": "163a2b400e16916ad3196296c946c526d0efce6baf22a2164269ffc62fb9f671",
+      "size": 4384
+    },
+    "Contents/Resources/Compliance/licenses/instrument-sans-OFL.txt": {
+      "sha256": "c27a3c53c3beed7f5c26853afa15991478ff7145d3754a36b0382f84e10c0d03",
+      "size": 4538
+    },
+    "Contents/Resources/Compliance/licenses/inter-OFL.txt": {
+      "sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57",
+      "size": 4377
+    },
+    "Contents/Resources/Compliance/licenses/jetbrains-mono-OFL.txt": {
+      "sha256": "b2fe5e8987594e9ffd1d2ca52a2f5d73eb8335243893c5d6254b5ad69269591d",
+      "size": 4399
+    },
+    "Contents/Resources/Compliance/licenses/tldts-experimental-LICENSE": {
+      "sha256": "c64182d48160db948b6aa97a984f1a32974ce4d2053900361264cd33853796cb",
+      "size": 1078
+    },
+    "Contents/Resources/Compliance/manifest.json": {
+      "sha256": "98083bd0f3620c36ecdea071bc5c6bac9b7d33827e440b8b56457ee18f6d20c4",
+      "size": 3218
+    },
+    "Contents/Resources/Compliance/resolved-dependencies.json": {
+      "sha256": "d2983f37aa82a35e4f013ca5a73111697fae6bfe2cad7765389748ace8f30910",
+      "size": 42456
+    },
+    "Contents/Resources/Compliance/runtime-sbom.cdx.json": {
+      "sha256": "b18880ef3db6b5f072fb500e2500f4daf03c7f1eecab0057d048cec9a498e3e2",
+      "size": 188387
+    },
+    "Contents/Resources/Compliance/source-materials.json": {
+      "sha256": "0d8fe0e1f9338669f32ebdf178aee01df59f09d48ddc63a74c51948ba6f5369b",
+      "size": 5595
+    },
+    "Contents/Resources/af.lproj/InfoPlist.strings": {
+      "sha256": "ef79e2e38946072d2915a473a876da82933dfc3bfb4e77ac68753a2bd4e6652c",
+      "size": 1078
+    },
+    "Contents/Resources/am.lproj/InfoPlist.strings": {
+      "sha256": "2363fd66cbeb2ca6b9a8c8dae917fc18c5e973c006bd67129045fce4dba8784b",
+      "size": 1726
+    },
+    "Contents/Resources/app.icns": {
+      "sha256": "d34201f7710f10d7943193f4afb3bda378acba1b96381468245f553d7234a8c1",
+      "size": 59552
+    },
+    "Contents/Resources/ar.lproj/InfoPlist.strings": {
+      "sha256": "fcd7292c5d08a9052746aace949c08481046dd6cfa0d84fe8beccf6a9b4d5b34",
+      "size": 1973
+    },
+    "Contents/Resources/ar_XB.lproj/InfoPlist.strings": {
+      "sha256": "9ee2cc2b898ca521b0c33fb4154f777c7a69be649eb7e913bbf64e15083a7f95",
+      "size": 1847
+    },
+    "Contents/Resources/bg.lproj/InfoPlist.strings": {
+      "sha256": "774b1dd527889f7501dcce75f4961221303bb5668e83e689f6f4b59cbf50e645",
+      "size": 1790
+    },
+    "Contents/Resources/bn.lproj/InfoPlist.strings": {
+      "sha256": "41a44317b712a220af4c045802a6a9e85c5c628e267987461a5792a9d2f18e9e",
+      "size": 2323
+    },
+    "Contents/Resources/ca.lproj/InfoPlist.strings": {
+      "sha256": "bc0ac1cf1d493ff9a05d4a47ff74344a75dfe336326e5cf9bfe2135b0cd4f4f2",
+      "size": 1142
+    },
+    "Contents/Resources/cs.lproj/InfoPlist.strings": {
+      "sha256": "a6c6d926c50666abfab157a95e3e3f2103dc3a11e4c7eedbd96e0d76a3e916dc",
+      "size": 1217
+    },
+    "Contents/Resources/da.lproj/InfoPlist.strings": {
+      "sha256": "329018ac45c2fc066c121ea8603f231c738eb0ba65f6dba220d6ecc33e709f70",
+      "size": 1072
+    },
+    "Contents/Resources/day.blanc.prototype.manifest/Contents/Resources/day.blanc.prototype.manifest": {
+      "sha256": "fd8e69ba70e9ee5b1853f4562e97c1ce7d86470f325fe2b1757a9b47298ff01b",
+      "size": 174177
+    },
+    "Contents/Resources/day.blanc.prototype.manifest/Contents/Resources/en.lproj/Localizable.strings": {
+      "sha256": "e461b5865312a101fbd8e8e52e7387c1e4a0ecf5e04092357c1e5999a3819994",
+      "size": 396051
+    },
+    "Contents/Resources/de.lproj/InfoPlist.strings": {
+      "sha256": "d602ba66cc806cc571d23fcbffe8be8f6e26b129e1c75a6994cce73e0deffbaa",
+      "size": 1130
+    },
+    "Contents/Resources/el.lproj/InfoPlist.strings": {
+      "sha256": "55a149929ffd483e6aad40cdc7ea2670202d572a7b56480dfe9d0ff136509797",
+      "size": 1989
+    },
+    "Contents/Resources/en.lproj/InfoPlist.strings": {
+      "sha256": "d3cf065ef84341a38f300e58d26d75be0d56b8a530da0d51308ae2aa84882106",
+      "size": 1121
+    },
+    "Contents/Resources/en_GB.lproj/InfoPlist.strings": {
+      "sha256": "382203d2f884703d7e94aa103f95b513e6dfcba76e1f6786170e5e571485ae1f",
+      "size": 1121
+    },
+    "Contents/Resources/en_XA.lproj/InfoPlist.strings": {
+      "sha256": "86a6e57daa193b4aa13adabf02735bb668b552cba493a9c1ddf85590f886c561",
+      "size": 2242
+    },
+    "Contents/Resources/es.lproj/InfoPlist.strings": {
+      "sha256": "8623be548804d6e0a53221911557206c23ef9a221c74c7adadc0464571b34692",
+      "size": 1231
+    },
+    "Contents/Resources/es_419.lproj/InfoPlist.strings": {
+      "sha256": "8b591edb337ab2ca298f1b5f6f3254cbd1d219110fc4c9681770c296e93c8323",
+      "size": 1209
+    },
+    "Contents/Resources/et.lproj/InfoPlist.strings": {
+      "sha256": "fe854e643b91da73f27c9f01028ce250fa3abd993824fc6297120fa9cb622181",
+      "size": 1270
+    },
+    "Contents/Resources/fa.lproj/InfoPlist.strings": {
+      "sha256": "8c2cae1d61ecae603fe00473176c23cd3bf2c9446c6416c63a3cc6a00121726b",
+      "size": 1809
+    },
+    "Contents/Resources/fi.lproj/InfoPlist.strings": {
+      "sha256": "a5e56fbcd25d123683d07bea75d9d9b67d05de5ca9a49aab5bb707fcad013146",
+      "size": 1189
+    },
+    "Contents/Resources/fil.lproj/InfoPlist.strings": {
+      "sha256": "430960925b7039fb1d8be2420db38bfc05dfd376bdfff5ec640e1b0dd8ec87ac",
+      "size": 1312
+    },
+    "Contents/Resources/fr.lproj/InfoPlist.strings": {
+      "sha256": "804a2efe11e781e1912c0afb7c3c2e4b9a6e0d8455d2a6b70dff80619a9f513a",
+      "size": 1508
+    },
+    "Contents/Resources/gu.lproj/InfoPlist.strings": {
+      "sha256": "67052cd9017f6a43dba55524cb98fec257f03f8635761e6c9a092a69a57729be",
+      "size": 2100
+    },
+    "Contents/Resources/he.lproj/InfoPlist.strings": {
+      "sha256": "6458ba050fe7aeb267def4354f1ebf28775091a1bcb91a4f141db2d9dd64a4c6",
+      "size": 1326
+    },
+    "Contents/Resources/hi.lproj/InfoPlist.strings": {
+      "sha256": "759253f728b1eed3edefc12832e5839a8872c9546c40f3f54bf460ade656859d",
+      "size": 2140
+    },
+    "Contents/Resources/hr.lproj/InfoPlist.strings": {
+      "sha256": "e6b054d55702fc51e6b51244a643daa683b5c0399e445bfaf99e6511cb029896",
+      "size": 1158
+    },
+    "Contents/Resources/hu.lproj/InfoPlist.strings": {
+      "sha256": "629616b1b0bfc410d54c4243f17b6863919e67a4cb7a9aaabc00ea6e223d2399",
+      "size": 1327
+    },
+    "Contents/Resources/id.lproj/InfoPlist.strings": {
+      "sha256": "f9370be9093e9c2957084d757b8fd1980331e8b4c892089a86a977cf889c7a82",
+      "size": 1177
+    },
+    "Contents/Resources/it.lproj/InfoPlist.strings": {
+      "sha256": "6b76dcff95d33176b1c57f6e6a360a53832068a643cef723971538da0020be9f",
+      "size": 1245
+    },
+    "Contents/Resources/ja.lproj/InfoPlist.strings": {
+      "sha256": "8c4b5d0503bbe4362bd97df37bc1009fbd830b906d32d8ad17cad77280d5ab9f",
+      "size": 1610
+    },
+    "Contents/Resources/kn.lproj/InfoPlist.strings": {
+      "sha256": "d452fc2900b4e4753a279bd30ab8856cd0e68699f484bad1a5fb6252f39a1882",
+      "size": 2857
+    },
+    "Contents/Resources/ko.lproj/InfoPlist.strings": {
+      "sha256": "8f3a159a9595f000c91e667af577cd274d5094a42be3143ecb992e4bb3d782d5",
+      "size": 1480
+    },
+    "Contents/Resources/lt.lproj/InfoPlist.strings": {
+      "sha256": "abf0061382e071358fadfd7449ced3e3889dff2de74e28a2d856f990e405b5aa",
+      "size": 1487
+    },
+    "Contents/Resources/lv.lproj/InfoPlist.strings": {
+      "sha256": "bfe7d024d91eca6f9bf705720cae8b11e3ee46925e5594e5934100b4025cab5c",
+      "size": 1275
+    },
+    "Contents/Resources/ml.lproj/InfoPlist.strings": {
+      "sha256": "c0f14cb3b4129e48eaf93a0be35bfd15bbaacb1a3e0d56e1c46da198a393602e",
+      "size": 2751
+    },
+    "Contents/Resources/mr.lproj/InfoPlist.strings": {
+      "sha256": "fccfa325a22deb3e24e8b377960bd59655e816f3b247e1acd07520783e774bf3",
+      "size": 2166
+    },
+    "Contents/Resources/ms.lproj/InfoPlist.strings": {
+      "sha256": "906d3583347a4eb462d9f5652b7346d19c0ded14938eb8d311cbac486cbb6992",
+      "size": 1274
+    },
+    "Contents/Resources/nb.lproj/InfoPlist.strings": {
+      "sha256": "115823ca848d44347b97f2f75066cb45ba6eec4d5b3c6a4b4bbaae145b5490fd",
+      "size": 1118
+    },
+    "Contents/Resources/nl.lproj/InfoPlist.strings": {
+      "sha256": "30ead5d85582f780e2cc0ce65f5fc00cf787ce44b77ecea30830e70b25fd3669",
+      "size": 1119
+    },
+    "Contents/Resources/pl.lproj/InfoPlist.strings": {
+      "sha256": "79ad1a47e692adfd285d49bdb90d7a763b24037d885c2a2933105f258fa94eb7",
+      "size": 1207
+    },
+    "Contents/Resources/preview-build.json": {
+      "sha256": "03d94b90704bb26fd694bedf2ecb45e4e13e8103c5aa1653b58da8c57e610a99",
+      "size": 428
+    },
+    "Contents/Resources/pt_BR.lproj/InfoPlist.strings": {
+      "sha256": "192f7c8337daddc6af2b15731bf1a5b963debfe7bb1999408835b32a44f9840e",
+      "size": 1141
+    },
+    "Contents/Resources/pt_PT.lproj/InfoPlist.strings": {
+      "sha256": "aea82cc15643b60930ff38e177732911977b7f03e7257f336192acb5d0bb3f0b",
+      "size": 1219
+    },
+    "Contents/Resources/ro.lproj/InfoPlist.strings": {
+      "sha256": "a6a26134669c0fb77bc72fb15b1944e779435d8a52598ea7bce36b20aba21842",
+      "size": 1228
+    },
+    "Contents/Resources/ru.lproj/InfoPlist.strings": {
+      "sha256": "d2ccd5cf3d4679650ab8ac3655553e8e64d7bd708612de2197dfb9026fd839c8",
+      "size": 1780
+    },
+    "Contents/Resources/scripting.sdef": {
+      "sha256": "cd0453c2e166a0b664f8ea1d1ac04b53a54eed14835569b6104a7823dbb950f2",
+      "size": 16777
+    },
+    "Contents/Resources/sk.lproj/InfoPlist.strings": {
+      "sha256": "0b8c20547e557e781d01b1caa55254a6549a4577178d6b6c61da36dd5ef5a98b",
+      "size": 1155
+    },
+    "Contents/Resources/sl.lproj/InfoPlist.strings": {
+      "sha256": "8cc2f8646df99558f3e928a81fe7886715d7353f043cce33b1f67904a2eb1b58",
+      "size": 1257
+    },
+    "Contents/Resources/sr.lproj/InfoPlist.strings": {
+      "sha256": "49fa7da4102dafae5ff4eac9806e3437ac9d5c73669a59832e6ba9d6d6823f67",
+      "size": 1611
+    },
+    "Contents/Resources/sv.lproj/InfoPlist.strings": {
+      "sha256": "e45dd51a069fa76d75b83bdb13a8133e026459aa1f7cd6710025b8cba0efedf1",
+      "size": 1161
+    },
+    "Contents/Resources/sw.lproj/InfoPlist.strings": {
+      "sha256": "4eac9b6d815c04b1328da2e396f0a1e83efb67b5cabbe196e67524bbf64ee19a",
+      "size": 1166
+    },
+    "Contents/Resources/ta.lproj/InfoPlist.strings": {
+      "sha256": "2359ea8e710ccdfbbe72470ded6828412813f5c9687fad426a16aa62459b5b65",
+      "size": 2592
+    },
+    "Contents/Resources/te.lproj/InfoPlist.strings": {
+      "sha256": "25e27b2f660d9a9685d059aa32d2470abe82ae96c2a8d4c1d69352e64b94261c",
+      "size": 2922
+    },
+    "Contents/Resources/th.lproj/InfoPlist.strings": {
+      "sha256": "dd24b2af3a675550855a2858dfae67558d144a70082241d4b818ba68dd77ab87",
+      "size": 2326
+    },
+    "Contents/Resources/tr.lproj/InfoPlist.strings": {
+      "sha256": "fc0d9703bacf259d25a43c871633769ee7826db497d7c1b8bc797d0b79c3373d",
+      "size": 1348
+    },
+    "Contents/Resources/uk.lproj/InfoPlist.strings": {
+      "sha256": "9626c1ff90875195d21bc1fed44e3676399cb3a8dd06c3b252890eb9a058ee1a",
+      "size": 1705
+    },
+    "Contents/Resources/ur.lproj/InfoPlist.strings": {
+      "sha256": "e74e03356ac7c2a8fda41680a3c4a0c1e60e43f528e7067cd634a3685fce39c0",
+      "size": 1609
+    },
+    "Contents/Resources/vi.lproj/InfoPlist.strings": {
+      "sha256": "7e05adb44819a3d92d42626f68e93a8d9bbe637b122fce6c13163cf9a828f797",
+      "size": 1523
+    },
+    "Contents/Resources/zh_CN.lproj/InfoPlist.strings": {
+      "sha256": "7712ad175aeb1968ce2c36f457d8dba49992ccde2c9fd50efc34a864d9c87ec2",
+      "size": 1259
+    },
+    "Contents/Resources/zh_TW.lproj/InfoPlist.strings": {
+      "sha256": "18ffe59026d4a1a82690bd83276cf74fe69cfbb8b42bcd8fabcc52dde73d85c3",
+      "size": 1105
+    },
+    "Contents/_CodeSignature/CodeResources": {
+      "sha256": "8948f920b881ffc0be8261b8a8f9f87b76196be97ce606111a556638eae00fac",
+      "size": 53124
+    }
+  },
+  "notarization": {
+    "id": "58770fc8-39eb-4acd-8884-b9f0bddb6534",
+    "message": "Processing complete",
+    "status": "Accepted"
+  },
+  "runtimeVerification": {
+    "affectedSignedChecks": 11,
+    "scope": "signed launcher real-keychain encrypted recovery and Split View restoration;75native affected checks separate; prior unaffected suites not repeated"
+  },
+  "signatureAudit": {
+    "archive": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/chromium158-rebase-20261028/Blanc-Chromium-Preview-158.0.8127.2-0353d3e3-arm64.zip",
+    "gatekeeper": "accepted",
+    "nativeAffectedChecks": 75,
+    "notarization": {
+      "id": "58770fc8-39eb-4acd-8884-b9f0bddb6534",
+      "message": "Processing complete",
+      "status": "Accepted"
+    },
+    "scope": "158rebase candidate; no fresh download/owner acceptance or L12 approval",
+    "sha256": "08e34d602a46a6c381421850eb09ed5c05e73b1ac5221f8cc69054677b717f8e",
+    "signature": "Developer ID; strict deep verification passed",
+    "signedAffectedChecks": 11,
+    "source": "0353d3e33443fc54fbc75dea0bbe0bd1d009e374",
+    "testedSignedFilesUnchanged": 459
+  },
+  "sourceRevision": "0353d3e33443fc54fbc75dea0bbe0bd1d009e374",
+  "symlinks": {
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Blanc Prototype Framework": "Versions/Current/Blanc Prototype Framework",
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Helpers": "Versions/Current/Helpers",
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Libraries": "Versions/Current/Libraries",
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Resources": "Versions/Current/Resources",
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/Current": "158.0.8127.2"
+  },
+  "version": "158.0.8127.2"
+}

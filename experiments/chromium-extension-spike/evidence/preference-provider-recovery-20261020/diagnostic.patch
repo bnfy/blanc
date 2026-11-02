@@ -1,0 +1,35 @@
+--- a/components/sessions/core/command_storage_manager.cc
++++ b/components/sessions/core/command_storage_manager.cc
+@@ -21,6 +21,7 @@
+ #include "base/task/single_thread_task_runner.h"
+ #include "base/task/thread_pool.h"
+ #include "base/threading/thread.h"
++#include "base/threading/thread_restrictions.h"
+ #include "base/values.h"
+ #include "build/build_config.h"
+ #include "components/os_crypt/async/browser/os_crypt_async.h"
+@@ -260,6 +261,24 @@
+ void CommandStorageManager::OnEncryptorReady(
+     base::TimeTicks start_time,
+     scoped_refptr<os_crypt_async::Encryptor> encryptor) {
++  // Temporary test: unavailable provider only for this disposable profile.
++  if (session_type_ == SessionType::kSessionRestore &&
++      file_path_.value() == "/private/tmp/blanc-pref-provider/provider/chromium-profile/Default") {
++    base::ScopedAllowBlockingForTesting allow_blocking;
++    if (base::PathExists(base::FilePath("/private/tmp/blanc-pref-provider/provider/empty"))) {
++      class UnavailableEncryptor : public os_crypt_async::Encryptor {
++       public:
++        UnavailableEncryptor() : Encryptor(KeyRing{}, "") {}
++       protected:
++        ~UnavailableEncryptor() override = default;
++      };
++      encryptor = base::MakeRefCounted<UnavailableEncryptor>();
++      CHECK(!encryptor->IsEncryptionAvailable());
++      CHECK(!encryptor->EncryptString("session-probe").has_value());
++      base::WriteFile(base::FilePath("/private/tmp/blanc-pref-provider/provider/unavailable"),
++          "no keys; encryption unavailable; EncryptString nullopt");
++    }
++  }
+   CHECK(ShouldWriteEncryptedFiles());
+   CHECK(encrypted_backend_ == nullptr);
+   base::UmaHistogramTimes(

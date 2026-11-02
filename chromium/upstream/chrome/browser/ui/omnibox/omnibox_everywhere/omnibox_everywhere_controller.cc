@@ -1,0 +1,524 @@
+// Copyright 2026 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#include "chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_controller.h"
+
+#include <utility>
+
+#include "base/check.h"
+#include "base/command_line.h"
+#include "base/feature_list.h"
+#include "base/functional/bind.h"
+#include "base/functional/callback_helpers.h"
+#include "base/metrics/histogram_functions.h"
+#include "base/task/single_thread_task_runner.h"
+#include "build/build_config.h"
+#include "chrome/browser/background/omnibox_everywhere/omnibox_everywhere_background_mode_manager.h"
+#include "chrome/browser/browser_process.h"
+#include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/profiles/profile_attributes_entry.h"
+#include "chrome/browser/profiles/profile_attributes_storage.h"
+#include "chrome/browser/profiles/profile_manager.h"
+#include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
+#include "chrome/browser/ui/browser_window/public/global_browser_collection.h"
+#include "chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_prefs.h"
+#include "chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_ui_manager.h"
+#include "chrome/browser/ui/omnibox/omnibox_everywhere_service_factory.h"
+#include "chrome/browser/ui/omnibox/omnibox_next_features.h"
+#include "chrome/browser/ui/profiles/profile_picker.h"
+#include "chrome/common/chrome_switches.h"
+#include "components/keep_alive_registry/keep_alive_types.h"
+#include "components/keep_alive_registry/scoped_keep_alive.h"
+#include "components/prefs/pref_service.h"
+#include "ui/base/accelerators/accelerator.h"
+#include "ui/base/base_window.h"
+#include "ui/events/event_constants.h"
+#include "ui/events/keycodes/keyboard_codes.h"
+#include "ui/views/widget/widget.h"
+
+namespace omnibox_everywhere {
+
+OmniboxEverywhereController::OmniboxEverywhereController(
+    OmniboxEverywhereUIManager::ContentsWrapperFactory contents_wrapper_factory,
+    ui::GlobalAcceleratorListener* listener)
+    : ui_manager_(std::make_unique<OmniboxEverywhereUIManager>(
+          std::move(contents_wrapper_factory))),
+      background_mode_manager_(
+          std::make_unique<OmniboxEverywhereBackgroundModeManager>(
+              base::BindRepeating(
+                  &OmniboxEverywhereController::OnStatusIconClicked,
+                  base::Unretained(this)),
+              base::BindRepeating(&OmniboxEverywhereController::Close,
+                                  base::Unretained(this)))),
+      listener_(listener ? listener
+                         : ui::GlobalAcceleratorListener::GetInstance()) {
+  CHECK(base::FeatureList::IsEnabled(omnibox::kOmniboxEverywhere));
+  if (g_browser_process && g_browser_process->local_state()) {
+    enabled_pref_member_.Init(
+        prefs::kOmniboxEverywhereEnabled, g_browser_process->local_state(),
+        base::BindRepeating(
+            &OmniboxEverywhereController::UpdateHotkeyRegistration,
+            base::Unretained(this)));
+    hotkey_pref_member_.Init(
+        prefs::kHotkeyEnabled, g_browser_process->local_state(),
+        base::BindRepeating(
+            &OmniboxEverywhereController::UpdateHotkeyRegistration,
+            base::Unretained(this)));
+    hotkey_string_pref_member_.Init(
+        prefs::kOmniboxEverywhereHotkey, g_browser_process->local_state(),
+        base::BindRepeating(
+            &OmniboxEverywhereController::UpdateHotkeyRegistration,
+            base::Unretained(this)));
+  }
+  UpdateHotkeyRegistration();
+
+  if (g_browser_process && g_browser_process->profile_manager()) {
+    profile_manager_observation_.Observe(g_browser_process->profile_manager());
+    for (auto* profile :
+         g_browser_process->profile_manager()->GetLoadedProfiles()) {
+      OnProfileAdded(profile);
+    }
+  }
+
+#if BUILDFLAG(IS_WIN)
+  if (base::CommandLine::ForCurrentProcess()->HasSwitch(
+          switches::kNoStartupWindow)) {
+    MaybeLoadPersistedTargetProfile();
+  }
+#endif
+
+  if (GlobalBrowserCollection::GetInstance()) {
+    browser_collection_observation_.Observe(
+        GlobalBrowserCollection::GetInstance());
+  }
+}
+
+OmniboxEverywhereController::~OmniboxEverywhereController() {
+  browser_collection_observation_.Reset();
+  if (listener_) {
+    listener_->UnregisterAccelerators(this);
+  }
+}
+
+void OmniboxEverywhereController::OnBrowserActivated(
+    BrowserWindowInterface* browser) {
+  if (browser) {
+    SetTargetProfile(browser->GetProfile());
+  }
+}
+
+void OmniboxEverywhereController::SetTargetProfile(Profile* profile) {
+  if (profile) {
+    if (profile->IsOffTheRecord()) {
+      profile = profile->GetOriginalProfile();
+    }
+    if (!IsProfileEligible(profile)) {
+      return;
+    }
+  }
+
+  if (target_profile_ == profile) {
+    return;
+  }
+
+  target_profile_ = profile;
+  background_mode_manager_->SetProfile(target_profile_);
+
+  if (target_profile_) {
+    PersistTargetProfilePath(target_profile_->GetPath());
+  }
+}
+
+void OmniboxEverywhereController::OnProfileAdded(Profile* profile) {
+  if (target_profile_ || !IsProfileEligible(profile)) {
+    return;
+  }
+
+  // TODO(crbug.com/532190282): Handle locked profiles (e.g. show profile picker
+  // if locked) and deleted (or no longer eligible) profiles (e.g. clear the
+  // persisted target profile pref).
+  const base::FilePath persisted_path = GetPersistedTargetProfilePath();
+  if (persisted_path.empty() || profile->GetPath() == persisted_path) {
+    SetTargetProfile(profile);
+  }
+}
+
+void OmniboxEverywhereController::OnProfileManagerDestroying() {
+  profile_manager_observation_.Reset();
+}
+
+bool OmniboxEverywhereController::IsProfileEligible(Profile* profile) const {
+  return omnibox::IsOmniboxEverywhereEligible(profile) &&
+         OmniboxEverywhereServiceFactory::GetForProfile(profile);
+}
+
+bool OmniboxEverywhereController::LoadProfileAsync(
+    const base::FilePath& profile_path,
+    base::OnceCallback<void(Profile*)> on_loaded) {
+  if (!g_browser_process || !g_browser_process->profile_manager()) {
+    return false;
+  }
+
+  ProfileManager* profile_manager = g_browser_process->profile_manager();
+  if (Profile* profile = profile_manager->GetProfileByPath(profile_path)) {
+    if (!IsProfileEligible(profile)) {
+      return false;
+    }
+    if (on_loaded) {
+      base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+          FROM_HERE, base::BindOnce(std::move(on_loaded), profile));
+    }
+    return true;
+  }
+
+  // Check whether `profile_path` points to a valid Profile on disk.
+  const bool is_valid_profile_path =
+      profile_manager->GetProfileAttributesStorage()
+          .GetProfileAttributesWithPath(profile_path) != nullptr;
+  if (!is_valid_profile_path) {
+    return false;
+  }
+
+  // Hold a browser keep-alive while we asynchronously load the profile.
+  auto keep_alive = std::make_unique<ScopedKeepAlive>(
+      KeepAliveOrigin::OMNIBOX_EVERYWHERE_STARTUP,
+      KeepAliveRestartOption::DISABLED);
+
+  profile_manager->CreateProfileAsync(
+      profile_path,
+      base::BindOnce(
+          [](base::WeakPtr<OmniboxEverywhereController> controller,
+             std::unique_ptr<ScopedKeepAlive> /*keep_alive*/,
+             base::OnceCallback<void(Profile*)> on_loaded, Profile* profile) {
+            if (controller && profile &&
+                controller->IsProfileEligible(profile) && on_loaded) {
+              std::move(on_loaded).Run(profile);
+            }
+          },
+          weak_factory_.GetWeakPtr(), std::move(keep_alive),
+          std::move(on_loaded)));
+  return true;
+}
+
+bool OmniboxEverywhereController::InvokeForProfilePath(
+    const base::FilePath& profile_path,
+    InvocationSource source,
+    gfx::NativeWindow context) {
+  views::Widget* widget =
+      context ? views::Widget::GetWidgetForNativeWindow(context) : nullptr;
+  base::WeakPtr<views::Widget> context_widget =
+      widget ? widget->GetWeakPtr() : nullptr;
+
+  return LoadProfileAsync(
+      profile_path,
+      base::BindOnce(
+          [](base::WeakPtr<OmniboxEverywhereController> controller,
+             base::WeakPtr<views::Widget> context_widget,
+             InvocationSource source, Profile* profile) {
+            if (controller) {
+              gfx::NativeWindow safe_context =
+                  context_widget ? context_widget->GetNativeWindow()
+                                 : gfx::NativeWindow();
+              controller->OnInvoke(source, profile, safe_context);
+            }
+          },
+          weak_factory_.GetWeakPtr(), context_widget, source));
+}
+
+bool OmniboxEverywhereController::InvokeForStartup(InvocationSource source,
+                                                   Profile* fallback_profile,
+                                                   gfx::NativeWindow context) {
+  if (auto* target_profile = GetTargetProfile()) {
+    OnInvoke(source, target_profile, context);
+    return true;
+  }
+
+  base::FilePath persisted_path =
+      g_browser_process && g_browser_process->local_state()
+          ? g_browser_process->local_state()->GetFilePath(
+                prefs::kLastTargetProfileDir)
+          : base::FilePath();
+  if (!persisted_path.empty() &&
+      InvokeForProfilePath(persisted_path, source, context)) {
+    return true;
+  }
+
+  // Cannot invoke with the persisted profile so try invoking with
+  // `fallback_profile`.
+  if (IsProfileEligible(fallback_profile)) {
+    OnInvoke(source, fallback_profile, context);
+    return true;
+  }
+
+  return false;
+}
+
+base::FilePath OmniboxEverywhereController::GetPersistedTargetProfilePath()
+    const {
+  if (g_browser_process && g_browser_process->local_state()) {
+    return g_browser_process->local_state()->GetFilePath(
+        prefs::kLastTargetProfileDir);
+  }
+  return base::FilePath();
+}
+
+void OmniboxEverywhereController::PersistTargetProfilePath(
+    const base::FilePath& path) {
+  if (!g_browser_process || !g_browser_process->local_state()) {
+    return;
+  }
+
+  if (path.empty()) {
+    g_browser_process->local_state()->ClearPref(prefs::kLastTargetProfileDir);
+  } else {
+    g_browser_process->local_state()->SetFilePath(prefs::kLastTargetProfileDir,
+                                                  path);
+  }
+}
+
+bool OmniboxEverywhereController::IsEnabled() const {
+  return !enabled_pref_member_.prefs() || enabled_pref_member_.GetValue();
+}
+
+bool OmniboxEverywhereController::IsHotkeyEnabled() const {
+  return !hotkey_pref_member_.prefs() || hotkey_pref_member_.GetValue();
+}
+
+void OmniboxEverywhereController::MaybeLoadPersistedTargetProfile() {
+  if (!IsEnabled() || target_profile_) {
+    return;
+  }
+
+  if (!g_browser_process || !g_browser_process->local_state() ||
+      !g_browser_process->local_state()->GetBoolean(
+          prefs::kOmniboxEverywhereBackgroundMode)) {
+    return;
+  }
+
+  base::FilePath profile_path = GetPersistedTargetProfilePath();
+  if (!profile_path.empty()) {
+    if (LoadProfileAsync(
+            profile_path,
+            base::BindOnce(&OmniboxEverywhereController::OnProfileAdded,
+                           weak_factory_.GetWeakPtr()))) {
+      return;
+    }
+  }
+
+  if (g_browser_process && g_browser_process->profile_manager()) {
+    base::FilePath last_used_path =
+        g_browser_process->profile_manager()->GetLastUsedProfileDir();
+    if (!last_used_path.empty() && last_used_path != profile_path) {
+      LoadProfileAsync(
+          last_used_path,
+          base::BindOnce(&OmniboxEverywhereController::SetTargetProfile,
+                         weak_factory_.GetWeakPtr()));
+    }
+  }
+}
+
+void OmniboxEverywhereController::UpdateHotkeyRegistration() {
+  // `GlobalAcceleratorListener::GetInstance()` may return null on platforms
+  // where global accelerators are not supported or unavailable (e.g. Wayland).
+  if (!listener_) {
+    return;
+  }
+
+  // When the user enters a new shortcut in the settings WebUI,
+  // <cr-shortcut-input> suspends global shortcut handling via
+  // SetShortcutHandlingSuspended(true) so that typing key combinations in
+  // the input field does not trigger global listeners or native system
+  // actions.
+  //
+  // However, `GlobalAcceleratorListener::RegisterAccelerator()` rejects new
+  // registrations while suspended (it returns false if
+  // `IsShortcutHandlingSuspended()` is true). To ensure the hotkey is
+  // cleanly unregistered and re-registered while the user is still
+  // interacting with the settings UI, we temporarily restore the suspension
+  // state to false for the registration updates, and then immediately reinstate
+  // the original suspension state until the user finishes key capture.
+  const bool shortcut_handling_suspended =
+      listener_->IsShortcutHandlingSuspended();
+  listener_->SetShortcutHandlingSuspended(false);
+
+  listener_->UnregisterAccelerators(this);
+
+  if (IsEnabled() && IsHotkeyEnabled()) {
+    PrefService* local_state =
+        g_browser_process ? g_browser_process->local_state() : nullptr;
+    const ui::Accelerator hotkey =
+        prefs::GetOmniboxEverywhereHotkey(local_state);
+    if (!hotkey.IsEmpty()) {
+      listener_->RegisterAccelerator(hotkey, this);
+    }
+  }
+
+  listener_->SetShortcutHandlingSuspended(shortcut_handling_suspended);
+}
+
+void OmniboxEverywhereController::OnInvoke(InvocationSource source,
+                                           Profile* profile,
+                                           gfx::NativeWindow context) {
+  if (!IsEnabled()) {
+    return;
+  }
+
+  if (!IsProfileEligible(profile)) {
+    return;
+  }
+
+  // Disabling the global hotkey in settings causes `UpdateHotkeyRegistration()`
+  // to unregister the accelerator with the OS listener. This check provides a
+  // defensive guard against in-flight keypress events queued right as the
+  // preference is toggled, as well as direct programmatic/test invocations.
+  if (source == InvocationSource::kGlobalHotkey) {
+    if (!IsHotkeyEnabled()) {
+      return;
+    }
+  }
+
+  // If Chrome's default desktop media picker is open, invoking cancels the
+  // picker and restores the widget (preventing persistent mode from getting
+  // trapped if another window occludes the picker). Invocations while the
+  // native OS screen picker or region selection overlay owns the screen
+  // continue to be ignored.
+  if (ui_manager_->IsScreenshareCaptureInProgress()) {
+    if (!ui_manager_->CancelChromeDefaultPicker(profile)) {
+      return;
+    }
+
+    base::UmaHistogramEnumeration("OmniboxEverywhere.InvocationSource", source);
+    if (ui_manager_->profile() != profile) {
+      SetTargetProfile(profile);
+      ui_manager_->ShowForProfile(profile, context);
+    }
+    return;
+  }
+
+  SetTargetProfile(profile);
+  switch (source) {
+    case InvocationSource::kGlobalHotkey:
+    case InvocationSource::kStatusTrayIcon:
+      if (ui_manager_->profile() == profile) {
+        const bool should_dismiss = prefs::IsEphemeralModelEnabled()
+                                        ? ui_manager_->IsVisible()
+                                        : ui_manager_->IsActive();
+        if (should_dismiss) {
+          Hide();
+          return;
+        }
+      }
+      break;
+    case InvocationSource::kProfilePicker:
+    case InvocationSource::kCommandLine:
+      break;
+  }
+
+  // Enable background mode/launch on startup the first time this is invoked.
+  if (g_browser_process && g_browser_process->local_state()) {
+    PrefService* local_state = g_browser_process->local_state();
+    const PrefService::Preference* bg_mode_pref =
+        local_state->FindPreference(prefs::kOmniboxEverywhereBackgroundMode);
+    if (bg_mode_pref && bg_mode_pref->IsDefaultValue()) {
+      local_state->SetBoolean(prefs::kOmniboxEverywhereBackgroundMode, true);
+    }
+    const PrefService::Preference* launch_on_startup_pref =
+        local_state->FindPreference(prefs::kOmniboxEverywhereLaunchOnStartup);
+    if (launch_on_startup_pref && launch_on_startup_pref->IsDefaultValue()) {
+      local_state->SetBoolean(prefs::kOmniboxEverywhereLaunchOnStartup, true);
+    }
+  }
+
+  base::UmaHistogramEnumeration("OmniboxEverywhere.InvocationSource", source);
+
+  ui_manager_->ShowForProfile(profile, context);
+}
+
+void OmniboxEverywhereController::Close() {
+  ui_manager_->Close();
+}
+
+void OmniboxEverywhereController::Hide() {
+  if (prefs::IsEphemeralModelEnabled()) {
+    Close();
+  } else {
+    ui_manager_->Demote();
+  }
+}
+
+bool OmniboxEverywhereController::IsVisible() const {
+  return ui_manager_->IsVisible();
+}
+
+void OmniboxEverywhereController::ShowProfilePicker() {
+  Close();
+
+#if !BUILDFLAG(IS_CHROMEOS) && !BUILDFLAG(IS_ANDROID)
+  // TODO(crbug.com/527183107): Filter out or disallow selecting profiles where
+  // Google is not the default search engine (DSE) in the Profile Picker.
+  ProfilePicker::Show(ProfilePicker::Params::ForOmniboxEverywhere(
+      base::BindOnce(&OmniboxEverywhereController::OnProfilePicked,
+                     weak_factory_.GetWeakPtr())));
+#endif
+}
+
+void OmniboxEverywhereController::InvokeForActiveBrowserProfile(
+    InvocationSource source) {
+  Profile* target_profile = GetTargetProfile();
+  if (target_profile) {
+    OnInvoke(source, target_profile, gfx::NativeWindow());
+  }
+}
+
+void OmniboxEverywhereController::OnStatusIconClicked() {
+  InvokeForActiveBrowserProfile(InvocationSource::kStatusTrayIcon);
+}
+
+void OmniboxEverywhereController::OnProfilePicked(Profile* new_profile) {
+  if (!new_profile) {
+    return;
+  }
+  SetTargetProfile(new_profile);
+  OnInvoke(InvocationSource::kProfilePicker, new_profile);
+}
+
+void OmniboxEverywhereController::ShutdownForProfile(Profile* profile) {
+  if (profile == target_profile_) {
+    SetTargetProfile(nullptr);
+  }
+  if (profile == ui_manager_->profile()) {
+    ui_manager_->Shutdown();
+  }
+}
+
+Profile* OmniboxEverywhereController::GetTargetProfile() const {
+  if (target_profile_ && IsProfileEligible(target_profile_)) {
+    return target_profile_;
+  }
+  return nullptr;
+}
+
+void OmniboxEverywhereController::ExitBackgroundMode() {
+  if (background_mode_manager_) {
+    background_mode_manager_->ExitBackgroundMode();
+  }
+}
+
+void OmniboxEverywhereController::OnKeyPressed(
+    const ui::Accelerator& accelerator) {
+  InvokeForActiveBrowserProfile(InvocationSource::kGlobalHotkey);
+}
+
+void OmniboxEverywhereController::ExecuteCommand(
+    const std::string& accelerator_group_id,
+    const std::string& command_id) {}
+
+void OmniboxEverywhereController::OfferPinToTaskbar(
+    base::OnceCallback<void(bool)> callback) {
+  if (callback) {
+    std::move(callback).Run(false);
+  }
+}
+
+}  // namespace omnibox_everywhere

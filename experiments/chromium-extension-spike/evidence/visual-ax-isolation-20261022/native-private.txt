@@ -1,0 +1,8 @@
+The following is a diff from the previous accessibility tree for Window: "New Incognito Tab" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 52-56, 68-69, 131-158
+~48 standard window New Incognito Tab - Chromium (Incognito), URL: chrome://newtab/, Secondary Actions: Raise
+~	49 container New Incognito Tab - Chromium (Incognito), URL: chrome://newtab/
+~			51 container
++	52 close button
++	53 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
++	54 minimize button

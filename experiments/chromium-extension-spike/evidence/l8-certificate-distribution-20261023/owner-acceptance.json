@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-23",
+  "source": "7c427328100d1ba76cb7e8b651a1f36d74ec86c6",
+  "archiveSha256": "ffcfefdfbb5421619f3ba359bb4c5d92134b468ac8475c18eda12153a7f5e4ed",
+  "initialControlledRestartAnswer": "Both tabs returned",
+  "finalAnswer": "All checks passed",
+  "finalQuestion": "Once the other session is no longer changing Preview, select example.org, then Cmd+Q and reopen this same downloaded app once more. Do both Example tabs and the selection survive, with Shelf, Bitwarden popup/Tab focus, and Shipping Blanc\u2019s tabs still intact?",
+  "observationType": "Owner-reported physical walkthrough. Read-only postcheck independently verifies running artifact bytes/profile and saved Example entries; it does not independently count restart cycles or observe popup/Shipping state.",
+  "gateDecision": "L8 replacement accepted for the bounded signed candidate;9/12,delta0 (updates existing L8 acceptance)",
+  "limitations": [
+    "Earlier first-launch missing-tab report remains unexplained with concurrent Sync testing disclosed; no fix or Sync causation claimed",
+    "Not factory-clean OS or hermetic/hosted build",
+    "No public release or merge approval",
+    "L4 authentic upgrade, L11 sandbox/CI, L12 final approval and Decision2 remain open"
+  ]
+}

@@ -1,0 +1,47 @@
+[
+  {
+    "cycle": 0,
+    "pid": 12863,
+    "urls": [
+      "blanc://newtab/"
+    ],
+    "selected": 0,
+    "cleanExit": true
+  },
+  {
+    "cycle": 1,
+    "pid": 12883,
+    "urls": [
+      "blanc://newtab/"
+    ],
+    "selected": 0,
+    "cleanExit": true
+  },
+  {
+    "cycle": 2,
+    "pid": 12899,
+    "urls": [
+      "blanc://newtab/"
+    ],
+    "selected": 0,
+    "cleanExit": true
+  },
+  {
+    "cycle": 3,
+    "pid": 12918,
+    "urls": [
+      "blanc://newtab/"
+    ],
+    "selected": 0,
+    "cleanExit": true
+  },
+  {
+    "cycle": 4,
+    "pid": 12940,
+    "urls": [
+      "blanc://newtab/"
+    ],
+    "selected": 0,
+    "cleanExit": true
+  }
+]

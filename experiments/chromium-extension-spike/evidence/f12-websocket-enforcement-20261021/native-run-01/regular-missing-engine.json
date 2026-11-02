@@ -1,0 +1,55 @@
+{
+  "kind": "regular",
+  "mode": "missing-engine",
+  "arrivals": [],
+  "faults": [
+    {
+      "code": "plaintext-refused",
+      "authority": "clients2.google.com"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "accounts.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "accounts.google.com:443"
+    }
+  ],
+  "outcome": {
+    "error": true
+  },
+  "records": [
+    {
+      "context_alive": true,
+      "decision": "block",
+      "engine_result": -1,
+      "event": "websocket-decision",
+      "initiator_origin": "null",
+      "owner": "document-or-dedicated-worker",
+      "private": false,
+      "source_contract": "websocket-initiator-origin",
+      "url": "wss://page.blanc-fixture.test/socket"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+# L8 signed distribution and provenance — October 23
+
+**In progress, not accepted. Readiness remains 8/12 (66.7%), delta 0.**
+
+The initial signed packet, source `419b8276`, is retained under `attempt-419b8276/`. Apple accepted it and the pinned Sigstore manifest verifies; all 39 local runtime checks pass. It has the complete SPDX extracted license text, but its separate readable Chromium Credits HTML was the upstream placeholder. The final notice audit caught that defect before acceptance. This initial packet and its native download results do not qualify L8.
+
+Source `57fc3b131a087b3b085dbaf65766d130c6b7baed` fixes readable credits generation directly from the same 323-component inventory and its 320 full license texts. The validator requires exact inventory-derived HTML and rejects a placeholder even when its checksum is valid. Twelve compliance tests pass, including placeholder, missing-license and HTML-escaping controls. The corrected package requires its own signing, notarization, manifest and native download acceptance.
+
+The initial distribution experiment also verifies the upload mechanism: all six unpublished draft asset digests match; anonymous HTTPS HEAD of the archive and GET of the manifest succeed. The user downloaded through native Safari; the local extracted app matches all 458 regular files and five symlinks. The second Mac's extracted app has actual Safari quarantine, strict signature, Apple ticket and Gatekeeper acceptance. The ZIP is automatically expanded there. Full inventory binding and normal first launch were not completed for that superseded packet.
+
+The MacBook preflight has no installed Preview or default Preview profile; it is clean Preview state on a second physical macOS 27.2 machine, not a factory-clean OS. Google baseline/ledger, Shipping and existing review tabs remain separate. Latency deferred; Electron diagnostic build pending approval/unstarted. The fixture remains an unpublished draft, with no public release, CI/hermetic-build guarantee, new VoiceOver approval or L8 closure claimed.
+
+## Corrected final packet ready for native acceptance
+
+Source `57fc3b131a087b3b085dbaf65766d130c6b7baed`, archive SHA-256 `a3212c1b6d0750f76825a29d3606f188f9fb17961a21bad35250e72d09d875fd`, Apple Accepted `47535090-0a78-493a-bbe8-7d49e0586dad`. Staple, strict signature and Gatekeeper pass. The final audit has unchanged 17 executable images, seven selected UI assets and 24 compliance files. The 2,255,782-byte readable native notice document matches all 323 inventory entries, with 320 complete source license texts. The SBOM has 340 components and passes official structural schema validation; individual format validation and independent hermetic reproduction are not claimed.
+
+All **39 replacement signed runtime checks**, **12 compliance tests**, **seven artifact verifier tests**, and **four notice tests** pass. Native build guard schedules **zero actions**; packaging rebuilt only the small launcher. Manifest authentication under `anthony@bnfy.me` with issuer `https://github.com/login/oauth` passes, and real changed-manifest/changed-artifact controls reject. Six hosted asset digests match. The corrected packet is in unpublished draft `422217800`; anonymous HTTPS archive HEAD and manifest GET pass without forwarding account credentials. This does not establish a published release permalink or authorize publication.
+
+The corrected MacBook native Safari download now verifies all 458 regular files and five symlinks, actual quarantine, strict signature, ticket and Gatekeeper. The newly created Preview profile exists and Shipping file hashes remain unchanged. The owner is performing ordinary launch, extension integration and restart checks; those still require confirmation. Existing isolated signing/runtime checks do not substitute for that last acceptance step. **L8 remains open, 8/12 gates, delta 0.**

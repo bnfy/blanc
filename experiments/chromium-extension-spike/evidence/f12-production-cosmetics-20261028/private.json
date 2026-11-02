@@ -1,0 +1,54 @@
+{
+  "kind": "private",
+  "binary": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/blocker-recovery-20261028/Blanc Chromium Preview.app/Contents/MacOS/Blanc Preview Launcher",
+  "args": [
+    "--user-data-dir=/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/cosmetics-private-20261028/profile",
+    "--remote-debugging-port=0",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--use-mock-keychain",
+    "--incognito",
+    "http://127.0.0.1:54462/start"
+  ],
+  "checks": [
+    {
+      "name": "healthy request reaches fixture",
+      "pass": true
+    },
+    {
+      "name": "health is ready",
+      "pass": true
+    },
+    {
+      "name": "neutral control rendered",
+      "pass": true
+    }
+  ],
+  "complete": true,
+  "cosmetics": {
+    "target": {
+      "display": "block",
+      "visibility": "visible",
+      "width": 1184,
+      "height": 18.5
+    },
+    "control": {
+      "display": "block",
+      "visibility": "visible",
+      "width": 1184,
+      "height": 18.5
+    },
+    "styleSheets": 0
+  },
+  "cosmeticCriterionPassed": false,
+  "rule": "###AC_ad",
+  "stage": "production cosmetic observation; complete means experiment completed, not cosmetic acceptance",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "hits": [
+    "/start",
+    "/favicon.ico"
+  ]
+}

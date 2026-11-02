@@ -1,0 +1,17 @@
+{"name": "helper-build", "argv": ["clang", "-dynamiclib", "/private/tmp/blanc-spaces-overlap/barrier.c", "-o", "/private/tmp/blanc-spaces-overlap/barrier.dylib"], "started": "2026-10-19T23:59:01.413856+00:00", "seconds": 0.259379791, "exit_code": 0}
+{"name": "start", "argv": ["node", "/private/tmp/blanc-spaces-overlap/start.mjs"], "started": "2026-10-19T23:59:01.699540+00:00", "seconds": 0.05566083399999999, "exit_code": 0}
+{"name": "seed", "argv": ["node", "/private/tmp/blanc-spaces-overlap/check.mjs", "seed"], "started": "2026-10-19T23:59:01.783774+00:00", "seconds": 8.911235167, "exit_code": 0}
+{"name": "close", "argv": ["node", "/private/tmp/blanc-spaces-overlap/close.mjs"], "started": "2026-10-19T23:59:10.735931+00:00", "seconds": 1.189371875, "exit_code": 0}
+{"name": "held-restart", "argv": ["node", "/private/tmp/blanc-spaces-overlap/launch-injected.mjs"], "started": "2026-10-19T23:59:11.962311+00:00", "seconds": 0.032659167, "exit_code": 0}
+{"name": "overlap-proof", "argv": ["node", "/private/tmp/blanc-spaces-overlap/probe.mjs", "read"], "started": "2026-10-19T23:59:12.027208+00:00", "seconds": 2.385289959, "exit_code": 0}
+{"name": "state-proof", "argv": ["node", "/private/tmp/blanc-spaces-overlap/state.mjs"], "started": "2026-10-19T23:59:14.443684+00:00", "seconds": 19.741416875, "exit_code": 1}
+{"name": "cleanup", "argv": ["node", "/private/tmp/blanc-spaces-overlap/cleanup.mjs"], "started": "2026-10-19T23:59:34.215165+00:00", "seconds": 0.657123958, "exit_code": 0}
+{"name": "helper-build", "argv": ["clang", "-dynamiclib", "/private/tmp/blanc-spaces-overlap/barrier.c", "-o", "/private/tmp/blanc-spaces-overlap/barrier.dylib"], "started": "2026-10-19T23:59:42.794280+00:00", "seconds": 0.053683833, "exit_code": 0}
+{"name": "start", "argv": ["node", "/private/tmp/blanc-spaces-overlap/start.mjs"], "started": "2026-10-19T23:59:42.878664+00:00", "seconds": 0.05642225000000001, "exit_code": 0}
+{"name": "seed", "argv": ["node", "/private/tmp/blanc-spaces-overlap/check.mjs", "seed"], "started": "2026-10-19T23:59:42.966802+00:00", "seconds": 5.097643457999999, "exit_code": 0}
+{"name": "close", "argv": ["node", "/private/tmp/blanc-spaces-overlap/close.mjs"], "started": "2026-10-19T23:59:48.106975+00:00", "seconds": 1.079007458, "exit_code": 0}
+{"name": "held-restart", "argv": ["node", "/private/tmp/blanc-spaces-overlap/launch-injected.mjs"], "started": "2026-10-19T23:59:49.228655+00:00", "seconds": 0.029309958000000004, "exit_code": 0}
+{"name": "overlap-proof", "argv": ["node", "/private/tmp/blanc-spaces-overlap/probe.mjs", "read"], "started": "2026-10-19T23:59:49.283971+00:00", "seconds": 22.188748459, "exit_code": 0}
+{"name": "state-proof", "argv": ["node", "/private/tmp/blanc-spaces-overlap/state.mjs"], "started": "2026-10-20T00:00:11.506382+00:00", "seconds": 6.8136509169999995, "exit_code": 0}
+{"name": "cleanup", "argv": ["node", "/private/tmp/blanc-spaces-overlap/cleanup.mjs"], "started": "2026-10-20T00:00:18.351307+00:00", "seconds": 0.635903959, "exit_code": 0}
+{"name": "final-guard", "argv": ["/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node", "experiments/chromium-extension-spike/build.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src"], "started": "2026-10-20T00:00:24.796611+00:00", "seconds": 4.040462, "exit_code": 0}

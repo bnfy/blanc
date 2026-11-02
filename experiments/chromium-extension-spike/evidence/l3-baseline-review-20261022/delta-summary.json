@@ -1,0 +1,124 @@
+{
+  "base": "41520584daa68d0040db7746ae562a0ff82187f6",
+  "head": "1aa07b638799e59656559ae6c6649d4b197f555e",
+  "pages": 6,
+  "commits": 581,
+  "changedFiles": 1894,
+  "patchOverlap": [
+    "chrome/browser/BUILD.gn",
+    "chrome/browser/chrome_content_browser_client.cc",
+    "chrome/browser/search/search.cc",
+    "chrome/browser/ui/browser_commands.cc",
+    "chrome/browser/ui/omnibox/omnibox_next_features.cc",
+    "chrome/browser/ui/webui/chrome_web_ui_configs.cc"
+  ],
+  "dependencyManifests": [
+    "DEPS",
+    "chrome/browser/new_tab_page/DEPS",
+    "chrome/test/data/webui/contextual_tasks/DEPS",
+    "ios/chrome/browser/app_bar/coordinator/DEPS",
+    "ios/chrome/browser/composebox/shared/metrics/DEPS",
+    "ios/chrome/browser/ntp/ui_bundled/DEPS",
+    "ios/chrome/browser/overlays/ui_bundled/infobar_banner/DEPS",
+    "ios/chrome/browser/settings/ui_bundled/DEPS",
+    "ios/chrome/browser/settings/ui_bundled/privacy/DEPS",
+    "ios/chrome/browser/shared/coordinator/scene/DEPS",
+    "ios/chrome/browser/sync/model/DEPS"
+  ],
+  "reviewCandidates": [
+    {
+      "commit": "d3ffcebca08613d4e907c16ba65745d5768fbab9",
+      "subject": "[M157] views: Defer MenuRunnerImpl destruction in OnMenuClosed",
+      "message": "[M157] views: Defer MenuRunnerImpl destruction in OnMenuClosed\n\nMenuRunnerImpl::OnMenuClosed cleared `controller_` before invoking\nExecuteCommand and OnMenuClosed on the MenuDelegate. When a delegate\nreset its MenuRunner inside those callbacks while MenuController frames\nwere active on the stack, MenuRunnerImpl::Release saw a null\n`controller_` and deleted `this` synchronously instead of calling\nDeferMenuRunnerDestruction, causing a UAF on MenuItemView.\n\nKeep the `controller_` WeakPtr across OnMenuClosed and invalidate\n`weak_factory_` when deferring destruction in Release.\n\n(cherry picked from commit 041491e936ea6063e528de24b9d540015960a5c1)\n\nCONV=cced0104-bc4a-465a-9306-2ed8a06093b5\n\nBug: 574516887\nFixed: 576121642\nChange-Id: I948b7f6217c4ca2c93d604d689b8f34c8d2dee30\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8623540\nReviewed-by: Thomas Lukaszewicz <tluk@chromium.org>\nCommit-Queue: Mitsuru Oshima <oshima@chromium.org>\nCr-Commit-Position: refs/branch-heads/8103@{#631}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "c5793c0ed3aabfe5bb1cb3b27caa805fe9c03123",
+      "subject": "Revert \"Mark UserSecurity reporting policies as supported on iOS\"",
+      "message": "Revert \"Mark UserSecurity reporting policies as supported on iOS\"\n\nThis reverts commit 3f64500d00cd1785115e0408c6b03392d511500c.\n\nReason for revert: moving the milestone to M159\nBYPASS_POLICY_COMPATIBILITY_CHECK= moving the milestone to M159\nFixed: 576149099\n\nOriginal change's description:\n> Mark UserSecurity reporting policies as supported on iOS\n>\n> Updates UserSecurityAuthenticatedReporting and UserSecuritySignalsReporting policy definitions from future_on to supported_on for iOS 157+.\n>\n> Bug: 421927804\n> Change-Id: If1e96ec392fc951901990e4d5062de0751e8371b\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8513143\n> Reviewed-by: Miko\u0142aj Wa\u0142achowski <mwalachowski@google.com>\n> Commit-Queue: Micha\u0142 Kaczmarczyk <mickaczmarczyk@google.com>\n> Reviewed-by: Igor <igorcov@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1712170}\n\n(cherry picked from commit a133b6f4473d1812893f57342a5501cf01022ee7)\n\nBug: 421927804\nChange-Id: I06f001de75793ef281baa502f9a592386857695f\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8608128\nReviewed-by: Simon Kurek <szymonkurek@google.com>\nCommit-Queue: Micha\u0142 Kaczmarczyk <mickaczmarczyk@google.com>\nReviewed-by: Igor <igorcov@chromium.org>\nReviewed-by: Miko\u0142aj Wa\u0142achowski <mwalachowski@google.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Original-Commit-Position: refs/heads/main@{#1721768}\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8615223\nReviewed-by: Igor Ruvinov <igorruvinov@chromium.org>\nCr-Commit-Position: refs/branch-heads/8103@{#622}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "66ac08fa276070074f25a329e6371d5fd4792b1a",
+      "subject": "[M157] Harden PersistentSystemProfile against corrupt segment sizes",
+      "message": "[M157] Harden PersistentSystemProfile against corrupt segment sizes\n\nOriginal change's description:\n> Harden PersistentSystemProfile against corrupt segment sizes\n>\n> PersistentSystemProfile::RecordAllocator assumes that adopted\n> system profile segments have a positive size aligned to the 4-byte\n> RecordHeader boundary. If a corrupted or crafted persistent memory\n> file contains a block whose size is not aligned, the remaining\n> room calculation in WriteData() can underflow, resulting in an\n> out-of-bounds write past the end of the segment.\n>\n> To prevent this:\n> 1. Validate in PersistentMemoryAllocator::GetBlock() that allocated\n>    blocks have a non-empty payload size aligned to kAllocAlignment.\n> 2. Preserve the last valid segment reference in NextSegment() when\n>    iteration reaches the end so failed allocations do not wrap\n>    around to the first segment.\n> 3. Verify the cached segment size in GetAsArray() calls and reset\n>    pre-existing segments when constructing a writer RecordAllocator.\n>\n> Bug: 574606539\n> Change-Id: Ia34139ecce6ec62485817714e441fc9ab02edec1\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8611276\n> Reviewed-by: Roger McFarlane <rogerm@chromium.org>\n> Commit-Queue: Alexei Svitkine <asvitkine@chromium.org>\n> Auto-Submit: Alexei Svitkine <asvitkine@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1722923}\n\n(cherry picked from commit de1ff16679bebb89f745ccfdfbe3f79fc30b42e3)\n\nBug: 576122947,574606539\nChange-Id: Ia34139ecce6ec62485817714e441fc9ab02edec1\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8619061\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#621}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "0b07ac7d6c5b48130d50a447f02a1d38e753e1a6",
+      "subject": "[M157] [FSA] Prevent synchronous lock promotion UAF during manager teardown",
+      "message": "[M157] [FSA] Prevent synchronous lock promotion UAF during manager teardown\n\nOriginal change's description:\n> [FSA] Prevent synchronous lock promotion UAF during manager teardown\n>\n> During ~FileSystemAccessManagerImpl(), destroying\n> `access_handle_host_receivers_` and `writer_receivers_` before\n> `file_receivers_` and `directory_receivers_` releases held `LockHandle`s\n> while file and directory handles are still alive. When a lock held by an\n> evicting BFCache handle is destroyed, `Lock::LockHandleDestroyed()`\n> synchronously promotes pending lock requests and runs callbacks on live\n> `FileSystemAccessFileHandleImpl` instances. In Incognito mode,\n> `DidTakeAccessHandleLock()` -> `DoOpenIncognitoFile()` completes\n> synchronously and calls `CreateAccessHandleHost()`, inserting into\n> `access_handle_host_receivers_` while it is mid-destruction or after its\n> backing buffer has already been freed.\n>\n> Fix this by:\n> 1. Declaring `file_receivers_` and `directory_receivers_` after\n>    `writer_receivers_` and `access_handle_host_receivers_` and explicitly\n>    clearing them first in `~FileSystemAccessManagerImpl()`, after\n>    invalidating `weak_factory_`.\n> 2. Guarding `TakeLock()` callbacks with `weak_factory_.GetWeakPtr()` so\n>    any lock promotion during manager teardown passes `nullptr`.\n> 3. Moving elements out of `writer_receivers_` and\n>    `access_handle_host_receivers_` before erasing them during teardown\n>    and in `RemoveFileWriter()`.\n>\n> TAG=agy\n> CONV=1c519f9c-078d-4200-8484-614956cd3f7d\n>\n> Bug: 574911589, 562191732\n> Change-Id: I3c65bbd8e8f56ebec3995f81b9b6c0fa9b82e7e4\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8602672\n> Reviewed-by: Rakina Zata Amni <rakina@chromium.org>\n> Auto-Submit: Eriko Kurimoto <elkurin@chromium.org>\n> Commit-Queue: Eriko Kurimoto <elkurin@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1722787}\n\n(cherry picked from commit cd43271237330d34795ca374997b23684001182a)\n\nBug: 576122490,574911589,562191732\nChange-Id: I3c65bbd8e8f56ebec3995f81b9b6c0fa9b82e7e4\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8615803\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#589}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "bcc2e3b13da9320d2632151e53e35cc63f94dacb",
+      "subject": "[M157] media: Safely drain promises in CdmPromiseAdapter::Clear",
+      "message": "[M157] media: Safely drain promises in CdmPromiseAdapter::Clear\n\nOriginal change's description:\n> media: Safely drain promises in CdmPromiseAdapter::Clear\n>\n> Rejecting a promise during CdmPromiseAdapter::Clear() may trigger\n> client callbacks that call SavePromise(). Move promises_ to a local\n> map before iterating to avoid iterator invalidation and use-after-free.\n>\n> Bug: 568831768\n> Change-Id: If8364c9ace5d0f5eb06104b065a2187b6a6a6964\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8518406\n> Reviewed-by: Ted (Chromium) Meyer <tmathmeyer@chromium.org>\n> Commit-Queue: Feras Aldahlawi <frs@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1717947}\n\n(cherry picked from commit cc183492c23b447b2a682530129a1262806f6714)\n\nBug: 573868027,568831768\nChange-Id: If8364c9ace5d0f5eb06104b065a2187b6a6a6964\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8595446\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCommit-Queue: Feras Aldahlawi <frs@chromium.org>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#406}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "c09065c7aae301c629cab91cb257f2d2a4aba2ee",
+      "subject": "[M157] Fix SoftwareImageDecodeCache UAF",
+      "message": "[M157] Fix SoftwareImageDecodeCache UAF\n\nOriginal change's description:\n> Fix SoftwareImageDecodeCache UAF\n>\n> SoftwareImageDecodeCache had a bug where if image decode tasks were\n> stopped and restarted there could be a collision on\n> ImageDecodeRequestId. If the CompositorFrameSink is lost the\n> ImageDecodeCache object is recreated and\n> ImageController::SetImageDecodeCache() runs. That calls\n> StopWorkerTasks() which cancels pending decode requests but didn't\n> cancel posted tasks. GenerateTasksForOrphanedRequests() then schedules\n> new tasks reusing the same ImageDecodeRequestId range. If a posted\n> ImageDecodeCompleted() from before StopWorkerTasks() runs and the\n> ImageDecodeRequestId matches one of the new request there is a\n> collision.\n>\n> The collision can result in a CacheEntry being deleted while there is\n> still a pending request for it. Avoid collisions by cancelling all\n> posted ImageDecocdeComplete() tasks in StopWorkTasks().\n>\n> Bug: 569286604\n> Change-Id: I2a2214efb8a99f0e88b35ee1f5841c91a4831f7d\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8567362\n> Reviewed-by: Vladimir Levin <vmpstr@chromium.org>\n> Commit-Queue: Kyle Charbonneau <kylechar@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1718683}\n\n(cherry picked from commit 46d63b00ac54db566df482976c8bcee7d932181d)\n\nBug: 574748891,569286604\nChange-Id: I2a2214efb8a99f0e88b35ee1f5841c91a4831f7d\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8611109\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#400}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "0e0d47a58e740bb2ea4ade977066690835ffc42a",
+      "subject": "[M157] Detach WebViewPlugin delegate in PluginPlaceholderBase::OnDestruct",
+      "message": "[M157] Detach WebViewPlugin delegate in PluginPlaceholderBase::OnDestruct\n\nOriginal change's description:\n> Detach WebViewPlugin delegate in PluginPlaceholderBase::OnDestruct\n>\n> When a RenderFrame is destroyed, PluginPlaceholder subclasses release\n> their self-reference and are destroyed. However, the associated\n> WebViewPlugin can outlive the RenderFrame if its WebPluginContainerImpl\n> is kept alive, for example by script across a layout tree reattach.\n>\n> To prevent use-after-free issues from WebViewPlugin queued tasks or\n> Destroy() accessing a destroyed delegate, this adds\n> WebViewPlugin::DetachDelegate() and calls it during\n> PluginPlaceholderBase::OnDestruct(). Subclasses are also updated to\n> properly invoke the base class OnDestruct().\n>\n> BUG=573981230\n>\n> Change-Id: I699e74cf0ad19cbdd27089ecb248e80aa4c2b3c4\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8600223\n> Commit-Queue: Dave Tapuska <dtapuska@chromium.org>\n> Reviewed-by: Tommy Nyquist <nyquist@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1721135}\n\n(cherry picked from commit 1636e1f6b95c1a0e068cf9ece1e661905ab2e3ac)\n\nBug: 575016043\nChange-Id: I699e74cf0ad19cbdd27089ecb248e80aa4c2b3c4\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8605813\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#394}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "7c6e7657f8dbf01469a22351811919347efe20af",
+      "subject": "[M157] [LHS] Embed expanded LHS iframe directly in chrome://new-tab-page",
+      "message": "[M157] [LHS] Embed expanded LHS iframe directly in chrome://new-tab-page\n\nOriginal change's description:\n> [LHS] Embed expanded LHS iframe directly in chrome://new-tab-page\n>\n> Removes the intermediate `chrome-untrusted://new-tab-page/expanded-lhs`\n> iframe and embeds the expanded LHS URL\n> (`https://www.google.com/search?nem=341`) directly inside\n> `<cr-left-hand-side>` via `<ntp-iframe id=\"expanded\">`.\n>\n> 1. Moves `expandedLhsUrl` resolution (including the `atvm=3` hybrid mode\n> parameter and forced embedded page host overrides) from\n> `UntrustedSource` into `NewTabPageUI` `loadTimeData`.\n>\n> 2. Explicitly allowlists `google_base_url` in `NewTabPageUI`'s\n> `child-src` Content Security Policy.\n>\n> 3. Forwards the `allow` attribute on `<ntp-iframe>` to its inner\n> `<iframe>` so `allow=\"unbounded-element\"` is preserved.\n>\n> 4. Removes `expanded-lhs` handling, unit tests, and `expanded_lhs.html`\n> from `UntrustedSource`.\n>\n> Bug: b:570198100\n> Change-Id: Idf2151b8514c4aa8831d802d575c20918b433c91\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8560624\n> Commit-Queue: Bofeng Chen <bofengchen@google.com>\n> Reviewed-by: Yvonne Shi <yvonneshi@google.com>\n> Reviewed-by: Dhruv Kathpalia <dhruvkathpalia@google.com>\n> Cr-Commit-Position: refs/heads/main@{#1719310}\n\n(cherry picked from commit fb41b897abc6494604a48671be65d97f3e0670ce)\n\nBug: 574539029,b:570198100\nChange-Id: Idf2151b8514c4aa8831d802d575c20918b433c91\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8599147\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCommit-Queue: Justin Donnelly <jdonnelly@chromium.org>\nCr-Commit-Position: refs/branch-heads/8103@{#299}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "0b80fb71998524cf4ff2639f093141e6a0235eeb",
+      "subject": "[M157] Prevent cross-frame selection on GestureLongPress",
+      "message": "[M157] Prevent cross-frame selection on GestureLongPress\n\nOriginal change's description:\n> Prevent cross-frame selection on GestureLongPress\n>\n> When an event handler for `gesturelongpress` mutates the DOM (e.g.\n> removing an overlay element above an `<iframe>`), the subsequent hit\n> test in GestureManager::HandleGestureLongPress() could descend into a\n> child frame and set a cross-document selection on the parent frame's\n> FrameSelection.\n>\n> * gesture_manager.cc: Use event_handling_util::HitTestResultInFrame()\n>   instead of EventHandler::HitTestResultAtLocation() in\n>   GestureManager::HandleGestureLongPress() so the re-hit-test stays\n>   within the handling frame and does not descend into child frames.\n>   This is the main fix of the issue.\n>\n> * web_view_test.cc: Update WebViewTest.LongPressLink to long-press at\n>   (499, 299) on the link inside the 500x300 viewport instead of\n>   out-of-bounds at (500, 300). This test worked by accident because\n>   HitTestResultAtLocation() doesn't have viewport bounds check.\n>\n> * selection_controller.cc: Verify in `SelectionController::\n>   UpdateSelectionForMouseDownDispatchingSelectStart()` that\n>   `target_node` and `selection` belong to GetDocument() before and\n>   after dispatching `selectstart`, matching\n>   UpdateSelectionForMouseDrag().\n>   This is an optional change for defence-in-depth.\n>\n> * selection_template.cc: Upgrade DCHECK_EQ() to CHECK_EQ() in\n>   SelectionTemplate::AssertValidFor() to prevent setting a selection\n>   whose document does not match the FrameSelection's document.\n>   This is another optional change for defence-in-depth.\n>\n> Bug: 572893186\n> Change-Id: I2e51c75838351009987dc7820a7fe3d2cef944ac\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8561139\n> Auto-Submit: Kent Tamura <tkent@chromium.org>\n> Commit-Queue: Koji Ishii <kojii@chromium.org>\n> Reviewed-by: Koji Ishii <kojii@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1717499}\n\n(cherry picked from commit c0e830bdda6e389c8c8c1b5c5174793f853a55fa)\n\nBug: 573300128,572893186\nChange-Id: I2e51c75838351009987dc7820a7fe3d2cef944ac\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8574426\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#70}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    }
+  ],
+  "selectedReviewFiles": [
+    {
+      "path": "DEPS",
+      "hunks": 9
+    },
+    {
+      "path": "base/metrics/persistent_memory_allocator.cc",
+      "hunks": 1
+    },
+    {
+      "path": "chrome/browser/BUILD.gn",
+      "hunks": 7
+    },
+    {
+      "path": "chrome/browser/chrome_content_browser_client.cc",
+      "hunks": 2
+    },
+    {
+      "path": "chrome/browser/search/search.cc",
+      "hunks": 3
+    },
+    {
+      "path": "chrome/browser/ui/browser_commands.cc",
+      "hunks": 1
+    },
+    {
+      "path": "chrome/browser/ui/omnibox/omnibox_next_features.cc",
+      "hunks": 4
+    },
+    {
+      "path": "chrome/browser/ui/webui/chrome_web_ui_configs.cc",
+      "hunks": 2
+    },
+    {
+      "path": "components/metrics/persistent_system_profile.cc",
+      "hunks": 8
+    },
+    {
+      "path": "content/browser/file_system_access/file_system_access_manager_impl.cc",
+      "hunks": 4
+    },
+    {
+      "path": "content/browser/file_system_access/file_system_access_manager_impl.h",
+      "hunks": 1
+    }
+  ],
+  "fullPatchSha256": "874afc841d436899b3bb3ed2a08395226d7212a806c50cdb38ecfd146f5bf152",
+  "fullPatchBytes": 7503143,
+  "candidateContainsPreFixImplementations": true
+}

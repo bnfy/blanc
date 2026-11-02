@@ -1,0 +1,135 @@
+{
+  "started": "2026-10-17T20:45:44.165Z",
+  "completed": false,
+  "protocol": "one discarded full warm-up then five full repetitions per profile in the same process; nearest-rank percentiles; median-of-five",
+  "pageScheduling": "26 sequential page loads per repetition, 200 candidates per page except last; each page issues its resources concurrently without pacing; full corpus unchanged; repeated roots excluded from unique URL floor",
+  "nativeClock": "base::TimeTicks from factory entry or redirect receipt through decision application; Mojo included",
+  "electronClock": "process.hrtime.bigint at JS provider-observer entry through real provider result; preceding Electron native dispatch excluded; reference only",
+  "fullAcceptance": false,
+  "sources": {
+    "latency-run.mjs": "2419ef7bb4808eec533310cb1fb7a1a240d0655a9670ec15370abe0280553d59",
+    "latency-validate.mjs": "7826c7058f487d836afeeff0beb4fb8388eb184fc3dfd453b62ccd4757aca63e",
+    "session.mjs": "07b277905ef3aef6ea1b76b1cf0914f7dfb0fa0111156383d34ffac6273a2967",
+    "page.mjs": "f9cba4814df85c8adea3acdbc86a877392c7a69ecdc743d7917ede0d2c7ba6bc"
+  },
+  "runs": [],
+  "profiles": {
+    "electron-regular": {
+      "source": {
+        "browserKind": "electron",
+        "kind": "regular",
+        "bootstrapSha256": "7948eed2757eee06f3cc8c766eb8813befb4dcf6668270dcac2554f9368262bb",
+        "asarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+        "versions": {
+          "node": "24.22.0",
+          "acorn": "8.18.0",
+          "ada": "4.0.0",
+          "amaro": "1.1.11",
+          "ares": "1.34.8",
+          "brotli": "1.2.0",
+          "cldr": "48.0",
+          "icu": "78.2",
+          "llhttp": "9.4.3",
+          "merve": "1.2.2",
+          "modules": "149",
+          "napi": "10",
+          "nbytes": "0.1.4",
+          "ncrypto": "0.0.1",
+          "nghttp2": "1.70.0",
+          "nghttp3": "",
+          "ngtcp2": "",
+          "openssl": "0.0.0",
+          "simdjson": "4.6.11",
+          "simdutf": "7.7.0",
+          "sqlite": "3.53.4",
+          "tz": "2026d",
+          "undici": "7.29.1",
+          "unicode": "17.0",
+          "uv": "1.52.1",
+          "uvwasi": "0.0.23",
+          "v8": "15.2.124.43-electron.0",
+          "zlib": "1.3.2.1-motley",
+          "zstd": "1.6.0",
+          "electron": "44.8.0",
+          "chrome": "152.0.7977.167"
+        }
+      },
+      "idleBeforeSession": {
+        "at": "2026-10-17T20:45:56.212Z",
+        "user": 3.49,
+        "system": 2.86,
+        "idle": 93.64
+      },
+      "repetitions": [],
+      "boundMs": null
+    }
+  },
+  "gaps": [
+    "Electron native-entry TimeTicks unavailable through this observer",
+    "engine-internal timing not exposed separately"
+  ],
+  "requireIdle": true,
+  "pageLayoutSha256": "ddf5a81237bd3cfa2b6a3acea7730bdbc2e7a69c116690a5ca77eb2aa4cc42c4",
+  "baseFixtureBundleSha256": "d0b37595faa4d1354c2b54cc0b75e979567e825959a2d66a1a9c46c57094a15d",
+  "idlePreflight": [
+    {
+      "at": "2026-10-17T20:45:47.661Z",
+      "user": 4.17,
+      "system": 6.17,
+      "idle": 89.65
+    },
+    {
+      "at": "2026-10-17T20:45:51.157Z",
+      "user": 22.12,
+      "system": 3.62,
+      "idle": 74.25
+    },
+    {
+      "at": "2026-10-17T20:45:54.667Z",
+      "user": 4.62,
+      "system": 3.17,
+      "idle": 92.19
+    }
+  ],
+  "idleStop": {
+    "label": "electron-regular",
+    "rep": 0,
+    "samples": [
+      {
+        "at": "2026-10-17T20:46:01.388Z",
+        "user": 7.39,
+        "system": 4.84,
+        "idle": 87.76
+      },
+      {
+        "at": "2026-10-17T20:46:04.975Z",
+        "user": 6.91,
+        "system": 4.84,
+        "idle": 88.24
+      },
+      {
+        "at": "2026-10-17T20:46:08.521Z",
+        "user": 6.36,
+        "system": 4.54,
+        "idle": 89.9
+      },
+      {
+        "at": "2026-10-17T20:46:12.052Z",
+        "user": 6.43,
+        "system": 4.32,
+        "idle": 89.23
+      },
+      {
+        "at": "2026-10-17T20:46:15.603Z",
+        "user": 9.58,
+        "system": 4.3,
+        "idle": 86.11
+      }
+    ]
+  },
+  "error": "Error: Idle condition failed before repetition; measurement stopped",
+  "cleanup": {
+    "removed": true
+  },
+  "finished": "2026-10-17T20:46:15.829Z"
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "log": "/private/tmp/blanc-websocket-draft/build.log",
+    "summary": [
+      "Dry-run scheduled actions: 573 (generated outputs may add work). Plan: /Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/blanc-build-plan.log",
+      "../../content/public/browser/content_browser_client.h:2052:33: error: [chromium-style] virtual methods with non-empty bodies shouldn't be declared inline.",
+      " 6.36s Build Failure: 1 done, 1 failed, 2927 remaining - 0.16/s"
+    ]
+  },
+  {
+    "log": "/private/tmp/blanc-websocket-draft/build-narrow.log",
+    "summary": [
+      "Dry-run scheduled actions: 574 (generated outputs may add work). Plan: /Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/blanc-build-plan.log",
+      "34.38s Build Failure: 15 done, 0 failed, 2913 remaining - 0.44/s",
+      " interrupt by signal"
+    ]
+  },
+  {
+    "log": "/private/tmp/blanc-websocket-draft/build-repair.log",
+    "summary": [
+      "Dry-run scheduled actions: 6 (generated outputs may add work). Plan: /Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/blanc-build-plan.log",
+      "46.11s Build Succeeded: 10 steps - 0.22/s"
+    ]
+  },
+  {
+    "log": "/private/tmp/blanc-websocket-draft/build-provider.log",
+    "summary": [
+      "Dry-run scheduled actions: 1 (generated outputs may add work). Plan: /Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/blanc-build-plan.log",
+      "30.37s Build Succeeded: 6 steps - 0.20/s"
+    ]
+  }
+]

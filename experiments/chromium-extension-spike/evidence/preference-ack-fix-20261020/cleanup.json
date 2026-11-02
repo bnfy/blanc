@@ -1,0 +1,9 @@
+{
+  "removed": [
+    "/private/tmp/blanc-pref-ack-tests/clear/chromium-profile",
+    "/private/tmp/blanc-pref-ack-tests/clear-final/chromium-profile",
+    "/private/tmp/blanc-pref-ack-tests/encrypted-final/chromium-profile",
+    "/private/tmp/blanc-pref-ack-tests/overlap/profile-combined"
+  ],
+  "retainedPreviewUntouched": true
+}

@@ -1,0 +1,6422 @@
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "bom-ref": "font:inter",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "name": "Inter",
+      "type": "file"
+    },
+    {
+      "bom-ref": "font:jetbrains-mono",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2c32b9b3ee358c119e210f6f5195f9bd34894d78a785ff2e95d60e718e400af4"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "name": "JetBrains Mono",
+      "type": "file"
+    },
+    {
+      "bom-ref": "font:caveat",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d0b7b931b8980049327e8f8f9ac264617c8200b8422d62e886473d3d9527bad3"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "name": "Caveat",
+      "type": "file"
+    },
+    {
+      "bom-ref": "font:instrument-sans",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8b74e9bc6e415d564a5ffd32125c92ffd50b1635043e77543cb871e0a3cfcaf2"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "OFL-1.1"
+        }
+      ],
+      "name": "Instrument Sans",
+      "type": "file"
+    },
+    {
+      "bom-ref": "npm:@ghostery/adblocker-extended-selectors",
+      "licenses": [
+        {
+          "expression": "MPL-2.0"
+        }
+      ],
+      "name": "@ghostery/adblocker-extended-selectors",
+      "purl": "pkg:npm/%40ghostery/adblocker-extended-selectors@2.18.2",
+      "type": "library",
+      "version": "2.18.2"
+    },
+    {
+      "bom-ref": "npm:@ghostery/adblocker",
+      "licenses": [
+        {
+          "expression": "MPL-2.0"
+        }
+      ],
+      "name": "@ghostery/adblocker",
+      "purl": "pkg:npm/%40ghostery/adblocker@2.18.2",
+      "type": "library",
+      "version": "2.18.2"
+    },
+    {
+      "bom-ref": "npm:@ghostery/url-parser",
+      "licenses": [
+        {
+          "expression": "MPL-2.0"
+        }
+      ],
+      "name": "@ghostery/url-parser",
+      "purl": "pkg:npm/%40ghostery/url-parser@1.3.1",
+      "type": "library",
+      "version": "1.3.1"
+    },
+    {
+      "bom-ref": "npm:@remusao/guess-url-type",
+      "licenses": [
+        {
+          "expression": "MPL-2.0"
+        }
+      ],
+      "name": "@remusao/guess-url-type",
+      "purl": "pkg:npm/%40remusao/guess-url-type@2.1.0",
+      "type": "library",
+      "version": "2.1.0"
+    },
+    {
+      "bom-ref": "npm:@remusao/small",
+      "licenses": [
+        {
+          "expression": "MPL-2.0"
+        }
+      ],
+      "name": "@remusao/small",
+      "purl": "pkg:npm/%40remusao/small@2.1.0",
+      "type": "library",
+      "version": "2.1.0"
+    },
+    {
+      "bom-ref": "npm:@remusao/smaz-compress",
+      "licenses": [
+        {
+          "expression": "MPL-2.0"
+        }
+      ],
+      "name": "@remusao/smaz-compress",
+      "purl": "pkg:npm/%40remusao/smaz-compress@2.2.0",
+      "type": "library",
+      "version": "2.2.0"
+    },
+    {
+      "bom-ref": "npm:@remusao/smaz-decompress",
+      "licenses": [
+        {
+          "expression": "MPL-2.0"
+        }
+      ],
+      "name": "@remusao/smaz-decompress",
+      "purl": "pkg:npm/%40remusao/smaz-decompress@2.2.0",
+      "type": "library",
+      "version": "2.2.0"
+    },
+    {
+      "bom-ref": "npm:@remusao/smaz",
+      "licenses": [
+        {
+          "expression": "MPL-2.0"
+        }
+      ],
+      "name": "@remusao/smaz",
+      "purl": "pkg:npm/%40remusao/smaz@2.2.0",
+      "type": "library",
+      "version": "2.2.0"
+    },
+    {
+      "bom-ref": "npm:@remusao/trie",
+      "licenses": [
+        {
+          "expression": "MPL-2.0"
+        }
+      ],
+      "name": "@remusao/trie",
+      "purl": "pkg:npm/%40remusao/trie@2.1.0",
+      "type": "library",
+      "version": "2.1.0"
+    },
+    {
+      "bom-ref": "npm:tldts-experimental",
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "tldts-experimental",
+      "purl": "pkg:npm/tldts-experimental@7.4.10",
+      "type": "library",
+      "version": "7.4.10"
+    },
+    {
+      "bom-ref": "filter:easylist.txt",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ceac7bd34d538ad448f05a7237b600485f2185a620d8ce32f77ae7365e1e662b"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "CC-BY-SA-3.0-or-later"
+        }
+      ],
+      "name": "easylist.txt",
+      "type": "data"
+    },
+    {
+      "bom-ref": "filter:easyprivacy.txt",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5b69cbb6958485b5688e76bf2a43a548acaa5cc57380aed7d3dc800da7e0bf6b"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "CC-BY-SA-3.0-or-later"
+        }
+      ],
+      "name": "easyprivacy.txt",
+      "type": "data"
+    },
+    {
+      "bom-ref": "data:ghostery-resources",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e14b498f693c4166d27971f7fdfe49b167c139a8e659cc59bedc9ab29a2348f5"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MPL-2.0"
+        }
+      ],
+      "name": "Ghostery blocker resources",
+      "type": "data"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Chromium",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Chromium"
+          }
+        }
+      ],
+      "name": "Chromium",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-2-dim-General-Purpose-FFT--Fast-Fourier-Cosine-Sine-Transform--Package",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-2-dim-General-Purpose-FFT--Fast-Fourier-Cosine-Sine-Transform--Package"
+          }
+        }
+      ],
+      "name": "2-dim General Purpose FFT (Fast Fourier/Cosine/Sine Transform) Package",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package--bufbuild-protobuf",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef--bufbuild-protobuf"
+          }
+        }
+      ],
+      "name": "@bufbuild/protobuf",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package--puppeteer-replay",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef--puppeteer-replay"
+          }
+        }
+      ],
+      "name": "@puppeteer/replay",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package--vscode-web-custom-data",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef--vscode-web-custom-data"
+          }
+        }
+      ],
+      "name": "@vscode/web-custom-data",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Abseil",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Abseil"
+          }
+        }
+      ],
+      "name": "Abseil",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Acorn--a-tiny--fast-JavaScript-parser-written-in-JavaScript.",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Acorn--a-tiny--fast-JavaScript-parser-written-in-JavaScript."
+          }
+        }
+      ],
+      "name": "Acorn, a tiny, fast JavaScript parser written in JavaScript.",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-adler2",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-adler2"
+          }
+        }
+      ],
+      "name": "adler2",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Alliance-for-Open-Media-Video-Codec",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Alliance-for-Open-Media-Video-Codec"
+          }
+        }
+      ],
+      "name": "Alliance for Open Media Video Codec",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Alliance-for-Open-Media-Video-Codec-1",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Alliance-for-Open-Media-Video-Codec-1"
+          }
+        }
+      ],
+      "name": "Alliance for Open Media Video Codec",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-ANGLE",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-ANGLE"
+          }
+        }
+      ],
+      "name": "ANGLE",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Anonymous-Tokens",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Anonymous-Tokens"
+          }
+        }
+      ],
+      "name": "Anonymous Tokens",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-anyhow",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-anyhow"
+          }
+        }
+      ],
+      "name": "anyhow",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-ARM-NEON-2-x86-SSE",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-ARM-NEON-2-x86-SSE"
+          }
+        }
+      ],
+      "name": "ARM_NEON_2_x86_SSE",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-array-init",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-array-init"
+          }
+        }
+      ],
+      "name": "array-init",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-base64",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-base64"
+          }
+        }
+      ],
+      "name": "base64",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-bitflags",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-bitflags"
+          }
+        }
+      ],
+      "name": "bitflags",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Blackmagic-DeckLink-SDK---Mac",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Blackmagic-DeckLink-SDK---Mac"
+          }
+        }
+      ],
+      "name": "Blackmagic DeckLink SDK - Mac",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-BoringSSL",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-BoringSSL"
+          }
+        }
+      ],
+      "name": "BoringSSL",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Brotli",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Brotli"
+          }
+        }
+      ],
+      "name": "Brotli",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-bytemuck",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-bytemuck"
+          }
+        }
+      ],
+      "name": "bytemuck",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-bytemuck-derive",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-bytemuck-derive"
+          }
+        }
+      ],
+      "name": "bytemuck_derive",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-byteorder",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-byteorder"
+          }
+        }
+      ],
+      "name": "byteorder",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-byteorder-lite",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-byteorder-lite"
+          }
+        }
+      ],
+      "name": "byteorder-lite",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-C---port-of-zxcvbn--an-advanced-password-strength-estimation-library.",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-C---port-of-zxcvbn--an-advanced-password-strength-estimation-library."
+          }
+        }
+      ],
+      "name": "C++ port of zxcvbn, an advanced password strength estimation library.",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-calendrical-calculations",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-calendrical-calculations"
+          }
+        }
+      ],
+      "name": "calendrical_calculations",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-cfg-if",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-cfg-if"
+          }
+        }
+      ],
+      "name": "cfg-if",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-CityHash",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-CityHash"
+          }
+        }
+      ],
+      "name": "CityHash",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-CityHash-1",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-CityHash-1"
+          }
+        }
+      ],
+      "name": "CityHash",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-CodeMirror-5",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-CodeMirror-5"
+          }
+        }
+      ],
+      "name": "CodeMirror 5",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-CodeMirror-6",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-CodeMirror-6"
+          }
+        }
+      ],
+      "name": "CodeMirror 6",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-codespan-reporting",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-codespan-reporting"
+          }
+        }
+      ],
+      "name": "codespan-reporting",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Compact-Encoding-Detection",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Compact-Encoding-Detection"
+          }
+        }
+      ],
+      "name": "Compact Encoding Detection",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Compact-Language-Detector-v3",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Compact-Language-Detector-v3"
+          }
+        }
+      ],
+      "name": "Compact Language Detector v3",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Core-ML-Tools",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Core-ML-Tools"
+          }
+        }
+      ],
+      "name": "Core ML Tools",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-core-maths",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-core-maths"
+          }
+        }
+      ],
+      "name": "core_maths",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-cpuinfo",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-cpuinfo"
+          }
+        }
+      ],
+      "name": "cpuinfo",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-CrabbyAvif---Library-for-decoding-AVIF-files.",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-CrabbyAvif---Library-for-decoding-AVIF-files."
+          }
+        }
+      ],
+      "name": "CrabbyAvif - Library for decoding AVIF files.",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Crashpad",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Crashpad"
+          }
+        }
+      ],
+      "name": "Crashpad",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-CRC32C",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-CRC32C"
+          }
+        }
+      ],
+      "name": "CRC32C",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-crc32fast",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-crc32fast"
+          }
+        }
+      ],
+      "name": "crc32fast",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-CSP-Evaluator-Core-Library--a-tool-that-allows-developers-to-check-if-a-Content-Security-Policy--CSP--serves-as-mitigation-against-XSS-attacks",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-CSP-Evaluator-Core-Library--a-tool-that-allows-developers-to-check-if-a-Content-Security-Policy--CSP--serves-as-mitigation-against-XSS-attacks"
+          }
+        }
+      ],
+      "name": "CSP Evaluator Core Library, a tool that allows developers to check if a Content Security Policy (CSP) serves as mitigation against XSS attacks",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-cxx",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-cxx"
+          }
+        }
+      ],
+      "name": "cxx",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-cxxbridge-macro",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-cxxbridge-macro"
+          }
+        }
+      ],
+      "name": "cxxbridge-macro",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-d3",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-d3"
+          }
+        }
+      ],
+      "name": "d3",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-dav1d-is-an-AV1-decoder---",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-dav1d-is-an-AV1-decoder---"
+          }
+        }
+      ],
+      "name": "dav1d is an AV1 decoder :)",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Dawn",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Dawn"
+          }
+        }
+      ],
+      "name": "Dawn",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Dependencies-sourced-from-the-upstream--chromium--repository",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Dependencies-sourced-from-the-upstream--chromium--repository"
+          }
+        }
+      ],
+      "name": "Dependencies sourced from the upstream `chromium` repository",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-derivre",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-derivre"
+          }
+        }
+      ],
+      "name": "derivre",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Devtools-Frontend",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Devtools-Frontend"
+          }
+        }
+      ],
+      "name": "Devtools-Frontend",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-diplomat",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-diplomat"
+          }
+        }
+      ],
+      "name": "diplomat",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-diplomat-1",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-diplomat-1"
+          }
+        }
+      ],
+      "name": "diplomat",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-diplomat-runtime",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-diplomat-runtime"
+          }
+        }
+      ],
+      "name": "diplomat-runtime",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-diplomat-core",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-diplomat-core"
+          }
+        }
+      ],
+      "name": "diplomat_core",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-diplomat-core-1",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-diplomat-core-1"
+          }
+        }
+      ],
+      "name": "diplomat_core",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-displaydoc",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-displaydoc"
+          }
+        }
+      ],
+      "name": "displaydoc",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-dom-distiller-js",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-dom-distiller-js"
+          }
+        }
+      ],
+      "name": "dom-distiller-js",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-dragonbox",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-dragonbox"
+          }
+        }
+      ],
+      "name": "dragonbox",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-dragonbox-1",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-dragonbox-1"
+          }
+        }
+      ],
+      "name": "dragonbox",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-either",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-either"
+          }
+        }
+      ],
+      "name": "either",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Emoji-Segmenter",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Emoji-Segmenter"
+          }
+        }
+      ],
+      "name": "Emoji Segmenter",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-equivalent",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-equivalent"
+          }
+        }
+      ],
+      "name": "equivalent",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Expat-XML-Parser",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Expat-XML-Parser"
+          }
+        }
+      ],
+      "name": "Expat XML Parser",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-FarmHash",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-FarmHash"
+          }
+        }
+      ],
+      "name": "FarmHash",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-fast-float",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-fast-float"
+          }
+        }
+      ],
+      "name": "fast_float",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-fdeflate",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-fdeflate"
+          }
+        }
+      ],
+      "name": "fdeflate",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-federated-compute",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-federated-compute"
+          }
+        }
+      ],
+      "name": "federated-compute",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-ffmpeg",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-ffmpeg"
+          }
+        }
+      ],
+      "name": "ffmpeg",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-fft",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-fft"
+          }
+        }
+      ],
+      "name": "fft",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Fiat-Crypto--Synthesizing-Correct-by-Construction-Code-for-Cryptographic-Primitives",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Fiat-Crypto--Synthesizing-Correct-by-Construction-Code-for-Cryptographic-Primitives"
+          }
+        }
+      ],
+      "name": "Fiat-Crypto: Synthesizing Correct-by-Construction Code for Cryptographic Primitives",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-fixed-decimal",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-fixed-decimal"
+          }
+        }
+      ],
+      "name": "fixed_decimal",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-flac",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-flac"
+          }
+        }
+      ],
+      "name": "flac",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-FlatBuffers",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-FlatBuffers"
+          }
+        }
+      ],
+      "name": "FlatBuffers",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-flate2",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-flate2"
+          }
+        }
+      ],
+      "name": "flate2",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-foldhash",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-foldhash"
+          }
+        }
+      ],
+      "name": "foldhash",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-font-types",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-font-types"
+          }
+        }
+      ],
+      "name": "font-types",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-FP16",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-FP16"
+          }
+        }
+      ],
+      "name": "FP16",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-FreeType",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-FreeType"
+          }
+        }
+      ],
+      "name": "FreeType",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-FXDiv",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-FXDiv"
+          }
+        }
+      ],
+      "name": "FXDiv",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-gemmlowp",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-gemmlowp"
+          }
+        }
+      ],
+      "name": "gemmlowp",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-General-Purpose-FFT--Fast-Fourier-Cosine-Sine-Transform--Package",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-General-Purpose-FFT--Fast-Fourier-Cosine-Sine-Transform--Package"
+          }
+        }
+      ],
+      "name": "General Purpose FFT (Fast Fourier/Cosine/Sine Transform) Package",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Google-Chrome-Content-Analysis-Connector-Agent-SDK",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Google-Chrome-Content-Analysis-Connector-Agent-SDK"
+          }
+        }
+      ],
+      "name": "Google Chrome Content Analysis Connector Agent SDK",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Google-Double-Conversion",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Google-Double-Conversion"
+          }
+        }
+      ],
+      "name": "Google Double Conversion",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-googleapis",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-googleapis"
+          }
+        }
+      ],
+      "name": "googleapis",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-harfbuzz",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-harfbuzz"
+          }
+        }
+      ],
+      "name": "harfbuzz",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-harfrust",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-harfrust"
+          }
+        }
+      ],
+      "name": "harfrust",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-hashbrown",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-hashbrown"
+          }
+        }
+      ],
+      "name": "hashbrown",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-heck",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-heck"
+          }
+        }
+      ],
+      "name": "heck",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Highway--C---library-for-SIMD",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Highway--C---library-for-SIMD"
+          }
+        }
+      ],
+      "name": "Highway: C++ library for SIMD",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-hmac-sha256",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-hmac-sha256"
+          }
+        }
+      ],
+      "name": "hmac-sha256",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-hunspell",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-hunspell"
+          }
+        }
+      ],
+      "name": "hunspell",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-iamf-tools",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-iamf-tools"
+          }
+        }
+      ],
+      "name": "iamf_tools",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu"
+          }
+        }
+      ],
+      "name": "icu",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-calendar",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-calendar"
+          }
+        }
+      ],
+      "name": "icu_calendar",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-calendar-data",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-calendar-data"
+          }
+        }
+      ],
+      "name": "icu_calendar_data",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-capi",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-capi"
+          }
+        }
+      ],
+      "name": "icu_capi",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-collections",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-collections"
+          }
+        }
+      ],
+      "name": "icu_collections",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-decimal",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-decimal"
+          }
+        }
+      ],
+      "name": "icu_decimal",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-decimal-data",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-decimal-data"
+          }
+        }
+      ],
+      "name": "icu_decimal_data",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-locale",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-locale"
+          }
+        }
+      ],
+      "name": "icu_locale",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-locale-core",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-locale-core"
+          }
+        }
+      ],
+      "name": "icu_locale_core",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-locale-data",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-locale-data"
+          }
+        }
+      ],
+      "name": "icu_locale_data",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-normalizer",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-normalizer"
+          }
+        }
+      ],
+      "name": "icu_normalizer",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-normalizer-data",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-normalizer-data"
+          }
+        }
+      ],
+      "name": "icu_normalizer_data",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-pattern",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-pattern"
+          }
+        }
+      ],
+      "name": "icu_pattern",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-plurals",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-plurals"
+          }
+        }
+      ],
+      "name": "icu_plurals",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-plurals-data",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-plurals-data"
+          }
+        }
+      ],
+      "name": "icu_plurals_data",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-properties",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-properties"
+          }
+        }
+      ],
+      "name": "icu_properties",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-properties-data",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-properties-data"
+          }
+        }
+      ],
+      "name": "icu_properties_data",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-provider",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-provider"
+          }
+        }
+      ],
+      "name": "icu_provider",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-icu-provider-adapters",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-icu-provider-adapters"
+          }
+        }
+      ],
+      "name": "icu_provider_adapters",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-image",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-image"
+          }
+        }
+      ],
+      "name": "image",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-In-line-A-law-and-u-law-conversion-routines",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-In-line-A-law-and-u-law-conversion-routines"
+          }
+        }
+      ],
+      "name": "In line A-law and u-law conversion routines",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-incremental-font-transfer",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-incremental-font-transfer"
+          }
+        }
+      ],
+      "name": "incremental-font-transfer",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-indexmap",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-indexmap"
+          }
+        }
+      ],
+      "name": "indexmap",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Ink",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Ink"
+          }
+        }
+      ],
+      "name": "Ink",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-inspector-protocol",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-inspector-protocol"
+          }
+        }
+      ],
+      "name": "inspector protocol",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-inspector-protocol-1",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-inspector-protocol-1"
+          }
+        }
+      ],
+      "name": "inspector protocol",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-International-Phone-Number-Library",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-International-Phone-Number-Library"
+          }
+        }
+      ],
+      "name": "International Phone Number Library",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-intl-messageformat",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-intl-messageformat"
+          }
+        }
+      ],
+      "name": "intl-messageformat",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-ipcz",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-ipcz"
+          }
+        }
+      ],
+      "name": "ipcz",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-itoa",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-itoa"
+          }
+        }
+      ],
+      "name": "itoa",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-ixdtf",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-ixdtf"
+          }
+        }
+      ],
+      "name": "ixdtf",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-jpeg-encoder",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-jpeg-encoder"
+          }
+        }
+      ],
+      "name": "jpeg-encoder",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-jpeg-encoder-1",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-jpeg-encoder-1"
+          }
+        }
+      ],
+      "name": "jpeg-encoder",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-json5",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-json5"
+          }
+        }
+      ],
+      "name": "json5",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-jsoncpp",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-jsoncpp"
+          }
+        }
+      ],
+      "name": "jsoncpp",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-jxl",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-jxl"
+          }
+        }
+      ],
+      "name": "jxl",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-jxl-macros",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-jxl-macros"
+          }
+        }
+      ],
+      "name": "jxl_macros",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-jxl-simd",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-jxl-simd"
+          }
+        }
+      ],
+      "name": "jxl_simd",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-jxl-transforms",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-jxl-transforms"
+          }
+        }
+      ],
+      "name": "jxl_transforms",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-lazy-static",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-lazy-static"
+          }
+        }
+      ],
+      "name": "lazy_static",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-legacy-javascript",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-legacy-javascript"
+          }
+        }
+      ],
+      "name": "legacy-javascript",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Lens-Protos",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Lens-Protos"
+          }
+        }
+      ],
+      "name": "Lens Protos",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-LevelDB--A-Fast-Persistent-Key-Value-Store",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-LevelDB--A-Fast-Persistent-Key-Value-Store"
+          }
+        }
+      ],
+      "name": "LevelDB: A Fast Persistent Key-Value Store",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-libaddressinput",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-libaddressinput"
+          }
+        }
+      ],
+      "name": "libaddressinput",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-libc",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-libc"
+          }
+        }
+      ],
+      "name": "libc",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-libgav1",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-libgav1"
+          }
+        }
+      ],
+      "name": "libgav1",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-libjpeg-turbo",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-libjpeg-turbo"
+          }
+        }
+      ],
+      "name": "libjpeg-turbo",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-libm",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-libm"
+          }
+        }
+      ],
+      "name": "libm",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-libsrtp",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-libsrtp"
+          }
+        }
+      ],
+      "name": "libsrtp",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Libtess2",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Libtess2"
+          }
+        }
+      ],
+      "name": "Libtess2",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-libusbx",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-libusbx"
+          }
+        }
+      ],
+      "name": "libusbx",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-libutf",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-libutf"
+          }
+        }
+      ],
+      "name": "libutf",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-libvpx",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-libvpx"
+          }
+        }
+      ],
+      "name": "libvpx",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-libvpx-1",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-libvpx-1"
+          }
+        }
+      ],
+      "name": "libvpx",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-libxml",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-libxml"
+          }
+        }
+      ],
+      "name": "libxml",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-libxslt",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-libxslt"
+          }
+        }
+      ],
+      "name": "libxslt",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-libyuv",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-libyuv"
+          }
+        }
+      ],
+      "name": "libyuv",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-libzip",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-libzip"
+          }
+        }
+      ],
+      "name": "libzip",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Lighthouse",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Lighthouse"
+          }
+        }
+      ],
+      "name": "Lighthouse",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Lighthouse-i18n.js",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Lighthouse-i18n.js"
+          }
+        }
+      ],
+      "name": "Lighthouse i18n.js",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Lit",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Lit"
+          }
+        }
+      ],
+      "name": "Lit",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Lit-1",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Lit-1"
+          }
+        }
+      ],
+      "name": "Lit",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Lit-2",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Lit-2"
+          }
+        }
+      ],
+      "name": "Lit",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-litemap",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-litemap"
+          }
+        }
+      ],
+      "name": "litemap",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-LiteRT",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-LiteRT"
+          }
+        }
+      ],
+      "name": "LiteRT",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-llguidance",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-llguidance"
+          }
+        }
+      ],
+      "name": "llguidance",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-llvm-libc",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-llvm-libc"
+          }
+        }
+      ],
+      "name": "llvm-libc",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-log",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-log"
+          }
+        }
+      ],
+      "name": "log",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Lottie-Web",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Lottie-Web"
+          }
+        }
+      ],
+      "name": "Lottie Web",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-LZMA-SDK",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-LZMA-SDK"
+          }
+        }
+      ],
+      "name": "LZMA SDK",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Marked",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Marked"
+          }
+        }
+      ],
+      "name": "Marked",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Material-color-utilities",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Material-color-utilities"
+          }
+        }
+      ],
+      "name": "Material color utilities",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Mediapipe-Tasks-Vision",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef--bufbuild-protobuf"
+          }
+        }
+      ],
+      "name": "Mediapipe Tasks Vision",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-memchr",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-memchr"
+          }
+        }
+      ],
+      "name": "memchr",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-messageformat",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef--bufbuild-protobuf"
+          }
+        }
+      ],
+      "name": "messageformat",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Metrics-Protos",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Metrics-Protos"
+          }
+        }
+      ],
+      "name": "Metrics Protos",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Microsoft-Authentication-Library-for-JavaScript--MSAL.js--for-Browser-Based-Single-Page-Applications",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Microsoft-Authentication-Library-for-JavaScript--MSAL.js--for-Browser-Based-Single-Page-Applications"
+          }
+        }
+      ],
+      "name": "Microsoft Authentication Library for JavaScript (MSAL.js) for Browser-Based Single-Page Applications",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-miniz-oxide",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-miniz-oxide"
+          }
+        }
+      ],
+      "name": "miniz_oxide",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-miniz-oxide-1",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-miniz-oxide-1"
+          }
+        }
+      ],
+      "name": "miniz_oxide",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-modp-base64-decoder",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-modp-base64-decoder"
+          }
+        }
+      ],
+      "name": "modp base64 decoder",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-moxcms",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-moxcms"
+          }
+        }
+      ],
+      "name": "moxcms",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-num-complex",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-num-complex"
+          }
+        }
+      ],
+      "name": "num-complex",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-num-derive",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-num-derive"
+          }
+        }
+      ],
+      "name": "num-derive",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-num-integer",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-num-integer"
+          }
+        }
+      ],
+      "name": "num-integer",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-num-traits",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-num-traits"
+          }
+        }
+      ],
+      "name": "num-traits",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-oak",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-oak"
+          }
+        }
+      ],
+      "name": "oak",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Omnibox-Protos",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Omnibox-Protos"
+          }
+        }
+      ],
+      "name": "Omnibox Protos",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-once-cell",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-once-cell"
+          }
+        }
+      ],
+      "name": "once_cell",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-One-Euro-Filter",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-One-Euro-Filter"
+          }
+        }
+      ],
+      "name": "One Euro Filter",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Open-Screen-Protocol-Library",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Open-Screen-Protocol-Library"
+          }
+        }
+      ],
+      "name": "Open Screen Protocol Library",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-opus",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-opus"
+          }
+        }
+      ],
+      "name": "opus",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-OTS--OpenType-Sanitizer-",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-OTS--OpenType-Sanitizer-"
+          }
+        }
+      ],
+      "name": "OTS (OpenType Sanitizer)",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Paul-Hsieh-s-SuperFastHash",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Paul-Hsieh-s-SuperFastHash"
+          }
+        }
+      ],
+      "name": "Paul Hsieh's SuperFastHash",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-PDFium",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-PDFium"
+          }
+        }
+      ],
+      "name": "PDFium",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Perfetto",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Perfetto"
+          }
+        }
+      ],
+      "name": "Perfetto",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-PFFFT--a-pretty-fast-FFT.",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-PFFFT--a-pretty-fast-FFT."
+          }
+        }
+      ],
+      "name": "PFFFT: a pretty fast FFT.",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-png",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-png"
+          }
+        }
+      ],
+      "name": "png",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Polymer",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Polymer"
+          }
+        }
+      ],
+      "name": "Polymer",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-potential-utf",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-potential-utf"
+          }
+        }
+      ],
+      "name": "potential_utf",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-primal-check",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-primal-check"
+          }
+        }
+      ],
+      "name": "primal-check",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Private-Join-and-Compute-subset",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Private-Join-and-Compute-subset"
+          }
+        }
+      ],
+      "name": "Private Join and Compute subset",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-proc-macro2",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-proc-macro2"
+          }
+        }
+      ],
+      "name": "proc-macro2",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Protocol-Buffers",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Protocol-Buffers"
+          }
+        }
+      ],
+      "name": "Protocol Buffers",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Protocol-Buffers--javascript-",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Protocol-Buffers--javascript-"
+          }
+        }
+      ],
+      "name": "Protocol Buffers (javascript)",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-protodatastore-cpp",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-protodatastore-cpp"
+          }
+        }
+      ],
+      "name": "protodatastore-cpp",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-PSM--Private-Set-Membership--client-side",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-PSM--Private-Set-Membership--client-side"
+          }
+        }
+      ],
+      "name": "PSM (Private Set Membership) client side",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-pthreadpool",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-pthreadpool"
+          }
+        }
+      ],
+      "name": "pthreadpool",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Puffin-deterministic-deflate-recompressor",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Puffin-deterministic-deflate-recompressor"
+          }
+        }
+      ],
+      "name": "Puffin deterministic deflate recompressor",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Puppeteer-Core",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Puppeteer-Core"
+          }
+        }
+      ],
+      "name": "Puppeteer Core",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-pxfm",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-pxfm"
+          }
+        }
+      ],
+      "name": "pxfm",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-qr-code",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-qr-code"
+          }
+        }
+      ],
+      "name": "qr_code",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-QUICHE",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-QUICHE"
+          }
+        }
+      ],
+      "name": "QUICHE",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-quote",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-quote"
+          }
+        }
+      ],
+      "name": "quote",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-rapidhash",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-rapidhash"
+          }
+        }
+      ],
+      "name": "rapidhash",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-re2---an-efficient--principled-regular-expression-library",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-re2---an-efficient--principled-regular-expression-library"
+          }
+        }
+      ],
+      "name": "re2 - an efficient, principled regular expression library",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-read-fonts",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-read-fonts"
+          }
+        }
+      ],
+      "name": "read-fonts",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Recurrent-neural-network-for-audio-noise-reduction",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Recurrent-neural-network-for-audio-noise-reduction"
+          }
+        }
+      ],
+      "name": "Recurrent neural network for audio noise reduction",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-ref-cast",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-ref-cast"
+          }
+        }
+      ],
+      "name": "ref-cast",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-ref-cast-impl",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-ref-cast-impl"
+          }
+        }
+      ],
+      "name": "ref-cast-impl",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-regex-lite",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-regex-lite"
+          }
+        }
+      ],
+      "name": "regex-lite",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-regex-syntax",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-regex-syntax"
+          }
+        }
+      ],
+      "name": "regex-syntax",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-resb",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-resb"
+          }
+        }
+      ],
+      "name": "resb",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-rustfft",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-rustfft"
+          }
+        }
+      ],
+      "name": "rustfft",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-rustversion",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-rustversion"
+          }
+        }
+      ],
+      "name": "rustversion",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-ryu",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-ryu"
+          }
+        }
+      ],
+      "name": "ryu",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Search-Engines-resources",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Chromium"
+          }
+        }
+      ],
+      "name": "Search Engines resources",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Sentencepiece",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Sentencepiece"
+          }
+        }
+      ],
+      "name": "Sentencepiece",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-serde",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-serde"
+          }
+        }
+      ],
+      "name": "serde",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-serde-core",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-serde-core"
+          }
+        }
+      ],
+      "name": "serde_core",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-serde-derive",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-serde-derive"
+          }
+        }
+      ],
+      "name": "serde_derive",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-serde-json",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-serde-json"
+          }
+        }
+      ],
+      "name": "serde_json",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-serde-json-lenient",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-serde-json-lenient"
+          }
+        }
+      ],
+      "name": "serde_json_lenient",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Sframe",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Sframe"
+          }
+        }
+      ],
+      "name": "Sframe",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-sfv",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-sfv"
+          }
+        }
+      ],
+      "name": "sfv",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-shared-brotli-patch-decoder",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-shared-brotli-patch-decoder"
+          }
+        }
+      ],
+      "name": "shared-brotli-patch-decoder",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-simd-adler32",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-simd-adler32"
+          }
+        }
+      ],
+      "name": "simd-adler32",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-simdutf-unicode-transcoder",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-simdutf-unicode-transcoder"
+          }
+        }
+      ],
+      "name": "simdutf unicode transcoder",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Simple-Homomorphic-Encryption-Library-with-Lattices",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Simple-Homomorphic-Encryption-Library-with-Lattices"
+          }
+        }
+      ],
+      "name": "Simple Homomorphic Encryption Library with Lattices",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-simple-dns",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-simple-dns"
+          }
+        }
+      ],
+      "name": "simple-dns",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-skera",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-skera"
+          }
+        }
+      ],
+      "name": "skera",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-skrifa",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-skrifa"
+          }
+        }
+      ],
+      "name": "skrifa",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-smallvec",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-smallvec"
+          }
+        }
+      ],
+      "name": "smallvec",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-SMHasher",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-SMHasher"
+          }
+        }
+      ],
+      "name": "SMHasher",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Snappy--A-fast-compressor-decompressor",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Snappy--A-fast-compressor-decompressor"
+          }
+        }
+      ],
+      "name": "Snappy: A fast compressor/decompressor",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-source-map-scopes-codec",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-source-map-scopes-codec"
+          }
+        }
+      ],
+      "name": "source-map-scopes-codec",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-SPIR-V-Headers",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-SPIR-V-Headers"
+          }
+        }
+      ],
+      "name": "SPIR-V Headers",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-SPIR-V-Tools",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-SPIR-V-Tools"
+          }
+        }
+      ],
+      "name": "SPIR-V Tools",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-SPIRV-Headers",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-SPIRV-Headers"
+          }
+        }
+      ],
+      "name": "SPIRV-Headers",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-SPIRV-Tools",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-SPIRV-Tools"
+          }
+        }
+      ],
+      "name": "SPIRV-Tools",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-spl-sqrt-floor",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-spl-sqrt-floor"
+          }
+        }
+      ],
+      "name": "spl sqrt floor",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-sqlite",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-sqlite"
+          }
+        }
+      ],
+      "name": "sqlite",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-stable-deref-trait",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-stable-deref-trait"
+          }
+        }
+      ],
+      "name": "stable_deref_trait",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-strck",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-strck"
+          }
+        }
+      ],
+      "name": "strck",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-strength-reduce",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-strength-reduce"
+          }
+        }
+      ],
+      "name": "strength_reduce",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-strum",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-strum"
+          }
+        }
+      ],
+      "name": "strum",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-strum-macros",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-strum-macros"
+          }
+        }
+      ],
+      "name": "strum_macros",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-subtle",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-subtle"
+          }
+        }
+      ],
+      "name": "subtle",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-SwiftShader",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-SwiftShader"
+          }
+        }
+      ],
+      "name": "SwiftShader",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-symphonia-bundle-flac",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-symphonia-bundle-flac"
+          }
+        }
+      ],
+      "name": "symphonia-bundle-flac",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-symphonia-bundle-mp3",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-symphonia-bundle-mp3"
+          }
+        }
+      ],
+      "name": "symphonia-bundle-mp3",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-symphonia-codec-pcm",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-symphonia-codec-pcm"
+          }
+        }
+      ],
+      "name": "symphonia-codec-pcm",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-symphonia-codec-vorbis",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-symphonia-codec-vorbis"
+          }
+        }
+      ],
+      "name": "symphonia-codec-vorbis",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-symphonia-common",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-symphonia-common"
+          }
+        }
+      ],
+      "name": "symphonia-common",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-symphonia-core",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-symphonia-core"
+          }
+        }
+      ],
+      "name": "symphonia-core",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-symphonia-metadata",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-symphonia-metadata"
+          }
+        }
+      ],
+      "name": "symphonia-metadata",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-syn",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-syn"
+          }
+        }
+      ],
+      "name": "syn",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-syn-1",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-syn-1"
+          }
+        }
+      ],
+      "name": "syn",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-synstructure",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-synstructure"
+          }
+        }
+      ],
+      "name": "synstructure",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-temporal-capi",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-temporal-capi"
+          }
+        }
+      ],
+      "name": "temporal_capi",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-temporal-rs",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-temporal-rs"
+          }
+        }
+      ],
+      "name": "temporal_rs",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-TensorFlow-Lite",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-TensorFlow-Lite"
+          }
+        }
+      ],
+      "name": "TensorFlow Lite",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-TensorFlow-Lite-Support",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-TensorFlow-Lite-Support"
+          }
+        }
+      ],
+      "name": "TensorFlow Lite Support",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-TensorFlow-Models",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-TensorFlow-Models"
+          }
+        }
+      ],
+      "name": "TensorFlow Models",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-TensorFlow-Text",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-TensorFlow-Text"
+          }
+        }
+      ],
+      "name": "TensorFlow Text",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-tensorflow-federated",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-tensorflow-federated"
+          }
+        }
+      ],
+      "name": "tensorflow-federated",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-termcolor",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-termcolor"
+          }
+        }
+      ],
+      "name": "termcolor",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-The-Diff-Match-and-Patch-libraries-offer-robust-algorithms-to-perform-the-operations-required-for-synchronizing-plain-text.",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-The-Diff-Match-and-Patch-libraries-offer-robust-algorithms-to-perform-the-operations-required-for-synchronizing-plain-text."
+          }
+        }
+      ],
+      "name": "The Diff Match and Patch libraries offer robust algorithms to perform the operations required for synchronizing plain text.",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-The-ITU-G.722-codec--encode-and-decode-part.",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-The-ITU-G.722-codec--encode-and-decode-part."
+          }
+        }
+      ],
+      "name": "The ITU G.722 codec, encode and decode part.",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-The-ruy-matrix-multiplication-library",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-The-ruy-matrix-multiplication-library"
+          }
+        }
+      ],
+      "name": "The ruy matrix multiplication library",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-third-party-web",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-third-party-web"
+          }
+        }
+      ],
+      "name": "third-party-web",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-thiserror",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-thiserror"
+          }
+        }
+      ],
+      "name": "thiserror",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-thiserror-impl",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-thiserror-impl"
+          }
+        }
+      ],
+      "name": "thiserror-impl",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-timezone-provider",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-timezone-provider"
+          }
+        }
+      ],
+      "name": "timezone_provider",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-tinystr",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-tinystr"
+          }
+        }
+      ],
+      "name": "tinystr",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-toktrie",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-toktrie"
+          }
+        }
+      ],
+      "name": "toktrie",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-transpose",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-transpose"
+          }
+        }
+      ],
+      "name": "transpose",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-typed-path",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-typed-path"
+          }
+        }
+      ],
+      "name": "typed-path",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-unicode-ident",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-unicode-ident"
+          }
+        }
+      ],
+      "name": "unicode-ident",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-unicode-ident-1",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-unicode-ident-1"
+          }
+        }
+      ],
+      "name": "unicode-ident",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-unicode-width",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-unicode-width"
+          }
+        }
+      ],
+      "name": "unicode-width",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-UnRAR-source-for-decompressing-.RAR-and-other-files.",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-UnRAR-source-for-decompressing-.RAR-and-other-files."
+          }
+        }
+      ],
+      "name": "UnRAR source for decompressing .RAR and other files.",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-URI-Template-Parser",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-URI-Template-Parser"
+          }
+        }
+      ],
+      "name": "URI Template Parser",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-URL-Pattern-Library",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-URL-Pattern-Library"
+          }
+        }
+      ],
+      "name": "URL Pattern Library",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-utf16-iter",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-utf16-iter"
+          }
+        }
+      ],
+      "name": "utf16_iter",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-utf8-iter",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-utf8-iter"
+          }
+        }
+      ],
+      "name": "utf8_iter",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-V8-fork-of-fdlibm",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-V8-fork-of-fdlibm"
+          }
+        }
+      ],
+      "name": "V8 fork of fdlibm",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Volk-Meta-loader-for-Vulkan-API",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Volk-Meta-loader-for-Vulkan-API"
+          }
+        }
+      ],
+      "name": "Volk Meta loader for Vulkan API",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Vulkan-API-headers",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Vulkan-API-headers"
+          }
+        }
+      ],
+      "name": "Vulkan API headers",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Vulkan-Loader-Components",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Vulkan-Loader-Components"
+          }
+        }
+      ],
+      "name": "Vulkan Loader Components",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-VulkanMemoryAllocator",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-VulkanMemoryAllocator"
+          }
+        }
+      ],
+      "name": "VulkanMemoryAllocator",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Wasmparser",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Wasmparser"
+          }
+        }
+      ],
+      "name": "Wasmparser",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Web-Vitals",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Web-Vitals"
+          }
+        }
+      ],
+      "name": "Web Vitals",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-WebKit",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-WebKit"
+          }
+        }
+      ],
+      "name": "WebKit",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-WebM-container-parser-and-writer.",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-WebM-container-parser-and-writer."
+          }
+        }
+      ],
+      "name": "WebM container parser and writer.",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-WebM-container-parser-and-writer.-1",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-WebM-container-parser-and-writer.-1"
+          }
+        }
+      ],
+      "name": "WebM container parser and writer.",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-WebP-image-encoder-decoder",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-WebP-image-encoder-decoder"
+          }
+        }
+      ],
+      "name": "WebP image encoder/decoder",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-WebP-image-encoder-decoder-1",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-WebP-image-encoder-decoder-1"
+          }
+        }
+      ],
+      "name": "WebP image encoder/decoder",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-WebRTC",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-WebRTC"
+          }
+        }
+      ],
+      "name": "WebRTC",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-woff2",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-woff2"
+          }
+        }
+      ],
+      "name": "woff2",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-write-fonts",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-write-fonts"
+          }
+        }
+      ],
+      "name": "write-fonts",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-write16",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-write16"
+          }
+        }
+      ],
+      "name": "write16",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-writeable",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-writeable"
+          }
+        }
+      ],
+      "name": "writeable",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Wuffs--Wrangling-Untrusted-File-Formats-Safely-",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Wuffs--Wrangling-Untrusted-File-Formats-Safely-"
+          }
+        }
+      ],
+      "name": "Wuffs (Wrangling Untrusted File Formats Safely)",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-xml",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-xml"
+          }
+        }
+      ],
+      "name": "xml",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-XNNPACK",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-XNNPACK"
+          }
+        }
+      ],
+      "name": "XNNPACK",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-yoke",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-yoke"
+          }
+        }
+      ],
+      "name": "yoke",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-yoke-derive",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-yoke-derive"
+          }
+        }
+      ],
+      "name": "yoke-derive",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-zerofrom",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-zerofrom"
+          }
+        }
+      ],
+      "name": "zerofrom",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-zerofrom-derive",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-zerofrom-derive"
+          }
+        }
+      ],
+      "name": "zerofrom-derive",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-zeroize",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-zeroize"
+          }
+        }
+      ],
+      "name": "zeroize",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-zeroize-derive",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-zeroize-derive"
+          }
+        }
+      ],
+      "name": "zeroize_derive",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-zerotrie",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-zerotrie"
+          }
+        }
+      ],
+      "name": "zerotrie",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-zerovec",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-zerovec"
+          }
+        }
+      ],
+      "name": "zerovec",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-zerovec-derive",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-zerovec-derive"
+          }
+        }
+      ],
+      "name": "zerovec-derive",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-zip",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-zip"
+          }
+        }
+      ],
+      "name": "zip",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-zlib",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-zlib"
+          }
+        }
+      ],
+      "name": "zlib",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-zmij",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-zmij"
+          }
+        }
+      ],
+      "name": "zmij",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-zoneinfo64",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-zoneinfo64"
+          }
+        }
+      ],
+      "name": "zoneinfo64",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-Zstandard",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-Zstandard"
+          }
+        }
+      ],
+      "name": "Zstandard",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-zune-core",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-zune-core"
+          }
+        }
+      ],
+      "name": "zune-core",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    },
+    {
+      "bom-ref": "upstream:SPDXRef-Package-zune-jpeg",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-zune-jpeg"
+          }
+        }
+      ],
+      "name": "zune-jpeg",
+      "properties": [
+        {
+          "name": "blanc:inventory-scope",
+          "value": "GN-reachable shipped Chromium license component; dependency version not asserted by upstream license inventory"
+        }
+      ],
+      "type": "library"
+    }
+  ],
+  "dependencies": [
+    {
+      "dependsOn": [
+        "font:inter",
+        "font:jetbrains-mono",
+        "font:caveat",
+        "font:instrument-sans",
+        "npm:@ghostery/adblocker-extended-selectors",
+        "npm:@ghostery/adblocker",
+        "npm:@ghostery/url-parser",
+        "npm:@remusao/guess-url-type",
+        "npm:@remusao/small",
+        "npm:@remusao/smaz-compress",
+        "npm:@remusao/smaz-decompress",
+        "npm:@remusao/smaz",
+        "npm:@remusao/trie",
+        "npm:tldts-experimental",
+        "filter:easylist.txt",
+        "filter:easyprivacy.txt",
+        "data:ghostery-resources",
+        "upstream:SPDXRef-Package-Chromium",
+        "upstream:SPDXRef-Package-2-dim-General-Purpose-FFT--Fast-Fourier-Cosine-Sine-Transform--Package",
+        "upstream:SPDXRef-Package--bufbuild-protobuf",
+        "upstream:SPDXRef-Package--puppeteer-replay",
+        "upstream:SPDXRef-Package--vscode-web-custom-data",
+        "upstream:SPDXRef-Package-Abseil",
+        "upstream:SPDXRef-Package-Acorn--a-tiny--fast-JavaScript-parser-written-in-JavaScript.",
+        "upstream:SPDXRef-Package-adler2",
+        "upstream:SPDXRef-Package-Alliance-for-Open-Media-Video-Codec",
+        "upstream:SPDXRef-Package-Alliance-for-Open-Media-Video-Codec-1",
+        "upstream:SPDXRef-Package-ANGLE",
+        "upstream:SPDXRef-Package-Anonymous-Tokens",
+        "upstream:SPDXRef-Package-anyhow",
+        "upstream:SPDXRef-Package-ARM-NEON-2-x86-SSE",
+        "upstream:SPDXRef-Package-array-init",
+        "upstream:SPDXRef-Package-base64",
+        "upstream:SPDXRef-Package-bitflags",
+        "upstream:SPDXRef-Package-Blackmagic-DeckLink-SDK---Mac",
+        "upstream:SPDXRef-Package-BoringSSL",
+        "upstream:SPDXRef-Package-Brotli",
+        "upstream:SPDXRef-Package-bytemuck",
+        "upstream:SPDXRef-Package-bytemuck-derive",
+        "upstream:SPDXRef-Package-byteorder",
+        "upstream:SPDXRef-Package-byteorder-lite",
+        "upstream:SPDXRef-Package-C---port-of-zxcvbn--an-advanced-password-strength-estimation-library.",
+        "upstream:SPDXRef-Package-calendrical-calculations",
+        "upstream:SPDXRef-Package-cfg-if",
+        "upstream:SPDXRef-Package-CityHash",
+        "upstream:SPDXRef-Package-CityHash-1",
+        "upstream:SPDXRef-Package-CodeMirror-5",
+        "upstream:SPDXRef-Package-CodeMirror-6",
+        "upstream:SPDXRef-Package-codespan-reporting",
+        "upstream:SPDXRef-Package-Compact-Encoding-Detection",
+        "upstream:SPDXRef-Package-Compact-Language-Detector-v3",
+        "upstream:SPDXRef-Package-Core-ML-Tools",
+        "upstream:SPDXRef-Package-core-maths",
+        "upstream:SPDXRef-Package-cpuinfo",
+        "upstream:SPDXRef-Package-CrabbyAvif---Library-for-decoding-AVIF-files.",
+        "upstream:SPDXRef-Package-Crashpad",
+        "upstream:SPDXRef-Package-CRC32C",
+        "upstream:SPDXRef-Package-crc32fast",
+        "upstream:SPDXRef-Package-CSP-Evaluator-Core-Library--a-tool-that-allows-developers-to-check-if-a-Content-Security-Policy--CSP--serves-as-mitigation-against-XSS-attacks",
+        "upstream:SPDXRef-Package-cxx",
+        "upstream:SPDXRef-Package-cxxbridge-macro",
+        "upstream:SPDXRef-Package-d3",
+        "upstream:SPDXRef-Package-dav1d-is-an-AV1-decoder---",
+        "upstream:SPDXRef-Package-Dawn",
+        "upstream:SPDXRef-Package-Dependencies-sourced-from-the-upstream--chromium--repository",
+        "upstream:SPDXRef-Package-derivre",
+        "upstream:SPDXRef-Package-Devtools-Frontend",
+        "upstream:SPDXRef-Package-diplomat",
+        "upstream:SPDXRef-Package-diplomat-1",
+        "upstream:SPDXRef-Package-diplomat-runtime",
+        "upstream:SPDXRef-Package-diplomat-core",
+        "upstream:SPDXRef-Package-diplomat-core-1",
+        "upstream:SPDXRef-Package-displaydoc",
+        "upstream:SPDXRef-Package-dom-distiller-js",
+        "upstream:SPDXRef-Package-dragonbox",
+        "upstream:SPDXRef-Package-dragonbox-1",
+        "upstream:SPDXRef-Package-either",
+        "upstream:SPDXRef-Package-Emoji-Segmenter",
+        "upstream:SPDXRef-Package-equivalent",
+        "upstream:SPDXRef-Package-Expat-XML-Parser",
+        "upstream:SPDXRef-Package-FarmHash",
+        "upstream:SPDXRef-Package-fast-float",
+        "upstream:SPDXRef-Package-fdeflate",
+        "upstream:SPDXRef-Package-federated-compute",
+        "upstream:SPDXRef-Package-ffmpeg",
+        "upstream:SPDXRef-Package-fft",
+        "upstream:SPDXRef-Package-Fiat-Crypto--Synthesizing-Correct-by-Construction-Code-for-Cryptographic-Primitives",
+        "upstream:SPDXRef-Package-fixed-decimal",
+        "upstream:SPDXRef-Package-flac",
+        "upstream:SPDXRef-Package-FlatBuffers",
+        "upstream:SPDXRef-Package-flate2",
+        "upstream:SPDXRef-Package-foldhash",
+        "upstream:SPDXRef-Package-font-types",
+        "upstream:SPDXRef-Package-FP16",
+        "upstream:SPDXRef-Package-FreeType",
+        "upstream:SPDXRef-Package-FXDiv",
+        "upstream:SPDXRef-Package-gemmlowp",
+        "upstream:SPDXRef-Package-General-Purpose-FFT--Fast-Fourier-Cosine-Sine-Transform--Package",
+        "upstream:SPDXRef-Package-Google-Chrome-Content-Analysis-Connector-Agent-SDK",
+        "upstream:SPDXRef-Package-Google-Double-Conversion",
+        "upstream:SPDXRef-Package-googleapis",
+        "upstream:SPDXRef-Package-harfbuzz",
+        "upstream:SPDXRef-Package-harfrust",
+        "upstream:SPDXRef-Package-hashbrown",
+        "upstream:SPDXRef-Package-heck",
+        "upstream:SPDXRef-Package-Highway--C---library-for-SIMD",
+        "upstream:SPDXRef-Package-hmac-sha256",
+        "upstream:SPDXRef-Package-hunspell",
+        "upstream:SPDXRef-Package-iamf-tools",
+        "upstream:SPDXRef-Package-icu",
+        "upstream:SPDXRef-Package-icu-calendar",
+        "upstream:SPDXRef-Package-icu-calendar-data",
+        "upstream:SPDXRef-Package-icu-capi",
+        "upstream:SPDXRef-Package-icu-collections",
+        "upstream:SPDXRef-Package-icu-decimal",
+        "upstream:SPDXRef-Package-icu-decimal-data",
+        "upstream:SPDXRef-Package-icu-locale",
+        "upstream:SPDXRef-Package-icu-locale-core",
+        "upstream:SPDXRef-Package-icu-locale-data",
+        "upstream:SPDXRef-Package-icu-normalizer",
+        "upstream:SPDXRef-Package-icu-normalizer-data",
+        "upstream:SPDXRef-Package-icu-pattern",
+        "upstream:SPDXRef-Package-icu-plurals",
+        "upstream:SPDXRef-Package-icu-plurals-data",
+        "upstream:SPDXRef-Package-icu-properties",
+        "upstream:SPDXRef-Package-icu-properties-data",
+        "upstream:SPDXRef-Package-icu-provider",
+        "upstream:SPDXRef-Package-icu-provider-adapters",
+        "upstream:SPDXRef-Package-image",
+        "upstream:SPDXRef-Package-In-line-A-law-and-u-law-conversion-routines",
+        "upstream:SPDXRef-Package-incremental-font-transfer",
+        "upstream:SPDXRef-Package-indexmap",
+        "upstream:SPDXRef-Package-Ink",
+        "upstream:SPDXRef-Package-inspector-protocol",
+        "upstream:SPDXRef-Package-inspector-protocol-1",
+        "upstream:SPDXRef-Package-International-Phone-Number-Library",
+        "upstream:SPDXRef-Package-intl-messageformat",
+        "upstream:SPDXRef-Package-ipcz",
+        "upstream:SPDXRef-Package-itoa",
+        "upstream:SPDXRef-Package-ixdtf",
+        "upstream:SPDXRef-Package-jpeg-encoder",
+        "upstream:SPDXRef-Package-jpeg-encoder-1",
+        "upstream:SPDXRef-Package-json5",
+        "upstream:SPDXRef-Package-jsoncpp",
+        "upstream:SPDXRef-Package-jxl",
+        "upstream:SPDXRef-Package-jxl-macros",
+        "upstream:SPDXRef-Package-jxl-simd",
+        "upstream:SPDXRef-Package-jxl-transforms",
+        "upstream:SPDXRef-Package-lazy-static",
+        "upstream:SPDXRef-Package-legacy-javascript",
+        "upstream:SPDXRef-Package-Lens-Protos",
+        "upstream:SPDXRef-Package-LevelDB--A-Fast-Persistent-Key-Value-Store",
+        "upstream:SPDXRef-Package-libaddressinput",
+        "upstream:SPDXRef-Package-libc",
+        "upstream:SPDXRef-Package-libgav1",
+        "upstream:SPDXRef-Package-libjpeg-turbo",
+        "upstream:SPDXRef-Package-libm",
+        "upstream:SPDXRef-Package-libsrtp",
+        "upstream:SPDXRef-Package-Libtess2",
+        "upstream:SPDXRef-Package-libusbx",
+        "upstream:SPDXRef-Package-libutf",
+        "upstream:SPDXRef-Package-libvpx",
+        "upstream:SPDXRef-Package-libvpx-1",
+        "upstream:SPDXRef-Package-libxml",
+        "upstream:SPDXRef-Package-libxslt",
+        "upstream:SPDXRef-Package-libyuv",
+        "upstream:SPDXRef-Package-libzip",
+        "upstream:SPDXRef-Package-Lighthouse",
+        "upstream:SPDXRef-Package-Lighthouse-i18n.js",
+        "upstream:SPDXRef-Package-Lit",
+        "upstream:SPDXRef-Package-Lit-1",
+        "upstream:SPDXRef-Package-Lit-2",
+        "upstream:SPDXRef-Package-litemap",
+        "upstream:SPDXRef-Package-LiteRT",
+        "upstream:SPDXRef-Package-llguidance",
+        "upstream:SPDXRef-Package-llvm-libc",
+        "upstream:SPDXRef-Package-log",
+        "upstream:SPDXRef-Package-Lottie-Web",
+        "upstream:SPDXRef-Package-LZMA-SDK",
+        "upstream:SPDXRef-Package-Marked",
+        "upstream:SPDXRef-Package-Material-color-utilities",
+        "upstream:SPDXRef-Package-Mediapipe-Tasks-Vision",
+        "upstream:SPDXRef-Package-memchr",
+        "upstream:SPDXRef-Package-messageformat",
+        "upstream:SPDXRef-Package-Metrics-Protos",
+        "upstream:SPDXRef-Package-Microsoft-Authentication-Library-for-JavaScript--MSAL.js--for-Browser-Based-Single-Page-Applications",
+        "upstream:SPDXRef-Package-miniz-oxide",
+        "upstream:SPDXRef-Package-miniz-oxide-1",
+        "upstream:SPDXRef-Package-modp-base64-decoder",
+        "upstream:SPDXRef-Package-moxcms",
+        "upstream:SPDXRef-Package-num-complex",
+        "upstream:SPDXRef-Package-num-derive",
+        "upstream:SPDXRef-Package-num-integer",
+        "upstream:SPDXRef-Package-num-traits",
+        "upstream:SPDXRef-Package-oak",
+        "upstream:SPDXRef-Package-Omnibox-Protos",
+        "upstream:SPDXRef-Package-once-cell",
+        "upstream:SPDXRef-Package-One-Euro-Filter",
+        "upstream:SPDXRef-Package-Open-Screen-Protocol-Library",
+        "upstream:SPDXRef-Package-opus",
+        "upstream:SPDXRef-Package-OTS--OpenType-Sanitizer-",
+        "upstream:SPDXRef-Package-Paul-Hsieh-s-SuperFastHash",
+        "upstream:SPDXRef-Package-PDFium",
+        "upstream:SPDXRef-Package-Perfetto",
+        "upstream:SPDXRef-Package-PFFFT--a-pretty-fast-FFT.",
+        "upstream:SPDXRef-Package-png",
+        "upstream:SPDXRef-Package-Polymer",
+        "upstream:SPDXRef-Package-potential-utf",
+        "upstream:SPDXRef-Package-primal-check",
+        "upstream:SPDXRef-Package-Private-Join-and-Compute-subset",
+        "upstream:SPDXRef-Package-proc-macro2",
+        "upstream:SPDXRef-Package-Protocol-Buffers",
+        "upstream:SPDXRef-Package-Protocol-Buffers--javascript-",
+        "upstream:SPDXRef-Package-protodatastore-cpp",
+        "upstream:SPDXRef-Package-PSM--Private-Set-Membership--client-side",
+        "upstream:SPDXRef-Package-pthreadpool",
+        "upstream:SPDXRef-Package-Puffin-deterministic-deflate-recompressor",
+        "upstream:SPDXRef-Package-Puppeteer-Core",
+        "upstream:SPDXRef-Package-pxfm",
+        "upstream:SPDXRef-Package-qr-code",
+        "upstream:SPDXRef-Package-QUICHE",
+        "upstream:SPDXRef-Package-quote",
+        "upstream:SPDXRef-Package-rapidhash",
+        "upstream:SPDXRef-Package-re2---an-efficient--principled-regular-expression-library",
+        "upstream:SPDXRef-Package-read-fonts",
+        "upstream:SPDXRef-Package-Recurrent-neural-network-for-audio-noise-reduction",
+        "upstream:SPDXRef-Package-ref-cast",
+        "upstream:SPDXRef-Package-ref-cast-impl",
+        "upstream:SPDXRef-Package-regex-lite",
+        "upstream:SPDXRef-Package-regex-syntax",
+        "upstream:SPDXRef-Package-resb",
+        "upstream:SPDXRef-Package-rustfft",
+        "upstream:SPDXRef-Package-rustversion",
+        "upstream:SPDXRef-Package-ryu",
+        "upstream:SPDXRef-Package-Search-Engines-resources",
+        "upstream:SPDXRef-Package-Sentencepiece",
+        "upstream:SPDXRef-Package-serde",
+        "upstream:SPDXRef-Package-serde-core",
+        "upstream:SPDXRef-Package-serde-derive",
+        "upstream:SPDXRef-Package-serde-json",
+        "upstream:SPDXRef-Package-serde-json-lenient",
+        "upstream:SPDXRef-Package-Sframe",
+        "upstream:SPDXRef-Package-sfv",
+        "upstream:SPDXRef-Package-shared-brotli-patch-decoder",
+        "upstream:SPDXRef-Package-simd-adler32",
+        "upstream:SPDXRef-Package-simdutf-unicode-transcoder",
+        "upstream:SPDXRef-Package-Simple-Homomorphic-Encryption-Library-with-Lattices",
+        "upstream:SPDXRef-Package-simple-dns",
+        "upstream:SPDXRef-Package-skera",
+        "upstream:SPDXRef-Package-skrifa",
+        "upstream:SPDXRef-Package-smallvec",
+        "upstream:SPDXRef-Package-SMHasher",
+        "upstream:SPDXRef-Package-Snappy--A-fast-compressor-decompressor",
+        "upstream:SPDXRef-Package-source-map-scopes-codec",
+        "upstream:SPDXRef-Package-SPIR-V-Headers",
+        "upstream:SPDXRef-Package-SPIR-V-Tools",
+        "upstream:SPDXRef-Package-SPIRV-Headers",
+        "upstream:SPDXRef-Package-SPIRV-Tools",
+        "upstream:SPDXRef-Package-spl-sqrt-floor",
+        "upstream:SPDXRef-Package-sqlite",
+        "upstream:SPDXRef-Package-stable-deref-trait",
+        "upstream:SPDXRef-Package-strck",
+        "upstream:SPDXRef-Package-strength-reduce",
+        "upstream:SPDXRef-Package-strum",
+        "upstream:SPDXRef-Package-strum-macros",
+        "upstream:SPDXRef-Package-subtle",
+        "upstream:SPDXRef-Package-SwiftShader",
+        "upstream:SPDXRef-Package-symphonia-bundle-flac",
+        "upstream:SPDXRef-Package-symphonia-bundle-mp3",
+        "upstream:SPDXRef-Package-symphonia-codec-pcm",
+        "upstream:SPDXRef-Package-symphonia-codec-vorbis",
+        "upstream:SPDXRef-Package-symphonia-common",
+        "upstream:SPDXRef-Package-symphonia-core",
+        "upstream:SPDXRef-Package-symphonia-metadata",
+        "upstream:SPDXRef-Package-syn",
+        "upstream:SPDXRef-Package-syn-1",
+        "upstream:SPDXRef-Package-synstructure",
+        "upstream:SPDXRef-Package-temporal-capi",
+        "upstream:SPDXRef-Package-temporal-rs",
+        "upstream:SPDXRef-Package-TensorFlow-Lite",
+        "upstream:SPDXRef-Package-TensorFlow-Lite-Support",
+        "upstream:SPDXRef-Package-TensorFlow-Models",
+        "upstream:SPDXRef-Package-TensorFlow-Text",
+        "upstream:SPDXRef-Package-tensorflow-federated",
+        "upstream:SPDXRef-Package-termcolor",
+        "upstream:SPDXRef-Package-The-Diff-Match-and-Patch-libraries-offer-robust-algorithms-to-perform-the-operations-required-for-synchronizing-plain-text.",
+        "upstream:SPDXRef-Package-The-ITU-G.722-codec--encode-and-decode-part.",
+        "upstream:SPDXRef-Package-The-ruy-matrix-multiplication-library",
+        "upstream:SPDXRef-Package-third-party-web",
+        "upstream:SPDXRef-Package-thiserror",
+        "upstream:SPDXRef-Package-thiserror-impl",
+        "upstream:SPDXRef-Package-timezone-provider",
+        "upstream:SPDXRef-Package-tinystr",
+        "upstream:SPDXRef-Package-toktrie",
+        "upstream:SPDXRef-Package-transpose",
+        "upstream:SPDXRef-Package-typed-path",
+        "upstream:SPDXRef-Package-unicode-ident",
+        "upstream:SPDXRef-Package-unicode-ident-1",
+        "upstream:SPDXRef-Package-unicode-width",
+        "upstream:SPDXRef-Package-UnRAR-source-for-decompressing-.RAR-and-other-files.",
+        "upstream:SPDXRef-Package-URI-Template-Parser",
+        "upstream:SPDXRef-Package-URL-Pattern-Library",
+        "upstream:SPDXRef-Package-utf16-iter",
+        "upstream:SPDXRef-Package-utf8-iter",
+        "upstream:SPDXRef-Package-V8-fork-of-fdlibm",
+        "upstream:SPDXRef-Package-Volk-Meta-loader-for-Vulkan-API",
+        "upstream:SPDXRef-Package-Vulkan-API-headers",
+        "upstream:SPDXRef-Package-Vulkan-Loader-Components",
+        "upstream:SPDXRef-Package-VulkanMemoryAllocator",
+        "upstream:SPDXRef-Package-Wasmparser",
+        "upstream:SPDXRef-Package-Web-Vitals",
+        "upstream:SPDXRef-Package-WebKit",
+        "upstream:SPDXRef-Package-WebM-container-parser-and-writer.",
+        "upstream:SPDXRef-Package-WebM-container-parser-and-writer.-1",
+        "upstream:SPDXRef-Package-WebP-image-encoder-decoder",
+        "upstream:SPDXRef-Package-WebP-image-encoder-decoder-1",
+        "upstream:SPDXRef-Package-WebRTC",
+        "upstream:SPDXRef-Package-woff2",
+        "upstream:SPDXRef-Package-write-fonts",
+        "upstream:SPDXRef-Package-write16",
+        "upstream:SPDXRef-Package-writeable",
+        "upstream:SPDXRef-Package-Wuffs--Wrangling-Untrusted-File-Formats-Safely-",
+        "upstream:SPDXRef-Package-xml",
+        "upstream:SPDXRef-Package-XNNPACK",
+        "upstream:SPDXRef-Package-yoke",
+        "upstream:SPDXRef-Package-yoke-derive",
+        "upstream:SPDXRef-Package-zerofrom",
+        "upstream:SPDXRef-Package-zerofrom-derive",
+        "upstream:SPDXRef-Package-zeroize",
+        "upstream:SPDXRef-Package-zeroize-derive",
+        "upstream:SPDXRef-Package-zerotrie",
+        "upstream:SPDXRef-Package-zerovec",
+        "upstream:SPDXRef-Package-zerovec-derive",
+        "upstream:SPDXRef-Package-zip",
+        "upstream:SPDXRef-Package-zlib",
+        "upstream:SPDXRef-Package-zmij",
+        "upstream:SPDXRef-Package-zoneinfo64",
+        "upstream:SPDXRef-Package-Zstandard",
+        "upstream:SPDXRef-Package-zune-core",
+        "upstream:SPDXRef-Package-zune-jpeg"
+      ],
+      "ref": "blanc-preview"
+    }
+  ],
+  "metadata": {
+    "component": {
+      "bom-ref": "blanc-preview",
+      "name": "Blanc Chromium Preview",
+      "type": "application",
+      "version": "157.0.8103.15"
+    },
+    "properties": [
+      {
+        "name": "blanc:source-revision",
+        "value": "7065f9c04f0a0493f172a6e67b389ac742e37f6f"
+      },
+      {
+        "name": "blanc:upstream-revision",
+        "value": "1aa07b638799e59656559ae6c6649d4b197f555e"
+      },
+      {
+        "name": "blanc:inventory-limit",
+        "value": "Native license components derive from the selected GN target, with versions unasserted where upstream metadata does not supply them. Resolved dependency pins and source diff are recorded in source-materials.json. This is not a vulnerability-free attestation."
+      }
+    ]
+  },
+  "specVersion": "1.6",
+  "version": 1
+}

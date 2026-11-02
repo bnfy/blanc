@@ -1,0 +1,9 @@
+## Spaces disk-full and write-error recovery — October 19, 2026
+
+Four controlled native write-error cases pass: ENOSPC and EIO at both backup and primary temporary-file writes. The test-only interposer restricts injection to the disposable profile's exact Spaces filenames and records actual browser PID/path/errno. It returns a real syscall-style failure to Chromium's writer; the disk was not physically filled.
+
+Each failed autosave exposes the specific checkpoint or primary-write error, preserves the complete primary, and stops autosave while errored. Backup-write failures preserve the prior backup; primary-write failures leave the validated previous primary in the checkpoint. After removing injection, an explicit save clears the error and persists the previously unsaved navigation; a further navigation then autosaves successfully. All four error/recovery cases passed. No product repair was needed.
+
+The first cleanup verifier failed because retained-preview CDP had no host.html target. Owned fixtures had already been stopped/removed; subsequent cleanup records observed targets rather than assuming the host exists. The retained preview was not modified, but original-tab identity was not reverified this checkpoint. The failed cleanup assertion is retained. All owned disposable profiles/servers were removed.
+
+This tests injected ENOSPC/EIO write handling, not a physically full filesystem, flush/fsync errors, rename failures, permission failures, power-loss or concurrent writers. Test-helper syscall deprecation warning retained; no signing/security changes. No Chromium compile; final guard zero/5.24s; footprint unchanged from measured41files/100hunks. Native input pending, latency deferred, Electron diagnostic build unapproved. Plan item4 and broader gates remain open. Evidence: evidence/ui138-spaces-write-errors-20261019/.

@@ -1,0 +1,102 @@
+{
+  "mode": "pending",
+  "checks": [
+    {
+      "name": "two pending GET tabs captured",
+      "pass": true
+    },
+    {
+      "name": "clean exit 9851",
+      "pass": true
+    },
+    {
+      "name": "pending GET order and selection restored",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9820/held/one",
+          "http://127.0.0.1:9820/held/two"
+        ],
+        "selected": 2
+      }
+    },
+    {
+      "name": "restored document targets present",
+      "pass": true
+    },
+    {
+      "name": "restored page rendered http://127.0.0.1:9820/held/two",
+      "pass": true,
+      "details": {
+        "url": "http://127.0.0.1:9820/held/two",
+        "loaded": true,
+        "title": "Recovered /held/two",
+        "ready": "complete"
+      }
+    },
+    {
+      "name": "restored page rendered http://127.0.0.1:9820/held/one",
+      "pass": true,
+      "details": {
+        "url": "http://127.0.0.1:9820/held/one",
+        "loaded": true,
+        "title": "Recovered /held/one",
+        "ready": "complete"
+      }
+    },
+    {
+      "name": "no renderer bad IPC",
+      "pass": true
+    },
+    {
+      "name": "clean exit 9852",
+      "pass": true
+    },
+    {
+      "name": "second restart retains order and selection",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9820/held/one",
+          "http://127.0.0.1:9820/held/two"
+        ],
+        "selected": 2
+      }
+    },
+    {
+      "name": "restored document targets present",
+      "pass": true
+    },
+    {
+      "name": "restored page rendered http://127.0.0.1:9820/held/two",
+      "pass": true,
+      "details": {
+        "url": "http://127.0.0.1:9820/held/two",
+        "loaded": true,
+        "title": "Recovered /held/two",
+        "ready": "complete"
+      }
+    },
+    {
+      "name": "restored page rendered http://127.0.0.1:9820/held/one",
+      "pass": true,
+      "details": {
+        "url": "http://127.0.0.1:9820/held/one",
+        "loaded": true,
+        "title": "Recovered /held/one",
+        "ready": "complete"
+      }
+    },
+    {
+      "name": "clean exit 9853",
+      "pass": true
+    },
+    {
+      "name": "GET fixture sends no POST",
+      "pass": true
+    }
+  ],
+  "complete": true
+}

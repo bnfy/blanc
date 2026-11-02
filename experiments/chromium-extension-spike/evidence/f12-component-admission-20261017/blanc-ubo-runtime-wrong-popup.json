@@ -1,0 +1,58 @@
+{
+  "root": "/private/tmp/blanc-ubo-runtime-pzHaq4",
+  "scope": "offline admission only",
+  "backgroundPages": [],
+  "targets": {
+    "targetInfos": [
+      {
+        "targetId": "AE5F1B876147E082C70A1958F66242D1",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+        "url": "chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "1B87B219437702894BDE2DDCDFBA5258"
+      },
+      {
+        "targetId": "756E1AA073230C55884CA7ECA406E1DD",
+        "type": "browser_ui",
+        "title": "Omnibox Popup",
+        "url": "chrome://omnibox-popup.top-chrome/",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "1B87B219437702894BDE2DDCDFBA5258"
+      },
+      {
+        "targetId": "380A2C8354884CA25EEF2E1B0F8BFBBC",
+        "type": "page",
+        "title": "Blanc Chromium prototype",
+        "url": "chrome://blanc-prototype/host.html",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "1B87B219437702894BDE2DDCDFBA5258"
+      },
+      {
+        "targetId": "052A70E25EC67B34274BFCA7B00BD56A",
+        "type": "background_page",
+        "title": "uBlock Origin",
+        "url": "chrome-extension://oddhmofgkplblkmckempfepikkophank/background.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "1B87B219437702894BDE2DDCDFBA5258"
+      },
+      {
+        "targetId": "DEECBFA4C1E2729F5397FCB0D95732C0",
+        "type": "page",
+        "title": "about:blank",
+        "url": "about:blank",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "1B87B219437702894BDE2DDCDFBA5258"
+      }
+    ]
+  },
+  "error": "Error: page.goto: net::ERR_FILE_NOT_FOUND at chrome-extension://oddhmofgkplblkmckempfepikkophank/popup.html\nCall log:\n\u001b[2m  - navigating to \"chrome-extension://oddhmofgkplblkmckempfepikkophank/popup.html\", waiting until \"load\"\u001b[22m\n",
+  "passed": false,
+  "rejectedRequests": 20,
+  "profileRemoved": true
+}

@@ -1,0 +1,12 @@
+{
+  "tabs": [
+    {
+      "url": "blanc://newtab/",
+      "title": "New Tab"
+    },
+    {
+      "url": "https://chromewebstore.google.com/category/extensions",
+      "title": "Chrome Web Store - Extensions"
+    }
+  ]
+}

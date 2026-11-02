@@ -1,0 +1,19 @@
+{
+  "upstream": "1aa07b638799e59656559ae6c6649d4b197f555e",
+  "files": [
+    {
+      "path": "content/browser/devtools/devtools_url_loader_interceptor.cc",
+      "sha256": "4d1349c51e23931a455b0306a134cae236b3336b38bbfd3c7217232248ab3dc0"
+    },
+    {
+      "path": "content/browser/loader/navigation_url_loader_impl.cc",
+      "sha256": "4dbba1c34cf81d03346056e3e53b6a0685115ab34efea509f781e5d4c7fb66de"
+    },
+    {
+      "path": "services/network/url_loader.cc",
+      "sha256": "b8fa661104b86b433383baecbb4dff6cc65a0ab1f0a53a3f344ede7d73697bc8"
+    }
+  ],
+  "interceptorUnmodifiedAgainstUpstream": true,
+  "review": "InnerContinueRequest cancels and StartRequest restarts modified follow-redirect URLs. ApplyModificationsToRequest clears trusted isolation_info when origins differ. URLLoader requires nonempty isolation_info and the actual network-service stack fails at that DCHECK. No no-Blanc upstream runtime baseline was run; causal ownership is not conclusively assigned."
+}

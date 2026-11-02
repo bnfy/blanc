@@ -1,0 +1,9 @@
+{"name":"clear-restart-harness-correction","reason":"Restoring open web tabs records new visits; closed database before launch had zero visit counts and no segments. Empty-history persistence will be retested with only new tabs left.","visits":[{"url":"http://127.0.0.1:8786/MoveA","visitedAt":1792254496420.46},{"url":"https://www.google.com/search?q=chrome%3A%2F%2Fnewtab%2F&sei=AaHTas-LMLOkptQPqMbHmAg","visitedAt":1792254495373.541},{"url":"http://127.0.0.1:8786/Alpha","visitedAt":1792254495053.529},{"url":"https://chromewebstore.google.com/detail/bitwarden-password-manage/nngceckbapebfimnlniiiahkandclblb","visitedAt":1792254493634.497},{"url":"https://bitwarden.com/browser-start/","visitedAt":1792254493475.703},{"url":"http://127.0.0.1:8786/Invalid","visitedAt":1792254493280.326},{"url":"http://127.0.0.1:8786/TypedNative","visitedAt":1792254492964.887},{"url":"http://127.0.0.1:8786/MoveC","visitedAt":1792254490185.245}]}
+{"name":"native-late-favicon-refresh","savedBeforeIcon":true}
+{"name":"native-dynamic-tint","host":"rgba(0, 0, 0, 0)","page":"rgb(218, 232, 247)"}
+2226 {
+    Height = 700;
+    Width = 800;
+    X = 22;
+    Y = 52;
+} Rebase157 NativeLate

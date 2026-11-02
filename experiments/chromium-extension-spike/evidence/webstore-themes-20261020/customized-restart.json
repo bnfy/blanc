@@ -1,0 +1,29 @@
+{
+  "state": {
+    "theme": {
+      "background": "#ffffff",
+      "backgroundText": "#323232",
+      "frame": "#2b244e",
+      "id": "lelfanicbadaahlibeimcpfpedfjccnk",
+      "link": "#063774",
+      "surface": "#dc9d99",
+      "text": "#3c4043"
+    },
+    "host": "object",
+    "frame": "rgb(43, 36, 78)",
+    "pill": "rgb(220, 157, 153)"
+  },
+  "page": {
+    "source": "sunrise",
+    "themeAvailable": true,
+    "color": "rgb(248, 242, 232)",
+    "text": "rgb(18, 16, 11)",
+    "theme": false,
+    "image": null,
+    "overlay": null,
+    "wash": "0.55",
+    "buttonHidden": false,
+    "pressed": "false",
+    "stored": "{\"wallpaper\":{\"source\":\"sunrise\",\"image\":null,\"hasImage\":false,\"style\":\"spotlight\",\"wash\":55,\"color\":{\"presets\":[{\"id\":\"sage\",\"hex\":\"#426c4c\"},{\"id\":\"sky\",\"hex\":\"#376694\"},{\"id\":\"iris\",\"hex\":\"#6757a3\"},{\"id\":\"rose\",\"hex\":\"#9b4761\"},{\"id\":\"clay\",\"hex\":\"#974f2a\"},{\"id\":\"sand\",\"hex\":\"#815c02\"},{\"id\":\"slate\",\"hex\":\"#576471\"},{\"id\":\"graphite\",\"hex\":\"#3a3a3a\"}],\"preset\":\"sage\",\"followSpace\":false,\"inSpace\":false,\"paint\":{\"fill\":\"gradient\",\"fromSpace\":false,\"base\":\"#426c4c\",\"glow\":\"#4d7557\",\"deep\":\"#304e37\",\"ink\":\"#ffffff\",\"dim\":\"#eaefeb\",\"softLight\":\"#e2e2d5\",\"softDark\":\"#263325\"}}},\"storeThemeWallpaper\":{\"id\":\"lelfanicbadaahlibeimcpfpedfjccnk\",\"enabled\":false},\"dynamicWallpaperEnabled\":false}"
+  }
+}

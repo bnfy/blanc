@@ -1,0 +1,2 @@
+/private/tmp/blanc-restored-renderer-repair/isolation/apps/Blanc Chromium Preview.app: accepted
+source=Notarized Developer ID

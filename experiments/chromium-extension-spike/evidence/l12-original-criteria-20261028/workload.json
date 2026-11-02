@@ -1,0 +1,56 @@
+{
+  "head": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+  "observedAt": "2026-10-28T17:22:57.754Z",
+  "totalJobs": 28,
+  "completedMeasuredJobs": 20,
+  "pendingJobs": [
+    {
+      "id": 122973479472,
+      "name": "desktop (macos-15)",
+      "status": "queued"
+    },
+    {
+      "id": 122973480106,
+      "name": "desktop (macos-15-intel)",
+      "status": "queued"
+    },
+    {
+      "id": 122974114259,
+      "name": "unit (macos-15)",
+      "status": "queued"
+    },
+    {
+      "id": 122975636190,
+      "name": "favorites-import (macos-latest)",
+      "status": "queued"
+    },
+    {
+      "id": 122975636206,
+      "name": "workspace-regressions (macos-latest)",
+      "status": "queued"
+    },
+    {
+      "id": 122975636208,
+      "name": "browser-shortcuts (macos-latest)",
+      "status": "queued"
+    }
+  ],
+  "completedJobSeconds": 4022,
+  "allTerminal": false,
+  "labels": [
+    "ubuntu-latest",
+    "macos-15",
+    "windows-latest",
+    "macos-15-intel",
+    "macos-latest"
+  ],
+  "byLabel": {
+    "ubuntu-latest": 2004,
+    "windows-latest": 2018
+  },
+  "limits": [
+    "Incomplete running/queued jobs excluded from completed duration; total is a lower bound, not final workflow cost.",
+    "Job intervals are not owner attention, native build time, or billed minutes.",
+    "No account-wide billing or cost allocations available through repository tools."
+  ]
+}

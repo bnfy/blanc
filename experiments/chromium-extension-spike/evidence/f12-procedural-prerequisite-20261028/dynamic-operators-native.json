@@ -1,0 +1,243 @@
+{
+  "scope": "standalone same-bundle evaluator in isolated browser world; not production rule selection",
+  "results": [
+    {
+      "name": "has-text",
+      "first": true,
+      "repeated": true,
+      "dynamic": [
+        {
+          "label": "inserted subtree",
+          "hidden": true,
+          "neutralVisible": true,
+          "metrics": {
+            "runs": 5,
+            "lastMs": 0.20000000298023224,
+            "maxMs": 1.1000000014901161,
+            "matched": 1,
+            "error": null
+          }
+        },
+        {
+          "label": "moved subtree",
+          "hidden": true,
+          "neutralVisible": true,
+          "metrics": {
+            "runs": 6,
+            "lastMs": 0.3999999985098839,
+            "maxMs": 1.1000000014901161,
+            "matched": 1,
+            "error": null
+          }
+        },
+        {
+          "label": "timer attribute mutation",
+          "hidden": true,
+          "neutralVisible": true,
+          "metrics": {
+            "runs": 7,
+            "lastMs": 0.20000000298023224,
+            "maxMs": 1.1000000014901161,
+            "matched": 1,
+            "error": null
+          }
+        },
+        {
+          "label": "nonmatching mutation reveals",
+          "hidden": false,
+          "expectedHidden": false
+        },
+        {
+          "label": "matching mutation reapplies",
+          "hidden": true,
+          "neutralVisible": true,
+          "metrics": {
+            "runs": 9,
+            "lastMs": 0.29999999701976776,
+            "maxMs": 1.1000000014901161,
+            "matched": 1,
+            "error": null
+          }
+        }
+      ],
+      "neutralVisible": true,
+      "metrics": {
+        "runs": 9,
+        "lastMs": 0.29999999701976776,
+        "maxMs": 1.1000000014901161,
+        "matched": 1,
+        "error": null
+      }
+    },
+    {
+      "name": "matches-css",
+      "first": true,
+      "repeated": true,
+      "dynamic": [
+        {
+          "label": "inserted subtree",
+          "hidden": true,
+          "neutralVisible": true,
+          "metrics": {
+            "runs": 14,
+            "lastMs": 0.30000000447034836,
+            "maxMs": 1.1000000014901161,
+            "matched": 1,
+            "error": null
+          }
+        },
+        {
+          "label": "moved subtree",
+          "hidden": true,
+          "neutralVisible": true,
+          "metrics": {
+            "runs": 15,
+            "lastMs": 0.29999999701976776,
+            "maxMs": 1.1000000014901161,
+            "matched": 1,
+            "error": null
+          }
+        },
+        {
+          "label": "timer attribute mutation",
+          "hidden": true,
+          "neutralVisible": true,
+          "metrics": {
+            "runs": 16,
+            "lastMs": 0.3999999985098839,
+            "maxMs": 1.1000000014901161,
+            "matched": 1,
+            "error": null
+          }
+        },
+        {
+          "label": "nonmatching mutation reveals",
+          "hidden": false,
+          "expectedHidden": false
+        },
+        {
+          "label": "matching mutation reapplies",
+          "hidden": true,
+          "neutralVisible": true,
+          "metrics": {
+            "runs": 18,
+            "lastMs": 0.20000000298023224,
+            "maxMs": 1.1000000014901161,
+            "matched": 1,
+            "error": null
+          }
+        }
+      ],
+      "neutralVisible": true,
+      "metrics": {
+        "runs": 18,
+        "lastMs": 0.20000000298023224,
+        "maxMs": 1.1000000014901161,
+        "matched": 1,
+        "error": null
+      }
+    },
+    {
+      "name": "upward",
+      "first": true,
+      "repeated": true,
+      "dynamic": [
+        {
+          "label": "inserted subtree",
+          "hidden": true,
+          "neutralVisible": true,
+          "metrics": {
+            "runs": 23,
+            "lastMs": 0.10000000149011612,
+            "maxMs": 1.1000000014901161,
+            "matched": 1,
+            "error": null
+          }
+        },
+        {
+          "label": "moved subtree",
+          "hidden": true,
+          "neutralVisible": true,
+          "metrics": {
+            "runs": 24,
+            "lastMs": 0.10000000149011612,
+            "maxMs": 1.1000000014901161,
+            "matched": 1,
+            "error": null
+          }
+        },
+        {
+          "label": "timer attribute mutation",
+          "hidden": true,
+          "neutralVisible": true,
+          "metrics": {
+            "runs": 25,
+            "lastMs": 0.10000000149011612,
+            "maxMs": 1.1000000014901161,
+            "matched": 1,
+            "error": null
+          }
+        }
+      ],
+      "neutralVisible": true,
+      "metrics": {
+        "runs": 25,
+        "lastMs": 0.10000000149011612,
+        "maxMs": 1.1000000014901161,
+        "matched": 1,
+        "error": null
+      }
+    },
+    {
+      "name": "xpath",
+      "first": true,
+      "repeated": true,
+      "dynamic": [
+        {
+          "label": "inserted subtree",
+          "hidden": true,
+          "neutralVisible": true,
+          "metrics": {
+            "runs": 30,
+            "lastMs": 0.10000000149011612,
+            "maxMs": 1.1000000014901161,
+            "matched": 1,
+            "error": null
+          }
+        },
+        {
+          "label": "moved subtree",
+          "hidden": true,
+          "neutralVisible": true,
+          "metrics": {
+            "runs": 31,
+            "lastMs": 0,
+            "maxMs": 1.1000000014901161,
+            "matched": 1,
+            "error": null
+          }
+        },
+        {
+          "label": "timer attribute mutation",
+          "hidden": true,
+          "neutralVisible": true,
+          "metrics": {
+            "runs": 32,
+            "lastMs": 0.10000000149011612,
+            "maxMs": 1.1000000014901161,
+            "matched": 1,
+            "error": null
+          }
+        }
+      ],
+      "neutralVisible": true,
+      "metrics": {
+        "runs": 32,
+        "lastMs": 0.10000000149011612,
+        "maxMs": 1.1000000014901161,
+        "matched": 1,
+        "error": null
+      }
+    }
+  ]
+}

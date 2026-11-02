@@ -1,0 +1,10 @@
+[
+  {
+    "path": "Blanc Chromium Preview.app/Contents/MacOS/Blanc Prototype",
+    "sha256": "0b1cb185b3c4dcbe27b62edd9c3ca9b93fdf7fa51ba09ecce25486591802d552"
+  },
+  {
+    "path": "Blanc Chromium Preview.app/Contents/Resources/BlancAssets/renderer.js",
+    "sha256": "288253ddf5bc2ec673ceb20811afd3e1b71d8988984f8fb0604acf769a0f9641"
+  }
+]

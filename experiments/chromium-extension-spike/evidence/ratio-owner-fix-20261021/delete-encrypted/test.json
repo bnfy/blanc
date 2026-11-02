@@ -1,0 +1,290 @@
+{
+  "checks": [
+    {
+      "name": "named Space saved before cancellation",
+      "value": true
+    },
+    {
+      "name": "existing other owner settled",
+      "value": {
+        "activeTabId": "1716498892",
+        "adblockEnabled": false,
+        "closed": [
+          {
+            "id": "1716498890",
+            "tabCount": 1,
+            "title": "about:blank",
+            "url": "about:blank"
+          }
+        ],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "1716498892",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": true,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "acb1e294-cfe2-4d21-aff8-6e0a1a8251dc",
+        "splitGeometry": {},
+        "splits": [],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1716498892",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "#ffffff",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#decoy"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 1
+      }
+    },
+    {
+      "name": "separate regular profile alive in same browser",
+      "value": {
+        "activeTabId": "1716498894",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "1716498894",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": false,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": true,
+        "spaceName": "",
+        "spaceWindowIdentity": "f5b80595-ad22-438d-84c5-df63964f1890",
+        "splitGeometry": {},
+        "splits": [],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1716498894",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "#ffffff",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#independent"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 0
+      }
+    },
+    {
+      "name": "actual ratio recovery write held",
+      "value": {
+        "pid": 53554,
+        "path": "/private/tmp/blanc-ratio-owner-fix-delete-encrypted/profile/Default/BlancSplitRatios/.day.blanc.prototype.b6ecfa7e-96d6-4417-9289-6d19a03b0f8e_1af9eafb-2a45-4ef7-be4a-7e5aa6fd409d_161ae8a8-b174-4f3a-82ca-f7f72ca8055b.IVl07J",
+        "mode": "write-hold",
+        "op": "write",
+        "errno": 5
+      }
+    },
+    {
+      "name": "native hot deletion removed source profile and its windows while other profile alive",
+      "value": {
+        "crossResult": {
+          "error": "CDP target disconnected"
+        },
+        "profiles": {
+          "info_cache": {
+            "Profile 1": {
+              "active_time": 1792603157.766803,
+              "avatar_icon": "chrome://theme/IDR_PROFILE_AVATAR_26",
+              "background_apps": false,
+              "default_avatar_fill_color": -2890755,
+              "default_avatar_stroke_color": -16166200,
+              "force_signin_profile_locked": false,
+              "gaia_id": "",
+              "is_consented_primary_account": false,
+              "is_ephemeral": false,
+              "is_glic_eligible": false,
+              "is_using_default_avatar": true,
+              "is_using_default_name": true,
+              "managed_user_id": "",
+              "metrics_bucket_index": 2,
+              "name": "Person 1",
+              "profile_color_seed": -16033840,
+              "profile_highlight_color": -2890755,
+              "signin.with_credential_provider": false,
+              "user_name": ""
+            }
+          },
+          "last_active_profiles": [
+            "Profile 1"
+          ],
+          "last_used": "Profile 1",
+          "metrics": {
+            "next_bucket_index": 3
+          },
+          "profile_counts_reported": "13437076748855036",
+          "profiles_order": [
+            "Profile 1"
+          ]
+        }
+      }
+    },
+    {
+      "name": "deleted-profile pending save cannot acknowledge",
+      "value": {
+        "error": "CDP target disconnected"
+      }
+    },
+    {
+      "name": "independent profile accepts fresh history save after deletion",
+      "value": true
+    },
+    {
+      "name": "clean exit after hot profile deletion",
+      "value": true
+    },
+    {
+      "name": "actual restart state after boundary",
+      "value": [
+        {
+          "activeTabId": "1716498967",
+          "adblockEnabled": false,
+          "closed": [
+            {
+              "id": "1716498968",
+              "tabCount": 1,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#usable-after-delete"
+            },
+            {
+              "id": "1716498969",
+              "tabCount": 2,
+              "title": "Window",
+              "url": ""
+            }
+          ],
+          "displayShares": [],
+          "extensionsWidth": 26,
+          "focusedTabId": "1716498967",
+          "glanceTabId": null,
+          "groups": [],
+          "initialWindowSaveFailed": false,
+          "initialWindowSaved": false,
+          "installedTheme": {},
+          "spaceAutosaveError": "",
+          "spaceBusy": false,
+          "spaceName": "",
+          "spaceWindowIdentity": "f5b80595-ad22-438d-84c5-df63964f1890",
+          "splitGeometry": {},
+          "splits": [],
+          "tabLayout": "island",
+          "tabs": [
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "1716498965",
+              "isLoading": true,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": false,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#independent"
+            },
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "1716498966",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": null,
+              "title": "Welcome to Chromium profiles",
+              "url": "chrome://profile-picker/"
+            },
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "1716498967",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": null,
+              "title": "about:blank",
+              "url": "about:blank"
+            }
+          ],
+          "verticalTabsDefaultWidth": 248,
+          "verticalTabsMaxWidth": 360,
+          "verticalTabsMinWidth": 200,
+          "verticalTabsPreferredWidth": 248,
+          "verticalTabsWidth": 248,
+          "closedSlot": 0
+        }
+      ]
+    },
+    {
+      "name": "restart preserves independent profile and cleans deleted profile directory",
+      "value": true
+    },
+    {
+      "name": "restart remains usable with fresh acknowledged history",
+      "value": true
+    }
+  ],
+  "pass": true
+}

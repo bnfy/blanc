@@ -1,0 +1,33 @@
+TAP version 13
+# Subtest: directoryRows reuses one collator and sorts the complete directory
+not ok 1 - directoryRows reuses one collator and sorts the complete directory
+  ---
+  duration_ms: 226.77575
+  location: '/private/tmp/blanc-chromium157-work/test/unit/.intel-collator-negative.cjs:95:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    reuse the collator across comparisons and calls
+    
+    87397 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 87397
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/blanc-chromium157-work/test/unit/.intel-collator-negative.cjs:126:12)
+    Test.runInAsyncScope (node:async_hooks:211:14)
+    Test.run (node:internal/test_runner/test:979:25)
+    Test.start (node:internal/test_runner/test:877:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 285.571583

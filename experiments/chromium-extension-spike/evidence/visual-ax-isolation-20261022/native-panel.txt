@@ -1,0 +1,30 @@
+The following is a diff from the previous accessibility tree for Window: "Example Domain" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 143-155
+~					140 container
+~						141 container Blanc Island
+~							142 HTML content Blanc, URL: chrome://blanc-prototype/index.html
++						143 container Blanc address and tabs
++							144 HTML content Blanc Overlay, URL: chrome://blanc-prototype/overlay.html
++								145 container
++									146 container
++										147 text field (settable) Value: https://example.com/, Placeholder: Search, enter address, or / for commands
++										148 button Back
++										149 button (disabled) Forward
++										150 button Reload
++										151 button Favorite this page (Ctrl/Cmd+D)
++										152 button Collapse island
++										153 container Example Domain
++											154 button Switch to Example Domain, example.com
++											155 button Pin tab
++											156 button Close tab
++										157 button Recently closed 20
++										158 button New tab ⌘T
++										159 button Favorites
++										160 button History
++										161 button Downloads
++										162 toggle button Vertical tabs, Value: 0
+Selected text: ```
+https://example.com/
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

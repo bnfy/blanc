@@ -1,0 +1,14 @@
+[
+  {
+    "file": "content/browser/service_worker/service_worker_single_script_update_checker.h",
+    "sha256": "979a3e0cc2f2877c6cfa19c80486756170d2595128a07a509bd182633c01bc3a",
+    "old_mtime_ns": 1792285849668359849,
+    "restored_index_mtime_ns": 1792193859299271659
+  },
+  {
+    "file": "content/browser/service_worker/service_worker_single_script_update_checker.cc",
+    "sha256": "f6ffad1d53e0b275f38a7fec8e06719283a0d7861d74dd9fa4dd8ca86173f695",
+    "old_mtime_ns": 1792285849677356899,
+    "restored_index_mtime_ns": 1792193859299212576
+  }
+]

@@ -1,0 +1,4 @@
+Audit fixture errors (retained):
+1. Python hashlib.file_digest unavailable; replaced with chunked hashlib.sha256.
+2. SQLite read-only URI failed; queried closed disposable DB copy and verified original hash unchanged.
+3. Initial worker output file omitted; AppendToFile did not create it. Corrected independent fixture reproduced private metadata writes.

@@ -1,0 +1,13 @@
+{
+  "scope": "authored rules appended for missing delivery checks; not production lists or a release candidate",
+  "rules": [
+    "operator.blanc-fixture.test##.text:has-text(Sponsored)",
+    "operator.blanc-fixture.test###styled:matches-css(color: rgb(255, 0, 0))",
+    "operator.blanc-fixture.test##.leaf:upward(1)",
+    "operator.blanc-fixture.test###xpath-root:xpath(.//span[@data-ad=\"yes\"])",
+    "operator.blanc-fixture.test##+js(no-setTimeout-if, blancTimerTarget)"
+  ],
+  "baseEngineHash": "6f5947ad20511daf0defd7ee1d01981b01af200f709ccc746b48a7df6855d797",
+  "engineHash": "d6f65760415b4bc1c2facc3ebd357b0b89b14c95d651008b08e4fabe5ddd45ee",
+  "onlyNativeDelta": "/Users/anthonyjloria/Projects/BlancChromium157Recovery/src/chrome/services/blanc_blocker/bundle_hash.h"
+}

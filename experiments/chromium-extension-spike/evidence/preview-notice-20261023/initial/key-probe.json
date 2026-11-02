@@ -1,0 +1,34 @@
+{
+  "before": {
+    "open": true,
+    "focus": "previewNoticeClose"
+  },
+  "after": {
+    "open": false,
+    "focus": "previewNoticeButton",
+    "events": [
+      {
+        "type": "keydown",
+        "key": "Escape",
+        "defaultPrevented": false,
+        "target": "previewNoticeClose"
+      },
+      {
+        "type": "cancel",
+        "defaultPrevented": false,
+        "target": "previewNotice"
+      },
+      {
+        "type": "close",
+        "defaultPrevented": false,
+        "target": "previewNotice"
+      },
+      {
+        "type": "keyup",
+        "key": "Escape",
+        "defaultPrevented": false,
+        "target": "previewNoticeButton"
+      }
+    ]
+  }
+}

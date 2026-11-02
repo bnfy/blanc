@@ -1,0 +1,11 @@
+{"name": "helper-build", "argv": ["xcrun", "clang", "-dynamiclib", "-O0", "/private/tmp/blanc-spaces-concurrent/barrier.c", "-o", "/private/tmp/blanc-spaces-concurrent/barrier.dylib"], "started": "2026-10-19T20:13:43.002719+00:00", "seconds": 0.064412334, "exit_code": 0}
+{"name": "start", "argv": ["node", "/private/tmp/blanc-spaces-concurrent/start.mjs"], "started": "2026-10-19T20:14:12.380103+00:00", "seconds": 0.056534875, "exit_code": 0}
+{"name": "check", "argv": ["node", "/private/tmp/blanc-spaces-concurrent/check.mjs"], "started": "2026-10-19T20:14:12.467752+00:00", "seconds": 16.232974083000002, "exit_code": 1}
+{"name": "cleanup-attempt", "argv": ["node", "/private/tmp/blanc-spaces-concurrent/cleanup.mjs"], "started": "2026-10-19T20:14:50.362916+00:00", "seconds": 0.692459208, "exit_code": 0}
+{"name": "helper-build2", "argv": ["xcrun", "clang", "-dynamiclib", "-O0", "/private/tmp/blanc-spaces-concurrent/barrier.c", "-o", "/private/tmp/blanc-spaces-concurrent/barrier.dylib"], "started": "2026-10-19T20:14:51.111921+00:00", "seconds": 0.054793541, "exit_code": 0}
+{"name": "start2", "argv": ["node", "/private/tmp/blanc-spaces-concurrent/start.mjs"], "started": "2026-10-19T20:14:51.194673+00:00", "seconds": 0.053660667, "exit_code": 0}
+{"name": "check2", "argv": ["node", "/private/tmp/blanc-spaces-concurrent/check.mjs"], "started": "2026-10-19T20:14:51.276482+00:00", "seconds": 3.169356917, "exit_code": 0}
+{"name": "restart", "argv": ["node", "/private/tmp/blanc-spaces-concurrent/launch.mjs"], "started": "2026-10-19T20:15:09.918161+00:00", "seconds": 0.023011791999999996, "exit_code": 0}
+{"name": "recovery", "argv": ["node", "/private/tmp/blanc-spaces-concurrent/recover.mjs"], "started": "2026-10-19T20:15:09.970368+00:00", "seconds": 1.57626675, "exit_code": 0}
+{"name": "cleanup", "argv": ["node", "/private/tmp/blanc-spaces-concurrent/cleanup.mjs"], "started": "2026-10-19T20:15:11.580139+00:00", "seconds": 0.649402333, "exit_code": 0}
+{"name": "guard", "argv": ["node", "experiments/chromium-extension-spike/build.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src", "--check"], "started": "2026-10-19T20:15:12.263835+00:00", "seconds": 3.595276917, "exit_code": 0}

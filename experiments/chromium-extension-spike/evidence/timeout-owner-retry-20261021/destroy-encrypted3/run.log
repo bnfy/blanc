@@ -1,0 +1,9 @@
+{
+  pass: false,
+  checks: 14,
+  error: 'AssertionError [ERR_ASSERTION]: explicitly closed source must not resurrect\n' +
+    '\n' +
+    '1 !== 0\n' +
+    '\n' +
+    '    at file:///private/tmp/blanc-timeout-destroy-encrypted3/test.mjs:41:61'
+}

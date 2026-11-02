@@ -1,0 +1,22 @@
+[
+  {
+    "profile": "/private/tmp/blanc-f12-import-validators-20261024/profile-diagnostic-regular",
+    "process_absent": true,
+    "removed": true
+  },
+  {
+    "profile": "/private/tmp/blanc-f12-import-validators-20261024/profile-final-private",
+    "process_absent": true,
+    "removed": true
+  },
+  {
+    "profile": "/private/tmp/blanc-f12-import-validators-20261024/profile-final-regular",
+    "process_absent": true,
+    "removed": true
+  },
+  {
+    "profile": "/private/tmp/blanc-f12-import-validators-20261024/profile-regular",
+    "process_absent": true,
+    "removed": true
+  }
+]

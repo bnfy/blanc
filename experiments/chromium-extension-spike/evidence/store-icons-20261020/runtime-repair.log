@@ -1,0 +1,14 @@
+[3976:8090413:1020/104456.633120:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[3976:8090155:1020/104456.755673:WARNING:chrome/browser/signin/account_consistency_mode_manager.cc:74] Desktop Identity Consistency cannot be enabled as no OAuth client ID and client secret have been configured.
+[3976:8090155:1020/104456.767102:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+[3976:8090413:1020/104457.289191:WARNING:content/browser/cache_storage/cache_storage_manager.cc:403] Multiple CacheStorage instances using the same directory detected
+[3976:8090417:1020/104457.307638:WARNING:content/browser/cache_storage/cache_storage_manager.cc:403] Multiple CacheStorage instances using the same directory detected
+[3976:8090155:1020/104517.120091:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[3976:8090155:1020/104517.121430:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[3976:8090155:1020/104518.107665:INFO:CONSOLE:355] "%c%s color: red; background: yellow; font-size: 24px; WARNING!", source: https://www.gstatic.com/_/mss/boq-chrome-webstore/_/js/k=boq-chrome-webstore.ChromeWebStoreConsumerFeUi.en_US.08VirXQdlPs.2018.O/am=AAIEAAAAAGQC/d=1/excm=_b,_tp,itemdetailview/ed=1/dg=0/wt=2/ujg=1/rs=AEP720K6UQ8-KXN6itVJbipxK1E-JI3m1Q/dti=1/m=_b,_tp (355)
+[3976:8090155:1020/104518.107821:INFO:CONSOLE:355] "%c%s font-size: 18px; Using this console may allow attackers to impersonate you and steal your information using an attack called Self-XSS.
+Do not enter or paste code that you do not understand.", source: https://www.gstatic.com/_/mss/boq-chrome-webstore/_/js/k=boq-chrome-webstore.ChromeWebStoreConsumerFeUi.en_US.08VirXQdlPs.2018.O/am=AAIEAAAAAGQC/d=1/excm=_b,_tp,itemdetailview/ed=1/dg=0/wt=2/ujg=1/rs=AEP720K6UQ8-KXN6itVJbipxK1E-JI3m1Q/dti=1/m=_b,_tp (355)
+[3976:8090155:1020/104530.208335:INFO:CONSOLE:0] "Unchecked runtime.lastError: User cancelled install", source: https://chromewebstore.google.com/detail/dashlane-%E2%80%94-password-manag/fdjamakpfbbddfjaooikfcpapjohcfmg (0)
+[3976:8090413:1020/104606.474725:WARNING:content/browser/cache_storage/cache_storage_manager.cc:403] Multiple CacheStorage instances using the same directory detected
+[3976:8090155:1020/104606.524026:INFO:CONSOLE:34] "[VoiceTyping:Background] 1792507566523: Background initialized.", source: chrome-extension://kbglekiebdohdafflpmiejhbfdmjdbbe/background_compiled.js (34)
+[3976:8090413:1020/104612.058490:WARNING:third_party/zlib/google/zip.cc:337] ZIP extraction directory is not empty: /private/tmp/blanc-store-icons/profile-repair/OptGuidePredictionModels/GeolocationPermissions/2026.10.19.1509

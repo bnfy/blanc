@@ -1,0 +1,6 @@
+{
+  "complete": false,
+  "stage": "waiting-for-prior-affected-checks",
+  "signedAcceptance": false,
+  "error": "Prior affected checks failed; preserving split fixture unstarted"
+}

@@ -1,0 +1,11 @@
+# Concurrent windows and pending closes — October 20, 2026
+
+Evidence-only checks onb8c7a8ac expose an unresolved concurrent-window recovery failure. No repair is included.
+
+The combined schedule creates two windows with concurrent CDP requests, waits for initialWindowSaved on all three live owners, completes one window close while creating a replacement, then creates a fourth window while a genuine beforeunload close dialog is pending. Sticky activation is asserted and Page.handleJavaScriptDialog successfully dismisses the pending request. All four live owners acknowledge saving, and the source grouped split remains unchanged before SIGKILL. Recovery does not return those four owners.
+
+The initial run times out; its separate subsequent diagnostic restart shows only New Tab (not claimed as the first crash observation). A fresh repeat captures the first restart directly: one new UUID/New Tab rather than four expected owners. A control without the beforeunload step similarly restores one rather than three after completed-close/replacement. A final creation-only control, with no close at all, also restores one rather than the three acknowledged owners. Thus overlapping new-window creation alone is sufficient in this harness; the close/dialog is not necessary. The underlying save/restore cause remains unresolved. This does not prove every pending-close path independently fails.
+
+Before-crash live assertions pass, but none of these schedules qualifies crash recovery. Serialized identity acknowledgements are insufficient acceptance by themselves. Preserve the exact failures and controls when investigating. No session-store copies were captured here; do not claim the failure is already localized to the writer or reader.
+
+No source changes or compile; incremental guard0; prior49/117within49/120 unchanged. Disposable profiles removed; retained preview untouched. Native input pending; latency deferred; Electron diagnostic build unapproved. Automated restart uses diagnostic crash-bubble bypass only in disposable profiles. All pages are authored loopback fixtures. Actual held backend writes, simultaneous UI-thread execution, power loss, provider faults and independent close-only recovery remain unqualified.

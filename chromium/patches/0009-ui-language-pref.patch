@@ -1,0 +1,16 @@
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+index 0b088cd..a536933 100644
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -1717,6 +1717,11 @@ std::string GetCountry() {
+ void RegisterLocalState(PrefRegistrySimple* registry) {
+ #if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
+   registry->RegisterStringPref("blanc.prototype.quiet_delay", "1h");
++#endif
++#if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
++  // Interface language (F44): "system" or a selectable language, read once
++  // per launch (blanc/browser/ui/ui_language.h).
++  registry->RegisterStringPref("blanc.ui_language", "system");
+ #endif
+   // Call outs to individual subsystems that register Local State (browser-wide)
+   // prefs en masse. See RegisterProfilePrefs for per-profile prefs. Please

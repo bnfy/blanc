@@ -1,0 +1,13 @@
+{
+  "checks": {
+    "positive": true,
+    "exception": true,
+    "otherHost": true,
+    "excludedHost": true
+  },
+  "pinnedTranslated": 274,
+  "unsupported": [
+    "gamepadla.com#?#.pMain:has(div:-abp-properties(Partner))"
+  ],
+  "fullCoverage": false
+}

@@ -1,0 +1,921 @@
+{
+  "requests": [
+    {
+      "requestId": "B88F07C4448A71C78A681F886EF4FDCC",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "method": "GET",
+      "type": "Document",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "other",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.2",
+      "url": "https://00e2120672.com/blanc-fixture/resource.js",
+      "method": "GET",
+      "type": "Script",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.3",
+      "url": "https://015ea24446.com/blanc-fixture/resource.js",
+      "method": "GET",
+      "type": "Script",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.4",
+      "url": "https://00e2120672.com.blanc-control.test/blanc-fixture/resource.js",
+      "method": "GET",
+      "type": "Script",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.5",
+      "url": "https://015ea24446.com.blanc-control.test/blanc-fixture/resource.js",
+      "method": "GET",
+      "type": "Script",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.6",
+      "url": "https://accuweather.com/bundles/prebid.",
+      "method": "GET",
+      "type": "Script",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.7",
+      "url": "https://adap.tv/redir/javascript/vpaid.js",
+      "method": "GET",
+      "type": "Script",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.8",
+      "url": "https://00609c257b.com/blanc-fixture/resource.js",
+      "method": "GET",
+      "type": "Fetch",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.9",
+      "url": "https://00a39e6dfd.com/blanc-fixture/resource.js",
+      "method": "GET",
+      "type": "Fetch",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.10",
+      "url": "https://00609c257b.com.blanc-control.test/blanc-fixture/resource.js",
+      "method": "GET",
+      "type": "Fetch",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.11",
+      "url": "https://00a39e6dfd.com.blanc-control.test/blanc-fixture/resource.js",
+      "method": "GET",
+      "type": "Fetch",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.12",
+      "url": "https://basinnow.com/admin/upload/settings/advertise-img.jpg",
+      "method": "GET",
+      "type": "Fetch",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.13",
+      "url": "https://go.xlirdr.com/api/models/vast",
+      "method": "GET",
+      "type": "Fetch",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.14",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-jgnklpcnfhnpkjmh.json",
+      "method": "GET",
+      "type": "Fetch",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.15",
+      "url": "https://00427011ae.com/blanc-fixture/resource.js",
+      "method": "GET",
+      "type": "Image",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "parser",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.16",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-kkgddpifilomlfle.json",
+      "method": "GET",
+      "type": "Fetch",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.17",
+      "url": "https://02228640b9.com/blanc-fixture/resource.js",
+      "method": "GET",
+      "type": "Image",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "parser",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.18",
+      "url": "https://00427011ae.com.blanc-control.test/blanc-fixture/resource.js",
+      "method": "GET",
+      "type": "Image",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "parser",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.19",
+      "url": "https://02228640b9.com.blanc-control.test/blanc-fixture/resource.js",
+      "method": "GET",
+      "type": "Image",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "parser",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.20",
+      "url": "https://airplaydirect.com/openx/www/images/",
+      "method": "GET",
+      "type": "Image",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "parser",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.21",
+      "url": "https://amazon-adsystem.com/widgets/q?",
+      "method": "GET",
+      "type": "Image",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "parser",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.22",
+      "url": "https://000491b06a.com/blanc-fixture/resource.js",
+      "method": "GET",
+      "type": "Stylesheet",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.23",
+      "url": "https://0019x.com/blanc-fixture/resource.js",
+      "method": "GET",
+      "type": "Stylesheet",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.24",
+      "url": "https://000491b06a.com.blanc-control.test/blanc-fixture/resource.js",
+      "method": "GET",
+      "type": "Stylesheet",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.25",
+      "url": "https://0019x.com.blanc-control.test/blanc-fixture/resource.js",
+      "method": "GET",
+      "type": "Stylesheet",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.26",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-dhmobacdhgjbnmbm.json",
+      "method": "GET",
+      "type": "Fetch",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.27",
+      "url": "https://aone-soft.com/style/images/ad2.jpg",
+      "method": "GET",
+      "type": "Stylesheet",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.28",
+      "url": "https://banmancounselling.com/wp-content/themes/banman/",
+      "method": "GET",
+      "type": "Stylesheet",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.29",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/context/script",
+      "method": "GET",
+      "type": "Script",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.30",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/context/xhr",
+      "method": "GET",
+      "type": "Fetch",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.31",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/context/image",
+      "method": "GET",
+      "type": "Image",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "parser",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.32",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/context/stylesheet",
+      "method": "GET",
+      "type": "Stylesheet",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    },
+    {
+      "requestId": "45978.33",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/context/script-child",
+      "method": "GET",
+      "type": "Fetch",
+      "documentURL": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "frameId": "21F1EEBAF0EB8AE5AFCA18002EDEB7E1",
+      "initiatorType": "script",
+      "redirectResponsePresent": false
+    }
+  ],
+  "responses": [
+    {
+      "requestId": "B88F07C4448A71C78A681F886EF4FDCC",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.5",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.4",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.11",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.10",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.13",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.12",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.6",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.7",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.14",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.16",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.26",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.24",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.25",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.27",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.30",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.28",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.32",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.18",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.19",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.20",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.29",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.31",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    {
+      "requestId": "45978.33",
+      "status": 200,
+      "protocol": "http/1.1",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    }
+  ],
+  "finished": [
+    "45978.5",
+    "45978.4",
+    "45978.11",
+    "45978.13",
+    "45978.12",
+    "45978.7",
+    "45978.14",
+    "45978.16",
+    "45978.26",
+    "45978.24",
+    "45978.25",
+    "45978.27",
+    "45978.28",
+    "45978.19",
+    "45978.20",
+    "45978.29",
+    "45978.31",
+    "45978.33"
+  ],
+  "failures": [
+    {
+      "requestId": "B88F07C4448A71C78A681F886EF4FDCC",
+      "errorText": "net::ERR_FAILED",
+      "blockedReason": null
+    },
+    {
+      "requestId": "45978.2",
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "blockedReason": "other"
+    },
+    {
+      "requestId": "45978.3",
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "blockedReason": "other"
+    },
+    {
+      "requestId": "45978.8",
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "blockedReason": "other"
+    },
+    {
+      "requestId": "45978.9",
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "blockedReason": "other"
+    },
+    {
+      "requestId": "45978.10",
+      "errorText": "net::ERR_FAILED",
+      "blockedReason": null
+    },
+    {
+      "requestId": "45978.6",
+      "errorText": "net::ERR_FAILED",
+      "blockedReason": null
+    },
+    {
+      "requestId": "45978.15",
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "blockedReason": "other"
+    },
+    {
+      "requestId": "45978.22",
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "blockedReason": "other"
+    },
+    {
+      "requestId": "45978.23",
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "blockedReason": "other"
+    },
+    {
+      "requestId": "45978.17",
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "blockedReason": "other"
+    },
+    {
+      "requestId": "45978.30",
+      "errorText": "net::ERR_FAILED",
+      "blockedReason": null
+    },
+    {
+      "requestId": "45978.32",
+      "errorText": "net::ERR_FAILED",
+      "blockedReason": null
+    },
+    {
+      "requestId": "45978.18",
+      "errorText": "net::ERR_FAILED",
+      "blockedReason": null
+    },
+    {
+      "requestId": "45978.21",
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "blockedReason": "other"
+    }
+  ],
+  "unexpected": [],
+  "arrivals": [
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "sha256": "1804c6d83e2043f86542b306cf9eb59636a719c6a12b436a4d7543c79362bd74",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://015ea24446.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "b3f34236db4279308c84a7122b402806f831a92dc451e575b613dfee46281e31",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://00e2120672.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "8877615851a765f6a2a35ec55f6080fcb564a683c08d009e7a02ffdf2ddd7e82",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://00a39e6dfd.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "0ef571d82881a2367c37eaec11ab63e3e22dd00868954be68cc4aec6469171a9",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://00609c257b.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "0ef571d82881a2367c37eaec11ab63e3e22dd00868954be68cc4aec6469171a9",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://go.xlirdr.com/api/models/vast",
+      "sha256": "0ef571d82881a2367c37eaec11ab63e3e22dd00868954be68cc4aec6469171a9",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://basinnow.com/admin/upload/settings/advertise-img.jpg",
+      "sha256": "0ef571d82881a2367c37eaec11ab63e3e22dd00868954be68cc4aec6469171a9",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://accuweather.com/bundles/prebid.",
+      "sha256": "4485d4dabccdb7b7929d43bfa6c6d2bf14eead12fb7415fc9eb656a811e3148a",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://adap.tv/redir/javascript/vpaid.js",
+      "sha256": "f2f1ed3a5c63d196523d9bf88899b131497230d7d90734a44aa7656d74123a79",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-jgnklpcnfhnpkjmh.json",
+      "sha256": "f56432bd8bdaa4334f38c831e6c8ab1f1cbbf7b9b1286aaeec7c566610d1e382",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-kkgddpifilomlfle.json",
+      "sha256": "f56432bd8bdaa4334f38c831e6c8ab1f1cbbf7b9b1286aaeec7c566610d1e382",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-dhmobacdhgjbnmbm.json",
+      "sha256": "f56432bd8bdaa4334f38c831e6c8ab1f1cbbf7b9b1286aaeec7c566610d1e382",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://000491b06a.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "6564dd53a7b6159776176b899fd28a7d80cc7421d1509ae92d6deea1cec15a26",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://0019x.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "6564dd53a7b6159776176b899fd28a7d80cc7421d1509ae92d6deea1cec15a26",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://aone-soft.com/style/images/ad2.jpg",
+      "sha256": "6564dd53a7b6159776176b899fd28a7d80cc7421d1509ae92d6deea1cec15a26",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/context/xhr",
+      "sha256": "0ef571d82881a2367c37eaec11ab63e3e22dd00868954be68cc4aec6469171a9",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://banmancounselling.com/wp-content/themes/banman/",
+      "sha256": "6564dd53a7b6159776176b899fd28a7d80cc7421d1509ae92d6deea1cec15a26",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/context/stylesheet",
+      "sha256": "6564dd53a7b6159776176b899fd28a7d80cc7421d1509ae92d6deea1cec15a26",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://00427011ae.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "6411f729e80626774fd61d87622a57abcfb740b5af32840b1128b5c6c9cbc8cb",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://02228640b9.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "6411f729e80626774fd61d87622a57abcfb740b5af32840b1128b5c6c9cbc8cb",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://airplaydirect.com/openx/www/images/",
+      "sha256": "6411f729e80626774fd61d87622a57abcfb740b5af32840b1128b5c6c9cbc8cb",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/context/script",
+      "sha256": "d549791a9b50674d5639300496836d81d1b21730cb358aaf40f8c92536314c19",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/context/image",
+      "sha256": "6411f729e80626774fd61d87622a57abcfb740b5af32840b1128b5c6c9cbc8cb",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/context/script-child",
+      "sha256": "d14250b0befb2ecefcdf3607812638bfd53ec2a3234a09254f23abf7f45da096",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    }
+  ],
+  "transportFaults": [
+    {
+      "code": "plaintext-refused",
+      "authority": "clients2.google.com"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "accounts.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "accounts.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "www.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "accounts.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "accounts.google.com:443"
+    },
+    {
+      "code": "connect-refused",
+      "authority": "accounts.google.com:443"
+    }
+  ],
+  "dom": {
+    "error": "Error: page.evaluate: Target page, context or browser has been closed"
+  }
+}

@@ -133,7 +133,6 @@ test('Google OAuth compatibility holds across popup and tab-style flows', { time
       return;
     }
 
-    const mode = url.searchParams.get('mode');
     const callbackUrl = `${relyingBase}/oauth/callback`;
     sendHtml(res, `<p>Google provider fixture</p><script>
       setTimeout(async () => {
@@ -147,8 +146,8 @@ test('Google OAuth compatibility holds across popup and tab-style flows', { time
           'wow64',
         ]);
         const payload = {
-          mode: ${JSON.stringify(mode)},
-          userActivationTrusted: ${JSON.stringify(url.searchParams.get('trusted'))} === 'true',
+          mode: new URLSearchParams(location.search).get('mode'),
+          userActivationTrusted: new URLSearchParams(location.search).get('trusted') === 'true',
           openerAtProvider: !!window.opener,
           userAgent: navigator.userAgent,
           brands: navigator.userAgentData?.brands || [],
@@ -160,7 +159,7 @@ test('Google OAuth compatibility holds across popup and tab-style flows', { time
           requestHeaders,
         };
         const target = new URL(${JSON.stringify(callbackUrl)});
-        target.searchParams.set('mode', ${JSON.stringify(mode)});
+        target.searchParams.set('mode', new URLSearchParams(location.search).get('mode'));
         target.searchParams.set('payload', JSON.stringify(payload));
         location.replace(target);
       }, 100);

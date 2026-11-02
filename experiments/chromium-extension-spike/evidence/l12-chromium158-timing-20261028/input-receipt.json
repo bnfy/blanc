@@ -1,0 +1,68 @@
+{
+  "admission": "owner-authorized available load; no minimum idle",
+  "candidateSource": "0353d3e33443fc54fbc75dea0bbe0bd1d009e374",
+  "expectedVersion": "158.0.8127.2",
+  "candidateCount": 5127,
+  "files": [
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/l12-chromium158-timing-20261028/config.json",
+      "sha256": "97ee9413441a19baf2aa0120d3f3c4fdba2fb54796d3079bef7b240f3ed309c8"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium158/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+      "sha256": "356913e1d2e1c334715b7a41f0fd2d4ec4d1aea01cf2f12b8f8be7f29e6e177d"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/chromium158-rebase-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancBlocker/engine.js",
+      "sha256": "6f5947ad20511daf0defd7ee1d01981b01af200f709ccc746b48a7df6855d797"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/chromium158-rebase-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancBlocker/manifest.json",
+      "sha256": "7b4a39d65c9192372e86928aa025e6fd09d50256f8b7ff717b844fdc4bb4a67f"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/formal-latency-inputs-20261028/candidate-manifest.json",
+      "sha256": "7c1cc9d39140f898c252fd7600c8d33bc7effea623a1ce0e1bcfeffb35a702e8"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/formal-latency-inputs-20261028/responses.json",
+      "sha256": "1175e598ef1fce547f55058f7d44130460e60fecd6265d86775e6120a7f2d931"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/formal-latency-inputs-20261028/regular-a-run.json",
+      "sha256": "c93238de5051c44f30320fd8273d1f2803cd323c829d36141257e433ffbf0a72"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/formal-latency-inputs-20261028/private-a-run.json",
+      "sha256": "06cd594051e7191fb280862b13d2c5ade1b4ab8844749be65186cd23b77e9ad2"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/formal-latency-inputs-20261028/regular-stability.json",
+      "sha256": "fdd3ff78f9830a48892f42ca2877f918e5fbfa7b6512392fc8a3fd0675b5a71d"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/formal-latency-inputs-20261028/private-stability.json",
+      "sha256": "7226525ab51748c07e970c347a69d9aeb7100fb870b827c27a53bf4526ec45ab"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/session.mjs",
+      "sha256": "98ed2bd70467a09f8dec63667ec6dd765205f3245c45e209f3e06349109dc275"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/latency-run.mjs",
+      "sha256": "a67e86e2f728280781e75d98bccb9462eae1a765926d44fcf5a98258d67b90d0"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/latency-validate.mjs",
+      "sha256": "7826c7058f487d836afeeff0beb4fb8388eb184fc3dfd453b62ccd4757aca63e"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/native-latency-trace.mjs",
+      "sha256": "9fd2adb0b1aefcdc3ed31af320d4dbe1badb6713c187425983893426907d1f4c"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/page.mjs",
+      "sha256": "f9cba4814df85c8adea3acdbc86a877392c7a69ecdc743d7917ede0d2c7ba6bc"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "source": "8439cabc865167f0e70cddedd22b390a3bec4438",
+  "archiveSha256": "8783c93501a199b7194957ee2e0672178617aff8e795a2ea4411cc8884b3f985",
+  "notarizationAccepted": "12b32e11-5d97-4639-ad5d-605ff26b2bef",
+  "signature": "strict deep Developer ID verification passed at acceptance recording",
+  "machO": 17,
+  "selectedAssets": 7,
+  "unchangedFromSignedBaseline": true,
+  "newBuild": false,
+  "runtimeMatrixRerun": false
+}

@@ -1,0 +1,10 @@
+{
+  "owned_processes_before_cleanup": [],
+  "removed": [
+    "Blanc Chromium Preview.app",
+    "retained-profile",
+    "multi-profile",
+    "encrypted-profile"
+  ],
+  "original_profiles_retained": true
+}

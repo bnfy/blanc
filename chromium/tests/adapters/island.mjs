@@ -1,0 +1,286 @@
+// Island geometry, pointer and layout: shipping test-hook names over the
+// Island's own documents (strip/overlay iframes of the host), CDP input and
+// window commands, the fork Settings page, and native dispatch.
+import {UndefinedNativeAdapterError,nativeId} from '../lib/adapters.mjs';
+import {tabPage} from './core.mjs';
+import {shippingPageUrl} from '../lib/page-shim.mjs';
+import {jsLiteral} from '../lib/js-literal.mjs';
+const undef=reason=>()=>{throw new UndefinedNativeAdapterError(reason);};
+// Electron sendInputEvent mouse types -> CDP Input.dispatchMouseEvent types.
+const MOUSE={mouseMove:'mouseMoved',mouseDown:'mousePressed',mouseUp:'mouseReleased'};
+export function cdpMouse(input,offset={x:0,y:0}){
+ const type=MOUSE[input?.type];
+ if(!type)throw new UndefinedNativeAdapterError('Mouse input shim lacks '+input?.type);
+ const button=type==='mouseMoved'?(input.button?String(input.button):'none'):String(input.button||'left');
+ return {type,x:Number(input.x)+offset.x,y:Number(input.y)+offset.y,button,clickCount:Number(input.clickCount)||(type==='mouseMoved'?0:1)};
+}
+// Electron keyDown/char/keyUp with a one-character keyCode -> CDP key events.
+export function cdpKey(input){
+ const key=String(input?.keyCode??'');
+ if(key.length!==1)throw new UndefinedNativeAdapterError('Key input shim lacks '+key);
+ const code=/[a-z]/i.test(key)?'Key'+key.toUpperCase():/\d/.test(key)?'Digit'+key:undefined;
+ const base={key,code,windowsVirtualKeyCode:key.toUpperCase().charCodeAt(0)};
+ if(input.type==='keyDown')return {type:'rawKeyDown',...base};
+ if(input.type==='char')return {type:'char',...base,text:key,unmodifiedText:key};
+ if(input.type==='keyUp')return {type:'keyUp',...base};
+ throw new UndefinedNativeAdapterError('Key input shim lacks '+input?.type);
+}
+async function send(cdp,input,offset){
+ if(MOUSE[input?.type])await cdp.send('Input.dispatchMouseEvent',cdpMouse(input,offset));
+ else await cdp.send('Input.dispatchKeyEvent',cdpKey(input));
+ return true;
+}
+// The active tab's document: among targets showing the active tab's URL, the
+// one whose document is visible (inactive tabs report hidden).
+async function activePage(w){
+ const s=await w.snapshot();const tab=s.tabs.find(t=>String(t.id)===String(s.activeTabId));
+ if(!tab)throw Error('No active native tab');
+ await w.app.refresh();
+ const url=shippingPageUrl(tab.url);
+ const candidates=w.app.windows().filter(p=>p.targetId&&!p.isClosed()&&p.url()===url);
+ const visible=[];for(const p of candidates)if(await p.evalExpression('document.visibilityState')==='visible')visible.push(p);
+ if(visible.length!==1)throw new UndefinedNativeAdapterError('Active tab document is not uniquely addressable: '+tab.url);
+ return visible[0];
+}
+async function windowOf(w){
+ const page=await activePage(w);
+ return w.fixture.browser.send('Browser.getWindowForTarget',{targetId:page.targetId});
+}
+const strip=w=>w.frame('strip');const overlay=w=>w.frame('overlay');
+// macOS floats only the pill (shipping's floatViewsWanted): no window
+// controls or menu button of the fork's own.
+const floatPill=(w,role)=>{if(role!=='pill')throw new UndefinedNativeAdapterError('The fork floats only the pill (macOS): no '+role+' view');return w.frame('floatPill');};
+// The strip paints from the host's snapshot poll; read it after the host's
+// own refresh has carried the native state that the step just changed.
+const painted=w=>w.hostEval('window.BlancPrototypeHost.refresh().then(()=>new Promise(r=>setTimeout(r,50)))');
+const frameRect=(w,id)=>w.hostEval(`(()=>{const f=document.getElementById(${jsLiteral(id)});if(!f||f.hidden)return null;const r=f.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}})()`);
+// The floating pill's frame, as shipping's floatViewState reports its view.
+// Above every page and the sheet: views' own targeting gives its middle to
+// the Island view.
+async function floatViewState(w,role='pill'){
+ if(role!=='pill')return null;
+ const state=await w.hostEval('window.BlancPrototypeHost.floatViewState()');
+ if(!state)return null;
+ const b=state.bounds;
+ const above=!!b&&state.shown&&await w.native('hitTarget',[Math.round(b.x+b.width/2),Math.round(b.y+Math.min(b.height-1,30))])==='island';
+ return {...state,aboveTabsAndSheet:above};
+}
+// Blink dispatches mouse moves with the next frame, after CDP has answered;
+// Electron's input-event reaches shipping's main process before
+// sendInputEvent returns. Waiting two frames gives the move to its listeners
+// first, so a step reads the state the move left.
+const nextFrames='new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(()=>r(true))))';
+async function frameInput(w,id,input){
+ const r=await frameRect(w,id);if(!r)return false;
+ await send(w.fixture.host,input,{x:r.x,y:r.y});
+ if(MOUSE[input?.type])await w.hostEval(nextFrames);
+ return true;
+}
+// The strip renderer's own report (renderer.js reportIslandRect): the resting
+// pill box with any proximity swell divided back out, plus the URL area.
+async function islandReport(w){
+ const offset=await frameRect(w,'strip');if(!offset)return null;
+ const r=await strip(w).evaluate(()=>{
+  const pill=document.getElementById('islandPill');const r=pill?.getBoundingClientRect();if(!r||!r.width)return null;
+  const k=pill.classList.contains('shield-open')||pill.classList.contains('spaces-open')?0:Number(pill.style.getPropertyValue('--island-k'))||0;
+  const scale=1+0.02*k,width=r.width/scale,height=r.height/scale,y=r.top+2*k;
+  const parts=[document.getElementById('pillDomain').getBoundingClientRect()];
+  if(document.getElementById('pillInsecure').hidden)parts.push(document.getElementById('pillFavicon').getBoundingClientRect());
+  const vis=parts.filter(p=>p.width>0),center=r.left+r.width/2;
+  const hover=vis.length?(()=>{const left=Math.min(...vis.map(p=>p.left)),right=Math.max(...vis.map(p=>p.right));
+   return {x:center+(left-center)/scale,y,width:(right-left)/scale,height};})():null;
+  return {x:center-width/2,y,width,height,hoverRect:hover};
+ });
+ if(!r)return null;
+ const shift=b=>b&&{x:b.x+offset.x,y:b.y+offset.y,width:b.width,height:b.height};
+ return {rect:shift(r),hoverRect:shift(r.hoverRect)};
+}
+// Shipping sets these through its Settings page; drive the fork's Settings
+// page the same way. A missing control is the product's own gap.
+async function settingsControl(w,id,apply){
+ const before=new Set((await w.snapshot()).tabs.map(t=>String(t.id)));
+ await w.api('openPage',['settings']);
+ const s=await w.waitForState(st=>st.activeTabId&&!st.tabs.find(t=>t.id===st.activeTabId).loading);
+ const tabId=s.activeTabId;const created=!before.has(tabId);
+ try{
+  const page=await tabPage(w,tabId);
+  await page.waitForLoadState();
+  const value=await page.evaluate(([id,apply])=>{
+   const el=document.getElementById(id);if(!el)return {missing:true,url:location.href};
+   if(el.type==='checkbox'){if(el.checked!==apply)el.click();return {value:el.checked};}
+   el.value=apply;el.dispatchEvent(new Event('change',{bubbles:true}));return {value:el.value};
+  },[id,apply]);
+  if(value.missing)throw Error(`Fork Settings (${value.url}) has no #${id} control`);
+  return value.value;
+ }finally{if(created)await w.native('closeTab',[nativeId(tabId)]);}
+}
+export const island={
+ // ---- window ----
+ async windowContentBounds(w){
+  const {bounds}=await windowOf(w);
+  // The Island window has no OS frame: the host and the page split its height,
+  // or (auto-hide) the page takes all of it with the Island above it.
+  const [host,page]=await Promise.all([w.hostEval('({w:innerWidth,h:innerHeight})'),(await activePage(w)).evalExpression('innerHeight')]);
+  if(host.w!==bounds.width||(host.h===68&&host.h+page!==bounds.height&&page!==bounds.height))throw Error('Island window content does not fill its frame: '+JSON.stringify({bounds,host,page}));
+  return {x:bounds.left,y:bounds.top,width:bounds.width,height:bounds.height};
+ },
+ async setWindowContentSize(w,width,height){
+  const {windowId}=await windowOf(w);
+  await w.fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{windowState:'normal'}});
+  await w.fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{width:Number(width),height:Number(height)}});
+ },
+ async mainWindowState(w){const {bounds}=await windowOf(w);return {maximized:bounds.windowState==='maximized',minimized:bounds.windowState==='minimized'};},
+ async restoreMainWindow(w){const {windowId}=await windowOf(w);await w.fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{windowState:'normal'}});return true;},
+ chromeButtonRects:undef('The fork strip reports no window-button geometry to the host'),
+ mainMenuRequests:undef('The fork host keeps no record of main-menu requests'),
+ // ---- strip geometry and DOM ----
+ islandRect:async w=>(await islandReport(w))?.rect??null,
+ islandHoverRect:async w=>(await islandReport(w))?.hoverRect??null,
+ async islandDotsState(w){await painted(w);return strip(w).evaluate(()=>{
+  const overflow=document.querySelector('.pill-overflow');const dots=[...document.querySelectorAll('.island-dot')];
+  return {directCount:dots.length,directIds:dots.map(d=>d.dataset.tabId),directTitles:dots.map(d=>d.title),
+   overflowText:overflow?.textContent??'',overflowLabel:overflow?.getAttribute('aria-label')??'',
+   iconsMode:document.getElementById('pillDots')?.classList.contains('icons')===true,
+   iconCount:document.querySelectorAll('#pillDots .island-dot > .dot-icon').length,
+   peekCount:document.querySelectorAll('#pillDots .island-dot > .dot-peek').length};
+ });},
+ pillPlaceholderState:w=>strip(w).evaluate(()=>{
+  const label=document.getElementById('pillDomain');const chip=document.getElementById('pillSlash');if(!label)return null;
+  const cs=getComputedStyle(label);const fill=cs.webkitTextFillColor||cs.color;
+  return {text:label.textContent,placeholder:label.classList.contains('placeholder'),animation:cs.animationName,
+   gradientPainted:/rgba\(0, 0, 0, 0\)|transparent/.test(fill),reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,
+   chipHidden:chip?!!chip.hidden:null,chipLabel:chip?chip.textContent:null};
+ }),
+ clickPillSlash:w=>strip(w).evaluate(()=>document.getElementById('pillSlash').click()),
+ // The fork's window drag is native (IsCaption), not CSS app regions, so
+ // these read the caption: an empty strip point beside the pill, and the
+ // thin band along the page pane's top.
+ async stripAppRegion(w){
+  const pill=(await islandReport(w))?.rect;if(!pill)return null;
+  return await w.native('captionAt',[Math.round(Math.max(100,pill.x-40)),34])?'drag':'no-drag';
+ },
+ async dragBandAppRegion(w){
+  const {width}=await island.windowContentBounds(w);
+  return await w.native('captionAt',[Math.round(width/2),2])?'drag':'none';
+ },
+ chromeEval:(w,script)=>strip(w).evalExpression(String(script)),
+ sendChromeMouseInput:(w,input)=>frameInput(w,'strip',input),
+ // ---- overlay ----
+ overlayAddressValue:w=>overlay(w).evaluate(()=>document.getElementById('addressInput')?.value??null),
+ overlayFocusedId:w=>overlay(w).evaluate(()=>document.hasFocus()?(document.activeElement?.id??null):null),
+ overlayPanelRect:async w=>(await frameRect(w,'overlay'))?overlay(w).evaluate(()=>{const r=document.getElementById('islandPanel')?.getBoundingClientRect();
+  return r&&r.width>0?{left:r.left,top:r.top,right:r.right,bottom:r.bottom}:null;}):null,
+ // The overlay iframe is the fork's overlay view: shown is attached.
+ overlayViewAttached:async w=>!!(await frameRect(w,'overlay')),
+ overlayViewBounds:w=>frameRect(w,'overlay'),
+ overlayBounds:w=>frameRect(w,'overlay'),
+ sendOverlayInput:(w,input)=>frameInput(w,'overlay',input),
+ // Counts the host's own onOverlayShow broadcasts to the current overlay
+ // document, from the reset onward.
+ resetOverlayShowCount:w=>w.hostEval(`(()=>{const d=document.getElementById('overlay').contentDocument;
+  if(window.__blancTestShows?.doc!==d){const c={doc:d,n:0};window.__blancTestShows=c;window.BlancPrototypeHost.api.onOverlayShow(()=>{c.n++;});}
+  window.__blancTestShows.n=0;})()`),
+ async overlayShowCount(w){
+  const n=await w.hostEval(`(()=>{const c=window.__blancTestShows;return c&&c.doc===document.getElementById('overlay').contentDocument?c.n:null})()`);
+  if(n==null)throw Error('Overlay show counter was not reset on the current overlay document');
+  return n;
+ },
+ overlayDragging:undef('The fork host discards setOverlayDragState; no overlay drag flag exists to read'),
+ // ---- tab documents ----
+ async sendMouseInput(w,id,input){const page=await tabPage(w,id);await page.evalExpression('1');return send(page.cdp,input);},
+ async typeIntoActivePage(w,key){const page=await activePage(w);await page.evalExpression('1');
+  for(const type of ['keyDown','char','keyUp'])await page.cdp.send('Input.dispatchKeyEvent',cdpKey({type,keyCode:key}));return true;},
+ // The rail's activate-and-focus-page path; shipping focuses the active tab.
+ async focusTabContents(w,id){
+  if(String((await w.snapshot()).activeTabId)!==String(id))throw Error('focusTabContents expects the active tab');
+  await w.api('activateTabFromRail',[String(id)]);return true;
+ },
+ // ---- layout ----
+ setVerticalTabsWidth:(w,width)=>w.api('setVerticalTabsWidth',[width]),
+ reorderGroup:(w,id,before)=>w.api('reorderGroup',[String(id),before==null?null:String(before)]),
+ // Cmd+1..3 go through the native browser commands the fork binds to Island
+ // slots (SelectIslandSlot); other slots have no reachable native command.
+ async selectTabAtIndex(w,index){
+  // Island slots 1-8 run Chromium's select-tab commands (slot9 is the last tab).
+  if(!Number.isInteger(index)||index<0||index>7)throw new UndefinedNativeAdapterError('No Island slot for index '+index);
+  const slot='slot'+(index+1);
+  if(await w.native('previewPageCommand',[slot])!==true)throw Error('Island slot command was refused: '+slot);
+ },
+ // ---- settings (fork Settings page) ----
+ setIslandTabIcons:(w,on)=>settingsControl(w,'islandTabIcons',!!on),
+ // Shipping's hook writes the setting directly (settings.setSettings); going
+ // through the Settings page takes longer than a dwell. The host's refresh
+ // carries it, as the preference observer's settings event does.
+ async setIslandHoverOpen(w,on){
+  const value=await w.native('setIslandHoverOpen',[on===true]);
+  await w.hostEval('window.BlancPrototypeHost.refresh()');
+  if((await w.snapshot()).islandHoverOpen!==(on===true))throw Error('The Island hover-open setting did not change');
+  return value;
+ },
+ // Shipping's hooks write the settings directly, as setIslandHoverOpen does.
+ async setIslandAutoHide(w,on){
+  const value=await w.native('setIslandAutoHide',[on===true]);
+  await w.hostEval('window.BlancPrototypeHost.refresh()');
+  return value;
+ },
+ async setIslandAutoHideStyle(w,style){
+  const value=await w.native('setIslandAutoHideStyle',[String(style)]);
+  await w.hostEval('window.BlancPrototypeHost.refresh()');
+  return value;
+ },
+ // ---- surfaces the fork Island does not have ----
+ // Shipping's hover-open state, held by the host (host.js, F1).
+ islandHoverState:w=>w.hostEval('window.BlancPrototypeHost.hoverState()'),
+ // Native auto-hide state, with the host's how-to tip.
+ async islandAutoHideState(w){
+  const state=await w.native('autoHideState');
+  return {...state,introTipShown:state.introducing&&await w.hostEval('window.BlancPrototypeHost.autoHideIntroShown()')};
+ },
+ // Shipping's test cursor, in screen coordinates. Native samples it for
+ // auto-hide (in window content coordinates); the host samples its last
+ // pointer when the panel closes (in the strip's, which sits above the page's
+ // top when auto-hide pushes it).
+ async setTestCursorPoint(w,point){
+  if(point==null){
+   await w.native('setTestCursorPoint',[null]);
+   return w.hostEval('window.BlancPrototypeHost.setLastPointer(null)');
+  }
+  const bounds=await island.windowContentBounds(w);const strip=await frameRect(w,'strip');
+  const local={x:point.x-bounds.x,y:point.y-bounds.y};
+  if(await w.native('setTestCursorPoint',[local])!==true)return false;
+  const state=await w.native('autoHideState');
+  // Only the horizontal push style moves the Island with the page.
+  const islandTop=state.floating||(await w.snapshot()).tabLayout==='vertical'?0:state.pageY-state.chromeHeight;
+  return w.hostEval(`window.BlancPrototypeHost.setLastPointer(${JSON.stringify({x:local.x-strip.x,y:local.y-islandTop-strip.y})})`);
+ },
+ setCursorSamplingUnavailable:(w,on)=>w.native('setCursorSamplingUnavailable',[on===true]),
+ // Shipping's acceptance hold, for this window's Island.
+ async holdIslandInWindow(w,runtimeId,on){
+  if(String(runtimeId)!=='primary')throw new UndefinedNativeAdapterError('The fork holds only the primary window\'s Island');
+  const held=await w.native('holdIsland',[on===true]);
+  await w.hostEval('window.BlancPrototypeHost.refresh()');
+  return held;
+ },
+ // The floating pill is a frame of the Island host (host.js), shipping's
+ // float view: its document, its native frame and input into it.
+ floatEval:(w,role,script)=>floatPill(w,role).evalExpression(String(script)),
+ floatViewState,
+ floatControlsState:undef('The fork floats only the pill (macOS): no window controls or menu button views'),
+ sendFloatMouseInput:(w,role,input)=>{floatPill(w,role);return frameInput(w,'floatPill',input);},
+ // A window's float surfaces live and die with its Island host, so each is
+ // named by that host's target and its frame.
+ async floatWebContentsIds(w,runtimeId){
+  const id=String(runtimeId);
+  const {targets}=await w.fixture.browser.send('Target.getTargets');
+  const host=id==='primary'?null:targets.find(t=>t.targetId===id);
+  if(id!=='primary'&&!host)return [];
+  return [`${id}:floatPill`];
+ },
+ floatPillWebContentsId:undef('The fork\'s floating pill is a frame of the Island host, not its own web contents'),
+ async chromeSurfaceRegistered(w,surface){
+  const [id]=String(surface).split(':');
+  if(id==='primary')return true;
+  const {targets}=await w.fixture.browser.send('Target.getTargets');
+  return targets.some(t=>t.targetId===id);
+ },
+};

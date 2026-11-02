@@ -1,0 +1,16 @@
+{
+  "removedOwnedPaths": [
+    "test-profile",
+    "test-app",
+    "tests/core/profile-final",
+    "tests/core/downloads",
+    "tests/recovery/node22-home"
+  ],
+  "signedMasterRetained": true,
+  "MacBookOwnerProfile": "not touched",
+  "GoogleBaseline": "not touched",
+  "ownerReviewPorts": [
+    9873,
+    9875
+  ]
+}

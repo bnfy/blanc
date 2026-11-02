@@ -1,0 +1,234 @@
+{
+  "complete": false,
+  "scope": "experimental FetchRetry explicitly enabled only in isolated fixtures; post-close GET retry after connection reset",
+  "runs": [
+    {
+      "label": "regular-healthy",
+      "feature": true,
+      "events": [
+        {
+          "name": "sender-destroyed",
+          "at": 1793206759683
+        },
+        {
+          "name": "reset-first-connection",
+          "at": 1793206759784
+        }
+      ],
+      "attempts": [
+        {
+          "url": "https://retry.blanc-fixture.test/retry",
+          "at": 1793206759576,
+          "headers": {
+            "host": "retry.blanc-fixture.test",
+            "connection": "keep-alive",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+            "sec-ch-ua-mobile": "?0",
+            "accept": "*/*",
+            "sec-fetch-site": "same-origin",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-dest": "empty",
+            "referer": "https://retry.blanc-fixture.test/page",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "en-US,en;q=0.9"
+          }
+        },
+        {
+          "url": "https://retry.blanc-fixture.test/retry",
+          "at": 1793206759785,
+          "headers": {
+            "host": "retry.blanc-fixture.test",
+            "connection": "keep-alive",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+            "sec-ch-ua-mobile": "?0",
+            "accept": "*/*",
+            "sec-fetch-site": "same-origin",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-dest": "empty",
+            "referer": "https://retry.blanc-fixture.test/page",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "en-US,en;q=0.9"
+          }
+        }
+      ],
+      "traces": [
+        {
+          "args": {
+            "request_id": 943667
+          },
+          "cat": "loading",
+          "dur": 229,
+          "name": "KeepAliveURLLoaderFactories::CreateLoaderAndStart",
+          "ph": "X",
+          "pid": 57161,
+          "tdur": 211,
+          "tid": 2354234,
+          "ts": 62800758417,
+          "tts": 811579
+        },
+        {
+          "args": {
+            "request_id": 943667,
+            "url": "https://retry.blanc-fixture.test/retry"
+          },
+          "cat": "loading",
+          "dur": 21,
+          "name": "KeepAliveURLLoader::KeepAliveURLLoader",
+          "ph": "X",
+          "pid": 57161,
+          "tdur": 21,
+          "tid": 2354234,
+          "ts": 62800758550,
+          "tts": 811698
+        },
+        {
+          "args": {
+            "request_id": 943667
+          },
+          "cat": "loading",
+          "dur": 65,
+          "name": "KeepAliveURLLoader::Start",
+          "ph": "X",
+          "pid": 57161,
+          "tdur": 62,
+          "tid": 2354234,
+          "ts": 62800758581,
+          "tts": 811728
+        },
+        {
+          "args": {
+            "context_digest": "8E007C43325784B8245E3D62A6E6BC554FED08D909D9196210A55C8BCB092AF7",
+            "hook_to_decision_us": 2388,
+            "request_digest": "971C7993564885155C69442E698421F2702BB7BF5F118D0B7314814833A7636E",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.latency",
+          "name": "Blanc.DecisionTiming",
+          "ph": "I",
+          "pid": 57161,
+          "s": "t",
+          "tid": 2354234,
+          "ts": 62800761143,
+          "tts": 812019
+        },
+        {
+          "args": {
+            "request_id": 943667
+          },
+          "cat": "loading",
+          "dur": 11,
+          "name": "KeepAliveURLLoader::OnURLLoaderDisconnected",
+          "ph": "X",
+          "pid": 57161,
+          "tdur": 8,
+          "tid": 2354234,
+          "ts": 62800869777,
+          "tts": 825093
+        },
+        {
+          "args": {
+            "request_id": 943667
+          },
+          "cat": "loading",
+          "dur": 4,
+          "name": "KeepAliveURLLoader::ForwardingClient::OnDisconnected",
+          "ph": "X",
+          "pid": 57161,
+          "tdur": 3,
+          "tid": 2354234,
+          "ts": 62800869900,
+          "tts": 825213
+        },
+        {
+          "args": {
+            "request_id": 943667,
+            "url": "https://retry.blanc-fixture.test/retry"
+          },
+          "cat": "loading",
+          "dur": 125,
+          "name": "KeepAliveURLLoader::OnReceiveResponse",
+          "ph": "X",
+          "pid": 57161,
+          "tdur": 110,
+          "tid": 2354234,
+          "ts": 62800972169,
+          "tts": 844172
+        },
+        {
+          "args": {
+            "loader_id": 1
+          },
+          "cat": "loading",
+          "dur": 86,
+          "name": "KeepAliveURLLoaderFactoriesBase::RemoveLoader",
+          "ph": "X",
+          "pid": 57161,
+          "tdur": 82,
+          "tid": 2354234,
+          "ts": 62800972208,
+          "tts": 844200
+        },
+        {
+          "args": {
+            "request_id": 943667
+          },
+          "cat": "loading",
+          "dur": 7,
+          "name": "KeepAliveURLLoader::~KeepAliveURLLoader",
+          "ph": "X",
+          "pid": 57161,
+          "tdur": 6,
+          "tid": 2354234,
+          "ts": 62800972212,
+          "tts": 844203
+        },
+        {
+          "args": {
+            "url": "https://retry.blanc-fixture.test/retry"
+          },
+          "cat": "loading",
+          "id2": {
+            "local": "0x11"
+          },
+          "name": "KeepAliveURLLoader",
+          "ph": "b",
+          "pid": 57161,
+          "tid": 2354234,
+          "ts": 62800758559
+        },
+        {
+          "args": {},
+          "cat": "loading",
+          "id2": {
+            "local": "0x11"
+          },
+          "name": "KeepAliveURLLoader",
+          "ph": "e",
+          "pid": 57161,
+          "tid": 2354234,
+          "ts": 62800972213
+        }
+      ],
+      "decisions": [
+        {
+          "context_digest": "8E007C43325784B8245E3D62A6E6BC554FED08D909D9196210A55C8BCB092AF7",
+          "hook_to_decision_us": 2388,
+          "request_digest": "971C7993564885155C69442E698421F2702BB7BF5F118D0B7314814833A7636E",
+          "result": 0
+        }
+      ],
+      "source": {
+        "browserKind": "chromium",
+        "kind": "regular",
+        "isOffTheRecord": false,
+        "version": "157.0.8103.15"
+      }
+    }
+  ],
+  "error": "AssertionError [ERR_ASSERTION]: No actual native FetchRetry restart\n\n1 !== 2\n",
+  "cleanup": true
+}

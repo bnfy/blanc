@@ -1,0 +1,55 @@
+{
+  "app": "/private/tmp/blanc-l8-startup-corrected/Blanc Chromium Preview.app",
+  "checks": [
+    {
+      "name": "two loaded pages and selection captured",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9952/one",
+          "http://127.0.0.1:9952/two"
+        ],
+        "selected": 2
+      }
+    },
+    {
+      "name": "normal restart 1 restores exact tabs and selection without restore flag",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9952/one",
+          "http://127.0.0.1:9952/two"
+        ],
+        "selected": 2
+      }
+    },
+    {
+      "name": "normal restart 2 restores exact tabs and selection without restore flag",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9952/one",
+          "http://127.0.0.1:9952/two"
+        ],
+        "selected": 2
+      }
+    },
+    {
+      "name": "explicit New Tab preference is honored",
+      "pass": false,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9952/one",
+          "http://127.0.0.1:9952/two"
+        ],
+        "selected": 2
+      }
+    }
+  ],
+  "mode": "preflight2",
+  "error": "AssertionError [ERR_ASSERTION]: explicit New Tab preference is honored"
+}

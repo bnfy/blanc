@@ -1,0 +1,14 @@
+{
+  "unchangedBuildInputTimestamps": true,
+  "checkedFiles": [
+    "chrome/browser/ui/blanc_prototype_ui.cc",
+    "chrome/browser/ui/blanc_prototype_ui.h",
+    "chrome/browser/ui/browser_commands.cc",
+    "chrome/browser/ui/browser_command_controller.cc",
+    "chrome/browser/ui/views/frame/browser_view.cc",
+    "ui/webui/resources/tools/eslint/BUILD.gn",
+    "ui/webui/resources/tools/eslint/tsconfig_base.json",
+    "third_party/node/node_modules/buffer/index.d.ts"
+  ],
+  "prepareRuns": 2
+}

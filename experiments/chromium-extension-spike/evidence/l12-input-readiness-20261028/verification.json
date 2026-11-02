@@ -1,0 +1,16 @@
+{
+  "verified": true,
+  "runtime": "chromium",
+  "requireIdle": true,
+  "browserLaunched": false,
+  "timingAcceptance": false,
+  "candidateSource": "73217ee50b6f2e4eaa8eb8b27f75df8c2cff9bd2",
+  "negativeControls": [
+    "requireIdle refused",
+    "runtime refused",
+    "changed digest refused"
+  ],
+  "embeddedRendererVerified": true,
+  "boundFiles": 262,
+  "candidateCount": 5127
+}

@@ -1,0 +1,33 @@
+{
+  "checkedAt": "2026-10-16T13:31:00.682Z",
+  "results": [
+    {
+      "name": "Native overflow +N opens all tab rows",
+      "result": "pass",
+      "detail": {
+        "overflow": "+10",
+        "dots": 9,
+        "rows": 18,
+        "nativeTabs": 18
+      }
+    },
+    {
+      "name": "Tall list in normal window",
+      "result": "pass",
+      "detail": {
+        "bottom": 596.5
+      }
+    },
+    {
+      "name": "Many-tab panel in 600x420 window",
+      "result": "gap",
+      "detail": {
+        "viewportHeight": 640,
+        "panelBottom": 628,
+        "footerBottom": 596.5,
+        "rows": 18,
+        "visibleContentHeight": 334
+      }
+    }
+  ]
+}

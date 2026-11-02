@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import {assert,record,enter,evaluate,targets,connect,pause,until,snapshot} from './lib.mjs';
+let nt;for(const t of (await targets()).filter(t=>t.url==='chrome://newtab/')){const c=await connect(t);if(await c.eval('!document.hidden')){nt=c;break}c.close()}assert.ok(nt,'visible start page');
+await until(()=>nt.eval('document.body.classList.contains("layout-ready")'),'layout ready');
+const sites=await nt.eval('state.topSites');assert.ok(sites.some(t=>t.url.startsWith('http://127.0.0.1:8786/')),'seeded recent sites');
+const favorites=await evaluate('BlancPrototypeHost.api.listFavorites()');
+await nt.eval(`window.nativeClearToken='same-visible-document';window.nativeClearEvents=[];const original=blancNewTabEvent;window.blancNewTabEvent=(k)=>{nativeClearEvents.push(k);return original(k)}`);
+await enter('/clear');await until(async()=>(await evaluate('BlancPrototypeHost.api.listHistory({limit:300})')).length===0,'native clear');
+await until(async()=>!(await nt.eval('state.topSites')).some(t=>t.url.startsWith('http://127.0.0.1:8786/')),'visible TopSites refresh',15000);
+assert.equal(await nt.eval('nativeClearToken'),'same-visible-document');assert.equal(await nt.eval('document.hidden'),false);assert.deepEqual(await evaluate('BlancPrototypeHost.api.listFavorites()'),favorites);
+record('native-visible-history-clear',{sitesBefore:sites,sitesAfter:await nt.eval('state.topSites'),events:await nt.eval('nativeClearEvents'),favoriteCount:favorites.length});const shot=await nt.send('Page.captureScreenshot',{format:'png'});fs.writeFileSync('/private/tmp/blanc-task0/visible-cleared.png',Buffer.from(shot.data,'base64'));nt.close();

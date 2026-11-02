@@ -1,0 +1,13 @@
+/private/tmp/blanc-electron-drag-fix/node_modules/playwright-core/lib/coreBundle.js:838
+    throw new Error(message || "Assertion error");
+          ^
+
+Error: Target crashed
+    at assert (/private/tmp/blanc-electron-drag-fix/node_modules/playwright-core/lib/coreBundle.js:838:11)
+    at _CRSession._onMessage (/private/tmp/blanc-electron-drag-fix/node_modules/playwright-core/lib/coreBundle.js:35014:11)
+    at CRConnection._onMessage (/private/tmp/blanc-electron-drag-fix/node_modules/playwright-core/lib/coreBundle.js:34951:20)
+    at Immediate.<anonymous> (/private/tmp/blanc-electron-drag-fix/node_modules/playwright-core/lib/coreBundle.js:39526:32)
+    at process.processImmediate (node:internal/timers:491:21)
+    at process.callbackTrampoline (node:internal/async_hooks:130:17)
+
+Node.js v22.14.0

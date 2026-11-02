@@ -1,0 +1,2 @@
+import fs from 'node:fs';import{spawn}from'node:child_process';
+const c=JSON.parse(fs.readFileSync('/private/tmp/blanc-prerender-followup-build/config.json'));const root='/private/tmp/blanc-store-search-live';const log=fs.openSync(root+'/browser.log','a');const p=spawn(c.chromium,[`--user-data-dir=${root}/profile`,'--remote-debugging-port=9258',`--blanc-prototype-assets=${c.ui}`,'--no-first-run','--no-default-browser-check','--use-mock-keychain'],{detached:true,stdio:['ignore',log,log]});p.unref();fs.writeFileSync(root+'/pid',String(p.pid));console.log(p.pid);

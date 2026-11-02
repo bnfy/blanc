@@ -1,0 +1,1 @@
+Native research hooks cannot be packaged: /private/tmp/blanc-preview-notice-final/Blanc Chromium Preview.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Blanc Prototype Framework

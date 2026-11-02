@@ -1,0 +1,33 @@
+{
+  "source": "8439cabc865167f0e70cddedd22b390a3bec4438",
+  "preflight": [
+    "Native click and typing left/right passed on the initial card implementation.",
+    "Final private native screenshot has one rounded outline, black surrounds, compact corner tabs and no native mini toolbar.",
+    "Final source keeps IsPersistentSplitTab byte-identical and adds read-only HasSplitPresentation for regular/private presentation."
+  ],
+  "ownerPriorStage2": "Passed divider drag/double-click reset, pane actions/Escape and narrow/wide on prior ca69ff73 signed artifact.",
+  "currentOwnerVisualAcceptance": "pending",
+  "L5": "open",
+  "L6": "independent close-history acknowledgement warning remains open",
+  "invalidEarlierFixtures": [
+    "recovery launch omitted app-path argument; no browser launched",
+    "private bridge wrapper captured callback before page initialized; fixture now waits for bridge readiness"
+  ],
+  "realEarlierFindings": [
+    "focus fallback hiding native container hit a Chromium CHECK; now keep empty-bound containers alive",
+    "private persistence predicate excluded presentation suppression; now use separate presentation predicate"
+  ],
+  "noLatency": true,
+  "noElectronDiagnosticBuild": true,
+  "nativeFinal": [
+    "Regular and private CUA clicks into both page text fields activate the corresponding native pane and accept distinct text.",
+    "Regular and private corner context menus, Escape focus return and Shift+F10 reopen pass.",
+    "Regular native keyboard divider Right:50 to52, Home:20 minimum, Return:50 reset.",
+    "Regular CUA device-coordinate divider drag:50 to59; native double-click resets50.",
+    "Native menu Remove from Split View leaves two independent tabs; pair recreated for review."
+  ],
+  "coordinateFixture": "First divider drag used logical rather than screenshot device coordinates and clicked the page; corrected device-coordinate drag passes.",
+  "finalPrivateFraming": "single outline and matching black card surrounds; native mini toolbar absent",
+  "finalRegularFraming": "single outline, 8px gaps/inset, compact corner tabs and Instrument Sans; matched 1280x800 window with installed 1.42.1 reference",
+  "candidateNotary": "12b32e11-5d97-4639-ad5d-605ff26b2bef"
+}

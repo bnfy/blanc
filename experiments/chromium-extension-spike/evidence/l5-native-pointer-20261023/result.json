@@ -1,0 +1,17 @@
+{
+  "source": "006ccda1e994f8468baf7b9663453be9aedb61ea",
+  "archiveSha256": "ca69ff73efc85f8daeefbc782d3f8793b29fcd7ae5248d984b1ea6c91567ab44",
+  "notary": {
+    "message": "Processing complete",
+    "id": "29ec9c3c-9623-4b79-bd7d-7f7d7348dc83",
+    "status": "Accepted"
+  },
+  "signedRuntime": 75,
+  "sourceTests": 16,
+  "captureTests": 7,
+  "counterTests": 11,
+  "ownerPaneClickAndTyping": "passed",
+  "fullL5": "open",
+  "closeHistoryWarning": "unresolved; L6 reopened",
+  "readiness": "6/12"
+}

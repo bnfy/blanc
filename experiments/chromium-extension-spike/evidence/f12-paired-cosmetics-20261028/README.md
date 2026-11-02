@@ -1,0 +1,5 @@
+# Paired authored cosmetic outcomes
+
+Two fresh sessions per browser/profile (regular/private) use the authenticated1.36.0 Electron reference and the current native procedural asset pair on the same pinned lists. Forty authored-page captures and their DOM assertions are retained. CSS author-important hiding and the pinned YouTube :has selector agree. Native passes all listed assertions; reference leaves the procedural target visible and misses the first-inline-script GPC change and immediate blocked fetch. These six stable case/profile differences are retained with16failed reference assertions. No Electron code was repaired, no engine rules were added and no live provider page was visited.
+
+This covers these five named outcomes, not every procedural operator, timer defusal, live YouTube behavior or all provider parity. Earlier operator/dynamic native controls keep their original scope. The YouTube authored markup follows the pinned selector; it is not a media playback fixture. The source harness is fixtures/replay/synthetic/blanc-cosmetic-paired.mjs. All owned profiles were removed after normal completion.

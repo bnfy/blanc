@@ -1,0 +1,18 @@
+{
+  "checks": {
+    "clear-fixed": true,
+    "encrypted-fixed": true,
+    "hold": true,
+    "fail": true,
+    "timeout": true,
+    "changed": true
+  },
+  "upstream_files": 49,
+  "hunks": 114,
+  "inventory_basis": "prior measured, only Blanc-owned file changed",
+  "native_input": "pending",
+  "latency": "deferred",
+  "electron_diagnostic_build": "unapproved",
+  "restoration_test_flag": "--hide-crash-restore-bubble on disposable restart only",
+  "scope": "profile initialization prerequisite, not automatic production crash restoration"
+}

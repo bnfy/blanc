@@ -1,0 +1,164 @@
+[
+  {
+    "label": "delay-corrected",
+    "pid": 28912,
+    "mode": "delay",
+    "lastReadError": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"3\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"3\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"-8187816185423427476.1.2\"}}",
+    "sampled": true,
+    "states": [
+      {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9470/one",
+          "http://127.0.0.1:9470/two"
+        ],
+        "selected": 1
+      }
+    ],
+    "ready": true,
+    "callbacks": [
+      "BLANC_RESTORE begin sync=1 browser=1 apps=0",
+      "BLANC_READ request type=1 stage=2 ready=0",
+      "BLANC_RESTORE wait",
+      "BLANC_PROVIDER delay_begin",
+      "BLANC_PROVIDER completion success=1",
+      "BLANC_READ encryptor_ready type=0 pending=0",
+      "BLANC_READ encryptor_ready type=1 pending=1",
+      "BLANC_READ request type=1 stage=2 ready=1",
+      "BLANC_READ backend_begin encrypted=0",
+      "BLANC_READ backend_end encrypted=0 status=1 commands=75",
+      "BLANC_READ backend_begin encrypted=1",
+      "BLANC_READ clear_reply status=1 commands=75",
+      "BLANC_READ backend_end encrypted=1 status=1 commands=75",
+      "BLANC_READ replay_begin status=1 commands=75",
+      "BLANC_READ replay_end windows=1",
+      "BLANC_RESTORE session apps=0 windows=1 status=1",
+      "BLANC_RESTORE ready=1 browser=1 apps=0 registry=0",
+      "BLANC_RESTORE resumed",
+      "BLANC_READ encryptor_ready type=2 pending=0",
+      "BLANC_READ request type=2 stage=2 ready=1",
+      "BLANC_READ backend_begin encrypted=0",
+      "BLANC_READ backend_end encrypted=0 status=1 commands=40",
+      "BLANC_READ backend_begin encrypted=1",
+      "BLANC_READ backend_end encrypted=1 status=1 commands=40",
+      "BLANC_READ clear_reply status=1 commands=40"
+    ],
+    "cleanExit": true,
+    "exited": true
+  },
+  {
+    "label": "delay-corrected-recovery",
+    "pid": 28974,
+    "mode": "normal",
+    "lastReadError": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"3\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"3\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"-7877965018609363111.1.2\"}}",
+    "states": [
+      {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9470/one",
+          "http://127.0.0.1:9470/two"
+        ],
+        "selected": 1
+      }
+    ],
+    "ready": true,
+    "callbacks": [
+      "BLANC_RESTORE begin sync=1 browser=1 apps=0",
+      "BLANC_READ request type=1 stage=2 ready=0",
+      "BLANC_RESTORE wait",
+      "BLANC_PROVIDER completion success=1",
+      "BLANC_READ encryptor_ready type=0 pending=0",
+      "BLANC_READ encryptor_ready type=1 pending=1",
+      "BLANC_READ request type=1 stage=2 ready=1",
+      "BLANC_READ backend_begin encrypted=0",
+      "BLANC_READ backend_end encrypted=0 status=1 commands=27",
+      "BLANC_READ backend_begin encrypted=1",
+      "BLANC_READ backend_end encrypted=1 status=1 commands=27",
+      "BLANC_READ clear_reply status=1 commands=27",
+      "BLANC_READ replay_begin status=1 commands=27",
+      "BLANC_READ replay_end windows=1",
+      "BLANC_RESTORE session apps=0 windows=1 status=1",
+      "BLANC_RESTORE ready=1 browser=1 apps=0 registry=0",
+      "BLANC_RESTORE resumed",
+      "BLANC_READ encryptor_ready type=2 pending=0",
+      "BLANC_READ request type=2 stage=2 ready=1",
+      "BLANC_READ backend_begin encrypted=0",
+      "BLANC_READ backend_end encrypted=0 status=1 commands=50",
+      "BLANC_READ backend_begin encrypted=1",
+      "BLANC_READ backend_end encrypted=1 status=1 commands=50",
+      "BLANC_READ clear_reply status=1 commands=50"
+    ],
+    "cleanExit": true,
+    "exited": true
+  },
+  {
+    "label": "never-corrected",
+    "pid": 28995,
+    "mode": "never",
+    "lastReadError": "TypeError: fetch failed",
+    "sampled": true,
+    "states": [],
+    "ready": false,
+    "callbacks": [
+      "BLANC_RESTORE begin sync=1 browser=1 apps=0",
+      "BLANC_READ request type=1 stage=2 ready=0",
+      "BLANC_RESTORE wait",
+      "BLANC_PROVIDER withheld"
+    ],
+    "fixtureKilled": true,
+    "exited": true
+  },
+  {
+    "label": "never-corrected-recovery",
+    "pid": 29061,
+    "mode": "normal",
+    "lastReadError": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"7\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"7\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"5113745242438598111.1.2\"}}",
+    "beforeNativeRestore": {
+      "urls": [
+        "blanc://newtab/"
+      ]
+    },
+    "restoreRequested": true,
+    "states": [
+      {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9470/one",
+          "http://127.0.0.1:9470/two"
+        ],
+        "selected": 1
+      },
+      {
+        "urls": [
+          "blanc://newtab/"
+        ],
+        "selected": 0
+      }
+    ],
+    "ready": true,
+    "callbacks": [
+      "BLANC_READ request type=1 stage=2 ready=0",
+      "BLANC_READ request type=2 stage=2 ready=0",
+      "BLANC_PROVIDER completion success=1",
+      "BLANC_READ encryptor_ready type=0 pending=0",
+      "BLANC_READ encryptor_ready type=1 pending=1",
+      "BLANC_READ request type=1 stage=2 ready=1",
+      "BLANC_READ encryptor_ready type=2 pending=1",
+      "BLANC_READ request type=2 stage=2 ready=1",
+      "BLANC_READ backend_begin encrypted=0",
+      "BLANC_READ backend_begin encrypted=0",
+      "BLANC_READ backend_end encrypted=0 status=1 commands=75",
+      "BLANC_READ backend_begin encrypted=1",
+      "BLANC_READ backend_end encrypted=0 status=1 commands=40",
+      "BLANC_READ backend_begin encrypted=1",
+      "BLANC_READ backend_end encrypted=1 status=1 commands=40",
+      "BLANC_READ backend_end encrypted=1 status=1 commands=75",
+      "BLANC_READ clear_reply status=1 commands=75",
+      "BLANC_READ clear_reply status=1 commands=40",
+      "BLANC_READ replay_begin status=1 commands=75",
+      "BLANC_READ replay_end windows=1"
+    ],
+    "cleanExit": true,
+    "exited": true
+  }
+]

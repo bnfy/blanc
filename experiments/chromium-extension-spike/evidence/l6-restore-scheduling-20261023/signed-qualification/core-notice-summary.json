@@ -1,0 +1,14 @@
+[
+  {
+    "schedule": "core",
+    "exitCode": 0,
+    "checks": 17,
+    "error": null
+  },
+  {
+    "schedule": "notice",
+    "exitCode": 0,
+    "checks": 16,
+    "error": null
+  }
+]

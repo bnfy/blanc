@@ -1,0 +1,55 @@
+[
+  {
+    "attempt": "regular",
+    "complete": false,
+    "checks": [],
+    "error": "Fixture failed; inspect captured stderr and launch.log",
+    "raw_report": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/property-groups-signed-regular/report.json",
+    "classification": "incorrect internal executable bypassed declared Preview launcher"
+  },
+  {
+    "attempt": "regular-b",
+    "complete": false,
+    "checks": [],
+    "error": "Fixture failed; inspect captured stderr and launch.log",
+    "raw_report": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/property-groups-signed-regular-b/report.json",
+    "classification": "incorrect internal executable bypassed declared Preview launcher"
+  },
+  {
+    "attempt": "regular-c",
+    "complete": false,
+    "checks": [],
+    "error": "Fixture failed; inspect captured stderr and launch.log",
+    "raw_report": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/property-groups-signed-regular-c/report.json",
+    "classification": "incorrect internal executable bypassed declared Preview launcher"
+  },
+  {
+    "attempt": "regular-d",
+    "complete": false,
+    "checks": [],
+    "error": "Fixture failed; inspect captured stderr and launch.log",
+    "raw_report": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/property-groups-signed-regular-d/report.json",
+    "classification": "incorrect internal executable bypassed declared Preview launcher"
+  },
+  {
+    "attempt": "regular-e",
+    "complete": false,
+    "checks": [],
+    "error": "Fixture failed; inspect captured stderr and launch.log",
+    "raw_report": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/property-groups-signed-regular-e/report.json",
+    "classification": "incorrect internal executable bypassed declared Preview launcher"
+  },
+  {
+    "attempt": "regular-final",
+    "complete": false,
+    "checks": [
+      {
+        "name": "health is ready",
+        "pass": false
+      }
+    ],
+    "error": "Fixture failed; inspect captured stderr and launch.log",
+    "raw_report": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/property-groups-signed-regular-final/report.json",
+    "classification": "premature health observation"
+  }
+]

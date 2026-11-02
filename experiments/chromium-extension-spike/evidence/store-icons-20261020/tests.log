@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: stale replies never replace current Store results
+ok 1 - stale replies never replace current Store results
+  ---
+  duration_ms: 0.863333
+  ...
+# Subtest: closing the picker invalidates in-flight replies
+ok 2 - closing the picker invalidates in-flight replies
+  ---
+  duration_ms: 0.503
+  ...
+# Subtest: invalid remote IDs cannot become navigation targets
+ok 3 - invalid remote IDs cannot become navigation targets
+  ---
+  duration_ms: 0.305042
+  ...
+# Subtest: network failures keep an explicit full-search fallback
+ok 4 - network failures keep an explicit full-search fallback
+  ---
+  duration_ms: 0.320083
+  ...
+# Subtest: short queries do not contact Google
+ok 5 - short queries do not contact Google
+  ---
+  duration_ms: 0.212167
+  ...
+# Subtest: Store icon URLs accept only the exact HTTPS image host
+ok 6 - Store icon URLs accept only the exact HTTPS image host
+  ---
+  duration_ms: 0.220125
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 34.549958

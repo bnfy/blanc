@@ -1,0 +1,30 @@
+{
+  "kind": "regular",
+  "binary": "/Users/anthonyjloria/Projects/BlancChromium157Recovery/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+  "args": [
+    "--user-data-dir=/Users/anthonyjloria/Projects/BlancChromium157Recovery/records/20261027/blocker-ui-regular-attempt2/profile",
+    "--remote-debugging-port=0",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--use-mock-keychain",
+    "--blanc-prototype-assets=/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/generated",
+    "--blanc-blocker-assets=/Users/anthonyjloria/Projects/BlancPreviewArtifacts/candidate-20261027/Blanc Chromium Preview.app/Contents/Resources/BlancBlocker",
+    "http://127.0.0.1:58561/start"
+  ],
+  "checks": [
+    {
+      "name": "healthy request reaches fixture",
+      "pass": true
+    }
+  ],
+  "complete": false,
+  "error": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":7,\"scriptId\":\"35\",\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"SyntaxError\",\"description\":\"SyntaxError: Unexpected identifier 'fixtureRpc'\",\"objectId\":\"-60205720116802716.1.2\"}}\n    at Object.eval (file:///Users/anthonyjloria/Documents/ChatGPT/Blanc%20Browser/Chromium%20Preview/repo/experiments/chromium-extension-spike/evidence/blocker-recovery-ui-20261027/run.mjs:9:634)\n    at async file:///Users/anthonyjloria/Documents/ChatGPT/Blanc%20Browser/Chromium%20Preview/repo/experiments/chromium-extension-spike/evidence/blocker-recovery-ui-20261027/run.mjs:21:25",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "hits": [
+    "/start",
+    "/favicon.ico"
+  ]
+}

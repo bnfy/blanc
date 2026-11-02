@@ -1,0 +1,35 @@
+[
+  {
+    "name": "healthy-find",
+    "alive": true,
+    "frame": {
+      "id": "BD5029B5ED152A2DFE97542257F57854",
+      "loaderId": "0A57CA14F1EC43616EFD00AD434EB708",
+      "url": "chrome://blanc-prototype/host.html",
+      "domainAndRegistry": "",
+      "securityOrigin": "chrome://blanc-prototype",
+      "securityOriginDetails": {
+        "isLocalhost": false
+      },
+      "mimeType": "text/html",
+      "adFrameStatus": {
+        "adFrameType": "none"
+      },
+      "secureContextType": "Secure",
+      "crossOriginIsolatedContextType": "NotIsolated",
+      "gatedAPIFeatures": []
+    },
+    "urls": [
+      "blanc://newtab/"
+    ],
+    "selected": 0,
+    "startPage": true,
+    "findResult": [
+      714345382,
+      1,
+      1,
+      true
+    ],
+    "cleanProcessExit": true
+  }
+]

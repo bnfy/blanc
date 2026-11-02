@@ -1,0 +1,69 @@
+[
+  {
+    "file": "js/scriptlet-filtering.js",
+    "sha256": "4e0e1cb80ab38ca98607c8a63a54d18a9ecb2d3692be1300c8008943dd110d86",
+    "anchors": [
+      {
+        "text": "browser.contentScripts === undefined",
+        "lines": [
+          44
+        ]
+      },
+      {
+        "text": "runAt: 'document_start'",
+        "lines": [
+          60,
+          366
+        ]
+      }
+    ]
+  },
+  {
+    "file": "js/traffic.js",
+    "sha256": "27fd8bb3e1f1331c140e4ed7de69e7eefd82d3eacfcf5b2e365e6807ecb0f75c",
+    "anchors": [
+      {
+        "text": "function onResponseStarted",
+        "lines": [
+          1280
+        ]
+      },
+      {
+        "text": "scriptletFilteringEngine.injectNow(details)",
+        "lines": [
+          1292
+        ]
+      }
+    ]
+  },
+  {
+    "file": "js/vapi-background-ext.js",
+    "sha256": "90b5ebb52e99e5fcb867aedabb65f5d96d0e910f883fb8751a6388eb13c0bb3f",
+    "anchors": [
+      {
+        "text": "script = doc.createElement('script')",
+        "lines": [
+          224
+        ]
+      }
+    ]
+  },
+  {
+    "file": "js/resources/set-constant.js",
+    "sha256": "827d8ca244d2fbcdb967592c9247958e9e6eb7ebbe7186d0165015093ced0ab9",
+    "anchors": [
+      {
+        "text": "const thisScript = document.currentScript",
+        "lines": [
+          131
+        ]
+      },
+      {
+        "text": "Object_defineProperty(owner, prop",
+        "lines": [
+          165
+        ]
+      }
+    ]
+  }
+]

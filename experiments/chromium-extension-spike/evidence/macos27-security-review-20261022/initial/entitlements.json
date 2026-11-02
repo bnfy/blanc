@@ -1,0 +1,86 @@
+[
+  {
+    "path": ".",
+    "entitlements": {
+      "com.apple.security.device.audio-input": true,
+      "com.apple.security.device.bluetooth": true,
+      "com.apple.security.device.camera": true,
+      "com.apple.security.device.print": true,
+      "com.apple.security.device.usb": true,
+      "com.apple.security.personal-information.location": true,
+      "com.apple.security.personal-information.photos-library": true
+    },
+    "get_task_allow": false,
+    "disable_library_validation": false
+  },
+  {
+    "path": "Contents/MacOS/Blanc Prototype",
+    "entitlements": {
+      "com.apple.security.device.audio-input": true,
+      "com.apple.security.device.bluetooth": true,
+      "com.apple.security.device.camera": true,
+      "com.apple.security.device.print": true,
+      "com.apple.security.device.usb": true,
+      "com.apple.security.personal-information.location": true,
+      "com.apple.security.personal-information.photos-library": true
+    },
+    "get_task_allow": false,
+    "disable_library_validation": false
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif Alerts).app",
+    "entitlements": {},
+    "get_task_allow": false,
+    "disable_library_validation": false
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (GPU).app",
+    "entitlements": {
+      "com.apple.security.cs.allow-jit": true
+    },
+    "get_task_allow": false,
+    "disable_library_validation": false
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif Renderer).app",
+    "entitlements": {
+      "com.apple.security.cs.allow-jit": true
+    },
+    "get_task_allow": false,
+    "disable_library_validation": false
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper.app",
+    "entitlements": {},
+    "get_task_allow": false,
+    "disable_library_validation": false
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif GPU).app",
+    "entitlements": {
+      "com.apple.security.cs.allow-jit": true
+    },
+    "get_task_allow": false,
+    "disable_library_validation": false
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Renderer).app",
+    "entitlements": {
+      "com.apple.security.cs.allow-jit": true
+    },
+    "get_task_allow": false,
+    "disable_library_validation": false
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif).app",
+    "entitlements": {},
+    "get_task_allow": false,
+    "disable_library_validation": false
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Alerts).app",
+    "entitlements": {},
+    "get_task_allow": false,
+    "disable_library_validation": false
+  }
+]

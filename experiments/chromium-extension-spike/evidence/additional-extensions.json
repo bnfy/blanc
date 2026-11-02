@@ -1,0 +1,26 @@
+[
+  {
+    "checkedAt": "2026-10-16T13:14:13.863Z",
+    "id": "dhdgffkkebhmkfjojejmpbldmpobfkfo",
+    "name": "Tampermonkey",
+    "version": "5.5.1",
+    "enabled": true,
+    "installType": "normal"
+  },
+  {
+    "checkedAt": "2026-10-16T13:14:19.024Z",
+    "id": "kbfnbcaeplbcioakkpcpgfkobkghlhen",
+    "name": "Grammarly: AI Writing Assistant and Grammar Checker App",
+    "version": "14.1338.0",
+    "enabled": true,
+    "installType": "normal"
+  },
+  {
+    "checkedAt": "2026-10-16T13:14:26.499Z",
+    "id": "nkbihfbeogaeaoehlefnkodbefgpgknn",
+    "name": "MetaMask",
+    "version": "13.52.0.0",
+    "enabled": true,
+    "installType": "normal"
+  }
+]

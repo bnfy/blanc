@@ -1,0 +1,45 @@
+{
+  "fontLoaded": true,
+  "tabs": [
+    {
+      "active": "true",
+      "frame": {
+        "x": 599,
+        "y": 756,
+        "width": 37,
+        "height": 36,
+        "top": 756,
+        "right": 636,
+        "bottom": 792,
+        "left": 599
+      },
+      "font": "\"Instrument Sans\", sans-serif"
+    },
+    {
+      "active": "false",
+      "frame": {
+        "x": 1128,
+        "y": 756,
+        "width": 144,
+        "height": 36,
+        "top": 756,
+        "right": 1272,
+        "bottom": 792,
+        "left": 1128
+      },
+      "font": "\"Instrument Sans\", sans-serif"
+    }
+  ],
+  "frames": [
+    {
+      "width": "1px",
+      "radius": "8px"
+    },
+    {
+      "width": "1px",
+      "radius": "8px"
+    }
+  ],
+  "gap": "rgb(255, 255, 255)",
+  "status": ""
+}

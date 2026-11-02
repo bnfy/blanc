@@ -1,0 +1,23 @@
+{
+  "provenanceSha256": "46db21f7117b9b1b2ed8bdf1ca245ee94bacca369bd59007ced9a715a4cd2253",
+  "files": [
+    {
+      "path": "/private/tmp/blanc-chromium157-update/src/out/BlancPrototype/args.gn",
+      "sha256": "414e3baad6c84730b3c17f411ed82c5065561ba344fe2a202675654e1e18a057",
+      "source": "committed signed candidate source-materials.json; args byte digest matches exactly"
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-update/src/out/BlancPrototype/.blanc-build-environment.json",
+      "sha256": "8b95ebd5fe4b5dae42181874db5bba38dacf3a653789a3eaa5bbed7a7a6f8351",
+      "source": "committed signed candidate source-materials.json; args byte digest matches exactly"
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-update/src/third_party/llvm-build/Release+Asserts/cr_build_revision",
+      "sha256": "f3c9ec13f0b972b4c7174ab81bf4a8d98575bdb3d7c94d6743df6d0989b856b5",
+      "source": "committed signed candidate source-materials.json; args byte digest matches exactly"
+    }
+  ],
+  "compilerChanged": false,
+  "buildArgumentsChanged": false,
+  "cacheCleared": false
+}

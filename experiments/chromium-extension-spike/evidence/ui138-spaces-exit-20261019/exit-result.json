@@ -1,0 +1,46 @@
+{
+  "before": {
+    "items": {
+      "Exit": {
+        "active": 1,
+        "groups": [],
+        "tabs": [
+          {
+            "group": -1,
+            "pinned": false,
+            "url": "chrome://newtab/"
+          },
+          {
+            "group": -1,
+            "pinned": false,
+            "url": "http://127.0.0.1:9265/initial"
+          }
+        ]
+      }
+    },
+    "version": 1
+  },
+  "closeRequestedAt": "2026-10-19T19:45:53.109Z",
+  "after": {
+    "items": {
+      "Exit": {
+        "active": 1,
+        "groups": [],
+        "tabs": [
+          {
+            "group": -1,
+            "pinned": false,
+            "url": "chrome://newtab/"
+          },
+          {
+            "group": -1,
+            "pinned": false,
+            "url": "http://127.0.0.1:9265/exit-tail"
+          }
+        ]
+      }
+    },
+    "version": 1
+  },
+  "pass": true
+}

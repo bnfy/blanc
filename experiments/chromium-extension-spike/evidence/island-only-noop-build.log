@@ -1,0 +1,24 @@
+offline mode
+ninja: Entering directory `/Users/anthonyjloria/Projects/BlancChromium/src/out/BlancPrototype'
+
+
+workspace=/Users/anthonyjloria/Projects/BlancChromium/src dir=out/BlancPrototype
+disable fast local for non-interactive: fastlocal=1->0
+ use `--fast_local` to enable fast local with non-interactive mode
+schedule pending:1+ready:0 (node:86421 edge:2)
+build start: Ready 1 Pending 1
+rebuild manifest finished
+
+loading build.ninja... done 1.158374792s
+load siso config done 14.604792ms
+schedule pending:1+ready:0 (node:430854 edge:2)
+build start: Ready 1 Pending 1
+rebuild manifest finished
+schedule pending:1+ready:0 (node:430854 edge:9)
+build start: Ready 8179 Pending 87786
+build finished
+
+ninja: no work to do.
+shutdown cloud logging/monitoring done 428.042µs
+
+ 4.49s Build Succeeded: 0 steps - 0.00/s

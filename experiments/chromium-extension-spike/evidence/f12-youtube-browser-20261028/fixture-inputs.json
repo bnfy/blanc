@@ -1,0 +1,75 @@
+{
+  "scope": "original unit URL cases promoted to authored browser responses; no live page or production video guarantee",
+  "urls": [
+    {
+      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "status": 200,
+      "contentType": "text/html",
+      "sha256": "4f98290d06c5fb566e3c48b917356f8dfc6f782d22fb6ebc2e05093a6d69100b"
+    },
+    {
+      "url": "https://www.youtube.com/",
+      "status": 200,
+      "contentType": "text/html",
+      "sha256": "85470ee746fd2eb86f6217d72637c0b54977dbc6ec85049775187a8af558b70f"
+    },
+    {
+      "url": "https://www.youtube.com/youtubei/v1/player?key=AIza",
+      "status": 200,
+      "contentType": "text/plain",
+      "sha256": "93314834aa6793b62eb697b072b6c0a6798e1d85e8f1b4983e038fe5775fe10e"
+    },
+    {
+      "url": "https://www.youtube.com/s/player/abcdef/player_ias.vflset/en_US/base.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "sha256": "ff23916fe998c8b0264830724d979f3772b10cb9e7613468e2154a12f8f391b6"
+    },
+    {
+      "url": "https://rr1---sn-abc.googlevideo.com/videoplayback?id=xyz",
+      "status": 200,
+      "contentType": "audio/wav",
+      "sha256": "56d4af65701c26df20bd4021eda95b6e830348ce3a746086079fe89285548dc9"
+    },
+    {
+      "url": "https://www.youtube.com/pagead/interaction/?ai=abc",
+      "status": 200,
+      "contentType": "text/plain",
+      "sha256": "6ec43147afd9bc5044333865c3eb3e91fea4a06f80b5c2d1ff55bdbfea7af28e"
+    },
+    {
+      "url": "https://www.youtube.com/pagead/lvz?foo=1",
+      "status": 200,
+      "contentType": "text/plain",
+      "sha256": "6ec43147afd9bc5044333865c3eb3e91fea4a06f80b5c2d1ff55bdbfea7af28e"
+    },
+    {
+      "url": "https://www.youtube.com/youtubei/v1/player/ad_break?key=AIza",
+      "status": 200,
+      "contentType": "text/plain",
+      "sha256": "6ec43147afd9bc5044333865c3eb3e91fea4a06f80b5c2d1ff55bdbfea7af28e"
+    },
+    {
+      "url": "https://www.youtube.com/api/stats/ads?ver=2&docid=xyz",
+      "status": 200,
+      "contentType": "text/plain",
+      "sha256": "6ec43147afd9bc5044333865c3eb3e91fea4a06f80b5c2d1ff55bdbfea7af28e"
+    },
+    {
+      "url": "https://www.youtube.com/get_midroll_info?v=abc",
+      "status": 200,
+      "contentType": "text/plain",
+      "sha256": "6ec43147afd9bc5044333865c3eb3e91fea4a06f80b5c2d1ff55bdbfea7af28e"
+    }
+  ],
+  "ads": [
+    "https://www.youtube.com/pagead/interaction/?ai=abc",
+    "https://www.youtube.com/pagead/lvz?foo=1",
+    "https://www.youtube.com/youtubei/v1/player/ad_break?key=AIza",
+    "https://www.youtube.com/api/stats/ads?ver=2&docid=xyz",
+    "https://www.youtube.com/get_midroll_info?v=abc"
+  ],
+  "api": "https://www.youtube.com/youtubei/v1/player?key=AIza",
+  "script": "https://www.youtube.com/s/player/abcdef/player_ias.vflset/en_US/base.js",
+  "media": "https://rr1---sn-abc.googlevideo.com/videoplayback?id=xyz"
+}

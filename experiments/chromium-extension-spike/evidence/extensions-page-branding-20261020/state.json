@@ -1,0 +1,18 @@
+{
+  "branded": true,
+  "fonts": [
+    {
+      "family": "Instrument Sans",
+      "status": "loaded"
+    },
+    {
+      "family": "Inter",
+      "status": "loaded"
+    }
+  ],
+  "logo": "data:image/png;base64,iVBORw0K",
+  "logoWidth": 680,
+  "titleFont": "Inter, sans-serif",
+  "cardFont": "\"Instrument Sans\", sans-serif",
+  "background": "rgb(250, 249, 246)"
+}

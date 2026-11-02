@@ -1,0 +1,17 @@
+{
+  "testPreviewRemoved": true,
+  "previewProfilePreserved": true,
+  "masterSignedCandidatePreserved": true,
+  "shippingTabs": {
+    "urls": [
+      "blanc://newtab/",
+      "http://127.0.0.1:9860/shipping/one",
+      "http://127.0.0.1:9860/shipping/two",
+      "blanc://newtab/"
+    ],
+    "selected": 3
+  },
+  "shippingLayouts": [
+    "billboard"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "observedOn": "Electron44.9.1 / head9f27af90",
+  "failure": "Sandboxed link-child duplicate gets localStorage access (allowed rather than SecurityError); failure occurs before close-group reopen.",
+  "ciJobs": [
+    120710425291,
+    120710425112
+  ],
+  "localReproduction": true,
+  "oldRuntimeComparison": "Invalid:44.8.0 attempt rejected by strict runtime lock guard; not evidence of a 44.8.0 pass or failure.",
+  "diagnosis": "createWindow options and stored tab record both omit inherited flags; native Electron starting_sandbox_flags retains initial child restriction, but public last web preferences do not export it.",
+  "attempt": "Bypassing serialized history when nonzero flags exist did not fix this zero-metadata case; reverted completely.",
+  "allTemporaryChangesRemoved": true,
+  "unsafeOptionsRejected": [
+    "do not weaken storage assertion",
+    "do not guess permissive sandbox flags",
+    "do not modify/rebuild Electron while diagnostic build remains deferred"
+  ],
+  "next": "Implement and verify a safe policy-preservation path for duplicate/quiet reopen, or obtain an explicitly scoped runtime solution. No current L11 acceptance."
+}

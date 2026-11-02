@@ -1,0 +1,5 @@
+# Current signed candidate recovery — October 22
+
+After publishing renderer repair 05aceba1 on PR1028, ran the existing real-keychain recovery schedule against the repaired signed/notarized preview (archive SHA256 6c2bbae590f312d7f112f7c0acd871946812f34b92852582582ece6bc0b7528c), macOS27.2 Apple Silicon. Six assertions pass: new isolated profile, settled three-tab state, encrypted record creation, encrypted-only clean restart with exact order/selection, loading-tab close acknowledgement, and immediate post-ack crash/restart preserving survivors. Clean shutdown completed. No build, latency run or Electron build. Google baseline and permanent profiles untouched.
+
+This advances L6; it is not a full frozen recovery-suite signoff, denied-provider/recovery-UI acceptance or power-loss proof. Actual restored document rendering is independently covered in the renderer repair evidence; this schedule checks tab state. Gate count remains1/12. Disposable profile retained locally; raw logs compressed losslessly.
