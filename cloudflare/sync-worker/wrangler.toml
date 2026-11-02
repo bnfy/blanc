@@ -18,6 +18,11 @@ ACCOUNT_STORAGE_QUOTA_BYTES = "20971520"
 ACCOUNT_STORAGE_MAX_STORES = "256"
 CLEANUP_MAX_DELETES = "1000"
 CLEANUP_ENABLED = "false"
+# The account object's fixed-store copies are tagged with this. After rolling
+# back to a Worker that writes fixed stores to KV alone, INCREASE it before
+# rolling forward, so copies made before the rollback are dropped and re-read
+# from KV. Never reuse a value: copies tagged with it would be trusted again.
+FIXED_COPY_EPOCH = "1"
 
 [[durable_objects.bindings]]
 name = "ACCOUNT_QUOTA"

@@ -73,6 +73,10 @@ test('real local KV and SQLite cover every legacy subset without inventory',{tim
  assert.ok(4*(Buffer.byteLength(historical)+256)+4*(524288+58+256)<=8391120);
  const object=env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(account));
  assert.equal((await object.fetch('https://quota.invalid/write',{method:'POST',body:JSON.stringify({accountId:account,store:'settings',stored:JSON.stringify(row)})})).status,200);
+ // The largest historical fixed value (about 1.5 MB) can be adopted as a copy
+ // in real SQLite storage, and is read back whole.
+ const adopted=await (await object.fetch('https://quota.invalid/read',{method:'POST',body:JSON.stringify({accountId:account,store:'bookmarks',kv:historical})})).json();
+ assert.equal(adopted.record.blob.ct.length,524279);
  // A late fixed-only legacy writer must not invalidate the unchanged reserve.
  await env.SYNC.put(`blob:${account}:settings`,historical);
  assert.deepEqual((await (await object.fetch('https://quota.invalid/ledger')).json()).stores,{});

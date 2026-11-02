@@ -218,6 +218,9 @@ const OLD_CHARACTER_STORES = new Set(['bookmarks', 'settings', 'session', 'icons
 const FIXED_RESERVATION_BYTES = [...STORES].reduce((sum, store) =>
   sum + (OLD_CHARACTER_STORES.has(store) ? 3 : 1) * MAX_BLOB_BYTES + STORED_WRAPPER_BYTES + QUOTA_KEY_OVERHEAD_BYTES, 0);
 const dynamicStore = store => /^space-[0-9a-f]{32}$/.test(store);
+// How long a fixed-store copy adopted from KV keeps being checked against KV:
+// longer than a KV read can stay cached at a location (about 60 s).
+const PROVISIONAL_MS = 120000;
 const unavailable = error => json({ error }, 503);
 
 // Eight permanent reservations cover the verified fixed-only legacy universe,
@@ -246,22 +249,34 @@ export class AccountQuota {
     this.initializing = Promise.resolve(ledger);
   }
   // The object's copy of a fixed store, which reads and conflict checks use
-  // instead of KV. With no copy yet (written before this deploy), `kv` is the
-  // value the Worker read from KV, kept from then on; without it the answer is
-  // undefined (unknown). Copies carry FIXED_COPY_EPOCH: after a rollback to a
+  // instead of KV: the value under `fixed:<store>` and, apart, a small
+  // `fixedv:<store>` with its version, so a versions check reads no values.
+  //
+  // With no copy yet (written before this deploy, or before an epoch change),
+  // `kv` is the value the Worker read from KV. That read may be cached at its
+  // location for up to a minute, so an adopted copy stays provisional: each
+  // request asks for a fresh KV value again (undefined without one) until
+  // PROVISIONAL_MS after the first adoption, and a write through the object
+  // settles it at once. Copies carry FIXED_COPY_EPOCH: after a rollback to a
   // Worker that wrote KV alone, rolling forward with a new epoch drops them.
   epoch() { return String(this.env.FIXED_COPY_EPOCH ?? '1'); }
-  async fixedCopy(store, kv) {
-    const copy = await this.state.storage.get('fixed:' + store);
-    if (copy && copy.epoch === this.epoch()) return copy;
+  async fixedMeta(store, kv) {
+    const meta = await this.state.storage.get('fixedv:' + store), current = meta?.epoch === this.epoch() ? meta : null;
+    if (current && !current.provisional) return current;
     if (kv === undefined) return undefined;
-    const adopted = { epoch: this.epoch(), version: kv ? JSON.parse(kv).version : null, stored: kv ?? null };
-    await this.state.storage.put('fixed:' + store, adopted);
-    return adopted;
+    const adoptedAt = current?.adoptedAt ?? Date.now();
+    const next = { epoch: this.epoch(), version: kv ? JSON.parse(kv).version : null, provisional: Date.now() - adoptedAt < PROVISIONAL_MS, adoptedAt };
+    await this.putFixed(store, next, kv ?? null);
+    return next;
   }
   async fixedRecord(store, kv) {
-    const copy = await this.fixedCopy(store, kv);
-    return copy === undefined ? undefined : copy.stored === null ? null : JSON.parse(copy.stored);
+    const meta = await this.fixedMeta(store, kv);
+    if (meta === undefined) return undefined;
+    const stored = await this.state.storage.get('fixed:' + store);
+    return stored ? JSON.parse(stored) : null;
+  }
+  async putFixed(store, meta, stored) {
+    await this.state.storage.transaction(async tx => { await tx.put('fixed:' + store, stored); await tx.put('fixedv:' + store, meta); });
   }
   async commitBlob(ledger, store, stored) {
     await this.state.storage.transaction(async tx => {
@@ -311,8 +326,8 @@ export class AccountQuota {
     if (path === '/versions') {
       const stores = {}, missing = [];
       for (const store of STORES) {
-        const copy = await this.fixedCopy(store, body.kv?.[store]);
-        if (copy === undefined) missing.push(store); else stores[store] = copy.version;
+        const meta = await this.fixedMeta(store, body.kv?.[store]);
+        if (meta === undefined) missing.push(store); else stores[store] = meta.version;
       }
       return json(missing.length ? { missing } : { stores });
     }
@@ -356,12 +371,13 @@ export class AccountQuota {
     if (STORES.has(body.store)) {
       // Unknown (no copy, no KV value passed: a caller that compared already,
       // as the Worker did before the object kept copies) writes without a check.
-      const current = await this.fixedCopy(body.store, body.kv);
+      const current = await this.fixedMeta(body.store, body.kv);
       if (current !== undefined && (body.ifVersion ?? null) !== current.version) return json({ error: 'conflict', version: current.version }, 409);
-      // The copy first: it is what reads and conflicts use. KV follows so a
-      // rollback to a Worker without copies still finds every write.
-      await this.state.storage.put('fixed:' + body.store, { epoch: this.epoch(), version: body.version ?? JSON.parse(body.stored).version, stored: body.stored });
+      // KV first, so a rollback to a Worker without copies finds every write
+      // the client was told succeeded; if it fails, the copy keeps the old
+      // value too. Requests are serialized, so no reader sees between them.
       await this.env.SYNC.put(blobKey(body.accountId, body.store), body.stored);
+      await this.putFixed(body.store, { epoch: this.epoch(), version: body.version ?? JSON.parse(body.stored).version, provisional: false }, body.stored);
       return json({}, 200); // The permanent reserve never changes.
     }
     const current = await this.state.storage.get('blob:' + body.store);

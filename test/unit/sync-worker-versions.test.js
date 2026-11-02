@@ -46,12 +46,15 @@ test('the per-IP throttle applies to the check',async()=>{
   const h=await setup(),minute=Math.floor(Date.now()/60000);h.records.set(`ip:203.0.113.9:${minute}`,'120');
   const r=await h.call(`/v1/versions/${account}`,{headers:{'CF-Connecting-IP':'203.0.113.9'}});assert.equal(r.status,429);
 });
-test('a KV-only store is listed from its KV version and copied once',async()=>{
+test('a KV-only store is listed from its KV version, re-checked for two minutes, then settled',async t=>{
   const h=await setup();await h.put('settings',{ct:'creates the ledger'});
   h.records.set(key('bookmarks'),JSON.stringify({version:'written-before-this-deploy',blob:{ct:'old'}}));h.reads.clear();
   assert.equal((await h.versions()).body.stores.bookmarks,'written-before-this-deploy');
   assert.equal((await h.versions()).body.stores.bookmarks,'written-before-this-deploy');
-  assert.equal(h.reads.get(key('bookmarks')),1);
+  assert.equal(h.reads.get(key('bookmarks')),2,'provisional: KV is read again');
+  const start=Date.now();t.mock.method(Date,'now',()=>start+3*60_000);
+  await h.versions();await h.versions();
+  assert.equal(h.reads.get(key('bookmarks')),3,'settled: not read again');
 });
 test('delete-account empties the list',async()=>{
   const h=await setup();await h.put('settings',{ct:'s'});

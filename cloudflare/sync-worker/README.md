@@ -119,11 +119,18 @@ Design: `docs/superpowers/specs/2026-11-02-sync-changes-check-design.md`.
 - **`GET /v1/versions/:accountId`** lists each fixed store's version from those
   copies. It is throttled per IP and then charged to the account's GET limit
   like any GET.
+- **Copies adopted from KV are provisional for two minutes.** The KV value the
+  Worker hands over may be cached at its location, so for `PROVISIONAL_MS`
+  (120 s) after a copy is first adopted the Worker re-reads KV on each request
+  and the object keeps the newest. A write through the object settles a copy
+  at once. A deleted account's stores therefore can't come back from a cached
+  read, and a write made just before the deploy isn't pinned to its older value.
 - **Rollback.** Rolling back to a Worker without copies is safe: it reads and
-  writes KV, which stays complete. **Before rolling forward again, change
-  `FIXED_COPY_EPOCH`** (a `[vars]` value, `"1"` when unset) to a new value.
-  Copies from another epoch are dropped and re-read from KV, because the
-  rolled-back Worker's writes went to KV alone.
+  writes KV, which stays complete (KV is written before the copy). **Before
+  rolling forward again, increase `FIXED_COPY_EPOCH`** in `wrangler.toml`
+  (committed as `"1"`; a value set only in the dashboard is overwritten by the
+  next deploy). Never reuse a value: copies tagged with it would be trusted
+  again. Copies from another epoch are adopted again from KV, provisionally.
 
 ## Local dev
 
