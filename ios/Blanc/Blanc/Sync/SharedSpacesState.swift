@@ -409,6 +409,16 @@ import Foundation
     (data["index"]?["spaces"]?[id]?["rev"] ?? .null).canonical()
       != (data["blobs"]?[id]?["rev"] ?? .null).canonical()
   }
+  /// The revision the index names for `id` (canonical; "null" when none).
+  func indexRevision(_ id: String) -> String { (data["index"]?["spaces"]?[id]?["rev"] ?? .null).canonical() }
+  /// Whether anything waits to go out or failed to (the retry pass's work):
+  /// field writes or an index receipt, or a Space push that failed.
+  var hasPendingUploads: Bool {
+    (data["pending"]?.pairs ?? []).contains { !$0.1.pairs.isEmpty }
+      || (data["blobs"]?.pairs ?? []).contains { $0.1["failedAt"] != nil }
+  }
+  /// Whether the last push or download of Space `id` failed.
+  func hasFailed(_ id: String) -> Bool { data["blobs"]?[id]?["failedAt"] != nil }
   /// The merged blob held for `id`, as the adapter reads it.
   func blob(_ id: String) -> JSONValue? { data["blobs"]?[id]?["blob"] }
   /// A Space push failed (or recovered): desktop's `failedAt` for the status line.
