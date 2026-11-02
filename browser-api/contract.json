@@ -657,6 +657,10 @@
           "type": "boolean",
           "doc": "This window is a mini window (#1138): small, never saved, with Open in Blanc on the Island."
         },
+        "islandSize": {
+          "type": "string",
+          "doc": "The resting Island's size: default, large or extra-large (device-local setting, #1292)."
+        },
         "verticalTabsWidth": {
           "type": "number"
         },
@@ -719,6 +723,10 @@
         "miniWindow": {
           "type": "boolean",
           "doc": "This window is a mini window (#1138): small, never saved, with Open in Blanc on the Island."
+        },
+        "islandSize": {
+          "type": "string",
+          "doc": "The resting Island's size: default, large or extra-large (device-local setting, #1292)."
         },
         "adblockEnabled": {
           "type": "boolean"

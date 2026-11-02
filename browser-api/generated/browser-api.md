@@ -570,6 +570,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | `verticalTabsTextSize` | `string` |  |
 | `islandTabIcons` | `boolean` | Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). |
 | `miniWindow` | `boolean` | This window is a mini window (#1138): small, never saved, with Open in Blanc on the Island. |
+| `islandSize` | `string` | The resting Island's size: default, large or extra-large (device-local setting, #1292). |
 | `verticalTabsWidth` | `number` |  |
 | `verticalTabsPreferredWidth` | `number` |  |
 | `verticalTabsMinWidth` | `number` |  |
@@ -595,6 +596,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | `verticalTabsTextSize` | `string` |  |
 | `islandTabIcons` | `boolean` | Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). |
 | `miniWindow` | `boolean` | This window is a mini window (#1138): small, never saved, with Open in Blanc on the Island. |
+| `islandSize` | `string` | The resting Island's size: default, large or extra-large (device-local setting, #1292). |
 | `adblockEnabled` | `boolean` |  |
 | `shieldPopover` | `ShieldPopover \| null` |  |
 | `captureChip` | `CaptureChip` |  |

@@ -9021,6 +9021,26 @@
     "note": "Reader Mode font family name; keep the font name unchanged.",
     "source": "sha256:3c0883b4aaec8dc4b7089202a5de987c2590516927f130dcd0dc686532968e13"
   },
+  "settings.general.islandSize.label": {
+    "message": "Größe der Island",
+    "source": "sha256:5b677c1f7b3bd64d58dc35d4510ae26968c48d9adf0d8a492dc509aae7d539ea"
+  },
+  "settings.general.islandSize.hint": {
+    "message": "Macht die Island und ihre Schaltflächen größer. Die Seite rückt nach unten, um Platz zu machen.",
+    "source": "sha256:48c1d3a1a214af35519502d499581a6d02de870bcacc9b805359bb539b21f58d"
+  },
+  "settings.general.islandSize.default": {
+    "message": "Standard",
+    "source": "sha256:ff21948bae12e207abf2eb10170dcc542a289349152b11bb45cf2bfecf684e53"
+  },
+  "settings.general.islandSize.large": {
+    "message": "Groß",
+    "source": "sha256:903afe8f378e91e5d24a80ca2f438442b54b016211e752bd6318a4b17a81a898"
+  },
+  "settings.general.islandSize.extraLarge": {
+    "message": "Sehr groß",
+    "source": "sha256:49b07d55c85367e18b84af51bf3cc2d8772cc2b3a3b6a08c1363c2a9b1092bea"
+  },
   "settings.general.verticalTabsTextSize.label": {
     "message": "Textgröße der vertikalen Tabs",
     "source": "sha256:980577e5feb9a37e9a7c0a9a232897f11b858680a721d83b919cc47860c1a532"

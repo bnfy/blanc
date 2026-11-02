@@ -1176,6 +1176,7 @@ function install(refs) {
       const saved = settings.setSettings({ miniWindowShortcut: id }).miniWindowShortcut;
       return { saved, status: miniWindowTest.shortcutStatus() };
     },
+    setIslandSize(size) { return settings.setSettings({ islandSize: size }).islandSize; },
     // The launch Sunrise plays once per launch; acceptance rearms that launch.
     setLaunchSunrise(on) {
       const saved = settings.setSettings({ launchSunrise: !!on }).launchSunrise;
@@ -4187,6 +4188,7 @@ function install(refs) {
         verticalTabsWidth: 248,
         verticalTabsTextSize: 'default',
         miniWindowShortcut: 'off',
+        islandSize: 'default',
         appIcon: 'sunrise',
         adblockExceptions: [],
         bangsEnabled: true,

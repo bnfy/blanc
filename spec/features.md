@@ -26,7 +26,11 @@ toolbar (Bowser Design System "Island Chrome").
   draws each direct tab as its site icon instead, and fewer fit before `+N`;
   a pinned tab's dot is a rounded square), favicon,
   domain, shield count (F12), a private chip when private (F4), and a trailing
-  action cluster (reload / favorite / close tab / downloads). The resting pill
+  action cluster (reload / favorite / close tab / downloads). On desktop,
+  Settings → General → **Island size** (Default, Large, Extra large;
+  device-local, never synced) scales the resting pill and everything in it,
+  and the strip that holds it grows with it, so pages start lower. The
+  expanded panel keeps its size. The resting pill
   carries **no group name** — group identity is named in full in the panel
   (F3). Each dot always represents one tab; making a tab quiet (F31) never
   removes, moves, or restyles its dot. In
