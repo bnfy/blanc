@@ -7,7 +7,7 @@ on:
       - 'browser-api/**'
       - '.github/workflows/chromium-foundation.yml'
   push:
-    branches: [codex/f12-socket-speculation]
+    branches: [chromium/migration]
     paths:
       - 'chromium/**'
       - 'browser-api/**'

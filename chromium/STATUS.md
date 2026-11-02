@@ -14,6 +14,11 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **Branch and PRs (owner, 2026-11-02):** the fork's integration branch is
+  `chromium/migration` (renamed from `codex/f12-socket-speculation`), with
+  [PR #1028](https://github.com/bnfy/blanc/pull/1028) as its integration PR
+  into `main`, not merged until the fork is ready. Each new piece of work
+  gets its own branch and small PR into `chromium/migration`.
 - **Release-candidate readiness tracker:**
   https://claude.ai/artifact/BKaBQpYoAMMeUmqBfVbBPA (private to the owner).
   It shows each shipping acceptance case's latest macOS result (the full run
