@@ -16,7 +16,9 @@ export function shippingState(snapshot){
   loading:!!t.isLoading,isLoading:!!t.isLoading,title:(t.pageTitle??t.title)||'',customTitle:t.pageTitle!=null?t.title:null,favicon:t.favicon||null,
   groupId:id(t.groupId),splitId:splitOf.get(String(t.id))??null,pinned:!!t.pinned,
   muted:!!(t.muted||t.siteMuted),audible:!!t.audible,canGoBack:!!t.canGoBack,canGoForward:!!t.canGoForward,
-  private:!!t.private,asleep:!!t.asleep,
+  // A private tab's contents live in the off-the-record profile (D1), the
+  // fork's private session, which never persists.
+  private:!!t.private,sessionKind:t.private?'private':'default',sessionPersistent:!t.private,asleep:!!t.asleep,
  }));
  const layout=tabs.map(t=>({id:t.id,groupId:t.groupId,pinned:t.pinned,splitId:t.splitId}));
  const groups=(snapshot.groups||[]).map(g=>({id:String(g.id),name:g.name,collapsed:!!g.collapsed,color:g.color||null}));
