@@ -653,6 +653,10 @@
           "type": "boolean",
           "doc": "Draw each direct tab on the Island as its site icon instead of a dot (device-local setting)."
         },
+        "islandSize": {
+          "type": "string",
+          "doc": "The resting Island's size: default, large or extra-large (device-local setting, #1292)."
+        },
         "verticalTabsWidth": {
           "type": "number"
         },
@@ -711,6 +715,10 @@
         "islandTabIcons": {
           "type": "boolean",
           "doc": "Draw each direct tab on the Island as its site icon instead of a dot (device-local setting)."
+        },
+        "islandSize": {
+          "type": "string",
+          "doc": "The resting Island's size: default, large or extra-large (device-local setting, #1292)."
         },
         "adblockEnabled": {
           "type": "boolean"

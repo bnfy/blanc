@@ -121,6 +121,27 @@ When('I activate the pinned tab in group {string}', async function (name) {
   await this.waitForState((state) => state.activeTabId === id);
 });
 
+// ---- F3-35: Island size (#1292) ----
+
+When('I set the Island size to {string}', async function (size) {
+  assert.equal(await this.call('setIslandSize', size), size);
+});
+
+Then('the Island is {int}px tall in a {int}px strip, with the page just below', async function (pill, strip) {
+  const { chromePage } = require('../support/tab-drag');
+  const page = await chromePage();
+  const measure = async () => ({
+    ...await page.evaluate(() => ({
+      pill: Math.round(document.getElementById('islandPill').getBoundingClientRect().height),
+      strip: Math.round(document.getElementById('strip').getBoundingClientRect().height),
+    })),
+    pageTop: (await this.call('activeGuestBounds'))?.y ?? null,
+  });
+  const got = await waitForValue(measure, (value) => value.pill === pill && value.strip === strip && value.pageTop === strip,
+    `a ${pill}px Island in a ${strip}px strip`);
+  assert.deepEqual(got, { pill, strip, pageTop: strip });
+});
+
 // ---- F3-33: site icons instead of dots (#1175) ----
 
 for (const [word, on] of [['on', true], ['off', false]]) {

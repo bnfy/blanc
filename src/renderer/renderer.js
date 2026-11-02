@@ -1548,8 +1548,23 @@
   // (permission.html/permission.js) — the strip no longer hosts them.
 
   // --- State sync ---
+  // Island size (#1292): CSS scales the pill and the strip; the strip's
+  // ResizeObserver then reports the new height to main. Main starts a new
+  // window at the saved size's height, so the strip reports nothing until it
+  // has drawn at that size, or the page would jump on every launch.
+  let islandSizeApplied = false;
+  const applyIslandSize = (size) => {
+    const next = size || 'default';
+    if (document.documentElement.dataset.islandSize !== next) document.documentElement.dataset.islandSize = next;
+    if (!islandSizeApplied) {
+      islandSizeApplied = true;
+      requestAnimationFrame(() => reportLayout());
+    }
+  };
+
   window.browserAPI.onTabsUpdated((payload) => {
     state = payload;
+    applyIslandSize(state.islandSize);
     render();
   });
   window.browserAPI.onPageTint(({ id, color }) => {
@@ -1670,14 +1685,15 @@
   });
   window.browserAPI.getAllTabs().then((payload) => {
     state = payload;
+    applyIslandSize(state.islandSize);
     render();
   });
 
   // --- Report strip height so main can size tab views below it. ---
-  const reportLayout = () => {
-    if (copySurface) return;
+  function reportLayout() {
+    if (copySurface || !islandSizeApplied) return;
     window.browserAPI.reportChromeLayout(chromeEl.getBoundingClientRect().height);
-  };
+  }
   new ResizeObserver(reportLayout).observe(chromeEl);
   requestAnimationFrame(reportLayout);
 

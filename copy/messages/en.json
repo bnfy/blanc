@@ -9310,6 +9310,26 @@
     "message": "JetBrains Mono",
     "note": "Reader Mode font family name; keep the font name unchanged."
   },
+  "settings.general.islandSize.label": {
+    "message": "Island size",
+    "note": "Desktop Settings, General → Island: label of the dropdown that sets the resting Island's size (#1292)."
+  },
+  "settings.general.islandSize.hint": {
+    "message": "Make the Island and its buttons bigger. The page moves down to make room.",
+    "note": "Desktop Settings, General → Island: hint under Island size. The strip grows with the Island, so web pages start lower."
+  },
+  "settings.general.islandSize.default": {
+    "message": "Default",
+    "note": "Desktop Settings, General → Island size option."
+  },
+  "settings.general.islandSize.large": {
+    "message": "Large",
+    "note": "Desktop Settings, General → Island size option."
+  },
+  "settings.general.islandSize.extraLarge": {
+    "message": "Extra large",
+    "note": "Desktop Settings, General → Island size option."
+  },
   "settings.general.verticalTabsTextSize.label": {
     "message": "Vertical tab text size",
     "note": "Desktop Settings, General → Island. Vertical-tab sidebar text-size label. Applies on this device; tab titles and group names grow together."
