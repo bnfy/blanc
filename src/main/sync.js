@@ -789,7 +789,7 @@ async function disable({ wipeRemote = false } = {}) {
     ensureStore().update((s) => {
       s.enabled = false; s.handle = ''; s.accountId = '';
       s.protectedKey = ''; s.key = ''; s.lastError = null; s.erasurePending = false;
-      s.syncSpaces = false;
+      s.syncSpaces = false; s.seenVersions = undefined;
     });
     keyProtectionError = null;
     // The cached device map must not outlive the account it came from — and
@@ -856,6 +856,7 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     if (run.stale()) throw new SyncError('stale');
     missing = true;
   } else throw new SyncError(responseCode(getRes.status, await responseText(getRes)));
+  if (!desc.spaceId) noteSeenVersion(accountId, desc.name, version ?? null);
   let plan = null, stored = false;
   try {
     let payload;
@@ -898,6 +899,10 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     if (desc.optional && putRes.status === 404) return { unavailable: true };
     if (!putRes.ok) throw new SyncError(responseCode(putRes.status, await responseText(putRes)));
     stored = true;
+    if (!desc.spaceId) {
+      const written = typeof putRes.json === 'function' ? await putRes.json().catch(() => null) : null;
+      if (typeof written?.version === 'string') noteSeenVersion(accountId, desc.name, written.version);
+    }
     desc.stored?.(payload,run.ctx);
     await cleanupRetiredSpaces(payload);
     return desc.spaceId ? { spaceStored: true, firstUpload } : null;
@@ -906,6 +911,21 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
   }
 }
 
+/** The version this device last read or wrote for each fixed store, per
+ * account (design 2026-11-02): the change check fetches only stores whose
+ * version the Worker names differently. A read that raced a newer write
+ * records the older version, so that store stays changed. */
+function noteSeenVersion(accountId, store, version) {
+  ensureStore().update(d=>{
+    if(d.seenVersions?.accountId!==accountId)d.seenVersions={accountId,stores:{}};
+    d.seenVersions.stores[store]=version;
+  });
+}
+function seenVersions() {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, seenVersions);
+  const d=ensureStore().data;
+  return d.seenVersions?.accountId===d.accountId&&d.accountId?{...d.seenVersions.stores}:{};
+}
 function spaceDescriptor(id,kind='S') {
   return {name:'space-'+id,class:kind,spaceId:id,optional:true,spaces:true};
 }
@@ -1372,6 +1392,7 @@ module.exports = {
   syncNow,
   resetRequestWindowForTest,
   sharedStatus,
+  seenVersions,
   spaceStatus,
   setSyncSpaces,
   status,
