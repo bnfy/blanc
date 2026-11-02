@@ -78,6 +78,7 @@
     "blanc/browser/ui/browser_api/search_default.h": "773c11164ec2f8fa03fb3d09566acdc98079d0b3e0ef347b5f97716dd76d9852",
     "blanc/browser/ui/browser_api/suggestion_policy.cc": "98ca4142c2d0901845afb75e4fd7aa5a509f98571c648d2ecbed2a087af9341f",
     "blanc/browser/ui/browser_api/suggestion_policy.h": "465018506f4f94a07ee3cebfec366c58db670d7c9afc596bb9d082950915a11c",
+    "blanc/browser/ui/browser_api/theme_choice.h": "828a86ba9adf378a023ac92d90ebad6b65c4c5ee9ef3d35538344454db080ab5",
     "blanc/browser/ui/modules/custom_template.cc": "cfecac0516a96d6eb62f9ed0f0171dccb3f9ac12747a652fc600a7c516277c0c",
     "blanc/browser/ui/modules/custom_template.h": "d5e4d9e602a7fd74c604a6bfb44da5305e1402b828ecd9df8f080d30d10454ca",
     "blanc/browser/ui/modules/selected_custom.cc": "f0adf7f8298beefa82f6662fdc22bda965fe505d6356e91e7a21baa277beba40",
