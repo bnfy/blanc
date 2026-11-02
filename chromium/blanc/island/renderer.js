@@ -11,7 +11,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
   document.documentElement.dataset.platform = platform;
   // The floating Island (auto-hide, float style) runs this document again in
   // small views above the page, each showing one element of the strip.
-  const floatSurface = window.location.hostname === 'float';
+  const floatSurface = window.location.hostname === 'float' || window.location.search === '?surface=float';
   if (floatSurface) document.documentElement.dataset.surface = 'float';
   // The floating Glance card's chrome runs it again too, showing only the
   // card (main.js ensureGlanceCardView).

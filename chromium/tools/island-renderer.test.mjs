@@ -65,3 +65,26 @@ test('the host runs shipping\'s hover-open state machine unchanged', () => {
     [null, {x: 0, y: 0, width: 10, height: 10}], [{x: 0, y: 0}, {x: 0, y: 0, width: 0, height: 10}], [{x: 10, y: 10}, {x: 0, y: 0, width: 10, height: 10}]])
     assert.equal(host.pointInRect(point, rect), shipping.pointInRect(point, rect));
 });
+
+// The floating pill's placement and visibility come from shipping's own
+// auto-hide module, wrapped for the host: the same exports, answering alike.
+test('the host places the floating pill with shipping\'s auto-hide module', () => {
+  const window = {};
+  vm.runInNewContext(generate(record.ref)['island-autohide.js'], {window});
+  const module = {exports: {}};
+  vm.runInNewContext(execFileSync('git', ['show', `${record.ref}:src/main/island-autohide.js`], {cwd: root, encoding: 'utf8'}), {module});
+  const shipping = module.exports, host = window.BlancIslandAutoHide;
+  const plain = value => JSON.parse(JSON.stringify(value ?? null));
+  assert.deepEqual(plain(Object.keys(host)), plain(Object.keys(shipping)));
+  for (const key of ['FLOAT_SIDE_PX', 'FLOAT_BOTTOM_PX', 'SLIDE_OUT_MS']) assert.equal(host[key], shipping[key], key);
+  for (const autoHide of [false, true]) for (const style of ['float', 'push', undefined]) for (const platform of ['darwin', 'linux', 'win32']) {
+    assert.deepEqual(plain(host.floatViewsWanted({autoHide, style, platform})), plain(shipping.floatViewsWanted({autoHide, style, platform})));
+    for (const islandVisible of [false, true])
+      assert.deepEqual(plain(host.floatViewsShown({floating: autoHide, islandVisible, platform})),
+        plain(shipping.floatViewsShown({floating: autoHide, islandVisible, platform})));
+  }
+  for (const rect of [null, {x: 400, y: 12, width: 420, height: 44}, {x: -10, y: 12, width: 2000, height: 44}, {x: 400, y: 12, width: 0, height: 44}, {x: NaN, y: 0, width: 1, height: 1}])
+    for (const [windowWidth, windowHeight] of [[1200, 800], [300, 40]])
+      assert.deepEqual(plain(host.floatViewBounds(rect, {windowWidth, windowHeight, side: 20, bottom: 24})),
+        plain(shipping.floatViewBounds(rect, {windowWidth, windowHeight, side: 20, bottom: 24})), JSON.stringify({rect, windowWidth}));
+});

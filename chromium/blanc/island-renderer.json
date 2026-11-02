@@ -15,6 +15,7 @@
     "hover-panel-leave.js"
   ],
   "mainFiles": [
-    "island-hover-open.js"
+    "island-hover-open.js",
+    "island-autohide.js"
   ]
 }

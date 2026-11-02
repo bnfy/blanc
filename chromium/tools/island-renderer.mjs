@@ -22,9 +22,9 @@ export const FILES = ['index.html', 'overlay.html', 'overlay.js', 'renderer.js',
   'tab-sections.js', 'vertical-tabs.js', 'workspace-ui.js', 'glance-card-drag.js', 'hover-panel-leave.js'];
 // Shipping's pure main-process modules the Island host runs as they are,
 // wrapped so a document can load them: the host holds the state shipping's
-// main process holds (hover-open's dwell, S1.2). Each exposes its exports on
-// window under the given name.
-export const MAIN_FILES = {'island-hover-open.js': 'BlancIslandHoverOpen'};
+// main process holds (hover-open's dwell and auto-hide's floating pill, S1.2).
+// Each exposes its exports on window under the given name.
+export const MAIN_FILES = {'island-hover-open.js': 'BlancIslandHoverOpen', 'island-autohide.js': 'BlancIslandAutoHide'};
 // Trusted Types policy names, per hardened script.
 const HARDEN = {'overlay.js': 'overlay', 'renderer.js': 'renderer', 'vertical-tabs.js': 'vertical-tabs'};
 const PREVIEW_META = fs.readFileSync(path.join(root, 'tools/preview-build-meta.html'), 'utf8').trimEnd();
@@ -49,6 +49,10 @@ export const EDITS = {
     // The native extension menu anchors to the Favorite button.
     ["  const favoriteBtn = pillButton('heart', blancI18n.t('pill.favorite'), () => window.browserAPI.toggleBookmark());\n",
       "  const favoriteBtn = pillButton('heart', blancI18n.t('pill.favorite'), () => window.browserAPI.toggleBookmark());\n  favoriteBtn.id = 'pillHeart';\n"],
+    // Auto-hide's floating pill is a frame of the Island host, not a view at
+    // blanc-chrome://float/, so the host names the surface in its address.
+    ["  const floatSurface = window.location.hostname === 'float';\n",
+      "  const floatSurface = window.location.hostname === 'float' || window.location.search === '?surface=float';\n"],
   ],
 };
 
