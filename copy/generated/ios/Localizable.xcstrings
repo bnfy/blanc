@@ -98755,6 +98755,48 @@
         }
       }
     },
+    "ios.photos.addUsage": {
+      "comment": "iOS permission prompt for saving to Photos (NSPhotoLibraryAddUsageDescription), shown the first time someone saves an image from a page. Add-only: Blanc never reads the library. Generated into ios/Blanc/Blanc/InfoPlist.xcstrings.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc saves images to your photo library only when you ask it to."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc speichert Bilder nur dann in deiner Fotomediathek, wenn du es möchtest."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc guarda imágenes en tu fototeca solo cuando se lo pides."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc enregistre des images dans votre photothèque uniquement lorsque vous le demandez."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc salva le immagini nella tua libreria foto solo quando glielo chiedi."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Blanc salva imagens na sua fototeca só quando você pedir."
+          }
+        }
+      }
+    },
     "ios.settings.shareTabsHelp": {
       "comment": "Native iOS Settings sheet: shareTabsHelp.",
       "extractionState": "manual",

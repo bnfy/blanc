@@ -9065,6 +9065,10 @@
     "message": "Blanc uses the camera only to scan the pairing code on your computer.",
     "note": "iOS camera permission prompt (NSCameraUsageDescription). Generated into ios/Blanc/Blanc/InfoPlist.xcstrings."
   },
+  "ios.photos.addUsage": {
+    "message": "Blanc saves images to your photo library only when you ask it to.",
+    "note": "iOS permission prompt for saving to Photos (NSPhotoLibraryAddUsageDescription), shown the first time someone saves an image from a page. Add-only: Blanc never reads the library. Generated into ios/Blanc/Blanc/InfoPlist.xcstrings."
+  },
   "ios.settings.shareTabsHelp": {
     "message": "Share this phone’s regular open tabs with your other devices. Private tabs are never shared.",
     "note": "Native iOS Settings sheet: shareTabsHelp."

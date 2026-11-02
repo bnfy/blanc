@@ -106,5 +106,22 @@ comparison with another browser.
 
 ## Screenshots
 
-Captured from the real app by `scripts/ios-app-store-screenshots.sh`
-(plan Task 16) and committed under `docs/ios/app-store/`. Not done yet.
+Captured from the real app by `npm run ios:app-store-screenshots`
+(`scripts/ios-app-store-screenshots.sh`, which runs
+`AppStoreScreenshotsUITests` from the `-BlancUITestAppStore` seed) on an
+iPhone 17 Pro Max simulator, iOS 26.5, light, English: Apple's 6.9" size,
+1320 × 2868. Apple accepts the 6.9" set alone, so there's no 6.5" set.
+Committed in `docs/ios/app-store/`:
+
+1. `1-island.png`: blanc.day's What's New page with the Island at the bottom.
+2. `2-palette.png`: the palette, with open tabs, a tab group and two pages
+   sent from a MacBook Pro.
+3. `3-send.png`: Send to Device in the Island's menu.
+4. `4-spaces.png`: the Spaces menu (This iPhone and a "Work" Space).
+5. `5-start.png`: the Start Page (Billboard).
+
+**Page choice:** the shots show blanc.day's What's New page. The home
+page's hero is a screenshot of another site (The Met), Features and Support
+show other sites too, Download tells phone visitors Blanc is for computers,
+and Pair mentions the TestFlight beta. Everything shown is Blanc's own UI
+and pages; no sync account or person's data appears.

@@ -2486,6 +2486,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ios_pair_link_confirm_body">Continua solo se hai appena scansionato un codice sul tuo computer.</string>
     <string name="ios_pair_pair">Abbina</string>
     <string name="ios_pair_camera_usage">Blanc usa la fotocamera solo per scansionare il codice di abbinamento sul computer.</string>
+    <string name="ios_photos_add_usage">Blanc salva le immagini nella tua libreria foto solo quando glielo chiedi.</string>
     <string name="ios_settings_share_tabs_help">Condividi le normali schede aperte di questo iPhone con gli altri dispositivi. Le schede private non vengono mai condivise.</string>
     <string name="ios_settings_disconnect_help">Disconnettere questo iPhone? I preferiti e le impostazioni locali restano qui. Gli altri dispositivi non sono interessati.</string>
     <string name="ios_settings_switch_help">Questo iPhone lascerà la sincronizzazione attuale. I preferiti e le impostazioni locali restano qui. Gli altri dispositivi non sono interessati.</string>

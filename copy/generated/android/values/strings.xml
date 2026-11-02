@@ -2415,6 +2415,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_pair_link_confirm_body">Continue only if you just scanned a code on your own computer.</string>
     <string name="ios_pair_pair">Pair</string>
     <string name="ios_pair_camera_usage">Blanc uses the camera only to scan the pairing code on your computer.</string>
+    <string name="ios_photos_add_usage">Blanc saves images to your photo library only when you ask it to.</string>
     <string name="ios_settings_share_tabs_help">Share this phone’s regular open tabs with your other devices. Private tabs are never shared.</string>
     <string name="ios_settings_disconnect_help">Disconnect this phone? Your local Favorites and settings stay here. Your other devices are not affected.</string>
     <string name="ios_settings_switch_help">This phone will leave its current sync. Your local Favorites and settings stay here. Your other devices are not affected.</string>

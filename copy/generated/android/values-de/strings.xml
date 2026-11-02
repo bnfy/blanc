@@ -2415,6 +2415,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ios_pair_link_confirm_body">Fahre nur fort, wenn du gerade einen Code auf deinem eigenen Computer gescannt hast.</string>
     <string name="ios_pair_pair">Koppeln</string>
     <string name="ios_pair_camera_usage">Blanc verwendet die Kamera nur, um den Kopplungscode auf deinem Computer zu scannen.</string>
+    <string name="ios_photos_add_usage">Blanc speichert Bilder nur dann in deiner Fotomediathek, wenn du es möchtest.</string>
     <string name="ios_settings_share_tabs_help">Teile die normalen offenen Tabs dieses iPhones mit deinen anderen Geräten. Private Tabs werden nie geteilt.</string>
     <string name="ios_settings_disconnect_help">Dieses iPhone trennen? Deine lokalen Favoriten und Einstellungen bleiben hier. Deine anderen Geräte sind nicht betroffen.</string>
     <string name="ios_settings_switch_help">Dieses iPhone verlässt seine aktuelle Synchronisierung. Deine lokalen Favoriten und Einstellungen bleiben hier. Deine anderen Geräte sind nicht betroffen.</string>
