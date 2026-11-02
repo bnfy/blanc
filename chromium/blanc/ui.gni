@@ -74,6 +74,7 @@ source_set(target_name) {
     "//chrome/app/theme:theme_resources",
     "//chrome/browser:browser_process",
     "//chrome/browser:primitives",
+    "//chrome/browser:shell_integration",
     "//chrome/browser/actor/ui:actor_overlay_web_view",
     "//chrome/browser/app_mode",
     "//chrome/browser/browsing_data",

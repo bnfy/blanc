@@ -112,7 +112,9 @@
 #include "ui/views/view_observer.h"
 #include "base/strings/stringprintf.h"
 #include "base/values.h"
+#include "chrome/browser/platform_util.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/shell_integration.h"
 #include "chrome/browser/sessions/tab_restore_service_factory.h"
 #include "chrome/browser/ui/browser_live_tab_context.h"
 #include "components/sessions/core/tab_restore_service.h"
@@ -4352,7 +4354,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         {"nextTab", IDC_SELECT_NEXT_TAB}, {"previousTab", IDC_SELECT_PREVIOUS_TAB},
         {"hardReload", IDC_RELOAD_BYPASSING_CACHE}, {"close", IDC_CLOSE_TAB},
         {"zoomIn", IDC_ZOOM_PLUS}, {"zoomOut", IDC_ZOOM_MINUS},
-        {"zoomReset", IDC_ZOOM_NORMAL}, {"print", IDC_PRINT}};
+        {"zoomReset", IDC_ZOOM_NORMAL}, {"print", IDC_PRINT},
+        // /reader is Chromium's Reading Mode (owner, 2026-11-02), toggled as
+        // its keyboard shortcut toggles it.
+        {"readingMode", IDC_SHOW_READING_MODE_KEYBOARD}};
       const auto command = commands.find(args[0].GetString());
       if (command == commands.end()) { reply(false, base::Value("Unknown page command.")); return; }
       if (command->second == IDC_CLOSE_TAB && model->count() < 2) { reply(true, base::Value(false)); return; }
@@ -4793,6 +4798,32 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           std::max(0, args[6].GetInt()), std::max(0, args[7].GetInt()));
       if (owner->view->parent()) owner->view->parent()->InvalidateLayout();
       reply(true, base::Value());
+      return;
+    }
+    // /invite (shipping's inviteFriend): its prefilled email in the person's
+    // mail app, or, with no mail app, the invite on the clipboard. Under
+    // --blanc-test nothing launches, as typed hand-offs are only recorded.
+    if (method == "inviteFriend" && args.size() == 2 && args[0].is_string() && args[1].is_string() &&
+        args[0].GetString().size() <= 8192 && args[1].GetString().size() <= 8192) {
+      const GURL mailto(args[0].GetString());
+      if (!mailto.is_valid() || !mailto.SchemeIs("mailto") || !args[0].GetString().starts_with("mailto:?subject=")) {
+        reply(false, base::Value("Not an invite email."));
+        return;
+      }
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+      if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test")) {
+        reply(true, base::Value("mail"));
+        return;
+      }
+#endif
+      if (!shell_integration::GetApplicationNameForScheme(mailto).empty()) {
+        platform_util::OpenExternal(mailto);
+        reply(true, base::Value("mail"));
+        return;
+      }
+      ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste);
+      writer.WriteText(base::UTF8ToUTF16(args[1].GetString()));
+      reply(true, base::Value("copied"));
       return;
     }
     // Auto-hide's floating pill: its frame, and whether it shows.

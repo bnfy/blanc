@@ -897,6 +897,63 @@
       await request('groupTabByName', [nativeId(id), String(name ?? '')]);
       await refresh();
     },
+    // A selection's "New Group…": each selected tab joins the named group.
+    groupTabsByName: async (ids, name) => {
+      for (const id of Array.isArray(ids) ? ids : [])
+        await request('groupTabByName', [nativeId(id), String(name ?? '')]);
+      await refresh();
+    },
+    // ---- Slash commands (F7) on the fork's native operations ----
+    // /rename: Blanc's tab name (an empty name hands back the page title).
+    renameTab: async (id, name) => {
+      const renamed = await request('renameTab', [nativeId(id), String(name ?? '')]);
+      await refresh();
+      return renamed;
+    },
+    // The tab menu's Rename Tab…: the command bar opens on "/rename <label>"
+    // bound to that tab, as shipping's beginRenameTab.
+    beginRenameTab: async (id) => {
+      const tab = snapshot?.tabs.find(item => String(item.id) === String(id));
+      if (tab) await show(`/rename ${tab.title || ''}`, 'panel', null, { renameTabId: tab.id });
+    },
+    // /sleep: quiet every eligible background tab of this window now, as
+    // shipping's sleepBackgroundTabsNow. Native's safety check decides each.
+    sleepBackgroundTabs: async () => {
+      const visibleSplit = (snapshot?.splits ?? []).find(split => split.tabIds.includes(snapshot.activeTabId));
+      const visible = new Set([snapshot?.activeTabId, snapshot?.glanceTabId, ...(visibleSplit?.tabIds ?? [])]
+        .filter(id => id != null).map(String));
+      const quieted = [];
+      for (const tab of snapshot?.tabs ?? []) {
+        if (visible.has(String(tab.id)) || tab.asleep) continue;
+        if (await request('quietTab', [nativeId(tab.id)]).catch(() => false) === true) quieted.push(tab.id);
+      }
+      if (quieted.length) await refresh();
+      return quieted;
+    },
+    // /copy and /copy clean: the current page's address (cleaned by
+    // shipping's clean-link.js), then the pill's "copied" notice. Web and
+    // file pages only, as shipping's isCopyable.
+    copyActiveLink: async (clean) => {
+      const tab = snapshot?.tabs.find(item => item.id === snapshot.activeTabId);
+      if (!tab || !/^(https?|file):/i.test(tab.url ?? '')) return false;
+      const text = clean === true ? window.BlancCleanLink.cleanLinkForCopy(tab.url) : tab.url;
+      const copied = await request('copyTabLink', [nativeId(tab.id), tab.url, text]).catch(() => false);
+      if (copied === true) emit('onPillNotice', clean === true ? 'clean-link-copied' : 'link-copied');
+      return copied === true;
+    },
+    // /reader: Chromium's Reading Mode, toggled for this window (owner,
+    // 2026-11-02), not shipping's in-page reader.
+    toggleReaderMode: () => request('previewPageCommand', ['readingMode']),
+    // /invite: shipping's prefilled email (invite-friend.js) in the person's
+    // mail app, or, with none, the invite on the clipboard ('copied').
+    inviteFriend: async () => {
+      const t = strip.contentWindow?.blancI18n?.t;
+      if (!t) throw new Error('The Island strings are not loaded yet.');
+      const message = window.BlancInviteFriend.inviteMessage(t);
+      return request('inviteFriend', [window.BlancInviteFriend.inviteMailto(message), `${message.subject}\n\n${message.body}`]);
+    },
+    // Sending a tab needs Blanc Sync, not in the fork yet: shipping's answer.
+    sendTabToDevice: async () => ({ status: 'unavailable' }),
     setTabGroup: async (id, groupId) => {
       await request('setTabGroup', [nativeId(id), typeof groupId === 'string' ? groupId : null]);
       await refresh();
@@ -987,7 +1044,6 @@
     listSendTargets: async () => [],
     searchSuggestions: query => typed('searchSuggestions', [String(query)]),
     cycleTheme: theme => typed('cycleTheme', [typeof theme === 'string' ? theme : null]),
-    toggleDarkSiteOnActiveSite: () => typed('toggleDarkSiteOnActiveSite', []),
     routeActiveSite: mode => typed('routeActiveSite', [String(mode)]),
     openFindBar,
     findInPage: (id, query, options = {}) => request('find',
@@ -1032,9 +1088,14 @@
     };
   }
 
+  // Shipping members the Chromium builds leave to extensions (owner,
+  // 2026-11-02): absent, so the Island offers neither /dark-site nor
+  // /1password, as shipping does where a member is missing.
+  const ABSENT = new Set(['toggleDarkSiteOnActiveSite', 'fillLoginFromOnePassword']);
   const api = new Proxy(implemented, {
     get(target, property) {
       if (property in target) return target[property];
+      if (ABSENT.has(property)) return undefined;
       if (String(property).startsWith('on')) return (callback) => subscribe(property, callback);
       return () => {
         const error = new Error(`Prototype does not implement ${String(property)}. Use Chromium’s native controls.`);

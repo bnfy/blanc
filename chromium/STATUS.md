@@ -389,5 +389,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-55a329977de3035f; Windows: none; Linux: none.
+Candidate identities: macOS: macos-e2945bdaad7e13f8; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->
