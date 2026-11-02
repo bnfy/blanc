@@ -16060,6 +16060,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if(action==='apply')return sharedSharing.apply(payload,{waitForUpload:true});
         if(action==='pull')return sync.syncNow(payload);
         if(action==='resetRequestWindow')return sync.resetRequestWindowForTest();
+        if(action==='foreground'){sync.setForeground(payload!==false);return true;}
+        if(action==='check'){try{return await sync.checkVersions();}catch(error){return {threw:error.message};}}
+        if(action==='cadence')return sync.cadenceForTest();
         if(action==='capture'){captureSharedSpaceEdits(rt());return true;}
         if(action==='state')return {shared:sharedSpaceState.snapshot(sync.sharedContext()),context:sync.sharedContext(),closed:sharedClosedBand(rt()),parked:(rt().closedEntries??[]).map(entry=>({id:entry.id,sharedTabId:entry.sharedTabId,held:!!entry.view})),workspaces:workspacesProjection()};
         return null;
@@ -16860,7 +16863,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // Failures are swallowed and surfaced only in Settings (never startup).
     sync.init();
     // Freshness pull when Blanc regains focus (tab-sync spec §6; throttled inside).
-    app.on('browser-window-focus', () => sync.refreshSession());
+    // Focus also sets the change check's pace: every 15 s while a Blanc window
+    // is focused, every minute otherwise (design 2026-11-02).
+    app.on('browser-window-focus', () => { sync.setForeground(true); sync.refreshSession(); });
+    app.on('browser-window-blur', () => sync.setForeground(false));
+    // A full pass on wake: the five-minute pass may have slept through changes.
+    powerMonitor.on('resume', () => { sync.syncNow().catch(() => {}); });
     // Best-effort final push — fire-and-forget, never blocks quit (spec §6).
     app.on('before-quit', bindWindowRuntime(primaryRuntime, () => { sync.syncNow().catch(() => {}); }));
     // A sync pull that merged in favorites from another device refreshes the

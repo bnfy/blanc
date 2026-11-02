@@ -479,3 +479,37 @@ Then('the selection sheet is closed and Settings says the Spaces are uploading',
  assert.match(await this.sharedPage.locator('#sharedSpacesControl').textContent(),/Uploading your Spaces/);
  assert.equal(await this.sharedPage.locator('#sharedSpacesToggle').isChecked(),true);await evidence(this,'uploading');
 });
+// The change check (design 2026-11-02): another device's new Space reaches
+// this one on its next check, or on the minute pass without the check.
+// Setting up turns sync on and shares Work, which uses the request window;
+// the device is then put past that burst, as it is once it has run a while.
+Given('Blanc is in front',async function(){assert.equal(await this.call('sharedSpacesTest','foreground',true),true);await this.call('sharedSpacesTest','resetRequestWindow');});
+Given('the sync Worker can\'t answer change checks',function(){this.sharedFixture.setVersions(false);});
+When('another device shares a new Space {string}',{timeout:60000},async function(name){
+ const {accountId,key}=this.sharedKey,base=`${this.sharedFixture.url}/v1/blob/${accountId}/`,sid=require('node:crypto').randomBytes(16).toString('hex');
+ const field=v=>({v,c:Date.now(),by:'peer'}),tabId=require('node:crypto').randomBytes(16).toString('hex');
+ const blob={v:1,spaceId:sid,groups:{},tabs:{[tabId]:{nav:field({url:this.fixtureUrl('shared-first'),title:'Peer tab'}),name:field(null),pinned:field(false),groupId:field(null),pos:field(model.keyFor('','',tabId)),deleted:field(false)}}};
+ const put=async(store,body)=>{const r=await fetch(base+store,{method:'PUT',body:JSON.stringify(body)});return r;};
+ assert.equal((await put('space-'+sid,{ifVersion:null,blob:encrypt(key,JSON.stringify(blob))})).status,200);
+ for(let attempt=0;attempt<3;attempt++){
+  const current=await fetch(base+'spaces'),record=current.status===200?await current.json():null;
+  const index=record?JSON.parse(decrypt(key,record.blob)):{v:1,spaces:{}};
+  index.spaces[sid]={name:field(name),color:field('#426c4c'),symbol:field('briefcase'),pos:field(model.keyFor('','',sid)),deleted:field(false),
+   rev:model.revisionOf(blob),revAt:Date.now(),revBy:'peer',createdAt:Date.now(),createdBy:'peer'};
+  const written=await put('spaces',{ifVersion:record?.version??null,blob:encrypt(key,JSON.stringify(index))});
+  if(written.status===200)return;assert.equal(written.status,409);
+ }
+ assert.fail('the peer could not update the Spaces index');
+});
+Then('the {string} Space appears here within {int} seconds',{timeout:120000},async function(name,seconds){
+ const started=Date.now();
+ // Other windows on the test machine can take focus, which slows the check
+ // to once a minute; the scenario measures a device whose window stays in front.
+ try{await waitForValue(async()=>{await this.call('sharedSpacesTest','foreground',true);return (await this.call('workspaceAction','list')).items.some(row=>row.name===name);},Boolean,name+' arrives',seconds*1000);}
+ catch(error){
+  // What the device holds and asked for, for the failure report.
+  const st=await this.call('sharedSpacesTest','state');
+  process.stderr.write('[F57] '+JSON.stringify({cadence:await this.call('sharedSpacesTest','cadence'),check:await this.call('sharedSpacesTest','check'),index:Object.fromEntries(Object.entries(st.shared.index.spaces).map(([k,v])=>[k,v.name?.v])),blobs:Object.keys(st.shared.blobs),checks:this.sharedFixture.requests.filter(r=>r.store==='versions').length,last:this.sharedFixture.requests.slice(-12).map(r=>r.method+' '+r.store+' '+(r.status??''))})+'\n');throw error;}
+ process.stderr.write(`[F57] ${name} arrived after ${((Date.now()-started)/1000).toFixed(1)} s\n`);
+});
+

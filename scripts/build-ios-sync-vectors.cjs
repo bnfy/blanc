@@ -543,6 +543,24 @@ try {
   }
   // Pair links (design 2026-10-28 §7.3): one case table for both platforms.
   vectors.pairLinks=require('../test/unit/fixtures/pair-link-cases.json').cases.map(({name,input})=>entry(name,input,pair.pairLinkCode(input)));
+  // The change check (design 2026-11-02): which fixed stores to fetch.
+  const changes=require('../src/main/sync-changes');
+  const allStores=value=>Object.fromEntries(changes.FIXED_STORES.map(store=>[store,value]));
+  vectors.changes={constants:{FIXED_STORES:changes.FIXED_STORES,CHECK_MS:changes.CHECK_MS,BACKGROUND_CHECK_MS:changes.BACKGROUND_CHECK_MS,FULL_PASS_MS:changes.FULL_PASS_MS,
+    RETRY_PASS_MS:changes.RETRY_PASS_MS,CHECK_RETRY_AFTER_MS:changes.CHECK_RETRY_AFTER_MS,OPEN_TABS_MS:changes.OPEN_TABS_MS,R_PER_PASS:changes.R_PER_PASS},changed:[],confirmed:[]};
+  for(const [name,input] of [
+    ['unchanged',{named:allStores('v1'),seen:allStores('v1'),now:1e6,lastOpenTabsFetch:0}],
+    ['index moved',{named:{...allStores('v1'),spaces:'v2'},seen:allStores('v1'),now:1e6,lastOpenTabsFetch:0}],
+    ['appeared and vanished',{named:{...allStores(null),sends:'new',closed:null},seen:{...allStores(null),closed:'gone'},now:1e6,lastOpenTabsFetch:0}],
+    ['never seen',{named:{...allStores(null),settings:'v1'},seen:{},now:1e6,lastOpenTabsFetch:0}],
+    ['open tabs wait',{named:{...allStores('v1'),session:'v2',icons:'v2'},seen:allStores('v1'),now:100000,lastOpenTabsFetch:80000}],
+    ['open tabs due',{named:{...allStores('v1'),session:'v2',icons:'v2',bookmarks:'v2'},seen:allStores('v1'),now:141000,lastOpenTabsFetch:80000}],
+  ]) vectors.changes.changed.push(entry(name,input,changes.changedStores(input)));
+  for(const [name,input] of [
+    ['raced',{named:allStores('v2'),store:'spaces',fetchedVersion:'v1'}],
+    ['matched',{named:allStores('v2'),store:'spaces',fetchedVersion:'v2'}],
+    ['still absent',{named:allStores(null),store:'sends',fetchedVersion:null}],
+  ]) vectors.changes.confirmed.push(entry(name,input,changes.confirmFetched(input)));
   const output=JSON.stringify(vectors,null,2)+'\n';
   if (process.argv.includes('--write')) { fs.mkdirSync(path.dirname(dest),{recursive:true}); fs.writeFileSync(dest,output); }
   else if (fs.readFileSync(dest,'utf8') !== output) { throw new Error('iOS sync vectors are stale; run npm run ios:sync-vectors:build'); }

@@ -25,6 +25,9 @@ const RESETTING_STEPS = [
   'device B closes the active Work tab',
   'the restored client retries the missing index entry',
   'the relaunched client applies the held navigation and keeps every Work tab',
+  // F57-24/25 time a peer's new Space arriving; turning sync on and sharing
+  // Work just before fill the window, so the device is put past that burst.
+  'Blanc is in front',
 ];
 
 /** Helpers that reset for the steps calling them, and those steps. */
