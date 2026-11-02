@@ -63,7 +63,10 @@ async function runCase(matches,steps){
   entry.result='pass';
  }catch(error){
   // A failure on a display that stopped rendering mid-case is not a result.
-  if(error.code!=='BLANC_ENVIRONMENT_STOP'&&fixture.host)await assertRendering(e=>fixture.host.eval(e)).catch(stop=>{if(stop.code==='BLANC_ENVIRONMENT_STOP')error=stop;});
+  // An auto-hidden Island sits above the window and draws no frames, so show
+  // it before asking whether the display still draws.
+  if(error.code!=='BLANC_ENVIRONMENT_STOP'&&fixture.host)await nativeCall(fixture.host,'setIslandAutoHide',[false]).catch(()=>{})
+   .then(()=>assertRendering(e=>fixture.host.eval(e))).catch(stop=>{if(stop.code==='BLANC_ENVIRONMENT_STOP')error=stop;});
   if(error.code==='BLANC_ENVIRONMENT_STOP'){entry.stop=error;}
   else{entry.result=error.code==='BLANC_ADAPTER_UNDEFINED'?'undefined':'fail';entry.error=String(error.message||error);if(fs.existsSync(fixture.directory||''))fs.writeFileSync(path.join(fixture.directory,'error.txt'),String(error.stack||error));}}
  finally{entry.browserExit=await fixture.close();if(fixture.reapedHelpers)entry.reapedHelpers=fixture.reapedHelpers;

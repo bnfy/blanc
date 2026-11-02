@@ -104,9 +104,10 @@ export const island={
  // ---- window ----
  async windowContentBounds(w){
   const {bounds}=await windowOf(w);
-  // The Island window has no OS frame: the host and the page split its height.
+  // The Island window has no OS frame: the host and the page split its height,
+  // or (auto-hide) the page takes all of it with the Island above it.
   const [host,page]=await Promise.all([w.hostEval('({w:innerWidth,h:innerHeight})'),(await activePage(w)).evalExpression('innerHeight')]);
-  if(host.w!==bounds.width||(host.h===68&&host.h+page!==bounds.height))throw Error('Island window content does not fill its frame: '+JSON.stringify({bounds,host,page}));
+  if(host.w!==bounds.width||(host.h===68&&host.h+page!==bounds.height&&page!==bounds.height))throw Error('Island window content does not fill its frame: '+JSON.stringify({bounds,host,page}));
   return {x:bounds.left,y:bounds.top,width:bounds.width,height:bounds.height};
  },
  async setWindowContentSize(w,width,height){
@@ -137,9 +138,17 @@ export const island={
    chipHidden:chip?!!chip.hidden:null,chipLabel:chip?chip.textContent:null};
  }),
  clickPillSlash:w=>strip(w).evaluate(()=>document.getElementById('pillSlash').click()),
- stripAppRegion:w=>strip(w).evaluate(()=>{const s=getComputedStyle(document.getElementById('strip'));return s.getPropertyValue('-webkit-app-region')||s.appRegion;}),
- dragBandAppRegion:w=>strip(w).evaluate(()=>{const b=document.getElementById('dragBand');if(!b)return null;const s=getComputedStyle(b);
-  return s.display==='none'?'none':s.getPropertyValue('-webkit-app-region')||s.appRegion;}),
+ // The fork's window drag is native (IsCaption), not CSS app regions, so
+ // these read the caption: an empty strip point beside the pill, and the
+ // thin band along the page pane's top.
+ async stripAppRegion(w){
+  const pill=(await islandReport(w))?.rect;if(!pill)return null;
+  return await w.native('captionAt',[Math.round(Math.max(100,pill.x-40)),34])?'drag':'no-drag';
+ },
+ async dragBandAppRegion(w){
+  const {width}=await island.windowContentBounds(w);
+  return await w.native('captionAt',[Math.round(width/2),2])?'drag':'none';
+ },
  chromeEval:(w,script)=>strip(w).evalExpression(String(script)),
  sendChromeMouseInput:(w,input)=>frameInput(w,'strip',input),
  // ---- overlay ----
@@ -194,20 +203,41 @@ export const island={
   if((await w.snapshot()).islandHoverOpen!==(on===true))throw Error('The Island hover-open setting did not change');
   return value;
  },
- setIslandAutoHide:(w,on)=>settingsControl(w,'islandAutoHide',on===true),
- setIslandAutoHideStyle:(w,style)=>settingsControl(w,'islandAutoHideStyle',String(style)),
+ // Shipping's hooks write the settings directly, as setIslandHoverOpen does.
+ async setIslandAutoHide(w,on){
+  const value=await w.native('setIslandAutoHide',[on===true]);
+  await w.hostEval('window.BlancPrototypeHost.refresh()');
+  return value;
+ },
+ setIslandAutoHideStyle:(w,style)=>{
+  if(String(style)!=='push')throw new UndefinedNativeAdapterError('The fork\'s auto-hide pushes the page; its float style is not built yet');
+  return 'push';
+ },
  // ---- surfaces the fork Island does not have ----
  // Shipping's hover-open state, held by the host (host.js, F1).
  islandHoverState:w=>w.hostEval('window.BlancPrototypeHost.hoverState()'),
- islandAutoHideState:undef('The fork Island has no auto-hide state to observe'),
- // Shipping seeds the cursor its main process samples when the panel closes;
- // the host samples the last pointer it saw, given here in window content
- // coordinates and moved into the strip's.
- async setTestCursorPoint(w,point){
-  const bounds=await island.windowContentBounds(w);const strip=await frameRect(w,'strip');
-  return w.hostEval(`window.BlancPrototypeHost.setLastPointer(${JSON.stringify({x:point.x-bounds.x-strip.x,y:point.y-bounds.y-strip.y})})`);
+ // Native auto-hide state, with the host's how-to tip.
+ async islandAutoHideState(w){
+  const state=await w.native('autoHideState');
+  return {...state,introTipShown:state.introducing&&await w.hostEval('window.BlancPrototypeHost.autoHideIntroShown()')};
  },
- setCursorSamplingUnavailable:undef('Cursor sampling override is a shipping test seed; the fork samples no cursor'),
+ // Shipping's test cursor, in screen coordinates. Native samples it for
+ // auto-hide (in window content coordinates); the host samples its last
+ // pointer when the panel closes (in the strip's, which sits above the page's
+ // top when auto-hide pushes it).
+ async setTestCursorPoint(w,point){
+  if(point==null){
+   await w.native('setTestCursorPoint',[null]);
+   return w.hostEval('window.BlancPrototypeHost.setLastPointer(null)');
+  }
+  const bounds=await island.windowContentBounds(w);const strip=await frameRect(w,'strip');
+  const local={x:point.x-bounds.x,y:point.y-bounds.y};
+  if(await w.native('setTestCursorPoint',[local])!==true)return false;
+  const state=await w.native('autoHideState');
+  const islandTop=state.pageY-state.chromeHeight;
+  return w.hostEval(`window.BlancPrototypeHost.setLastPointer(${JSON.stringify({x:local.x-strip.x,y:local.y-islandTop-strip.y})})`);
+ },
+ setCursorSamplingUnavailable:(w,on)=>w.native('setCursorSamplingUnavailable',[on===true]),
  holdIslandInWindow:undef('The fork has no floating Island to hold'),
  floatEval:undef('The fork has no floating Island views'),
  floatViewState:undef('The fork has no floating Island views'),
