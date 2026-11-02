@@ -51,9 +51,16 @@ const strip=w=>w.frame('strip');const overlay=w=>w.frame('overlay');
 // own refresh has carried the native state that the step just changed.
 const painted=w=>w.hostEval('window.BlancPrototypeHost.refresh().then(()=>new Promise(r=>setTimeout(r,50)))');
 const frameRect=(w,id)=>w.hostEval(`(()=>{const f=document.getElementById(${jsLiteral(id)});if(!f||f.hidden)return null;const r=f.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}})()`);
+// Blink dispatches mouse moves with the next frame, after CDP has answered;
+// Electron's input-event reaches shipping's main process before
+// sendInputEvent returns. Waiting two frames gives the move to its listeners
+// first, so a step reads the state the move left.
+const nextFrames='new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(()=>r(true))))';
 async function frameInput(w,id,input){
  const r=await frameRect(w,id);if(!r)return false;
- return send(w.fixture.host,input,{x:r.x,y:r.y});
+ await send(w.fixture.host,input,{x:r.x,y:r.y});
+ if(MOUSE[input?.type])await w.hostEval(nextFrames);
+ return true;
 }
 // The strip renderer's own report (renderer.js reportIslandRect): the resting
 // pill box with any proximity swell divided back out, plus the URL area.
@@ -178,13 +185,28 @@ export const island={
  },
  // ---- settings (fork Settings page) ----
  setIslandTabIcons:(w,on)=>settingsControl(w,'islandTabIcons',!!on),
- setIslandHoverOpen:(w,on)=>settingsControl(w,'islandHoverOpen',on===true),
+ // Shipping's hook writes the setting directly (settings.setSettings); going
+ // through the Settings page takes longer than a dwell. The host's refresh
+ // carries it, as the preference observer's settings event does.
+ async setIslandHoverOpen(w,on){
+  const value=await w.native('setIslandHoverOpen',[on===true]);
+  await w.hostEval('window.BlancPrototypeHost.refresh()');
+  if((await w.snapshot()).islandHoverOpen!==(on===true))throw Error('The Island hover-open setting did not change');
+  return value;
+ },
  setIslandAutoHide:(w,on)=>settingsControl(w,'islandAutoHide',on===true),
  setIslandAutoHideStyle:(w,style)=>settingsControl(w,'islandAutoHideStyle',String(style)),
  // ---- surfaces the fork Island does not have ----
- islandHoverState:undef('The fork Island has no hover-open state machine to observe'),
+ // Shipping's hover-open state, held by the host (host.js, F1).
+ islandHoverState:w=>w.hostEval('window.BlancPrototypeHost.hoverState()'),
  islandAutoHideState:undef('The fork Island has no auto-hide state to observe'),
- setTestCursorPoint:undef('Cursor sampling override is a shipping test seed; the fork samples no cursor'),
+ // Shipping seeds the cursor its main process samples when the panel closes;
+ // the host samples the last pointer it saw, given here in window content
+ // coordinates and moved into the strip's.
+ async setTestCursorPoint(w,point){
+  const bounds=await island.windowContentBounds(w);const strip=await frameRect(w,'strip');
+  return w.hostEval(`window.BlancPrototypeHost.setLastPointer(${JSON.stringify({x:point.x-bounds.x-strip.x,y:point.y-bounds.y-strip.y})})`);
+ },
  setCursorSamplingUnavailable:undef('Cursor sampling override is a shipping test seed; the fork samples no cursor'),
  holdIslandInWindow:undef('The fork has no floating Island to hold'),
  floatEval:undef('The fork has no floating Island views'),

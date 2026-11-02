@@ -22,6 +22,15 @@ export async function tabPage(w,id){
  await w.app.refresh();
  return w.app.windows().find(p=>p.targetId===targets[0].id);
 }
+// host.js show() resolves once the overlay is unhidden; a toggle that closed
+// it instead has nothing to wait for.
+async function openIsland(w,newTab){
+ const result=await w.hostEval(`window.BlancPrototypeHost.open(${newTab})`);
+ await w.hostEval(`new Promise(r=>{const end=Date.now()+2000;(function check(){
+  if(document.getElementById('overlay').hidden||innerHeight>68||Date.now()>end)return r(true);
+  requestAnimationFrame(check);})();})`);
+ return result;
+}
 async function groupNamed(w,name){return (await w.snapshot()).groups.find(g=>same(g.name,name))??null;}
 async function created(w,reply){
  const id=String(reply.tabId);
@@ -63,8 +72,13 @@ export const core={
  closeTabsBeside:async(w,id,direction)=>{await w.api(direction==='above'?'closeAbove':'closeBelow',[String(id)]);return true;},
  adblockEnabled:async w=>(await w.snapshot()).adblockEnabled,
  closeOverlay:w=>w.api('closeOverlay'),
- openPanel:w=>w.hostEval('window.BlancPrototypeHost.open(true)'),
- openPalette:w=>w.hostEval('window.BlancPrototypeHost.open(false)'),
+ // Shipping's showOverlay attaches the overlay view with its bounds before it
+ // returns; the host shows its overlay once the native view has taken the
+ // height, and the host document learns its new size a frame or so later.
+ // Opening resolves once both have happened, so a move over the panel area
+ // lands in the open overlay.
+ openPanel:w=>openIsland(w,true),
+ openPalette:w=>openIsland(w,false),
  // The host owns the mode (main in shipping); the overlay document's own
  // body mode is what its renderer has applied.
  overlayMode:w=>w.hostEval(`(()=>{const f=document.querySelector('#overlay');return !f||f.hidden?null:f.dataset.mode||null})()`),

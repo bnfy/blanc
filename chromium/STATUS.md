@@ -103,7 +103,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     request to blanc.day has not been exercised.
   - Bang scenarios: 16 of 18 pass; the two private-tab ones need D1.
     Navigation and settings features unchanged.
-  - Patch series: 0001–0009 touch all 83 pinned upstream files with 260
+  - Patch series: 0001–0010 touch all 83 pinned upstream files with 261
     hunks.
   - **Outbound isolation passes on macos-92a5c23a766fdc5e (2026-11-01).**
     Run as `blanc-test` with a pf block on that user (owner-approved anchor),
@@ -164,6 +164,16 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     stay on the OS language. All five F44 cases pass. The Start Page still
     uses v1.45.0's catalog, which follows the browser language until S1.8
     replaces its assets.
+  - Hover-open (F1), candidate macos-be7b01cddb488a16 (2026-11-02): the host
+    runs shipping's own state machine (`island-hover-open.js`, generated from
+    v1.45.1's src/main and stepped against it in a unit test) over the
+    pointer moves of the strip, the overlay and the host itself, as
+    shipping's main process does over the strip and the pages. A move over
+    the page reaches none of them, so the pointer leaving the Island view
+    counts as the move outside. The setting is the profile preference
+    `blanc.island.hover_open` (patch 0010, off by default) on Settings'
+    Island card. 13 of the 14 hover cases pass; F1-13 waits for Blanc's
+    permission prompt (S1.6), as F13-1 does.
 - **S1 baseline on macos-3f969a35b9f9f7ad (fork 82f8cd80), full run of
   2026-11-01:** 101 of the 253 S1 cases pass, 119 fail, 33 undefined. Every
   case that passed on macos-790ca4d6d538c894 (70) still passes; 31 earlier
@@ -248,7 +258,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
 ## Reading the failures
 Most failures on the previous candidate are real product gaps, clustered:
 - Settings opens chrome://settings (no Blanc controls): 42 Island hover/auto-hide
-  cases, search engine, suggestions, theme, bang and tab-icon settings.
+  cases (hover-open's now pass in targeted runs), search engine, suggestions, theme, bang and tab-icon settings.
 - Private tabs refused (in-window private tabs not built yet; D1 decided): F4 and every case with a private step.
 - Facade gaps: Bangs disabled, no bangIcons, no beginRenameGroup, /allow-ads and
   /block-ads absent from the command list, search hard-coded to Google.
@@ -283,15 +293,18 @@ Built in d1984adb: slots 4–8 in previewPageCommand; closeWindow. Built for
 S1.1: `handoffs` (typed hand-offs recorded under --blanc-test),
 `externalLaunches` (every external launch and Blanc's decision),
 `setSuggestionFixture`/`suggestionRequests`, `setBangsEnabled`,
-`stubBangIconServer`/`bangIconRequests`/`bangIconStore`. Identified, not
+`stubBangIconServer`/`bangIconRequests`/`bangIconStore`. Built for S1.2:
+`tabTargets`, `hitTarget`, `setStoredUiLanguage`/`storedUiLanguage`,
+`setIslandHoverOpen` (the host's `hoverState`/`setLastPointer` stand in for
+shipping's hover hooks). Identified, not
 built: sessionWindows (session.json-shaped projection); certificate decision
 list/forget/cap; history visit + site icon seed; favorite favicon seed;
 first-run/checklist/Patron/launch-Sunrise state once stored; address context menu
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.2 rest: hover-open and auto-hide (shipping's main-process logic,
-   ported natively: 42 F1 cases), all 34 slash commands (deferred features
+1. S1.2 rest: auto-hide (shipping's main-process logic and a native
+   layout: 26 F1 cases), all 34 slash commands (deferred features
    answer with shipping's unavailable copy), zoom, copy/clean link, and the
    browserAPI members the host doesn't answer yet. Verify each change with targeted `--only` runs
    merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
@@ -344,5 +357,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-a181ef448d393cfb; Windows: none; Linux: none.
+Candidate identities: macOS: macos-be7b01cddb488a16; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

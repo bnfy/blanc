@@ -370,6 +370,7 @@
     const attempt = ++snapshotRefreshAttempt;
     try {
       snapshot = await request('snapshot');
+      settleHover();
       const pill = strip.contentDocument?.getElementById('islandPill');
       let recovery = strip.contentDocument?.getElementById('blockerRecovery');
       if (pill && !recovery) {
@@ -519,7 +520,9 @@
     }
   }
 
-  async function show(prefill, mode = 'panel', trigger = null) {
+  async function show(prefill, mode = 'panel', trigger = null, purpose = undefined) {
+    // Every open ends a hover dwell, as shipping's showOverlay does.
+    hoverStepWith({ type: 'ineligible' });
     invalidateFindShow(mode === 'shield');
     const epoch = findShowEpoch;
     if (overlayMode === 'find') emit('onOverlayHide', {});
@@ -540,7 +543,7 @@
     emit('onIslandState', { mode, trigger: shieldTrigger });
     requestAnimationFrame(() => {
       if (epoch !== findShowEpoch || !opened || overlayMode !== mode) return;
-      emit('onOverlayShow', { mode, prefill, pillRect });
+      emit('onOverlayShow', { mode, prefill, pillRect, ...(purpose ? { purpose } : {}) });
       reportGeometry();
       if (prefill !== undefined) {
         const input = overlay.contentDocument.getElementById('addressInput');
@@ -627,6 +630,10 @@
     if (focus) await request('focusPage');
     if (epoch !== findShowEpoch) return;
     reportGeometry();
+    // The resting pointer is sampled where it is now, as shipping's
+    // hideOverlay does: still over the address it disarms hover-open instead
+    // of reopening, and anywhere off the Island (no point) it re-arms it.
+    updateHover(hover.lastPoint, { sampled: true });
   }
 
   const extensionsPanel = new window.BlancExtensions({
@@ -1041,9 +1048,86 @@
     });
   }
 
+  // ---- Hover-open (F1-3…F1-21): shipping's state machine (generated
+  // island-hover-open.js) over the strip's own pointer events. Shipping's
+  // main process holds this state; in the fork the host does, as it holds the
+  // overlay. Points are in the strip document, where hoverRect is measured.
+  const HoverOpen = window.BlancIslandHoverOpen;
+  const hover = { state: HoverOpen.initialHoverState(), timer: null, point: null, lastPoint: null };
+  const hoverHooked = new WeakSet();
+  function hoverEligible() {
+    return snapshot?.islandHoverOpen === true && pillRect?.hoverCapable === true && !!pillRect?.hoverRect &&
+      snapshot?.windowActive !== false && document.visibilityState === 'visible' &&
+      !opened && !extensionsOpened && !paneMenu && !snapshot?.glanceTabId;
+  }
+  function clearHoverTimer() { if (hover.timer) clearTimeout(hover.timer); hover.timer = null; }
+  function hoverStepWith(event) {
+    const next = HoverOpen.hoverStep(hover.state, event);
+    hover.state = next.state;
+    if (next.effect === 'cancel') clearHoverTimer();
+    if (next.effect === 'start') {
+      clearHoverTimer();
+      hover.timer = setTimeout(() => {
+        hover.timer = null;
+        if (!hoverEligible() || !HoverOpen.pointInRect(hover.point, pillRect?.hoverRect)) {
+          hoverStepWith({ type: 'ineligible' });
+          return;
+        }
+        const fired = HoverOpen.hoverStep(hover.state, { type: 'fired' });
+        hover.state = fired.state;
+        // Marked so the overlay closes it again once the pointer leaves it
+        // (hover-panel-leave.js).
+        if (fired.effect === 'open') show(undefined, 'panel', null, { hoverOpened: true });
+      }, HoverOpen.HOVER_OPEN_DWELL_MS);
+    }
+    return next;
+  }
+  function updateHover(point, { buttonsDown = false, sampled = false } = {}) {
+    hover.point = point;
+    return hoverStepWith({ type: 'move', inside: HoverOpen.pointInRect(point, pillRect?.hoverRect),
+      eligible: hoverEligible(), buttonsDown, sampled });
+  }
+  // Shipping watches the strip and every page beneath it, so a move anywhere in
+  // the window places the pointer. The host sees the strip, the overlay and its
+  // own document (each move given in strip coordinates); a move over the page
+  // reaches none of them, so the pointer leaving the host is the move outside.
+  // Counting moves over an open panel changes nothing shipping would do: the
+  // open Island is ineligible, and closing it samples the pointer as shipping
+  // does.
+  function hookHover(doc, frame) {
+    if (!doc || hoverHooked.has(doc)) return;
+    hoverHooked.add(doc);
+    doc.addEventListener('mousemove', (event) => {
+      const from = frame?.getBoundingClientRect() ?? { x: 0, y: 0 };
+      const to = strip.getBoundingClientRect();
+      hover.lastPoint = { x: event.clientX + from.x - to.x, y: event.clientY + from.y - to.y };
+      updateHover(hover.lastPoint, { buttonsDown: event.buttons !== 0 });
+    }, true);
+    // A subframe's mouseleave does not bubble, and the root it targets may not
+    // exist yet when the document is hooked, so the capture listener on the
+    // document picks out its root.
+    if (!frame) doc.addEventListener('mouseleave', (event) => {
+      if (event.target !== doc.documentElement) return;
+      hover.lastPoint = null;
+      updateHover(null);
+    }, true);
+  }
+  hookHover(document, null);
+  // A setting turned off, or anything else that ends eligibility, ends a dwell.
+  function settleHover() {
+    hookHover(strip.contentDocument, strip);
+    hookHover(overlay.contentDocument, overlay);
+    if (hover.state.dwelling && !hoverEligible()) hoverStepWith({ type: 'ineligible' });
+  }
+  window.blancPrototypeEvent = (kind) => { if (kind === 'settings') refresh().then(settleHover, settleHover); };
+
   window.BlancPrototypeHost = {
     api,
     apiForDocument,
+    hoverState: () => ({ ...hover.state }),
+    // Where the pointer last rested over the strip, which closing the panel
+    // samples (shipping's sampledWindowCursor); the harness sets it.
+    setLastPointer: (point) => { hover.lastPoint = point && { x: Number(point.x), y: Number(point.y) }; return true; },
     notice,
     open: (newTab = false, text = '') => {
       if (!newTab && opened && overlayMode !== 'find') { emit('onOverlayToggle'); return; }
