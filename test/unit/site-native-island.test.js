@@ -47,6 +47,14 @@ test('hero extraction retains native dimensions, material and actual action SVGs
   assert.match(read('site/src/components/NativeIslandHero.astro'), /aria-hidden="true" inert/);
 });
 
+test('the floating Glance card draws from the app’s current card rules, radius included', async () => {
+  const {nativeGlanceCardArt} = await load('site/src/lib/native-island-art.mjs');
+  const art = nativeGlanceCardArt({ ...source, host: 'example.com', icon: '' });
+  const radius = source.styles.match(/--glance-card-radius:[^;]+;/)[0];
+  assert.ok(art.css.includes(radius), 'the card carries its own corner radius');
+  assert.match(art.css, /\.glance-card \{[^}]*border-radius: var\(--glance-card-radius\)/);
+});
+
 test('native geometry edits flow into the artwork and missing source fails closed', async () => {
   const {nativeIslandArt} = await load('site/src/lib/native-island-art.mjs');
   const changed = nativeIslandArt({...source, styles:source.styles.replace('--island-resting-height: 44px;', '--island-resting-height: 48px;')});
