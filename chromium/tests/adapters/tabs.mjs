@@ -45,7 +45,7 @@ export const MENU_KEYS={
  'toggle-favorite':['tabMenu.saveFavorite','tabMenu.removeFavorite'],'reload':['menu.reload'],
  'new-tab-below':['tabMenu.newTabBelow'],'close-above':['tabMenu.closeAbove'],'close-below':['tabMenu.closeBelow'],
  'close':['menu.closeTab'],'remove-from-split':['tabMenu.removeFromSplit'],'close-split':['tabMenu.closeSplit'],
- 'copy-link':['tabMenu.copyLink'],'duplicate':['tabMenu.duplicate'],'rename':['tabMenu.rename'],
+ 'copy-link':['tabMenu.copyLink'],'duplicate':['tabMenu.duplicate'],'rename':['tabMenu.rename'],'reset-title':['tabMenu.resetTitle'],
  'close-others':['tabMenu.closeOthers'],'new-tab':['menu.newTab'],'new-private-tab':['menu.newPrivateTab'],
  'glance':['tabMenu.glance'],'quiet':['tabMenu.quiet'],'group':['tabMenu.moveToGroup'],'space':['tabMenu.moveToSpace'],
  'send-to':['tabMenu.sendToDevice'],'split-with':['tabMenu.splitWith'],
@@ -171,6 +171,9 @@ export const tabs={
   try{return (await w.api('setGroupColor',[g.id,color]))===true;}
   catch(e){if(/Unknown group color/.test(e.message))return false;throw e;}
  },
+ // F46: shipping's hooks for Rename Tab… and Reset Tab Title (null resets).
+ beginRenameTab:(w,id)=>w.api('beginRenameTab',[String(id)]),
+ renameTab:(w,id,name)=>w.api('renameTab',[String(id),name==null?'':String(name)]),
  async beginRenameGroupByName(w,name){
   const g=(await w.snapshot()).groups.find(g=>same(g.name,name));if(!g)return false;
   await w.api('beginRenameGroup',[g.id]);return true;

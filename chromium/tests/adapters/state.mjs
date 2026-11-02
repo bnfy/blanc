@@ -11,7 +11,9 @@ export function shippingState(snapshot){
  const splitOf=new Map((snapshot.splits||[]).flatMap(s=>s.tabIds.map(t=>[String(t),String(s.id)])));
  const tabs=snapshot.tabs.map(t=>({
   id:String(t.id),url:shippingPageUrl(t.url),loadedUrl:t.committedUrl==null?null:shippingPageUrl(t.committedUrl),
-  loading:!!t.isLoading,isLoading:!!t.isLoading,title:t.title||'',favicon:t.favicon||null,
+  // A renamed tab's snapshot title is its name and pageTitle the page's
+  // own; shipping's state keeps them as title and customTitle.
+  loading:!!t.isLoading,isLoading:!!t.isLoading,title:(t.pageTitle??t.title)||'',customTitle:t.pageTitle!=null?t.title:null,favicon:t.favicon||null,
   groupId:id(t.groupId),splitId:splitOf.get(String(t.id))??null,pinned:!!t.pinned,
   muted:!!(t.muted||t.siteMuted),audible:!!t.audible,canGoBack:!!t.canGoBack,canGoForward:!!t.canGoForward,
   private:!!t.private,asleep:!!t.asleep,
