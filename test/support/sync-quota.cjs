@@ -19,9 +19,10 @@ function attachQuota(env,AccountQuota) {
 }
 // Test observations/faults span both authoritative backends explicitly. The
 // actual Worker still uses the real KV or SQLite path, never this view.
+// Deleting a fixed store also drops the object's copy of it, as a lost blob.
 function blobView(records,states) {
   const locate=key=>{const m=key.match(/^blob:([0-9a-f]{64}):(space-[0-9a-f]{32})$/);return m?{map:states.get(m[1])?.values,key:'blob:'+m[2]}:{map:records,key};};
   const entries=()=>{const all=new Map(records);for(const [id,state] of states)for(const [key,value] of state.values)if(key.startsWith('blob:'))all.set(`blob:${id}:${key.slice(5)}`,value);return [...all];};
-  return {get:key=>{const p=locate(key);return p.map?.get(p.key);},has:key=>{const p=locate(key);return p.map?.has(p.key)??false;},delete:key=>{const p=locate(key);return p.map?.delete(p.key)??false;},keys:function*(){for(const [k] of entries())yield k;},entries:()=>entries()[Symbol.iterator](),[Symbol.iterator]:()=>entries()[Symbol.iterator]()};
+  return {get:key=>{const p=locate(key);return p.map?.get(p.key);},has:key=>{const p=locate(key);return p.map?.has(p.key)??false;},delete:key=>{const p=locate(key),fixed=key.match(/^blob:([0-9a-f]{64}):([a-z]+)$/);if(fixed)states.get(fixed[1])?.values.delete('fixed:'+fixed[2]);return p.map?.delete(p.key)??false;},keys:function*(){for(const [k] of entries())yield k;},entries:()=>entries()[Symbol.iterator](),[Symbol.iterator]:()=>entries()[Symbol.iterator]()};
 }
 module.exports={quotaState,attachQuota,blobView};

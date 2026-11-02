@@ -88,3 +88,15 @@ test('real local KV and SQLite cover every legacy subset without inventory',{tim
   assert.equal(await (await object.fetch('https://quota.invalid/ledger')).json(),null);
  }
 });
+
+test('fixed stores read from the object survive eviction and keep KV written',{timeout:120000},async t=>{
+ const server=createTestHarness({root,workers:[{configPath:'./wrangler.toml'}]});t.after(()=>server.close());await server.listen();
+ const worker=server.getWorker(),account='c'.repeat(64),base='/v1/blob/'+account+'/';
+ const put=async(blob,ifVersion)=>{const r=await worker.fetch(base+'settings',{method:'PUT',body:JSON.stringify({blob,ifVersion})});return {status:r.status,body:await r.json()};};
+ const first=await put({ct:'one'},null);assert.equal(first.status,200);
+ const second=await put({ct:'two'},first.body.version);assert.equal(second.status,200);
+ assert.equal((await put({ct:'late'},first.body.version)).status,409,'the object compares fixed stores');
+ await worker.evictDurableObject('ACCOUNT_QUOTA',{name:account});
+ const read=await worker.fetch(base+'settings');assert.equal(read.status,200);
+ assert.equal((await read.json()).version,second.body.version);
+});

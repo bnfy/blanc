@@ -138,19 +138,30 @@ async function handleGet(env, accountId, store) {
   return capable(json({ version: rec.version, blob: rec.blob }));
 }
 
+// With the account object bound, every store is read there: a KV read can be
+// cached at this location for up to a minute, so a fixed store read from KV
+// could be older than the write another device just made (design 2026-11-02).
 async function readBlob(env, accountId, store) {
-  if (!dynamicStore(store)) return { record: await env.SYNC.get(blobKey(accountId, store), { type: 'json' }) };
+  if (!dynamicStore(store) && !env.ACCOUNT_QUOTA) return { record: await env.SYNC.get(blobKey(accountId, store), { type: 'json' }) };
   if (!env.ACCOUNT_QUOTA) return { response: unavailable('quota unavailable') };
   try {
-    const result = await env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId)).fetch('https://quota.invalid/read', { method: 'POST', body: JSON.stringify({ accountId, store }) });
-    if (!result.ok) return { response: unavailable('quota unavailable') };
-    return await result.json();
+    const object = env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId));
+    const read = async (extra) => {
+      const result = await object.fetch('https://quota.invalid/read', { method: 'POST', body: JSON.stringify({ accountId, store, ...extra }) });
+      return result.ok ? result.json() : { response: unavailable('quota unavailable') };
+    };
+    const first = await read();
+    // The object never reads KV (quota decisions stay free of it), so a fixed
+    // store it has no copy of yet is read here once and handed to it.
+    if (!first.missing) return first;
+    return await read({ kv: await env.SYNC.get(blobKey(accountId, store)) });
   } catch { return { response: unavailable('quota unavailable') }; }
 }
 
-// Optimistic concurrency: reject if the caller's ifVersion isn't current. The
-// fixed-store KV read-then-write is not a transaction and can lose racing
-// writes. Spaces compare and commit inside the serialized account object.
+// Optimistic concurrency: reject if the caller's ifVersion isn't current.
+// Every store compares and commits inside the serialized account object; only
+// a Worker without one falls back to the KV read-then-write, which is not a
+// transaction and can lose racing writes.
 async function handlePut(env, accountId, store, body) {
   if (dynamicStore(store) && !env.ACCOUNT_QUOTA) return unavailable('quota unavailable');
   if (!body || typeof body.blob !== 'object' || body.blob === null) return json({ error: 'bad blob' }, 400);
@@ -160,17 +171,21 @@ async function handlePut(env, accountId, store, body) {
     const busy = await newAccountRefusal(env);
     if (busy) return busy;
   }
-  if (!dynamicStore(store)) {
+  if (!dynamicStore(store) && !env.ACCOUNT_QUOTA) {
     const read = await readBlob(env, accountId, store);
     if (read.response) return read.response;
     const cur = read.record;
     if ((body.ifVersion ?? null) !== (cur?.version ?? null)) return json({ version: cur?.version ?? null, error: 'conflict' }, 409);
   }
+  // The object compares a fixed store against its copy; the KV value read
+  // here is only adopted when it has none yet (an account last written
+  // before the object kept copies).
+  const kv = !dynamicStore(store) && env.ACCOUNT_QUOTA ? await env.SYNC.get(blobKey(accountId, store)) : undefined;
   const version = crypto.randomUUID();
   const stored = JSON.stringify({ version, blob: body.blob });
   if (env.ACCOUNT_QUOTA) {
     const quota = env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId));
-    const response = await quota.fetch('https://quota.invalid/write', { method: 'POST', body: JSON.stringify({ accountId, store, stored, ifVersion: body.ifVersion ?? null }) });
+    const response = await quota.fetch('https://quota.invalid/write', { method: 'POST', body: JSON.stringify({ accountId, store, stored, ifVersion: body.ifVersion ?? null, kv }) });
     if (response.status === 507) return json({ error: 'account-quota' }, 507);
     if (response.status === 409 || response.status === 503) return response;
     if (!response.ok) return json({ error: 'quota unavailable' }, 503);
@@ -230,6 +245,19 @@ export class AccountQuota {
     await this.state.storage.put('ledger', ledger);
     this.initializing = Promise.resolve(ledger);
   }
+  // The object's copy of a fixed store, which reads and conflict checks use
+  // instead of KV. With no copy yet (written before this deploy), `kv` is the
+  // value the Worker read from KV, kept from then on; without it the answer is
+  // undefined (unknown). Copies carry FIXED_COPY_EPOCH: after a rollback to a
+  // Worker that wrote KV alone, rolling forward with a new epoch drops them.
+  epoch() { return String(this.env.FIXED_COPY_EPOCH ?? '1'); }
+  async fixedRecord(store, kv) {
+    const copy = await this.state.storage.get('fixed:' + store);
+    if (copy && copy.epoch === this.epoch()) return copy.stored === null ? null : JSON.parse(copy.stored);
+    if (kv === undefined) return undefined;
+    await this.state.storage.put('fixed:' + store, { epoch: this.epoch(), stored: kv ?? null });
+    return kv ? JSON.parse(kv) : null;
+  }
   async commitBlob(ledger, store, stored) {
     await this.state.storage.transaction(async tx => {
       if (stored === null) await tx.delete('blob:' + store);
@@ -261,11 +289,21 @@ export class AccountQuota {
     if (byteLimit < FIXED_RESERVATION_BYTES || storeLimit < STORES.size) return unavailable('invalid quota configuration');
     // An unauthenticated miss must not create persistent account storage or
     // bypass the PUT-only daily admission limit by allocating empty ledgers.
-    if (path === '/read' && !this.initializing && await this.state.storage.get('ledger') == null) return json({ record: null });
+    // A fixed store of an account the object hasn't met is answered from the
+    // KV value the Worker passes, as before the object existed, again without
+    // creating storage.
+    if (path === '/read' && !this.initializing && await this.state.storage.get('ledger') == null) {
+      if (!STORES.has(body.store)) return json({ record: null });
+      return json(body.kv === undefined ? { missing: true } : { record: body.kv ? JSON.parse(body.kv) : null });
+    }
     this.initializing ??= this.bootstrap(body.accountId);
     const ledger = await this.initializing;
     if (ledger.accountId !== body.accountId) return json({ error: 'wrong account' }, 400);
     if (path === '/read') {
+      if (STORES.has(body.store)) {
+        const record = await this.fixedRecord(body.store, body.kv);
+        return json(record === undefined ? { missing: true } : { record });
+      }
       if (!dynamicStore(body.store)) return json({ error: 'bad quota request' }, 400);
       const stored = await this.state.storage.get('blob:' + body.store);
       if (Boolean(stored) !== Boolean(ledger.stores[body.store])) throw new Error('inconsistent Space storage');
@@ -299,6 +337,13 @@ export class AccountQuota {
     const bytes = new TextEncoder().encode(body.stored).byteLength;
     if (bytes > MAX_STORED_BYTES) return json({ error: 'too large' }, 413);
     if (STORES.has(body.store)) {
+      // Unknown (no copy, no KV value passed: a caller that compared already,
+      // as the Worker did before the object kept copies) writes without a check.
+      const current = await this.fixedRecord(body.store, body.kv);
+      if (current !== undefined && (body.ifVersion ?? null) !== (current?.version ?? null)) return json({ error: 'conflict', version: current?.version ?? null }, 409);
+      // The copy first: it is what reads and conflicts use. KV follows so a
+      // rollback to a Worker without copies still finds every write.
+      await this.state.storage.put('fixed:' + body.store, { epoch: this.epoch(), stored: body.stored });
       await this.env.SYNC.put(blobKey(body.accountId, body.store), body.stored);
       return json({}, 200); // The permanent reserve never changes.
     }
