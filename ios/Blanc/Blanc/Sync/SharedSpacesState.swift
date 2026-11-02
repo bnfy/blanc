@@ -417,6 +417,8 @@ import Foundation
     (data["pending"]?.pairs ?? []).contains { !$0.1.pairs.isEmpty }
       || (data["blobs"]?.pairs ?? []).contains { $0.1["failedAt"] != nil }
   }
+  /// Whether the last push or download of Space `id` failed.
+  func hasFailed(_ id: String) -> Bool { data["blobs"]?[id]?["failedAt"] != nil }
   /// The merged blob held for `id`, as the adapter reads it.
   func blob(_ id: String) -> JSONValue? { data["blobs"]?[id]?["blob"] }
   /// A Space push failed (or recovered): desktop's `failedAt` for the status line.

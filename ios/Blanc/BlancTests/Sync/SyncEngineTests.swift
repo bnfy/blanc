@@ -707,6 +707,13 @@ extension SyncEngineTests {
         XCTAssertEqual(f.engine.seenVersions.keys.sorted(), ["settings"])
         XCTAssertNil(f.state.state.lastError)
     }
+    func testAPassOverOptionalStoresKeepsTheSyncStatus() async throws {
+        let f = try await make()
+        try f.state.update { $0.lastError = "server"; $0.lastSyncedAt = 5 }
+        await f.engine.syncNow(only: [.icons])
+        XCTAssertEqual(f.state.state.lastError, "server", "only a required store can clear an error")
+        XCTAssertEqual(f.state.state.lastSyncedAt, 5)
+    }
     func testAMissingSettingsEndsTheAccountOnlyWhenSettingsWasRead() async throws {
         let f = try await make()
         await f.transport.remove(accountA, .settings)

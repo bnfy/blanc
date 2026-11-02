@@ -177,14 +177,15 @@ nonisolated struct SyncWorkerClient: Sendable {
   }
   /// The change check (design 2026-11-02): each fixed store's version, null
   /// for one not written yet. Nil when the Worker can't answer it: an older
-  /// Worker (404), an account with no ledger (`stores: null`), a server or
-  /// network error, or a body it can't read. A 429 throws, as for any request.
+  /// Worker (404), an account with no ledger (`stores: null`), a server
+  /// error, or a body it can't read. A 429 throws, as for any request, and so
+  /// does a phone offline: that says nothing about the Worker.
   func versions(_ accountId: String) async throws -> [String: String?]? {
     let status: Int, body: Data
     do {
       (status, body) = try await request("GET", "v1/versions/\(try locator(accountId))")
-    } catch SyncError.rateLimited { throw SyncError.rateLimited } catch SyncError.pairInvalid {
-      throw SyncError.pairInvalid
+    } catch let error as SyncError where [.rateLimited, .pairInvalid, .offline].contains(error) {
+      throw error
     } catch { return nil }
     guard status == 200,
       let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],

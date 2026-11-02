@@ -234,6 +234,45 @@ import CryptoKit
         }
     }
 
+    func testAClosedUploadThatFailsLeavesClosedChanged() async throws {
+        let f = try await make(spaces: true)
+        f.transport.serveVersions()
+        holdForeground(f)
+        await pass(f)
+        try f.transport.install(account, .closed, .object([("devices", .object([("mac", .object([
+            ("name", .string("Mac")), ("platform", .string("darwin")), ("updatedAt", .number(Double(f.clock.now()))),
+            ("items", .array([.object([("id", .string("c1")), ("url", .string("https://closed.example/")), ("title", .string("Closed")), ("closedAt", .number(Double(f.clock.now()))), ("spaceId", .null)])])),
+        ]))]))]), key: f.key)
+        f.transport.fail("PUT", "v1/blob/\(account)/closed", statuses: [500])
+        let before = f.transport.records().count
+        await inFront(f, seconds: 30)
+        XCTAssertEqual(blobGets(f, since: before).filter { $0 == "closed" }.count, 2, "a store whose merge was lost is read again")
+    }
+    func testASpaceWhoseDownloadFailedIsTriedAgain() async throws {
+        let f = try await make(spaces: true)
+        f.transport.serveVersions()
+        holdForeground(f)
+        await pass(f)
+        let ids = try await installSpaces(f, 1)
+        f.transport.fail("GET", "v1/blob/\(account)/space-" + ids[0], statuses: [500])
+        await inFront(f, seconds: 30)
+        XCTAssertNotNil(f.engine.sharedState.blob(ids[0]), "the next check fetches it")
+    }
+    func testWithTheSwitchOffComingBackNeverReadsSpacesStores() async throws {
+        let f = try await make(spaces: false)
+        f.transport.serveVersions()
+        _ = try await installSpaces(f, 1)
+        try f.transport.install(account, .closed, .object([("devices", .object([]))]), key: f.key)
+        await f.engine.appDidBecomeActive()
+        let before = f.transport.records().count
+        let syncedAt = f.state.state.lastSyncedAt
+        f.clock.advance(20_000)
+        await f.engine.appDidBecomeActive()
+        await f.engine.requestsSettled()
+        XCTAssertEqual(blobGets(f, since: before), [])
+        XCTAssertEqual(f.state.state.lastSyncedAt, syncedAt, "no empty pass")
+    }
+
     // MARK: The window
 
     func testFixedStoresAndTwentyFiveSpacesNeverExceedTenGetsInAnyMinute() async throws {
