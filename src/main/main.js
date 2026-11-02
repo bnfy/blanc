@@ -10469,7 +10469,10 @@ function closeTab(id) {
       setActiveTab(rt().tabOrder[Math.min(closedIndex, rt().tabOrder.length - 1)]);
     } else if (hasLiveWindow()) {
       rt().activeTabId = null;
-      openReplacementTab();
+      // A mini window (#1138) is put away with its last tab, rather than
+      // left holding a fresh blank one.
+      if (rt().mini) rt().window.close();
+      else openReplacementTab();
     } else {
       // Quitting or window already gone — don't spawn replacement tabs.
       rt().activeTabId = null;

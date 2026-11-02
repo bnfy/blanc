@@ -1939,7 +1939,8 @@ candidate branch (PR 1); not in a public release.
 - **Ephemeral.** Never saved with the session, never where a link from
   another app or a link rule opens, and holds no Space. Closes by itself after
   an hour without focus, unless a page in it is in use or has unsaved work.
-  Its pages stay in History.
+  Its pages stay in History. Closing its last tab (⌘W) closes the window
+  rather than leaving a blank tab.
 - **Open in Blanc.** The Island's leading button (and a File menu item) keeps
   it as an ordinary window: a new window's size, saved from then on.
 - **Mobile.** Not applicable.

@@ -305,6 +305,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F61-2 | Open in Blanc keeps a mini window as an ordinary window | — | ✅ | ➖ | ➖ |
 | F61-3 | A link from another app never opens in a mini window | — | ✅ | ➖ | ➖ |
 | F61-4 | The mini window shortcut is off until chosen | — | ✅ | ➖ | ➖ |
+| F61-5 | Closing a mini window's last tab closes the window | — | ✅ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance
