@@ -293,6 +293,9 @@ Recorded in the spec (§4, §9) and plan:
   prompt; typed addresses hand off directly (N6).
 - V10 (2026-11-01): pages may open extensions' web-accessible
   `chrome-extension:` pages as Chromium allows.
+- 2026-11-02: no built-in Dark Reader (F42 dark websites) in the Chromium
+  builds. With the Chrome Web Store supported, people install Dark Reader
+  themselves; F42's cases become an approved divergence, not a port.
 Everything else already follows spec §4 (Chromium models, Blanc UI): engines
 and suggestions through TemplateURLService and native suggest with Blanc's
 privacy rules; chrome://settings restyled with Blanc sections (V1); Blanc
