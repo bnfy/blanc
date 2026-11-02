@@ -336,10 +336,12 @@ try {
       held = await commandState();
       assert.equal(held.overlayMode, 'switcher');
       // Click the current tab's neighbour in the order, not the pick, so the
-      // landing proves the click and not the release.
-      const target = used[0];
-      const tile = held.tabSwitchOrder.indexOf(target);
-      assert.ok(tile > 0 && held.tabSwitchPick !== target, 'the clicked tile is not the pick');
+      // landing proves the click and not the release. Two Tabs put the pick
+      // at index 2, so index 1 is never the pick. (Which tab that is depends
+      // on whether the Ctrl+W step above ran: macOS skips it.)
+      const tile = 1;
+      const target = held.tabSwitchOrder[tile];
+      assert.notEqual(held.tabSwitchPick, target, 'the clicked tile is not the pick');
       const rect = await app.evaluate(async ({ webContents }, index) => {
         const overlay = webContents.getAllWebContents().find(wc => wc.getURL() === 'blanc-chrome://overlay/');
         return overlay.executeJavaScript(`(() => { const r = document.getElementById('switcher-tile-${index}').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
