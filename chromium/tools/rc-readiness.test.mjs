@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {latestCases, requirementRows, DIVERGENT_ROWS} from './rc-readiness.mjs';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {latestCases, requirementRows, readTimedJson, DIVERGENT_ROWS} from './rc-readiness.mjs';
 
 const scenario = (line, rows, result, executed = true) => ({
   file: 'spec/acceptance/island-and-commands.feature', name: `case ${line}`, featureRows: rows,
@@ -24,4 +27,17 @@ test('a later run replaces only the cases it executed, newest last', () => {
   const [row] = requirementRows({rows: [{id: 'F1', requirement: 'Island', slice: 'S1',
     platformProgress: {macos: {stage: 'drafted'}}}]}, cases);
   assert.deepEqual([row.casesPass, row.casesTotal, row.macos, row.windows], [1, 2, 'drafted', 'not-started']);
+});
+
+test('a run file is read once for its time and results, and a missing one is skipped', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rc-readiness-'));
+  const file = path.join(dir, 'baseline.json');
+  fs.writeFileSync(file, JSON.stringify({platform: 'macos', scenarios: []}));
+  const read = readTimedJson(file);
+  assert.equal(read.data.platform, 'macos');
+  assert.equal(read.time.getTime(), fs.statSync(file).mtime.getTime());
+  assert.equal(readTimedJson(path.join(dir, 'missing.json')), null);
+  // An entry that is a file, not a run's folder.
+  assert.equal(readTimedJson(path.join(file, 'baseline.json')), null);
+  fs.rmSync(dir, {recursive: true, force: true});
 });

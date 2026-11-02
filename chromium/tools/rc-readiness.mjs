@@ -80,16 +80,31 @@ export function requirementRows(tracker, cases) {
   });
 }
 
+// A run's time and its results, from one open of the file, so they always
+// describe the same file. Null when the run wrote no results.
+export function readTimedJson(file) {
+  let fd;
+  try {
+    fd = fs.openSync(file, 'r');
+  } catch (error) {
+    if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return null;
+    throw error;
+  }
+  try {
+    return {time: fs.fstatSync(fd).mtime, data: JSON.parse(fs.readFileSync(fd, 'utf8'))};
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
 function readRuns(dir, after) {
   const runs = [];
   for (const name of fs.readdirSync(dir)) {
-    const file = path.join(dir, name, 'baseline.json');
-    if (!fs.existsSync(file)) continue;
-    const time = fs.statSync(file).mtime;
-    if (time <= after) continue;
-    const run = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const read = readTimedJson(path.join(dir, name, 'baseline.json'));
+    if (!read || read.time <= after) continue;
+    const run = read.data;
     if (run.platform !== 'macos' || !Array.isArray(run.scenarios)) continue;
-    runs.push({...run, at: time.toISOString()});
+    runs.push({...run, at: read.time.toISOString()});
   }
   return runs;
 }
@@ -98,9 +113,10 @@ if (process.argv[1]?.endsWith('rc-readiness.mjs')) {
   const arg = name => process.argv[process.argv.indexOf(name) + 1];
   const [baselineFile, runsDir, out] = ['--baseline', '--runs', '--out'].map(arg);
   if (!baselineFile || !runsDir || !out) throw Error('Usage: rc-readiness.mjs --baseline FULL.json --runs DIR --out DIR');
-  const baselineTime = fs.statSync(baselineFile).mtime;
-  const baseline = {...JSON.parse(fs.readFileSync(baselineFile, 'utf8')), at: baselineTime.toISOString()};
-  const cases = latestCases(baseline, readRuns(runsDir, baselineTime));
+  const read = readTimedJson(baselineFile);
+  if (!read) throw Error(`No full baseline at ${baselineFile}`);
+  const baseline = {...read.data, at: read.time.toISOString()};
+  const cases = latestCases(baseline, readRuns(runsDir, read.time));
   const tracker = JSON.parse(fs.readFileSync(path.join(root, 'tracker.json'), 'utf8'));
   fs.mkdirSync(out, {recursive: true});
   fs.writeFileSync(path.join(out, 'cases.json'), JSON.stringify(cases));
