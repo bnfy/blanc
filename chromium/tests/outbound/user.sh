@@ -22,9 +22,12 @@ stamp() { date -u '+%Y-%m-%dT%H:%M:%SZ'; }
 # run's start and end from it.
 : > "$OUT/user.log"
 : > "$OUT/egress.jsonl"
-# Every attempt's start, kept across runs: blocks after the first attempt
-# began may be an earlier attempt's browser, so they never count as background.
-echo "$(stamp) start" >> "$OUT/runs.log"
+# Which process uses which address, every second: analyze.mjs counts a pf
+# block as the account's background only if nettop saw a non-Blanc process,
+# and no Blanc process, connect there.
+nettop -L 0 -s 1 -n -x > "$OUT/nettop.csv" 2>/dev/null &
+NETTOP=$!
+trap 'kill $NETTOP 2>/dev/null' EXIT
 say() { echo "$(stamp) $1" | tee -a "$OUT/user.log"; }
 run() { say "$1"; shift; caffeinate -d -i "$@"; }
 run "controls (before)" $NODE tests/outbound/controls.mjs "$CFG" "$OUT/controls-before.json"
