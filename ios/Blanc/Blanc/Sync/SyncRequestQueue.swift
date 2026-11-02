@@ -15,6 +15,8 @@ import Foundation
     let priority: Int
     let cancelled: () -> Error?
     let run: (Int) async throws -> Step
+    /// A change check: ahead of the rotation, skipped when the window is full.
+    var isCheck = false
     var attempt = 0
     var waiters: [CheckedContinuation<Error?, Never>] = []
     init(cls: String, item: String, key: String, priority: Int, cancelled: @escaping () -> Error?,
@@ -61,6 +63,35 @@ import Foundation
         op.waiters.append(continuation)
         waiting.append(op)
       }
+      wake()
+    }
+  }
+
+  /// Requests routine work leaves for change checks (design 2026-11-02):
+  /// only checks not yet sent in the trailing minute are kept back, and none
+  /// during a 429 backoff.
+  var checkShare = 0 {
+    didSet { if checkShare != oldValue { wake() } }
+  }
+  private var checksSent: [Int64] = []
+  private func checkRoom() -> Int {
+    let t = now()
+    checksSent.removeAll { t - $0 >= 60_000 }
+    return backedOff ? 0 : max(0, checkShare - checksSent.count)
+  }
+  /// The window is reduced after a 429.
+  var backedOff: Bool { scheduler.snapshot().windowLimit < scheduler.limit }
+  /// A change check: one GET, charged like any, ahead of the class rotation.
+  /// When the window is full it is skipped (`cancelled`), never queued.
+  func check(cancelled: @escaping () -> Error?, run: @escaping () async throws -> Void) async -> Error? {
+    await withCheckedContinuation { (continuation: CheckedContinuation<Error?, Never>) in
+      let op = Op(cls: "C", item: "versions", key: UUID().uuidString, priority: 0, cancelled: cancelled) { _ in
+        try await run()
+        return .done
+      }
+      op.isCheck = true
+      op.waiters.append(continuation)
+      waiting.append(op)
       wake()
     }
   }
@@ -126,8 +157,30 @@ import Foundation
         }
       }
       if waiting.isEmpty { return }
-      if !scheduler.canRequest() {
-        let delay = max(1, scheduler.windowFreesAt() - now())
+      if let n = waiting.firstIndex(where: { $0.isCheck }) {
+        let op = waiting.remove(at: n)
+        guard scheduler.canRequest(), let event = try? scheduler.record() else {
+          complete(op, SyncError.cancelled)
+          continue
+        }
+        checksSent.append(now())
+        persist(scheduler.snapshot())
+        var failure: Error?
+        do { _ = try await op.run(0) } catch { failure = error }
+        scheduler.settle(event)
+        if (failure as? SyncError) == .rateLimited {
+          scheduler.onRateLimited()
+          consecutiveRateLimits += 1
+        } else if failure == nil {
+          consecutiveRateLimits = 0
+        }
+        persist(scheduler.snapshot())
+        complete(op, failure)
+        continue
+      }
+      let keep = checkRoom()
+      if !scheduler.canRequest(keeping: keep) {
+        let delay = max(1, scheduler.windowFreesAt(keeping: keep) - now())
         let wait = Task { await self.sleep(delay) }
         sleeper = wait
         await wait.value
