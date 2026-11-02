@@ -306,6 +306,9 @@ Recorded in the spec (§4, §9) and plan:
 - 2026-11-02: no built-in Dark Reader (F42 dark websites) in the Chromium
   builds. With the Chrome Web Store supported, people install Dark Reader
   themselves; F42's cases become an approved divergence, not a port.
+- 2026-11-02: no 1Password SDK (F38 1Password fill) in the Chromium builds
+  either; people install 1Password from the Chrome Web Store, so F38's
+  cases become an approved divergence and /1password is not offered.
 Everything else already follows spec §4 (Chromium models, Blanc UI): engines
 and suggestions through TemplateURLService and native suggest with Blanc's
 privacy rules; chrome://settings restyled with Blanc sections (V1); Blanc

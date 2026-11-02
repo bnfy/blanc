@@ -842,7 +842,7 @@
       "platformProgress": {
         "macos": {
           "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "basis": "owner 2026-11-02: no 1Password SDK in the fork; people install 1Password from the Chrome Web Store"
         },
         "windows": {
           "stage": "not-started",
