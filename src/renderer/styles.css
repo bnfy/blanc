@@ -1237,6 +1237,24 @@ body > .tab-drag-ghost[aria-hidden="true"] {
 
 /* ---------- Island: resting pill ---------- */
 
+/* Settings → General → Island size (#1292): the resting pill, everything in
+   it and the strip that holds it grow together, keeping the pill's margins.
+   Main sizes the page from the strip's reported height (chrome:layout), and
+   every surface anchored to the Island measures its rect, so nothing else
+   needs to know. */
+:root[data-island-size="large"] {
+  --pill-zoom: 1.3;
+  --island-resting-height: 50px;
+  --island-resting-radius: 19px;
+  --strip-h: 76px;
+}
+:root[data-island-size="extra-large"] {
+  --pill-zoom: 1.45;
+  --island-resting-height: 56px;
+  --island-resting-radius: 21px;
+  --strip-h: 84px;
+}
+
 #islandPill {
   display: flex;
   align-items: center;
