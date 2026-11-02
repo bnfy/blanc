@@ -210,3 +210,24 @@ test('erasure-pending writes preserve credentials and notice until a successful 
  assert.equal(a.sync.status().erasurePending,false);assert.equal(a.sync.status().enabled,false);
  assert.equal(e.fixture.blobs.has(`blob:${account}:${store}`),false);
 });
+test('a new Space uploads at once on a busy window, downloading only the index',async t=>{
+  const e=await environment(t),a=e.device('A');
+  // Routine sync has taken every request background work may use.
+  for(let n=0;n<4;n++)await e.drive(a.sync.syncNow(['bookmarks','settings']));
+  const before=e.fixture.requests.length,started=Date.now();
+  createSpace(a);await e.drive(a.sync.syncNow([store]));
+  const sent=e.fixture.requests.slice(before).map(r=>`${r.method} ${r.store}`);
+  assert.deepEqual(sent,[`PUT ${store}`,'GET spaces','PUT spaces'],'a Space nobody has uploaded is never downloaded first');
+  assert.equal(Date.now()-started,0,'nothing waits for the request window');
+  assert.equal(e.read(store).tabs[id(1)].nav.v.url,'https://example.test/1');
+  assert.ok(e.read('spaces').spaces[sid]);
+});
+test('a first upload that finds the Space already on the server merges with it instead',async t=>{
+  const e=await environment(t),b=e.device('B');createSpace(b);await e.drive(b.sync.syncNow([store]));
+  const a=e.device('A'),local={...blob(),tabs:{[id(2)]:tab(2)}};
+  a.spaces.noteLocalSpace(sid,local,{tabs:local.tabs},a.ctx);a.spaces.setIndex(index(),a.ctx);
+  await e.drive(a.sync.syncNow([store]));
+  const puts=e.fixture.requests.filter(r=>r.store===store&&r.method==='PUT');
+  assert.deepEqual(puts.map(r=>r.status),[200,409,200],'the blind upload is refused, then merged and sent again');
+  assert.deepEqual(Object.keys(e.read(store).tabs).sort(),[id(1),id(2)]);
+});

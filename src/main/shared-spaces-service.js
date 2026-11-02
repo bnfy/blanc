@@ -44,7 +44,7 @@ function createSharingService({sync,spaces,workspaces,offered,now=Date.now,ids,i
     for(const choice of choices)shown.add(choice.id);
     return {offered:true,ok:true,fresh:!local,enabled,count:spaces.spaceCount(ctx),limit:model.LIMITS.spaces,choices};
   }
-  async function applyNow({enabled,selections=[]}) {
+  async function applyNow({enabled,selections=[]},{check=true}={}) {
     if(!offered())return {ok:false,error:'unavailable'};
     try {
       await captureLocal();const ctx=context();
@@ -56,7 +56,9 @@ function createSharingService({sync,spaces,workspaces,offered,now=Date.now,ids,i
       }
       // The sheet's own check counts if it is under 30 s old; otherwise
       // this fetches again (an urgent request) before anything is planned.
-      const fetched=await sync.sharedIndexPreview({maxAge:30000});if(!fetched.ok)return fetched;
+      // Sharing by itself plans from the index routine sync keeps instead:
+      // the index upload merges with whatever changed since.
+      if(check){const fetched=await sync.sharedIndexPreview({maxAge:30000});if(!fetched.ok)return fetched;}
       if(context().accountId!==ctx.accountId)return {ok:false,error:'account-changed'};
       // A Space already in the library from this device (shared by autoShare
       // while the sheet was open, say) is never added a second time.
@@ -149,7 +151,7 @@ function createSharingService({sync,spaces,workspaces,offered,now=Date.now,ids,i
     const fits=fresh.filter(row=>plan([{id:row.id,mode:'copy'}],ctx).ok);
     markKnown(fresh.filter(row=>!fits.includes(row)).map(row=>row.id),ctx);
     if(!fits.length)return {ok:true,shared:[]};
-    const result=await applyNow({enabled:true,selections:fits.map(row=>({id:row.id,mode:'copy'}))});
+    const result=await applyNow({enabled:true,selections:fits.map(row=>({id:row.id,mode:'copy'}))},{check:false});
     if(!result.ok&&['limit','full','tabs'].includes(result.error))markKnown(fits.map(row=>row.id),ctx);
     return result.ok?{ok:true,shared:fits.map(row=>row.id)}:result;
   }

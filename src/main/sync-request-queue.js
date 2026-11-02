@@ -43,20 +43,24 @@ function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setT
       if(reason)complete(waiting.splice(i,1)[0],null,makeError('cancelled:'+reason));
     }
     if(!waiting.length){settleDrain();return;}
+    // An upload that downloads nothing first (a Space no device has yet)
+    // costs the window nothing, so it never waits on it; a 409 sends it
+    // back to download and merge, which is charged like any request.
+    const free=waiting.find(x=>x.noGet&&!x.attempt)??null;
     // A request a person is waiting on goes first, outside the class
     // rotation, and leaves the rotation's cursors where they were.
-    const urgent=waiting.find(x=>x.urgent)??null;
-    if(!scheduler.canRequest({reserve:!urgent})) {
+    const urgent=free?null:waiting.find(x=>x.urgent)??null;
+    if(!free&&!scheduler.canRequest({reserve:!urgent})) {
       timer=setTimer(()=>{timer=null;wake();},Math.max(1,scheduler.windowFreesAt({reserve:!urgent})-now()));return;
     }
-    const op=urgent?waiting.splice(waiting.indexOf(urgent),1)[0]:pickRotation();
+    const op=free||urgent?waiting.splice(waiting.indexOf(free??urgent),1)[0]:pickRotation();
     if(!op){wake();return;}
     running=op;op.state='running';
     try {
-      const reservation=scheduler.record();persist(scheduler.snapshot());
+      const reservation=op===free?null:scheduler.record();if(reservation)persist(scheduler.snapshot());
       let outcome;
       try {outcome=await op.run({attempt:op.attempt});}
-      finally {scheduler.settle(reservation);persist(scheduler.snapshot());}
+      finally {if(reservation){scheduler.settle(reservation);persist(scheduler.snapshot());}}
       consecutiveRateLimits=0;
       const cancelled=op.cancelled?.();
       if(cancelled)complete(op,null,makeError('cancelled:'+cancelled));
@@ -76,6 +80,7 @@ function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setT
     const promise=new Promise(resolve=>{
       let op=waiting.find(x=>x.class===request.class && x.item===request.item && x.generation===request.generation);
       if(!op){op={...request,state:'waiting',attempt:0,waiters:[]};waiting.push(op);}
+      else {if(request.urgent)op.urgent=true;if(request.noGet)op.noGet=true;}
       op.waiters.push({resolve,onOutcome});
     });wake();return promise;
   }
