@@ -199,6 +199,8 @@
 #include "ui/views/controls/menu/menu_runner.h"
 #include "ui/views/controls/menu/menu_item_view.h"
 #include "ui/display/screen.h"
+#include "ui/gfx/animation/animation.h"
+#include "blanc/browser/ui/island_autohide.h"
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/views/controls/webview/webview.h"
 #include "url/gurl.h"
@@ -209,6 +211,8 @@
 #include "modules/selected_shipping_browser.cc"
 
 namespace blanc_prototype {
+// The Island's own header height, before auto-hide moves the page over it.
+int BaseHeaderHeight(views::View* parent);
 namespace {
 
 // Shipping's islandHoverOpen (F1): off by default.
@@ -687,6 +691,11 @@ ClosedSessionRepair* SessionRepair(Profile* profile) {
   return static_cast<ClosedSessionRepair*>(profile->GetUserData(key));
 }
 
+class Owner;
+// Auto-hide (island_autohide_controller.inc).
+void AutoHidePageMove(Owner* owner, const blink::WebInputEvent& event);
+void AutoHideActivated(Owner* owner);
+
 class Owner : public base::SupportsUserData::Data,
               public content::WebContentsObserver,
               public content::RenderWidgetHost::InputEventObserver,
@@ -725,11 +734,30 @@ class Owner : public base::SupportsUserData::Data,
     browser->GetTabStripModel()->AddObserver(this);
     for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
       blanc::quiet::MediaHistory::Get(browser->GetTabStripModel()->GetWebContentsAt(i));
+    became_active_ = browser->RegisterDidBecomeActive(base::BindRepeating(
+        [](Owner* owner, BrowserWindowInterface*) { AutoHideActivated(owner); }, base::Unretained(this)));
   }
   raw_ptr<BrowserWindowInterface> browser;
   raw_ptr<views::WebView> view = nullptr;
   std::unique_ptr<IslandToolbarProvider> toolbar_provider;
   int height = 68;
+  // Auto-hide (F1): shipping's per-window runtime fields (islandRevealed,
+  // islandRevealDwell, lastPointer, its timers and islandSlide).
+  bool autohide_revealed = false;
+  std::optional<blanc::island_autohide::Dwell> autohide_dwell;
+  std::optional<gfx::PointF> last_pointer;
+  base::OneShotTimer autohide_watch;
+  base::OneShotTimer autohide_hide;
+  base::OneShotTimer autohide_intro;
+  base::RepeatingTimer autohide_slide_timer;
+  struct AutoHideSlide {
+    double from;
+    double to;
+    double top;
+    base::TimeTicks start;
+    base::TimeDelta duration;
+  };
+  std::optional<AutoHideSlide> autohide_slide;
   int glance_main = -1;
   int glance_reference = -1;
   // Session IDs never outlive their tabs; validate the native split each read.
@@ -1023,6 +1051,8 @@ class Owner : public base::SupportsUserData::Data,
     // WebContents interaction callback which only reports scroll start.
     if (event.GetType() != blink::WebInputEvent::Type::kMouseMove)
       RequestSample();
+    else
+      AutoHidePageMove(this, event);
   }
   void RenderWidgetHostDidUpdateVisualProperties(content::RenderWidgetHost*) override {
     RequestSample();
@@ -1101,6 +1131,7 @@ class Owner : public base::SupportsUserData::Data,
       content::RenderWidgetHost::InputEventObserver> input_observation_{this};
   base::ScopedObservation<content::RenderWidgetHost,
       content::RenderWidgetHostObserver> widget_observation_{this};
+  base::CallbackListSubscription became_active_;
   base::WeakPtrFactory<Owner> weak_factory_{this};
 };
 
@@ -1112,6 +1143,8 @@ bool IsPageFullscreen(BrowserWindowInterface* browser) {
 Owner* GetOwner(content::WebContents* contents) {
   return static_cast<Owner*>(contents->GetUserData(kOwnerKey));
 }
+
+#include "blanc/browser/ui/island_autohide_controller.inc"
 
 // The transparent area beside the rail must remain owned by the web page.
 class IslandView : public views::WebView, public views::ViewTargeterDelegate {
@@ -1887,6 +1920,11 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       // is the one in front, as shipping's islandHoverEligible does.
       .Set("islandHoverOpen", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kIslandHoverOpenPref))
       .Set("windowActive", browser->GetWindow() && browser->GetWindow()->IsActive())
+      // Auto-hide (F1): the strip draws its covered state and the how-to tip.
+      .Set("islandAutoHide", base::DictValue()
+          .Set("enabled", AutoHideOn(owner))
+          .Set("stripHidden", StripHiddenFor(owner))
+          .Set("introducing", owner->autohide_intro.IsRunning()))
       .Set("verticalTabsWidth", owner->rail_width)
       .Set("verticalTabsPreferredWidth", owner->rail_width)
       .Set("verticalTabsMinWidth", 200).Set("verticalTabsMaxWidth", 360)
@@ -2814,6 +2852,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     island_prefs_.Init(Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs());
     island_prefs_.Add(kIslandHoverOpenPref, base::BindRepeating(&Handler::OnIslandSettingChanged,
                                                                 base::Unretained(this)));
+    island_prefs_.Add(std::string(blanc::island_autohide::kPref),
+                      base::BindRepeating(&Handler::OnIslandAutoHideChanged, base::Unretained(this)));
+  }
+  void OnIslandAutoHideChanged() {
+    if (auto* owner = GetOwner(web_ui()->GetWebContents())) ApplyAutoHide(owner);
+    OnIslandSettingChanged();
   }
   void OnIslandSettingChanged() {
     if (IsJavascriptAllowed())
@@ -3046,6 +3090,51 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs()->SetBoolean(
           kIslandHoverOpenPref, message[2].GetList()[0].GetBool());
       Reply(id, true, base::Value(message[2].GetList()[0].GetBool()));
+      return;
+    }
+    // Shipping's setIslandAutoHide hook, and the state its auto-hide steps read
+    // (getIslandAutoHideState).
+    if (message[1].GetString() == "setIslandAutoHide" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_bool()) {
+      Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs()->SetBoolean(
+          std::string(blanc::island_autohide::kPref), message[2].GetList()[0].GetBool());
+      Reply(id, true, base::Value(message[2].GetList()[0].GetBool()));
+      return;
+    }
+    if (message[1].GetString() == "autoHideState") {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      Reply(id, !!owner, owner ? base::Value(AutoHideState(owner)) : base::Value());
+      return;
+    }
+    // Shipping's testCursorPoint (window content coordinates here; the
+    // harness converts) and testCursorSamplingUnavailable.
+    if (message[1].GetString() == "setTestCursorPoint" && message[2].GetList().size() == 1) {
+      const auto& point = message[2].GetList()[0];
+      if (point.is_none()) {
+        TestCursorPoint().reset();
+      } else if (point.is_dict() && point.GetDict().FindDouble("x") && point.GetDict().FindDouble("y")) {
+        TestCursorPoint() = gfx::PointF(*point.GetDict().FindDouble("x"), *point.GetDict().FindDouble("y"));
+      } else {
+        Reply(id, false, base::Value("Invalid cursor point"));
+        return;
+      }
+      Reply(id, true, base::Value(true));
+      return;
+    }
+    if (message[1].GetString() == "setCursorSamplingUnavailable" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_bool()) {
+      TestCursorSamplingUnavailable() = message[2].GetList()[0].GetBool();
+      Reply(id, true, base::Value(true));
+      return;
+    }
+    // Whether a window point drags the window (the native caption), for
+    // shipping's app-region reads of the strip and its drag band.
+    if (message[1].GetString() == "captionAt" && message[2].GetList().size() == 2 &&
+        message[2].GetList()[0].is_int() && message[2].GetList()[1].is_int()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      auto* parent = owner ? BrowserViewFor(owner) : nullptr;
+      Reply(id, !!parent, base::Value(parent && IsCaption(parent, message[2].GetList()[0].GetInt(),
+                                                          message[2].GetList()[1].GetInt())));
       return;
     }
     // Shipping's raw settings write for the interface language, so a stored
@@ -4676,12 +4765,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (owner->view->parent()) owner->view->parent()->InvalidateLayout();
       reply(true, base::Value(owner->rail_width)); return;
     }
-    if (method == "height" && args.size() == 1 && args[0].is_int()) {
+    if (method == "height" && (args.size() == 1 || (args.size() == 2 && args[1].is_bool())) &&
+        args[0].is_int()) {
       // LayoutIsland bounds this requested height to the real window. The
       // summoned palette needs its scrim to reach below the 640px panel.
+      // A surface takes focus; room for a tip under the strip (false) does not.
+      const bool surface = args.size() == 1 || args[1].GetBool();
       owner->height = std::clamp(args[0].GetInt(), 68, 10000);
       if (owner->view->parent()) owner->view->parent()->InvalidateLayout();
-      if (owner->height > 68) {
+      if (owner->height > 68 && surface) AutoHideSurfaceOpened(owner);
+      if (owner->height > 68 && surface) {
         owner->view->RequestFocus();
         contents->Focus();
       }
@@ -5950,11 +6043,19 @@ bool HasIsland(views::View* parent) {
   return !IsPageFullscreen(static_cast<BrowserView*>(parent)->browser());
 }
 
-int HeaderHeight(views::View* parent) {
+int BaseHeaderHeight(views::View* parent) {
   if (!HasIsland(parent)) return 68;
   auto* model = static_cast<BrowserView*>(parent)->browser()->GetTabStripModel();
   return model->active_index() >= 0 && model->GetSplitForTab(model->active_index()) &&
       !model->GetActiveWebContents()->GetUserData(kPersistentSplitKey) ? 98 : 68;
+}
+
+// Where the page starts: below the Island, or (auto-hide) under it.
+int HeaderHeight(views::View* parent) {
+  const int base = BaseHeaderHeight(parent);
+  auto* view = HasIsland(parent) ? static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId)) : nullptr;
+  auto* owner = view ? GetOwner(view->GetWebContents()) : nullptr;
+  return owner ? AutoHidePageTop(owner, base) : base;
 }
 
 int RailWidth(views::View* parent) {
@@ -5966,8 +6067,13 @@ int RailWidth(views::View* parent) {
 
 bool IsCaption(views::View* parent, int x, int y) {
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
-  if (!view || !view->GetVisible() || y < view->y() || y >= view->y() + 68) return false;
+  if (!view || !view->GetVisible()) return false;
   auto* owner = GetOwner(view->GetWebContents());
+  // While the page covers the strip, a thin band along the page pane's top
+  // is the window's only drag handle, as shipping's #dragBand.
+  if (owner && StripHiddenFor(owner) && !owner->autohide_slide)
+    return y >= 0 && y < 6 && x >= RailWidth(parent);
+  if (y < view->y() || y >= view->y() + 68) return false;
   return owner && !owner->interactive_bounds.Contains(x, y - view->y());
 }
 
@@ -6062,6 +6168,9 @@ void LayoutIsland(views::View* parent, int top) {
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
   if (!view) return;
   auto* owner = GetOwner(view->GetWebContents());
+  // Auto-hide moves the Island with the page's top: above the window while
+  // hidden, sliding in above the page as it moves down.
+  if (owner) top += HeaderHeight(parent) - BaseHeaderHeight(parent);
   const int available = std::max(0, parent->height() - top);
   view->SetBounds(0, top, parent->width(),
                   std::min(owner && (owner->vertical || !owner->split_geometry.empty()) ? available : owner ? std::max(owner->height, HeaderHeight(parent)) : 68, available));

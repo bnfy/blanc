@@ -1,14 +1,16 @@
 diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
-index a536933..2a07c96 100644
+index a536933..e2c439d 100644
 --- a/chrome/browser/prefs/browser_prefs.cc
 +++ b/chrome/browser/prefs/browser_prefs.cc
-@@ -2077,6 +2077,10 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
+@@ -2077,6 +2077,12 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
    registry->RegisterListPref("blanc.bangs.custom");
    registry->RegisterListPref("blanc.bangs.recent");
  #endif
 +#if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
-+  // Open the Island on hover (F1): off by default, as in shipping.
++  // The Island's own settings (F1), with shipping's defaults: open it on
++  // hover, and auto-hide it.
 +  registry->RegisterBooleanPref("blanc.island.hover_open", false);
++  registry->RegisterBooleanPref("blanc.island.auto_hide", false);
 +#endif
  #if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
    registry->RegisterStringPref("blanc.prototype.preference_write", "");

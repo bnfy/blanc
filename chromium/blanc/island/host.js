@@ -371,6 +371,7 @@
     try {
       snapshot = await request('snapshot');
       settleHover();
+      syncAutoHide();
       const pill = strip.contentDocument?.getElementById('islandPill');
       let recovery = strip.contentDocument?.getElementById('blockerRecovery');
       if (pill && !recovery) {
@@ -1121,10 +1122,43 @@
   }
   window.blancPrototypeEvent = (kind) => { if (kind === 'settings') refresh().then(settleHover, settleHover); };
 
+  // ---- Auto-hide (F1-15…): native lays the window out and decides when the
+  // Island shows (island_autohide_controller.inc). The strip draws its
+  // covered state, and while turning it on holds the Island up the host shows
+  // shipping's how-to tip under the pill, with room asked for below the strip.
+  let stripHiddenSent = null;
+  let introTip = false;
+  function syncAutoHide() {
+    const state = snapshot?.islandAutoHide;
+    const hidden = state?.stripHidden === true;
+    if (hidden !== stripHiddenSent) { stripHiddenSent = hidden; emit('onStripHidden', hidden); }
+    const intro = state?.introducing === true && !opened && !extensionsOpened && !paneMenu;
+    if (intro === introTip) return;
+    introTip = intro;
+    if (!intro) {
+      tooltip.classList.remove('intro');
+      tooltip.hidden = true;
+      request('height', [68, false]).catch(() => {});
+      return;
+    }
+    const t = strip.contentWindow?.blancI18n?.t;
+    if (!t || !pillRect) { introTip = false; return; }
+    request('height', [68 + 64, false]).catch(() => {});
+    tooltip.textContent = t('island.autoHide.intro', { shortcut: /Mac/.test(navigator.platform) ? '⌘L' : 'Ctrl+L' });
+    tooltip.classList.add('intro');
+    tooltip.dataset.private = 'false';
+    tooltip.hidden = false;
+    const width = tooltip.getBoundingClientRect().width;
+    tooltip.style.left = `${Math.max(4, Math.min(innerWidth - width - 4, pillRect.x + pillRect.width / 2 - width / 2))}px`;
+    tooltip.style.top = `${pillRect.y + pillRect.height + 6}px`;
+  }
+
   window.BlancPrototypeHost = {
     api,
     apiForDocument,
     hoverState: () => ({ ...hover.state }),
+    // Whether the how-to tip is on screen (shipping's introTipShown).
+    autoHideIntroShown: () => introTip && !tooltip.hidden,
     // Where the pointer last rested over the strip, which closing the panel
     // samples (shipping's sampledWindowCursor); the harness sets it.
     setLastPointer: (point) => { hover.lastPoint = point && { x: Number(point.x), y: Number(point.y) }; return true; },

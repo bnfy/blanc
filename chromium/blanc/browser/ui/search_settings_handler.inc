@@ -72,6 +72,8 @@ void SearchSettingsHandler::Handle(const base::ListValue& message) {
     }
     if (auto hover_open = partial.FindBool("islandHoverOpen"))
       prefs->SetBoolean(kIslandHoverOpenPref, *hover_open);
+    if (auto auto_hide = partial.FindBool("islandAutoHide"))
+      prefs->SetBoolean(std::string(blanc::island_autohide::kPref), *auto_hide);
     // Appearance is Chromium's browser color scheme (appearance.h).
     if (const auto* theme = partial.FindString("theme"))
       blanc::browser_api::SetTheme(profile, *theme);
@@ -122,6 +124,7 @@ void SearchSettingsHandler::Handle(const base::ListValue& message) {
   state.Set("editable", editable);
   state.Set("theme", blanc::browser_api::ThemeOf(profile));
   state.Set("islandHoverOpen", prefs->GetBoolean(kIslandHoverOpenPref));
+  state.Set("islandAutoHide", prefs->GetBoolean(std::string(blanc::island_autohide::kPref)));
   state.Set("uiLanguage", g_browser_process->local_state()->GetString(std::string(blanc::ui_language::kPref)));
   state.Set("bangsEnabled", prefs->GetBoolean(blanc::browser_api::bangs::kEnabledPref));
   state.Set("customBangs", blanc::browser_api::bangs::NormalizeCustomBangs(
