@@ -19,9 +19,9 @@ function normalizeTabSwitchOrder(value) {
 }
 
 /** Where the Ctrl release is proven to reach Blanc with real keys (spec §10,
- * D5): browser-shortcuts-smoke.mjs drives each of these with native input.
- * macOS joins once its CI runner can post key events (Accessibility). */
-const RECENT_ORDER_PLATFORMS = Object.freeze(['linux', 'win32']);
+ * D5): browser-shortcuts-smoke.mjs drives each of these with native input
+ * (CGEvent on macOS, which needs Accessibility for the process running it). */
+const RECENT_ORDER_PLATFORMS = Object.freeze(['linux', 'win32', 'darwin']);
 
 function recentOrderAvailable(platform) {
   return RECENT_ORDER_PLATFORMS.includes(platform);
