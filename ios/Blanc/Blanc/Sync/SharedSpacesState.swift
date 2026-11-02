@@ -25,6 +25,7 @@ import Foundation
       ("sidecar", .object([("devices", .object([]))])), ("dormantIds", .array([])),
       ("draftIds", .array([])), ("requestLog", .array([])), ("nextClass", .string("I")),
       ("cursors", .object([])), ("windowLimit", .null), ("backoffUntil", .null),
+      ("knownWorkspaceIds", .null),
     ])
   }
 
@@ -91,6 +92,12 @@ import Foundation
       data[key] = .array([])
       changed = true
     }
+    switch data["knownWorkspaceIds"] {
+    case .array?, .null?: break
+    default:
+      data["knownWorkspaceIds"] = .null
+      changed = true
+    }
     if changed { save() }
   }
   /// Sync turned off or the account switched: forget everything but the request log.
@@ -110,6 +117,22 @@ import Foundation
   func setDormant(_ ids: [String]) {
     var seen = Set<String>()
     data["dormantIds"] = .array(ids.filter { Model.isId($0) && seen.insert($0).inserted }.map(JSONValue.string))
+    save()
+  }
+  /// The phone's Spaces already offered for sharing (desktop's
+  /// `knownWorkspaceIds`): seen in a Choose Spaces sheet, shared, or unable
+  /// to be shared. `nil` when the switch was turned on by a build before this
+  /// existed, so what is here then counts as offered.
+  var knownSpaceIds: [String]? {
+    guard case .array(let ids)? = data["knownWorkspaceIds"] else { return nil }
+    return ids.compactMap(\.string)
+  }
+  /// Adds `ids`; even with none, a state that had no list gets one, so a
+  /// switch turned on with no Spaces doesn't read as an older build's.
+  func markKnown(_ ids: [String]) {
+    guard !ids.isEmpty || knownSpaceIds == nil else { return }
+    var seen = Set<String>()
+    data["knownWorkspaceIds"] = .array(((knownSpaceIds ?? []) + ids).filter { seen.insert($0).inserted }.map(JSONValue.string))
     save()
   }
   func isDormant(_ id: String) -> Bool { (data["dormantIds"]?.array ?? []).contains(.string(id)) }
