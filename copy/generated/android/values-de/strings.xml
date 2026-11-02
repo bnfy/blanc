@@ -2555,4 +2555,16 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ios_default_browser_done">Blanc ist dein Standardbrowser</string>
     <string name="ios_default_browser_row">Standardbrowser</string>
     <string name="ios_default_browser_not_blanc">Nicht Blanc</string>
+    <string name="menu_new_mini_window">Neues Mini-Fenster</string>
+    <string name="mini_open_in_blanc">In Blanc öffnen</string>
+    <string name="mini_open_in_blanc_title">Dieses Mini-Fenster als normales Blanc-Fenster behalten</string>
+    <string name="mini_open_in_blanc_label">In Blanc öffnen – dieses Mini-Fenster als normales Blanc-Fenster behalten</string>
+    <string name="settings_general_mini_window_label">Kurzbefehl für Mini-Fenster</string>
+    <string name="settings_general_mini_window_hint">Öffnet ein kleines Blanc-Fenster über der App, in der du gerade bist, solange Blanc läuft. Ein Mini-Fenster wird nicht gespeichert und schließt sich nach einer Stunde ohne Nutzung. „In Blanc öffnen“ behält es.</string>
+    <string name="settings_general_mini_window_unavailable">Eine andere App verwendet diesen Kurzbefehl, oder dein Desktop erlaubt ihn nicht. Wähle einen anderen.</string>
+    <string name="settings_general_mini_window_off">Aus</string>
+    <string name="settings_general_mini_window_shortcut_alt_cmd_n">⌥⌘N</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Leertaste</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Strg+Alt+Leertaste</string>
+    <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Strg+Umschalt+Leertaste</string>
 </resources>

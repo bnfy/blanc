@@ -174,6 +174,7 @@
   const pillInsecure = document.getElementById('pillInsecure');
   const pillPrivateChip = document.getElementById('pillPrivateChip');
   const pillSourceChip = document.getElementById('pillSourceChip');
+  const pillMiniOpen = document.getElementById('pillMiniOpen');
   const windowControls = document.getElementById('windowControls');
   const mainMenuButton = document.getElementById('mainMenuButton');
   const glanceCard = document.getElementById('glanceCard');
@@ -1225,6 +1226,11 @@
   });
 
   function render() {
+    // Mini Window (#1138): Open in Blanc leads the Island, and the Space mark
+    // hides (CSS), since a mini window holds no Space.
+    const miniWindow = state.miniWindow === true;
+    document.documentElement.toggleAttribute('data-mini-window', miniWindow);
+    pillMiniOpen.hidden = !miniWindow;
     requestAnimationFrame(() => reportIslandRect());
     // Split View headers follow their pages (title, Back, loading).
     // The rail is a presentation of this same trusted payload, not another
@@ -1339,6 +1345,11 @@
   // Quick exit: either chip closes the active tab — the private chip leaves
   // private mode, the source chip is the way back out of a page-source tab
   // (whose Back is dead). One shared handler so the two can't drift apart.
+  pillMiniOpen.addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.browserAPI.keepMiniWindow();
+  });
+
   for (const chip of [pillPrivateChip, pillSourceChip]) {
     chip.addEventListener('click', (e) => {
       e.stopPropagation();

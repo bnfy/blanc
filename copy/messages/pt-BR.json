@@ -9288,5 +9288,53 @@
   "ios.defaultBrowser.notBlanc": {
     "message": "Não é o Blanc",
     "source": "sha256:0faee873d1f38ea949b3c0c4c7a50891b19d285b32dd49efef488caa805b880b"
+  },
+  "menu.newMiniWindow": {
+    "message": "Nova minijanela",
+    "source": "sha256:62d7994d5bc6b97b50844ebee54ff1f2f2d22d6aa35f997e31257a4691a959fe"
+  },
+  "mini.openInBlanc": {
+    "message": "Abrir no Blanc",
+    "source": "sha256:244f5331c43bbc46edbda91f86f419bd4bf8dadc4fd5036f3b9e1189b8095f00"
+  },
+  "mini.openInBlanc.title": {
+    "message": "Manter esta minijanela como uma janela comum do Blanc",
+    "source": "sha256:a5aacb4d8eebdc2d6a40ac90d4d9001ffb7ac3e03473611000c6d7ccf9a371a6"
+  },
+  "mini.openInBlanc.label": {
+    "message": "Abrir no Blanc: manter esta minijanela como uma janela comum do Blanc",
+    "source": "sha256:2a3abd0192e7db866dc79f7990b6bcd02f67183db434a555f0385bb96f3d6006"
+  },
+  "settings.general.miniWindow.label": {
+    "message": "Atalho da minijanela",
+    "source": "sha256:4488c3586ecb8d4ec9773227c5ec6ba1b7055b54699ddcc96c66e27ff255f62e"
+  },
+  "settings.general.miniWindow.hint": {
+    "message": "Abre uma pequena janela do Blanc sobre o app em que você está, enquanto o Blanc está aberto. Uma minijanela não é salva e fecha após uma hora sem uso. Abrir no Blanc a mantém.",
+    "source": "sha256:b184a8e1a2b228742c80ae0fcb833f173447ffc70c060eb08ef7194c46796e8e"
+  },
+  "settings.general.miniWindow.unavailable": {
+    "message": "Outro app está usando este atalho, ou sua área de trabalho não permite. Escolha outro.",
+    "source": "sha256:73999e1c29162cdb9edfc53dc46f36bc9ddb977fe00e54a659be2737eb534dce"
+  },
+  "settings.general.miniWindow.off": {
+    "message": "Desativado",
+    "source": "sha256:eaece69f698fc2a5ae0a6425a005236f0ee6e179db7bbe523beadd781b36720a"
+  },
+  "settings.general.miniWindow.shortcut.altCmdN": {
+    "message": "⌥⌘N",
+    "source": "sha256:61f6b03678f0ff104b7b31c75bf517ce6969545c84abf75f64091cc0f3d9acb9"
+  },
+  "settings.general.miniWindow.shortcut.ctrlAltSpaceMac": {
+    "message": "⌃⌥Espaço",
+    "source": "sha256:cda016970ef473927380c668c2c91e25fa6ca39f7b3c8577f530df2db38ff06f"
+  },
+  "settings.general.miniWindow.shortcut.ctrlAltSpace": {
+    "message": "Ctrl+Alt+Espaço",
+    "source": "sha256:b2c2f80b33307545dc01b1242229898063ee7b63438df0474b55cd0fb5c4a09d"
+  },
+  "settings.general.miniWindow.shortcut.ctrlShiftSpace": {
+    "message": "Ctrl+Shift+Espaço",
+    "source": "sha256:5f579d29dff6300530617e41e4a883a52c075e51ffb3573d781ced720a7601a8"
   }
 }

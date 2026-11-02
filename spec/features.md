@@ -1920,3 +1920,26 @@ candidate branch (PR 1); not shipped in public v1.43.1.
   write its host to settings; the pill says so.
 - **Mobile.** Not applicable until a mobile Blanc has profiles to route
   between (D32).
+
+## F61 — Mini Window (desktop)
+
+A small Blanc window opened over the app the person is in, to look something
+up or open a link without going back to the Blanc window (#1138). Design:
+`docs/superpowers/specs/2026-11-02-mini-window-design.md`. Implemented on the
+candidate branch (PR 1); not in a public release.
+
+- **Opening one.** File → New Mini Window, the macOS Dock menu, or an opt-in
+  shortcut that works in any app while Blanc runs (Settings → General → Mini
+  window shortcut; off by default, device-local). The choices are ⌥⌘N or ⌃⌥Space
+  on macOS, and Ctrl+Alt+Space or Ctrl+Shift+Space on Windows and Linux. A
+  chord that can't be used is reported in Settings.
+- **The window.** 760 × 600 on the display under the pointer, a new tab with
+  the Island's search focused. Otherwise an ordinary window: the same Island,
+  blocking and permissions.
+- **Ephemeral.** Never saved with the session, never where a link from
+  another app or a link rule opens, and holds no Space. Closes by itself after
+  an hour without focus, unless a page in it is in use or has unsaved work.
+  Its pages stay in History.
+- **Open in Blanc.** The Island's leading button (and a File menu item) keeps
+  it as an ordinary window: a new window's size, saved from then on.
+- **Mobile.** Not applicable.

@@ -653,6 +653,10 @@
           "type": "boolean",
           "doc": "Draw each direct tab on the Island as its site icon instead of a dot (device-local setting)."
         },
+        "miniWindow": {
+          "type": "boolean",
+          "doc": "This window is a mini window (#1138): small, never saved, with Open in Blanc on the Island."
+        },
         "islandSize": {
           "type": "string",
           "doc": "The resting Island's size: default, large or extra-large (device-local setting, #1292)."
@@ -715,6 +719,10 @@
         "islandTabIcons": {
           "type": "boolean",
           "doc": "Draw each direct tab on the Island as its site icon instead of a dot (device-local setting)."
+        },
+        "miniWindow": {
+          "type": "boolean",
+          "doc": "This window is a mini window (#1138): small, never saved, with Open in Blanc on the Island."
         },
         "islandSize": {
           "type": "string",
@@ -3712,6 +3720,15 @@
       "params": [],
       "returns": "TabId[]",
       "doc": "Quiet all background tabs now. Resolves to the ids of the tabs that were quieted."
+    },
+    {
+      "name": "keepMiniWindow",
+      "group": "island",
+      "kind": "invoke",
+      "channel": "chrome:mini-keep",
+      "params": [],
+      "returns": "boolean",
+      "doc": "Open in Blanc (#1138): keep this mini window as an ordinary, saved Blanc window. Resolves to false when this window isn't a mini window."
     },
     {
       "name": "inviteFriend",

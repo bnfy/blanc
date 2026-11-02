@@ -3,10 +3,12 @@
 const pendingActivations = new WeakMap();
 const ACTIVATION_DEADLINE_MS = 2_000;
 
-/** Select a browser runtime, never an auxiliary popup. A closed primary is
- * reusable, but a live most-recently-focused profile/window takes precedence. */
+/** Select a browser runtime, never an auxiliary popup or a mini window (a
+ * link from another app belongs in an ordinary window, #1138). A closed
+ * primary is reusable, but a live most-recently-focused profile/window takes
+ * precedence. */
 function externalWindowRuntime(runtimes, preferred, primary, lastFocused = preferred) {
-  const live = (runtime) => runtimes.includes(runtime) && !runtime.closing
+  const live = (runtime) => runtimes.includes(runtime) && !runtime.closing && !runtime.mini
     && runtime.window && !runtime.window.isDestroyed();
   return [preferred, lastFocused, ...runtimes].find(live) ?? primary;
 }
