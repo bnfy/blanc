@@ -260,7 +260,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "5b67207e816388d75a7155ec787fc79a871cc43f37c79180bce3bd80b2e275c2",
+      "sha256": "50f8f09d60ccffad82260a8e999cb10b57b051ac58db4427f5e0099f694075a9",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -962,7 +962,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "95fbe103c873417275d0382ae1a010f959bc1799823db0e90b25189f9c790562",
+      "sha256": "f26dcf6bb2adaf6e27869b3384bac189f9898a8d8d80f7cb625b2e525397949e",
       "literalChannels": [
         "before-quit"
       ],

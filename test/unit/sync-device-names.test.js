@@ -127,7 +127,11 @@ test('the freshness pull waits for tab state, carries settings, and runs at most
   while (!(put('session') && put('settings') && got('sends')) && Date.now() < deadline) {
     await new Promise((resolve) => setTimeout(resolve, 20));
   }
-  const gets = requests.filter((r) => r.method === 'GET').map((r) => r.store).sort();
+  // The refresh starts with the change check; this Worker answers it 404, as
+  // one from before the check, so the fixed downloads follow at once.
+  const isCheck = (r) => /^[0-9a-f]{64}$/.test(r.store);
+  assert.equal(requests.filter(isCheck).length, 1);
+  const gets = requests.filter((r) => r.method === 'GET' && !isCheck(r)).map((r) => r.store).sort();
   assert.deepEqual(gets, ['icons', 'sends', 'session', 'settings']);
   assert.equal(put('sends'), false, 'presence alone never creates the sends store');
 

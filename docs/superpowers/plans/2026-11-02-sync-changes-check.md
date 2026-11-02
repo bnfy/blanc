@@ -158,7 +158,7 @@
 - [ ] **Step 2: Run them to see them fail.**
 - [ ] **Step 3: Implement.** Replace the 60 s `setInterval` with one ticker that chooses check, retry or full pass. `refreshSession` starts with `checkVersions()` and falls back to its current fixed downloads when unsupported. `syncNow(names)` is the fetch path for changed stores. Cap class R enqueues at `R_PER_PASS`, continuing from the scheduler's `R` cursor.
 - [ ] **Step 4: Run** the whole unit suite (`npm run test:unit`), `npm run lint` and `npm run audit-inventory:write` if `sync.js` is a boundary file. Expected: PASS, no unrelated diffs.
-- [ ] **Step 5: Add the acceptance scenario** `F57-24` to `spec/acceptance/` with its desktop steps: a Space made on device B appears on device A within 20 s with the fixture's endpoint on, and within 70 s with it off. Run it alone through a scratch cucumber config whose `paths` lists only that feature (passing a feature path to `-c test/desktop/cucumber.mjs` still runs the whole suite), then `npx cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags "@F57"`. Expected: all pass.
+- [ ] **Step 5: Add the acceptance scenario** `F57-24` to `spec/acceptance/` with its desktop steps: a Space made on device B appears on device A within 25 s with the fixture's endpoint on (a check every 15 s, then the downloads), and within 70 s with it off. Run it alone through a scratch cucumber config whose `paths` lists only that feature (passing a feature path to `-c test/desktop/cucumber.mjs` still runs the whole suite), then `npx cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags "@F57"`. Expected: all pass.
 - [ ] **Step 6: Commit** `Sync: check for changes every 15 seconds and fetch only what moved`, then open the Part B PR.
 
 ---

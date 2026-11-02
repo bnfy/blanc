@@ -26,7 +26,14 @@ function createScheduler({limit=10,windowMs=60000,log=[],nextClass='I',cursors={
   // minute behind routine sync. The window itself never grows, and small or
   // backed-off windows keep every request. Without the option these are the
   // window's hard limit, which the iOS vectors share.
-  const room=reserve=>reserve&&cap>=4?cap-1:cap;
+  // A number keeps that many free (the queue also keeps requests for the
+  // change check, design 2026-11-02), as far as the window allows: at least
+  // one is kept in a window of 4 or more, and background work always gets one.
+  const room=reserve=>{
+    if(!reserve||cap<4)return cap;
+    const keep=reserve===true?1:Math.floor(reserve);
+    return Math.max(1,cap-Math.max(1,Math.min(keep,cap-1)));
+  };
   const canRequest=({reserve=false}={})=>{refresh();return events.length<room(reserve);};
   function windowFreesAt({reserve=false}={}) {
     refresh();const n=room(reserve);return events.length<n?now():now()+Math.max(0,windowMs-(monotonic()-events[events.length-n].at));
