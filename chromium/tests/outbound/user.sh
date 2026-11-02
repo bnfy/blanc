@@ -13,11 +13,18 @@ NODE=/usr/local/bin/node
 [ "$(id -un)" = blanc-test ] || { echo "Run this in the blanc-test session." >&2; exit 1; }
 [ -s "$OUT/pflog.txt" ] || [ -e "$OUT/pflog.txt" ] || { echo "Start the pf log first: sudo root.sh start" >&2; exit 1; }
 export BLANC_EGRESS_LOG=$OUT/egress.jsonl
+# The clone belongs to the owner's account, so git refuses it to this user
+# ("dubious ownership"); trust that one path for this run only.
+export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=$DIR/repo
 cd "$R"
 stamp() { date -u '+%Y-%m-%dT%H:%M:%SZ'; }
 # Each step's UTC start, and Done, go to user.log: analyze.mjs reads the
 # run's start and end from it.
 : > "$OUT/user.log"
+: > "$OUT/egress.jsonl"
+# Every attempt's start, kept across runs: blocks after the first attempt
+# began may be an earlier attempt's browser, so they never count as background.
+echo "$(stamp) start" >> "$OUT/runs.log"
 say() { echo "$(stamp) $1" | tee -a "$OUT/user.log"; }
 run() { say "$1"; shift; caffeinate -d -i "$@"; }
 run "controls (before)" $NODE tests/outbound/controls.mjs "$CFG" "$OUT/controls-before.json"

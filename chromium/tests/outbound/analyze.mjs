@@ -7,7 +7,9 @@
 // blocks before the run starts or after it ends are that background, and a
 // block during the run to an address that background also reached (or to a
 // multicast or link-local address) is reported as background, not a failure.
-// A control's address never counts as background.
+// A control's address never counts as background, and blocks from an
+// earlier attempt (after the first attempt began, before this run) count as
+// neither: they may be that attempt's browser.
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -30,7 +32,7 @@ export function hostOf(target) {
 
 const LOCAL = /^(22[4-9]|23\d)\.|^169\.254\.|^ff0|^fe80:/i;
 
-export function judge({controls, pflog, egress, leak, scenarioHosts, run}) {
+export function judge({controls, pflog, egress, leak, scenarioHosts, run, firstStart = run?.start}) {
   const problems = [];
   const windows = [];
   const missingRoute = [];
@@ -44,7 +46,8 @@ export function judge({controls, pflog, egress, leak, scenarioHosts, run}) {
   if (!run || !(run.start < run.end)) problems.push('the run has no start and end time: the run is invalid');
   const during = p => run && p.at >= run.start && p.at <= run.end;
   const controlAddresses = new Set(controls.map(c => c.address));
-  const seenIdle = new Set(pflog.filter(p => !during(p) && !controlAddresses.has(p.address)).map(p => p.address));
+  const idle = p => run && (p.at < Math.min(firstStart, run.start) || p.at > run.end);
+  const seenIdle = new Set(pflog.filter(p => idle(p) && !controlAddresses.has(p.address)).map(p => p.address));
   const background = new Map();
   for (const p of pflog) {
     if (!during(p) || windows.some(([from, to]) => p.at >= from && p.at <= to)) continue;
@@ -58,7 +61,8 @@ export function judge({controls, pflog, egress, leak, scenarioHosts, run}) {
   for (const [host, count] of hosts) if (!allowed.has(host)) problems.push(`proxy saw ${count} request(s) to ${host}, not an engine or a scenario site`);
   if (leak?.status !== 'passed') problems.push(`leak probe ${leak?.status ?? 'missing'}: ${leak?.error ?? ''}`);
   return {verdict: problems.length ? 'fail' : 'pass', problems, missingRoute, egressHosts: Object.fromEntries(hosts),
-    pflogLines: pflog.length, controls: controls.length, idleBlocks: pflog.filter(p => !during(p)).length,
+    pflogLines: pflog.length, controls: controls.length, idleBlocks: pflog.filter(idle).length,
+    earlierAttemptBlocks: pflog.filter(p => !idle(p) && !during(p)).length,
     backgroundDuringRun: Object.fromEntries(background)};
 }
 
@@ -79,7 +83,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const steps = [...read('user.log').matchAll(/^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ) (.*)$/gm)];
   const run = steps.length > 1 && /^Done/.test(steps.at(-1)[2])
     ? {start: Date.parse(steps[0][1]) - 1000, end: Date.parse(steps.at(-1)[1]) + 5000} : null;
-  const report = judge({controls, pflog: parsePflog(read('pflog.txt')), egress, leak: json('leak.json'), scenarioHosts, run});
+  const starts = [...read('runs.log').matchAll(/^(\S+Z) start$/gm)].map(m => Date.parse(m[1]) - 1000);
+  if (!starts.length) throw Error('runs.log has no start: run user.sh');
+  const report = judge({controls, pflog: parsePflog(read('pflog.txt')), egress, leak: json('leak.json'), scenarioHosts, run,
+    firstStart: Math.min(...starts)});
   fs.writeFileSync(path.join(results, 'verdict.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify(report, null, 2));
   if (report.verdict !== 'pass') process.exitCode = 1;

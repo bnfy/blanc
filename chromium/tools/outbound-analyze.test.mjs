@@ -66,6 +66,15 @@ test('the account\'s background is set apart, and only by what was seen outside 
   assert.equal(unseen.verdict, 'fail', 'an address the background never reached');
 });
 
+test('an earlier attempt\'s blocks are neither background nor failures', () => {
+  const lines = [LOG, block('16:55:00.000000', '142.250.1.1'), block('17:05:00.000000', '142.250.1.1')];
+  const firstStart = Date.parse(at('2026-11-01 16:54:00.000'));
+  const report = judge({...base, firstStart, pflog: parsePflog(lines.join('\n'))});
+  assert.equal(report.verdict, 'fail', 'the earlier attempt did not make 142.250.1.1 background');
+  assert.equal(report.earlierAttemptBlocks, 1);
+  assert.equal(judge({...base, pflog: parsePflog(lines.join('\n'))}).verdict, 'pass', 'without an earlier attempt it is background');
+});
+
 test('background never covers a control\'s address or a run without times', () => {
   const masked = judge({...base, pflog: parsePflog([LOG, block('16:50:00.000000', '1.1.1.1'), block('17:05:00.000000', '1.1.1.1')].join('\n'))});
   assert.equal(masked.verdict, 'fail');
