@@ -367,6 +367,7 @@ const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link')
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const { HOVER_OPEN_DWELL_MS, initialHoverState, pointInRect, hoverStep } = require('./island-hover-open');
 const islandAutoHideModule = require('./island-autohide');
+const { stripHeightFor, scaleForIslandSize } = require('./island-size');
 const {
   installPlatformMainMenuShortcut,
   menuLabelText,
@@ -4406,8 +4407,10 @@ function syncIslandFloat(runtime = rt()) {
     const bounds = islandAutoHideModule.floatViewBounds(floatElementRect(runtime, role), {
       windowWidth: content.width,
       windowHeight: content.height,
-      side: pill ? islandAutoHideModule.FLOAT_SIDE_PX : islandAutoHideModule.FLOAT_CHROME_PAD_PX,
-      bottom: pill ? islandAutoHideModule.FLOAT_BOTTOM_PX : islandAutoHideModule.FLOAT_CHROME_PAD_PX,
+      // The pill's shadow is drawn inside its zoom, so it grows with the
+      // Island size (#1292).
+      side: pill ? scaleForIslandSize(islandAutoHideModule.FLOAT_SIDE_PX, islandSize) : islandAutoHideModule.FLOAT_CHROME_PAD_PX,
+      bottom: pill ? scaleForIslandSize(islandAutoHideModule.FLOAT_BOTTOM_PX, islandSize) : islandAutoHideModule.FLOAT_CHROME_PAD_PX,
     });
     if (bounds) {
       const frame = { role, x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height, stageWidth: content.width };
@@ -13171,6 +13174,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
   if (runtime.window && !runtime.window.isDestroyed()) return runtime;
   runtime.closing = false;
   runtime.chromeReady = false;
+  // The strip reports its height only once it has drawn at the saved Island
+  // size (#1292), so pages start there rather than jumping down.
+  runtime.chromeHeight = stripHeightFor(islandSize);
   sessionHeldForQuit = false;
   installProfileSessionPolicies(runtime.profileId);
   const localProfile = localProfiles.getLocalProfile(runtime.profileId);

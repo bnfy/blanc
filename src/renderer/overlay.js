@@ -4027,7 +4027,15 @@
     if (mode === 'panel' || mode === 'palette') renderList();
   }
 
+  // Island size (#1292): the panel grows out of, and back into, the resting
+  // pill's corner (--island-resting-radius), which differs by size.
+  const applyIslandSize = (size) => {
+    const next = size || 'default';
+    if (document.documentElement.dataset.islandSize !== next) document.documentElement.dataset.islandSize = next;
+  };
+
   window.browserAPI.onTabsUpdated((payload) => {
+    applyIslandSize(payload.islandSize);
     const activeTabChanged = payload.activeTabId !== state.activeTabId;
     if (JSON.stringify(payload.selectedTabIds ?? []) !== JSON.stringify(state.selectedTabIds ?? [])) {
       const count = payload.selectedTabIds?.length ?? 0;
@@ -4089,6 +4097,7 @@
   });
   window.browserAPI.getAllTabs().then((payload) => {
     state = payload;
+    applyIslandSize(payload.islandSize);
     if (mode === 'glance') renderGlancePicker();
   });
 

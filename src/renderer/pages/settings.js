@@ -531,7 +531,7 @@
 
   if (supports('islandSize')) {
     const islandSize = document.getElementById('islandSize');
-    const showIslandSize = (value) => { islandSize.value = ['large', 'extra-large'].includes(value) ? value : 'default'; };
+    const showIslandSize = (value) => { islandSize.value = value || 'default'; };
     showIslandSize(settings.islandSize);
     islandSize.addEventListener('change', async () => {
       try {

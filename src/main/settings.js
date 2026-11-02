@@ -49,7 +49,7 @@ const THEMES = ['system', 'light', 'dark'];
 const TAB_LAYOUTS = ['island', 'vertical'];
 const VERTICAL_TABS_TEXT_SIZES = ['default', 'large', 'extra-large'];
 // The resting Island's size (#1292); the strip grows with it.
-const ISLAND_SIZES = ['default', 'large', 'extra-large'];
+const { ISLAND_SIZES } = require('./island-size');
 // Start-page layouts (Bowser Design System, "New tab v2" handoff). Same class
 // of preference as the theme — it describes the browser you want, so it syncs.
 const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally'];
