@@ -2084,9 +2084,14 @@
         "hosts": [
           "settings"
         ],
-        "params": [],
+        "params": [
+          {
+            "name": "options",
+            "type": "unknown"
+          }
+        ],
         "returns": "unknown",
-        "doc": "Development-only Shared Spaces consent and selection."
+        "doc": "Shared Spaces selection sheet choices; {local: true} answers from this device's saved index without a network fetch."
       },
       {
         "name": "settings.sharedSpacesApply",

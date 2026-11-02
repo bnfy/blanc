@@ -69,3 +69,9 @@ test('resetWindow forgets every recorded request and any back-off, and restart c
   assert.equal(s.snapshot().backoffUntil,null);
   let n=0;while(s.canRequest()){s.record();n++;}assert.equal(n,10);
 });
+test('background work leaves the last request of a full window free',()=>{
+  const s=createScheduler({now:()=>1000,monotonic:()=>1000});
+  let n=0;while(s.canRequest({reserve:true})){s.record();n++;}assert.equal(n,9);
+  assert.equal(s.windowFreesAt({reserve:true}),61000);assert.equal(s.windowFreesAt(),1000);
+  assert.equal(s.canRequest(),true);s.record();assert.equal(s.canRequest(),false);
+});

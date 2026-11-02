@@ -172,9 +172,11 @@ test('without a surviving local copy, an acknowledged disappearing write remains
 });
 test('all actual HTTP GETs, including a best-effort leave, respect the same request window',async t=>{
   const e=await environment(t),a=e.device('A');
-  for(let n=0;n<10;n++)await a.sync.syncNow(['sends']);
+  // Background work takes 9 of the window's 10 GETs; the last is kept for
+  // the Choose Spaces sheet, so the best-effort leave is refused too.
+  for(let n=0;n<9;n++)await a.sync.syncNow(['sends']);
   await a.sync.disable();
-  assert.equal(e.fixture.requests.filter(x=>x.method==='GET').length,10);
+  assert.equal(e.fixture.requests.filter(x=>x.method==='GET').length,9);
 });
 test('departure publishes the Recently closed retraction when request budget is available',async t=>{
   const e=await environment(t),a=e.device('A');

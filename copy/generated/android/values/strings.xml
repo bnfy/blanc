@@ -2343,6 +2343,11 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="shared_spaces_capacity">This Space is full for sync. Its local changes are kept.</string>
     <string name="shared_spaces_busy">Sync is busy; retrying.</string>
     <string name="shared_spaces_slowed">Checking for changes is slowed by rate limiting.</string>
+    <string name="shared_spaces_checking">Checking your other devices…</string>
+    <string name="shared_spaces_checking_button">Checking…</string>
+    <string name="shared_spaces_share">Share</string>
+    <string name="shared_spaces_list_updated">The list was updated. Check it, then confirm again.</string>
+    <string name="shared_spaces_uploading">Uploading your Spaces. You can keep browsing.</string>
     <string name="shared_spaces_unsynced_tab">Not synced</string>
     <string name="shared_spaces_pair_question">%1$s joined your sync. Turn on Spaces here?</string>
     <string name="shared_spaces_pair_detail">Turning this on lets this device change shared Spaces across your sync account.</string>

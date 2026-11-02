@@ -2414,6 +2414,11 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="shared_spaces_capacity">Este Space está cheio para sincronização. As alterações locais são mantidas.</string>
     <string name="shared_spaces_busy">A sincronização está ocupada; tentando novamente.</string>
     <string name="shared_spaces_slowed">O limite de solicitações está reduzindo a frequência de verificação.</string>
+    <string name="shared_spaces_checking">Verificando seus outros dispositivos…</string>
+    <string name="shared_spaces_checking_button">Verificando…</string>
+    <string name="shared_spaces_share">Compartilhar</string>
+    <string name="shared_spaces_list_updated">A lista foi atualizada. Confira e confirme de novo.</string>
+    <string name="shared_spaces_uploading">Enviando seus Spaces. Você pode continuar navegando.</string>
     <string name="shared_spaces_unsynced_tab">Não sincronizado</string>
     <string name="shared_spaces_pair_question">%1$s entrou na sua sincronização. Ativar Spaces aqui?</string>
     <string name="shared_spaces_pair_detail">Este dispositivo poderá alterar os Spaces compartilhados da conta.</string>

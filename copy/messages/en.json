@@ -8777,6 +8777,26 @@
     "message": "Checking for changes is slowed by rate limiting.",
     "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."
   },
+  "sharedSpaces.checking": {
+    "message": "Checking your other devices…",
+    "note": "Choose Spaces to sync sheet: quiet line while this device fetches the latest list of shared Spaces. The sheet is already usable."
+  },
+  "sharedSpaces.checkingButton": {
+    "message": "Checking…",
+    "note": "Choose Spaces to sync sheet: the confirm button while it waits for the check of other devices to finish before saving."
+  },
+  "sharedSpaces.share": {
+    "message": "Share",
+    "note": "Choose Spaces to sync sheet, opened while Spaces sync is already on: confirm button that shares the ticked Spaces."
+  },
+  "sharedSpaces.listUpdated": {
+    "message": "The list was updated. Check it, then confirm again.",
+    "note": "Choose Spaces to sync sheet: shown when the check of other devices changed the choices after the person pressed confirm."
+  },
+  "sharedSpaces.uploading": {
+    "message": "Uploading your Spaces. You can keep browsing.",
+    "note": "Settings → Sync, under Spaces and groups: quiet line after Turn on or Share while the chosen Spaces upload in the background. Clears when the upload finishes."
+  },
   "sharedSpaces.unsyncedTab": {
     "message": "Not synced",
     "note": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed."

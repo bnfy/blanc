@@ -150,3 +150,52 @@ Feature: Shared Spaces
     Then the shared copy has the group "References" colored "rose" holding both Work tabs
     When I switch to the first Work tab
     Then the "References" group keeps the second Work tab here and in the shared copy
+
+  @F57-19
+  Scenario: The selection sheet opens at once while the Spaces check waits
+    Given a Shared Spaces fixture with a local Work Space
+    And the next Spaces index fetch is held
+    When I turn on Spaces and groups
+    Then the selection sheet is open within a second and is checking other devices
+    And Settings never says Sync is busy
+    When the held Spaces index fetch is released
+    Then the sheet stops checking and the Work Space is still checked
+
+  @F57-20
+  Scenario: Turning on before the check finishes waits, then saves
+    Given a Shared Spaces fixture with a local Work Space
+    And the next Spaces index fetch is held
+    When I turn on Spaces and groups
+    And I press Turn on in the selection sheet
+    Then the Turn on button waits for the check and sharing is still off
+    When the held Spaces index fetch is released
+    Then the "Work" Space is shared once and Spaces sync is on
+
+  @F57-21
+  Scenario: A Space made while Spaces sync is on is shared by itself
+    Given a Shared Spaces fixture with the Work Space shared
+    When I make a new Space "Reading"
+    Then the "Reading" Space is shared once and Spaces sync is on
+
+  @F57-22
+  Scenario: Choose Spaces to sync adds a Space left out, with the switch still on
+    Given a Shared Spaces fixture with local Work and Private Spaces
+    When I turn on Spaces and groups
+    And I untick "Private" and press Turn on in the selection sheet
+    Then the "Private" Space stays on this device
+    When I choose Spaces to sync from Settings
+    Then the "Work" Space is listed as Shared
+    When I press Share in the selection sheet
+    Then the "Private" Space is shared once and Spaces sync is on
+    And the "Work" Space is shared once and Spaces sync is on
+
+  @F57-23
+  Scenario: Closing the sheet after Turn on keeps sharing going
+    Given a Shared Spaces fixture with a local Work Space
+    And the next Spaces index fetch is held
+    When I turn on Spaces and groups
+    And I press Turn on in the selection sheet
+    And I press Cancel in the selection sheet
+    Then the selection sheet is closed and Settings says the Spaces are uploading
+    When the held Spaces index fetch is released
+    Then the "Work" Space is shared once and Spaces sync is on

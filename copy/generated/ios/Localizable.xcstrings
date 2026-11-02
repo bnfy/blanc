@@ -95731,6 +95731,216 @@
         }
       }
     },
+    "sharedSpaces.checking": {
+      "comment": "Choose Spaces to sync sheet: quiet line while this device fetches the latest list of shared Spaces. The sheet is already usable.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking your other devices…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine anderen Geräte werden geprüft …"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobando tus otros dispositivos…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification de vos autres appareils…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controllo degli altri dispositivi…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificando seus outros dispositivos…"
+          }
+        }
+      }
+    },
+    "sharedSpaces.checkingButton": {
+      "comment": "Choose Spaces to sync sheet: the confirm button while it waits for the check of other devices to finish before saving.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird geprüft …"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobando…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controllo…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificando…"
+          }
+        }
+      }
+    },
+    "sharedSpaces.share": {
+      "comment": "Choose Spaces to sync sheet, opened while Spaces sync is already on: confirm button that shares the ticked Spaces.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teilen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partager"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Condividi"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartilhar"
+          }
+        }
+      }
+    },
+    "sharedSpaces.listUpdated": {
+      "comment": "Choose Spaces to sync sheet: shown when the check of other devices changed the choices after the person pressed confirm.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The list was updated. Check it, then confirm again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Liste wurde aktualisiert. Prüfe sie und bestätige noch einmal."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La lista se actualizó. Revísala y vuelve a confirmar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La liste a été mise à jour. Vérifiez-la, puis confirmez à nouveau."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’elenco è stato aggiornato. Controllalo, poi conferma di nuovo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A lista foi atualizada. Confira e confirme de novo."
+          }
+        }
+      }
+    },
+    "sharedSpaces.uploading": {
+      "comment": "Settings → Sync, under Spaces and groups: quiet line after Turn on or Share while the chosen Spaces upload in the background. Clears when the upload finishes.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploading your Spaces. You can keep browsing."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Spaces werden hochgeladen. Du kannst weitersurfen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subiendo tus Spaces. Puedes seguir navegando."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoi de vos Spaces en cours. Vous pouvez continuer à naviguer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caricamento degli Spaces in corso. Puoi continuare a navigare."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviando seus Spaces. Você pode continuar navegando."
+          }
+        }
+      }
+    },
     "sharedSpaces.unsyncedTab": {
       "comment": "Shared Spaces text in Settings → Sync, the Start Page, the Spaces menu and Recently closed.",
       "extractionState": "manual",

@@ -127,6 +127,11 @@ function parkCode(code, payload = OTHER) {
   return pairId;
 }
 
+// Each test starts with a free request window: background sync keeps the
+// window's last request for the Choose Spaces sheet, so a file-long window
+// would make later tests wait out the minute.
+test.beforeEach(() => sync.resetRequestWindowForTest());
+
 test.after(async () => {
   await sync.disable().catch(() => {}); // clears the optional-store retry timer
   await jsonStores.settle();

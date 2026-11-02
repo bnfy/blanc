@@ -2414,6 +2414,11 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="shared_spaces_capacity">Ce Space est plein pour la synchronisation. Les modifications locales sont conservées.</string>
     <string name="shared_spaces_busy">La synchronisation est occupée ; nouvel essai.</string>
     <string name="shared_spaces_slowed">La limite de requêtes ralentit la recherche de modifications.</string>
+    <string name="shared_spaces_checking">Vérification de vos autres appareils…</string>
+    <string name="shared_spaces_checking_button">Vérification…</string>
+    <string name="shared_spaces_share">Partager</string>
+    <string name="shared_spaces_list_updated">La liste a été mise à jour. Vérifiez-la, puis confirmez à nouveau.</string>
+    <string name="shared_spaces_uploading">Envoi de vos Spaces en cours. Vous pouvez continuer à naviguer.</string>
     <string name="shared_spaces_unsynced_tab">Non synchronisé</string>
     <string name="shared_spaces_pair_question">%1$s a rejoint votre synchronisation. Activer les Spaces ici ?</string>
     <string name="shared_spaces_pair_detail">Cet appareil pourra modifier les Spaces partagés de votre compte.</string>
