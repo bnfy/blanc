@@ -10,6 +10,12 @@
   let pillRect = null;
   let opened = false;
   let overlayMode = null;
+  // What the open surface was shown for (shipping's overlayPurpose).
+  let overlayPurpose = null;
+  // The side list's group menu names its group as it closes, so that
+  // header forgets its open state (shipping's "group-menu:<id>" trigger).
+  const groupMenuClosed = () => overlayMode === 'group-menu' && typeof overlayPurpose?.groupId === 'string'
+    ? `group-menu:${overlayPurpose.groupId}` : null;
   let shieldTrigger = null;
   let pendingShieldOpen = null;
   let findTabId = null;
@@ -509,12 +515,14 @@
     positionShield();
     const slot = strip.contentDocument?.getElementById('nativeExtensions');
     const panel = paneMenu ?? (extensionsOpened ? document.getElementById('extensionsPanel')
-      : opened ? overlay.contentDocument?.getElementById(overlayMode === 'find' ? 'findBar' : overlayMode === 'shield' ? 'shieldPop' : 'islandPanel')
+      : opened ? overlay.contentDocument?.getElementById(overlayMode === 'find' ? 'findBar' : overlayMode === 'shield' ? 'shieldPop'
+        : overlayMode === 'group-menu' ? 'groupMenu' : 'islandPanel')
       : strip.contentDocument?.getElementById('islandPill'));
     if (!slot || !panel) return;
     const a = slot.getBoundingClientRect();
-    // The palette scrim owns outside clicks across the whole viewport.
-    const b = opened && overlayMode === 'palette'
+    // The palette scrim, and the group menu's transparent layer (a click
+    // beside the menu closes it), own outside clicks across the viewport.
+    const b = opened && (overlayMode === 'palette' || overlayMode === 'group-menu')
       ? { x: 0, y: 0, width: innerWidth, height: innerHeight }
       : panel.getBoundingClientRect();
     const overlayRect = opened ? overlay.getBoundingClientRect() : {x: 0, y: 0};
@@ -542,9 +550,14 @@
     strip.style.visibility = '';
     await refresh();
     if (epoch !== findShowEpoch) return;
-    await request('height', [mode === 'palette' ? 10000 : mode === 'shield' ? 648 : 640]);
+    // The palette's scrim and the side list's group menu cover the window.
+    await request('height', [mode === 'palette' || mode === 'group-menu' ? 10000 : mode === 'shield' ? 648 : 640]);
     if (epoch !== findShowEpoch) return;
+    // Another surface replacing the side list's group menu closes it too.
+    const replacedMenu = mode !== 'group-menu' ? groupMenuClosed() : null;
+    if (replacedMenu) emit('onIslandState', { mode: null, trigger: replacedMenu, restoreTrigger: null });
     overlayMode = mode;
+    overlayPurpose = purpose ?? null;
     shieldTrigger = mode === 'shield' ? trigger : null;
     opened = true;
     overlay.hidden = false;
@@ -623,9 +636,10 @@
     extensionsPanel.hide();
     strip.style.visibility = '';
     emit('onOverlayHide', {});
-    emit('onIslandState', { mode: null });
+    emit('onIslandState', { mode: null, trigger: groupMenuClosed(), restoreTrigger: null });
     opened = false;
     overlayMode = null;
+    overlayPurpose = null;
     shieldTrigger = null;
     findTabId = null;
     overlay.dataset.mode = '';
@@ -652,9 +666,10 @@
     const epoch = findShowEpoch;
     if (extensionsOpened) return close();
     emit('onOverlayHide', {});
-    emit('onIslandState', { mode: null });
+    emit('onIslandState', { mode: null, trigger: groupMenuClosed(), restoreTrigger: null });
     opened = false;
     overlayMode = null;
+    overlayPurpose = null;
     shieldTrigger = null;
     findTabId = null;
     overlay.dataset.mode = '';
@@ -909,6 +924,31 @@
       const renamed = await request('renameTab', [nativeId(id), String(name ?? '')]);
       await refresh();
       return renamed;
+    },
+    // Groups (F3), as shipping's: Rename Group… opens the command bar on the
+    // group's name as a name prompt; New group on "/group " bound to the
+    // selected tabs, else the active one; the side list's group menu is the
+    // overlay's 'group-menu' mode at the header it names.
+    beginRenameGroup: async (groupId) => {
+      const group = snapshot?.groups?.find(item => item.id === groupId);
+      if (group) await show(group.name, 'panel', null, { renameGroupId: group.id });
+    },
+    beginNewGroup: async () => {
+      const ids = [...tabSelection.selectedTabIds];
+      await show('/group ', 'panel', null, ids.length > 1 ? { beginGroupTabIds: ids } : { beginGroupTabId: snapshot?.activeTabId });
+    },
+    openGroupMenu: async (groupId, anchor) => {
+      const inside = (value, max) => Number.isFinite(value) && value >= 0 && value <= max;
+      if (!snapshot?.groups?.some(item => item.id === groupId) || !anchor ||
+          !inside(anchor.right, innerWidth) || !inside(anchor.top, innerHeight) || !inside(anchor.bottom, innerHeight)) return;
+      await show(undefined, 'group-menu', null, { groupId, anchor: { right: anchor.right, top: anchor.top, bottom: anchor.bottom } });
+    },
+    // Duplicate (F2): native copies the tab and its history, and refuses a
+    // page-opened tab whose opener's sandbox a copy could not carry.
+    duplicateTab: async (id) => {
+      const copied = await request('duplicateTab', [nativeId(id)]);
+      await refresh();
+      return copied;
     },
     // The tab menu's Rename Tab…: the command bar opens on "/rename <label>"
     // bound to that tab, as shipping's beginRenameTab.

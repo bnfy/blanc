@@ -45,7 +45,7 @@
     "sunrise-hero-mark.png": "site/public/sunrise-hero-mark.png"
   },
   "manifest": {
-    "adapter.js": "61fc70ca72bc423f539d7ef3878d21238ec26d4fcee781e0356762deb7947777",
+    "adapter.js": "48ba1a60b48538267db1a70ee0f673d15fa8e95806051b778fb94e76a5a17f39",
     "address-input.js": "7d6e1c7c9294cc135379e6ad69794e120dfb58002c20ce16d548b1f7e65ad609",
     "bang-settings.js": "ebacbd3133bb6d55b52bff9a8140660119e593c2d3e253504ed6106b95193138",
     "blocking-settings-adapter.js": "02dd353af94db31829b0969e8a02be55b1949091bd7e22f546a38238fef6df55",
@@ -59,7 +59,7 @@
     "glance-card-drag.js": "3876836179a5f062d77c899c8d90efbb3a4c1b4b7d37bbcfae727501383fef37",
     "host.css": "1b8642ad91d4b9d7e4ff4027c8e0b83f41a309bd465f84543fed24af528f127c",
     "host.html": "1378582e4e3ce5f35186633ddb3ad07ec5059e57e190b06ea25af34262575095",
-    "host.js": "07d18f6d7397f837ff8c5ee3abd150a23175ba54cf65e9ef82b7b3b19dcb4f31",
+    "host.js": "8d7bd69b480d4ae0b88a6dbf81358c83c35f044bcf4cb222e8bee9274fa82ab7",
     "hover-panel-leave.js": "b1dec3e1bfc4f53932e651d6345fdea1199b07cdfea6c0926928377b28b7eb1a",
     "i18n.js": "5749b9e67f1876fdd535f6f47908d8a3982ee7c5868b2e23dc50085a1ab27793",
     "icons/chevron-left.svg": "83b0681aa38bf55e9d52a1e4b4cced624abe1fe7678ecafda133a574f1161d93",
