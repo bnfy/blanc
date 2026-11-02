@@ -831,11 +831,18 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
       sharedSpaces.forgetRetiredSpace(id,run.ctx);
     }
   }
-  const getRes = await net.fetch(url);
+  // A Space no device has uploaded yet is sent without a download: the
+  // queue doesn't charge it, and a store that exists after all answers 409,
+  // whose retry downloads and merges as usual.
+  const firstUpload = attempt === 0 && !!desc.noGet;
+  if (firstUpload && !sharedSpaces.neverUploaded(desc.spaceId, run.ctx)) return { retry: true };
+  const getRes = firstUpload ? null : await net.fetch(url);
   if (run.stale()) throw new SyncError('stale');
-  const canDeleteSpaceStores=getRes.headers?.get?.('X-Blanc-Space-Delete')==='1';
-  let version = null, remote = null, missing = false;
-  if (getRes.status === 200) {
+  const canDeleteSpaceStores=getRes?.headers?.get?.('X-Blanc-Space-Delete')==='1';
+  let version = null, remote = null, missing = firstUpload;
+  if (firstUpload) {
+    // Nothing to read: version stays null, which the PUT sends as ifVersion.
+  } else if (getRes.status === 200) {
     let body;
     try { body = await getRes.json(); } catch { throw new SyncError('server'); }
     if (run.stale()) throw new SyncError('stale');
@@ -893,7 +900,7 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     stored = true;
     desc.stored?.(payload,run.ctx);
     await cleanupRetiredSpaces(payload);
-    return desc.spaceId ? { spaceStored: true } : null;
+    return desc.spaceId ? { spaceStored: true, firstUpload } : null;
   } finally {
     if (plan) sharedSpaces.settleSpace(desc.spaceId,plan,{blobStored:stored},run.ctx);
   }
@@ -936,12 +943,18 @@ function setSyncSpaces(on) {
   if(ensureStore().data.enabled)schedule(1000);
   return sharedStatus();
 }
-async function sharedIndexPreview() {
-  if(!isDefaultLocalProfile())return withLocalProfile(DEFAULT_PROFILE_ID,sharedIndexPreview);
+// The last index the Choose Spaces sheet fetched. Confirming within maxAge
+// of it reuses that check instead of spending another request.
+let lastIndexPreview={at:0,gen:-1,accountId:''};
+async function sharedIndexPreview({maxAge=0}={}) {
+  if(!isDefaultLocalProfile())return withLocalProfile(DEFAULT_PROFILE_ID,()=>sharedIndexPreview({maxAge}));
   if(!bananifyServiceAllowed(SYNC_ENDPOINT))return {ok:false,error:SERVICE_UNAVAILABLE};
   const data=ensureStore().data,ctx=tabSyncContext(),gen=syncGen;
   if(!data.enabled||!data.protectedKey)return {ok:false,error:'sync-off'};
-  const pending=getRequestQueue().enqueue({class:'I',item:'spaces',generation:'preview:'+gen,
+  if(maxAge>0&&lastIndexPreview.gen===gen&&lastIndexPreview.accountId===ctx.accountId&&Date.now()-lastIndexPreview.at<=maxAge)return {ok:true};
+  // Someone is waiting on this one (the Choose Spaces sheet): it skips the
+  // class rotation and may use the window's reserved last request.
+  const pending=getRequestQueue().enqueue({class:'I',item:'spaces',generation:'preview:'+gen,urgent:true,
     cancelled:()=>suspended||gen!==syncGen?'generation':null,
     run:async()=>{
       let key;
@@ -956,7 +969,8 @@ async function sharedIndexPreview() {
         }
         if(!response.ok)throw new SyncError('http-'+response.status);
         const payload=await response.json();if(gen!==syncGen)throw new SyncError('stale');
-        sharedSpaces.mergeIndex(JSON.parse(decrypt(key,payload.blob)),ctx);return {ok:true};
+        sharedSpaces.mergeIndex(JSON.parse(decrypt(key,payload.blob)),ctx);
+        lastIndexPreview={at:Date.now(),gen,accountId:ctx.accountId};return {ok:true};
       } finally {key?.fill(0);}
     }});
   queueBarrier();const result=await pending;return result.error?{ok:false,error:errorCode(result.error)}:result.outcome;
@@ -981,7 +995,7 @@ async function syncNow(names = null, { onOutcome } = {}) {
   function enqueue(desc) {
     const cancelled=()=>cancelledRequest(gen,ctx,desc);
     const record=sharedSpaces.rebind(ctx.accountId).data;
-    const job=queue.enqueue({class:desc.class??'F',item:desc.name,generation:gen,spaces:!!desc.spaces,
+    const job=queue.enqueue({class:desc.class??'F',item:desc.name,generation:gen,spaces:!!desc.spaces,noGet:!!desc.noGet,urgent:!!desc.urgent,
       priority:desc.spaceId && Object.keys(record.pending[desc.spaceId]??{}).some(k=>k!=='index')?0:1,cancelled,
       run:async({attempt})=>{
         let key;
@@ -1019,7 +1033,7 @@ async function syncNow(names = null, { onOutcome } = {}) {
       const name='space-'+id;
       if(names && !names.includes(name))continue;
       const pending=state.pending[id];
-      if(names || state.index.spaces[id]?.deleted?.v===true || pending && Object.keys(pending).some(k=>k!=='index') || state.index.spaces[id]?.rev!==state.blobs[id]?.rev)enqueue(spaceDescriptor(id));
+      if(names || state.index.spaces[id]?.deleted?.v===true || pending && Object.keys(pending).some(k=>k!=='index') || state.index.spaces[id]?.rev!==state.blobs[id]?.rev)enqueue({...spaceDescriptor(id),noGet:sharedSpaces.neverUploaded(id,ctx)});
       if(!names)enqueue(spaceDescriptor(id,'R'));
       initialIds.add(id);
     }
@@ -1035,7 +1049,9 @@ async function syncNow(names = null, { onOutcome } = {}) {
       const more=[...new Set([...sharedSpaces.spaceIds(ctx),...sharedSpaces.deletedSpaceIds(ctx)])].filter(id=>!initialIds.has(id));const offset=jobs.length;
       addSpaces(more);results.push(...await Promise.all(jobs.slice(offset)));
     }
-    if(results.some(x=>x.outcome?.spaceStored||x.outcome?.needsIndex))results.push(await enqueue({...STORES.find(x=>x.name==='spaces')}));
+    // A new Space reaches other devices only once the index names it, so
+    // that update goes ahead of routine work, like the sheet's check.
+    if(results.some(x=>x.outcome?.spaceStored||x.outcome?.needsIndex))results.push(await enqueue({...STORES.find(x=>x.name==='spaces'),urgent:results.some(x=>x.outcome?.firstUpload)}));
   }
   // A dead generation never stamps status onto its successor. Optional stores
   // still cannot conceal a required-store error or advance its freshness.
@@ -1191,7 +1207,7 @@ async function retractSends(d,storeName='sends',makeRetraction=sends.retractedOw
   // Departure is already best effort (offline/old Workers may prevent it).
   // Do not refill/bypass the request window, or leave a delayed GET behind
   // after disable resolves. Erase-server-copy still uses the separate DELETE.
-  if(!requestScheduler.canRequest())return;
+  if(!requestScheduler.canRequest({reserve:true}))return;
   const accountId=d.accountId,protectedKey=d.protectedKey,gen=syncGen,ownId=tabSyncContext().deviceId;
   const cancelled=()=>gen!==syncGen||ensureStore().data.accountId!==accountId?'generation':null;
   const operation=queue.enqueue({class:'F',item:storeName,generation:'leave:'+storeName+':'+gen,cancelled,run:async({attempt})=>{

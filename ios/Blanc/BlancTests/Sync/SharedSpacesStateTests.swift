@@ -40,6 +40,30 @@ import XCTest
     XCTAssertEqual(make().data["accountId"], .string("b"), "persisted")
   }
 
+  func testOfferedSpacesAreKeptAndClearedWithTheAccount() throws {
+    let state = make()
+    state.rebind(accountId: "a")
+    XCTAssertNil(state.knownSpaceIds, "none until a sheet's choice is saved")
+    state.markKnown([])
+    XCTAssertEqual(state.knownSpaceIds, [], "an empty list is still a list")
+    state.markKnown(["x", "y"])
+    state.markKnown(["y", "z"])
+    XCTAssertEqual(state.knownSpaceIds, ["x", "y", "z"])
+    XCTAssertEqual(make().knownSpaceIds, ["x", "y", "z"], "persisted")
+    state.rebind(accountId: "b")
+    XCTAssertNil(state.knownSpaceIds)
+  }
+
+  func testAnInvalidOfferedListIsRepairedToNone() throws {
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    let stored: JSONValue = .object([("accountId", .string("a")), ("knownWorkspaceIds", .string("x"))])
+    try Data(stored.jsStringify().utf8).write(to: directory.appendingPathComponent("shared-spaces.json"))
+    let state = make()
+    state.rebind(accountId: "a")
+    XCTAssertEqual(state.data["knownWorkspaceIds"], .null)
+    XCTAssertNil(state.knownSpaceIds)
+  }
+
   func testABadContainerIsRepairedAndOthersKept() throws {
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     let stored: JSONValue = .object([

@@ -2343,6 +2343,11 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="shared_spaces_capacity">Dieser Space ist für die Synchronisierung voll. Lokale Änderungen bleiben erhalten.</string>
     <string name="shared_spaces_busy">Synchronisierung läuft; erneuter Versuch.</string>
     <string name="shared_spaces_slowed">Änderungen werden wegen der Ratenbegrenzung seltener geprüft.</string>
+    <string name="shared_spaces_checking">Deine anderen Geräte werden geprüft …</string>
+    <string name="shared_spaces_checking_button">Wird geprüft …</string>
+    <string name="shared_spaces_share">Teilen</string>
+    <string name="shared_spaces_list_updated">Die Liste wurde aktualisiert. Prüfe sie und bestätige noch einmal.</string>
+    <string name="shared_spaces_uploading">Deine Spaces werden hochgeladen. Du kannst weitersurfen.</string>
     <string name="shared_spaces_unsynced_tab">Nicht synchronisiert</string>
     <string name="shared_spaces_pair_question">%1$s ist deiner Synchronisierung beigetreten. Spaces hier aktivieren?</string>
     <string name="shared_spaces_pair_detail">Dieses Gerät kann dann geteilte Spaces im Synchronisierungskonto ändern.</string>
@@ -2410,6 +2415,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ios_pair_link_confirm_body">Fahre nur fort, wenn du gerade einen Code auf deinem eigenen Computer gescannt hast.</string>
     <string name="ios_pair_pair">Koppeln</string>
     <string name="ios_pair_camera_usage">Blanc verwendet die Kamera nur, um den Kopplungscode auf deinem Computer zu scannen.</string>
+    <string name="ios_photos_add_usage">Blanc speichert Bilder nur dann in deiner Fotomediathek, wenn du es möchtest.</string>
     <string name="ios_settings_share_tabs_help">Teile die normalen offenen Tabs dieses iPhones mit deinen anderen Geräten. Private Tabs werden nie geteilt.</string>
     <string name="ios_settings_disconnect_help">Dieses iPhone trennen? Deine lokalen Favoriten und Einstellungen bleiben hier. Deine anderen Geräte sind nicht betroffen.</string>
     <string name="ios_settings_switch_help">Dieses iPhone verlässt seine aktuelle Synchronisierung. Deine lokalen Favoriten und Einstellungen bleiben hier. Deine anderen Geräte sind nicht betroffen.</string>

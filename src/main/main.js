@@ -11381,7 +11381,19 @@ function workspacesProjection() {
 // Set once the Start Page hooks exist: a Space created, switched or recolored
 // repaints any Start Page following its Space's color.
 let onSpacesChangedForStartPage = () => {};
+// A Space saved while Spaces sync is on joins the library by itself, a
+// moment after the change settles (sharedSharing.autoShare).
+let sharedAutoShareTimer = null;
+function scheduleSharedAutoShare() {
+  clearTimeout(sharedAutoShareTimer);
+  sharedAutoShareTimer = setTimeout(() => {
+    sharedAutoShareTimer = null;
+    if (isSharedSpacesOffered()) withLocalProfile(DEFAULT_PROFILE_ID, () => sharedSharing.autoShare())
+      .catch((error) => console.warn('[shared-spaces] auto-share:', error.message));
+  }, 1500);
+}
 function broadcastWorkspacesUpdated() {
+  scheduleSharedAutoShare();
   onSpacesChangedForStartPage();
   forEachWindowRuntime((runtime) => {
     const payload = workspacesProjection();
@@ -15501,7 +15513,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         return true;
       },
     },
-    sharedSpaces: { acknowledge:id=>sharedSharing.acknowledge(id), open:id=>{if(!isSharedSpacesOffered()||rt().profileId!==DEFAULT_PROFILE_ID)return {ok:false};return switchWindowToWorkspace(rt(),String(id));}, status:()=>{const openSheet=!!rt().sharedShowSheet;rt().sharedShowSheet=false;return {offered:isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID,...sync.sharedStatus(),question:sharedSharing.question(),openSheet};}, preview:()=>sharedSharing.preview(), apply:payload=>sharedSharing.apply(payload) },
+    sharedSpaces: { acknowledge:id=>sharedSharing.acknowledge(id), open:id=>{if(!isSharedSpacesOffered()||rt().profileId!==DEFAULT_PROFILE_ID)return {ok:false};return switchWindowToWorkspace(rt(),String(id));}, status:()=>{const openSheet=!!rt().sharedShowSheet;rt().sharedShowSheet=false;return {offered:isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID,...sync.sharedStatus(),question:sharedSharing.question(),openSheet};}, preview:options=>sharedSharing.preview(options), apply:payload=>sharedSharing.apply(payload) },
     drm: require('./drm-controls').createDrmControls({ support: drmSupport, restart: restartApp }),
     stringsScript: () => mainI18n.stringsScript(),
     i18n: mainI18n,
@@ -15839,7 +15851,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if(action==='enable')return sync.enable(payload);
         if(action==='pairingPeer'){sharedSharing.armPairing();require('./tabsync').mergeFromSync({devices:{'pseudo-peer':{name:'zzz-peer',platform:'linux',updatedAt:Date.now(),tabs:[],groups:[]}}},sync.sharedContext());return true;}
         if(action==='disable')return sync.disable({wipeRemote:false});
-        if(action==='apply')return sharedSharing.apply(payload);
+        if(action==='apply')return sharedSharing.apply(payload,{waitForUpload:true});
         if(action==='pull')return sync.syncNow(payload);
         if(action==='resetRequestWindow')return sync.resetRequestWindowForTest();
         if(action==='capture'){captureSharedSpaceEdits(rt());return true;}

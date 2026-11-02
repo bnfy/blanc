@@ -327,8 +327,8 @@ export interface SettingsPagesAPI {
     trustReceipt: () => Promise<unknown>;
     /** Open a release, verification, SBOM or provenance link for this version. IPC: invoke `pages:settings:open-trust-link`. */
     openTrustLink: (kind: unknown) => Promise<unknown>;
-    /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-preview`. */
-    sharedSpacesPreview: () => Promise<unknown>;
+    /** Shared Spaces selection sheet choices; {local: true} answers from this device's saved index without a network fetch. IPC: invoke `pages:settings:shared-spaces-preview`. */
+    sharedSpacesPreview: (options: unknown) => Promise<unknown>;
     /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-apply`. */
     sharedSpacesApply: (payload: unknown) => Promise<unknown>;
     /** Development-only Shared Spaces consent and selection. IPC: invoke `pages:settings:shared-spaces-status`. */

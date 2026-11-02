@@ -55,9 +55,13 @@ export function generate(root) {
     mobileLocales[code] = runtimeCatalog({ locale: code, dir: tr.$meta.dir, en, tr }).messages;
   }
   files['copy/generated/ios/Localizable.xcstrings'] = xcstrings({ en, locales: mobileLocales });
-  // The iPhone camera prompt (design 2026-10-28 §7.2): iOS reads Info.plist
-  // text from the app bundle, so it gets a string catalog of its own there.
-  const infoPlistKeys = Object.fromEntries(Object.entries({ NSCameraUsageDescription: 'ios.pair.cameraUsage' })
+  // The iPhone's permission prompts (camera: design 2026-10-28 §7.2; saving
+  // images to Photos): iOS reads Info.plist text from the app bundle, so it
+  // gets a string catalog of its own there.
+  const infoPlistKeys = Object.fromEntries(Object.entries({
+    NSCameraUsageDescription: 'ios.pair.cameraUsage',
+    NSPhotoLibraryAddUsageDescription: 'ios.photos.addUsage',
+  })
     .filter(([, key]) => en[key]));
   if (Object.keys(infoPlistKeys).length) files['ios/Blanc/Blanc/InfoPlist.xcstrings'] = JSON.stringify({
     sourceLanguage: 'en',

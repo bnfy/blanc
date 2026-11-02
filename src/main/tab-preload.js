@@ -267,7 +267,7 @@ if (window.location.protocol === 'blanc:') {
         sharedSpacesAcknowledge: (id) => invoke('pages:settings:shared-spaces-acknowledge', id),
         sharedSpacesOpen: (id) => invoke('pages:settings:shared-spaces-open', id),
         sharedSpacesStatus: () => invoke('pages:settings:shared-spaces-status'),
-        sharedSpacesPreview: () => invoke('pages:settings:shared-spaces-preview'),
+        sharedSpacesPreview: (options) => invoke('pages:settings:shared-spaces-preview', options),
         sharedSpacesApply: (payload) => invoke('pages:settings:shared-spaces-apply', payload),
         syncGet: () => invoke('pages:settings:sync-get'),
         syncEnable: (payload) => invoke('pages:settings:sync-enable', payload),

@@ -360,6 +360,10 @@ final class TabsManager {
             UITestSeed.seedSharedSpaces(into: syncDirectory)
             restoredState = UITestSeed.sharedSpacesState()
         }
+        if UITestSeed.appStore {
+            UITestSeed.seedAppStoreSends(into: syncDirectory)
+            restoredState = UITestSeed.appStoreState()
+        }
         if UITestSeed.sends {
             UITestSeed.seedSends(into: syncDirectory)
             savedURLs = [UITestSeed.pageURL]
@@ -1154,6 +1158,7 @@ final class TabsManager {
         saveSession()
         syncEngine.tabsChanged()
         scheduleSharedPublish()
+        scheduleSharedAutoShare()
     }
 
     /// Writes session.json (debounced) without telling sync the tabs changed.
@@ -1491,6 +1496,10 @@ final class TabsManager {
         sharedAdapterEnabled = account != nil && (on || spaces.contains { $0.link == .dormant && $0.sharedId != nil })
         if on {
             sharedAccount = account
+            // Switched on by a build before new Spaces shared by themselves:
+            // the Spaces here now were already offered, so the update shares
+            // nothing on its own.
+            if state.knownSpaceIds == nil { state.markKnown(spaces.filter { $0.recoveredFrom == nil }.map(\.id)) }
             if !wasEnabled { sharedSpacesMerged(["index"]) }
         }
     }
@@ -1664,10 +1673,15 @@ final class TabsManager {
     func sharingRows() -> [SharedSpacesSharing.Row] {
         storeShown()
         let engine = syncEngine
-        return SharedSpacesSharing.rows(
+        let rows = SharedSpacesSharing.rows(
             spaces: spaces, index: engine.sharedState.data["index"], deviceId: engine.stateStore.state.deviceId,
             now: Self.nowMs())
+        sharingShownIds.formUnion(rows.map(\.id))
+        return rows
     }
+    /// Spaces listed in a Choose Spaces sheet: offered once the sheet's
+    /// choice is saved, so one left unticked stays on this iPhone.
+    @ObservationIgnored private var sharingShownIds: Set<String> = []
 
     /// Turns the switch on with `choices`: each copy joins the library as a
     /// new Space (blob first, then its index entry), each Rejoin resumes its
@@ -1678,6 +1692,11 @@ final class TabsManager {
         let state = engine.sharedState
         state.rebind(accountId: account)
         storeShown()
+        // A Space already in the library from here (shared by itself while
+        // the sheet was open, say) is never added a second time.
+        let choices = state.isEnabled
+            ? choices.filter { choice in !spaces.contains { $0.id == choice.id && $0.sharedId != nil && $0.link == .active } }
+            : choices
         let deviceId = engine.stateStore.state.deviceId
         let now = Self.nowMs()
         let items: [SharedSpacesSharing.Item]
@@ -1702,6 +1721,7 @@ final class TabsManager {
             }
         }
         state.setDormant(dormant)
+        state.markKnown(Array(sharingShownIds.union(choices.map(\.id))))
         sharedAccount = account
         saveSession()
         if state.isEnabled {
@@ -1712,6 +1732,57 @@ final class TabsManager {
             engine.setSpacesEnabled(true)
         }
         return nil
+    }
+
+    // MARK: New Spaces share by themselves (owner, 2026-10-31; desktop #1290)
+
+    @ObservationIgnored private var sharedAutoShareTask: Task<Void, Never>?
+    /// How long a change settles before a new Space is shared (desktop's 1.5 s).
+    @ObservationIgnored var sharedAutoShareDelay: Duration = .milliseconds(1500)
+
+    private func scheduleSharedAutoShare() {
+        guard sharedAdapterEnabled, syncEngine.sharedState.isEnabled else { return }
+        sharedAutoShareTask?.cancel()
+        let delay = sharedAutoShareDelay
+        sharedAutoShareTask = Task { [weak self] in
+            do { try await Task.sleep(for: delay) } catch { return }
+            self?.autoShareSpaces()
+        }
+    }
+
+    /// With the switch on, a Space this iPhone hasn't offered yet joins the
+    /// library as a new Space. One the person saw in a sheet and left
+    /// unticked stays here; one that can't be shared (too many tabs, too
+    /// large, no room) stays here and is offered in the sheet, not retried.
+    /// Switched on by a build before this, what is here counts as offered.
+    /// Returns the ids of the Spaces it shared.
+    @discardableResult
+    func autoShareSpaces() -> [String] {
+        sharedAutoShareTask?.cancel()
+        sharedAutoShareTask = nil
+        let engine = syncEngine
+        let state = engine.sharedState
+        guard sharedAdapterEnabled, let account = currentSyncAccount, state.isEnabled,
+              state.accountId == account else { return [] }
+        let local = spaces.filter { $0.recoveredFrom == nil }
+        guard let known = state.knownSpaceIds.map(Set.init) else {
+            state.markKnown(local.map(\.id))
+            return []
+        }
+        let fresh = local.filter { $0.sharedId == nil && !known.contains($0.id) }
+        guard !fresh.isEmpty else { return [] }
+        let index = state.data["index"], deviceId = engine.stateStore.state.deviceId, now = Self.nowMs()
+        let fits = fresh.map(\.id).filter {
+            (try? SharedSpacesSharing.plan(
+                spaces: spaces, choices: [(id: $0, mode: .copy)], index: index, deviceId: deviceId, now: now).get()) != nil
+        }
+        state.markKnown(fresh.map(\.id).filter { !fits.contains($0) })
+        guard !fits.isEmpty else { return [] }
+        if let error = turnOnSharedSpaces(fits.map { (id: $0, mode: .copy) }) {
+            if error == .limit || error == .tooLarge { state.markKnown(fits) }
+            return []
+        }
+        return fits
     }
 
     /// A Space now in the library: its record ids on its saved tabs (and on

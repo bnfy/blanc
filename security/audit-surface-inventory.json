@@ -260,7 +260,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "c8da85f86cd40043d5663455c96b3a1795946ec1c70bb2af3356e61f2bf99f3b",
+      "sha256": "8155fe84c72a494e59cd40cf15c9807a91049488453dd9e45d5bebe07e47124e",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -515,7 +515,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "4a800fa2d59f4d324875c068b83cba6439fb5cfc1fc28a057cdb4ee5c55245b1",
+      "sha256": "30ba5622820c6283b841c89f7da2829029ff36635b3445727c498c26ea19347f",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -962,7 +962,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "4132d370ad00c9a114ca75faeef4e48b05ffd5c30cf81cc6ac4620be37901a06",
+      "sha256": "95fbe103c873417275d0382ae1a010f959bc1799823db0e90b25189f9c790562",
       "literalChannels": [
         "before-quit"
       ],
@@ -976,7 +976,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "721f9379baacc433f90c54771f2518d6f32d6e5e066b4c5f3096cf78b9c25ecf",
+      "sha256": "b1c9163a2e555eba26ed2b28967d4a458052b8a527d93d0827b49a5504f7b1c0",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",

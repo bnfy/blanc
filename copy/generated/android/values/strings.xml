@@ -2343,6 +2343,11 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="shared_spaces_capacity">This Space is full for sync. Its local changes are kept.</string>
     <string name="shared_spaces_busy">Sync is busy; retrying.</string>
     <string name="shared_spaces_slowed">Checking for changes is slowed by rate limiting.</string>
+    <string name="shared_spaces_checking">Checking your other devices…</string>
+    <string name="shared_spaces_checking_button">Checking…</string>
+    <string name="shared_spaces_share">Share</string>
+    <string name="shared_spaces_list_updated">The list was updated. Check it, then confirm again.</string>
+    <string name="shared_spaces_uploading">Uploading your Spaces. You can keep browsing.</string>
     <string name="shared_spaces_unsynced_tab">Not synced</string>
     <string name="shared_spaces_pair_question">%1$s joined your sync. Turn on Spaces here?</string>
     <string name="shared_spaces_pair_detail">Turning this on lets this device change shared Spaces across your sync account.</string>
@@ -2410,6 +2415,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_pair_link_confirm_body">Continue only if you just scanned a code on your own computer.</string>
     <string name="ios_pair_pair">Pair</string>
     <string name="ios_pair_camera_usage">Blanc uses the camera only to scan the pairing code on your computer.</string>
+    <string name="ios_photos_add_usage">Blanc saves images to your photo library only when you ask it to.</string>
     <string name="ios_settings_share_tabs_help">Share this phone’s regular open tabs with your other devices. Private tabs are never shared.</string>
     <string name="ios_settings_disconnect_help">Disconnect this phone? Your local Favorites and settings stay here. Your other devices are not affected.</string>
     <string name="ios_settings_switch_help">This phone will leave its current sync. Your local Favorites and settings stay here. Your other devices are not affected.</string>
