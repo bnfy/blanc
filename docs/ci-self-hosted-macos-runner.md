@@ -1,6 +1,10 @@
 # Self-hosted macOS CI runner
 
 **Status:** optional, off until the repository variable below is set (October 2026).
+Off since November 2, 2026: the runner then registered (`blanc-mac`) was a direct
+install on the release MacBook Pro, which [The machine](#the-machine) rules out, so
+the variable was deleted and the runner removed. Turn it back on only from a
+dedicated Mac, preferably with the Tart VMs below.
 **Why:** GitHub allows 5 concurrent macOS jobs on the Free, Pro and Team plans,
 shared by every workflow ([Actions limits](https://docs.github.com/en/actions/reference/limits)).
 Larger runners share that cap. Pull requests waited 28–41 minutes for a macOS
