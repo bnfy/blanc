@@ -58,11 +58,15 @@ test('the A0 allowlist is empty', () => {
 });
 
 test('host patterns cover the domain and its subdomains, nothing that only ends alike', () => {
-  const google = hostPattern('*.google.com');
+  // The denylist's own entries, so the test covers the shipped patterns.
+  const entry = glob => { assert.ok(denylist.includes(glob), glob); return hostPattern(denylist[denylist.indexOf(glob)]); };
+  const google = entry('*.google.com');
   for (const host of ['google.com', 'www.google.com', 'a.b.google.com']) assert.ok(google.test(host), host);
   for (const host of ['notgoogle.com', 'google.com.evil.example', 'googlexcom']) assert.ok(!google.test(host), host);
-  assert.ok(hostPattern('clients*.google.com').test('clients2.google.com'));
-  assert.ok(!hostPattern('clients*.google.com').test('x.clients2.google.com'));
+  const clients = entry('clients*.google.com');
+  assert.ok(clients.test('clients2.google.com'));
+  assert.ok(!clients.test('x.clients2.google.com'));
+  assert.ok(!clients.test('clients2xgooglexcom'));
 });
 
 test('hosts are read from every NetLog form', () => {
