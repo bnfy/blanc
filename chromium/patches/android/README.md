@@ -14,6 +14,12 @@ in the lane file in its place. Numbering starts at 0101.
   already set up): desktop's list (`blanc/common/background_services.h`:
   component updater, network time, autofill server) plus Android's (AI Mode's
   startup request, search prewarm and preconnects, DRM pre-provisioning at
-  startup, the prediction-model download). It also leaves
-  `AccountInvestigator` uninitialized on Android: its periodic sign-in report
-  called `accounts.google.com/ListAccounts` at every startup.
+  startup, the prediction-model download). It also makes
+  `GaiaCookieManagerService::TriggerListAccounts` a no-op on Android: with no
+  Google sign-in, Blanc never lists the Google accounts in its cookie jar
+  (sign-in metrics and Sync's session recorder called
+  `accounts.google.com/ListAccounts` at every startup).
+
+A file dropped from the lane keeps its applied edits in an existing checkout
+(`apply.py` touches only the lane's files): restore it with `git checkout`
+there.
