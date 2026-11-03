@@ -5,7 +5,11 @@
 // person started (outbound-allowlist.json). Fails closed: a session whose
 // pages never loaded is "not-run", never a pass.
 //
-//   node chromium/tests/android/outbound-gate.mjs --apk <ChromePublic.apk> --avd <name> --evidence <dir>
+//   node chromium/tests/android/outbound-gate.mjs --apk <ChromePublic.apk> --avd <name> --evidence <dir> [--chrome-flags "<flags>"]
+//
+// --chrome-flags adds Chromium switches for a discovery run (for example
+// --disable-fre on a build that still has Chromium's first-run screen); the
+// report records them, and a release gate runs without any.
 //
 // Scope: the NetLog sees Chromium's own network stack, not Play services' or
 // the OS's traffic; those need the server's packet capture (A7's privacy gate).
@@ -110,7 +114,7 @@ function emulatorFor(avd) {
   return serial;
 }
 
-function runSession({apk, avd, evidence}) {
+function runSession({apk, avd, evidence, flags}) {
   const serial = emulatorFor(avd);
   const actions = [];
   const act = (name, ...args) => { actions.push({name, at: new Date().toISOString()}); if (args.length) adb(serial, ...args); };
@@ -118,7 +122,7 @@ function runSession({apk, avd, evidence}) {
   adb(serial, 'wait-for-device');
   act('install', 'install', '-r', apk);
   act('reset', 'shell', 'pm', 'clear', PACKAGE);
-  act('netlog-on', 'shell', `echo '_ --log-net-log=${DEVICE_NETLOG} --net-log-capture-mode=Default' > ${COMMAND_LINE}`);
+  act('netlog-on', 'shell', `echo '_ --log-net-log=${DEVICE_NETLOG} --net-log-capture-mode=Default ${flags}' > ${COMMAND_LINE}`);
   for (const page of SESSION_PAGES) {
     act(`open ${page}`, 'shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', page, '-p', PACKAGE);
     pause(8);
@@ -135,15 +139,16 @@ function runSession({apk, avd, evidence}) {
 
 function main(argv) {
   const option = name => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
-  const apk = option('--apk'), avd = option('--avd'), evidence = option('--evidence');
+  const apk = option('--apk'), avd = option('--avd'), evidence = option('--evidence'), flags = option('--chrome-flags') ?? '';
+  if (/['\\\n]/.test(flags)) throw Error('--chrome-flags may not contain quotes, backslashes or newlines.');
   if (!apk || !avd || !evidence) throw Error('Usage: outbound-gate.mjs --apk <path> --avd <name> --evidence <dir>');
   fs.mkdirSync(evidence, {recursive: true});
   const read = name => JSON.parse(fs.readFileSync(path.join(here, name), 'utf8'));
-  const session = runSession({apk, avd, evidence});
+  const session = runSession({apk, avd, evidence, flags});
   const {hosts, urls} = netLogHosts(readNetLog(session.netlog));
   const report = {...judge({hosts, urls, pages: SESSION_PAGES, denylist: read('outbound-denylist.json').hosts,
     allowlist: read('outbound-allowlist.json').flows, actions: session.actions}), apk: path.resolve(apk), avd,
-    emulator: session.serial, session: session.log, checkedAt: new Date().toISOString()};
+    emulator: session.serial, chromeFlags: flags, session: session.log, checkedAt: new Date().toISOString()};
   fs.writeFileSync(path.join(evidence, 'outbound-android.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify({verdict: report.verdict, problems: report.problems}, null, 2));
   if (report.verdict !== 'pass') process.exitCode = 1;
