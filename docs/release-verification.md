@@ -173,6 +173,22 @@ the build or anything after the tag push is not resumable this way; the press
 gate resumes through its own ledger (above). A real bug always means a fix and
 a full release.
 
+When every press-gate step has already passed on the release commit, but not
+in one run (a flake stopped `release.sh` and the rest were run by hand), the
+owner may waive the gate in writing:
+
+```sh
+BLANC_RELEASE_PRESS_WAIVER='<the commit, which run passed each step, and the owner approval>' \
+<the same release command>
+```
+
+It skips `npm run release:verify:press` alone; the dependency installs, every
+preflight, the build and every packaged check still run. Never use it without
+that evidence for every step, and record the waiver in the release incident as
+a waiver, not as a passed gate. It was a one-off stopgap for 1.46.0: with the
+gate's ledger (above), relaunching the release resumes the gate instead, so a
+waiver is only for passes the ledger did not record.
+
 ### Private Windows and Linux validation before release
 
 When a platform feature needs affected-machine confirmation, build private
