@@ -70,6 +70,7 @@ struct GlanceCard: View {
             Button { manager.closeGlance() } label: {
                 Image(systemName: "xmark").font(.system(size: 13, weight: .semibold))
                     .frame(width: 36, height: GlanceGeometry.headerHeight).contentShape(Rectangle())
+                    .pointerHighlight()
             }
             .accessibilityLabel(SyncCopy.text("glance.close"))
             .accessibilityIdentifier("glance.close")
@@ -104,6 +105,7 @@ struct GlanceCard: View {
             .padding(.horizontal, 8)
             .frame(minWidth: 36, minHeight: GlanceGeometry.headerHeight)
             .contentShape(Rectangle())
+            .pointerHighlight()
         }
         .accessibilityLabel(label)
         .accessibilityIdentifier(id)
@@ -117,6 +119,7 @@ struct GlanceCard: View {
             .frame(width: 32, height: 32)
             .background(style.raised.opacity(0.9), in: Circle())
             .contentShape(Rectangle())
+            .pointerHighlight(cornerRadius: 16)
             .gesture(DragGesture(minimumDistance: 0)
                 .onChanged { grow = $0.translation }
                 .onEnded { _ in commit(base, in: area) })

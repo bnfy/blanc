@@ -275,8 +275,18 @@ struct ContentView: View {
             .accessibilityHidden(isPalettePanelOpen)
             .simultaneousGesture(DragGesture(minimumDistance: 12)
                 .updating($isDragging) { _, dragging, _ in dragging = true }
-                .onChanged(swipeChanged)
-                .onEnded(swipeEnded))
+                .onChanged { swipeChanged($0.translation) }
+                .onEnded { swipeEnded($0.translation, predicted: $0.predictedEndTranslation) })
+            // A two-finger swipe on a trackpad switches tabs the same way; it
+            // never opens the tab grid, which is a touch gesture.
+            .gesture(TrackpadSwipe(
+                changed: { swipeChanged($0) },
+                ended: { swipeEnded($0, predicted: $1, opensTabGrid: false) },
+                cancelled: {
+                    guard isSwiping else { return }
+                    isSwiping = false
+                    if !isCommitting { withAnimation(Self.swipeSpring) { swipeOffset = 0 } }
+                }))
             .onChange(of: isDragging) { _, dragging in
                 // A cancelled drag (a call, Control Center) gets no onEnded.
                 guard !dragging, isSwiping else { return }
@@ -394,6 +404,7 @@ struct ContentView: View {
             Button { withAnimation(.snappy) { manager.closeTab(tab.id) } } label: {
                 Image(systemName: "xmark").font(.system(size: 11, weight: .semibold))
                     .frame(width: 28, height: 28).contentShape(Rectangle())
+                    .pointerHighlight(cornerRadius: 14)
             }
             .accessibilityLabel(SyncCopy.text("ios.tabs.close", ["title": site]))
         }
@@ -422,6 +433,7 @@ struct ContentView: View {
                 .fill(style.secondary.opacity(draggedRatio == nil ? 0.5 : 0.9))
                 .frame(width: 4, height: 40)
                 .frame(width: 24, height: min(geo.size.height, 160))
+                .pointerHighlight(cornerRadius: 12)
                 .contentShape(Rectangle())
                 .position(x: Self.splitInset + leading + Self.splitGap / 2, y: geo.size.height / 2)
                 .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .global)
@@ -463,36 +475,37 @@ struct ContentView: View {
         .allowsHitTesting(false)
     }
 
-    private func swipeChanged(_ value: DragGesture.Value) {
+    private func swipeChanged(_ translation: CGSize) {
         // Side by side, the Island's sideways swipe would slide two pages at
         // once; the tab grid and palette switch tabs instead.
         guard !isCommitting, shownSplit == nil else { return }
         if !isSwiping {
-            guard IslandSwipe.isSideways(value.translation) else { return }
+            guard IslandSwipe.isSideways(translation) else { return }
             isSwiping = true
         }
         guard !reduceMotion else { return }
         let id = manager.activeTabId
-        swipeOffset = IslandSwipe.displayed(value.translation.width,
+        swipeOffset = IslandSwipe.displayed(translation.width,
                                             hasPrevious: manager.neighbor(of: id, offset: -1) != nil,
                                             hasNext: manager.neighbor(of: id, offset: 1) != nil)
     }
 
-    private func swipeEnded(_ value: DragGesture.Value) {
+    private func swipeEnded(_ translation: CGSize, predicted: CGSize, opensTabGrid: Bool = true) {
         guard !isCommitting else { return }
         guard isSwiping else {
+            guard opensTabGrid else { return }
             // A swipe from the Island into the page (up from the bottom, down
             // from the top) opens the tab grid.
-            let intoPage = islandAtTop ? value.translation.height : -value.translation.height
-            if intoPage > 40 && abs(value.translation.height) > abs(value.translation.width) {
+            let intoPage = islandAtTop ? translation.height : -translation.height
+            if intoPage > 40 && abs(translation.height) > abs(translation.width) {
                 openTabGrid()
             }
             return
         }
         isSwiping = false
         let id = manager.activeTabId
-        let outcome = IslandSwipe.outcome(dx: value.translation.width,
-                                          predictedDx: value.predictedEndTranslation.width,
+        let outcome = IslandSwipe.outcome(dx: translation.width,
+                                          predictedDx: predicted.width,
                                           width: max(pageWidth, 1),
                                           hasPrevious: manager.neighbor(of: id, offset: -1) != nil,
                                           hasNext: manager.neighbor(of: id, offset: 1) != nil)
@@ -556,6 +569,7 @@ struct ContentView: View {
             }
             .padding(.leading, 12)
             .frame(maxWidth: .infinity, minHeight: 48)
+            .pointerHighlight()
             .contentShape(Rectangle())
             .onTapGesture { manager.isPalettePresented = true }
             .accessibilityElement(children: .ignore)
@@ -574,6 +588,7 @@ struct ContentView: View {
                         .overlay(Capsule().stroke(islandStyle.text.opacity(0.4)))
                         .frame(minHeight: 48)
                         .contentShape(Rectangle())
+                        .pointerHighlight()
                 }
                 .accessibilityLabel(SyncCopy.text("pill.private.title"))
                 .accessibilityIdentifier("pill.private")
@@ -589,6 +604,7 @@ struct ContentView: View {
             } label: {
                 Image(systemName: manager.activeTab?.isLoading == true ? "xmark" : "arrow.clockwise")
                     .frame(width: 44, height: 48)
+                    .pointerHighlight()
             }
             .accessibilityLabel(SyncCopy.text(manager.activeTab?.isLoading == true ? "ios.island.stop" : "ios.island.reload"))
 
@@ -603,6 +619,7 @@ struct ContentView: View {
                     .frame(width: 21, height: 21)
                     .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(islandStyle.text, lineWidth: 1.6))
                     .frame(width: 44, height: 48)
+                    .pointerHighlight()
             }
             .accessibilityLabel(SyncCopy.text("ios.island.showAllTabs"))
             .accessibilityValue(SyncCopy.plural("tabsMenu.header", count: manager.tabs.count))
@@ -611,6 +628,7 @@ struct ContentView: View {
             Rectangle().fill(islandDivider).frame(width: 1, height: 18)
             Button { manager.createTab() } label: {
                 Image(systemName: "plus").frame(width: 44, height: 48)
+                    .pointerHighlight()
             }
             .accessibilityLabel(SyncCopy.text("tab.new"))
         }
@@ -632,12 +650,14 @@ struct ContentView: View {
         return HStack(spacing: 0) {
             Button { tab?.goBack() } label: {
                 Image(systemName: "chevron.left").frame(width: 44, height: 48)
+                    .pointerHighlight()
             }
             .disabled(tab?.canGoBack != true)
             .accessibilityLabel(SyncCopy.text("pill.back"))
             .accessibilityIdentifier("pill.back")
             Button { tab?.goForward() } label: {
                 Image(systemName: "chevron.right").frame(width: 44, height: 48)
+                    .pointerHighlight()
             }
             .disabled(tab?.canGoForward != true)
             .accessibilityLabel(SyncCopy.text("pill.forward"))

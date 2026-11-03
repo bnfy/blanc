@@ -160,6 +160,7 @@ struct PaletteSheet: View {
         } label: {
             Image(systemName: icon).font(.system(size: 16)).frame(width: 44, height: 44)
                 .contentShape(Rectangle())
+                .pointerHighlight()
         }
         .accessibilityLabel(label)
         .accessibilityIdentifier("palette." + page)
@@ -182,6 +183,7 @@ struct PaletteSheet: View {
             Button { manager.closeTab(tab.id) } label: {
                 Image(systemName: "xmark").font(.system(size: 12)).foregroundStyle(style.secondary)
                     .frame(width: 44, height: 48)
+                    .pointerHighlight()
             }
             .accessibilityLabel(SyncCopy.text("ios.tabs.close", ["title": TabTitle.display(tab)]))
         }
@@ -239,6 +241,7 @@ struct PaletteSheet: View {
         }
         .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
         .contentShape(Rectangle())
+        .pointerHighlight()
     }
 
     @ViewBuilder
