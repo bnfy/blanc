@@ -14,6 +14,9 @@ symbol_level = 1
 # Run lint, Error Prone and bytecode checks inside the build. The default,
 # "build_server", needs Chromium's autoninja, and build.mjs calls Siso directly.
 android_static_analysis = "on"
+# Lint treats every warning as an error, and it flagged Blanc's icon and
+# widget-name resources as unused. Off for debug builds; release (A7) runs it.
+disable_android_lint = true
 android_channel = "stable"
 # Debug identity, installable beside release me.bnfy.blanc. The app name and
 # icon come from patch 0101.
