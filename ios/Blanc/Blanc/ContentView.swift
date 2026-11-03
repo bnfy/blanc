@@ -239,17 +239,30 @@ struct ContentView: View {
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity)
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { islandHeight = $0 }
+            .environment(\.colorScheme, islandScheme)
+            .animation(.easeInOut(duration: 0.25), value: islandScheme)
     }
+
+    /// Light or dark for the Island and its notices. A private tab's are always
+    /// dark. On glass (iOS 26) they follow the page's own background, so the
+    /// Island is dark glass on a dark site, as the system's bars are; before
+    /// that, and on a page with no solid background, they follow Blanc's theme.
+    private var islandScheme: ColorScheme {
+        if isPrivate { return .dark }
+        if #available(iOS 26, *), let tab = manager.activeTab, let page = ColorScheme(tab.pageStyle) { return page }
+        return colorScheme
+    }
+    private var islandStyle: BrowserStyle { BrowserStyle(scheme: islandScheme) }
 
     @ViewBuilder private var islandNotices: some View {
         if let sendNotice = manager.sendNotice {
             Text(sendNotice).font(BrowserStyle.font(13))
                 .padding(.horizontal, 14).padding(.vertical, 8)
-                .background(style.raised, in: Capsule())
+                .islandSurface(islandStyle, in: Capsule(), shadow: false)
                 .accessibilityAddTraits(.updatesFrequently)
                 .accessibilityIdentifier("send.banner")
         }
-        UndoBanner(manager: manager, style: style)
+        UndoBanner(manager: manager, style: islandStyle)
     }
 
     private var islandPill: some View {
@@ -526,9 +539,9 @@ struct ContentView: View {
 
     private var addressPill: some View {
         HStack(spacing: 0) {
-            SpaceMarkButton(manager: manager, style: style)
+            SpaceMarkButton(manager: manager, style: islandStyle)
             islandMark
-            Rectangle().fill(style.border).frame(width: 1, height: 18)
+            Rectangle().fill(islandDivider).frame(width: 1, height: 18)
             if layout.showsHistoryButtons { historyButtons }
 
             // A tap rather than a Button: a Button also fires when a sideways
@@ -558,7 +571,7 @@ struct ContentView: View {
                         .font(BrowserStyle.font(12, semibold: true))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
-                        .overlay(Capsule().stroke(style.text.opacity(0.4)))
+                        .overlay(Capsule().stroke(islandStyle.text.opacity(0.4)))
                         .frame(minHeight: 48)
                         .contentShape(Rectangle())
                 }
@@ -588,14 +601,14 @@ struct ContentView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
                     .frame(width: 21, height: 21)
-                    .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(style.text, lineWidth: 1.6))
+                    .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(islandStyle.text, lineWidth: 1.6))
                     .frame(width: 44, height: 48)
             }
             .accessibilityLabel(SyncCopy.text("ios.island.showAllTabs"))
             .accessibilityValue(SyncCopy.plural("tabsMenu.header", count: manager.tabs.count))
             .accessibilityIdentifier("pill.tabs")
 
-            Rectangle().fill(style.border).frame(width: 1, height: 18)
+            Rectangle().fill(islandDivider).frame(width: 1, height: 18)
             Button { manager.createTab() } label: {
                 Image(systemName: "plus").frame(width: 44, height: 48)
             }
@@ -603,13 +616,14 @@ struct ContentView: View {
         }
         .font(.system(size: 15, weight: .medium))
         .buttonStyle(.plain)
-        .foregroundStyle(style.text)
-        .background(style.raised, in: RoundedRectangle(cornerRadius: 17))
-        .overlay(RoundedRectangle(cornerRadius: 17).strokeBorder(style.border.opacity(0.7), lineWidth: 0.5))
-        .shadow(color: .black.opacity(style.scheme == .dark ? 0.25 : 0.10), radius: 10, y: 4)
+        .foregroundStyle(islandStyle.text)
+        .islandSurface(islandStyle, in: RoundedRectangle(cornerRadius: 17))
         .frame(maxWidth: 600)
-        .environment(\.colorScheme, isPrivate ? .dark : colorScheme)
     }
+
+    /// The Island's dividers, in its own ink, faded: on glass they follow the
+    /// text over any page; on the solid surface they match the old hairline.
+    private var islandDivider: Color { islandStyle.text.opacity(0.13) }
 
     /// Duo-1: Back and Forward on the unfolded Island, dimmed when there is
     /// nowhere to go. The edge swipe still works.
@@ -636,7 +650,7 @@ struct ContentView: View {
     /// site, reload and New tab. Drawn in the theme's ink through the shipped
     /// mark's alpha, as the interface always draws it.
     private var islandMark: some View {
-        IslandMarkButton(image: Self.sunriseMark, tint: style.text, menu: islandMenuElements)
+        IslandMarkButton(image: Self.sunriseMark, tint: islandStyle.text, menu: islandMenuElements)
             .frame(width: 48, height: 48)
     }
 
