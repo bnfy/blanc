@@ -138,8 +138,7 @@ export function parseLedger(text) {
 }
 
 export function readLedger(dir) {
-  const file = path.join(dir, 'ledger.ndjson');
-  return fs.existsSync(file) ? parseLedger(fs.readFileSync(file, 'utf8')) : [];
+  return readMessages(path.join(dir, 'ledger.ndjson'));
 }
 
 export function appendRecord(dir, record) {
@@ -153,14 +152,15 @@ export function appendRecord(dir, record) {
   }
 }
 
-function fresh(record, now, maxAge) {
+function withinAge(record, now, maxAge) {
   const age = now - Date.parse(record.finishedAt);
   return Number.isFinite(age) && age >= 0 && age <= maxAge;
 }
 
-function evidenceIntact(dir, name, digest) {
+/** `name` must be a bare file name inside `folder`, with the recorded digest. */
+function evidenceIntact(folder, name, digest) {
   if (!name || !digest || path.basename(name) !== name) return false;
-  const file = path.join(dir, name.endsWith('.ndjson') ? 'acceptance' : 'logs', name);
+  const file = path.join(folder, name);
   return fs.existsSync(file) && sha256File(file) === digest;
 }
 
@@ -173,7 +173,7 @@ export function stagePass(records, stage, digest, { dir, now = Date.now(), maxAg
   for (const record of [...records].reverse()) {
     if (record.type !== 'stage' || record.stage !== stage.id || record.key !== digest || record.status !== 'passed') continue;
     if (stage.fresh && (attempt === undefined || record.attempt !== attempt)) continue;
-    if (!fresh(record, now, maxAge) || !evidenceIntact(dir, record.log, record.logSha256)) continue;
+    if (!withinAge(record, now, maxAge) || !evidenceIntact(path.join(dir, 'logs'), record.log, record.logSha256)) continue;
     return record;
   }
   return null;
@@ -181,7 +181,7 @@ export function stagePass(records, stage, digest, { dir, now = Date.now(), maxAg
 
 // ---- acceptance ---------------------------------------------------------
 
-/** Cucumber message envelopes from an NDJSON file; a torn last line is skipped. */
+/** Records from an NDJSON file (the ledger, a Cucumber message stream); a torn line is skipped. */
 export function readMessages(file) {
   return fs.existsSync(file) ? parseLedger(fs.readFileSync(file, 'utf8')) : [];
 }
@@ -255,7 +255,8 @@ export function owed(state) {
 /** The recorded acceptance runs under `digest` whose message files are intact and fresh. */
 export function acceptanceRuns(records, digest, { dir, now = Date.now(), maxAge = FRESHNESS_MS } = {}) {
   return records
-    .filter((r) => r.type === 'acceptance-run' && r.key === digest && fresh(r, now, maxAge) && evidenceIntact(dir, r.file, r.sha256))
+    .filter((r) => r.type === 'acceptance-run' && r.key === digest && withinAge(r, now, maxAge)
+      && evidenceIntact(path.join(dir, 'acceptance'), r.file, r.sha256))
     .map((r) => ({ attempt: r.attempt, label: r.label, outcomes: scenarioOutcomes(readMessages(path.join(dir, 'acceptance', r.file))) }));
 }
 
