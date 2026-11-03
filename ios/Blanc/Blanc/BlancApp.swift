@@ -67,6 +67,8 @@ struct BlancApp: App {
                 }
             }
         }
+        // Desktop's keyboard shortcuts for a hardware keyboard (D7).
+        .commands { BrowserCommands(manager: manager) }
         // M18 §6: fetch and keep what other devices changed, for the next time
         // Blanc is in front.
         .backgroundTask(.appRefresh(BackgroundRefresh.identifier)) {

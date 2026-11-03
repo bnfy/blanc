@@ -330,7 +330,7 @@ struct ContentView: View {
     /// Space or Spaces menu asked for from it, or Find in page for `/find`.
     private func paletteClosed() {
         manager.presentPendingSettings()
-        if manager.takeFindRequest(), let tab = manager.activeTab { presentFind(in: tab) }
+        if manager.takeFindRequest() { manager.presentFind() }
     }
 
     // MARK: Split View (F53)
@@ -670,8 +670,7 @@ struct ContentView: View {
                 guard let tab else { return nil }
                 return action("share.picker.share", "square.and.arrow.up") { share(tab.currentURL) }
             case .find:
-                guard let tab else { return nil }
-                return action("menu.findInPage", "magnifyingglass") { presentFind(in: tab) }
+                return action("menu.findInPage", "magnifyingglass") { manager.presentFind() }
             case .glance:
                 return UIMenu(title: SyncCopy.text("tabMenu.glance"), image: UIImage(systemName: "rectangle.on.rectangle"),
                               children: manager.glanceCandidates.map { other in
@@ -700,10 +699,6 @@ struct ContentView: View {
     private static let sunriseMark: UIImage? = Bundle.main
         .path(forResource: "sunrise-mark", ofType: "png", inDirectory: "pages")
         .flatMap(UIImage.init(contentsOfFile:))
-
-    private func presentFind(in tab: TabModel) {
-        (tab.reader?.webView ?? tab.webView).findInteraction?.presentFindNavigator(showingReplace: false)
-    }
 
     private var displayDomain: String {
         let startPage = SyncCopy.text("ios.tabs.startPage")

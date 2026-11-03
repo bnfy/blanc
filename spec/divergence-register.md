@@ -181,6 +181,11 @@ Desktop bindings and their mobile intent:
 
 - **iPad** with a hardware keyboard **may reintroduce** the desktop shortcuts on
   iOS only — a permitted iOS-only enhancement, not an Android obligation.
+  Built 2026-11-03 (on main, unreleased): ⌘T, ⌘⇧N, ⌘L, ⌘W, ⌘⇧T, ⌘,, ⌘F,
+  ⌘R, ⌘[ / ⌘], ⌘+ / ⌘− / ⌘0, ⌘Y, ⌘⌥B, ⌘D and ⌘1–9 (desktop's cluster
+  rule), from iPadOS's menu bar and ⌘-hold list. Next and previous tab are
+  Safari's ⌘⇧] / ⌘⇧[, because iPadOS keeps Ctrl+Tab for moving keyboard
+  focus and it never reaches the app.
 - **Slash commands (F7) are the cross-platform equalizer:** every keyboard action
   also has a `/command`, so the *capability* stays reachable on touch even where a
   shortcut doesn't.
