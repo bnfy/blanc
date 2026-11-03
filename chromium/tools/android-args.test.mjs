@@ -13,7 +13,7 @@ for (const [file, cpu] of [['debug-arm64.gn', 'arm64'], ['debug-x64.gn', 'x64']]
   test(`android args pin the platform (${file})`, () => {
     const args = parse(file);
     assert.deepEqual(args, {
-      target_os: 'android', target_cpu: cpu, is_debug: false, is_component_build: false, symbol_level: 1,
+      target_os: 'android', target_cpu: cpu, is_debug: false, is_java_debug: true, is_component_build: false, symbol_level: 1,
       android_channel: 'stable', chrome_public_manifest_package: 'me.bnfy.blanc.dev', use_official_google_api_keys: false,
     });
     for (const key of ['google_api_key', 'google_default_client_id', 'google_default_client_secret']) assert.ok(!(key in args));

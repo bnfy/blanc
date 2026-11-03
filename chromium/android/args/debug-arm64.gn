@@ -5,6 +5,10 @@
 target_os = "android"
 target_cpu = "arm64"
 is_debug = false
+# A debuggable Java build: Java DCHECKs on, `run-as` and the command-line file
+# work on a non-rooted Pixel (the outbound gate). It also skips the stable
+# channel's release-size manifest checks, which expect 32-bit variants.
+is_java_debug = true
 is_component_build = false
 symbol_level = 1
 android_channel = "stable"
