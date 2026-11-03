@@ -103004,43 +103004,43 @@
       }
     },
     "ios.settings.islandPosition": {
-      "comment": "iOS Settings → Appearance: picker for where the Island sits on the screen.",
+      "comment": "iOS Settings → Island: picker for where the Island sits on the screen, under the Island header.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Island position"
+            "value": "Position"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Position der Island"
+            "value": "Position"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Posición de la Island"
+            "value": "Posición"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Position de l’Island"
+            "value": "Position"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Posizione dell’Island"
+            "value": "Posizione"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Posição da Island"
+            "value": "Posição"
           }
         }
       }
@@ -103125,6 +103125,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "Em cima"
+          }
+        }
+      }
+    },
+    "ios.settings.island": {
+      "comment": "iOS Settings: header over the Island position and hide-while-scrolling rows. The product name Island stays untranslated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island"
+          }
+        }
+      }
+    },
+    "ios.settings.privacySync": {
+      "comment": "iOS Settings: header over the Blanc Blocker and Sync rows.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy & Sync"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenschutz & Synchronisierung"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacidad y sincronización"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confidentialité & synchronisation"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy e sincronizzazione"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacidade e sincronização"
           }
         }
       }

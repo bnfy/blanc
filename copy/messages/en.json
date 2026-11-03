@@ -9435,8 +9435,8 @@
     "note": "iOS Settings → Appearance: footer under the switch for the Island tucking away while scrolling."
   },
   "ios.settings.islandPosition": {
-    "message": "Island position",
-    "note": "iOS Settings → Appearance: picker for where the Island sits on the screen."
+    "message": "Position",
+    "note": "iOS Settings → Island: picker for where the Island sits on the screen, under the Island header."
   },
   "ios.settings.islandPosition.bottom": {
     "message": "Bottom",
@@ -9445,6 +9445,14 @@
   "ios.settings.islandPosition.top": {
     "message": "Top",
     "note": "iOS Settings → Appearance → Island position: along the top of the screen."
+  },
+  "ios.settings.island": {
+    "message": "Island",
+    "note": "iOS Settings: header over the Island position and hide-while-scrolling rows. The product name Island stays untranslated."
+  },
+  "ios.settings.privacySync": {
+    "message": "Privacy & Sync",
+    "note": "iOS Settings: header over the Blanc Blocker and Sync rows."
   },
   "ios.island.stop": {
     "message": "Stop loading",

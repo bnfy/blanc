@@ -2519,9 +2519,11 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_island_reload">Reload page</string>
     <string name="ios_settings_island_tuck">Hide the Island while scrolling</string>
     <string name="ios_settings_island_tuck_hint">The Island slides away as you scroll down a page and comes back when you scroll up.</string>
-    <string name="ios_settings_island_position">Island position</string>
+    <string name="ios_settings_island_position">Position</string>
     <string name="ios_settings_island_position_bottom">Bottom</string>
     <string name="ios_settings_island_position_top">Top</string>
+    <string name="ios_settings_island">Island</string>
+    <string name="ios_settings_privacy_sync">Privacy &amp; Sync</string>
     <string name="ios_island_stop">Stop loading</string>
     <string name="ios_island_page_actions">Page actions</string>
     <string name="ios_island_collapse">Collapse Island</string>

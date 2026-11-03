@@ -131,6 +131,20 @@ struct SettingsSheet: View {
                 }.accessibilityIdentifier("settings.searchEngine")
                 if DefaultBrowserOffer.enabled { DefaultBrowserRow() }
             }
+            Section {
+                Picker(SettingsCopy.text("islandPosition"), selection: Binding(
+                    get: { manager.settingsStore.islandPosition },
+                    set: { manager.setIslandPosition($0) })) {
+                    ForEach(IslandPosition.allCases, id: \.self) {
+                        Text(SettingsCopy.text("islandPosition." + $0.rawValue)).tag($0)
+                    }
+                }.accessibilityIdentifier("settings.islandPosition")
+                Toggle(SettingsCopy.text("islandTuck"), isOn: Binding(
+                    get: { manager.settingsStore.islandTucksOnScroll },
+                    set: { manager.settingsStore.update(islandTucksOnScroll: $0) }))
+                    .accessibilityIdentifier("settings.islandTuck")
+            } header: { Text(SettingsCopy.text("island")) }
+              footer: { Text(SettingsCopy.text("islandTuckHint")) }
             Section(SettingsCopy.text("appearance")) {
                 Picker(SettingsCopy.text("theme"), selection: Binding(get: { manager.settingsStore.theme }, set: { manager.applySettingsPatch(["theme": $0.rawValue]) })) {
                     ForEach(BlancThemePreference.allCases, id: \.self) { Text(SettingsCopy.text($0.rawValue)).tag($0) }
@@ -142,25 +156,10 @@ struct SettingsSheet: View {
                     summary("startPage", value: SettingsCopy.text(manager.settingsStore.newtabLayout.rawValue))
                 }.accessibilityIdentifier("settings.startPage")
             }
-            Section {
-                Picker(SyncCopy.text("ios.settings.islandPosition"), selection: Binding(
-                    get: { manager.settingsStore.islandPosition },
-                    set: { manager.setIslandPosition($0) })) {
-                    ForEach(IslandPosition.allCases, id: \.self) {
-                        Text(SyncCopy.text("ios.settings.islandPosition." + $0.rawValue)).tag($0)
-                    }
-                }.accessibilityIdentifier("settings.islandPosition")
-                Toggle(SyncCopy.text("ios.settings.islandTuck"), isOn: Binding(
-                    get: { manager.settingsStore.islandTucksOnScroll },
-                    set: { manager.settingsStore.update(islandTucksOnScroll: $0) }))
-                    .accessibilityIdentifier("settings.islandTuck")
-            } footer: { Text(SyncCopy.text("ios.settings.islandTuckHint")) }
-            Section(SettingsCopy.text("privacy")) {
+            Section(SettingsCopy.text("privacySync")) {
                 NavigationLink(value: SettingsDestination.privacy) {
                     summary("blocker", value: SettingsCopy.text(manager.settingsStore.adblockEnabled ? "on" : "off"))
                 }.accessibilityIdentifier("settings.privacy")
-            }
-            Section(SettingsCopy.text("sync")) {
                 NavigationLink(value: SettingsDestination.sync) {
                     summary("sync", value: SettingsCopy.text(manager.syncEngine.status["enabled"]?.bool == true ? "connected" : "notConnected"))
                 }.accessibilityIdentifier("settings.sync")
