@@ -3,6 +3,7 @@
 #include "blanc/browser/ui/browser_api/navigation.h"
 #include "blanc/browser/ui/browser_api/bang_icons.h"
 #include "blanc/browser/ui/browser_api/bangs.h"
+#include "blanc/browser/ui/browser_api/http_auth.h"
 #include "blanc/browser/ui/browser_api/page_handoff.h"
 #include "blanc/browser/ui/browser_api/appearance.h"
 #include "blanc/browser/ui/ui_language.h"
@@ -3129,6 +3130,20 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       for (const auto& [url, prompt] : blanc::browser_api::TestHandoffs())
         list.Append(base::DictValue().Set("url", url).Set("prompt", prompt));
       Reply(id, true, base::Value(std::move(list)));
+      return;
+    }
+    // HTTP auth challenges Blanc refused (http_auth.h, F20), or forgets them.
+    if (message[1].GetString() == "authChallenges" && message[2].GetList().empty()) {
+      base::ListValue list;
+      for (const auto& c : blanc::browser_api::TestAuthChallenges())
+        list.Append(base::DictValue().Set("url", c.url).Set("navigation", c.navigation)
+            .Set("proxy", c.proxy).Set("scheme", c.scheme).Set("realm", c.realm));
+      Reply(id, true, base::Value(std::move(list)));
+      return;
+    }
+    if (message[1].GetString() == "resetAuthChallenges" && message[2].GetList().empty()) {
+      blanc::browser_api::TestAuthChallenges().clear();
+      Reply(id, true, base::Value(true));
       return;
     }
     // Read-only: external launches Blanc's rule recorded instead of passing

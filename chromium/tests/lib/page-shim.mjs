@@ -5,6 +5,7 @@
 import {UndefinedNativeAdapterError} from './adapters.mjs';
 import {pause} from './cdp.mjs';
 import {jsLiteral} from './js-literal.mjs';
+import {PORTS,sourceKey} from './main-ports.mjs';
 const KEYS={Enter:[13,'\r'],Escape:[27],Tab:[9],Backspace:[8],Delete:[46],ArrowDown:[40],ArrowUp:[38],ArrowLeft:[37],ArrowRight:[39],
  Home:[36],End:[35],PageDown:[34],PageUp:[33],Space:[32,' '],' ':[32,' '],Meta:[91],Control:[17],Shift:[16],Alt:[18],F6:[117]};
 const MODIFIER_BITS={Alt:1,Control:2,Meta:4,Shift:8};
@@ -179,12 +180,18 @@ export function shippingPageUrl(url){
  return url;
 }
 // Playwright's ElectronApplication, minus the main process: main-process
-// evaluation has no fork equivalent and must be ported per step.
+// evaluation has no fork equivalent, so each one is ported (main-ports.mjs)
+// and any other stays undefined.
 export function createAppShim(fixture){
  const pages=new Map();
+ const ported={};
  const app={
   windows(){return [...pages.values()];},
-  evaluate(){throw new UndefinedNativeAdapterError('Shipping main-process evaluate needs a native adapter');},
+  evaluate(fn,arg){
+   const port=PORTS[sourceKey(fn)];
+   if(!port)throw new UndefinedNativeAdapterError('Shipping main-process evaluate needs a native adapter');
+   return port(fixture,ported,arg);
+  },
   firstWindow(){return pages.get('strip');},
   // A relaunch replaces every connection; pages are rebuilt on refresh.
   reset(){for(const page of pages.values())page.closed=true;pages.clear();},

@@ -1,0 +1,23 @@
+diff --git a/chrome/browser/chrome_content_browser_client.cc b/chrome/browser/chrome_content_browser_client.cc
+index 5a7a424..78924ba 100644
+--- a/chrome/browser/chrome_content_browser_client.cc
++++ b/chrome/browser/chrome_content_browser_client.cc
+@@ -7,6 +7,7 @@
+ #include "blanc/services/blocker/blocker_proxy.h"
+ #include "blanc/content/public/browser/blanc_url_loader_gate.h"
+ #include "blanc/content/public/browser/blanc_websocket_gate.h"
++#include "blanc/browser/ui/browser_api/http_auth.h"
+ #include "blanc/browser/ui/browser_api/page_handoff.h"
+ #include "blanc/common/island_mode.h"
+ 
+@@ -7501,6 +7502,10 @@ ChromeContentBrowserClient::CreateLoginDelegate(
+     bool do_not_prompt_for_login,
+     content::GuestPageHolder* guest,
+     content::LoginDelegate::LoginAuthRequiredCallback auth_required_callback) {
++  // Blanc (F20): no credential dialog; the challenge is cancelled.
++  if (blanc::browser_api::RefuseHttpAuth(auth_info, url, is_request_for_navigation)) {
++    return nullptr;
++  }
+ #if BUILDFLAG(IS_CHROMEOS)
+   // Negotiate challenge is handled via GSSAPI library, which can not receive
+   // external credentials. However, on ChromeOS we can suggest the user to

@@ -52,7 +52,7 @@
     "blanc/browser/ui/app_menus_mac.mm": "9614c47ba40745c5b5e81432b979443da210cb4909b45eed927d8f49b1e7fe6f",
     "blanc/browser/ui/billboard_clock_settings.inc": "57ce0ed0160903e1b90c3d65fd5cd7cd33218d5774a3b2d8fdb448b0d49c9892",
     "blanc/browser/ui/blanc_extensions_branding.h": "17d77bbc267d13477a24bd971021f2291c505567a32383229505c13b53238a02",
-    "blanc/browser/ui/blanc_prototype_ui.cc": "3b4937c169330a5e34d6ba77f3afd91b2ea8ec47bd290a8bb712895cd467aed7",
+    "blanc/browser/ui/blanc_prototype_ui.cc": "2952e2fd08b8c25568ea04778ab8834de3dc59be2681945e574a2b67acdba021",
     "blanc/browser/ui/blanc_prototype_ui.h": "a085be4a5183f9f6f9af90b2514523580cb8e7e0e3be2516c7be32eda6c50545",
     "blanc/browser/ui/blanc_quiet_media.h": "8fb187c5b49e762de12f5db114149ac462b06c9ca16f16a78ef50363a80e061f",
     "blanc/browser/ui/blanc_quiet_probe.h": "47467fe0a2004e804cda235613a0aea6b88d494b84b3608bf6af991a6aa07dfd",
@@ -71,6 +71,8 @@
     "blanc/browser/ui/browser_api/bangs.h": "f0fe7dbd5d512f2f039c9087498e9898fa1ee6899ae88be5e386f944eb202b2f",
     "blanc/browser/ui/browser_api/external_handoff.cc": "022efa41f175fa1ddb1ccdfc469c1bb3ccdbd7fb2b84af1ff58779e0eff171ef",
     "blanc/browser/ui/browser_api/external_handoff.h": "023bfe3e295e3303322665ab4126f9a2d7723083cc3fad56d783ae44e8238cc7",
+    "blanc/browser/ui/browser_api/http_auth.cc": "99ad3016d2fe5fb03eec6be9a797269baf24ef3fad1f0e911f0234220c4239d7",
+    "blanc/browser/ui/browser_api/http_auth.h": "2fd98545b202589c80027741c8e6a6a0811f182b9265c232394ec38b919c33e5",
     "blanc/browser/ui/browser_api/navigation.cc": "849783af635a9d2751874c9a0119beaf37ce12b9fa4354e5424885166e920fb5",
     "blanc/browser/ui/browser_api/navigation.h": "0d1bb00d74be8b89642b71e71b9691726a5a350826d85db46463198c84f15317",
     "blanc/browser/ui/browser_api/page_handoff.cc": "e71c496c9015e939f4215645d32bee51f89e2502a7d4fde1b5d2824b1d31508e",
@@ -239,7 +241,7 @@
     "blanc/services/blocker/procedural_renderer.h": "3c3476c00c407fcca73902bcdf4cc59fbc7bba9fc961fc10aff9cb022ac5cc38",
     "blanc/services/blocker/shield_count.inc": "645001fd9cffb91225437a3bfa97c1914e5005acaaed88f8bf033d90b26d19b5",
     "blanc/services/blocker/update_identity.inc": "dd7242e1f78ce6a36b78cfedf6f3a7a3a504df28acca8acd49143e01461232e8",
-    "blanc/ui.gni": "22ed22aae663adc6d8c5c7ef7b1cbab6b06ba1524f72d7a7a35f73bd11d2d7dd"
+    "blanc/ui.gni": "3f332ca6bcd49731a62d1c1f7ceda5bc18fa8502c3a3fc080925055856eb2b56"
   },
   "targetOwnership": "//blanc:ui routes to browser-boundary template target, respecting existing upstream visibility",
   "upstreamFiles": {
@@ -253,7 +255,7 @@
     "chrome/browser/BUILD.gn": "412d94ad714126072e266828e93be1b7d3e77515b9f6575b069c2aeed89492ff",
     "chrome/browser/app_controller_mac.mm": "e6fa18724ca5d1f806d6b470a8d9c9b43bda1ccbd614a2db75f28054b3b6a49f",
     "chrome/browser/chrome_browser_interface_binders_webui_parts_desktop.cc": "efea8008ca7279a6191e22dd8b3d380f59d733541e889346d12113c949026654",
-    "chrome/browser/chrome_content_browser_client.cc": "9e59c94158057b73f47a9f33f71ff3708c1255bc830a0787d588a5f141148820",
+    "chrome/browser/chrome_content_browser_client.cc": "1da81e846603dc70d390ccc58a2e9b880f836acea7e42cefab511605d9e0ce5c",
     "chrome/browser/chrome_content_browser_client_receiver_bindings.cc": "1df2efd8ab7a39a60ac3e884d6efaf883b14e9f0859529a2bcdad85a563f2b28",
     "chrome/browser/extensions/component_extensions_allowlist/allowlist.cc": "c05f9e6bcfa71a277a956ddd320dd876bc3a8d0911ce9565db701df6cec9d925",
     "chrome/browser/extensions/component_loader.cc": "cf051264cc9e2eccf9a3fa5ec9e239b374325783114bd7728057aa684436f879",
