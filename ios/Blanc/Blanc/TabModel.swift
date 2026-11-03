@@ -109,7 +109,8 @@ final class TabModel: Identifiable {
                 self.navigationDelegate.applyTitle(title)
             }
         }
-        // The pull's spinner takes the style that shows against the page.
+        // The pull's spinner and the Island take the style that shows against
+        // the page.
         pageColorObservation = webView.observe(\.underPageBackgroundColor, options: [.new]) { [weak self] _, _ in
             Task { @MainActor [weak self] in self?.matchRefreshControlToPage() }
         }
@@ -243,12 +244,19 @@ final class TabModel: Identifiable {
         }
     }
 
+    /// Whether the page's own background is light or dark (`.unspecified`
+    /// when it shows no solid color). The Island's glass takes it, so it reads
+    /// as dark glass on a dark site whatever Blanc's theme.
+    private(set) var pageStyle: UIUserInterfaceStyle = .unspecified
+
     /// The system spinner in its light or dark style, whichever shows against
     /// the page: in dark mode its light spinner vanishes on a white page.
     func matchRefreshControlToPage() {
-        guard let refreshControl, let webView = storage else { return }
+        guard let webView = storage else { return }
         let page = webView.underPageBackgroundColor.resolvedColor(with: webView.traitCollection)
-        refreshControl.overrideUserInterfaceStyle = Self.spinnerStyle(on: page)
+        let style = Self.spinnerStyle(on: page)
+        if pageStyle != style { pageStyle = style }
+        refreshControl?.overrideUserInterfaceStyle = style
     }
 
     /// `.unspecified` (the system's own) when the page shows no solid color.
