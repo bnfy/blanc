@@ -9,6 +9,8 @@
 //               resolves to a definition without launching Electron.
 //   rerun     - `runnable` scenarios named as path:line arguments, once, with
 //               no retry: the release gate's rerun of what failed.
+//   remaining - `runnable` scenarios named as path:line arguments, with
+//               `runnable`'s retry: the press gate's resume of what is owed.
 //   default   - every desktop-applicable scenario (`not @mobile`). Runs the
 //               implemented subset and reports the rest as UNDEFINED — an
 //               honest view of the remaining backlog.
@@ -85,12 +87,15 @@ const RUNNABLE = [
   '@F48-1', '@F48-2', '@F48-3', '@F48-4', '@F48-5', '@F48-6', '@F48-7',
 ].join(' or ');
 
-// The release gate (scripts/acceptance-gate.mjs) names its JSON report here: a
-// [type, path] pair skips Cucumber's colon parsing, which rejects a Windows
-// drive letter.
-const gateReport = process.env.BLANC_ACCEPTANCE_REPORT
-  ? { format: ['progress', ['json', process.env.BLANC_ACCEPTANCE_REPORT]] }
-  : {};
+// The release gate (scripts/acceptance-gate.mjs) names its JSON report and its
+// Cucumber message stream (scripts/release-gate.mjs's per-scenario ledger)
+// here: a [type, path] pair skips Cucumber's colon parsing, which rejects a
+// Windows drive letter.
+const gateFiles = [
+  ...(process.env.BLANC_ACCEPTANCE_REPORT ? [['json', process.env.BLANC_ACCEPTANCE_REPORT]] : []),
+  ...(process.env.BLANC_ACCEPTANCE_MESSAGES ? [['message', process.env.BLANC_ACCEPTANCE_MESSAGES]] : []),
+];
+const gateReport = gateFiles.length ? { format: ['progress', ...gateFiles] } : {};
 
 export default { ...common, tags: 'not @mobile' };
 export const runnable = { ...common, tags: RUNNABLE, retry: 1, ...gateReport };
@@ -101,7 +106,13 @@ export const runnable = { ...common, tags: RUNNABLE, retry: 1, ...gateReport };
 export const rerun = {
   require: common.require, import: common.import, tags: RUNNABLE, retry: 0, ...gateReport,
 };
-export const dry = { ...common, tags: RUNNABLE, dryRun: true };
+// The press gate's run of the scenarios still owed from an earlier attempt:
+// like `rerun`, the positional path:line arguments are the whole selection, but
+// with `runnable`'s retry, so a resumed scenario has the same in-run budget.
+export const remaining = { ...rerun, retry: 1 };
+// The release gate's expected-scenario set comes from this dry run's message
+// stream (BLANC_ACCEPTANCE_MESSAGES).
+export const dry = { ...common, tags: RUNNABLE, dryRun: true, ...gateReport };
 // The harness's own self-test (test/desktop/harness/): scenarios that break the
 // app on purpose to prove the hooks heal it. Run by healing-smoke.mjs, which
 // checks the expected mix of failures; never part of `runnable`.
