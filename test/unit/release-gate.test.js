@@ -144,6 +144,10 @@ test('scenario outcomes come from the final attempt in a Cucumber message stream
     { location: 'spec/acceptance/b.feature:7', name: 'Undefined', passed: false, tries: 1, error: 'Error: Undefined broke' },
   ]);
   assert.equal(expectedScenarios(messages).length, 6);
+  const windows = parseLedger(stream([{ location: 'spec/acceptance/a.feature:10', name: 'Passes', attempts: [['PASSED']] }])
+    .replace('"uri":"spec/acceptance/a.feature"', '"uri":"spec\\\\acceptance\\\\a.feature"'));
+  assert.equal(windows[0].pickle.uri, 'spec\\acceptance\\a.feature', 'the fixture has Windows separators');
+  assert.equal(scenarioOutcomes(windows)[0].location, 'spec/acceptance/a.feature:10', 'locations always use /');
   assert.deepEqual(expectedScenarios(messages)[4], { location: 'spec/acceptance/b.feature:9', name: 'Stopped mid-run' });
 });
 

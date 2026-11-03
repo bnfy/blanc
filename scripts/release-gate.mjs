@@ -186,9 +186,11 @@ export function readMessages(file) {
   return fs.existsSync(file) ? parseLedger(fs.readFileSync(file, 'utf8')) : [];
 }
 
+// Cucumber reports a pickle's uri with the platform's separator; locations use
+// '/', which it accepts as a path:line selection everywhere.
 function picklesById(messages) {
   return new Map(messages.filter((m) => m.pickle).map(({ pickle }) => [pickle.id, {
-    location: `${pickle.uri}:${pickle.location?.line}`, name: pickle.name,
+    location: `${pickle.uri.replaceAll('\\', '/')}:${pickle.location?.line}`, name: pickle.name,
   }]));
 }
 
