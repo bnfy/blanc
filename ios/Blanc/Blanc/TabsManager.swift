@@ -816,6 +816,40 @@ final class TabsManager {
         if let glanceTabId, live[glanceTabId] == nil || split(for: glanceTabId) != nil { self.glanceTabId = nil }
     }
 
+    // MARK: Keyboard shortcuts (D7, iPad)
+
+    private var shortcutItems: [TabSections.Item] {
+        tabs.map { TabSections.Item(id: $0.id.uuidString, groupId: $0.groupId, pinned: $0.pinned) }
+    }
+
+    /// ⌘1–9 (`TabShortcuts.target`).
+    func selectTab(number: Int) {
+        let splitIds = splits.map { $0.tabIds.map(\.uuidString) }
+        switch TabShortcuts.target(number: number, items: shortcutItems, splits: splitIds) {
+        case .group(let id): showGroup(id)
+        case .tab(let id): if let tab = tabs.first(where: { $0.id.uuidString == id }) { setActive(tab.id) }
+        case nil: break
+        }
+    }
+
+    /// ⌘⇧] and ⌘⇧[: the next or previous tab in order, wrapping.
+    func cycleTab(by offset: Int) {
+        guard tabs.count > 1, let index = tabs.firstIndex(where: { $0.id == activeTabId }) else { return }
+        setActive(tabs[(index + offset + tabs.count) % tabs.count].id)
+    }
+
+    /// ⌘+, ⌘− and ⌘0 on the current page.
+    func zoomActive(step: Int) {
+        guard let webView = activeTab?.existingWebView else { return }
+        webView.pageZoom = TabShortcuts.zoom(from: Double(webView.pageZoom), step: step)
+    }
+
+    /// Find in Page on the current page, or its Reader view.
+    func presentFind() {
+        guard let tab = activeTab else { return }
+        (tab.reader?.webView ?? tab.webView).findInteraction?.presentFindNavigator(showingReplace: false)
+    }
+
     // MARK: Glance (F34)
 
     /// The tab shown in the Glance card over the current page. It's an
