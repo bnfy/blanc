@@ -1,6 +1,7 @@
 # A press gate that never repeats a pass
 
-November 2, 2026. **Status: draft for the owner's approval.**
+November 2, 2026. **Status: approved by the owner on November 2, 2026, with the recommended
+answer to D1–D4.**
 
 **Relates to:** `scripts/release.sh` (the press verification gate),
 `package.json` (`release:verify:press`), `scripts/acceptance-gate.mjs` and
@@ -11,7 +12,7 @@ and `docs/superpowers/specs/2026-10-27-acceptance-gate-speed-design.md`
 
 Marks: **(owner)** is the owner's decision in chat. *(My call)* is a builder
 default the owner hasn't ruled on yet. **Decision D1–D4** are the questions
-this draft puts to the owner, each with a recommendation.
+the owner answered on November 2, 2026; each took the recommended option.
 
 ## Why
 
@@ -212,7 +213,7 @@ Today's gate already allows any number: a relaunch reruns every scenario,
 and a scenario that failed in attempt N passes in attempt N+1 with no record
 of N. So:
 
-- **(a) Recommended:** no extra cap, matching today, with every earlier
+- **(a) (owner) Chosen:** no extra cap, matching today, with every earlier
   failure printed in the evidence block (scenario, attempt, first error line)
   and quoted in the release incident with the existing `Acceptance rerun
   passed` blocks. This is strictly more disclosure than today.
@@ -228,7 +229,7 @@ but three stages also depend on the outside world: `release:security`
 (today's advisory database), the Web Store smoke and the DNS smoke (live
 sites).
 
-- **(a) Recommended:** `release:security` always reruns (it takes seconds and
+- **(a) (owner) Chosen:** `release:security` always reruns (it takes seconds and
   its input is not the commit); every other pass is valid for **48 hours**,
   enough to run the gate in the evening and release the next day.
 - (b) 24 hours for everything reusable.
@@ -297,7 +298,7 @@ anything, for the operator deciding whether to start the release.
 
 **Decision D3 — where does the evidence live after the release?**
 
-- **(a) Recommended:** the release incident quotes the evidence block and the
+- **(a) (owner) Chosen:** the release incident quotes the evidence block and the
   ledger's SHA-256; the ledger folder stays in the release worktree until the
   records PR merges.
 - (b) Also commit the ledger and stage logs under
@@ -324,8 +325,8 @@ block against the files it names.
 
 ## Decision D4 — approve the approach
 
-Approve 1 + 2 as designed (§1–§6), with direction 3 proposed as a follow-up
-task and direction 4 rejected.
+**(owner)** Approved: 1 + 2 as designed (§1–§6), with direction 3 proposed
+as a follow-up task and direction 4 rejected.
 
 ## What done looks like
 

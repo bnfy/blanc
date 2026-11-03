@@ -32,7 +32,7 @@
   - `scenarioOutcomes(messages)`: a passing scenario; one failing then passing on retry (passed); a final failure (with first error line); a scenario started but never finished (absent); outline rows keyed by their own line.
   - `acceptanceState(expected, runs)` and `owed(...)`: passes from any recorded run under the key count; earlier failures are kept for the evidence; names must match.
   - `evidenceBlock(...)` lists every stage and the scenarios that passed after failing in an earlier attempt.
-- [ ] Implement the exports to make them pass: `STAGES`, `FRESHNESS_MS` (48 h, pending D2), `keyDigest`, `envFingerprint`, `parseLedger`, `stagePass`, `scenarioOutcomes`, `acceptanceState`, `owed`, `evidenceBlock`.
+- [ ] Implement the exports to make them pass: `STAGES`, `FRESHNESS_MS` (48 h, D2), `keyDigest`, `envFingerprint`, `parseLedger`, `stagePass`, `scenarioOutcomes`, `acceptanceState`, `owed`, `evidenceBlock`.
 - [ ] `node --test test/unit/release-gate.test.js`, `npm run lint`; commit.
 
 ### Task 2: Orchestration (`run`, `verify`, `status`, `prepare`)
