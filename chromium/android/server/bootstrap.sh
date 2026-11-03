@@ -87,8 +87,15 @@ else
 fi
 
 step "install Android build dependencies" sudo "${SRC}/build/install-build-deps.sh" --android --no-prompt
-step "sync dependencies at the pin and run hooks" \
-  in_dir "${CHECKOUT}" gclient sync -D --no-history --revision "src@${UPSTREAM}"
+# Once synced, src carries Blanc's applied source, which gclient refuses to
+# sync over; a marker records the pin the dependencies were synced for. A new
+# pin (a rebase) has to restore the pristine files first (A7's rebase drill).
+SYNCED="${CHECKOUT}/.blanc-synced"
+if [[ "$(cat "${SYNCED}" 2>/dev/null || true)" != "${UPSTREAM}" ]]; then
+  step "sync dependencies at the pin and run hooks" \
+    in_dir "${CHECKOUT}" gclient sync -D --no-history --revision "src@${UPSTREAM}"
+  step "record the synced pin" bash -c 'echo "$1" > "$2"' _ "${UPSTREAM}" "${SYNCED}"
+fi
 
 step "check the lane's Blanc source" python3 "${TREE}/chromium/tools/apply.py" --lane android --src "${SRC}"
 step "apply the lane's Blanc source" python3 "${TREE}/chromium/tools/apply.py" --lane android --src "${SRC}" \
