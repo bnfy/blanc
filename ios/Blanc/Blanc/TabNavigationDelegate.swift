@@ -41,11 +41,13 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
                  didStartProvisionalNavigation navigation: WKNavigation!) {
         tab?.exitReader()
         tab?.readerAvailable = false
-        tab?.nativeClock.hide()
         tab?.isLoading = true
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        // The Start Page's glass clock goes with its page: a load that fails
+        // before it commits leaves the page, so the clock stays too.
+        tab?.nativeClock.hide()
         tab?.hasCommitted = true
         tab?.showIsland()
         committed(navigation, url: webView.url, title: webView.title ?? "")

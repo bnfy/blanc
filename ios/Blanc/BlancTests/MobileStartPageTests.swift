@@ -130,6 +130,28 @@ final class MobileStartPageTests: XCTestCase {
         add(backdropImage)
         _ = try await webView.evaluateJavaScript("document.getElementById('glassBackdropProbe').remove()")
 
+        // Leaving Billboard must take the native glass clock away at once: the
+        // page's own clock is hidden by the layout's CSS, the overlay is not.
+        _ = try await webView.evaluateJavaScript("document.querySelector('[data-layout-pick=\"ledger\"]').click()")
+        for _ in 0..<20 where manager.activeTab?.nativeClock.isVisible == true {
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
+        XCTAssertFalse(manager.activeTab?.nativeClock.isVisible == true, "Switching away from Billboard must remove the native glass clock")
+        _ = try await webView.evaluateJavaScript("document.querySelector('[data-layout-pick=\"billboard\"]').click()")
+        for _ in 0..<40 where manager.activeTab?.nativeClock.isVisible != true {
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
+        XCTAssertTrue(manager.activeTab?.nativeClock.isVisible == true, "Returning to Billboard must bring the glass clock back")
+        // A load that fails before it commits leaves the Start Page showing,
+        // so its glass clock must stay too (the page's own copy is hidden).
+        webView.load(URLRequest(url: URL(string: "http://127.0.0.1:9/")!))
+        try await Task.sleep(nanoseconds: 200_000_000)
+        for _ in 0..<100 where webView.isLoading {
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
+        XCTAssertEqual(webView.url?.host, "newtab")
+        XCTAssertTrue(manager.activeTab?.nativeClock.isVisible == true, "A failed load must not take the glass clock off the Start Page")
+
         _ = try await webView.callAsyncJavaScript("return await window.bowserPages.start.setClock({font:'flex',height:150,style:'solid'});", arguments: [:], in: nil, contentWorld: .page)
         for _ in 0..<20 where manager.activeTab?.nativeClock.isVisible == true {
             try await Task.sleep(nanoseconds: 50_000_000)
