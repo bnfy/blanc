@@ -1,7 +1,8 @@
 # Blanc for iPhone: App Store listing (draft)
 
 **Status:** draft for the owner's sign-off (M18 design §10, plan Task 17).
-Nothing here is entered in App Store Connect yet; doing that is a separate yes.
+The fields below are a draft; the screenshots and app preview are the set
+made for version 1.0 (see Screenshots), uploaded only with the owner's yes.
 
 **Release boundary.** Blanc for iPhone 1.0 isn't built yet. Every claim below
 is checked against TestFlight build **0.1.0 (202610292048)**, uploaded from
@@ -106,22 +107,62 @@ comparison with another browser.
 
 ## Screenshots
 
-Captured from the real app by `npm run ios:app-store-screenshots`
-(`scripts/ios-app-store-screenshots.sh`, which runs
-`AppStoreScreenshotsUITests` from the `-BlancUITestAppStore` seed) on an
-iPhone 17 Pro Max simulator, iOS 26.5, light, English: Apple's 6.9" size,
-1320 × 2868. Apple accepts the 6.9" set alone, so there's no 6.5" set.
-Committed in `docs/ios/app-store/`:
+Six screenshots, designed on the Claude Design canvas **Blanc for iPhone App
+Store Screenshots** (<https://claude.ai/artifact/Axk4cZzuRm1ywRbrnxUbhk>,
+private) in direction C, "dawn to day", which the owner chose on November 2,
+2026: each shot is a step later in one sunrise, headlines in Blubird Display,
+the real app in a plain dark frame. The canvas's files are copied in
+`docs/ios/app-store/design/` (see its README for changing them).
 
-1. `1-island.png`: blanc.day's What's New page with the Island at the bottom.
-2. `2-palette.png`: the palette, with open tabs, a tab group and two pages
-   sent from a MacBook Pro.
-3. `3-send.png`: Send to Device in the Island's menu.
-4. `4-spaces.png`: the Spaces menu (This iPhone and a "Work" Space).
-5. `5-start.png`: the Start Page (Billboard).
+`npm run ios:app-store-screenshots` captures every phone screen from the real
+app (`AppStoreScreenshotsUITests`, from the `-BlancUITestAppStore` seed) on an
+iPhone 17 Pro Max simulator, iOS 26.5, light, English, then composes the set
+(`scripts/ios-app-store-compose.mjs`) at Apple's 6.9" size, 1320 × 2868, in
+`docs/ios/app-store/6.9/`, and the same design at 6.3", 1206 × 2622, in
+`docs/ios/app-store/6.3/`. The captures are in `docs/ios/app-store/captures/`.
 
-**Page choice:** the shots show blanc.day's What's New page. The home
-page's hero is a screenshot of another site (The Met), Features and Support
-show other sites too, Download tells phone visitors Blanc is for computers,
-and Pair mentions the TestFlight beta. Everything shown is Blanc's own UI
-and pages; no sync account or person's data appears.
+| # | Headline | Subtitle | The capture |
+|---|---|---|---|
+| 1 | A little less browser. | Blanc for iPhone keeps your address and tabs in one bar at the bottom of the screen: the Island. | The Start Page (the time over a sunrise) with the Island |
+| 2 | Your computer’s tabs, on your iPhone | Pair with Blanc on your Mac or PC to open its tabs here and get the pages it sends you. | The palette: two pages a MacBook Pro sent, and the MacBook Pro's open tabs |
+| 3 | A Space for each part of your day | Keep Work and Trip tabs apart, and share a Space to keep it the same on your computer. | The Spaces menu over a Van Gogh: This iPhone, Work, and Trip shared |
+| 4 | Slash commands in the Island | Type / for commands like /private and /history, or type anything to search your tabs, Favorites and History. | The palette listing slash commands |
+| 5 | Every tab at a glance, in named groups | See your tabs as cards, and keep the ones that belong together in a group, like Museum day. | The tab grid: paintings from The Met, three in a "Museum day" group |
+| 6 | Private tabs keep no history | And ads and trackers are blocked by default, in private tabs too. | A private tab on Van Gogh's Sunflowers, the Island's menu showing Ad & tracker blocking on |
+
+**Pages in the shots:** public-domain paintings from The Met's open-access
+collection (metmuseum.org, the owner's choice on November 2, 2026, as for
+the desktop Media page) and blanc.day. Never Wikipedia (owner, November 2,
+2026). The seeded MacBook Pro, its tabs and sent pages, and the Spaces are
+test data in the app's own UI; no sync account or person's data appears.
+
+### Caption claims
+
+Checked against the 1.0 build (`84f861dfc`, TestFlight 1.0 (202611030404)),
+under [`docs/marketing-claims.md`](../marketing-claims.md). None mentions the
+default browser, website passkeys, or Blanc for iPhone being on the App Store.
+
+| Claim | Evidence | Qualification that travels | Verdict |
+|---|---|---|---|
+| “A little less browser.” | The approved tagline (`docs/marketing-claims.md`) | none | verified |
+| The Island holds the address and tabs, at the bottom | `ContentView.swift` Island (`pill.palette`, `pill.tabs`), `IslandSwipe.swift` | none | verified |
+| Pair with Blanc on a Mac or PC; open its tabs; get the pages it sends | Table above: pairing, other devices' tabs, Send a tab | The computer needs Blanc 1.45+ for the QR code and its tab sharing on | qualified |
+| Keep Work and Trip apart; share a Space so it stays the same on the computer | Spaces (M17), Shared Spaces (#1247, desktop v1.45.0) | Shared Spaces is off until turned on; Blanc 1.45+ on the computer | qualified |
+| Type / for commands like /private and /history; search tabs, Favorites and History | `SlashCommand.swift`, `QuickSwitcher.swift` | none | verified |
+| Tabs as cards; named groups | `TabGridView.swift`, `GroupNameSheet.swift` | none | verified |
+| Private tabs keep no history | M9 (#1110) | none | verified |
+| Ads and trackers blocked by default, in private tabs too | `BlancSettings.adblockEnabled = true`; `TabsManager.createTab` adds the rule list to private tabs too | EasyList and EasyPrivacy as a content-rule list (Apple's rule cap); don't compare blocking strength | qualified |
+| Pull down to reload (preview) | F56, #1321 (`TabModel.swift` refresh control), in `84f861dfc` | none | verified |
+
+## App preview
+
+One 6.9" app preview, `docs/ios/app-store/preview/blanc-preview.mp4`
+(886 × 1920, 30 fps, H.264 about 11 Mbps, silent stereo AAC, 15 to 30 s), made
+by `npm run ios:app-store-preview`: `AppStorePreviewUITests` plays a tour of
+the real app on the same simulator while `simctl` records it, and
+`scripts/ios-app-store-preview-cut.mjs` cuts it, speeding it up evenly only
+if it runs past 29 s, and sets the captions in
+`docs/ios/app-store/preview/captions.json` over it in Blubird. The tour: the
+Island on a Van Gogh, swiping it between tabs, pull to refresh, the tab
+grid, switching to the Trip Space, the MacBook Pro's tabs and sent pages, and
+the Start Page. Its poster frame is `blanc-preview-poster.png`.

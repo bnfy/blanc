@@ -1,0 +1,26 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-03T04:45:00Z" },
+  "title": "Blanc for iPhone App Store Screenshots",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1320, "h": 2868, "title": "Start Page" },
+    "Computer.dc.html": { "x": 1400, "y": 0, "w": 1320, "h": 2868, "title": "Your computer's tabs" },
+    "Spaces.dc.html": { "x": 2800, "y": 0, "w": 1320, "h": 2868, "title": "Spaces" },
+    "Commands.dc.html": { "x": 4200, "y": 0, "w": 1320, "h": 2868, "title": "Slash commands" },
+    "Tabs.dc.html": { "x": 5600, "y": 0, "w": 1320, "h": 2868, "title": "Tab grid" },
+    "Private.dc.html": { "x": 7000, "y": 0, "w": 1320, "h": 2868, "title": "Private tabs" }
+  },
+  "order": ["Main.dc.html", "Computer.dc.html", "Spaces.dc.html", "Commands.dc.html", "Tabs.dc.html", "Private.dc.html"],
+  "notes": {
+    "heading": { "x": 0, "y": -420, "text": "Blanc for iPhone 1.0 · App Store screenshots, dawn to day", "kind": "title1", "maxW": 8320 },
+    "howto": {
+      "x": 0, "y": 3040, "w": 1320, "size": "l",
+      "text": "Each artboard is one 6.9-inch App Store screenshot (1320 × 2868), in order. Retype a headline or subtitle in place; every caption must pass docs/marketing-claims.md before it goes to Apple. The phone screens are real captures from Blanc for iPhone, made by npm run ios:app-store-screenshots; never draw or edit them. When this canvas changes, ask Claude to pull it into docs/ios/app-store/design/ and re-render the 6.9-inch and 6.3-inch sets."
+    }
+  },
+  "designSystems": [
+    { "title": "Blanc Design System", "namespace": "blanc-design-system", "artifact": "https://claude.ai/artifact/HaLaZtRyL4FSv9xxkH3e1D", "version": "1793679947-e2f3", "copiedAt": "2026-11-03T04:45:00Z" }
+  ]
+}
