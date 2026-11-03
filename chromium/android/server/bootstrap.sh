@@ -54,7 +54,7 @@ UPSTREAM="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["ups
 (( dry_run )) && echo "Dry run: nothing below is executed."
 echo "Lane pin: ${UPSTREAM}"
 
-for tool in git python3 curl; do
+for tool in git python3 curl file; do
   command -v "${tool}" >/dev/null || step "install ${tool}" sudo apt-get install -y "${tool}"
 done
 
