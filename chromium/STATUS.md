@@ -119,7 +119,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     request to blanc.day has not been exercised.
   - Bang scenarios: 16 of 18 pass; the two private-tab ones need D1.
     Navigation and settings features unchanged.
-  - Patch series: 0001–0014 touch all 86 pinned upstream files with 282
+  - Patch series: 0001–0015 touch all 87 pinned upstream files with 284
     hunks.
   - **Outbound isolation passes on macos-92a5c23a766fdc5e (2026-11-01).**
     Run as `blanc-test` with a pf block on that user (owner-approved anchor),
@@ -335,6 +335,25 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   fixture's own proxy now demands sign-in when the proxy scenario arms it.
   island-and-commands, tabs-and-groups, navigation-and-context-menu and
   ad-blocking are unchanged.
+- **S1.6 Blanc permission prompt (F13), candidate macos-08744ec1266cd826
+  (2026-11-03):** F13-1 passes (it failed before). Patch 0015 (the newly
+  pinned `permission_prompt_factory.cc`) has Chromium's
+  PermissionRequestManager use Blanc's prompt in an Island window
+  (`permission_prompt.inc`): camera and microphone, location and
+  notifications are sent to the host, which shows shipping's own
+  `permission.html` (generated, in a host frame) bottom-centre over the
+  page, 560 × 84 as shipping's view, without taking focus; any other
+  request is denied without asking, as shipping's policy does. Answers go
+  through Chromium's own Accept/Deny, so they persist per origin; a request
+  that ends otherwise reloads the frame with the rest replayed. A probe
+  found the prompt hit-testing as the Island while clicks beside it and on
+  the page reach the page, the Island back to the strip after Allow, and no
+  second prompt after Allow. The page's Permissions API still reads
+  location as `prompt` after Allow because macOS has not granted the test
+  app location access; Chromium folds that in. F13-2 (microphone capture
+  chip) has no shipping step definitions. tabs-and-groups,
+  navigation-and-context-menu, internal-pages, ad-blocking,
+  find-favorites-history and island-and-commands are unchanged.
 - **Live dev instance (owner, 2026-11-03):** after every native build,
   `node chromium/tools/live-dev.mjs <runtime config>` relaunches the
   newest candidate from a copy in `~/Projects/BlancChromium158/live/`,
@@ -490,7 +509,7 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. The rest of S1.6: the Blanc permission prompt over Chromium's requests (F13), N5's cases
+1. The rest of S1.6: N5's cases
    rewritten to Chromium's certificate page (V8), N4 inert restore, N8
    secure DNS and WebRTC policy, N22 startup gate, F19 context menu. Settings in the sheet belongs to S1.7,
    whose restyled chrome://settings can't load in a host frame; how it is
