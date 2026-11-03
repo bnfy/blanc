@@ -85,6 +85,10 @@
       const epoch = pendingFindShow.epoch;
       queueMicrotask(() => deliverFindShow(epoch));
     }
+    if (event === 'onPermissionPrompt') queueMicrotask(() => {
+      for (const payload of prompts.values())
+        if (subscribers.get(event)?.has(callback)) callback(payload);
+    });
     if (event === 'onSplitLayout') queueMicrotask(() => {
       if (subscribers.get(event)?.has(callback)) callback(currentSplitLayout());
     });
@@ -210,7 +214,7 @@
   async function dismissPaneMenu(returnFocus = false) {
     if (!paneMenu) return;
     const id = paneMenu.dataset.tabId; paneMenu.remove(); paneMenu = null;
-    await request('height', [68]); reportGeometry();
+    await restHeight(); reportGeometry();
     if (returnFocus) [...document.querySelectorAll(`[data-pane-menu="${id}"]`)].find(button => !button.hidden)?.focus();
   }
   async function openPaneMenu(tab, anchor) {
@@ -524,6 +528,7 @@
     positionShield();
     const slot = strip.contentDocument?.getElementById('nativeExtensions');
     const panel = paneMenu ?? (extensionsOpened ? document.getElementById('extensionsPanel')
+      : !opened && !sheet.page && prompts.size ? permissionFrame
       : opened ? overlay.contentDocument?.getElementById(overlayMode === 'find' ? 'findBar' : overlayMode === 'shield' ? 'shieldPop'
         : overlayMode === 'group-menu' ? 'groupMenu' : 'islandPanel')
       : strip.contentDocument?.getElementById('islandPill'));
@@ -655,7 +660,7 @@
     findTabId = null;
     overlay.dataset.mode = '';
     overlay.hidden = true;
-    await request('height', [68]);
+    await restHeight();
     if (epoch !== findShowEpoch) return;
     // Escape and outside clicks return focus to the page (Electron's
     // hideOverlay does the same); extension activation passes false so the
@@ -702,6 +707,53 @@
     setTimeout(() => { if (extensionsOpened && !extensionsPanel.contextMenuOpen && !document.hasFocus()) close(); }, 0);
   });
   setInterval(() => extensionsPanel.update(), 1000);
+
+  // ---- Permission prompts (F13; shipping's permission view). Native
+  // (permission_prompt.inc) sends each request shipping would ask about;
+  // shipping's own permission.html shows them one at a time, bottom-centre
+  // over the page, and answers through respondPermission. It never takes
+  // focus: a keystroke meant for the page must not answer a prompt.
+  const permissionFrame = document.getElementById('permission');
+  const prompts = new Map();
+  function placePermission() {
+    const width = Math.min(560, Math.max(0, innerWidth - 24));
+    Object.assign(permissionFrame.style, { left: `${Math.round((innerWidth - width) / 2)}px`,
+      top: `${Math.max(0, innerHeight - 84)}px`, width: `${width}px`, height: '84px' });
+  }
+  // The Island's resting height: the strip, or, while a prompt is pending,
+  // the window, so the prompt can draw over the page.
+  function restHeight() {
+    return request('height', prompts.size ? [10000, false] : [68]);
+  }
+  async function syncPermission() {
+    permissionFrame.hidden = !prompts.size;
+    if (prompts.size) placePermission();
+    if (!opened && !extensionsOpened && !sheet.page && !paneMenu) await restHeight();
+    reportGeometry();
+  }
+  function permissionPrompt(payload) {
+    if (!Number.isInteger(payload?.id) || prompts.has(payload.id)) return;
+    prompts.set(payload.id, payload);
+    emit('onPermissionPrompt', payload);
+    syncPermission().catch(error => notice(error.message));
+  }
+  // A request ended without this frame's answer (its tab switched or closed,
+  // or it navigated): shipping's renderer has no way to drop one, so the
+  // document reloads and the rest are replayed as on its first load.
+  function permissionGone(id) {
+    if (!prompts.delete(id)) return;
+    if (prompts.size) permissionFrame.src = permissionFrame.dataset.src;
+    syncPermission().catch(error => notice(error.message));
+  }
+  async function respondPermission(id, allow) {
+    const answered = prompts.get(Number(id));
+    if (!answered) return false;
+    prompts.delete(answered.id);
+    const result = await request('respondPermission', [answered.id, allow === true]);
+    await syncPermission();
+    return result;
+  }
+  window.addEventListener('resize', () => { if (prompts.size) placePermission(); });
 
   // ---- The utility sheet (S1.5, F16; shipping's showUtilityPage and
   // hideUtilitySheet). Favorites, History and Downloads open in one frame
@@ -781,7 +833,7 @@
       sheet.frame.src = 'about:blank';
     }
     if (opened || extensionsOpened) return;
-    await request('height', [68]);
+    await restHeight();
     if (epoch !== sheet.epoch) return;
     if (focus) await request('focusPage');
     reportGeometry();
@@ -1289,6 +1341,7 @@
     setWorkspaceSwitcherOpen: () => {},
     setOverlayDragState: () => {},
     acknowledgeDownloads: () => {},
+    respondPermission,
   };
 
   for (const method of ['reopenClosedTab', 'reopenClosedEntry', 'forgetClosedEntry', 'clearClosedEntries']) {
@@ -1437,7 +1490,7 @@
     if (!intro) {
       tooltip.classList.remove('intro');
       tooltip.hidden = true;
-      if (!sheet.page) request('height', [68, false]).catch(() => {});
+      if (!sheet.page) restHeight().catch(() => {});
       return;
     }
     const t = strip.contentWindow?.blancI18n?.t;
@@ -1540,6 +1593,8 @@
     // The utility sheet: its pages' bridge and links (pages/sheet-adapter.js),
     // native commands (History, Downloads, Favorites) and its state.
     sheetBridge, sheetLink, sheetEscape,
+    // Native's permission requests (permission_prompt.inc).
+    permissionPrompt, permissionGone,
     openSheet: (name) => showSheet(name),
     closeSheet: () => hideSheet(),
     sheetState: () => ({ visible: !!sheet.page && !!sheet.frame && !sheet.frame.hidden, ready: sheetReady(),
@@ -1574,6 +1629,7 @@
   strip.src = strip.dataset.src;
   floatPill.src = floatPill.dataset.src;
   overlay.src = overlay.dataset.src;
+  permissionFrame.src = permissionFrame.dataset.src;
 
   window.addEventListener('unhandledrejection', (event) => {
     notice(event.reason?.message ?? String(event.reason));

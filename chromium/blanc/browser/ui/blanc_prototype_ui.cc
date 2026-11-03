@@ -4,6 +4,7 @@
 #include "blanc/browser/ui/browser_api/bang_icons.h"
 #include "blanc/browser/ui/browser_api/bangs.h"
 #include "blanc/browser/ui/browser_api/http_auth.h"
+#include "blanc/browser/ui/island_permission_prompt.h"
 #include "blanc/browser/ui/browser_api/page_handoff.h"
 #include "blanc/browser/ui/browser_api/appearance.h"
 #include "blanc/browser/ui/ui_language.h"
@@ -139,6 +140,9 @@
 #include "components/history/core/browser/history_types.h"
 #include "components/history/core/browser/top_sites.h"
 #include "components/history/core/browser/top_sites_observer.h"
+#include "components/permissions/permission_request.h"
+#include "components/permissions/request_type.h"
+#include "url/origin.h"
 #include "components/download/public/common/download_item.h"
 #include "components/download/public/common/download_source.h"
 #include "components/download/public/common/download_url_parameters.h"
@@ -4989,6 +4993,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (owner->view->parent()) owner->view->parent()->InvalidateLayout();
       reply(true, base::Value(owner->rail_width)); return;
     }
+    // The permission prompt frame's Allow or Block (host.js, F13).
+    if (method == "respondPermission" && args.size() == 2 && args[0].is_int() && args[1].is_bool()) {
+      reply(true, base::Value(AnswerPermissionPrompt(args[0].GetInt(), args[1].GetBool())));
+      return;
+    }
     if (method == "height" && (args.size() == 1 || (args.size() == 2 && args[1].is_bool())) &&
         args[0].is_int()) {
       // LayoutIsland bounds this requested height to the real window. The
@@ -6195,6 +6204,8 @@ bool OpenExtensions(BrowserWindowInterface* browser) {
       u"window.BlancPrototypeHost?.extensions()", base::NullCallback());
   return true;
 }
+
+#include "blanc/browser/ui/permission_prompt.inc"
 
 bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page) {
   if (page != "history" && page != "downloads" && page != "bookmarks") return false;

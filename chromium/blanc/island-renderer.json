@@ -13,6 +13,8 @@
     "workspace-ui.js",
     "glance-card-drag.js",
     "hover-panel-leave.js",
+    "permission.html",
+    "permission.js",
     "pages/sheet.js",
     "pages/row-icon.js",
     "pages/history-groups.js",

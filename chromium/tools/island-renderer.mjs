@@ -23,7 +23,8 @@ const record = path.join(root, 'blanc/island-renderer.json');
 export const SHEET_FILES = ['sheet.js', 'row-icon.js', 'history-groups.js', 'downloads-row-model.js',
   'bookmarks.html', 'bookmarks.js', 'history.html', 'history.js', 'downloads.html', 'downloads.js'].map(file => `pages/${file}`);
 export const FILES = ['index.html', 'overlay.html', 'overlay.js', 'renderer.js', 'styles.css', 'tab-drag.js',
-  'tab-sections.js', 'vertical-tabs.js', 'workspace-ui.js', 'glance-card-drag.js', 'hover-panel-leave.js', ...SHEET_FILES];
+  'tab-sections.js', 'vertical-tabs.js', 'workspace-ui.js', 'glance-card-drag.js', 'hover-panel-leave.js',
+  'permission.html', 'permission.js', ...SHEET_FILES];
 // The sheet pages' bridge, the fork's own file, loads before their strings.
 const SHEET_BRIDGE = ['  <script src="strings.js"></script>\n', '  <script src="sheet-adapter.js"></script>\n  <script src="strings.js"></script>\n'];
 // Shipping's pure main-process modules the Island host runs as they are,
@@ -52,6 +53,10 @@ export const EDITS = {
     ['  <link rel="stylesheet" href="styles.css" />\n', '  <link rel="stylesheet" href="styles.css" />\n  <link rel="stylesheet" href="prototype.css" />\n'],
     // Chromium's extension controls sit in the pill's action cluster.
     ['<div id="pillActions" class="pill-btns"></div>', '<div id="pillActions" class="pill-btns"><span id="nativeExtensions" aria-hidden="true"></span></div>'],
+  ],
+  // The permission prompt (F13) is a frame of the Island host, like the overlay.
+  'permission.html': [
+    ['  <script src="strings.js"></script>\n', '  <script src="adapter.js"></script>\n  <script src="ui-language.js"></script>\n  <script src="strings.js"></script>\n'],
   ],
   'overlay.html': [
     ['  <script src="strings.js"></script>\n', '  <script src="adapter.js"></script>\n  <script src="ui-language.js"></script>\n  <script src="strings.js"></script>\n'],

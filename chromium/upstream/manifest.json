@@ -44,6 +44,7 @@
     "chrome/browser/ui/views/frame/browser_view.cc": "e27bc522a6de79e11d261a314ee1069d307c26d995f131ac78800ff7f632d2c2",
     "chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc": "6f77381819ccd5d10809fe4dec000809eef565141a738b0ac487cf1229ea0f44",
     "chrome/browser/ui/views/frame/multi_contents_view.cc": "ff8865424bd11f2705c0dff3b247e6facd98aad40ac1f25407960b2e1a6f727b",
+    "chrome/browser/ui/views/permissions/permission_prompt_factory.cc": "308e6a8debee40f17db6cac37b6f1dcd08ade714e3996ca8a370f6377871c68a",
     "chrome/browser/ui/webui/chrome_web_ui_configs.cc": "9c1649b7d6201d7e41f2873a4544e785b223b89b8a02f7637f6a2d33ef35927f",
     "chrome/browser/ui/window_feature_controller/window_feature_controller.cc": "267a73f074ee2d19e85b49b4e369804cebe620e84dd89e204f32a879723710b8",
     "chrome/common/chrome_isolated_world_ids.h": "6b5384da3ab0cb04ff100b19b8981e8846d51d0d405acf595ccbaf048d1e219a",

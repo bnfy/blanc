@@ -79,6 +79,8 @@ pages/sunrise-favicon-mark.png
 pages/sunrise-mark.png
 pages/type-to-open.js
 panel-left.svg
+permission.html
+permission.js
 prototype.css
 renderer.js
 search-settings-adapter.js
