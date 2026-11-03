@@ -144,7 +144,9 @@ final class MobileStartPageTests: XCTestCase {
         XCTAssertTrue(manager.activeTab?.nativeClock.isVisible == true, "Returning to Billboard must bring the glass clock back")
         // A load that fails before it commits leaves the Start Page showing,
         // so its glass clock must stay too (the page's own copy is hidden).
-        webView.load(URLRequest(url: URL(string: "http://127.0.0.1:9/")!))
+        // Not port 9: it's on WebKit's blocked list, and iOS 26 answers that
+        // by committing an empty page in place of the Start Page.
+        webView.load(URLRequest(url: URL(string: "http://127.0.0.1:\(try closedPort())/")!))
         try await Task.sleep(nanoseconds: 200_000_000)
         for _ in 0..<100 where webView.isLoading {
             try await Task.sleep(nanoseconds: 50_000_000)
@@ -219,4 +221,23 @@ final class MobileStartPageTests: XCTestCase {
         let pageErrors = try await webView.evaluateJavaScript("JSON.stringify(window.__pageErrors)") as? String
         XCTAssertEqual(pageErrors, "[]")
     }
+}
+
+/// A loopback port nothing listens on: bound by the system, then let go.
+private func closedPort() throws -> Int {
+    let fd = socket(AF_INET, SOCK_STREAM, 0)
+    guard fd >= 0 else { throw XCTSkip("no socket") }
+    defer { close(fd) }
+    var address = sockaddr_in()
+    address.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+    address.sin_family = sa_family_t(AF_INET)
+    address.sin_addr.s_addr = inet_addr("127.0.0.1")
+    var length = socklen_t(MemoryLayout<sockaddr_in>.size)
+    let bound = withUnsafeMutablePointer(to: &address) {
+        $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+            bind(fd, $0, length) == 0 && getsockname(fd, $0, &length) == 0
+        }
+    }
+    guard bound else { throw XCTSkip("no loopback port") }
+    return Int(UInt16(bigEndian: address.sin_port))
 }
