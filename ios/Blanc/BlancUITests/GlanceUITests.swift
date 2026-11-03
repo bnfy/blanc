@@ -50,6 +50,25 @@ final class GlanceUITests: XCTestCase {
     attach(app, "kept as split")
   }
 
+  func testOpenInGlanceFromTheTabGrid() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication()
+    app.launchArguments = ["-BlancUITestTwoTabs"]
+    app.launch()
+    XCTAssertTrue(app.buttons["pill.tabs"].waitForExistence(timeout: 15))
+    let size = app.windows.firstMatch.frame.size
+    try XCTSkipUnless(min(size.width, size.height) >= 600, "not an unfolded layout (\(size))")
+    app.buttons["pill.tabs"].tap()
+    let cards = app.descendants(matching: .any).matching(identifier: "tab.card")
+    XCTAssertTrue(cards.element(boundBy: 1).waitForExistence(timeout: 5))
+    cards.element(boundBy: 1).press(forDuration: 1.2)
+    let item = app.buttons["Open in Glance"]
+    XCTAssertTrue(item.waitForExistence(timeout: 5))
+    item.tap()
+    XCTAssertTrue(app.otherElements["glance.card"].waitForExistence(timeout: 5), "the grid closes and the card shows")
+    XCTAssertTrue(app.buttons["pill.palette"].label.contains("example.com"), "the current page stays")
+  }
+
   private func attach(_ app: XCUIApplication, _ name: String) {
     let shot = XCTAttachment(screenshot: app.screenshot())
     shot.name = name

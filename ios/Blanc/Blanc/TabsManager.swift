@@ -854,6 +854,11 @@ final class TabsManager {
 
     func closeGlance() { glanceTabId = nil }
 
+    /// The tabs Glance could show over the current one.
+    var glanceCandidates: [TabModel] {
+        tabs.filter { $0.id != activeTabId && $0.id != glanceTabId && split(for: $0.id) == nil }
+    }
+
     /// Ends the Glance and makes its page the current tab.
     func openGlanceAsTab() {
         guard let id = glanceTabId else { return }

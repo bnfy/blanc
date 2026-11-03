@@ -102,6 +102,21 @@ final class GlanceGeometryTests: XCTestCase {
         XCTAssertEqual(m.glanceTab?.isPrivate, true)
     }
 
+    func testTheIslandMenuOffersOtherTabsAndThenClose() {
+        let m = manager()
+        let current = m.activeTab!
+        current.currentURL = URL(string: "https://a.test/")!
+        XCTAssertEqual(m.glanceCandidates.map(\.id), [m.tabs[1].id])
+        XCTAssertTrue(IslandMenu.items(for: current, manager: m).contains(.glance))
+        m.showInGlance(m.tabs[1].id)
+        let items = IslandMenu.items(for: current, manager: m)
+        XCTAssertTrue(items.contains(.closeGlance))
+        XCTAssertFalse(items.contains(.glance))
+        XCTAssertTrue(m.glanceCandidates.isEmpty, "the Glance tab and the current tab aren't offered")
+        m.showsWideLayout = false
+        XCTAssertFalse(IslandMenu.items(for: current, manager: m).contains { $0 == .glance || $0 == .closeGlance })
+    }
+
     func testClosingTheGlanceTabEndsTheGlance() {
         let m = manager()
         m.showInGlance(m.tabs[1].id)
