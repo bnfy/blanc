@@ -19,6 +19,8 @@ struct IslandMarkButton: UIViewRepresentable {
         configuration.background = .clear()
         let button = MarkPreviewButton(configuration: configuration)
         button.showsMenuAsPrimaryAction = true
+        // The pointer highlights it like the Island's other buttons (iPad).
+        button.isPointerInteractionEnabled = true
         button.accessibilityLabel = SyncCopy.text("ios.island.pageActions")
         button.accessibilityIdentifier = "island.menu"
         let coordinator = context.coordinator

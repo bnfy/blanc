@@ -186,6 +186,10 @@ Desktop bindings and their mobile intent:
   rule), from iPadOS's menu bar and ⌘-hold list. Next and previous tab are
   Safari's ⌘⇧] / ⌘⇧[, because iPadOS keeps Ctrl+Tab for moving keyboard
   focus and it never reaches the app.
+  Pointer and trackpad (2026-11-03, unreleased): the pointer highlights the
+  Island's controls and palette rows and lifts tab grid cards; secondary click
+  opens the long-press menus (F19); a two-finger swipe on the Island switches
+  tabs, as the touch swipe does.
 - **Slash commands (F7) are the cross-platform equalizer:** every keyboard action
   also has a `/command`, so the *capability* stays reachable on touch even where a
   shortcut doesn't.

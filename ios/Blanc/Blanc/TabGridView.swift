@@ -159,6 +159,7 @@ struct TabGridView: View {
                     lineWidth: manager.activeTabId == tab.id ? 2 : 1))
             }
             .contentShape(Rectangle())
+            .pointerLift(cornerRadius: 18)
             .onTapGesture { select(tab) }
             .contextMenu {
                 TabMoveMenu(manager: manager, tab: tab, newGroup: { naming = .newGroup(tab.id) }, newSpace: { newSpaceTab = tab.id })
@@ -190,6 +191,7 @@ struct TabGridView: View {
                         .overlay(Circle().strokeBorder(style.border, lineWidth: 0.5))
                         .frame(width: 44, height: 44)
                         .contentShape(Rectangle())
+                        .pointerHighlight(cornerRadius: 22)
                 }
                 .accessibilityLabel(SyncCopy.text("ios.tabs.close", ["title": title(tab)]))
             }

@@ -258,6 +258,7 @@ struct SpaceMarkButton: View {
                 }
                 .frame(width: 44, height: 48)
                 .contentShape(Rectangle())
+                .pointerHighlight()
             }
             .accessibilityLabel(manager.shownSpace.map { SyncCopy.text("spaces.mark.current", ["name": $0.name]) }
                                 ?? SyncCopy.text("spaces.menuLabel"))
