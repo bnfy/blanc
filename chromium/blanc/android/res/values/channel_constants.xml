@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Blanc for Android's names, in place of Chromium's
+chrome/android/java/res_chromium_base/values/channel_constants.xml
+(patch 0101). Brand names are not translated.
+-->
+
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <string name="app_name" translatable="false">Blanc</string>
+    <string name="bookmark_widget_title" translatable="false">Blanc favorites</string>
+    <string name="search_widget_title" translatable="false">Blanc search</string>
+    <string name="quick_action_search_widget_title" translatable="false">Blanc quick action search</string>
+</resources>

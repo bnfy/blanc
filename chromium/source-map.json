@@ -67,6 +67,7 @@
     "blanc/android/res/mipmap-xxxhdpi/app_icon.png": "04b0c47bab97e8dd23d262989c22949ec903260c218ac943d515639cc1a232e0",
     "blanc/android/res/mipmap-xxxhdpi/layered_app_icon.png": "3037163ef5c1c3d719e4e9809c8f7c4844f2b5f6dc61f87a3293ea6a36322f46",
     "blanc/android/res/mipmap-xxxhdpi/layered_app_icon_background.png": "c7208872b49048bc1ab5ca451babe5ec1d5a33b5de59c4d5eddbd2f73191c0f2",
+    "blanc/android/res/values/channel_constants.xml": "f05095399153d58e52e1c9b4a072cd489dc10322eaecd4eba4286d8fc409f76c",
     "blanc/branding/release/BRANDING": "70a9908532e2e6bc96606658d6cc6f69d4d17525e40a75b0c51b77165140cbcb",
     "blanc/browser/ui/billboard_clock_settings.inc": "57ce0ed0160903e1b90c3d65fd5cd7cd33218d5774a3b2d8fdb448b0d49c9892",
     "blanc/browser/ui/blanc_extensions_branding.h": "17d77bbc267d13477a24bd971021f2291c505567a32383229505c13b53238a02",

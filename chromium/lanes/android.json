@@ -1,0 +1,13 @@
+{
+  "lane": "android",
+  "channel": "stable",
+  "version": "156.0.8078.79",
+  "upstream": "a21ce95c24ce3964416f09ae1862f53f319eb4d0",
+  "upstreamDir": "upstream-android",
+  "sourceMap": "source-map-android.json",
+  "fileCount": 3,
+  "note": "A0 takes no shared patches: they wire desktop Blanc into chrome/browser, which Android compiles too. 0008 gets an Android variant in task 6.",
+  "patches": [
+    "patches/android/0101-android-identity.patch"
+  ]
+}

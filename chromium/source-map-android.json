@@ -1,0 +1,9 @@
+{
+  "upstream": "a21ce95c24ce3964416f09ae1862f53f319eb4d0",
+  "selection": "A0 identity: launcher icon and app name",
+  "upstreamFiles": {
+    "chrome/android/BUILD.gn": "b06d7baf8d3e24a89b74c91805ec991a15547bf69a6f4627a7a56845c9e5731a",
+    "chrome/android/java/res_base/drawable/ic_launcher.xml": "0a7b0fe2ae98d76b45db4c24397a36bf2eff0475882320a8dfd584ae2de9a495",
+    "chrome/android/java/res_base/drawable/ic_launcher_round.xml": "0a7b0fe2ae98d76b45db4c24397a36bf2eff0475882320a8dfd584ae2de9a495"
+  }
+}

@@ -8,8 +8,8 @@ is_debug = false
 is_component_build = false
 symbol_level = 1
 android_channel = "stable"
-# Debug identity (me.bnfy.blanc.dev) comes from patch 0101; this is Blanc's
-# preview channel, so the preview-only test hooks stay available.
-blanc_channel = "preview"
+# Debug identity, installable beside release me.bnfy.blanc. The app name and
+# icon come from patch 0101.
+chrome_public_manifest_package = "me.bnfy.blanc.dev"
 # No Google API keys: features that need them stay off (design §2).
 use_official_google_api_keys = false

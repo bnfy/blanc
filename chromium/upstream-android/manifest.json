@@ -1,0 +1,9 @@
+{
+  "upstream": "a21ce95c24ce3964416f09ae1862f53f319eb4d0",
+  "version": "156.0.8078.79",
+  "files": {
+    "chrome/android/BUILD.gn": "0ddb8f56c59166dcdb6cc49f2e5a8d2ab22491aa8a3822d4ac27a133fa2d3760",
+    "chrome/android/java/res_base/drawable/ic_launcher.xml": "f817d44b43a7798b93829d8c81e72482484886997ef03ca9f11bfc88e3c0aec7",
+    "chrome/android/java/res_base/drawable/ic_launcher_round.xml": "c059dc4d529f084b91dfffdf09c19ba62cbe61c91a1d01b17bda3d6d2d80e936"
+  }
+}
