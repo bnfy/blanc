@@ -84,6 +84,11 @@ struct ContentView: View {
                 neighborPage(neighbor)
                     .offset(x: swipeOffset + (swipeOffset < 0 ? pageWidth : -pageWidth))
             }
+            // Glance (F34): a tab floating over the current page.
+            if layout.showsSplitView, shownSplit == nil, let glance = manager.glanceTab {
+                GlanceCard(manager: manager, tab: glance, style: BrowserStyle(scheme: glance.isPrivate ? .dark : colorScheme))
+                    .id(glance.id)
+            }
         }
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pageWidth = $0 }
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -105,6 +110,7 @@ struct ContentView: View {
             if !presented, paletteIsPanel { paletteClosed() }
         }
         .onChange(of: layout.palette, initial: true) { _, palette in paletteIsPanel = palette == .panel }
+        .onChange(of: layout.showsSplitView, initial: true) { _, wide in manager.showsWideLayout = wide }
     }
 
     var body: some View {

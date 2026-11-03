@@ -25,11 +25,11 @@ struct WebView: UIViewRepresentable {
     }
 
     /// The web view outlives this view (a tab keeps it), so take back the
-    /// recognizer this view put on it.
+    /// recognizer this view put on it. Its corners are left alone: the view
+    /// it moves to (a pane, the Glance card, the whole page) may already have
+    /// set them, and sets them itself when it's made.
     static func dismantleUIView(_ webView: WKWebView, coordinator: Coordinator) {
         webView.removeGestureRecognizer(coordinator.recognizer)
-        webView.layer.cornerRadius = 0
-        webView.clipsToBounds = false
     }
 
     private func configureInsets(_ webView: WKWebView) {

@@ -741,8 +741,8 @@ differ.
 **Status:** Proposed 2026-10-21 in
 `docs/superpowers/specs/2026-10-21-ios-iphone-duo-design.md`. Duo-1 (the
 unfolded Island and palette panel) is in the TestFlight beta and iOS 1.0;
-two-pane Split View (2026-11-03) is on main and unreleased; Glance, fold
-avoidance and multiple windows are not built.
+two-pane Split View and floating Glance (2026-11-03) are on main and
+unreleased; fold avoidance and multiple windows are not built.
 
 
 ---
