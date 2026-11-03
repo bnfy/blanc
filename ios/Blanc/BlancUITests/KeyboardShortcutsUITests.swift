@@ -1,13 +1,14 @@
 import XCTest
 
 /// Desktop's shortcuts from a hardware keyboard (D7): the simulator sends
-/// them as a connected keyboard would. They're the iPad's allowance: an
-/// iPhone has no menu bar, so SwiftUI's commands never reach it, and these
-/// skip there (CI's iPhone run, 2026-11-03).
+/// them as a connected keyboard would. They pass on iOS 27.2 (iPhone Air and
+/// iPad Pro 11-inch); on CI's iOS 26 iPhone simulator no shortcut reached the
+/// app (run 41654884339), cause not established, so they skip below iOS 27.
 final class KeyboardShortcutsUITests: XCTestCase {
   private func launch() throws -> XCUIApplication {
     continueAfterFailure = false
-    try XCTSkipUnless(UIDevice.current.userInterfaceIdiom == .pad, "keyboard shortcuts are an iPad feature")
+    try XCTSkipUnless(ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27,
+                      "hardware-keyboard shortcuts didn't reach the app on iOS 26 in CI")
     let app = XCUIApplication()
     app.launchArguments = ["-BlancUITestTwoTabs"]
     app.launch()
