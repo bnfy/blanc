@@ -387,6 +387,10 @@ else
   npm run ublock:distribution
   npm ci
   npm ci --prefix site
+  # The gate (scripts/release-gate.mjs) reuses every stage and acceptance
+  # scenario that already passed on this exact commit and installed tree
+  # (npm run release:prepare, or an earlier attempt), reruns only what is
+  # owed, and prints the evidence block the release incident quotes.
   # An owner waiver skips the press gate alone: every preflight, the build and
   # every packaged check still run. Its reason names the commit and runs whose
   # evidence replaces the gate, and belongs in the release incident.
