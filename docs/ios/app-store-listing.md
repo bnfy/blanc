@@ -196,8 +196,17 @@ in a plain dark frame) and the same captures, in a different order with
 captions for that audience. They're on the screenshots canvas, one canvas
 page each ("Custom page · …"), and render into
 [`app-store/custom-pages/`](app-store/custom-pages/) (its README says how).
-Drafted and approved by the owner on November 3, 2026; nothing is uploaded
-yet.
+Drafted and approved by the owner on November 3, 2026, and uploaded to App
+Store Connect the same day as drafts (not submitted):
+
+| Page | Page id | State on November 3, 2026 |
+|---|---|---|
+| Blanc on your computer | `de631766-0439-4f00-afe3-8d95512942f0` | Prepare for Submission |
+| Spaces and groups | `b6d854a6-9fbd-4cbf-ab4e-08feb5af8019` | Prepare for Submission |
+| Private browsing | `ade1d24b-9477-4ac3-8a64-d425d35177f0` | Prepare for Submission |
+
+Each link is `https://apps.apple.com/us/app/blanc-web-browser/id6828027794?ppid=<page id>`,
+which works only once the page is approved and 1.0 is released.
 
 | Page (reference name) | For | Promotional text (170 max) |
 |---|---|---|
@@ -243,6 +252,8 @@ browser, website passkeys, or the App Store.
 ### Putting them in App Store Connect
 
 Only with the owner's yes, and they can't be seen until 1.0 is released.
+Steps 1 and 2 were done through the API on November 3, 2026; step 4's
+submission waits for the owner.
 
 1. For each page, Create Custom Product Page from blank, with its reference
    name above, English (U.S.) only.
