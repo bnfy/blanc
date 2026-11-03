@@ -11,7 +11,7 @@ from the owner's Mac through `op run` (A7).
 | Path | What |
 | --- | --- |
 | `~/depot_tools` | depot_tools at the commit pinned in `bootstrap.sh` (`DEPOT_TOOLS_UPDATE=0`). |
-| `~/chromium-android/src` | Chromium for Android at `chromium/lanes/android.json`'s `upstream`, with the lane's Blanc source applied. |
+| `~/chromium-android/src` | Chromium for Android at `chromium/lanes/android.json`'s `upstream`, without history (`gclient sync --no-history`), with the lane's Blanc source applied. A new pin is fetched the same way. |
 | `~/chromium-android/src/out/AndroidDebug` | arm64 debug build (`args/debug-arm64.gn`), for the Pixel. |
 | `~/chromium-android/src/out/AndroidDebugX64` | x86_64 debug build (`args/debug-x64.gn`), for the emulators. |
 | `~/blanc-evidence/android/` | Raw evidence (gate reports, screenshots, NetLogs) and `apply.py` backups. Never in Git. |

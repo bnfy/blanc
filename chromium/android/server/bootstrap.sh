@@ -30,6 +30,14 @@ done
 
 die() { echo "bootstrap: $*" >&2; exit 1; }
 in_dir() { local dir="$1"; shift; (cd "${dir}" && "$@"); }
+# The checkout's .gclient: Chromium at the lane's pin, with Android's deps.
+write_gclient() {
+  cat > "${CHECKOUT}/.gclient" <<EOF
+solutions = [{"name": "src", "url": "https://chromium.googlesource.com/chromium/src.git@${UPSTREAM}",
+              "managed": False, "custom_deps": {}, "custom_vars": {}}]
+target_os = ['android']
+EOF
+}
 # Runs a planned action, or only prints it in a dry run.
 step() {
   local what="$1"; shift
@@ -66,7 +74,11 @@ fi
 if [[ ! -d "${SRC}/.git" ]]; then
   [[ ! -e "${CHECKOUT}/.gclient" ]] || die "${CHECKOUT}/.gclient exists without src; reconcile it by hand."
   step "create the checkout folder" mkdir -p "${CHECKOUT}"
-  step "fetch Chromium for Android (no hooks)" in_dir "${CHECKOUT}" fetch --nohooks android
+  step "write the .gclient" write_gclient
+  # Only the pinned commit, not Chromium's history: one 77 GB clone kept
+  # losing its connection to googlesource partway through.
+  step "fetch Chromium at the pin (no history, no hooks)" \
+    in_dir "${CHECKOUT}" gclient sync --nohooks --no-history --revision "src@${UPSTREAM}"
 else
   grep -q "target_os *= *\[.*'android'" "${CHECKOUT}/.gclient" \
     || die "${CHECKOUT}/.gclient doesn't target android; this isn't the Android checkout."
@@ -74,12 +86,9 @@ else
     || echo "Note: ${SRC} has local edits; apply.py below accepts only pristine or Blanc-applied files."
 fi
 
-if [[ "$(git -C "${SRC}" rev-parse HEAD 2>/dev/null || true)" != "${UPSTREAM}" ]]; then
-  step "fetch the pinned commit" git -C "${SRC}" fetch origin "${UPSTREAM}"
-  step "check out the pinned commit" git -C "${SRC}" checkout --detach "${UPSTREAM}"
-fi
 step "install Android build dependencies" sudo "${SRC}/build/install-build-deps.sh" --android --no-prompt
-step "sync dependencies and run hooks" in_dir "${CHECKOUT}" gclient sync -D --with_branch_heads
+step "sync dependencies at the pin and run hooks" \
+  in_dir "${CHECKOUT}" gclient sync -D --no-history --revision "src@${UPSTREAM}"
 
 step "check the lane's Blanc source" python3 "${TREE}/chromium/tools/apply.py" --lane android --src "${SRC}"
 step "apply the lane's Blanc source" python3 "${TREE}/chromium/tools/apply.py" --lane android --src "${SRC}" \
