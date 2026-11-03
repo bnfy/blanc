@@ -309,6 +309,24 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   M.2 importer (`capabilities.import: false`); history rows show letters
   (no favicon lookup yet); Tab Archive (F52) lists nothing; Settings is
   still a tab (S1.7), so F16-6, F16-7 and F16-9 fail.
+- **S1.6 Shield site controls (F12), candidate macos-48ace292eba182c8
+  (2026-11-03):** all nine ad-blocking cases pass (five failed before). A
+  tab's blocked count starts at zero on each committed page, as shipping
+  resets it (`shield_count.inc`). Site actions bind to the shown document
+  and refuse only while a navigation is pending, not while the page loads
+  its own resources, and `/block-ads` toggles the global switch on any
+  page, as shipping's does. The host gives each tab shipping's `siteInfo`
+  (`site-security.js`, generated like the other main-process modules), so
+  the HTTP warning badge shows and opens site controls; `prototype.css`
+  no longer hides it. Seven features (island-and-commands, tabs-and-groups,
+  navigation-and-context-menu, private-tabs, site-certificate-safety,
+  newtab-layouts, internal-pages) are unchanged.
+- **Live dev instance (owner, 2026-11-03):** after every native build,
+  `node chromium/tools/live-dev.mjs <runtime config>` relaunches the
+  newest candidate from a copy in `~/Projects/BlancChromium158/live/`,
+  with the persistent profile there, through `open -n`. It quits only
+  the live instance it started; the earlier `zoom-verified-158-20261030`
+  instance and its profile stay untouched.
 - **S1 baseline on macos-3f969a35b9f9f7ad (fork 82f8cd80), full run of
   2026-11-01:** 101 of the 253 S1 cases pass, 119 fail, 33 undefined. Every
   case that passed on macos-790ca4d6d538c894 (70) still passes; 31 earlier
@@ -421,6 +439,11 @@ Recorded in the spec (§4, §9) and plan:
 - 2026-11-02: no built-in Dark Reader (F42 dark websites) in the Chromium
   builds. With the Chrome Web Store supported, people install Dark Reader
   themselves; F42's cases become an approved divergence, not a port.
+- 2026-11-03: HTTP sign-in challenges (F20) are refused as shipping's are,
+  not shown in Chromium's credential dialog. Sandboxed page-opened tabs
+  (N4) keep Chromium's native sandbox inheritance; a restored one (session,
+  Space, Recently closed after its page is gone) restores as shipping's
+  inert page instead of loading without its sandbox.
 - 2026-11-02: no 1Password SDK (F38 1Password fill) in the Chromium builds
   either; people install 1Password from the Chrome Web Store, so F38's
   cases become an approved divergence and /1password is not offered.
@@ -452,8 +475,11 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.6 in slice order (Shield site actions, permissions, context menu,
-   HTTP auth, certificate page, secure DNS, startup gate). Settings in the sheet belongs to S1.7,
+1. The rest of S1.6: F20 HTTP auth refusal (a hunk in the pinned
+   `chrome_content_browser_client.cc` and a test op recording challenges),
+   the Blanc permission prompt over Chromium's requests (F13), N5's cases
+   rewritten to Chromium's certificate page (V8), N4 inert restore, N8
+   secure DNS and WebRTC policy, N22 startup gate, F19 context menu. Settings in the sheet belongs to S1.7,
    whose restyled chrome://settings can't load in a host frame; how it is
    presented is the owner's call there. Verify each change with targeted
    `--only` runs merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
@@ -506,5 +532,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-b6fd93656f8664d0; Windows: none; Linux: none.
+Candidate identities: macOS: macos-48ace292eba182c8; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->
