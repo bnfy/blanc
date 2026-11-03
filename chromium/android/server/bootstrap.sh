@@ -97,9 +97,15 @@ if [[ "$(cat "${SYNCED}" 2>/dev/null || true)" != "${UPSTREAM}" ]]; then
   step "record the synced pin" bash -c 'echo "$1" > "$2"' _ "${UPSTREAM}" "${SYNCED}"
 fi
 
-step "check the lane's Blanc source" python3 "${TREE}/chromium/tools/apply.py" --lane android --src "${SRC}"
-step "apply the lane's Blanc source" python3 "${TREE}/chromium/tools/apply.py" --lane android --src "${SRC}" \
+# What the last run applied, so apply.py accepts its own earlier output when a
+# patch changes (and still refuses edits it doesn't recognize).
+APPLIED="${CHECKOUT}/.blanc-applied-source-map.json"
+previous=()
+[[ -f "${APPLIED}" ]] && previous=(--previous-map "${APPLIED}")
+step "check the lane's Blanc source" python3 "${TREE}/chromium/tools/apply.py" --lane android --src "${SRC}" "${previous[@]}"
+step "apply the lane's Blanc source" python3 "${TREE}/chromium/tools/apply.py" --lane android --src "${SRC}" "${previous[@]}" \
   --apply --backup "${EVIDENCE}/backups/apply-$(date -u +%Y%m%dT%H%M%SZ)"
+step "record what was applied" python3 -c 'import json,sys; t=sys.argv[1]; l=json.load(open(t+"/chromium/lanes/android.json")); m=json.load(open(t+"/chromium/"+l["sourceMap"])); c=json.load(open(t+"/chromium/source-map.json")); json.dump({"upstream":m["upstream"],"upstreamFiles":m["upstreamFiles"],"canonicalSha256":c["canonicalSha256"]},open(sys.argv[2],"w"),indent=2)' "${TREE}" "${APPLIED}"
 
 step "create the evidence folder" mkdir -p "${EVIDENCE}"
 for entry in "${OUTPUTS[@]}"; do
