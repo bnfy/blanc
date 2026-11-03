@@ -137,4 +137,10 @@ final class TabModelTests: XCTestCase {
         tab.stop()
         XCTAssertFalse(control.isRefreshing)
     }
+
+    func testSpinnerShowsAgainstThePage() {
+        XCTAssertEqual(TabModel.spinnerStyle(on: .white), .light)
+        XCTAssertEqual(TabModel.spinnerStyle(on: UIColor(red: 0.13, green: 0.13, blue: 0.14, alpha: 1)), .dark)
+        XCTAssertEqual(TabModel.spinnerStyle(on: .clear), .unspecified)
+    }
 }

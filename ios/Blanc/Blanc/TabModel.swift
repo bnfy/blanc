@@ -31,6 +31,7 @@ final class TabModel: Identifiable {
     var readerBusy = false
     @ObservationIgnored private var readerURLObservation: NSKeyValueObservation?
     @ObservationIgnored private var titleObservation: NSKeyValueObservation?
+    @ObservationIgnored private var pageColorObservation: NSKeyValueObservation?
 
     let nativeClock = NativeClockOverlay()
     let navigationDelegate: TabNavigationDelegate
@@ -102,6 +103,10 @@ final class TabModel: Identifiable {
                 guard let self, let title = webView?.title else { return }
                 self.navigationDelegate.applyTitle(title)
             }
+        }
+        // The pull's spinner takes the style that shows against the page.
+        pageColorObservation = webView.observe(\.underPageBackgroundColor, options: [.new]) { [weak self] _, _ in
+            Task { @MainActor [weak self] in self?.matchRefreshControlToPage() }
         }
         return webView
     }
@@ -195,13 +200,28 @@ final class TabModel: Identifiable {
             let control = refreshControl ?? makeRefreshControl()
             refreshControl = control
             if scrollView.refreshControl !== control { scrollView.refreshControl = control }
+            matchRefreshControlToPage()
         } else if scrollView.refreshControl != nil {
             endPullToRefresh()
             scrollView.refreshControl = nil
         }
     }
 
-    /// No tint: the spinner follows the system's light or dark appearance.
+    /// The system spinner in its light or dark style, whichever shows against
+    /// the page: in dark mode its light spinner vanishes on a white page.
+    func matchRefreshControlToPage() {
+        guard let refreshControl, let webView = storage else { return }
+        let page = webView.underPageBackgroundColor.resolvedColor(with: webView.traitCollection)
+        refreshControl.overrideUserInterfaceStyle = Self.spinnerStyle(on: page)
+    }
+
+    /// `.unspecified` (the system's own) when the page shows no solid color.
+    static func spinnerStyle(on background: UIColor) -> UIUserInterfaceStyle {
+        var white: CGFloat = 0, alpha: CGFloat = 0
+        guard background.getWhite(&white, alpha: &alpha), alpha > 0.5 else { return .unspecified }
+        return white < 0.5 ? .dark : .light
+    }
+
     private func makeRefreshControl() -> UIRefreshControl {
         let control = UIRefreshControl()
         control.accessibilityLabel = SyncCopy.text("ios.island.reload")

@@ -1755,9 +1755,9 @@ Two gestures Arc's iPhone users rely on, asked for on r/ArcBrowser
   of page cards, groups as labeled runs; a card closes when flicked up, like
   the iOS app switcher, and reopens like a tab closed with `/close`.
 - **Pull to refresh.** Pulling a page down from its top reloads it, the
-  Island's Reload (desktop's ⌘R, D7), as Safari does; the system spinner, in
-  the light or dark appearance, stays until the reload finishes or fails, and
-  Stop ends it. A page scrolled down scrolls back up first. Not on the Start
+  Island's Reload (desktop's ⌘R, D7), as Safari does. The system spinner, in
+  its light or dark style, whichever shows against the page, stays until the
+  reload finishes or fails, and Stop ends it. A page scrolled down scrolls back up first. Not on the Start
   Page, in Reader (its own view, the page beneath untouched), or on a quiet tab
   until it wakes. Added on 2026-11-02 at the owner's request.
 - **Equivalents.** VoiceOver actions (Next tab, Previous tab, Close) and
