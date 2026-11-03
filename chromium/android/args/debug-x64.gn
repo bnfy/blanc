@@ -11,6 +11,9 @@ is_debug = false
 is_java_debug = true
 is_component_build = false
 symbol_level = 1
+# Run lint, Error Prone and bytecode checks inside the build. The default,
+# "build_server", needs Chromium's autoninja, and build.mjs calls Siso directly.
+android_static_analysis = "on"
 android_channel = "stable"
 # Debug identity, installable beside release me.bnfy.blanc. The app name and
 # icon come from patch 0101.
