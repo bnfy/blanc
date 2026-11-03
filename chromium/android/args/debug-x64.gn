@@ -1,0 +1,15 @@
+# Blanc for Android, debug channel (x64). Copied to out/AndroidDebugX64/args.gn by
+# chromium/android/server/bootstrap.sh. Check every name against
+# `gn args <out> --list` at the pinned milestone; drop one it doesn't define,
+# with a comment saying why.
+target_os = "android"
+target_cpu = "x64"
+is_debug = false
+is_component_build = false
+symbol_level = 1
+android_channel = "stable"
+# Debug identity (me.bnfy.blanc.dev) comes from patch 0101; this is Blanc's
+# preview channel, so the preview-only test hooks stay available.
+blanc_channel = "preview"
+# No Google API keys: features that need them stay off (design §2).
+use_official_google_api_keys = false
