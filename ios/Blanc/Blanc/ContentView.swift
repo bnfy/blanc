@@ -656,6 +656,8 @@ struct ContentView: View {
         .buttonStyle(.borderless)
         .foregroundStyle(islandStyle.text)
         .islandSurface(islandStyle, in: RoundedRectangle(cornerRadius: 17))
+        // A tab dragged from another window's grid or palette moves here.
+        .tabDrop(into: manager)
         .frame(maxWidth: 600)
     }
 

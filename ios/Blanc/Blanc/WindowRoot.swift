@@ -33,6 +33,8 @@ struct WindowRoot: View {
     @State private var scene: UIWindowScene?
     /// A pairing QR scanned with the Camera app: Blanc asks before joining.
     @State private var pairLink: PairLinkRequest?
+    /// A tab dragged out of another window to make this one (W3).
+    @State private var draggedTab: UUID?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openWindow) private var openWindow
 
@@ -59,6 +61,12 @@ struct WindowRoot: View {
             app.incomingLinks.receive(url, into: target)
             if target != nil, let code = app.incomingLinks.takePairCode() { pairLink = PairLinkRequest(code: code) }
         }
+        .onContinueUserActivity(TabDrag.activityType) { activity in
+            guard let id = TabDrag.tabId(from: activity) else { return }
+            if let manager { manager.services.moveTab(id, to: manager) } else { draggedTab = id }
+        }
+        // iPadOS's window list names the window by its Space, or its page.
+        .onChange(of: manager?.windowTitle, initial: true) { _, title in scene?.title = title ?? "" }
         .onChange(of: scenePhase, initial: true) { _, phase in
             if phase == .active, let manager { manager.services.frontWindow = manager }
         }
@@ -76,8 +84,22 @@ struct WindowRoot: View {
             UIApplication.shared.requestSceneSessionDestruction(scene.session, options: nil)
         }
         manager = made
-        if let moving = request.moveTabId { services.moveTab(moving, to: made) }
+        if let moving = request.moveTabId ?? draggedTab ?? BlancSceneDelegate.takeDraggedTab(for: scene.session) {
+            services.moveTab(moving, to: made)
+        }
+        draggedTab = nil
+        scene.title = made.windowTitle
         if first { BackgroundRefresh.liveEngine = services.syncEngine }
+        #if DEBUG
+        // Each UI test starts with one window: iPadOS keeps the windows an
+        // earlier test opened, and two side by side are too narrow for the
+        // wide layout the next test expects.
+        if first, ProcessInfo.processInfo.arguments.contains(where: { $0.hasPrefix("-BlancUITest") }) {
+            for session in UIApplication.shared.openSessions where session != scene.session {
+                UIApplication.shared.requestSceneSessionDestruction(session, options: nil)
+            }
+        }
+        #endif
         app.incomingLinks.flush(into: services.frontWindow ?? made)
         if let code = app.incomingLinks.takePairCode() { pairLink = PairLinkRequest(code: code) }
     }
@@ -128,5 +150,36 @@ extension FocusedValues {
 final class BlancAppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
         BrowserServices.shared.windowsDiscarded(Set(sceneSessions.map(\.persistentIdentifier)))
+    }
+
+    /// Every window gets Blanc's scene delegate, which keeps a tab a new
+    /// window was opened for (a tab dragged out of another window, W3).
+    func application(_ application: UIApplication, configurationForConnecting session: UISceneSession,
+                     options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        let configuration = UISceneConfiguration(name: nil, sessionRole: session.role)
+        if session.role == .windowApplication { configuration.delegateClass = BlancSceneDelegate.self }
+        BlancSceneDelegate.noteDraggedTab(in: options.userActivities, for: session)
+        return configuration
+    }
+}
+
+/// A window's UIKit side, alongside SwiftUI's: when iPadOS opens a window for
+/// a dragged tab, the tab's activity arrives here, before the window's
+/// `TabsManager` exists; `WindowRoot` takes it once it does.
+final class BlancSceneDelegate: UIResponder, UIWindowSceneDelegate {
+    private static var draggedTabs: [String: UUID] = [:]
+
+    static func noteDraggedTab(in activities: Set<NSUserActivity>, for session: UISceneSession) {
+        guard let id = activities.lazy.compactMap(TabDrag.tabId(from:)).first else { return }
+        draggedTabs[session.persistentIdentifier] = id
+    }
+
+    /// The tab the window for `session` was opened for, once.
+    static func takeDraggedTab(for session: UISceneSession) -> UUID? {
+        draggedTabs.removeValue(forKey: session.persistentIdentifier)
+    }
+
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options: UIScene.ConnectionOptions) {
+        Self.noteDraggedTab(in: options.userActivities, for: session)
     }
 }

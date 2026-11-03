@@ -193,6 +193,7 @@ struct PaletteSheet: View {
         .contextMenu {
             TabMoveMenu(manager: manager, tab: tab, newGroup: { newGroupTab = NewGroupTab(id: tab.id) }, newSpace: { newSpaceTab = tab.id })
         }
+        .tabDrag(tab)
         .listRowSeparator(.hidden)
         .listRowBackground(Group {
             if let group { groupBlock(group, top: false, bottom: last) } else { Color.clear }
