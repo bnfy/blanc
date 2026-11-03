@@ -57,7 +57,7 @@ if [[ "$(git -C "${DEPOT_TOOLS}" rev-parse HEAD 2>/dev/null || true)" != "${DEPO
   step "fetch depot_tools" git -C "${DEPOT_TOOLS}" fetch origin
   step "pin depot_tools" git -C "${DEPOT_TOOLS}" checkout --detach "${DEPOT_TOOLS_COMMIT}"
 fi
-export PATH="${DEPOT_TOOLS}:${PATH}" DEPOT_TOOLS_UPDATE=0
+export PATH="${DEPOT_TOOLS}:${PATH}" DEPOT_TOOLS_UPDATE=0 DEPOT_TOOLS_METRICS=0
 # With updates off, depot_tools never initializes itself; do it once.
 if [[ ! -f "${DEPOT_TOOLS}/python3_bin_reldir.txt" ]]; then
   step "initialize depot_tools" "${DEPOT_TOOLS}/ensure_bootstrap"
