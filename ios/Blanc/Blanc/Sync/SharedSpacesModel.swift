@@ -365,6 +365,21 @@ nonisolated enum SharedSpacesModel {
     if aby != bby { return aby.lexicographicallyPrecedes(bby) ? a : b }
     return !less(b["rev"]?.string ?? "", a["rev"]?.string ?? "") ? a : b
   }
+  /// The revision hint alone (`rev`, `revAt`, `revBy`), or nil without one.
+  static func revHint(_ raw: JSONValue?) -> JSONValue? {
+    guard let raw, isRev(raw["rev"]) else { return nil }
+    var out: JSONValue = .object([])
+    copyIndexMeta(.object(revFields.compactMap { key in raw[key].map { (key, $0) } }), into: &out)
+    return out
+  }
+  /// A receipt names the hint it was built over (`base`). Once another device
+  /// has published over that hint, its blob write came after ours (blob
+  /// writes are conditional), so publishing the receipt would regress the
+  /// hint. Receipts saved before `base` existed keep the old rule and publish.
+  static func receiptSuperseded(_ receipt: JSONValue?, _ entry: JSONValue?, deviceId: String) -> Bool {
+    guard let base = receipt?["base"], entry?["revBy"]?.string != deviceId else { return false }
+    return (revHint(entry) ?? .null).canonical() != (revHint(base) ?? .null).canonical()
+  }
   static func mergeIndexMeta(_ l: JSONValue?, _ r: JSONValue?, into out: JSONValue) -> JSONValue {
     var out = out
     for key in revFields { out[key] = nil }
@@ -664,6 +679,7 @@ extension SharedSpacesModel {
       var receipt: JSONValue = .object([("id", index["id"]!), ("rev", index["rev"]!)])
       if let at = safeInteger(index["at"]), at >= 0 { receipt["at"] = index["at"] }
       if let by = index["by"]?.utf16Units, !by.isEmpty, by.count <= 128 { receipt["by"] = index["by"] }
+      if let base = revHint(index["base"]) { receipt["base"] = base }
       out["index"] = receipt
     }
     return out
@@ -858,7 +874,7 @@ extension SharedSpacesModel {
   static func pushPlan(fetchedBlob: JSONValue?, fetchedVersion: String?, localBlob: JSONValue?,
     pending: JSONValue?, lastMergeAt: Int64?, now: Int64, deviceId: String,
     encrypt: (String) throws -> SyncEnvelope, lastPublishable: JSONValue?,
-    admissionOrder: [String] = [], firstUpload: Bool = false) throws -> PushPlan
+    admissionOrder: [String] = [], firstUpload: Bool = false, indexHint: JSONValue? = nil) throws -> PushPlan
   {
     let local = sanitizeBlob(localBlob)
     let remote = sanitizeBlob(fetchedBlob)
@@ -968,17 +984,25 @@ extension SharedSpacesModel {
     }
     // Proposal only: the caller may publish this revision after the blob PUT
     // succeeds. It is of what the Worker holds afterwards, relayed content included.
+    // A download the index hint doesn't describe corrects the hint, so a hint
+    // that fell behind (or was regressed) never stops other devices fetching.
+    let hint = revHint(indexHint)
+    let base: [(String, JSONValue)] = hint.map { [("base", $0)] } ?? []
+    let heldRev = revisionOf(relay ?? fetched)
+    let corrects = isPresent(fetchedBlob) && indexHint != nil && hint?["rev"]?.string != heldRev
     var indexEntry: JSONValue?
     if let upload {
-      indexEntry = .object([
-        ("id", upload["blob"]!["spaceId"]!), ("rev", upload["rev"]!), ("at", .number(Double(now))),
-        ("by", .string(deviceId)),
-      ])
-    } else if admission.reason == nil, pendingAfter["index"] != nil {
-      indexEntry = .object([
-        ("id", fetched["spaceId"]!), ("rev", .string(revisionOf(relay ?? fetched))),
-        ("at", .number(Double(now))), ("by", .string(deviceId)),
-      ])
+      indexEntry = .object(
+        [
+          ("id", upload["blob"]!["spaceId"]!), ("rev", upload["rev"]!), ("at", .number(Double(now))),
+          ("by", .string(deviceId)),
+        ] + base)
+    } else if admission.reason == nil, pendingAfter["index"] != nil || corrects {
+      indexEntry = .object(
+        [
+          ("id", fetched["spaceId"]!), ("rev", .string(heldRev)),
+          ("at", .number(Double(now))), ("by", .string(deviceId)),
+        ] + base)
     }
     return PushPlan(
       mergedBlob: mergedBlob, upload: upload, pendingAfter: pendingAfter, recover: recover,

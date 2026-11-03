@@ -1919,7 +1919,7 @@ private final class Box<T> {
     let payload = try sharedState.exportIndex(deviceId: stateStore.state.deviceId, now: clock())
     if remote == nil, payload["spaces"]?.pairs.isEmpty ?? true { return .done }
     if let remote, remote.canonical() == payload.canonical() {
-      sharedState.settleIndex(payload, accountId: snap.accountId)
+      sharedState.settleIndex(payload, accountId: snap.accountId, deviceId: stateStore.state.deviceId)
       return .done
     }
     let blob = try SyncCrypto.seal(Data(payload.jsStringify().utf8), key: snap.key)
@@ -1938,7 +1938,7 @@ private final class Box<T> {
       throw SyncError.unknownStore
     }
     try check(g)
-    sharedState.settleIndex(payload, accountId: snap.accountId)
+    sharedState.settleIndex(payload, accountId: snap.accountId, deviceId: stateStore.state.deviceId)
     outcome.value.stored = true
     return .done
   }
