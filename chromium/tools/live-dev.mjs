@@ -23,6 +23,16 @@ export function liveProcesses(listing) {
     .map(([, pid, command]) => ({pid: Number(pid), command}));
 }
 
+// The copy the last launch ran, read in one step (no check-then-read race).
+function readPrevious() {
+  try {
+    return JSON.parse(fs.readFileSync(record, 'utf8')).app ?? null;
+  } catch (error) {
+    if (error.code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
 const list = () => liveProcesses(execFileSync('ps', ['-axo', 'pid=,command='], {encoding: 'utf8'}));
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -45,7 +55,7 @@ async function main(configFile) {
   for (let i = 0; i < 40 && !running.length; i++) { await sleep(250); running = list().filter(p => p.command.startsWith(app + '/')); }
   if (!running.length) throw Error('The live instance did not start');
   // Keep the running copy and the one before it.
-  const previous = fs.existsSync(record) ? JSON.parse(fs.readFileSync(record, 'utf8')).app : null;
+  const previous = readPrevious();
   fs.writeFileSync(record, JSON.stringify({candidate: config.candidate, app, previous: previous !== app ? previous : null,
     pid: running[0].pid, startedAt: new Date().toISOString()}, null, 2) + '\n');
   for (const name of fs.readdirSync(LIVE).filter(name => name.endsWith('.app'))) {
