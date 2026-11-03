@@ -2593,7 +2593,6 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="ios_island_show_all_tabs">Mostrar todas as abas</string>
     <string name="ios_island_reload">Recarregar a página</string>
     <string name="ios_settings_island_tuck">Ocultar a Island ao rolar</string>
-    <string name="ios_settings_island_tuck_hint">A Island some quando você rola uma página para baixo e volta quando você rola para cima.</string>
     <string name="ios_settings_island_position">Posição</string>
     <string name="ios_settings_island_position_bottom">Embaixo</string>
     <string name="ios_settings_island_position_top">Em cima</string>

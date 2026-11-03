@@ -144,7 +144,6 @@ struct SettingsSheet: View {
                     set: { manager.settingsStore.update(islandTucksOnScroll: $0) }))
                     .accessibilityIdentifier("settings.islandTuck")
             } header: { Text(SettingsCopy.text("island")) }
-              footer: { Text(SettingsCopy.text("islandTuckHint")) }
             Section(SettingsCopy.text("appearance")) {
                 Picker(SettingsCopy.text("theme"), selection: Binding(get: { manager.settingsStore.theme }, set: { manager.applySettingsPatch(["theme": $0.rawValue]) })) {
                     ForEach(BlancThemePreference.allCases, id: \.self) { Text(SettingsCopy.text($0.rawValue)).tag($0) }

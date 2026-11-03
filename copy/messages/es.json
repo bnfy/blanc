@@ -9141,10 +9141,6 @@
     "message": "Ocultar la Island al desplazarte",
     "source": "sha256:b2880c6b19c41edf58338069bb2a673ca49e360df2a3827a331bf3f9186d5f7e"
   },
-  "ios.settings.islandTuckHint": {
-    "message": "La Island se oculta al desplazarte hacia abajo en una página y vuelve cuando te desplazas hacia arriba.",
-    "source": "sha256:f6f2146e0a3f2c0b754240be619ae45b0bc7bde1b6928587539cb96a2e389526"
-  },
   "ios.settings.islandPosition": {
     "message": "Posición",
     "source": "sha256:5e36b380b1a6313a28b506c3f362800c429010f9dbeac405fd02c10c94119fbf"

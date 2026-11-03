@@ -9430,10 +9430,6 @@
     "message": "Hide the Island while scrolling",
     "note": "iOS Settings → Appearance: switch for the Island tucking away while a page scrolls down. On by default."
   },
-  "ios.settings.islandTuckHint": {
-    "message": "The Island slides away as you scroll down a page and comes back when you scroll up.",
-    "note": "iOS Settings → Appearance: footer under the switch for the Island tucking away while scrolling."
-  },
   "ios.settings.islandPosition": {
     "message": "Position",
     "note": "iOS Settings → Island: picker for where the Island sits on the screen, under the Island header."
