@@ -186,3 +186,86 @@ the unfolded palette panel to the MacBook Pro's tabs.
 
 The App Store header and search-results art (`blanc-app-store-header-5244x2950.png`)
 was removed from the listing on November 3, 2026, at the owner's request.
+
+## Custom product pages
+
+Three custom product pages, each for a place that sends people to the App
+Store, so the first screenshots they see answer what brought them. Each page
+keeps the default page's design (dawn to day, Blubird captions, the real app
+in a plain dark frame) and the same captures, in a different order with
+captions for that audience. They're on the screenshots canvas, one canvas
+page each ("Custom page · …"), and render into
+[`app-store/custom-pages/`](app-store/custom-pages/) (its README says how).
+Drafted and approved by the owner on November 3, 2026, and uploaded to App
+Store Connect the same day as drafts (not submitted):
+
+| Page | Page id | State on November 3, 2026 |
+|---|---|---|
+| Blanc on your computer | `de631766-0439-4f00-afe3-8d95512942f0` | Prepare for Submission |
+| Spaces and groups | `b6d854a6-9fbd-4cbf-ab4e-08feb5af8019` | Prepare for Submission |
+| Private browsing | `ade1d24b-9477-4ac3-8a64-d425d35177f0` | Prepare for Submission |
+
+Each link is `https://apps.apple.com/us/app/blanc-web-browser/id6828027794?ppid=<page id>`,
+which works only once the page is approved and 1.0 is released.
+
+| Page (reference name) | For | Promotional text (170 max) |
+|---|---|---|
+| Blanc on your computer | People who already use Blanc on a Mac or PC: blanc.day's iPhone links, the desktop app's Connect your iPhone, What's New pages, the newsletter, r/blancbrowser | Use Blanc on your Mac or PC? Scan the code in its Settings → Sync, and your computer’s tabs, the pages it sends and the Spaces you share are on your iPhone too. (160) |
+| Spaces and groups | People who keep a lot of tabs: blanc.day's Spaces and Arc alternative pages, posts about organizing tabs | Give each part of your day a Space, like Work or Trip. Keep tabs that belong together in named groups, and share a Space to keep it the same on your computer. (158) |
+| Private browsing | People looking for a private browser: blanc.day's private tabs and privacy pages, privacy-minded communities | Private tabs keep no history, and their cookies and site data go when the last one closes. Ads and trackers are blocked by default, and Sync is end-to-end encrypted. (165) |
+
+**Shot order.** Headlines in order; the captures are the default page's.
+
+| # | Blanc on your computer | Spaces and groups | Private browsing |
+|---|---|---|---|
+| 1 | Pair with Blanc on your computer (desktop Connect your iPhone + your computer's tabs) | A Space for each part of your day (Spaces) | Private tabs keep no history (private tab) |
+| 2 | Share a Space with your computer (Spaces) | Tabs that belong together, in a group (tab grid) | A little less browser. (Start Page) |
+| 3 | A little less browser. (Start Page) | Your computer’s tabs, on your iPhone | A private tab is a /private away (slash commands) |
+| 4 | Slash commands in the Island | Slash commands in the Island | Every tab at a glance, in named groups |
+| 5 | Every tab at a glance, in named groups | A little less browser. | A Space for each part of your day |
+| 6 | Private tabs keep no history | Private tabs keep no history | Sync that Blanc can’t read (your computer's tabs) |
+
+The first shot of "Blanc on your computer" sets the desktop's own capture of
+Connect your iPhone (`site/public/feature-captures/connect-your-iphone-v1.45.0.png`,
+Blanc 1.45.0 on a Mac) behind the iPhone's palette with the MacBook Pro's
+tabs. Captions repeated from the default page keep its evidence (Caption
+claims, above).
+
+### Custom page claims
+
+The claims that are new on these pages, checked against the 1.0 build
+(`84f861dfc`) and `docs/marketing-claims.md`. None mentions the default
+browser, website passkeys, or the App Store.
+
+| Claim | Evidence | Qualification that travels | Verdict |
+|---|---|---|---|
+| Scan the code in Blanc's Settings → Sync on a Mac or PC | Connect your iPhone, desktop v1.45.0 (`docs/marketing-claims.md`); `PairScanner.swift` | Blanc 1.45 or later on the computer | qualified |
+| Then the computer's tabs, the pages it sends and the Spaces you share are on the iPhone | Claims table above: other devices' tabs, Send a tab, Shared Spaces | Tab sharing on; Shared Spaces off until turned on | qualified |
+| Choose the Spaces to share; open, close or move a tab on one device and the other follows | `SharedSpacesSheet.swift`, #1247; desktop Shared Spaces v1.45.0 | Never "instantly" or "in real time": the computer checks every 15 seconds while a window is in front (v1.46.0) | qualified |
+| Switch between Spaces from the Island | `SpaceMarkButton` in the Island (`ContentView.swift`), the Spaces menu | none | verified |
+| Name a group, like Museum day, and see every tab as a card | `GroupNameSheet.swift`, `TabGridView.swift` | none | verified |
+| Private tabs' cookies and site data go when the last one closes | `TabsManager.privateDataStore`: one `WKWebsiteDataStore.nonPersistent()` for every private tab, dropped when the last private tab closes and when Blanc quits | none | verified |
+| A private tab is a /private away; type it in the Island | `/private` in `SlashCommand.swift`, the palette | none | verified |
+| Sync is end-to-end encrypted, so Blanc stores only data it can't read | Claims table above (SyncCrypto, the v1 Worker) | Never say Blanc can recover a lost sync | verified |
+| Ads and trackers are blocked by default (private promotional text) | Claims table above | Content-rule list with Apple's rule cap; don't compare blocking strength | qualified |
+
+### Putting them in App Store Connect
+
+Only with the owner's yes, and they can't be seen until 1.0 is released.
+Steps 1 and 2 were done through the API on November 3, 2026; step 4's
+submission waits for the owner.
+
+1. For each page, Create Custom Product Page from blank, with its reference
+   name above, English (U.S.) only.
+2. Promotional text from the table; the 6.9" set from
+   `custom-pages/<page>/6.9/` and the 6.3" set from `custom-pages/<page>/6.3/`,
+   in file order. iPhone Duo gets the default page's Duo sets unchanged
+   (`duo-closed/`, `duo-open/`), as no page-specific Duo shots exist yet. No
+   app preview for now (my call): the default page's preview opens on the
+   Island, not on each page's subject.
+3. No deep link: Blanc for iPhone has no link that opens pairing or a
+   Space, so Open lands on the app as usual.
+4. Submit the three for review together. Once approved, each has a link
+   (`https://apps.apple.com/app/id6828027794?ppid=<page id>`); add a
+   campaign token (`&ct=<channel>`) per place it's posted, so App Analytics
+   can tell blanc.day, the desktop app and Reddit apart.
