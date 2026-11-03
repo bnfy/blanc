@@ -121,9 +121,10 @@ in §7 stop them breaking each other.
 ## 3. Constraints
 
 - **Build host.** Chromium for Android builds only on x86-64 Linux. The Mac
-  mini can't build it. Builds run on a rented dedicated Linux server: 16 or
-  more cores, 128 GB RAM, 1 TB or more NVMe, Ubuntu LTS, reachable over SSH.
-  A Hetzner AX-class machine is the reference. The owner rents it and holds the
+  mini can't build it. Builds run on a rented dedicated Linux server, reachable
+  over SSH: a Hetzner **EX63-1** in Helsinki (Intel Core Ultra 7 265, 20
+  cores, 64 GB RAM, 2 × 1 TB NVMe, Ubuntu 24.04 LTS), ordered by the owner on
+  2026-11-03. Builds run one at a time, so 64 GB is enough. The owner rents it and holds the
   account. It serves the Android lane. It may build desktop Linux
   incrementally to check a shared patch, with the owner's approval. Whether it
   becomes the desktop's Linux build host is desktop decision D4, not this
@@ -204,7 +205,7 @@ not a product base.
 | Pairing | QR scan of the desktop pairing code with the Play services code scanner, falling back to a CameraX scanner on phones without Play services, plus a typed code. | Same codes as iPhone. |
 | Send to device, receive shared links | A share-sheet target ("Open in Blanc") and Blanc's Send to device. | |
 | Default browser | `RoleManager.ROLE_BROWSER` prompt in onboarding; intent filters for http/https. | No entitlement needed, unlike iOS. |
-| Passwords, passkeys | **Native** Android Autofill framework and Credential Manager through Chromium's own integration, which uses Play services (owner decision 9). Blanc never signs the person in to Google. Phones without Play services browse normally but get only what their OS offers. | Claimed only after a real-Pixel check passes. |
+| Passwords, passkeys | **Native** Android Autofill framework and Credential Manager through Chromium's own integration, which uses Play services (owner decision 9). Blanc never signs the person in to Google. Phones without Play services browse normally but get only what their OS offers. Whichever password manager the person has chosen in Android fills Blanc's login forms, including **free** ones (Google Password Manager, Bitwarden, Proton Pass), so no paid manager is needed on Android. Blanc doesn't build its own password manager or email masks (a user request on r/blancbrowser, 2026-11-03; declined as separate security and mail products). | Claimed only after a real-Pixel check passes with Google Password Manager and Bitwarden. |
 | Downloads | Chromium's native download handling to the Downloads directory works, and an opened file goes to the system. A Blanc downloads list is *after* (iPhone parity). | |
 | Updates | Google Play only. | |
 | Telemetry | Launch `/ping` with `platform: 'android'`. The ping Worker's `ALLOWED_PLATFORMS` gains `android`, with its own version namespace. The owner deploys the Worker change before the app that needs it ships. | |
@@ -226,7 +227,7 @@ differs:
 | F13 | Permissions | Chromium's Android prompts with Blanc's default-deny policy where the desktop fork has implemented it; otherwise Chromium's prompts. Blanc's own prompt UI is *after*, as on iPhone. |
 | F20 | HTTP auth | Same as iPhone: cancel and show the error page. |
 | F23 | Zoom | Native pinch and text scaling. |
-| F24 | AutoFill and passkeys | Android Autofill and Credential Manager (§4). |
+| F24 | AutoFill and passkeys | Android Autofill and Credential Manager (§4), checked with a free password manager. |
 | F25 | Encrypted DNS | Chromium's own secure DNS is available. Whether 1.0 exposes it follows desktop's setting. Claimed only if checked. |
 | F31 | Quiet Tabs | Native tab discarding with Blanc's eligibility rules; an evicted tab returns with its title, address and back history. |
 | F39 | Certificate safety | Chromium's interstitial (desktop V8 applies). |
