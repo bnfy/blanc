@@ -30,6 +30,9 @@ final class SettingsStore {
     /// The walkthrough version this phone has finished (M18 §3.3);
     /// device-local, never synced.
     private(set) var walkthroughCompletedVersion = 0
+    /// Whether the Island tucks away while a page scrolls down; off keeps it
+    /// always on screen. iPhone-only and device-local, never synced (D11).
+    private(set) var islandTucksOnScroll = true
 
     @ObservationIgnored private let fileURL: URL
     @ObservationIgnored private var unknownKeys: [String: Any] = [:]
@@ -65,7 +68,8 @@ final class SettingsStore {
                 adblockExceptions: [String]? = nil,
                 newtabLayout: BlancStartPageLayout? = nil,
                 usagePing: Bool? = nil,
-                walkthroughCompletedVersion: Int? = nil) {
+                walkthroughCompletedVersion: Int? = nil,
+                islandTucksOnScroll: Bool? = nil) {
         if let theme { self.theme = theme }
         if let searchEngine { self.searchEngine = searchEngine }
         if let adblockEnabled { self.adblockEnabled = adblockEnabled }
@@ -76,6 +80,7 @@ final class SettingsStore {
         if let newtabLayout { self.newtabLayout = newtabLayout }
         if let usagePing { self.usagePing = usagePing }
         if let walkthroughCompletedVersion { self.walkthroughCompletedVersion = walkthroughCompletedVersion }
+        if let islandTucksOnScroll { self.islandTucksOnScroll = islandTucksOnScroll }
         scheduleSave()
     }
 
@@ -113,9 +118,10 @@ final class SettingsStore {
 
         if let v = dict["usagePing"] as? Bool { usagePing = v }
         if let v = dict["walkthroughCompletedVersion"] as? Int { walkthroughCompletedVersion = v }
+        if let v = dict["islandTucksOnScroll"] as? Bool { islandTucksOnScroll = v }
 
         let knownKeys: Set<String> = ["theme", "searchEngine", "adblockEnabled", "adblockExceptions", "newtabLayout",
-                                      "usagePing", "walkthroughCompletedVersion"]
+                                      "usagePing", "walkthroughCompletedVersion", "islandTucksOnScroll"]
         for (key, value) in dict where !knownKeys.contains(key) {
             unknownKeys[key] = value
         }
@@ -137,6 +143,7 @@ final class SettingsStore {
         dict["adblockExceptions"] = adblockExceptions
         if let usagePing { dict["usagePing"] = usagePing }
         dict["walkthroughCompletedVersion"] = walkthroughCompletedVersion
+        dict["islandTucksOnScroll"] = islandTucksOnScroll
 
         guard let data = try? JSONSerialization.data(withJSONObject: dict, options: [.sortedKeys]) else { return }
         // `.atomic` writes to a sibling temp file and renames it into place —

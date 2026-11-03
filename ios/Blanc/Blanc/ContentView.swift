@@ -35,8 +35,25 @@ struct ContentView: View {
     /// The page runs under the side strips (the iPhone Duo's camera and clock
     /// strip, an iPhone's notch in landscape), as in Safari: WebKit keeps the
     /// content clear of them and paints the page's background out to the edge.
-    /// The Start Page also runs under the top and bottom.
-    private var pageEdges: Edge.Set { isStartPage ? .all : .horizontal }
+    /// Every page runs under the floating Island and the home indicator; the
+    /// Start Page also runs under the top.
+    private var pageEdges: Edge.Set { isStartPage ? .all : [.horizontal, .bottom] }
+
+    /// The Island's own band (the Island and its padding, without the banners
+    /// over it), which websites leave room for at their end.
+    @State private var islandBand: CGFloat = 0
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
+
+    /// Out of the way while the page scrolls down, unless the person keeps it
+    /// on screen in Settings. Never while something rises from it or sits over
+    /// it, and never for VoiceOver, which reads the screen in order and would
+    /// lose it.
+    private var isIslandTucked: Bool {
+        guard manager.settingsStore.islandTucksOnScroll, manager.activeTab?.islandTucked == true,
+              !voiceOverEnabled else { return false }
+        return !manager.isSpacesMenuPresented && !isPalettePanelOpen && manager.sendNotice == nil
+            && manager.lastClosed == nil && manager.lastDeletedSpaceId == nil
+    }
 
     private var isStartPage: Bool {
         manager.activeTab?.currentURL.scheme == "blanc" && manager.activeTab?.currentURL.host == "newtab"
@@ -48,7 +65,7 @@ struct ContentView: View {
         ZStack {
             style.background.ignoresSafeArea()
             if let tab = manager.activeTab {
-                WebView(tab: tab)
+                WebView(tab: tab, islandInset: islandBand)
                     .id(tab.id)
                     .overlay {
                         // Until its first page commits, a web view is WebKit's
@@ -65,20 +82,21 @@ struct ContentView: View {
                         .offset(x: swipeOffset + (swipeOffset < 0 ? pageWidth : -pageWidth))
                 }
                 if let reader = tab.reader {
-                    ReaderWebView(reader: reader).id(ObjectIdentifier(reader))
+                    ReaderWebView(reader: reader, islandInset: islandBand).id(ObjectIdentifier(reader))
                         .ignoresSafeArea(edges: pageEdges)
                         .offset(x: swipeOffset)
                 }
             }
         }
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pageWidth = $0 }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if !isStartPage {
-                islandContainer.background(style.background)
-            }
-        }
         .overlay(alignment: .bottom) {
-            if isStartPage { islandContainer }
+            // Floats over every page. Tucked, it slides below the screen's
+            // edge (or only fades, with Reduce Motion) and takes no touches.
+            islandContainer
+                .offset(y: isIslandTucked && !reduceMotion ? islandHeight + 40 : 0)
+                .opacity(isIslandTucked && reduceMotion ? 0 : 1)
+                .allowsHitTesting(!isIslandTucked)
+                .animation(.snappy(duration: 0.3), value: isIslandTucked)
         }
         .overlay(alignment: .bottom) {
             if manager.isSpacesMenuPresented { spacesMenu }
@@ -193,6 +211,7 @@ struct ContentView: View {
             }
             UndoBanner(manager: manager, style: style)
             addressPill
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { islandBand = $0 + 20 }
                 // The panel takes the Island's place; hidden, not removed, so
                 // the page's inset never changes under it.
                 .opacity(isPalettePanelOpen ? 0 : 1)

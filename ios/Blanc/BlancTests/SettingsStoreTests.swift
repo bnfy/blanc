@@ -41,6 +41,17 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertEqual(store2.adblockEnabled, false)
     }
 
+    /// The Island tucks on scroll unless the person turns it off; the choice
+    /// survives a relaunch.
+    func testIslandTuckIsOnByDefaultAndPersistsWhenOff() {
+        let dir = tmpDir()
+        let store = SettingsStore(directory: dir)
+        XCTAssertTrue(store.islandTucksOnScroll)
+        store.update(islandTucksOnScroll: false)
+        store.flush()
+        XCTAssertFalse(SettingsStore(directory: dir).islandTucksOnScroll)
+    }
+
     func testFirstEverSaveCreatesFile() {
         // Regression guard: a first-run save must CREATE settings.json, not throw
         // because the destination doesn't exist yet. `.atomic` handles create.

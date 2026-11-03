@@ -2592,6 +2592,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ios_island_search_or_switch">Cerca o cambia scheda, %1$s</string>
     <string name="ios_island_show_all_tabs">Mostra tutte le schede</string>
     <string name="ios_island_reload">Ricarica la pagina</string>
+    <string name="ios_settings_island_tuck">Nascondi l’Island durante lo scorrimento</string>
+    <string name="ios_settings_island_tuck_hint">L’Island scompare quando scorri una pagina verso il basso e torna quando scorri verso l’alto.</string>
     <string name="ios_island_stop">Interrompi il caricamento</string>
     <string name="ios_island_page_actions">Azioni della pagina</string>
     <string name="ios_island_collapse">Comprimi l’Island</string>

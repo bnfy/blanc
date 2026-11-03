@@ -748,6 +748,7 @@ final class TabsManager {
         guard tabs.contains(where: { $0.id == id }) else { return }
         let leaving = protectedSharedTabId
         activeTabId = id
+        activeTab?.showIsland()
         activeTab?.probeReader()
         // The tab the person left takes the remote changes that waited for it.
         if leaving != nil, leaving != protectedSharedTabId { applySharedAccepted(protectedTabId: protectedSharedTabId) }

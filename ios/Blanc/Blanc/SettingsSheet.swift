@@ -142,6 +142,12 @@ struct SettingsSheet: View {
                     summary("startPage", value: SettingsCopy.text(manager.settingsStore.newtabLayout.rawValue))
                 }.accessibilityIdentifier("settings.startPage")
             }
+            Section {
+                Toggle(SyncCopy.text("ios.settings.islandTuck"), isOn: Binding(
+                    get: { manager.settingsStore.islandTucksOnScroll },
+                    set: { manager.settingsStore.update(islandTucksOnScroll: $0) }))
+                    .accessibilityIdentifier("settings.islandTuck")
+            } footer: { Text(SyncCopy.text("ios.settings.islandTuckHint")) }
             Section(SettingsCopy.text("privacy")) {
                 NavigationLink(value: SettingsDestination.privacy) {
                     summary("blocker", value: SettingsCopy.text(manager.settingsStore.adblockEnabled ? "on" : "off"))

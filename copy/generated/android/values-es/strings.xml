@@ -2592,6 +2592,8 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="ios_island_search_or_switch">Buscar o cambiar de pestaña, %1$s</string>
     <string name="ios_island_show_all_tabs">Mostrar todas las pestañas</string>
     <string name="ios_island_reload">Recargar la página</string>
+    <string name="ios_settings_island_tuck">Ocultar la Island al desplazarte</string>
+    <string name="ios_settings_island_tuck_hint">La Island se oculta al desplazarte hacia abajo en una página y vuelve cuando te desplazas hacia arriba.</string>
     <string name="ios_island_stop">Detener la carga</string>
     <string name="ios_island_page_actions">Acciones de la página</string>
     <string name="ios_island_collapse">Contraer la Island</string>

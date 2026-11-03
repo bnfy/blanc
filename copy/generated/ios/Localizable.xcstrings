@@ -102919,6 +102919,90 @@
         }
       }
     },
+    "ios.settings.islandTuck": {
+      "comment": "iOS Settings → Appearance: switch for the Island tucking away while a page scrolls down. On by default.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide the Island while scrolling"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island beim Scrollen ausblenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar la Island al desplazarte"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masquer l’Island pendant le défilement"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nascondi l’Island durante lo scorrimento"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar a Island ao rolar"
+          }
+        }
+      }
+    },
+    "ios.settings.islandTuckHint": {
+      "comment": "iOS Settings → Appearance: footer under the switch for the Island tucking away while scrolling.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Island slides away as you scroll down a page and comes back when you scroll up."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Island verschwindet, wenn du eine Seite nach unten scrollst, und kommt zurück, sobald du nach oben scrollst."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La Island se oculta al desplazarte hacia abajo en una página y vuelve cuando te desplazas hacia arriba."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’Island se retire quand vous faites défiler une page vers le bas et revient quand vous remontez."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’Island scompare quando scorri una pagina verso il basso e torna quando scorri verso l’alto."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Island some quando você rola uma página para baixo e volta quando você rola para cima."
+          }
+        }
+      }
+    },
     "ios.island.stop": {
       "comment": "iOS Island: accessible name of the reload button while a page loads.",
       "extractionState": "manual",

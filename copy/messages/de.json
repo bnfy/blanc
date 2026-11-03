@@ -9137,6 +9137,14 @@
     "message": "Seite neu laden",
     "source": "sha256:a97b578f423dbbb6a41916f986dab254f7855930346ab81e04fe955ed8fd29ed"
   },
+  "ios.settings.islandTuck": {
+    "message": "Island beim Scrollen ausblenden",
+    "source": "sha256:b2880c6b19c41edf58338069bb2a673ca49e360df2a3827a331bf3f9186d5f7e"
+  },
+  "ios.settings.islandTuckHint": {
+    "message": "Die Island verschwindet, wenn du eine Seite nach unten scrollst, und kommt zurück, sobald du nach oben scrollst.",
+    "source": "sha256:f6f2146e0a3f2c0b754240be619ae45b0bc7bde1b6928587539cb96a2e389526"
+  },
   "ios.island.stop": {
     "message": "Laden stoppen",
     "source": "sha256:7afd60900cf4554c372a6974840bee623d3a7ad10fa18559cd951051493b6ba8"

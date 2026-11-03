@@ -9426,6 +9426,14 @@
     "message": "Reload page",
     "note": "iOS Island: accessible name of the reload button."
   },
+  "ios.settings.islandTuck": {
+    "message": "Hide the Island while scrolling",
+    "note": "iOS Settings → Appearance: switch for the Island tucking away while a page scrolls down. On by default."
+  },
+  "ios.settings.islandTuckHint": {
+    "message": "The Island slides away as you scroll down a page and comes back when you scroll up.",
+    "note": "iOS Settings → Appearance: footer under the switch for the Island tucking away while scrolling."
+  },
   "ios.island.stop": {
     "message": "Stop loading",
     "note": "iOS Island: accessible name of the reload button while a page loads."
