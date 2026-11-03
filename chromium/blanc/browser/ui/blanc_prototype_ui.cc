@@ -215,6 +215,7 @@
 #include "blanc/private/private_tabs.h"
 #include "build/build_config.h"
 #if BUILDFLAG(IS_MAC)
+#include "blanc/browser/ui/app_menus_mac.h"
 #include "blanc/browser/ui/window_buttons_mac.h"
 #endif
 #include "ui/base/resource/resource_bundle.h"
@@ -3139,6 +3140,20 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(std::move(list)));
       return;
     }
+#if BUILDFLAG(IS_MAC)
+    // The private-browsing menu items (patch 0013): their titles, and the
+    // Dock's item clicked as a person would.
+    if (message[1].GetString() == "privateMenuItems" && message[2].GetList().empty()) {
+      Reply(id, true, base::Value(base::DictValue()
+          .Set("file", base::UTF16ToUTF8(blanc::MainMenuItemTitle(IDC_FILE_MENU, IDC_NEW_INCOGNITO_WINDOW)))
+          .Set("dock", base::UTF16ToUTF8(blanc::DockMenuItemTitle(IDC_NEW_INCOGNITO_WINDOW)))));
+      return;
+    }
+    if (message[1].GetString() == "clickDockPrivateWindow" && message[2].GetList().empty()) {
+      Reply(id, true, base::Value(blanc::ClickDockMenuItem(IDC_NEW_INCOGNITO_WINDOW)));
+      return;
+    }
+#endif
     // Shipping's setIslandHoverOpen hook: the preference Settings writes.
     if (message[1].GetString() == "setIslandHoverOpen" && message[2].GetList().size() == 1 &&
         message[2].GetList()[0].is_bool()) {
@@ -6262,6 +6277,20 @@ content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL&
   params.tabstrip_add_types = AddTabTypes::ADD_ACTIVE;
   Navigate(&params);
   return params.navigated_or_inserted_contents;
+}
+
+bool MakePrivateWindow(BrowserWindowInterface* browser) {
+  if (!browser || !IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return false;
+  auto* model = browser->GetTabStripModel();
+  std::vector<content::WebContents*> starting;
+  for (int i = 0; i < model->count(); ++i) starting.push_back(model->GetWebContentsAt(i));
+  if (!NewPrivateTab(browser, GURL())) return false;
+  // The window's starting Start Page goes, leaving nothing in Recently closed.
+  for (auto* contents : starting) {
+    const int index = model->GetIndexOfWebContents(contents);
+    if (index != TabStripModel::kNoTab) model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_NONE);
+  }
+  return true;
 }
 
 bool HasIsland(views::View* parent) {

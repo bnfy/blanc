@@ -82,6 +82,10 @@ bool IsIslandWindow(const BrowserWindowInterface* browser);
 // Shipping's private tab (owner decision D1): |url| (the private Start Page
 // when empty) in a new private tab of |browser|, an ordinary window.
 content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL& url);
+// The Dock's New Private Window, and ⌘⇧N with no window open: a window
+// Chromium just opened becomes one private tab, as shipping's
+// openNewWindow({private: true}). False leaves it as Chromium made it.
+bool MakePrivateWindow(BrowserWindowInterface* browser);
 bool HasIsland(views::View* parent);
 int RailWidth(views::View* parent);
 int HeaderHeight(views::View* parent);
