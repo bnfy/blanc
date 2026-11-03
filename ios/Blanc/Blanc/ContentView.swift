@@ -55,9 +55,9 @@ struct ContentView: View {
     /// it, and never for VoiceOver, which reads the screen in order and would
     /// lose it.
     private var isIslandTucked: Bool {
-        // Never beside a split, whose cards leave the Island's band free.
+        // Never beside a split or a Glance, which leave the Island's band free.
         guard manager.settingsStore.islandTucksOnScroll, manager.activeTab?.islandTucked == true,
-              !voiceOverEnabled, shownSplit == nil else { return false }
+              !voiceOverEnabled, shownSplit == nil, manager.glanceTab == nil else { return false }
         return !manager.isSpacesMenuPresented && !isPalettePanelOpen && manager.sendNotice == nil
             && manager.lastClosed == nil && manager.lastDeletedSpaceId == nil
     }
@@ -107,6 +107,13 @@ struct ContentView: View {
                 neighborPage(neighbor)
                     .offset(x: swipeOffset + (swipeOffset < 0 ? pageWidth : -pageWidth))
             }
+            // Glance (F34): a tab floating over the current page.
+            if layout.showsSplitView, shownSplit == nil, let glance = manager.glanceTab {
+                GlanceCard(manager: manager, tab: glance, style: BrowserStyle(scheme: glance.isPrivate ? .dark : colorScheme))
+                    .id(glance.id)
+                    // Clear of the floating Island, which stays put while it's open.
+                    .padding(islandAtTop ? .top : .bottom, islandBand)
+            }
         }
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pageWidth = $0 }
         .overlay(alignment: islandAtTop ? .top : .bottom) {
@@ -129,6 +136,7 @@ struct ContentView: View {
             if !presented, paletteIsPanel { paletteClosed() }
         }
         .onChange(of: layout.palette, initial: true) { _, palette in paletteIsPanel = palette == .panel }
+        .onChange(of: layout.showsSplitView, initial: true) { _, wide in manager.showsWideLayout = wide }
     }
 
     var body: some View {
@@ -664,6 +672,13 @@ struct ContentView: View {
             case .find:
                 guard let tab else { return nil }
                 return action("menu.findInPage", "magnifyingglass") { presentFind(in: tab) }
+            case .glance:
+                return UIMenu(title: SyncCopy.text("tabMenu.glance"), image: UIImage(systemName: "rectangle.on.rectangle"),
+                              children: manager.glanceCandidates.map { other in
+                                  UIAction(title: TabTitle.display(other)) { _ in manager.showInGlance(other.id) }
+                              })
+            case .closeGlance:
+                return action("menu.closeGlance", "xmark.rectangle") { manager.closeGlance() }
             case .newPrivateTab:
                 return UIMenu(options: .displayInline, children: [
                     action("menu.newPrivateTab", "eye.slash") { manager.createTab(isPrivate: true) },

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Split with ▸, Move to Group ▸ and Move to Space ▸ for a tab, from a press and
+/// Split with ▸, Open in Glance, Move to Group ▸ and Move to Space ▸ for a tab, from a press and
 /// hold on its card in the grid or its row in the palette. New Group… and
 /// New Space… hand the tab back to the caller, which owns the naming sheets.
 struct TabMoveMenu: View {
@@ -11,10 +11,20 @@ struct TabMoveMenu: View {
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         SplitMenu(manager: manager, tab: tab,
                   offersSplit: IslandLayout(horizontalSizeClass, verticalSizeClass).showsSplitView)
+        // Glance (F34): this tab over the current page. The grid or palette
+        // it was chosen in closes, so the card shows.
+        if manager.canOpenGlance, manager.glanceCandidates.contains(where: { $0.id == tab.id }) {
+            Button(SyncCopy.text("tabMenu.glance")) {
+                manager.isPalettePresented = false
+                dismiss()
+                manager.showInGlance(tab.id)
+            }
+        }
         if !tab.isPrivate {
             Menu(SyncCopy.text("tabMenu.moveToGroup")) {
                 ForEach(manager.groups.filter { $0.id != tab.groupId }) { group in

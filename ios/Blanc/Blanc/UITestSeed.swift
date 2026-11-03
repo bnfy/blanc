@@ -15,7 +15,9 @@ enum UITestSeed {
   /// `-BlancUITestStartPage`: sync off, one tab on the Start Page.
   static var startPage: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestStartPage") }
   /// `-BlancUITestTwoTabs`: sync off, example.com (current) and example.org.
-  static var twoTabs: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestTwoTabs") }
+  static var twoTabs: Bool { glance || ProcessInfo.processInfo.arguments.contains("-BlancUITestTwoTabs") }
+  /// The second of two tabs in a Glance card over the first (F34).
+  static var glance: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestGlance") }
   /// Two tabs side by side (F53), restored from the session as at a relaunch.
   static var split: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestSplit") }
   static let pageURL = URL(string: "https://example.com/")!

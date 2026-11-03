@@ -152,7 +152,11 @@ final class TabsManager {
     var readerError = false
     /// The shown tab. Whatever makes a tab current also wakes it if quiet.
     var activeTabId: UUID? {
-        didSet { if !holdingWake, let tab = activeTab, tab.isQuiet { wake(tab) } }
+        didSet {
+            if !holdingWake, let tab = activeTab, tab.isQuiet { wake(tab) }
+            // A tab switch ends a Glance (F34), as on desktop.
+            if activeTabId != oldValue { glanceTabId = nil }
+        }
     }
     /// The addresses quiet tabs last woke at, newest last (a test seam).
     @ObservationIgnored private(set) var wokenURLs: [URL] = []
@@ -394,6 +398,8 @@ final class TabsManager {
             savedURLs = [UITestSeed.pageURL]
         }
         defer { if UITestSeed.privateTab { createTab(url: UITestSeed.pageURL, isPrivate: true) } }
+        // Glance needs the layout, which the window reports once it shows.
+        defer { if UITestSeed.glance { DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in showInGlance(tabs[1].id) } } }
         defer { if UITestSeed.twoTabs { activeTabId = tabs.first?.id } }
         #endif
         if let state = restoredState {
@@ -552,6 +558,8 @@ final class TabsManager {
             && !AdblockExceptions.isExcepted(tab.currentURL, in: settingsStore.adblockExceptions) {
             contentBlocker.attach(to: tab.webView)
         }
+        tab.uiDelegate.canGlance = { [weak self] in self?.canOpenGlance ?? false }
+        tab.uiDelegate.onGlance = { [weak self] url in self?.openInGlance(url) }
         tab.navigationDelegate.onSettingsNavigation = { [weak self] url in self?.routeSettings(url) ?? false }
         // Re-persist whenever this tab settles on a new URL (navigation/redirect).
         tab.navigationDelegate.onURLChange = { [weak self] _ in
@@ -805,6 +813,64 @@ final class TabsManager {
         if !splits.isEmpty {
             tabs = SplitModel.normalizeOrder(tabs.map(\.id), splits: splits).compactMap { live[$0] }
         }
+        if let glanceTabId, live[glanceTabId] == nil || split(for: glanceTabId) != nil { self.glanceTabId = nil }
+    }
+
+    // MARK: Glance (F34)
+
+    /// The tab shown in the Glance card over the current page. It's an
+    /// ordinary open tab: closing the card leaves it open, as on desktop.
+    private(set) var glanceTabId: UUID?
+    var glanceTab: TabModel? { glanceTabId.flatMap { id in tabs.first { $0.id == id } } }
+    /// Whether the window is wide enough for Glance and Split View, from the
+    /// layout (`IslandLayout.showsSplitView`). Narrowing it ends a Glance.
+    var showsWideLayout = false {
+        didSet { if !showsWideLayout { glanceTabId = nil } }
+    }
+    /// The card's frame as fractions of the page area, for this run only.
+    var glanceFrame: CGRect?
+
+    /// Glance opens over a page that isn't a split's pane, in the wide layout.
+    var canOpenGlance: Bool { showsWideLayout && activeTab != nil && activeSplit == nil }
+
+    /// Opens `url` as a new tab shown in the Glance card, private when the
+    /// current tab is. A Glance already open stays open as a tab.
+    func openInGlance(_ url: URL) {
+        guard canOpenGlance, let current = activeTab else { return }
+        let id = createTab(url: url, isPrivate: current.isPrivate, quiet: true)
+        guard let tab = tabs.first(where: { $0.id == id }) else { return }
+        glanceTabId = id
+        wakePane(tab)
+        UIAccessibility.post(notification: .announcement, argument: SyncCopy.text("glance.openedUntitled"))
+    }
+
+    /// Shows an open tab in the Glance card.
+    func showInGlance(_ id: UUID) {
+        guard canOpenGlance, id != activeTabId, split(for: id) == nil,
+              let tab = tabs.first(where: { $0.id == id }) else { return }
+        glanceTabId = id
+        wakePane(tab)
+    }
+
+    func closeGlance() { glanceTabId = nil }
+
+    /// The tabs Glance could show over the current one.
+    var glanceCandidates: [TabModel] {
+        tabs.filter { $0.id != activeTabId && $0.id != glanceTabId && split(for: $0.id) == nil }
+    }
+
+    /// Ends the Glance and makes its page the current tab.
+    func openGlanceAsTab() {
+        guard let id = glanceTabId else { return }
+        setActive(id)
+    }
+
+    /// Ends the Glance with its page beside the current one, the current
+    /// page first.
+    func keepGlanceAsSplit() {
+        guard let id = glanceTabId, let current = activeTabId else { return }
+        glanceTabId = nil
+        makeSplit(current, with: id)
     }
 
     // MARK: Split View (F53)
