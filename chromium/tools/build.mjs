@@ -147,7 +147,7 @@ export function selectedSdk(options, out) {
   return root;
 }
 // The Android lane's pinned inputs: Chromium's own clang, JDK, SDK build
-// tools and NDK (paths as build/config/android/config.gni sets them).
+// tools and NDK (the NDK's version is in its README.chromium).
 function androidEnvironment(src, out) {
   const env = { ...process.env, DEPOT_TOOLS_UPDATE: '0' };
   const read = file => fs.readFileSync(path.join(src, file), 'utf8').trim();
@@ -157,7 +157,7 @@ function androidEnvironment(src, out) {
     clangVersion: run(path.join(src, 'third_party/llvm-build/Release+Asserts/bin/clang'), ['--version']),
     jdk: run(path.join(src, 'third_party/jdk/current/bin/java'), ['-version']),
     sdkBuildTools: fs.readdirSync(path.join(src, 'third_party/android_sdk/public/build-tools')).sort().join(' '),
-    ndk: /Pkg\.Revision\s*=\s*(\S+)/.exec(read('third_party/android_toolchain/ndk/source.properties'))?.[1] ?? 'unknown',
+    ndk: /^Version:\s*(\S+)/m.exec(read('third_party/android_toolchain/README.chromium'))?.[1] ?? 'unknown',
     argsSha256: digest(fs.readFileSync(path.join(out, 'args.gn'))),
   };
   return { inputs, env };
