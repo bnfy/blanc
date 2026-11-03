@@ -74,7 +74,7 @@ if [[ "$(git -C "${SRC}" rev-parse HEAD 2>/dev/null || true)" != "${UPSTREAM}" ]
   step "fetch the pinned commit" git -C "${SRC}" fetch origin "${UPSTREAM}"
   step "check out the pinned commit" git -C "${SRC}" checkout --detach "${UPSTREAM}"
 fi
-step "install Android build dependencies" sudo "${SRC}/build/install-build-deps.sh" --android
+step "install Android build dependencies" sudo "${SRC}/build/install-build-deps.sh" --android --no-prompt
 step "sync dependencies and run hooks" in_dir "${CHECKOUT}" gclient sync -D --with_branch_heads
 
 step "check the lane's Blanc source" python3 "${TREE}/chromium/tools/apply.py" --lane android --src "${SRC}"
