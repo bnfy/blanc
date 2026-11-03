@@ -431,6 +431,9 @@
       const t = (key, values) => strip.contentWindow?.blancI18n?.t(key, values) ?? blockerStatus;
       for (const tab of snapshot.tabs) {
         tab.connection = BlancShieldModel.connectionFor({ url: tab.committedUrl, isLoading: tab.isLoading });
+        // Shipping's projection: the committed page's security state, which
+        // the strip's warning badge and site controls read.
+        tab.siteInfo = BlancSiteSecurity.buildSiteInfo(tab.committedUrl ?? '', { blockedCount: tab.blockedCount, t });
         tab.shield = BlancShieldModel.shieldChipState({
           url: tab.url, blockedCount: tab.blockedCount, excepted: tab.adblockExcepted === true,
           adblockEnabled: enabled, t,
@@ -448,9 +451,12 @@
       }) : null;
       snapshot.shieldPopover = shippingShield ? {
         ...shippingShield,
-        // Keep the shipping site/global distinction; unhealthy protection has
-        // recovery semantics rather than an apparently active site switch.
-        variant: shieldTab.isLoading || (enabled && health !== 'ready') ? 'recovery' : shippingShield.variant,
+        // Keep the shipping site/global distinction; unhealthy protection, or
+        // a navigation still on its way to another page, has recovery
+        // semantics rather than an apparently active site switch. A page
+        // loading its own resources keeps its switch, as in shipping.
+        variant: (shieldTab.isLoading && shieldTab.url !== shieldTab.committedUrl) || (enabled && health !== 'ready')
+          ? 'recovery' : shippingShield.variant,
         on: shippingShield.on && health === 'ready', connection: shippingShield.connection,
         countLine: enabled && health !== 'ready' ? blockerStatus : shippingShield.countLine,
         controls: { active: 'blanc', choice: 'blanc', disabled: true, hidden: true,

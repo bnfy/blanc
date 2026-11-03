@@ -28,6 +28,7 @@
     "island-hover-open.js",
     "island-autohide.js",
     "clean-link.js",
-    "invite-friend.js"
+    "invite-friend.js",
+    "site-security.js"
   ]
 }

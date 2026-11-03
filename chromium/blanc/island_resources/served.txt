@@ -85,6 +85,7 @@ search-settings-adapter.js
 search-settings.js
 selection-tab-sections.js
 shield-model.js
+site-security.js
 space-identity.js
 space-picker.js
 strings.js

@@ -4568,10 +4568,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       const int active = owner->MainIndex();
       auto* current = active >= 0 ? model->GetWebContentsAt(active) : nullptr;
       const GURL url = current ? current->GetLastCommittedURL() : GURL();
-      // Bind the action to the document represented by the UI, and refuse
-      // pending navigation even if an earlier snapshot is still visible.
-      if (!current || current->IsLoading() || url != GURL(args[0].GetString()) ||
-          current->GetVisibleURL() != url) {
+      // A site action binds to the document the UI shows and refuses while a
+      // navigation is pending, even if an earlier snapshot is still visible;
+      // a page still loading its own resources is that document. The global
+      // switch, as shipping's /block-ads, works whatever the page.
+      const bool navigating = !current || current->GetController().GetPendingEntry() ||
+          current->GetVisibleURL() != url;
+      const bool site_action = method == "allowAdsOnActiveSite" ||
+          (url.SchemeIsHTTPOrHTTPS() && blanc::BlockingSiteExcepted(profile, url));
+      if (site_action && (navigating || url != GURL(args[0].GetString()))) {
         reply(false, base::Value("The page changed; reopen site protection.")); return;
       }
       bool changed = false;
@@ -4585,7 +4590,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
       if (!changed) { reply(false, base::Value("Blocking policy could not be changed.")); return; }
       profile->GetOriginalProfile()->GetPrefs()->CommitPendingWrite();
-      if (current) current->GetController().Reload(content::ReloadType::NORMAL, false);
+      if (!navigating && url.SchemeIsHTTPOrHTTPS())
+        current->GetController().Reload(content::ReloadType::NORMAL, false);
       reply(true, base::Value(true)); return;
     }
     if (method == "blockerRecovery" && args.empty()) {

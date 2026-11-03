@@ -29,10 +29,11 @@ const SHEET_BRIDGE = ['  <script src="strings.js"></script>\n', '  <script src="
 // Shipping's pure main-process modules the Island host runs as they are,
 // wrapped so a document can load them: the host holds the state shipping's
 // main process holds (hover-open's dwell and auto-hide's floating pill, S1.2),
-// and runs the pure rules behind /copy clean and /invite. Each exposes its
+// runs the pure rules behind /copy clean and /invite, and derives each tab's
+// siteInfo as shipping's tab projection does (S1.6). Each exposes its
 // exports on window under the given name.
 export const MAIN_FILES = {'island-hover-open.js': 'BlancIslandHoverOpen', 'island-autohide.js': 'BlancIslandAutoHide',
-  'clean-link.js': 'BlancCleanLink', 'invite-friend.js': 'BlancInviteFriend'};
+  'clean-link.js': 'BlancCleanLink', 'invite-friend.js': 'BlancInviteFriend', 'site-security.js': 'BlancSiteSecurity'};
 // Trusted Types policy names, per hardened script.
 const HARDEN = {'overlay.js': 'overlay', 'renderer.js': 'renderer', 'vertical-tabs.js': 'vertical-tabs'};
 const PREVIEW_META = fs.readFileSync(path.join(root, 'tools/preview-build-meta.html'), 'utf8').trimEnd();
