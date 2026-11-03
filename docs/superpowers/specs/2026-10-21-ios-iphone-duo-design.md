@@ -134,7 +134,9 @@ asymmetric).
 - **Glance (F34).** **Open Link in Glance** from a link's context menu opens a
   card floating over the page, as desktop's floating Glance does: header with
   **Open as tab**, **Keep as split** and ×, the page inside, default frame
-  centred and about 80% of the page area, never on the fold.
+  centred and about 80% of the page area, never on the fold. The page is an
+  ordinary tab: × closes the card and leaves the tab open, as on desktop
+  (owner, 2026-11-03).
 - **The side list (later, §7).** An optional leading column showing what the
   ⌘L panel shows: Spaces, groups (synced from desktop, read-only until editing
   arrives), ungrouped tabs, Recently closed and Other devices. Off by default:
@@ -145,7 +147,7 @@ asymmetric).
 | From inner (regular) | To outer (compact) |
 |---|---|
 | A split | The focused pane fills the screen; the split stays one item and returns on unfolding, as when a desktop window is too narrow |
-| A Glance card | The Glance closes, as desktop closes it on a tab switch; its page stays open as a tab only if the person chose **Open as tab** |
+| A Glance card | The Glance closes, as desktop closes it on a tab switch; its page stays open as an ordinary tab, as when × closes the card (owner, 2026-11-03: keep desktop's behavior) |
 | The palette panel | Becomes the bottom sheet with the same text and mode |
 | The side list | Hidden; its state returns on unfolding |
 
