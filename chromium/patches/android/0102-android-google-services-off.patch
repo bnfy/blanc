@@ -1,30 +1,67 @@
-diff -ruN a/chrome/app/chrome_main_delegate.cc b/chrome/app/chrome_main_delegate.cc
---- a/chrome/app/chrome_main_delegate.cc
-+++ b/chrome/app/chrome_main_delegate.cc
-@@ -92,6 +92,9 @@
- #include "ui/base/resource/resource_bundle.h"
- #include "ui/base/resource/scoped_startup_resource_bundle.h"
- #include "ui/base/ui_base_switches.h"
-+#if BUILDFLAG(IS_ANDROID)
-+#include "blanc/android/background_services_android.h"
-+#endif
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java b/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java
+@@ -20,6 +20,7 @@
+ import org.chromium.base.ApplicationState;
+ import org.chromium.base.ApplicationStatus;
+ import org.chromium.base.BundleUtils;
++import org.chromium.base.CommandLine;
+ import org.chromium.base.CommandLineInitUtil;
+ import org.chromium.base.ContextUtils;
+ import org.chromium.base.EarlyTraceEvent;
+@@ -53,6 +54,9 @@
+ import org.chromium.components.policy.PolicyCache;
+ import org.chromium.ui.base.ResourceBundle;
  
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.List;
+ import java.util.function.Supplier;
  
- #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || \
-@@ -1184,6 +1187,16 @@
-       *base::CommandLine::ForCurrentProcess();
- #endif  // !defined(BUILDING_CHROME_RENDERER)
- 
-+#if BUILDFLAG(IS_ANDROID) && !defined(BUILDING_CHROME_RENDERER)
-+  // Blanc for Android (patch 0102): no Google background services. This is
-+  // the earliest callback, before features are set up or any service reads
-+  // the command line.
-+  if (!command_line.HasSwitch(switches::kProcessType)) {
-+    blanc::DisableAndroidBackgroundServices(
-+        *base::CommandLine::ForCurrentProcess());
-+  }
-+#endif
+ /**
+@@ -69,6 +73,19 @@
+     public static final String ON_DEMAND_SPLIT_NAME = "on_demand";
+     private static final String TAG = "SplitCompatApp";
+     private static final String COMMAND_LINE_FILE = "chrome-command-line";
++    // Blanc for Android (patch 0102): Chromium services that reach Google on their own.
++    // Desktop's list (blanc/common/background_services.h) plus Android's, found by the
++    // Android outbound gate; chromium/tools/android-background-services.test.mjs keeps
++    // this a superset of desktop's.
++    private static final String BLANC_DISABLE_SWITCH = "disable-component-update";
++    private static final String[] BLANC_DISABLED_FEATURES = {
++        "NetworkTimeServiceQuerying",
++        "AutofillServerCommunication",
++        "AimEnabled",
++        "AimServerEligibilityEnabled",
++        "Prewarm",
++        "MediaDrmPreprovisioningAtStartup",
++    };
+     private static final String ATTACH_BASE_CONTEXT_EVENT = "ChromeApplication.attachBaseContext";
+     // Public to allow use in ChromeBackupAgent
+     public static final String PRIVATE_DATA_DIRECTORY_SUFFIX = "chrome";
+@@ -228,6 +245,7 @@
+             // (see ChildProcessService.java).
+             CommandLineInitUtil.initCommandLine(
+                     COMMAND_LINE_FILE, SplitCompatApplication::shouldUseDebugFlags);
++            disableBlancBackgroundServices(CommandLine.getInstance());
+             PathUtils.setPrivateDataDirectorySuffix(PRIVATE_DATA_DIRECTORY_SUFFIX);
+             // Register for activity lifecycle callbacks. Must be done before any activities are
+             // created and is needed only by processes that use the ApplicationStatus api (which
+@@ -391,4 +409,17 @@
+             throw new RuntimeException("App out of date, getResources() null, closing app.");
+         }
+     }
 +
-   // Only allow disabling web security via the command-line flag if the user has
-   // specified a distinct profile directory. This still enables tests to disable
-   // web security by setting the kWebKitWebSecurityEnabled pref directly.
++    // Set before native code or the feature list reads the command line; added to any
++    // --disable-features already given.
++    private static void disableBlancBackgroundServices(CommandLine commandLine) {
++        commandLine.appendSwitch(BLANC_DISABLE_SWITCH);
++        List<String> features = new ArrayList<>();
++        String given = commandLine.getSwitchValue("disable-features");
++        if (given != null && !given.isEmpty()) features.addAll(Arrays.asList(given.split(",")));
++        for (String feature : BLANC_DISABLED_FEATURES) {
++            if (!features.contains(feature)) features.add(feature);
++        }
++        commandLine.appendSwitchWithValue("disable-features", String.join(",", features));
++    }
+ }

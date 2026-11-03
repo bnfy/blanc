@@ -6,7 +6,7 @@
   "upstreamDir": "upstream-android",
   "sourceMap": "source-map-android.json",
   "fileCount": 4,
-  "note": "A0 takes no shared patches: they wire desktop Blanc into chrome/browser, which Android also compiles. 0102 reuses blanc/common/background_services.h (0008's list) and adds Android's own.",
+  "note": "A0 takes no shared patches: they wire desktop Blanc into chrome/browser, which Android also compiles. 0102 sets desktop's background-services list (blanc/common/background_services.h) and Android's own from Java, where Chromium reads the command line.",
   "patches": [
     "patches/android/0101-android-identity.patch",
     "patches/android/0102-android-google-services-off.patch"
