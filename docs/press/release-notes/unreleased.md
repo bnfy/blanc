@@ -1,16 +1,12 @@
 # Unreleased notes
 
-v1.45.1 is the current public release ([notes](v1.45.1.md)). The next release
-is 1.46.0, a feature release ([notes](v1.46.0.md)). Changes merged after its
-release commit are below as they're recorded.
+v1.46.0 is the current public release ([notes](v1.46.0.md)). Changes merged
+since then are below as they're recorded.
 
-## Before 1.46.0 publishes
+## Still open from 1.46
 
-- **What's New:** `https://blanc.day/whats-new/1.46` must be live, with the
-  owner's sign-off on its text and media.
-- **Mini Window hands-on checks** on macOS and Windows: the global shortcut
-  opens a mini window without raising other Blanc windows, the Dock menu item,
-  and placement on the display under the pointer.
+- **Mini Window:** not hand-checked on Linux, with several displays, or for
+  the hour-long close.
 
 ## Still open from 1.45
 

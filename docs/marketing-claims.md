@@ -479,10 +479,11 @@ original reports:
 - **Copy Link:** Since v1.44.1, ⇧⌘C / Ctrl+Shift+C and `/copy` copy the page's
   address; ⌥⇧⌘C (macOS) and `/copy clean` copy it without tracking
   parameters.
-- **Ctrl+Tab by most recent use:** Since v1.44.1 on Linux and Windows only,
-  proven with real OS key input in CI; a hand check on a real Windows keyboard
-  is still pending. On macOS Ctrl+Tab still goes by position: never claim it
-  there. On Windows, Ctrl+Esc opens the Start menu (the switch cancels).
+- **Ctrl+Tab by most recent use:** Since v1.44.1 on Linux and Windows, and
+  since v1.46.0 on macOS too, proven with real OS key input in CI on all three;
+  a hand check on a real Windows keyboard is still pending. Never say macOS
+  had it before v1.46.0. On Windows, Ctrl+Esc opens the Start menu (the
+  switch cancels).
 - **Vertical tab text size and site icons on the Island:** Since v1.44.1, two
   device-local settings: Default, Large or Extra large vertical tab text, and
   site icons instead of dots on the Island (off by default; fewer tabs fit).
@@ -539,6 +540,22 @@ original reports:
   link whose rule needs a new window opens that window behind the current one.
   It adds no feature: describe new capabilities as since v1.45.0, never
   v1.45.1.
+- **Island size:** Since v1.46.0, Settings → General → **Island size**
+  (Default, Large or Extra large), set on each device. The Island, its buttons
+  and the site address grow; the page moves down to make room.
+- **Mini Window:** Since v1.46.0, a small window opened from File → **New Mini
+  Window**, Blanc's Dock menu on a Mac, or an opt-in global shortcut (off by
+  default; ⌥⌘N or ⌃⌥Spacebar on a Mac, Ctrl+Alt+Spacebar or
+  Ctrl+Shift+Spacebar on Windows and Linux) that works only while Blanc is
+  running. It isn't saved, links from other apps never open in it, it closes
+  after an hour unused unless a page is in use or has unsaved changes, and
+  **Open in Blanc** keeps it. Hand-checked on macOS and Windows before release
+  (the shortcut over another app without raising other Blanc windows, the Dock
+  item, placement); not checked on Linux, with several displays, or for the
+  hour-long close, so don't show those.
+- **Sync checks for changes every 15 seconds:** Since v1.46.0, while a Blanc
+  window is in front, and it downloads only what changed. Never call it
+  instant or real-time.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,

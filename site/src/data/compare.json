@@ -1,6 +1,6 @@
 {
   "checked": "2026-11-02",
-  "checkedAgainst": "v1.45.1",
+  "checkedAgainst": "v1.46.0",
   "notStated": "Not stated.",
   "columns": [
     {
@@ -172,7 +172,7 @@
       "label": "Release status",
       "cells": {
         "blanc": {
-          "text": "Public release v1.45.1, Oct 29, 2026.",
+          "text": "Public release v1.46.0, Nov 2, 2026.",
           "sources": []
         },
         "crest": {

@@ -1,5 +1,203 @@
 [
   {
+    "tag": "v1.46.0",
+    "version": "1.46.0",
+    "name": "1.46.0",
+    "publishedAt": "2026-11-03T02:57:32.000Z",
+    "humanDate": "November 2, 2026",
+    "machineDate": "2026-11-02",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.46.0",
+    "anchor": "v1-46-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Island size."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Settings → General → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Island size"
+                  },
+                  {
+                    "type": "text",
+                    "value": " makes the Island and its buttons bigger: choose Default, Large or Extra large. The site address grows with it, and the page moves down to make room. It's set on each device."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Mini Window."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A small Blanc window for looking something up or opening a link without leaving the app you're in. Open one from File → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "New Mini Window"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", from Blanc's Dock menu on a Mac, or with a shortcut that works in any app while Blanc is running: turn it on in Settings → General → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Mini window shortcut"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (⌥⌘N or ⌃⌥Spacebar on a Mac, Ctrl+Alt+Spacebar or Ctrl+Shift+Spacebar on Windows and Linux). The shortcut is off by default, and Settings says so if it can't be used. A mini window isn't saved, links from other apps never open in it, and it closes after an hour unused unless a page in it is in use or has unsaved changes; closing its last tab closes it too. Choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open in Blanc"
+                  },
+                  {
+                    "type": "text",
+                    "value": " to keep it as an ordinary window."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Ctrl+Tab by most recent use on the Mac."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Ctrl+Tab now goes back through the tabs you used last on macOS too, as it already does on Windows and Linux: hold Ctrl and press Tab, then let go to switch, or press Esc to stay where you are. To go by position instead, choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "In the order of the tab list"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → General → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Switch tabs with Ctrl+Tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync checks for changes more often."
+                  },
+                  {
+                    "type": "text",
+                    "value": " While a Blanc window is in front, Blanc checks for changes from your other devices every 15 seconds instead of once a minute, and downloads only what changed."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A cleaner Glance card."
+                  },
+                  {
+                    "type": "text",
+                    "value": " The Glance card no longer draws a border or a line around its page; its shadow sets it apart, and its GLANCE label brightens when it has focus."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With Spaces sync on, the "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Choose Spaces"
+                  },
+                  {
+                    "type": "text",
+                    "value": " sheet opens at once instead of waiting behind \"Sync is busy; retrying.\", "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Turn on"
+                  },
+                  {
+                    "type": "text",
+                    "value": " closes it as soon as your choice is saved while the upload carries on in the background, and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Cancel"
+                  },
+                  {
+                    "type": "text",
+                    "value": " always works."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A Space you save while Spaces sync is on shares itself and reaches your other devices in seconds, instead of waiting a minute or more, including a Space whose only tab is the New Tab page."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.45.1",
     "version": "1.45.1",
     "name": "1.45.1",
