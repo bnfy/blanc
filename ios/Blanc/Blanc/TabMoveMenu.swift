@@ -25,6 +25,15 @@ struct TabMoveMenu: View {
                 manager.showInGlance(tab.id)
             }
         }
+        // Multiple windows (iPad, the Duo's inner display): the tab moves, page
+        // and all, into a window of its own.
+        if UIApplication.shared.supportsMultipleScenes, manager.tabs.count > 1 {
+            Button(SyncCopy.text("tabMenu.moveToNewWindow")) {
+                manager.isPalettePresented = false
+                dismiss()
+                manager.services.openNewWindow(moving: tab.id)
+            }
+        }
         if !tab.isPrivate {
             Menu(SyncCopy.text("tabMenu.moveToGroup")) {
                 ForEach(manager.groups.filter { $0.id != tab.groupId }) { group in
@@ -38,7 +47,7 @@ struct TabMoveMenu: View {
             if manager.tabs.filter({ !$0.isPrivate }).count > 1 {
                 Menu(SyncCopy.text("tabMenu.moveToSpace")) {
                     if manager.shownSetId != TabSets.iphoneId {
-                        Button(SyncCopy.text("spaces.thisIPhone")) { withAnimation { manager.moveTab(tab.id, toSpace: TabSets.iphoneId) } }
+                        Button(TabSets.deviceSetName) { withAnimation { manager.moveTab(tab.id, toSpace: TabSets.iphoneId) } }
                     }
                     ForEach(manager.spaces.filter { $0.id != manager.shownSetId }) { space in
                         Button(space.name) { withAnimation { manager.moveTab(tab.id, toSpace: space.id) } }

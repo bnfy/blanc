@@ -92,7 +92,7 @@ final class TabsManager {
     /// New Space with the name filled in, as desktop's.
     func runSpaceCommand(_ name: String) {
         let wanted = SyncCrypto.lowercaseLikeJavaScript(SyncCrypto.trim(name))
-        let iphone = SyncCrypto.lowercaseLikeJavaScript(SyncCopy.text("spaces.thisIPhone"))
+        let iphone = SyncCrypto.lowercaseLikeJavaScript(TabSets.deviceSetName)
         if wanted.isEmpty {
             if isPalettePresented { pendingSpacesMenu = true; isPalettePresented = false } else { isSpacesMenuPresented = true }
         } else if wanted == iphone {
@@ -169,6 +169,14 @@ final class TabsManager {
     /// This window's id in the saved session (its scene's, once there are
     /// several windows).
     @ObservationIgnored let windowId: String
+    /// The window's `UISceneSession.persistentIdentifier`, when it has one.
+    @ObservationIgnored let sceneSessionId: String?
+    /// Closes this window (set by its `WindowRoot`); with it, closing the last
+    /// tab closes the window when another window is open.
+    @ObservationIgnored var closeWindowAction: (() -> Void)?
+    /// Whether the window shows its own unsaved set (a new window's), not
+    /// This iPhone or a Space.
+    var showsUnsavedSet: Bool { shownSetId == SavedWindow.unsavedSetId(windowId) }
     private var library: SpaceLibrary { services.library }
     /// Whether this window is rebuilding its tabs, when nothing is saved.
     var isRestoring: Bool { isRestoringSession }
@@ -304,9 +312,10 @@ final class TabsManager {
                                             siteDataStore: siteDataStore))
     }
 
-    init(services: BrowserServices, windowId: String = "main") {
+    init(services: BrowserServices, windowId: String = "main", sceneSessionId: String? = nil) {
         self.services = services
         self.windowId = windowId
+        self.sceneSessionId = sceneSessionId
         self.normalizer = AddressNormalizer(searchEngine: services.settingsStore.searchEngine)
         services.register(self)
 
@@ -350,10 +359,23 @@ final class TabsManager {
         defer { if UITestSeed.glance { DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in showInGlance(tabs[1].id) } } }
         defer { if UITestSeed.twoTabs { activeTabId = tabs.first?.id } }
         #endif
-        if let state = restoredState {
-            // The first window to start reads the saved sets; the rest share them.
-            if !library.loaded { library.load(state) }
-            let shown = state.windows?.first { $0.id == windowId }?.shown ?? state.shown
+        // The first window to start reads the saved sets; the rest share them.
+        if !library.loaded {
+            if let state = restoredState { library.load(state) } else { library.markLoaded() }
+            services.loadSavedWindows(restoredState?.windows ?? [])
+        }
+        let entry = services.savedWindow(windowId)
+        let wanted = entry?.shown ?? restoredState?.shown ?? TabSets.iphoneId
+        // A window that isn't the only one and has no set of its own, or whose
+        // set another window shows, starts with an unsaved set and a Start Page.
+        let startsUnsaved = services.windows.count > 1
+            && (entry == nil || services.window(showing: wanted, except: self) != nil)
+        if startsUnsaved || entry?.showsUnsavedSet == true {
+            shownSetId = SavedWindow.unsavedSetId(windowId)
+            show(startsUnsaved ? SavedSet() : entry?.set ?? SavedSet())
+            persistSession()
+        } else if let state = restoredState {
+            let shown = entry?.shown ?? state.shown
             if spaces.contains(where: { $0.id == shown }) { shownSetId = shown }
             // Changes that waited for the selected tab when Blanc last ran
             // apply first, while every tab is still quiet; only then does the
@@ -707,6 +729,7 @@ final class TabsManager {
         }
 
         if tabs.isEmpty {
+            if closeEmptyWindow() { return }
             let blank = createTab()
             lastClosed?.blankId = blank
             return
@@ -757,6 +780,54 @@ final class TabsManager {
             tabs = SplitModel.normalizeOrder(tabs.map(\.id), splits: splits).compactMap { live[$0] }
         }
         if let glanceTabId, live[glanceTabId] == nil || split(for: glanceTabId) != nil { self.glanceTabId = nil }
+    }
+
+    // MARK: Windows (multiple windows design, W2b)
+
+    /// This window as the saved session keeps it. A Space or This iPhone
+    /// takes the window's live tabs back into the library first.
+    func savedEntry() -> SavedWindow {
+        let set = captureShown()
+        if showsUnsavedSet { return SavedWindow(id: windowId, shown: shownSetId, set: set, session: sceneSessionId) }
+        library.store(set, for: shownSetId)
+        return SavedWindow(id: windowId, shown: shownSetId, session: sceneSessionId)
+    }
+
+    /// The last tab closed: with another window open, this window closes
+    /// instead of opening a Start Page. Returns whether it did.
+    private func closeEmptyWindow() -> Bool {
+        guard services.windows.count > 1, let closeWindowAction else { return false }
+        persistSession()
+        closeWindowAction()
+        return true
+    }
+
+    /// Takes a tab out of this window for another, page and all: nothing
+    /// closes and nothing is recorded. It leaves its split, Glance and group.
+    func detachTab(_ id: UUID) -> TabModel? {
+        guard let index = tabs.firstIndex(where: { $0.id == id }) else { return nil }
+        let tab = tabs[index]
+        let wasActive = id == activeTabId
+        removeFromSplit(id)
+        tabs.remove(at: index)
+        tab.groupId = nil
+        normalizeLayout()
+        if tabs.isEmpty { createTab() }
+        else if wasActive { activeTabId = tabs[min(index, tabs.count - 1)].id }
+        persistSession()
+        return tab
+    }
+
+    /// A tab moved here from another window: it replaces this window's
+    /// untouched Start Page and becomes current.
+    func adopt(_ tab: TabModel) {
+        if tabs.count == 1, let only = tabs.first, only.currentURL == Self.newTabURL, !only.canGoBack {
+            if let view = only.existingWebView { contentBlocker.cancelPending(for: view) }
+            tabs.removeAll()
+        }
+        add(tab)
+        activeTabId = tab.id
+        persistSession()
     }
 
     // MARK: Keyboard shortcuts (D7, iPad)
@@ -916,6 +987,7 @@ final class TabsManager {
             startUndoWindow(for: first.element)
         }
         if tabs.isEmpty {
+            if closeEmptyWindow() { return }
             let blank = createTab()
             lastClosed?.blankId = blank
             return
@@ -1103,6 +1175,7 @@ final class TabsManager {
         startUndoWindow(for: first.element)
         normalizeLayout()
         if tabs.isEmpty {
+            if closeEmptyWindow() { return }
             let blank = createTab()
             lastClosed?.blankId = blank
             return
@@ -1220,10 +1293,19 @@ final class TabsManager {
     /// Puts the shown set away and shows This iPhone or a Space.
     func show(set id: String) {
         guard id != shownSetId, let set = savedSet(id) else { return }
+        // A set shows in one window: choosing one another window shows brings
+        // that window forward instead (desktop's workspace controller).
+        if let other = services.window(showing: id, except: self) {
+            services.bringForward(windowId: other)
+            return
+        }
         expireUndo()
         // Leaving a shared Space applies what waited for its selected tab.
         applySharedAccepted(protectedTabId: nil)
-        storeShown()
+        // A new window's unsaved tabs have nowhere to wait: like desktop's
+        // switch from an unsaved window, they close, into Recently closed.
+        if showsUnsavedSet { for tab in tabs where !tab.isPrivate { recordLocalClose(tab) } }
+        else { storeShown() }
         shownSetId = id
         show(set)
         persistSession()

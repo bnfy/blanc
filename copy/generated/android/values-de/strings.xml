@@ -2493,6 +2493,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_vertical_tabs_text_size_large">Groß</string>
     <string name="settings_general_vertical_tabs_text_size_extra_large">Sehr groß</string>
     <string name="spaces_this_i_phone">Dieses iPhone</string>
+    <string name="spaces_this_i_pad">Dieses iPad</string>
     <string name="spaces_menu_label">Spaces</string>
     <string name="spaces_menu_edit">Bearbeiten</string>
     <plurals name="tab_groups_tucked">

@@ -101971,6 +101971,48 @@
         }
       }
     },
+    "spaces.thisIPad": {
+      "comment": "iPad: the iPad's own tabs that are in no Space, first row of the Spaces menu. spaces.thisIPhone's counterpart on an iPad.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This iPad"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses iPad"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este iPad"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cet iPad"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo iPad"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este iPad"
+          }
+        }
+      }
+    },
     "spaces.menuLabel": {
       "comment": "iPhone: accessible name of the Island's Space mark and the Spaces menu it opens (M17).",
       "extractionState": "manual",

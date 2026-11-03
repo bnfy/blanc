@@ -9,78 +9,37 @@ import SwiftUI
 
 @main
 struct BlancApp: App {
+    @UIApplicationDelegateAdaptor(BlancAppDelegate.self) private var appDelegate
     @Environment(\.scenePhase) private var scenePhase
-    /// Made once the first window is on screen, not with the app: a WKWebView
-    /// created before the window exists (as restored tabs were) aborts in
-    /// UIKit's touch delivery on the first tap on its page when built with the
-    /// iOS 26 SDK (CI probe runs 40352397246 to 40365031742, 2026-10-26).
-    @State private var manager: TabsManager?
-    @State private var incomingLinks = IncomingLinks()
-    /// A pairing QR scanned with the Camera app: Blanc asks before joining.
-    @State private var pairLink: PairLinkRequest?
-    /// The launch ping (F21, M18 §7): once per launch, with a saved yes.
-    @State private var launchPing = LaunchPingSender()
+    @State private var app = BlancAppState()
 
     var body: some Scene {
-        WindowGroup {
-            Group {
-                if let manager {
-                    ContentView(manager: manager, pairLink: $pairLink)
-                        .task {
-                            manager.syncEngine.startForegroundChecks()
-                            await manager.syncEngine.appDidBecomeActive()
-                        }
-                        .task { await launchPing.sendIfAllowed(saved: manager.settingsStore.usagePing) }
-                        // A new install saves its choice in the walkthrough: count
-                        // its first launch then, not only from the next one.
-                        .onChange(of: manager.settingsStore.usagePing) { _, saved in
-                            Task { await launchPing.sendIfAllowed(saved: saved) }
-                        }
-                } else {
-                    Color(uiColor: .systemBackground).ignoresSafeArea()
-                }
-            }
-            .preferredColorScheme(preferredScheme)
-            .onAppear {
-                guard manager == nil else { return }
-                let made = TabsManager()
-                manager = made
-                BackgroundRefresh.liveEngine = made.syncEngine
-                incomingLinks.flush(into: made)
-                if let code = incomingLinks.takePairCode() { pairLink = PairLinkRequest(code: code) }
-            }
-            .onOpenURL {
-                incomingLinks.receive($0, into: manager)
-                if manager != nil, let code = incomingLinks.takePairCode() { pairLink = PairLinkRequest(code: code) }
-            }
-
-            .onChange(of: scenePhase) { _, phase in
-                guard let manager else { return }
-                if phase == .active {
-                    manager.syncEngine.startForegroundChecks()
-                    Task { await manager.syncEngine.appDidBecomeActive() }
-                } else {
-                    manager.syncEngine.stopForegroundChecks()
-                    if phase == .background {
-                        BackgroundRefresh.schedule(hasAccount: manager.syncEngine.stateStore.state.enabled)
-                    }
+        // A window per request (multiple windows design): each has its own
+        // tabs over the app's shared services. On iPhone there is only one.
+        WindowGroup(for: WindowRequest.self) { $request in
+            WindowRoot(request: request ?? WindowRequest(), app: app)
+        } defaultValue: {
+            WindowRequest()
+        }
+        // Desktop's keyboard shortcuts for a hardware keyboard (D7), acting on
+        // the focused window.
+        .commands { BrowserCommands() }
+        .onChange(of: scenePhase) { _, phase in
+            let engine = BrowserServices.shared.syncEngine
+            if phase == .active {
+                engine.startForegroundChecks()
+                Task { await engine.appDidBecomeActive() }
+            } else {
+                engine.stopForegroundChecks()
+                if phase == .background {
+                    BackgroundRefresh.schedule(hasAccount: engine.stateStore.state.enabled)
                 }
             }
         }
-        // Desktop's keyboard shortcuts for a hardware keyboard (D7).
-        .commands { BrowserCommands(manager: manager) }
         // M18 §6: fetch and keep what other devices changed, for the next time
         // Blanc is in front.
         .backgroundTask(.appRefresh(BackgroundRefresh.identifier)) {
             await BackgroundRefresh.run()
-        }
-    }
-
-    private var preferredScheme: ColorScheme? {
-        switch manager?.settingsStore.theme ?? .system {
-        case .system: return nil
-        case .light: return .light
-        case .dark: return .dark
         }
     }
 }

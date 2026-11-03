@@ -2566,6 +2566,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_vertical_tabs_text_size_large">Grande</string>
     <string name="settings_general_vertical_tabs_text_size_extra_large">Très grande</string>
     <string name="spaces_this_i_phone">Cet iPhone</string>
+    <string name="spaces_this_i_pad">Cet iPad</string>
     <string name="spaces_menu_label">Spaces</string>
     <string name="spaces_menu_edit">Modifier</string>
     <plurals name="tab_groups_tucked">

@@ -9065,6 +9065,10 @@
     "message": "Este iPhone",
     "source": "sha256:872a9b15efd10d5c23b321f11d4d2d26630ac2b462424389c61a940f04e7887c"
   },
+  "spaces.thisIPad": {
+    "message": "Este iPad",
+    "source": "sha256:1585758383f584e1390802e41ffe68d77fa9d99d958b462f50a6cd08561edb39"
+  },
   "spaces.menuLabel": {
     "message": "Spaces",
     "source": "sha256:8e891bb692010b9fa0e4ac71d8f835de61caa035dce16f05c8933e0618b7924a"

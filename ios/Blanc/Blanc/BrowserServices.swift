@@ -7,6 +7,9 @@ import WebKit
 /// Each window's `TabsManager` reads these through `services`; W1 still has
 /// one window.
 final class BrowserServices {
+    /// The app's services, made on first use. Tests make their own.
+    static let shared = BrowserServices()
+
     let syncDirectory: URL
     let settingsStore: SettingsStore
     let historyStore: HistoryStore
@@ -76,19 +79,96 @@ final class BrowserServices {
 
     // MARK: The saved session
 
+    /// Every window the saved session knows, in order: the open ones, and
+    /// ones iPadOS set aside (disconnected to save memory) until it says it
+    /// discarded them.
+    private(set) var savedWindows: [SavedWindow] = []
+    /// Windows discarded before the saved session was read (at launch).
+    private var pendingDiscards: Set<String> = []
+
+    /// The saved session's windows, read by the first window to start.
+    func loadSavedWindows(_ saved: [SavedWindow]) {
+        savedWindows = saved.filter { !pendingDiscards.contains($0.session ?? "") }
+        let discarded = saved.filter { pendingDiscards.contains($0.session ?? "") }
+        pendingDiscards = []
+        discarded.forEach(recordClosedWindow)
+    }
+
+    func savedWindow(_ id: String) -> SavedWindow? { savedWindows.first { $0.id == id } }
+
     /// One save for every window, so no window overwrites another's. Waits
     /// while any window rebuilds its tabs; that window saves when it's done.
     func saveSession() {
         let live = windows
         guard let front = frontWindow ?? live.last, !live.contains(where: \.isRestoring) else { return }
+        for window in live {
+            let entry = window.savedEntry()
+            if let index = savedWindows.firstIndex(where: { $0.id == entry.id }) { savedWindows[index] = entry }
+            else { savedWindows.append(entry) }
+        }
         // Private tabs are never saved. With only private tabs open, the saved
         // session is one blank tab, so tabs the person closed stay closed.
         let saved = front.tabs.filter { !$0.isPrivate }
         let urls = saved.isEmpty ? [TabsManager.newTabURL.absoluteString] : saved.map { $0.currentURL.absoluteString }
         let active = saved.firstIndex(where: { $0.id == front.activeTabId }) ?? 0
-        let state = library.state(shown: front.shownSetId,
-                                  windows: live.map { ($0.windowId, $0.shownSetId, $0.captureShown()) })
-        sessionStore.save(urls: urls, activeIndex: active, state: state)
+        sessionStore.save(urls: urls, activeIndex: active, state: library.state(shown: front.shownSetId, windows: savedWindows))
+    }
+
+    // MARK: Opening, closing and moving between windows
+
+    /// Opens a window for a request (SwiftUI's `openWindow`, from any window).
+    var openWindowAction: ((WindowRequest) -> Void)?
+
+    /// A new window with a Start Page, or with `tabId` moved into it.
+    func openNewWindow(moving tabId: UUID? = nil) {
+        openWindowAction?(WindowRequest(moveTabId: tabId))
+    }
+
+    /// The window, open or set aside, that shows `setId`, other than `window`.
+    func window(showing setId: String, except window: TabsManager) -> String? {
+        if let open = windows.first(where: { $0 !== window && $0.shownSetId == setId }) { return open.windowId }
+        let open = Set(windows.map(\.windowId))
+        return savedWindows.first { $0.shown == setId && $0.id != window.windowId && !open.contains($0.id) }?.id
+    }
+
+    /// Brings a window forward (or back, if iPadOS set it aside).
+    func bringForward(windowId: String) {
+        guard let id = UUID(uuidString: windowId) else { return }
+        openWindowAction?(WindowRequest(id: id))
+    }
+
+    /// Moves a tab, page and all, from the window that has it into `target`.
+    func moveTab(_ id: UUID, to target: TabsManager) {
+        guard let source = windows.first(where: { $0 !== target && $0.tabs.contains { $0.id == id } }),
+              let tab = source.detachTab(id) else { return }
+        target.adopt(tab)
+    }
+
+    /// iPadOS discarded these windows' scenes: an unsaved set's tabs go into
+    /// Recently closed (a Space or This iPhone keeps its tabs), and the
+    /// windows leave the saved session.
+    func windowsDiscarded(_ sessions: Set<String>) {
+        guard library.loaded else {
+            pendingDiscards.formUnion(sessions)
+            return
+        }
+        let open = Set(windows.compactMap(\.sceneSessionId))
+        let gone = savedWindows.filter { sessions.contains($0.session ?? "") && !open.contains($0.session ?? "") }
+        guard !gone.isEmpty else { return }
+        gone.forEach(recordClosedWindow)
+        savedWindows.removeAll { entry in gone.contains { $0.id == entry.id } }
+        saveSession()
+    }
+
+    private func recordClosedWindow(_ entry: SavedWindow) {
+        guard entry.showsUnsavedSet, let set = entry.set else { return }
+        for tab in set.tabs where SharedSpacesAdapter.isHTTP(tab.url) {
+            let id = UUID().uuidString.lowercased()
+            recentlyClosed.add(ClosedRow(id: id, url: tab.url, title: tab.title,
+                                         closedAt: Int64(Date().timeIntervalSince1970 * 1000),
+                                         spaceId: nil, fromId: nil, fromName: nil))
+            syncEngine.recordClosed(url: tab.url, title: tab.title, id: id, spaceId: nil)
+        }
     }
 
     // MARK: Settings

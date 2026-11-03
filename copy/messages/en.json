@@ -9354,6 +9354,10 @@
     "message": "This iPhone",
     "note": "iPhone: the phone's own tabs that are in no Space, first row of the Spaces menu (M17)."
   },
+  "spaces.thisIPad": {
+    "message": "This iPad",
+    "note": "iPad: the iPad's own tabs that are in no Space, first row of the Spaces menu. spaces.thisIPhone's counterpart on an iPad."
+  },
   "spaces.menuLabel": {
     "message": "Spaces",
     "note": "iPhone: accessible name of the Island's Space mark and the Spaces menu it opens (M17)."
