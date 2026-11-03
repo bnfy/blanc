@@ -164,6 +164,7 @@ struct TabGridView: View {
             .contextMenu {
                 TabMoveMenu(manager: manager, tab: tab, newGroup: { naming = .newGroup(tab.id) }, newSpace: { newSpaceTab = tab.id })
             }
+            .tabDrag(tab)
             .accessibilityElement(children: .ignore)
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { select(tab) }

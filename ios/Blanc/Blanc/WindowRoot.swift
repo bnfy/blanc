@@ -33,6 +33,8 @@ struct WindowRoot: View {
     @State private var scene: UIWindowScene?
     /// A pairing QR scanned with the Camera app: Blanc asks before joining.
     @State private var pairLink: PairLinkRequest?
+    /// A tab dragged out of another window to make this one (W3).
+    @State private var draggedTab: UUID?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openWindow) private var openWindow
 
@@ -59,6 +61,12 @@ struct WindowRoot: View {
             app.incomingLinks.receive(url, into: target)
             if target != nil, let code = app.incomingLinks.takePairCode() { pairLink = PairLinkRequest(code: code) }
         }
+        .onContinueUserActivity(TabDrag.activityType) { activity in
+            guard let id = TabDrag.tabId(from: activity) else { return }
+            if let manager { manager.services.moveTab(id, to: manager) } else { draggedTab = id }
+        }
+        // iPadOS's window list names the window by its Space, or its page.
+        .onChange(of: manager?.windowTitle, initial: true) { _, title in scene?.title = title ?? "" }
         .onChange(of: scenePhase, initial: true) { _, phase in
             if phase == .active, let manager { manager.services.frontWindow = manager }
         }
@@ -76,7 +84,9 @@ struct WindowRoot: View {
             UIApplication.shared.requestSceneSessionDestruction(scene.session, options: nil)
         }
         manager = made
-        if let moving = request.moveTabId { services.moveTab(moving, to: made) }
+        if let moving = request.moveTabId ?? draggedTab { services.moveTab(moving, to: made) }
+        draggedTab = nil
+        scene.title = made.windowTitle
         if first { BackgroundRefresh.liveEngine = services.syncEngine }
         app.incomingLinks.flush(into: services.frontWindow ?? made)
         if let code = app.incomingLinks.takePairCode() { pairLink = PairLinkRequest(code: code) }

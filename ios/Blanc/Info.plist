@@ -15,10 +15,16 @@
   Blanc's own Language setting; Swift reads the matching catalog (M18 §4).
   BGTaskSchedulerPermittedIdentifiers and the fetch background mode let a
   Background App Refresh keep the phone in sync (M18 §6, BackgroundRefresh).
+  NSUserActivityTypes names the activity a tab dragged out of a window
+  carries, so iPadOS can open a new window for it (TabDrag).
   See docs/ios/app-store-connect.md.
 -->
 <plist version="1.0">
 <dict>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>me.bnfy.blanc.moveTab</string>
+	</array>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>

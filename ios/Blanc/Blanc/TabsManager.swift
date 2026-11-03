@@ -800,6 +800,12 @@ final class TabsManager {
 
     // MARK: Windows (multiple windows design, W2b)
 
+    /// What iPadOS's window list calls this window: its Space, or its page.
+    var windowTitle: String {
+        if let space = shownSpace { return space.name }
+        return activeTab.map(TabTitle.display) ?? ""
+    }
+
     /// A switch to this set waits for the person: this window's unsaved tabs
     /// would close (`show(set:closingUnsaved:)`).
     var pendingSetSwitch: String?
