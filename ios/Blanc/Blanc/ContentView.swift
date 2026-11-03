@@ -633,7 +633,11 @@ struct ContentView: View {
             .accessibilityLabel(SyncCopy.text("tab.new"))
         }
         .font(.system(size: 15, weight: .medium))
-        .buttonStyle(.plain)
+        // Not .plain: over Liquid Glass on iOS 26, plain buttons took no taps
+        // at all (+ and the tab count), while the site's tap still
+        // worked; borderless ones do, and draw in the row's ink all the same
+        // (CI and an iOS 26.5 simulator, 2026-11-03).
+        .buttonStyle(.borderless)
         .foregroundStyle(islandStyle.text)
         .islandSurface(islandStyle, in: RoundedRectangle(cornerRadius: 17))
         .frame(maxWidth: 600)
