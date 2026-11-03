@@ -1,0 +1,4 @@
+{
+  "comment": "Google flows allowed only after the person starts them (owner decision 9: Credential Manager, autofill, the code scanner). Each entry: {\"host\", \"trigger\", \"reason\"}; the host passes only when the session recorded that trigger action. Empty at A0; A6 adds the Credential Manager and scanner flows.",
+  "flows": []
+}
