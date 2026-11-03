@@ -221,7 +221,7 @@ struct ContentView: View {
         if let sendNotice = manager.sendNotice {
             Text(sendNotice).font(BrowserStyle.font(13))
                 .padding(.horizontal, 14).padding(.vertical, 8)
-                .background(style.raised, in: Capsule())
+                .islandSurface(style, in: Capsule(), shadow: false)
                 .accessibilityAddTraits(.updatesFrequently)
                 .accessibilityIdentifier("send.banner")
         }
@@ -402,7 +402,7 @@ struct ContentView: View {
         HStack(spacing: 0) {
             SpaceMarkButton(manager: manager, style: style)
             islandMark
-            Rectangle().fill(style.border).frame(width: 1, height: 18)
+            Rectangle().fill(islandDivider).frame(width: 1, height: 18)
             if layout.showsHistoryButtons { historyButtons }
 
             // A tap rather than a Button: a Button also fires when a sideways
@@ -469,7 +469,7 @@ struct ContentView: View {
             .accessibilityValue(SyncCopy.plural("tabsMenu.header", count: manager.tabs.count))
             .accessibilityIdentifier("pill.tabs")
 
-            Rectangle().fill(style.border).frame(width: 1, height: 18)
+            Rectangle().fill(islandDivider).frame(width: 1, height: 18)
             Button { manager.createTab() } label: {
                 Image(systemName: "plus").frame(width: 44, height: 48)
             }
@@ -478,12 +478,14 @@ struct ContentView: View {
         .font(.system(size: 15, weight: .medium))
         .buttonStyle(.plain)
         .foregroundStyle(style.text)
-        .background(style.raised, in: RoundedRectangle(cornerRadius: 17))
-        .overlay(RoundedRectangle(cornerRadius: 17).strokeBorder(style.border.opacity(0.7), lineWidth: 0.5))
-        .shadow(color: .black.opacity(style.scheme == .dark ? 0.25 : 0.10), radius: 10, y: 4)
+        .islandSurface(style, in: RoundedRectangle(cornerRadius: 17))
         .frame(maxWidth: 600)
         .environment(\.colorScheme, isPrivate ? .dark : colorScheme)
     }
+
+    /// The Island's dividers, in its own ink, faded: on glass they follow the
+    /// text over any page; on the solid surface they match the old hairline.
+    private var islandDivider: Color { style.text.opacity(0.13) }
 
     /// Duo-1: Back and Forward on the unfolded Island, dimmed when there is
     /// nowhere to go. The edge swipe still works.

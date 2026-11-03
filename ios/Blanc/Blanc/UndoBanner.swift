@@ -21,8 +21,7 @@ struct UndoBanner: View {
             }
             .padding(.horizontal, 16).padding(.vertical, 4)
             .foregroundStyle(style.text)
-            .background(style.raised, in: Capsule())
-            .overlay(Capsule().strokeBorder(style.border, lineWidth: 0.5))
+            .islandSurface(style, in: Capsule(), shadow: false)
             .transition(.opacity)
         } else if let closed = manager.lastClosed {
             HStack(spacing: 14) {
@@ -35,8 +34,7 @@ struct UndoBanner: View {
             }
             .padding(.horizontal, 16).padding(.vertical, 4)
             .foregroundStyle(style.text)
-            .background(style.raised, in: Capsule())
-            .overlay(Capsule().strokeBorder(style.border, lineWidth: 0.5))
+            .islandSurface(style, in: Capsule(), shadow: false)
             .transition(.opacity)
         }
     }
