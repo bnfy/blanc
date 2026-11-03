@@ -9434,6 +9434,18 @@
     "message": "The Island slides away as you scroll down a page and comes back when you scroll up.",
     "note": "iOS Settings → Appearance: footer under the switch for the Island tucking away while scrolling."
   },
+  "ios.settings.islandPosition": {
+    "message": "Island position",
+    "note": "iOS Settings → Appearance: picker for where the Island sits on the screen."
+  },
+  "ios.settings.islandPosition.bottom": {
+    "message": "Bottom",
+    "note": "iOS Settings → Appearance → Island position: along the bottom of the screen (the default)."
+  },
+  "ios.settings.islandPosition.top": {
+    "message": "Top",
+    "note": "iOS Settings → Appearance → Island position: along the top of the screen."
+  },
   "ios.island.stop": {
     "message": "Stop loading",
     "note": "iOS Island: accessible name of the reload button while a page loads."

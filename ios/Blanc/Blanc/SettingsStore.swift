@@ -33,6 +33,9 @@ final class SettingsStore {
     /// Whether the Island tucks away while a page scrolls down; off keeps it
     /// always on screen. iPhone-only and device-local, never synced (D11).
     private(set) var islandTucksOnScroll = true
+    /// The Island along the bottom of the screen (the default) or the top.
+    /// iPhone-only and device-local, never synced (D11).
+    private(set) var islandPosition: IslandPosition = .bottom
 
     @ObservationIgnored private let fileURL: URL
     @ObservationIgnored private var unknownKeys: [String: Any] = [:]
@@ -69,7 +72,8 @@ final class SettingsStore {
                 newtabLayout: BlancStartPageLayout? = nil,
                 usagePing: Bool? = nil,
                 walkthroughCompletedVersion: Int? = nil,
-                islandTucksOnScroll: Bool? = nil) {
+                islandTucksOnScroll: Bool? = nil,
+                islandPosition: IslandPosition? = nil) {
         if let theme { self.theme = theme }
         if let searchEngine { self.searchEngine = searchEngine }
         if let adblockEnabled { self.adblockEnabled = adblockEnabled }
@@ -81,6 +85,7 @@ final class SettingsStore {
         if let usagePing { self.usagePing = usagePing }
         if let walkthroughCompletedVersion { self.walkthroughCompletedVersion = walkthroughCompletedVersion }
         if let islandTucksOnScroll { self.islandTucksOnScroll = islandTucksOnScroll }
+        if let islandPosition { self.islandPosition = islandPosition }
         scheduleSave()
     }
 
@@ -119,9 +124,10 @@ final class SettingsStore {
         if let v = dict["usagePing"] as? Bool { usagePing = v }
         if let v = dict["walkthroughCompletedVersion"] as? Int { walkthroughCompletedVersion = v }
         if let v = dict["islandTucksOnScroll"] as? Bool { islandTucksOnScroll = v }
+        if let raw = dict["islandPosition"] as? String, let v = IslandPosition(rawValue: raw) { islandPosition = v }
 
         let knownKeys: Set<String> = ["theme", "searchEngine", "adblockEnabled", "adblockExceptions", "newtabLayout",
-                                      "usagePing", "walkthroughCompletedVersion", "islandTucksOnScroll"]
+                                      "usagePing", "walkthroughCompletedVersion", "islandTucksOnScroll", "islandPosition"]
         for (key, value) in dict where !knownKeys.contains(key) {
             unknownKeys[key] = value
         }
@@ -144,6 +150,7 @@ final class SettingsStore {
         if let usagePing { dict["usagePing"] = usagePing }
         dict["walkthroughCompletedVersion"] = walkthroughCompletedVersion
         dict["islandTucksOnScroll"] = islandTucksOnScroll
+        dict["islandPosition"] = islandPosition.rawValue
 
         guard let data = try? JSONSerialization.data(withJSONObject: dict, options: [.sortedKeys]) else { return }
         // `.atomic` writes to a sibling temp file and renames it into place —

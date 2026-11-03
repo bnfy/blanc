@@ -2594,6 +2594,9 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ios_island_reload">Actualiser la page</string>
     <string name="ios_settings_island_tuck">Masquer l’Island pendant le défilement</string>
     <string name="ios_settings_island_tuck_hint">L’Island se retire quand vous faites défiler une page vers le bas et revient quand vous remontez.</string>
+    <string name="ios_settings_island_position">Position de l’Island</string>
+    <string name="ios_settings_island_position_bottom">En bas</string>
+    <string name="ios_settings_island_position_top">En haut</string>
     <string name="ios_island_stop">Arrêter le chargement</string>
     <string name="ios_island_page_actions">Actions de la page</string>
     <string name="ios_island_collapse">Réduire l’Island</string>

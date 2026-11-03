@@ -128,6 +128,16 @@ final class TabsManager {
         bridge.broadcastAppearance()
     }
 
+    /// Moves the Island. Open Start Pages reload, so their header and footer
+    /// make room for it where it now sits.
+    func setIslandPosition(_ position: IslandPosition) {
+        guard position != settingsStore.islandPosition else { return }
+        settingsStore.update(islandPosition: position)
+        for tab in tabs where tab.hasWebView && !TabModel.allowsPullToRefresh(tab.currentURL) {
+            tab.webView.reload()
+        }
+    }
+
     func setAdblockExceptions(_ exceptions: [String]) {
         let old = settingsStore.adblockExceptions
         settingsStore.update(adblockExceptions: exceptions)

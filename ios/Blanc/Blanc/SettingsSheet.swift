@@ -143,6 +143,13 @@ struct SettingsSheet: View {
                 }.accessibilityIdentifier("settings.startPage")
             }
             Section {
+                Picker(SyncCopy.text("ios.settings.islandPosition"), selection: Binding(
+                    get: { manager.settingsStore.islandPosition },
+                    set: { manager.setIslandPosition($0) })) {
+                    ForEach(IslandPosition.allCases, id: \.self) {
+                        Text(SyncCopy.text("ios.settings.islandPosition." + $0.rawValue)).tag($0)
+                    }
+                }.accessibilityIdentifier("settings.islandPosition")
                 Toggle(SyncCopy.text("ios.settings.islandTuck"), isOn: Binding(
                     get: { manager.settingsStore.islandTucksOnScroll },
                     set: { manager.settingsStore.update(islandTucksOnScroll: $0) }))

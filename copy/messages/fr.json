@@ -9145,6 +9145,18 @@
     "message": "L’Island se retire quand vous faites défiler une page vers le bas et revient quand vous remontez.",
     "source": "sha256:f6f2146e0a3f2c0b754240be619ae45b0bc7bde1b6928587539cb96a2e389526"
   },
+  "ios.settings.islandPosition": {
+    "message": "Position de l’Island",
+    "source": "sha256:e36d81e5da604e6a3f3d1b5f87f6227f80e24c346e9a42f3e41c057146e4a86b"
+  },
+  "ios.settings.islandPosition.bottom": {
+    "message": "En bas",
+    "source": "sha256:9777aa9f73ae775741f6da6b6debbd232fb32c68c0880ca887ccd2a822e7a967"
+  },
+  "ios.settings.islandPosition.top": {
+    "message": "En haut",
+    "source": "sha256:250636ac6f210db91413e7f10809e3218296d9932f13ec3f7d2e514ade52d389"
+  },
   "ios.island.stop": {
     "message": "Arrêter le chargement",
     "source": "sha256:7afd60900cf4554c372a6974840bee623d3a7ad10fa18559cd951051493b6ba8"

@@ -227,12 +227,13 @@ final class ReaderController: NSObject, WKURLSchemeHandler, WKScriptMessageHandl
 struct ReaderWebView: UIViewRepresentable {
     let reader: ReaderController
     var islandInset: CGFloat = 0
+    var islandEdge: VerticalEdge = .bottom
     func makeUIView(context: Context) -> WKWebView {
-        WebView.reserveIsland(islandInset, in: reader.webView.scrollView)
+        WebView.reserveIsland(islandInset, at: islandEdge, in: reader.webView.scrollView)
         return reader.webView
     }
     func updateUIView(_ view: WKWebView, context: Context) {
-        WebView.reserveIsland(islandInset, in: view.scrollView)
+        WebView.reserveIsland(islandInset, at: islandEdge, in: view.scrollView)
     }
 }
 

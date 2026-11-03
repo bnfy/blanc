@@ -2519,6 +2519,9 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ios_island_reload">Seite neu laden</string>
     <string name="ios_settings_island_tuck">Island beim Scrollen ausblenden</string>
     <string name="ios_settings_island_tuck_hint">Die Island verschwindet, wenn du eine Seite nach unten scrollst, und kommt zurück, sobald du nach oben scrollst.</string>
+    <string name="ios_settings_island_position">Position der Island</string>
+    <string name="ios_settings_island_position_bottom">Unten</string>
+    <string name="ios_settings_island_position_top">Oben</string>
     <string name="ios_island_stop">Laden stoppen</string>
     <string name="ios_island_page_actions">Seitenaktionen</string>
     <string name="ios_island_collapse">Island einklappen</string>

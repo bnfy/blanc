@@ -261,7 +261,11 @@ mobile is a single full-screen surface with system insets.
   brings it back. It never tucks on the Start Page, with VoiceOver on, or while
   the Spaces menu, palette panel or a banner over it shows. Settings →
   Hide the Island while scrolling (on by default, device-local
-  `islandTucksOnScroll`, never synced) keeps it always on screen. This is the
+  `islandTucksOnScroll`, never synced) keeps it always on screen, and Settings
+  → Island position (`islandPosition`, `bottom` by default or `top`, also
+  device-local) moves it to the top of the screen, where it tucks upward, its
+  notices, Spaces menu and unfolded-Duo palette hang below it, a swipe down
+  opens the tab grid, and the Start Page moves its header below it. This is the
   owner's deliberate choice for the phone, where the Island is under the
   thumb; desktop's August 2026 rejection of a scroll-away Island (it would
   make the desktop Island transient chrome) still stands, and D29's
