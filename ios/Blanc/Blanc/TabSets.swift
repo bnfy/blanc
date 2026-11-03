@@ -16,6 +16,10 @@ struct SavedSet: Codable, Equatable {
     var tabs: [SavedTab] = []
     var groups: [TabGroup] = []
     var activeIndex = 0
+    /// Split View (F53): the splits, and each tab's split id parallel to
+    /// `tabs`. Kept on this device only, as on desktop: never synced.
+    var splits: [SavedSplit]?
+    var splitIds: [String?]?
 }
 
 /// A Space on this phone. Local unless it has a `sharedId` (M17c).

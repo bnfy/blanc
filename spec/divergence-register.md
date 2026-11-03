@@ -739,8 +739,10 @@ never crosses a workspace. Only the number of panes and the presentation
 differ.
 
 **Status:** Proposed 2026-10-21 in
-`docs/superpowers/specs/2026-10-21-ios-iphone-duo-design.md`. Nothing has
-shipped on iOS.
+`docs/superpowers/specs/2026-10-21-ios-iphone-duo-design.md`. Duo-1 (the
+unfolded Island and palette panel) is in the TestFlight beta and iOS 1.0;
+two-pane Split View (2026-11-03) is on main and unreleased; Glance, fold
+avoidance and multiple windows are not built.
 
 
 ---

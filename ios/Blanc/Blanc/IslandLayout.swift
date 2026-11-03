@@ -13,10 +13,14 @@ struct IslandLayout: Equatable {
     let showsHistoryButtons: Bool
     /// A bottom sheet, or a panel growing up from the Island in its place.
     let palette: Palette
+    /// Split View (F53): a split's panes side by side. Elsewhere its focused
+    /// pane fills the screen, and the split comes back with the room (D30).
+    let showsSplitView: Bool
 
     init(_ horizontal: UserInterfaceSizeClass?, _ vertical: UserInterfaceSizeClass?) {
         let unfolded = horizontal == .regular && vertical == .regular
         showsHistoryButtons = unfolded
         palette = unfolded ? .panel : .sheet
+        showsSplitView = unfolded
     }
 }
