@@ -25,7 +25,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 export const SESSION_PAGES = ['https://example.com/', 'https://example.org/', 'https://example.net/',
   'https://www.iana.org/help/example-domains', 'https://duckduckgo.com/?q=blanc'];
 const PACKAGE = 'me.bnfy.blanc.dev';
-const COMMAND_LINE = '/data/local/chrome-command-line';
+// A debuggable build reads its switches here, on emulators and on a Pixel.
+const COMMAND_LINE = '/data/local/tmp/chrome-command-line';
 const DEVICE_NETLOG = `/data/data/${PACKAGE}/cache/blanc-netlog.json`;
 
 // A host from a NetLog field: a URL, "host:port", "[v6]:port", or a socket
