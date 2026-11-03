@@ -34,14 +34,64 @@ import XCTest
         XCTAssertEqual(b.shownSetId, work)
     }
 
-    func testLeavingAnUnsavedSetSendsItsTabsToRecentlyClosed() throws {
+    func testLeavingUnsavedTabsAsksFirstThenSendsThemToRecentlyClosed() throws {
         let shared = services()
         let a = TabsManager(services: shared, windowId: "a")
         let b = TabsManager(services: shared, windowId: "b")
         b.createTab(url: URL(string: "https://draft.test/")!)
         let work = try a.createSpace(name: "Work", color: "#426c4c", symbol: "briefcase")
         b.show(set: work)
+        XCTAssertEqual(b.pendingSetSwitch, work, "one unsaved tab: Blanc asks")
+        XCTAssertTrue(b.showsUnsavedSet)
+        XCTAssertEqual(b.setName(work), "Work")
+        b.show(set: work, closingUnsaved: true)
+        XCTAssertEqual(b.shownSetId, work)
+        XCTAssertNil(b.pendingSetSwitch)
         XCTAssertTrue(shared.recentlyClosed.rows.contains { $0.url == "https://draft.test/" })
+    }
+
+    func testAnUntouchedNewWindowSwitchesWithoutAsking() throws {
+        let shared = services()
+        let a = TabsManager(services: shared, windowId: "a")
+        let b = TabsManager(services: shared, windowId: "b")
+        let work = try a.createSpace(name: "Work", color: "#426c4c", symbol: "briefcase")
+        b.show(set: work)
+        XCTAssertNil(b.pendingSetSwitch)
+        XCTAssertEqual(b.shownSetId, work)
+    }
+
+    func testTheSwitchCanOpenInAnotherWindowInstead() throws {
+        let shared = services()
+        var opened: [WindowRequest] = []
+        shared.openWindowAction = { opened.append($0) }
+        let a = TabsManager(services: shared, windowId: "a")
+        let b = TabsManager(services: shared, windowId: "b")
+        b.createTab(url: URL(string: "https://draft.test/")!)
+        let work = try a.createSpace(name: "Work", color: "#426c4c", symbol: "briefcase")
+        b.show(set: work)
+        b.showPendingSetInNewWindow()
+        XCTAssertTrue(b.showsUnsavedSet, "this window keeps its tabs")
+        XCTAssertTrue(b.tabs.contains { $0.currentURL.host == "draft.test" })
+        let c = TabsManager(services: shared, windowId: try XCTUnwrap(opened.last).id.uuidString)
+        XCTAssertEqual(c.shownSetId, work)
+    }
+
+    func testSeveralClosedPagesAreOneEntryThatReopensAsAWindow() throws {
+        let shared = services()
+        var opened: [WindowRequest] = []
+        shared.openWindowAction = { opened.append($0) }
+        let a = TabsManager(services: shared, windowId: "a")
+        shared.recordClosedTabs([SavedTab(url: "https://one.test/", title: "One"),
+                                 SavedTab(url: "https://two.test/", title: "Two"),
+                                 SavedTab(url: TabsManager.newTabURL.absoluteString, title: "")])
+        XCTAssertEqual(a.closedWindows.count, 1)
+        XCTAssertEqual(a.closedWindows[0].tabs.map(\.url), ["https://one.test/", "https://two.test/"])
+        XCTAssertFalse(shared.recentlyClosed.rows.contains { $0.url == "https://one.test/" }, "one entry, not rows")
+        guard UIApplication.shared.supportsMultipleScenes else { return }
+        a.reopenClosedWindow(a.closedWindows[0])
+        XCTAssertTrue(a.closedWindows.isEmpty)
+        let reopened = TabsManager(services: shared, windowId: try XCTUnwrap(opened.last).id.uuidString)
+        XCTAssertEqual(reopened.tabs.compactMap(\.currentURL.host), ["one.test", "two.test"])
     }
 
     func testMovingATabCarriesThePageAndReplacesTheStartPage() {

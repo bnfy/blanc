@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import WebKit
 
 /// What all of the app's windows share: settings, history, sync, Favorites
@@ -124,6 +125,17 @@ final class BrowserServices {
         openWindowAction?(WindowRequest(moveTabId: tabId))
     }
 
+    /// Sets new windows should show when they open, by window id.
+    private var pendingShows: [String: String] = [:]
+    func takePendingShow(_ windowId: String) -> String? { pendingShows.removeValue(forKey: windowId) }
+
+    /// A new window showing This iPhone or a Space.
+    func openNewWindow(showing setId: String) {
+        let request = WindowRequest()
+        pendingShows[request.id.uuidString] = setId
+        openWindowAction?(request)
+    }
+
     /// The window, open or set aside, that shows `setId`, other than `window`.
     func window(showing setId: String, except window: TabsManager) -> String? {
         if let open = windows.first(where: { $0 !== window && $0.shownSetId == setId }) { return open.windowId }
@@ -162,13 +174,44 @@ final class BrowserServices {
 
     private func recordClosedWindow(_ entry: SavedWindow) {
         guard entry.showsUnsavedSet, let set = entry.set else { return }
-        for tab in set.tabs where SharedSpacesAdapter.isHTTP(tab.url) {
+        recordClosedTabs(set.tabs)
+    }
+
+    /// Tabs that closed together with no set to keep them (a window's unsaved
+    /// set): one Recently closed entry for the lot, or a plain row for a
+    /// single page. Other devices hear of each page, as from any close.
+    func recordClosedTabs(_ tabs: [SavedTab]) {
+        let pages = tabs.filter { SharedSpacesAdapter.isHTTP($0.url) }
+        let now = Int64(Date().timeIntervalSince1970 * 1000)
+        var ids: [String] = []
+        for tab in pages {
             let id = UUID().uuidString.lowercased()
-            recentlyClosed.add(ClosedRow(id: id, url: tab.url, title: tab.title,
-                                         closedAt: Int64(Date().timeIntervalSince1970 * 1000),
-                                         spaceId: nil, fromId: nil, fromName: nil))
+            ids.append(id)
             syncEngine.recordClosed(url: tab.url, title: tab.title, id: id, spaceId: nil)
         }
+        if pages.count == 1, let tab = pages.first, let id = ids.first {
+            recentlyClosed.add(ClosedRow(id: id, url: tab.url, title: tab.title, closedAt: now,
+                                         spaceId: nil, fromId: nil, fromName: nil))
+        } else if pages.count > 1 {
+            recentlyClosed.addWindow(ClosedWindow(id: UUID().uuidString.lowercased(), closedAt: now, tabs: pages))
+        }
+    }
+
+    /// Sets that windows about to open should show, by window id.
+    private var pendingSets: [String: SavedSet] = [:]
+    func takePendingSet(_ windowId: String) -> SavedSet? { pendingSets.removeValue(forKey: windowId) }
+
+    /// Opens a closed window's pages again in a window of their own, or, where
+    /// there's only ever one window, as tabs in `fallback`.
+    func reopen(_ window: ClosedWindow, fallback: TabsManager) {
+        recentlyClosed.removeWindow(window.id)
+        guard UIApplication.shared.supportsMultipleScenes, let openWindowAction else {
+            for tab in window.tabs { fallback.createTab(url: URL(string: tab.url) ?? TabsManager.newTabURL, title: tab.title) }
+            return
+        }
+        let request = WindowRequest()
+        pendingSets[request.id.uuidString] = SavedSet(tabs: window.tabs, activeIndex: max(window.tabs.count - 1, 0))
+        openWindowAction(request)
     }
 
     // MARK: Settings
