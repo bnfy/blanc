@@ -123,6 +123,20 @@ test('the press gate runs acceptance through the rerunning gate', () => {
   assert.equal(pkg.scripts['test:acceptance:desktop'], 'cucumber-js -c test/desktop/cucumber.mjs -p runnable', 'nightly and PR runs stay plain');
 });
 
+test('an owner press waiver skips only the press gate and prints its reason', () => {
+  const release = fs.readFileSync(path.join(root, 'scripts', 'release.sh'), 'utf8');
+  const block = release.match(/  if \[ -n "\$\{BLANC_RELEASE_PRESS_WAIVER:-\}" \]; then\n([\s\S]*?)\n  fi\n/);
+  assert.ok(block, 'the waiver wraps the press gate');
+  assert.match(block[1], /echo "    Waiver: \$BLANC_RELEASE_PRESS_WAIVER"/);
+  assert.match(block[1], /  else\n    npm run release:verify:press$/);
+  assert.equal(release.split('npm run release:verify:press').length, 2, 'the press gate runs nowhere else');
+  const after = release.slice(release.indexOf(block[0]) + block[0].length);
+  assert.match(after, /preflight-mac-signing\.mjs/, 'signing preflight still runs');
+  assert.match(after, /Cleaning and building notarized macOS artifacts/, 'the build still runs');
+  const docs = fs.readFileSync(path.join(root, 'docs', 'release-verification.md'), 'utf8');
+  assert.match(docs, /BLANC_RELEASE_PRESS_WAIVER/);
+});
+
 test('release.sh keeps the Mac awake for the whole release, and the skill says how to record a rerun', () => {
   const release = fs.readFileSync(path.join(root, 'scripts', 'release.sh'), 'utf8');
   assert.match(release, /if command -v caffeinate >\/dev\/null 2>&1; then\n\s+caffeinate -dimsu -w \$\$ &/);

@@ -387,7 +387,15 @@ else
   npm run ublock:distribution
   npm ci
   npm ci --prefix site
-  npm run release:verify:press
+  # An owner waiver skips the press gate alone: every preflight, the build and
+  # every packaged check still run. Its reason names the commit and runs whose
+  # evidence replaces the gate, and belongs in the release incident.
+  if [ -n "${BLANC_RELEASE_PRESS_WAIVER:-}" ]; then
+    echo "==> Press verification gate waived by the owner"
+    echo "    Waiver: $BLANC_RELEASE_PRESS_WAIVER"
+  else
+    npm run release:verify:press
+  fi
 
   echo "==> Preflighting the macOS identity and provisioning profile"
   node scripts/preflight-mac-signing.mjs
