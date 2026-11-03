@@ -9426,6 +9426,30 @@
     "message": "Reload page",
     "note": "iOS Island: accessible name of the reload button."
   },
+  "ios.settings.islandTuck": {
+    "message": "Hide the Island while scrolling",
+    "note": "iOS Settings → Appearance: switch for the Island tucking away while a page scrolls down. On by default."
+  },
+  "ios.settings.islandPosition": {
+    "message": "Position",
+    "note": "iOS Settings → Island: picker for where the Island sits on the screen, under the Island header."
+  },
+  "ios.settings.islandPosition.bottom": {
+    "message": "Bottom",
+    "note": "iOS Settings → Appearance → Island position: along the bottom of the screen (the default)."
+  },
+  "ios.settings.islandPosition.top": {
+    "message": "Top",
+    "note": "iOS Settings → Appearance → Island position: along the top of the screen."
+  },
+  "ios.settings.island": {
+    "message": "Island",
+    "note": "iOS Settings: header over the Island position and hide-while-scrolling rows. The product name Island stays untranslated."
+  },
+  "ios.settings.privacySync": {
+    "message": "Privacy & Sync",
+    "note": "iOS Settings: header over the Blanc Blocker and Sync rows."
+  },
   "ios.island.stop": {
     "message": "Stop loading",
     "note": "iOS Island: accessible name of the reload button while a page loads."

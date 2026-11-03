@@ -2592,6 +2592,12 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ios_island_search_or_switch">Rechercher ou changer d’onglet, %1$s</string>
     <string name="ios_island_show_all_tabs">Afficher tous les onglets</string>
     <string name="ios_island_reload">Actualiser la page</string>
+    <string name="ios_settings_island_tuck">Masquer l’Island pendant le défilement</string>
+    <string name="ios_settings_island_position">Position</string>
+    <string name="ios_settings_island_position_bottom">En bas</string>
+    <string name="ios_settings_island_position_top">En haut</string>
+    <string name="ios_settings_island">Island</string>
+    <string name="ios_settings_privacy_sync">Confidentialité &amp; synchronisation</string>
     <string name="ios_island_stop">Arrêter le chargement</string>
     <string name="ios_island_page_actions">Actions de la page</string>
     <string name="ios_island_collapse">Réduire l’Island</string>

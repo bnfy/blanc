@@ -254,6 +254,22 @@ mobile is a single full-screen surface with system insets.
   strip, its own always-on-top overlay view, and traffic-lights / window controls.
 - **Mobile:** a single surface; the island adapts to safe-area insets; no window
   controls; multi-window is a tablet/foldable consideration, not a phone one.
+- **iOS (2026-11-03, owner request):** the Island floats over every page at
+  the bottom, with the page running behind it, and tucks away below the
+  screen's edge while the person scrolls a website down, as Safari's bar does.
+  A scroll back up, the top or end of the page, a new page or a tab switch
+  brings it back. It never tucks on the Start Page, with VoiceOver on, or while
+  the Spaces menu, palette panel or a banner over it shows. Settings →
+  Hide the Island while scrolling (on by default, device-local
+  `islandTucksOnScroll`, never synced) keeps it always on screen, and Settings
+  → Island position (`islandPosition`, `bottom` by default or `top`, also
+  device-local) moves it to the top of the screen, where it tucks upward, its
+  notices, Spaces menu and unfolded-Duo palette hang below it, a swipe down
+  opens the tab grid, and the Start Page moves its header below it. This is the
+  owner's deliberate choice for the phone, where the Island is under the
+  thumb; desktop's August 2026 rejection of a scroll-away Island (it would
+  make the desktop Island transient chrome) still stands, and D29's
+  pointer-driven auto-hide remains desktop's only hiding mode.
 - **Desktop workspace-local state:** reopen-closed history belongs to the native
   window that closed the tab (F2), and Glance can expose a second tab inside
   that same window (F34). Neither operation may cross a workspace/profile edge.

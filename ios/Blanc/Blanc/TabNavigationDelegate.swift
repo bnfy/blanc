@@ -47,6 +47,7 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
         tab?.hasCommitted = true
+        tab?.showIsland()
         committed(navigation, url: webView.url, title: webView.title ?? "")
     }
 
