@@ -373,11 +373,17 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   Tab (F2). Regression on the Mac mini: ad-blocking, tabs-and-groups,
   navigation-and-context-menu, private-tabs, permissions-and-auth and
   internal-pages are unchanged; three hover-open cases in
-  island-and-commands (lines 61, 87, 99) failed and failed again alone.
-  They need the test window active, and the mini's console then had no
-  frontmost app (a Migration Assistant setup session was logged in), so
-  they are unverified, not known regressions; rerun them on the Mac Studio
-  before relying on this candidate.
+  island-and-commands (lines 61, 87, 99) failed there because the mini's
+  console had no frontmost app (a Migration Assistant setup session was
+  logged in). On the Mac Studio, against the same candidate (built there
+  from d85695e7 with the identical framework hash), all three pass, and
+  island-and-commands, tabs-and-groups, navigation-and-context-menu,
+  ad-blocking and find-favorites-history match F13. There, internal-pages'
+  F16-10 (Sunrise palette) got the dark Sunrise tokens (#17130f card,
+  #f7f0e5 text) because the Studio is in Dark mode; its expectation is the
+  light palette, so that case depends on the machine's appearance, not on
+  N5. The runner now refuses to start on a Node without a global WebSocket
+  (Node 20 had failed every case before the browser did anything).
 - **Live dev instance (owner, 2026-11-03):** after every native build,
   `node chromium/tools/live-dev.mjs <runtime config>` relaunches the
   newest candidate from a copy in `~/Projects/BlancChromium158/live/`,

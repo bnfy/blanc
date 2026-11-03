@@ -1,15 +1,101 @@
 'use strict';
+// Clean-link logic from shipping v1.45.0; preserve raw query bytes.
+const TRACKING_EXACT = new Set([
+  'fbclid', 'gclid', 'dclid', 'gbraid', 'wbraid', 'msclkid', 'ttclid',
+  'twclid', 'igshid', 'yclid', 'mc_eid', '_openstat', 'vero_id', 's_cid',
+]);
+
+function isTrackingParam(rawName) {
+  // Match on the DECODED name: %75tm_source reaches every standards-compliant
+  // consumer (URLSearchParams, server query parsers) as utm_source, so it must
+  // be stripped too. Only the match decodes — surviving segments keep their
+  // original bytes. An undecodable name falls back to its raw form.
+  let name = rawName;
+  try {
+    name = decodeURIComponent(rawName);
+  } catch {}
+  name = name.toLowerCase();
+  return name.startsWith('utm_') || TRACKING_EXACT.has(name);
+}
+
+/**
+ * Strip known tracking parameters from an http(s) URL.
+ *
+ * Operates on the RAW string, never a URL/URLSearchParams round-trip:
+ * surviving parameters must keep their original order and their original
+ * encoding byte-for-byte (URLSearchParams re-encodes `%20`↔`+` and
+ * normalizes unreserved characters, which corrupts signed URLs). new URL()
+ * is used only to validate the scheme.
+ *
+ * @param {string} text - the address bar's visible text
+ * @returns {string|null} cleaned URL, or null when text isn't an http(s) URL
+ */
+function cleanLink(text) {
+  const trimmed = String(text ?? '').trim();
+  let protocol;
+  try {
+    ({ protocol } = new URL(trimmed));
+  } catch {
+    return null;
+  }
+  if (protocol !== 'http:' && protocol !== 'https:') return null;
+
+  // Split raw string: fragment starts at the first '#'; the query is between
+  // the first '?' BEFORE that and the fragment. A '?' inside the fragment is
+  // fragment text, not a query.
+  const hashIndex = trimmed.indexOf('#');
+  const beforeFragment = hashIndex === -1 ? trimmed : trimmed.slice(0, hashIndex);
+  const fragment = hashIndex === -1 ? '' : trimmed.slice(hashIndex);
+  const queryIndex = beforeFragment.indexOf('?');
+  if (queryIndex === -1) return trimmed;
+
+  const base = beforeFragment.slice(0, queryIndex);
+  const kept = beforeFragment
+    .slice(queryIndex + 1)
+    .split('&')
+    .filter((segment) => !isTrackingParam(segment.split('=', 1)[0]));
+
+  return base + (kept.length ? `?${kept.join('&')}` : '') + fragment;
+}
+
+
+// Native warning is authoritative; absence or an unknown value is not a
+// secure-state claim. Never pass credentials, path or query into site info.
+function securityWarningSiteInfo(tab, translate) {
+  if (tab?.securityWarning !== 'warning' && tab?.securityWarning !== 'dangerous') return null;
+  let origin = '', host = '';
+  try { const url = new URL(tab.committedUrl); origin = url.origin === 'null' ? '' : url.origin; host = url.hostname; } catch {}
+  const message = (key, fallback) => {
+    const value = translate?.(key);
+    return typeof value === 'string' && value && value !== key ? value : fallback;
+  };
+  return { state: 'insecure', origin, host, certificate: null,
+    blockedCount: Number.isFinite(tab.blockedCount) ? Math.max(0, Math.trunc(tab.blockedCount)) : 0,
+    title: message('siteSecurity.certException.title', 'Not secure'),
+    summary: message('siteInfo.hint.chromium', 'Security details are supplied by Chromium.') };
+}
+
+
 (() => {
   let nextId = 0;
   let snapshot = null;
+  let settingsOpenPending = null;
+  let settingsOpenPendingKey = null;
+  let tabSelection = BlancTabSelection.emptySelection();
+  const selectionTabs = () => (snapshot?.tabs ?? []).map(tab => ({ ...tab, splitId: snapshot.splits?.find(split => split.tabIds.includes(tab.id))?.id ?? null }));
   let serialized = '';
   let pillRect = null;
   let opened = false;
   let overlayMode = null;
+  let shieldTrigger = null;
+  let pendingShieldOpen = null;
   let findTabId = null;
-  let refreshing = false;
+  let findShowEpoch = 0;
+  let pendingFindShow = null;
+  let refreshQueue = Promise.resolve();
   let extensionsOpened = false;
   let geometry = "";
+  let geometryGeneration = 0;
   let blockerRecoveryShown = false;
   let layout = localStorage.getItem('blanc.prototype.tabLayout') === 'vertical' ? 'vertical' : 'island';
   let railWidth = Math.max(200, Math.min(360, Number(localStorage.getItem('blanc.prototype.railWidth')) || 248));
@@ -27,6 +113,7 @@
   }
   const pending = new Map();
   const subscribers = new Map();
+  const overlayShowDocuments = new WeakMap();
   const strip = document.getElementById('strip');
   const overlay = document.getElementById('overlay');
   const tooltip = document.createElement('div');
@@ -35,20 +122,48 @@
   tooltip.hidden = true;
   document.body.append(tooltip);
 
-  function notice(message) {
+  const snapshotTimeoutMarker = Symbol('snapshot timeout');
+  let snapshotRefreshAttempt = 0;
+  let lastNotice = null;
+  function notice(message, snapshotTimeoutAttempt = null) {
+    lastNotice = { message, snapshotTimeoutAttempt };
     const status = document.getElementById('status');
     status.textContent = message;
     status.hidden = false;
     console.warn(message);
   }
 
-  function subscribe(event, callback) {
+  function pruneOverlayShowSubscribers() {
+    const current = overlay.contentDocument;
+    const listeners = subscribers.get('onOverlayShow');
+    for (const callback of listeners ?? []) {
+      if (!current || overlayShowDocuments.get(callback) !== current) listeners.delete(callback);
+    }
+    return listeners;
+  }
+
+  function subscribe(event, callback, ownerDocument = overlay.contentDocument) {
     if (!subscribers.has(event)) subscribers.set(event, new Set());
+    if (event === 'onOverlayShow') {
+      if (!ownerDocument || ownerDocument !== overlay.contentDocument) return () => {};
+      pruneOverlayShowSubscribers();
+      overlayShowDocuments.set(callback, ownerDocument);
+    }
     subscribers.get(event).add(callback);
+    // The renderer can subscribe after a Find request was opened. Deliver the
+    // pending handoff once its handler has finished registering.
+    if (event === 'onOverlayShow' && pendingFindShow) {
+      const epoch = pendingFindShow.epoch;
+      queueMicrotask(() => deliverFindShow(epoch));
+    }
+    if (event === 'onSplitLayout') queueMicrotask(() => {
+      if (subscribers.get(event)?.has(callback)) callback(currentSplitLayout());
+    });
     return () => subscribers.get(event)?.delete(callback);
   }
 
   function emit(event, value) {
+    if (event === 'onOverlayShow') pruneOverlayShowSubscribers();
     for (const callback of subscribers.get(event) ?? []) {
       try { callback(value); } catch (error) { notice(error.message); }
     }
@@ -59,9 +174,11 @@
       const id = String(++nextId);
       const timeout = ['extensionContextMenu', 'closeSplit', 'closeTab'].includes(method) ? null : setTimeout(() => {
         pending.delete(id);
-        reject(new Error(`Native bridge timed out: ${method}`));
+        const error = new Error(`Native bridge timed out: ${method}`);
+        if (method === 'snapshot') error[snapshotTimeoutMarker] = true;
+        reject(error);
       }, 10000);
-      pending.set(id, { resolve, reject, timeout });
+      pending.set(id, { resolve, reject, timeout, method });
       chrome.send('blancPrototype', [id, method, args]);
     });
   }
@@ -97,6 +214,22 @@
   divider.append(document.createElement('span'));
   document.body.append(divider);
   function visibleSplit() { return snapshot?.splits?.find(s => s.tabIds.includes(snapshot.activeTabId)); }
+  function currentSplitLayout() {
+    const split = visibleSplit();
+    const geometry = snapshot?.splitGeometry;
+    if (!split || !geometry?.frames || geometry.frames.length !== split.tabIds.length) return null;
+    const panes = split.tabIds.map((tabId, index) => ({
+      tabId,
+      frame: { ...geometry.frames[index] },
+      focused: tabId === (snapshot.focusedTabId ?? snapshot.activeTabId),
+      private: !!snapshot.tabs.find(tab => tab.id === tabId)?.private,
+    }));
+    const rect = geometry.divider;
+    const dividers = geometry.mode === 'columns' && rect?.width > 0 && rect?.height > 0
+      ? [{ index: 0, axis: 'x', rect: { ...rect }, saved: true }] : [];
+    return { splitId: split.id, panes, dividers };
+  }
+
   let resizeQueue = Promise.resolve();
   function resizeSplit(pair, ratio) {
     ratio = Math.max(.2, Math.min(.8, ratio));
@@ -299,9 +432,15 @@
     else emit('onTabsUpdated', snapshot);
   }
 
-  async function refresh() {
-    if (refreshing) return;
-    refreshing = true;
+  function refresh() {
+    // Each caller awaits a snapshot requested after its preceding mutation.
+    // Returning early during a polling refresh exposed stale selection state.
+    refreshQueue = refreshQueue.then(refreshNow, refreshNow);
+    return refreshQueue;
+  }
+
+  async function refreshNow() {
+    const attempt = ++snapshotRefreshAttempt;
     try {
       snapshot = await request('snapshot');
       const pill = strip.contentDocument?.getElementById('islandPill');
@@ -341,6 +480,50 @@
       for (const key of ['focusedTabId', 'glanceTabId']) {
         if (snapshot[key] != null) snapshot[key] = String(snapshot[key]);
       }
+      const enabled = snapshot.adblockEnabled;
+      const health = snapshot.blockerHealth;
+      const blockerStatus = !enabled ? 'Blanc Blocker is not enabled'
+        : health === 'ready' ? 'Blanc Blocker is active'
+        : health === 'unavailable' ? 'Blanc Blocker needs attention; requests remain blocked'
+        : 'Blanc Blocker is starting; requests are held';
+      const t = (key, values) => strip.contentWindow?.blancI18n?.t(key, values) ?? blockerStatus;
+      for (const tab of snapshot.tabs) {
+        tab.connection = BlancShieldModel.connectionFor({ url: tab.committedUrl, isLoading: tab.isLoading });
+        tab.siteInfo = securityWarningSiteInfo(tab, key => strip.contentWindow?.blancI18n?.t(key));
+        tab.shield = BlancShieldModel.shieldChipState({
+          url: tab.url, blockedCount: tab.blockedCount, excepted: tab.adblockExcepted === true,
+          adblockEnabled: enabled, t,
+        });
+        // Native fail-closed health must never look like ready protection.
+        if (tab.shield.mode !== 'hidden' && enabled && health !== 'ready') {
+          tab.shield = { mode: health === 'unavailable' ? 'off' : 'restarting',
+            count: 0, title: blockerStatus };
+        }
+      }
+      const shieldTab = snapshot.tabs.find(tab => tab.id === snapshot.activeTabId);
+      const shippingShield = shieldTab ? BlancShieldModel.shieldPopoverModel({
+        url: shieldTab.url, blockedCount: shieldTab.blockedCount, excepted: shieldTab.adblockExcepted === true,
+        adblockEnabled: enabled, connection: shieldTab.connection, t,
+      }) : null;
+      snapshot.shieldPopover = shippingShield ? {
+        ...shippingShield,
+        actionTarget: snapshot.boundShieldPolicyActions === true &&
+          typeof shieldTab.searchDocumentId === 'string' && /^[1-9]\d*$/.test(shieldTab.searchDocumentId) &&
+          typeof shieldTab.committedUrl === 'string' && shieldTab.committedUrl
+          ? { tabId: shieldTab.id, documentId: shieldTab.searchDocumentId, url: shieldTab.committedUrl }
+          : null,
+        // Keep the shipping site/global distinction; unhealthy protection has
+        // recovery semantics rather than an apparently active site switch.
+        variant: shieldTab.isLoading || (enabled && health !== 'ready') ? 'recovery' : shippingShield.variant,
+        on: shippingShield.on && health === 'ready', connection: shippingShield.connection,
+        countLine: enabled && health !== 'ready' ? blockerStatus : shippingShield.countLine,
+        controls: { active: 'blanc', choice: 'blanc', disabled: true, hidden: true,
+          restartPending: false, ublockAvailable: false, canOpenUblock: false,
+          activeLabel: 'Active', detail: blockerStatus, availability: '',
+          scope: shieldTab.private ? 'Private window' : '' },
+      } : null;
+      tabSelection = BlancTabSelection.pruneSelection(tabSelection, selectionTabs());
+      snapshot.selectedTabIds = [...tabSelection.selectedTabIds];
       const items = strip.contentWindow?.TabSections?.itemsOf(snapshot.tabs) ?? [];
       const beforeIndex = items.findIndex(item => item.id === closedBefore);
       snapshot.closedSlot = beforeIndex < 0 ? items.length : beforeIndex;
@@ -355,18 +538,48 @@
       if (next !== serialized) {
         serialized = next;
         emit('onTabsUpdated', snapshot);
+        emit('onSplitLayout', currentSplitLayout());
+      }
+      // A newer fully processed snapshot can retire only its own older timeout.
+      // Preserve any later unrelated notice and wait while any snapshot is pending.
+      const status = document.getElementById('status');
+      if (lastNotice?.snapshotTimeoutAttempt != null &&
+          lastNotice.snapshotTimeoutAttempt < attempt &&
+          ![...pending.values()].some(entry => entry.method === 'snapshot') &&
+          !status.hidden && status.textContent === lastNotice.message) {
+        status.textContent = '';
+        status.hidden = true;
+        lastNotice = null;
       }
     } catch (error) {
-      notice(error.message);
-    } finally {
-      refreshing = false;
+      notice(error.message, error?.[snapshotTimeoutMarker] ? attempt : null);
     }
   }
 
+  // Shipping chrome-layout.js: 404px view, 380px card, centered on the
+  // measured trigger and clamped inside the window. CSS paints the card.
+  function positionShield() {
+    if (!opened || overlayMode !== 'shield') {
+      for (const key of ['left', 'top', 'width', 'height', 'right', 'bottom']) overlay.style[key] = '';
+      return;
+    }
+    const trigger = strip.contentDocument?.getElementById(shieldTrigger === 'insecure' ? 'pillInsecure' : 'pillShield');
+    const rect = trigger?.getBoundingClientRect();
+    const stripRect = strip.getBoundingClientRect();
+    const width = Math.min(404, Math.max(0, innerWidth - 24));
+    const center = rect ? stripRect.x + rect.x + rect.width / 2 : innerWidth / 2;
+    const x = Math.max(12, Math.min(Math.round(center + width / 2) - width, innerWidth - width - 12));
+    const y = rect ? Math.ceil(Math.max(0, Math.min(stripRect.y + rect.bottom, 68))) : 68;
+    Object.assign(overlay.style, {left: x + 'px', top: y + 'px', right: 'auto', bottom: 'auto',
+      width: width + 'px', height: Math.min(580, Math.max(0, innerHeight - y)) + 'px'});
+    emit('onShieldAnchor', {x: Math.max(32, Math.min(width - 32, center - x)), connected: !!rect});
+  }
+
   function reportGeometry() {
+    positionShield();
     const slot = strip.contentDocument?.getElementById('nativeExtensions');
     const panel = paneMenu ?? (extensionsOpened ? document.getElementById('extensionsPanel')
-      : opened ? overlay.contentDocument?.getElementById(overlayMode === 'find' ? 'findBar' : 'islandPanel')
+      : opened ? overlay.contentDocument?.getElementById(overlayMode === 'find' ? 'findBar' : overlayMode === 'shield' ? 'shieldPop' : 'islandPanel')
       : strip.contentDocument?.getElementById('islandPill'));
     if (!slot || !panel) return;
     const a = slot.getBoundingClientRect();
@@ -374,16 +587,36 @@
     const b = opened && overlayMode === 'palette'
       ? { x: 0, y: 0, width: innerWidth, height: innerHeight }
       : panel.getBoundingClientRect();
-    const offsetY = opened && overlayMode === 'find' ? 68 : 0;
-    const values = [a.x, a.y, a.width, a.height, b.x, b.y + offsetY, b.width, b.height, ...splitCornerWidths].map(Math.round);
+    const overlayRect = opened ? overlay.getBoundingClientRect() : {x: 0, y: 0};
+    const offsetY = opened && overlayMode !== 'palette' ? overlayRect.y : 0;
+    const offsetX = opened && overlayMode !== 'palette' ? overlayRect.x : 0;
+    const values = [a.x, a.y, a.width, a.height, b.x + offsetX, b.y + offsetY, b.width, b.height, ...splitCornerWidths].map(Math.round);
+    // Preserve a separate caption hit region for the visible pill while a
+    // panel is open. Older native builds still receive the 10-value protocol.
+    if (snapshot?.separateHeaderHitRegion === true) {
+      const pill = strip.contentDocument?.getElementById('islandPill');
+      const stripStyle = getComputedStyle(strip);
+      const visible = pill && stripStyle.visibility === 'visible' && stripStyle.display !== 'none' &&
+        strip.contentWindow?.getComputedStyle(pill).visibility === 'visible';
+      const h = visible ? pill.getBoundingClientRect() : {x: 0, y: 0, width: 0, height: 0};
+      const sr = strip.getBoundingClientRect();
+      values.push(...[h.x + sr.x, h.y + sr.y, h.width, h.height].map(Math.round));
+    }
     const next = JSON.stringify(values);
     if (next !== geometry) {
       geometry = next;
-      request('geometry', values).catch(error => notice(error.message));
+      const generation = ++geometryGeneration;
+      request('geometry', values).catch(error => {
+        // An obsolete failure must not invalidate a newer geometry report.
+        if (generation === geometryGeneration) geometry = '';
+        notice(error.message);
+      });
     }
   }
 
-  async function show(prefill, mode = 'panel') {
+  async function show(prefill, mode = 'panel', purpose, trigger = null) {
+    invalidateFindShow(mode === 'shield');
+    const epoch = findShowEpoch;
     if (overlayMode === 'find') emit('onOverlayHide', {});
     findTabId = null;
     overlay.dataset.mode = mode;
@@ -392,13 +625,17 @@
     extensionsPanel.hide();
     strip.style.visibility = '';
     await refresh();
-    await request('height', [mode === 'palette' ? 10000 : 640]);
+    if (epoch !== findShowEpoch) return;
+    await request('height', [mode === 'palette' ? 10000 : mode === 'shield' ? 648 : 640]);
+    if (epoch !== findShowEpoch) return;
     overlayMode = mode;
+    shieldTrigger = mode === 'shield' ? trigger : null;
     opened = true;
     overlay.hidden = false;
-    emit('onIslandState', { mode });
+    emit('onIslandState', { mode, trigger: shieldTrigger });
     requestAnimationFrame(() => {
-      emit('onOverlayShow', { mode, prefill, pillRect });
+      if (epoch !== findShowEpoch || !opened || overlayMode !== mode) return;
+      emit('onOverlayShow', { mode, prefill, pillRect, purpose });
       reportGeometry();
       if (prefill !== undefined) {
         const input = overlay.contentDocument.getElementById('addressInput');
@@ -409,9 +646,33 @@
     });
   }
 
+  // A backgrounded host can stop receiving animation frames. The timer also
+  // attempts the handoff, while a late listener retries it at registration.
+  // Epochs prevent a delayed callback from reopening a closed/replaced view.
+  function invalidateFindShow(preserveShield = false) {
+    if (!preserveShield) pendingShieldOpen = null;
+    ++findShowEpoch;
+    pendingFindShow = null;
+  }
+
+  function deliverFindShow(epoch) {
+    const pending = pendingFindShow;
+    if (!pending || pending.epoch !== epoch || epoch !== findShowEpoch ||
+        !opened || overlayMode !== 'find' || findTabId !== pending.tabId ||
+        !pruneOverlayShowSubscribers()?.size) return;
+    pendingFindShow = null;
+    emit('onOverlayShow', { mode: 'find', purpose: { findTabId: pending.tabId } });
+    // A callback may synchronously close or replace the overlay.
+    if (epoch !== findShowEpoch || !opened || overlayMode !== 'find') return;
+    overlay.contentWindow.focus();
+    reportGeometry();
+  }
+
   async function openFindBar() {
+    invalidateFindShow();
+    const epoch = findShowEpoch;
     await refresh();
-    if (!snapshot?.activeTabId) return;
+    if (epoch !== findShowEpoch || !snapshot?.activeTabId) return;
     if (overlayMode !== 'find') emit('onOverlayHide', {});
     extensionsOpened = false;
     extensionsPanel.hide();
@@ -427,18 +688,20 @@
     overlayMode = 'find';
     overlay.dataset.mode = 'find';
     await request('height', [228]);
+    if (epoch !== findShowEpoch) return;
     opened = true;
     overlay.hidden = false;
     emit('onIslandState', { mode: 'find' });
-    requestAnimationFrame(() => {
-      emit('onOverlayShow', { mode: 'find', purpose: { findTabId } });
-      overlay.contentWindow.focus();
-      reportGeometry();
-    });
+    pendingFindShow = { epoch, tabId: findTabId };
+    requestAnimationFrame(() => deliverFindShow(epoch));
+    setTimeout(() => deliverFindShow(epoch), 250);
   }
 
   async function close(focus = true) {
+    invalidateFindShow();
+    const epoch = findShowEpoch;
     await dismissPaneMenu();
+    if (epoch !== findShowEpoch) return;
     tooltip.hidden = true;
     extensionsOpened = false;
     extensionsPanel.hide();
@@ -447,14 +710,17 @@
     emit('onIslandState', { mode: null });
     opened = false;
     overlayMode = null;
+    shieldTrigger = null;
     findTabId = null;
     overlay.dataset.mode = '';
     overlay.hidden = true;
     await request('height', [68]);
+    if (epoch !== findShowEpoch) return;
     // Escape and outside clicks return focus to the page (Electron's
     // hideOverlay does the same); extension activation passes false so the
     // native popup takes focus instead.
     if (focus) await request('focusPage');
+    if (epoch !== findShowEpoch) return;
     reportGeometry();
   }
 
@@ -462,18 +728,23 @@
     request, close, refreshGeometry: reportGeometry, back: () => show(),
   });
   async function showExtensions() {
+    invalidateFindShow();
+    const epoch = findShowEpoch;
     if (extensionsOpened) return close();
     emit('onOverlayHide', {});
     emit('onIslandState', { mode: null });
     opened = false;
     overlayMode = null;
+    shieldTrigger = null;
     findTabId = null;
     overlay.dataset.mode = '';
     overlay.hidden = true;
     extensionsOpened = true;
     strip.style.visibility = 'hidden';
     await request('height', [640]);
+    if (epoch !== findShowEpoch) return;
     await extensionsPanel.show();
+    if (epoch !== findShowEpoch) return;
     reportGeometry();
   }
   document.addEventListener('pointerdown', event => {
@@ -503,6 +774,43 @@
 
   const implemented = {
     platform: 'darwin',
+    startPinMenuState: id => request('startPinMenuState', [nativeId(id)]),
+    toggleStartPin: (id, expectedUrl) => request('toggleStartPin', [nativeId(id), expectedUrl]),
+    setShieldSitePolicy: async (target, expectedOn) => {
+      if (!target || nativeId(target.tabId) < 0 || typeof target.documentId !== 'string' ||
+          !/^[1-9]\d*$/.test(target.documentId) || typeof target.url !== 'string' ||
+          !target.url || typeof expectedOn !== 'boolean') throw new Error('Reopen site protection.');
+      try {
+        const value = await request('setShieldSitePolicy', [nativeId(target.tabId), target.documentId, target.url, expectedOn]);
+        await refresh(); return value;
+      } catch (error) { notice(error.message); throw error; }
+    },
+    openShieldPopover: async anchor => {
+      const trigger = anchor?.trigger === 'insecure' ? 'insecure' : 'shield';
+      if (pendingShieldOpen) {
+        const same = pendingShieldOpen.trigger === trigger;
+        invalidateFindShow();
+        if (same) return;
+      }
+      if (opened && overlayMode === 'shield') {
+        if (shieldTrigger === trigger) return close(false);
+        shieldTrigger = trigger;
+        emit('onIslandState', { mode: 'shield', trigger });
+        reportGeometry();
+        return;
+      }
+      invalidateFindShow();
+      const token = { trigger, epoch: findShowEpoch };
+      pendingShieldOpen = token;
+      try {
+        await refresh();
+        if (pendingShieldOpen !== token || token.epoch !== findShowEpoch ||
+            !snapshot?.shieldPopover) return;
+        await show(undefined, 'shield', undefined, trigger);
+      } finally {
+        if (pendingShieldOpen === token) pendingShieldOpen = null;
+      }
+    },
     setTabLayout: async value => { layout = value === 'vertical' ? 'vertical' : 'island'; await applyRail(true); return layout; },
     setVerticalTabsWidth: async width => { railWidth = Number(width) || 248; return applyRail(true); },
     previewVerticalTabsWidth: async width => { railWidth = Number(width) || 248; return applyRail(); },
@@ -519,6 +827,22 @@
       tooltip.style.top = `${Math.max(0, Math.min(44, anchor.y + anchor.height + 4))}px`;
     },
     hideTooltip: () => { tooltip.hidden = true; },
+    duplicateTab: async id => {
+      const result = await request('duplicateTab', [nativeId(id)]);
+      await refresh();
+      return result;
+    },
+    openRenameTab: async id => {
+      await refresh();
+      const tab = snapshot?.tabs.find(item => item.id === id);
+      if (!tab) throw new Error('Tab no longer exists in this window.');
+      await show(`/rename ${tab.title || ''}`, 'panel', { renameTabId: id });
+    },
+    renameTab: async (id, name) => {
+      const result = await request('renameTab', [nativeId(id), String(name ?? '')]);
+      await refresh();
+      return result;
+    },
     bangs: async () => ({ enabled: false, custom: [], recent: [] }),
     getAllTabs: async () => snapshot ?? request('snapshot'),
     createTab: async (url, options) => {
@@ -532,7 +856,60 @@
       await request('navigate', [nativeId(id), `https://www.google.com/search?q=${encodeURIComponent(query)}`]);
       await refresh();
     },
-    openPage: async (name) => {
+    openPage: async (name, section) => {
+      if (name === 'settings' && (section === 'quiet' || section === 'tabs')) {
+        // Dismiss before opening the native dialog; focusing the page after
+        // ShowQuietSettings would immediately take focus back from it.
+        await close(false);
+        await request('showQuietSettings', [nativeId(snapshot.activeTabId)]);
+        return;
+      }
+      // A capable native build exposes the Blanc settings hub for both the
+      // ordinary Settings action and Shield's Blocking action. Older builds
+      // retain Chromium Settings in regular windows; private windows use the
+      // supported Blanc page so the browser does not redirect into a
+      // separate regular window while reporting tab creation as failed.
+      if (name === 'settings' && (section == null || section === '' ||
+                                  section === 'general' || section === 'blocking')) {
+        const key = section === 'blocking' ? 'blocking' : 'general';
+        if (settingsOpenPending) {
+          if (settingsOpenPendingKey === key) return settingsOpenPending;
+          await settingsOpenPending;
+          return implemented.openPage(name, section);
+        }
+        const operation = (async () => {
+          let current = await request('snapshot');
+          const active = current.tabs?.find(tab => String(tab.id) === String(current.activeTabId));
+          if (!active || typeof active.private !== 'boolean') throw new Error('Settings window is unavailable.');
+          const blanc = section === 'blocking' || active.private || current.canUseBlancSettings === true;
+          const target = blanc ? 'chrome://blanc-prototype/blocking-settings.html' : 'chrome://settings/';
+          const matches = tab => tab.url === target &&
+            (blanc ? tab.private === active.private : !active.private && !tab.private);
+          const existing = current.tabs?.find(matches);
+          if (existing) {
+            try {
+              await request('switchTab', [nativeId(existing.id)]);
+            } catch (error) {
+              current = await request('snapshot');
+              if (current.tabs?.some(tab => String(tab.id) === String(existing.id))) throw error;
+            }
+            current = await request('snapshot');
+            if (!current.tabs?.some(tab => String(tab.id) === String(existing.id) && matches(tab)))
+              await request('createTab', [target]);
+          } else {
+            await request('createTab', [target]);
+          }
+          await close(); await refresh();
+        })();
+        settingsOpenPending = operation;
+        settingsOpenPendingKey = key;
+        try { return await operation; } finally {
+          if (settingsOpenPending === operation) {
+            settingsOpenPending = null;
+            settingsOpenPendingKey = null;
+          }
+        }
+      }
       // Electron names Favorites `bookmarks` internally; Chromium's manager
       // pages stand in for Blanc's utility sheets in this prototype.
       if (!['downloads', 'extensions', 'bookmarks', 'history'].includes(name)) {
@@ -546,17 +923,29 @@
     // `private`; like Electron's main, a private tab is a silent no-op here
     // (prototype.css also hides them under the private theme). The native
     // guard stays as defense in depth.
-    toggleBookmark: async () => {
-      const tab = snapshot?.tabs.find(tab => tab.id === snapshot.activeTabId);
+    toggleBookmark: async (id = snapshot?.activeTabId) => {
+      const tab = snapshot?.tabs.find(tab => tab.id === String(id));
       if (!tab || tab.private) return;
-      await request('toggleBookmark', [nativeId(tab.id)]);
-      await refresh();
+      try {
+        const result = await request('toggleBookmark', [nativeId(tab.id)]);
+        await refresh();
+        return result;
+      } catch (error) {
+        notice(error.message);
+        throw error;
+      }
     },
     saveFavorite: async (folder) => {
       const tab = snapshot?.tabs.find(tab => tab.id === snapshot.activeTabId);
       if (!tab || tab.private) return;
-      await request('saveFavorite', [nativeId(tab.id), typeof folder === 'string' ? folder : '']);
-      await refresh();
+      try {
+        const result = await request('saveFavorite', [nativeId(tab.id), typeof folder === 'string' ? folder : '']);
+        await refresh();
+        return result;
+      } catch (error) {
+        notice(error.message);
+        throw error;
+      }
     },
     // Pin, mute and reorder are TabStripModel operations; the snapshot's
     // pinned/muted/audible fields feed the copied rows and pill unchanged.
@@ -611,6 +1000,44 @@
       const limit = Number.isInteger(options?.limit) ? options.limit : 300;
       return request('listHistory', [Math.min(300, Math.max(1, limit))]);
     },
+    quietDelay: value => request('quietDelay', [nativeId(snapshot.activeTabId), ...(value === undefined ? [] : [value])]),
+    quietEligible: id => request('quietEligible', [nativeId(id)]),
+    quietTab: async id => {
+      const quieted = await request('quietTab', [nativeId(id)]);
+      if (!quieted) throw new Error('This tab cannot be quieted right now.');
+      await refresh();
+      return quieted;
+    },
+    quietState: id => request('quietState', [nativeId(id)]),
+    quietProbe: id => request('quietProbe', [nativeId(id)]),
+    linkCopyState: async (id) => {
+      await refresh();
+      const tab = snapshot?.tabs.find(tab => tab.id === String(id));
+      const url = tab?.url || '';
+      const enabled = /^(https?|file):\/\//.test(url);
+      const cleaned = enabled ? cleanLink(url) : null;
+      return {enabled, url, cleaned: cleaned !== url ? cleaned : null};
+    },
+    copyTabLink: async (id, expected, cleaned = null) =>
+      request('copyTabLink', [nativeId(id), String(expected), cleaned === null ? String(expected) : String(cleaned)]),
+    // Bind /copy to the focused pane at invocation. Native code rechecks the
+    // window-owned tab, committed URL and pending navigation before writing.
+    copyActiveLink: async (clean = false) => {
+      if (snapshot?.canCopyActiveLink !== true) return false;
+      const id = snapshot?.focusedTabId ?? snapshot?.activeTabId;
+      const tab = snapshot?.tabs.find(item => item.id === id);
+      const url = tab?.url || '';
+      if (!/^(https?|file):\/\//.test(url)) return false;
+      const text = clean ? (cleanLink(url) ?? url) : url;
+      try {
+        const copied = await request('copyTabLink', [nativeId(id), url, text]);
+        if (copied === true) emit('onPillNotice', clean ? 'clean-link-copied' : 'link-copied');
+        return copied === true;
+      } catch (error) {
+        notice(error.message);
+        return false;
+      }
+    },
     listRemoteTabs: async () => [],
     // Internal migration probes; no user-facing Glance acceptance yet.
     createSplit: async (first, second) => {
@@ -618,9 +1045,46 @@
       if (!result) throw new Error('These tabs can no longer be split.');
       await close(); await refresh(); return result;
     },
-    resizeSplit: async (pair, ratio) => request('resizeSplit', [...pair.map(nativeId), ratio]),
+    resizeSplit: async (target, indexOrRatio, axis, point) => {
+      // Preserve the existing pair API while accepting the shipping renderer's
+      // divider coordinates. Resolve identity against a fresh native snapshot.
+      if (Array.isArray(target)) return request('resizeSplit', [...target.map(nativeId), indexOrRatio]);
+      await refresh();
+      const split = visibleSplit();
+      const geometry = snapshot?.splitGeometry;
+      if (!split || split.id !== target || split.tabIds.length !== 2 ||
+          geometry?.mode !== 'columns' || indexOrRatio !== 0 || axis !== 'x' ||
+          !Number.isFinite(point?.x) || !Number.isFinite(point?.y) ||
+          !Number.isFinite(geometry.originX) || !(geometry.usableWidth > 0)) return false;
+      const ratio = (point.x - geometry.originX) / geometry.usableWidth;
+      const result = await request('resizeSplit', [...split.tabIds.map(nativeId), ratio]);
+      await refresh();
+      return result;
+    },
+    resetSplit: async (splitId) => {
+      await refresh();
+      const split = visibleSplit();
+      if (!split || split.id !== splitId || split.tabIds.length !== 2 || snapshot.splitGeometry?.mode !== 'columns') return false;
+      const result = await request('resizeSplit', [...split.tabIds.map(nativeId), 0.5]);
+      await refresh();
+      return result;
+    },
     removeFromSplit: async id => { await request('removeFromSplit', [nativeId(id)]); await refresh(); },
     previewSplitPair: (main, reference) => request('previewSplitPair', [nativeId(main), nativeId(reference)]),
+    selectTab: async (id, mode) => {
+      await refresh();
+      if (!snapshot) return null;
+      const { focusId, ...next } = BlancTabSelection.selectTabs(tabSelection, selectionTabs(), snapshot.groups ?? [], snapshot.activeTabId, id, mode);
+      tabSelection = next;
+      snapshot.selectedTabIds = [...next.selectedTabIds];
+      emit('onTabsUpdated', snapshot);
+      return focusId;
+    },
+    keepGlanceAsSplit: async () => {
+      const result = await request('keepGlanceAsSplit');
+      await refresh();
+      return result;
+    },
     previewGlancePair: (main, reference) => request('previewGlancePair', [nativeId(main), nativeId(reference)]),
     previewGlanceClose: id => request('previewGlanceClose', [nativeId(id)]),
     previewPageCommand: command => request('previewPageCommand', [command]),
@@ -644,7 +1108,7 @@
     closeOverlay: close,
     reportIslandRect: (rect) => { pillRect = rect; reportGeometry(); },
     reportChromeLayout: () => {},
-    reportPanelDrawn: () => emit('onIslandCovered'),
+    reportPanelDrawn: () => { emit('onIslandCovered'); reportGeometry(); },
     // Shared panel cleanup runs even though this prototype has no workspace actions.
     cancelWorkspaceAction: () => {},
     setWorkspaceSwitcherOpen: () => {},
@@ -682,8 +1146,21 @@
     },
   });
 
+  // Capture the iframe Document when its adapter starts. A callback from an
+  // obsolete realm must not register itself as the new overlay document.
+  function apiForDocument(ownerDocument) {
+    return new Proxy(api, {
+      get(target, property) {
+        if (property === 'onOverlayShow')
+          return callback => subscribe(property, callback, ownerDocument);
+        return target[property];
+      },
+    });
+  }
+
   window.BlancPrototypeHost = {
     api,
+    apiForDocument,
     notice,
     open: (newTab = false, text = '') => {
       if (!newTab && opened && overlayMode !== 'find') { emit('onOverlayToggle'); return; }

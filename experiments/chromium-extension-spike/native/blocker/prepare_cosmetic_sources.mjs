@@ -16,7 +16,7 @@ const expectedHeader=fs.readFileSync(path.join(output,'bundle_hash.h'),'utf8');
 if(!expectedHeader.includes('"'+manifest.bundleSha256+'"'))
  throw Error('cosmetic bundle header mismatch');
 const write=(file,data)=>{if(!fs.existsSync(file)||!fs.readFileSync(file).equals(Buffer.from(data)))fs.writeFileSync(file,data)};
-for(const name of ['blocker.mojom','blocker_service.h','blocker_service.cc','blocker_proxy.h','blocker_proxy.cc','cosmetic_document.inc','cosmetic_renderer.inc'])write(path.join(src,'chrome/services/blanc_blocker',name),fs.readFileSync(path.join(here,name)));
+for(const name of ['blocker.mojom','blocker_service.h','blocker_service.cc','blocker_proxy.h','blocker_proxy.cc','shield_count.inc','blocking_policy.inc','cosmetic_document.inc','cosmetic_renderer.inc'])write(path.join(src,'chrome/services/blanc_blocker',name),fs.readFileSync(path.join(here,name)));
 write(path.join(src,'chrome/services/blanc_blocker/bundle_hash.h'),fs.readFileSync(path.join(output,'bundle_hash.h')));
 const procedural=fs.readFileSync(path.join(output,'procedural.js'),'utf8');
 write(path.join(src,'chrome/services/blanc_blocker/procedural_renderer.h'),`inline constexpr char kBlancProceduralRenderer[] = ${JSON.stringify(procedural)};\n`);

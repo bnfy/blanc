@@ -6,3 +6,9 @@ export const FRAME_PROBE=timeout=>`new Promise(r=>{const t=setTimeout(()=>r(fals
 export async function assertRendering(evaluate,{timeout=2000}={}){
  if(await evaluate(FRAME_PROBE(timeout))!==true)throw new EnvironmentStop(`Stopping: the test browser received no animation frame in ${timeout} ms (display asleep or locked). No result recorded.`);
 }
+// The driver talks to the browser over a WebSocket, which Node has as a
+// global only from 22. On an older Node every case fails before the browser
+// does anything, so refuse to start rather than record those results.
+export function assertNodeRuntime(g=globalThis,version=process.version){
+ if(typeof g.WebSocket!=='function')throw new EnvironmentStop(`Stopping: Node ${version} has no global WebSocket; the runner needs Node 22 or later. No result recorded.`);
+}

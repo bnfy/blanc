@@ -45,6 +45,13 @@ inline constexpr char kPersistentSplitKey[] = "blanc.split.persistent.v1";
 std::string PersistentSplitState(content::WebContents* tab);
 bool IsPersistentSplitTab(content::WebContents* tab);
 bool HasSplitPresentation(content::WebContents* tab);
+inline constexpr char kTabNameKey[] = "blanc.tab.name.v1";
+std::string CustomTabName(content::WebContents* tab);
+std::string PersistentTabName(content::WebContents* tab);
+void RestoreCustomTabName(content::WebContents* tab,
+    const std::map<std::string, std::string>& extra_data);
+bool RenameTab(BrowserWindowInterface* browser, content::WebContents* tab,
+               const std::string& raw);
 inline constexpr char kTabIdentityKey[] = "blanc.tab.identity.v1";
 std::string TabIdentity(content::WebContents* tab);
 void RestoreTabIdentity(content::WebContents* tab,

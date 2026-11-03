@@ -1,3 +1,26 @@
+#include "services/network/public/mojom/web_sandbox_flags.mojom.h"
+#include "chrome/browser/ui/blanc_tab_name_rules.h"
+#include "chrome/browser/ui/blanc_quiet_probe.h"
+#include "chrome/browser/ui/blanc_quiet_strings.h"
+#include "chrome/browser/ui/blanc_quiet_media.h"
+#include "chrome/browser/ui/blanc_quiet_schedule.h"
+#include "chrome/browser/browser_process.h"
+#include "base/path_service.h"
+#include "chrome/common/chrome_constants.h"
+#include "chrome/common/chrome_paths.h"
+#include "base/timer/timer.h"
+#include "ui/base/models/simple_combobox_model.h"
+#include "ui/views/controls/combobox/combobox.h"
+#include "ui/views/layout/box_layout.h"
+#include "ui/views/accessibility/view_accessibility.h"
+#include "net/base/network_change_notifier.h"
+#include "components/permissions/permission_request_manager.h"
+#include "components/performance_manager/public/performance_manager.h"
+#include "chrome/browser/performance_manager/policies/discard_eligibility_policy.h"
+#include "chrome/browser/performance_manager/policies/cannot_discard_reason.h"
+#include "chrome/browser/performance_manager/policies/page_discarding_helper.h"
+#include "chrome/browser/resource_coordinator/tab_lifecycle_unit_external.h"
+#include "third_party/blink/public/mojom/frame/sudden_termination_disabler_type.mojom.h"
 #include "base/task/single_thread_task_runner.h"
 #include "ui/views/window/dialog_delegate.h"
 #include "chrome/browser/lifetime/application_lifetime.h"
@@ -6,12 +29,15 @@
 #include "ui/views/border.h"
 #include "chrome/browser/extensions/extension_uninstall_dialog.h"
 // Copyright 2026 Bananify Creative. MIT; see the Blanc repository LICENSE.
+#include "chrome/browser/ssl/chrome_security_state_util.h"
+#include "components/security_state/core/security_state.h"
 #include "chrome/browser/themes/theme_service.h"
 #include "chrome/browser/themes/theme_service_factory.h"
 #include "chrome/browser/themes/theme_properties.h"
 #include "chrome/browser/themes/custom_theme_supplier.h"
 #include "chrome/grit/theme_resources.h"
 #include "ui/base/theme_provider.h"
+#include "ui/base/clipboard/scoped_clipboard_writer.h"
 #include "chrome/browser/sessions/session_restore.h"
 #include "chrome/browser/sessions/session_service_factory.h"
 #include "chrome/browser/ui/blanc_prototype_ui.h"
@@ -29,10 +55,12 @@
 #include <algorithm>
 #include <memory>
 #include <limits>
+#include <cstdint>
 #include <map>
 #include <optional>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include "base/base64.h"
 #include "base/strings/escape.h"
@@ -48,6 +76,7 @@
 #include "base/json/json_writer.h"
 #include "base/task/sequenced_task_runner.h"
 #include "base/functional/bind.h"
+#include "base/callback_list.h"
 #include "base/functional/callback_helpers.h"
 #include "base/i18n/case_conversion.h"
 #include "base/memory/raw_ptr.h"
@@ -60,6 +89,9 @@
 #include "base/strings/utf_string_conversions.h"
 #include "base/supports_user_data.h"
 #include "base/task/cancelable_task_tracker.h"
+#include "base/barrier_callback.h"
+#include "chrome/browser/favicon/favicon_service_factory.h"
+#include "components/favicon/core/favicon_service.h"
 #include "base/task/thread_pool.h"
 #include "base/task/bind_post_task.h"
 #include "base/time/time.h"
@@ -73,17 +105,21 @@
 #include "chrome/browser/ui/browser_live_tab_context.h"
 #include "components/sessions/core/tab_restore_service.h"
 #include "components/prefs/pref_service.h"
+#include "components/prefs/pref_change_registrar.h"
 #include "components/sessions/core/live_tab.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/history/top_sites_factory.h"
 #include "chrome/browser/ui/browser_window/public/global_browser_collection.h"
 #include "components/bookmarks/browser/base_bookmark_model_observer.h"
+#include "components/bookmarks/browser/bookmark_client.h"
 #include "components/bookmarks/browser/bookmark_model.h"
 #include "components/bookmarks/browser/bookmark_node.h"
 #include "components/bookmarks/browser/url_and_title.h"
 #include "components/bookmarks/common/bookmark_metrics.h"
+#include "components/bookmarks/common/bookmark_pref_names.h"
 #include "components/history/core/browser/history_service.h"
+#include "components/history/core/browser/history_service_observer.h"
 #include "components/history/core/browser/history_types.h"
 #include "components/history/core/browser/top_sites.h"
 #include "components/history/core/browser/top_sites_observer.h"
@@ -92,6 +128,7 @@
 #include "content/public/browser/favicon_status.h"
 #include "content/public/browser/navigation_entry.h"
 #include "content/public/browser/web_contents_delegate.h"
+#include "third_party/icu/source/common/unicode/ustring.h"
 #include "third_party/blink/public/mojom/frame/find_in_page.mojom.h"
 #include "ui/views/controls/webview/unhandled_keyboard_event_handler.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
@@ -125,6 +162,7 @@
 #include "content/public/browser/render_process_host.h"
 #include "content/public/browser/child_process_security_policy.h"
 #include "content/public/browser/web_contents.h"
+#include "content/public/browser/weak_document_ptr.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "content/public/browser/render_widget_host_view.h"
 #include "content/public/browser/render_widget_host.h"
@@ -200,7 +238,7 @@ base::Value NullableString(const std::string& value) {
 // GetFavicon() returns the cached image and schedules a load when there is
 // none yet; BookmarkNodeFaviconChanged then refreshes open start pages.
 base::DictValue FavoriteRecord(bookmarks::BookmarkModel* model,
-                               const bookmarks::BookmarkNode* node) {
+                               const bookmarks::BookmarkNode* node, bool include_favicons) {
   const auto* parent = node->parent();
   const bool in_folder = parent && !parent->is_permanent_node();
   const std::u16string title = node->GetTitle();
@@ -208,7 +246,8 @@ base::DictValue FavoriteRecord(bookmarks::BookmarkModel* model,
       .Set("id", base::NumberToString(node->id()))
       .Set("url", node->url().spec())
       .Set("title", title.empty() ? node->url().spec() : base::UTF16ToUTF8(title))
-      .Set("favicon", NullableString(FaviconDataUrl(model->GetFavicon(node))))
+      .Set("favicon", include_favicons ? NullableString(FaviconDataUrl(model->GetFavicon(node)))
+                                       : base::Value())
       .Set("addedAt", node->date_added().InMillisecondsFSinceUnixEpoch())
       .Set("folder", in_folder ? base::Value(base::UTF16ToUTF8(parent->GetTitle()))
                                : base::Value());
@@ -216,73 +255,128 @@ base::DictValue FavoriteRecord(bookmarks::BookmarkModel* model,
 
 void CollectFavorites(bookmarks::BookmarkModel* model,
                       const bookmarks::BookmarkNode* node,
-                      base::ListValue& items) {
+                      base::ListValue& items, bool include_favicons) {
   for (const auto& child : node->children()) {
     if (items.size() >= kFavoritesLimit) return;
     if (child->is_folder()) {
-      CollectFavorites(model, child.get(), items);
+      CollectFavorites(model, child.get(), items, include_favicons);
     } else if (child->is_url() && IsFavoritable(child->url())) {
-      items.Append(FavoriteRecord(model, child.get()));
+      items.Append(FavoriteRecord(model, child.get(), include_favicons));
     }
   }
 }
 
 // Every bookmark in the profile, in Chromium's own order (bar, other, mobile;
 // folders flattened in place), capped. An unloaded model lists nothing.
-base::ListValue ListFavorites(bookmarks::BookmarkModel* model) {
+base::ListValue ListFavorites(bookmarks::BookmarkModel* model, bool include_favicons = true) {
   base::ListValue items;
-  if (model) CollectFavorites(model, model->root_node(), items);
+  if (model) CollectFavorites(model, model->root_node(), items, include_favicons);
   return items;
 }
 
 // Electron's folderKey(): trimmed, case-insensitive. Returns nullopt for a
 // name Electron's validFolder() would reject, so the caller writes nothing.
+bool IsJavaScriptTrimSpace(char16_t c) {
+  return (c >= 0x0009 && c <= 0x000d) || c == 0x0020 || c == 0x00a0 ||
+         c == 0x1680 || (c >= 0x2000 && c <= 0x200a) || c == 0x2028 ||
+         c == 0x2029 || c == 0x202f || c == 0x205f || c == 0x3000 ||
+         c == 0xfeff;
+}
 std::optional<std::u16string> ValidFolderName(const std::string& folder) {
-  std::u16string trimmed;
-  base::TrimWhitespace(base::UTF8ToUTF16(folder), base::TRIM_ALL, &trimmed);
+  const std::u16string value = base::UTF8ToUTF16(folder);
+  size_t begin = 0, end = value.size();
+  while (begin < end && IsJavaScriptTrimSpace(value[begin])) ++begin;
+  while (end > begin && IsJavaScriptTrimSpace(value[end - 1])) --end;
+  const std::u16string trimmed = value.substr(begin, end - begin);
   if (trimmed.empty() || trimmed.size() > kFolderMaxLength) return std::nullopt;
   return trimmed;
 }
 
-// `/save <folder>` targets a folder directly under Other bookmarks, matched
+// JavaScript's toLowerCase is locale-independent. The ICU root locale avoids
+// moving an existing Favorite merely because the machine uses Turkish casing.
+std::optional<std::u16string> FavoriteFolderKey(const std::u16string& value) {
+  UErrorCode status = U_ZERO_ERROR;
+  const auto* input = reinterpret_cast<const UChar*>(value.data());
+  const auto length = static_cast<int32_t>(value.size());
+  const int32_t needed = u_strToLower(nullptr, 0, input, length, "", &status);
+  if (status != U_BUFFER_OVERFLOW_ERROR && U_FAILURE(status)) return std::nullopt;
+  status = U_ZERO_ERROR;
+  std::u16string output(needed + 1, u'\0');
+  const int32_t written = u_strToLower(reinterpret_cast<UChar*>(output.data()),
+                                       needed + 1, input, length, "", &status);
+  if (U_FAILURE(status) || written < 0 || written > needed) return std::nullopt;
+  output.resize(written);
+  return output;
+}
+
+// Keep a moved Favorite in its original Chromium storage. Account and local
+// bookmark trees are persisted independently; moving between them is not a
+// safe implementation of Blanc's folder action.
+const bookmarks::BookmarkNode* FavoriteStorageOtherRoot(
+    bookmarks::BookmarkModel* model, const bookmarks::BookmarkNode* node) {
+  if (!node) return model->other_node();
+  const auto* root = node;
+  while (root->parent() && !root->is_permanent_node()) root = root->parent();
+  if (root == model->bookmark_bar_node() || root == model->other_node() ||
+      root == model->mobile_node()) return model->other_node();
+  if (root == model->account_bookmark_bar_node() ||
+      root == model->account_other_node() || root == model->account_mobile_node())
+    return model->account_other_node();
+  return nullptr;
+}
+
+// `/save <folder>` targets Other bookmarks in the source storage, matched
 // like Electron (Work and work are one folder), created at the end if absent.
 const bookmarks::BookmarkNode* FindOrCreateFolder(bookmarks::BookmarkModel* model,
-                                                  const std::u16string& name) {
-  const auto* parent = model->other_node();
-  const std::u16string key = base::i18n::ToLower(name);
+                                                  const std::u16string& name,
+                                                  const bookmarks::BookmarkNode* parent) {
+  if (!parent) return nullptr;
+  const auto key = FavoriteFolderKey(name);
+  if (!key) return nullptr;
   for (const auto& child : parent->children()) {
-    if (child->is_folder() && base::i18n::ToLower(child->GetTitle()) == key)
-      return child.get();
+    if (child->is_folder() && !model->client()->IsNodeManaged(child.get())) {
+      const auto title = ValidFolderName(base::UTF16ToUTF8(child->GetTitle()));
+      const auto child_key = title ? FavoriteFolderKey(*title) : std::nullopt;
+      if (title && !child_key) return nullptr;
+      if (child_key && *child_key == *key) return child.get();
+    }
   }
   return model->AddFolder(parent, parent->children().size(), name);
 }
 
-// Toggle semantics, defined before any removal: a page is a Favorite while
-// any user bookmark carries its exact URL. Turning it off removes every such
-// node across folders (Chromium's own star bubble Remove does the same, and
-// Electron's store holds one entry per URL), and never removes a folder, even
-// one it empties. Managed or otherwise non-user-editable nodes are left alone.
-bool ToggleFavorite(bookmarks::BookmarkModel* model, const GURL& url,
-                    const std::u16string& title) {
-  if (model->IsBookmarked(url)) {
-    for (int guard = 0; guard < 64; ++guard) {
-      const auto* node = model->GetMostRecentlyAddedUserNodeForURL(url);
-      if (!node) break;
-      model->Remove(node, bookmarks::metrics::BookmarkEditSource::kUser, FROM_HERE);
-    }
+bool CanEditFavorites(Profile* profile) {
+  if (!profile || profile->IsOffTheRecord()) return false;
+  auto* prefs = profile->GetPrefs();
+  return prefs && prefs->FindPreference(bookmarks::prefs::kEditBookmarksEnabled) &&
+         prefs->GetBoolean(bookmarks::prefs::kEditBookmarksEnabled);
+}
+
+// Shipping toggles URL-keyed Favorites, while Chromium may have several
+// distinct bookmarks for the same URL in different folders or storage roots.
+// Never guess which copy to delete. Managed-only or ambiguous matches leave
+// every node untouched until the user chooses one in the bookmark manager.
+std::optional<bool> ToggleFavorite(bookmarks::BookmarkModel* model, const GURL& url,
+                                   const std::u16string& title) {
+  const auto matches = model->GetNodesByURL(url);
+  if (!matches.empty()) {
+    if (matches.size() != 1) return std::nullopt;
+    const auto* node = model->GetMostRecentlyAddedUserNodeForURL(url);
+    if (!node || node != matches.front().get()) return std::nullopt;
+    model->Remove(node, bookmarks::metrics::BookmarkEditSource::kUser, FROM_HERE);
     return model->IsBookmarked(url);
   }
   const auto* parent = model->other_node();
-  model->AddNewURL(parent, parent->children().size(),
-                   title.empty() ? base::UTF8ToUTF16(url.spec()) : title, url);
+  if (!parent || !model->AddNewURL(parent, parent->children().size(),
+                    title.empty() ? base::UTF8ToUTF16(url.spec()) : title, url))
+    return std::nullopt;
   return true;
 }
 
 // `/save [folder]`, mirroring Electron's applySaveFavorite(): add-only; an
 // already saved page is a no-op for a bare save and moves for a named folder;
 // an invalid folder name writes nothing.
-bool SaveFavorite(bookmarks::BookmarkModel* model, const GURL& url,
-                  const std::u16string& title, const std::string& folder) {
+std::optional<bool> SaveFavorite(bookmarks::BookmarkModel* model, const GURL& url,
+                                 const std::u16string& title, const std::string& folder) {
   const bool wants_folder = !folder.empty();
   std::optional<std::u16string> name;
   if (wants_folder) {
@@ -290,15 +384,34 @@ bool SaveFavorite(bookmarks::BookmarkModel* model, const GURL& url,
     if (!name) return model->IsBookmarked(url);
   }
   if (model->IsBookmarked(url)) {
+    // A bare save is add-only and needs no choice among existing matches.
+    if (!name) return true;
+    // A named move must identify one editable node before creating a folder
+    // or moving anything. Chromium allows duplicates across storage roots.
+    const auto matches = model->GetNodesByURL(url);
+    if (matches.size() != 1) return std::nullopt;
     const auto* node = model->GetMostRecentlyAddedUserNodeForURL(url);
-    if (node && name) {
-      const auto* target = FindOrCreateFolder(model, *name);
+    if (!node || node != matches.front().get()) return std::nullopt;
+    if (name) {
+      const auto* current = node->parent();
+      const auto existing_name = current && !current->is_permanent_node()
+          ? ValidFolderName(base::UTF16ToUTF8(current->GetTitle())) : std::nullopt;
+      if (existing_name) {
+        const auto existing_key = FavoriteFolderKey(*existing_name);
+        const auto requested_key = FavoriteFolderKey(*name);
+        if (!existing_key || !requested_key) return std::nullopt;
+        if (*existing_key == *requested_key) return true;
+      }
+      const auto* target = FindOrCreateFolder(model, *name, FavoriteStorageOtherRoot(model, node));
+      if (!target) return std::nullopt;
       if (node->parent() != target)
         model->Move(node, target, target->children().size());
     }
     return true;
   }
-  const auto* parent = name ? FindOrCreateFolder(model, *name) : model->other_node();
+  const auto* parent = name ? FindOrCreateFolder(model, *name, FavoriteStorageOtherRoot(model, nullptr))
+                            : model->other_node();
+  if (!parent) return std::nullopt;
   model->AddNewURL(parent, parent->children().size(),
                    title.empty() ? base::UTF8ToUTF16(url.spec()) : title, url);
   return true;
@@ -585,6 +698,8 @@ class Owner : public base::SupportsUserData::Data,
   explicit Owner(BrowserWindowInterface* value) : browser(value) {
     Live().insert(this);
     browser->GetTabStripModel()->AddObserver(this);
+    for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
+      blanc::quiet::MediaHistory::Get(browser->GetTabStripModel()->GetWebContentsAt(i));
   }
   raw_ptr<BrowserWindowInterface> browser;
   raw_ptr<views::WebView> view = nullptr;
@@ -613,6 +728,8 @@ class Owner : public base::SupportsUserData::Data,
   int rail_width = 248;
   gfx::Rect extension_bounds;
   gfx::Rect interactive_bounds;
+  // The Island can remain interactive above a separately positioned panel.
+  gfx::Rect header_interactive_bounds;
   base::DictValue split_geometry;
   std::array<int, 2> split_corner_widths = {240, 240};
   std::vector<gfx::Rect> split_hit_regions;
@@ -813,8 +930,11 @@ class Owner : public base::SupportsUserData::Data,
     Arm(base::TimeTicks::Now() < burst_until_ ? base::Milliseconds(80)
                                            : base::Milliseconds(250));
   }
-  void OnTabStripModelChanged(TabStripModel*, const TabStripModelChange&,
+  void OnTabStripModelChanged(TabStripModel*, const TabStripModelChange& change,
                               const TabStripSelectionChange& selection) override {
+    if (change.type() == TabStripModelChange::kInserted)
+      for (const auto& inserted : change.GetInsert()->contents)
+        blanc::quiet::MediaHistory::Get(inserted.contents, true);
     for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
       SiteMuteTab::Get(browser->GetTabStripModel()->GetWebContentsAt(i));
     if (!selection.active_tab_changed()) return;
@@ -1021,6 +1141,8 @@ bool IsAsset(const std::string& path) {
   static constexpr const char* kAssets[] = {
       "pages/newtab.html", "pages/newtab.js", "pages/close.svg", "pages/newtab-wallpaper.js", "pages/start-site-name.js", "pages/pages.css", "pages/type-to-open.js", "pages/bangs.js", "pages/bangs-catalog.js", "pages/i18n.js", "pages/sunrise-mark.png", "pages/icon-sunrise.png", "pages/icon-sunrise-dark.png", "pages/onboarding-island-dark.png", "pages/onboarding-island-light.png", "pages/start-page-sunrise.png", "pages/start-page-day.png", "pages/start-page-dusk.png", "pages/start-page-night.png", "pages/caveat-latin.woff2", "pages/select-caret.svg", "pages/select-caret-dark.svg", "pages/strings.js", "pages/newtab-adapter.js", "pages/start-page-paint.js", "pages/space-identity.js", "pages/newtab-prototype.css",
       "host.html", "host.js", "host.css", "extensions.js", "extensions.css",
+      "tab-selection.js", "shield-model.js", "selection-tab-sections.js",
+      "blocking-settings.html", "blocking-settings.js", "blocking-settings-adapter.js",
       "icons/search.svg", "icons/settings.svg", "icons/external-link.svg", "icons/chevron-left.svg", "adapter.js", "prototype.css",
       "index.html", "overlay.html", "styles.css", "renderer.js", "overlay.js",
       "strings.js", "i18n.js", "tab-drag.js", "tab-sections.js", "vertical-tabs.js",
@@ -1029,18 +1151,69 @@ bool IsAsset(const std::string& path) {
       "installed-theme.js", "pages/installed-theme.js",
       "pages/sunrise-favicon-mark.png", "pages/inter-latin.woff2",
       "pages/instrument-sans-latin-wdth-normal.woff2",
-      "pages/jetbrains-mono-latin.woff2"};
+      "pages/jetbrains-mono-latin.woff2", "pages/roboto-flex-clock.woff2",
+      "pages/clock-ink.js", "pages/clock-art.js", "pages/start-pins.js",
+      "pages/newtab-shared-spaces.js", "pages/pages-neutral.css",
+      "pages/shipping-clock-style.js", "pages/billboard-clock-adapter.js"};
   return std::ranges::any_of(kAssets,
                             [&](const char* item) { return path == item; });
 }
 
+constexpr char kInterfaceLanguagePref[] = "blanc.prototype.ui_language";
+
+bool IsInterfaceLanguage(std::string_view value) {
+  return value == "system" || value == "en" || value == "de" ||
+         value == "es" || value == "fr" || value == "it" || value == "pt-BR";
+}
+
+struct InterfaceLanguageWriteState {
+  bool pending = false;
+  bool unconfirmed = false;
+};
+InterfaceLanguageWriteState& LanguageWriteState() {
+  static InterfaceLanguageWriteState state;
+  return state;
+}
+
+// PrefService's write callback only orders disk operations; it does not report
+// write success. Confirm the expected value in the closed-on-read Local State
+// snapshot before claiming the choice is durable or offering a restart.
+bool ConfirmInterfaceLanguageOnDisk(base::FilePath path, std::string expected) {
+  std::string bytes;
+  if (!base::ReadFileToStringWithMaxSize(path, &bytes, 32 * 1024 * 1024)) return false;
+  auto data = base::JSONReader::ReadDict(bytes, base::JSON_PARSE_CHROMIUM_EXTENSIONS);
+  if (!data) return false;
+  const auto* value = data->FindByDottedPath(kInterfaceLanguagePref);
+  return value && value->is_string() && value->GetString() == expected;
+}
+
+// Freeze the saved device-wide choice once Local State is available. A change
+// is used only by the next browser process, including in private windows.
+std::string ActiveInterfaceLanguageSetting() {
+  static base::NoDestructor<std::optional<std::string>> active;
+  if (!*active) {
+    auto* prefs = g_browser_process ? g_browser_process->local_state() : nullptr;
+    if (!prefs || !prefs->FindPreference(kInterfaceLanguagePref)) return "system";
+    const std::string stored = prefs->GetString(kInterfaceLanguagePref);
+    *active = IsInterfaceLanguage(stored) ? stored : "system";
+  }
+  return **active;
+}
+
 scoped_refptr<base::RefCountedMemory> ReadAsset(base::FilePath root,
-                                               std::string path) {
+                                               std::string path,
+                                               std::string interface_language) {
   std::string bytes;
   if (!IsAsset(path) ||
       !base::ReadFileToStringWithMaxSize(root.AppendASCII(path), &bytes,
                                         4 * 1024 * 1024)) {
     return nullptr;
+  }
+  if ((path == "strings.js" || path == "pages/strings.js" ||
+       path == "glance/strings.js") &&
+      interface_language != "system" && IsInterfaceLanguage(interface_language)) {
+    // The value is from a fixed allowlist, never page data or a file path.
+    bytes = "globalThis.__blancUiLanguage=\"" + interface_language + "\";\n" + bytes;
   }
   return base::MakeRefCounted<base::RefCountedString>(std::move(bytes));
 }
@@ -1112,6 +1285,16 @@ std::optional<int> ClosedSplitFocus(const sessions::tab_restore::Entry& entry) {
   return focused < 0 ? std::nullopt : std::make_optional(focused);
 }
 
+std::string ClosedTabTitle(const sessions::tab_restore::Tab& tab) {
+  if (auto saved = tab.extra_data.find(kTabNameKey); saved != tab.extra_data.end()) {
+    if (auto name = tab_names::Normalize(base::UTF8ToUTF16(saved->second)))
+      return base::UTF16ToUTF8(*name);
+  }
+  if (tab.navigations.empty()) return "";
+  const auto& nav = tab.navigations[tab.normalized_navigation_index()];
+  return nav.title().empty() ? nav.virtual_url().spec() : base::UTF16ToUTF8(nav.title());
+}
+
 base::ListValue ClosedEntries(Profile* profile) {
   base::ListValue result;
   auto* service = ClosedService(profile);
@@ -1127,7 +1310,7 @@ base::ListValue ClosedEntries(Profile* profile) {
       const auto& tab = static_cast<const sessions::tab_restore::Tab&>(entry);
       if (tab.navigations.empty()) continue;
       const auto& nav = tab.navigations[tab.normalized_navigation_index()];
-      title = base::UTF16ToUTF8(nav.title());
+      title = ClosedTabTitle(tab);
       url = nav.virtual_url().spec();
       if (title.empty()) title = url;
     } else if (entry.type == GROUP) {
@@ -1139,8 +1322,12 @@ base::ListValue ClosedEntries(Profile* profile) {
       count = static_cast<const Window&>(entry).tabs.size();
       title = "Window";
     } else {
-      count = static_cast<const Split&>(entry).tabs.size();
-      title = "Split view";
+      const auto& split = static_cast<const Split&>(entry);
+      count = split.tabs.size();
+      for (size_t i = 0; i < split.tabs.size(); ++i) {
+        if (i) title += " + ";
+        title += ClosedTabTitle(*split.tabs[i]);
+      }
     }
     result.Append(base::DictValue().Set("id", base::NumberToString(entry.id.id()))
         .Set("title", title).Set("url", url).Set("tabCount", count));
@@ -1606,6 +1793,46 @@ base::DictValue InstalledTheme(Profile* profile, bool images = false) {
   return result;
 }
 
+// Only report an existing Chromium warning for the committed visible page.
+// A missing/ambiguous state is not evidence that the page is secure.
+base::Value CommittedSecurityWarning(content::WebContents* contents) {
+  if (!contents || contents->IsCrashed() || !contents->GetPrimaryMainFrame() ||
+      !contents->GetPrimaryMainFrame()->IsRenderFrameLive())
+    return base::Value();
+  auto& controller = contents->GetController();
+  const auto* committed = controller.GetLastCommittedEntry();
+  if (!committed || committed->IsInitialEntry() || controller.GetPendingEntry() ||
+      controller.GetVisibleEntry() != committed ||
+      committed->GetURL() != contents->GetPrimaryMainFrame()->GetLastCommittedURL())
+    return base::Value();
+  const int entry_id = committed->GetUniqueID();
+  const GURL committed_url = committed->GetURL();
+  const auto weak_contents = contents->GetWeakPtr();
+  const auto weak_document = contents->GetPrimaryMainFrame()->GetWeakDocumentPtr();
+  const auto state = chrome_security_state::GetVisibleSecurityState(contents);
+  if (!weak_contents || weak_contents->IsCrashed() || !state ||
+      state->url != committed_url)
+    return base::Value();
+  auto& current = weak_contents->GetController();
+  const auto* current_entry = current.GetLastCommittedEntry();
+  auto* current_frame = weak_contents->GetPrimaryMainFrame();
+  if (!current_entry || current_entry->GetUniqueID() != entry_id ||
+      current_entry->GetURL() != committed_url || current.GetPendingEntry() ||
+      current.GetVisibleEntry() != current_entry || !current_frame ||
+      weak_document.AsRenderFrameHostIfValid() != current_frame ||
+      !current_frame->IsRenderFrameLive() ||
+      current_frame->GetLastCommittedURL() != committed_url)
+    return base::Value();
+  switch (security_state::GetSecurityLevel(*state)) {
+    case security_state::WARNING:
+      return base::Value("warning");
+    case security_state::DANGEROUS:
+      return base::Value("dangerous");
+    default:
+      return base::Value();
+  }
+}
+
 base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
   owner->SyncActive();
   auto* model = browser->GetTabStripModel();
@@ -1628,13 +1855,26 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("url", contents->GetVisibleURL() == GURL("chrome://newtab/") ||
                                   contents->GetLastCommittedURL() == GURL("chrome://blanc-prototype/pages/newtab.html")
                               ? "blanc://newtab/" : contents->GetVisibleURL().spec())
-                    .Set("title", base::UTF16ToUTF8(contents->GetTitle()))
+                    .Set("committedUrl", committed.spec())
+                    .Set("searchDocumentId", base::NumberToString(contents->GetPrimaryMainFrame()->GetNavigationId()))
+                    .Set("title", CustomTabName(contents).empty() ? base::UTF16ToUTF8(contents->GetTitle()) : CustomTabName(contents))
+                    .Set("pageTitle", CustomTabName(contents).empty() ? base::Value() : base::Value(base::UTF16ToUTF8(contents->GetTitle())))
+                    .Set("asleep", [&] {
+                      auto* lifecycle = resource_coordinator::TabLifecycleUnitExternal::FromWebContents(contents);
+                      return lifecycle && lifecycle->GetTabState() == ::mojom::LifecycleUnitState::DISCARDED;
+                    }())
+                    .Set("securityWarning", CommittedSecurityWarning(contents))
+                    .Set("blockedCount", blanc::ShieldBlockedCount(contents))
+                    .Set("adblockExcepted", blanc::BlockingSiteExcepted(browser->GetProfile(), committed))
                     .Set("favicon", NullableString(owner->TabFavicon(tab_id, contents)))
                     .Set("bookmarked", favorites && IsFavoritable(committed) &&
                                            favorites->IsBookmarked(committed))
                     .Set("pageBg", contents == model->GetActiveWebContents()
                         ? owner->page_tint : "")
                     .Set("isLoading", contents->IsLoading())
+                    .Set("canDuplicate", !controller.GetPendingEntry() &&
+                        !contents->GetPrimaryMainFrame()->IsSandboxed(network::mojom::WebSandboxFlags::kAll) &&
+                        chrome::CanDuplicateTabAt(browser, index))
                     .Set("canGoBack", controller.CanGoBack())
                     .Set("canGoForward", controller.CanGoForward())
                     .Set("pinned", model->IsTabPinned(index))
@@ -1643,8 +1883,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("siteMuted", AudioHost(contents).empty() ? base::Value() : base::Value(audio->SiteMuted()))
                     .Set("audible", contents->IsCurrentlyAudible())
                     .Set("private", browser->GetProfile()->IsOffTheRecord())
-                    .Set("groupId", group ? base::Value(group->ToString()) : base::Value())
-                    .Set("blockedCount", 0));
+                    .Set("groupId", group ? base::Value(group->ToString()) : base::Value()));
   }
   owner->PruneFaviconCache(live_tab_ids);
   // Blanc's TabGroup records: {id, name, collapsed}, in cluster order.
@@ -1702,6 +1941,8 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       ? browser_view->toolbar()->extensions_container_for_testing() : nullptr;
   const int extension_width = extensions ? 26 : 0;
   return base::DictValue()
+      .Set("canCopyActiveLink", true)
+      .Set("canUseBlancSettings", true)
       .Set("blockerHealth", blanc::BlockerHealth())
       .Set("installedTheme", InstalledTheme(browser->GetProfile()))
       .Set("splitGeometry", owner->split_geometry.Clone())
@@ -1712,6 +1953,8 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("initialWindowSaved", owner->initial_window_saved)
       .Set("initialWindowSaveFailed", owner->initial_window_save_failed)
       .Set("extensionsWidth", extension_width)
+      .Set("separateHeaderHitRegion", true)
+      .Set("boundShieldPolicyActions", true)
       .Set("tabs", std::move(tabs))
       .Set("activeTabId", std::move(active_id))
       .Set("groups", std::move(groups))
@@ -1724,7 +1967,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("verticalTabsPreferredWidth", owner->rail_width)
       .Set("verticalTabsMinWidth", 200).Set("verticalTabsMaxWidth", 360)
       .Set("verticalTabsDefaultWidth", 248)
-      .Set("adblockEnabled", false)
+      .Set("adblockEnabled", base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets") && blanc::BlockingEnabled(browser->GetProfile()))
       .Set("displayShares", base::ListValue());
 }
 
@@ -1732,8 +1975,13 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
 // It also watches the bookmark model so a page left open re-lists Favorites
 // after the Island, Chromium's manager or a late favicon load changes them,
 // and TopSites so recent sites follow history (including /clear) the same way.
+#include "chrome/browser/ui/billboard_clock_settings.inc"
+#include "chrome/browser/ui/start_page_pins.inc"
+#include "chrome/browser/ui/start_page_pin_menu.inc"
+
 class NewTabHandler : public content::WebUIMessageHandler,
                       public bookmarks::BaseBookmarkModelObserver,
+                      public history::HistoryServiceObserver,
                       public history::TopSitesObserver {
  public:
   void RegisterMessages() override {
@@ -1744,15 +1992,36 @@ class NewTabHandler : public content::WebUIMessageHandler,
     weak_factory_.InvalidateWeakPtrs();
     bookmark_observation_.Reset();
     top_sites_observation_.Reset();
+    favicon_subscription_ = {};
+    history_observation_.Reset();
     top_sites_.reset();
+    pin_favicon_tracker_.TryCancelAll();
+    top_sites_icon_tracker_.TryCancelAll();
+    top_sites_history_tracker_.TryCancelAll();
+    InvalidatePinIcons();
+    pins_pref_observer_.Reset();
+    pins_observing_ = false;
+    clock_pref_observer_.Reset();
+    clock_observing_ = false;
+    layout_pref_observer_.Reset();
+    layout_observing_ = false;
   }
 
  private:
   bool IsStartPage() {
     // WebContents returns the virtual chrome://newtab/ URL after rewriting.
     // Authorize against the actual committed top-level document instead.
-    return web_ui()->GetWebContents()->GetPrimaryMainFrame()->GetLastCommittedURL() ==
-        GURL("chrome://blanc-prototype/pages/newtab.html");
+    auto* frame = web_ui()->GetRenderFrameHost();
+    auto* profile = Profile::FromWebUI(web_ui());
+    if (!profile || !frame || frame != web_ui()->GetWebContents()->GetPrimaryMainFrame())
+      return false;
+    const GURL expected((profile->IsIncognitoProfile() && profile->IsPrimaryOTRProfile())
+        ? "chrome://blanc-prototype/pages/newtab.html?private=1"
+        : "chrome://blanc-prototype/pages/newtab.html");
+    // Do not allow Guest or other off-the-record contexts to impersonate a
+    // regular Start Page, even with its exact trusted URL.
+    return (!profile->IsOffTheRecord() || (profile->IsIncognitoProfile() && profile->IsPrimaryOTRProfile())) &&
+           frame->GetLastCommittedURL() == expected;
   }
   void Reply(const std::string& id, bool success, base::Value value) {
     if (!IsStartPage() || !IsJavascriptAllowed()) return;
@@ -1761,16 +2030,57 @@ class NewTabHandler : public content::WebUIMessageHandler,
   }
   // BaseBookmarkModelObserver: every structural change funnels here. The page
   // coalesces bursts; this only tells it that Favorites may have changed.
-  void BookmarkModelChanged() override { Notify("bookmarks"); }
-  void BookmarkNodeFaviconChanged(const bookmarks::BookmarkNode*) override {
+  void BookmarkModelChanged() override {
+    InvalidatePinIcons();
     Notify("bookmarks");
+    Notify("pins");
   }
-  void BookmarkModelBeingDeleted() override { bookmark_observation_.Reset(); }
+  void BookmarkNodeFaviconChanged(const bookmarks::BookmarkNode* node) override {
+    Notify("bookmarks");
+    auto* profile = Profile::FromWebUI(web_ui());
+    if (!node || !node->is_url() || !profile || profile->IsOffTheRecord()) return;
+    auto* prefs = profile->GetPrefs();
+    if (!prefs || !prefs->FindPreference(kStartPagePinsPref)) return;
+    const auto pins = SanitizeStartPins(prefs->GetList(kStartPagePinsPref));
+    for (const auto& pin : pins) {
+      if (*pin.GetDict().FindString("url") == node->url().spec()) {
+        InvalidatePinIcons();
+        Notify("pins");
+        break;
+      }
+    }
+  }
+  void BookmarkModelBeingDeleted() override {
+    bookmark_observation_.Reset();
+    InvalidatePinIcons();
+    Notify("pins");
+  }
+  void OnURLVisited(history::HistoryService*, const history::VisitedURLInfo&) override {
+    ++top_sites_generation_;
+    InvalidatePinIcons();
+    Notify("pins");
+  }
+  void OnHistoryDeletions(history::HistoryService*, const history::DeletionInfo&) override {
+    ++top_sites_generation_;
+    InvalidatePinIcons();
+    Notify("topSitesInvalidated");
+    Notify("pinIconsInvalidated");
+    Notify("pins");
+  }
+  void HistoryServiceBeingDeleted(history::HistoryService*) override {
+    ++top_sites_generation_;
+    favicon_subscription_ = {};
+    history_observation_.Reset();
+    InvalidatePinIcons();
+    Notify("topSitesInvalidated");
+    Notify("pinIconsInvalidated");
+    Notify("pins");
+  }
   // TopSitesObserver: TopSites re-queries after history deletions, so this is
   // how an open start page learns that /clear (or Chromium's own history
   // manager) emptied its recent sites.
   void TopSitesLoaded(history::TopSites*) override {}
-  void TopSitesChanged(history::TopSites*, ChangeReason) override { Notify("topSites"); }
+  void TopSitesChanged(history::TopSites*, ChangeReason) override { ++top_sites_generation_; Notify("topSites"); }
   void Notify(const char* kind) {
     if (!IsStartPage() || !IsJavascriptAllowed()) return;
     web_ui()->CallJavascriptFunctionUnsafe("blancNewTabEvent", base::Value(kind));
@@ -1784,14 +2094,221 @@ class NewTabHandler : public content::WebUIMessageHandler,
     const auto& args = message[2].GetList();
     auto* contents = web_ui()->GetWebContents();
     auto* profile = Profile::FromWebUI(web_ui());
+    // Resolve only the requesting Start Page's own browser and profile.
+    if ((method == "groupsRead" && args.empty()) ||
+        (method == "focusGroup" && args.size() == 1 && args[0].is_string())) {
+      if (profile->IsOffTheRecord()) {
+        if (method == "groupsRead") Reply(id, true, base::Value(base::ListValue()));
+        else Reply(id, true, base::Value(false));
+        return;
+      }
+      auto* browser = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(contents);
+      auto* model = browser ? browser->GetTabStripModel() : nullptr;
+      if (!browser || browser->GetProfile() != profile || !model) {
+        Reply(id, false, base::Value("Start Page groups unavailable")); return;
+      }
+      if (method == "groupsRead") {
+        base::ListValue groups;
+        for (const auto& group : GroupsInOrder(model)) {
+          const auto* visuals = GroupVisuals(model, group);
+          const auto* group_model = model->group_model();
+          const auto* native_group = group_model ? group_model->GetTabGroup(group) : nullptr;
+          if (!visuals || !native_group) continue;
+          const gfx::Range range = native_group->ListTabs();
+          if (range.is_empty()) continue;
+          groups.Append(base::DictValue().Set("id", group.ToString())
+              .Set("name", base::UTF16ToUTF8(visuals->title()))
+              .Set("color", GroupColor(visuals->color()))
+              .Set("count", static_cast<int>(range.length())));
+        }
+        Reply(id, true, base::Value(std::move(groups))); return;
+      }
+      // Require an active, visible, non-minimized owning window. Recheck
+      // after group notifications: they may synchronously destroy/move tabs.
+      auto* view = BrowserView::GetBrowserViewForBrowser(browser);
+      auto* widget = view ? view->GetWidget() : nullptr;
+      if (model->GetActiveWebContents() != contents || !widget ||
+          !widget->IsActive() || !widget->IsVisible() || widget->IsMinimized()) {
+        Reply(id, true, base::Value(false)); return;
+      }
+      const std::string group_id = args[0].GetString();
+      if (group_id.empty() || group_id.size() > 128) {
+        Reply(id, true, base::Value(false)); return;
+      }
+      const auto group = FindGroup(model, group_id);
+      const auto* group_model = model->group_model();
+      const auto* native_group = group && group_model ? group_model->GetTabGroup(*group) : nullptr;
+      const auto* visuals = group ? GroupVisuals(model, *group) : nullptr;
+      if (!group || !native_group || !visuals || native_group->ListTabs().is_empty()) {
+        Reply(id, true, base::Value(false)); return;
+      }
+      const auto weak_self = weak_factory_.GetWeakPtr();
+      const auto weak_contents = contents->GetWeakPtr();
+      if (visuals->is_collapsed()) model->ChangeTabGroupVisuals(*group,
+          tab_groups::TabGroupVisualData(visuals->title(), visuals->color(), false));
+      if (!weak_self || !weak_contents) return;
+      auto* again = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(weak_contents.get());
+      if (!again || again != browser || again->GetProfile() != profile) {
+        weak_self->Reply(id, true, base::Value(false)); return;
+      }
+      auto* current_model = again->GetTabStripModel();
+      auto* current_view = BrowserView::GetBrowserViewForBrowser(again);
+      auto* current_widget = current_view ? current_view->GetWidget() : nullptr;
+      if (!current_model || current_model->GetActiveWebContents() != weak_contents.get() ||
+          !current_widget || !current_widget->IsActive() || !current_widget->IsVisible() ||
+          current_widget->IsMinimized()) {
+        weak_self->Reply(id, true, base::Value(false)); return;
+      }
+      const auto current_group = FindGroup(current_model, group_id);
+      const auto* current_groups = current_model->group_model();
+      const auto* current = current_group && current_groups ? current_groups->GetTabGroup(*current_group) : nullptr;
+      const auto* current_visuals = current_group ? GroupVisuals(current_model, *current_group) : nullptr;
+      if (!current || !current_visuals || current_visuals->is_collapsed() ||
+          current->ListTabs().is_empty()) {
+        weak_self->Reply(id, true, base::Value(false)); return;
+      }
+      current_model->ActivateTabAt(static_cast<int>(current->ListTabs().start()));
+      if (weak_self) weak_self->Reply(id, true, base::Value(true));
+      return;
+    }
     if (method == "installedTheme" && args.size() == 1 && args[0].is_string()) {
+      // The private Start Page never receives a regular-profile wallpaper.
+      if (profile->IsOffTheRecord()) { Reply(id, true, base::Value(base::DictValue())); return; }
       auto theme = InstalledTheme(profile);
       const auto* theme_id = theme.FindString("id");
       if (args[0].GetString() == (theme_id ? *theme_id : "")) Reply(id, true, base::Value());
       else Reply(id, true, base::Value(InstalledTheme(profile, true)));
       return;
     }
-    if (profile->IsOffTheRecord()) return;
+    if ((method == "layoutRead" && args.empty()) ||
+        ((method == "layoutWrite" || method == "layoutInitialize") &&
+         args.size() == 1 && args[0].is_string())) {
+      auto* prefs = profile->GetOriginalProfile()->GetPrefs();
+      constexpr char kLayout[] = "blanc.prototype.start_layout";
+      if (!prefs || !prefs->FindPreference(kLayout)) {
+        Reply(id, false, base::Value("Start Page layout unavailable")); return;
+      }
+      if (!layout_observing_) {
+        layout_pref_observer_.Init(prefs);
+        layout_pref_observer_.Add(kLayout, base::BindRepeating(
+            &NewTabHandler::LayoutChanged, base::Unretained(this)));
+        layout_observing_ = true;
+      }
+      if (method != "layoutRead") {
+        const auto& value = args[0].GetString();
+        const bool valid = value == "billboard" || value == "ledger" ||
+                           value == "shelf" || value == "tally";
+        // Only a regular page may migrate its old local preference, and only
+        // while no shared preference exists. Explicit changes work in private
+        // just like the shipping Start Page's shared appearance setting.
+        const bool initialize = method == "layoutInitialize";
+        if (valid && (!initialize || (!profile->IsOffTheRecord() &&
+                                      prefs->GetString(kLayout).empty()))) {
+          prefs->SetString(kLayout, value);
+          prefs->CommitPendingWrite();
+        }
+      }
+      Reply(id, true, base::Value(prefs->GetString(kLayout))); return;
+    }
+    if ((method == "pinsList" && args.empty()) ||
+        (method == "pinsPin" && args.size() == 2 && args[0].is_string() && args[1].is_string()) ||
+        (method == "pinsUnpin" && args.size() == 1 && args[0].is_string())) {
+      auto* prefs = profile->GetOriginalProfile()->GetPrefs();
+      if (!prefs || !prefs->FindPreference(kStartPagePinsPref)) {
+        Reply(id, false, base::Value("Start Page pins unavailable")); return;
+      }
+      if (!pins_observing_) {
+        pins_pref_observer_.Init(prefs);
+        pins_pref_observer_.Add(kStartPagePinsPref, base::BindRepeating(
+            &NewTabHandler::PinsChanged, base::Unretained(this)));
+        pins_observing_ = true;
+      }
+      auto pins = SanitizeStartPins(prefs->GetList(kStartPagePinsPref));
+      if (method == "pinsList") {
+        // Private windows deliberately do not consult any regular-profile
+        // icon service or bookmark favicon accessor.
+        if (profile->IsOffTheRecord() || pins.empty()) {
+          Reply(id, true, base::Value(base::DictValue().Set("max", static_cast<int>(kStartPageMaxPins))
+              .Set("pins", std::move(pins)))); return;
+        }
+        LoadPinFavicons(id, profile, pins); return;
+      }
+      if (profile->IsOffTheRecord()) {
+        if (method == "pinsPin") Reply(id, true, base::Value(base::DictValue().Set("ok", false).Set("reason", "private")));
+        else Reply(id, true, base::Value(false));
+        return;
+      }
+      base::DictValue candidate;
+      candidate.Set("url", args[0].GetString());
+      if (method == "pinsPin") candidate.Set("title", args[1].GetString());
+      auto target = SanitizeStartPin(base::Value(std::move(candidate)));
+      if (!target) {
+        if (method == "pinsPin") Reply(id, true, base::Value(base::DictValue().Set("ok", false).Set("reason", "invalid")));
+        else Reply(id, true, base::Value(false));
+        return;
+      }
+      const auto* target_url = target->FindString("url");
+      bool found = false;
+      base::ListValue remaining;
+      for (const auto& item : pins) {
+        if (*item.GetDict().FindString("url") == *target_url) found = true;
+        else remaining.Append(item.Clone());
+      }
+      if (method == "pinsPin" && !found && pins.size() >= kStartPageMaxPins) {
+        Reply(id, true, base::Value(base::DictValue().Set("ok", false).Set("reason", "full"))); return;
+      }
+      if ((method == "pinsPin" && !found) || (method == "pinsUnpin" && found)) {
+        base::ListValue next;
+        if (method == "pinsPin") next.Append(std::move(*target));
+        for (const auto& item : remaining) next.Append(item.Clone());
+        prefs->SetList(kStartPagePinsPref, std::move(next));
+        prefs->CommitPendingWrite();
+      }
+      if (method == "pinsPin") Reply(id, true, base::Value(base::DictValue().Set("ok", true)));
+      else Reply(id, true, base::Value(found));
+      return;
+    }
+    if (profile->IsOffTheRecord()) {
+      if (method == "topSites" && args.empty()) {
+        Reply(id, true, base::Value(base::ListValue())); return;
+      }
+      if (method == "bookmarks" && args.empty()) {
+        auto* model = BookmarkModelFactory::GetForBrowserContext(profile->GetOriginalProfile());
+        if (!model || !model->loaded()) { Reply(id, true, base::Value()); return; }
+        // Never call GetFavicon here: it schedules loads in the regular
+        // profile. The private renderer deliberately shows text initials.
+        Reply(id, true, base::Value(ListFavorites(model, false))); return;
+      }
+      // Shipping shares only the explicit clock appearance setting; no
+      // private visit or wallpaper data is written to the regular profile.
+      if (method != "openIsland" && method != "clockRead" && method != "clockWrite") {
+        Reply(id, false, base::Value("Unavailable in private browsing")); return;
+      }
+    }
+    if ((method == "clockRead" && args.empty()) ||
+        (method == "clockWrite" && args.size() == 1 && args[0].is_dict())) {
+      auto* prefs = profile->GetOriginalProfile()->GetPrefs();
+      if (!prefs || !prefs->FindPreference(kBillboardClockPref)) {
+        Reply(id, false, base::Value("Clock settings unavailable")); return;
+      }
+      if (!clock_observing_) {
+        clock_pref_observer_.Init(prefs);
+        clock_pref_observer_.Add(kBillboardClockPref, base::BindRepeating(
+            &NewTabHandler::ClockChanged, base::Unretained(this)));
+        clock_observing_ = true;
+      }
+      if (method == "clockWrite") {
+        auto next = prefs->GetDict(kBillboardClockPref).Clone();
+        auto update = SanitizeClockUpdate(args[0].GetDict());
+        for (auto [key, value] : update) next.Set(key, value.Clone());
+        if (!update.empty()) {
+          prefs->SetDict(kBillboardClockPref, std::move(next));
+          prefs->CommitPendingWrite();
+        }
+      }
+      Reply(id, true, base::Value(prefs->GetDict(kBillboardClockPref).Clone()));
+      return;
+    }
     if (method == "bookmarks" && args.empty()) {
       auto* model = BookmarkModelFactory::GetForBrowserContext(profile);
       if (model && !bookmark_observation_.IsObserving())
@@ -1803,13 +2320,19 @@ class NewTabHandler : public content::WebUIMessageHandler,
     }
     if (method == "topSites" && args.empty()) {
       auto sites = TopSitesFactory::GetForProfile(profile);
-      if (!sites) { Reply(id, true, base::Value(base::ListValue())); return; }
+      if (!sites) { Reply(id, false, base::Value("Top Sites unavailable")); return; }
       if (!top_sites_observation_.IsObserving()) {
         top_sites_ = sites;  // TopSites is ref-counted; hold it while observing.
         top_sites_observation_.Observe(sites.get());
       }
+      auto* history = HistoryServiceFactory::GetForProfile(profile, ServiceAccessType::EXPLICIT_ACCESS);
+      if (history && !history_observation_.IsObserving()) history_observation_.Observe(history);
+      if (history && !favicon_subscription_) {
+        favicon_subscription_ = history->AddFaviconsChangedCallback(base::BindRepeating(
+            &NewTabHandler::TopSiteFaviconChanged, weak_factory_.GetWeakPtr()));
+      }
       sites->GetMostVisitedURLs(base::BindOnce(&NewTabHandler::TopSitesReady,
-                                              weak_factory_.GetWeakPtr(), id));
+          weak_factory_.GetWeakPtr(), id, 0, top_sites_generation_));
       return;
     }
     if (method == "openIsland" && args.size() == 1 && args[0].is_string() &&
@@ -1823,22 +2346,337 @@ class NewTabHandler : public content::WebUIMessageHandler,
     }
     Reply(id, false, base::Value("Unsupported start-page request"));
   }
-  void TopSitesReady(std::string id, const history::MostVisitedURLList& sites) {
+  using PinIcon = std::pair<std::string, std::string>;
+  void LoadPinFavicons(const std::string& id, Profile* profile,
+                       const base::ListValue& pins, int retry = 0);
+  void PinFaviconsReady(std::string id, int retry, uint64_t generation,
+                        std::vector<PinIcon> icons);
+  void PinHistoryBatchReady(std::vector<std::string> keys,
+                            base::RepeatingCallback<void(PinIcon)> done,
+                            history::QueryResults results);
+  void PinHistoryIconNext(std::string key, base::RepeatingCallback<void(PinIcon)> done,
+                          std::vector<GURL> candidates, size_t index);
+  void PinHistoryIconReady(std::string key, base::RepeatingCallback<void(PinIcon)> done,
+                           std::vector<GURL> candidates, size_t index,
+                           const favicon_base::FaviconImageResult& result);
+  void InvalidatePinIcons() {
+    pin_icon_cache_.clear();
+    pin_icon_floor_ = ++pin_icon_generation_;
+  }
+  base::CancelableTaskTracker pin_favicon_tracker_;
+  // Per-key generations prevent an older overlapping DB response from
+  // replacing a newer icon. Empty results are cached to bound retries.
+  std::map<std::string, std::pair<uint64_t, std::string>> pin_icon_cache_;
+  uint64_t pin_icon_generation_ = 0;
+  uint64_t pin_icon_floor_ = 0;
+  void PinsChanged() { InvalidatePinIcons(); Notify("pins"); }
+  PrefChangeRegistrar pins_pref_observer_;
+  bool pins_observing_ = false;
+  void LayoutChanged() { Notify("layout"); }
+  PrefChangeRegistrar layout_pref_observer_;
+  bool layout_observing_ = false;
+  void ClockChanged() { Notify("clock"); }
+  PrefChangeRegistrar clock_pref_observer_;
+  bool clock_observing_ = false;
+  // Enrich ranked sites only from the local favicon database. Never fetch a
+  // remote image, and never query regular history from an off-the-record page.
+  void TopSitesReady(std::string id, int retry, uint64_t generation,
+                     const history::MostVisitedURLList& sites) {
+    auto* profile = Profile::FromWebUI(web_ui());
+    if (!profile || profile->IsOffTheRecord()) return;
+    if (generation != top_sites_generation_) {
+      RetryTopSites(std::move(id), retry);
+      return;
+    }
     base::ListValue items;
     for (const auto& site : sites) {
       if (!site.url.SchemeIsHTTPOrHTTPS()) continue;
+      std::string key(site.url.host());
+      if (base::StartsWith(key, "www.")) key.erase(0, 4);
       items.Append(base::DictValue().Set("url", site.url.spec())
-          .Set("key", site.url.host()).Set("title", base::UTF16ToUTF8(site.title)));
+          .Set("key", key).Set("title", base::UTF16ToUTF8(site.title)));
+      if (items.size() >= 48) break;
+    }
+    auto* history = HistoryServiceFactory::GetForProfile(
+        profile, ServiceAccessType::EXPLICIT_ACCESS);
+    if (!history) { Reply(id, false, base::Value("History unavailable")); return; }
+    // A batch lookup distinguishes a null history database from ordinary
+    // missing rows (including Chromium's unvisited prepopulated shortcut).
+    // Individual SQL read errors still appear as missing rows in this API.
+    std::vector<GURL> urls;
+    for (const auto& item : items)
+      urls.emplace_back(*item.GetDict().FindString("url"));
+    const auto task = history->QueryUrlIds(urls,
+        base::BindOnce(&NewTabHandler::TopSitesIdsReady,
+                       weak_factory_.GetWeakPtr(), id, retry, generation,
+                       items.Clone()), &top_sites_history_tracker_);
+    if (task == base::CancelableTaskTracker::kBadTaskId)
+      Reply(id, false, base::Value("History unavailable"));
+  }
+  void TopSitesIdsReady(std::string id, int retry, uint64_t generation,
+                        base::ListValue items,
+                        std::optional<std::vector<history::URLID>> ids) {
+    auto* profile = Profile::FromWebUI(web_ui());
+    if (!profile || profile->IsOffTheRecord()) return;
+    if (generation != top_sites_generation_) { RetryTopSites(std::move(id), retry); return; }
+    if (!ids || ids->size() != items.size()) {
+      Reply(id, false, base::Value("History unavailable")); return;
+    }
+    base::ListValue present;
+    for (size_t i = 0; i < items.size(); ++i)
+      if ((*ids)[i] != 0) present.Append(items[i].Clone());
+    if (present.empty()) { Reply(id, true, base::Value(std::move(present))); return; }
+    auto* history = HistoryServiceFactory::GetForProfile(
+        profile, ServiceAccessType::EXPLICIT_ACCESS);
+    if (!history) { Reply(id, false, base::Value("History unavailable")); return; }
+    // QueryUrlIds returns existence, not visit count or title: fetch current
+    // rows and reject rows that survive only because they are bookmarked.
+    using Visit = std::pair<std::string, std::optional<std::optional<std::string>>>;
+    auto done = base::BarrierCallback<Visit>(present.size(), base::BindOnce(
+        &NewTabHandler::TopSitesValidated, weak_factory_.GetWeakPtr(), id,
+        retry, generation, present.Clone()));
+    for (const auto& item : present) {
+      const std::string url = *item.GetDict().FindString("url");
+      const auto task = history->QueryURL(GURL(url),
+          base::BindOnce([](std::string key, base::RepeatingCallback<void(Visit)> callback,
+                            history::QueryURLResult result) {
+            // A row disappearing or read failure after the first lookup is
+            // ambiguous; do not return an incomplete successful ranking.
+            std::optional<std::optional<std::string>> title;
+            if (result.success) {
+              title.emplace(std::nullopt);
+              if (result.row.visit_count() > 0)
+                title->emplace(base::UTF16ToUTF8(result.row.title()));
+            }
+            callback.Run({std::move(key), std::move(title)});
+          }, url, done), &top_sites_history_tracker_);
+      if (task == base::CancelableTaskTracker::kBadTaskId) done.Run({url, std::nullopt});
+    }
+  }
+  void TopSitesValidated(std::string id, int retry, uint64_t generation,
+                         base::ListValue items,
+                         std::vector<std::pair<std::string, std::optional<std::optional<std::string>>>> visits) {
+    auto* profile = Profile::FromWebUI(web_ui());
+    if (!profile || profile->IsOffTheRecord()) return;
+    if (generation != top_sites_generation_) { RetryTopSites(std::move(id), retry); return; }
+    std::map<std::string, std::optional<std::optional<std::string>>> by_url;
+    for (auto& [url, title] : visits) by_url.insert_or_assign(url, std::move(title));
+    base::ListValue valid;
+    for (auto& item : items) {
+      auto& site = item.GetDict();
+      auto found = by_url.find(*site.FindString("url"));
+      if (found == by_url.end() || !found->second) {
+        Reply(id, false, base::Value("History unavailable or site no longer present"));
+        return;
+      }
+      if (!*found->second) continue;
+      site.Set("title", **found->second);
+      valid.Append(std::move(item));
+    }
+    auto* favicon = FaviconServiceFactory::GetForProfile(
+        profile, ServiceAccessType::EXPLICIT_ACCESS);
+    if (!favicon || valid.empty()) { Reply(id, true, base::Value(std::move(valid))); return; }
+    auto done = base::BarrierCallback<PinIcon>(valid.size(), base::BindOnce(
+        &NewTabHandler::TopSiteIconsReady, weak_factory_.GetWeakPtr(), id,
+        retry, generation, valid.Clone()));
+    for (const auto& item : valid) {
+      const std::string url = *item.GetDict().FindString("url");
+      const auto task = favicon->GetFaviconImageForPageURL(GURL(url),
+          base::BindOnce([](std::string key, base::RepeatingCallback<void(PinIcon)> callback,
+                            const favicon_base::FaviconImageResult& result) {
+            callback.Run({std::move(key), FaviconDataUrl(result.image)});
+          }, url, done), &top_sites_icon_tracker_);
+      if (task == base::CancelableTaskTracker::kBadTaskId) done.Run({url, {}});
+    }
+  }
+  void RetryTopSites(std::string id, int retry) {
+    if (!top_sites_) { Reply(id, false, base::Value("Top Sites unavailable")); return; }
+    if (retry) {
+      // Do not return an unvalidated cache snapshot under sustained churn.
+      Reply(id, false, base::Value("Top Sites changed; retry"));
+      return;
+    }
+    top_sites_->GetMostVisitedURLs(base::BindOnce(&NewTabHandler::TopSitesReady,
+        weak_factory_.GetWeakPtr(), std::move(id), 1, top_sites_generation_));
+  }
+  void TopSiteFaviconChanged(const std::set<GURL>&, const GURL&) {
+    ++top_sites_generation_;
+    InvalidatePinIcons();
+    Notify("topSites");
+    Notify("pins");
+  }
+  void TopSiteIconsReady(std::string id, int retry, uint64_t generation,
+                         base::ListValue items, std::vector<PinIcon> icons) {
+    auto* profile = Profile::FromWebUI(web_ui());
+    if (!profile || profile->IsOffTheRecord()) return;
+    if (generation != top_sites_generation_) { RetryTopSites(std::move(id), retry); return; }
+    std::map<std::string, std::string> by_url;
+    for (auto& [url, icon] : icons) if (!icon.empty()) by_url.insert_or_assign(url, std::move(icon));
+    for (auto& item : items) {
+      auto& site = item.GetDict();
+      const auto found = by_url.find(*site.FindString("url"));
+      if (found != by_url.end()) site.Set("favicon", found->second);
     }
     Reply(id, true, base::Value(std::move(items)));
   }
+  base::CancelableTaskTracker top_sites_icon_tracker_;
+  base::CancelableTaskTracker top_sites_history_tracker_;
+  base::CallbackListSubscription favicon_subscription_;
+  uint64_t top_sites_generation_ = 0;
   base::ScopedObservation<bookmarks::BookmarkModel, bookmarks::BookmarkModelObserver>
       bookmark_observation_{this};
+  base::ScopedObservation<history::HistoryService, history::HistoryServiceObserver>
+      history_observation_{this};
   scoped_refptr<history::TopSites> top_sites_;
   base::ScopedObservation<history::TopSites, history::TopSitesObserver>
       top_sites_observation_{this};
   base::WeakPtrFactory<NewTabHandler> weak_factory_{this};
 };
+
+void NewTabHandler::LoadPinFavicons(const std::string& id, Profile* profile,
+                       const base::ListValue& pins, int retry) {
+    const uint64_t generation = ++pin_icon_generation_;
+    auto* history_service = HistoryServiceFactory::GetForProfile(
+        profile, ServiceAccessType::EXPLICIT_ACCESS);
+    if (history_service && !history_observation_.IsObserving())
+      history_observation_.Observe(history_service);
+    auto* model = LoadedBookmarkModel(profile);
+    if (model && !bookmark_observation_.IsObserving()) bookmark_observation_.Observe(model);
+    auto done = base::BarrierCallback<PinIcon>(pins.size(), base::BindOnce(
+        &NewTabHandler::PinFaviconsReady, weak_factory_.GetWeakPtr(), id,
+        retry, generation));
+    std::vector<std::string> history_keys;
+    for (const auto& item : pins) {
+      const std::string url = *item.GetDict().FindString("url");
+      std::string favorite_icon;
+      if (model) {
+        auto nodes = model->GetNodesByURL(GURL(url));
+        // Shipping uses the first matching Favorite in insertion order.
+        if (!nodes.empty()) {
+          const auto first = std::min_element(nodes.begin(), nodes.end(),
+              [](const auto& a, const auto& b) {
+                if (a->date_added() != b->date_added())
+                  return a->date_added() < b->date_added();
+                return a->id() < b->id();
+              });
+          favorite_icon = FaviconDataUrl(model->GetFavicon(*first));
+        }
+      }
+      if (!favorite_icon.empty() || !history_service) {
+        done.Run({url, favorite_icon});
+      } else {
+        history_keys.push_back(url);
+      }
+    }
+    if (!history_keys.empty()) {
+      // Query the history once for all pins. Only retained local visits may
+      // supply a fallback; this never fetches a remote icon.
+      history::QueryOptions options;
+      options.max_count = 5000;
+      options.duplicate_policy = history::QueryOptions::REMOVE_ALL_DUPLICATES;
+      const auto task = history_service->QueryHistory(std::u16string(), options,
+          base::BindOnce(&NewTabHandler::PinHistoryBatchReady,
+                         weak_factory_.GetWeakPtr(), history_keys, done),
+          &pin_favicon_tracker_);
+      if (task == base::CancelableTaskTracker::kBadTaskId)
+        for (const auto& key : history_keys) done.Run({key, {}});
+    }
+  }
+
+// Shipping's history icon is keyed by hostname with leading www removed;
+// scheme and port do not distinguish sites. Query only retained visits and
+// try their local favicon mappings newest first, with a bounded lookup budget.
+void NewTabHandler::PinHistoryBatchReady(std::vector<std::string> keys,
+    base::RepeatingCallback<void(PinIcon)> done, history::QueryResults results) {
+  auto site_key = [](const GURL& url) {
+    std::string host(url.host());
+    if (base::StartsWith(host, "www.")) host.erase(0, 4);
+    return host;
+  };
+  for (auto& key : keys) {
+    const std::string wanted = site_key(GURL(key));
+    std::vector<GURL> candidates;
+    for (const auto& result : results) {
+      if (result.url().SchemeIsHTTPOrHTTPS() && site_key(result.url()) == wanted) {
+        candidates.push_back(result.url());
+        if (candidates.size() == 256) break;
+      }
+    }
+    PinHistoryIconNext(std::move(key), done, std::move(candidates), 0);
+  }
+}
+
+void NewTabHandler::PinHistoryIconNext(std::string key,
+    base::RepeatingCallback<void(PinIcon)> done, std::vector<GURL> candidates,
+    size_t index) {
+  auto* profile = Profile::FromWebUI(web_ui());
+  auto* service = profile && !profile->IsOffTheRecord()
+      ? FaviconServiceFactory::GetForProfile(profile, ServiceAccessType::EXPLICIT_ACCESS)
+      : nullptr;
+  if (!service || index >= candidates.size()) {
+    done.Run({std::move(key), {}});
+    return;
+  }
+  const GURL candidate = candidates[index];
+  const auto task = service->GetFaviconImageForPageURL(candidate,
+      base::BindOnce(&NewTabHandler::PinHistoryIconReady,
+                     weak_factory_.GetWeakPtr(), key, done, candidates, index),
+      &pin_favicon_tracker_);
+  // A rejected task post cannot safely be treated as an empty bitmap followed
+  // by synchronous recursive posts; settle this key immediately.
+  if (task == base::CancelableTaskTracker::kBadTaskId) done.Run({std::move(key), {}});
+}
+
+void NewTabHandler::PinHistoryIconReady(std::string key,
+    base::RepeatingCallback<void(PinIcon)> done, std::vector<GURL> candidates,
+    size_t index, const favicon_base::FaviconImageResult& result) {
+  std::string icon = FaviconDataUrl(result.image);
+  if (!icon.empty()) {
+    done.Run({std::move(key), std::move(icon)});
+    return;
+  }
+  PinHistoryIconNext(std::move(key), std::move(done), std::move(candidates), index + 1);
+}
+
+void NewTabHandler::PinFaviconsReady(std::string id, int retry, uint64_t generation,
+                                    std::vector<PinIcon> icons) {
+    auto* profile = Profile::FromWebUI(web_ui());
+    if (!profile || profile->IsOffTheRecord()) return;
+    auto* prefs = profile->GetPrefs();
+    if (!prefs || !prefs->FindPreference(kStartPagePinsPref)) return;
+    // Re-read current pins to avoid resurrecting a pin removed while the
+    // local database lookup was outstanding.
+    auto pins = SanitizeStartPins(prefs->GetList(kStartPagePinsPref));
+    if (generation >= pin_icon_floor_) {
+      for (auto& [key, icon] : icons) {
+        auto found = pin_icon_cache_.find(key);
+        if (found == pin_icon_cache_.end() || generation >= found->second.first)
+          pin_icon_cache_.insert_or_assign(key, std::make_pair(generation, std::move(icon)));
+      }
+    }
+    // If the list or an icon changed while looking up, fetch the current set
+    // once more. Respond even if it changes again, so callers never hang.
+    bool missing = false;
+    std::set<std::string> current;
+    for (const auto& item : pins) {
+      const auto& url = *item.GetDict().FindString("url");
+      current.insert(url);
+      if (!pin_icon_cache_.contains(url)) missing = true;
+    }
+    std::erase_if(pin_icon_cache_, [&](const auto& item) { return !current.contains(item.first); });
+    if (missing && retry == 0 && !pins.empty()) {
+      LoadPinFavicons(id, profile, pins, retry + 1);
+      return;
+    }
+    for (auto& item : pins) {
+      auto& pin = item.GetDict();
+      const auto found = pin_icon_cache_.find(*pin.FindString("url"));
+      if (found != pin_icon_cache_.end() && !found->second.second.empty())
+        pin.Set("favicon", found->second.second);
+    }
+    Reply(id, true, base::Value(base::DictValue().Set("max", static_cast<int>(kStartPageMaxPins))
+        .Set("pins", std::move(pins))));
+  }
 
 // Public Store HTML is treated only as data. Never load it into the Island DOM.
 // Deliberately conservative: changed markup produces an explicit unavailable state.
@@ -1918,14 +2756,20 @@ class IslandExtensionMenu : public extensions::ExtensionContextMenuModel {
   base::RepeatingClosure closed_;
 };
 
+#include "chrome/browser/ui/blocking_settings_handler.inc"
+
 class Handler : public content::WebUIMessageHandler, public extensions::ExtensionUninstallDialog::Delegate {
  public:
   void RegisterMessages() override {
     web_ui()->RegisterMessageCallback(
         "blancPrototype",
         base::BindRepeating(&Handler::Handle, base::Unretained(this)));
+    auto_timer_.Start(FROM_HERE, base::Seconds(30),
+        base::BindRepeating(&Handler::AutoTick, weak_factory_.GetWeakPtr()));
   }
   void OnJavascriptDisallowed() override {
+    auto_timer_.Stop();
+    if (quiet_settings_) quiet_settings_->Close();
     // A navigated or torn-down host must not receive a late history reply.
     weak_factory_.InvalidateWeakPtrs();
     tracker_.TryCancelAll();
@@ -1958,6 +2802,179 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (!IsIslandHost() || !IsJavascriptAllowed()) return;
     web_ui()->CallJavascriptFunctionUnsafe("blancPrototypeReply", base::Value(id),
                                            base::Value(success), result);
+  }
+  base::WeakPtr<views::Widget> quiet_settings_;
+  void ShowQuietSettings(BrowserWindowInterface* browser) {
+    if (quiet_settings_) { quiet_settings_->Activate(); return; }
+    auto* prefs = g_browser_process->local_state();
+    if (!prefs || !prefs->FindPreference(kQuietDelay)) return;
+    const auto& strings = blanc::quiet::GetSettingsStrings(
+        g_browser_process->GetApplicationLocale());
+    auto dialog = std::make_unique<views::DialogDelegate>();
+    dialog->SetTitle(std::u16string(strings.title));
+    dialog->SetButtons(static_cast<int>(ui::mojom::DialogButton::kOk) |
+                       static_cast<int>(ui::mojom::DialogButton::kCancel));
+    dialog->SetButtonLabel(ui::mojom::DialogButton::kOk, std::u16string(strings.save));
+    dialog->SetButtonLabel(ui::mojom::DialogButton::kCancel, std::u16string(strings.cancel));
+    dialog->set_fixed_width(420);
+    auto content = std::make_unique<views::View>();
+    content->SetLayoutManager(std::make_unique<views::BoxLayout>(
+        views::BoxLayout::Orientation::kVertical, gfx::Insets(20), 12));
+    auto* label = content->AddChildView(std::make_unique<views::Label>(
+        std::u16string(strings.label)));
+    label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+    std::vector<ui::SimpleComboboxModel::Item> items;
+    for (const auto value : {strings.off, strings.after_30m, strings.after_1h, strings.after_6h})
+      items.emplace_back(std::u16string(value));
+    auto* combo = content->AddChildView(std::make_unique<views::Combobox>(
+        std::make_unique<ui::SimpleComboboxModel>(std::move(items))));
+    combo->GetViewAccessibility().SetName(*label);
+    const auto value = prefs->GetString(kQuietDelay);
+    combo->SetSelectedIndex(value == "off" ? 0 : value == "30m" ? 1 : value == "6h" ? 3 : 2);
+    auto* help = content->AddChildView(std::make_unique<views::Label>(
+        std::u16string(strings.help)));
+    help->SetMultiLine(true); help->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+    dialog->SetContentsView(std::move(content));
+    dialog->SetAcceptCallback(base::BindOnce([](views::Combobox* combo) {
+      constexpr std::array<const char*, 4> values = {"off", "30m", "1h", "6h"};
+      const size_t index = combo->GetSelectedIndex().value_or(2);
+      if (index >= std::size(values)) return;
+      auto* prefs = g_browser_process->local_state();
+      if (prefs) { prefs->SetString(kQuietDelay, values[index]); prefs->CommitPendingWrite(); }
+    }, base::Unretained(combo)));
+    quiet_settings_ = views::DialogDelegate::CreateDialogWidget(std::move(dialog),
+        browser->GetWindow()->GetNativeWindow(), gfx::NativeView())->GetWeakPtr();
+    quiet_settings_->Show();
+  }
+  static constexpr char kQuietDelay[] = "blanc.prototype.quiet_delay";
+  base::RepeatingTimer auto_timer_;
+  bool auto_running_ = false;
+  int64_t last_auto_wall_ = 0;
+  base::TimeTicks auto_grace_ = base::TimeTicks::Now();
+  std::optional<int64_t> AutoDelay() {
+    auto* prefs = g_browser_process->local_state();
+    if (!prefs || !prefs->FindPreference(kQuietDelay)) return std::nullopt;
+    return blanc::quiet::DelayMilliseconds(prefs->GetString(kQuietDelay));
+  }
+  bool AutoAvailable() {
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    return owner && !owner->space_busy && owner->pending_ratio_writes == 0 &&
+        !owner->initial_window_save_failed &&
+        (!owner->initial_window_save_started || owner->initial_window_saved) &&
+        !SessionRestore::IsRestoring(owner->browser->GetProfile()) &&
+        split_closes_.empty() && history_saves_.empty() &&
+        std::string_view(blanc::BlockerHealth()) == "ready" &&
+        !net::NetworkChangeNotifier::IsOffline();
+  }
+  bool AutoDue(content::WebContents* tab) {
+    return tab && blanc::quiet::IdleDue((base::TimeTicks::Now() -
+        std::max(tab->GetLastActiveTimeTicks(), auto_grace_)).InMilliseconds(), AutoDelay());
+  }
+  void AutoNext(base::WeakPtr<BrowserWindowInterface> browser,
+                std::shared_ptr<std::vector<base::WeakPtr<content::WebContents>>> candidates,
+                size_t position) {
+    if (!browser || !AutoAvailable() || !AutoDelay()) {
+      auto_running_ = false; return;
+    }
+    while (position < candidates->size()) {
+      auto tab = (*candidates)[position++];
+      if (!tab || !AutoDue(tab.get()) || !QuietAllowed(browser.get(), tab.get())) continue;
+      auto document = tab->GetPrimaryMainFrame()->GetWeakDocumentPtr();
+      blanc::quiet::DirtyProbe::Run(tab.get(), base::BindOnce(
+          [](base::WeakPtr<Handler> self, base::WeakPtr<BrowserWindowInterface> browser,
+             std::shared_ptr<std::vector<base::WeakPtr<content::WebContents>>> candidates,
+             size_t position, base::WeakPtr<content::WebContents> tab,
+             content::WeakDocumentPtr document, blanc::quiet::DirtyResult result) {
+            if (!self) return;
+            if (self->AutoAvailable() && self->AutoDue(tab.get()))
+              self->CompleteQuiet(browser, tab, document, result, true);
+            self->AutoNext(browser, candidates, position);
+          }, weak_factory_.GetWeakPtr(), browser, candidates, position, tab, document));
+      return;
+    }
+    auto_running_ = false;
+  }
+  void AutoTick() {
+    const int64_t wall = base::Time::Now().InMillisecondsSinceUnixEpoch();
+    if (blanc::quiet::SweepClockJump(last_auto_wall_, wall)) {
+      last_auto_wall_ = wall; auto_grace_ = base::TimeTicks::Now(); return;
+    }
+    last_auto_wall_ = wall;
+    if (auto_running_ || !AutoDelay() || !AutoAvailable()) return;
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    if (!owner || owner->space_busy) return;
+    auto candidates = std::make_shared<std::vector<base::WeakPtr<content::WebContents>>>();
+    auto* model = owner->browser->GetTabStripModel();
+    for (int i = 0; i < model->count(); ++i) candidates->push_back(model->GetWebContentsAt(i)->GetWeakPtr());
+    std::ranges::sort(*candidates, [](const auto& a, const auto& b) {
+      return a && b ? a->GetLastActiveTimeTicks() < b->GetLastActiveTimeTicks() : bool(a) > bool(b);
+    });
+    auto_running_ = true;
+    AutoNext(owner->browser->GetWeakPtr(), candidates, 0);
+  }
+  bool QuietAllowed(BrowserWindowInterface* browser, content::WebContents* tab) {
+    if (!browser || !tab) return false;
+    auto* model = browser->GetTabStripModel();
+    const int index = model->GetIndexOfWebContents(tab);
+    if (index < 0 || index == model->active_index() || tab->IsLoading() ||
+        tab->GetController().GetPendingEntry() || model->IsTabPinned(index) ||
+        tab->IsAudioMuted() || tab->IsCurrentlyAudible() || tab->IsBeingCaptured() ||
+        !tab->GetLastCommittedURL().SchemeIsHTTPOrHTTPS()) return false;
+    const auto split = model->GetSplitForTab(index);
+    if (split && model->active_index() >= 0 && split == model->GetSplitForTab(model->active_index())) return false;
+    auto* media = blanc::quiet::MediaHistory::Get(tab);
+    if (!media->known() || media->used() || !media->policy_known() || media->inherited_policy() ||
+        tab->GetPrimaryMainFrame()->IsSandboxed(network::mojom::WebSandboxFlags::kAll)) return false;
+    auto* permissions = permissions::PermissionRequestManager::FromWebContents(tab);
+    if (!permissions || permissions->IsRequestInProgress()) return false;
+    bool blocked = tab->HasOpener() || tab->HasLiveOriginalOpenerChain();
+    size_t discarded = 0;
+    GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* candidate) {
+      auto* tabs = candidate->GetTabStripModel();
+      for (int i = 0; i < tabs->count(); ++i) {
+        auto* other = tabs->GetWebContentsAt(i);
+        if (other != tab && (other->GetFirstWebContentsInLiveOriginalOpenerChain() == tab ||
+            (other->GetOpener() && content::WebContents::FromRenderFrameHost(other->GetOpener()) == tab))) blocked = true;
+        // Shipping's recovery ceiling is browser-wide, including private
+        // windows, rather than a separate allowance for each profile.
+        auto* lifecycle = resource_coordinator::TabLifecycleUnitExternal::FromWebContents(other);
+        if (lifecycle && lifecycle->GetTabState() == ::mojom::LifecycleUnitState::DISCARDED) ++discarded;
+      }
+      return true;
+    });
+    tab->GetPrimaryMainFrame()->ForEachRenderFrameHost([&](content::RenderFrameHost* frame) {
+      blocked |= !frame->IsRenderFrameLive() || frame->GetSuddenTerminationDisablerState(
+          blink::mojom::SuddenTerminationDisablerType::kBeforeUnloadHandler);
+    });
+    if (blocked || discarded >= 50 || !performance_manager::PerformanceManager::IsAvailable()) return false;
+    auto page = performance_manager::PerformanceManager::GetPrimaryPageNodeForWebContents(tab);
+    auto* policy = performance_manager::policies::DiscardEligibilityPolicy::GetFromGraph(
+        performance_manager::PerformanceManager::GetGraph());
+    return page && policy && policy->CanDiscard(page.get(),
+        performance_manager::policies::DiscardEligibilityPolicy::DiscardReason::PROACTIVE, true) ==
+        performance_manager::policies::CanDiscardResult::kEligible;
+  }
+  bool CompleteQuiet( base::WeakPtr<BrowserWindowInterface> browser,
+                   base::WeakPtr<content::WebContents> tab, content::WeakDocumentPtr document,
+                   blanc::quiet::DirtyResult result, bool discard) {
+    if (!result.complete || result.dirty || result.deep_scrolled ||
+        !tab || !document.AsRenderFrameHostIfValid() ||
+        document.AsRenderFrameHostIfValid() != tab->GetPrimaryMainFrame() ||
+        !QuietAllowed(browser.get(), tab.get())) {
+      return false;
+    }
+    if (!discard) return true;
+    auto page = performance_manager::PerformanceManager::GetPrimaryPageNodeForWebContents(tab.get());
+    auto* helper = performance_manager::policies::PageDiscardingHelper::GetFromGraph(
+        performance_manager::PerformanceManager::GetGraph());
+    const bool discarded = page && helper && helper->ImmediatelyDiscardMultiplePages({page.get()},
+        performance_manager::policies::DiscardEligibilityPolicy::DiscardReason::PROACTIVE, true);
+    return discarded;
+  }
+  void QuietProbed(std::string id, bool discard, base::WeakPtr<BrowserWindowInterface> browser,
+                   base::WeakPtr<content::WebContents> tab, content::WeakDocumentPtr document,
+                   blanc::quiet::DirtyResult result) {
+    Reply(id, true, base::Value(CompleteQuiet(browser, tab, document, result, discard)));
   }
   class SplitCloseWatch : public content::WebContentsObserver {
    public:
@@ -2042,7 +3059,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
         base::BindOnce(&Handler::SplitCloseSaved, weak_factory_.GetWeakPtr(), id, cancelled, false), base::Seconds(9));
     if (browser->GetProfile()->IsOffTheRecord()) { SplitCloseSaved(id, cancelled, true); return; }
-    if (!cancelled) { SplitSessionSaved(id, false, true); return; }
+    if (!cancelled) {
+      // Like single-tab close, acknowledge the surviving session as well as
+      // history. An entirely initial/uncommitted pair legitimately produces
+      // no historical entry, but its session removal must still be durable.
+      const bool without_history = std::ranges::all_of(it->second.watches,
+          [](const auto& watch) { return watch->without_history(); });
+      split_closes_.erase(it);
+      SaveClosedHistory(id, browser->GetProfile(), without_history);
+      return;
+    }
     auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile());
     if (!service) { SplitCloseSaved(id, cancelled, false); return; }
     // Run after unload callbacks unwind, capturing only actual surviving tabs.
@@ -2816,6 +3842,42 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value(chrome::ExecuteCommand(browser, command->second)));
       return;
     }
+    if (method == "keepGlanceAsSplit" && args.empty()) {
+      // Convert only this window's live, visible temporary pair. Never infer
+      // ownership from caller-supplied tab IDs or a persistent split.
+      const int main = owner->MainIndex();
+      int reference = -1;
+      for (int i = 0; i < model->count(); ++i) {
+        if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() ==
+            owner->glance_reference) reference = i;
+      }
+      const auto split = main >= 0 ? model->GetSplitForTab(main) : std::nullopt;
+      if (owner->glance_main < 0 || reference < 0 || main == reference || !split ||
+          sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(main)).id() != owner->glance_main ||
+          model->GetSplitForTab(reference) != split ||
+          (model->active_index() != main && model->active_index() != reference) ||
+          model->IsTabPinned(main) || model->IsTabPinned(reference) ||
+          model->GetWebContentsAt(main)->GetUserData(kPersistentSplitKey) ||
+          model->GetWebContentsAt(reference)->GetUserData(kPersistentSplitKey)) {
+        reply(true, base::Value(false)); return;
+      }
+      // Match the shipping conversion: main first, equal widths, main focused.
+      if (main > reference) model->ReverseTabsInSplit(*split);
+      const int main_id = owner->glance_main;
+      for (int i = 0; i < model->count(); ++i) {
+        if (model->GetSplitForTab(i) != split) continue;
+        const bool is_main = sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == main_id;
+        MarkPersistentSplit(browser, model->GetWebContentsAt(i), true, is_main);
+      }
+      owner->glance_main = owner->glance_reference = -1;
+      model->UpdateSplitRatio(*split, 0.5);
+      for (int i = 0; i < model->count(); ++i) {
+        if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == main_id) {
+          model->ActivateTabAt(i); break;
+        }
+      }
+      reply(true, base::Value(true)); return;
+    }
     // Native split foundation only: UI exposure waits for Glance role/focus
     // parity. Never merge pin/group ownership as a side effect of a probe.
     if ((method == "previewGlancePair" || method == "previewSplitPair" || method == "createSplit") && args.size() == 2 &&
@@ -2833,15 +3895,24 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         if (tab_id == args[1].GetInt()) second = i;
       }
       if (first < 0 || second < 0 || first == second ||
-          model->IsTabPinned(first) || model->IsTabPinned(second) ||
-          (method != "createSplit" && (model->GetTabGroupForTab(first) || model->GetTabGroupForTab(second))) ||
+          (method != "createSplit" && (model->IsTabPinned(first) || model->IsTabPinned(second) ||
+                                      model->GetTabGroupForTab(first) || model->GetTabGroupForTab(second))) ||
           model->GetSplitForTab(first) || model->GetSplitForTab(second)) {
         reply(true, base::Value(false)); return;
       }
       if (method == "createSplit") {
-        const auto group = model->GetTabGroupForTab(first);
         auto* initiating = model->GetWebContentsAt(first);
         auto* other = model->GetWebContentsAt(second);
+        // Shipping Blanc pins the whole split when either member is pinned.
+        // Pinning moves tabs, so preserve contents identity and re-read indices.
+        const bool pin_split = model->IsTabPinned(first) || model->IsTabPinned(second);
+        if (pin_split) {
+          model->SetTabPinned(model->GetIndexOfWebContents(initiating), true);
+          model->SetTabPinned(model->GetIndexOfWebContents(other), true);
+          first = model->GetIndexOfWebContents(initiating);
+          second = model->GetIndexOfWebContents(other);
+        }
+        const auto group = model->GetTabGroupForTab(first);
         if (model->GetTabGroupForTab(second) != group) {
           if (group) model->AddToExistingGroup({second}, *group);
           else model->RemoveFromGroup({second});
@@ -2926,6 +3997,58 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         reply(true, base::Value(split.has_value())); return;
       }
       reply(true, base::Value(false)); return;
+    }
+    if (method == "setShieldSitePolicy" && args.size() == 4 &&
+        args[0].is_int() && args[1].is_string() && args[2].is_string() &&
+        args[3].is_bool()) {
+      const int active = owner->MainIndex();
+      auto* current = active >= 0 ? model->GetWebContentsAt(active) : nullptr;
+      auto* frame = current ? current->GetPrimaryMainFrame() : nullptr;
+      const GURL url = current ? current->GetLastCommittedURL() : GURL();
+      const bool expected_on = args[3].GetBool();
+      // Bind the rendered switch to the exact active cross-document navigation.
+      if (!current || !frame || !frame->IsRenderFrameLive() ||
+          frame->GetNavigationId() == 0 ||
+          sessions::SessionTabHelper::IdForTab(current).id() != args[0].GetInt() ||
+          base::NumberToString(frame->GetNavigationId()) != args[1].GetString() ||
+          url != GURL(args[2].GetString()) || current->IsLoading() ||
+          current->GetVisibleURL() != url ||
+          current->GetController().GetPendingEntry()) {
+        reply(false, base::Value("The page changed; reopen site protection.")); return;
+      }
+      const bool excepted = blanc::BlockingSiteExcepted(profile, url);
+      const bool enabled = blanc::BlockingEnabled(profile);
+      // A stale on/off state must not toggle the global policy by accident.
+      if (expected_on ? (!enabled || excepted) : !excepted) {
+        reply(false, base::Value("Blocking state changed; reopen site protection.")); return;
+      }
+      auto weak_contents = current->GetWeakPtr();
+      auto weak_document = frame->GetWeakDocumentPtr();
+      const bool changed = expected_on
+          ? blanc::SetBlockingSiteException(profile, url, true)
+          : blanc::SetBlockingSiteException(profile, url, false) &&
+                blanc::SetBlockingEnabled(profile, true);
+      if (!changed) { reply(false, base::Value("Blocking policy could not be changed.")); return; }
+      profile->GetOriginalProfile()->GetPrefs()->CommitPendingWrite();
+      // Let preference observers finish first. Never reload a different or
+      // replaced document, or resubmit a committed POST.
+      base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+          FROM_HERE, base::BindOnce(
+              [](base::WeakPtr<content::WebContents> contents,
+                 content::WeakDocumentPtr document, GURL expected_url) {
+                if (!contents || contents->IsLoading() ||
+                    contents->GetLastCommittedURL() != expected_url ||
+                    contents->GetVisibleURL() != expected_url)
+                  return;
+                auto* current_frame = contents->GetPrimaryMainFrame();
+                if (!current_frame || !current_frame->IsRenderFrameLive() ||
+                    document.AsRenderFrameHostIfValid() != current_frame)
+                  return;
+                const auto* entry = contents->GetController().GetLastCommittedEntry();
+                if (entry && !entry->GetHasPostData())
+                  contents->GetController().Reload(content::ReloadType::NORMAL, false);
+              }, std::move(weak_contents), std::move(weak_document), url));
+      reply(true, base::Value(true)); return;
     }
     if (method == "blockerRecovery" && args.empty()) {
       if (std::string_view(blanc::BlockerHealth()) != "unavailable") {
@@ -3155,9 +4278,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       action->ExecuteUserAction(ToolbarActionViewModel::InvocationSource::kMenuEntry);
       return;
     }
-    if (method == "geometry" && (args.size() == 8 || args.size() == 10) &&
+    if (method == "geometry" &&
+        (args.size() == 8 || args.size() == 10 || args.size() == 14) &&
         std::ranges::all_of(args, [](const auto& v) { return v.is_int(); })) {
-      if (args.size() == 10) {
+      if (args.size() >= 10) {
         for (int i = 0; i < 2; ++i)
           owner->split_corner_widths[i] = std::clamp(args[8 + i].GetInt(), 36, 240);
       }
@@ -3165,6 +4289,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           std::max(0, args[2].GetInt()), std::max(0, args[3].GetInt()));
       owner->interactive_bounds = gfx::Rect(args[4].GetInt(), args[5].GetInt(),
           std::max(0, args[6].GetInt()), std::max(0, args[7].GetInt()));
+      owner->header_interactive_bounds = args.size() == 14
+          ? gfx::Rect(args[10].GetInt(), args[11].GetInt(),
+                      std::max(0, args[12].GetInt()),
+                      std::max(0, args[13].GetInt()))
+          : gfx::Rect();
+      owner->header_interactive_bounds.Intersect(
+          gfx::Rect(0, 0, std::max(0, owner->view->width()), 68));
       if (owner->view->parent()) owner->view->parent()->InvalidateLayout();
       reply(true, base::Value());
       return;
@@ -3198,6 +4329,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       const GURL url(args[0].GetString());
       if (!url.SchemeIsHTTPOrHTTPS() && url != GURL("chrome://newtab/") &&
           url != GURL("chrome://extensions/") &&
+          url != GURL("chrome://settings/") &&
+          url != GURL("chrome://blanc-prototype/blocking-settings.html") &&
           url != GURL("chrome://downloads/") &&
           url != GURL("chrome://bookmarks/") &&
           url != GURL("chrome://history/")) {
@@ -3342,6 +4475,154 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       return;
     }
     auto* tab = model->GetWebContentsAt(index);
+    if (method == "showQuietSettings" && args.size() == 1) {
+      ShowQuietSettings(browser); reply(true, base::Value(true)); return;
+    }
+    if (method == "quietDelay" && (args.size() == 1 || args.size() == 2)) {
+      auto* prefs = g_browser_process->local_state();
+      if (!prefs || !prefs->FindPreference(kQuietDelay)) { reply(false, base::Value("Quiet setting unavailable.")); return; }
+      if (args.size() == 2) {
+        if (!args[1].is_string() || !blanc::quiet::ValidDelay(args[1].GetString())) {
+          reply(false, base::Value("Invalid Quiet delay.")); return;
+        }
+        prefs->SetString(kQuietDelay, args[1].GetString());
+        prefs->CommitPendingWrite();
+      }
+      reply(true, base::Value(prefs->GetString(kQuietDelay))); return;
+    }
+    if ((method == "quietTab" || method == "quietEligible") && args.size() == 1) {
+      if (!QuietAllowed(browser, tab)) { reply(true, base::Value(false)); return; }
+      auto document = tab->GetPrimaryMainFrame()->GetWeakDocumentPtr();
+      blanc::quiet::DirtyProbe::Run(tab, base::BindOnce(&Handler::QuietProbed,
+          weak_factory_.GetWeakPtr(), id, method == "quietTab", browser->GetWeakPtr(), tab->GetWeakPtr(), document));
+      return;
+    }
+    if (method == "quietState" && args.size() == 1) {
+      const auto active_split = model->active_index() >= 0 ?
+          model->GetSplitForTab(model->active_index()) : std::nullopt;
+      const auto split = model->GetSplitForTab(index);
+      bool family = tab->HasLiveOriginalOpenerChain() || tab->HasOpener();
+      GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* candidate) {
+        auto* candidates = candidate->GetTabStripModel();
+        for (int i = 0; i < candidates->count(); ++i) {
+          auto* other = candidates->GetWebContentsAt(i);
+          if (other != tab &&
+              (other->GetFirstWebContentsInLiveOriginalOpenerChain() == tab ||
+               (other->GetOpener() && content::WebContents::FromRenderFrameHost(other->GetOpener()) == tab)))
+            family = true;
+        }
+        return true;
+      });
+      bool history = false;
+      for (int i = 0; i < tab->GetController().GetEntryCount(); ++i)
+        history |= tab->GetController().GetEntryAtIndex(i)->GetURL().SchemeIsHTTPOrHTTPS();
+      auto* permission = permissions::PermissionRequestManager::FromWebContents(tab);
+      std::string native_eligibility = "unknown";
+      base::ListValue native_protection_reasons;
+      if (performance_manager::PerformanceManager::IsAvailable()) {
+        auto page = performance_manager::PerformanceManager::GetPrimaryPageNodeForWebContents(tab);
+        auto* policy = performance_manager::policies::DiscardEligibilityPolicy::GetFromGraph(
+            performance_manager::PerformanceManager::GetGraph());
+        if (page && policy) {
+          std::vector<performance_manager::policies::CannotDiscardReason> reasons;
+          const auto decision = policy->CanDiscard(page.get(),
+              performance_manager::policies::DiscardEligibilityPolicy::DiscardReason::PROACTIVE, true, &reasons);
+          for (const auto reason : reasons) {
+            native_protection_reasons.Append(
+                performance_manager::policies::CannotDiscardReasonToString(reason));
+          }
+          using Result = performance_manager::policies::CanDiscardResult;
+          native_eligibility = decision == Result::kEligible ? "eligible" :
+              decision == Result::kProtected ? "protected" : "disallowed";
+        }
+      }
+      bool before_unload = false;
+      tab->GetPrimaryMainFrame()->ForEachRenderFrameHost([&](content::RenderFrameHost* frame) {
+        before_unload |= frame->GetSuddenTerminationDisablerState(
+            blink::mojom::SuddenTerminationDisablerType::kBeforeUnloadHandler);
+      });
+      auto* media = blanc::quiet::MediaHistory::Get(tab);
+      base::ListValue unmapped;
+      if (!media->known()) unmapped.Append("silent-media-history");
+      const bool sandboxed = tab->GetPrimaryMainFrame()->IsSandboxed(network::mojom::WebSandboxFlags::kAll);
+      const bool inherited_known = media->policy_known() || sandboxed;
+      if (!inherited_known) unmapped.Append("inherited-policy");
+      if (native_eligibility == "unknown") unmapped.Append("native-eligibility");
+      unmapped.Append("storage-preservation");
+      // These known observations are read-only. Missing lifecycle proofs must
+      // not be mistaken for permission to discard a renderer.
+      reply(true, base::Value(base::DictValue()
+          .Set("active", index == model->active_index())
+          .Set("visiblePane", index == model->active_index() || (split && split == active_split))
+          .Set("loading", tab->IsLoading() || tab->GetController().GetPendingEntry())
+          .Set("pinned", model->IsTabPinned(index)).Set("muted", tab->IsAudioMuted())
+          .Set("audible", tab->IsCurrentlyAudible()).Set("capturing", tab->IsBeingCaptured())
+          .Set("permissionPending", permission ? base::Value(permission->IsRequestInProgress()) : base::Value())
+          .Set("liveOpenerFamily", family).Set("restorableHttpHistory", history)
+          .Set("usedMedia", media->known() ? base::Value(media->used()) : base::Value())
+          .Set("inheritedPolicy", inherited_known ? base::Value(media->inherited_policy() || sandboxed) : base::Value())
+          .Set("nativeEligibility", native_eligibility)
+          .Set("nativeProtectionReasons", std::move(native_protection_reasons))
+          .Set("beforeUnload", before_unload)
+          .Set("safeToDiscard", false)
+          .Set("unmapped", std::move(unmapped))));
+      return;
+    }
+    if (method == "quietProbe" && args.size() == 1) {
+      blanc::quiet::DirtyProbe::Run(tab, base::BindOnce(
+          [](base::WeakPtr<Handler> handler, std::string request_id,
+             blanc::quiet::DirtyResult result) {
+            if (handler) handler->Reply(request_id, true, base::Value(base::DictValue()
+                .Set("complete", result.complete).Set("dirty", result.dirty)
+                .Set("deepScrolled", result.deep_scrolled)
+                .Set("hasSessionStorage", result.has_session_storage)));
+          }, weak_factory_.GetWeakPtr(), id));
+      return;
+    }
+    if (method == "copyTabLink" && args.size() == 3 &&
+        args[1].is_string() && args[2].is_string()) {
+      const GURL url = tab->GetLastCommittedURL();
+      const std::string& expected = args[1].GetString();
+      const std::string& text = args[2].GetString();
+      const GURL copied(text);
+      GURL::Replacements no_query;
+      no_query.ClearQuery();
+      if ((!url.SchemeIsHTTPOrHTTPS() && !url.SchemeIsFile()) ||
+          url.spec() != expected || tab->GetVisibleURL() != url ||
+          tab->GetController().GetPendingEntry() || !copied.is_valid() ||
+          text.size() > expected.size() ||
+          copied.ReplaceComponents(no_query) != url.ReplaceComponents(no_query)) {
+        reply(false, base::Value("The page changed; reopen the link menu."));
+        return;
+      }
+      ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste);
+      writer.WriteText(base::UTF8ToUTF16(text));
+      reply(true, base::Value(true));
+      return;
+    }
+    if (method == "duplicateTab" && args.size() == 1) {
+      // Do not clone away an inherited/CSP sandbox or an unsettled document.
+      if (tab->GetController().GetPendingEntry() ||
+          tab->GetPrimaryMainFrame()->IsSandboxed(network::mojom::WebSandboxFlags::kAll) ||
+          !chrome::CanDuplicateTabAt(browser, index)) {
+        reply(true, base::Value(false)); return;
+      }
+      // Native Chromium owns navigation/policy cloning. Like shipping Blanc,
+      // the new tab starts with the page title, not the source's custom name.
+      auto* duplicate = chrome::DuplicateTabAt(browser, index);
+      if (duplicate) duplicate->RemoveUserData(kTabNameKey);
+      reply(true, base::Value(duplicate != nullptr)); return;
+    }
+    if (method == "renameTab" && args.size() == 2 && args[1].is_string()) {
+      reply(true, base::Value(RenameTab(browser, tab, args[1].GetString())));
+      return;
+    }
+    if (method == "startPinMenuState" && args.size() == 1) {
+      reply(true, base::Value(StartPinMenuState(profile, tab))); return;
+    }
+    if (method == "toggleStartPin" && args.size() == 2 && args[1].is_string()) {
+      reply(true, base::Value(ToggleStartPinFromTab(profile, tab, args[1].GetString()))); return;
+    }
     if (method == "find" || method == "stopFind") {
       if (index != model->active_index()) {
         reply(false, base::Value("Find requires the active tab in this window.")); return;
@@ -3376,6 +4657,17 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (method == "toggleBookmark" || method == "saveFavorite") {
       // The Island's heart and /save act on the tab it names; main re-reads
       // the committed page here rather than trusting a renderer-supplied URL.
+      if (!CanEditFavorites(profile)) {
+        reply(false, base::Value(profile->IsOffTheRecord()
+            ? "Favorites are unavailable in private windows."
+            : "Favorites editing is disabled."));
+        return;
+      }
+      if (tab->GetController().GetPendingEntry() ||
+          tab->GetVisibleURL() != tab->GetLastCommittedURL()) {
+        reply(false, base::Value("Wait for the page to finish loading."));
+        return;
+      }
       auto* favorites = LoadedBookmarkModel(profile);
       const GURL& url = tab->GetPrimaryMainFrame()->GetLastCommittedURL();
       if (!favorites || !IsFavoritable(url)) {
@@ -3386,11 +4678,17 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
       const std::u16string title = tab->GetTitle();
       if (method == "toggleBookmark" && args.size() == 1) {
-        reply(true, base::Value(ToggleFavorite(favorites, url, title)));
+        const auto result = ToggleFavorite(favorites, url, title);
+        if (!result) reply(false, base::Value(
+            "Unable to change this Favorite safely. It may have multiple or managed bookmarks; open Favorites to manage them."));
+        else reply(true, base::Value(*result));
         return;
       }
       if (method == "saveFavorite" && args.size() == 2 && args[1].is_string()) {
-        reply(true, base::Value(SaveFavorite(favorites, url, title, args[1].GetString())));
+        const auto result = SaveFavorite(favorites, url, title, args[1].GetString());
+        if (!result) reply(false, base::Value(
+            "Unable to change this Favorite safely. It may have multiple or managed bookmarks; open Favorites to manage them."));
+        else reply(true, base::Value(*result));
         return;
       }
       reply(false, base::Value("Expected a tab ID and a folder name."));
@@ -3399,9 +4697,24 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (method == "togglePinned" && args.size() == 1) {
       // TabStripModel moves the tab to the pinned boundary itself, so re-read
       // its state at the new index.
-      model->SetTabPinned(index, !model->IsTabPinned(index));
+      const auto split = model->GetSplitForTab(index);
+      if (split) {
+        // The public context command preserves a native split. Refuse an
+        // unrelated multi-selection rather than mutating untargeted tabs.
+        if (model->IsTabSelected(index)) {
+          for (int selected : model->selection_model().GetListSelectionModel().selected_indices()) {
+            if (model->GetSplitForTab(selected) != split) {
+              reply(false, base::Value("Select only this Split View before pinning it."));
+              return;
+            }
+          }
+        }
+        model->ExecuteContextMenuCommand(index, TabStripModel::CommandTogglePinned);
+      } else {
+        model->SetTabPinned(index, !model->IsTabPinned(index));
+      }
       const int moved_index = model->GetIndexOfWebContents(tab);
-      if (!model->IsTabPinned(moved_index) && !model->GetTabGroupForTab(moved_index))
+      if (!split && !model->IsTabPinned(moved_index) && !model->GetTabGroupForTab(moved_index))
         model->MoveWebContentsAt(moved_index, model->count() - 1, false);
       reply(true, base::Value(model->IsTabPinned(model->GetIndexOfWebContents(tab))));
       return;
@@ -3709,11 +5022,62 @@ auto& WindowIdentities() {
 }  // namespace
 
 namespace {
+class TabNameData : public base::SupportsUserData::Data {
+ public:
+  explicit TabNameData(std::string value) : name(std::move(value)) {}
+  std::string name;
+};
 class TabIdentityData : public base::SupportsUserData::Data {
  public:
   explicit TabIdentityData(std::string value) : id(std::move(value)) {}
   std::string id;
 };
+}
+void PreserveDiscardedTabState(content::WebContents* old_tab, content::WebContents* replacement) {
+  if (!old_tab || !replacement || old_tab->GetBrowserContext() != replacement->GetBrowserContext()) return;
+  if (auto* name = static_cast<TabNameData*>(old_tab->GetUserData(kTabNameKey)))
+    replacement->SetUserData(kTabNameKey, std::make_unique<TabNameData>(name->name));
+  if (auto* identity = static_cast<TabIdentityData*>(old_tab->GetUserData(kTabIdentityKey)))
+    replacement->SetUserData(kTabIdentityKey, std::make_unique<TabIdentityData>(identity->id));
+  if (auto* split = static_cast<PersistentSplitData*>(old_tab->GetUserData(kPersistentSplitKey)))
+    replacement->SetUserData(kPersistentSplitKey, std::make_unique<PersistentSplitData>(split->focused));
+}
+std::string CustomTabName(content::WebContents* tab) {
+  if (!IsEnabled() || !tab) return "";
+  auto* data = static_cast<TabNameData*>(tab->GetUserData(kTabNameKey));
+  return data ? data->name : "";
+}
+void RestoreCustomTabName(content::WebContents* tab,
+    const std::map<std::string, std::string>& extra_data) {
+  if (!IsEnabled() || !tab || tab->GetBrowserContext()->IsOffTheRecord()) return;
+  const auto name = extra_data.find(kTabNameKey);
+  const auto normalized = name == extra_data.end() ? std::nullopt
+      : tab_names::Normalize(base::UTF8ToUTF16(name->second));
+  // Replacement may reuse a WebContents with an unrelated previous name.
+  // Missing metadata restores the page title; it must not retain that name.
+  if (normalized) tab->SetUserData(kTabNameKey,
+      std::make_unique<TabNameData>(base::UTF16ToUTF8(*normalized)));
+  else tab->RemoveUserData(kTabNameKey);
+}
+std::string PersistentTabName(content::WebContents* tab) {
+  return tab && !tab->GetBrowserContext()->IsOffTheRecord() ? CustomTabName(tab) : "";
+}
+bool RenameTab(BrowserWindowInterface* browser, content::WebContents* tab,
+               const std::string& raw) {
+  if (!IsIslandWindow(browser) || !tab ||
+      browser->GetTabStripModel()->GetIndexOfWebContents(tab) < 0) return false;
+  const auto change = tab_names::Resolve(tab->GetTitle(),
+      base::UTF8ToUTF16(CustomTabName(tab)), base::UTF8ToUTF16(raw));
+  if (!change) return false;
+  const std::string name = *change ? base::UTF16ToUTF8(**change) : "";
+  if (name.empty()) tab->RemoveUserData(kTabNameKey);
+  else tab->SetUserData(kTabNameKey, std::make_unique<TabNameData>(name));
+  if (!browser->GetProfile()->IsOffTheRecord()) {
+    if (auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile()))
+      service->AddTabExtraData(browser->GetSessionID(),
+          sessions::SessionTabHelper::IdForTab(tab), kTabNameKey, name);
+  }
+  return true;
 }
 std::string PersistentSplitState(content::WebContents* tab) {
   auto* data = static_cast<PersistentSplitData*>(tab->GetUserData(kPersistentSplitKey));
@@ -3800,6 +5164,7 @@ void RestoreTabIdentity(content::WebContents* tab,
   if (!IsEnabled() || tab->GetBrowserContext()->IsOffTheRecord()) return;
   if (auto split = extra_data.find(kPersistentSplitKey); split != extra_data.end() && (split->second == "1" || split->second == "2"))
     tab->SetUserData(kPersistentSplitKey, std::make_unique<PersistentSplitData>(split->second == "2"));
+  RestoreCustomTabName(tab, extra_data);
   const auto it = extra_data.find(kTabIdentityKey);
   if (it != extra_data.end() && base::Uuid::ParseLowercase(it->second).is_valid())
     tab->SetUserData(kTabIdentityKey, std::make_unique<TabIdentityData>(it->second));
@@ -3923,13 +5288,19 @@ UI::UI(content::WebUI* web_ui) : content::WebUIController(web_ui) {
               std::move(callback).Run(bytes);
               return;
             }
+            // Only the exact private Start Page query aliases the shared
+            // static asset; arbitrary queries never become filesystem paths.
+            const std::string asset_path = path == "pages/newtab.html?private=1"
+                ? "pages/newtab.html" : path;
             base::ThreadPool::PostTaskAndReplyWithResult(
                 FROM_HERE, {base::MayBlock()},
-                base::BindOnce(&ReadAsset, root, path), std::move(callback));
+                base::BindOnce(&ReadAsset, root, asset_path, ActiveInterfaceLanguageSetting()),
+                std::move(callback));
           },
           root, Profile::FromWebUI(web_ui)->GetWeakPtr()));
   web_ui->AddMessageHandler(std::make_unique<Handler>());
   web_ui->AddMessageHandler(std::make_unique<NewTabHandler>());
+  web_ui->AddMessageHandler(std::make_unique<BlockingSettingsHandler>());
 }
 
 ToolbarButtonProvider* ToolbarProvider(BrowserWindowInterface* browser,
@@ -3979,12 +5350,15 @@ bool ToggleFavoriteFromIsland(BrowserWindowInterface* browser) {
   // Same rules as the Island heart: committed http(s) page, loaded model,
   // never a private window. Anything else is a no-op, as in Electron, rather
   // than Chromium's bubble, which has no toolbar to anchor to here.
+  if (!CanEditFavorites(browser->GetProfile())) return true;
   auto* active = browser->GetTabStripModel()->GetActiveWebContents();
   auto* model = LoadedBookmarkModel(browser->GetProfile());
   if (!active || !model) return true;
+  if (active->GetController().GetPendingEntry() ||
+      active->GetVisibleURL() != active->GetLastCommittedURL()) return true;
   const GURL& url = active->GetPrimaryMainFrame()->GetLastCommittedURL();
   if (!IsFavoritable(url)) return true;
-  ToggleFavorite(model, url, active->GetTitle());
+  const auto result = ToggleFavorite(model, url, active->GetTitle());
   // Repaint the heart now instead of on the next 300ms snapshot poll.
   auto* parent = BrowserView::GetBrowserViewForBrowser(browser);
   auto* view = parent ? static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId)) : nullptr;
@@ -3992,7 +5366,9 @@ bool ToggleFavoriteFromIsland(BrowserWindowInterface* browser) {
   if (contents && contents->GetLastCommittedURL() == GURL("chrome://blanc-prototype/host.html") &&
       contents->GetPrimaryMainFrame()->IsRenderFrameLive()) {
     contents->GetPrimaryMainFrame()->ExecuteJavaScript(
-        u"window.BlancPrototypeHost?.refresh()", base::NullCallback());
+        result ? u"window.BlancPrototypeHost?.refresh()"
+               : u"window.BlancPrototypeHost?.notice('Unable to change this Favorite safely. It may have multiple or managed bookmarks; open Favorites to manage them.')",
+        base::NullCallback());
   }
   return true;
 }
@@ -4068,7 +5444,8 @@ bool IsCaption(views::View* parent, int x, int y) {
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
   if (!view || !view->GetVisible() || y < view->y() || y >= view->y() + 68) return false;
   auto* owner = GetOwner(view->GetWebContents());
-  return owner && !owner->interactive_bounds.Contains(x, y - view->y());
+  return owner && !owner->interactive_bounds.Contains(x, y - view->y()) &&
+         !owner->header_interactive_bounds.Contains(x, y - view->y());
 }
 
 void RestoreExtensions(views::View* parent) {
