@@ -18,8 +18,14 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const island = path.join(root, 'blanc/island');
 const record = path.join(root, 'blanc/island-renderer.json');
 
+// The utility sheet's pages (S1.5): Favorites, History and Downloads, shown
+// in a frame of the Island host over Chromium's own models.
+export const SHEET_FILES = ['sheet.js', 'row-icon.js', 'history-groups.js', 'downloads-row-model.js',
+  'bookmarks.html', 'bookmarks.js', 'history.html', 'history.js', 'downloads.html', 'downloads.js'].map(file => `pages/${file}`);
 export const FILES = ['index.html', 'overlay.html', 'overlay.js', 'renderer.js', 'styles.css', 'tab-drag.js',
-  'tab-sections.js', 'vertical-tabs.js', 'workspace-ui.js', 'glance-card-drag.js', 'hover-panel-leave.js'];
+  'tab-sections.js', 'vertical-tabs.js', 'workspace-ui.js', 'glance-card-drag.js', 'hover-panel-leave.js', ...SHEET_FILES];
+// The sheet pages' bridge, the fork's own file, loads before their strings.
+const SHEET_BRIDGE = ['  <script src="strings.js"></script>\n', '  <script src="sheet-adapter.js"></script>\n  <script src="strings.js"></script>\n'];
 // Shipping's pure main-process modules the Island host runs as they are,
 // wrapped so a document can load them: the host holds the state shipping's
 // main process holds (hover-open's dwell and auto-hide's floating pill, S1.2),
@@ -33,6 +39,11 @@ const PREVIEW_META = fs.readFileSync(path.join(root, 'tools/preview-build-meta.h
 
 // The fork's edits to shipping's files. Each `find` must occur exactly once.
 export const EDITS = {
+  // The sheet's window.bowserPages answers from the Island host
+  // (pages/sheet-adapter.js), not from Electron's tab preload.
+  'pages/bookmarks.html': [SHEET_BRIDGE],
+  'pages/history.html': [SHEET_BRIDGE],
+  'pages/downloads.html': [SHEET_BRIDGE],
   'index.html': [
     // The Island facade and the fork's own styles load around shipping's.
     // The launch's interface language (F44) is pinned before strings.js reads it.

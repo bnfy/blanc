@@ -33,6 +33,7 @@ source_set(target_name) {
     "//components/bookmarks/browser",
     "//components/bookmarks/common",
     "//components/history/core/browser",
+    "//components/download/public/common:public",
     "//components/input",
     "//components/keyed_service/core",
     "//components/tab_groups",

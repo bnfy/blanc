@@ -14,7 +14,7 @@ test('the fork Start Page commits under its own document URL',()=>{
  assert.equal(shippingPageUrl('chrome://blanc-prototype/pages/newtab.html?private=1'),'blanc://newtab/?private=1');
  assert.doesNotMatch('https://newtab.example/',NEWTAB);
 });
-test('utility pages are the fork manager tabs, never web pages',()=>{
+test('utility pages shown as tabs are fork pages, never web pages',()=>{
  for(const url of ['chrome://bookmarks/','chrome://history/','chrome://downloads/','chrome://blanc-prototype/blocking-settings.html'])assert.match(url,UTILITY);
  assert.doesNotMatch('chrome://newtab/',UTILITY);
  assert.doesNotMatch('http://127.0.0.1/site/bookmarks',UTILITY);

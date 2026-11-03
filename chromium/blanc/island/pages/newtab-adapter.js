@@ -531,8 +531,14 @@
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('retryRankedSites')?.addEventListener('click', () => window.blancNewTabEvent('topSites'));
     document.getElementById('retryPinnedSites')?.addEventListener('click', () => window.blancNewTabEvent('pins'));
-    // Keep the existing Favorites heading useful without the Electron protocol.
-    for (const link of document.querySelectorAll('a[href="blanc://bookmarks/"]')) link.href = 'chrome://bookmarks/';
+    // The Favorites heading opens the utility sheet, as shipping's
+    // blanc://bookmarks/ link does; the page itself never navigates there.
+    for (const link of document.querySelectorAll('a[href="blanc://bookmarks/"]')) {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        request('openSheet', ['bookmarks']).catch((error) => console.warn(error.message));
+      });
+    }
   });
 })();
 

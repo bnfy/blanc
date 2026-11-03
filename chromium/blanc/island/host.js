@@ -465,6 +465,9 @@
       snapshot.closedSlot = beforeIndex < 0 ? items.length : beforeIndex;
       strip.contentDocument?.documentElement?.toggleAttribute('data-extensions-page',
         snapshot.tabs.find(t => t.id === snapshot.activeTabId)?.url === 'chrome://extensions/');
+      if (sheet.tabs && (snapshot.activeTabId !== sheet.tabs.active || snapshot.tabs.length > sheet.tabs.count))
+        hideSheet(false).catch(error => notice(error.message));
+      else if (sheet.tabs) sheet.tabs.count = snapshot.tabs.length;
       paintHeader();
       paintSplitHeaders();
       const slot = strip.contentDocument?.getElementById('nativeExtensions');
@@ -522,7 +525,7 @@
     const a = slot.getBoundingClientRect();
     // The palette scrim, and the group menu's transparent layer (a click
     // beside the menu closes it), own outside clicks across the viewport.
-    const b = opened && (overlayMode === 'palette' || overlayMode === 'group-menu')
+    const b = (opened && (overlayMode === 'palette' || overlayMode === 'group-menu')) || (sheet.page && !opened)
       ? { x: 0, y: 0, width: innerWidth, height: innerHeight }
       : panel.getBoundingClientRect();
     const overlayRect = opened ? overlay.getBoundingClientRect() : {x: 0, y: 0};
@@ -539,6 +542,7 @@
   async function show(prefill, mode = 'panel', trigger = null, purpose = undefined) {
     // Every open ends a hover dwell, as shipping's showOverlay does.
     hoverStepWith({ type: 'ineligible' });
+    await hideSheet(false);
     invalidateFindShow(mode === 'shield');
     const epoch = findShowEpoch;
     if (overlayMode === 'find') emit('onOverlayHide', {});
@@ -598,6 +602,7 @@
   }
 
   async function openFindBar() {
+    await hideSheet(false);
     invalidateFindShow();
     const epoch = findShowEpoch;
     await refresh();
@@ -662,6 +667,7 @@
     request, close, refreshGeometry: reportGeometry, back: () => show(),
   });
   async function showExtensions() {
+    await hideSheet(false);
     invalidateFindShow();
     const epoch = findShowEpoch;
     if (extensionsOpened) return close();
@@ -690,6 +696,178 @@
     setTimeout(() => { if (extensionsOpened && !extensionsPanel.contextMenuOpen && !document.hasFocus()) close(); }, 0);
   });
   setInterval(() => extensionsPanel.update(), 1000);
+
+  // ---- The utility sheet (S1.5, F16; shipping's showUtilityPage and
+  // hideUtilitySheet). Favorites, History and Downloads open in one frame
+  // over the page, never as tabs. The frame claims the window as the palette
+  // does, its page draws its own scrim and card, and the host answers its
+  // window.bowserPages (pages/sheet-adapter.js) from Chromium's models.
+  const SHEET_PAGES = ['bookmarks', 'history', 'downloads'];
+  const sheet = { frame: null, page: null, contents: 0, epoch: 0, tabs: null,
+    escapeArmed: false, escapeListeners: new Set() };
+  const sheetCurrent = (win, page) => !!sheet.frame && sheet.frame.contentWindow === win && sheet.page === page;
+  function sheetReady() {
+    const doc = sheet.frame?.contentDocument;
+    return !!sheet.page && doc?.readyState === 'complete' &&
+      sheet.frame.contentWindow.location.pathname === `/pages/${sheet.page}.html`;
+  }
+  // The page's place: below the strip, or beside the vertical rail.
+  function placeSheet() {
+    const top = layout === 'vertical' ? 0 : 68, left = layout === 'vertical' ? railWidth : 0;
+    Object.assign(sheet.frame.style, { top: `${top}px`, left: `${left}px`,
+      width: `calc(100% - ${left}px)`, height: `calc(100% - ${top}px)` });
+  }
+  function createSheetFrame() {
+    const frame = document.createElement('iframe');
+    frame.id = 'sheet';
+    frame.title = 'Blanc utility sheet';
+    frame.dataset.contents = String(++sheet.contents);
+    // A document the bridge didn't open (a page setting its own address)
+    // ends the sheet, as shipping's will-navigate refuses it.
+    frame.addEventListener('load', () => {
+      if (sheet.frame === frame && sheet.page &&
+          frame.contentWindow.location.pathname !== `/pages/${sheet.page}.html`) hideSheet();
+    });
+    // Under the floating pill and the overlay, as shipping stacks its views.
+    floatPill.before(frame);
+    return frame;
+  }
+  async function showSheet(name) {
+    if (!SHEET_PAGES.includes(name)) throw new Error(`No utility sheet page named ${name}.`);
+    // Re-invoking the shown page closes it; while it loads, a repeat is the
+    // same request (shipping's showUtilityPage toggle).
+    if (sheet.page === name && sheet.frame) {
+      if (sheetReady()) return hideSheet();
+      sheet.frame.contentWindow.focus();
+      return;
+    }
+    const epoch = ++sheet.epoch;
+    // One floating layer at a time, in both directions.
+    if (opened || extensionsOpened || paneMenu) await close(false);
+    if (epoch !== sheet.epoch) return;
+    hoverStepWith({ type: 'ineligible' });
+    sheet.frame ??= createSheetFrame();
+    sheet.page = name;
+    sheet.escapeArmed = false;
+    sheet.escapeListeners.clear();
+    placeSheet();
+    sheet.frame.src = `pages/${name}.html`;
+    sheet.frame.hidden = false;
+    await request('height', [10000]);
+    if (epoch !== sheet.epoch) return;
+    await refresh();
+    if (epoch !== sheet.epoch) return;
+    // A tab switch or a new tab dismisses the sheet (refreshNow).
+    sheet.tabs = { active: snapshot?.activeTabId ?? null, count: snapshot?.tabs.length ?? 0 };
+    reportGeometry();
+    sheet.frame.contentWindow.focus();
+  }
+  async function hideSheet(focus = true) {
+    if (!sheet.page) return;
+    const epoch = ++sheet.epoch;
+    sheet.page = null;
+    sheet.tabs = null;
+    sheet.escapeArmed = false;
+    sheet.escapeListeners.clear();
+    if (sheet.frame) {
+      sheet.frame.hidden = true;
+      // A hidden frame still reports itself visible; a blank one does nothing.
+      sheet.frame.src = 'about:blank';
+    }
+    if (opened || extensionsOpened) return;
+    await request('height', [68]);
+    if (epoch !== sheet.epoch) return;
+    if (focus) await request('focusPage');
+    reportGeometry();
+  }
+  // Where a click in the sheet goes (shipping's createUtilitySheet
+  // will-navigate): a utility page changes the sheet, a web page opens a
+  // tab, Settings opens Blanc's Settings, anything else goes nowhere.
+  async function sheetLink(win, href) {
+    if (!sheet.frame || sheet.frame.contentWindow !== win || !sheet.page) return;
+    let url;
+    try { url = new URL(href); } catch { return; }
+    if (url.protocol === 'blanc:' && SHEET_PAGES.includes(url.hostname)) {
+      if (url.hostname === sheet.page) { sheet.frame.contentWindow.location.reload(); return; }
+      return showSheet(url.hostname);
+    }
+    if (url.protocol === 'blanc:' && url.hostname === 'settings') {
+      await hideSheet(false);
+      return implemented.openPage('settings');
+    }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+    await hideSheet(false);
+    await request('createTab', [url.href]);
+    await refresh();
+  }
+  // Escape closes the sheet unless its page asked for it first (a picker).
+  function sheetEscape(win) {
+    if (!sheet.frame || sheet.frame.contentWindow !== win || !sheet.page) return;
+    if (sheet.escapeArmed) for (const callback of [...sheet.escapeListeners]) callback();
+    else hideSheet();
+  }
+  // shipping's tab preload's API for one sheet page, answered by native ops.
+  function sheetBridge(win, page) {
+    const call = (method, args = []) => sheetCurrent(win, page) ? request(method, args)
+      : Promise.reject(new Error('This page is no longer shown.'));
+    const unavailable = async () => { throw new Error('Importing Favorites is not available yet.'); };
+    const surface = {
+      close: async () => { if (sheetCurrent(win, page)) await hideSheet(); },
+      armEscape: async (armed) => { if (sheetCurrent(win, page)) sheet.escapeArmed = !!armed; },
+      onEscape: (callback) => {
+        if (!sheetCurrent(win, page)) return () => {};
+        sheet.escapeListeners.add(callback);
+        return () => sheet.escapeListeners.delete(callback);
+      },
+    };
+    if (page === 'bookmarks') return { surface,
+      bookmarks: {
+        // The fork's import arrives with the M.2 importer; until then the
+        // page hides its import actions, as it does where import is absent.
+        capabilities: async () => ({ editable: true, import: false }),
+        list: () => call('listFavorites'),
+        remove: (id) => call('sheetFavoriteRemove', [String(id)]),
+        clearFavicon: async () => {},
+        import: unavailable, browserSources: unavailable, importBrowser: unavailable,
+        setFolder: (id, folder) => call('sheetFavoriteFolder', [String(id), typeof folder === 'string' ? folder : '']),
+        renameFolder: (oldName, newName) => call('sheetFolderRename', [String(oldName), String(newName)]),
+        removeFolder: (name) => call('sheetFolderRemove', [String(name)]),
+      },
+      pins: {
+        list: () => call('sheetPins'),
+        pin: (url, title) => call('sheetPin', [String(url), typeof title === 'string' ? title : '']),
+        unpin: (url) => call('sheetUnpin', [String(url)]),
+        // The page redraws after its own pin changes; others reach it on reopen.
+        onChanged: () => () => {},
+      },
+    };
+    if (page === 'history') return { surface,
+      history: {
+        // Shipping's listHistory({query, limit}): substring matches on the
+        // address or title, newest visit first.
+        list: async (options = {}) => {
+          const query = String(options?.query ?? '').trim().toLowerCase();
+          const limit = Number.isInteger(options?.limit) ? Math.max(0, options.limit) : 500;
+          const visits = await call('sheetHistory');
+          return (query ? visits.filter(visit => visit.url.toLowerCase().includes(query) ||
+            visit.title.toLowerCase().includes(query)) : visits).slice(0, limit);
+        },
+        remove: (url, visitedAt) => call('sheetHistoryRemove', [String(url), Number(visitedAt)]),
+        clear: () => call('clearHistory'),
+      },
+      // Tab Archive (F52) is not in the fork yet, so nothing is archived.
+      archive: { list: async () => [], restore: async () => false, forget: async () => false, clear: async () => {} },
+    };
+    if (page === 'downloads') return { surface,
+      downloads: {
+        list: () => call('sheetDownloads'),
+        ...Object.fromEntries(['cancel', 'resume', 'retry', 'open', 'show'].map(action =>
+          [action, (id) => call('sheetDownload', [String(id), action])])),
+        clearFinished: () => call('sheetDownloadsClear'),
+      },
+    };
+    return null;
+  }
 
   // Native handlers take the integer SessionID; anything else fails their
   // "real tab ID" check instead of matching by accident.
@@ -849,12 +1027,11 @@
           }
         }
       }
-      // Electron names Favorites `bookmarks` internally; Chromium's manager
-      // pages stand in for Blanc's utility sheets in this prototype.
-      if (!['downloads', 'extensions', 'bookmarks', 'history'].includes(name)) {
-        throw new Error('Use Chromium’s native controls for this page in the prototype.');
-      }
-      await request('createTab', [`chrome://${name}/`]);
+      // Electron names Favorites `bookmarks` internally. Utility pages open
+      // in the sheet; Extensions is Chromium's own page.
+      if (SHEET_PAGES.includes(name)) return showSheet(name);
+      if (name !== 'extensions') throw new Error('Use Chromium’s native controls for this page in the prototype.');
+      await request('createTab', ['chrome://extensions/']);
     },
     // Favorites and history are Chromium's own BookmarkModel and
     // HistoryService, shaped like Electron's records; see contract.json.
@@ -1254,7 +1431,7 @@
     if (!intro) {
       tooltip.classList.remove('intro');
       tooltip.hidden = true;
-      request('height', [68, false]).catch(() => {});
+      if (!sheet.page) request('height', [68, false]).catch(() => {});
       return;
     }
     const t = strip.contentWindow?.blancI18n?.t;
@@ -1354,6 +1531,23 @@
     },
     extensions: showExtensions,
     escape: () => opened || extensionsOpened ? close() : undefined,
+    // The utility sheet: its pages' bridge and links (pages/sheet-adapter.js),
+    // native commands (History, Downloads, Favorites) and its state.
+    sheetBridge, sheetLink, sheetEscape,
+    openSheet: (name) => showSheet(name),
+    closeSheet: () => hideSheet(),
+    sheetState: () => ({ visible: !!sheet.page && !!sheet.frame && !sheet.frame.hidden, ready: sheetReady(),
+      url: sheet.page ? `blanc://${sheet.page}/` : null, contentsId: sheet.frame?.dataset.contents ?? null }),
+    // The frame goes away as a crashed sheet's contents do; the next open
+    // creates new ones (shipping's destroyed-contents recovery, F16-8).
+    discardSheetContents: () => {
+      if (!sheet.frame) return false;
+      const frame = sheet.frame;
+      sheet.frame = null;
+      frame.remove();
+      hideSheet().catch(error => notice(error.message));
+      return true;
+    },
     refresh,
     pageTint,
     findResult: (id, activeMatchOrdinal, matches, finalUpdate) => {
