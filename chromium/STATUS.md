@@ -119,7 +119,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     request to blanc.day has not been exercised.
   - Bang scenarios: 16 of 18 pass; the two private-tab ones need D1.
     Navigation and settings features unchanged.
-  - Patch series: 0001–0015 touch all 87 pinned upstream files with 284
+  - Patch series: 0001–0016 touch all 88 pinned upstream files with 286
     hunks.
   - **Outbound isolation passes on macos-92a5c23a766fdc5e (2026-11-01).**
     Run as `blanc-test` with a pf block on that user (owner-approved anchor),
@@ -354,6 +354,24 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   chip) has no shipping step definitions. tabs-and-groups,
   navigation-and-context-menu, internal-pages, ad-blocking,
   find-favorites-history and island-and-commands are unchanged.
+- **S1.6 certificate safety under V8 (N5), candidate macos-2578c8367acd5017
+  (2026-11-03):** six of the seven site-certificate-safety cases pass
+  (all seven failed before). The snapshot reports each tab's certificate
+  state from its committed navigation entry (Chromium's warning page, or a
+  page continued past one), which the host gives shipping's `buildSiteInfo`,
+  so the badge and site controls report it; site controls' Stop allowing
+  revokes Chromium's decision for the host (`forgetCertificateException`,
+  RevokeUserAllowExceptionsHard). The fork's state names Chromium's warning
+  page as shipping's `blanc://error/?kind=certificate`, and three steps that
+  read shipping's own page are replaced under V8
+  (`tests/fork-steps/divergences.mjs`, checked by
+  `tests/divergences.test.mjs`): its wording, Proceed behind Advanced
+  instead of no way through for a public site, and Advanced then Proceed.
+  Patch 0016 (the newly pinned `website_settings_registry.cc`) keeps
+  private tabs' certificate decisions their own (owner, 2026-11-03).
+  F39-6 stays undefined: the fork has no parked-tab tier for Reopen Closed
+  Tab (F2). The regression for this piece had not finished when it was
+  pushed.
 - **Live dev instance (owner, 2026-11-03):** after every native build,
   `node chromium/tools/live-dev.mjs <runtime config>` relaunches the
   newest candidate from a copy in `~/Projects/BlancChromium158/live/`,
@@ -472,6 +490,9 @@ Recorded in the spec (§4, §9) and plan:
 - 2026-11-02: no built-in Dark Reader (F42 dark websites) in the Chromium
   builds. With the Chrome Web Store supported, people install Dark Reader
   themselves; F42's cases become an approved divergence, not a port.
+- 2026-11-03: private tabs keep their own certificate decisions; Chromium's
+  inheritance of regular-tab decisions into incognito is turned off (patch
+  0016).
 - 2026-11-03: HTTP sign-in challenges (F20) are refused as shipping's are,
   not shown in Chromium's credential dialog. Sandboxed page-opened tabs
   (N4) keep Chromium's native sandbox inheritance; a restored one (session,
@@ -509,8 +530,7 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. The rest of S1.6: N5's cases
-   rewritten to Chromium's certificate page (V8), N4 inert restore, N8
+1. The rest of S1.6: N4 inert restore, N8
    secure DNS and WebRTC policy, N22 startup gate, F19 context menu. Settings in the sheet belongs to S1.7,
    whose restyled chrome://settings can't load in a host frame; how it is
    presented is the owner's call there. Verify each change with targeted
@@ -564,5 +584,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-08744ec1266cd826; Windows: none; Linux: none.
+Candidate identities: macOS: macos-2578c8367acd5017; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->
