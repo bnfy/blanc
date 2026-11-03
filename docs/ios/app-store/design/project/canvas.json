@@ -1,0 +1,207 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Artboard-mq4m.dc.html": {
+      "h": 600,
+      "page": "page-tsyv0r",
+      "title": "Artboard 1",
+      "w": 800,
+      "x": 0,
+      "y": 0
+    },
+    "Commands.dc.html": {
+      "h": 2868,
+      "title": "Slash commands",
+      "w": 1320,
+      "x": 4200,
+      "y": 0
+    },
+    "Computer.dc.html": {
+      "h": 2868,
+      "title": "Your computer's tabs",
+      "w": 1320,
+      "x": 1400,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "h": 2868,
+      "title": "Start Page",
+      "w": 1320,
+      "x": 0,
+      "y": 0
+    },
+    "Private.dc.html": {
+      "h": 2868,
+      "title": "Private tabs",
+      "w": 1320,
+      "x": 7000,
+      "y": 0
+    },
+    "Spaces.dc.html": {
+      "h": 2868,
+      "title": "Spaces",
+      "w": 1320,
+      "x": 2800,
+      "y": 0
+    },
+    "Tabs.dc.html": {
+      "h": 2868,
+      "title": "Tab grid",
+      "w": 1320,
+      "x": 5600,
+      "y": 0
+    },
+    "DuoClosedMain.dc.html": {
+      "x": 0,
+      "y": 1100,
+      "w": 1398,
+      "h": 2034,
+      "page": "page-tsyv0r",
+      "title": "Duo folded \u00b7 Start Page"
+    },
+    "DuoClosedComputer.dc.html": {
+      "x": 1478,
+      "y": 1100,
+      "w": 1398,
+      "h": 2034,
+      "page": "page-tsyv0r",
+      "title": "Duo folded \u00b7 Your computer's tabs"
+    },
+    "DuoClosedSpaces.dc.html": {
+      "x": 2956,
+      "y": 1100,
+      "w": 1398,
+      "h": 2034,
+      "page": "page-tsyv0r",
+      "title": "Duo folded \u00b7 Spaces"
+    },
+    "DuoClosedTabs.dc.html": {
+      "x": 4434,
+      "y": 1100,
+      "w": 1398,
+      "h": 2034,
+      "page": "page-tsyv0r",
+      "title": "Duo folded \u00b7 Tab grid"
+    },
+    "DuoClosedPrivate.dc.html": {
+      "x": 5912,
+      "y": 1100,
+      "w": 1398,
+      "h": 2034,
+      "page": "page-tsyv0r",
+      "title": "Duo folded \u00b7 Private tabs"
+    },
+    "DuoOpenMain.dc.html": {
+      "x": 0,
+      "y": 3420,
+      "w": 2853,
+      "h": 2007,
+      "page": "page-tsyv0r",
+      "title": "Duo unfolded \u00b7 Start Page"
+    },
+    "DuoOpenSpaces.dc.html": {
+      "x": 2933,
+      "y": 3420,
+      "w": 2853,
+      "h": 2007,
+      "page": "page-tsyv0r",
+      "title": "Duo unfolded \u00b7 Spaces"
+    },
+    "DuoOpenCommands.dc.html": {
+      "x": 5866,
+      "y": 3420,
+      "w": 2853,
+      "h": 2007,
+      "page": "page-tsyv0r",
+      "title": "Duo unfolded \u00b7 Slash commands"
+    },
+    "DuoOpenTabs.dc.html": {
+      "x": 8799,
+      "y": 3420,
+      "w": 2853,
+      "h": 2007,
+      "page": "page-tsyv0r",
+      "title": "Duo unfolded \u00b7 Tab grid"
+    },
+    "DuoOpenPrivate.dc.html": {
+      "x": 11732,
+      "y": 3420,
+      "w": 2853,
+      "h": 2007,
+      "page": "page-tsyv0r",
+      "title": "Duo unfolded \u00b7 Private tabs"
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-11-03T04:45:00Z",
+    "v": 1
+  },
+  "designSystems": [
+    {
+      "artifact": "https://claude.ai/artifact/HaLaZtRyL4FSv9xxkH3e1D",
+      "copiedAt": "2026-11-03T04:45:00Z",
+      "namespace": "blanc-design-system",
+      "title": "Blanc Design System",
+      "version": "1793679947-e2f3"
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "heading": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "Blanc for iPhone 1.0 \u00b7 App Store screenshots, dawn to day",
+      "w": 240,
+      "x": 0,
+      "y": -420
+    },
+    "howto": {
+      "size": 40,
+      "text": "Each artboard is one 6.9-inch App Store screenshot (1320 \u00d7 2868), in order. Retype a headline or subtitle in place; every caption must pass docs/marketing-claims.md before it goes to Apple. The phone screens are real captures from Blanc for iPhone, made by npm run ios:app-store-screenshots; never draw or edit them. When this canvas changes, ask Claude to pull it into docs/ios/app-store/design/ and re-render the 6.9-inch and 6.3-inch sets.",
+      "w": 1320,
+      "x": 0,
+      "y": 3040
+    },
+    "duoHeading": {
+      "kind": "title1",
+      "maxW": 14000,
+      "text": "iPhone Duo \u00b7 folded (1398 \u00d7 2034) and unfolded (2853 \u00d7 2007)",
+      "x": 0,
+      "y": 720,
+      "page": "page-tsyv0r"
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Computer.dc.html",
+    "Spaces.dc.html",
+    "Commands.dc.html",
+    "Tabs.dc.html",
+    "Private.dc.html",
+    "Artboard-mq4m.dc.html",
+    "DuoClosedMain.dc.html",
+    "DuoClosedComputer.dc.html",
+    "DuoClosedSpaces.dc.html",
+    "DuoClosedTabs.dc.html",
+    "DuoClosedPrivate.dc.html",
+    "DuoOpenMain.dc.html",
+    "DuoOpenSpaces.dc.html",
+    "DuoOpenCommands.dc.html",
+    "DuoOpenTabs.dc.html",
+    "DuoOpenPrivate.dc.html"
+  ],
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "Page 1"
+    },
+    {
+      "id": "page-tsyv0r",
+      "name": "iPhone Duo"
+    }
+  ],
+  "title": "Blanc for iPhone App Store Screenshots"
+}

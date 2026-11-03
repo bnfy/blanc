@@ -160,7 +160,7 @@ final class TabsManager {
             client = SyncWorkerClient(transport: SettingsUITestTransport())
             secrets = SettingsUITestSecrets()
         }
-        if UITestSeed.sharedSeed {
+        if UITestSeed.sharedSeed || UITestSeed.appStore {
             client = SyncWorkerClient(transport: SharedSpacesUITestTransport(
                 stores: UITestSeed.workerStores(), account: UITestSeed.sharedAccount, key: UITestSeed.sharedKey))
             secrets = SharedSpacesUITestSecrets()
@@ -361,7 +361,7 @@ final class TabsManager {
             restoredState = UITestSeed.sharedSpacesState()
         }
         if UITestSeed.appStore {
-            UITestSeed.seedAppStoreSends(into: syncDirectory)
+            UITestSeed.seedAppStore(into: syncDirectory)
             restoredState = UITestSeed.appStoreState()
         }
         if UITestSeed.sends {
