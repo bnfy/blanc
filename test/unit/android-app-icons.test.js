@@ -16,8 +16,9 @@ test('every density has its legacy icon and adaptive layers at the right size', 
   const expected = { mdpi: [48, 108], hdpi: [72, 162], xhdpi: [96, 216], xxhdpi: [144, 324], xxxhdpi: [192, 432] };
   assert.deepEqual(DENSITIES.map(([density]) => density), Object.keys(expected));
   for (const [density, [legacy, adaptive]] of Object.entries(expected)) {
-    for (const [file, size] of [['app_icon.png', legacy], ['app_icon_foreground.png', adaptive], ['app_icon_monochrome.png', adaptive]]) {
-      const { width, height } = await sharp(res(`mipmap-${density}`, file)).metadata();
+    for (const [file, size] of [[`mipmap-${density}/app_icon.png`, legacy], [`mipmap-${density}/layered_app_icon.png`, adaptive],
+      [`mipmap-${density}/layered_app_icon_background.png`, adaptive], [`drawable-${density}/themed_app_icon.png`, adaptive]]) {
+      const { width, height } = await sharp(res(file)).metadata();
       assert.deepEqual([width, height], [size, size], `${density}/${file}`);
     }
   }
@@ -26,8 +27,8 @@ test('every density has its legacy icon and adaptive layers at the right size', 
 
 test('the mark stays inside the 66dp safe zone on every layer', async () => {
   for (const [density] of DENSITIES) {
-    for (const file of ['app_icon_foreground.png', 'app_icon_monochrome.png']) {
-      const { data, info } = await sharp(res(`mipmap-${density}`, file)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    for (const file of [`mipmap-${density}/layered_app_icon.png`, `drawable-${density}/themed_app_icon.png`]) {
+      const { data, info } = await sharp(res(file)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
       const center = info.width / 2;
       const radius = (SAFE_ZONE_DP / ADAPTIVE_DP) * info.width / 2;
       let opaque = 0;
@@ -46,16 +47,13 @@ test('the mark stays inside the 66dp safe zone on every layer', async () => {
 // Android uses only the monochrome layer's alpha; one color keeps it honest
 // (compositing may round an edge pixel by one).
 test('the monochrome layer is one ink color', async () => {
-  const { data } = await sharp(res('mipmap-xxxhdpi', 'app_icon_monochrome.png')).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { data } = await sharp(res('drawable-xxxhdpi', 'themed_app_icon.png')).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   for (let i = 0; i < data.length; i += 4) {
     if (data[i + 3] > 128) assert.ok([0, 1, 2].every((c) => Math.abs(data[i + c] - 14) <= 1), `pixel ${i / 4} is ${data.slice(i, i + 3).join(',')}`);
   }
 });
 
-test('the adaptive icon names its three layers', () => {
-  const xml = fs.readFileSync(res('mipmap-anydpi-v26', 'app_icon.xml'), 'utf8');
-  assert.match(xml, /<background android:drawable="@color\/app_icon_background"\/>/);
-  assert.match(xml, /<foreground android:drawable="@mipmap\/app_icon_foreground"\/>/);
-  assert.match(xml, /<monochrome android:drawable="@mipmap\/app_icon_monochrome"\/>/);
-  assert.match(fs.readFileSync(res('values', 'app_icon_background.xml'), 'utf8'), /<color name="app_icon_background">#F7F0E5<\/color>/);
+test('the background layer is the Sunrise field, edge to edge', async () => {
+  const { data, info } = await sharp(res('mipmap-mdpi', 'layered_app_icon_background.png')).raw().toBuffer({ resolveWithObject: true });
+  for (let i = 0; i < data.length; i += info.channels) assert.deepEqual([data[i], data[i + 1], data[i + 2]], [0xf7, 0xf0, 0xe5]);
 });
