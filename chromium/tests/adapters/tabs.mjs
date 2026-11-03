@@ -237,10 +237,16 @@ export const tabs={
  },
  // A tab's WebContents identity is its DevTools page target.
  tabWebContentsId:async(w,id)=>(await tabPage(w,id)).targetId??null,
- // Certificate exceptions (N5): the fork shows Chromium's own interstitial and
- // keeps decisions in its SSLHostStateDelegate, which no fork path exposes.
- forgetCertificateExceptionInTab(){throw new UndefinedNativeAdapterError('No fork path forgets a certificate decision (Chromium SSLHostStateDelegate); needs a native test op');},
- forgetCertificateExceptionOnly(){throw new UndefinedNativeAdapterError('No fork path forgets a certificate decision (Chromium SSLHostStateDelegate); needs a native test op');},
+ // Certificate decisions (N5, V8): Chromium's warning page and its
+ // SSLHostStateDelegate. Continue is the page's own Advanced, then Proceed;
+ // Stop allowing is site controls' native op, with or without the reload.
+ async continueUnsafeInTab(w,id){
+  const clicked=await w.call('executeTab',id,`(()=>{const advanced=document.getElementById('details-button');
+   const proceed=document.getElementById('proceed-link');if(!advanced||!proceed)return false;advanced.click();proceed.click();return true;})()`);
+  return clicked===true?{ok:true}:{ok:false};
+ },
+ forgetCertificateExceptionInTab:async(w,id)=>(await w.api('forgetCertificateExceptionInTab',[String(id),true]))===true,
+ forgetCertificateExceptionOnly:async(w,id)=>(await w.api('forgetCertificateExceptionInTab',[String(id),false]))===true,
  setCertificateExceptionCap(){throw new UndefinedNativeAdapterError('Chromium keeps certificate decisions without Blanc\'s bounded cap; no fork path sets one');},
  // Shipping's chrome document is blanc-chrome://index/, the fork's strip.
  attemptChromeNavigation:(w,url)=>strip(w).evalExpression(`location.href=${jsLiteral(String(url))}`),

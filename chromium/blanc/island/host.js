@@ -436,8 +436,15 @@
       for (const tab of snapshot.tabs) {
         tab.connection = BlancShieldModel.connectionFor({ url: tab.committedUrl, isLoading: tab.isLoading });
         // Shipping's projection: the committed page's security state, which
-        // the strip's warning badge and site controls read.
-        tab.siteInfo = BlancSiteSecurity.buildSiteInfo(tab.committedUrl ?? '', { blockedCount: tab.blockedCount, t });
+        // the strip's warning badge and site controls read. Chromium's
+        // certificate warning and continue decisions (V8) stand in for
+        // shipping's certificate page and exceptions.
+        const certificate = tab.certificate;
+        tab.siteInfo = BlancSiteSecurity.buildSiteInfo(tab.committedUrl ?? '', {
+          blockedCount: tab.blockedCount, t,
+          certificateError: certificate?.state === 'error' ? { url: tab.committedUrl, error: certificate.error } : null,
+          certificateException: certificate?.state === 'exception' ? {} : null,
+        });
         tab.shield = BlancShieldModel.shieldChipState({
           url: tab.url, blockedCount: tab.blockedCount, excepted: tab.adblockExcepted === true,
           adblockEnabled: enabled, t,
@@ -1342,6 +1349,18 @@
     setOverlayDragState: () => {},
     acknowledgeDownloads: () => {},
     respondPermission,
+    // Site controls' Stop allowing on a page loaded past a certificate warning.
+    siteInfoForgetCertificateException: async () => {
+      const result = await request('forgetCertificateException', [nativeId(snapshot?.activeTabId)]);
+      await refresh();
+      return result;
+    },
+    // The same for a named tab, with or without its reload (test hooks).
+    forgetCertificateExceptionInTab: async (id, reload = true) => {
+      const result = await request('forgetCertificateException', [nativeId(id), reload !== false]);
+      await refresh();
+      return result;
+    },
   };
 
   for (const method of ['reopenClosedTab', 'reopenClosedEntry', 'forgetClosedEntry', 'clearClosedEntries']) {

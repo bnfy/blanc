@@ -154,6 +154,11 @@
 #include "content/public/browser/devtools_agent_host.h"
 #include "content/public/browser/favicon_status.h"
 #include "content/public/browser/navigation_entry.h"
+#include "content/public/browser/ssl_status.h"
+#include "chrome/browser/ssl/stateful_ssl_host_state_delegate_factory.h"
+#include "components/security_interstitials/content/stateful_ssl_host_state_delegate.h"
+#include "net/base/net_errors.h"
+#include "net/cert/cert_status_flags.h"
 #include "content/public/browser/web_contents_delegate.h"
 #include "third_party/icu/source/common/unicode/ustring.h"
 #include "third_party/blink/public/mojom/frame/find_in_page.mojom.h"
@@ -1854,6 +1859,21 @@ base::DictValue InstalledTheme(Profile* profile, bool images = false) {
   return result;
 }
 
+// The committed page's certificate state, which the host turns into
+// shipping's siteInfo (V8: Chromium's warning page and decisions stand in for
+// blanc://error and shipping's continue): {state: "error", error} while
+// Chromium's certificate warning shows, {state: "exception"} for a page
+// loaded past one, null otherwise. Each navigation entry keeps its own.
+base::Value CertificateState(content::WebContents* contents) {
+  auto* entry = contents->GetController().GetLastCommittedEntry();
+  if (!entry || !net::IsCertStatusError(entry->GetSSL().cert_status)) return base::Value();
+  if (entry->GetPageType() == content::PAGE_TYPE_ERROR) {
+    return base::Value(base::DictValue().Set("state", "error").Set("error",
+        net::ErrorToString(net::MapCertStatusToNetError(entry->GetSSL().cert_status))));
+  }
+  return base::Value(base::DictValue().Set("state", "exception"));
+}
+
 base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
   owner->SyncActive();
   auto* model = browser->GetTabStripModel();
@@ -1885,6 +1905,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                       return lifecycle && lifecycle->GetTabState() == ::mojom::LifecycleUnitState::DISCARDED;
                     }())
                     .Set("blockedCount", blanc::ShieldBlockedCount(contents))
+                    .Set("certificate", CertificateState(contents))
                     .Set("adblockExcepted", blanc::BlockingSiteExcepted(browser->GetProfile(), committed))
                     .Set("favicon", NullableString(owner->TabFavicon(tab_id, contents)))
                     .Set("bookmarked", favorites && IsFavoritable(committed) &&
@@ -5427,6 +5448,19 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (!split && !model->IsTabPinned(moved_index) && !model->GetTabGroupForTab(moved_index))
         model->MoveWebContentsAt(moved_index, model->count() - 1, false);
       reply(true, base::Value(model->IsTabPinned(model->GetIndexOfWebContents(tab))));
+      return;
+    }
+    // Site controls' Stop allowing (shipping's forgetActiveCertificateException):
+    // Chromium forgets this host's continue decisions in the tab's own
+    // profile and closes its connections, so the next load checks again;
+    // the tab reloads unless the second argument is false.
+    if (method == "forgetCertificateException" && (args.size() == 1 || (args.size() == 2 && args[1].is_bool()))) {
+      const GURL url = tab->GetLastCommittedURL();
+      auto* delegate = StatefulSSLHostStateDelegateFactory::GetForProfile(TabProfile(tab));
+      if (!delegate || !url.SchemeIs(url::kHttpsScheme)) { reply(true, base::Value(false)); return; }
+      delegate->RevokeUserAllowExceptionsHard(std::string(url.host()));
+      if (args.size() == 1 || args[1].GetBool()) tab->GetController().Reload(content::ReloadType::NORMAL, true);
+      reply(true, base::Value(true));
       return;
     }
     if (method == "toggleSiteMute" && args.size() == 1) {

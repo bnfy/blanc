@@ -12,7 +12,11 @@ export function shippingState(snapshot){
  const tabs=snapshot.tabs.map(t=>({
   // Chromium gives each tab one WebContents, so its native id is the
   // contents' id too.
-  id:String(t.id),webContentsId:Number(t.id),url:shippingPageUrl(t.url),loadedUrl:t.committedUrl==null?null:shippingPageUrl(t.committedUrl),
+  // Chromium's certificate warning is the fork's certificate page (V8), so a
+  // tab showing it reads as shipping's blanc://error/?kind=certificate.
+  id:String(t.id),webContentsId:Number(t.id),url:shippingPageUrl(t.url),
+  loadedUrl:t.certificate?.state==='error'?`blanc://error/?kind=certificate&url=${encodeURIComponent(t.committedUrl)}`
+   :t.committedUrl==null?null:shippingPageUrl(t.committedUrl),
   // A renamed tab's snapshot title is its name and pageTitle the page's
   // own; shipping's state keeps them as title and customTitle.
   loading:!!t.isLoading,isLoading:!!t.isLoading,title:(t.pageTitle??t.title)||'',customTitle:t.pageTitle!=null?t.title:null,favicon:t.favicon||null,
