@@ -173,9 +173,10 @@ Apple's `APP_IPHONE_DUO` set holds both Duo displays, ten shots at most:
 five unfolded (inner display, landscape, 2853 × 2007: the Start Page,
 Spaces, slash commands, the tab grid, private tabs) and five folded (outer
 display, 1398 × 2034: the Start Page, your computer's tabs, Spaces, the tab
-grid, private tabs). `scripts/ios-app-store-compose-duo.mjs` frames them with
-the iPhone artboards' own captions and skies, so a caption changed on the
-canvas changes here too. The captures are in
+grid, private tabs). They're artboards on the canvas's "iPhone Duo"
+page (`docs/ios/app-store/design/project/Duo*.dc.html`), with the iPhone
+shots' captions and skies, and `scripts/ios-app-store-compose.mjs` renders
+them with the rest, sorting each artboard into a set by its size. The captures are in
 `docs/ios/app-store/captures/duo-closed/` (from `AppStoreScreenshotsUITests`
 on an iPhone Duo simulator) and `duo-open/`. XCUITest screenshots of the
 unfolded inner display come out black, so those were taken with Device Hub's

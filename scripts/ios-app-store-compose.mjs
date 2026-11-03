@@ -6,7 +6,8 @@
 // fonts by the canvas's /_blob/<id> urls; design/assets.json maps
 // every id to a file in this repository, and Blubird to the licensed fonts
 // that `npm run site:fonts` installs (never committed). Writes Apple's 6.9"
-// set (1320 x 2868) and 6.3" set (1206 x 2622) as opaque PNGs.
+// set (1320 x 2868), 6.3" set (1206 x 2622) and the iPhone Duo's folded
+// (1398 x 2034) and unfolded (2853 x 2007) sets as opaque PNGs.
 //
 //   node scripts/ios-app-store-compose.mjs
 import fs from 'node:fs';
@@ -46,11 +47,26 @@ function page(source) {
   return html;
 }
 
+// Each artboard's size says which set it belongs to; artboards of other
+// sizes (sketches, notes) and ones with no file here are skipped.
+const sets = {
+  '1320x2868': ['6.9', '6.3'],
+  '1398x2034': ['duo-closed'],
+  '2853x2007': ['duo-open'],
+};
 const browser = await chromium.launch();
-const tab = await browser.newPage({ viewport: { width: 1320, height: 2868 } });
 const scratch = fs.mkdtempSync(path.join(fs.realpathSync(process.env.TMPDIR || '/tmp'), 'blanc-store-'));
-for (const dir of Object.keys(sizes)) fs.mkdirSync(path.join(out, dir), { recursive: true });
-for (const [index, board] of canvas.order.entries()) {
+for (const dirs of Object.values(sets)) for (const dir of dirs) {
+  fs.rmSync(path.join(out, dir), { recursive: true, force: true });
+  fs.mkdirSync(path.join(out, dir), { recursive: true });
+}
+const counts = {};
+for (const board of canvas.order) {
+  const { w, h, title } = canvas.boards[board];
+  const dirs = sets[`${w}x${h}`];
+  if (!dirs || !fs.existsSync(path.join(design, board))) continue;
+  const index = (counts[dirs[0]] = (counts[dirs[0]] || 0) + 1);
+  const tab = await browser.newPage({ viewport: { width: w, height: h } });
   const html = path.join(scratch, path.basename(board, '.dc.html') + '.html');
   fs.writeFileSync(html, page(fs.readFileSync(path.join(design, board), 'utf8')));
   await tab.goto(pathToFileURL(html).href);
@@ -58,15 +74,16 @@ for (const [index, board] of canvas.order.entries()) {
     await document.fonts.ready;
     await Promise.all([...document.images].map((img) => img.decode()));
   });
-  const slug = (canvas.boards[board].title || path.basename(board, '.dc.html'))
+  const slug = (title || path.basename(board, '.dc.html')).replace(/^Duo (un)?folded · /, '')
     .toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const name = `${index + 1}-${slug}.png`;
-  const big = path.join(out, '6.9', name);
-  await tab.screenshot({ path: big, omitBackground: false });
-  // Apple refuses alpha; the 6.3" set is the same design, resized.
+  const name = `${index}-${slug}.png`;
+  const big = path.join(out, dirs[0], name);
+  await tab.screenshot({ path: big });
+  await tab.close();
+  // Apple refuses alpha; the 6.3" set is the 6.9" design, resized.
   execFileSync('magick', [big, '-background', '#F8F2E8', '-alpha', 'remove', '-alpha', 'off', big]);
-  execFileSync('magick', [big, '-resize', `${sizes['6.3'].join('x')}!`, '-alpha', 'off', path.join(out, '6.3', name)]);
-  console.log(`${name}: 6.9" and 6.3"`);
+  if (dirs[1]) execFileSync('magick', [big, '-resize', `${sizes['6.3'].join('x')}!`, '-alpha', 'off', path.join(out, dirs[1], name)]);
+  console.log(`${dirs.join(', ')}: ${name}`);
 }
 await browser.close();
 fs.rmSync(scratch, { recursive: true, force: true });
