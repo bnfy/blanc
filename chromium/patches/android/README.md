@@ -13,4 +13,7 @@ in the lane file in its place. Numbering starts at 0101.
   line is read (native startup is too late on Android: the feature list is
   already set up): desktop's list (`blanc/common/background_services.h`:
   component updater, network time, autofill server) plus Android's (AI Mode's
-  startup request, search prewarm, DRM pre-provisioning at startup).
+  startup request, search prewarm and preconnects, DRM pre-provisioning at
+  startup, the prediction-model download). It also leaves
+  `AccountInvestigator` uninitialized on Android: its periodic sign-in report
+  called `accounts.google.com/ListAccounts` at every startup.

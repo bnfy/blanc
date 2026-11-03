@@ -5,6 +5,7 @@
     "chrome/android/BUILD.gn": "b06d7baf8d3e24a89b74c91805ec991a15547bf69a6f4627a7a56845c9e5731a",
     "chrome/android/java/res_base/drawable/ic_launcher.xml": "0a7b0fe2ae98d76b45db4c24397a36bf2eff0475882320a8dfd584ae2de9a495",
     "chrome/android/java/res_base/drawable/ic_launcher_round.xml": "0a7b0fe2ae98d76b45db4c24397a36bf2eff0475882320a8dfd584ae2de9a495",
-    "chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java": "713b2519039a9b48d78a6dc8fd62f78659546445a6e774f00d6e88c4e4274e3a"
+    "chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java": "1282472f025ac5b3ed58a4d2af25b6f7199f9228962032cf2def02473255a2bd",
+    "chrome/browser/signin/account_investigator_factory.cc": "22c6a29ffb5acfe212bc72b38fbe8d19681798b82bd56ff38058254e6ae718e1"
   }
 }
