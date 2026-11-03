@@ -5,9 +5,10 @@
   "upstream": "a21ce95c24ce3964416f09ae1862f53f319eb4d0",
   "upstreamDir": "upstream-android",
   "sourceMap": "source-map-android.json",
-  "fileCount": 3,
-  "note": "A0 takes no shared patches: they wire desktop Blanc into chrome/browser, which Android compiles too. 0008 gets an Android variant in task 6.",
+  "fileCount": 4,
+  "note": "A0 takes no shared patches: they wire desktop Blanc into chrome/browser, which Android also compiles. 0102 reuses blanc/common/background_services.h (0008's list) and adds Android's own.",
   "patches": [
-    "patches/android/0101-android-identity.patch"
+    "patches/android/0101-android-identity.patch",
+    "patches/android/0102-android-google-services-off.patch"
   ]
 }

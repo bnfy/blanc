@@ -1,0 +1,30 @@
+diff -ruN a/chrome/app/chrome_main_delegate.cc b/chrome/app/chrome_main_delegate.cc
+--- a/chrome/app/chrome_main_delegate.cc
++++ b/chrome/app/chrome_main_delegate.cc
+@@ -92,6 +92,9 @@
+ #include "ui/base/resource/resource_bundle.h"
+ #include "ui/base/resource/scoped_startup_resource_bundle.h"
+ #include "ui/base/ui_base_switches.h"
++#if BUILDFLAG(IS_ANDROID)
++#include "blanc/android/background_services_android.h"
++#endif
+ 
+ 
+ #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || \
+@@ -1184,6 +1187,16 @@
+       *base::CommandLine::ForCurrentProcess();
+ #endif  // !defined(BUILDING_CHROME_RENDERER)
+ 
++#if BUILDFLAG(IS_ANDROID) && !defined(BUILDING_CHROME_RENDERER)
++  // Blanc for Android (patch 0102): no Google background services. This is
++  // the earliest callback, before features are set up or any service reads
++  // the command line.
++  if (!command_line.HasSwitch(switches::kProcessType)) {
++    blanc::DisableAndroidBackgroundServices(
++        *base::CommandLine::ForCurrentProcess());
++  }
++#endif
++
+   // Only allow disabling web security via the command-line flag if the user has
+   // specified a distinct profile directory. This still enables tests to disable
+   // web security by setting the kWebKitWebSecurityEnabled pref directly.

@@ -47,6 +47,7 @@
   },
   "canonicalSha256": {
     "blanc/BUILD.gn": "7fe9606b4d5423708b84c6d3e637eef34403c13877949cd02cc240b58c4b4a98",
+    "blanc/android/background_services_android.h": "c11b3aec3b2895aa1c05db4fbe27b4cd9936864af8cd3900e69855448024a34a",
     "blanc/android/res/drawable-hdpi/themed_app_icon.png": "1c9e10f19826e5d7c181fab695b491e30574523961e817929ed19c7ffcebf095",
     "blanc/android/res/drawable-mdpi/themed_app_icon.png": "fec51757a1ee1350ea247d8e5b548ea26256914786e6afb5f473ac10dd7acb6a",
     "blanc/android/res/drawable-xhdpi/themed_app_icon.png": "71efbc6154239a59113b9933b55e56877f3d658fcdc507a72d2bc8a3839eae7f",
