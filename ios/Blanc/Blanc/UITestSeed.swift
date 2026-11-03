@@ -16,6 +16,8 @@ enum UITestSeed {
   static var startPage: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestStartPage") }
   /// `-BlancUITestTwoTabs`: sync off, example.com (current) and example.org.
   static var twoTabs: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestTwoTabs") }
+  /// Two tabs side by side (F53), restored from the session as at a relaunch.
+  static var split: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestSplit") }
   static let pageURL = URL(string: "https://example.com/")!
   /// `-BlancUITestGroups`: sync off; This iPhone has example.com and
   /// example.org loose and a "Research" group of two example.net pages, and
@@ -242,6 +244,15 @@ extension UITestSeed {
         let old = workBlob(closed: false)
         try? shared.setIndex(index([(workId, "Work", old)]))
         try? shared.noteLocalSpace(id: workId, blob: old, edits: nil)
+    }
+
+    /// `-BlancUITestSplit`: This iPhone's two tabs saved as a split, plus a third.
+    static func splitState() -> SessionState {
+        SessionState(iphone: SavedSet(
+            tabs: [SavedTab(url: pageURL.absoluteString, title: "Example Domain"),
+                   SavedTab(url: "https://example.org/", title: "Example Domain"),
+                   SavedTab(url: "https://example.net/", title: "Example Domain")],
+            splits: [SavedSplit(id: "split-seed", ratio: 0.5)], splitIds: ["split-seed", "split-seed", nil]))
     }
 
     static func sharedSpacesState() -> SessionState {

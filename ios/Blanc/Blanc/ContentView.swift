@@ -37,7 +37,9 @@ struct ContentView: View {
     /// and clock strip, an iPhone's notch in landscape), the home indicator and
     /// the floating Island. WebKit keeps the content clear of them and paints
     /// the page out to the edge, and iOS draws its own status bar over it.
-    private let pageEdges: Edge.Set = .all
+    /// A split's panes sit inside the safe area instead, as cards clear of
+    /// the Island.
+    private var pageEdges: Edge.Set { shownSplit != nil ? [] : .all }
 
     private var islandAtTop: Bool { manager.settingsStore.islandPosition == .top }
     /// The screen edge the Island sits along, and slides past when it tucks.
@@ -53,8 +55,9 @@ struct ContentView: View {
     /// it, and never for VoiceOver, which reads the screen in order and would
     /// lose it.
     private var isIslandTucked: Bool {
+        // Never beside a split, whose cards leave the Island's band free.
         guard manager.settingsStore.islandTucksOnScroll, manager.activeTab?.islandTucked == true,
-              !voiceOverEnabled else { return false }
+              !voiceOverEnabled, shownSplit == nil else { return false }
         return !manager.isSpacesMenuPresented && !isPalettePanelOpen && manager.sendNotice == nil
             && manager.lastClosed == nil && manager.lastDeletedSpaceId == nil
     }
@@ -63,33 +66,46 @@ struct ContentView: View {
         manager.activeTab?.currentURL.scheme == "blanc" && manager.activeTab?.currentURL.host == "newtab"
     }
 
+    /// Split View (F53): the current tab's split, when its panes show side
+    /// by side here. Otherwise the focused pane fills the screen.
+    private var shownSplit: TabSplit? {
+        guard layout.showsSplitView, let split = manager.activeSplit,
+              split.tabIds.allSatisfy({ id in manager.tabs.contains { $0.id == id } }) else { return nil }
+        return split
+    }
+
+    /// The pages on screen: the split's panes, or the current tab alone.
+    private var visibleTabs: [TabModel] {
+        if let split = shownSplit { return split.tabIds.compactMap { id in manager.tabs.first { $0.id == id } } }
+        return manager.activeTab.map { [$0] } ?? []
+    }
+
+    /// The divider's share while it's dragged, before it's saved.
+    @State private var draggedRatio: Double?
+    private static let splitInset: CGFloat = 8
+    private static let splitGap: CGFloat = 8
+    private static let paneRadius: CGFloat = 12
+
     /// The page, the Island and what floats over them; `body` adds the
     /// sheets. Split in two so Xcode 26 can type-check each half.
     private var browser: some View {
         ZStack {
             style.background.ignoresSafeArea()
-            if let tab = manager.activeTab {
-                WebView(tab: tab, islandInset: islandBand, islandEdge: islandEdge)
-                    .id(tab.id)
-                    .overlay {
-                        // Until its first page commits, a web view is WebKit's
-                        // blank white: keep the theme's background instead.
-                        if !tab.hasCommitted { style.background.allowsHitTesting(false) }
-                    }
-                    .opacity(tab.reader == nil ? 1 : 0)
-                    .allowsHitTesting(tab.reader == nil)
-                    .accessibilityHidden(tab.reader != nil)
-                    .ignoresSafeArea(edges: pageEdges)
-                    .offset(x: swipeOffset)
-                if swipeOffset != 0, let neighbor = manager.neighbor(of: tab.id, offset: swipeOffset < 0 ? 1 : -1) {
-                    neighborPage(neighbor)
-                        .offset(x: swipeOffset + (swipeOffset < 0 ? pageWidth : -pageWidth))
-                }
-                if let reader = tab.reader {
-                    ReaderWebView(reader: reader, islandInset: islandBand, islandEdge: islandEdge).id(ObjectIdentifier(reader))
-                        .ignoresSafeArea(edges: pageEdges)
-                        .offset(x: swipeOffset)
-                }
+            // One layout for one page or a split's panes: the current tab's
+            // view keeps its identity when a split opens or closes around it,
+            // so its web view moves and never reloads.
+            SplitPaneLayout(ratio: draggedRatio ?? shownSplit?.ratio ?? 0.5,
+                            inset: Self.splitInset, gap: Self.splitGap) {
+                ForEach(visibleTabs) { tab in pane(tab) }
+            }
+            .overlay { if let split = shownSplit { splitDivider(split) } }
+            .padding(islandAtTop ? .top : .bottom, shownSplit != nil ? islandBand : 0)
+            .ignoresSafeArea(edges: pageEdges)
+            .offset(x: swipeOffset)
+            if swipeOffset != 0, let tab = manager.activeTab,
+               let neighbor = manager.neighbor(of: tab.id, offset: swipeOffset < 0 ? 1 : -1) {
+                neighborPage(neighbor)
+                    .offset(x: swipeOffset + (swipeOffset < 0 ? pageWidth : -pageWidth))
             }
         }
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pageWidth = $0 }
@@ -322,6 +338,106 @@ struct ContentView: View {
         if manager.takeFindRequest(), let tab = manager.activeTab { presentFind(in: tab) }
     }
 
+    // MARK: Split View (F53)
+
+    /// A page: alone it fills the area; in a split it's a rounded card, its
+    /// border darker when focused, with a corner tab naming its site.
+    private func pane(_ tab: TabModel) -> some View {
+        let split = shownSplit
+        let focused = tab.id == manager.activeTabId
+        let radius = split == nil ? 0 : Self.paneRadius
+        return ZStack {
+            WebView(tab: tab, onTouchDown: split != nil && !focused ? { manager.setActive(tab.id) } : nil,
+                    cornerRadius: radius, islandInset: split == nil ? islandBand : 0, islandEdge: islandEdge)
+                .overlay {
+                    // Until its first page commits, a web view is WebKit's
+                    // blank white: keep the theme's background instead.
+                    if !tab.hasCommitted { style.background.allowsHitTesting(false) }
+                }
+                .opacity(tab.reader == nil ? 1 : 0)
+                .allowsHitTesting(tab.reader == nil)
+                .accessibilityHidden(tab.reader != nil)
+            if let reader = tab.reader {
+                ReaderWebView(reader: reader, islandInset: split == nil ? islandBand : 0, islandEdge: islandEdge)
+                    .id(ObjectIdentifier(reader))
+            }
+        }
+        .overlay {
+            if split != nil {
+                RoundedRectangle(cornerRadius: radius)
+                    .strokeBorder(focused ? style.text.opacity(0.55) : style.border, lineWidth: 1)
+                    .allowsHitTesting(false)
+            }
+        }
+        .overlay(alignment: .bottomTrailing) {
+            if let split { cornerTab(tab, split: split, focused: focused) }
+        }
+        .task(id: split?.id) { if split != nil { manager.wakePane(tab) } }
+    }
+
+    /// The pane's corner tab, as desktop's: the site and a × that closes the
+    /// pane's tab, or the × alone on the focused pane, whose site the Island shows.
+    private func cornerTab(_ tab: TabModel, split: TabSplit, focused: Bool) -> some View {
+        let site = TabTitle.display(tab)
+        return HStack(spacing: 6) {
+            if !focused {
+                Text(site).font(BrowserStyle.font(12)).lineLimit(1).frame(maxWidth: 160, alignment: .leading)
+            }
+            Button { withAnimation(.snappy) { manager.closeTab(tab.id) } } label: {
+                Image(systemName: "xmark").font(.system(size: 11, weight: .semibold))
+                    .frame(width: 28, height: 28).contentShape(Rectangle())
+            }
+            .accessibilityLabel(SyncCopy.text("ios.tabs.close", ["title": site]))
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(style.text)
+        .padding(.leading, focused ? 0 : 10)
+        .background(style.raised, in: Capsule())
+        .overlay(Capsule().strokeBorder(style.border, lineWidth: 0.5))
+        .contentShape(Capsule())
+        .onTapGesture { manager.setActive(tab.id) }
+        .contextMenu { SplitMenu(manager: manager, tab: tab, offersSplit: true) }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(SyncCopy.text("split.cornerLabel", ["site": site]))
+        .accessibilityIdentifier("split.corner")
+        .padding(8)
+    }
+
+    /// The divider between the panes: drag to resize, double-tap for equal
+    /// halves. VoiceOver adjusts it in tenths.
+    private func splitDivider(_ split: TabSplit) -> some View {
+        GeometryReader { geo in
+            let width = geo.size.width - 2 * Self.splitInset
+            let ratio = draggedRatio ?? split.ratio
+            let leading = SplitModel.paneWidths(ratio, width: width, gap: Self.splitGap).leading
+            Capsule()
+                .fill(style.secondary.opacity(draggedRatio == nil ? 0.5 : 0.9))
+                .frame(width: 4, height: 40)
+                .frame(width: 24, height: min(geo.size.height, 160))
+                .contentShape(Rectangle())
+                .position(x: Self.splitInset + leading + Self.splitGap / 2, y: geo.size.height / 2)
+                .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                    .onChanged { value in
+                        let x = value.location.x - geo.frame(in: .global).minX
+                        draggedRatio = SplitModel.clampRatio(
+                            Double((x - Self.splitInset - Self.splitGap / 2) / max(width - Self.splitGap, 1)))
+                    }
+                    .onEnded { _ in
+                        if let draggedRatio { manager.setSplitRatio(split.id, draggedRatio) }
+                        draggedRatio = nil
+                    })
+                .onTapGesture(count: 2) { withAnimation(.snappy) { manager.setSplitRatio(split.id, 0.5) } }
+                .accessibilityElement()
+                .accessibilityLabel(SyncCopy.text("split.dividerLabel"))
+                .accessibilityValue(Text(ratio, format: .percent.precision(.fractionLength(0))))
+                .accessibilityAdjustableAction { direction in
+                    let step = direction == .increment ? 0.1 : direction == .decrement ? -0.1 : 0
+                    manager.setSplitRatio(split.id, split.ratio + step)
+                }
+                .accessibilityIdentifier("split.divider")
+        }
+    }
+
     /// The neighbor's last picture beside the page while it follows the finger,
     /// or its site's name on a plain card when it has none yet.
     private func neighborPage(_ tab: TabModel) -> some View {
@@ -340,7 +456,9 @@ struct ContentView: View {
     }
 
     private func swipeChanged(_ value: DragGesture.Value) {
-        guard !isCommitting else { return }
+        // Side by side, the Island's sideways swipe would slide two pages at
+        // once; the tab grid and palette switch tabs instead.
+        guard !isCommitting, shownSplit == nil else { return }
         if !isSwiping {
             guard IslandSwipe.isSideways(value.translation) else { return }
             isSwiping = true
@@ -604,3 +722,27 @@ struct ContentView: View {
 }
 
 #Preview { ContentView(manager: TabsManager()) }
+
+/// Split View (F53): one subview fills the area; two sit side by side,
+/// inset, with a gap between them that the divider sits in.
+struct SplitPaneLayout: Layout {
+    var ratio: Double
+    var inset: CGFloat
+    var gap: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        proposal.replacingUnspecifiedDimensions()
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard subviews.count == 2 else {
+            for subview in subviews { subview.place(at: bounds.origin, proposal: ProposedViewSize(bounds.size)) }
+            return
+        }
+        let inner = bounds.insetBy(dx: inset, dy: inset)
+        let widths = SplitModel.paneWidths(ratio, width: inner.width, gap: gap)
+        subviews[0].place(at: inner.origin, proposal: ProposedViewSize(width: widths.leading, height: inner.height))
+        subviews[1].place(at: CGPoint(x: inner.minX + widths.leading + gap, y: inner.minY),
+                          proposal: ProposedViewSize(width: widths.trailing, height: inner.height))
+    }
+}

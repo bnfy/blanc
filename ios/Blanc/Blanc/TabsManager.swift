@@ -8,6 +8,8 @@ final class TabsManager {
     private(set) var tabs: [TabModel] = []
     /// The shown set's tab groups, in the order their sections draw (M17).
     private(set) var groups: [TabGroup] = []
+    /// Split View (F53): pairs of tabs kept side by side (`SplitModel`).
+    private(set) var splits: [TabSplit] = []
     var isWallpaperPickerPresented = false
     var wallpaperSelectionCompletion: ((UIImage?) -> Void)?
     let startAppearance: StartAppearanceStore
@@ -366,6 +368,7 @@ final class TabsManager {
             UITestSeed.seedFavorites(into: syncDirectory)
             restoredState = UITestSeed.groupsState()
         }
+        if UITestSeed.split { restoredState = UITestSeed.splitState() }
         if UITestSeed.sharedSeed {
             UITestSeed.seedSharedSpaces(into: syncDirectory)
             restoredState = UITestSeed.sharedSpacesState()
@@ -684,6 +687,11 @@ final class TabsManager {
             tabs.insert(tab, at: min(index, tabs.count))
         }
         if let group = closed.group, !groups.contains(where: { $0.id == group.id }) { groups.append(group) }
+        for split in closed.splits {
+            // A split comes back whole: its other tab must still be open.
+            let open = split.tabIds.allSatisfy { id in tabs.contains { $0.id == id } }
+            if open, split.tabIds.allSatisfy({ self.split(for: $0) == nil }) { splits.append(split) }
+        }
         activeTabId = closed.tab.id
         normalizeLayout()
         persistSession()
@@ -699,6 +707,16 @@ final class TabsManager {
             reopenList.insert(ReopenEntry(url: tab.currentURL, title: tab.pageTitle), at: 0)
         }
         if reopenList.count > 10 { reopenList.removeLast(reopenList.count - 10) }
+    }
+
+    /// Lets Undo bring back `closing` for `undoWindow`, then lets it go.
+    private func startUndoWindow(for closing: TabModel) {
+        let window = undoWindow
+        undoExpiry = Task { [weak self] in
+            do { try await Task.sleep(for: window) } catch { return }
+            guard let self, self.lastClosed?.tab === closing else { return }
+            self.expireUndo()
+        }
     }
 
     /// Opens the newest closed tab again (/reopen).
@@ -721,6 +739,7 @@ final class TabsManager {
         // isn't reloaded after it's gone (and isn't kept alive by the pending queue).
         if let view = tabs[index].existingWebView { contentBlocker.cancelPending(for: view) }
         let closingGroup = groups.first { $0.id == closing.groupId }
+        let closingSplit = split(for: id)
         tabs.remove(at: index)
         let recorded = recordLocalClose(closing)
         normalizeLayout()
@@ -731,13 +750,9 @@ final class TabsManager {
         if !closing.isPrivate {
             lastClosed = ClosedTab(tab: closing, index: index, blankId: nil,
                                    group: closingGroup.flatMap { g in groups.contains { $0.id == g.id } ? nil : g },
-                                   closedIds: recorded.map { [$0] } ?? [])
-            let window = undoWindow
-            undoExpiry = Task { [weak self] in
-                do { try await Task.sleep(for: window) } catch { return }
-                guard let self, self.lastClosed?.tab === closing else { return }
-                self.expireUndo()
-            }
+                                   closedIds: recorded.map { [$0] } ?? [],
+                                   splits: closingSplit.map { [$0] } ?? [])
+            startUndoWindow(for: closing)
         }
 
         if tabs.isEmpty {
@@ -747,8 +762,9 @@ final class TabsManager {
         }
 
         if wasActive {
-            let nextIndex = min(index, tabs.count - 1)
-            activeTabId = tabs[nextIndex].id
+            // Closing a pane leaves its split's other tab current.
+            let partner = closingSplit?.tabIds.first { $0 != id && tabs.map(\.id).contains($0) }
+            activeTabId = partner ?? tabs[min(index, tabs.count - 1)].id
         }
         persistSession()
     }
@@ -777,6 +793,105 @@ final class TabsManager {
         tabs = TabSections.normalizeOrder(items).compactMap { byId[$0] }
         let order = TabSections.sections(items).compactMap(\.groupId)
         groups = order.compactMap { id in groups.first { $0.id == id } }
+        // A split's tabs share a group, a pin and privacy, and sit together. A
+        // change from elsewhere (a closed tab, a synced move) that breaks that
+        // dissolves the split rather than moving tabs the person didn't touch.
+        let live = Dictionary(uniqueKeysWithValues: tabs.map { ($0.id, $0) })
+        splits = splits.filter { split in
+            let members = split.tabIds.compactMap { live[$0] }
+            guard members.count == split.tabIds.count, members.count >= 2, let first = members.first else { return false }
+            return members.allSatisfy { $0.groupId == first.groupId && $0.pinned == first.pinned && $0.isPrivate == first.isPrivate }
+        }
+        if !splits.isEmpty {
+            tabs = SplitModel.normalizeOrder(tabs.map(\.id), splits: splits).compactMap { live[$0] }
+        }
+    }
+
+    // MARK: Split View (F53)
+
+    /// The split holding `tabId`, if any.
+    func split(for tabId: UUID?) -> TabSplit? { SplitModel.split(for: tabId, in: splits) }
+
+    /// The split the current tab is a pane of.
+    var activeSplit: TabSplit? { split(for: activeTabId) }
+
+    /// The tabs `tab` could be split with: open, not in a split, and private
+    /// only with private.
+    func splitCandidates(for tab: TabModel) -> [TabModel] {
+        guard split(for: tab.id) == nil else { return [] }
+        return tabs.filter { $0.id != tab.id && $0.isPrivate == tab.isPrivate && split(for: $0.id) == nil }
+    }
+
+    /// Puts `otherId` beside `tabId`, which stays current in the leading pane.
+    /// The other tab takes `tabId`'s group (or none) and pin, as desktop's
+    /// "the initiating tab's group wins".
+    func makeSplit(_ tabId: UUID, with otherId: UUID) {
+        guard let tab = tabs.first(where: { $0.id == tabId }),
+              let other = splitCandidates(for: tab).first(where: { $0.id == otherId }) else { return }
+        other.groupId = tab.groupId
+        other.pinned = tab.pinned
+        let made = SplitModel.create(initiator: tab.id, other: other.id)
+        splits.append(made)
+        normalizeLayout()
+        if activeTabId != tab.id { setActive(tab.id) }
+        wakePane(other)
+        persistSession()
+        UIAccessibility.post(notification: .announcement, argument: SyncCopy.text(
+            "split.made", ["first": TabTitle.display(tab), "second": TabTitle.display(other)]))
+    }
+
+    /// Takes a tab out of its split; with two panes the split ends and both
+    /// tabs stay open where they are.
+    func removeFromSplit(_ tabId: UUID) {
+        guard let index = splits.firstIndex(where: { $0.tabIds.contains(tabId) }) else { return }
+        let result = SplitModel.remove(splits[index], tabId: tabId)
+        if let next = result.split { splits[index] = next } else { splits.remove(at: index) }
+        persistSession()
+    }
+
+    /// Closes every tab of the split as one Undo, which brings the split back.
+    func closeSplit(_ id: String) {
+        guard let split = splits.first(where: { $0.id == id }) else { return }
+        let members = tabs.enumerated().filter { split.tabIds.contains($0.element.id) }
+        guard let first = members.first else { return }
+        let wasActive = members.contains { $0.element.id == activeTabId }
+        for member in members {
+            member.element.exitReader()
+            if let view = member.element.existingWebView { contentBlocker.cancelPending(for: view) }
+        }
+        let closingGroup = groups.first { $0.id == first.element.groupId }
+        tabs.removeAll { split.tabIds.contains($0.id) }
+        let recorded = members.compactMap { recordLocalClose($0.element) }
+        normalizeLayout()
+        if !tabs.contains(where: \.isPrivate) { privateStore = nil; readerPreferences.clearPrivate() }
+        expireUndo()
+        if !first.element.isPrivate {
+            lastClosed = ClosedTab(tab: first.element, index: first.offset, blankId: nil,
+                                   others: members.dropFirst().map { ($0.element, $0.offset) },
+                                   group: closingGroup.flatMap { g in groups.contains { $0.id == g.id } ? nil : g },
+                                   closedIds: recorded, splits: [split])
+            startUndoWindow(for: first.element)
+        }
+        if tabs.isEmpty {
+            let blank = createTab()
+            lastClosed?.blankId = blank
+            return
+        }
+        if wasActive { activeTabId = tabs[min(first.offset, tabs.count - 1)].id }
+        persistSession()
+    }
+
+    /// The leading pane's share of the width, from the divider.
+    func setSplitRatio(_ id: String, _ ratio: Double) {
+        guard let index = splits.firstIndex(where: { $0.id == id }) else { return }
+        splits[index].ratio = SplitModel.clampRatio(ratio)
+        saveSession()
+    }
+
+    /// A pane shown beside the current tab loads, as the current tab does:
+    /// visible panes are never quiet.
+    func wakePane(_ tab: TabModel) {
+        if tab.isQuiet, !holdingWake { wake(tab) }
     }
 
     private func reorder(_ ids: [String]) {
@@ -867,6 +982,8 @@ final class TabsManager {
     /// its group to just below it.
     func moveTab(_ tabId: UUID, toGroup groupId: String?) {
         guard let tab = tabs.first(where: { $0.id == tabId }), !tab.isPrivate, tab.groupId != groupId else { return }
+        // A split moves as one item: its panes join or leave the group together.
+        if let split = split(for: tabId) { return moveSplit(split, toGroup: groupId) }
         let key = tab.id.uuidString
         if let groupId {
             guard groups.contains(where: { $0.id == groupId }) else { return }
@@ -881,6 +998,29 @@ final class TabsManager {
                 reorder(ids)
             }
         }
+        normalizeLayout()
+        persistSession()
+    }
+
+    /// `moveTab(_:toGroup:)` for a split, led by its first pane.
+    private func moveSplit(_ split: TabSplit, toGroup groupId: String?) {
+        if let groupId, !groups.contains(where: { $0.id == groupId }) { return }
+        let members = split.tabIds.compactMap { id in tabs.first { $0.id == id } }
+        guard let lead = members.first else { return }
+        let old = lead.groupId
+        for member in members { member.groupId = groupId }
+        var ids = tabs.map { $0.id.uuidString }
+        let keys = members.map { $0.id.uuidString }
+        if let groupId {
+            ids.removeAll(where: keys.contains)
+            let last = tabs.last { $0.groupId == groupId && !split.tabIds.contains($0.id) }
+            let at = last.flatMap { ids.firstIndex(of: $0.id.uuidString) }.map { $0 + 1 } ?? ids.count
+            ids.insert(contentsOf: keys, at: at)
+        } else if let old, let last = tabs.last(where: { $0.groupId == old }) {
+            ids.removeAll(where: keys.contains)
+            ids.insert(contentsOf: keys, at: ids.firstIndex(of: last.id.uuidString)! + 1)
+        }
+        reorder(ids)
         normalizeLayout()
         persistSession()
     }
@@ -910,19 +1050,14 @@ final class TabsManager {
             member.element.exitReader()
             if let view = member.element.existingWebView { contentBlocker.cancelPending(for: view) }
         }
+        let groupSplits = splits.filter { s in s.tabIds.allSatisfy { id in members.contains { $0.element.id == id } } }
         tabs.removeAll { $0.groupId == id }
         let recorded = members.compactMap { recordLocalClose($0.element) }
         expireUndo()
         lastClosed = ClosedTab(tab: first.element, index: first.offset, blankId: nil,
                                others: members.dropFirst().map { ($0.element, $0.offset) }, group: group, groupClose: true,
-                               closedIds: recorded)
-        let closing = first.element
-        let window = undoWindow
-        undoExpiry = Task { [weak self] in
-            do { try await Task.sleep(for: window) } catch { return }
-            guard let self, self.lastClosed?.tab === closing else { return }
-            self.expireUndo()
-        }
+                               closedIds: recorded, splits: groupSplits)
+        startUndoWindow(for: first.element)
         normalizeLayout()
         if tabs.isEmpty {
             let blank = createTab()
@@ -975,11 +1110,14 @@ final class TabsManager {
     /// The shown set as it would be put away.
     func captureShown() -> SavedSet {
         let saved = tabs.filter { !$0.isPrivate }
+        let columns = SplitModel.capture(splits, saved: saved.map(\.id))
         return SavedSet(
             tabs: saved.map { SavedTab(url: $0.currentURL.absoluteString, title: $0.pageTitle, pinned: $0.pinned,
                                        groupId: $0.groupId, tabId: $0.sharedTabId) },
             groups: groups,
-            activeIndex: saved.firstIndex { $0.id == activeTabId } ?? 0)
+            activeIndex: saved.firstIndex { $0.id == activeTabId } ?? 0,
+            splits: columns.splits.isEmpty ? nil : columns.splits,
+            splitIds: columns.splits.isEmpty ? nil : columns.splitIds)
     }
 
     /// A set's saved tabs, for one that isn't shown (the shown one: `captureShown`).
@@ -1007,12 +1145,17 @@ final class TabsManager {
         activeTabId = nil
         tabs = []
         groups = set.groups
+        // Private tabs' splits stay with them; the set's own come back below.
+        splits = splits.filter { s in s.tabIds.allSatisfy { id in privates.contains { $0.id == id } } }
+        var restored: [UUID] = []
         for saved in set.tabs {
             createTab(url: URL(string: saved.url) ?? Self.newTabURL, title: saved.title, quiet: true)
             tabs.last?.pinned = saved.pinned
             tabs.last?.groupId = saved.groupId
             tabs.last?.sharedTabId = saved.tabId
+            if let id = tabs.last?.id { restored.append(id) }
         }
+        splits += SplitModel.restore(set.splits, splitIds: set.splitIds, restored: restored)
         if tabs.isEmpty { createTab(quiet: true) }
         let count = tabs.count
         tabs.append(contentsOf: privates)
@@ -1101,6 +1244,7 @@ final class TabsManager {
               let index = tabs.firstIndex(where: { $0.id == tabId }), !tabs[index].isPrivate,
               tabs.filter({ !$0.isPrivate }).count > 1 else { return }
         let tab = tabs[index]
+        removeFromSplit(tab.id)
         let saved = SavedTab(url: tab.currentURL.absoluteString, title: tab.pageTitle, pinned: tab.pinned)
         if id == TabSets.iphoneId { iphoneSet.tabs.append(saved) }
         else if let target = spaces.firstIndex(where: { $0.id == id }) { spaces[target].set.tabs.append(saved) }
@@ -2049,6 +2193,8 @@ struct ClosedTab {
     var groupClose = false
     /// Its Recently closed rows, which Undo takes back.
     var closedIds: [String] = []
+    /// The splits the closed tabs were panes of, put back by Undo (F53).
+    var splits: [TabSplit] = []
 }
 
 enum GroupNameError: Error, Equatable { case empty, duplicate }
