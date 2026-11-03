@@ -1,10 +1,13 @@
 import XCTest
 
 /// Desktop's shortcuts from a hardware keyboard (D7): the simulator sends
-/// them as a connected keyboard would.
+/// them as a connected keyboard would. They're the iPad's allowance: an
+/// iPhone has no menu bar, so SwiftUI's commands never reach it, and these
+/// skip there (CI's iPhone run, 2026-11-03).
 final class KeyboardShortcutsUITests: XCTestCase {
-  private func launch() -> XCUIApplication {
+  private func launch() throws -> XCUIApplication {
     continueAfterFailure = false
+    try XCTSkipUnless(UIDevice.current.userInterfaceIdiom == .pad, "keyboard shortcuts are an iPad feature")
     let app = XCUIApplication()
     app.launchArguments = ["-BlancUITestTwoTabs"]
     app.launch()
@@ -18,8 +21,8 @@ final class KeyboardShortcutsUITests: XCTestCase {
     XCTAssertEqual(XCTWaiter().wait(for: [shown], timeout: 5), .completed, app.buttons["pill.tabs"].value as? String ?? "")
   }
 
-  func testNewCloseAndReopenTabs() {
-    let app = launch()
+  func testNewCloseAndReopenTabs() throws {
+    let app = try launch()
     app.typeKey("t", modifierFlags: .command)
     tabCount(app, is: 3)
     app.typeKey("w", modifierFlags: .command)
@@ -28,8 +31,8 @@ final class KeyboardShortcutsUITests: XCTestCase {
     tabCount(app, is: 3)
   }
 
-  func testCommandNumberAndShiftBracketsSwitchTabs() {
-    let app = launch()
+  func testCommandNumberAndShiftBracketsSwitchTabs() throws {
+    let app = try launch()
     let site = app.buttons["pill.palette"]
     func on(_ host: String) {
       let shown = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", host), object: site)
@@ -43,8 +46,8 @@ final class KeyboardShortcutsUITests: XCTestCase {
     on("example.org")
   }
 
-  func testCommandLOpensThePalette() {
-    let app = launch()
+  func testCommandLOpensThePalette() throws {
+    let app = try launch()
     app.typeKey("l", modifierFlags: .command)
     XCTAssertTrue(app.textFields["island.address"].waitForExistence(timeout: 5))
   }
