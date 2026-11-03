@@ -9137,6 +9137,30 @@
     "message": "Actualiser la page",
     "source": "sha256:a97b578f423dbbb6a41916f986dab254f7855930346ab81e04fe955ed8fd29ed"
   },
+  "ios.settings.islandTuck": {
+    "message": "Masquer l’Island pendant le défilement",
+    "source": "sha256:b2880c6b19c41edf58338069bb2a673ca49e360df2a3827a331bf3f9186d5f7e"
+  },
+  "ios.settings.islandPosition": {
+    "message": "Position",
+    "source": "sha256:5e36b380b1a6313a28b506c3f362800c429010f9dbeac405fd02c10c94119fbf"
+  },
+  "ios.settings.islandPosition.bottom": {
+    "message": "En bas",
+    "source": "sha256:9777aa9f73ae775741f6da6b6debbd232fb32c68c0880ca887ccd2a822e7a967"
+  },
+  "ios.settings.islandPosition.top": {
+    "message": "En haut",
+    "source": "sha256:250636ac6f210db91413e7f10809e3218296d9932f13ec3f7d2e514ade52d389"
+  },
+  "ios.settings.island": {
+    "message": "Island",
+    "source": "sha256:c7651da6acb66d3cbb701eece1bfbb39fe9ab063e6ae104732720b010b1abb09"
+  },
+  "ios.settings.privacySync": {
+    "message": "Confidentialité & synchronisation",
+    "source": "sha256:aee4b9a1361196db220e4bb7945a425d25fdf0ea8988dc92de489a34f0fb474f"
+  },
   "ios.island.stop": {
     "message": "Arrêter le chargement",
     "source": "sha256:7afd60900cf4554c372a6974840bee623d3a7ad10fa18559cd951051493b6ba8"

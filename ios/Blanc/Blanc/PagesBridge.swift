@@ -83,12 +83,14 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
     }
 
     static func startData(layout: BlancStartPageLayout = MobileStartPageDefaults.layout,
-                          adblockEnabled: Bool = true) -> JSONValue {
+                          adblockEnabled: Bool = true,
+                          islandPosition: IslandPosition = .bottom) -> JSONValue {
         .object([
             ("groups", .array([])), ("blockedThisWeek", .number(0)),
             ("layout", .string(layout.rawValue)), ("topSites", .array([])),
             ("wallpaperVisible", .bool(true)), ("dynamicWallpaperEnabled", .bool(false)),
             ("mobileAdblockEnabled", .bool(adblockEnabled)),
+            ("mobileIslandPosition", .string(islandPosition.rawValue)),
         ])
     }
 
@@ -419,7 +421,8 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         case ("bookmarks", "list"): return .value(favoritesPayload())
         case ("start", "data"):
             var data = Self.startData(layout: manager?.settingsStore.newtabLayout ?? MobileStartPageDefaults.layout,
-                                      adblockEnabled: manager?.settingsStore.adblockEnabled ?? true)
+                                      adblockEnabled: manager?.settingsStore.adblockEnabled ?? true,
+                                      islandPosition: manager?.settingsStore.islandPosition ?? .bottom)
             data["remoteDevices"] = remoteDevicesPayload()
             data["sentItems"] = sentItemsPayload()
             data["bookmarks"] = favoritesPayload()
