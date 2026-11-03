@@ -502,6 +502,15 @@ Recorded in the spec (§4, §9) and plan:
 - 2026-11-02: no built-in Dark Reader (F42 dark websites) in the Chromium
   builds. With the Chrome Web Store supported, people install Dark Reader
   themselves; F42's cases become an approved divergence, not a port.
+- 2026-11-03: the rest of S1.6 goes native. N4: only a tab that inherited
+  its opener's sandbox is marked (Chromium can read the flags; shipping
+  marks every page-opened tab), the mark travels in Chromium's session and
+  Recently closed records, and a marked tab that is rebuilt restores as an
+  inert page (V4). N8: secure DNS follows Chromium's settings and provider
+  list (V11); WebRTC keeps shipping's policy through Chromium's preference.
+  N22: the native blocker's hold replaces shipping's cancel-and-replay, so
+  it is verified, not built. F19: Blanc's items go into Chromium's own page
+  context menu.
 - 2026-11-03: private tabs keep their own certificate decisions; Chromium's
   inheritance of regular-tab decisions into incognito is turned off (patch
   0016).
