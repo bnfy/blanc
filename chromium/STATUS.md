@@ -370,8 +370,14 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   Patch 0016 (the newly pinned `website_settings_registry.cc`) keeps
   private tabs' certificate decisions their own (owner, 2026-11-03).
   F39-6 stays undefined: the fork has no parked-tab tier for Reopen Closed
-  Tab (F2). The regression for this piece had not finished when it was
-  pushed.
+  Tab (F2). Regression on the Mac mini: ad-blocking, tabs-and-groups,
+  navigation-and-context-menu, private-tabs, permissions-and-auth and
+  internal-pages are unchanged; three hover-open cases in
+  island-and-commands (lines 61, 87, 99) failed and failed again alone.
+  They need the test window active, and the mini's console then had no
+  frontmost app (a Migration Assistant setup session was logged in), so
+  they are unverified, not known regressions; rerun them on the Mac Studio
+  before relying on this candidate.
 - **Live dev instance (owner, 2026-11-03):** after every native build,
   `node chromium/tools/live-dev.mjs <runtime config>` relaunches the
   newest candidate from a copy in `~/Projects/BlancChromium158/live/`,
