@@ -1,5 +1,11 @@
 import SwiftUI
 
+/// Where the Island sits: along the bottom of the screen, under the thumb (the
+/// default), or along the top, as in a desktop browser (Settings → Appearance).
+enum IslandPosition: String, CaseIterable {
+    case bottom, top
+}
+
 /// Duo-1: what the Island does in the window's size classes. Regular in both
 /// directions (the iPhone Duo's inner display) is the unfolded layout;
 /// everything else, including the inner display in system Split View and a

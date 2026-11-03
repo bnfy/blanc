@@ -32,6 +32,11 @@ final class TabModel: Identifiable {
     @ObservationIgnored private var readerURLObservation: NSKeyValueObservation?
     @ObservationIgnored private var titleObservation: NSKeyValueObservation?
     @ObservationIgnored private var pageColorObservation: NSKeyValueObservation?
+    @ObservationIgnored private var scrollObservation: NSKeyValueObservation?
+    /// Whether the Island has tucked away for this page's scrolling. Changed
+    /// only when it flips, so scrolling doesn't redraw the browser each frame.
+    private(set) var islandTucked = false
+    @ObservationIgnored private var islandTuck = IslandTuck()
 
     let nativeClock = NativeClockOverlay()
     let navigationDelegate: TabNavigationDelegate
@@ -108,6 +113,14 @@ final class TabModel: Identifiable {
         pageColorObservation = webView.observe(\.underPageBackgroundColor, options: [.new]) { [weak self] _, _ in
             Task { @MainActor [weak self] in self?.matchRefreshControlToPage() }
         }
+        // KVO on the scroll view reports on the main thread, frame by frame;
+        // the Island has to follow the scroll that same frame.
+        scrollObservation = webView.scrollView.observe(\.contentOffset, options: [.old, .new]) { [weak self] scrollView, change in
+            MainActor.assumeIsolated {
+                guard let self, let old = change.oldValue, let new = change.newValue, old.y != new.y else { return }
+                self.pageScrolled(scrollView, from: old.y, to: new.y)
+            }
+        }
         return webView
     }
 
@@ -175,6 +188,29 @@ final class TabModel: Identifiable {
         thumbnail = UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: format).image { _ in
             full.draw(in: CGRect(x: (side - size.width) / 2, y: 0, width: size.width, height: size.height))
         }
+    }
+
+    /// The Start Page keeps its Island: it's the page's own address bar.
+    private func pageScrolled(_ scrollView: UIScrollView, from old: CGFloat, to new: CGFloat) {
+        guard Self.allowsPullToRefresh(currentURL) else {
+            showIsland()
+            return
+        }
+        let inset = scrollView.adjustedContentInset
+        islandTuck.scrolled(from: old,
+                            to: IslandTuck.Position(offset: new,
+                                                    contentHeight: scrollView.contentSize.height,
+                                                    viewportHeight: scrollView.bounds.height,
+                                                    topInset: inset.top,
+                                                    bottomInset: inset.bottom),
+                            byPerson: scrollView.isTracking || scrollView.isDecelerating)
+        if islandTucked != islandTuck.isTucked { islandTucked = islandTuck.isTucked }
+    }
+
+    /// Brings the Island back: a new page, or this tab shown again.
+    func showIsland() {
+        islandTuck.show()
+        if islandTucked { islandTucked = false }
     }
 
     func goBack() { storage?.goBack() }

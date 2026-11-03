@@ -16,6 +16,12 @@
     });
   }
 
+  // With the Island along the top (Settings → Island position), the header
+  // and footer make room for it there; ios-start-page.css reads the mark.
+  window.bowserPages.start.data().then(data => {
+    document.documentElement.dataset.island = data.mobileIslandPosition === 'top' ? 'top' : 'bottom';
+  }).catch(() => { /* Keep the bottom layout if the page is closing. */ });
+
   // iOS has no blocked-request counters yet. Show the real setting instead
   // of presenting the desktop bridge's empty statistics as measured data.
   async function refreshProtection() {

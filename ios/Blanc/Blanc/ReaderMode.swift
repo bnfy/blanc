@@ -226,8 +226,15 @@ final class ReaderController: NSObject, WKURLSchemeHandler, WKScriptMessageHandl
 
 struct ReaderWebView: UIViewRepresentable {
     let reader: ReaderController
-    func makeUIView(context: Context) -> WKWebView { reader.webView }
-    func updateUIView(_ view: WKWebView, context: Context) {}
+    var islandInset: CGFloat = 0
+    var islandEdge: VerticalEdge = .bottom
+    func makeUIView(context: Context) -> WKWebView {
+        WebView.reserveIsland(islandInset, at: islandEdge, in: reader.webView.scrollView)
+        return reader.webView
+    }
+    func updateUIView(_ view: WKWebView, context: Context) {
+        WebView.reserveIsland(islandInset, at: islandEdge, in: view.scrollView)
+    }
 }
 
 extension TabModel {

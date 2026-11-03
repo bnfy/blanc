@@ -32,11 +32,32 @@ struct ContentView: View {
     /// there, an unfold would still look like a sheet and close the palette.
     @State private var paletteIsPanel = false
 
-    /// The page runs under the side strips (the iPhone Duo's camera and clock
-    /// strip, an iPhone's notch in landscape), as in Safari: WebKit keeps the
-    /// content clear of them and paints the page's background out to the edge.
-    /// The Start Page also runs under the top and bottom.
-    private var pageEdges: Edge.Set { isStartPage ? .all : .horizontal }
+    /// Every page runs to every edge, as in Safari: under the status bar and
+    /// the notch or Dynamic Island, the side strips (the iPhone Duo's camera
+    /// and clock strip, an iPhone's notch in landscape), the home indicator and
+    /// the floating Island. WebKit keeps the content clear of them and paints
+    /// the page out to the edge, and iOS draws its own status bar over it.
+    private let pageEdges: Edge.Set = .all
+
+    private var islandAtTop: Bool { manager.settingsStore.islandPosition == .top }
+    /// The screen edge the Island sits along, and slides past when it tucks.
+    private var islandEdge: VerticalEdge { islandAtTop ? .top : .bottom }
+
+    /// The Island's own band (the Island and its padding, without the banners
+    /// over it), which websites leave room for at their end.
+    @State private var islandBand: CGFloat = 0
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
+
+    /// Out of the way while the page scrolls down, unless the person keeps it
+    /// on screen in Settings. Never while something rises from it or sits over
+    /// it, and never for VoiceOver, which reads the screen in order and would
+    /// lose it.
+    private var isIslandTucked: Bool {
+        guard manager.settingsStore.islandTucksOnScroll, manager.activeTab?.islandTucked == true,
+              !voiceOverEnabled else { return false }
+        return !manager.isSpacesMenuPresented && !isPalettePanelOpen && manager.sendNotice == nil
+            && manager.lastClosed == nil && manager.lastDeletedSpaceId == nil
+    }
 
     private var isStartPage: Bool {
         manager.activeTab?.currentURL.scheme == "blanc" && manager.activeTab?.currentURL.host == "newtab"
@@ -48,7 +69,7 @@ struct ContentView: View {
         ZStack {
             style.background.ignoresSafeArea()
             if let tab = manager.activeTab {
-                WebView(tab: tab)
+                WebView(tab: tab, islandInset: islandBand, islandEdge: islandEdge)
                     .id(tab.id)
                     .overlay {
                         // Until its first page commits, a web view is WebKit's
@@ -65,25 +86,26 @@ struct ContentView: View {
                         .offset(x: swipeOffset + (swipeOffset < 0 ? pageWidth : -pageWidth))
                 }
                 if let reader = tab.reader {
-                    ReaderWebView(reader: reader).id(ObjectIdentifier(reader))
+                    ReaderWebView(reader: reader, islandInset: islandBand, islandEdge: islandEdge).id(ObjectIdentifier(reader))
                         .ignoresSafeArea(edges: pageEdges)
                         .offset(x: swipeOffset)
                 }
             }
         }
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pageWidth = $0 }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if !isStartPage {
-                islandContainer.background(style.background)
-            }
+        .overlay(alignment: islandAtTop ? .top : .bottom) {
+            // Floats over every page. Tucked, it slides past the screen's edge
+            // (or only fades, with Reduce Motion) and takes no touches.
+            islandContainer
+                .offset(y: isIslandTucked && !reduceMotion ? (islandAtTop ? -(islandHeight + 80) : islandHeight + 40) : 0)
+                .opacity(isIslandTucked && reduceMotion ? 0 : 1)
+                .allowsHitTesting(!isIslandTucked)
+                .animation(.snappy(duration: 0.3), value: isIslandTucked)
         }
-        .overlay(alignment: .bottom) {
-            if isStartPage { islandContainer }
-        }
-        .overlay(alignment: .bottom) {
+        .overlay(alignment: islandAtTop ? .top : .bottom) {
             if manager.isSpacesMenuPresented { spacesMenu }
         }
-        .overlay(alignment: .bottom) {
+        .overlay(alignment: islandAtTop ? .top : .bottom) {
             if isPalettePanelOpen { palettePanel }
         }
         .onChange(of: manager.isPalettePresented) { _, presented in
@@ -182,35 +204,12 @@ struct ContentView: View {
                 })
     }
 
+    /// Notices sit on the page's side of the Island, wherever it is.
     private var islandContainer: some View {
         VStack(spacing: 8) {
-            if let sendNotice = manager.sendNotice {
-                Text(sendNotice).font(BrowserStyle.font(13))
-                    .padding(.horizontal, 14).padding(.vertical, 8)
-                    .background(style.raised, in: Capsule())
-                    .accessibilityAddTraits(.updatesFrequently)
-                    .accessibilityIdentifier("send.banner")
-            }
-            UndoBanner(manager: manager, style: style)
-            addressPill
-                // The panel takes the Island's place; hidden, not removed, so
-                // the page's inset never changes under it.
-                .opacity(isPalettePanelOpen ? 0 : 1)
-                .allowsHitTesting(!isPalettePanelOpen)
-                .accessibilityHidden(isPalettePanelOpen)
-                .simultaneousGesture(DragGesture(minimumDistance: 12)
-                    .updating($isDragging) { _, dragging, _ in dragging = true }
-                    .onChanged(swipeChanged)
-                    .onEnded(swipeEnded))
-                .onChange(of: isDragging) { _, dragging in
-                    // A cancelled drag (a call, Control Center) gets no onEnded.
-                    guard !dragging, isSwiping else { return }
-                    isSwiping = false
-                    if !isCommitting { withAnimation(Self.swipeSpring) { swipeOffset = 0 } }
-                }
-                .accessibilityAction(named: SyncCopy.text("ios.island.showAllTabs")) { openTabGrid() }
-                .accessibilityAction(named: SyncCopy.text("menu.nextTab")) { switchTab(by: 1) }
-                .accessibilityAction(named: SyncCopy.text("menu.previousTab")) { switchTab(by: -1) }
+            if !islandAtTop { islandNotices }
+            islandPill
+            if islandAtTop { islandNotices }
         }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
@@ -218,10 +217,44 @@ struct ContentView: View {
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { islandHeight = $0 }
     }
 
+    @ViewBuilder private var islandNotices: some View {
+        if let sendNotice = manager.sendNotice {
+            Text(sendNotice).font(BrowserStyle.font(13))
+                .padding(.horizontal, 14).padding(.vertical, 8)
+                .background(style.raised, in: Capsule())
+                .accessibilityAddTraits(.updatesFrequently)
+                .accessibilityIdentifier("send.banner")
+        }
+        UndoBanner(manager: manager, style: style)
+    }
+
+    private var islandPill: some View {
+        addressPill
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { islandBand = $0 + 20 }
+            // The panel takes the Island's place; hidden, not removed, so
+            // the page's inset never changes under it.
+            .opacity(isPalettePanelOpen ? 0 : 1)
+            .allowsHitTesting(!isPalettePanelOpen)
+            .accessibilityHidden(isPalettePanelOpen)
+            .simultaneousGesture(DragGesture(minimumDistance: 12)
+                .updating($isDragging) { _, dragging, _ in dragging = true }
+                .onChanged(swipeChanged)
+                .onEnded(swipeEnded))
+            .onChange(of: isDragging) { _, dragging in
+                // A cancelled drag (a call, Control Center) gets no onEnded.
+                guard !dragging, isSwiping else { return }
+                isSwiping = false
+                if !isCommitting { withAnimation(Self.swipeSpring) { swipeOffset = 0 } }
+            }
+            .accessibilityAction(named: SyncCopy.text("ios.island.showAllTabs")) { openTabGrid() }
+            .accessibilityAction(named: SyncCopy.text("menu.nextTab")) { switchTab(by: 1) }
+            .accessibilityAction(named: SyncCopy.text("menu.previousTab")) { switchTab(by: -1) }
+    }
+
     /// The Spaces card over the page, lined up with the Island, which stays
-    /// visible and usable below it.
+    /// visible and usable beside it.
     private var spacesMenu: some View {
-        ZStack(alignment: .bottom) {
+        ZStack(alignment: islandAtTop ? .top : .bottom) {
             Color.black.opacity(0.001)
                 .ignoresSafeArea()
                 .onTapGesture { withAnimation(.snappy) { manager.isSpacesMenuPresented = false } }
@@ -234,8 +267,8 @@ struct ContentView: View {
                 }))
                 .frame(maxWidth: 600)
                 .padding(.horizontal, 16)
-                .padding(.bottom, islandHeight - 4)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .padding(islandAtTop ? .top : .bottom, islandHeight - 4)
+                .transition(.move(edge: islandAtTop ? .top : .bottom).combined(with: .opacity))
             Button("") { withAnimation(.snappy) { manager.isSpacesMenuPresented = false } }
                 .keyboardShortcut(.cancelAction)
                 .opacity(0)
@@ -243,10 +276,10 @@ struct ContentView: View {
         }
     }
 
-    /// Duo-1: the palette growing up from the Island, at its width, over the
+    /// Duo-1: the palette growing from the Island, at its width, over the
     /// page (not dimmed, as desktop's ⌘L panel). A tap outside or Escape closes it.
     private var palettePanel: some View {
-        ZStack(alignment: .bottom) {
+        ZStack(alignment: islandAtTop ? .top : .bottom) {
             Color.black.opacity(0.001)
                 .ignoresSafeArea()
                 .onTapGesture { manager.isPalettePresented = false }
@@ -260,8 +293,8 @@ struct ContentView: View {
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("palette.panel")
                 .padding(.horizontal, 16)
-                .padding(.top, 16)
-                .padding(.bottom, 10)
+                .padding(.top, islandAtTop ? 10 : 16)
+                .padding(.bottom, islandAtTop ? 16 : 10)
             Button("") { manager.isPalettePresented = false }
                 .keyboardShortcut(.cancelAction)
                 .opacity(0)
@@ -309,8 +342,10 @@ struct ContentView: View {
     private func swipeEnded(_ value: DragGesture.Value) {
         guard !isCommitting else { return }
         guard isSwiping else {
-            // The Island's upward swipe opens the tab grid.
-            if value.translation.height < -40 && abs(value.translation.height) > abs(value.translation.width) {
+            // A swipe from the Island into the page (up from the bottom, down
+            // from the top) opens the tab grid.
+            let intoPage = islandAtTop ? value.translation.height : -value.translation.height
+            if intoPage > 40 && abs(value.translation.height) > abs(value.translation.width) {
                 openTabGrid()
             }
             return
