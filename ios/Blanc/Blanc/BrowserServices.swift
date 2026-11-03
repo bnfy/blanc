@@ -18,6 +18,8 @@ final class BrowserServices {
     /// The web store normal tabs share; tests pass their own.
     let siteDataStore: WKWebsiteDataStore
     private(set) lazy var recentlyClosed = RecentlyClosedStore(directory: syncDirectory)
+    /// This iPhone's set, the Spaces and their bookkeeping (W2).
+    let library = SpaceLibrary()
 
     init(settingsDirectory: URL? = nil, sessionDirectory: URL? = nil, siteDataStore: WKWebsiteDataStore = .default()) {
         self.siteDataStore = siteDataStore
@@ -65,6 +67,61 @@ final class BrowserServices {
     func register(_ manager: TabsManager) {
         windowRefs.removeAll { $0.manager == nil || $0.manager === manager }
         windowRefs.append(WeakWindow(manager))
+        if frontWindow == nil { frontWindow = manager }
+    }
+
+    /// The window in front most recently: where links from other apps go, and
+    /// whose tabs an older build opens.
+    weak var frontWindow: TabsManager?
+
+    // MARK: The saved session
+
+    /// One save for every window, so no window overwrites another's. Waits
+    /// while any window rebuilds its tabs; that window saves when it's done.
+    func saveSession() {
+        let live = windows
+        guard let front = frontWindow ?? live.last, !live.contains(where: \.isRestoring) else { return }
+        // Private tabs are never saved. With only private tabs open, the saved
+        // session is one blank tab, so tabs the person closed stay closed.
+        let saved = front.tabs.filter { !$0.isPrivate }
+        let urls = saved.isEmpty ? [TabsManager.newTabURL.absoluteString] : saved.map { $0.currentURL.absoluteString }
+        let active = saved.firstIndex(where: { $0.id == front.activeTabId }) ?? 0
+        let state = library.state(shown: front.shownSetId,
+                                  windows: live.map { ($0.windowId, $0.shownSetId, $0.captureShown()) })
+        sessionStore.save(urls: urls, activeIndex: active, state: state)
+    }
+
+    // MARK: Settings
+
+    /// Single dispatch path for settings changes, from a page, a slash command
+    /// or another device. Validates each field by type, applies the device's
+    /// side effects once (the blocker, the store, sync), then every window's
+    /// (search engine, its tabs' blocking, its pages). Unknown or invalid keys
+    /// are ignored.
+    func applySettingsPatch(_ patch: [String: Any]) {
+        let themeUpdate = (patch["theme"] as? String).flatMap(BlancThemePreference.init(rawValue:))
+        let engineUpdate = (patch["searchEngine"] as? String).flatMap(BlancSearchEngine.init(rawValue:))
+        let adblockUpdate = patch["adblockEnabled"] as? Bool
+        if let engineUpdate { for window in windows { window.normalizer.searchEngine = engineUpdate } }
+        // Foreground sync re-applies the full settings payload. An unchanged
+        // blocker preference must preserve the page and its in-memory state.
+        if let adblockUpdate, adblockUpdate != settingsStore.adblockEnabled {
+            contentBlocker.setEnabled(adblockUpdate)
+            for window in windows { window.blockingTurned(adblockUpdate) }
+        }
+        // One validated mutation that also schedules the debounced save.
+        let oldTheme = settingsStore.theme
+        let oldEngine = settingsStore.searchEngine
+        let oldBlocking = settingsStore.adblockEnabled
+        settingsStore.update(theme: themeUpdate, searchEngine: engineUpdate, adblockEnabled: adblockUpdate)
+        if oldTheme != settingsStore.theme || oldEngine != settingsStore.searchEngine || oldBlocking != settingsStore.adblockEnabled {
+            for window in windows { window.settingsDidChange() }
+        }
+        if !applyingRemoteSettings {
+            if let themeUpdate, themeUpdate != oldTheme { syncEngine.localSettingChanged(key: "theme", value: .string(themeUpdate.rawValue)) }
+            if let engineUpdate, engineUpdate != oldEngine { syncEngine.localSettingChanged(key: "searchEngine", value: .string(engineUpdate.rawValue)) }
+            if let adblockUpdate, adblockUpdate != oldBlocking { syncEngine.localSettingChanged(key: "adblockEnabled", value: .bool(adblockUpdate)) }
+        }
     }
 
     // MARK: Private browsing
@@ -118,7 +175,7 @@ final class BrowserServices {
                 if let theme = values?["theme"]?.text { patch["theme"] = theme }
                 if let search = values?["searchEngine"]?.text { patch["searchEngine"] = search }
                 if let enabled = values?["adblockEnabled"]?.boolean { patch["adblockEnabled"] = enabled }
-                for window in self.windows { window.applySettingsPatch(patch) }
+                self.applySettingsPatch(patch)
             }, tabsSource: { [weak self] in self?.windows.flatMap(\.syncedTabs) ?? [] })
         engine.onChanged = { [weak self] in self?.windows.forEach { $0.syncDidChange() } }
         engine.onSpacesMerged = { [weak self] (ids: [String]) in self?.windows.forEach { $0.sharedSpacesMerged(ids) } }

@@ -140,24 +140,28 @@ A window shows one tab set: This iPhone or one Space, as now.
 
 ## 5. Saving and restoring
 
-- `session.json` version 3 adds `windows: [{ id, shown, set, private: false }]`,
-  each keyed by the window's `UISceneSession.persistentIdentifier` and holding
-  what today's single `state` holds for one window. The flat `urls` /
-  `activeIndex` mirror stays: it holds the most recently active window, so a
-  rollback to a version-2 build opens that window's tabs.
+- `session.json` stays version 2 and gains an optional `windows: [{ id, shown }]`
+  list in its `state`, each keyed by the window's
+  `UISceneSession.persistentIdentifier`. The sets themselves stay where they
+  are (This iPhone's set and each Space). A version-3 file would make an
+  older build ignore the whole state and lose the Spaces on a rollback, while
+  an older build simply ignores a key it doesn't know (decided while building
+  W2a). `shown` and the flat `urls` / `activeIndex` mirror hold the front
+  window, which is what an older build opens.
 - **Splits** stay in each window's `SavedSet` (bnfy/blanc#1325). Glance is
   never saved, as now.
 - **On launch** each restored scene finds its entry by session id. A session
   iPadOS no longer has (swiped away while Blanc wasn't running) is handled at
   the next launch like a closed window (§4).
-- **Migration from version 2:** the existing state becomes the first window's.
+- **Migration:** a file without `windows` opens its `shown` set in the first window.
 
 ## 6. Phases
 
 | Phase | Delivers | Visible change |
 |---|---|---|
 | **W1** | `BrowserServices` extracted: settings, history, Favorites, sync, content blocking, the web data stores, Reader preferences, Recently closed and the session store. `TabsManager` reads them through it. Still one window. | None. All existing tests pass unchanged. |
-| **W2** | The Spaces library and Shared Spaces state move into `BrowserServices` with session v3 (W1 leaves them on `TabsManager`, since v3 rewrites that state anyway). Multiple scenes on: a manager per window, ⌘N and New Window, Move to New Window, a set shown in one window only, links to the front window, sync's union of windows, closing a window into Recently closed. | Multiple windows on iPad and the Duo. |
+| **W2a** | The Spaces library and Shared Spaces state move into `SpaceLibrary` in `BrowserServices`. One save holds every window (`windows` in the state). A settings change applies once, and every window's tabs follow. Still one window. | None. |
+| **W2b** | Multiple scenes on: a manager per window, ⌘N and New Window, Move to New Window, a set shown in one window only, links to the front window, closing a window into Recently closed, and "This iPad" in every language. | Multiple windows on iPad and the Duo. |
 | **W3** | Drag a tab card or palette row to another window (or out to make one); scene restoration and Stage Manager checks; the window list's titles (the window's Space name or current page). | Polish. |
 
 W1 is the risky refactor and ships alone, behind no flag, with no behavior
@@ -169,7 +173,7 @@ change, so any regression shows up before windows exist.
   - Two managers over one `BrowserServices` keep separate tabs while sharing
     Favorites, history and settings.
   - A set can't be shown in two windows at once.
-  - Session v3 round-trips, and v2 migrates.
+  - The saved `windows` list round-trips, and a file without it opens its `shown` set.
   - A closed window becomes one Recently closed entry.
   - Sync's tab list is the union of the windows.
   - Moving a tab carries the same `TabModel`.

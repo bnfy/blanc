@@ -61,6 +61,9 @@ struct SessionState: Codable, Equatable {
     var sharedAccount: String?
     /// Recovery Spaces whose one-time note has been shown.
     var recoveryNoted: [String]?
+    /// Each window and the set it showed (multiple windows W2). Older builds
+    /// ignore it and open `shown`.
+    var windows: [SavedWindow]?
 }
 
 enum TabSets {
