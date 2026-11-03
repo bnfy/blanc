@@ -166,10 +166,15 @@ final class TabsManager {
 
     /// What every window shares (`BrowserServices`).
     @ObservationIgnored let services: BrowserServices
+    /// This window's id in the saved session (its scene's, once there are
+    /// several windows).
+    @ObservationIgnored let windowId: String
+    private var library: SpaceLibrary { services.library }
+    /// Whether this window is rebuilding its tabs, when nothing is saved.
+    var isRestoring: Bool { isRestoringSession }
     var settingsStore: SettingsStore { services.settingsStore }
     var historyStore: HistoryStore { services.historyStore }
     private var syncDirectory: URL { services.syncDirectory }
-    private var applyingRemoteSettings: Bool { services.applyingRemoteSettings }
     var syncEngine: SyncEngine { services.syncEngine }
 
     /// Sync has news: the open pages hear of it, and Shared Spaces apply it.
@@ -299,8 +304,9 @@ final class TabsManager {
                                             siteDataStore: siteDataStore))
     }
 
-    init(services: BrowserServices) {
+    init(services: BrowserServices, windowId: String = "main") {
         self.services = services
+        self.windowId = windowId
         self.normalizer = AddressNormalizer(searchEngine: services.settingsStore.searchEngine)
         services.register(self)
 
@@ -345,15 +351,10 @@ final class TabsManager {
         defer { if UITestSeed.twoTabs { activeTabId = tabs.first?.id } }
         #endif
         if let state = restoredState {
-            iphoneSet = state.iphone
-            spaces = state.spaces
-            sharedBaselines = state.sharedBaselines ?? [:]
-            sharedAccepted = state.sharedAccepted ?? [:]
-            sharedAccount = state.sharedAccount
-            recoveryNoted = Set(state.recoveryNoted ?? [])
-            let now = Int64(Date().timeIntervalSince1970 * 1000)
-            recentlyDeleted = state.deleted.filter { now - $0.deletedAt < TabSets.deletedRetentionMs }
-            if spaces.contains(where: { $0.id == state.shown }) { shownSetId = state.shown }
+            // The first window to start reads the saved sets; the rest share them.
+            if !library.loaded { library.load(state) }
+            let shown = state.windows?.first { $0.id == windowId }?.shown ?? state.shown
+            if spaces.contains(where: { $0.id == shown }) { shownSetId = shown }
             // Changes that waited for the selected tab when Blanc last ran
             // apply first, while every tab is still quiet; only then does the
             // surviving selection load, at its resulting address.
@@ -1129,15 +1130,24 @@ final class TabsManager {
     private(set) var shownSetId = TabSets.iphoneId
     /// The phone's Spaces in their order. The shown Space's saved tabs are
     /// stale while it shows; `tabs` is the truth.
-    private(set) var spaces: [SpaceRecord] = []
-    private(set) var recentlyDeleted: [DeletedSpace] = []
+    private(set) var spaces: [SpaceRecord] {
+        get { library.spaces }
+        set { library.spaces = newValue }
+    }
+    private(set) var recentlyDeleted: [DeletedSpace] {
+        get { library.recentlyDeleted }
+        set { library.recentlyDeleted = newValue }
+    }
     /// The Space whose deletion Undo can still take back.
     private(set) var lastDeletedSpaceId: String?
     /// Whether that Space was deleted everywhere (it was shared).
     private(set) var lastDeletedSpaceWasShared = false
     @ObservationIgnored private var deletedSpaceWasShown = false
     @ObservationIgnored private var spaceUndoExpiry: Task<Void, Never>?
-    @ObservationIgnored private var iphoneSet = SavedSet()
+    private var iphoneSet: SavedSet {
+        get { library.iphoneSet }
+        set { library.iphoneSet = newValue }
+    }
 
     var shownSpace: SpaceRecord? { spaces.first { $0.id == shownSetId } }
     /// The Spaces menu over the Island (M17).
@@ -1361,20 +1371,7 @@ final class TabsManager {
     /// Writes session.json (debounced) without telling sync the tabs changed.
     private func saveSession() {
         guard !isRestoringSession else { return }
-        // Private tabs are never saved. With only private tabs open, the saved
-        // session is one blank tab, so tabs the person closed stay closed.
-        let saved = tabs.filter { !$0.isPrivate }
-        let urls = saved.isEmpty ? [Self.newTabURL.absoluteString] : saved.map { $0.currentURL.absoluteString }
-        let activeIdx = saved.firstIndex(where: { $0.id == activeTabId }) ?? 0
-        var state = SessionState(shown: shownSetId, iphone: iphoneSet, spaces: spaces, deleted: recentlyDeleted,
-                                 sharedBaselines: sharedBaselines.isEmpty ? nil : sharedBaselines,
-                                 sharedAccepted: sharedAccepted.isEmpty ? nil : sharedAccepted,
-                                 sharedAccount: sharedAccount,
-                                 recoveryNoted: recoveryNoted.isEmpty ? nil : recoveryNoted.sorted())
-        let shown = captureShown()
-        if shownSetId == TabSets.iphoneId { state.iphone = shown }
-        else if let index = state.spaces.firstIndex(where: { $0.id == shownSetId }) { state.spaces[index].set = shown }
-        sessionStore.save(urls: urls, activeIndex: activeIdx, state: state)
+        services.saveSession()
     }
 
     // MARK: Shared Spaces (M17c)
@@ -1385,8 +1382,14 @@ final class TabsManager {
     /// Remote closes applied outside a merge pass (a waiting change applying
     /// as the person moves on), for Recently closed.
     @ObservationIgnored var sharedClosedSink: (([ClosedRow]) -> Void)?
-    @ObservationIgnored private var sharedBaselines: [String: JSONValue] = [:]
-    @ObservationIgnored private var sharedAccepted: [String: JSONValue] = [:]
+    private var sharedBaselines: [String: JSONValue] {
+        get { library.sharedBaselines }
+        set { library.sharedBaselines = newValue }
+    }
+    private var sharedAccepted: [String: JSONValue] {
+        get { library.sharedAccepted }
+        set { library.sharedAccepted = newValue }
+    }
     /// Local edits taken before an apply, waiting for `sharedSpaceEdits`.
     @ObservationIgnored private var sharedOutbox: [String: JSONValue] = [:]
     @ObservationIgnored private var sharedDeviceId: String?
@@ -1655,7 +1658,10 @@ final class TabsManager {
 
     // MARK: Shared Spaces wiring (M17c Task 18)
 
-    @ObservationIgnored private var sharedAccount: String?
+    private var sharedAccount: String? {
+        get { library.sharedAccount }
+        set { library.sharedAccount = newValue }
+    }
     /// The phone's own Recently closed (Task 20).
     var recentlyClosed: RecentlyClosedStore { services.recentlyClosed }
     @ObservationIgnored private var sharedPublishTask: Task<Void, Never>?
@@ -1753,7 +1759,10 @@ final class TabsManager {
     // MARK: Status (M17c Task 21)
 
     /// Recovery Spaces whose note was shown in the Spaces menu.
-    private(set) var recoveryNoted: Set<String> = []
+    private(set) var recoveryNoted: Set<String> {
+        get { library.recoveryNoted }
+        set { library.recoveryNoted = newValue }
+    }
     /// The Spaces menu closed: each recovery Space's note has been said.
     func noteRecoveriesSeen() {
         let ids = Set(spaces.filter { $0.recoveredFrom != nil }.map(\.id))
@@ -2128,51 +2137,14 @@ final class TabsManager {
     /// type, applies side effects (search engine → normalizer, adblock → tabs),
     /// then routes the accepted values through `SettingsStore.update`, which
     /// persists them. Unknown/invalid keys are ignored.
-    /// W1 has one window. Before a second, split this: the shared store and
-    /// blocker change once (`BrowserServices`), then every window's tabs follow;
-    /// as it stands a second window would see the setting already changed and
-    /// skip its own tabs.
+    /// A settings change from a page or a slash command: it applies once for
+    /// the device and every window follows (`BrowserServices.applySettingsPatch`).
     func applySettingsPatch(_ patch: [String: Any]) {
-        var themeUpdate: BlancThemePreference?
-        var engineUpdate: BlancSearchEngine?
-        var adblockUpdate: Bool?
-
-        if let raw = patch["theme"] as? String,
-           let value = BlancThemePreference(rawValue: raw) {
-            themeUpdate = value
-        }
-
-        if let raw = patch["searchEngine"] as? String,
-           let value = BlancSearchEngine(rawValue: raw) {
-            engineUpdate = value
-            normalizer.searchEngine = value
-        }
-
-        if let enabled = patch["adblockEnabled"] as? Bool {
-            adblockUpdate = enabled
-            // Foreground sync re-applies the full settings payload. An unchanged
-            // blocker preference must preserve the page and its in-memory state.
-            if enabled != settingsStore.adblockEnabled { applyAdblockToggle(enabled) }
-        }
-
-        // One validated mutation that also schedules the debounced save.
-        let oldTheme = settingsStore.theme
-        let oldEngine = settingsStore.searchEngine
-        let oldBlocking = settingsStore.adblockEnabled
-        settingsStore.update(theme: themeUpdate, searchEngine: engineUpdate, adblockEnabled: adblockUpdate)
-        if oldTheme != settingsStore.theme || oldEngine != settingsStore.searchEngine || oldBlocking != settingsStore.adblockEnabled {
-            bridge.emitSettingsChanges()
-            bridge.emit("start.onStatus", payload: .object([("mobileAdblockEnabled", .bool(settingsStore.adblockEnabled))]), host: "newtab")
-        }
-        if !applyingRemoteSettings {
-            if let themeUpdate, themeUpdate != oldTheme { syncEngine.localSettingChanged(key: "theme", value: .string(themeUpdate.rawValue)) }
-            if let engineUpdate, engineUpdate != oldEngine { syncEngine.localSettingChanged(key: "searchEngine", value: .string(engineUpdate.rawValue)) }
-            if let adblockUpdate, adblockUpdate != oldBlocking { syncEngine.localSettingChanged(key: "adblockEnabled", value: .bool(adblockUpdate)) }
-        }
+        services.applySettingsPatch(patch)
     }
 
-    private func applyAdblockToggle(_ enabled: Bool) {
-        contentBlocker.setEnabled(enabled)
+    /// Blanc Blocker turned on or off: this window's loaded pages follow.
+    func blockingTurned(_ enabled: Bool) {
         if enabled {
             if contentBlocker.isReady {
                 for tab in tabs where tab.hasWebView {
@@ -2192,6 +2164,12 @@ final class TabsManager {
                 tab.webView.reload()
             }
         }
+    }
+
+    /// The theme, search engine or blocking changed: this window's pages hear.
+    func settingsDidChange() {
+        bridge.emitSettingsChanges()
+        bridge.emit("start.onStatus", payload: .object([("mobileAdblockEnabled", .bool(settingsStore.adblockEnabled))]), host: "newtab")
     }
 
     // MARK: Blanc Blocker, per site
