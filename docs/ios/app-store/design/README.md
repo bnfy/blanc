@@ -11,7 +11,8 @@ the gold Sunrise on the first to Blanc White on the last; headlines in Blubird
 Display, subtitles in Blubird Text, and the real app in a plain dark frame.
 
 `assets.json` maps each `/_blob/<id>` the artboards name to a file in this
-repository: the captures in `../captures/`, the Sunrise export in
+repository: the captures in `../captures/`, the desktop's Connect your
+iPhone capture in `site/public/feature-captures/`, the Sunrise export in
 `site/public/lockup/`, and Blubird in `site/public/fonts/blubird/`, which
 `npm run site:fonts` installs and git ignores (the license forbids
 redistribution; the owner allowed the canvas's private asset store to hold a
@@ -32,4 +33,6 @@ copy).
   running app.
 
 The composed PNGs land in `../6.9/` (1320 × 2868) and `../6.3/`
-(1206 × 2622), opaque, as App Store Connect requires.
+(1206 × 2622), opaque, as App Store Connect requires. Artboards on a canvas
+page with the id `cpp-<page>` belong to a custom product page and land in
+`../custom-pages/<page>/` instead (see its README).

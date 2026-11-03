@@ -193,10 +193,11 @@ Three custom product pages, each for a place that sends people to the App
 Store, so the first screenshots they see answer what brought them. Each page
 keeps the default page's design (dawn to day, Blubird captions, the real app
 in a plain dark frame) and the same captures, in a different order with
-captions for that audience. The pages are defined in
-[`app-store/custom-pages/pages.json`](app-store/custom-pages/pages.json); see
-that folder's README for changing and rendering them. Drafted November 3,
-2026 for the owner's review; nothing is uploaded yet.
+captions for that audience. They're on the screenshots canvas, one canvas
+page each ("Custom page · …"), and render into
+[`app-store/custom-pages/`](app-store/custom-pages/) (its README says how).
+Drafted and approved by the owner on November 3, 2026; nothing is uploaded
+yet.
 
 | Page (reference name) | For | Promotional text (170 max) |
 |---|---|---|
