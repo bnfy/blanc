@@ -115,6 +115,8 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     private func sync(_ webView: WKWebView, finished: Bool = false) {
         guard let tab else { return }
         tab.isLoading = webView.isLoading
+        // A load the reload replaced also fails; the spinner waits for its own.
+        if !webView.isLoading { tab.endPullToRefresh() }
         tab.canGoBack = webView.canGoBack
         tab.canGoForward = webView.canGoForward
         apply(url: webView.url, title: webView.title ?? "", finished: finished)
@@ -158,6 +160,9 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         let changed = newURL != tab.currentURL
         tab.currentURL = newURL
         tab.addressText = newURL.absoluteString
+        // Every time, not only on a change: a typed address sets `currentURL`
+        // before its page commits.
+        tab.syncPullToRefresh()
         if changed {
             tab.exitReader()
             tab.readerAvailable = false

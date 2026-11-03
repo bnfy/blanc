@@ -49,8 +49,12 @@ final class TabModel: Identifiable {
         if let storage { return storage }
         let view = makeWebView()
         storage = view
+        syncPullToRefresh()
         return view
     }
+    /// F56: pulling a page down reloads it, as Safari does. Made with the web
+    /// view, so a quiet tab has none until it wakes.
+    @ObservationIgnored private(set) var refreshControl: UIRefreshControl?
 
     /// `load: false` is for a page-opened tab, whose request WebKit loads itself.
     /// `quiet: true` makes no web view until `wake()`.
@@ -171,5 +175,51 @@ final class TabModel: Identifiable {
     func goBack() { storage?.goBack() }
     func goForward() { storage?.goForward() }
     func reload() { storage?.reload() }
-    func stop() { storage?.stopLoading() }
+    func stop() {
+        storage?.stopLoading()
+        endPullToRefresh()
+    }
+
+    /// The Start Page paints beneath the status bar and has nothing to fetch,
+    /// so it never pulls to refresh; every other page does.
+    static func allowsPullToRefresh(_ url: URL) -> Bool {
+        !(url.scheme == "blanc" && url.host == "newtab")
+    }
+
+    /// Puts the refresh control on the page's scroll view, or takes it off,
+    /// for the address now showing. UIKit only starts it from a drag at the
+    /// top of the page, so a page scrolled down just scrolls back up.
+    func syncPullToRefresh() {
+        guard let scrollView = storage?.scrollView else { return }
+        if Self.allowsPullToRefresh(currentURL) {
+            let control = refreshControl ?? makeRefreshControl()
+            refreshControl = control
+            if scrollView.refreshControl !== control { scrollView.refreshControl = control }
+        } else if scrollView.refreshControl != nil {
+            endPullToRefresh()
+            scrollView.refreshControl = nil
+        }
+    }
+
+    /// No tint: the spinner follows the system's light or dark appearance.
+    private func makeRefreshControl() -> UIRefreshControl {
+        let control = UIRefreshControl()
+        control.accessibilityLabel = SyncCopy.text("ios.island.reload")
+        control.addAction(UIAction { [weak self] _ in self?.pulledToRefresh() }, for: .valueChanged)
+        return control
+    }
+
+    /// The Island's Reload, from a pull. Reader covers the page with its own
+    /// web view, so a pull never reaches the page beneath it. With no page to
+    /// reload the spinner stops at once: WebKit hands back a navigation even
+    /// then, and nothing would ever finish it.
+    func pulledToRefresh() {
+        if reader != nil || storage?.url == nil || storage?.reload() == nil { endPullToRefresh() }
+    }
+
+    /// Called when a load finishes or fails (`TabNavigationDelegate`).
+    func endPullToRefresh() {
+        guard let refreshControl, refreshControl.isRefreshing else { return }
+        refreshControl.endRefreshing()
+    }
 }
