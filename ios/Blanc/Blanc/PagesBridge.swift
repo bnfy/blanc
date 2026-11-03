@@ -309,14 +309,20 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         root.append(viewport, style);
       }
       if (typeof document !== 'undefined' && location.hostname === 'newtab') {
+        // The viewport before the first layout: added later, the page could
+        // keep sizes resolved against a wider default viewport (vw units),
+        // so the clock came out a different size from launch to launch.
+        const viewport = document.createElement('meta');
+        viewport.name = 'viewport';
+        viewport.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
+        document.documentElement.append(viewport);
         document.addEventListener('DOMContentLoaded', function () {
-          const viewport = document.createElement('meta');
-          viewport.name = 'viewport';
-          viewport.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
-          document.head.append(viewport);
           document.documentElement.dataset.platform = 'ios';
           const style = document.createElement('link');
           style.rel = 'stylesheet'; style.href = 'ios-start-page.css';
+          // The clock can be drawn before this sheet sizes it for the phone:
+          // a resize makes newtab.js measure it again.
+          style.addEventListener('load', () => window.dispatchEvent(new Event('resize')), { once: true });
           document.head.append(style);
           const mobile = document.createElement('script');
           mobile.src = 'ios-start-page.js'; document.body.append(mobile);
