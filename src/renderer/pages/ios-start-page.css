@@ -28,7 +28,9 @@ html[data-platform="ios"] body[data-layout="billboard"] .start-content {
   justify-content: center;
   padding-block: 40px;
 }
-html[data-platform="ios"] .bb-clock { font-size: clamp(64px, 21vw, 120px); }
+/* The cap on every phone 400 points wide or more, the size the owner chose on
+   November 3, 2026; narrower phones scale down from it. */
+html[data-platform="ios"] .bb-clock { font-size: clamp(64px, 30vw, 120px); }
 html[data-platform="ios"] .bb-blocked { display: none; }
 html[data-platform="ios"] .bb-favs {
   display: grid;
