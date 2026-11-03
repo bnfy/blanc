@@ -366,11 +366,27 @@ final class TabsManager {
         }
         let entry = services.savedWindow(windowId)
         let wanted = entry?.shown ?? restoredState?.shown ?? TabSets.iphoneId
+        // A closed window opened again from Recently closed brings its tabs.
+        let reopened = services.takePendingSet(windowId)
         // A window that isn't the only one and has no set of its own, or whose
         // set another window shows, starts with an unsaved set and a Start Page.
         let startsUnsaved = services.windows.count > 1
             && (entry == nil || services.window(showing: wanted, except: self) != nil)
-        if startsUnsaved || entry?.showsUnsavedSet == true {
+        let target = services.takePendingShow(windowId)
+        let targetSet = target.flatMap { id in
+            services.window(showing: id, except: self) == nil
+                ? (id == TabSets.iphoneId ? iphoneSet : spaces.first { $0.id == id }?.set) : nil
+        }
+        if let reopened {
+            shownSetId = SavedWindow.unsavedSetId(windowId)
+            show(reopened)
+            persistSession()
+        } else if let target, let targetSet {
+            // A Space the person chose to open here rather than close tabs.
+            shownSetId = target
+            show(targetSet)
+            persistSession()
+        } else if startsUnsaved || entry?.showsUnsavedSet == true {
             shownSetId = SavedWindow.unsavedSetId(windowId)
             show(startsUnsaved ? SavedSet() : entry?.set ?? SavedSet())
             persistSession()
@@ -783,6 +799,35 @@ final class TabsManager {
     }
 
     // MARK: Windows (multiple windows design, W2b)
+
+    /// A switch to this set waits for the person: this window's unsaved tabs
+    /// would close (`show(set:closingUnsaved:)`).
+    var pendingSetSwitch: String?
+
+    /// This window's unsaved tabs worth asking about: ordinary tabs other
+    /// than an untouched Start Page.
+    var unsavedTabCount: Int {
+        guard showsUnsavedSet else { return 0 }
+        return tabs.filter { !$0.isPrivate && !($0.currentURL == Self.newTabURL && !$0.canGoBack) }.count
+    }
+
+    /// The name a set goes by in the Spaces menu.
+    func setName(_ id: String) -> String {
+        id == TabSets.iphoneId ? TabSets.deviceSetName : spaces.first { $0.id == id }?.name ?? ""
+    }
+
+    /// The waiting switch, shown in a new window instead, leaving this one's
+    /// tabs where they are.
+    func showPendingSetInNewWindow() {
+        guard let id = pendingSetSwitch else { return }
+        pendingSetSwitch = nil
+        services.openNewWindow(showing: id)
+    }
+
+    /// Closed windows in Recently closed, newest first.
+    var closedWindows: [ClosedWindow] { recentlyClosed.currentWindows }
+    func reopenClosedWindow(_ window: ClosedWindow) { services.reopen(window, fallback: self) }
+    func forgetClosedWindow(_ window: ClosedWindow) { recentlyClosed.removeWindow(window.id) }
 
     /// This window as the saved session keeps it. A Space or This iPhone
     /// takes the window's live tabs back into the library first.
@@ -1291,7 +1336,7 @@ final class TabsManager {
     }
 
     /// Puts the shown set away and shows This iPhone or a Space.
-    func show(set id: String) {
+    func show(set id: String, closingUnsaved: Bool = false) {
         guard id != shownSetId, let set = savedSet(id) else { return }
         // A set shows in one window: choosing one another window shows brings
         // that window forward instead (desktop's workspace controller).
@@ -1299,12 +1344,18 @@ final class TabsManager {
             services.bringForward(windowId: other)
             return
         }
+        // Unsaved tabs would close: ask first, as desktop does.
+        if showsUnsavedSet, !closingUnsaved, unsavedTabCount > 0 {
+            pendingSetSwitch = id
+            return
+        }
+        pendingSetSwitch = nil
         expireUndo()
         // Leaving a shared Space applies what waited for its selected tab.
         applySharedAccepted(protectedTabId: nil)
         // A new window's unsaved tabs have nowhere to wait: like desktop's
         // switch from an unsaved window, they close, into Recently closed.
-        if showsUnsavedSet { for tab in tabs where !tab.isPrivate { recordLocalClose(tab) } }
+        if showsUnsavedSet { services.recordClosedTabs(captureShown().tabs) }
         else { storeShown() }
         shownSetId = id
         show(set)

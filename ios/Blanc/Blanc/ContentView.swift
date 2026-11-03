@@ -148,6 +148,22 @@ struct ContentView: View {
                onDismiss: { manager.presentPendingSettings() }) { remote in
             BringSpaceSheet(manager: manager, remote: remote)
         }
+        // A new window's unsaved tabs would close in a switch: ask first, as
+        // desktop does.
+        .confirmationDialog(SyncCopy.text("ws.decision.title", ["name": manager.setName(manager.pendingSetSwitch ?? "")]),
+                            isPresented: Binding(get: { manager.pendingSetSwitch != nil },
+                                                 set: { if !$0 { manager.pendingSetSwitch = nil } }),
+                            titleVisibility: .visible) {
+            Button(SyncCopy.text("ws.decision.closeAndSwitch"), role: .destructive) {
+                if let id = manager.pendingSetSwitch { manager.show(set: id, closingUnsaved: true) }
+            }
+            if UIApplication.shared.supportsMultipleScenes {
+                Button(SyncCopy.text("ws.decision.newWindow")) { manager.showPendingSetInNewWindow() }
+            }
+            Button(SyncCopy.text("common.cancel"), role: .cancel) { manager.pendingSetSwitch = nil }
+        } message: {
+            Text(SyncCopy.plural("ws.decision.closeUnsaved", count: manager.unsavedTabCount))
+        }
         .alert(ReaderCopy.text("reader.title"), isPresented: Binding(get: { manager.readerError }, set: { manager.readerError = $0 })) {
             Button(SyncCopy.text("dialog.ok"), role: .cancel) {}
         } message: { Text(ReaderCopy.text("reader.unavailable")) }
