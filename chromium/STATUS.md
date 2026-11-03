@@ -240,8 +240,8 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     and sent tabs (S4), capture and screen sharing (S5), the blocking
     provider (D2), the permission prompt (S1.6), the certificate exception
     (N5) and the window buttons and main menu (Windows/Linux).
-- **S1.4 in-window private tabs (D1), candidate macos-9a5d7b24b423658f
-  (2026-11-02):** a private tab is web contents in the window profile's
+- **S1.4 in-window private tabs (D1), candidate macos-36a2a32e820bc60d
+  (2026-11-03):** a private tab is web contents in the window profile's
   incognito profile, in an ordinary window (`blanc/private/private_tabs.h`,
   patch 0011). Chromium's navigator keeps a private tab's links and children
   private, creates their contents in that profile, and turns an incognito
@@ -266,7 +266,10 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   host's recent bangs already asked the tab. A probe found Favorites and pins
   refused for a private tab and allowed for a regular control, and no
   private address in any profile file after a Space save and a relaunch.
-  Not yet: the macOS menu still labels ⌘⇧N "New Incognito Window", and the
+  On macos-36a2a32e820bc60d seven features (private-tabs,
+  island-and-commands, find-favorites-history, newtab-layouts,
+  tabs-and-groups, navigation-and-context-menu, F41-named-workspaces) give
+  every executed case the result it had before. Not yet: the macOS menu still labels ⌘⇧N "New Incognito Window", and the
   private theme's quick-exit chip is unchecked (F4-2 has no steps).
 - **S1 baseline on macos-3f969a35b9f9f7ad (fork 82f8cd80), full run of
   2026-11-01:** 101 of the 253 S1 cases pass, 119 fail, 33 undefined. Every
