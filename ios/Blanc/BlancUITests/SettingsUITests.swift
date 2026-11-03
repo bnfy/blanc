@@ -200,14 +200,18 @@ final class SettingsUITests: XCTestCase {
         capture("Native Settings — Sync error")
     }
     /// iOS confirms every icon change with its own alert, shown by SpringBoard.
-    private func dismissIconChangedNotice() {
+    private func dismissIconChangedNotice(_ id: String) {
         // It can come from either, and on a busy CI simulator it can take
-        // more than 5 s, so both are watched for one longer window.
+        // more than 5 s, so both are watched for one longer window. XCTest
+        // can also dismiss it itself, as an interruption of the tap that
+        // asked for the change (CI, iOS 26.5, 2026-11-03): then the choice
+        // shows with no alert left to dismiss.
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
         let buttons = [springboard.alerts.buttons["OK"], app.alerts.buttons["OK"]]
         let deadline = Date().addingTimeInterval(20)
         while Date() < deadline {
             for ok in buttons where ok.waitForExistence(timeout: 1) { ok.tap(); return }
+            if appIcon(id).isSelected, !springboard.alerts.firstMatch.exists { return }
         }
         XCTFail("iOS did not confirm the icon change")
     }
@@ -220,14 +224,14 @@ final class SettingsUITests: XCTestCase {
         XCTAssertEqual(ids.filter { appIcon($0).isSelected }, ["sunrise-gold"])
         capture("Native Settings — App icon")
         appIcon("sunrise-dawn").tap()
-        dismissIconChangedNotice()
-        XCTAssertTrue(appIcon("sunrise-dawn").waitForSelection())
+        dismissIconChangedNotice("sunrise-dawn")
+        XCTAssertTrue(appIcon("sunrise-dawn").waitForSelection(timeout: 15))
         app.terminate(); launch(reset: false)
         open(); tap("settings.appIcon")
         XCTAssertTrue(appIcon("sunrise-dawn").waitForSelection(), "the choice survives a relaunch")
         appIcon("sunrise-gold").tap()
-        dismissIconChangedNotice()
-        XCTAssertTrue(appIcon("sunrise-gold").waitForSelection())
+        dismissIconChangedNotice("sunrise-gold")
+        XCTAssertTrue(appIcon("sunrise-gold").waitForSelection(timeout: 15))
         XCTAssertFalse(appIcon("sunrise-dawn").isSelected)
     }
 }
