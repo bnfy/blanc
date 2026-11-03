@@ -1,0 +1,21 @@
+{
+  "lane": "desktop",
+  "channel": "preview",
+  "version": "158.0.8127.2",
+  "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
+  "upstreamDir": "upstream",
+  "sourceMap": "source-map.json",
+  "fileCount": 83,
+  "patches": [
+    "patches/baseline/0001-foundation-baseline.patch",
+    "patches/0002-canonical-layout.patch",
+    "patches/0003-island-mode-predicate.patch",
+    "patches/0004-typed-island-interface.patch",
+    "patches/0005-channel-identity.patch",
+    "patches/0006-external-scheme-deny.patch",
+    "patches/0007-bangs-prefs.patch",
+    "patches/0008-background-services.patch",
+    "patches/0009-ui-language-pref.patch",
+    "patches/0010-island-prefs.patch"
+  ]
+}
