@@ -4,7 +4,8 @@ import SwiftUI
 /// the app already does, in iPadOS's menu bar and its ⌘-hold list. Every one
 /// also has a touch path (the Island, its menu, a slash command).
 struct BrowserCommands: Commands {
-    let manager: TabsManager?
+    /// The focused window's tabs.
+    @FocusedValue(\.tabsManager) private var manager: TabsManager?
 
     private func t(_ key: String) -> String { SyncCopy.text(key) }
     private var hasTab: Bool { manager?.activeTab != nil }
@@ -13,6 +14,10 @@ struct BrowserCommands: Commands {
         CommandGroup(replacing: .newItem) {
             Button(t("menu.newTab")) { manager?.createTab() }
                 .keyboardShortcut("t")
+            if UIApplication.shared.supportsMultipleScenes {
+                Button(t("menu.newWindow")) { manager?.services.openNewWindow() }
+                    .keyboardShortcut("n")
+            }
             Button(t("menu.newPrivateTab")) { manager?.createTab(isPrivate: true) }
                 .keyboardShortcut("n", modifiers: [.command, .shift])
             Button(t("menu.searchCommands")) { manager?.isPalettePresented = true }

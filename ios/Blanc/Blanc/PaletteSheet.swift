@@ -399,7 +399,7 @@ struct PaletteSheet: View {
     private var switcherSets: [(id: String, name: String, count: Int)] {
         var sets = manager.spaces.filter { $0.id != manager.shownSetId }.map { ($0.id, $0.name, manager.tabCount($0.id)) }
         if manager.shownSetId != TabSets.iphoneId {
-            sets.insert((TabSets.iphoneId, SyncCopy.text("spaces.thisIPhone"), manager.tabCount(TabSets.iphoneId)), at: 0)
+            sets.insert((TabSets.iphoneId, TabSets.deviceSetName, manager.tabCount(TabSets.iphoneId)), at: 0)
         }
         return sets
     }

@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 /// A tab put away: what comes back when its set is shown again (M17). Never
 /// page state, and never a private tab.
@@ -68,6 +69,11 @@ struct SessionState: Codable, Equatable {
 
 enum TabSets {
     static let iphoneId = "iphone"
+    /// The device's own set's name: This iPad on an iPad, This iPhone
+    /// elsewhere (the Duo too). Its id stays "iphone" everywhere.
+    static var deviceSetName: String {
+        SyncCopy.text(UIDevice.current.userInterfaceIdiom == .pad ? "spaces.thisIPad" : "spaces.thisIPhone")
+    }
     static let spaceLimit = 25
     static let nameLimit = 60
     static let deletedRetentionMs: Int64 = 7 * 86_400_000

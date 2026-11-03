@@ -2566,6 +2566,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_vertical_tabs_text_size_large">Grande</string>
     <string name="settings_general_vertical_tabs_text_size_extra_large">Muito grande</string>
     <string name="spaces_this_i_phone">Este iPhone</string>
+    <string name="spaces_this_i_pad">Este iPad</string>
     <string name="spaces_menu_label">Spaces</string>
     <string name="spaces_menu_edit">Editar</string>
     <plurals name="tab_groups_tucked">

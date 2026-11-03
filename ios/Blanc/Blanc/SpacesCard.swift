@@ -48,7 +48,7 @@ struct SpacesCard: View {
 
     private var rows: some View {
         VStack(alignment: .leading, spacing: 0) {
-            row(id: TabSets.iphoneId, name: SyncCopy.text("spaces.thisIPhone"), identifier: "spaces.iphone") {
+            row(id: TabSets.iphoneId, name: TabSets.deviceSetName, identifier: "spaces.iphone") {
                 Image(systemName: "iphone")
                     .font(.system(size: 15))
                     .frame(width: 30, height: 30)

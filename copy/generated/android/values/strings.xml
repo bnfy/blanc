@@ -2493,6 +2493,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_vertical_tabs_text_size_large">Large</string>
     <string name="settings_general_vertical_tabs_text_size_extra_large">Extra large</string>
     <string name="spaces_this_i_phone">This iPhone</string>
+    <string name="spaces_this_i_pad">This iPad</string>
     <string name="spaces_menu_label">Spaces</string>
     <string name="spaces_menu_edit">Edit</string>
     <plurals name="tab_groups_tucked">
