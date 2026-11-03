@@ -12,7 +12,7 @@ final class TabsManager {
     private(set) var splits: [TabSplit] = []
     var isWallpaperPickerPresented = false
     var wallpaperSelectionCompletion: ((UIImage?) -> Void)?
-    let startAppearance: StartAppearanceStore
+    var startAppearance: StartAppearanceStore { services.startAppearance }
     var isPalettePresented = false {
         didSet { if !isPalettePresented { paletteDraft = "" } }
     }
@@ -148,7 +148,7 @@ final class TabsManager {
             tab.webView.reload()
         }
     }
-    let readerPreferences: ReaderPreferences
+    var readerPreferences: ReaderPreferences { services.readerPreferences }
     var readerError = false
     /// The shown tab. Whatever makes a tab current also wakes it if quiet.
     var activeTabId: UUID? {
@@ -164,54 +164,26 @@ final class TabsManager {
     /// restored tab stays quiet until they have (M16 §4.4).
     @ObservationIgnored private var holdingWake = false
 
-    let settingsStore: SettingsStore
-    let historyStore: HistoryStore
-    private let syncDirectory: URL
-    @ObservationIgnored private var applyingRemoteSettings = false
-    @ObservationIgnored lazy var syncEngine: SyncEngine = {
-        var client = SyncWorkerClient()
-        var secrets: any SyncSecretStore = KeychainSyncSecretStore()
-        #if DEBUG
-        if UITestSeed.settings {
-            client = SyncWorkerClient(transport: SettingsUITestTransport())
-            secrets = SettingsUITestSecrets()
-        }
-        if UITestSeed.sharedSeed || UITestSeed.appStore {
-            client = SyncWorkerClient(transport: SharedSpacesUITestTransport(
-                stores: UITestSeed.workerStores(), account: UITestSeed.sharedAccount, key: UITestSeed.sharedKey))
-            secrets = SharedSpacesUITestSecrets()
-        }
-        #endif
-        let engine = SyncEngine(state: SyncStateStore(directory: syncDirectory), secrets: secrets, client: client,
-            settingsSink: { [weak self] settings in
-                guard let self else { return }
-                self.applyingRemoteSettings = true
-                defer { self.applyingRemoteSettings = false }
-                let values = settings.payload()["values"]
-                var patch: [String: Any] = [:]
-                if let theme = values?["theme"]?.text { patch["theme"] = theme }
-                if let search = values?["searchEngine"]?.text { patch["searchEngine"] = search }
-                if let enabled = values?["adblockEnabled"]?.boolean { patch["adblockEnabled"] = enabled }
-                self.applySettingsPatch(patch)
-            }, tabsSource: { [weak self] in self?.syncedTabs ?? [] })
-        engine.onChanged = { [weak self] in
-            self?.bridge.emitSyncChanges()
-            self?.sharedSyncChanged()
-        }
-        engine.onSpacesMerged = { [weak self] (ids: [String]) in self?.sharedSpacesMerged(ids) }
-        engine.sharedTabsSource = { [weak self] in self?.snapshotTabs ?? [] }
-        engine.sharedGroupsSource = { [weak self] in
-            self?.groups.map { (g: TabGroup) -> (id: String, name: String) in (g.id, g.name) } ?? []
-        }
-        return engine
-    }()
+    /// What every window shares (`BrowserServices`).
+    @ObservationIgnored let services: BrowserServices
+    var settingsStore: SettingsStore { services.settingsStore }
+    var historyStore: HistoryStore { services.historyStore }
+    private var syncDirectory: URL { services.syncDirectory }
+    private var applyingRemoteSettings: Bool { services.applyingRemoteSettings }
+    var syncEngine: SyncEngine { services.syncEngine }
+
+    /// Sync has news: the open pages hear of it, and Shared Spaces apply it.
+    func syncDidChange() {
+        bridge.emitSyncChanges()
+        sharedSyncChanged()
+    }
     var normalizer: AddressNormalizer
 
-    @ObservationIgnored private let schemeHandler: BlancSchemeHandler
+    private var schemeHandler: BlancSchemeHandler { services.schemeHandler }
     @ObservationIgnored private lazy var bridge = PagesBridge(manager: self)
     @ObservationIgnored private lazy var startPageHold = StartPageHold(manager: self)
-    @ObservationIgnored private let contentBlocker = ContentBlocker()
-    @ObservationIgnored private let sessionStore: SessionStore
+    private var contentBlocker: ContentBlocker { services.contentBlocker }
+    private var sessionStore: SessionStore { services.sessionStore }
     @ObservationIgnored private var isRestoringSession = false
 
     static let newTabURL = URL(string: "blanc://newtab/")!
@@ -219,19 +191,13 @@ final class TabsManager {
 
     /// One in-memory web session shared by every private tab, forgotten when
     /// the last private tab closes (and when Blanc quits).
-    @ObservationIgnored private var privateStore: WKWebsiteDataStore?
-    var privateDataStore: WKWebsiteDataStore {
-        if let privateStore { return privateStore }
-        let store = WKWebsiteDataStore.nonPersistent()
-        privateStore = store
-        return store
-    }
+    var privateDataStore: WKWebsiteDataStore { services.privateDataStore }
 
     /// Settings → Privacy's Clear cookies, cache & site data, as on the computer:
     /// signs every site out, in normal and private tabs, then reloads the open
     /// pages so none stays signed in from memory. History, Favorites and Sync stay.
     func clearSiteData() async {
-        let stores = [siteDataStore, privateStore].compactMap { $0 }
+        let stores = [siteDataStore, services.existingPrivateStore].compactMap { $0 }
         await withTaskGroup(of: Void.self) { group in
             for store in stores { group.addTask { await Self.clearWebsites(in: store) } }
         }
@@ -326,45 +292,21 @@ final class TabsManager {
         contentBlocker.isReady && contentBlocker.enabled
     }
 
-    /// The web store normal tabs share; tests pass their own.
-    @ObservationIgnored let siteDataStore: WKWebsiteDataStore
+    var siteDataStore: WKWebsiteDataStore { services.siteDataStore }
 
-    init(settingsDirectory: URL? = nil, sessionDirectory: URL? = nil, siteDataStore: WKWebsiteDataStore = .default()) {
-        self.siteDataStore = siteDataStore
-        #if DEBUG
-        if UITestSeed.settings { UITestSeed.prepareSettings() }
-        let settingsDirectory = UITestSeed.settings ? UITestSeed.settingsDirectory : settingsDirectory
-        let sessionDirectory = UITestSeed.settings ? UITestSeed.settingsDirectory : sessionDirectory
-        #endif
-        syncDirectory = settingsDirectory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        self.readerPreferences = ReaderPreferences(directory: settingsDirectory)
-        let appearance = StartAppearanceStore(directory: settingsDirectory)
-        self.startAppearance = appearance
-        self.schemeHandler = BlancSchemeHandler(wallpaperURL: appearance.imageURL, wallpaperVersion: { [weak appearance] in
-            appearance?.values["imageVersion"] as? String
-        })
-        let store = SettingsStore(directory: settingsDirectory)
-        self.settingsStore = store
-        self.sessionStore = SessionStore(directory: sessionDirectory)
-        self.historyStore = HistoryStore(directory: settingsDirectory)
-        self.normalizer = AddressNormalizer(searchEngine: store.searchEngine)
+    convenience init(settingsDirectory: URL? = nil, sessionDirectory: URL? = nil, siteDataStore: WKWebsiteDataStore = .default()) {
+        self.init(services: BrowserServices(settingsDirectory: settingsDirectory, sessionDirectory: sessionDirectory,
+                                            siteDataStore: siteDataStore))
+    }
 
-        contentBlocker.enabled = store.adblockEnabled
-
-        // Always compile the blocklist, even when disabled — `enabled` gates only
-        // attachment (see ContentBlocker). Skipping prepare while disabled would
-        // leave isReady forever false, so a later enable would queue tabs forever.
-        if let loaded = ContentBlocker.loadBundledBlocklist() {
-            contentBlocker.prepare(version: loaded.version, jsonProvider: loaded.loadJSON)
-        }
+    init(services: BrowserServices) {
+        self.services = services
+        self.normalizer = AddressNormalizer(searchEngine: services.settingsStore.searchEngine)
+        services.register(self)
 
         var savedURLs = sessionStore.urls.compactMap { URL(string: $0) }
         var restoredState = sessionStore.state
         #if DEBUG
-        // Every UI test starts with an empty Recently closed.
-        if ProcessInfo.processInfo.arguments.contains(where: { $0.hasPrefix("-BlancUITest") }) {
-            try? FileManager.default.removeItem(at: syncDirectory.appendingPathComponent("recently-closed.json"))
-        }
         if UITestSeed.sends || UITestSeed.twoTabs || UITestSeed.startPage || UITestSeed.favorites || UITestSeed.privateTab {
             restoredState = nil
         }
@@ -751,7 +693,7 @@ final class TabsManager {
         tabs.remove(at: index)
         let recorded = recordLocalClose(closing)
         normalizeLayout()
-        if !tabs.contains(where: \.isPrivate) { privateStore = nil; readerPreferences.clearPrivate() }
+        services.releasePrivateBrowsingIfUnused()
         // Only the newest close is undoable. A private tab's close is final, as
         // on desktop: no Undo, never in the reopen list.
         expireUndo()
@@ -963,7 +905,7 @@ final class TabsManager {
         tabs.removeAll { split.tabIds.contains($0.id) }
         let recorded = members.compactMap { recordLocalClose($0.element) }
         normalizeLayout()
-        if !tabs.contains(where: \.isPrivate) { privateStore = nil; readerPreferences.clearPrivate() }
+        services.releasePrivateBrowsingIfUnused()
         expireUndo()
         if !first.element.isPrivate {
             lastClosed = ClosedTab(tab: first.element, index: first.offset, blankId: nil,
@@ -1715,7 +1657,7 @@ final class TabsManager {
 
     @ObservationIgnored private var sharedAccount: String?
     /// The phone's own Recently closed (Task 20).
-    @ObservationIgnored private(set) lazy var recentlyClosed = RecentlyClosedStore(directory: syncDirectory)
+    var recentlyClosed: RecentlyClosedStore { services.recentlyClosed }
     @ObservationIgnored private var sharedPublishTask: Task<Void, Never>?
     /// How long tab changes gather before their records are written.
     @ObservationIgnored var sharedPublishDelay: Duration = .milliseconds(300)
@@ -2186,6 +2128,10 @@ final class TabsManager {
     /// type, applies side effects (search engine → normalizer, adblock → tabs),
     /// then routes the accepted values through `SettingsStore.update`, which
     /// persists them. Unknown/invalid keys are ignored.
+    /// W1 has one window. Before a second, split this: the shared store and
+    /// blocker change once (`BrowserServices`), then every window's tabs follow;
+    /// as it stands a second window would see the setting already changed and
+    /// skip its own tabs.
     func applySettingsPatch(_ patch: [String: Any]) {
         var themeUpdate: BlancThemePreference?
         var engineUpdate: BlancSearchEngine?
