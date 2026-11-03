@@ -119,7 +119,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     request to blanc.day has not been exercised.
   - Bang scenarios: 16 of 18 pass; the two private-tab ones need D1.
     Navigation and settings features unchanged.
-  - Patch series: 0001–0013 touch all 86 pinned upstream files with 280
+  - Patch series: 0001–0014 touch all 86 pinned upstream files with 282
     hunks.
   - **Outbound isolation passes on macos-92a5c23a766fdc5e (2026-11-01).**
     Run as `blanc-test` with a pf block on that user (owner-approved anchor),
@@ -321,6 +321,20 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   no longer hides it. Seven features (island-and-commands, tabs-and-groups,
   navigation-and-context-menu, private-tabs, site-certificate-safety,
   newtab-layouts, internal-pages) are unchanged.
+- **S1.6 HTTP auth refusal (F20), candidate macos-b063a54c8516241b
+  (2026-11-03):** all four F20 cases pass (all undefined before). Patch
+  0014 has `ChromeContentBrowserClient::CreateLoginDelegate` return no
+  delegate in an Island window (`browser_api/http_auth.h`), so a
+  navigation, page-resource or proxy challenge is cancelled and its 401 or
+  407 reaches the page; nothing asks for credentials. Under --blanc-test
+  each refused challenge is recorded (`authChallenges`,
+  `resetAuthChallenges`). Shipping's steps for it evaluate in Electron's
+  main process; `tests/lib/main-ports.mjs` ports such evaluations one at a
+  time, keyed by the SHA-256 of shipping's exact function source
+  (`tests/main-ports.test.mjs` checks every key against shipping), and the
+  fixture's own proxy now demands sign-in when the proxy scenario arms it.
+  island-and-commands, tabs-and-groups, navigation-and-context-menu and
+  ad-blocking are unchanged.
 - **Live dev instance (owner, 2026-11-03):** after every native build,
   `node chromium/tools/live-dev.mjs <runtime config>` relaunches the
   newest candidate from a copy in `~/Projects/BlancChromium158/live/`,
@@ -468,16 +482,15 @@ shipping's hover hooks), `setIslandAutoHide`, `autoHideState`,
 `setTestCursorPoint`, `setCursorSamplingUnavailable`, `captionAt` (the
 native window-drag answer at a point), `setIslandAutoHideStyle` and
 `holdIsland` (shipping's `holdIslandInWindow`). Built for S1.4:
-`privateMenuItems` and `clickDockPrivateWindow` (macOS). Identified, not
+`privateMenuItems` and `clickDockPrivateWindow` (macOS). Built for S1.6:
+`authChallenges`, `resetAuthChallenges`. Identified, not
 built: sessionWindows (session.json-shaped projection); certificate decision
 list/forget/cap; history visit + site icon seed; favorite favicon seed;
 first-run/checklist/Patron/launch-Sunrise state once stored; address context menu
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. The rest of S1.6: F20 HTTP auth refusal (a hunk in the pinned
-   `chrome_content_browser_client.cc` and a test op recording challenges),
-   the Blanc permission prompt over Chromium's requests (F13), N5's cases
+1. The rest of S1.6: the Blanc permission prompt over Chromium's requests (F13), N5's cases
    rewritten to Chromium's certificate page (V8), N4 inert restore, N8
    secure DNS and WebRTC policy, N22 startup gate, F19 context menu. Settings in the sheet belongs to S1.7,
    whose restyled chrome://settings can't load in a host frame; how it is
@@ -532,5 +545,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-48ace292eba182c8; Windows: none; Linux: none.
+Candidate identities: macOS: macos-b063a54c8516241b; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->
