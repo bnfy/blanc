@@ -39,8 +39,20 @@ final class AppStoreScreenshotsUITests: XCTestCase {
   /// whole screen.
   private func shoot(_ name: String, settle: UInt32 = 8) throws {
     sleep(settle)
-    let png = XCUIScreen.main.screenshot().pngRepresentation
-    try png.write(to: folder.appendingPathComponent("\(name).png"))
+    let file = folder.appendingPathComponent("\(name).png")
+    // The unfolded iPhone Duo's inner display screenshots black from here, so
+    // with BLANC_SHOTS_BY_HAND set this waits for a Device Hub screenshot
+    // saved as <name>.png, announced by <name>.pending.
+    if ProcessInfo.processInfo.environment["BLANC_SHOTS_BY_HAND"] == "1" {
+      try Data().write(to: folder.appendingPathComponent("\(name).pending"))
+      let deadline = Date().addingTimeInterval(600)
+      while !FileManager.default.fileExists(atPath: file.path) {
+        XCTAssertLessThan(Date(), deadline, "a screenshot of \(name)")
+        usleep(500_000)
+      }
+      return
+    }
+    try XCUIScreen.main.screenshot().pngRepresentation.write(to: file)
   }
 
   private func run(_ command: String) {
@@ -72,8 +84,24 @@ final class AppStoreScreenshotsUITests: XCTestCase {
   func test2YourComputersTabs() throws {
     launch()
     site.tap()
-    XCTAssertTrue(app.buttons["sent.s1"].waitForExistence(timeout: 10), "pages sent from the MacBook Pro")
-    // Lowering the palette puts the keyboard away; raising it again keeps it away.
+    XCTAssertTrue(app.textFields["island.address"].waitForExistence(timeout: 10))
+    sleep(2)
+    // Unfolded, the palette is a panel over the page; folded and on every
+    // other iPhone it's a sheet, which lowering puts the keyboard away from.
+    if app.frame.width < 600 { try lowerAndRaiseTheSheet() }
+    let mac = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'MacBook Pro ('")).firstMatch
+    let panel = app.descendants(matching: .any)["palette.panel"]
+    let list: XCUIElement = panel.exists ? panel : app
+    for _ in 0..<6 where !(mac.exists && mac.isHittable) { list.swipeUp() }
+    if !mac.exists { try? app.debugDescription.write(to: folder.appendingPathComponent("tree.txt"), atomically: true, encoding: .utf8) }
+    XCTAssertTrue(mac.waitForExistence(timeout: 5), "the MacBook Pro's tabs")
+    mac.tap()
+    sleep(1)
+    list.swipeUp()
+    try shoot("2-devices", settle: 3)
+  }
+
+  private func lowerAndRaiseTheSheet() throws {
     app.swipeDown()
     sleep(1)
     // Its top edge (above the search field, so the field isn't focused) sits
@@ -82,13 +110,6 @@ final class AppStoreScreenshotsUITests: XCTestCase {
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: edge))
       .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.05)))
     sleep(1)
-    let mac = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'MacBook Pro ('")).firstMatch
-    for _ in 0..<3 where !mac.isHittable { app.swipeUp() }
-    XCTAssertTrue(mac.waitForExistence(timeout: 5), "the MacBook Pro's tabs")
-    mac.tap()
-    sleep(1)
-    app.swipeUp()
-    try shoot("2-devices", settle: 3)
   }
 
   func test3Spaces() throws {
@@ -120,7 +141,7 @@ final class AppStoreScreenshotsUITests: XCTestCase {
       cards.element(boundBy: index).tap()
       sleep(7)
     }
-    tabs.tap()
+    if !cards.firstMatch.waitForExistence(timeout: 2) { tabs.tap() }
     XCTAssertTrue(cards.firstMatch.waitForExistence(timeout: 5))
     try shoot("5-grid", settle: 3)
   }

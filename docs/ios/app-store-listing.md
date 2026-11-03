@@ -166,3 +166,22 @@ if it runs past 29 s, and sets the captions in
 Island on a Van Gogh, swiping it between tabs, pull to refresh, the tab
 grid, switching to the Trip Space, the MacBook Pro's tabs and sent pages, and
 the Start Page. Its poster frame is `blanc-preview-poster.png`.
+
+## iPhone Duo screenshots
+
+Apple's `APP_IPHONE_DUO` set holds both Duo displays, ten shots at most:
+five unfolded (inner display, landscape, 2853 × 2007: the Start Page,
+Spaces, slash commands, the tab grid, private tabs) and five folded (outer
+display, 1398 × 2034: the Start Page, your computer's tabs, Spaces, the tab
+grid, private tabs). `scripts/ios-app-store-compose-duo.mjs` frames them with
+the iPhone artboards' own captions and skies, so a caption changed on the
+canvas changes here too. The captures are in
+`docs/ios/app-store/captures/duo-closed/` (from `AppStoreScreenshotsUITests`
+on an iPhone Duo simulator) and `duo-open/`. XCUITest screenshots of the
+unfolded inner display come out black, so those were taken with Device Hub's
+Screenshot button while the test waited (`BLANC_SHOTS_BY_HAND=1`). The
+unfolded "your computer's tabs" shot is left out: the test can't yet scroll
+the unfolded palette panel to the MacBook Pro's tabs.
+
+The App Store header and search-results art (`blanc-app-store-header-5244x2950.png`)
+was removed from the listing on November 3, 2026, at the owner's request.
