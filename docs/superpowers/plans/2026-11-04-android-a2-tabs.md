@@ -194,6 +194,8 @@
   - the same after a force-stop and after a reboot of the emulator;
   - `quiet-tabs.mjs`: with 20 tabs open, the background tabs Chromium frees come back on selection with their title, address and back history; the active tab and a tab playing audio are never freed;
   - `BlancTabStateTest`: saved state for a tab or group that no longer exists is dropped.
+  - from the spike (`docs/android/a2-tabs-spike.md`): after a background kill the active tab is the one that was active (Chromium selects the first), a private tab is gone (Chromium keeps it), and mute is back;
+  - pulling Blanc's Start Page down doesn't reload it (Chromium's `SwipeRefreshHandler` does by default); pulling a web page down still does.
 - [ ] **Step 2: Run** them, and confirm they fail (or, where Chromium already does it with no Blanc code, record that in the ledger as the passing evidence).
 - [ ] **Step 3: Implement** only what Chromium doesn't already do.
 - [ ] **Step 4: Run** them, and they pass.
