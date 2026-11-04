@@ -191,7 +191,7 @@
    "slice": "S1.7",
    "pref": "blanc.island.site_colors",
    "scope": "profile",
-   "status": "to-build"
+   "status": "built"
   },
   {
    "key": "islandHoverOpen",
@@ -209,7 +209,7 @@
    "slice": "S1.7",
    "pref": "blanc.island.tab_icons",
    "scope": "profile",
-   "status": "to-build"
+   "status": "built"
   },
   {
    "key": "launchSunrise",
@@ -224,7 +224,7 @@
    "slice": "S1.7",
    "pref": "blanc.island.search_priority_results",
    "scope": "profile",
-   "status": "to-build"
+   "status": "built"
   },
   {
    "key": "islandAutoHide",
@@ -257,7 +257,7 @@
    "slice": "S1.7",
    "pref": "blanc.appearance.surface_style",
    "scope": "profile",
-   "status": "to-build",
+   "status": "built",
    "note": "No spec row; owner 2026-11-03: built in S1.7. The utility sheets' Sunrise or neutral surface"
   },
   {

@@ -14,7 +14,7 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 37> kStrings_en = {{
+inline constexpr std::array<String, 47> kStrings_en = {{
     {"blancIslandHoverOpen", u"Open the Island on hover"},
     {"blancIslandHoverOpenHint", u"Rest the pointer on the Island’s address to open it without clicking."},
     {"blancIslandAutoHide", u"Auto-hide the Island"},
@@ -23,6 +23,16 @@ inline constexpr std::array<String, 37> kStrings_en = {{
     {"blancIslandAutoHideStyleHint", u"Float it over the page, or move the page down to make room."},
     {"blancIslandAutoHideStyleFloat", u"Float over the page"},
     {"blancIslandAutoHideStylePush", u"Push the page down"},
+    {"blancIslandSiteColors", u"Match site colors"},
+    {"blancIslandSiteColorsHint", u"Tint the Island bar with the color of the page you’re on. Off keeps it on your theme’s background."},
+    {"blancIslandTabIcons", u"Show site icons on the Island"},
+    {"blancIslandTabIconsHint", u"Show each tab’s site icon instead of a dot. Icons take more room, so fewer tabs fit."},
+    {"blancSurfaceStyle", u"Surface style"},
+    {"blancSurfaceStyleHint", u"The look of Blanc’s own pages. Neutral swaps the cream and gold for plain ink and gray."},
+    {"blancSurfaceStyleSunrise", u"Sunrise"},
+    {"blancSurfaceStyleNeutral", u"Neutral"},
+    {"blancSearchPriorityResults", u"Search priority results"},
+    {"blancSearchPriorityResultsHint", u"As you type, show search suggestions above your tabs, groups, Spaces, Favorites and history."},
     {"blancSearchSuggestions", u"Search suggestions"},
     {"blancSearchSuggestionsHint", u"Send eligible typed prefixes to your selected search provider, including Google if selected. Private tabs and recognized sensitive-looking input are excluded. Submitting a search sends the completed query even when suggestions are off."},
     {"blancBangs", u"Bangs"},
@@ -53,7 +63,7 @@ inline constexpr std::array<String, 37> kStrings_en = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Relaunch to apply"},
 }};
-inline constexpr std::array<String, 37> kStrings_de = {{
+inline constexpr std::array<String, 47> kStrings_de = {{
     {"blancIslandHoverOpen", u"Island beim Darüberfahren öffnen"},
     {"blancIslandHoverOpenHint", u"Lass den Zeiger auf der Adresse in der Island ruhen, um sie ohne Klick zu öffnen."},
     {"blancIslandAutoHide", u"Island automatisch ausblenden"},
@@ -62,6 +72,16 @@ inline constexpr std::array<String, 37> kStrings_de = {{
     {"blancIslandAutoHideStyleHint", u"Lass sie über der Seite schweben oder schiebe die Seite nach unten, um Platz zu machen."},
     {"blancIslandAutoHideStyleFloat", u"Über der Seite schweben"},
     {"blancIslandAutoHideStylePush", u"Seite nach unten schieben"},
+    {"blancIslandSiteColors", u"Website-Farben übernehmen"},
+    {"blancIslandSiteColorsHint", u"Färbt die Island-Leiste in der Farbe der aktuellen Seite. Aus behält den Hintergrund deines Designs."},
+    {"blancIslandTabIcons", u"Website-Symbole in der Island zeigen"},
+    {"blancIslandTabIconsHint", u"Zeigt für jeden Tab das Symbol der Website statt eines Punkts. Symbole brauchen mehr Platz, deshalb passen weniger Tabs hinein."},
+    {"blancSurfaceStyle", u"Oberflächenstil"},
+    {"blancSurfaceStyleHint", u"Das Aussehen der eigenen Seiten von Blanc. „Neutral“ ersetzt Creme und Gold durch schlichtes Schwarz und Grau."},
+    {"blancSurfaceStyleSunrise", u"Sunrise"},
+    {"blancSurfaceStyleNeutral", u"Neutral"},
+    {"blancSearchPriorityResults", u"Suchergebnisse priorisieren"},
+    {"blancSearchPriorityResultsHint", u"Zeigt beim Tippen Suchvorschläge über deinen Tabs, Gruppen, Spaces, Favoriten und dem Verlauf an."},
     {"blancSearchSuggestions", u"Suchvorschläge"},
     {"blancSearchSuggestionsHint", u"Sendet geeignete eingetippte Anfänge an deinen gewählten Suchanbieter, auch an Google, wenn ausgewählt. Private Tabs und erkennbar sensibel wirkende Eingaben sind ausgenommen. Eine abgeschickte Suche sendet die vollständige Anfrage, auch wenn Vorschläge aus sind."},
     {"blancBangs", u"Bangs"},
@@ -92,7 +112,7 @@ inline constexpr std::array<String, 37> kStrings_de = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Zum Übernehmen neu starten"},
 }};
-inline constexpr std::array<String, 37> kStrings_es = {{
+inline constexpr std::array<String, 47> kStrings_es = {{
     {"blancIslandHoverOpen", u"Abrir la Island al pasar el cursor"},
     {"blancIslandHoverOpenHint", u"Deja el puntero sobre la dirección de la Island para abrirla sin hacer clic."},
     {"blancIslandAutoHide", u"Ocultar la Island automáticamente"},
@@ -101,6 +121,16 @@ inline constexpr std::array<String, 37> kStrings_es = {{
     {"blancIslandAutoHideStyleHint", u"Haz que flote sobre la página o mueve la página hacia abajo para dejarle sitio."},
     {"blancIslandAutoHideStyleFloat", u"Flotar sobre la página"},
     {"blancIslandAutoHideStylePush", u"Bajar la página"},
+    {"blancIslandSiteColors", u"Usar los colores del sitio"},
+    {"blancIslandSiteColorsHint", u"Tiñe la barra de la Island con el color de la página en la que estás. Si está desactivado, mantiene el fondo de tu tema."},
+    {"blancIslandTabIcons", u"Mostrar iconos de sitios en la Island"},
+    {"blancIslandTabIconsHint", u"Muestra el icono del sitio de cada pestaña en lugar de un punto. Los iconos ocupan más espacio, así que caben menos pestañas."},
+    {"blancSurfaceStyle", u"Estilo de superficie"},
+    {"blancSurfaceStyleHint", u"El aspecto de las páginas propias de Blanc. «Neutro» cambia el crema y el dorado por tinta y gris lisos."},
+    {"blancSurfaceStyleSunrise", u"Sunrise"},
+    {"blancSurfaceStyleNeutral", u"Neutro"},
+    {"blancSearchPriorityResults", u"Priorizar resultados de búsqueda"},
+    {"blancSearchPriorityResultsHint", u"Al escribir, muestra las sugerencias de búsqueda por encima de tus pestañas, grupos, Spaces, Favoritos e Historial."},
     {"blancSearchSuggestions", u"Sugerencias de búsqueda"},
     {"blancSearchSuggestionsHint", u"Envía los comienzos aptos de lo que escribes al buscador elegido, incluido Google si lo eliges. Se excluyen las pestañas privadas y lo que parece información sensible. Al enviar una búsqueda se manda la consulta completa aunque las sugerencias estén desactivadas."},
     {"blancBangs", u"Bangs"},
@@ -131,7 +161,7 @@ inline constexpr std::array<String, 37> kStrings_es = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
 }};
-inline constexpr std::array<String, 37> kStrings_fr = {{
+inline constexpr std::array<String, 47> kStrings_fr = {{
     {"blancIslandHoverOpen", u"Ouvrir l’Island au survol"},
     {"blancIslandHoverOpenHint", u"Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer."},
     {"blancIslandAutoHide", u"Masquer automatiquement l’Island"},
@@ -140,6 +170,16 @@ inline constexpr std::array<String, 37> kStrings_fr = {{
     {"blancIslandAutoHideStyleHint", u"Faites-la flotter au-dessus de la page, ou décalez la page vers le bas pour lui faire de la place."},
     {"blancIslandAutoHideStyleFloat", u"Flotter au-dessus de la page"},
     {"blancIslandAutoHideStylePush", u"Décaler la page vers le bas"},
+    {"blancIslandSiteColors", u"Reprendre les couleurs du site"},
+    {"blancIslandSiteColorsHint", u"Teinte la barre de l’Island avec la couleur de la page affichée. Désactivé, elle garde le fond de votre thème."},
+    {"blancIslandTabIcons", u"Afficher les icônes des sites dans l’Island"},
+    {"blancIslandTabIconsHint", u"Affiche l’icône du site de chaque onglet au lieu d’un point. Les icônes prennent plus de place : moins d’onglets y tiennent."},
+    {"blancSurfaceStyle", u"Style des surfaces"},
+    {"blancSurfaceStyleHint", u"L’apparence des pages propres à Blanc. « Neutre » remplace la crème et l’or par de l’encre et du gris unis."},
+    {"blancSurfaceStyleSunrise", u"Sunrise"},
+    {"blancSurfaceStyleNeutral", u"Neutre"},
+    {"blancSearchPriorityResults", u"Priorité aux résultats de recherche"},
+    {"blancSearchPriorityResultsHint", u"Pendant la saisie, affiche les suggestions de recherche au-dessus de vos onglets, groupes, Spaces, Favoris et Historique."},
     {"blancSearchSuggestions", u"Suggestions de recherche"},
     {"blancSearchSuggestionsHint", u"Envoie les débuts de saisie éligibles au moteur de recherche choisi, y compris Google si vous l’avez choisi. Les onglets privés et les saisies qui semblent sensibles sont exclus. Lancer une recherche envoie la requête complète même si les suggestions sont désactivées."},
     {"blancBangs", u"Bangs"},
@@ -170,7 +210,7 @@ inline constexpr std::array<String, 37> kStrings_fr = {{
     {"blancLanguageSystem", u"Système ({language})"},
     {"blancLanguageRelaunch", u"Redémarrer pour appliquer"},
 }};
-inline constexpr std::array<String, 37> kStrings_it = {{
+inline constexpr std::array<String, 47> kStrings_it = {{
     {"blancIslandHoverOpen", u"Apri l’Island al passaggio del puntatore"},
     {"blancIslandHoverOpenHint", u"Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic."},
     {"blancIslandAutoHide", u"Nascondi automaticamente l’Island"},
@@ -179,6 +219,16 @@ inline constexpr std::array<String, 37> kStrings_it = {{
     {"blancIslandAutoHideStyleHint", u"Falla fluttuare sopra la pagina o sposta la pagina in basso per farle spazio."},
     {"blancIslandAutoHideStyleFloat", u"Fluttua sopra la pagina"},
     {"blancIslandAutoHideStylePush", u"Sposta la pagina in basso"},
+    {"blancIslandSiteColors", u"Usa i colori del sito"},
+    {"blancIslandSiteColorsHint", u"Colora la barra dell’Island con il colore della pagina in cui ti trovi. Se è disattivato, mantiene lo sfondo del tuo tema."},
+    {"blancIslandTabIcons", u"Mostra le icone dei siti nell’Island"},
+    {"blancIslandTabIconsHint", u"Mostra l’icona del sito di ogni scheda invece di un punto. Le icone occupano più spazio, quindi ci stanno meno schede."},
+    {"blancSurfaceStyle", u"Stile delle superfici"},
+    {"blancSurfaceStyleHint", u"L’aspetto delle pagine di Blanc. «Neutro» sostituisce crema e oro con inchiostro e grigio semplici."},
+    {"blancSurfaceStyleSunrise", u"Sunrise"},
+    {"blancSurfaceStyleNeutral", u"Neutro"},
+    {"blancSearchPriorityResults", u"Dai priorità ai risultati di ricerca"},
+    {"blancSearchPriorityResultsHint", u"Mentre scrivi, mostra i suggerimenti di ricerca sopra le tue schede, i gruppi, gli Spaces, i Preferiti e la Cronologia."},
     {"blancSearchSuggestions", u"Suggerimenti di ricerca"},
     {"blancSearchSuggestionsHint", u"Invia i prefissi idonei che digiti al motore di ricerca selezionato, incluso Google se lo hai scelto. Le schede private e il testo riconosciuto come potenzialmente sensibile sono esclusi. Avviare una ricerca invia la query completa anche quando i suggerimenti sono disattivati."},
     {"blancBangs", u"Bang"},
@@ -209,7 +259,7 @@ inline constexpr std::array<String, 37> kStrings_it = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Riavvia per applicare"},
 }};
-inline constexpr std::array<String, 37> kStrings_pt_BR = {{
+inline constexpr std::array<String, 47> kStrings_pt_BR = {{
     {"blancIslandHoverOpen", u"Abrir a Island ao passar o cursor"},
     {"blancIslandHoverOpenHint", u"Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar."},
     {"blancIslandAutoHide", u"Ocultar a Island automaticamente"},
@@ -218,6 +268,16 @@ inline constexpr std::array<String, 37> kStrings_pt_BR = {{
     {"blancIslandAutoHideStyleHint", u"Faça-a flutuar sobre a página ou mova a página para baixo para abrir espaço."},
     {"blancIslandAutoHideStyleFloat", u"Flutuar sobre a página"},
     {"blancIslandAutoHideStylePush", u"Empurrar a página para baixo"},
+    {"blancIslandSiteColors", u"Usar as cores do site"},
+    {"blancIslandSiteColorsHint", u"Tinge a barra da Island com a cor da página em que você está. Desativado, ela mantém o fundo do seu tema."},
+    {"blancIslandTabIcons", u"Mostrar ícones dos sites na Island"},
+    {"blancIslandTabIconsHint", u"Mostra o ícone do site de cada aba em vez de um ponto. Os ícones ocupam mais espaço, então cabem menos abas."},
+    {"blancSurfaceStyle", u"Estilo das superfícies"},
+    {"blancSurfaceStyleHint", u"A aparência das páginas do próprio Blanc. «Neutro» troca o creme e o dourado por tinta e cinza lisos."},
+    {"blancSurfaceStyleSunrise", u"Sunrise"},
+    {"blancSurfaceStyleNeutral", u"Neutro"},
+    {"blancSearchPriorityResults", u"Priorizar resultados de pesquisa"},
+    {"blancSearchPriorityResultsHint", u"Ao digitar, mostra as sugestões de pesquisa acima das suas abas, grupos, Spaces, Favoritos e Histórico."},
     {"blancSearchSuggestions", u"Sugestões de pesquisa"},
     {"blancSearchSuggestionsHint", u"Envia os começos elegíveis do que você digita ao provedor de pesquisa escolhido, inclusive o Google, se escolhido. Abas privadas e textos que parecem sensíveis ficam de fora. Fazer uma pesquisa envia a consulta completa mesmo com as sugestões desativadas."},
     {"blancBangs", u"Bangs"},

@@ -584,7 +584,10 @@
     emit('onIslandState', { mode, trigger: shieldTrigger });
     requestAnimationFrame(() => {
       if (epoch !== findShowEpoch || !opened || overlayMode !== mode) return;
-      emit('onOverlayShow', { mode, prefill, pillRect, ...(purpose ? { purpose } : {}) });
+      // Search priority results (S1.7) is read where the panel opens, as
+      // shipping's overlay:show carries it.
+      emit('onOverlayShow', { mode, prefill, pillRect, ...(purpose ? { purpose } : {}),
+        searchPriorityResults: snapshot?.searchPriorityResults === true });
       reportGeometry();
       if (prefill !== undefined) {
         const input = overlay.contentDocument.getElementById('addressInput');

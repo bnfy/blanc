@@ -270,6 +270,12 @@ uint32_t ActiveSandboxFlags(content::RenderFrameHost* frame) {
 
 // Shipping's islandHoverOpen (F1): off by default.
 constexpr char kIslandHoverOpenPref[] = "blanc.island.hover_open";
+// Shipping's islandSiteColors, islandTabIcons and searchPriorityResults, and
+// its surfaceStyle for Blanc's own pages (S1.7; registered by patch 0023).
+constexpr char kIslandSiteColorsPref[] = "blanc.island.site_colors";
+constexpr char kIslandTabIconsPref[] = "blanc.island.tab_icons";
+constexpr char kSearchPriorityResultsPref[] = "blanc.island.search_priority_results";
+constexpr char kSurfaceStylePref[] = "blanc.appearance.surface_style";
 
 constexpr char kOwnerKey[] = "blanc-prototype-owner";
 constexpr int kIslandViewId = 0x424c;
@@ -923,6 +929,10 @@ class Owner : public base::SupportsUserData::Data,
     ObserveInput();
     if (!timer_.IsRunning() && !in_flight_ && CanSample()) RequestSample();
   }
+  // Match site colors changed: clear or resample the tint.
+  void SiteColorsChanged() {
+    if (!closing_) ResetTint();
+  }
 
  private:
   void FindEvent(const std::u16string& script) {
@@ -954,8 +964,10 @@ class Owner : public base::SupportsUserData::Data,
   std::string find_query_;
   bool CanTint() const {
     // A private tab's site never tints the Island (shipping samples nothing
-    // from it), in a private window or an ordinary one.
+    // from it), in a private window or an ordinary one; Match site colors
+    // off keeps the Island on the theme's background.
     if (closing_ || !web_contents() || web_contents()->GetBrowserContext()->IsOffTheRecord()) return false;
+    if (!browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kIslandSiteColorsPref)) return false;
     const auto& url = web_contents()->GetPrimaryMainFrame()->GetLastCommittedURL();
     return url.SchemeIsHTTPOrHTTPS() || url.SchemeIs("chrome-extension") ||
         url == GURL("chrome://blanc-prototype/pages/newtab.html");
@@ -1602,6 +1614,22 @@ void HideSettingsSheet(Owner* owner) {
 // served.txt is the single allowlist for both serving modes.
 bool IsAsset(const std::string& path) {
   return blanc::island_resources::IsServed(path);
+}
+
+// pages.css under the chosen Surface style: Neutral appends
+// pages-neutral.css, and a marker tells the Start Page which palette its
+// wallpaper paint uses.
+scoped_refptr<base::RefCountedMemory> SurfaceStylesheet(
+    scoped_refptr<base::RefCountedMemory> css,
+    scoped_refptr<base::RefCountedMemory> neutral) {
+  if (!css) return nullptr;
+  std::string text(reinterpret_cast<const char*>(css->front()), css->size());
+  if (neutral) {
+    text += "\n";
+    text.append(reinterpret_cast<const char*>(neutral->front()), neutral->size());
+    text += "\n:root{--blanc-surface-style:neutral}\n";
+  }
+  return base::MakeRefCounted<base::RefCountedString>(std::move(text));
 }
 
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
@@ -2358,6 +2386,9 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       // Hover-open (F1) asks for both: the setting, and whether this window
       // is the one in front, as shipping's islandHoverEligible does.
       .Set("islandHoverOpen", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kIslandHoverOpenPref))
+      // Site icons instead of dots, and search priority results (S1.7).
+      .Set("islandTabIcons", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kIslandTabIconsPref))
+      .Set("searchPriorityResults", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kSearchPriorityResultsPref))
       .Set("windowActive", browser->GetWindow() && browser->GetWindow()->IsActive())
       // Auto-hide (F1): the strip draws its covered state and the how-to tip.
       .Set("islandAutoHide", base::DictValue()
@@ -3284,6 +3315,44 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
                       base::BindRepeating(&Handler::OnIslandAutoHideChanged, base::Unretained(this)));
     island_prefs_.Add(std::string(blanc::island_autohide::kStylePref),
                       base::BindRepeating(&Handler::OnIslandAutoHideStyleChanged, base::Unretained(this)));
+    for (const char* pref : {kIslandTabIconsPref, kSearchPriorityResultsPref})
+      island_prefs_.Add(pref, base::BindRepeating(&Handler::OnIslandSettingChanged, base::Unretained(this)));
+    island_prefs_.Add(kIslandSiteColorsPref,
+                      base::BindRepeating(&Handler::OnSiteColorsChanged, base::Unretained(this)));
+    island_prefs_.Add(kSurfaceStylePref,
+                      base::BindRepeating(&Handler::OnSurfaceStyleChanged, base::Unretained(this)));
+  }
+  void OnSiteColorsChanged() {
+    if (auto* owner = GetOwner(web_ui()->GetWebContents())) owner->SiteColorsChanged();
+    OnIslandSettingChanged();
+  }
+  // Shipping restyles every open Blanc page in place when Surface style
+  // changes (pages.js RESTYLE_SCRIPT), so a game or a search survives; the
+  // Start Page then repaints its wallpaper for the new palette.
+  void OnSurfaceStyleChanged() {
+    // Each window's Island handler restyles its host and its tabs once;
+    // every other Blanc page's handler leaves it to them.
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    if (!owner) return;
+    auto restyle = [](content::WebContents* contents) {
+      if (!contents) return;
+      contents->GetPrimaryMainFrame()->ForEachRenderFrameHost([](content::RenderFrameHost* frame) {
+        const GURL& url = frame->GetLastCommittedURL();
+        if (!frame->IsRenderFrameLive() || !url.SchemeIs(content::kChromeUIScheme) ||
+            url.host() != "blanc-prototype" ||
+            !content::ChildProcessSecurityPolicy::GetInstance()->HasWebUIBindings(
+                frame->GetProcess()->GetID())) return;
+        frame->ExecuteJavaScript(
+            u"(()=>{const links=[...document.querySelectorAll('link[rel=\"stylesheet\"][href^=\"pages.css\"]')];"
+            u"if(!links.length)return;const next=links[0].cloneNode();next.href='pages.css?restyle='+Date.now();"
+            u"next.addEventListener('load',()=>{for(const link of links)link.remove();window.dispatchEvent(new Event('blanc-surface-changed'));},{once:true});"
+            u"links[links.length-1].after(next);})()",
+            base::NullCallback());
+      });
+    };
+    restyle(web_ui()->GetWebContents());
+    auto* model = owner->browser->GetTabStripModel();
+    for (int i = 0; i < model->count(); ++i) restyle(model->GetWebContentsAt(i));
   }
   void OnIslandAutoHideStyleChanged() {
     if (auto* owner = GetOwner(web_ui()->GetWebContents())) ApplyAutoHideStyle(owner);
@@ -6722,6 +6791,27 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
               const std::string script = "window.__blancUiLanguage=" +
                   (pin ? "\"" + *pin + "\"" : std::string("null")) + ";\n";
               std::move(callback).Run(base::MakeRefCounted<base::RefCountedString>(script));
+              return;
+            }
+            // Shipping's Surface style (S1.7): Neutral appends its overrides
+            // to the same pages.css, so no Sunrise palette shows first; a
+            // restyle asks again with a fresh query.
+            if (path == "pages/pages.css" || path.starts_with("pages/pages.css?restyle=")) {
+              const bool neutral = profile &&
+                  profile->GetOriginalProfile()->GetPrefs()->GetString(kSurfaceStylePref) == "neutral";
+#if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
+              if (!root.empty()) {
+                base::ThreadPool::PostTaskAndReplyWithResult(
+                    FROM_HERE, {base::MayBlock()},
+                    base::BindOnce([](base::FilePath root, bool neutral) {
+                      return SurfaceStylesheet(ReadAsset(root, "pages/pages.css"),
+                          neutral ? ReadAsset(root, "pages/pages-neutral.css") : nullptr);
+                    }, root, neutral), std::move(callback));
+                return;
+              }
+#endif
+              std::move(callback).Run(SurfaceStylesheet(blanc::island_resources::Find("pages/pages.css"),
+                  neutral ? blanc::island_resources::Find("pages/pages-neutral.css") : nullptr));
               return;
             }
             // Only the exact private Start Page query, the floating pill's

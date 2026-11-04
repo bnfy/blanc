@@ -518,6 +518,23 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   November 4, 2026): chrome://settings's menu marks the page you are on, so
   its replacement scrolls to the end, chooses Help in the menu (behind ☰
   at the sheet's width) and checks that Help is marked and shown.
+- **S1.7 four remaining settings, candidate macos-8d8381846146471d (2026-11-04):**
+  patch 0023 registers `blanc.island.site_colors` (on),
+  `blanc.island.tab_icons` and `blanc.island.search_priority_results` (off)
+  and `blanc.appearance.surface_style` (sunrise), allowlists them, and adds
+  Match site colors, Show site icons on the Island and Surface style to
+  Appearance and Search priority results to Search engine. The Island reads
+  them from the snapshot (tab icons, priority results in the panel's open
+  payload); Match site colors off stops the page tint and clears it; the
+  page server appends pages-neutral.css (and a marker the Start Page's paint
+  reads) to pages.css under Neutral, and each window's Island handler
+  restyles its open Blanc pages in place, as shipping's RESTYLE_SCRIPT does.
+  A probe turned each on and saw it take effect (icons instead of dots, a
+  Neutral Start Page restyled with one stylesheet, no tint, the panel opened
+  with priority results); settings-and-theming, island-and-commands and
+  internal-pages match their last runs, and tabs-and-groups 356 (site icons)
+  passes through the new switch. `webrtcAudioBuffer` is next, native in
+  Blink (owner, V15).
 - **Open question, file picker hang (2026-11-04):** the owner's live
   instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
   wallpaper. The hang report shows the UI thread inside AppKit's
@@ -771,5 +788,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-db431e0fbc2791a9; Windows: none; Linux: none.
+Candidate identities: macOS: macos-8d8381846146471d; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->
