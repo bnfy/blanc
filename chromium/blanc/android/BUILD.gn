@@ -24,22 +24,22 @@ android_library("island_java") {
 # scripts/android-app-icons.js.
 android_resources("island_view_resources") {
   sources = [
-    "res/drawable-mdpi/blanc_island_mark.png",
-    "res/drawable-hdpi/blanc_island_mark.png",
-    "res/drawable-xhdpi/blanc_island_mark.png",
-    "res/drawable-xxhdpi/blanc_island_mark.png",
-    "res/drawable-xxxhdpi/blanc_island_mark.png",
-    "res/drawable/blanc_island_plus.xml",
-    "res/drawable/blanc_island_reload.xml",
-    "res/drawable/blanc_island_stop.xml",
-    "res/layout/blanc_island.xml",
-    "res/values/blanc_island_dimens.xml",
-    "res/values/blanc_strings.xml",
-    "res/values-de/blanc_strings.xml",
-    "res/values-es/blanc_strings.xml",
-    "res/values-fr/blanc_strings.xml",
-    "res/values-it/blanc_strings.xml",
-    "res/values-pt-rBR/blanc_strings.xml",
+    "island/res/drawable-mdpi/blanc_island_mark.png",
+    "island/res/drawable-hdpi/blanc_island_mark.png",
+    "island/res/drawable-xhdpi/blanc_island_mark.png",
+    "island/res/drawable-xxhdpi/blanc_island_mark.png",
+    "island/res/drawable-xxxhdpi/blanc_island_mark.png",
+    "island/res/drawable/blanc_island_plus.xml",
+    "island/res/drawable/blanc_island_reload.xml",
+    "island/res/drawable/blanc_island_stop.xml",
+    "island/res/layout/blanc_island.xml",
+    "island/res/values/blanc_island_dimens.xml",
+    "island/res/values/blanc_strings.xml",
+    "island/res/values-de/blanc_strings.xml",
+    "island/res/values-es/blanc_strings.xml",
+    "island/res/values-fr/blanc_strings.xml",
+    "island/res/values-it/blanc_strings.xml",
+    "island/res/values-pt-rBR/blanc_strings.xml",
   ]
 }
 

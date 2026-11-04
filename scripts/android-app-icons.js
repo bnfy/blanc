@@ -12,6 +12,8 @@
 const sharp = require('sharp');
 
 const ANDROID_RES_DIR = 'chromium/blanc/android/res';
+// The Island's own resources (chromium/blanc/android/BUILD.gn: island_view_resources).
+const ISLAND_RES_DIR = 'chromium/blanc/android/island/res';
 const DENSITIES = Object.freeze([['mdpi', 1], ['hdpi', 1.5], ['xhdpi', 2], ['xxhdpi', 3], ['xxxhdpi', 4]]);
 // Adaptive layers are 108dp; launchers mask them to any shape inside the
 // central 72dp, and only a 66dp circle is guaranteed visible.
@@ -90,9 +92,9 @@ async function androidAppIconFiles(master, inkMotif) {
     files[`${dir}/layered_app_icon.png`] = await foreground(mark, px(ADAPTIVE_DP, scale));
     files[`${dir}/layered_app_icon_background.png`] = await background(px(ADAPTIVE_DP, scale));
     files[`${ANDROID_RES_DIR}/drawable-${density}/themed_app_icon.png`] = await foreground(ink, px(ADAPTIVE_DP, scale), INK);
-    files[`${ANDROID_RES_DIR}/drawable-${density}/blanc_island_mark.png`] = await islandMark(ink, px(ISLAND_MARK_DP, scale));
+    files[`${ISLAND_RES_DIR}/drawable-${density}/blanc_island_mark.png`] = await islandMark(ink, px(ISLAND_MARK_DP, scale));
   }
   return files;
 }
 
-module.exports = { ANDROID_RES_DIR, DENSITIES, ADAPTIVE_DP, SAFE_ZONE_DP, LEGACY_DP, androidAppIconFiles };
+module.exports = { ANDROID_RES_DIR, ISLAND_RES_DIR, DENSITIES, ADAPTIVE_DP, SAFE_ZONE_DP, LEGACY_DP, androidAppIconFiles };

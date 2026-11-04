@@ -1,5 +1,5 @@
 // Writes Blanc for Android's interface strings from copy/messages (A1 plan,
-// Task 3): one chromium/blanc/android/res/values*/blanc_strings.xml per
+// Task 3): one chromium/blanc/android/island/res/values*/blanc_strings.xml per
 // language, holding only ANDROID_KEYS, named blanc_<key> so they never
 // collide with Chromium's resources. --check fails when a file is stale.
 import fs from 'node:fs';
@@ -8,7 +8,7 @@ import {fileURLToPath} from 'node:url';
 
 const chromium = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repo = path.dirname(chromium);
-const RES = path.join(chromium, 'blanc/android/res');
+const RES = path.join(chromium, 'blanc/android/island/res');
 
 // The iPhone Island's keys (ContentView.swift), shared so Android needs no new translations.
 export const ANDROID_KEYS = [
