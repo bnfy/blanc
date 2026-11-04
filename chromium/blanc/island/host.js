@@ -770,10 +770,11 @@
     bangIcons: hosts => typed('bangIcons', [Array.isArray(hosts) ? hosts.map(String) : []]),
     getAllTabs: async () => snapshot ?? request('snapshot'),
     createTab: async (url, options) => {
-      if (options?.private) throw new Error('Use Chromium’s native private-window command in this prototype.');
       // As in shipping, the address is loaded as given (the browser refuses
       // what a tab may not open); typed text goes through navigate instead.
-      await request('createTab', [url ? String(url) : 'chrome://newtab/']);
+      // A private tab (/private, ⌘⇧N) opens in this window on the private
+      // profile (D1).
+      await request('createTab', [url ? String(url) : 'chrome://newtab/', options?.private === true]);
       await refresh();
       if (options?.focusAddress) await show('');
     },

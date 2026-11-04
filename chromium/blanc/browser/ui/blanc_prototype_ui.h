@@ -11,6 +11,7 @@
 #include "mojo/public/cpp/bindings/pending_receiver.h"
 #include "ui/webui/mojo_web_ui_controller.h"
 
+class GURL;
 namespace content { class WebContents; }
 namespace blanc::browser_api::mojom { class BrowserApiFactory; }
 class BrowserWindowInterface;
@@ -77,6 +78,9 @@ bool SelectIslandSlot(BrowserWindowInterface* browser, int slot);
 base::OnceClosure ShowSessionRecovery();
 bool IsEnabled();
 bool IsIslandWindow(const BrowserWindowInterface* browser);
+// Shipping's private tab (owner decision D1): |url| (the private Start Page
+// when empty) in a new private tab of |browser|, an ordinary window.
+content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL& url);
 bool HasIsland(views::View* parent);
 int RailWidth(views::View* parent);
 int HeaderHeight(views::View* parent);

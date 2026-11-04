@@ -39,12 +39,11 @@ async function created(w,reply){
 export const core={
  state:w=>w.state(),
  async openTab(w,url,opts){
-  // Private tabs and other creation options go through the facade, whose
-  // refusal of what the fork lacks is a product result.
-  if(opts&&Object.keys(opts).length){
-   if(Object.keys(opts).some(k=>k!=='private'))throw new UndefinedNativeAdapterError('Tab creation options need an adapter: '+Object.keys(opts));
-   if(opts.private)await w.api('createTab',[url,opts]);
-  }
+  if(opts&&Object.keys(opts).some(k=>k!=='private'))throw new UndefinedNativeAdapterError('Tab creation options need an adapter: '+Object.keys(opts));
+  // A private tab opens in this window on the private profile (D1). Its
+  // shipping address is the private Start Page, blanc://newtab/?private=1:
+  // a private tab's Start Page is the fork's chrome://newtab/.
+  if(opts?.private)return created(w,await w.native('createTab',[/^blanc:\/\/newtab\//.test(String(url))?'chrome://newtab/':String(url),true]));
   return created(w,await w.native('createTab',[url]));
  },
  newTab:async w=>created(w,await w.native('createTab',['chrome://newtab/'])),
