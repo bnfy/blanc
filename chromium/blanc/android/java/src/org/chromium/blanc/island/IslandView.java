@@ -8,6 +8,8 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.VelocityTracker;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -15,6 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.chromium.build.annotations.NullMarked;
+import org.chromium.build.annotations.Nullable;
 
 /**
  * Blanc for iPhone's Island pill as an Android view (ContentView.addressPill): the Sunrise mark,
@@ -30,7 +33,39 @@ public class IslandView extends FrameLayout {
         public boolean loading;
         public int tabCount;
         public boolean privateTab;
+
+        /** Tabs on either side of this one, for the swipe (left goes to the next). */
+        public boolean hasPrevious;
+
+        public boolean hasNext;
     }
+
+    /** The sideways swipe on the Island (IslandSwipe), and the swipe into the page. */
+    public interface SwipeListener {
+        /** The page's offset for the finger's travel so far, in pixels. */
+        void onSwipe(float displayedPx);
+
+        void onSwipeEnd(IslandSwipe.Outcome outcome);
+
+        /** A swipe from the Island into the page, past 40dp: the tab grid (A2). */
+        void onSwipeIntoPage();
+    }
+
+    /** How far into the page a swipe opens the tab grid, as on the iPhone. */
+    private static final float INTO_PAGE_DP = 40;
+
+    /** A flick's projected end, as UIKit projects it: velocity times about half a second. */
+    private static final float PROJECTION_SECONDS = 0.5f;
+
+    private @Nullable SwipeListener mSwipeListener;
+    private boolean mAtTop;
+    private boolean mHasPrevious;
+    private boolean mHasNext;
+    private float mDownX;
+    private float mDownY;
+    private boolean mSwiping;
+    private boolean mIntoPage;
+    private @Nullable VelocityTracker mVelocity;
 
     private final LinearLayout mPill;
     private final ImageButton mMenu;
@@ -73,6 +108,8 @@ public class IslandView extends FrameLayout {
     }
 
     public void bind(State state) {
+        mHasPrevious = state.hasPrevious;
+        mHasNext = state.hasNext;
         Resources res = getResources();
         mDomain.setText(state.title);
         mDomain.setContentDescription(
@@ -140,6 +177,91 @@ public class IslandView extends FrameLayout {
             mPill.setLayoutParams(lp);
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+    public void setSwipeListener(@Nullable SwipeListener listener) {
+        mSwipeListener = listener;
+    }
+
+    /** At the top, a swipe into the page goes down; at the bottom, up. */
+    public void setAtTop(boolean atTop) {
+        mAtTop = atTop;
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent event) {
+        track(event);
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                mDownX = event.getX();
+                mDownY = event.getY();
+                mSwiping = false;
+                mIntoPage = false;
+                return false;
+            case MotionEvent.ACTION_MOVE:
+                return startsGesture(event);
+            default:
+                return mSwiping || mIntoPage;
+        }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (!mSwiping && !mIntoPage) return super.onTouchEvent(event);
+        track(event);
+        float dx = (event.getX() - mDownX) / mDensity;
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_MOVE:
+                if (mSwiping && mSwipeListener != null) {
+                    mSwipeListener.onSwipe(
+                            IslandSwipe.displayed(dx, mHasPrevious, mHasNext) * mDensity);
+                }
+                return true;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                if (mSwiping && mSwipeListener != null) {
+                    IslandSwipe.Outcome outcome = IslandSwipe.Outcome.STAY;
+                    if (event.getActionMasked() == MotionEvent.ACTION_UP && mVelocity != null) {
+                        mVelocity.computeCurrentVelocity(1000);
+                        float predicted = dx + mVelocity.getXVelocity() / mDensity * PROJECTION_SECONDS;
+                        outcome =
+                                IslandSwipe.outcome(
+                                        dx, predicted, getWidth() / mDensity, mHasPrevious, mHasNext);
+                    }
+                    mSwipeListener.onSwipeEnd(outcome);
+                }
+                mSwiping = false;
+                mIntoPage = false;
+                if (mVelocity != null) {
+                    mVelocity.recycle();
+                    mVelocity = null;
+                }
+                return true;
+            default:
+                return true;
+        }
+    }
+
+    /** Whether this move begins the sideways swipe or the swipe into the page. */
+    private boolean startsGesture(MotionEvent event) {
+        if (mSwiping || mIntoPage) return true;
+        float dx = (event.getX() - mDownX) / mDensity;
+        float dy = (event.getY() - mDownY) / mDensity;
+        if (IslandSwipe.isSideways(dx, dy)) {
+            mSwiping = true;
+        } else if (Math.abs(dy) > Math.abs(dx) && (mAtTop ? dy : -dy) >= INTO_PAGE_DP) {
+            mIntoPage = true;
+            if (mSwipeListener != null) mSwipeListener.onSwipeIntoPage();
+        } else {
+            return false;
+        }
+        if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
+        return true;
+    }
+
+    private void track(MotionEvent event) {
+        if (mVelocity == null) mVelocity = VelocityTracker.obtain();
+        mVelocity.addMovement(event);
     }
 
     public View menuButton() {

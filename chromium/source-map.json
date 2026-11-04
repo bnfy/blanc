@@ -71,7 +71,7 @@
     "blanc/android/java/src/org/chromium/blanc/island/IslandSwipe.java": "445d1a3d79f553a38977db637931678ba6ea947aa737b13357eebead4ad61576",
     "blanc/android/java/src/org/chromium/blanc/island/IslandTitle.java": "308983af013d3405779ccb8c9e2484f0d590c505788f02ee7b0702f14276c723",
     "blanc/android/java/src/org/chromium/blanc/island/IslandTuck.java": "2a3b4f88ca6ab7be08200489f12239e5e0c5ab8b5e042c5405afa4eea65d799e",
-    "blanc/android/java/src/org/chromium/blanc/island/IslandView.java": "db88efeb507c254f968022b7ef141808bcc64daac3f9204a2cdf5b61629de3cf",
+    "blanc/android/java/src/org/chromium/blanc/island/IslandView.java": "a64ef911c3b2fb0bca35444144058b3537571dacd876b67ed40e425d1f4d9299",
     "blanc/android/java/src/org/chromium/blanc/island/IslandVisibility.java": "42444ca447a34ca83e82640208a8af506171fbbf33e57fa253d7c32f5a9a4fda",
     "blanc/android/junit/src/org/chromium/blanc/island/IslandMenuTest.java": "cc0c7992556e29e3ca169e6018acc0f467fa5a8cd767893519f045e3bc635006",
     "blanc/android/junit/src/org/chromium/blanc/island/IslandPositionTest.java": "eb2268e20819c8975aa8d77c355eb92164f3b1bc66c8b38c7f31bbafc4c6aaf1",
