@@ -25,8 +25,9 @@ is the owner's step, in the order the plan needs it
   account; ask Play Console support before choosing, and decide **before A7
   uploads the first build**, because the app can't move accounts easily after
   that.
-- **Open decision (owner):** keep the personal account, or open an
-  organization account for Blanc.
+- **Decision (owner, November 4, 2026): keep the personal account.** Blanc is
+  published from it, and the listing shows the owner's name. No organization
+  account is opened; the D-U-N-S number stays unused for now.
 
 ## App
 
