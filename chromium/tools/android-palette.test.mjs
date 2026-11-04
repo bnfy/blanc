@@ -12,7 +12,7 @@ test('the focused field is found, an unfocused one isn\'t', () => {
 test('nodes match by text or description', () => {
   const xml = '<node text="Open tabs  3" content-desc="" bounds="[0,10][100,40]" /><node text="" content-desc="Domains, www.iana.org" bounds="[0,50][100,90]" />';
   assert.deepEqual(matching(xml, /^Open tabs {2}\d+$/), {left: 0, top: 10, right: 100, bottom: 40});
-  assert.deepEqual(matching(xml, /www\.iana\.org/, 'content-desc'), {left: 0, top: 50, right: 100, bottom: 90});
+  assert.deepEqual(matching(xml, /, www\.iana\.org$/, 'content-desc'), {left: 0, top: 50, right: 100, bottom: 90});
   assert.equal(matching(xml, /nothing/), null);
 });
 

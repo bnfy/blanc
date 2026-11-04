@@ -8,6 +8,7 @@ import {fileURLToPath} from 'node:url';
 import {gridState, paletteRows, fixtureUrl, pageTitle, rawPixel} from '../tests/android/acceptance/support/parse.mjs';
 import {RUNNABLE} from '../tests/android/acceptance/cucumber.mjs';
 import {boundsAfter} from '../tests/android/tab-store.mjs';
+import {fixturePage} from '../tests/android/acceptance/support/device.mjs';
 
 const card = (title, selected = false) =>
   `<node text="" content-desc="Switch to ${title}" selected="${selected}" bounds="[0,0][10,10]" />`;
@@ -68,6 +69,13 @@ test('a group\'s own options button is the first one after its header', () => {
   const xml = header('one', 1) + button(0) + header('two', 2) + button(50);
   assert.equal(boundsAfter(xml, /content-desc="two, 2 tabs, Fold group"/, /Group options/).top, 50);
   assert.equal(boundsAfter(xml, /content-desc="three/, /Group options/), null);
+});
+
+test('a fixture page shows what it was asked for as text, never as markup', () => {
+  const page = fixturePage(new URL('https://a.example/<b>?w=<script>&n=1'));
+  assert.ok(!page.includes('<script>'), page);
+  assert.ok(!page.includes('<b>'), page);
+  assert.ok(page.includes('&lt;script&gt; number 1'), page);
 });
 
 test('every runnable id names a scenario in spec/acceptance', () => {

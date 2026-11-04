@@ -26,9 +26,11 @@ const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // A page per address: its title is its host (and path), "/words?w=widget&n=3" repeats a word,
 // "/link" is one link to child.example filling the page (target=_blank), and every page has a
 // button that counts its clicks in document.title's data-clicks.
-function fixturePage(url) {
-  const title = pageTitle(url.hostname, url.pathname);
-  const word = url.searchParams.get('w');
+const text = value => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+export function fixturePage(url) {
+  const title = text(decodeURIComponent(pageTitle(url.hostname, url.pathname)));
+  const word = text(url.searchParams.get('w') ?? '');
   const words = word ? Array.from({length: Number(url.searchParams.get('n'))}, (_, i) => `<p>${word} number ${i + 1}</p>`).join('') : '';
   const link = url.pathname === '/link'
     ? '<a id="child" href="https://child.example/" target="_blank" style="position:fixed;inset:0;z-index:1;display:block;font-size:40px">Open child</a>' : '';

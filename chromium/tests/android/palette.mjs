@@ -94,7 +94,7 @@ function main(argv) {
   adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); sleep(1);
 
   openPalette();
-  const row = matching(dump(), /www\.iana\.org/, 'content-desc');
+  const row = matching(dump(), /, www\.iana\.org$/, 'content-desc');
   if (row) { adb('shell', 'input', 'tap', ...center(row)); sleep(2); }
   const switched = !!row;
   check('a tab in the list switches to it', switched && !paletteField(dump()) ? [] : ['no tab row, or the palette stayed open']);
