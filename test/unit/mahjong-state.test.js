@@ -910,6 +910,29 @@ test('table preferences persist Burst rules with safe v2 defaults and never pers
   assert.deepEqual(prefs.read(), { layoutId: 'turtle', mode: 'tray', source: 'daily', burstRules: 'auto' });
 });
 
+test('consecutive clears rotate all three tile themes in three-board chapters', () => {
+  const storage = new MemoryStorage();
+  const progress = S.createProgressStore({ storage });
+  assert.deepEqual(progress.read(), { clearStreak: 0, lastCompletedGameId: null });
+  assert.deepEqual([0, 2, 3, 5, 6, 8, 9].map(S.tileThemeForStreak),
+    ['porcelain', 'porcelain', 'carved', 'carved', 'inlay', 'inlay', 'porcelain']);
+
+  assert.deepEqual(progress.recordClear(uuid(1)), { clearStreak: 1, lastCompletedGameId: uuid(1) });
+  assert.deepEqual(progress.recordClear(uuid(1)), { clearStreak: 1, lastCompletedGameId: uuid(1) });
+  assert.deepEqual(progress.recordClear(uuid(2)), { clearStreak: 2, lastCompletedGameId: uuid(2) });
+  assert.deepEqual(S.createProgressStore({ storage }).read(), { clearStreak: 2, lastCompletedGameId: uuid(2) });
+  assert.deepEqual(progress.reset(), { clearStreak: 0, lastCompletedGameId: null });
+});
+
+test('clear milestones cycle through every selected celebration direction', () => {
+  assert.equal(S.celebrationStyleForStreak(1), 'horizon-bloom');
+  assert.equal(S.celebrationStyleForStreak(2), 'gilded-fan');
+  assert.equal(S.celebrationStyleForStreak(3), 'tile-echo');
+  assert.equal(S.celebrationStyleForStreak(8), 'gilded-fan');
+  assert.equal(S.celebrationStyleForStreak(9), 'horizon-bloom');
+  assert.equal(S.celebrationStyleForStreak(12), 'tile-echo');
+});
+
 test('completion outcome distinguishes a first clear, a new record, and no change', () => {
   const classicBefore = { bestTimeMs: 90_000 };
   assert.equal(S.completionOutcome({ mode: 'classic', before: null, after: null }), 'none');

@@ -341,6 +341,10 @@
       "state": "guarded",
       "allow": []
     },
+    "src/renderer/pages/mahjong-fx.js": {
+      "state": "guarded",
+      "allow": []
+    },
     "src/renderer/pages/mahjong-engine.js": {
       "state": "guarded",
       "allow": []

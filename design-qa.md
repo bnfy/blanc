@@ -2564,3 +2564,41 @@ have an empty chrome strip; the native app screenshot is the Island comparison.
 Passed npm run ublock:check and npm run test:ublock-dashboard:desktop, including
 native controls, narrow layouts, real blocking and restart persistence. No runtime,
 filtering engine, provider gate, or user zoom changes. Corrected dev preview left open.
+
+## 2026-10-17 — Mahjong approved tile sheets and completion refresh
+
+Approved sources:
+
+- Porcelain: `/Users/anthonyjloria/.codex/generated_images/01a14c9a-be64-7660-811d-9f1dba33c9d2/exec-b11cd568-cd79-4dd0-9b7e-74a1c3e353b2.png`
+- Carved: `/Users/anthonyjloria/.codex/generated_images/01a14c9a-be64-7660-811d-9f1dba33c9d2/exec-93ed0b74-2f9d-4714-a42c-d530501e4112.png`
+- Inlay: `/Users/anthonyjloria/.codex/generated_images/01a14c9a-be64-7660-811d-9f1dba33c9d2/exec-c9fd0951-4c35-49ab-823d-6b51f3224a0d.png`
+- Board Cleared: `/Users/anthonyjloria/.codex/generated_images/01a14c9a-be64-7660-811d-9f1dba33c9d2/exec-b1f1bb90-58e8-4e54-b2b7-9e60edfb9f2a.png`
+
+The three tile sheets are committed intact and rendered as literal sprite crops;
+the rejected per-symbol approximations are not used. Ranks absent from the sheets
+reuse pips, bamboo sticks, motifs, material and ornaments cropped from those same
+approved sources, with only the new rank numeral set in Inter Bold.
+
+Verified at 1280 × 802 CSS pixels (DPR 2) in the real Electron dev instance:
+`output/playwright/mahjong-approved-porcelain-final.png`,
+`output/playwright/mahjong-exact-approved-carved-final.png`,
+`output/playwright/mahjong-exact-approved-inlay-final.png`,
+`output/playwright/mahjong-celebration-tile-echo-final.png`, and
+`output/playwright/mahjong-board-cleared-approved-final.png`.
+
+Required fidelity surfaces:
+
+- Tile artwork: the original linework, texture, palette, borders and ornaments.
+- Typography: Instrument Sans for every non-tile Mahjong surface; Inter Bold for
+  generated tile ranks.
+- Board shell: warm ivory Sunrise surfaces and authentic landscape art.
+- Celebrations: all three milestone directions, with Tile Echo using exact faces.
+- Completion: portrait Winning Tile layout, separated numerals and responsive
+  action hierarchy.
+
+Theme progression, celebration selection/cancel, Board Cleared rendering and
+action wiring were exercised. Score tracking computes to 2.2 px at the tested
+viewport. Final reload had zero console errors and zero failed requests. Focused
+Mahjong tests passed 114/114, lint passed, and `git diff --check` passed.
+
+final result: passed
