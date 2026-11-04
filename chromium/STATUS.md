@@ -546,9 +546,9 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   needed (1,460 steps, 7 minutes). A probe moved an open tab's renderer
   preference to 400, 1000 and back to -1 as the setting changed. Not yet
   verified: a real call taking the target (the fixture gathers no ICE
-  candidates, even with Chromium's default policy and loopback allowed),
-  and the settings, island and internal-pages reruns on this candidate,
-  which stopped because the display locked. Every S1.7 key is now built
+  candidates, even with Chromium's default policy and loopback allowed).
+  Settings-and-theming, island-and-commands and internal-pages match their
+  runs on macos-8d8381846146471d. Every S1.7 key is now built
   (`tools/settings-keys.mjs` lists none to build).
 - **Open question, file picker hang (2026-11-04):** the owner's live
   instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
