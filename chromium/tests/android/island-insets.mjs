@@ -38,10 +38,17 @@ export function placementProblems({pill, screen, bars, density, position}) {
   if (pill.left < 0 || pill.top < 0 || pill.right > screen.width || pill.bottom > screen.height) problems.push('outside the screen');
   const width = pill.right - pill.left;
   if (width > dp(600) + slack) problems.push(`wider than 600dp (${Math.round(width / density)}dp)`);
-  const sides = Math.min(pill.left, screen.width - pill.right);
+  // Three-button navigation in landscape puts the bar down a side: the window
+  // the Island centers in ends where that bar begins.
+  const nav = bars.navigation;
+  const sideBar = nav && nav.top <= 0 && nav.bottom >= screen.height ? nav : null;
+  const windowLeft = sideBar && sideBar.left <= 0 ? sideBar.right : 0;
+  const windowRight = sideBar && sideBar.left > 0 ? sideBar.left : screen.width;
+  if (pill.left < windowLeft || pill.right > windowRight) problems.push('overlaps the navigation bar at the side');
+  const sides = Math.min(pill.left - windowLeft, windowRight - pill.right);
   if (width < dp(600) - slack && sides < dp(16) - slack) problems.push(`less than 16dp from the sides (${Math.round(sides / density)}dp)`);
   if (position === 'bottom') {
-    const limit = (bars.navigation ? bars.navigation.top : screen.height) - dp(10);
+    const limit = (nav && !sideBar ? nav.top : screen.height) - dp(10);
     if (pill.bottom > limit + slack) problems.push(`overlaps the navigation bar (bottom ${pill.bottom} > ${limit})`);
   } else {
     const limit = (bars.status ? bars.status.bottom : 0) + dp(10);

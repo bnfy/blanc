@@ -367,9 +367,11 @@ public final class IslandCoordinator {
                 ContextUtils.getAppSharedPreferences().getString(POSITION_KEY, null));
     }
 
+    // Top or bottom only: the view spans the window and centers its pill itself. Centering the
+    // full-width view as well shifted it by a side navigation bar's width (three-button nav in
+    // landscape, found by island-insets.mjs).
     private static int gravity() {
-        return (position() == IslandPosition.TOP ? Gravity.TOP : Gravity.BOTTOM)
-                | Gravity.CENTER_HORIZONTAL;
+        return position() == IslandPosition.TOP ? Gravity.TOP : Gravity.BOTTOM;
     }
 
     private void applyInsets() {
