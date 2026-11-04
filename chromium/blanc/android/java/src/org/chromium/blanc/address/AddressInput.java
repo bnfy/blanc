@@ -166,7 +166,7 @@ public final class AddressInput {
     }
 
     /** JavaScript's String.prototype.trim(). */
-    static String trim(String s) {
+    public static String trim(String s) {
         int start = 0;
         int end = s.length();
         while (start < end && isJsSpace(s.charAt(start))) start++;

@@ -17,6 +17,17 @@
     <string name="blanc_share_picker_share">Teilen</string>
     <string name="blanc_tab_menu_remove_favorite">Aus Favoriten entfernen</string>
     <string name="blanc_tab_menu_save_favorite">Zu Favoriten hinzufügen</string>
+    <string name="blanc_slash_close_hint">Diesen Tab schließen</string>
+    <string name="blanc_slash_close_group_hint">Alle Tabs dieser Gruppe schließen</string>
+    <string name="blanc_slash_favorites_hint">Favoriten öffnen</string>
+    <string name="blanc_slash_find_hint">Auf der Seite suchen</string>
+    <string name="blanc_slash_group_hint">Leerzeichen, dann einen Gruppennamen eingeben – z. B. „arbeit“</string>
+    <string name="blanc_slash_history_hint">Verlauf öffnen</string>
+    <string name="blanc_slash_new_hint">Neuen Tab öffnen</string>
+    <string name="blanc_slash_private_hint">Privaten Tab öffnen (der Verlauf bleibt unberührt)</string>
+    <string name="blanc_slash_reopen_hint">Zuletzt geschlossenen Tab wieder öffnen</string>
+    <string name="blanc_slash_theme_hint">Darstellung wechseln oder system / light / dark wählen</string>
+    <string name="blanc_slash_ungroup_hint">Diesen Tab aus seiner Gruppe nehmen</string>
     <plurals name="blanc_tabs_menu_header">
         <item quantity="one">%d Tab</item>
         <item quantity="other">%d Tabs</item>

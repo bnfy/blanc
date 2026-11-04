@@ -17,6 +17,17 @@
     <string name="blanc_share_picker_share">Condividi</string>
     <string name="blanc_tab_menu_remove_favorite">Rimuovi dai Preferiti</string>
     <string name="blanc_tab_menu_save_favorite">Salva nei Preferiti</string>
+    <string name="blanc_slash_close_hint">Chiudi questa scheda</string>
+    <string name="blanc_slash_close_group_hint">Chiudi tutte le schede di questo gruppo</string>
+    <string name="blanc_slash_favorites_hint">Apri i preferiti</string>
+    <string name="blanc_slash_find_hint">Trova nella pagina</string>
+    <string name="blanc_slash_group_hint">Digita uno spazio, poi il nome di un gruppo — ad es. «lavoro»</string>
+    <string name="blanc_slash_history_hint">Apri la cronologia di navigazione</string>
+    <string name="blanc_slash_new_hint">Apri una nuova scheda</string>
+    <string name="blanc_slash_private_hint">Apri una scheda privata (la cronologia resta intatta)</string>
+    <string name="blanc_slash_reopen_hint">Riapri la scheda che hai appena chiuso</string>
+    <string name="blanc_slash_theme_hint">Cambia aspetto, o scegli system / light / dark</string>
+    <string name="blanc_slash_ungroup_hint">Togli questa scheda dal suo gruppo</string>
     <plurals name="blanc_tabs_menu_header">
         <item quantity="one">%d scheda</item>
         <item quantity="many">%d schede</item>

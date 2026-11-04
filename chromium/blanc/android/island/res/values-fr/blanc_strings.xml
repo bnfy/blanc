@@ -17,6 +17,17 @@
     <string name="blanc_share_picker_share">Partager</string>
     <string name="blanc_tab_menu_remove_favorite">Retirer des favoris</string>
     <string name="blanc_tab_menu_save_favorite">Enregistrer dans les favoris</string>
+    <string name="blanc_slash_close_hint">Fermer cet onglet</string>
+    <string name="blanc_slash_close_group_hint">Fermer tous les onglets de ce groupe</string>
+    <string name="blanc_slash_favorites_hint">Ouvrir les favoris</string>
+    <string name="blanc_slash_find_hint">Rechercher dans la page</string>
+    <string name="blanc_slash_group_hint">Saisissez un espace, puis un nom de groupe — p. ex. « travail »</string>
+    <string name="blanc_slash_history_hint">Ouvrir l’historique de navigation</string>
+    <string name="blanc_slash_new_hint">Ouvrir un nouvel onglet</string>
+    <string name="blanc_slash_private_hint">Ouvrir un onglet privé (l’historique reste intact)</string>
+    <string name="blanc_slash_reopen_hint">Rouvrir l’onglet que vous venez de fermer</string>
+    <string name="blanc_slash_theme_hint">Changer d’apparence, ou choisir system / light / dark</string>
+    <string name="blanc_slash_ungroup_hint">Retirer cet onglet de son groupe</string>
     <plurals name="blanc_tabs_menu_header">
         <item quantity="one">%d onglet</item>
         <item quantity="many">%d onglets</item>

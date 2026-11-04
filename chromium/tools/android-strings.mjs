@@ -22,6 +22,10 @@ export const ANDROID_KEYS = [
   'pill.private.title', 'tab.new',
   // The Sunrise menu (A1 Task 7), with the iPhone's labels.
   'menu.newPrivateTab', 'share.picker.share', 'tabMenu.removeFavorite', 'tabMenu.saveFavorite',
+  // A2's slash commands (SlashCommands.available()), the iPhone's hints.
+  'slash.close.hint', 'slash.closeGroup.hint', 'slash.favorites.hint', 'slash.find.hint', 'slash.group.hint',
+  'slash.history.hint', 'slash.new.hint', 'slash.private.hint', 'slash.reopen.hint', 'slash.theme.hint',
+  'slash.ungroup.hint',
 ];
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
 export const ANDROID_PLURALS = ['tabsMenu.header'];

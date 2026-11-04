@@ -20,6 +20,23 @@ android_library("island_java") {
   deps = [ "//build/android:build_java" ]
 }
 
+# Blanc's tab rules, ported from Blanc for iPhone (TabGroups, TabSections,
+# QuickSwitcher, SlashCommand) and checked against desktop's JavaScript
+# (A2 plan, Task 2): plain Java with no views.
+android_library("tabs_java") {
+  sources = [
+    "java/src/org/chromium/blanc/tabs/GroupColors.java",
+    "java/src/org/chromium/blanc/tabs/GroupNames.java",
+    "java/src/org/chromium/blanc/tabs/QuickSwitcher.java",
+    "java/src/org/chromium/blanc/tabs/SlashCommands.java",
+    "java/src/org/chromium/blanc/tabs/TabSections.java",
+  ]
+  deps = [
+    ":island_java",
+    "//build/android:build_java",
+  ]
+}
+
 # The Island's pill: an Android view with no Chromium dependencies. Strings come
 # from copy/messages through chromium/tools/android-strings.mjs; the mark from
 # scripts/android-app-icons.js.
@@ -100,10 +117,17 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/island/IslandTuckTest.java",
     "junit/src/org/chromium/blanc/island/IslandViewTest.java",
     "junit/src/org/chromium/blanc/island/IslandVisibilityTest.java",
+    "junit/src/org/chromium/blanc/tabs/GroupNamesFixtures.java",
+    "junit/src/org/chromium/blanc/tabs/GroupNamesTest.java",
+    "junit/src/org/chromium/blanc/tabs/QuickSwitcherTest.java",
+    "junit/src/org/chromium/blanc/tabs/SlashCommandsTest.java",
+    "junit/src/org/chromium/blanc/tabs/TabSectionsFixtures.java",
+    "junit/src/org/chromium/blanc/tabs/TabSectionsTest.java",
   ]
   deps = [
     ":island_java",
     ":island_view_java",
+    ":tabs_java",
     "//base:base_java_test_support",
     "//base:base_junit_test_support",
     "//third_party/junit",

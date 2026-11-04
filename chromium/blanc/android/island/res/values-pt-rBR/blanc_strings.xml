@@ -17,6 +17,17 @@
     <string name="blanc_share_picker_share">Compartilhar</string>
     <string name="blanc_tab_menu_remove_favorite">Remover dos favoritos</string>
     <string name="blanc_tab_menu_save_favorite">Salvar nos favoritos</string>
+    <string name="blanc_slash_close_hint">Fechar esta aba</string>
+    <string name="blanc_slash_close_group_hint">Fechar todas as abas deste grupo</string>
+    <string name="blanc_slash_favorites_hint">Abrir favoritos</string>
+    <string name="blanc_slash_find_hint">Localizar na página</string>
+    <string name="blanc_slash_group_hint">Digite um espaço e depois o nome de um grupo — por exemplo, “trabalho”</string>
+    <string name="blanc_slash_history_hint">Abrir o histórico de navegação</string>
+    <string name="blanc_slash_new_hint">Abrir uma nova aba</string>
+    <string name="blanc_slash_private_hint">Abrir uma aba privada (o histórico fica intacto)</string>
+    <string name="blanc_slash_reopen_hint">Reabrir a aba que você acabou de fechar</string>
+    <string name="blanc_slash_theme_hint">Alternar a aparência, ou escolher system / light / dark</string>
+    <string name="blanc_slash_ungroup_hint">Tirar esta aba do grupo</string>
     <plurals name="blanc_tabs_menu_header">
         <item quantity="one">%d aba</item>
         <item quantity="many">%d abas</item>
