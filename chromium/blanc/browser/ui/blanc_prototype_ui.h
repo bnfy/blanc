@@ -19,6 +19,8 @@ namespace blanc::browser_api::mojom { class BrowserApiFactory; }
 class BrowserWindowInterface;
 class MultiContentsView;
 class ToolbarButtonProvider;
+class Profile;
+namespace settings { class SettingsPageUIHandler; }
 namespace views {
 class View;
 struct ProposedLayout;
@@ -120,6 +122,8 @@ bool OpenIsland(BrowserWindowInterface* browser, bool new_tab = false,
 std::unique_ptr<views::WebView> CreateIsland(BrowserWindowInterface* browser);
 void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* layout);
 void LayoutIsland(views::View* parent, int top);
+// Blanc's lists and language in chrome://settings (S1.7), for SettingsUI.
+std::unique_ptr<settings::SettingsPageUIHandler> CreateSettingsHandler(Profile* profile);
 }  // namespace blanc_prototype
 
 #endif  // CHROME_BROWSER_UI_BLANC_PROTOTYPE_UI_H_

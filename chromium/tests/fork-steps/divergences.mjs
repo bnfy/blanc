@@ -43,4 +43,34 @@ export const DIVERGENCES = new Map([
     })()`);
     assert.equal(clicked, 'clicked');
   }}],
+  // V13 (owner, 2026-11-04): Settings is chrome://settings, which shows every
+  // explanation in full rather than folding long ones behind More. What
+  // shipping's scenario protects stays true: the text is whole and unchanged.
+  ['long setting explanations are folded to two lines with a More control', {divergence: 'V13', async run() {
+    const explanations = await this.call('settingsExplanations');
+    const long = explanations.find(e => e.text.length > 80);
+    assert.ok(long, 'a long setting explanation');
+    assert.ok(explanations.every(e => e.whole), 'every explanation shows in full');
+    this.foldedHint = long;
+  }}],
+  ['I open the first folded explanation', {divergence: 'V13', async run() {
+    // Nothing is folded, so there is nothing to open.
+    assert.ok(this.foldedHint, 'the long explanation was found');
+  }}],
+  ['it shows its full text, unchanged', {divergence: 'V13', async run() {
+    const same = (await this.call('settingsExplanations')).find(e => e.text === this.foldedHint.text);
+    assert.ok(same?.whole, 'the explanation shows its full text, unchanged');
+  }}],
+  // V14 (owner, 2026-11-04): chrome://settings's menu marks the page you are
+  // on, not the section scrolled to. Scrolling to the end still works, and
+  // choosing Help in the menu marks Help and shows it.
+  ['I scroll the settings sheet to its end', {divergence: 'V14', async run() {
+    assert.equal(await this.call('settingsScrollToEnd'), true);
+  }}],
+  ['the settings section marker is on Help', {divergence: 'V14', async run() {
+    assert.equal(await this.call('settingsChooseMenuItem', 'about-menu'), true, 'Settings has a Help item');
+    const marked = await this.call('settingsMenuMarked');
+    assert.equal(marked?.item, 'about-menu', 'the menu marks Help');
+    assert.equal(marked?.path, '/help', 'Settings shows Help');
+  }}],
 ]);

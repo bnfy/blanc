@@ -176,7 +176,7 @@ export function shippingPageUrl(url){
  if(url==='chrome://newtab/'||url.startsWith('chrome://new-tab-page'))return 'blanc://newtab/';
  // The fork's chrome://newtab/ commits its Start Page document here.
  if(url.startsWith('chrome://blanc-prototype/pages/newtab.html'))return 'blanc://newtab/'+url.slice('chrome://blanc-prototype/pages/newtab.html'.length);
- if(url.startsWith('chrome://blanc-prototype/blocking-settings.html'))return 'blanc://settings/';
+ if(url.startsWith('chrome://settings/'))return 'blanc://settings/';
  return url;
 }
 // Playwright's ElectronApplication, minus the main process: main-process

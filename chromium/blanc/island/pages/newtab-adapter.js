@@ -86,7 +86,7 @@
       style: ['auto', 'light', 'dark', 'spotlight'].includes(value.style) ? value.style : 'auto',
       wash: Number.isInteger(value.wash) && value.wash >= 0 && value.wash <= 100 ? value.wash : 100,
       color: { presets: window.SpaceIdentity.PRESETS, preset, followSpace: false, inSpace: false,
-        paint: paint.colorWallpaper({ preset, fill, followSpace: false }) } };
+        paint: paint.colorWallpaper({ preset, fill, followSpace: false, surface: surfaceStyle() }) } };
   }
   function saveWallpaper(patch, otherPreferences = {}) {
     const current = read().wallpaper || {};
@@ -143,6 +143,13 @@
         : { ...wallpaper(saved), themeAvailable: !!installedTheme.id } };
   };
   const listeners = new Set();
+  // Shipping's Surface style (S1.7) arrives in pages.css itself; a change
+  // restyles the page in place and then repaints what depends on it.
+  function surfaceStyle() {
+    return getComputedStyle(document.documentElement).getPropertyValue('--blanc-surface-style').trim() === 'neutral'
+      ? 'neutral' : 'sunrise';
+  }
+  window.addEventListener('blanc-surface-changed', () => publish());
   function publish() {
     for (const fn of listeners) {
       try { fn(preferences()); } catch (error) { console.warn('Start Page listener failed', error); }

@@ -1,0 +1,13 @@
+diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui/browser_command_controller.cc
+index 5ce38cb..9279669 100644
+--- a/chrome/browser/ui/browser_command_controller.cc
++++ b/chrome/browser/ui/browser_command_controller.cc
+@@ -1358,6 +1358,8 @@ void BrowserCommandController::HandleCommandWithDisposition(
+                           chrome::kPerformanceSubPage);
+       break;
+     case IDC_OPTIONS:
++      // An Island window opens Settings in Blanc's sheet (S1.7).
++      if (blanc_prototype::OpenUtilitySheet(browser_, "settings")) break;
+       ShowSettings(webui::GetBrowserForOpeningWebUi(browser_));
+       break;
+     case IDC_EDIT_SEARCH_ENGINES:

@@ -421,6 +421,163 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   - The patch set covers 91 files with 296 hunks. navigation-and-context-
     menu, island-and-commands, tabs-and-groups, private-tabs, ad-blocking
     and site-certificate-safety are otherwise unchanged.
+- **S1.7 settings sheet, candidate macos-61b9387a2d9a8841 (2026-11-04):** Settings opens
+  in a native sheet. The host draws shipping's scrim, card and close button
+  (`#settingsSheet`); a `views::WebView` sibling of the Island view, above
+  it, shows the page over the card's body, in the regular profile in either
+  window, with the autofill and password clients chrome://settings expects
+  (Chromium's SimpleWebViewDialog pattern). Escape the page doesn't use, a
+  scrim click, the ×, a tab switch and a new tab end it; anything it opens
+  outside itself becomes an ordinary tab. ⌘, and Chromium's Settings command
+  open it in an Island window (patch 0019). General and Blocking show Blanc's
+  own page there (`#embedded`, without its own scrim and card) until those
+  sections move into chrome://settings; Chromium's sections (search,
+  appearance, privacy and others) load chrome://settings itself. The host
+  measures the card only after it has grown, so a quick reopen no longer
+  gets a zero-height sheet. Verified by a probe on macos-80eb2099924c1845
+  (attached above the Island, sized to the card, focused; each way of
+  closing it; an outbound link as a tab) and by targeted runs on
+  macos-61b9387a2d9a8841: settings-and-theming matches its pre-sheet result,
+  internal-pages matches sh1, and island-and-commands matches s16c once
+  four Auto-hide pointer cases (241, 258, 276, 403), disturbed by the owner
+  using the machine during the run, passed alone, as did 573. The adapters
+  had read the page before it filled itself in: the page's address shows as
+  blanc://settings/, so the readiness wait never ran; it now asks the
+  document, in-sheet readers wait too, and a custom bang's add settles
+  before the sheet closes. `tests/window-snapshot.mjs` composites DevTools
+  captures into window screenshots without Screen Recording.
+- **S1.7 Chromium's settings sections, candidate macos-61b9387a2d9a8841 (2026-11-04):**
+  patch 0020 (`page_visibility.ts`, newly pinned: 92 upstream files) gives
+  every non-guest profile `{ai, people, safetyHub}: false`, so the Google
+  account and Sync section, AI and Safety Check are gone from the menu and
+  pages, and Chromium leaves their routes out: chrome://settings/people,
+  /syncSetup, /safetyCheck and /ai fall back to chrome://settings/. Every
+  reader treats a missing key as shown, so the other sections are
+  unchanged. A probe of the sheet confirmed the menu, the Privacy page
+  (no Safety Check, Sync or AI elements) and the four addresses;
+  settings-and-theming matches s17g. The build's dry run was 55 actions
+  (the Settings TypeScript chain plus per-language InfoPlist strings after
+  a manifest rebuild; no toolchain change), above the usual 50, so it was
+  reviewed and run once with `--max-actions=60`.
+- **S1.7 Blanc's controls in chrome://settings, candidate macos-b1e03720c5fd6337 (2026-11-04):**
+  the owner chose to put Blanc's settings into Chromium's matching
+  sections (not one Blanc section). Patch 0021 (eight newly pinned files,
+  100 in all) allowlists `blanc.island.hover_open`, `.auto_hide`,
+  `.auto_hide_style`, `blanc.bangs.enabled` and `blanc.blocking.enabled`
+  in settings_private, and adds the controls with `pref-key`: Appearance
+  gets Open the Island on hover, Auto-hide and (while Auto-hide is on) how
+  the Island comes back; Search engine gets Search suggestions (Chromium's
+  only switch for it was in the removed Sync section) and Bangs; Privacy
+  and security starts with Block ads & trackers. Their labels are
+  shipping's in each selectable language, generated into
+  `blanc/common/settings_strings.h` by `tools/settings-strings.mjs` and
+  added to the page's strings by settings_ui.cc. Their readers already
+  normalize what they read. A probe toggled each and saw Blanc's own page
+  follow; settings-and-theming matches s17g. Still to come: Your bangs,
+  the Blocking exceptions list and the interface language (validated
+  natively, so through a handler), then retiring blocking-settings.html.
+  Chromium's own Appearance rows that don't apply to the Island (toolbar,
+  bookmarks bar, tab strip, side panel) are still shown.
+- **S1.7 Blanc's lists and language in chrome://settings, candidate macos-1fa75f97ed921757 (2026-11-04):**
+  patch 0022 (three newly pinned files, 103 in all, plus a new
+  `blanc_settings_proxy.ts` in Settings' BUILD.gn) adds Your bangs under
+  Bangs, the sites that load without blocking under Block ads & trackers,
+  and the interface language (with Relaunch to apply) atop Languages.
+  They go through `ChromiumSettingsHandler`
+  (`blanc/browser/ui/chromium_settings_handler.inc`, registered on
+  SettingsUI), which applies shipping's rules natively: normalizeCustomBangs,
+  the duplicate check, the built-in a code replaces (read from the bundled
+  `pages/bangs-catalog.js`), host normalization (a host Chromium would
+  percent-escape is refused, as shipping's URL parser refuses it) and the
+  selectable languages. A probe added, refused and removed bangs ("Replaces
+  the built-in !a (Amazon.com)", "You already have !m.", the invalid-bang
+  message; the Island saw the list), added WWW.Example.com/x as example.com,
+  refused "not a host!", and switched the language with the relaunch offer
+  appearing and going; settings-and-theming matches s17g. The language menu
+  is unstyled and the Languages page still shows Google Translate; both for
+  the restyle. The BUILD.gn change needed `gn gen` (unchanged arguments,
+  same Xcode, SDK and Clang); `linker_driver.py`'s Oct 28 modification time
+  feeds GN's `TOOL_VERSION`, so the regenerated link lines relinked the Rust
+  host tools and about 15,000 dependent steps (the owner approved that
+  rebuild; about 50 minutes in all).
+- **S1.7 Blanc's settings page retired, candidate macos-db431e0fbc2791a9 (2026-11-04):**
+  Settings is chrome://settings alone. The sheet opens shipping's General at
+  its top and Blocking on Privacy and security; blocking-settings.html, its
+  six scripts and the two handlers that served it are gone (the checkout's
+  copies are in apply-backup-20261104-studio-s17-retire/removed). Privacy
+  and security now shows shipping's status line ("Blanc Blocker ready.",
+  refreshed while it starts and when the page is shown again). Owner
+  decisions: V12, a custom search address (and engines Chromium's Change
+  dialog lacks, such as Kagi) is added under Manage search engines; V13,
+  explanations show in full. The adapters drive chrome://settings as a
+  person does (the Change dialog, Mode, the switches, the lists, through
+  the sheet); F14-5's steps are V13 replacements. settings-and-theming
+  matches s17g with F14-5 now passing; island-and-commands matches s16c on
+  all 73 executed cases; internal-pages matches sh1, and 66 (Settings'
+  section marker following scrolling) now passes under V14 (owner,
+  November 4, 2026): chrome://settings's menu marks the page you are on, so
+  its replacement scrolls to the end, chooses Help in the menu (behind ☰
+  at the sheet's width) and checks that Help is marked and shown.
+- **S1.7 four remaining settings, candidate macos-8d8381846146471d (2026-11-04):**
+  patch 0023 registers `blanc.island.site_colors` (on),
+  `blanc.island.tab_icons` and `blanc.island.search_priority_results` (off)
+  and `blanc.appearance.surface_style` (sunrise), allowlists them, and adds
+  Match site colors, Show site icons on the Island and Surface style to
+  Appearance and Search priority results to Search engine. The Island reads
+  them from the snapshot (tab icons, priority results in the panel's open
+  payload); Match site colors off stops the page tint and clears it; the
+  page server appends pages-neutral.css (and a marker the Start Page's paint
+  reads) to pages.css under Neutral, and each window's Island handler
+  restyles its open Blanc pages in place, as shipping's RESTYLE_SCRIPT does.
+  A probe turned each on and saw it take effect (icons instead of dots, a
+  Neutral Start Page restyled with one stylesheet, no tint, the panel opened
+  with priority results); settings-and-theming, island-and-commands and
+  internal-pages match their last runs, and tabs-and-groups 356 (site icons)
+  passes through the new switch.
+- **S1.7 Call audio, candidate macos-960785b1fcb658e4 (2026-11-04):** V15
+  (owner): native in Blink. Patch 0024 (seven newly pinned files, 110 in
+  all) registers `blanc.webrtc.audio_buffer` (automatic; an unsynced
+  profile pref, so device-local as in shipping), carries shipping's targets
+  (automatic -1, stable 400 ms, resilient 1000 ms) in RendererPreferences,
+  refreshes open tabs through PrefWatcher, and has RTCRtpReceiver start each
+  new audio receiver with the target (a page's own jitterBufferTarget still
+  replaces it and reads as the page set it). Privacy and security shows Call
+  audio with shipping's three choices. The owner approved the rebuild it
+  needed (1,460 steps, 7 minutes). A probe moved an open tab's renderer
+  preference to 400, 1000 and back to -1 as the setting changed. Not yet
+  verified: a real call taking the target (the fixture gathers no ICE
+  candidates, even with Chromium's default policy and loopback allowed).
+  Settings-and-theming, island-and-commands and internal-pages match their
+  runs on macos-8d8381846146471d. Every S1.7 key is now built
+  (`tools/settings-keys.mjs` lists none to build).
+- **S1.7 restyle, candidate macos-5faa4ac34c4be46a (2026-11-04):** owner
+  decisions: chrome://settings wears shipping's sheet look under Surface
+  style, and Chromium rows that don't apply are hidden. Patch 0025 (five
+  newly pinned files, 115 in all) maps Sunrise or Neutral, light or dark,
+  onto Chromium's own color tokens from `blanc_settings_proxy.ts` (cream
+  canvas, white hairline cards, gold switches; ink and gray under Neutral),
+  sets Instrument Sans at width 98 and +0.01em (its bytes come from the
+  handler and load with FontFace, since chrome://settings can't fetch
+  Blanc's fonts), and insets Chromium's row lines 20px in shipping's border
+  colour (owner: inset hairlines). It hides, through Chromium's own
+  appearance visibility and flags where they exist (`showPrivacyGuide`,
+  `enableLiveTranslate`) and `hidden` elsewhere: Customize your toolbar,
+  Show home button, Bookmarks bar, the tab strip, tab search, tab group and
+  side panel rows, hover cards, split view drag-and-drop, Performance's two
+  tab-appearance rows, Related Google services, the Google Translate
+  section, Live Translate, and the Privacy Guide card and row. The sheet's
+  card follows Surface style too. A probe listed every page's rows with
+  those gone; settings-and-theming, island-and-commands and internal-pages
+  match their last runs. Chromium's own name still shows in a few strings
+  ("About Chromium", Default browser); that is branding, not this slice.
+- **Open question, file picker hang (2026-11-04):** the owner's live
+  instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
+  wallpaper. The hang report shows the UI thread inside AppKit's
+  `-[NSSavePanel _initBridgeAndStuff]`, waiting on the system open/save
+  panel service (Chromium's ordinary `SelectFileDialogBridge` path, from a
+  plain `<input type=file>`). The same click in an isolated fixture did not
+  hang, and the owner's retry in the relaunched live instance worked. Not
+  reproduced; if it recurs, compare the new hang report with this one.
 - **Live dev instance (owner, 2026-11-03):** after every native build,
   `node chromium/tools/live-dev.mjs <runtime config>` relaunches the
   newest candidate from a copy in `~/Projects/BlancChromium158/live/`,
@@ -539,6 +696,16 @@ Recorded in the spec (§4, §9) and plan:
 - 2026-11-02: no built-in Dark Reader (F42 dark websites) in the Chromium
   builds. With the Chrome Web Store supported, people install Dark Reader
   themselves; F42's cases become an approved divergence, not a port.
+- 2026-11-03: Settings (S1.7) opens in a native sheet: Chromium's restyled
+  chrome://settings in its own native view, drawn as shipping's utility
+  sheet card over the page (scrim, card, Escape and ×), since it can't load
+  in an Island host frame. Not a tab, and not a port of shipping's page.
+  Blanc's own settings become sections inside chrome://settings, bound to
+  Blanc prefs, with Google, Sync, Safety Check and AI sections removed; the
+  separate Blanc page goes once they're in. S1.7 builds the S1 keys'
+  controls; its generated check accounts for every v1.45.1 key (present,
+  native, approved divergence, or a named later slice), and later slices add
+  their own controls.
 - 2026-11-03: the rest of S1.6 goes native. N4: only a tab that inherited
   its opener's sandbox is marked (Chromium can read the flags; shipping
   marks every page-opened tab), the mark keeps the flags in Chromium's
@@ -590,12 +757,12 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.6 is built. Settings in the sheet belongs to S1.7,
-   whose restyled chrome://settings can't load in a host frame; how it is
-   presented is the owner's call there. Verify each change with targeted
-   `--only` runs merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
-   (~2 h) unless development can't continue without it; propose one with
-   the reason first.
+1. S1.7 (F14): every S1.7 key is built and checked against v1.45.1's
+   DEFAULTS (`tools/settings-keys.mjs`: none left to build), Blanc's sections
+   sit inside chrome://settings and blocking-settings.html is retired.
+   and the restyle is in. Deferred by the owner (2026-11-04): confirming
+   Call audio in a real call on a machine whose WebRTC can connect. PR
+   #1356 can merge into the fork branch without it.
 2. F0.3 identity spike in `blanc-test` once signing is approved; then S1 work in slice order, moving each
    group's handlers to the typed interface as its rows are worked. Re-run
    affected cases with --only and merge-baseline.mjs.
@@ -643,5 +810,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-068f7d1291cabbbe; Windows: none; Linux: none.
+Candidate identities: macOS: macos-5faa4ac34c4be46a; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->
