@@ -1,24 +1,14 @@
 #ifndef CHROME_SERVICES_BLANC_BLOCKER_PROXY_H_
 #define CHROME_SERVICES_BLANC_BLOCKER_PROXY_H_
-#include <string>
 #include "chrome/services/blanc_blocker/blocker.mojom.h"
 #include "content/public/browser/commit_deferring_condition.h"
 #include "content/public/browser/content_browser_client.h"
-namespace content { class NavigationThrottleRegistry; class MojoBinderPolicyMap; class BrowserContext; class RenderFrameHost; class WebContents; }
+namespace content { class NavigationThrottleRegistry; class MojoBinderPolicyMap; class BrowserContext; class RenderFrameHost; }
 namespace network { class URLLoaderFactoryBuilder; }
 namespace net { class IsolationInfo; }
 namespace blanc {
 // Read-only process-wide health; never starts or resets the engine.
 const char* BlockerHealth();
-std::string BlockingHostname(const GURL& url);
-bool BlockingEnabled(content::BrowserContext* context);
-bool BlockingSiteExcepted(content::BrowserContext* context, const GURL& url);
-bool ShouldFilter(content::BrowserContext* context, const GURL& top_url);
-bool SetBlockingEnabled(content::BrowserContext* context, bool enabled);
-bool SetBlockingSiteException(content::BrowserContext* context,
-                              const GURL& url, bool allow);
-// Read-only tab-lifetime count; never creates state.
-int ShieldBlockedCount(content::WebContents* contents);
 void AddNavigationResponseGate(content::NavigationThrottleRegistry& registry);
 std::unique_ptr<content::CommitDeferringCondition> MaybeCreateActivationGate(
     content::NavigationHandle& navigation,

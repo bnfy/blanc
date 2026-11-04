@@ -16,10 +16,6 @@ interface DocumentStart {
 
 // Bound by the browser to the requesting document. The renderer supplies only
 // bounded DOM hints; URL and ancestor authority remain in the browser.
-interface CosmeticPolicyClient {
-  PolicyChanged(bool enabled);
-};
 interface Cosmetics {
-  ObservePolicy(pending_remote<CosmeticPolicyClient> client);
-  [Sync] Get(bool initial, bool refresh, string hints) => (bool ready, string output);
+  [Sync] Get(bool initial, string hints) => (bool ready, string output);
 };

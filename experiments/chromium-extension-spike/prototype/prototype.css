@@ -2,8 +2,8 @@
    and panel hearts and the Favorites/History footer buttons are backed by
    Chromium's bookmark and history services; the row pin and mute controls and
    drag-to-reorder by TabStripModel. Glance has no native counterpart yet. */
-#pillInsecure, #pillFillHint, #pillCapture, #pillDisplayShare,
-#pillSpace, #glanceHeader, #panelSiteInfo,
+#pillShield, #pillInsecure, #pillFillHint, #pillCapture, #pillDisplayShare,
+#pillSpace, #pillSlash, #glanceHeader, #panelSiteInfo,
 #footerNewPrivate, #footerWorkspace,
 #footerSettings, .row-glance {
   display: none !important;

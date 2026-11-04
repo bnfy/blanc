@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { changedInputs, plannedActions, checkPlan, planSummary, localJobs, maximumActions, selectedSdk } from './build.mjs';
+import { changedInputs, plannedActions, checkPlan, planSummary, localJobs } from './build.mjs';
 
 test('cold plans larger than the former capture limit retain their final count', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-plan-test-'));
@@ -59,15 +59,6 @@ test('large builds require an explicit override, small builds proceed', () => {
   assert.throws(() => checkPlan('Build Succeeded: 1001 steps'), /Large rebuild stopped/);
   assert.equal(checkPlan('Build Succeeded: 1001 steps', true), 1001);
 });
-test('explicit approved scope caps the preflight even with a large-build override', () => {
-  assert.equal(maximumActions(['--max-actions=47578']), 47578);
-  assert.equal(maximumActions([]), null);
-  for (const value of ['-1', '1.5', '1000000000', '8 -clobber', '']) assert.throws(() => maximumActions(['--max-actions=' + value]));
-  assert.throws(() => maximumActions(['--max-actions=1', '--max-actions=2']));
-  assert.equal(checkPlan('Build Succeeded: 47578 steps', true, true, 47578), 47578);
-  assert.throws(() => checkPlan('Build Succeeded: 47579 steps', true, true, 47578), /exceeds approved maximum/);
-  assert.throws(() => checkPlan('write_buildflag_header.py\nBuild Succeeded: 1 steps', true, true, 47578), /Generated build flags/);
-});
 test('pending manifest regeneration cannot sneak past the size check', () => {
   assert.throws(() => checkPlan('../../buildtools/mac/gn --root=../.. -q --regeneration gen .\nBuild Succeeded: 1 steps', true), /GN regeneration is pending/);
 });
@@ -88,28 +79,4 @@ test('local worker limit is bounded and cannot inject or duplicate flags', () =>
     assert.throws(() => localJobs(['--local-jobs=' + value]));
   }
   assert.throws(() => localJobs(['--local-jobs=8', '--local-jobs=4']));
-});
-
-
-test('explicit recovered SDK must match the real sysroot and never hides Xcode drift', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-sdk-selection-'));
-  try {
-    const out = path.join(dir, 'out'), sdk = path.join(dir, 'sdk'), other = path.join(dir, 'other');
-    for (const p of [out, sdk, other]) fs.mkdirSync(p);
-    for (const p of [sdk, other]) fs.writeFileSync(path.join(p, 'SDKSettings.json'), '{}');
-    fs.symlinkSync(sdk, path.join(out, 'selected.sdk'));
-    fs.writeFileSync(path.join(out, 'toolchain.ninja'), 'cflags = -isysroot selected.sdk -O2\n');
-    assert.equal(selectedSdk([], out), null);
-    assert.equal(selectedSdk([`--sdk-root=${sdk}`], out), fs.realpathSync(sdk));
-    assert.throws(() => selectedSdk([`--sdk-root=${other}`], out), /does not match/);
-    assert.throws(() => selectedSdk(['--sdk-root=relative'], out), /absolute/);
-    assert.throws(() => selectedSdk([`--sdk-root=${sdk}`, `--sdk-root=${sdk}`], out), /exactly one/);
-    // A link can be replaced after preflight; re-resolution must reject it.
-    fs.unlinkSync(path.join(out, 'selected.sdk'));
-    fs.symlinkSync(other, path.join(out, 'selected.sdk'));
-    assert.throws(() => selectedSdk([`--sdk-root=${sdk}`], out), /does not match/);
-    fs.writeFileSync(path.join(out, 'toolchain.ninja'), 'cflags = -O2\n');
-    assert.throws(() => selectedSdk([`--sdk-root=${sdk}`], out), /No sysroot/);
-    assert.deepEqual(changedInputs({xcode:'old',sdkPath:sdk}, {xcode:'new',sdkPath:sdk}), ['xcode']);
-  } finally { fs.rmSync(dir, {recursive:true,force:true}); }
 });

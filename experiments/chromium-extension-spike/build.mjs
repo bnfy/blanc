@@ -50,30 +50,20 @@ export function planSummary(file) {
     buildflags ? 'write_buildflag_header.py' : '',
   ].join('\n');
 }
-export function checkPlan(output, allowLarge = false, rejectBuildflags = false, maxActions = null) {
+export function checkPlan(output, allowLarge = false) {
   if (/--regeneration\s+gen|Regenerating ninja files/.test(output)) {
     throw new Error('GN regeneration is pending. Regenerate with unchanged arguments after reviewing the environment, then rerun preflight. No compilation started.');
   }
   // Siso's dry run does not execute generators. A changed buildflag can
   // invalidate shared libraries and their dependents after this small plan.
-  if (/write_buildflag_header\.py/.test(output) && (!allowLarge || rejectBuildflags)) {
+  if (/write_buildflag_header\.py/.test(output) && !allowLarge) {
     throw new Error('Generated build flags are pending; the dry run can hide dependent compilation. Review and generate those flags separately, then rerun preflight. No compilation started.');
   }
   const actions = plannedActions(output);
-  if (maxActions !== null && actions > maxActions) {
-    throw new Error(`Dry-run scope ${actions} exceeds approved maximum ${maxActions}. No compilation started.`);
-  }
   if (actions > 1000 && !allowLarge) {
     throw new Error('Large rebuild stopped before compilation. Diagnose the saved plan; use --allow-large-build only for an intentional rebuild.');
   }
   return actions;
-}
-export function maximumActions(options) {
-  const values = options.filter(option => option.startsWith('--max-actions='));
-  if (!values.length) return null;
-  if (values.length !== 1 || !/^--max-actions=(0|[1-9][0-9]{0,8})$/.test(values[0]))
-    throw new Error('Use one --max-actions=N with N between 0 and 999999999.');
-  return Number(values[0].split('=')[1]);
 }
 export function localJobs(options) {
   const values = options.filter(option => option.startsWith('--local-jobs='));
@@ -83,51 +73,22 @@ export function localJobs(options) {
   }
   return ['-local_jobs', values[0].split('=')[1]];
 }
-function run(command, args, { stdoutOnly = false, ...options } = {}) {
+function run(command, args, options = {}) {
   const result = spawnSync(command, args, { encoding: 'utf8', maxBuffer: 128 * 1024 * 1024, ...options });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`${path.basename(command)} failed (${result.status}): ${result.stderr || ''}`);
-  return `${result.stdout || ''}${stdoutOnly ? '' : result.stderr || ''}`.trim();
+  return `${result.stdout || ''}${result.stderr || ''}`.trim();
 }
-// An explicit recovered SDK must match the sysroot actually used by Ninja.
-// This changes observation only; it never rewrites arguments or environment pins.
-export function selectedSdk(options, out) {
-  const values = options.filter(option => option.startsWith('--sdk-root='));
-  if (!values.length) return null;
-  if (values.length !== 1) throw new Error('Use exactly one --sdk-root=ABSOLUTE_PATH.');
-  const requested = values[0].slice('--sdk-root='.length);
-  if (!path.isAbsolute(requested)) throw new Error('SDK root must be absolute.');
-  const root = fs.realpathSync(requested);
-  if (!fs.statSync(root).isDirectory() || !fs.existsSync(path.join(root, 'SDKSettings.json')))
-    throw new Error('SDK root must contain SDKSettings.json.');
-  const graph = fs.readFileSync(path.join(out, 'toolchain.ninja'), 'utf8');
-  const paths = [...graph.matchAll(/-isysroot ([^\s]+)/g)].map(match => match[1]);
-  if (!paths.length) throw new Error('No sysroot found in the current toolchain graph.');
-  for (const candidate of new Set(paths)) {
-    if (candidate.includes('$') || candidate.includes('"') || candidate.includes("'"))
-      throw new Error('Unsupported escaped sysroot; review the graph explicitly.');
-    if (fs.realpathSync(path.resolve(out, candidate)) !== root)
-      throw new Error('Selected SDK does not match the current toolchain graph.');
-  }
-  return root;
-}
-function environment(src, out, sdkRoot = null) {
+function environment(src, out) {
   const developerDir = fs.realpathSync(process.env.DEVELOPER_DIR || run('/usr/bin/xcode-select', ['-p']));
   const env = { ...process.env, DEVELOPER_DIR: developerDir, DEPOT_TOOLS_UPDATE: '0' };
-  const xcrun = args => run('/usr/bin/xcrun', ['--sdk', 'macosx', ...args], { env, stdoutOnly: true });
-  const selectedSettings = sdkRoot ? JSON.parse(fs.readFileSync(path.join(sdkRoot, 'SDKSettings.json'), 'utf8')) : null;
-  if (selectedSettings && (typeof selectedSettings.Version !== 'string' || !selectedSettings.Version))
-    throw new Error('Selected SDK has no version identity.');
-  // xcrun may reject a durable copied SDK name; read that verified SDK's own
-  // metadata rather than accidentally observing Xcode's default SDK.
-  const selectedBuild = sdkRoot ? run('/usr/bin/plutil', ['-extract', 'ProductBuildVersion', 'raw', '-o', '-',
-    path.join(sdkRoot, 'System/Library/CoreServices/SystemVersion.plist')], { stdoutOnly: true }) : null;
+  const xcrun = args => run('/usr/bin/xcrun', ['--sdk', 'macosx', ...args], { env });
   const inputs = {
     developerDir,
-    xcode: run('/usr/bin/xcodebuild', ['-version'], { env, stdoutOnly: true }),
-    sdkPath: sdkRoot || xcrun(['--show-sdk-path']),
-    sdkVersion: selectedSettings?.Version || xcrun(['--show-sdk-version']),
-    sdkBuild: selectedBuild || xcrun(['--show-sdk-build-version']),
+    xcode: run('/usr/bin/xcodebuild', ['-version'], { env }),
+    sdkPath: xcrun(['--show-sdk-path']),
+    sdkVersion: xcrun(['--show-sdk-version']),
+    sdkBuild: xcrun(['--show-sdk-build-version']),
     clangRevision: fs.readFileSync(path.join(src, 'third_party/llvm-build/Release+Asserts/cr_build_revision'), 'utf8').trim(),
     clangVersion: run(path.join(src, 'third_party/llvm-build/Release+Asserts/bin/clang'), ['--version']),
     argsSha256: digest(fs.readFileSync(path.join(out, 'args.gn'))),
@@ -136,12 +97,11 @@ function environment(src, out, sdkRoot = null) {
 }
 function main() {
   const [source, ...options] = process.argv.slice(2);
-  const allowed = new Set(['--check', '--build', '--record-environment', '--allow-large-build', '--reject-buildflags']);
-  if (!source || options.some(option => !allowed.has(option) && !option.startsWith('--local-jobs=') && !option.startsWith('--sdk-root=') && !option.startsWith('--max-actions='))) {
-    throw new Error('Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--reject-buildflags] [--max-actions=N] [--local-jobs=N] [--sdk-root=ABSOLUTE_PATH]');
+  const allowed = new Set(['--check', '--build', '--record-environment', '--allow-large-build']);
+  if (!source || options.some(option => !allowed.has(option) && !option.startsWith('--local-jobs='))) {
+    throw new Error('Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--local-jobs=N]');
   }
   const workerArgs = localJobs(options);
-  const maxActions = maximumActions(options);
   const modes = options.filter(option => ['--check', '--build', '--record-environment'].includes(option));
   if (modes.length > 1) throw new Error('Choose one mode.');
   const mode = modes[0] || '--check';
@@ -149,7 +109,7 @@ function main() {
   const out = path.join(src, 'out/BlancPrototype');
   const pinFile = path.join(out, '.blanc-build-environment.json');
   const lock = path.join(out, '.blanc-build-guard.lock');
-  const { inputs, env } = environment(src, out, selectedSdk(options, out));
+  const { inputs, env } = environment(src, out);
   if (mode === '--record-environment') {
     // A declared baseline, never a claim that the build passed. Recording is
     // separate from compilation and cannot bypass the large-plan guard.
@@ -184,11 +144,9 @@ function main() {
     const output = planSummary(planFile);
     const actions = plannedActions(output);
     console.log(`Dry-run scheduled actions: ${actions} (generated outputs may add work). Plan: ${planFile}`);
-    checkPlan(output, options.includes('--allow-large-build'), options.includes('--reject-buildflags'), maxActions);
+    checkPlan(output, options.includes('--allow-large-build'));
     if (mode !== '--build') { console.log('Check only; no compilation started.'); return; }
-    // Re-resolve the selected sysroot as well as re-reading the environment:
-    // the SDK link or graph may have changed during the dry run.
-    if (changedInputs(inputs, environment(src, out, selectedSdk(options, out)).inputs).length) {
+    if (changedInputs(inputs, environment(src, out).inputs).length) {
       throw new Error('Build environment changed during preflight. No build started.');
     }
     if (!actions) return;

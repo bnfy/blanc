@@ -1,35 +1,5 @@
 export function prepareSaveAcknowledgement(edit) {
   edit("chrome/browser/prefs/browser_prefs.cc", [{
-    anchor: 'void RegisterLocalState(PrefRegistrySimple* registry) {',
-    replacement: 'void RegisterLocalState(PrefRegistrySimple* registry) {\n#if __has_include("chrome/browser/ui/blanc_prototype_ui.h")\n  registry->RegisterStringPref("blanc.prototype.ui_language", "system");\n#endif',
-    present: 'registry->RegisterStringPref("blanc.prototype.ui_language", "system");'
-  }]);
-  edit("chrome/browser/prefs/browser_prefs.cc", [{
-    anchor: 'void RegisterLocalState(PrefRegistrySimple* registry) {',
-    replacement: 'void RegisterLocalState(PrefRegistrySimple* registry) {\n#if __has_include("chrome/browser/ui/blanc_prototype_ui.h")\n  registry->RegisterStringPref("blanc.prototype.quiet_delay", "1h");\n#endif',
-    present: 'registry->RegisterStringPref("blanc.prototype.quiet_delay", "1h");'
-  }]);
-  edit("chrome/browser/prefs/browser_prefs.cc", [{
-    anchor: '  TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");',
-    replacement: '  TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");\n#if __has_include("chrome/browser/ui/blanc_prototype_ui.h")\n  registry->RegisterStringPref("blanc.prototype.start_layout", "");\n#endif',
-    present: 'registry->RegisterStringPref("blanc.prototype.start_layout", "");'
-  }]);
-  edit("chrome/browser/prefs/browser_prefs.cc", [{
-    anchor: '  TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");',
-    replacement: '  TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");\n#if __has_include("chrome/browser/ui/blanc_prototype_ui.h")\n  registry->RegisterListPref("blanc.prototype.start_page_pins");\n#endif',
-    present: 'registry->RegisterListPref("blanc.prototype.start_page_pins");'
-  }]);
-  edit("chrome/browser/prefs/browser_prefs.cc", [{
-    anchor: '  TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");',
-    replacement: '  TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");\n#if __has_include("chrome/browser/ui/blanc_prototype_ui.h")\n  registry->RegisterDictionaryPref("blanc.prototype.billboard_clock");\n#endif',
-    present: 'registry->RegisterDictionaryPref("blanc.prototype.billboard_clock");'
-  }]);
-  edit("chrome/browser/prefs/browser_prefs.cc", [{
-    anchor: '  TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");',
-    replacement: '  TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");\n#if __has_include("chrome/browser/ui/blanc_prototype_ui.h")\n  registry->RegisterBooleanPref("blanc.blocking.enabled", true);\n  registry->RegisterListPref("blanc.blocking.exceptions");\n#endif',
-    present: 'registry->RegisterBooleanPref("blanc.blocking.enabled", true);'
-  }]);
-  edit("chrome/browser/prefs/browser_prefs.cc", [{
     anchor: '  TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");',
     replacement: '  TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");\n#if __has_include("chrome/browser/ui/blanc_prototype_ui.h")\n  registry->RegisterStringPref("blanc.prototype.preference_write", "");\n#endif',
     present: 'registry->RegisterStringPref("blanc.prototype.preference_write", "");'

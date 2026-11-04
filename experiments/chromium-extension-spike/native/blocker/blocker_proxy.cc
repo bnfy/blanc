@@ -6,12 +6,6 @@
 #include "content/public/browser/navigation_handle.h"
 #include "third_party/blink/public/mojom/loader/referrer.mojom.h"
 #include <deque>
-#include <limits>
-#include "chrome/browser/profiles/profile.h"
-#include "components/prefs/pref_service.h"
-#include "components/prefs/pref_change_registrar.h"
-#include "content/public/browser/web_contents_user_data.h"
-#include "content/public/browser/web_contents_observer.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
 #include <map>
 #include "base/json/json_reader.h"
@@ -66,13 +60,8 @@
 #include "services/network/public/mojom/url_response_head.mojom.h"
 #include "url/origin.h"
 namespace blanc {
-#include "chrome/services/blanc_blocker/blocking_policy.inc"
 namespace {
 using DecisionCallback = base::OnceCallback<void(int)>;
-GURL BlockingTopURL(content::RenderFrameHost* frame) {
-  return frame ? frame->GetMainFrame()->GetLastCommittedURL() : GURL();
-}
-#include "chrome/services/blanc_blocker/shield_count.inc"
 
 void Record(base::DictValue value) {
 #if BLANC_RESEARCH_HOOKS
@@ -183,8 +172,7 @@ class Engine {
 class ActivationGate : public content::CommitDeferringCondition {
  public:
   explicit ActivationGate(content::NavigationHandle& navigation)
-      : content::CommitDeferringCondition(navigation),
-        shield_count_(navigation.GetWebContents()->GetPrimaryMainFrame()) {}
+      : content::CommitDeferringCondition(navigation) {}
   const char* TraceEventName() const override { return "BlancActivationGate"; }
   Result WillCommitNavigation(base::OnceClosure resume) override {
     resume_ = std::move(resume);
@@ -200,9 +188,6 @@ class ActivationGate : public content::CommitDeferringCondition {
     auto& navigation = GetNavigationHandle();
     // Activation conditions run before the sanitized referrer is initialized.
     // The browser-provided initiator origin is already available at this stage.
-    if (!ShouldFilter(navigation.GetWebContents()->GetBrowserContext(), navigation.GetURL())) {
-      Complete(0); return;
-    }
     const auto& initiator = navigation.GetInitiatorOrigin();
     Engine::Get().Decide(navigation.GetURL().spec(), "mainFrame",
         initiator && !initiator->opaque() ? initiator->GetURL().spec() : "",
@@ -210,7 +195,6 @@ class ActivationGate : public content::CommitDeferringCondition {
   }
   void Complete(int result) {
     timer_.Stop();
-    shield_count_.RecordRuleBlock(result);
     weak_.InvalidateWeakPtrs();
     if (result == 0) {
       std::move(resume_).Run();
@@ -221,7 +205,6 @@ class ActivationGate : public content::CommitDeferringCondition {
     GetNavigationHandle().GetWebContents()->Stop();
   }
   base::OnceClosure resume_;
-  ShieldCountTicket shield_count_;
   base::OneShotTimer timer_;
   base::WeakPtrFactory<ActivationGate> weak_{this};
 };
@@ -230,8 +213,7 @@ class ActivationGate : public content::CommitDeferringCondition {
 class NavigationResponseGate : public content::NavigationThrottle {
  public:
   explicit NavigationResponseGate(content::NavigationThrottleRegistry& registry)
-      : content::NavigationThrottle(registry),
-        shield_count_(navigation_handle()->GetWebContents()->GetPrimaryMainFrame()) {}
+      : content::NavigationThrottle(registry) {}
   const char* GetNameForLogging() override { return "BlancResponseGate"; }
   ThrottleCheckResult WillProcessResponse() override {
     if (!navigation_handle()->GetURL().SchemeIsHTTPOrHTTPS()) return PROCEED;
@@ -244,12 +226,6 @@ class NavigationResponseGate : public content::NavigationThrottle {
   }
  private:
   void Decide() {
-    auto* navigation = navigation_handle();
-    const GURL top = navigation->IsInMainFrame() ? navigation->GetURL()
-        : navigation->GetWebContents()->GetPrimaryMainFrame()->GetLastCommittedURL();
-    if (!ShouldFilter(navigation->GetWebContents()->GetBrowserContext(), top)) {
-      Complete(0); return;
-    }
     Engine::Get().Decide(navigation_handle()->GetURL().spec(),
         navigation_handle()->IsInMainFrame() ? "mainFrame" : "subFrame",
         navigation_handle()->GetReferrer().url.spec(),
@@ -257,7 +233,6 @@ class NavigationResponseGate : public content::NavigationThrottle {
   }
   void Complete(int result) {
     timer_.Stop();
-    shield_count_.RecordRuleBlock(result);
     weak_.InvalidateWeakPtrs();
     base::DictValue event;
     event.Set("event", "navigation-response-decision");
@@ -269,7 +244,6 @@ class NavigationResponseGate : public content::NavigationThrottle {
     if (result == 0) { Resume(); return; }
     CancelDeferredNavigation(ThrottleCheckResult(CANCEL, net::ERR_BLOCKED_BY_CLIENT));
   }
-  ShieldCountTicket shield_count_;
   base::OneShotTimer timer_;
   base::WeakPtrFactory<NavigationResponseGate> weak_{this};
 };
@@ -286,18 +260,12 @@ class SocketDecision {
       mojo::PendingRemote<network::mojom::WebSocketAuthenticationHandler> auth,
       mojo::PendingRemote<network::mojom::TrustedHeaderClient> trusted)
       : context_(std::move(context)), document_(std::move(document)),
-        document_scoped_(document_scoped),
-        shield_count_(document_scoped ? document_.AsRenderFrameHostIfValid() : nullptr),
-        origin_(std::move(origin)),
+        document_scoped_(document_scoped), origin_(std::move(origin)),
         factory_(std::move(factory)), url_(std::move(url)),
         headers_(std::move(headers)), client_(std::move(client)),
         auth_(std::move(auth)), trusted_(std::move(trusted)) {}
   void Begin() {
     Lifecycle("websocket-pending");
-    if (context_ && !ShouldFilter(context_.get(),
-        BlockingTopURL(document_.AsRenderFrameHostIfValid()))) {
-      Done(0); return;
-    }
     client_.set_disconnect_handler(base::BindOnce(&SocketDecision::Abandon,
                                                  weak_.GetWeakPtr()));
     timeout_.Start(FROM_HERE, base::Seconds(35),
@@ -323,7 +291,6 @@ class SocketDecision {
       result = -1;
     timeout_.Stop();
     base::DictValue event;
-    shield_count_.RecordRuleBlock(result);
     event.Set("event", "websocket-decision");
     event.Set("request_id", request_id_);
     event.Set("url", url_.spec());
@@ -347,7 +314,6 @@ class SocketDecision {
   base::WeakPtr<content::BrowserContext> context_;
   content::WeakDocumentPtr document_;
   bool document_scoped_;
-  ShieldCountTicket shield_count_;
   std::string origin_;
   content::ContentBrowserClient::WebSocketFactory factory_;
   GURL url_;
@@ -366,17 +332,11 @@ class TransportDecision {
       content::ContentBrowserClient::WillCreateWebTransportCallback callback,
       mojo::PendingRemote<network::mojom::WebTransportHandshakeClient> client)
       : context_(std::move(context)), document_(std::move(document)),
-        document_scoped_(document_scoped),
-        shield_count_(document_scoped ? document_.AsRenderFrameHostIfValid() : nullptr),
-        origin_(std::move(origin)),
+        document_scoped_(document_scoped), origin_(std::move(origin)),
         url_(std::move(url)), callback_(std::move(callback)),
         client_(std::move(client)) {}
   void Begin() {
     Lifecycle("webtransport-pending");
-    if (context_ && !ShouldFilter(context_.get(),
-        BlockingTopURL(document_.AsRenderFrameHostIfValid()))) {
-      Done(0); return;
-    }
     client_.set_disconnect_handler(base::BindOnce(&TransportDecision::Abandon,
                                                  weak_.GetWeakPtr()));
     timeout_.Start(FROM_HERE, base::Seconds(35),
@@ -407,7 +367,6 @@ class TransportDecision {
       result = -1;
     timeout_.Stop();
     base::DictValue event;
-    shield_count_.RecordRuleBlock(result);
     event.Set("event", "webtransport-decision");
     event.Set("request_id", request_id_);
     event.Set("url", url_.spec());
@@ -433,7 +392,6 @@ class TransportDecision {
   base::WeakPtr<content::BrowserContext> context_;
   content::WeakDocumentPtr document_;
   bool document_scoped_;
-  ShieldCountTicket shield_count_;
   std::string origin_;
   GURL url_;
   content::ContentBrowserClient::WillCreateWebTransportCallback callback_;
@@ -519,8 +477,7 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
       mojo::PendingReceiver<network::mojom::URLLoader> receiver, int32_t id, uint32_t options,
       const network::ResourceRequest& request, mojo::PendingRemote<network::mojom::URLLoaderClient> client,
       const net::MutableNetworkTrafficAnnotationTag& annotation)
-      : context_(context), shield_count_(content::RenderFrameHost::FromID(context.frame)),
-        factory_(std::move(factory)), id_(id), options_(options), request_(request),
+      : context_(context), factory_(std::move(factory)), id_(id), options_(options), request_(request),
         annotation_(annotation), receiver_(this, std::move(receiver)), client_(std::move(client)), incoming_(this) {
     // Snapshot the actual originating frame before an asynchronous decision can
     // outlive it. Worker factories may intentionally have no associated frame.
@@ -726,11 +683,6 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
       std::move(allowed).Run(); return;
     }
 #endif
-    const GURL top = Type(request_) == "mainFrame" ? request_.url
-        : BlockingTopURL(content::RenderFrameHost::FromID(context_.frame));
-    if (!ShouldFilter(context_.browser_context.get(), top)) {
-      std::move(allowed).Run(); return;
-    }
     timeout_.Start(FROM_HERE, base::Seconds(35), base::BindOnce(&Request::TimedOut, weak_.GetWeakPtr()));
     Engine::Get().Decide(request_.url.spec(), Type(request_), request_.referrer.spec(),
       base::BindOnce(&Request::Decided, weak_.GetWeakPtr(), std::move(allowed)));
@@ -832,7 +784,6 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     if (!context_.browser_context) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }
     timeout_.Stop();
     TraceDecision(result);
-    shield_count_.RecordRuleBlock(result);
     // Measure through application of the decision, not just receipt of the Mojo
     // reply. Capture time before optional context/logging work adds overhead.
     if (result != 0) Complete(net::ERR_BLOCKED_BY_CLIENT);
@@ -846,7 +797,6 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     if (priority_) loader_->SetPriority(*priority_, intra_);
   }
   Context context_;
-  ShieldCountTicket shield_count_;
   std::string top_origin_ = "unresolved";
   std::string frame_role_ = "unresolved";
   std::string frame_state_;
@@ -890,11 +840,6 @@ class Factory : public network::SelfDeletingURLLoaderFactory {
 };
 }
 const char* BlockerHealth() { return Engine::Get().Health(); }
-int ShieldBlockedCount(content::WebContents* contents) {
-  if (!contents || !contents->GetPrimaryMainFrame()) return 0;
-  const auto* count = ShieldTabCount::FromWebContents(contents);
-  return count ? count->value : 0;
-}
 content::ContentBrowserClient::WebSocketFactory WrapWebSocketFactory(
     int process_id, int frame_routing_id, const url::Origin& initiator_origin,
     content::ContentBrowserClient::WebSocketFactory factory) {

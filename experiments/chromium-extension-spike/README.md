@@ -214,19 +214,3 @@ separate acceptance checks. Window whitespace supports native dragging; the Isla
 scrolls within the available height. Page-requested fullscreen hides the Island
 and gives the page the full viewport. See the Island-only section in `results.md`
 for runtime verification and remaining limits.
-
-### Chromium 158 owned-UI staging
-
-For the existing `158.0.8127.2` checkout, `node experiments/chromium-extension-spike/prepare.mjs <158-src> --stage-native-owned` translates the reviewed 157/158 foreground-disposition and app-menu API differences, stages six Blanc-owned UI files under `generated-158-native`, and reports their hashes and comparison to the checkout in `generated-158-native-receipt.json`. It does not modify the Chromium source, configure GN, update the toolchain, compile or establish that upstream integration is complete. Review any differences and the guarded build plan before applying or compiling changes. It rejects unexpected versions, mixed options and changed transformation anchors. The legacy 157 preparation stays separate.
-
-### Chromium 158 blocker-owned staging
-
-`node experiments/chromium-extension-spike/prepare.mjs <158-src> --stage-blocker-owned` stages 15 blocker-owned source paths under `generated-158-blocker`, applying the reviewed 158 `CosmeticDocument` self-deleting lifetime adaptations and comparing their hashes with the checkout. It does not write into Chromium or stage upstream hooks, an authenticated engine bundle, GN or build outputs. Review discrepancies and the guarded build plan before applying or compiling. The 157 preparation remains separate.
-
-### Chromium 158 generated blocker staging
-
-`node experiments/chromium-extension-spike/stage-158-blocker-generated.mjs <158-src> <engine-assets>` compares the engine and procedural renderer with digests from the previously authenticated 158 packet, checks the local manifest/header, then stages four generated inputs and compares them with the checkout. This is a prior-evidence digest check, not a fresh signature verification or complete upstream integration. No Chromium source, cache or build is modified.
-
-### Chromium 158 selected integration hooks
-
-`native/chromium158-integration-hooks.patch` and its JSON inventory preserve the current 15 selected upstream hook-file diffs against the exact 158 tag. They include later DevTools response-handling changes, shared navigation behavior and research-guarded code; review the full patch and preimage hashes before applying it to an isolated tree. The patch does not include owned sources, generated assets or all upstream modifications and is not a complete build recipe. See `evidence/blocker-158-hooks-20261029/README.md`.
