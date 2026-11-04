@@ -452,7 +452,8 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   `-[NSSavePanel _initBridgeAndStuff]`, waiting on the system open/save
   panel service (Chromium's ordinary `SelectFileDialogBridge` path, from a
   plain `<input type=file>`). The same click in an isolated fixture did not
-  hang. Not yet reproduced or explained.
+  hang, and the owner's retry in the relaunched live instance worked. Not
+  reproduced; if it recurs, compare the new hang report with this one.
 - **Live dev instance (owner, 2026-11-03):** after every native build,
   `node chromium/tools/live-dev.mjs <runtime config>` relaunches the
   newest candidate from a copy in `~/Projects/BlancChromium158/live/`,
