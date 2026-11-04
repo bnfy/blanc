@@ -42,7 +42,16 @@ async function main(configFile) {
   if (!source.endsWith('.app') || !config.candidate || !config.blockerAssets) throw Error('Runtime config needs executable, candidate and blockerAssets');
   fs.mkdirSync(path.join(LIVE, 'profile'), {recursive: true, mode: 0o700});
   const app = path.join(LIVE, `${config.candidate}.app`);
-  if (!fs.existsSync(app)) execFileSync('ditto', [source, app]);
+  // Copy into a staging name and rename it into place, so a half-written copy
+  // is never launched; a copy already in place for this candidate is kept.
+  const staging = `${app}.partial-${process.pid}`;
+  execFileSync('ditto', [source, staging]);
+  try {
+    fs.renameSync(staging, app);
+  } catch (error) {
+    fs.rmSync(staging, {recursive: true, force: true});
+    if (error.code !== 'ENOTEMPTY' && error.code !== 'EEXIST') throw error;
+  }
   for (const {pid} of list()) {
     process.kill(pid, 'SIGTERM');
     for (let i = 0; i < 60 && list().some(p => p.pid === pid); i++) await sleep(250);
