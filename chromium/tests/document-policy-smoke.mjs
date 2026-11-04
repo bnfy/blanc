@@ -21,16 +21,18 @@ const VARIANTS=[
  {name:'same-origin',sandbox:'allow-same-origin allow-scripts allow-popups',storage:'allowed'},
  {name:'unsandboxed',sandbox:null,storage:'allowed'},
 ];
+// The tags a child page's address may carry.
+const TAGS=['live'];
 // Chromium's flag bits (web_sandbox_flags.mojom).
 const FORMS=8,ORIGIN=4,PROPAGATES=2048;
 // Targets are built from fixed-shape parameters, never taken as a URL. The
 // target reports its origin, its storage access and whether a form posts.
 const server=http.createServer((q,r)=>{
  const url=new URL(q.url,'http://x');
- // Only the fixed names are echoed into a page: a variant, and a tag of
- // lowercase letters (anything else is refused).
+ // Only constants are echoed into a page: the matching variant's name and
+ // tag from the lists here; anything else is refused.
  const variant=VARIANTS.find(x=>x.name===url.searchParams.get('v'));
- const tag=/^[a-z]{1,16}$/.test(url.searchParams.get('tag')??'')?url.searchParams.get('tag'):null;
+ const tag=TAGS.find(t=>t===url.searchParams.get('tag'))??null;
  r.writeHead(200,{'content-type':'text/html'});
  if(url.pathname!=='/initial'&&url.pathname!=='/sent'&&(!variant||!tag)){r.end('<title>refused</title>');return;}
  const v=variant?.name;
