@@ -15,6 +15,13 @@ where the platform genuinely demands it.
 > matrix is `PLANNED`. The value right now is the **contract** each feature
 > must honour and the **divergences** already known, so the mobile builds start
 > from a shared target instead of copying desktop's incidental choices.
+>
+> **Android (2026-11-04):** Blanc for Android is built on an Android lane of
+> the Chromium fork (`chromium/lanes/android.json`; plan
+> `docs/superpowers/plans/2026-11-03-android-port.md`), not a separate Kotlin
+> app. Milestone A0: a debug build runs on the emulator with Google background
+> services off. Nothing is released, and every Android matrix cell stays
+> `PLANNED` until a release backs it.
 
 ## The one principle
 

@@ -21,6 +21,9 @@ capabilities, and this is non-negotiable — you cannot ship a common engine.
   **programmatic and comparably powerful** to desktop; can consult the full rule
   set per request. Alternatively a bundled Chromium fork if the app ever ships its
   own engine.
+  **Update 2026-11-04:** Android ships its own engine: it is built on the
+  Chromium fork's Android lane and uses the fork's blocker host, shared with
+  desktop (milestone A3), not `WebView.shouldInterceptRequest`.
 - **iOS:** `WKContentRuleList` — **declarative JSON, ~150k-rule cap per list, no
   programmatic per-request logic.** Requires curating EasyList+EasyPrivacy down to
   fit and compiling to Apple's format. This is structurally the same constraint as
