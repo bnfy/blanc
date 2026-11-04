@@ -47,6 +47,13 @@
   },
   "canonicalSha256": {
     "blanc/BUILD.gn": "7fe9606b4d5423708b84c6d3e637eef34403c13877949cd02cc240b58c4b4a98",
+    "blanc/android/BUILD.gn": "e8dbd4355f2f46fc204af6446218616f2d0d053e3bf793bc896904eda05fe976",
+    "blanc/android/junit/src/org/chromium/blanc/island/IslandMenuTest.java": "cc0c7992556e29e3ca169e6018acc0f467fa5a8cd767893519f045e3bc635006",
+    "blanc/android/junit/src/org/chromium/blanc/island/IslandPositionTest.java": "eb2268e20819c8975aa8d77c355eb92164f3b1bc66c8b38c7f31bbafc4c6aaf1",
+    "blanc/android/junit/src/org/chromium/blanc/island/IslandSwipeTest.java": "9aa74887a352ad69aeb9c95d10ba5fab2f6a58f8d9f7cf13d627d79e890c8e00",
+    "blanc/android/junit/src/org/chromium/blanc/island/IslandTitleTest.java": "4612b7633a0f3548ed729592d6f4e95882aada9d2167ae2fa73121b2e0109dd4",
+    "blanc/android/junit/src/org/chromium/blanc/island/IslandTuckTest.java": "566e1b6b0d428543ddd539f57db5719d095f5f0947f8c0ca758a6e2f0d99e739",
+    "blanc/android/junit/src/org/chromium/blanc/island/IslandVisibilityTest.java": "164513a1bc12cc16badc62b90f183ec0e99c1cae8e4c05ec9fcaf7352734657a",
     "blanc/android/res/drawable-hdpi/themed_app_icon.png": "1c9e10f19826e5d7c181fab695b491e30574523961e817929ed19c7ffcebf095",
     "blanc/android/res/drawable-mdpi/themed_app_icon.png": "fec51757a1ee1350ea247d8e5b548ea26256914786e6afb5f473ac10dd7acb6a",
     "blanc/android/res/drawable-xhdpi/themed_app_icon.png": "71efbc6154239a59113b9933b55e56877f3d658fcdc507a72d2bc8a3839eae7f",

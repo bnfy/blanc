@@ -21,6 +21,8 @@ in the lane file in its place. Numbering starts at 0101.
   Google sign-in, Blanc never lists the Google accounts in its cookie jar
   (sign-in metrics and Sync's session recorder called
   `accounts.google.com/ListAccounts` at every startup).
+- `0103-android-blanc-java.patch`: puts Blanc's own Java test binary
+  (`//blanc/android:blanc_android_junit_tests`) in the root build.
 
 A file dropped from the lane keeps its applied edits in an existing checkout
 (`apply.py` touches only the lane's files): restore it with `git checkout`
