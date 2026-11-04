@@ -478,6 +478,28 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   natively, so through a handler), then retiring blocking-settings.html.
   Chromium's own Appearance rows that don't apply to the Island (toolbar,
   bookmarks bar, tab strip, side panel) are still shown.
+- **S1.7 Blanc's lists and language in chrome://settings, candidate macos-1fa75f97ed921757 (2026-11-04):**
+  patch 0022 (three newly pinned files, 103 in all, plus a new
+  `blanc_settings_proxy.ts` in Settings' BUILD.gn) adds Your bangs under
+  Bangs, the sites that load without blocking under Block ads & trackers,
+  and the interface language (with Relaunch to apply) atop Languages.
+  They go through `ChromiumSettingsHandler`
+  (`blanc/browser/ui/chromium_settings_handler.inc`, registered on
+  SettingsUI), which applies shipping's rules natively: normalizeCustomBangs,
+  the duplicate check, the built-in a code replaces (read from the bundled
+  `pages/bangs-catalog.js`), host normalization (a host Chromium would
+  percent-escape is refused, as shipping's URL parser refuses it) and the
+  selectable languages. A probe added, refused and removed bangs ("Replaces
+  the built-in !a (Amazon.com)", "You already have !m.", the invalid-bang
+  message; the Island saw the list), added WWW.Example.com/x as example.com,
+  refused "not a host!", and switched the language with the relaunch offer
+  appearing and going; settings-and-theming matches s17g. The language menu
+  is unstyled and the Languages page still shows Google Translate; both for
+  the restyle. The BUILD.gn change needed `gn gen` (unchanged arguments,
+  same Xcode, SDK and Clang); `linker_driver.py`'s Oct 28 modification time
+  feeds GN's `TOOL_VERSION`, so the regenerated link lines relinked the Rust
+  host tools and about 15,000 dependent steps (the owner approved that
+  rebuild; about 50 minutes in all).
 - **Open question, file picker hang (2026-11-04):** the owner's live
   instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
   wallpaper. The hang report shows the UI thread inside AppKit's
@@ -731,5 +753,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-b1e03720c5fd6337; Windows: none; Linux: none.
+Candidate identities: macOS: macos-1fa75f97ed921757; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

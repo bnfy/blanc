@@ -1,0 +1,588 @@
+diff --git a/chrome/browser/resources/settings/BUILD.gn b/chrome/browser/resources/settings/BUILD.gn
+index 480df5a..b93e4aa 100644
+--- a/chrome/browser/resources/settings/BUILD.gn
++++ b/chrome/browser/resources/settings/BUILD.gn
+@@ -261,6 +261,7 @@ build_webui("build") {
+     "autofill_page/walletable_pass_detection_toggle.html.ts",
+     "autofill_page/walletable_pass_detection_toggle.ts",
+     "base_mixin.ts",
++    "blanc_settings_proxy.ts",
+     "clear_browsing_data_dialog/clear_browsing_data_browser_proxy.ts",
+     "clear_browsing_data_dialog/clear_browsing_data_dialog.html.ts",
+     "clear_browsing_data_dialog/clear_browsing_data_dialog.ts",
+diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+new file mode 100644
+index 0000000..cf26592
+--- /dev/null
++++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+@@ -0,0 +1,79 @@
++// Copyright 2026 Bananify Creative. MIT; see the Blanc repository LICENSE.
++
++// Blanc's lists and language in chrome://settings (S1.7), answered by
++// ChromiumSettingsHandler (blanc/browser/ui/chromium_settings_handler.inc),
++// which validates every change as shipping's settings do.
++
++import {addWebUiListener, removeWebUiListener, sendWithPromise} from 'chrome://resources/js/cr.js';
++import type {WebUiListener} from 'chrome://resources/js/cr.js';
++
++import {loadTimeData} from './i18n_setup.js';
++
++export interface BlancBang {
++  code: string;
++  name: string;
++  template: string;
++  host: string;
++}
++
++export interface BlancLanguage {
++  code: string;
++  endonym: string;
++}
++
++export interface BlancSettingsState {
++  customBangs: BlancBang[];
++  exceptions: string[];
++  uiLanguage: string;
++  uiLanguages: BlancLanguage[];
++  launchUiLanguage: string|null;
++}
++
++export interface BlancResult {
++  result: string;
++  code?: string;
++  site?: string;
++  state: BlancSettingsState;
++}
++
++export const blancSettings = {
++  get: () => sendWithPromise<BlancSettingsState>('blancSettingsGet'),
++  addBang: (code: string, name: string, template: string) =>
++      sendWithPromise<BlancResult>('blancSettingsAddBang', code, name, template),
++  removeBang: (code: string) =>
++      sendWithPromise<BlancResult>('blancSettingsRemoveBang', code),
++  addException: (site: string) =>
++      sendWithPromise<BlancResult>('blancSettingsAddException', site),
++  removeException: (site: string) =>
++      sendWithPromise<BlancResult>('blancSettingsRemoveException', site),
++  setUiLanguage: (code: string) =>
++      sendWithPromise<BlancResult>('blancSettingsSetUiLanguage', code),
++  relaunch: () => sendWithPromise<boolean>('blancSettingsRelaunch'),
++  listen: (callback: (state: BlancSettingsState) => void): WebUiListener =>
++      addWebUiListener('blanc-settings-changed', callback),
++  stopListening: (listener: WebUiListener) => removeWebUiListener(listener),
++};
++
++// Shipping's messages name their placeholders: {code}, {site}, {language}.
++export function blancString(
++    name: string, values: Record<string, string> = {}): string {
++  return loadTimeData.getString(name).replace(
++      /\{(\w+)\}/g, (_, key: string) => values[key] ?? '');
++}
++
++// Shipping's resolveLocale for "system": each preferred language's exact
++// catalog, its language, else the same language's regional catalog.
++export function blancSystemLanguage(
++    codes: string[], preferred: readonly string[]): string {
++  const primaryOf = (code: string) => code.toLowerCase().split('-')[0];
++  for (const tag of preferred) {
++    const wanted = tag.replace(/_/g, '-').toLowerCase();
++    const match = codes.find(code => code.toLowerCase() === wanted) ??
++        codes.find(code => code === primaryOf(wanted)) ??
++        codes.find(code => primaryOf(code) === primaryOf(wanted));
++    if (match) {
++      return match;
++    }
++  }
++  return 'en';
++}
+diff --git a/chrome/browser/resources/settings/languages_page/languages_page.html.ts b/chrome/browser/resources/settings/languages_page/languages_page.html.ts
+index fbe92ce..b4ffb96 100644
+--- a/chrome/browser/resources/settings/languages_page/languages_page.html.ts
++++ b/chrome/browser/resources/settings/languages_page/languages_page.html.ts
+@@ -9,6 +9,31 @@ import type {SettingsLanguagesPageElement} from './languages_page.js';
+ export function getHtml(this: SettingsLanguagesPageElement) {
+   return html`<!--_html_template_start_-->
+ <settings-section page-title="$i18n{languagesCardTitle}">
++<!-- Blanc's interface language (S1.7). -->
++${this.blancLanguage_ ? html`
++  <div id="blancUiLanguageRow" class="cr-row first">
++    <div class="flex cr-padded-text" id="blancUiLanguageLabel">
++      <div>$i18n{blancLanguage}</div>
++      <div class="secondary">$i18n{blancLanguageHint}</div>
++    </div>
++    ${this.blancLanguage_.relaunch ? html`
++      <cr-button id="blancUiLanguageRelaunch" class="cr-button-gap"
++          @click="${this.onBlancRelaunchClick_}">
++        $i18n{blancLanguageRelaunch}
++      </cr-button>
++    ` : ''}
++    <select id="blancUiLanguage" class="md-select cr-button-gap"
++        aria-labelledby="blancUiLanguageLabel"
++        @change="${this.onBlancLanguageChange_}">
++      ${this.blancLanguage_.options.map(option => html`
++        <option value="${option.value}"
++            ?selected="${option.value === this.blancLanguage_!.selected}">
++          ${option.label}
++        </option>
++      `)}
++    </select>
++  </div>
++` : ''}
+ <div id="languagesSection">
+   <div class="cr-row continuation">
+     <div id="languagesSectionHeader" class="flex">
+diff --git a/chrome/browser/resources/settings/languages_page/languages_page.ts b/chrome/browser/resources/settings/languages_page/languages_page.ts
+index cc109f3..29bf166 100644
+--- a/chrome/browser/resources/settings/languages_page/languages_page.ts
++++ b/chrome/browser/resources/settings/languages_page/languages_page.ts
+@@ -29,6 +29,10 @@ import {focusWithoutInk} from 'chrome://resources/js/focus_without_ink.js';
+ import {isWindows} from 'chrome://resources/js/platform.js';
+ import {CrLitElement} from 'chrome://resources/lit/v3_0/lit.rollup.js';
+ 
++import type {WebUiListener} from 'chrome://resources/js/cr.js';
++
++import type {BlancSettingsState} from '../blanc_settings_proxy.js';
++import {blancSettings, blancString, blancSystemLanguage} from '../blanc_settings_proxy.js';
+ import {RelaunchMixinLit, RestartType} from '../relaunch_mixin_lit.js';
+ import {routes} from '../route.js';
+ import {RouteObserverMixinLit} from '../router.js';
+@@ -75,6 +79,7 @@ export class SettingsLanguagesPageElement extends
+ 
+   static override get properties() {
+     return {
++      blancLanguage_: {type: Object},
+       supportedLanguages_: {type: Array},
+       enabledLanguages_: {type: Array},
+       translateTarget_: {type: String},
+@@ -101,6 +106,14 @@ export class SettingsLanguagesPageElement extends
+   protected accessor canEnableSomeSupportedLanguage_: boolean = false;
+   protected accessor prospectiveUILanguage_: string = '';
+   protected accessor detailLanguage_: LanguageState|undefined = undefined;
++  // Blanc's interface language (S1.7, shipping's Settings → Language): the
++  // stored choice, the choices, and whether it differs from this launch's.
++  protected accessor blancLanguage_: {
++    selected: string,
++    options: Array<{value: string, label: string}>,
++    relaunch: boolean,
++  }|null = null;
++  private blancListener_: WebUiListener|null = null;
+   protected accessor showAddLanguagesDialog_: boolean = false;
+   protected accessor addLanguagesDialogLanguages_:
+       chrome.languageSettingsPrivate.Language[] = [];
+@@ -128,10 +141,16 @@ export class SettingsLanguagesPageElement extends
+     if (this.languageHelper_.languages) {
+       this.onLanguagesChanged_(this.languageHelper_.languages);
+     }
++    this.blancListener_ = blancSettings.listen(state => this.blancShow_(state));
++    blancSettings.get().then(state => this.blancShow_(state));
+   }
+ 
+   override disconnectedCallback() {
+     super.disconnectedCallback();
++    if (this.blancListener_) {
++      blancSettings.stopListening(this.blancListener_);
++      this.blancListener_ = null;
++    }
+ 
+     if (this.boundOnLanguagesChanged_) {
+       this.languageHelper_.removeEventListener(
+@@ -468,6 +487,49 @@ export class SettingsLanguagesPageElement extends
+           LanguageSettingsPageImpressionType.MAIN);
+     }
+   }
++
++  // Shipping's languageRow and needsRelaunch (settings-language-model.js).
++  private blancShow_(state: BlancSettingsState) {
++    const codes = state.uiLanguages.map(language => language.code);
++    if (codes.length < 2) {
++      this.blancLanguage_ = null;
++      return;
++    }
++    const endonym = new Map(
++        state.uiLanguages.map(language => [language.code, language.endonym]));
++    const system = blancSystemLanguage(
++        codes, navigator.languages.length ? navigator.languages :
++                                            [navigator.language]);
++    const active = state.launchUiLanguage ?? system;
++    const selected = state.uiLanguage === 'system' ||
++            endonym.has(state.uiLanguage) ?
++        state.uiLanguage :
++        'en';
++    const resolved = selected === 'system' ? system : selected;
++    this.blancLanguage_ = {
++      selected,
++      options: [
++        {
++          value: 'system',
++          label: blancString(
++              'blancLanguageSystem',
++              {language: endonym.get(system) ?? endonym.get('en') ?? ''}),
++        },
++        ...state.uiLanguages.map(
++            language => ({value: language.code, label: language.endonym})),
++      ],
++      relaunch: resolved !== active,
++    };
++  }
++
++  protected async onBlancLanguageChange_(event: Event) {
++    const value = (event.target as HTMLSelectElement).value;
++    this.blancShow_((await blancSettings.setUiLanguage(value)).state);
++  }
++
++  protected onBlancRelaunchClick_() {
++    blancSettings.relaunch();
++  }
+ }
+ 
+ declare global {
+diff --git a/chrome/browser/resources/settings/privacy_page/privacy_page.html b/chrome/browser/resources/settings/privacy_page/privacy_page.html
+index 507dfb1..d802de9 100644
+--- a/chrome/browser/resources/settings/privacy_page/privacy_page.html
++++ b/chrome/browser/resources/settings/privacy_page/privacy_page.html
+@@ -16,6 +16,34 @@
+         label="$i18n{blancBlocking}"
+         sub-label="$i18n{blancBlockingHint}">
+     </settings-toggle-button>
++    <div id="blancExceptions" class="cr-row continuation">
++      <div class="flex cr-padded-text secondary">$i18n{blancExceptions}</div>
++    </div>
++    <div id="blancExceptionList" class="list-frame vertical-list" role="list">
++      ${!this.blancExceptions_.length ? html`
++        <div class="list-item secondary" id="blancExceptionsEmpty">
++          $i18n{blancExceptionsEmpty}
++        </div>
++      ` : html`${this.blancExceptions_.map(site => html`
++        <div class="list-item blanc-exception" role="listitem">
++          <div class="start cr-padded-text">${site}</div>
++          <cr-icon-button class="blanc-exception-remove" iron-icon="cr:close"
++              data-site="${site}"
++              title="${this.blancRemoveSiteLabel_(site)}"
++              aria-label="${this.blancRemoveSiteLabel_(site)}"
++              @click="${this.onBlancRemoveExceptionClick_}">
++          </cr-icon-button>
++        </div>
++      `)}`}
++      <div class="list-item" id="blancExceptionAddRow">
++        <cr-input id="blancExceptionInput" class="flex" placeholder="example.com"
++            aria-label="$i18n{blancExceptionsAdd}"
++            @keydown="${this.onBlancExceptionKeydown_}"></cr-input>
++        <cr-button id="blancExceptionAdd" @click="${this.onBlancAddExceptionClick_}">
++          $i18n{blancExceptionsAdd}
++        </cr-button>
++      </div>
++    </div>
+     <cr-link-row id="clearBrowsingData" class="hr"
+         start-icon="cr:delete"
+         label="$i18n{clearBrowsingData}"
+diff --git a/chrome/browser/resources/settings/privacy_page/privacy_page.ts b/chrome/browser/resources/settings/privacy_page/privacy_page.ts
+index 7801ee3..fdb9368 100644
+--- a/chrome/browser/resources/settings/privacy_page/privacy_page.ts
++++ b/chrome/browser/resources/settings/privacy_page/privacy_page.ts
+@@ -14,6 +14,9 @@ import '../icons.html.js';
+ import '../privacy_icons.html.js';
+ import '../settings_page/settings_section.js';
+ import '../controls/settings_toggle_button.js';  // Blanc (S1.7)
++import 'chrome://resources/cr_elements/cr_button/cr_button.js';
++import 'chrome://resources/cr_elements/cr_icon_button/cr_icon_button.js';
++import 'chrome://resources/cr_elements/cr_input/cr_input.js';
+ import './privacy_guide/privacy_guide_dialog.js';
+ 
+ import {PrefServiceObserverMixinLit} from '/shared/settings/prefs2/pref_service_observer_mixin_lit.js';
+@@ -38,6 +41,10 @@ import {CookieControlsMode} from '../site_settings/constants.js';
+ 
+ import {HatsBrowserProxyImpl, TrustSafetyInteraction} from './hats_browser_proxy.js';
+ import {PrivacyGuideAvailabilityMixinLit} from './privacy_guide/privacy_guide_availability_mixin_lit.js';
++import type {CrInputElement} from 'chrome://resources/cr_elements/cr_input/cr_input.js';
++import type {WebUiListener} from 'chrome://resources/js/cr.js';
++
++import {blancSettings, blancString} from '../blanc_settings_proxy.js';
+ import {getHtml} from './privacy_page.html.js';
+ 
+ export interface SettingsPrivacyPageElement {
+@@ -74,6 +81,7 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
+ 
+   static override get properties() {
+     return {
++      blancExceptions_: {type: Array},
+       showClearBrowsingDataDialog_: {type: Boolean},
+       showPrivacyGuideDialog_: {type: Boolean},
+ 
+@@ -88,6 +96,9 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
+   }
+ 
+   protected accessor showClearBrowsingDataDialog_: boolean = false;
++  // Blanc's sites that load without blocking (S1.7).
++  protected accessor blancExceptions_: string[] = [];
++  private blancListener_: WebUiListener|null = null;
+   protected accessor showPrivacyGuideDialog_: boolean = false;
+   protected accessor dbdDeletionConfirmationToastLabel_: string = '';
+   private accessor showUniversalOptOutSettings_: boolean =
+@@ -103,6 +114,51 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
+     super.connectedCallback();
+ 
+     this.mirrorPref('profile.cookie_controls_mode', 'cookieControlsModePref_');
++    this.blancListener_ = blancSettings.listen(state => {
++      this.blancExceptions_ = state.exceptions;
++    });
++    blancSettings.get().then(state => {
++      this.blancExceptions_ = state.exceptions;
++    });
++  }
++
++  override disconnectedCallback() {
++    super.disconnectedCallback();
++    if (this.blancListener_) {
++      blancSettings.stopListening(this.blancListener_);
++      this.blancListener_ = null;
++    }
++  }
++
++  // Blanc's sites that load without blocking (S1.7): a host or an address,
++  // normalized natively as shipping's settings do.
++  protected async onBlancAddExceptionClick_() {
++    const input = this.shadowRoot.querySelector<CrInputElement>(
++        '#blancExceptionInput')!;
++    if (!input.value.trim()) {
++      return;
++    }
++    const reply = await blancSettings.addException(input.value);
++    this.blancExceptions_ = reply.state.exceptions;
++    if (reply.result === 'added') {
++      input.value = '';
++    }
++  }
++
++  protected onBlancExceptionKeydown_(event: KeyboardEvent) {
++    if (event.key === 'Enter') {
++      this.onBlancAddExceptionClick_();
++    }
++  }
++
++  protected async onBlancRemoveExceptionClick_(event: Event) {
++    const site = (event.currentTarget as HTMLElement).dataset['site'] ?? '';
++    this.blancExceptions_ =
++        (await blancSettings.removeException(site)).state.exceptions;
++  }
++
++  protected blancRemoveSiteLabel_(site: string): string {
++    return blancString('blancExceptionsRemove', {site});
+   }
+ 
+   override currentRouteChanged(newRoute: Route, oldRoute?: Route) {
+diff --git a/chrome/browser/resources/settings/search_page/search_page.html.ts b/chrome/browser/resources/settings/search_page/search_page.html.ts
+index 2810a33..02ff7ce 100644
+--- a/chrome/browser/resources/settings/search_page/search_page.html.ts
++++ b/chrome/browser/resources/settings/search_page/search_page.html.ts
+@@ -73,6 +73,53 @@ export function getHtml(this: SettingsSearchPageElement) {
+         label="$i18n{blancBangs}"
+         sub-label="$i18n{blancBangsHint}">
+     </settings-toggle-button>
++    <div id="blancCustomBangs" class="cr-row continuation">
++      <div class="flex cr-padded-text">
++        <div>$i18n{blancCustomBangs}</div>
++        <div class="secondary">$i18n{blancCustomBangsHint}</div>
++      </div>
++    </div>
++    <div id="blancCustomBangList" class="list-frame vertical-list" role="list">
++      ${!this.blancBangs_.length ? html`
++        <div class="list-item secondary" id="blancCustomBangsEmpty">
++          $i18n{blancCustomBangsEmpty}
++        </div>
++      ` : html`${this.blancBangs_.map(bang => html`
++        <div class="list-item blanc-bang" role="listitem">
++          <div class="start cr-padded-text">
++            <span class="blanc-bang-code">!${bang.code}</span>
++            <span class="blanc-bang-name">${bang.name}</span>
++            <span class="secondary blanc-bang-host">${bang.host}</span>
++          </div>
++          <cr-icon-button class="blanc-bang-remove" iron-icon="cr:close"
++              data-code="${bang.code}"
++              title="${this.blancRemoveLabel_(bang.code)}"
++              aria-label="${this.blancRemoveLabel_(bang.code)}"
++              @click="${this.onBlancRemoveBangClick_}">
++          </cr-icon-button>
++        </div>
++      `)}`}
++      <div class="list-item" id="blancCustomBangAddRow">
++        <cr-input id="blancBangCode" placeholder="code"
++            aria-label="$i18n{blancCustomBangsCode}"
++            @keydown="${this.onBlancBangKeydown_}"></cr-input>
++        <cr-input id="blancBangName" placeholder="$i18n{blancCustomBangsName}"
++            aria-label="$i18n{blancCustomBangsName}"
++            @keydown="${this.onBlancBangKeydown_}"></cr-input>
++        <cr-input id="blancBangTemplate" class="flex"
++            placeholder="https://search.example.com/?q=%s"
++            aria-label="$i18n{blancCustomBangsAddress}"
++            @keydown="${this.onBlancBangKeydown_}"></cr-input>
++        <cr-button id="blancBangAdd" @click="${this.onBlancAddBangClick_}">
++          $i18n{blancCustomBangsAdd}
++        </cr-button>
++      </div>
++      ${this.blancBangNotice_ ? html`
++        <div class="list-item secondary" id="blancBangNotice" role="status">
++          ${this.blancBangNotice_}
++        </div>
++      ` : ''}
++    </div>
+     ${this.defaultSearchProviderDataPref_?.extensionId ? html`
+       ${this.searchSettingsUpdateEnabled_ ? html`
+         <div class="cr-row">
+diff --git a/chrome/browser/resources/settings/search_page/search_page.ts b/chrome/browser/resources/settings/search_page/search_page.ts
+index 72435f9..96abec1 100644
+--- a/chrome/browser/resources/settings/search_page/search_page.ts
++++ b/chrome/browser/resources/settings/search_page/search_page.ts
+@@ -17,6 +17,9 @@ import './search_engine_list_dialog.js';
+ import './search_engine_more_engines_dialog.js';
+ import '../settings_page/settings_section.js';
+ import '../controls/settings_toggle_button.js';  // Blanc (S1.7)
++import 'chrome://resources/cr_elements/cr_icon_button/cr_icon_button.js';
++import 'chrome://resources/cr_elements/cr_input/cr_input.js';
++import 'chrome://resources/cr_elements/icons.html.js';
+ 
+ import {PrefServiceObserverMixinLit} from '/shared/settings/prefs2/pref_service_observer_mixin_lit.js';
+ import type {CrToastElement} from 'chrome://resources/cr_elements/cr_toast/cr_toast.js';
+@@ -35,6 +38,11 @@ import {SettingsViewMixinLit} from '../settings_page/settings_view_mixin_lit.js'
+ import type {DefaultSearchEnginePickerData, SearchEngine, SearchEnginesBrowserProxy, SearchEnginesInfo} from './search_engines_browser_proxy.js';
+ import {SearchEnginesBrowserProxyImpl, SearchEnginesInteractions} from './search_engines_browser_proxy.js';
+ import {getCss} from './search_page.css.js';
++import type {CrInputElement} from 'chrome://resources/cr_elements/cr_input/cr_input.js';
++import type {WebUiListener} from 'chrome://resources/js/cr.js';
++
++import type {BlancBang} from '../blanc_settings_proxy.js';
++import {blancSettings, blancString} from '../blanc_settings_proxy.js';
+ import {getHtml} from './search_page.html.js';
+ 
+ const SettingsSearchPageElementBase = PrefServiceObserverMixinLit(
+@@ -55,6 +63,8 @@ export class SettingsSearchPageElement extends SettingsSearchPageElementBase {
+ 
+   static override get properties() {
+     return {
++      blancBangs_: {type: Array},
++      blancBangNotice_: {type: String},
+       defaultSearchProviderDataPref_: {type: Object},
+ 
+       /**
+@@ -100,6 +110,10 @@ export class SettingsSearchPageElement extends SettingsSearchPageElementBase {
+   protected accessor showSearchEngineListDialog_: boolean = false;
+   protected accessor showMoreEnginesDialog_: boolean = false;
+   protected accessor saveGuestChoice_: boolean|null = null;
++  // Blanc's Your bangs (S1.7).
++  protected accessor blancBangs_: BlancBang[] = [];
++  protected accessor blancBangNotice_: string = '';
++  private blancListener_: WebUiListener|null = null;
+   protected accessor defaultSearchEngine_: SearchEngine|null = null;
+   protected accessor searchSettingsUpdateEnabled_: boolean =
+       loadTimeData.getBoolean('searchSettingsUpdate');
+@@ -113,6 +127,7 @@ export class SettingsSearchPageElement extends SettingsSearchPageElementBase {
+ 
+   override connectedCallback() {
+     super.connectedCallback();
++    this.blancConnect_();
+ 
+     this.mirrorPref(
+         'default_search_provider_data.template_url_data',
+@@ -142,6 +157,14 @@ export class SettingsSearchPageElement extends SettingsSearchPageElementBase {
+     this.addWebUiListener('search-engines-changed', updateSearchEngines);
+   }
+ 
++  override disconnectedCallback() {
++    super.disconnectedCallback();
++    if (this.blancListener_) {
++      blancSettings.stopListening(this.blancListener_);
++      this.blancListener_ = null;
++    }
++  }
++
+   override willUpdate(changedProperties: PropertyValues<this>) {
+     super.willUpdate(changedProperties);
+ 
+@@ -260,6 +283,67 @@ export class SettingsSearchPageElement extends SettingsSearchPageElementBase {
+         `Failed to find associated control for child '${childViewId}'`);
+     return control;
+   }
++
++  // Blanc's Your bangs (S1.7), as shipping's Settings → Your bangs.
++  private blancConnect_() {
++    this.blancListener_ = blancSettings.listen(state => {
++      this.blancBangs_ = state.customBangs;
++    });
++    blancSettings.get().then(state => {
++      this.blancBangs_ = state.customBangs;
++    });
++  }
++
++  private blancField_(id: string): CrInputElement {
++    return this.shadowRoot.querySelector<CrInputElement>(`#${id}`)!;
++  }
++
++  protected async onBlancAddBangClick_() {
++    const code = this.blancField_('blancBangCode');
++    const name = this.blancField_('blancBangName');
++    const address = this.blancField_('blancBangTemplate');
++    if (!code.value.trim() && !name.value.trim() && !address.value.trim()) {
++      return;
++    }
++    const reply =
++        await blancSettings.addBang(code.value, name.value, address.value);
++    this.blancBangs_ = reply.state.customBangs;
++    if (reply.result === 'duplicate') {
++      this.blancBangNotice_ =
++          blancString('blancCustomBangsDuplicate', {code: reply.code ?? ''});
++      return;
++    }
++    if (reply.result !== 'added') {
++      // Leaves the draft in the fields to correct.
++      this.blancBangNotice_ = blancString('blancCustomBangsError');
++      return;
++    }
++    this.blancBangNotice_ = reply.site ?
++        blancString(
++            'blancCustomBangsReplaces',
++            {code: reply.code ?? '', site: reply.site}) :
++        '';
++    code.value = '';
++    name.value = '';
++    address.value = '';
++    code.focus();
++  }
++
++  protected onBlancBangKeydown_(event: KeyboardEvent) {
++    if (event.key === 'Enter') {
++      this.onBlancAddBangClick_();
++    }
++  }
++
++  protected async onBlancRemoveBangClick_(event: Event) {
++    const code = (event.currentTarget as HTMLElement).dataset['code'] ?? '';
++    this.blancBangs_ = (await blancSettings.removeBang(code)).state.customBangs;
++    this.blancBangNotice_ = '';
++  }
++
++  protected blancRemoveLabel_(code: string): string {
++    return blancString('blancCustomBangsRemove', {code});
++  }
+ }
+ 
+ declare global {
+diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
+index d02cd2b..32ac3f3 100644
+--- a/chrome/browser/ui/webui/settings/settings_ui.cc
++++ b/chrome/browser/ui/webui/settings/settings_ui.cc
+@@ -4,6 +4,7 @@
+ 
+ #include "chrome/browser/ui/webui/settings/settings_ui.h"
+ 
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ #include "blanc/common/settings_strings.h"
+ 
+ #include <stddef.h>
+@@ -278,6 +279,8 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+   }
+ 
+   AddSettingsPageUIHandler(std::make_unique<AppearanceHandler>(web_ui));
++  // Blanc's lists and interface language (S1.7).
++  AddSettingsPageUIHandler(blanc_prototype::CreateSettingsHandler(profile));
+ 
+ #if BUILDFLAG(IS_CHROMEOS)
+   AddSettingsPageUIHandler(std::make_unique<LanguagesHandler>(profile));

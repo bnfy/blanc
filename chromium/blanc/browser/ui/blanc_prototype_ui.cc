@@ -117,6 +117,9 @@
 #include "ui/views/view_observer.h"
 #include "base/strings/stringprintf.h"
 #include "base/values.h"
+#include "base/strings/string_split.h"
+#include "chrome/browser/ui/webui/settings/settings_page_ui_handler.h"
+#include "chrome/common/webui_url_constants.h"
 #include "chrome/browser/platform_util.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/shell_integration.h"
@@ -3156,6 +3159,7 @@ const std::optional<std::string>& LaunchUiLanguage() {
 
 #include "blanc/browser/ui/blocking_settings_handler.inc"
 #include "blanc/browser/ui/search_settings_handler.inc"
+#include "blanc/browser/ui/chromium_settings_handler.inc"
 #include "blanc/browser/ui/utility_sheet_ops.inc"
 
 // A bounded, sequence-confined navigation outcome reducer. It intentionally
@@ -7086,4 +7090,8 @@ void LayoutIsland(views::View* parent, int top) {
   extensions->SetVisible(owner->height == 68 && !bounds.IsEmpty() && !StripHiddenFor(owner) &&
                          !(IslandFloating(owner) && owner->float_bounds.IsEmpty()));
 }
+std::unique_ptr<settings::SettingsPageUIHandler> CreateSettingsHandler(Profile* profile) {
+  return std::make_unique<ChromiumSettingsHandler>(profile);
+}
+
 }  // namespace blanc_prototype

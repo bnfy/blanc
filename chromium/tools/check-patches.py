@@ -10,7 +10,7 @@ import tempfile
 root = Path(__file__).resolve().parents[1]
 upstream = json.loads((root / 'upstream/manifest.json').read_text())
 source = json.loads((root / 'source-map.json').read_text())
-if upstream['upstream'] != source['upstream'] or len(upstream['files']) != 100:
+if upstream['upstream'] != source['upstream'] or len(upstream['files']) != 103:
     raise SystemExit('Incorrect or incomplete pinned input set')
 
 
@@ -50,7 +50,8 @@ with tempfile.TemporaryDirectory(prefix='blanc-patch-check-') as directory:
                   root / 'patches/0018-webrtc-ip-policy.patch',
                   root / 'patches/0019-settings-sheet-command.patch',
                   root / 'patches/0020-settings-sections.patch',
-                  root / 'patches/0021-blanc-settings-controls.patch']:
+                  root / 'patches/0021-blanc-settings-controls.patch',
+                  root / 'patches/0022-blanc-settings-lists.patch']:
         subprocess.run(['git', 'apply', '--check', str(patch)], cwd=work, check=True)
         subprocess.run(['git', 'apply', str(patch)], cwd=work, check=True)
     for name, digest in source['upstreamFiles'].items():

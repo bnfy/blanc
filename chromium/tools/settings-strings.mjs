@@ -28,6 +28,26 @@ export const STRINGS = [
   ['blancBangsHint', 'settings.general.bangs.hint'],
   ['blancBlocking', 'settings.privacy.adblockEnabled.label'],
   ['blancBlockingHint', 'settings.privacy.adblockEnabled.hint'],
+  // Lists and the language, through the native handler.
+  ['blancCustomBangs', 'settings.general.customBangs.label'],
+  ['blancCustomBangsHint', 'settings.general.customBangs.hint'],
+  ['blancCustomBangsCode', 'settings.general.customBangs.code'],
+  ['blancCustomBangsName', 'settings.general.customBangs.name'],
+  ['blancCustomBangsAddress', 'settings.general.customBangs.address'],
+  ['blancCustomBangsAdd', 'settings.general.customBangs.add'],
+  ['blancCustomBangsEmpty', 'settings.general.customBangs.empty'],
+  ['blancCustomBangsReplaces', 'settings.general.customBangs.replaces'],
+  ['blancCustomBangsDuplicate', 'settings.general.customBangs.duplicate'],
+  ['blancCustomBangsError', 'settings.general.customBangsError'],
+  ['blancCustomBangsRemove', 'settings.general.customBangs.remove'],
+  ['blancExceptions', 'settings.privacy.sitesListedHereLoad'],
+  ['blancExceptionsAdd', 'settings.privacy.exceptionAdd'],
+  ['blancExceptionsEmpty', 'settings.privacy.exceptionList.empty'],
+  ['blancExceptionsRemove', 'settings.siteList.remove'],
+  ['blancLanguage', 'settings.language.label'],
+  ['blancLanguageHint', 'settings.language.hint'],
+  ['blancLanguageSystem', 'settings.language.system'],
+  ['blancLanguageRelaunch', 'settings.language.relaunch'],
 ];
 
 export function generate(rows = catalogs(STRINGS)) {
