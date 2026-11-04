@@ -390,6 +390,47 @@ Chromium 156 checkout (`~/Projects/BlancChromium`), the 157 recovery tree
 evidence folders; older notes that name them are historical. Kept: the 158
 checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
+## Android
+Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
+[PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestone: **A0
+Foundation**, 5 of 6 exit gates passed on the emulator; the Pixel run waits
+for the device. Owner approved the download and cold builds on 2026-11-03.
+
+- **Lane:** Chrome stable for Android 156.0.8078.79, chromium
+  `a21ce95c24ce3964416f09ae1862f53f319eb4d0` (chromiumdash, 2026-11-03).
+  Patches: `patches/android/0101` (identity, icon) and `0102` (Google
+  background services and first run off). No shared patches at A0: they wire
+  desktop Blanc into `chrome/browser`, which Android also compiles.
+- **Server:** Hetzner EX63-1 `blanc-android-build` (2.29.244.46), build user
+  `blanc`, key-only SSH. History-free checkout at `~/chromium-android/src`
+  (40 GB), outputs `out/AndroidDebug` and `out/AndroidDebugX64` (20 GB each),
+  evidence in `~/blanc-evidence/android/`. Layout:
+  `android/server/README.md`.
+- **Candidates** (tree `27355bbe75d602a24c56f84bbb10adf04497f93d`, debug,
+  `me.bnfy.blanc.dev`, "Blanc", 156.0.8078.79):
+  - `android-arm64-7bd35e94ef746069`: `out/AndroidDebug/apks/ChromePublic.apk`,
+    arm64-v8a, 625 MB, SHA-256 `7bd35e94ef746069062a711948ec72eb2cae687d6da8c1f1dac2eb30cb85a045`.
+  - `android-x64-077b76063f75e248`: `out/AndroidDebugX64/apks/ChromePublic.apk`,
+    x86_64, 614 MB, SHA-256 `077b76063f75e2487d9cb74c0e18f6ffa56a57086bbb174e815c9fc15a7ba1f7`.
+- **Cold build:** about 1 h 25 min compiling per architecture on 20 cores
+  (arm64 across three attempts, x86_64 1 h 23 min); incremental rebuilds
+  10–20 s.
+
+| A0 gate | Result | Evidence |
+| --- | --- | --- |
+| 1. `check-patches.py --lane android` passes; desktop output unchanged | Pass | `tools/check-patches.test.mjs` |
+| 2. `progress.mjs --check` with an Android column | Pass | Bar B below |
+| 3. Both APKs built; `aapt2 dump badging` shows `me.bnfy.blanc.dev`, "Blanc" | Pass | candidates above |
+| 4. Installs, launches and loads `https://example.com` | Emulator pass (Android 16 Google APIs x86_64); **Pixel pending** | `a0-example-com-3.png`, `a0-first-launch.png` |
+| 5. Outbound gate: no denylisted Google host in the 5-page session | Pass on the emulator, no extra switches | `outbound-11-nofre/outbound-android.json` |
+| 6. This section | Written | — |
+
+Gate 5 sees Chromium's network stack only (NetLog), not Play services or OS
+traffic. Still Chromium's, for A1: the notifications prompt and the new tab
+page's account icon. Debug args differ from the plan's: `is_java_debug`,
+`android_static_analysis = "on"` and `disable_android_lint` (reasons in
+`android/args/`).
+
 <!-- BEGIN GENERATED PROGRESS -->
 ### Bar A — executable shipping cases on the fork
 
@@ -421,5 +462,5 @@ Android's Bar A will count the companion scenario set once Android steps are bou
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-587eefd4673fa213; Windows: none; Linux: none; Android: none.
+Candidate identities: macOS: macos-587eefd4673fa213; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
