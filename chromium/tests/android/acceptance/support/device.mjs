@@ -15,6 +15,8 @@ import {gridState, paletteRows, pageTitle, rawPixel} from './parse.mjs';
 export const PACKAGE = 'me.bnfy.blanc.dev';
 const PREFS = `shared_prefs/${PACKAGE}_preferences.xml`;
 const FIXTURE_PORT = 8765;
+// Every address the fixture server was asked for, for checks on what reached the network.
+export const fixtureRequests = [];
 const DEVTOOLS_PORT = 9333;
 const COMMAND_LINE = '/data/local/tmp/chrome-command-line';
 
@@ -34,9 +36,12 @@ export function fixturePage(url) {
   const words = word ? Array.from({length: Number(url.searchParams.get('n'))}, (_, i) => `<p>${word} number ${i + 1}</p>`).join('') : '';
   const link = url.pathname === '/link'
     ? '<a id="child" href="https://child.example/" target="_blank" style="position:fixed;inset:0;z-index:1;display:block;font-size:40px">Open child</a>' : '';
+  // "/ads": a request EasyList blocks, one it doesn't, and an element it hides.
+  const ads = url.pathname === '/ads' ? `<script src="https://ad.doubleclick.net/tag.js"></script>
+<script src="https://lib.example/lib.js"></script><div id="hidden-ad" class="ADBox">ad</div>` : '';
   return `<!doctype html><meta name="viewport" content="width=device-width"><title>${title}</title>
 <button id="clicker" style="width:100%;height:40vh;font-size:30px" onclick="this.dataset.clicks=(+this.dataset.clicks||0)+1">${title}</button>
-${words}${link}<div style="height:150vh"></div>`;
+${words}${link}${ads}<div style="height:150vh"></div>`;
 }
 
 export function startFixtures() {
@@ -47,13 +52,19 @@ export function startFixtures() {
     (request, response) => {
       response.setHeader('content-type', 'text/html; charset=utf-8');
       response.setHeader('cache-control', 'no-store');
+      fixtureRequests.push(`${request.headers.host}${request.url}`);
+      if (request.url.endsWith('.js')) {
+        response.setHeader('content-type', 'text/javascript');
+        response.end(`window.loaded=(window.loaded||[]).concat(location.hostname);`);
+        return;
+      }
       response.end(fixturePage(new URL(request.url, `https://${request.headers.host}`)));
     });
   server.listen(FIXTURE_PORT);
   adb('reverse', `tcp:${FIXTURE_PORT}`, `tcp:${FIXTURE_PORT}`);
   // Test-only switches, read by a debug build on this userdebug emulator: the fixture hosts, and
   // their self-signed certificate. Nothing else in Blanc changes.
-  const switches = `_ --host-resolver-rules="MAP *.example 127.0.0.1:${FIXTURE_PORT}" --ignore-certificate-errors`;
+  const switches = `_ --host-resolver-rules="MAP *.example 127.0.0.1:${FIXTURE_PORT},MAP *.doubleclick.net 127.0.0.1:${FIXTURE_PORT}" --ignore-certificate-errors`;
   const file = path.join(dir, 'chrome-command-line');
   fs.writeFileSync(file, switches + '\n');
   adb('push', file, COMMAND_LINE);

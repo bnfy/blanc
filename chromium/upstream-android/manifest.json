@@ -10,11 +10,25 @@
     "chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java": "bcd45e73b8fa5daf1eb2939f2199bc8522b56beaccb9d58feae775ec2439e9dd",
     "chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java": "b8d53ba766d70c9fb08ecb9375218fdaf8625a0cb9e80a380442bf83ba43f760",
     "chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/TabUndoBarController.java": "b28f7833b5884f2fd5582c8561b2d9c5e8350d0fb08a4847f9251ff3a774759d",
+    "chrome/browser/BUILD.gn": "3e9b2665405f5482dc04c3cc70d2ea6c12061334334b4d6a5ad2c51f80cd5096",
+    "chrome/browser/chrome_content_browser_client.cc": "b17feacbe58f8d000c40c8eb3b1d6ac8b98a2dd734466e9eee091de951f98522",
+    "chrome/browser/chrome_content_browser_client_receiver_bindings.cc": "255d1fab72adf7d606515a24ab8f63035c48f0dfaea05941d92cadffa6e49b2c",
     "chrome/browser/flags/android/chrome_feature_list.cc": "c4d157b9d4e8007c6fea81fe87c6a46026b6c900813d7eeb9a430c201e52674d",
     "chrome/browser/flags/android/java/src/org/chromium/chrome/browser/flags/ChromeFeatureList.java": "dfa696a398bfbd5dd7f49921c251060e3cafb51aebc81d9f498abb20c32526e2",
+    "chrome/browser/prefs/browser_prefs.cc": "758e5727c98e59e423e8903527db456d44a10914c671f58ddc94b30667698078",
     "chrome/browser/ui/webui/BUILD.gn": "5f3bcd81e34b2998409a8568d0f628e6120b34cea6ef766824320c2bc94b837a",
     "chrome/browser/ui/webui/chrome_web_ui_configs.cc": "daf53cfff18969192d13c7db7a98bb93ba183ebe8c7c4ba6e297029c302ce9e2",
     "chrome/browser/url_constants/android/java/src/org/chromium/chrome/browser/url_constants/UrlConstantResolverFactory.java": "28ff58a5f3ebd8d34afbfbc5c1dde68c1c762d66845fae817bb40afe08c608dc",
-    "components/signin/internal/identity_manager/gaia_cookie_manager_service.cc": "065fb50c3c08b7577ad3bb5a8bf7065bdec88bdb56cba7294a5f1d317e5bb7e4"
+    "chrome/common/chrome_isolated_world_ids.h": "6b5384da3ab0cb04ff100b19b8981e8846d51d0d405acf595ccbaf048d1e219a",
+    "chrome/renderer/BUILD.gn": "8e279cf4d793fa758d9ee67ff84ae311d02abd65e39cdad35c46440956583d05",
+    "chrome/renderer/chrome_content_renderer_client.cc": "f6bca3a5f240d6c30e2f14f0f4f8b616173d7f2d481dbcc02aa96c70acef2460",
+    "chrome/utility/BUILD.gn": "d87297c3d6f9e2fe32e029cb01e97db9e5644277fb5a3ab611ad3be6515497f2",
+    "chrome/utility/services.cc": "b2a5353549137293c1a0b6143e544cadd15e647a3a7d75af637fa2aa15e22a10",
+    "components/signin/internal/identity_manager/gaia_cookie_manager_service.cc": "065fb50c3c08b7577ad3bb5a8bf7065bdec88bdb56cba7294a5f1d317e5bb7e4",
+    "content/browser/loader/url_loader_factory_utils.cc": "eb842a491f332820fb44ca91f0871c7d710c9719c24cb9daad4ad41b953766db",
+    "content/browser/loader/url_loader_factory_utils.h": "e08addcc15e67325ad76d564431f3f41a42f4458ac8ea38fef07e65128d5ebef",
+    "content/browser/renderer_host/render_frame_host_impl.cc": "79ad8104360b34a5a1ca953e3cc3a6c73b1463db3de11ce787264170bd3a1d9e",
+    "content/browser/websockets/websocket_connector_impl.cc": "9186e2bff0b0db6ba636eb6e9d15467933725e474c439fa87af17a62061b8252",
+    "content/public/browser/BUILD.gn": "d1351708589b93c15436b1a081ab437a5e60a05347696cb366b508f483531910"
   }
 }
