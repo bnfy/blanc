@@ -401,23 +401,25 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 627 executable cases from 578 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
 
+Android's Bar A will count the companion scenario set once Android steps are bound (A2); desktop cases don't apply to it.
+
 ### Bar B — requirement rows by platform
 
-| State | macOS | Windows | Linux |
-| --- | ---: | ---: | ---: |
-| Not started / unassessed | 42 | 79 | 79 |
-| Research only | 1 | 0 | 0 |
-| Drafted | 11 | 0 | 0 |
-| Implemented | 0 | 0 | 0 |
-| Built, isolated (legacy) | 9 | 0 | 0 |
-| Integrated, partial (legacy) | 16 | 0 | 0 |
-| Integrated | 0 | 0 | 0 |
-| Verification needs recheck | 0 | 0 | 0 |
-| Verified | 0 | 0 | 0 |
-| Release-ready | 0 | 0 | 0 |
-| Total | 79 | 79 | 79 |
+| State | macOS | Windows | Linux | Android |
+| --- | ---: | ---: | ---: | ---: |
+| Not started / unassessed | 42 | 79 | 79 | 79 |
+| Research only | 1 | 0 | 0 | 0 |
+| Drafted | 11 | 0 | 0 | 0 |
+| Implemented | 0 | 0 | 0 | 0 |
+| Built, isolated (legacy) | 9 | 0 | 0 | 0 |
+| Integrated, partial (legacy) | 16 | 0 | 0 | 0 |
+| Integrated | 0 | 0 | 0 | 0 |
+| Verification needs recheck | 0 | 0 | 0 | 0 |
+| Verified | 0 | 0 | 0 | 0 |
+| Release-ready | 0 | 0 | 0 | 0 |
+| Total | 79 | 79 | 79 | 79 |
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-587eefd4673fa213; Windows: none; Linux: none.
+Candidate identities: macOS: macos-587eefd4673fa213; Windows: none; Linux: none; Android: none.
 <!-- END GENERATED PROGRESS -->
