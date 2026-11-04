@@ -75,9 +75,23 @@ public final class BlancTabs {
         mStore.select(id);
     }
 
+    public boolean privateSelected() {
+        return mStore.privateSelected();
+    }
+
+    /** The tab showing now, in whichever list is selected. */
+    public @Nullable String activeId() {
+        return mStore.activeId(mStore.privateSelected());
+    }
+
     /** A plain new tab: ungrouped, on the Start Page, as on the iPhone and desktop. */
     public String newTab() {
         return mStore.create(null, false, null, -1);
+    }
+
+    /** An address in a new tab of whichever list is shown (a Favorite or History from the palette). */
+    public String open(String url) {
+        return mStore.create(url, mStore.privateSelected(), null, -1);
     }
 
     public String newPrivateTab() {

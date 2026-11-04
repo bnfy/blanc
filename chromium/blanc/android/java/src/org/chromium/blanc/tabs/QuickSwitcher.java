@@ -76,13 +76,18 @@ public final class QuickSwitcher {
         /** For a group, its tab count. */
         public final int count;
 
-        Result(String id, String title, String subtitle, double score, double strength, int count) {
+        /** For a Favorite or History entry, the address to open. */
+        public final @Nullable String url;
+
+        Result(String id, String title, String subtitle, double score, double strength, int count,
+                @Nullable String url) {
             this.id = id;
             this.title = title;
             this.subtitle = subtitle;
             this.score = score;
             this.strength = strength;
             this.count = count;
+            this.url = url;
         }
     }
 
@@ -109,7 +114,7 @@ public final class QuickSwitcher {
             if (score <= 0) continue;
             int count = 0;
             for (Tab tab : tabs) if (group.id.equals(tab.groupId)) count++;
-            named.add(new Result("group:" + group.id, group.name, "", score + 6, score, count));
+            named.add(new Result("group:" + group.id, group.name, "", score + 6, score, count, null));
         }
         named.sort(byScore());
         List<Result> out = new ArrayList<>(named);
@@ -125,7 +130,7 @@ public final class QuickSwitcher {
             double score = matchScore(q, matchable(tab.title, tab.url));
             if (score <= 0) continue;
             String title = tab.title.isEmpty() ? tab.url : tab.title;
-            local.add(new Result("local:" + tab.id, title, host(tab.url), score + 0.2 + 4, score, 0));
+            local.add(new Result("local:" + tab.id, title, host(tab.url), score + 0.2 + 4, score, 0, null));
         }
         local.sort(byScore());
         if (local.size() > 6) local = new ArrayList<>(local.subList(0, 6));
@@ -146,7 +151,7 @@ public final class QuickSwitcher {
             double score = matchScore(q, page.title + " " + page.url);
             if (score <= 0) continue;
             seen.add(page.url);
-            out.add(new Result(prefix + (byUrl ? page.url : page.id), page.title, page.url, score + bonus, score, 0));
+            out.add(new Result(prefix + (byUrl ? page.url : page.id), page.title, page.url, score + bonus, score, 0, page.url));
         }
         out.sort(byScore());
         return out;

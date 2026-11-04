@@ -80,6 +80,19 @@ public final class SlashCommands {
         return new Parsed(kinds.get(0), space < 0 ? "" : AddressInput.trim(trimmed.substring(space)));
     }
 
+    private static final List<String> THEMES = List.of("system", "light", "dark");
+
+    /**
+     * /theme: bare, it cycles system, light, dark; a word picks that theme; an unknown word changes
+     * nothing (the iPhone's nextTheme, desktop's chrome:cycle-theme).
+     */
+    public static String nextTheme(String current, String argument) {
+        String word = argument.toLowerCase(Locale.ROOT);
+        if (!word.isEmpty()) return THEMES.contains(word) ? word : current;
+        int index = Math.max(THEMES.indexOf(current), 0);
+        return THEMES.get((index + 1) % THEMES.size());
+    }
+
     private static String word(String input) {
         String trimmed = AddressInput.trim(input);
         int space = trimmed.indexOf(' ');

@@ -28,6 +28,19 @@
     <string name="blanc_slash_reopen_hint">Zuletzt geschlossenen Tab wieder öffnen</string>
     <string name="blanc_slash_theme_hint">Darstellung wechseln oder system / light / dark wählen</string>
     <string name="blanc_slash_ungroup_hint">Diesen Tab aus seiner Gruppe nehmen</string>
+    <string name="blanc_group_fold">Gruppe einklappen</string>
+    <string name="blanc_group_unfold">Gruppe aufklappen</string>
+    <string name="blanc_ios_island_collapse">Island einklappen</string>
+    <string name="blanc_ios_palette_clear">Suche löschen</string>
+    <string name="blanc_ios_palette_no_command">Kein passender Befehl</string>
+    <string name="blanc_ios_palette_no_matches">Keine Treffer. Drücke die Eingabetaste, um es als Adresse oder Suche zu öffnen.</string>
+    <string name="blanc_ios_tabs_close">%1$s schließen</string>
+    <string name="blanc_ios_tabs_open_tabs">Offene Tabs</string>
+    <string name="blanc_tab_untitled">Neuer Tab</string>
+    <plurals name="blanc_newtab_groups_count">
+        <item quantity="one">%d Tab</item>
+        <item quantity="other">%d Tabs</item>
+    </plurals>
     <plurals name="blanc_tabs_menu_header">
         <item quantity="one">%d Tab</item>
         <item quantity="other">%d Tabs</item>

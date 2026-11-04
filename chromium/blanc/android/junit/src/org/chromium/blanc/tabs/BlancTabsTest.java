@@ -190,4 +190,14 @@ public class BlancTabsTest {
         while (mTabs.reopenLast()) reopened++;
         assertEquals(10, reopened);
     }
+
+    @Test
+    public void openPutsAnAddressInANewTabOfTheShownList() {
+        open("https://a.example/");
+        mTabs.open("https://b.example/");
+        assertEquals(List.of("https://a.example/", "https://b.example/"), urls());
+        mTabs.newPrivateTab();
+        mTabs.open("https://p.example/");
+        assertEquals(2, mStore.tabs(true).size());
+    }
 }

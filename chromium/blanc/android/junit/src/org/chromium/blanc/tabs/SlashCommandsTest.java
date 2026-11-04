@@ -47,4 +47,13 @@ public class SlashCommandsTest {
         assertEquals("slash.closeGroup.hint", SlashCommands.hintKey(SlashCommands.Kind.CLOSE_GROUP));
         assertEquals("slash.favorites.hint", SlashCommands.hintKey(SlashCommands.Kind.FAVORITES));
     }
+
+    @Test
+    public void themeCyclesOrPicksAndIgnoresUnknownWords() {
+        assertEquals("light", SlashCommands.nextTheme("system", ""));
+        assertEquals("dark", SlashCommands.nextTheme("light", ""));
+        assertEquals("system", SlashCommands.nextTheme("dark", ""));
+        assertEquals("dark", SlashCommands.nextTheme("system", "DARK"));
+        assertEquals("light", SlashCommands.nextTheme("light", "purple"));
+    }
 }

@@ -28,6 +28,20 @@
     <string name="blanc_slash_reopen_hint">Riapri la scheda che hai appena chiuso</string>
     <string name="blanc_slash_theme_hint">Cambia aspetto, o scegli system / light / dark</string>
     <string name="blanc_slash_ungroup_hint">Togli questa scheda dal suo gruppo</string>
+    <string name="blanc_group_fold">Comprimi il gruppo</string>
+    <string name="blanc_group_unfold">Espandi il gruppo</string>
+    <string name="blanc_ios_island_collapse">Comprimi l’Island</string>
+    <string name="blanc_ios_palette_clear">Cancella la ricerca</string>
+    <string name="blanc_ios_palette_no_command">Nessun comando corrispondente</string>
+    <string name="blanc_ios_palette_no_matches">Nessun risultato. Premi Invio per aprirlo come indirizzo o ricerca.</string>
+    <string name="blanc_ios_tabs_close">Chiudi %1$s</string>
+    <string name="blanc_ios_tabs_open_tabs">Schede aperte</string>
+    <string name="blanc_tab_untitled">Nuova scheda</string>
+    <plurals name="blanc_newtab_groups_count">
+        <item quantity="one">%d scheda</item>
+        <item quantity="many">%d schede</item>
+        <item quantity="other">%d schede</item>
+    </plurals>
     <plurals name="blanc_tabs_menu_header">
         <item quantity="one">%d scheda</item>
         <item quantity="many">%d schede</item>

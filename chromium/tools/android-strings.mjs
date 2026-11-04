@@ -26,9 +26,12 @@ export const ANDROID_KEYS = [
   'slash.close.hint', 'slash.closeGroup.hint', 'slash.favorites.hint', 'slash.find.hint', 'slash.group.hint',
   'slash.history.hint', 'slash.new.hint', 'slash.private.hint', 'slash.reopen.hint', 'slash.theme.hint',
   'slash.ungroup.hint',
+  // The palette (A2 Task 4).
+  'group.fold', 'group.unfold', 'ios.island.collapse', 'ios.palette.clear', 'ios.palette.noCommand',
+  'ios.palette.noMatches', 'ios.tabs.close', 'ios.tabs.openTabs', 'tab.untitled',
 ];
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
-export const ANDROID_PLURALS = ['tabsMenu.header'];
+export const ANDROID_PLURALS = ['newtab.groups.count', 'tabsMenu.header'];
 export const LOCALES = [['en', 'values'], ['de', 'values-de'], ['es', 'values-es'], ['fr', 'values-fr'],
   ['it', 'values-it'], ['pt-BR', 'values-pt-rBR']];
 

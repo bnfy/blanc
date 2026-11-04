@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 /** A TabStore over plain lists, for BlancTabsTest. Groups vanish with their last tab, as Chromium's do. */
-final class FakeTabStore implements TabStore {
+public final class FakeTabStore implements TabStore {
     private static final class Tab {
         String id;
         String url;

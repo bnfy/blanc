@@ -28,6 +28,20 @@
     <string name="blanc_slash_reopen_hint">Volver a abrir la pestaña que acabas de cerrar</string>
     <string name="blanc_slash_theme_hint">Cambiar la apariencia o elegir system / light / dark</string>
     <string name="blanc_slash_ungroup_hint">Sacar esta pestaña de su grupo</string>
+    <string name="blanc_group_fold">Contraer el grupo</string>
+    <string name="blanc_group_unfold">Expandir el grupo</string>
+    <string name="blanc_ios_island_collapse">Contraer la Island</string>
+    <string name="blanc_ios_palette_clear">Borrar la búsqueda</string>
+    <string name="blanc_ios_palette_no_command">Ningún comando coincide</string>
+    <string name="blanc_ios_palette_no_matches">No hay coincidencias. Pulsa Intro para abrirlo como dirección o búsqueda.</string>
+    <string name="blanc_ios_tabs_close">Cerrar %1$s</string>
+    <string name="blanc_ios_tabs_open_tabs">Pestañas abiertas</string>
+    <string name="blanc_tab_untitled">Nueva pestaña</string>
+    <plurals name="blanc_newtab_groups_count">
+        <item quantity="one">%d pestaña</item>
+        <item quantity="many">%d pestañas</item>
+        <item quantity="other">%d pestañas</item>
+    </plurals>
     <plurals name="blanc_tabs_menu_header">
         <item quantity="one">%d pestaña</item>
         <item quantity="many">%d pestañas</item>

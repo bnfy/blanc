@@ -28,6 +28,20 @@
     <string name="blanc_slash_reopen_hint">Reabrir a aba que você acabou de fechar</string>
     <string name="blanc_slash_theme_hint">Alternar a aparência, ou escolher system / light / dark</string>
     <string name="blanc_slash_ungroup_hint">Tirar esta aba do grupo</string>
+    <string name="blanc_group_fold">Recolher o grupo</string>
+    <string name="blanc_group_unfold">Expandir o grupo</string>
+    <string name="blanc_ios_island_collapse">Recolher a Island</string>
+    <string name="blanc_ios_palette_clear">Limpar a pesquisa</string>
+    <string name="blanc_ios_palette_no_command">Nenhum comando corresponde</string>
+    <string name="blanc_ios_palette_no_matches">Nenhum resultado. Toque em Retorno para abrir como endereço ou pesquisa.</string>
+    <string name="blanc_ios_tabs_close">Fechar %1$s</string>
+    <string name="blanc_ios_tabs_open_tabs">Abas abertas</string>
+    <string name="blanc_tab_untitled">Nova aba</string>
+    <plurals name="blanc_newtab_groups_count">
+        <item quantity="one">%d aba</item>
+        <item quantity="many">%d abas</item>
+        <item quantity="other">%d abas</item>
+    </plurals>
     <plurals name="blanc_tabs_menu_header">
         <item quantity="one">%d aba</item>
         <item quantity="many">%d abas</item>

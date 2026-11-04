@@ -28,6 +28,20 @@
     <string name="blanc_slash_reopen_hint">Rouvrir l’onglet que vous venez de fermer</string>
     <string name="blanc_slash_theme_hint">Changer d’apparence, ou choisir system / light / dark</string>
     <string name="blanc_slash_ungroup_hint">Retirer cet onglet de son groupe</string>
+    <string name="blanc_group_fold">Replier le groupe</string>
+    <string name="blanc_group_unfold">Déplier le groupe</string>
+    <string name="blanc_ios_island_collapse">Réduire l’Island</string>
+    <string name="blanc_ios_palette_clear">Effacer la recherche</string>
+    <string name="blanc_ios_palette_no_command">Aucune commande correspondante</string>
+    <string name="blanc_ios_palette_no_matches">Aucun résultat. Appuyez sur Retour pour l’ouvrir comme adresse ou recherche.</string>
+    <string name="blanc_ios_tabs_close">Fermer %1$s</string>
+    <string name="blanc_ios_tabs_open_tabs">Onglets ouverts</string>
+    <string name="blanc_tab_untitled">Nouvel onglet</string>
+    <plurals name="blanc_newtab_groups_count">
+        <item quantity="one">%d onglet</item>
+        <item quantity="many">%d onglets</item>
+        <item quantity="other">%d onglets</item>
+    </plurals>
     <plurals name="blanc_tabs_menu_header">
         <item quantity="one">%d onglet</item>
         <item quantity="many">%d onglets</item>
