@@ -10,6 +10,14 @@ function normalizeBlockingHostname(input) {
 }
 if (typeof module !== 'undefined') module.exports = { normalizeBlockingHostname };
 if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded', () => {
+  // In the settings sheet (#embedded) the sheet draws the scrim and card, so
+  // the page drops shipping's own: it fills the card, flat and unbordered.
+  if (location.hash === '#embedded') {
+    Object.assign(document.body.style, { padding: '0', background: 'transparent' });
+    const page = document.querySelector('main.page');
+    if (page) Object.assign(page.style, { maxWidth: 'none', maxHeight: 'none', height: '100%',
+      border: '0', borderRadius: '0', boxShadow: 'none' });
+  }
   // Injected only into the trusted settings document by the native host.
   // The launch's interface language when strings.js resolved one (F44).
   const requested = (window.blancStrings?.locale || navigator.languages?.[0] || navigator.language || 'en').toLowerCase();
@@ -81,7 +89,7 @@ if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded
     run(async () => { await bridge.addException(host); input.value = ''; await refresh(); });
   });
   if (typeof bridge.onChanged === 'function') bridge.onChanged(() => run(refresh, true));
-  run(refresh, true);
+  run(refresh, true).then(() => { document.documentElement.dataset.blockingReady = 'true'; });
   // Provider health changes independently of preferences. Keep the status
   // current without rebuilding the list (and stealing keyboard focus).
   setInterval(() => {

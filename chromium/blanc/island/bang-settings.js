@@ -128,4 +128,5 @@ if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded
     });
   }
   renderCustomBangs(settings.customBangs ?? []);
+  document.documentElement.dataset.bangsReady = 'true';
 });

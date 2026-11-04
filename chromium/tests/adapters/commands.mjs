@@ -5,7 +5,6 @@
 // the fork's store is only reachable through its Settings page, so a write or
 // read drives that page's own control and a missing control is the product's.
 import {UndefinedNativeAdapterError} from '../lib/adapters.mjs';
-import {tabPage} from './core.mjs';
 const ADDRESS='addressInput';
 const overlay=w=>w.frame('overlay');
 const inOverlay=(w,fn,arg)=>overlay(w).evaluate(fn,arg);
@@ -99,20 +98,31 @@ function pressAddressKey(w,key,m={}){
  const init={key:String(key),bubbles:true,altKey:!!m.altKey,ctrlKey:!!m.ctrlKey,metaKey:!!m.metaKey,shiftKey:!!m.shiftKey};
  return inOverlay(w,a=>{const input=document.getElementById(a.id);if(!input)return false;input.dispatchEvent(new KeyboardEvent('keydown',a.init));return true;},{id:ADDRESS,init});
 }
-// --- Settings: the fork's Settings tab and its own controls ---
+// --- Settings: the settings sheet (S1.7) and its pages' own controls ---
 const SETTINGS=/^chrome:\/\/(blanc-prototype\/blocking-settings\.html|settings\/)/;
-async function settingsTab(w){return (await w.snapshot()).tabs.find(t=>SETTINGS.test(t.committedUrl||t.url))??null;}
-async function settingsPage(w){const t=await settingsTab(w);return t?tabPage(w,t.id):null;}
+// The page the sheet's native view shows, or null while the sheet is closed.
+async function settingsPage(w){
+ const state=await w.native('settingsSheetState',[]).catch(()=>null);
+ if(!state?.attached)return null;
+ const target=(await w.fixture.targets()).find(t=>t.type==='page'&&SETTINGS.test(t.url));
+ if(!target)return null;
+ await w.app.refresh();
+ return w.app.windows().find(p=>p.targetId===target.id)??null;
+}
 // Opens Settings through the Island's own action, runs `fn` in its document,
-// and puts tabs back as they were when Settings was not already open.
+// and closes the sheet again when Settings was not already open.
 async function inSettings(w,fn,arg){
- const before=(await w.snapshot()).activeTabId;const had=await settingsTab(w);
- await w.api('openPage',['settings']);
- const tab=await w.waitFor(()=>settingsTab(w),t=>t&&!t.isLoading,'the fork Settings tab',8000);
- const page=await tabPage(w,tab.id);await page.waitForLoadState();
+ const had=await settingsPage(w);
+ if(!had)await w.api('openPage',['settings']);
+ const page=await w.waitFor(()=>settingsPage(w),Boolean,'the settings sheet',8000);
+ await page.waitForLoadState();
+ // The Blanc page fills its controls from its bridges after it loads; each
+ // section marks itself ready once its stored values show and its controls work.
+ if(/blocking-settings/.test(page.url()))await page.waitForFunction(()=>{const d=document.documentElement.dataset;
+  return d.searchReady==='true'&&d.bangsReady==='true'&&d.blockingReady==='true';},null,{timeout:8000});
  const result=await page.evaluate(fn,arg);
- if(result?.missing)throw Error(`Fork Settings (${tab.committedUrl||tab.url}) has no #${result.missing} control`);
- if(!had){await w.native('closeTab',[tab.id]);if(before!=null)await w.native('switchTab',[Number(before)]);}
+ if(result?.missing)throw Error(`Settings (${page.url()}) has no #${result.missing} control`);
+ if(!had)await w.hostEval('window.BlancPrototypeHost.closeSheet()');
  return result?.value;
 }
 // A person's change to one control: select an offered option, set a field,

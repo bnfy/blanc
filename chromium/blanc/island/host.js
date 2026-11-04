@@ -2,8 +2,6 @@
 (() => {
   let nextId = 0;
   let snapshot = null;
-  let settingsOpenPending = null;
-  let settingsOpenPendingKey = null;
   let tabSelection = BlancTabSelection.emptySelection();
   const selectionTabs = () => (snapshot?.tabs ?? []).map(tab => ({ ...tab, splitId: snapshot.splits?.find(split => split.tabIds.includes(tab.id))?.id ?? null }));
   let serialized = '';
@@ -667,7 +665,8 @@
     findTabId = null;
     overlay.dataset.mode = '';
     overlay.hidden = true;
-    await restHeight();
+    // An open sheet keeps the window's height; hideSheet gives it back.
+    if (!sheet.page) await restHeight();
     if (epoch !== findShowEpoch) return;
     // Escape and outside clicks return focus to the page (Electron's
     // hideOverlay does the same); extension activation passes false so the
@@ -771,7 +770,58 @@
   const sheet = { frame: null, page: null, contents: 0, epoch: 0, tabs: null,
     escapeArmed: false, escapeListeners: new Set() };
   const sheetCurrent = (win, page) => !!sheet.frame && sheet.frame.contentWindow === win && sheet.page === page;
+  // Settings (S1.7, owner 2026-11-03): Chromium's chrome://settings in a
+  // native view over the card's body. The host draws shipping's scrim, card
+  // and close button; the sheet's rules (one layer at a time, a tab switch or
+  // a new tab ends it) apply as to the other pages.
+  const settingsSheet = document.getElementById('settingsSheet');
+  const settingsBody = document.getElementById('settingsSheetBody');
+  const settingsRect = () => {
+    const r = settingsBody.getBoundingClientRect();
+    return [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)];
+  };
+  function placeSettingsSheet() {
+    const top = layout === 'vertical' ? 0 : 68, left = layout === 'vertical' ? railWidth : 0;
+    Object.assign(settingsSheet.style, { top: `${top}px`, left: `${left}px`,
+      width: `calc(100% - ${left}px)`, height: `calc(100% - ${top}px)` });
+  }
+  function syncSettingsSheet() {
+    if (sheet.page !== 'settings' || settingsSheet.hidden) return;
+    placeSettingsSheet();
+    request('settingsSheet', ['bounds', ...settingsRect()]).catch(error => notice(error.message));
+  }
+  settingsSheet.addEventListener('click', event => { if (event.target === settingsSheet) hideSheet(); });
+  document.getElementById('settingsSheetClose').addEventListener('click', () => hideSheet());
+  window.addEventListener('resize', syncSettingsSheet);
+  async function showSettingsSheet(section) {
+    // Re-invoking Settings closes it, as shipping's showUtilityPage toggles.
+    if (sheet.page === 'settings') return hideSheet();
+    const epoch = ++sheet.epoch;
+    if (opened || extensionsOpened || paneMenu) await close(false);
+    if (epoch !== sheet.epoch) return;
+    hoverStepWith({ type: 'ineligible' });
+    if (sheet.frame) { sheet.frame.hidden = true; sheet.frame.src = 'about:blank'; }
+    sheet.page = 'settings';
+    sheet.escapeArmed = false;
+    sheet.escapeListeners.clear();
+    const label = strip.contentWindow?.blancI18n?.t;
+    if (label) {
+      settingsSheet.querySelector('[role="dialog"]').setAttribute('aria-label', label('settings.page.heading'));
+      document.getElementById('settingsSheetClose').setAttribute('aria-label', label('sheet.close'));
+    }
+    placeSettingsSheet();
+    settingsSheet.hidden = false;
+    await request('height', [10000]);
+    if (epoch !== sheet.epoch) return;
+    await request('settingsSheet', ['show', typeof section === 'string' ? section : '', ...settingsRect()]);
+    if (epoch !== sheet.epoch) return;
+    await refresh();
+    if (epoch !== sheet.epoch) return;
+    sheet.tabs = { active: snapshot?.activeTabId ?? null, count: snapshot?.tabs.length ?? 0 };
+    reportGeometry();
+  }
   function sheetReady() {
+    if (sheet.page === 'settings') return !settingsSheet.hidden;
     const doc = sheet.frame?.contentDocument;
     return !!sheet.page && doc?.readyState === 'complete' &&
       sheet.frame.contentWindow.location.pathname === `/pages/${sheet.page}.html`;
@@ -797,7 +847,8 @@
     floatPill.before(frame);
     return frame;
   }
-  async function showSheet(name) {
+  async function showSheet(name, section) {
+    if (name === 'settings') return showSettingsSheet(section);
     if (!SHEET_PAGES.includes(name)) throw new Error(`No utility sheet page named ${name}.`);
     // Re-invoking the shown page closes it; while it loads, a repeat is the
     // same request (shipping's showUtilityPage toggle).
@@ -815,6 +866,10 @@
     sheet.page = name;
     sheet.escapeArmed = false;
     sheet.escapeListeners.clear();
+    if (!settingsSheet.hidden) {
+      settingsSheet.hidden = true;
+      await request('settingsSheet', ['hide']).catch(() => {});
+    }
     placeSheet();
     sheet.frame.src = `pages/${name}.html`;
     sheet.frame.hidden = false;
@@ -834,6 +889,10 @@
     sheet.tabs = null;
     sheet.escapeArmed = false;
     sheet.escapeListeners.clear();
+    if (!settingsSheet.hidden) {
+      settingsSheet.hidden = true;
+      await request('settingsSheet', ['hide']).catch(() => {});
+    }
     if (sheet.frame) {
       sheet.frame.hidden = true;
       // A hidden frame still reports itself visible; a blank one does nothing.
@@ -1046,52 +1105,9 @@
       return result;
     },
     openPage: async (name, section) => {
-      // A capable native build exposes the Blanc settings hub for both the
-      // ordinary Settings action and Shield's Blocking action. Older builds
-      // retain Chromium Settings in regular windows; private windows use the
-      // supported Blanc page so the browser does not redirect into a
-      // separate regular window while reporting tab creation as failed.
-      if (name === 'settings' && (section == null || section === '' ||
-                                  section === 'general' || section === 'blocking')) {
-        const key = section === 'blocking' ? 'blocking' : 'general';
-        if (settingsOpenPending) {
-          if (settingsOpenPendingKey === key) return settingsOpenPending;
-          await settingsOpenPending;
-          return implemented.openPage(name, section);
-        }
-        const operation = (async () => {
-          let current = await request('snapshot');
-          const active = current.tabs?.find(tab => String(tab.id) === String(current.activeTabId));
-          if (!active || typeof active.private !== 'boolean') throw new Error('Settings window is unavailable.');
-          // Blanc's own Settings page, as shipping opens its own; it links to
-          // Chromium's settings for everything not yet ported.
-          const target = 'chrome://blanc-prototype/blocking-settings.html';
-          const matches = tab => tab.url === target && tab.private === active.private;
-          const existing = current.tabs?.find(matches);
-          if (existing) {
-            try {
-              await request('switchTab', [nativeId(existing.id)]);
-            } catch (error) {
-              current = await request('snapshot');
-              if (current.tabs?.some(tab => String(tab.id) === String(existing.id))) throw error;
-            }
-            current = await request('snapshot');
-            if (!current.tabs?.some(tab => String(tab.id) === String(existing.id) && matches(tab)))
-              await request('createTab', [target]);
-          } else {
-            await request('createTab', [target]);
-          }
-          await close(); await refresh();
-        })();
-        settingsOpenPending = operation;
-        settingsOpenPendingKey = key;
-        try { return await operation; } finally {
-          if (settingsOpenPending === operation) {
-            settingsOpenPending = null;
-            settingsOpenPendingKey = null;
-          }
-        }
-      }
+      // Settings opens in the sheet (S1.7): Chromium's chrome://settings,
+      // at the section asked for (shipping's Settings and Shield's Blocking).
+      if (name === 'settings') return showSheet('settings', section);
       // Electron names Favorites `bookmarks` internally. Utility pages open
       // in the sheet; Extensions is Chromium's own page.
       if (SHEET_PAGES.includes(name)) return showSheet(name);
@@ -1625,7 +1641,8 @@
     permissionPrompt, permissionGone,
     openSheet: (name) => showSheet(name),
     closeSheet: () => hideSheet(),
-    sheetState: () => ({ visible: !!sheet.page && !!sheet.frame && !sheet.frame.hidden, ready: sheetReady(),
+    sheetState: () => ({ visible: sheet.page === 'settings' ? !settingsSheet.hidden
+        : !!sheet.page && !!sheet.frame && !sheet.frame.hidden, ready: sheetReady(),
       url: sheet.page ? `blanc://${sheet.page}/` : null, contentsId: sheet.frame?.dataset.contents ?? null }),
     // The frame goes away as a crashed sheet's contents do; the next open
     // creates new ones (shipping's destroyed-contents recovery, F16-8).

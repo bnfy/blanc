@@ -107,4 +107,7 @@ if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded
   autoHideStyle.addEventListener('change', async () => {
     autoHideStyle.value = (await bridge.set({ islandAutoHideStyle: autoHideStyle.value })).islandAutoHideStyle;
   });
+  // Every control shows the stored value and is live (the settings sheet's
+  // readers wait for this, not for the document's load).
+  document.documentElement.dataset.searchReady = 'true';
 });

@@ -21,7 +21,7 @@ void SearchSettingsHandler::RegisterMessages() {
 bool SearchSettingsHandler::IsSettingsPage() {
   auto* frame = web_ui()->GetRenderFrameHost();
   return frame && frame == web_ui()->GetWebContents()->GetPrimaryMainFrame() &&
-      frame->GetLastCommittedURL() ==
+      frame->GetLastCommittedURL().GetWithoutRef() ==
           GURL("chrome://blanc-prototype/blocking-settings.html");
 }
 void SearchSettingsHandler::Reply(const std::string& id, bool ok, base::Value value) {

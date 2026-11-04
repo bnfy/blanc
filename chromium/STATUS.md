@@ -421,6 +421,29 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   - The patch set covers 91 files with 296 hunks. navigation-and-context-
     menu, island-and-commands, tabs-and-groups, private-tabs, ad-blocking
     and site-certificate-safety are otherwise unchanged.
+- **S1.7 settings sheet, candidate macos-0282cf522e277d87 (2026-11-03):** Settings opens
+  in a native sheet. The host draws shipping's scrim, card and close button
+  (`#settingsSheet`); a `views::WebView` sibling of the Island view, above
+  it, shows the page over the card's body, in the regular profile in either
+  window, with the autofill and password clients chrome://settings expects
+  (Chromium's SimpleWebViewDialog pattern). Escape the page doesn't use, a
+  scrim click, the ×, a tab switch and a new tab end it; anything it opens
+  outside itself becomes an ordinary tab. ⌘, and Chromium's Settings command
+  open it in an Island window (patch 0019). General and Blocking show Blanc's
+  own page there (`#embedded`, without its own scrim and card) until those
+  sections move into chrome://settings; Chromium's sections (search,
+  appearance, privacy and others) load chrome://settings itself. Verified by a
+  probe on macos-80eb2099924c1845 (attached above the Island, sized to the
+  card, focused; each way of closing it; an outbound link as a tab) and by
+  targeted runs on macos-325df93d849321ef, where island-and-commands and
+  settings-and-theming matched earlier results except the bang manager and
+  the default-engine read. The adapters now find Settings in the sheet and
+  wait for the page's readiness markers, which should clear those; that rerun
+  and the later fixes (`#embedded`, `close()` keeping an open sheet's height)
+  are unverified: the screen locked, and a locked display draws no frames,
+  so the runner stops and native layout doesn't run.
+  `tests/window-snapshot.mjs` composites DevTools captures into window
+  screenshots without Screen Recording.
 - **Live dev instance (owner, 2026-11-03):** after every native build,
   `node chromium/tools/live-dev.mjs <runtime config>` relaunches the
   newest candidate from a copy in `~/Projects/BlancChromium158/live/`,
@@ -666,5 +689,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-068f7d1291cabbbe; Windows: none; Linux: none.
+Candidate identities: macOS: macos-0282cf522e277d87; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

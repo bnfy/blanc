@@ -222,6 +222,11 @@
 #include "extensions/browser/extension_registry.h"
 #include "ui/views/controls/menu/menu_model_adapter.h"
 #include "ui/views/controls/menu/menu_runner.h"
+#include "ui/views/view_tracker.h"
+#include "ui/gfx/geometry/rounded_corners_f.h"
+#include "chrome/browser/password_manager/chrome_password_manager_client.h"
+#include "chrome/browser/ui/autofill/chrome_autofill_client.h"
+#include "content/public/common/url_constants.h"
 #include "blanc/common/menu_strings.h"
 #include "content/public/browser/context_menu_params.h"
 #include "third_party/blink/public/common/context_menu_data/edit_flags.h"
@@ -265,6 +270,8 @@ constexpr char kIslandHoverOpenPref[] = "blanc.island.hover_open";
 
 constexpr char kOwnerKey[] = "blanc-prototype-owner";
 constexpr int kIslandViewId = 0x424c;
+// Settings (S1.7): chrome://settings in the sheet card, over the Island.
+constexpr int kSettingsSheetViewId = 0x424d;
 // Electron's Quick Switcher asks for 300 entries; the bridge never returns more.
 constexpr int kHistoryLimit = 300;
 constexpr size_t kFavoritesLimit = 1000;
@@ -815,6 +822,9 @@ class Owner : public base::SupportsUserData::Data,
   std::optional<AutoHideSlide> autohide_slide;
   int glance_main = -1;
   int glance_reference = -1;
+  // Settings in the sheet (S1.7): Chromium's chrome://settings, a sibling
+  // of the Island view placed over the card's body.
+  views::ViewTracker settings_sheet;
   // Session IDs never outlive their tabs; validate the native split each read.
   int MainIndex() {
     auto* model = browser->GetTabStripModel();
@@ -1453,6 +1463,140 @@ class IslandDelegate : public content::WebContentsDelegate {
 IslandDelegate* GetIslandDelegate() {
   static base::NoDestructor<IslandDelegate> delegate;
   return delegate.get();
+}
+
+// Settings in the sheet (S1.7, owner 2026-11-03). The host draws shipping's
+// scrim, card and close button; this view shows Chromium's chrome://settings
+// over the card's body, in the window profile's regular profile.
+views::WebView* SettingsSheetView(Owner* owner) {
+  return owner ? static_cast<views::WebView*>(owner->settings_sheet.view()) : nullptr;
+}
+Owner* SettingsSheetOwner(content::WebContents* contents) {
+  for (auto* owner : Owner::Live()) {
+    auto* view = SettingsSheetView(owner);
+    if (view && view->GetWebContents() == contents) return owner;
+  }
+  return nullptr;
+}
+// The host ends the sheet; it asks native to remove the view in a later
+// task, so a delegate callback never outlives its own contents.
+void CloseSettingsSheet(Owner* owner) {
+  if (owner && owner->view) owner->view->GetWebContents()->GetPrimaryMainFrame()->ExecuteJavaScript(
+      u"window.BlancPrototypeHost?.closeSheet()", base::NullCallback());
+}
+// Blanc's own sections live on its page until they move into
+// chrome://settings (S1.7); it and Chromium's settings share the sheet.
+// #embedded drops the page's own scrim and card: the sheet draws those.
+constexpr char kBlancSettingsPage[] = "chrome://blanc-prototype/blocking-settings.html#embedded";
+bool InSettingsSheet(const GURL& url) {
+  return (url.SchemeIs(content::kChromeUIScheme) && url.host() == "settings") ||
+         (url.SchemeIs(content::kChromeUIScheme) && url.host() == "blanc-prototype" &&
+          url.path() == "/blocking-settings.html");
+}
+// Sections shipping's Settings opens, and Chromium's own pages, by name.
+std::optional<GURL> SettingsSheetURL(std::string_view section) {
+  if (section.empty() || section == "general" || section == "blocking") return GURL(kBlancSettingsPage);
+  static constexpr std::pair<std::string_view, std::string_view> kSections[] = {
+      {"search", "search"},
+      {"appearance", "appearance"}, {"privacy", "privacy"}, {"security", "security"},
+      {"content", "content"}, {"clearBrowserData", "clearBrowserData"},
+      {"downloads", "downloads"}, {"languages", "languages"},
+      {"defaultBrowser", "defaultBrowser"}, {"help", "help"}};
+  for (const auto& [name, path] : kSections)
+    if (name == section) return GURL("chrome://settings/" + std::string(path));
+  return std::nullopt;
+}
+// Anything settings opens outside itself becomes an ordinary tab, and the
+// sheet ends, as shipping's sheet links open real tabs.
+void OpenFromSettingsSheet(Owner* owner, const GURL& url) {
+  if (!owner || !url.is_valid()) return;
+  NavigateParams params(owner->browser.get(), url, ui::PAGE_TRANSITION_LINK);
+  params.disposition = WindowOpenDisposition::kNewForegroundTab;
+  Navigate(&params);
+  CloseSettingsSheet(owner);
+}
+class SettingsSheetDelegate : public content::WebContentsDelegate {
+ public:
+  bool HandleKeyboardEvent(content::WebContents* source,
+                           const input::NativeWebKeyboardEvent& event) override {
+    auto* owner = SettingsSheetOwner(source);
+    if (!owner) return false;
+    // Escape the page didn't use (a settings dialog takes its own) ends the
+    // sheet, as shipping's does.
+    if (event.GetType() == blink::WebInputEvent::Type::kRawKeyDown &&
+        event.windows_key_code == ui::VKEY_ESCAPE &&
+        !(event.GetModifiers() & blink::WebInputEvent::kKeyModifiers)) {
+      CloseSettingsSheet(owner);
+      return true;
+    }
+    return owner->view && handler_.HandleKeyboardEvent(event, owner->view->GetFocusManager());
+  }
+  content::WebContents* OpenURLFromTab(
+      content::WebContents* source, const content::OpenURLParams& params,
+      base::OnceCallback<void(content::NavigationHandle&)> navigation_handle_callback) override {
+    if (params.disposition == WindowOpenDisposition::kCurrentTab && InSettingsSheet(params.url)) {
+      source->GetController().LoadURLWithParams(content::NavigationController::LoadURLParams(params));
+      return source;
+    }
+    OpenFromSettingsSheet(SettingsSheetOwner(source), params.url);
+    return nullptr;
+  }
+  content::WebContents* AddNewContents(
+      content::WebContents* source, std::unique_ptr<content::WebContents> new_contents,
+      const GURL& target_url, WindowOpenDisposition, const blink::mojom::WindowFeatures&,
+      bool, bool*) override {
+    OpenFromSettingsSheet(SettingsSheetOwner(source), target_url);
+    return nullptr;
+  }
+
+ private:
+  views::UnhandledKeyboardEventHandler handler_;
+};
+SettingsSheetDelegate* GetSettingsSheetDelegate() {
+  static base::NoDestructor<SettingsSheetDelegate> delegate;
+  return delegate.get();
+}
+void PlaceSettingsSheet(Owner* owner, const gfx::Rect& in_island) {
+  auto* view = SettingsSheetView(owner);
+  if (!view || !owner->view) return;
+  gfx::Rect bounds = in_island;
+  bounds.Offset(owner->view->bounds().OffsetFromOrigin());
+  view->SetBoundsRect(bounds);
+  // The card's bottom corners; its top band (the close button) is the host's.
+  view->holder()->SetNativeViewCornerRadii(gfx::RoundedCornersF(0, 0, 19, 19));
+}
+void ShowSettingsSheet(Owner* owner, const GURL& url, const gfx::Rect& in_island) {
+  auto* parent = owner && owner->view ? owner->view->parent() : nullptr;
+  if (!parent) return;
+  auto* view = SettingsSheetView(owner);
+  if (!view) {
+    auto created = std::make_unique<views::WebView>(owner->browser->GetProfile()->GetOriginalProfile());
+    created->SetID(kSettingsSheetViewId);
+    view = parent->AddChildView(std::move(created));
+    owner->settings_sheet.SetView(view);
+    auto* contents = view->GetWebContents();
+    contents->SetDelegate(GetSettingsSheetDelegate());
+    // chrome://settings expects a tab's autofill and password clients, as
+    // Chromium's SimpleWebViewDialog gives its own web view.
+    autofill::ChromeAutofillClient::CreateForWebContents(contents);
+    ChromePasswordManagerClient::CreateForWebContents(contents);
+    view->LoadInitialURL(url);
+  } else {
+    // Above the Island, which stays under the card.
+    parent->ReorderChildView(view, parent->children().size());
+    view->GetWebContents()->GetController().LoadURL(url, content::Referrer(),
+        ui::PAGE_TRANSITION_AUTO_TOPLEVEL, std::string());
+  }
+  view->SetVisible(true);
+  PlaceSettingsSheet(owner, in_island);
+  view->RequestFocus();
+  view->GetWebContents()->Focus();
+}
+void HideSettingsSheet(Owner* owner) {
+  auto* view = SettingsSheetView(owner);
+  if (!view) return;
+  owner->settings_sheet.SetView(nullptr);
+  view->parent()->RemoveChildViewT(view);
 }
 
 // served.txt is the single allowlist for both serving modes.
@@ -3459,6 +3603,23 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(TestClipboard()));
       return;
     }
+    // Read-only: the settings sheet's native view (S1.7), in window coordinates.
+    if (message[1].GetString() == "settingsSheetState" && message[2].GetList().empty()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      auto* view = SettingsSheetView(owner);
+      base::DictValue state;
+      state.Set("attached", !!view);
+      if (view) {
+        const gfx::Rect b = view->bounds();
+        state.Set("visible", view->GetVisible());
+        state.Set("url", view->GetWebContents()->GetVisibleURL().spec());
+        state.Set("focused", view->HasFocus());
+        state.Set("above", view->parent()->GetIndexOf(view) > view->parent()->GetIndexOf(owner->view.get()));
+        state.Set("bounds", base::DictValue().Set("x", b.x()).Set("y", b.y()).Set("width", b.width()).Set("height", b.height()));
+      }
+      Reply(id, true, base::Value(std::move(state)));
+      return;
+    }
     // Read-only: N8's effective settings, Chromium's own preferences.
     if (message[1].GetString() == "networkPrivacy" && message[2].GetList().empty()) {
       auto config = SystemNetworkContextManager::GetStubResolverConfigReader()
@@ -5300,6 +5461,38 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value());
       return;
     }
+    if (method == "settingsSheet" && !args.empty() && args[0].is_string()) {
+      const std::string& op = args[0].GetString();
+      const auto rect_from = [&](size_t first) -> std::optional<gfx::Rect> {
+        if (args.size() != first + 4) return std::nullopt;
+        for (size_t i = first; i < first + 4; ++i) if (!args[i].is_int()) return std::nullopt;
+        const int width = args[first + 2].GetInt(), height = args[first + 3].GetInt();
+        if (width < 0 || height < 0 || width > 20000 || height > 20000) return std::nullopt;
+        return gfx::Rect(args[first].GetInt(), args[first + 1].GetInt(), width, height);
+      };
+      if (op == "hide" && args.size() == 1) {
+        HideSettingsSheet(owner);
+        reply(true, base::Value());
+        return;
+      }
+      if (op == "bounds") {
+        const auto rect = rect_from(1);
+        if (!rect) { reply(false, base::Value("Bad settings sheet bounds.")); return; }
+        PlaceSettingsSheet(owner, *rect);
+        reply(true, base::Value());
+        return;
+      }
+      if (op == "show" && args.size() == 6 && args[1].is_string()) {
+        const auto url = SettingsSheetURL(args[1].GetString());
+        const auto rect = rect_from(2);
+        if (!url || !rect) { reply(false, base::Value("Bad settings sheet request.")); return; }
+        ShowSettingsSheet(owner, *url, *rect);
+        reply(true, base::Value());
+        return;
+      }
+      reply(false, base::Value("Bad settings sheet request."));
+      return;
+    }
     if (method == "focusPage" && args.empty()) {
       // Escape and outside clicks hand focus back to the page, as Electron's
       // hideOverlay does, instead of parking it in the hidden overlay.
@@ -6533,11 +6726,13 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
               std::move(callback).Run(base::MakeRefCounted<base::RefCountedString>(script));
               return;
             }
-            // Only the exact private Start Page query and the floating
-            // pill's surface query alias their shared static assets;
+            // Only the exact private Start Page query, the floating pill's
+            // surface query and the settings sheet's embedded Blanc page
+            // alias their shared static assets;
             // arbitrary queries never become filesystem paths.
             const std::string asset_path = path == "pages/newtab.html?private=1" ? "pages/newtab.html"
-                : path == "index.html?surface=float" ? "index.html" : path;
+                : path == "index.html?surface=float" ? "index.html"
+                : path == "blocking-settings.html#embedded" ? "blocking-settings.html" : path;
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
             // Build outputs such as the compiled bindings exist only embedded.
             if (!root.empty() && !blanc::island_resources::IsGenerated(asset_path)) {
@@ -6604,9 +6799,10 @@ bool OpenExtensions(BrowserWindowInterface* browser) {
 #include "blanc/browser/ui/permission_prompt.inc"
 
 bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page) {
-  if (page != "history" && page != "downloads" && page != "bookmarks") return false;
+  if (page != "history" && page != "downloads" && page != "bookmarks" && page != "settings") return false;
   // A private window keeps Chromium's pages; the sheet shows regular data.
-  if (!IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return false;
+  // Settings, like Chromium's, is the regular profile's in either window.
+  if (!IsIslandWindow(browser) || (page != "settings" && browser->GetProfile()->IsOffTheRecord())) return false;
   auto* parent = BrowserView::GetBrowserViewForBrowser(browser);
   auto* view = parent ? static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId)) : nullptr;
   if (!view) return false;
