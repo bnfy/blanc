@@ -23,7 +23,10 @@ in the lane file in its place. Numbering starts at 0101.
   `accounts.google.com/ListAccounts` at every startup).
 - `0103-android-blanc-java.patch`: puts Blanc's own Java test binary
   (`//blanc/android:blanc_android_junit_tests`) in the root build.
+- `0104-android-island.patch`: hides Chrome's toolbar behind one HIDDEN
+  browser-controls delegate and creates Blanc's Island
+  (`//blanc/android:island_ui_java`) in `TabbedRootUiCoordinator`.
 
-A file dropped from the lane keeps its applied edits in an existing checkout
-(`apply.py` touches only the lane's files): restore it with `git checkout`
-there.
+A file dropped or moved in the lane keeps its applied edits in an existing checkout
+(`apply.py` touches only the lane's files, and never deletes): restore a
+Chromium file with `git checkout` there, and delete a moved Blanc file by hand.

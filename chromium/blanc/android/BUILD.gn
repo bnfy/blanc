@@ -53,6 +53,29 @@ android_library("island_view_java") {
   ]
 }
 
+# Puts the Island over the page and wires it to Chromium's tabs, scrolling and
+# insets. chrome_java depends on it (patch 0104), so it uses Chromium's smaller
+# targets, never chrome_java itself.
+android_library("island_ui_java") {
+  sources = [ "java/src/org/chromium/blanc/island/IslandCoordinator.java" ]
+  deps = [
+    ":island_java",
+    ":island_view_java",
+    "//base:base_java",
+    "//base:callback_java",
+    "//base:supplier_java",
+    "//build/android:build_java",
+    "//cc/mojom:mojom_java",
+    "//chrome/browser/tab:java",
+    "//chrome/browser/tabmodel:java",
+    "//components/url_formatter/android:url_formatter_java",
+    "//content/public/android:content_java",
+    "//third_party/androidx:androidx_core_core_java",
+    "//ui/android:ui_no_recycler_view_java",
+    "//url:gurl_java",
+  ]
+}
+
 # Blanc's own Robolectric binary: run with
 # out/<dir>/bin/run_blanc_android_junit_tests.
 robolectric_binary("blanc_android_junit_tests") {

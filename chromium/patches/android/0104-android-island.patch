@@ -1,0 +1,113 @@
+diff -ruN a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
+--- a/chrome/android/BUILD.gn
++++ b/chrome/android/BUILD.gn
+@@ -531,6 +531,7 @@
+       "//chrome/browser/sync/android:java",
+       "//chrome/browser/sync/android:ui_java",
+       "//chrome/browser/sync/synced_set_up/android:java",
++      "//blanc/android:island_ui_java",  # Blanc (patch 0104)
+       "//chrome/browser/tab:java",
+       "//chrome/browser/tab_group_suggestion:java",
+       "//chrome/browser/tab_group_suggestion:toolbar_java",
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
+@@ -57,6 +57,7 @@
+ import org.chromium.build.BuildConfig;
+ import org.chromium.build.annotations.EnsuresNonNull;
+ import org.chromium.build.annotations.NullMarked;
++import org.chromium.blanc.island.IslandCoordinator;
+ import org.chromium.build.annotations.Nullable;
+ import org.chromium.chrome.R;
+ import org.chromium.chrome.browser.ActivityTabProvider;
+@@ -198,6 +199,7 @@
+ import org.chromium.chrome.browser.sync.synced_set_up.CrossDeviceSettingImporter;
+ import org.chromium.chrome.browser.tab.RequestDesktopUtils;
+ import org.chromium.chrome.browser.tab.Tab;
++import org.chromium.chrome.browser.tab.TabLaunchType;
+ import org.chromium.chrome.browser.tab.TabAssociatedApp;
+ import org.chromium.chrome.browser.tab.TabFavicon;
+ import org.chromium.chrome.browser.tab.TabSelectionType;
+@@ -755,6 +757,12 @@
+ 
+         getAppBrowserControlsVisibilityDelegate()
+                 .addDelegate(browserControlsManager.getBrowserVisibilityDelegate());
++        // Blanc (patch 0104): Chrome's toolbar stays hidden and the page gets the whole screen;
++        // Blanc's Island floats over it (docs/android/a1-island-spike.md).
++        getAppBrowserControlsVisibilityDelegate()
++                .addDelegate(
++                        new org.chromium.components.browser_ui.util.BrowserControlsVisibilityDelegate(
++                                org.chromium.cc.input.BrowserControlsState.HIDDEN));
+         mRootUiTabObserver = new RootUiTabObserver(tabProvider);
+         mGestureNavLayoutObserver =
+                 new LayoutStateProvider.LayoutStateObserver() {
+@@ -885,6 +893,10 @@
+     @Override
+     @SuppressWarnings({"NullAway", "UseSharedPreferencesManagerFromChromeCheck"})
+     public void onDestroy() {
++        if (mBlancIsland != null) {
++            mBlancIsland.destroy();
++            mBlancIsland = null;
++        }
+         if (mVerticalTabsPreferenceListener != null) {
+             ContextUtils.getAppSharedPreferences()
+                     .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
+@@ -1293,9 +1305,58 @@
+         }
+     }
+ 
++    // Blanc's Island (patch 0104), created once native is ready.
++    private @Nullable IslandCoordinator mBlancIsland;
++
++    private void createBlancIsland() {
++        TabModelSelector selector = mTabModelSelectorSupplier.asNonNull().get();
++        mBlancIsland =
++                new IslandCoordinator(
++                        mActivity,
++                        mActivityTabProvider.asObservable(),
++                        selector,
++                        mWindowAndroid.getInsetObserver(),
++                        new IslandCoordinator.Callbacks() {
++                            @Override
++                            public void onMenu(View anchor) {
++                                // The Sunrise menu (A1 Task 7).
++                            }
++
++                            @Override
++                            public void onAddress() {
++                                // The address sheet (A1 Task 5).
++                            }
++
++                            @Override
++                            public void onTabs() {
++                                // The tab grid (A2).
++                            }
++
++                            @Override
++                            public void onNewTab() {
++                                mTabCreatorManagerSupplier
++                                        .asNonNull()
++                                        .get()
++                                        .getTabCreator(selector.isIncognitoSelected())
++                                        .launchNtp(TabLaunchType.FROM_CHROME_UI);
++                            }
++
++                            @Override
++                            public void onClosePrivateTab(Tab tab) {
++                                // Leaving private mode closes the private tab, as on the iPhone.
++                                selector.getModel(true)
++                                        .getTabRemover()
++                                        .closeTabs(
++                                                TabClosureParams.closeTab(tab).build(),
++                                                /* allowDialog= */ false);
++                            }
++                        });
++    }
++
+     @Override
+     public void onFinishNativeInitialization() {
+         super.onFinishNativeInitialization();
++        createBlancIsland();
+         assert mLayoutManager != null;
+ 
+         if (mCountrySupplier != null && mCountrySupplier.get() == null) {
