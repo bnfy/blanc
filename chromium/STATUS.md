@@ -582,8 +582,14 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   needing a recheck. The key check has 83 keys: `islandSize` is to build
   (S1.7, device-local `blanc.island.size`); `miniWindowShortcut` waits for
   F61. The spec gains F61 Mini Window (S3); F57 and F59 name v1.46.0's
-  behaviour. The Start Page's catalogs move with S1.8. Not yet run: the
-  feature reruns on this candidate (the display locked).
+  behaviour. The Start Page's catalogs move with S1.8. Feature reruns on this
+  candidate (`evidence/foundation/v146b-*`, compared by scenario name
+  because v1.46.0 moved line numbers): settings-and-theming 5 pass /
+  1 undefined, island-and-commands 66 / 4 fail / 3 undefined and
+  internal-pages 7 / 3 fail, each exactly as on s17x; tabs-and-groups
+  28 / 6 fail / 11 undefined against sh1's 27 / 7 / 11, the one change
+  being *The Island can show site icons instead of dots* now passing
+  (Tab icons, built in S1.7). No regressions.
 - **Open question, file picker hang (2026-11-04):** the owner's live
   instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
   wallpaper. The hang report shows the UI thread inside AppKit's
