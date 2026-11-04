@@ -13,6 +13,7 @@ import {fileURLToPath} from 'node:url';
 import {NativeFixture} from './lib/fixture.mjs';
 import {waitFor, pause} from './lib/cdp.mjs';
 import {installDriver, nativeCall} from './lib/test-driver.mjs';
+import {shippingPageUrl} from './lib/page-shim.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 // The settings sheet shows chrome://settings, Blanc's sections inside it.
@@ -34,7 +35,7 @@ export async function snapshotWindow(fixture, file) {
     // target names the window (the Island host's doesn't).
     const snapshot = await fixture.snapshot();
     const active = snapshot.tabs.find(t => String(t.id) === String(snapshot.activeTabId));
-    const pageTarget = (await fixture.targets()).find(t => t.type === 'page' && t.url === active?.url);
+    const pageTarget = (await fixture.targets()).find(t => t.type === 'page' && (t.url === active?.url || shippingPageUrl(t.url) === active?.url));
     if (!pageTarget) throw Error('No target for the active page ' + active?.url);
     const {windowId} = await fixture.browser.send('Browser.getWindowForTarget', {targetId: pageTarget.id});
     const {bounds} = await fixture.browser.send('Browser.getWindowBounds', {windowId});
@@ -81,7 +82,20 @@ const SCENES = {
 // settings-<section> opens that section in the same sheet (settings-privacy);
 // island-<size> picks that Island size in Settings and shows the window.
 const scene = name => SCENES[name] ?? (name.startsWith('settings-') ? fixture => openSettings(fixture, name.slice(9))
-  : /^island-(default|large|extra-large)$/.test(name) ? fixture => setIslandSize(fixture, name.slice(7)) : null);
+  : /^island-(default|large|extra-large)$/.test(name) ? fixture => setIslandSize(fixture, name.slice(7))
+  : /^newtab(-(de|es|fr|it|pt-BR))?$/.test(name) ? fixture => openStartPage(fixture, name.slice(7) || null) : null);
+// newtab[-<language>] shows the Start Page, after relaunching with that
+// interface language chosen in Settings when one is named.
+async function openStartPage(fixture, language) {
+  if (language) {
+    await nativeCall(fixture.host, 'setStoredUiLanguage', [language]);
+    await fixture.stop();
+    await fixture.start();
+    await installDriver(fixture.host);
+  }
+  await nativeCall(fixture.host, 'createTab', ['chrome://newtab/']);
+  await pause(2500);
+}
 export async function setIslandSize(fixture, size) {
   const settings = await openSettings(fixture, 'appearance', true);
   const set = await settings.eval(`(() => {

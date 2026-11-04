@@ -178,8 +178,8 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     as `ui-language.js`; Settings has shipping's Language row with Relaunch
     to apply. Only Blanc's text follows it; Chromium's UI and Accept-Language
     stay on the OS language. All five F44 cases pass. The Start Page still
-    uses v1.45.0's catalog, which follows the browser language until S1.8
-    replaces its assets.
+    used v1.45.0's catalog, which followed the browser language, until
+    S1.8 (below).
   - Hover-open (F1), candidate macos-be7b01cddb488a16 (2026-11-02): the host
     runs shipping's own state machine (`island-hover-open.js`, generated from
     v1.45.1's src/main and stepped against it in a unit test) over the
@@ -612,6 +612,22 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   the strip document, so it could not) is the `island-<size>` scene in
   `tests/window-snapshot.mjs`. `settings-keys.json` has nothing left to
   build.
+- **Start Page strings on v1.46.0 (S1.8, 2026-11-04):**
+  `tools/interface-strings.mjs` now also writes `blanc/island/pages/strings.js`
+  (the Start Page, Favorites, History and Downloads) from the release
+  `island-renderer.json` names: shipping's six catalogs (73 keys added, none
+  removed or changed; all 263 keys the pages use are present) with the
+  Island's language chooser and the fork's own page status messages kept
+  from the committed file. The four pages load `ui-language.js` first
+  (newtab.html directly, the sheets through `island-renderer.mjs`), so they
+  follow Settings' interface language like the Island instead of the
+  browser's. Candidate macos-3b3c6840f9da0f0a: newtab-layouts (8 pass /
+  5 fail / 12 undefined) and internal-pages (7 / 3) match their earlier
+  runs, and all five interface-language cases pass. The relaunch case had
+  been failing since S1.7 because its fork step still waited for Settings
+  as a tab; it now chooses the language in the Settings sheet's Languages
+  page. The fork's preview notice in the Start Page footer stays English.
+  `tests/window-snapshot.mjs` gains `newtab[-<language>]` scenes.
 - **Open question, file picker hang (2026-11-04):** the owner's live
   instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
   wallpaper. The hang report shows the UI thread inside AppKit's
@@ -852,5 +868,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-06320784798c07e1; Windows: none; Linux: none.
+Candidate identities: macOS: macos-3b3c6840f9da0f0a; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->
