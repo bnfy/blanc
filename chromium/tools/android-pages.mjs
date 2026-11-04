@@ -15,6 +15,11 @@ export const PAGES_DIR = path.join(chromium, 'blanc/android/pages');
 // The pages Android 1.0 opens, as the iPhone's BlancPageResolver lists them (without Downloads).
 export const PAGES = ['newtab', 'bookmarks', 'history', 'shortcuts', 'error', 'mahjong'];
 
+// The file's bytes, or null if it isn't there: one read, so nothing can change between a check and it.
+function readIfPresent(file) {
+  try { return fs.readFileSync(file); } catch (error) { if (error.code === 'ENOENT') return null; throw error; }
+}
+
 export const pinned = () => JSON.parse(fs.readFileSync(LIST, 'utf8'));
 
 const ADAPTER_DIR = path.join(chromium, 'blanc/android/pages-adapter');
@@ -45,7 +50,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   for (const file of files) {
     const want = shipped(commit, file);
     const target = path.join(PAGES_DIR, file);
-    const have = fs.existsSync(target) ? fs.readFileSync(target) : null;
+    const have = readIfPresent(target);
     if (have && have.equals(want)) continue;
     if (check) problems.push(`${file} differs from ${commit.slice(0, 9)}`);
     else fs.writeFileSync(target, want);
@@ -56,7 +61,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else fs.rmSync(path.join(PAGES_DIR, extra));
   }
   const adapter = adapterSource();
-  if (!fs.existsSync(ADAPTER) || fs.readFileSync(ADAPTER, 'utf8') !== adapter) {
+  if (readIfPresent(ADAPTER)?.toString('utf8') !== adapter) {
     if (check) problems.push('pages-adapter/android-pages-adapter.js is not its template plus bridges.json');
     else fs.writeFileSync(ADAPTER, adapter);
   }
