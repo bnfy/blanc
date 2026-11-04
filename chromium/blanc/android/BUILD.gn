@@ -26,6 +26,7 @@ android_library("island_java") {
 android_library("tabs_java") {
   sources = [
     "java/src/org/chromium/blanc/tabs/BlancTabs.java",
+    "java/src/org/chromium/blanc/tabs/CardSwipe.java",
     "java/src/org/chromium/blanc/tabs/GroupColors.java",
     "java/src/org/chromium/blanc/tabs/GroupNames.java",
     "java/src/org/chromium/blanc/tabs/QuickSwitcher.java",
@@ -64,6 +65,7 @@ android_resources("island_view_resources") {
     "island/res/drawable-xhdpi/blanc_island_mark.png",
     "island/res/drawable-xxhdpi/blanc_island_mark.png",
     "island/res/drawable-xxxhdpi/blanc_island_mark.png",
+    "island/res/drawable/blanc_grid_more.xml",
     "island/res/drawable/blanc_island_plus.xml",
     "island/res/drawable/blanc_palette_bookmark.xml",
     "island/res/drawable/blanc_palette_chevron_down.xml",
@@ -76,6 +78,7 @@ android_resources("island_view_resources") {
     "island/res/drawable/blanc_island_reload.xml",
     "island/res/drawable/blanc_island_stop.xml",
     "island/res/layout/blanc_island.xml",
+    "island/res/values/blanc_grid_ids.xml",
     "island/res/values/blanc_island_dimens.xml",
     "island/res/values/blanc_strings.xml",
     "island/res/values-de/blanc_strings.xml",
@@ -91,6 +94,8 @@ android_library("island_view_java") {
   sources = [
     "java/src/org/chromium/blanc/island/IslandMenuPopup.java",
     "java/src/org/chromium/blanc/island/IslandView.java",
+    "java/src/org/chromium/blanc/grid/GroupNameDialog.java",
+    "java/src/org/chromium/blanc/grid/TabGrid.java",
     "java/src/org/chromium/blanc/palette/PaletteSheet.java",
   ]
   deps = [
@@ -143,12 +148,14 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/island/IslandViewTest.java",
     "junit/src/org/chromium/blanc/island/IslandVisibilityTest.java",
     "junit/src/org/chromium/blanc/tabs/BlancTabsTest.java",
+    "junit/src/org/chromium/blanc/tabs/CardSwipeTest.java",
     "junit/src/org/chromium/blanc/tabs/FakeTabStore.java",
     "junit/src/org/chromium/blanc/tabs/GroupNamesFixtures.java",
     "junit/src/org/chromium/blanc/tabs/GroupNamesTest.java",
     "junit/src/org/chromium/blanc/tabs/PaletteSheetTest.java",
     "junit/src/org/chromium/blanc/tabs/QuickSwitcherTest.java",
     "junit/src/org/chromium/blanc/tabs/SlashCommandsTest.java",
+    "junit/src/org/chromium/blanc/tabs/TabGridTest.java",
     "junit/src/org/chromium/blanc/tabs/TabSectionsFixtures.java",
     "junit/src/org/chromium/blanc/tabs/TabSectionsTest.java",
   ]

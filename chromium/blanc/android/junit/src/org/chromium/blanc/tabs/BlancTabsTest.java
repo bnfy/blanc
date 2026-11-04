@@ -200,4 +200,22 @@ public class BlancTabsTest {
         mTabs.open("https://p.example/");
         assertEquals(2, mStore.tabs(true).size());
     }
+
+    @Test
+    public void undoEndsByItselfAfterFiveSeconds() {
+        List<Runnable> later = new ArrayList<>();
+        List<Long> delays = new ArrayList<>();
+        BlancTabs tabs = new BlancTabs(mStore, () -> mNow, (run, delay) -> {
+            later.add(run);
+            delays.add(delay);
+        });
+        open("https://a.example/");
+        String b = open("https://b.example/");
+        tabs.close(b);
+        assertEquals(List.of(BlancTabs.UNDO_MILLIS), delays);
+        mNow += BlancTabs.UNDO_MILLIS + 1;
+        later.get(0).run();
+        assertNull(tabs.undoTitle());
+        assertTrue(tabs.reopenLast());
+    }
 }

@@ -43,10 +43,12 @@ public final class BlancTabs {
         final List<String> ids = new ArrayList<>();
         final List<String> urls = new ArrayList<>();
         final String title;
+        final boolean group;
         final @Nullable String blankId;
         final long at;
 
-        Closed(List<TabStore.Entry> tabs, @Nullable String blankId, long at) {
+        Closed(List<TabStore.Entry> tabs, boolean group, @Nullable String blankId, long at) {
+            this.group = group;
             for (TabStore.Entry tab : tabs) {
                 ids.add(tab.id);
                 urls.add(tab.url);
@@ -57,14 +59,25 @@ public final class BlancTabs {
         }
     }
 
+    /** Runs something later: the Undo's end (the main looper on the phone). */
+    public interface Later {
+        void post(Runnable run, long delayMillis);
+    }
+
     private final TabStore mStore;
     private final LongSupplier mNow;
+    private final Later mLater;
     private final Deque<String> mReopen = new ArrayDeque<>();
     private @Nullable Closed mPending;
 
     public BlancTabs(TabStore store, LongSupplier now) {
+        this(store, now, (run, delay) -> {});
+    }
+
+    public BlancTabs(TabStore store, LongSupplier now, Later later) {
         mStore = store;
         mNow = now;
+        mLater = later;
     }
 
     public List<TabStore.Entry> entries(boolean privateTabs) {
@@ -129,21 +142,26 @@ public final class BlancTabs {
         }
         List<TabStore.Entry> closing = new ArrayList<>();
         closing.add(tab);
-        closeUndoably(closing);
+        closeUndoably(closing, false);
     }
 
     /** Closes every tab in the group, as one Undo. */
     public void closeGroup(String groupId) {
         expireUndo();
         List<TabStore.Entry> closing = members(groupId);
-        if (!closing.isEmpty()) closeUndoably(closing);
+        if (!closing.isEmpty()) closeUndoably(closing, true);
     }
 
-    private void closeUndoably(List<TabStore.Entry> closing) {
+    private void closeUndoably(List<TabStore.Entry> closing, boolean group) {
         for (TabStore.Entry tab : closing) mStore.close(tab.id, true);
         // Closing the last tab leaves a Start Page, which Undo takes away again if it's untouched.
         String blank = mStore.tabs(false).isEmpty() ? mStore.create(null, false, null, -1) : null;
-        mPending = new Closed(closing, blank, mNow.getAsLong());
+        Closed closed = new Closed(closing, group, blank, mNow.getAsLong());
+        mPending = closed;
+        // The Undo ends by itself, whichever surface closed the tab.
+        mLater.post(() -> {
+            if (mPending == closed) expireUndo();
+        }, UNDO_MILLIS);
     }
 
     private boolean undoable() {
@@ -153,6 +171,11 @@ public final class BlancTabs {
     /** The closed tab Undo would bring back, while it can; null otherwise. */
     public @Nullable String undoTitle() {
         return undoable() && mPending != null ? mPending.title : null;
+    }
+
+    /** Whether Undo would bring back a whole group ("Group closed") rather than a tab. */
+    public boolean undoIsGroup() {
+        return undoable() && mPending != null && mPending.group;
     }
 
     public boolean undoClose() {

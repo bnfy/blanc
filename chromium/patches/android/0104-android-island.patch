@@ -56,7 +56,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          if (mVerticalTabsPreferenceListener != null) {
              ContextUtils.getAppSharedPreferences()
                      .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
-@@ -1293,9 +1305,219 @@
+@@ -1293,9 +1305,247 @@
          }
      }
  
@@ -159,6 +159,33 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +        return out;
 +    }
 +
++    // The tab grid (A2 Task 5), Blanc for iPhone's: the Island's tabs button and a swipe from it
++    // into the page open it. Card images come from Chromium's tab captures.
++    private void showBlancTabGrid() {
++        org.chromium.blanc.tabs.BlancTabs tabs = mBlancTabs;
++        if (tabs == null) return;
++        if (mBlancIsland != null) mBlancIsland.setSheetOpen(true);
++        org.chromium.blanc.grid.TabGrid grid =
++                org.chromium.blanc.grid.TabGrid.show(
++                        mActivity,
++                        tabs,
++                        (id, width, done) -> {
++                            TabContentManager captures = mTabContentManagerSupplier.get();
++                            if (captures == null) {
++                                done.onResult(null);
++                                return;
++                            }
++                            captures.getTabThumbnailWithCallback(
++                                    Integer.parseInt(id),
++                                    new android.util.Size(width, width),
++                                    done::onResult);
++                        });
++        grid.setOnDismissListener(
++                d -> {
++                    if (mBlancIsland != null) mBlancIsland.setSheetOpen(false);
++                });
++    }
++
 +    // The Sunrise menu (A1 Task 7): Favorites, Share and New Private Tab, as on the iPhone.
 +    private void showBlancMenu(View anchor, Tab tab) {
 +        GURL url = tab.getUrl();
@@ -222,7 +249,8 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                new org.chromium.blanc.tabs.BlancTabs(
 +                        new org.chromium.blanc.tabs.chromium.ChromiumTabStore(
 +                                selector, mTabCreatorManagerSupplier.asNonNull().get()),
-+                        android.os.SystemClock::uptimeMillis);
++                        android.os.SystemClock::uptimeMillis,
++                        new android.os.Handler(android.os.Looper.getMainLooper())::postDelayed);
 +        mBlancTabs = tabs;
 +        mBlancIsland =
 +                new IslandCoordinator(
@@ -244,7 +272,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +
 +                            @Override
 +                            public void onTabs() {
-+                                // The tab grid (A2).
++                                showBlancTabGrid();
 +                            }
 +
 +                            @Override
@@ -276,7 +304,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          assert mLayoutManager != null;
  
          if (mCountrySupplier != null && mCountrySupplier.get() == null) {
-@@ -2962,9 +3184,8 @@
+@@ -2962,9 +3212,8 @@
          mNotificationPermissionController =
                  new NotificationPermissionController(mWindowAndroid, rationaleUIDelegateSupplier);
          NotificationPermissionController.attach(mWindowAndroid, mNotificationPermissionController);
@@ -288,3 +316,16 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
  
          assert mAdvancedProtectionCoordinator != null;
          if (mAdvancedProtectionCoordinator.showMessageOnStartupIfNeeded()) {
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/TabUndoBarController.java b/chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/TabUndoBarController.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/TabUndoBarController.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/TabUndoBarController.java
+@@ -116,8 +116,7 @@
+                             List<Tab> tabs,
+                             boolean isAllTabs,
+                             @TabClosingSource int closingSource) {
+-                        if (disableUndo(true)) return;
+-                        queueUndoBar(new TabClosureEvent(tabs, isAllTabs));
++                        // Blanc (patch 0104): Blanc's banner offers Undo (BlancTabs, A2 Task 5).
+                     }
+ 
+                     @Override
