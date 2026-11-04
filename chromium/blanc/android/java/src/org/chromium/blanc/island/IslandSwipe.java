@@ -32,11 +32,14 @@ public final class IslandSwipe {
         return open ? dx : dx * 0.25f;
     }
 
-    /** Switches past 30% of the width, or when a flick's predicted end passes 50%. */
+    /**
+     * Switches past 30% of the width, or when a flick's predicted end passes 50%. In double, as
+     * Swift's CGFloat is: 400 * 0.3f is just over 120 in float, which a 120 swipe would miss.
+     */
     public static Outcome outcome(
             float dx, float predictedDx, float width, boolean hasPrevious, boolean hasNext) {
-        float reach = Math.min(width, REACH_WIDTH);
-        boolean far = Math.abs(dx) >= reach * 0.3f || Math.abs(predictedDx) > reach * 0.5f;
+        double reach = Math.min(width, REACH_WIDTH);
+        boolean far = Math.abs(dx) >= reach * 0.3 || Math.abs(predictedDx) > reach * 0.5;
         if (!far) return Outcome.STAY;
         if (dx < 0 || (dx == 0 && predictedDx < 0)) return hasNext ? Outcome.NEXT : Outcome.STAY;
         return hasPrevious ? Outcome.PREVIOUS : Outcome.STAY;
