@@ -19,7 +19,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompat
  import java.util.function.Supplier;
  
  /**
-@@ -69,6 +73,22 @@
+@@ -69,6 +73,24 @@
      public static final String ON_DEMAND_SPLIT_NAME = "on_demand";
      private static final String TAG = "SplitCompatApp";
      private static final String COMMAND_LINE_FILE = "chrome-command-line";
@@ -27,7 +27,9 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompat
 +    // Desktop's list (blanc/common/background_services.h) plus Android's, found by the
 +    // Android outbound gate; chromium/tools/android-background-services.test.mjs keeps
 +    // this a superset of desktop's.
-+    private static final String BLANC_DISABLE_SWITCH = "disable-component-update";
++    // disable-fre: Chromium's first run (Google sign-in, Google's terms and usage reporting)
++    // never shows; usage and crash reporting stays off, its default until someone opts in.
++    private static final String[] BLANC_SWITCHES = {"disable-component-update", "disable-fre"};
 +    private static final String[] BLANC_DISABLED_FEATURES = {
 +        "NetworkTimeServiceQuerying",
 +        "AutofillServerCommunication",
@@ -42,7 +44,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompat
      private static final String ATTACH_BASE_CONTEXT_EVENT = "ChromeApplication.attachBaseContext";
      // Public to allow use in ChromeBackupAgent
      public static final String PRIVATE_DATA_DIRECTORY_SUFFIX = "chrome";
-@@ -228,6 +248,7 @@
+@@ -228,6 +250,7 @@
              // (see ChildProcessService.java).
              CommandLineInitUtil.initCommandLine(
                      COMMAND_LINE_FILE, SplitCompatApplication::shouldUseDebugFlags);
@@ -50,7 +52,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompat
              PathUtils.setPrivateDataDirectorySuffix(PRIVATE_DATA_DIRECTORY_SUFFIX);
              // Register for activity lifecycle callbacks. Must be done before any activities are
              // created and is needed only by processes that use the ApplicationStatus api (which
-@@ -391,4 +412,17 @@
+@@ -391,4 +414,17 @@
              throw new RuntimeException("App out of date, getResources() null, closing app.");
          }
      }
@@ -58,7 +60,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompat
 +    // Set before native code or the feature list reads the command line; added to any
 +    // --disable-features already given.
 +    private static void disableBlancBackgroundServices(CommandLine commandLine) {
-+        commandLine.appendSwitch(BLANC_DISABLE_SWITCH);
++        for (String blancSwitch : BLANC_SWITCHES) commandLine.appendSwitch(blancSwitch);
 +        List<String> features = new ArrayList<>();
 +        String given = commandLine.getSwitchValue("disable-features");
 +        if (given != null && !given.isEmpty()) features.addAll(Arrays.asList(given.split(",")));

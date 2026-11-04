@@ -17,7 +17,13 @@ test('android disables every desktop background feature and the same switch', ()
   for (const feature of desktop) assert.ok(android.includes(feature), `${feature} is missing on Android`);
   assert.equal(new Set(android).size, android.length);
   const desktopSwitch = header.match(/kDisableComponentUpdateSwitch =\s*"([^"]+)"/)[1];
-  assert.match(added, new RegExp(`BLANC_DISABLE_SWITCH = "${desktopSwitch}"`));
+  const switches = [...added.match(/BLANC_SWITCHES = \{([^}]*)\}/)[1].matchAll(/"([^"]+)"/g)].map(m => m[1]);
+  assert.ok(switches.includes(desktopSwitch), `${desktopSwitch} is missing on Android`);
+});
+
+test("android skips Chromium's first run", () => {
+  const switches = [...added.match(/BLANC_SWITCHES = \{([^}]*)\}/)[1].matchAll(/"([^"]+)"/g)].map(m => m[1]);
+  assert.ok(switches.includes('disable-fre'));
 });
 
 test('android sets them right after the command line is read', () => {

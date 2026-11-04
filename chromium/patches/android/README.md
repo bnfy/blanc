@@ -14,7 +14,9 @@ in the lane file in its place. Numbering starts at 0101.
   already set up): desktop's list (`blanc/common/background_services.h`:
   component updater, network time, autofill server) plus Android's (AI Mode's
   startup request, search prewarm and preconnects, DRM pre-provisioning at
-  startup, the prediction-model download). It also makes
+  startup, the prediction-model download), and skips Chromium's first run
+  (`disable-fre`: Google sign-in, Google's terms and the usage-reporting
+  choice, which stays off by default). It also makes
   `GaiaCookieManagerService::TriggerListAccounts` a no-op on Android: with no
   Google sign-in, Blanc never lists the Google accounts in its cookie jar
   (sign-in metrics and Sync's session recorder called
