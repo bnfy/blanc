@@ -384,6 +384,43 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   light palette, so that case depends on the machine's appearance, not on
   N5. The runner now refuses to start on a Node without a global WebSocket
   (Node 20 had failed every case before the browser did anything).
+- **S1.6 inherited sandbox (N4), network privacy (N8), startup gate (N22)
+  and the address menu (F19), candidate macos-068f7d1291cabbbe
+  (2026-11-03):**
+  - N4 (V4), patch 0017: each tab records the sandbox flags it was born
+    with (an opener's propagating sandbox; Chromium's own inheritance keeps
+    them live) and keeps them in its session and Recently closed records
+    (`blanc.tab.inherited-sandbox.v1`). Restore creates the tab with them
+    (`starting_sandbox_flags`, which patch 0017 makes
+    `CreateWithSessionStorage` honour), and so does a discard's replacement;
+    Duplicate is refused and Quiet already refuses a sandboxed tab.
+    `tests/document-policy-smoke.mjs` passes for an opaque sandbox, a
+    same-origin sandbox and an unsandboxed control: live, reopened and
+    after a relaunch, the sandboxed children keep their flags, refuse
+    storage (opaque) and don't post forms, while the control is unmarked and
+    duplicates. Not checked: a Space switch (it rebuilds through the same
+    Recently-closed path), a discard's replacement (Quiet refuses these
+    tabs), and a malformed saved value (restores with every flag).
+  - N8 (V11), patch 0018: new profiles default to shipping's WebRTC policy
+    (`default_public_interface_only`); secure DNS stays Chromium's
+    automatic mode. `tests/network-privacy-smoke.mjs` passes.
+  - N22: verified, not built. `tests/startup-gate-smoke.mjs` passes: with the
+    blocker's bundle missing, the blocker reports unavailable and neither
+    the startup page nor a new tab reaches the server.
+  - F19: the Island address input's right-click is Blanc's native menu
+    (`IslandDelegate::HandleContextMenu`), shipping's address-menu-model
+    items in shipping's labels (generated in `menu_strings.h`); Copy Clean
+    Link cleans the field's text with shipping's clean-link.js and Paste
+    and Go goes through the host's typed navigation. Under `--blanc-test`,
+    Blanc's own clipboard actions (these, /copy and /invite) use an
+    in-memory board, never the owner's pasteboard. F19-2 and F19-3 pass
+    (both undefined before); F19-1 has no shipping step definitions. The
+    `openPanel` adapter now opens shipping's panel (the page's address in
+    the field) instead of the new-tab panel. The page link items (Open Link
+    in Glance or Space, Copy Clean Link) wait for Glance and Spaces.
+  - The patch set covers 91 files with 296 hunks. navigation-and-context-
+    menu, island-and-commands, tabs-and-groups, private-tabs, ad-blocking
+    and site-certificate-safety are otherwise unchanged.
 - **Live dev instance (owner, 2026-11-03):** after every native build,
   `node chromium/tools/live-dev.mjs <runtime config>` relaunches the
   newest candidate from a copy in `~/Projects/BlancChromium158/live/`,
@@ -504,9 +541,10 @@ Recorded in the spec (§4, §9) and plan:
   themselves; F42's cases become an approved divergence, not a port.
 - 2026-11-03: the rest of S1.6 goes native. N4: only a tab that inherited
   its opener's sandbox is marked (Chromium can read the flags; shipping
-  marks every page-opened tab), the mark travels in Chromium's session and
-  Recently closed records, and a marked tab that is rebuilt restores as an
-  inert page (V4). N8: secure DNS follows Chromium's settings and provider
+  marks every page-opened tab), the mark keeps the flags in Chromium's
+  session and Recently closed records, and a marked tab that is rebuilt
+  loads its page again under them (`starting_sandbox_flags`) instead of the
+  inert page; this replaces the earlier inert-page decision (V4). N8: secure DNS follows Chromium's settings and provider
   list (V11); WebRTC keeps shipping's policy through Chromium's preference.
   N22: the native blocker's hold replaces shipping's cancel-and-replay, so
   it is verified, not built. F19: Blanc's items go into Chromium's own page
@@ -516,9 +554,8 @@ Recorded in the spec (§4, §9) and plan:
   0016).
 - 2026-11-03: HTTP sign-in challenges (F20) are refused as shipping's are,
   not shown in Chromium's credential dialog. Sandboxed page-opened tabs
-  (N4) keep Chromium's native sandbox inheritance; a restored one (session,
-  Space, Recently closed after its page is gone) restores as shipping's
-  inert page instead of loading without its sandbox.
+  (N4) keep Chromium's native sandbox inheritance (how a restored one
+  comes back: see the later N4 entry).
 - 2026-11-02: no 1Password SDK (F38 1Password fill) in the Chromium builds
   either; people install 1Password from the Chrome Web Store, so F38's
   cases become an approved divergence and /1password is not offered.
@@ -544,15 +581,16 @@ shipping's hover hooks), `setIslandAutoHide`, `autoHideState`,
 native window-drag answer at a point), `setIslandAutoHideStyle` and
 `holdIsland` (shipping's `holdIslandInWindow`). Built for S1.4:
 `privateMenuItems` and `clickDockPrivateWindow` (macOS). Built for S1.6:
-`authChallenges`, `resetAuthChallenges`. Identified, not
+`authChallenges`, `resetAuthChallenges`, `inheritedSandbox`,
+`networkPrivacy`, `addressMenuWired`, `addressMenu`, `runAddressMenuItem`,
+`setTestClipboard`, `testClipboard`. Identified, not
 built: sessionWindows (session.json-shaped projection); certificate decision
 list/forget/cap; history visit + site icon seed; favorite favicon seed;
 first-run/checklist/Patron/launch-Sunrise state once stored; address context menu
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. The rest of S1.6: N4 inert restore, N8
-   secure DNS and WebRTC policy, N22 startup gate, F19 context menu. Settings in the sheet belongs to S1.7,
+1. S1.6 is built. Settings in the sheet belongs to S1.7,
    whose restyled chrome://settings can't load in a host frame; how it is
    presented is the owner's call there. Verify each change with targeted
    `--only` runs merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
@@ -605,5 +643,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-2578c8367acd5017; Windows: none; Linux: none.
+Candidate identities: macOS: macos-068f7d1291cabbbe; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->
