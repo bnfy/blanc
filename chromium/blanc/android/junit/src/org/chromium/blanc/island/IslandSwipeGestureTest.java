@@ -37,6 +37,8 @@ public class IslandSwipeGestureTest {
     public void setUp() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         mView = new IslandView(activity);
+        // Attached, so a click posts and runs as it does on a device.
+        activity.setContentView(mView);
         mDensity = activity.getResources().getDisplayMetrics().density;
         mView.setSwipeListener(
                 new IslandView.SwipeListener() {
