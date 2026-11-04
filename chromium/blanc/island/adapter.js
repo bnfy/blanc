@@ -90,6 +90,7 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       [localized(tab.bookmarked ? 'tabMenu.removeFavorite' : 'tabMenu.saveFavorite', tab.bookmarked ? 'Remove from Favorites' : 'Save to Favorites'),
        () => window.browserAPI.toggleBookmark(id), tab.private || !/^https?:\/\//.test(tab.url || '')],
       [localized('menu.reload', 'Reload'), () => window.browserAPI.reload(id)],
+      [localized('tabMenu.duplicate', 'Duplicate'), () => window.browserAPI.duplicateTab(id)],
       // Shipping's F46 items: only a renamed tab has a page title to go back to.
       [localized('tabMenu.rename', 'Rename Tab…'), () => window.browserAPI.beginRenameTab(id)],
       ...(tab.pageTitle != null ? [[localized('tabMenu.resetTitle', 'Reset Tab Title'), () => window.browserAPI.renameTab(id, '')]] : []),

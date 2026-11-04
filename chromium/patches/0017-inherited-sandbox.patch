@@ -1,0 +1,111 @@
+diff --git a/chrome/browser/resource_coordinator/tab_lifecycle_unit.cc b/chrome/browser/resource_coordinator/tab_lifecycle_unit.cc
+index 6f872ee..ad3dfd4 100644
+--- a/chrome/browser/resource_coordinator/tab_lifecycle_unit.cc
++++ b/chrome/browser/resource_coordinator/tab_lifecycle_unit.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "chrome/browser/resource_coordinator/tab_lifecycle_unit.h"
+ 
++#include "blanc/browser/ui/blanc_prototype_ui.h"
++
+ #include <memory>
+ #include <optional>
+ #include <utility>
+@@ -281,6 +283,9 @@ void TabLifecycleUnitSource::TabLifecycleUnit::FinishDiscard(
+       content::WebContents::CreateParams::kNoRendererProcess;
+   create_params.last_active_time = old_contents->GetLastActiveTime();
+   create_params.last_active_time_ticks = old_contents->GetLastActiveTimeTicks();
++  // Blanc (N4): the replacement keeps the sandbox the tab inherited.
++  create_params.starting_sandbox_flags = static_cast<network::mojom::WebSandboxFlags>(
++      blanc_prototype::InheritedSandboxFlags(old_contents));
+   std::unique_ptr<content::WebContents> null_contents =
+       content::WebContents::Create(create_params);
+   content::WebContents* raw_null_contents = null_contents.get();
+diff --git a/chrome/browser/sessions/session_service_base.cc b/chrome/browser/sessions/session_service_base.cc
+index d6b53bf..fa446c2 100644
+--- a/chrome/browser/sessions/session_service_base.cc
++++ b/chrome/browser/sessions/session_service_base.cc
+@@ -635,6 +635,10 @@ void SessionServiceBase::BuildCommandsForTab(
+   if (!tab_identity.empty()) command_storage_manager()->AppendRebuildCommand(
+       sessions::CreateAddTabExtraDataCommand(session_id,
+           blanc_prototype::kTabIdentityKey, tab_identity));
++  const auto inherited_sandbox = blanc_prototype::InheritedSandboxState(tab);
++  if (!inherited_sandbox.empty()) command_storage_manager()->AppendRebuildCommand(
++      sessions::CreateAddTabExtraDataCommand(session_id,
++          blanc_prototype::kInheritedSandboxKey, inherited_sandbox));
+   if (blanc_prototype::IsPersistentSplitTab(tab))
+     command_storage_manager()->AppendRebuildCommand(
+         sessions::CreateAddTabExtraDataCommand(session_id,
+diff --git a/chrome/browser/ui/browser_commands.cc b/chrome/browser/ui/browser_commands.cc
+index 7f4a5fb..5b2fec5 100644
+--- a/chrome/browser/ui/browser_commands.cc
++++ b/chrome/browser/ui/browser_commands.cc
+@@ -1776,7 +1776,8 @@ bool CanDuplicateTabAt(const BrowserWindowInterface* browser, int index) {
+     return false;
+   }
+   WebContents* contents = browser->GetTabStripModel()->GetWebContentsAt(index);
+-  return contents;
++  // Blanc (N4): a copy could not keep the sandbox the tab inherited.
++  return contents && !blanc_prototype::HasInheritedSandbox(contents);
+ }
+ 
+ void MoveTabsToExistingWindow(BrowserWindowInterface* source,
+diff --git a/chrome/browser/ui/browser_live_tab_context.cc b/chrome/browser/ui/browser_live_tab_context.cc
+index 81712ff..52f691c 100644
+--- a/chrome/browser/ui/browser_live_tab_context.cc
++++ b/chrome/browser/ui/browser_live_tab_context.cc
+@@ -208,6 +208,8 @@ std::map<std::string, std::string> BrowserLiveTabContext::GetExtraDataForTab(
+ 
+   const auto name = blanc_prototype::PersistentTabName(tab_strip_model_->GetWebContentsAt(index));
+   if (!name.empty()) extra_data[blanc_prototype::kTabNameKey] = name;
++  const auto sandbox = blanc_prototype::InheritedSandboxState(tab_strip_model_->GetWebContentsAt(index));
++  if (!sandbox.empty()) extra_data[blanc_prototype::kInheritedSandboxKey] = sandbox;
+ 
+   glic::PopulateGlicExtraData(tab, &extra_data);
+   if (auto* contextual_tasks_controller =
+diff --git a/chrome/browser/ui/browser_tabrestore.cc b/chrome/browser/ui/browser_tabrestore.cc
+index f2a9542..8a74fa6 100644
+--- a/chrome/browser/ui/browser_tabrestore.cc
++++ b/chrome/browser/ui/browser_tabrestore.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "chrome/browser/ui/browser_tabrestore.h"
+ 
++#include "blanc/browser/ui/blanc_prototype_ui.h"
++
+ #include <map>
+ #include <memory>
+ #include <utility>
+@@ -77,9 +79,14 @@ std::unique_ptr<WebContents> CreateRestoredTab(
+       WebContents::CreateParams::kNoRendererProcess;
+   create_params.last_active_time_ticks = last_active_time_ticks;
+   create_params.last_active_time = last_active_time;
++  // Blanc (N4): a tab saved with an inherited sandbox loads under it again.
++  const uint32_t sandbox = blanc_prototype::RestoredSandboxFlags(extra_data);
++  create_params.starting_sandbox_flags =
++      static_cast<network::mojom::WebSandboxFlags>(sandbox);
+   std::unique_ptr<WebContents> web_contents =
+       WebContents::CreateWithSessionStorage(create_params,
+                                             session_storage_namespace_map);
++  blanc_prototype::RestoreInheritedSandbox(web_contents.get(), sandbox);
+   apps::SetAppIdForWebContents(browser->GetProfile(), web_contents.get(),
+                                extension_app_id);
+ 
+diff --git a/content/browser/web_contents/web_contents_impl.cc b/content/browser/web_contents/web_contents_impl.cc
+index 788df9d..74e4c7c 100644
+--- a/content/browser/web_contents/web_contents_impl.cc
++++ b/content/browser/web_contents/web_contents_impl.cc
+@@ -807,7 +807,12 @@ std::unique_ptr<WebContents> WebContents::CreateWithSessionStorage(
+         params.guest_delegate->GetOwnerWebContents());
+   }
+ 
+-  new_contents->Init(params, blink::FramePolicy());
++  // Apply starting sandbox flags, as CreateWithOpener does: a restored tab
++  // can then load under the sandbox it had.
++  blink::FramePolicy frame_policy;
++  frame_policy.sandbox_flags = params.starting_sandbox_flags;
++  new_contents->GetPrimaryFrameTree().root()->SetPendingFramePolicy(frame_policy);
++  new_contents->Init(params, frame_policy);
+   if (outer_web_contents) {
+     outer_web_contents->InnerWebContentsCreated(new_contents.get());
+   }

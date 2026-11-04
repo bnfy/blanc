@@ -44,6 +44,13 @@ export class NativeFixture {
       const record={at:new Date().toISOString(),method:method??'',target:target??''};
       this.egress.push(record);
       if(process.env.BLANC_EGRESS_LOG)fs.appendFileSync(process.env.BLANC_EGRESS_LOG,JSON.stringify(record)+'\n');
+      // Armed by the F20 proxy scenario: an absolute-form request is answered
+      // as an authenticating proxy, as shipping's fixtures server does.
+      if(this.proxyAuthRequired&&/^http:\/\//.test(target??'')){
+        const body='407 body for fixture-proxy';
+        s.end(`HTTP/1.1 407 Proxy Authentication Required\r\nProxy-Authenticate: Basic realm="fixture-proxy"\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: ${body.length}\r\nConnection: close\r\n\r\n${body}`);
+        return;
+      }
       s.destroy();});s.setTimeout(5000,()=>s.destroy());});
     for(const s of [this.server,this.proxy].filter(Boolean))await new Promise((resolve,reject)=>{s.once('error',reject);s.listen(0,'127.0.0.1',resolve);});
     this.base=pages?pages.base:`http://127.0.0.1:${this.server.address().port}`;

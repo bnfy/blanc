@@ -1,0 +1,15 @@
+diff --git a/chrome/browser/resources/settings/page_visibility.ts b/chrome/browser/resources/settings/page_visibility.ts
+index feff9bd..617cf97 100644
+--- a/chrome/browser/resources/settings/page_visibility.ts
++++ b/chrome/browser/resources/settings/page_visibility.ts
+@@ -44,7 +44,9 @@ export interface PrivacyPageVisibility {
+ 
+ function createPageVisibility(): PageVisibility|undefined {
+   if (!loadTimeData.getBoolean('isGuest')) {
+-    return undefined;
++    // Blanc (S1.7, owner): no Google account, Sync, AI or Safety Check
++    // sections; their routes are left out with them.
++    return {ai: false, people: false, safetyHub: false};
+   }
+ 
+   // <if expr="not is_chromeos">

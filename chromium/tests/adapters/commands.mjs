@@ -5,7 +5,6 @@
 // the fork's store is only reachable through its Settings page, so a write or
 // read drives that page's own control and a missing control is the product's.
 import {UndefinedNativeAdapterError} from '../lib/adapters.mjs';
-import {tabPage} from './core.mjs';
 const ADDRESS='addressInput';
 const overlay=w=>w.frame('overlay');
 const inOverlay=(w,fn,arg)=>overlay(w).evaluate(fn,arg);
@@ -99,37 +98,97 @@ function pressAddressKey(w,key,m={}){
  const init={key:String(key),bubbles:true,altKey:!!m.altKey,ctrlKey:!!m.ctrlKey,metaKey:!!m.metaKey,shiftKey:!!m.shiftKey};
  return inOverlay(w,a=>{const input=document.getElementById(a.id);if(!input)return false;input.dispatchEvent(new KeyboardEvent('keydown',a.init));return true;},{id:ADDRESS,init});
 }
-// --- Settings: the fork's Settings tab and its own controls ---
-const SETTINGS=/^chrome:\/\/(blanc-prototype\/blocking-settings\.html|settings\/)/;
-async function settingsTab(w){return (await w.snapshot()).tabs.find(t=>SETTINGS.test(t.committedUrl||t.url))??null;}
-async function settingsPage(w){const t=await settingsTab(w);return t?tabPage(w,t.id):null;}
-// Opens Settings through the Island's own action, runs `fn` in its document,
-// and puts tabs back as they were when Settings was not already open.
-async function inSettings(w,fn,arg){
- const before=(await w.snapshot()).activeTabId;const had=await settingsTab(w);
- await w.api('openPage',['settings']);
- const tab=await w.waitFor(()=>settingsTab(w),t=>t&&!t.isLoading,'the fork Settings tab',8000);
- const page=await tabPage(w,tab.id);await page.waitForLoadState();
- const result=await page.evaluate(fn,arg);
- if(result?.missing)throw Error(`Fork Settings (${tab.committedUrl||tab.url}) has no #${result.missing} control`);
- if(!had){await w.native('closeTab',[tab.id]);if(before!=null)await w.native('switchTab',[Number(before)]);}
+// --- Settings: chrome://settings in the settings sheet (S1.7), with Blanc's
+// controls inside Chromium's sections (owner, 2026-11-04). ---
+const SETTINGS=/^chrome:\/\/settings\//;
+// The page the sheet's native view shows, or null while the sheet is closed.
+async function settingsPage(w){
+ const state=await w.native('settingsSheetState',[]).catch(()=>null);
+ if(!state?.attached)return null;
+ const target=(await w.fixture.targets()).find(t=>t.type==='page'&&SETTINGS.test(t.url));
+ if(!target)return null;
+ await w.app.refresh();
+ return w.app.windows().find(p=>p.targetId===target.id)??null;
+}
+// chrome://settings keeps its controls in nested shadow trees; every reader
+// gets find (first match) and all (every match) across them.
+const DEEP=`const find=(sel,root=document)=>{const e=root.querySelector(sel);if(e)return e;
+ for(const el of root.querySelectorAll('*'))if(el.shadowRoot){const x=find(sel,el.shadowRoot);if(x)return x;}return null;};
+ const all=(sel,root=document,out=[])=>{out.push(...root.querySelectorAll(sel));for(const el of root.querySelectorAll('*'))if(el.shadowRoot)all(sel,el.shadowRoot,out);return out;};`;
+const inPage=(page,fn,arg)=>page.evaluate(`(()=>{${DEEP}return (${fn})(${JSON.stringify(arg??null)},{find,all});})()`);
+// A person reaches a section through Settings' own menu; the sheet keeps the
+// navigation (its delegate), so the same page moves there.
+// (Its page address shows as shipping's blanc://settings/, so ask the document.)
+const at=(page,section)=>page.evaluate('location.href').then(href=>href.startsWith(`chrome://settings/${section}`)).catch(()=>false);
+async function moveTo(w,page,section){
+ if(await at(page,section))return page;
+ await page.evaluate(`location.href=${JSON.stringify(`chrome://settings/${section}`)}`).catch(()=>{});
+ return w.waitFor(async()=>{const p=await settingsPage(w);return p&&await at(p,section)?p:null;},Boolean,`Settings → ${section}`,8000);
+}
+// What shows that a section has drawn Blanc's controls, and filled its lists.
+const READY={search:'settings-search-page[blanc-ready] #blancBangs',appearance:'#blancIslandAutoHide',
+ privacy:'settings-privacy-page[blanc-ready] #blancBlocking',languages:'#blancUiLanguage'};
+async function settingsReady(page,section){
+ await page.waitForLoadState();
+ const selector=READY[section];
+ if(!selector)return;
+ const until=Date.now()+8000;
+ while(!(await inPage(page,(sel,d)=>{const [host,rest]=sel.split(' ');
+  if(!rest)return !!d.find(host);const el=d.find(host);return !!(el&&d.find(rest,el.shadowRoot??el));},selector)))
+  {if(Date.now()>until)throw Error(`Settings never showed ${selector}`);await new Promise(r=>setTimeout(r,100));}
+}
+// Opens Settings at a section through the Island's own action (or moves the
+// open sheet there), runs `fn` in its document, and closes the sheet again
+// when Settings was not already open.
+export async function inSettings(w,section,fn,arg){
+ const had=await settingsPage(w);
+ if(!had)await w.api('openPage',['settings',section]);
+ let page=had??await w.waitFor(()=>settingsPage(w),Boolean,'the settings sheet',8000);
+ page=await moveTo(w,page,section);
+ await settingsReady(page,section);
+ const result=await inPage(page,fn,arg);
+ if(result?.missing)throw Error(`Settings (${page.url()}) has no ${result.missing} control`);
+ if(!had){
+  await w.hostEval('window.BlancPrototypeHost.closeSheet()');
+  await w.waitFor(async()=>!(await w.fixture.targets()).some(t=>t.type==='page'&&SETTINGS.test(t.url)),Boolean,'the settings sheet to close',8000);
+ }
  return result?.value;
 }
-// A person's change to one control: select an offered option, set a field,
-// or click a switch to the wanted state. An option the page doesn't offer
-// can't be chosen, so the control keeps its value.
-const setControl=(w,id,value)=>inSettings(w,a=>{
- const el=document.getElementById(a.id);if(!el)return {missing:a.id};
- const fire=()=>{el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));};
- if(el.type==='checkbox'){if(el.checked!==!!a.value)el.click();return {value:el.checked};}
- if(el.tagName==='SELECT'){if([...el.options].some(o=>o.value===a.value)){el.value=a.value;fire();}return {value:el.value};}
- el.value=a.value;fire();el.blur();return {value:el.value};
-},{id,value});
-const readControl=(w,id)=>inSettings(w,a=>{const el=document.getElementById(a.id);if(!el)return {missing:a.id};
- return {value:el.type==='checkbox'?el.checked:el.value};},{id});
-// Inside an already open Settings tab, as shipping reads its sheet: null
-// when Settings isn't open.
-async function settingsEval(w,fn,arg,none=null){const page=await settingsPage(w);return page?page.evaluate(fn,arg):none;}
+// A person's click on a Settings switch, to the wanted state.
+const setSwitch=(w,section,id,on)=>inSettings(w,section,async(a,d)=>{
+ const el=d.find('#'+a.id);if(!el)return {missing:'#'+a.id};
+ if(el.checked!==a.on){el.click();await new Promise(r=>setTimeout(r,300));}
+ return {value:el.checked};},{id,on:!!on});
+const readSwitch=(w,section,id)=>inSettings(w,section,(a,d)=>{const el=d.find('#'+a.id);
+ return el?{value:el.checked}:{missing:'#'+a.id};},{id});
+// Shipping's engine ids by the names Chromium's Change dialog shows.
+const ENGINES={duckduckgo:'DuckDuckGo',google:'Google',bing:'Microsoft Bing',brave:'Brave',kagi:'Kagi'};
+const engineOf=name=>Object.keys(ENGINES).find(id=>ENGINES[id]===name)??(name?'custom':'');
+// Chromium's Appearance → Mode: Device, Light, Dark.
+const MODES={system:'0',light:'1',dark:'2'};
+// Inside an already open Settings, as shipping reads its sheet: null when
+// Settings isn't open.
+async function settingsEval(w,section,fn,arg,none=null){
+ let page=await settingsPage(w);if(!page)return none;
+ page=await moveTo(w,page,section);
+ await settingsReady(page,section);return inPage(page,fn,arg);
+}
+const bangControls=(a,d)=>{const notice=d.find('#blancBangNotice');
+ return {enabled:d.find('#blancBangs')?.checked??null,
+  rows:d.all('.blanc-bang').map(row=>({code:row.querySelector('.blanc-bang-code')?.textContent.replace(/^!/,'')??'',
+   name:row.querySelector('.blanc-bang-name')?.textContent??'',host:row.querySelector('.blanc-bang-host')?.textContent??''})),
+  empty:!!d.find('#blancCustomBangsEmpty'),
+  error:notice?.dataset.kind==='error'?notice.textContent.trim():null,
+  replaces:notice?.dataset.kind==='replaces'?notice.textContent.trim():null};};
+const addBang=async(a,d)=>{const field=id=>d.find('#'+id);
+ for(const id of ['blancBangCode','blancBangName','blancBangTemplate','blancBangAdd'])if(!field(id))return {missing:'#'+id};
+ field('blancBangCode').value=a.code;field('blancBangName').value=a.name;field('blancBangTemplate').value=a.template;
+ const before=field('blancBangNotice')?.textContent;field('blancBangAdd').click();
+ // The add saves asynchronously; it has settled once the draft clears or a notice shows.
+ const until=Date.now()+5000;
+ while(Date.now()<until&&field('blancBangCode').value!==''&&field('blancBangNotice')?.textContent===before)
+  await new Promise(r=>setTimeout(r,25));
+ return {value:true};};
 // --- Search suggestions: shipping's fixture and request log, at the native
 // suggestion service's network boundary (browser_api/search.h). ---
 export const commands={
@@ -157,20 +216,36 @@ export const commands={
  // hook (the native "handoffs" op); a web navigation means none happened.
  async wouldHandOff(w,url){return (await typedHandoff(w,url))!=='none';},
  async handoffDecision(w,url){return typedHandoff(w,url);},
- setSearchEngine:(w,engine)=>setControl(w,'searchEngine',String(engine)),
- searchEngine:w=>readControl(w,'searchEngine'),
- async setCustomSearchEngine(w,template){await setControl(w,'searchEngine','custom');await setControl(w,'searchEngineTemplate',String(template));return readControl(w,'searchEngine');},
- setSearchSuggestions:(w,on)=>setControl(w,'searchSuggestions',!!on),
- searchSuggestions:w=>readControl(w,'searchSuggestions'),
- setAppearance:(w,theme)=>setControl(w,'theme',String(theme)),
+ // Chromium's Change dialog: an engine it doesn't offer can't be chosen, so
+ // the default stays.
+ setSearchEngine:(w,engine)=>inSettings(w,'search',async(a,d)=>{
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  d.find('#openDialogButton').click();
+  let dialog=null;for(let i=0;i<50&&!dialog;i++){await wait(100);dialog=d.find('settings-search-engine-list-dialog');}
+  if(!dialog)return {missing:'settings-search-engine-list-dialog'};
+  const root=dialog.shadowRoot??dialog;await wait(300);
+  const radio=d.all('cr-radio-button',root).find(r=>r.textContent.trim()===a.name);
+  if(!radio){d.find('#cancelButton',root).click();await wait(300);}
+  else{radio.click();await wait(100);d.find('#setAsDefaultButton',root).click();
+   for(let i=0;i<50&&d.find('.search-engine-name')?.textContent.trim()!==a.name;i++)await wait(100);}
+  return {value:d.find('.search-engine-name')?.textContent.trim()??''};},{name:ENGINES[engine]??null}).then(engineOf),
+ searchEngine:w=>inSettings(w,'search',(a,d)=>({value:d.find('.search-engine-name')?.textContent.trim()??''})).then(engineOf),
+ // V12 (owner, 2026-11-04): a custom address is added under Chromium's Manage
+ // search engines and made the default there.
+ setCustomSearchEngine(){throw new UndefinedNativeAdapterError('V12: a custom search address is added under chrome://settings → Manage search engines');},
+ setSearchSuggestions:(w,on)=>setSwitch(w,'search','blancSearchSuggestions',on),
+ searchSuggestions:w=>readSwitch(w,'search','blancSearchSuggestions'),
+ setAppearance:(w,theme)=>inSettings(w,'appearance',async(a,d)=>{const select=d.find('#colorSchemeModeSelect');
+  if(!select)return {missing:'#colorSchemeModeSelect'};
+  if(a.mode!==null&&select.value!==a.mode){select.value=a.mode;select.dispatchEvent(new Event('change',{bubbles:true}));
+   await new Promise(r=>setTimeout(r,300));}
+  return {value:Object.keys(a.modes).find(k=>a.modes[k]===select.value)??select.value};},{mode:MODES[theme]??null,modes:MODES}),
  // Shipping's hook writes the setting without UI; Settings would close the
  // open command bar, which F47-7 keeps open.
  setBangsEnabled:(w,on)=>w.native('setBangsEnabled',[!!on]),
  // Custom bangs are added one at a time through Settings → Your bangs.
  async setCustomBangs(w,list){
-  for(const b of list)await inSettings(w,a=>{for(const id of ['customBangCode','customBangName','customBangTemplate','customBangAdd'])if(!document.getElementById(id))return {missing:id};
-   document.getElementById('customBangCode').value=a.code;document.getElementById('customBangName').value=a.name;
-   document.getElementById('customBangTemplate').value=a.template;document.getElementById('customBangAdd').click();return {value:true};},b);
+  for(const b of list)await inSettings(w,'search',`${addBang}`,b);
   return (await w.api('bangs')).custom;
  },
  // The overlay's own bang source.
@@ -186,32 +261,49 @@ export const commands={
  requestSearchSuggestions:(w,query)=>w.api('searchSuggestions',[String(query)]),
  openFind:w=>w.api('openFindBar'),
  openSettings:w=>w.api('openPage',['settings']),
- settingsCurrentSection:w=>settingsEval(w,()=>document.querySelector('.settings-nav a.current')?.dataset.group??null),
- scrollSettingsSheetToEnd:w=>settingsEval(w,()=>{const page=document.querySelector('body.sheet .page');page.scrollTop=page.scrollHeight;return true;},undefined,false),
- settingsBangControls:w=>settingsEval(w,()=>({enabled:document.getElementById('bangsEnabled')?.checked??null,
-  rows:[...document.querySelectorAll('#customBangList .site-row')].map(row=>({code:row.querySelector('.custom-bang-code')?.textContent.replace(/^!/,'')??'',
-   name:row.querySelector('.site-row-name')?.textContent??'',host:row.querySelector('.custom-bang-host')?.textContent??''})),
-  empty:!!document.querySelector('#customBangList .site-list-empty'),
-  error:document.getElementById('customBangError')?.hidden===false?document.getElementById('customBangError').textContent:null,
-  replaces:document.getElementById('customBangReplaces')?.hidden===false?document.getElementById('customBangReplaces').textContent:null})),
- settingsAddBang:(w,code,name,template)=>settingsEval(w,a=>{const set=(id,v)=>{const el=document.getElementById(id);if(!el)return false;el.value=v;return true;};
-  if(!set('customBangCode',a.code)||!set('customBangName',a.name)||!set('customBangTemplate',a.template))return false;
-  document.getElementById('customBangAdd').click();return true;},{code:String(code),name:String(name),template:String(template)},false),
- settingsRemoveBang:(w,code)=>settingsEval(w,c=>{const row=[...document.querySelectorAll('#customBangList .site-row')].find(r=>r.querySelector('.custom-bang-code')?.textContent==='!'+c);
-  if(!row)return false;row.querySelector('.site-row-remove').click();return true;},String(code),false),
- settingsHintState:w=>settingsEval(w,()=>[...document.querySelectorAll('.setting .label .hint:not(.field-error)')].filter(h=>h.offsetParent)
-  .map((hint,index)=>({index,text:hint.textContent,folded:hint.classList.contains('folded'),hasToggle:hint.nextElementSibling?.classList.contains('hint-toggle')??false}))),
- toggleFirstFoldedHint:w=>settingsEval(w,()=>{const b=document.querySelector('.hint-toggle');b?.click();return !!b;},undefined,false),
+ // V14 (owner, 2026-11-04): Settings' menu marks the page you are on, as
+ // chrome://settings's does; no marker follows scrolling.
+ settingsCurrentSection(){throw new UndefinedNativeAdapterError('V14: chrome://settings marks the page you are on, not a scrolled-to section');},
+ scrollSettingsSheetToEnd(){throw new UndefinedNativeAdapterError('V14: chrome://settings marks the page you are on, not a scrolled-to section');},
+ // The open Settings page scrolled to its end, as a person scrolls it.
+ settingsScrollToEnd:w=>settingsPage(w).then(page=>page?page.evaluate(`(()=>{const s=document.scrollingElement;s.scrollTop=s.scrollHeight;return s.scrollTop>0||s.scrollHeight<=innerHeight;})()`):false),
+ // A click on an item of Settings' own menu (☰ at the sheet's width), then
+ // which item the menu marks and where Settings is.
+ settingsChooseMenuItem:(w,id)=>settingsPage(w).then(page=>page?inPage(page,async(item,d)=>{const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  let link=null;for(let i=0;i<30&&!link;i++){link=d.all('#'+item)[0]??null;if(!link)await wait(100);}
+  if(!link)return false;
+  // At the sheet's width the menu is behind ☰; a person opens it first.
+  const button=d.find('#menuButton');if(button&&button.offsetParent){button.click();await wait(500);}
+  (d.all('#'+item).find(l=>l.offsetParent)??link).click();await wait(1000);return true;},String(id)):false),
+ settingsMenuMarked:w=>settingsPage(w).then(page=>page?inPage(page,(a,d)=>{const menu=d.find('settings-menu')?.shadowRoot;
+  const marked=menu?[...menu.querySelectorAll('a[role=menuitem]')].find(l=>l.classList.contains('selected')||l.getAttribute('aria-current')==='page'):null;
+  return {item:marked?.id??null,path:location.pathname};}):null),
+ settingsBangControls:w=>settingsEval(w,'search',`${bangControls}`),
+ settingsAddBang:(w,code,name,template)=>settingsEval(w,'search',`${addBang}`,{code:String(code),name:String(name),template:String(template)},false).then(r=>r===false?false:!r?.missing),
+ settingsRemoveBang:(w,code)=>settingsEval(w,'search',async(c,d)=>{const button=d.all('.blanc-bang-remove').find(b=>b.dataset.code===c);
+  if(!button)return false;button.click();await new Promise(r=>setTimeout(r,300));return true;},String(code),false),
+ // V13 (owner, 2026-11-04): explanations show in full, as Chromium's do.
+ settingsExplanations:w=>settingsEval(w,'appearance',(a,d)=>d.all('settings-toggle-button').filter(t=>t.offsetParent&&t.subLabel)
+  .map(t=>{const el=d.find('#subLabel',t.shadowRoot)??t.shadowRoot?.querySelector('.secondary');
+   return {text:t.subLabel,whole:!el||el.scrollHeight<=el.clientHeight+1};})),
+ settingsHintState(){throw new UndefinedNativeAdapterError('V13: chrome://settings shows explanations in full');},
+ toggleFirstFoldedHint(){throw new UndefinedNativeAdapterError('V13: chrome://settings shows explanations in full');},
  settingsSyncValues(){throw new UndefinedNativeAdapterError('The fork has no Profile Sync export to read synced settings from');},
- // The macOS pasteboard is the owner's, shared with every app: unattended
- // runs must not overwrite or record it, so clipboard steps stay undefined.
- setClipboardText(){throw new UndefinedNativeAdapterError('Clipboard writes would replace the owner\'s real pasteboard');},
- readClipboardText(){throw new UndefinedNativeAdapterError('Clipboard reads would record the owner\'s real pasteboard');},
- // Shipping's command-bar menu is its own (main's address-menu.js). The fork's
- // command bar leaves the address input to Chromium's native editable context
- // menu (adapter.js skips inputs), which CDP cannot list or click.
- addressMenuWired(){throw new UndefinedNativeAdapterError('The fork address input uses Chromium’s native context menu; listing it needs a native test op');},
- addressFieldText(){throw new UndefinedNativeAdapterError('The fork has no address-menu field read; needs a native test op');},
- addressMenu(){throw new UndefinedNativeAdapterError('The fork address input uses Chromium’s native context menu; listing it needs a native test op');},
- runAddressMenuItem(){throw new UndefinedNativeAdapterError('The fork address input uses Chromium’s native context menu; running an item needs a native test op');},
+ // The macOS pasteboard is the owner's, shared with every app: under
+ // --blanc-test Blanc's own clipboard actions use an in-memory board instead
+ // (Copy Clean Link, Paste and Go, /copy, /invite), which these read and set.
+ setClipboardText:(w,text)=>w.native('setTestClipboard',[String(text)]),
+ readClipboardText:w=>w.native('testClipboard',[]),
+ // Shipping's command-bar menu is its own (main's address-menu.js); the fork's
+ // is Blanc's native menu on the Island's address input (F19), whose builder
+ // and executor these drive, since CDP can't open a native menu.
+ addressMenuWired:w=>w.native('addressMenuWired',[]),
+ addressFieldText:async w=>{
+  const text=await w.hostEval(`(()=>{const f=document.getElementById('overlay');if(!f||f.hidden)return null;
+   return f.contentDocument?.getElementById('addressInput')?.value??''})()`);
+  if(text===null)throw Error('overlay is not open');
+  return text;
+ },
+ addressMenu:(w,{fieldText})=>w.native('addressMenu',[String(fieldText)]),
+ runAddressMenuItem:(w,id,fieldText)=>w.native('runAddressMenuItem',[String(id),String(fieldText)]),
 };
