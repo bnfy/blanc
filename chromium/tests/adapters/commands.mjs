@@ -203,15 +203,21 @@ export const commands={
   .map((hint,index)=>({index,text:hint.textContent,folded:hint.classList.contains('folded'),hasToggle:hint.nextElementSibling?.classList.contains('hint-toggle')??false}))),
  toggleFirstFoldedHint:w=>settingsEval(w,()=>{const b=document.querySelector('.hint-toggle');b?.click();return !!b;},undefined,false),
  settingsSyncValues(){throw new UndefinedNativeAdapterError('The fork has no Profile Sync export to read synced settings from');},
- // The macOS pasteboard is the owner's, shared with every app: unattended
- // runs must not overwrite or record it, so clipboard steps stay undefined.
- setClipboardText(){throw new UndefinedNativeAdapterError('Clipboard writes would replace the owner\'s real pasteboard');},
- readClipboardText(){throw new UndefinedNativeAdapterError('Clipboard reads would record the owner\'s real pasteboard');},
- // Shipping's command-bar menu is its own (main's address-menu.js). The fork's
- // command bar leaves the address input to Chromium's native editable context
- // menu (adapter.js skips inputs), which CDP cannot list or click.
- addressMenuWired(){throw new UndefinedNativeAdapterError('The fork address input uses Chromium’s native context menu; listing it needs a native test op');},
- addressFieldText(){throw new UndefinedNativeAdapterError('The fork has no address-menu field read; needs a native test op');},
- addressMenu(){throw new UndefinedNativeAdapterError('The fork address input uses Chromium’s native context menu; listing it needs a native test op');},
- runAddressMenuItem(){throw new UndefinedNativeAdapterError('The fork address input uses Chromium’s native context menu; running an item needs a native test op');},
+ // The macOS pasteboard is the owner's, shared with every app: under
+ // --blanc-test Blanc's own clipboard actions use an in-memory board instead
+ // (Copy Clean Link, Paste and Go, /copy, /invite), which these read and set.
+ setClipboardText:(w,text)=>w.native('setTestClipboard',[String(text)]),
+ readClipboardText:w=>w.native('testClipboard',[]),
+ // Shipping's command-bar menu is its own (main's address-menu.js); the fork's
+ // is Blanc's native menu on the Island's address input (F19), whose builder
+ // and executor these drive, since CDP can't open a native menu.
+ addressMenuWired:w=>w.native('addressMenuWired',[]),
+ addressFieldText:async w=>{
+  const text=await w.hostEval(`(()=>{const f=document.getElementById('overlay');if(!f||f.hidden)return null;
+   return f.contentDocument?.getElementById('addressInput')?.value??''})()`);
+  if(text===null)throw Error('overlay is not open');
+  return text;
+ },
+ addressMenu:(w,{fieldText})=>w.native('addressMenu',[String(fieldText)]),
+ runAddressMenuItem:(w,id,fieldText)=>w.native('runAddressMenuItem',[String(id),String(fieldText)]),
 };

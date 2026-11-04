@@ -1,0 +1,26 @@
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+index 5479020..0cefdc8 100644
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -108,6 +108,7 @@
+ #include "chrome/browser/webauthn/webauthn_pref_names.h"
+ #include "chrome/common/buildflags.h"
+ #include "chrome/common/pref_names.h"
++#include "third_party/blink/public/common/peerconnection/webrtc_ip_handling_policy.h"
+ #include "chrome/common/secure_origin_allowlist.h"
+ #include "components/autofill/core/common/autofill_prefs.h"
+ #include "components/blocked_content/safe_browsing_triggered_popup_blocker.h"
+@@ -2181,6 +2182,13 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
+   QuietNotificationPermissionUiState::RegisterProfilePrefs(registry);
+   regional_capabilities::prefs::RegisterProfilePrefs(registry);
+   RegisterBrowserUserPrefs(registry);
++#if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
++  // N8: shipping's default WebRTC policy ("standard"): sites see only the
++  // public address of the default route, not other local interfaces.
++  registry->SetDefaultPrefValue(
++      prefs::kWebRTCIPHandlingPolicy,
++      base::Value(blink::kWebRTCIPHandlingDefaultPublicInterfaceOnly));
++#endif
+   registry->RegisterBooleanPref(prefs::kRestrictYouTubeCookiesDeletion, false);
+   RegisterGeminiSettingsPrefs(registry);
+   registry->RegisterIntegerPref(prefs::kVoiceTypingSettings, 0);

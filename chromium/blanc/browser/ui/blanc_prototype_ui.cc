@@ -25,6 +25,9 @@
 #include "blanc/browser/ui/blanc_quiet_media.h"
 #include "blanc/browser/ui/blanc_quiet_schedule.h"
 #include "chrome/browser/browser_process.h"
+#include "chrome/browser/net/secure_dns_config.h"
+#include "chrome/browser/net/stub_resolver_config_reader.h"
+#include "chrome/browser/net/system_network_context_manager.h"
 #include "base/timer/timer.h"
 #include "ui/base/models/simple_combobox_model.h"
 #include "ui/views/controls/combobox/combobox.h"
@@ -192,6 +195,7 @@
 #include "components/sessions/content/session_tab_helper.h"
 #include "components/viz/common/frame_sinks/copy_output_result.h"
 #include "content/public/browser/navigation_controller.h"
+#include "content/public/browser/navigation_handle.h"
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/render_process_host.h"
 #include "content/public/browser/child_process_security_policy.h"
@@ -218,6 +222,12 @@
 #include "extensions/browser/extension_registry.h"
 #include "ui/views/controls/menu/menu_model_adapter.h"
 #include "ui/views/controls/menu/menu_runner.h"
+#include "blanc/common/menu_strings.h"
+#include "content/public/browser/context_menu_params.h"
+#include "third_party/blink/public/common/context_menu_data/edit_flags.h"
+#include "ui/base/accelerators/accelerator.h"
+#include "ui/base/clipboard/clipboard.h"
+#include "ui/menus/simple_menu_model.h"
 #include "ui/views/controls/menu/menu_item_view.h"
 #include "ui/display/screen.h"
 #include "ui/gfx/animation/animation.h"
@@ -241,6 +251,14 @@ namespace blanc_prototype {
 // The Island's own header height, before auto-hide moves the page over it.
 int BaseHeaderHeight(views::View* parent);
 namespace {
+// Every sandbox flag Chromium defines (bits 0-18).
+constexpr uint32_t kKnownSandboxFlags = (1u << 19) - 1;
+uint32_t ActiveSandboxFlags(content::RenderFrameHost* frame) {
+  uint32_t flags = 0;
+  for (uint32_t bit = 1; bit & kKnownSandboxFlags; bit <<= 1)
+    if (frame->IsSandboxed(static_cast<network::mojom::WebSandboxFlags>(bit))) flags |= bit;
+  return flags;
+}
 
 // Shipping's islandHoverOpen (F1): off by default.
 constexpr char kIslandHoverOpenPref[] = "blanc.island.hover_open";
@@ -1029,9 +1047,12 @@ class Owner : public base::SupportsUserData::Data,
   }
   void OnTabStripModelChanged(TabStripModel*, const TabStripModelChange& change,
                               const TabStripSelectionChange& selection) override {
-    if (change.type() == TabStripModelChange::kInserted)
-      for (const auto& inserted : change.GetInsert()->contents)
+    if (change.type() == TabStripModelChange::kInserted) {
+      for (const auto& inserted : change.GetInsert()->contents) {
         blanc::quiet::MediaHistory::Get(inserted.contents, true);
+        NoteInheritedSandbox(inserted.contents);
+      }
+    }
     for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
       SiteMuteTab::Get(browser->GetTabStripModel()->GetWebContentsAt(i));
     if (!selection.active_tab_changed()) return;
@@ -1228,8 +1249,196 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
 // own drops them, so shortcuts died while the Island had focus. Reserved
 // commands (⌘T, ⌘W) are dispatched before the first responder and were never
 // affected. Stateless, so one process-wide instance serves every window.
+// Blanc's own clipboard actions. Under --blanc-test they use an in-memory
+// board, never the owner's pasteboard, which every app on the Mac shares.
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+std::u16string& TestClipboard() {
+  static base::NoDestructor<std::u16string> text;
+  return *text;
+}
+bool UsesTestClipboard() {
+  return base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test");
+}
+#endif
+void WriteClipboardText(const std::u16string& text) {
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+  if (UsesTestClipboard()) { TestClipboard() = text; return; }
+#endif
+  ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste);
+  writer.WriteText(text);
+}
+void ReadClipboardText(base::OnceCallback<void(std::u16string)> done) {
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+  if (UsesTestClipboard()) { std::move(done).Run(TestClipboard()); return; }
+#endif
+  ui::Clipboard::GetForCurrentThread()->ReadText(
+      ui::ClipboardBuffer::kCopyPaste, std::nullopt, std::move(done));
+}
+
+// F19: the Island address input's menu, shipping's address-menu-model.js
+// (items, order, enabled state) and address-menu.js (actions). Chromium's own
+// editable-field menu stays for every other field.
+struct AddressMenuItem {
+  std::string id;  // Empty for a separator.
+  std::u16string label;
+  bool enabled = false;
+};
+std::vector<AddressMenuItem> AddressMenuItems(int edit_flags, const std::u16string& clipboard,
+                                              bool clean_available) {
+  const auto& l = blanc::menu::ForLocale(g_browser_process->GetApplicationLocale());
+  const auto can = [&](int flag) { return (edit_flags & flag) != 0; };
+  using F = blink::ContextMenuDataEditFlags;
+  const bool paste = can(F::kCanPaste);
+  return {
+      {"undo", std::u16string(l.undo), can(F::kCanUndo)},
+      {"redo", std::u16string(l.redo), can(F::kCanRedo)},
+      {},
+      {"cut", std::u16string(l.cut), can(F::kCanCut)},
+      {"copy", std::u16string(l.copy), can(F::kCanCopy)},
+      // Cleans the field's visible text, not the tab's address, as shipping.
+      {"copy-clean-link", std::u16string(l.copy_clean_link), clean_available},
+      {"paste", std::u16string(l.paste), paste},
+      {"paste-and-go", std::u16string(l.paste_and_go),
+       paste && !base::TrimWhitespace(clipboard, base::TRIM_ALL).empty()},
+      {"delete", std::u16string(l.delete_text), can(F::kCanDelete)},
+      {},
+      {"select-all", std::u16string(l.select_all), can(F::kCanSelectAll)},
+  };
+}
+// Edits act on the Island's own document, never whatever page has focus.
+void RunAddressMenuCommand(content::WebContents* host, std::string_view id,
+                           const std::optional<std::string>& cleaned) {
+  if (!host) return;
+  if (id == "undo") host->Undo();
+  else if (id == "redo") host->Redo();
+  else if (id == "cut") host->Cut();
+  else if (id == "copy") host->Copy();
+  else if (id == "paste") host->Paste();
+  else if (id == "delete") host->Delete();
+  else if (id == "select-all") host->SelectAll();
+  else if (id == "copy-clean-link") {
+    if (cleaned) WriteClipboardText(base::UTF8ToUTF16(*cleaned));
+  } else if (id == "paste-and-go") {
+    ReadClipboardText(base::BindOnce([](base::WeakPtr<content::WebContents> host, std::u16string text) {
+      const std::u16string trimmed(base::TrimWhitespace(text, base::TRIM_ALL));
+      if (!host || trimmed.empty()) return;
+      std::string json;
+      if (!base::JSONWriter::Write(base::Value(trimmed), &json)) return;
+      // Shipping's pasteAndGo: the active tab goes to the text as typed, and
+      // the Island closes.
+      host->GetPrimaryMainFrame()->ExecuteJavaScript(
+          u"window.BlancPrototypeHost?.pasteAndGo(" + base::UTF8ToUTF16(json) + u")",
+          base::NullCallback());
+    }, host->GetWeakPtr()));
+  }
+}
+std::optional<std::string> CleanedFromRead(const base::Value& read) {
+  const auto* dict = read.GetIfDict();
+  const auto* clean = dict ? dict->FindString("clean") : nullptr;
+  if (!clean) return std::nullopt;
+  return *clean;
+}
+
+class AddressMenu : public ui::SimpleMenuModel::Delegate {
+ public:
+  AddressMenu(content::WebContents* host, std::vector<AddressMenuItem> items,
+              std::optional<std::string> cleaned)
+      : host_(host->GetWeakPtr()), items_(std::move(items)), cleaned_(std::move(cleaned)) {
+    for (size_t i = 0; i < items_.size(); ++i) {
+      if (items_[i].id.empty()) model_.AddSeparator(ui::NORMAL_SEPARATOR);
+      else model_.AddItem(static_cast<int>(i), items_[i].label);
+    }
+    adapter_ = std::make_unique<views::MenuModelAdapter>(&model_);
+    runner_ = std::make_unique<views::MenuRunner>(adapter_->CreateMenu(),
+                                                  views::MenuRunner::CONTEXT_MENU);
+  }
+  void Show(views::Widget* widget, const gfx::Point& at, ui::mojom::MenuSourceType source) {
+    runner_->RunMenuAt(widget, nullptr, gfx::Rect(at, gfx::Size()),
+                       views::MenuAnchorPosition::kTopLeft, source);
+  }
+  bool IsCommandIdEnabled(int command) const override {
+    return command >= 0 && static_cast<size_t>(command) < items_.size() && items_[command].enabled;
+  }
+  bool GetAcceleratorForCommandId(int command, ui::Accelerator* accelerator) const override {
+    if (command < 0 || static_cast<size_t>(command) >= items_.size()) return false;
+    const std::string& id = items_[command].id;
+    const ui::KeyboardCode key = id == "undo" || id == "redo" ? ui::VKEY_Z : id == "cut" ? ui::VKEY_X
+        : id == "copy" ? ui::VKEY_C : id == "paste" ? ui::VKEY_V : id == "select-all" ? ui::VKEY_A
+        : ui::VKEY_UNKNOWN;
+    if (key == ui::VKEY_UNKNOWN) return false;
+    *accelerator = ui::Accelerator(key, ui::EF_PLATFORM_ACCELERATOR |
+                                            (id == "redo" ? ui::EF_SHIFT_DOWN : ui::EF_NONE));
+    return true;
+  }
+  void ExecuteCommand(int command, int) override {
+    if (IsCommandIdEnabled(command)) RunAddressMenuCommand(host_.get(), items_[command].id, cleaned_);
+  }
+
+ private:
+  base::WeakPtr<content::WebContents> host_;
+  std::vector<AddressMenuItem> items_;
+  std::optional<std::string> cleaned_;
+  ui::SimpleMenuModel model_{this};
+  std::unique_ptr<views::MenuModelAdapter> adapter_;
+  std::unique_ptr<views::MenuRunner> runner_;
+};
+std::unique_ptr<AddressMenu>& OpenAddressMenu() {
+  static base::NoDestructor<std::unique_ptr<AddressMenu>> menu;
+  return *menu;
+}
+// The field's text and whether it cleans, read in the overlay. The same
+// round-trip checks the click landed on the address input, as shipping's
+// does; params give the point in the Island host's coordinates.
+std::u16string AddressFieldRead(int x, int y) {
+  return base::UTF8ToUTF16(base::StringPrintf(R"((() => {
+    const input = document.getElementById('addressInput');
+    if (!input) return null;
+    const box = frameElement ? frameElement.getBoundingClientRect() : {left: 0, top: 0};
+    const hit = document.elementFromPoint(%d - box.left, %d - box.top);
+    if (!hit || (hit !== input && !input.contains(hit))) return null;
+    return {value: input.value, clean: parent.BlancCleanLink?.cleanLink(input.value) ?? null};
+  })())", x, y));
+}
+void ShowAddressMenu(content::RenderFrameHost& frame, const content::ContextMenuParams& params) {
+  const auto frame_id = frame.GetGlobalId();
+  const gfx::Point at(params.x, params.y);
+  const int edit_flags = params.edit_flags;
+  const auto source = params.source_type;
+  frame.ExecuteJavaScript(AddressFieldRead(at.x(), at.y()), base::BindOnce(
+      [](content::GlobalRenderFrameHostId frame_id, gfx::Point at, int edit_flags,
+         ui::mojom::MenuSourceType source, base::Value read) {
+        if (!read.is_dict() || !read.GetDict().FindString("value")) return;
+        ReadClipboardText(base::BindOnce(
+            [](content::GlobalRenderFrameHostId frame_id, gfx::Point at, int edit_flags,
+               ui::mojom::MenuSourceType source, base::Value read, std::u16string clipboard) {
+              // The awaits left room for the Island to close; check again.
+              auto* frame = content::RenderFrameHost::FromID(frame_id);
+              auto* host = frame ? content::WebContents::FromRenderFrameHost(frame) : nullptr;
+              auto* owner = host ? GetOwner(host) : nullptr;
+              if (!owner || !owner->view || !owner->view->GetWidget() || !frame->IsActive()) return;
+              const auto cleaned = CleanedFromRead(read);
+              auto& menu = OpenAddressMenu();
+              menu = std::make_unique<AddressMenu>(
+                  host, AddressMenuItems(edit_flags, clipboard, cleaned.has_value()), cleaned);
+              gfx::Point screen = at;
+              views::View::ConvertPointToScreen(owner->view, &screen);
+              menu->Show(owner->view->GetWidget(), screen, source);
+            }, frame_id, at, edit_flags, source, std::move(read)));
+      }, frame_id, at, edit_flags, source));
+}
+
 class IslandDelegate : public content::WebContentsDelegate {
  public:
+  // The address input's right-click gets Blanc's menu (F19); any other field
+  // keeps Chromium's.
+  bool HandleContextMenu(content::RenderFrameHost& frame,
+                         const content::ContextMenuParams& params) override {
+    if (!params.is_editable ||
+        frame.GetLastCommittedURL() != GURL("chrome://blanc-prototype/overlay.html"))
+      return false;
+    ShowAddressMenu(frame, params);
+    return true;
+  }
   bool HandleKeyboardEvent(content::WebContents* source,
                            const input::NativeWebKeyboardEvent& event) override {
     auto* owner = GetOwner(source);
@@ -3171,6 +3380,96 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(true));
       return;
     }
+    // Read-only: each tab's inherited sandbox (N4), its document's current
+    // sandbox, and whether Duplicate is offered.
+    if (message[1].GetString() == "inheritedSandbox" && message[2].GetList().empty()) {
+      base::ListValue list;
+      GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* browser) {
+        auto* tabs = browser->GetTabStripModel();
+        for (int i = 0; i < tabs->count(); ++i) {
+          auto* tab = tabs->GetWebContentsAt(i);
+          list.Append(base::DictValue()
+              .Set("id", sessions::SessionTabHelper::IdForTab(tab).id())
+              .Set("url", tab->GetVisibleURL().spec())
+              .Set("flags", static_cast<int>(InheritedSandboxFlags(tab)))
+              .Set("documentFlags", static_cast<int>(ActiveSandboxFlags(tab->GetPrimaryMainFrame())))
+              .Set("canDuplicate", chrome::CanDuplicateTabAt(browser, i)));
+        }
+        return true;
+      });
+      Reply(id, true, base::Value(std::move(list)));
+      return;
+    }
+    // F19: the address menu's items and actions, through the same builder
+    // and executor the native menu runs (a native menu can't be driven by
+    // CDP), with Blink's flags for a focused, filled input, as shipping's
+    // hook. The field's cleaning comes from shipping's clean-link.js.
+    if (message[1].GetString() == "addressMenuWired" && message[2].GetList().empty()) {
+      Reply(id, true, base::Value(web_ui()->GetWebContents()->GetDelegate() == GetIslandDelegate()));
+      return;
+    }
+    if ((message[1].GetString() == "addressMenu" && message[2].GetList().size() == 1 &&
+         message[2].GetList()[0].is_string()) ||
+        (message[1].GetString() == "runAddressMenuItem" && message[2].GetList().size() == 2 &&
+         message[2].GetList()[0].is_string() && message[2].GetList()[1].is_string())) {
+      const bool run = message[1].GetString() == "runAddressMenuItem";
+      const auto& list = message[2].GetList();
+      const std::string item = run ? list[0].GetString() : std::string();
+      std::string field;
+      base::JSONWriter::Write(list[run ? 1 : 0], &field);
+      auto* host = web_ui()->GetWebContents();
+      host->GetPrimaryMainFrame()->ExecuteJavaScript(
+          u"({value: " + base::UTF8ToUTF16(field) + u", clean: window.BlancCleanLink?.cleanLink(" +
+              base::UTF8ToUTF16(field) + u") ?? null})",
+          base::BindOnce([](base::WeakPtr<Handler> self, std::string id, bool run, std::string item,
+                            base::Value read) {
+            if (!self) return;
+            auto* host = self->web_ui()->GetWebContents();
+            const auto cleaned = CleanedFromRead(read);
+            if (run) {
+              RunAddressMenuCommand(host, item, cleaned);
+              self->Reply(id, true, base::Value(true));
+              return;
+            }
+            ReadClipboardText(base::BindOnce([](base::WeakPtr<Handler> self, std::string id,
+                                                bool clean, std::u16string clipboard) {
+              if (!self) return;
+              using F = blink::ContextMenuDataEditFlags;
+              const int all = F::kCanUndo | F::kCanRedo | F::kCanCut | F::kCanCopy |
+                              F::kCanPaste | F::kCanDelete | F::kCanSelectAll;
+              base::ListValue items;
+              for (const auto& entry : AddressMenuItems(all, clipboard, clean)) {
+                if (entry.id.empty()) items.Append(base::DictValue().Set("type", "separator"));
+                else items.Append(base::DictValue().Set("id", entry.id).Set("label", entry.label)
+                                      .Set("enabled", entry.enabled));
+              }
+              self->Reply(id, true, base::Value(std::move(items)));
+            }, self, std::move(id), cleaned.has_value()));
+          }, weak_factory_.GetWeakPtr(), id, run, item));
+      return;
+    }
+    // The in-memory clipboard Blanc's own actions use under --blanc-test.
+    if (message[1].GetString() == "setTestClipboard" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_string()) {
+      TestClipboard() = base::UTF8ToUTF16(message[2].GetList()[0].GetString());
+      Reply(id, true, base::Value(true));
+      return;
+    }
+    if (message[1].GetString() == "testClipboard" && message[2].GetList().empty()) {
+      Reply(id, true, base::Value(TestClipboard()));
+      return;
+    }
+    // Read-only: N8's effective settings, Chromium's own preferences.
+    if (message[1].GetString() == "networkPrivacy" && message[2].GetList().empty()) {
+      auto config = SystemNetworkContextManager::GetStubResolverConfigReader()
+          ->GetSecureDnsConfiguration(false);
+      Reply(id, true, base::Value(base::DictValue()
+          .Set("webrtcPolicy", GetOwner(web_ui()->GetWebContents())->browser->GetProfile()
+              ->GetPrefs()->GetString(prefs::kWebRTCIPHandlingPolicy))
+          .Set("secureDnsMode", SecureDnsConfig::ModeToString(config.mode()))
+          .Set("secureDnsServers", config.doh_servers().ToString())));
+      return;
+    }
     // Read-only: external launches Blanc's rule recorded instead of passing
     // to Chromium's handler (page_handoff.h).
     if (message[1].GetString() == "externalLaunches") {
@@ -3522,6 +3821,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (split && model->active_index() >= 0 && split == model->GetSplitForTab(model->active_index())) return false;
     auto* media = blanc::quiet::MediaHistory::Get(tab);
     if (!media->known() || media->used() || !media->policy_known() || media->inherited_policy() ||
+        HasInheritedSandbox(tab) ||
         tab->GetPrimaryMainFrame()->IsSandboxed(network::mojom::WebSandboxFlags::kAll)) return false;
     auto* permissions = permissions::PermissionRequestManager::FromWebContents(tab);
     if (!permissions || permissions->IsRequestInProgress()) return false;
@@ -4985,8 +5285,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         reply(true, base::Value("mail"));
         return;
       }
-      ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste);
-      writer.WriteText(base::UTF8ToUTF16(args[1].GetString()));
+      WriteClipboardText(base::UTF8ToUTF16(args[1].GetString()));
       reply(true, base::Value("copied"));
       return;
     }
@@ -5273,7 +5572,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       auto* media = blanc::quiet::MediaHistory::Get(tab);
       base::ListValue unmapped;
       if (!media->known()) unmapped.Append("silent-media-history");
-      const bool sandboxed = tab->GetPrimaryMainFrame()->IsSandboxed(network::mojom::WebSandboxFlags::kAll);
+      const bool sandboxed = HasInheritedSandbox(tab) ||
+          tab->GetPrimaryMainFrame()->IsSandboxed(network::mojom::WebSandboxFlags::kAll);
       const bool inherited_known = media->policy_known() || sandboxed;
       if (!inherited_known) unmapped.Append("inherited-policy");
       if (native_eligibility == "unknown") unmapped.Append("native-eligibility");
@@ -5324,8 +5624,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         reply(false, base::Value("The page changed; reopen the link menu."));
         return;
       }
-      ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste);
-      writer.WriteText(base::UTF8ToUTF16(text));
+      WriteClipboardText(base::UTF8ToUTF16(text));
       reply(true, base::Value(true));
       return;
     }
@@ -5848,9 +6147,72 @@ class TabIdentityData : public base::SupportsUserData::Data {
   explicit TabIdentityData(std::string value) : id(std::move(value)) {}
   std::string id;
 };
+void SaveInheritedSandbox(content::WebContents* tab) {
+  const std::string state = InheritedSandboxState(tab);
+  if (state.empty() || tab->GetBrowserContext()->IsOffTheRecord()) return;
+  GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* browser) {
+    if (browser->GetTabStripModel()->GetIndexOfWebContents(tab) == TabStripModel::kNoTab) return true;
+    if (auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile()))
+      service->AddTabExtraData(browser->GetSessionID(),
+          sessions::SessionTabHelper::IdForTab(tab), kInheritedSandboxKey, state);
+    return false;
+  });
+}
+// Sticky: a later main-frame navigation can add flags (Chromium's inherited
+// flags for it, never a page's own CSP sandbox) but never removes one.
+class InheritedSandboxData : public base::SupportsUserData::Data,
+                             public content::WebContentsObserver {
+ public:
+  InheritedSandboxData(content::WebContents* tab, uint32_t value)
+      : content::WebContentsObserver(tab), flags(value & kKnownSandboxFlags) {}
+  void DidStartNavigation(content::NavigationHandle* navigation) override {
+    if (!navigation->IsInPrimaryMainFrame()) return;
+    const uint32_t inherited =
+        static_cast<uint32_t>(navigation->SandboxFlagsInherited()) & kKnownSandboxFlags;
+    if ((flags | inherited) == flags) return;
+    flags |= inherited;
+    SaveInheritedSandbox(web_contents());
+  }
+  uint32_t flags;
+};
+}
+void NoteInheritedSandbox(content::WebContents* tab) {
+  if (!IsEnabled() || !tab) return;
+  if (!tab->GetUserData(kInheritedSandboxKey)) {
+    // Seen before its first document commits, a tab's flags are exactly what
+    // it was born with: an opener's propagating sandbox, or restore's flags.
+    auto& controller = tab->GetController();
+    const bool unborn = controller.IsInitialNavigation() || controller.IsInitialBlankNavigation();
+    tab->SetUserData(kInheritedSandboxKey, std::make_unique<InheritedSandboxData>(
+        tab, unborn ? ActiveSandboxFlags(tab->GetPrimaryMainFrame()) : 0));
+  }
+  // Also on a move: the mark belongs to the window that now holds the tab.
+  SaveInheritedSandbox(tab);
+}
+uint32_t InheritedSandboxFlags(content::WebContents* tab) {
+  auto* data = tab ? static_cast<InheritedSandboxData*>(tab->GetUserData(kInheritedSandboxKey)) : nullptr;
+  return data ? data->flags : 0;
+}
+bool HasInheritedSandbox(content::WebContents* tab) { return InheritedSandboxFlags(tab) != 0; }
+std::string InheritedSandboxState(content::WebContents* tab) {
+  const uint32_t flags = InheritedSandboxFlags(tab);
+  return flags ? base::NumberToString(flags) : std::string();
+}
+uint32_t RestoredSandboxFlags(const std::map<std::string, std::string>& extra_data) {
+  const auto saved = extra_data.find(kInheritedSandboxKey);
+  if (saved == extra_data.end()) return 0;
+  unsigned value = 0;
+  if (!base::StringToUint(saved->second, &value) || !value || (value & ~kKnownSandboxFlags))
+    return kKnownSandboxFlags;
+  return value;
+}
+void RestoreInheritedSandbox(content::WebContents* tab, uint32_t flags) {
+  if (!tab || !flags) return;
+  tab->SetUserData(kInheritedSandboxKey, std::make_unique<InheritedSandboxData>(tab, flags));
 }
 void PreserveDiscardedTabState(content::WebContents* old_tab, content::WebContents* replacement) {
   if (!old_tab || !replacement || old_tab->GetBrowserContext() != replacement->GetBrowserContext()) return;
+  RestoreInheritedSandbox(replacement, InheritedSandboxFlags(old_tab));
   if (auto* name = static_cast<TabNameData*>(old_tab->GetUserData(kTabNameKey)))
     replacement->SetUserData(kTabNameKey, std::make_unique<TabNameData>(name->name));
   if (auto* identity = static_cast<TabIdentityData*>(old_tab->GetUserData(kTabIdentityKey)))

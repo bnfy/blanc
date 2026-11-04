@@ -1608,6 +1608,15 @@
       return show(newTab ? text : undefined, newTab ? 'panel' : 'palette');
     },
     extensions: showExtensions,
+    // The address menu's Paste and Go (F19, shipping's pasteAndGo): the active
+    // tab goes to the text as typed in the command bar, then the Island closes.
+    pasteAndGo: async (text) => {
+      const id = snapshot?.activeTabId;
+      if (id == null || typeof text !== 'string' || !text.trim()) return false;
+      await implemented.navigate(id, text.trim());
+      await close();
+      return true;
+    },
     escape: () => opened || extensionsOpened ? close() : undefined,
     // The utility sheet: its pages' bridge and links (pages/sheet-adapter.js),
     // native commands (History, Downloads, Favorites) and its state.
