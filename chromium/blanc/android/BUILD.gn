@@ -85,6 +85,7 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/island/IslandMenuTest.java",
     "junit/src/org/chromium/blanc/island/IslandPositionTest.java",
     "junit/src/org/chromium/blanc/island/IslandStyleTest.java",
+    "junit/src/org/chromium/blanc/island/IslandSwipeGestureTest.java",
     "junit/src/org/chromium/blanc/island/IslandSwipeTest.java",
     "junit/src/org/chromium/blanc/island/IslandTitleTest.java",
     "junit/src/org/chromium/blanc/island/IslandTuckTest.java",
