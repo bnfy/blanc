@@ -737,25 +737,14 @@ first-run/checklist/Patron/launch-Sunrise state once stored; address context men
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.7 (F14): chrome://settings restyled, in a native sheet (owner,
-   2026-11-03). `chromium/settings-keys.json` classifies all 81 v1.45.1
-   DEFAULTS keys (`islandSize` and `miniWindowShortcut` came after the tag),
-   checked by `tools/settings-keys.mjs`: 19 are S1.7's (7 in Chromium's own
-   stores, 12 Blanc prefs, all with shipping's defaults; islandSiteColors,
-   islandTabIcons and searchPriorityResults still to build), 4 approved
-   divergences, 55 for later slices or the importer, and adblockProvider
-   waits on D2. surfaceStyle and webrtcAudioBuffer have no spec row; the
-   owner put both in S1.7 (2026-11-03), so 21 keys are S1.7's and five Blanc
-   prefs are still to build. Then, in
-   order: the native sheet showing chrome://settings; removing its Google,
-   Sync, Safety Check and AI sections; Blanc sections inside it, bound to
-   prefs through settings_private's allowlist (Island, search suggestions
-   and Bangs, Blocking, Calls and connections, Language), including the
-   three new prefs; then retiring blocking-settings.html and moving the
-   settings scenarios' adapters onto chrome://settings. Verify each change with targeted
-   `--only` runs merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
-   (~2 h) unless development can't continue without it; propose one with
-   the reason first.
+1. S1.7 (F14): every S1.7 key is built and checked against v1.45.1's
+   DEFAULTS (`tools/settings-keys.mjs`: none left to build), Blanc's sections
+   sit inside chrome://settings and blocking-settings.html is retired.
+   Left: the restyle (Blanc's look for chrome://settings and its sheet, and
+   hiding Chromium rows that don't apply: toolbar, bookmarks bar, tab strip,
+   side panel, Google Translate, the Privacy Guide's Chromium wording), and
+   confirming Call audio in a real call on a machine whose WebRTC can
+   connect. Then merge PR #1356 into the fork branch.
 2. F0.3 identity spike in `blanc-test` once signing is approved; then S1 work in slice order, moving each
    group's handlers to the typed interface as its rows are worked. Re-run
    affected cases with --only and merge-baseline.mjs.
