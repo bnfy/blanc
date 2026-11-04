@@ -52,7 +52,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          if (mVerticalTabsPreferenceListener != null) {
              ContextUtils.getAppSharedPreferences()
                      .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
-@@ -1293,9 +1305,58 @@
+@@ -1293,9 +1305,63 @@
          }
      }
  
@@ -100,6 +100,11 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                                        .closeTabs(
 +                                                TabClosureParams.closeTab(tab).build(),
 +                                                /* allowDialog= */ false);
++                            }
++
++                            @Override
++                            public @Nullable View pageView() {
++                                return mCompositorViewHolderSupplier.get();
 +                            }
 +                        });
 +    }

@@ -7,7 +7,7 @@
     "chrome/android/java/res_base/drawable/ic_launcher.xml": "0a7b0fe2ae98d76b45db4c24397a36bf2eff0475882320a8dfd584ae2de9a495",
     "chrome/android/java/res_base/drawable/ic_launcher_round.xml": "0a7b0fe2ae98d76b45db4c24397a36bf2eff0475882320a8dfd584ae2de9a495",
     "chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java": "af19c62f69bf27963e11e3886e7cb4c4a74e9282e726b7d1d768da3039339996",
-    "chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java": "0ee3ec119403b3cf66b42a5cc11d58a38295e34531782b6e6cc6b436ba56c1fd",
+    "chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java": "2b93c8ed9e1142522a1d574c993b31750a2b2ec4ec77cfa62b1b76a645184c59",
     "components/signin/internal/identity_manager/gaia_cookie_manager_service.cc": "200c1428ec0e4616276f91d9e0221dc90deeb2c6f60ad224e03035be109d6463"
   }
 }

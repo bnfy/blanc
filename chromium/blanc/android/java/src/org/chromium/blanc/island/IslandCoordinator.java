@@ -23,6 +23,8 @@ import org.chromium.build.annotations.Nullable;
 import org.chromium.cc.mojom.RootScrollOffsetUpdateFrequency;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabObserver;
+import org.chromium.chrome.browser.tab.TabSelectionType;
+import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.chrome.browser.tabmodel.TabModelSelectorTabModelObserver;
 import org.chromium.components.url_formatter.SchemeDisplay;
@@ -54,6 +56,9 @@ public final class IslandCoordinator {
         void onNewTab();
 
         void onClosePrivateTab(Tab tab);
+
+        /** The view the page draws in, which follows the finger during the Island's swipe. */
+        @Nullable View pageView();
     }
 
     /** Device-local settings, as the iPhone stores them (SettingsStore.swift). */
@@ -62,6 +67,9 @@ public final class IslandCoordinator {
     public static final String TUCK_KEY = "blanc.island_tucks_on_scroll";
 
     private static final long TUCK_MS = 300;
+
+    /** The page settling after a swipe (the iPhone's spring, response 0.35, damping 0.85). */
+    private static final long SETTLE_MS = 350;
 
     private final Activity mActivity;
     private final NullableObservableSupplier<Tab> mActiveTab;
@@ -162,6 +170,24 @@ public final class IslandCoordinator {
         mView = new IslandView(activity);
         mView.menuButton().setOnClickListener(mCallbacks::onMenu);
         mView.domainView().setOnClickListener(v -> mCallbacks.onAddress());
+        mView.setSwipeListener(
+                new IslandView.SwipeListener() {
+                    @Override
+                    public void onSwipe(float displayedPx) {
+                        View page = mCallbacks.pageView();
+                        if (page != null) page.setTranslationX(displayedPx);
+                    }
+
+                    @Override
+                    public void onSwipeEnd(IslandSwipe.Outcome outcome) {
+                        swiped(outcome);
+                    }
+
+                    @Override
+                    public void onSwipeIntoPage() {
+                        mCallbacks.onTabs();
+                    }
+                });
         mView.tabsButton().setOnClickListener(v -> mCallbacks.onTabs());
         mView.newTabButton().setOnClickListener(v -> mCallbacks.onNewTab());
         mView.privateChip()
@@ -257,6 +283,31 @@ public final class IslandCoordinator {
         }
     }
 
+    /** Switches to the neighbor (left goes to the next), sliding the page in from that side. */
+    private void swiped(IslandSwipe.Outcome outcome) {
+        View page = mCallbacks.pageView();
+        TabModel model = mSelector.getCurrentModel();
+        int index = model.index();
+        int target =
+                outcome == IslandSwipe.Outcome.NEXT
+                        ? index + 1
+                        : outcome == IslandSwipe.Outcome.PREVIOUS ? index - 1 : index;
+        if (target != index && target >= 0 && target < model.getCount()) {
+            model.setIndex(target, TabSelectionType.FROM_USER);
+            if (page != null) {
+                float width = page.getWidth();
+                page.setTranslationX(outcome == IslandSwipe.Outcome.NEXT ? width * 0.3f : -width * 0.3f);
+            }
+        }
+        if (page != null) {
+            page.animate()
+                    .translationX(0)
+                    .setInterpolator(new DecelerateInterpolator())
+                    .setDuration(SETTLE_MS)
+                    .start();
+        }
+    }
+
     private void scrolled(int offsetPx, int extentPx) {
         WebContents webContents = mWebContents;
         if (webContents == null) return;
@@ -278,6 +329,10 @@ public final class IslandCoordinator {
         state.loading = tab != null && tab.isLoading();
         state.privateTab = tab != null && tab.isIncognito();
         state.tabCount = mSelector.getTotalTabCount();
+        TabModel model = mSelector.getCurrentModel();
+        state.hasPrevious = model.index() > 0;
+        state.hasNext = model.index() < model.getCount() - 1;
+        mView.setAtTop(position() == IslandPosition.TOP);
         mView.bind(state);
         updateTuck();
     }
