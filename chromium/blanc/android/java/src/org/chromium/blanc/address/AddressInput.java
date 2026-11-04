@@ -127,7 +127,9 @@ public final class AddressInput {
         Matcher m = STARTS_WITH_SCHEME.matcher(url);
         if (!m.find() || UNSAFE.matcher(url).find()) return "none";
         String protocol = m.group(1).toLowerCase(Locale.ROOT) + ":";
-        if (SPECIAL.contains(protocol) && !validSpecialHost(url.substring(m.end()))) return "none";
+        String rest = url.substring(m.end());
+        boolean special = SPECIAL.contains(protocol);
+        if ((special || rest.startsWith("//")) && !validAuthority(rest, special)) return "none";
         if (protocol.length() == 2) return "none";
         if (BLOCKED_OS.contains(protocol)) return "deny";
         if (BROWSER.contains(protocol)) return "none";
@@ -136,8 +138,12 @@ public final class AddressInput {
         return DIRECT_HANDOFF.contains(protocol) ? "open" : "confirm";
     }
 
-    /** Whether a special URL's rest (after "scheme:") has the valid host WHATWG URL needs. */
-    private static boolean validSpecialHost(String rest) {
+    /**
+     * Whether the authority after "scheme:" parses as WHATWG URL does: a port of digits up to
+     * 65535, no host characters it forbids, and a host after any "@"; a special scheme needs a
+     * host at all.
+     */
+    private static boolean validAuthority(String rest, boolean special) {
         int i = 0;
         while (i < rest.length() && rest.charAt(i) == '/') i++;
         String authority = rest.substring(i).split("[/?#]", 2)[0];
@@ -152,7 +158,8 @@ public final class AddressInput {
             }
             host = hostPort.substring(0, colon);
         }
-        return !host.isEmpty() && !FORBIDDEN_HOST.matcher(host).find();
+        if (host.isEmpty()) return !special && at < 0;
+        return !FORBIDDEN_HOST.matcher(host).find();
     }
 
     /** JavaScript's String.prototype.trim(). */

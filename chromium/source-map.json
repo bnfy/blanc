@@ -64,7 +64,7 @@
     "blanc/android/island/res/values-fr/blanc_strings.xml": "b4adafb3fd10eb25e1df596daba2c56eb15d668e66534dbf776e061f4337e6f4",
     "blanc/android/island/res/values-it/blanc_strings.xml": "4a005c93481d26d9176a8c3485c953d1dc839bb51614fdb6de9fd148e6244710",
     "blanc/android/island/res/values-pt-rBR/blanc_strings.xml": "0b9bc474ddfce43b3127a9f03980130a7d98083f9fbf09070cfeb8b01301d2d4",
-    "blanc/android/java/src/org/chromium/blanc/address/AddressInput.java": "3de429efd0ca63805801bdc41d71121a241cb294590ccdc9c966d5a00e787012",
+    "blanc/android/java/src/org/chromium/blanc/address/AddressInput.java": "01cd58d622bd5928dc502f3b31514ea72acef083be1e4eb6c7dd9a3bf36c4e40",
     "blanc/android/java/src/org/chromium/blanc/address/AddressSheet.java": "aab52c17a90bb7100033e88fb51d4ed38ee466f2d980649a5329fa1e909a8e9f",
     "blanc/android/java/src/org/chromium/blanc/island/IslandCoordinator.java": "076bc6a4cdb035b15d2faedc284653cadf34e6f3327ae84ae0ffef028631c6c4",
     "blanc/android/java/src/org/chromium/blanc/island/IslandMenu.java": "f9e9696dd81ef93882a4f7cf4ec576d17b46a82df3e22ed5058498a40bf7985e",
