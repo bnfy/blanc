@@ -61,4 +61,16 @@ export const DIVERGENCES = new Map([
     const same = (await this.call('settingsExplanations')).find(e => e.text === this.foldedHint.text);
     assert.ok(same?.whole, 'the explanation shows its full text, unchanged');
   }}],
+  // V14 (owner, 2026-11-04): chrome://settings's menu marks the page you are
+  // on, not the section scrolled to. Scrolling to the end still works, and
+  // choosing Help in the menu marks Help and shows it.
+  ['I scroll the settings sheet to its end', {divergence: 'V14', async run() {
+    assert.equal(await this.call('settingsScrollToEnd'), true);
+  }}],
+  ['the settings section marker is on Help', {divergence: 'V14', async run() {
+    assert.equal(await this.call('settingsChooseMenuItem', 'about-menu'), true, 'Settings has a Help item');
+    const marked = await this.call('settingsMenuMarked');
+    assert.equal(marked?.item, 'about-menu', 'the menu marks Help');
+    assert.equal(marked?.path, '/help', 'Settings shows Help');
+  }}],
 ]);

@@ -261,9 +261,23 @@ export const commands={
  requestSearchSuggestions:(w,query)=>w.api('searchSuggestions',[String(query)]),
  openFind:w=>w.api('openFindBar'),
  openSettings:w=>w.api('openPage',['settings']),
- // chrome://settings has no scrolling section marker; its menu follows the page.
- settingsCurrentSection(){throw new UndefinedNativeAdapterError('chrome://settings has no section marker that follows scrolling');},
- scrollSettingsSheetToEnd(){throw new UndefinedNativeAdapterError('chrome://settings has no section marker that follows scrolling');},
+ // V14 (owner, 2026-11-04): Settings' menu marks the page you are on, as
+ // chrome://settings's does; no marker follows scrolling.
+ settingsCurrentSection(){throw new UndefinedNativeAdapterError('V14: chrome://settings marks the page you are on, not a scrolled-to section');},
+ scrollSettingsSheetToEnd(){throw new UndefinedNativeAdapterError('V14: chrome://settings marks the page you are on, not a scrolled-to section');},
+ // The open Settings page scrolled to its end, as a person scrolls it.
+ settingsScrollToEnd:w=>settingsPage(w).then(page=>page?page.evaluate(`(()=>{const s=document.scrollingElement;s.scrollTop=s.scrollHeight;return s.scrollTop>0||s.scrollHeight<=innerHeight;})()`):false),
+ // A click on an item of Settings' own menu (☰ at the sheet's width), then
+ // which item the menu marks and where Settings is.
+ settingsChooseMenuItem:(w,id)=>settingsPage(w).then(page=>page?inPage(page,async(item,d)=>{const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  let link=null;for(let i=0;i<30&&!link;i++){link=d.all('#'+item)[0]??null;if(!link)await wait(100);}
+  if(!link)return false;
+  // At the sheet's width the menu is behind ☰; a person opens it first.
+  const button=d.find('#menuButton');if(button&&button.offsetParent){button.click();await wait(500);}
+  (d.all('#'+item).find(l=>l.offsetParent)??link).click();await wait(1000);return true;},String(id)):false),
+ settingsMenuMarked:w=>settingsPage(w).then(page=>page?inPage(page,(a,d)=>{const menu=d.find('settings-menu')?.shadowRoot;
+  const marked=menu?[...menu.querySelectorAll('a[role=menuitem]')].find(l=>l.classList.contains('selected')||l.getAttribute('aria-current')==='page'):null;
+  return {item:marked?.id??null,path:location.pathname};}):null),
  settingsBangControls:w=>settingsEval(w,'search',`${bangControls}`),
  settingsAddBang:(w,code,name,template)=>settingsEval(w,'search',`${addBang}`,{code:String(code),name:String(name),template:String(template)},false).then(r=>r===false?false:!r?.missing),
  settingsRemoveBang:(w,code)=>settingsEval(w,'search',async(c,d)=>{const button=d.all('.blanc-bang-remove').find(b=>b.dataset.code===c);

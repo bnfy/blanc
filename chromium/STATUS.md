@@ -513,9 +513,11 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   person does (the Change dialog, Mode, the switches, the lists, through
   the sheet); F14-5's steps are V13 replacements. settings-and-theming
   matches s17g with F14-5 now passing; island-and-commands matches s16c on
-  all 73 executed cases; internal-pages matches sh1, except that 66
-  (Settings' section marker following scrolling) is now undefined:
-  chrome://settings has no such marker, which awaits an owner decision.
+  all 73 executed cases; internal-pages matches sh1, and 66 (Settings'
+  section marker following scrolling) now passes under V14 (owner,
+  November 4, 2026): chrome://settings's menu marks the page you are on, so
+  its replacement scrolls to the end, chooses Help in the menu (behind ☰
+  at the sheet's width) and checks that Help is marked and shown.
 - **Open question, file picker hang (2026-11-04):** the owner's live
   instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
   wallpaper. The hang report shows the UI thread inside AppKit's
