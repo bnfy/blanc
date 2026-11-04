@@ -394,8 +394,9 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
 [PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestones: **A0
 Foundation**, 5 of 6 exit gates passed on the emulator, and **A1 Island and
-pages**, every emulator gate passed (below); both Pixel runs wait for the
-device. Next: A2, `docs/superpowers/plans/2026-11-04-android-a2-tabs.md`. Owner approved the download and cold builds on 2026-11-03.
+pages**, and **A2 Tabs, groups, palette and tab grid**, every emulator gate
+passed (below); the Pixel runs wait for the device. Next: A3, blocking,
+`docs/superpowers/plans/2026-11-04-android-a3-blocking.md`. Owner approved the download and cold builds on 2026-11-03.
 
 - **Lane:** Chrome stable for Android 156.0.8078.79, chromium
   `a21ce95c24ce3964416f09ae1862f53f319eb4d0` (chromiumdash, 2026-11-03).
@@ -496,16 +497,16 @@ D15 (Android bullets), D34 and D35.
 
 627 executable cases from 578 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
 
-Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acceptance/` (A2): 23 (F2–F5, F8, F18, and the phone-only F31-11 and F56-1–3), run on the build server's emulator by `run.sh`; desktop cases don't apply to it. F6-1, F6-2 and F7-1 join with ad blocking (A3), whose Background they share.
+Android's Bar A will count the companion scenario set once Android steps are bound (A2); desktop cases don't apply to it.
 
 ### Bar B — requirement rows by platform
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 42 | 79 | 79 | 77 |
+| Not started / unassessed | 42 | 79 | 79 | 68 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 11 | 0 | 0 | 0 |
-| Implemented | 0 | 0 | 0 | 2 |
+| Implemented | 0 | 0 | 0 | 11 |
 | Built, isolated (legacy) | 9 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 16 | 0 | 0 | 0 |
 | Integrated | 0 | 0 | 0 | 0 |
