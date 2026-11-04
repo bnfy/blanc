@@ -86,4 +86,26 @@ public class AddressSheetTest {
         assertEquals(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE,
                 mode & WindowManager.LayoutParams.SOFT_INPUT_MASK_STATE);
     }
+
+    @Test
+    public void blancAddressesOpenTheServedPages() {
+        AddressSheet sheet = show("");
+        sheet.field().setText("blanc://history");
+        sheet.field().onEditorAction(EditorInfo.IME_ACTION_GO);
+        assertEquals("chrome://blanc/history.html", mOpened);
+        AddressSheet again = show("");
+        again.field().setText("blanc://newtab/?private=1");
+        again.field().onEditorAction(EditorInfo.IME_ACTION_GO);
+        assertEquals("chrome://blanc/newtab.html?private=1", mOpened);
+    }
+
+    @Test
+    public void unservedBlancAddressesOpenNothing() {
+        mOpened = null;
+        AddressSheet sheet = show("");
+        sheet.field().setText("blanc://settings");
+        sheet.field().onEditorAction(EditorInfo.IME_ACTION_GO);
+        assertNull(mOpened);
+        assertFalse(sheet.isShowing());
+    }
 }

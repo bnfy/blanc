@@ -12,6 +12,8 @@ export const HAND_PICKED = [
   'x-apple.systempreferences:com.apple', 'search:foo', 'c:\\windows', 'mailto:a@b.com"', 'mailto:a b',
   '', '   ', 'a.b', 'a.bc', 'xn--bcher-kva.example', 'example.com:abc', 'https://exa mple.com',
   'data:text/html,hi', 'about:blank', 'view-source:https://a.b', 'vscode://file/x', 'obsidian://open',
+  // Ports longer than any number (final review, A1): never a crash.
+  'https://example.com:99999999999999999999', 'example.com:00000000000000000000080', 'a.b:65536',
 ];
 
 export function* generated(count) {

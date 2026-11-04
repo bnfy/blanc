@@ -3,7 +3,7 @@
 // missing, and pass where the iPhone would put it.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {barsOf, boundsOf, placementProblems, wmValue} from '../tests/android/island-insets.mjs';
+import {barsOf, boundsOf, placementProblems, shapedLike, wmValue} from '../tests/android/island-insets.mjs';
 
 const screen = {width: 1080, height: 1920}, density = 3;
 const bars = {navigation: {left: 0, top: 1848, right: 1080, bottom: 1920}, status: {left: 0, top: 0, right: 1080, bottom: 72}};
@@ -50,4 +50,11 @@ test('a resized screen is read from its override, not the physical size', () => 
   assert.deepEqual(wmValue('Physical size: 1080x1920\nOverride size: 1080x2400\n', /(\d+)x(\d+)/), ['1080', '2400']);
   assert.deepEqual(wmValue('Physical size: 1080x1920\n', /(\d+)x(\d+)/), ['1080', '1920']);
   assert.deepEqual(wmValue('Physical density: 480\nOverride density: 320\n', /(\d+)/), ['320']);
+});
+
+test('a dump is checked only once the app has rotated', () => {
+  const portrait = '<hierarchy><node bounds="[0,0][1080,2400]" />';
+  assert.equal(shapedLike(portrait, {width: 2400, height: 1080}), false);
+  assert.equal(shapedLike(portrait, {width: 1080, height: 2400}), true);
+  assert.equal(shapedLike('<hierarchy/>', {width: 1, height: 2}), false);
 });

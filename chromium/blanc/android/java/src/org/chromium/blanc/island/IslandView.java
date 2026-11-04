@@ -60,6 +60,7 @@ public class IslandView extends FrameLayout {
 
     private @Nullable SwipeListener mSwipeListener;
     private boolean mAtTop;
+    private boolean mTucked;
     private boolean mHasPrevious;
     private boolean mHasNext;
     private float mDownX;
@@ -187,6 +188,26 @@ public class IslandView extends FrameLayout {
             mPill.setLayoutParams(lp);
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+    /** While tucked, every touch goes to the page. */
+    public void setTucked(boolean tucked) {
+        mTucked = tucked;
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        // The view spans the window; only the pill takes touches, and only while it shows. The
+        // rest of the band (padding, the room beside a 600dp pill) belongs to the page.
+        if (event.getActionMasked() == MotionEvent.ACTION_DOWN
+                && (mTucked
+                        || event.getX() < mPill.getLeft()
+                        || event.getX() >= mPill.getRight()
+                        || event.getY() < mPill.getTop()
+                        || event.getY() >= mPill.getBottom())) {
+            return false;
+        }
+        return super.dispatchTouchEvent(event);
     }
 
     public void setSwipeListener(@Nullable SwipeListener listener) {

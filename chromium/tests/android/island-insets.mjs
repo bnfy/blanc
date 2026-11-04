@@ -24,6 +24,12 @@ export function boundsOf(xml, id) {
   return m ? {left: +m[1], top: +m[2], right: +m[3], bottom: +m[4]} : null;
 }
 
+// Whether a UI Automator dump's root is landscape or portrait like `screen`.
+export function shapedLike(xml, screen) {
+  const m = /<node[^>]*bounds="\[0,0\]\[(\d+),(\d+)\]"/.exec(xml);
+  return !!m && (+m[1] > +m[2]) === (screen.width > screen.height);
+}
+
 // The visible system bars' frames from `dumpsys window`.
 export function barsOf(dumpsys) {
   const bar = type => {
@@ -99,8 +105,11 @@ function main(argv) {
         open();
         const [w, h] = wmValue(adb('shell', 'wm', 'size'), /(\d+)x(\d+)/).map(Number);
         const screen = rotation ? {width: Math.max(w, h), height: Math.min(w, h)} : {width: Math.min(w, h), height: Math.max(w, h)};
+        // The app may still be rotating: wait until its window has the screen's shape.
+        let xml = dump();
+        for (let i = 0; i < 10 && !shapedLike(xml, screen); i++) { sleep(1); xml = dump(); }
         const bars = barsOf(adb('shell', 'dumpsys', 'window'));
-        const rest = pill();
+        const rest = boundsOf(xml, 'blanc_island_pill');
         const problems = placementProblems({pill: rest, screen, bars, density, position});
         const cy = Math.round(screen.height * 0.6), dy = Math.round(screen.height * 0.25);
         adb('shell', 'input', 'swipe', '540', String(cy), '540', String(cy - dy), '400');

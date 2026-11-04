@@ -54,7 +54,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          if (mVerticalTabsPreferenceListener != null) {
              ContextUtils.getAppSharedPreferences()
                      .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
-@@ -1293,9 +1305,150 @@
+@@ -1293,9 +1305,154 @@
          }
      }
  
@@ -85,7 +85,11 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                                }
 +                            } else if (tab != null) {
 +                                tab.loadUrl(
-+                                        new org.chromium.content_public.browser.LoadUrlParams(url));
++                                        new org.chromium.content_public.browser.LoadUrlParams(
++                                                url,
++                                                org.chromium.ui.base.PageTransition.TYPED
++                                                        | org.chromium.ui.base.PageTransition
++                                                                .FROM_ADDRESS_BAR));
 +                            }
 +                        });
 +        sheet.setOnDismissListener(
@@ -205,7 +209,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          assert mLayoutManager != null;
  
          if (mCountrySupplier != null && mCountrySupplier.get() == null) {
-@@ -2962,9 +3115,8 @@
+@@ -2962,9 +3119,8 @@
          mNotificationPermissionController =
                  new NotificationPermissionController(mWindowAndroid, rationaleUIDelegateSupplier);
          NotificationPermissionController.attach(mWindowAndroid, mNotificationPermissionController);

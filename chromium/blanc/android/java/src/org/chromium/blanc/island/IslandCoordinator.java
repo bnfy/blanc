@@ -405,7 +405,7 @@ public final class IslandCoordinator {
         }
         mView.setDescendantFocusability(
                 tucked ? ViewGroup.FOCUS_BLOCK_DESCENDANTS : ViewGroup.FOCUS_AFTER_DESCENDANTS);
-        mView.setClickable(!tucked);
+        mView.setTucked(tucked);
         setButtonsEnabled(!tucked);
     }
 

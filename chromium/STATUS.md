@@ -464,21 +464,25 @@ passes; the Pixel hands-on waits for the device.
 - **No startup prompts:** Chrome's notification prompt is gone (patch 0104);
   Android asks in context.
 - **Candidate** (x86_64, emulator): `out/AndroidDebugX64/apks/ChromePublic.apk`,
-  SHA-256 `240de78564688e0dda63abe7241ba70623601134542913d0c8ca240957946f99`;
+  SHA-256 `a451b8525c2d9a857473dd37a52c0e69db2c5081f93fed74c09e5e96e199fcdf`;
   arm64 for the Pixel: `out/AndroidDebug/apks/ChromePublic.apk`, 635 MB,
   SHA-256 `8feac58cfc22d82c8c43573d2b86137cbd9663cb15c390a2c5781b6fbb489165`
   (built, not yet run on a device).
 
 | A1 gate | Result | Evidence (`~/blanc-evidence/android/a1/`) |
 | --- | --- | --- |
-| Robolectric: Island rules, view, menu, address input | 114 pass (57 per SDK) | `junit.log` |
+| Robolectric: Island rules, view, menu, address input | 124 pass (62 per SDK) | `junit.log` |
 | Island inside the insets and tucking, gesture and three-button navigation, portrait and landscape, top and bottom, at 1080×1920@480, 1080×2400@420 and 720×1280@320 | 24 of 24 | `insets-*/island-insets.json` |
 | Sunrise menu, no startup prompt | 7 of 7 | `menu/island-menu.json` |
 | Pages: fresh install opens the Start Page; six pages × six languages, phone layout, no sideways scroll, no script errors | 37 of 37 | `pages/pages-phone.json` |
 | Outbound gate | Pass | `outbound/` |
 | Owner hands-on on the Pixel: one-handed at the bottom, tuck feel, swipe, pages at phone width | **Pending the Pixel** | — |
 
-Run it all with `tests/android/a1-gate.sh` on the server. Divergences: D11 and
+Run it all with `tests/android/a1-gate.sh` on the server. A final review of
+the A1 branch found a crash on a 19-digit port, the Island band taking taps
+beside the pill, end-truncated sites and typed `blanc://` addresses going
+nowhere; all fixed with tests, and the gate rerun on the fixed build. The
+arm64 candidate below predates those fixes. Divergences: D11 and
 D15 (Android bullets), D34 and D35.
 
 <!-- BEGIN GENERATED PROGRESS -->

@@ -153,7 +153,10 @@ public final class AddressInput {
         int colon = hostPort.lastIndexOf(':');
         if (colon >= 0) {
             String port = hostPort.substring(colon + 1);
-            if (!port.matches("\\d*") || (!port.isEmpty() && Long.parseLong(port) > 65535)) {
+            // WHATWG URL drops leading zeros, so only the value counts; it never overflows here.
+            String digits = port.replaceFirst("^0+(?=\\d)", "");
+            if (!port.matches("\\d*") || digits.length() > 5
+                    || (!port.isEmpty() && Integer.parseInt(digits) > 65535)) {
                 return false;
             }
             host = hostPort.substring(0, colon);

@@ -116,4 +116,32 @@ public class IslandViewTest {
                 ? label + ", " + v.getStateDescription()
                 : label;
     }
+
+    @Test
+    public void longSitesAreCutInTheMiddleAsOnTheIphone() {
+        TextView domain = mView.findViewById(R.id.blanc_island_domain);
+        assertEquals(android.text.TextUtils.TruncateAt.MIDDLE, domain.getEllipsize());
+    }
+
+    @Test
+    public void touchesOutsideThePillOrWhileTuckedReachThePage() {
+        mActivity.setContentView(mView);
+        mView.measure(MeasureSpec.makeMeasureSpec(1200, MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(400, MeasureSpec.UNSPECIFIED));
+        mView.layout(0, 0, 1200, mView.getMeasuredHeight());
+        View pill = mView.pill();
+        float outsideX = pill.getLeft() / 2f;
+        float y = pill.getTop() + pill.getHeight() / 2f;
+        assertEquals(false, mView.dispatchTouchEvent(down(outsideX, y)));
+        // The menu button, inside the pill, takes it.
+        View menu = mView.menuButton();
+        float menuX = pill.getLeft() + menu.getLeft() + menu.getWidth() / 2f;
+        assertEquals(true, mView.dispatchTouchEvent(down(menuX, y)));
+        mView.setTucked(true);
+        assertEquals(false, mView.dispatchTouchEvent(down(menuX, y)));
+    }
+
+    private static android.view.MotionEvent down(float x, float y) {
+        return android.view.MotionEvent.obtain(0, 0, android.view.MotionEvent.ACTION_DOWN, x, y, 0);
+    }
 }

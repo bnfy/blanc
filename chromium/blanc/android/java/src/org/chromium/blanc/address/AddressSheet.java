@@ -22,6 +22,10 @@ import org.chromium.blanc.island.IslandStyle;
 import org.chromium.blanc.island.R;
 import org.chromium.build.annotations.NullMarked;
 
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * The address sheet: the Blanc for iPhone palette's field (PaletteSheet.swift) in a bottom sheet
  * above the keyboard, opened from the Island's site. It opens with the current address selected;
@@ -108,6 +112,22 @@ public final class AddressSheet extends Dialog {
         if (AddressInput.trim(text).isEmpty()) return;
         AddressInput.Result r = AddressInput.interpret(text);
         dismiss();
-        mOpen.open(r.kind == AddressInput.Kind.SEARCH ? AddressInput.searchUrl(r.value) : r.value);
+        if (r.kind == AddressInput.Kind.SEARCH) {
+            mOpen.open(AddressInput.searchUrl(r.value));
+            return;
+        }
+        // Blanc's own addresses open the pages Android serves (D34); the rest aren't pages here.
+        Matcher page = BLANC_PAGE.matcher(r.value);
+        if (!page.matches()) {
+            mOpen.open(r.value);
+        } else if (SERVED_PAGES.contains(page.group(1))) {
+            mOpen.open("chrome://blanc/" + page.group(1) + ".html" + (page.group(2) == null ? "" : page.group(2)));
+        }
     }
+
+    // The pages chrome://blanc/ serves (tools/android-pages.mjs PAGES), as the adapter maps them.
+    private static final List<String> SERVED_PAGES =
+            List.of("newtab", "bookmarks", "history", "shortcuts", "error", "mahjong");
+    private static final Pattern BLANC_PAGE =
+            Pattern.compile("^blanc://([a-z-]+)/?([?#].*)?$", Pattern.CASE_INSENSITIVE);
 }

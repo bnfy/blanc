@@ -20,7 +20,7 @@ import org.chromium.base.test.BaseRobolectricTestRunner;
 public class AddressInputTest {
     @Test
     public void matchesShippingOnEveryFixture() {
-        assertEquals("the corpus is all there", 1746, AddressFixtures.ROWS.length);
+        assertEquals("the corpus is all there", 1749, AddressFixtures.ROWS.length);
         for (String[] row : AddressFixtures.ROWS) {
             AddressInput.Result r = AddressInput.interpret(row[0]);
             String got = r.kind.name().toLowerCase(java.util.Locale.ROOT) + " " + r.value + " " + r.confirm;
@@ -35,5 +35,11 @@ public class AddressInputTest {
         assertEquals("unreserved stay", "https://duckduckgo.com/?q=a-_.!~*'()z", AddressInput.searchUrl("a-_.!~*'()z"));
         assertEquals("https://duckduckgo.com/?q=caf%C3%A9%20%26%20%2B%2F%3F%23", AddressInput.searchUrl("café & +/?#"));
         assertEquals("https://duckduckgo.com/?q=%F0%9F%98%80", AddressInput.searchUrl("😀"));
+    }
+
+    @Test
+    public void aPortTooLongForANumberIsNotAnAddress() {
+        AddressInput.interpret("https://example.com:99999999999999999999");
+        AddressInput.interpret("a.b:65536");
     }
 }
