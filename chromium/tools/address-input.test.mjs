@@ -8,6 +8,7 @@ import vm from 'node:vm';
 import {execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
+import {HAND_PICKED, generated} from './address-corpus.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SHIPPING = '85883b1afa11375e1300130914d6f40c5388af21';
@@ -33,29 +34,7 @@ function shippingNormalize() {
 }
 
 const shipping = shippingProtocols();
-const inputs = [
-  'example.com', ' example.com ', 'example.com/path?q=1#x', 'https://example.com', 'HTTP://Example.com',
-  'blanc://settings', 'javascript:alert(1)', 'javascript://x', 'file:///etc/hosts', 'ftp://host/file',
-  'chrome://settings', 'localhost', 'localhost:3000/a', 'localhostx', '127.0.0.1', '10.0.0.1:8080/x',
-  '999.1.1.1', 'site:example.com', 'site:example.com foo', 'user:pass@example.com', 'a:1', 'host:8080',
-  'how tall is everest', 'example', 'mailto:a@b.com', 'MAILTO:a@b.com', 'tel:+15550100', 'sms:+1',
-  'facetime:a@b.c', 'claude://login', 'claude:login', 'zoommtg://zoom.us/join', 'ssh://host', 'smb://x',
-  'x-apple.systempreferences:com.apple', 'search:foo', 'c:\\windows', 'mailto:a@b.com"', 'mailto:a b',
-  '', '   ', 'a.b', 'a.bc', 'xn--bcher-kva.example', 'example.com:abc', 'https://exa mple.com',
-  'data:text/html,hi', 'about:blank', 'view-source:https://a.b', 'vscode://file/x', 'obsidian://open',
-  ...[...shipping.DENIED_HANDOFF_PROTOCOLS, ...shipping.DIRECT_HANDOFF_PROTOCOLS].flatMap(p => [p + 'x', p + '//x', p + '/x']),
-];
-// Deterministic random strings built from address-like fragments.
-function* generated(count) {
-  const parts = ['a', 'b.c', '.com', '/', ':', '//', '8080', '@', '?', '#', ' ', 'mailto:', 'tel:', 'http', 's', 'x-y+z', '1.2.3.4', 'localhost', 'site:', '"', '\\', '\t', 'é'];
-  let seed = 7;
-  const next = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
-  for (let i = 0; i < count; i++) {
-    let s = '';
-    for (let n = 1 + Math.floor(next() * 6); n > 0; n--) s += parts[Math.floor(next() * parts.length)];
-    yield s;
-  }
-}
+const inputs = [...HAND_PICKED, ...[...shipping.DENIED_HANDOFF_PROTOCOLS, ...shipping.DIRECT_HANDOFF_PROTOCOLS].flatMap(p => [p + 'x', p + '//x', p + '/x'])];
 
 test('hand-off decisions match shipping for typed and page-started links', () => {
   for (const input of [...inputs, ...generated(2000)]) {

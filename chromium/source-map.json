@@ -47,7 +47,7 @@
   },
   "canonicalSha256": {
     "blanc/BUILD.gn": "7fe9606b4d5423708b84c6d3e637eef34403c13877949cd02cc240b58c4b4a98",
-    "blanc/android/BUILD.gn": "ee51bd8d4c8f25b10419f548de70f7d98b9e221537f40a965b05e5467838db54",
+    "blanc/android/BUILD.gn": "a09d593e0068f0526fbb2ddcf7c5d284ca326bee0d5e3055d78fef9fd0feecc3",
     "blanc/android/island/res/drawable/blanc_island_plus.xml": "2e9993beb6c39fb55edbe8847af32005011abea190cc5feb4a6fbe764bc46e00",
     "blanc/android/island/res/drawable/blanc_island_reload.xml": "fa3c1a4780372afc9d985576864e40931830a161f71e1720df3576b287490c5b",
     "blanc/android/island/res/drawable/blanc_island_stop.xml": "8a940bf75c61db6dcebf82571896db2778b0ea5937be43ab22c4698bd5353102",
@@ -73,6 +73,9 @@
     "blanc/android/java/src/org/chromium/blanc/island/IslandTuck.java": "2a3b4f88ca6ab7be08200489f12239e5e0c5ab8b5e042c5405afa4eea65d799e",
     "blanc/android/java/src/org/chromium/blanc/island/IslandView.java": "a64ef911c3b2fb0bca35444144058b3537571dacd876b67ed40e425d1f4d9299",
     "blanc/android/java/src/org/chromium/blanc/island/IslandVisibility.java": "42444ca447a34ca83e82640208a8af506171fbbf33e57fa253d7c32f5a9a4fda",
+    "blanc/android/junit/src/org/chromium/blanc/address/AddressFixtures.java": "cddf131261e5dfe0d82206f0970ac30c6280fbb404169363d392af09b21d03cf",
+    "blanc/android/junit/src/org/chromium/blanc/address/AddressInputTest.java": "435d2328b7e62c281e0118587d5dbe23a566a6e60f350c46485b0df04ae38691",
+    "blanc/android/junit/src/org/chromium/blanc/address/AddressSheetTest.java": "f9068ef42b9195ce3c0ce8e2363fce51f1ecbf432290c62622718e99c386ae01",
     "blanc/android/junit/src/org/chromium/blanc/island/IslandMenuTest.java": "cc0c7992556e29e3ca169e6018acc0f467fa5a8cd767893519f045e3bc635006",
     "blanc/android/junit/src/org/chromium/blanc/island/IslandPositionTest.java": "eb2268e20819c8975aa8d77c355eb92164f3b1bc66c8b38c7f31bbafc4c6aaf1",
     "blanc/android/junit/src/org/chromium/blanc/island/IslandStyleTest.java": "a89d5d212e86660b528a8d85cae65c68ad2f9f9012f51aec2f245311dbbf3791",
