@@ -1,0 +1,261 @@
+// Copyright 2026 Bananify Creative. MIT; see LICENSE.
+
+package org.chromium.blanc.tabs;
+
+import org.chromium.build.annotations.NullMarked;
+import org.chromium.build.annotations.Nullable;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+import java.util.function.LongSupplier;
+
+/**
+ * Blanc's tab operations, as Blanc for iPhone's TabsManager does them, applied to a {@link
+ * TabStore} (Chromium's tab model on the phone). Only the newest close is undoable, for {@link
+ * #UNDO_MILLIS}; until then the closed tab stays alive, so Undo brings back its page and history.
+ * After it, /reopen opens its address again. A private tab's close is final.
+ */
+@NullMarked
+public final class BlancTabs {
+    public static final long UNDO_MILLIS = 5000;
+
+    /** The iPhone keeps ten closed addresses for /reopen, for as long as the app runs. */
+    static final int REOPEN_LIMIT = 10;
+
+    /** Why a group name was refused. */
+    public static final class GroupNameException extends RuntimeException {
+        public enum Reason {
+            BLANK,
+            DUPLICATE
+        }
+
+        public final Reason reason;
+
+        GroupNameException(Reason reason) {
+            super(reason.name());
+            this.reason = reason;
+        }
+    }
+
+    private static final class Closed {
+        final List<String> ids = new ArrayList<>();
+        final List<String> urls = new ArrayList<>();
+        final String title;
+        final @Nullable String blankId;
+        final long at;
+
+        Closed(List<TabStore.Entry> tabs, @Nullable String blankId, long at) {
+            for (TabStore.Entry tab : tabs) {
+                ids.add(tab.id);
+                urls.add(tab.url);
+            }
+            this.title = tabs.get(0).title;
+            this.blankId = blankId;
+            this.at = at;
+        }
+    }
+
+    private final TabStore mStore;
+    private final LongSupplier mNow;
+    private final Deque<String> mReopen = new ArrayDeque<>();
+    private @Nullable Closed mPending;
+
+    public BlancTabs(TabStore store, LongSupplier now) {
+        mStore = store;
+        mNow = now;
+    }
+
+    public List<TabStore.Entry> entries(boolean privateTabs) {
+        return mStore.tabs(privateTabs);
+    }
+
+    public void select(String id) {
+        mStore.select(id);
+    }
+
+    /** A plain new tab: ungrouped, on the Start Page, as on the iPhone and desktop. */
+    public String newTab() {
+        return mStore.create(null, false, null, -1);
+    }
+
+    public String newPrivateTab() {
+        return mStore.create(null, true, null, -1);
+    }
+
+    public String newTabInGroup(String groupId) {
+        int after = -1;
+        List<TabStore.Entry> tabs = mStore.tabs(false);
+        for (int i = 0; i < tabs.size(); i++) if (groupId.equals(tabs.get(i).groupId)) after = i;
+        return mStore.create(null, false, after < 0 ? null : groupId, after < 0 ? -1 : after + 1);
+    }
+
+    public void duplicate(String id) {
+        for (boolean privateTabs : new boolean[] {false, true}) {
+            List<TabStore.Entry> tabs = mStore.tabs(privateTabs);
+            for (int i = 0; i < tabs.size(); i++) {
+                TabStore.Entry tab = tabs.get(i);
+                if (tab.id.equals(id)) {
+                    mStore.create(tab.url, tab.privateTab, tab.groupId, i + 1);
+                    return;
+                }
+            }
+        }
+    }
+
+    public void close(String id) {
+        TabStore.@Nullable Entry tab = find(id);
+        if (tab == null) return;
+        expireUndo();
+        if (tab.privateTab) {
+            mStore.close(id, false);
+            if (mStore.tabs(true).isEmpty()) mStore.selectModel(false);
+            return;
+        }
+        List<TabStore.Entry> closing = new ArrayList<>();
+        closing.add(tab);
+        closeUndoably(closing);
+    }
+
+    /** Closes every tab in the group, as one Undo. */
+    public void closeGroup(String groupId) {
+        expireUndo();
+        List<TabStore.Entry> closing = members(groupId);
+        if (!closing.isEmpty()) closeUndoably(closing);
+    }
+
+    private void closeUndoably(List<TabStore.Entry> closing) {
+        for (TabStore.Entry tab : closing) mStore.close(tab.id, true);
+        // Closing the last tab leaves a Start Page, which Undo takes away again if it's untouched.
+        String blank = mStore.tabs(false).isEmpty() ? mStore.create(null, false, null, -1) : null;
+        mPending = new Closed(closing, blank, mNow.getAsLong());
+    }
+
+    private boolean undoable() {
+        return mPending != null && mNow.getAsLong() - mPending.at <= UNDO_MILLIS;
+    }
+
+    /** The closed tab Undo would bring back, while it can; null otherwise. */
+    public @Nullable String undoTitle() {
+        return undoable() && mPending != null ? mPending.title : null;
+    }
+
+    public boolean undoClose() {
+        Closed closed = mPending;
+        if (closed == null || !undoable()) {
+            expireUndo();
+            return false;
+        }
+        mPending = null;
+        for (String id : closed.ids) mStore.cancelClose(id);
+        String blank = closed.blankId;
+        if (blank != null) {
+            TabStore.@Nullable Entry tab = find(blank);
+            if (tab != null && TabStore.START_PAGE.equals(tab.url)) mStore.close(blank, false);
+        }
+        mStore.select(closed.ids.get(0));
+        return true;
+    }
+
+    /** Ends the Undo: the closed tabs go for good, and their addresses join /reopen. */
+    public void expireUndo() {
+        Closed closed = mPending;
+        if (closed == null) return;
+        mPending = null;
+        for (String id : closed.ids) mStore.commitClose(id);
+        for (String url : closed.urls) mReopen.addFirst(url);
+        while (mReopen.size() > REOPEN_LIMIT) mReopen.removeLast();
+    }
+
+    /** /reopen: Undo while it lasts, then the newest closed address. */
+    public boolean reopenLast() {
+        if (undoable()) return undoClose();
+        expireUndo();
+        String url = mReopen.pollFirst();
+        if (url == null) return false;
+        mStore.create(url, false, null, -1);
+        return true;
+    }
+
+    public void setPinned(String id, boolean pinned) {
+        mStore.setPinned(id, pinned);
+    }
+
+    public void setMuted(String id, boolean muted) {
+        mStore.setMuted(id, muted);
+    }
+
+    /** /group: the group with that name (in any case), or a new one; returns its id. */
+    public String createGroup(String name, String tabId) {
+        String normalized = GroupNames.normalize(name);
+        if (normalized.isEmpty()) throw new GroupNameException(GroupNameException.Reason.BLANK);
+        TabStore.@Nullable Group existing = groupNamed(normalized, null);
+        if (existing != null) {
+            mStore.addToGroup(tabId, existing.id);
+            return existing.id;
+        }
+        return mStore.createGroup(tabId, normalized);
+    }
+
+    public void renameGroup(String groupId, String name) {
+        String normalized = GroupNames.normalize(name);
+        if (normalized.isEmpty()) throw new GroupNameException(GroupNameException.Reason.BLANK);
+        if (groupNamed(normalized, groupId) != null) {
+            throw new GroupNameException(GroupNameException.Reason.DUPLICATE);
+        }
+        mStore.setGroupName(groupId, normalized);
+    }
+
+    /** A preset's hex, or none for anything else. */
+    public void setGroupColor(String groupId, @Nullable String hex) {
+        mStore.setGroupColor(groupId, GroupColors.sanitize(hex));
+    }
+
+    public void setGroupCollapsed(String groupId, boolean collapsed) {
+        mStore.setGroupCollapsed(groupId, collapsed);
+    }
+
+    public void moveToGroup(String tabId, @Nullable String groupId) {
+        if (groupId == null) {
+            mStore.removeFromGroup(tabId);
+        } else {
+            mStore.addToGroup(tabId, groupId);
+        }
+    }
+
+    public void ungroup(String groupId) {
+        for (TabStore.Entry tab : members(groupId)) mStore.removeFromGroup(tab.id);
+    }
+
+    public List<TabStore.Group> groups() {
+        return mStore.groups();
+    }
+
+    /** The normal tabs as groups and runs, for the palette and grid. */
+    public List<TabSections.Section> sections() {
+        List<TabSections.Item> items = new ArrayList<>();
+        for (TabStore.Entry tab : mStore.tabs(false)) items.add(new TabSections.Item(tab.id, tab.groupId, tab.pinned));
+        return TabSections.sections(items);
+    }
+
+    private List<TabStore.Entry> members(String groupId) {
+        List<TabStore.Entry> out = new ArrayList<>();
+        for (TabStore.Entry tab : mStore.tabs(false)) if (groupId.equals(tab.groupId)) out.add(tab);
+        return out;
+    }
+
+    private TabStore.@Nullable Group groupNamed(String name, @Nullable String except) {
+        for (TabStore.Group group : mStore.groups()) {
+            if (!group.id.equals(except) && GroupNames.same(group.name, name)) return group;
+        }
+        return null;
+    }
+
+    private TabStore.@Nullable Entry find(String id) {
+        for (boolean privateTabs : new boolean[] {false, true}) {
+            for (TabStore.Entry tab : mStore.tabs(privateTabs)) if (tab.id.equals(id)) return tab;
+        }
+        return null;
+    }
+}

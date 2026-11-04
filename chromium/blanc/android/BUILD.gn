@@ -25,15 +25,32 @@ android_library("island_java") {
 # (A2 plan, Task 2): plain Java with no views.
 android_library("tabs_java") {
   sources = [
+    "java/src/org/chromium/blanc/tabs/BlancTabs.java",
     "java/src/org/chromium/blanc/tabs/GroupColors.java",
     "java/src/org/chromium/blanc/tabs/GroupNames.java",
     "java/src/org/chromium/blanc/tabs/QuickSwitcher.java",
     "java/src/org/chromium/blanc/tabs/SlashCommands.java",
     "java/src/org/chromium/blanc/tabs/TabSections.java",
+    "java/src/org/chromium/blanc/tabs/TabStore.java",
   ]
   deps = [
     ":island_java",
     "//build/android:build_java",
+  ]
+}
+
+# BlancTabs' store over Chromium's tab model.
+android_library("tabs_ui_java") {
+  sources = [ "java/src/org/chromium/blanc/tabs/chromium/ChromiumTabStore.java" ]
+  deps = [
+    ":tabs_java",
+    "//base:base_java",
+    "//build/android:build_java",
+    "//chrome/browser/tab:java",
+    "//chrome/browser/tabmodel:java",
+    "//components/tab_groups:tab_groups_java",
+    "//content/public/android:content_java",
+    "//url:url_java",
   ]
 }
 
@@ -117,6 +134,8 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/island/IslandTuckTest.java",
     "junit/src/org/chromium/blanc/island/IslandViewTest.java",
     "junit/src/org/chromium/blanc/island/IslandVisibilityTest.java",
+    "junit/src/org/chromium/blanc/tabs/BlancTabsTest.java",
+    "junit/src/org/chromium/blanc/tabs/FakeTabStore.java",
     "junit/src/org/chromium/blanc/tabs/GroupNamesFixtures.java",
     "junit/src/org/chromium/blanc/tabs/GroupNamesTest.java",
     "junit/src/org/chromium/blanc/tabs/QuickSwitcherTest.java",

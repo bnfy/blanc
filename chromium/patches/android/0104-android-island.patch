@@ -1,13 +1,15 @@
 diff -ruN a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
 --- a/chrome/android/BUILD.gn
 +++ b/chrome/android/BUILD.gn
-@@ -531,6 +531,9 @@
+@@ -531,6 +531,11 @@
        "//chrome/browser/sync/android:java",
        "//chrome/browser/sync/android:ui_java",
        "//chrome/browser/sync/synced_set_up/android:java",
 +      "//blanc/android:island_java",  # Blanc (patch 0104)
 +      "//blanc/android:island_ui_java",
 +      "//blanc/android:island_view_java",
++      "//blanc/android:tabs_java",
++      "//blanc/android:tabs_ui_java",
        "//chrome/browser/tab:java",
        "//chrome/browser/tab_group_suggestion:java",
        "//chrome/browser/tab_group_suggestion:toolbar_java",
@@ -54,7 +56,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          if (mVerticalTabsPreferenceListener != null) {
              ContextUtils.getAppSharedPreferences()
                      .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
-@@ -1293,9 +1305,154 @@
+@@ -1293,9 +1305,156 @@
          }
      }
  
@@ -153,6 +155,12 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +
 +    private void createBlancIsland() {
 +        TabModelSelector selector = mTabModelSelectorSupplier.asNonNull().get();
++        // Blanc's tab operations over Chromium's tab model (A2 Task 3).
++        org.chromium.blanc.tabs.BlancTabs tabs =
++                new org.chromium.blanc.tabs.BlancTabs(
++                        new org.chromium.blanc.tabs.chromium.ChromiumTabStore(
++                                selector, mTabCreatorManagerSupplier.asNonNull().get()),
++                        android.os.SystemClock::uptimeMillis);
 +        mBlancIsland =
 +                new IslandCoordinator(
 +                        mActivity,
@@ -178,21 +186,17 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +
 +                            @Override
 +                            public void onNewTab() {
-+                                mTabCreatorManagerSupplier
-+                                        .asNonNull()
-+                                        .get()
-+                                        .getTabCreator(selector.isIncognitoSelected())
-+                                        .launchNtp(TabLaunchType.FROM_CHROME_UI);
++                                if (selector.isIncognitoSelected()) {
++                                    tabs.newPrivateTab();
++                                } else {
++                                    tabs.newTab();
++                                }
 +                            }
 +
 +                            @Override
 +                            public void onClosePrivateTab(Tab tab) {
 +                                // Leaving private mode closes the private tab, as on the iPhone.
-+                                selector.getModel(true)
-+                                        .getTabRemover()
-+                                        .closeTabs(
-+                                                TabClosureParams.closeTab(tab).build(),
-+                                                /* allowDialog= */ false);
++                                tabs.close(String.valueOf(tab.getId()));
 +                            }
 +
 +                            @Override
@@ -209,7 +213,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          assert mLayoutManager != null;
  
          if (mCountrySupplier != null && mCountrySupplier.get() == null) {
-@@ -2962,9 +3119,8 @@
+@@ -2962,9 +3121,8 @@
          mNotificationPermissionController =
                  new NotificationPermissionController(mWindowAndroid, rationaleUIDelegateSupplier);
          NotificationPermissionController.attach(mWindowAndroid, mNotificationPermissionController);
