@@ -300,6 +300,7 @@ Each row has its own status, decided only by the owner. **Until a row is approve
 | V13 | Settings is chrome://settings, which shows every setting's explanation in full instead of folding long ones to two lines behind More (F14-5) | Native model; the restyle may revisit it | **Approved** (owner, November 4, 2026) |
 | V14 | Settings' menu marks the page you are on, as chrome://settings's does, instead of a section marker that follows scrolling through one long page (S1.7) | Native model | **Approved** (owner, November 4, 2026) |
 | V15 | Call audio's receive-buffer target is applied natively: Blink starts each new audio receiver with it (carried in RendererPreferences), in every frame, without patching page globals; jitterBufferTarget reads as the page set it, and a page's own value replaces Blanc's, where shipping's page script overwrote it (S1.7) | Native model | **Approved** (owner, November 4, 2026) |
+| V16 | Pinning a tab that is in a named group takes it out of the group, as Chromium does (Chromium has no pinned tabs inside groups), instead of keeping it in the group and leading its rows; the Island shows it with the other pins (F3-5, F3-34) | Native model | **Approved** (owner, November 4, 2026) |
 
 ## 10. Release gates for the replacement
 

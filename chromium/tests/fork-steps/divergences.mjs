@@ -2,6 +2,7 @@
 // §9), keyed by shipping's exact step text. Each keeps what the divergence
 // leaves true and names what it changes; every other step stays shipping's.
 import assert from 'node:assert/strict';
+import {UndefinedNativeAdapterError} from '../lib/adapters.mjs';
 
 const tabDom = (world, id, expression) => world.call('executeTab', id, expression);
 
@@ -72,5 +73,20 @@ export const DIVERGENCES = new Map([
     const marked = await this.call('settingsMenuMarked');
     assert.equal(marked?.item, 'about-menu', 'the menu marks Help');
     assert.equal(marked?.path, '/help', 'Settings shows Help');
+  }}],
+  // V16 (owner, 2026-11-04): pinning a grouped tab takes it out of its group,
+  // as Chromium does, instead of keeping it inside the group. It is pinned,
+  // in no group, and the group keeps its other tabs.
+  ['{string} is shown inside the group {string}', {divergence: 'V16', async run(name) {
+    const state = await this.call('state');
+    const anchor = state.tabs.find(t => new RegExp(`/${name}\\b`).test(t.url ?? ''));
+    assert.ok(anchor, `the ${name} tab is open`);
+    assert.equal(anchor.pinned, true, `${name} is pinned`);
+    assert.equal(anchor.groupId ?? null, null, 'Chromium takes a pinned tab out of its group');
+  }}],
+  // A pinned tab inside a group can't exist under V16, so this scenario has
+  // no case to check.
+  ['the first tab in group {string} is pinned', {divergence: 'V16', async run() {
+    throw new UndefinedNativeAdapterError('V16: Chromium takes a pinned tab out of its group, so a group holds no pinned tab');
   }}],
 ]);
