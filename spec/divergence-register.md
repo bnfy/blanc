@@ -21,6 +21,9 @@ capabilities, and this is non-negotiable — you cannot ship a common engine.
   **programmatic and comparably powerful** to desktop; can consult the full rule
   set per request. Alternatively a bundled Chromium fork if the app ever ships its
   own engine.
+  **Update 2026-11-04:** Android ships its own engine: it is built on the
+  Chromium fork's Android lane and uses the fork's blocker host, shared with
+  desktop (milestone A3), not `WebView.shouldInterceptRequest`.
 - **iOS:** `WKContentRuleList` — **declarative JSON, ~150k-rule cap per list, no
   programmatic per-request logic.** Requires curating EasyList+EasyPrivacy down to
   fit and compiling to Apple's format. This is structurally the same constraint as
@@ -279,6 +282,16 @@ mobile is a single full-screen surface with system insets.
   thumb; desktop's August 2026 rejection of a scroll-away Island (it would
   make the desktop Island transient chrome) still stands, and D29's
   pointer-driven auto-hide remains desktop's only hiding mode.
+- **Android (A1, 2026-11-04, owner: as close to the iPhone as possible):**
+  the iPhone's floating Island, its tuck rules, Island position and Hide the
+  Island while scrolling, ported value for value. Chromium's toolbar stays
+  hidden and the page fills the screen behind the Island, which sits inside
+  the system bars and display cutout in gesture and three-button navigation.
+  Two differences Chromium forces: a sideways swipe moves through the current
+  tab list only (normal or private, which Chromium keeps apart; the iPhone
+  mixes them, and A2's tab grid settles it), and the switched-in page slides
+  in from 30% of the width and settles in 350 ms instead of following the
+  finger, because Chromium draws one tab's page at a time.
 - **Desktop workspace-local state:** reopen-closed history belongs to the native
   window that closed the tab (F2), and Glance can expose a second tab inside
   that same window (F34). Neither operation may cross a workspace/profile edge.
@@ -367,7 +380,10 @@ with no desktop/Android equivalent.
 - **iOS (26+):** `.glassEffect(.regular.interactive, in: .capsule)` — the
   platform-native translucent material. Falls back to the token surface on
   iOS 17–25 via `#available(iOS 26, *)`.
-- **Android:** token-defined surface (same as desktop).
+- **Android:** token-defined surface (same as desktop). As built in A1
+  (2026-11-04), it's the iPhone's pre-26 fallback (`IslandSurface.swift`): the
+  raised fill, a 0.5 dp hairline and a soft shadow (Android's elevation shadow
+  tinted to the iPhone's 10% or 25% black). Android has no Liquid Glass.
 
 **Parity contract:** the island pill is present and functional on every
 platform; the *material treatment* differs — opaque tokens on desktop/Android,
@@ -837,3 +853,89 @@ shared settings schema until the Mac offers it.
 
 **Status:** iPhone implemented, unreleased. Spec:
 `docs/superpowers/specs/2026-10-29-ios-liquid-glass-app-icons-design.md`.
+
+---
+
+## D34 — Blanc's pages at `chrome://blanc/` on Android
+**Features:** F16, F9, F10
+
+**Why:** Android Blanc is built on Chromium, which serves browser pages from
+WebUI hosts under `chrome://`. A `blanc://` scheme would need a new URL scheme
+through Chromium's navigation, security and storage code; a WebUI host gets the
+same isolation (its own origin, no web content linking in) from code Chromium
+already maintains.
+
+- **Desktop:** `blanc://<page>/`, served by `src/main/pages.js`.
+- **iOS:** `blanc://<page>/`, served by a `WKURLSchemeHandler`.
+- **Android:** `chrome://blanc/<page>.html`, served by a WebUI
+  (`chromium/blanc/android/browser/blanc_pages_ui.cc`) from shipping's page
+  files, byte-identical to a pinned release. An adapter loaded first in each
+  page links `blanc://` addresses to it. New tabs, Favorites and History open
+  these pages, so Chrome's New Tab page is never created. As on the iPhone,
+  the utility pages open as ordinary tabs in the phone layout, not desktop's
+  sheet.
+
+**Parity contract that still holds:** the same page files, the same
+`window.bowserPages` members per page (from `browser-api/bridges.json`), and
+pages that can't reach the web or local files.
+
+**Status:** Android implemented in A1, unreleased.
+
+---
+
+## D35 — Settings as a native screen on phones
+**Features:** F14
+
+**Why:** On a phone, Settings is a short list of switches and choices that
+belongs in the platform's own controls; desktop's `blanc://settings` page is
+built for a pointer and a wide window.
+
+- **Desktop:** `blanc://settings/`, a utility page.
+- **iOS:** a native SwiftUI Settings sheet.
+- **Android:** a native Settings screen, matching the iPhone's, in A5. Until
+  then, Android shows no Settings and its pages' Settings links do nothing.
+
+**Parity contract that still holds:** the same settings keys, defaults and
+labels (`settings-schema/`, `copy/messages/`), and device-local settings stay
+device-local everywhere.
+
+**Status:** iOS implemented; Android planned (A5).
+
+---
+
+## D36 — Private tabs in their own section on Android
+**Features:** F4, F2
+
+**Why:** Chromium keeps private tabs in a separate tab model (its off-the-record
+profile), with its own order, selection and closes. Showing them mixed into the
+normal tabs would mean replacing Chromium's tab model.
+
+- **Desktop:** private tabs sit among the window's tabs.
+- **iOS:** private tabs sit in the one tab list, marked private.
+- **Android:** the tab grid and the palette list normal tabs first and private
+  tabs after a "Private" heading. Private tabs are never grouped.
+
+**Parity contract that still holds:** private tabs are never in History, never
+saved or synced, never reopened after a close, their children stay private, and
+the private theme and Private chip are the same.
+
+**Status:** Android implemented in A2, unreleased.
+
+---
+
+## D37 — Find bar at the bottom on phones
+**Features:** F8
+
+**Why:** On a phone the keyboard is up while you type what to find, and the
+thumb is at the bottom of the screen.
+
+- **Desktop:** a find capsule over the top of the page.
+- **iOS:** the system find bar above the keyboard (`UIFindInteraction`).
+- **Android:** Blanc's find bar above the keyboard, with the match count,
+  Previous, Next and Done, matching the iPhone's.
+
+**Parity contract that still holds:** the match count, moving between matches,
+and the page staying usable while the bar is open.
+
+**Status:** iOS implemented; Android implemented in A2, unreleased.
+

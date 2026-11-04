@@ -121,9 +121,10 @@ in §7 stop them breaking each other.
 ## 3. Constraints
 
 - **Build host.** Chromium for Android builds only on x86-64 Linux. The Mac
-  mini can't build it. Builds run on a rented dedicated Linux server: 16 or
-  more cores, 128 GB RAM, 1 TB or more NVMe, Ubuntu LTS, reachable over SSH.
-  A Hetzner AX-class machine is the reference. The owner rents it and holds the
+  mini can't build it. Builds run on a rented dedicated Linux server, reachable
+  over SSH: a Hetzner **EX63-1** in Helsinki (Intel Core Ultra 7 265, 20
+  cores, 64 GB RAM, 2 × 1 TB NVMe, Ubuntu 24.04 LTS), ordered by the owner on
+  2026-11-03. Builds run one at a time, so 64 GB is enough. The owner rents it and holds the
   account. It serves the Android lane. It may build desktop Linux
   incrementally to check a shared patch, with the owner's approval. Whether it
   becomes the desktop's Linux build host is desktop decision D4, not this
@@ -192,19 +193,19 @@ not a product base.
 
 | Area | Decision | Notes |
 |---|---|---|
-| Island, palette, Quick Switcher, tab card strip | **Custom native Android UI** matching Blanc for iPhone's Island (bottom by default, top/bottom setting, floating and tucks on scroll as in #1328, swipe to switch tabs, flick up to close). Chrome's toolbar, omnibox UI and tab switcher are hidden. | The desktop fork's Island is WebUI. On Android the builder decides whether the Island is native views or a WebUI view; the deciding test is touch feel and accessibility at phone width. *My call:* native views, because Android's gesture and IME handling for a bottom bar is easier there. |
+| Island, palette, Quick Switcher, tab card strip | **Custom native Android UI** matching Blanc for iPhone's Island as shipped (bottom by default, top/bottom setting, floating over the page and tucking by the iPhone's rules, swipe sideways to switch tabs, swipe into the page for the tab grid). Owner, 2026-11-04: Android is as close to the iOS app as possible, so iPhone behavior wins every Android choice. Chrome's toolbar, omnibox UI and tab switcher are hidden. | The desktop fork's Island is WebUI. On Android the builder decides whether the Island is native views or a WebUI view; the deciding test is touch feel and accessibility at phone width. *My call:* native views, because Android's gesture and IME handling for a bottom bar is easier there. |
 | Tabs, groups, pins, reopen | **Adapt native** tab model and `TabGroupModel`, with Blanc's ordering rules as a thin layer (the same rules as `src/main/tab-sections.js` and iOS `TabSections.swift`). | Group names without colors, optional preset color, case-insensitive matching. |
 | Private tabs | **Adapt native** incognito profile, shown in Blanc's private theme. | Same contract as F4. Whether private tabs mix with normal ones in the switcher follows the iPhone app. |
 | Address input, search | **Adapt native** `TemplateURLService`, with Blanc's input heuristic and engine list (DuckDuckGo default, custom `%s`). | No Google suggest endpoints. |
 | Favorites, history | **Adapt native** `BookmarkModel` and `HistoryService`, drawn by Blanc's pages or sheets. History keeps the 5,000-entry cap unless desktop's V2 decision changes it, in which case Android follows desktop. | |
 | Internal pages | `blanc://` newtab, favorites, history, settings, shortcuts, error and mahjong are served from the bundle, the same files as desktop and iPhone. | Each is checked at phone width in all six languages. |
-| Settings | **Native `chrome://settings` re-scoped** (desktop V1 applies): Google, Chrome Sync and Safety-check sections removed, Blanc's sections added (Sync, pairing, blocking, Island position, appearance, language). | |
+| Settings | **A native Blanc settings sheet matching the iPhone's** (owner, 2026-11-04), with Blanc's sections (Sync, pairing, blocking, Island position, appearance, language). Chromium's own settings screens aren't shown. | Replaces the earlier re-scoped `chrome://settings`. |
 | Blocking | **Shared with desktop:** the pinned Ghostery engine in a sandboxed utility with URLLoader interception, cosmetic CSS and scriptlets. One shield chip with an exact count, per-site allow and re-block. | This is better than iPhone's single rule list, and the design says so honestly (§6). |
 | Sync family | **Shared with desktop:** the desktop fork's sandboxed V8 runner of shipping sync JavaScript (models and crypto), with native code only for keys (Android Keystore), network and storage. | Wire-compatible by construction. If the desktop runner isn't ready when Android needs it, the Android lane builds it in `chromium/blanc/` for both, rather than an Android-only port. |
 | Pairing | QR scan of the desktop pairing code with the Play services code scanner, falling back to a CameraX scanner on phones without Play services, plus a typed code. | Same codes as iPhone. |
 | Send to device, receive shared links | A share-sheet target ("Open in Blanc") and Blanc's Send to device. | |
 | Default browser | `RoleManager.ROLE_BROWSER` prompt in onboarding; intent filters for http/https. | No entitlement needed, unlike iOS. |
-| Passwords, passkeys | **Native** Android Autofill framework and Credential Manager through Chromium's own integration, which uses Play services (owner decision 9). Blanc never signs the person in to Google. Phones without Play services browse normally but get only what their OS offers. | Claimed only after a real-Pixel check passes. |
+| Passwords, passkeys | **Native** Android Autofill framework and Credential Manager through Chromium's own integration, which uses Play services (owner decision 9). Blanc never signs the person in to Google. Phones without Play services browse normally but get only what their OS offers. Whichever password manager the person has chosen in Android fills Blanc's login forms, including **free** ones (Google Password Manager, Bitwarden, Proton Pass), so no paid manager is needed on Android. Blanc doesn't build its own password manager or email masks (a user request on r/blancbrowser, 2026-11-03; declined as separate security and mail products). | Claimed only after a real-Pixel check passes with Google Password Manager and Bitwarden. |
 | Downloads | Chromium's native download handling to the Downloads directory works, and an opened file goes to the system. A Blanc downloads list is *after* (iPhone parity). | |
 | Updates | Google Play only. | |
 | Telemetry | Launch `/ping` with `platform: 'android'`. The ping Worker's `ALLOWED_PLATFORMS` gains `android`, with its own version namespace. The owner deploys the Worker change before the app that needs it ships. | |
@@ -226,7 +227,7 @@ differs:
 | F13 | Permissions | Chromium's Android prompts with Blanc's default-deny policy where the desktop fork has implemented it; otherwise Chromium's prompts. Blanc's own prompt UI is *after*, as on iPhone. |
 | F20 | HTTP auth | Same as iPhone: cancel and show the error page. |
 | F23 | Zoom | Native pinch and text scaling. |
-| F24 | AutoFill and passkeys | Android Autofill and Credential Manager (§4). |
+| F24 | AutoFill and passkeys | Android Autofill and Credential Manager (§4), checked with a free password manager. |
 | F25 | Encrypted DNS | Chromium's own secure DNS is available. Whether 1.0 exposes it follows desktop's setting. Claimed only if checked. |
 | F31 | Quiet Tabs | Native tab discarding with Blanc's eligibility rules; an evicted tab returns with its title, address and back history. |
 | F39 | Certificate safety | Chromium's interstitial (desktop V8 applies). |
