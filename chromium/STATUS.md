@@ -760,9 +760,9 @@ list/run; overlay drag flag; microphone capture seed.
 1. S1.7 (F14): every S1.7 key is built and checked against v1.45.1's
    DEFAULTS (`tools/settings-keys.mjs`: none left to build), Blanc's sections
    sit inside chrome://settings and blocking-settings.html is retired.
-   and the restyle is in. Left: confirming Call audio in a real call on a
-   machine whose WebRTC can connect. Then merge PR #1356 into the fork
-   branch.
+   and the restyle is in. Deferred by the owner (2026-11-04): confirming
+   Call audio in a real call on a machine whose WebRTC can connect. PR
+   #1356 can merge into the fork branch without it.
 2. F0.3 identity spike in `blanc-test` once signing is approved; then S1 work in slice order, moving each
    group's handlers to the typed interface as its rows are worked. Re-run
    affected cases with --only and merge-baseline.mjs.
