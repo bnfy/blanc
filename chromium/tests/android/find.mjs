@@ -3,6 +3,7 @@
 //   - Typing "domain" on a page about domains counts its matches ("1/N").
 //   - Next moves to the second match; Done closes the bar.
 //   - /find in the palette opens it too.
+//   - Another tab coming forward closes it.
 // Fails closed: a missing control or count fails.
 //
 //   node chromium/tests/android/find.mjs --apk <ChromePublic.apk> --evidence <dir>
@@ -69,8 +70,10 @@ function main(argv) {
   const viaPalette = dump();
   shot('find-palette');
   check('/find opens it', matching(viaPalette, /^Next match$/, 'content-desc') ? [] : ['no find bar']);
-  adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); sleep(1);
-  adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); sleep(1);
+  // The bar belongs to its page: another tab coming forward closes it.
+  adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', 'https://www.iana.org/about', '-p', PACKAGE);
+  sleep(6);
+  check('another tab coming forward closes it', !matching(dump(), /^Next match$/, 'content-desc') ? [] : ['still open']);
 
   fs.writeFileSync(path.join(evidence, 'find.json'), JSON.stringify({results, checkedAt: new Date().toISOString()}, null, 2) + '\n');
   for (const r of results) console.log(`${r.problems.length ? 'FAIL' : 'pass'} ${r.case}${r.problems.length ? ': ' + r.problems.join('; ') : ''}`);

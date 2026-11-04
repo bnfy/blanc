@@ -53,13 +53,13 @@ public final class FindCapsule extends Dialog {
     private final ImageButton mNext;
     private final TextView mDone;
 
-    private FindCapsule(Activity activity, Finder finder) {
+    private FindCapsule(Activity activity, Finder finder, boolean privateTab) {
         super(activity);
         mFinder = finder;
         float d = activity.getResources().getDisplayMetrics().density;
         boolean dark = (activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
                 == Configuration.UI_MODE_NIGHT_YES;
-        IslandStyle style = IslandStyle.forTab(false, dark);
+        IslandStyle style = IslandStyle.forTab(privateTab, dark);
         int secondary = (style.text & 0x00FFFFFF) | 0x99000000;
 
         LinearLayout bar = new LinearLayout(activity);
@@ -160,8 +160,8 @@ public final class FindCapsule extends Dialog {
         }
     }
 
-    public static FindCapsule show(Activity activity, Finder finder) {
-        FindCapsule capsule = new FindCapsule(activity, finder);
+    public static FindCapsule show(Activity activity, Finder finder, boolean privateTab) {
+        FindCapsule capsule = new FindCapsule(activity, finder, privateTab);
         capsule.show();
         capsule.mField.requestFocus();
         return capsule;

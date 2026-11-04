@@ -70,12 +70,13 @@ public final class BlancTabKeeper {
         };
     }
 
-    public void start() {
+    /** {@code opensLink}: another app opened Blanc on a link. */
+    public void start(boolean opensLink) {
         boolean coldStart = !sStarted;
         sStarted = true;
         TabModelUtils.runOnTabStateInitialized(mSelector, selector -> {
             if (mDestroyed) return;
-            BlancTabState.restore(mStore, prefs(), coldStart);
+            BlancTabState.restore(mStore, prefs(), coldStart, opensLink);
             mHandler.postDelayed(mSweep, QuietTabs.SWEEP_MILLIS);
         });
     }

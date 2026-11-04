@@ -7,11 +7,12 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {gridState, paletteRows, fixtureUrl, pageTitle, rawPixel} from '../tests/android/acceptance/support/parse.mjs';
 import {RUNNABLE} from '../tests/android/acceptance/cucumber.mjs';
+import {boundsAfter} from '../tests/android/tab-store.mjs';
 
 const card = (title, selected = false) =>
   `<node text="" content-desc="Switch to ${title}" selected="${selected}" bounds="[0,0][10,10]" />`;
-const header = (name, count) =>
-  `<node text="" content-desc="${name}, ${count} ${count === 1 ? 'tab' : 'tabs'}" bounds="[0,0][10,10]" />`;
+const header = (name, count, folded = false) =>
+  `<node text="" content-desc="${name}, ${count} ${count === 1 ? 'tab' : 'tabs'}, ${folded ? 'Unfold' : 'Fold'} group" bounds="[0,0][10,10]" />`;
 
 test('the grid puts the N cards after a group header in that group, then the ungrouped run', () => {
   const xml = card('New Tab') + header('work', 2) + card('a.example') + card('b.example', true) + card('c.example');
@@ -25,7 +26,7 @@ test('the grid puts the N cards after a group header in that group, then the ung
 });
 
 test('a folded group has its tucked row and no cards; private tabs follow their heading', () => {
-  const xml = header('work', 3) + '<node text="3 tabs tucked away" bounds="[0,0][1,1]" />'
+  const xml = header('work', 3, true) + '<node text="3 tabs tucked away" bounds="[0,0][1,1]" />'
     + card('New Tab') + '<node text="Private" bounds="[0,0][1,1]" />' + card('secret.example', true);
   const state = gridState(xml);
   assert.deepEqual(state.groups, [{name: 'work', count: 3, collapsed: true}]);
@@ -60,6 +61,13 @@ test('a raw screencap pixel is read past its header', () => {
   header.writeUInt32LE(2, 0); header.writeUInt32LE(1, 4); header.writeUInt32LE(1, 8);
   const raw = Buffer.concat([header, Buffer.from([1, 2, 3, 255, 31, 31, 31, 255])]);
   assert.deepEqual(rawPixel(raw, 1, 0), [31, 31, 31]);
+});
+
+test('a group\'s own options button is the first one after its header', () => {
+  const button = y => `<node content-desc="Group options" bounds="[0,${y}][10,${y + 10}]" />`;
+  const xml = header('one', 1) + button(0) + header('two', 2) + button(50);
+  assert.equal(boundsAfter(xml, /content-desc="two, 2 tabs, Fold group"/, /Group options/).top, 50);
+  assert.equal(boundsAfter(xml, /content-desc="three/, /Group options/), null);
 });
 
 test('every runnable id names a scenario in spec/acceptance', () => {

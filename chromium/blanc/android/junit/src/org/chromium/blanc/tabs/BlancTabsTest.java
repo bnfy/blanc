@@ -229,4 +229,44 @@ public class BlancTabsTest {
         assertNull(sections.get(0).groupId);
         assertEquals(List.of(a), sections.get(1).tabIds);
     }
+
+    @Test
+    public void ungroupKeepsTheGroupsOrder() {
+        String a = open("https://a.example/");
+        String b = open("https://b.example/");
+        String c = open("https://c.example/");
+        String g = mTabs.createGroup("Reading", a);
+        mTabs.moveToGroup(b, g);
+        mTabs.moveToGroup(c, g);
+        mTabs.ungroup(g);
+        assertEquals(List.of("https://a.example/", "https://b.example/", "https://c.example/"), urls());
+    }
+
+    @Test
+    public void aPrivateTabIsNeverGrouped() {
+        open("https://a.example/");
+        String secret = mStore.create("https://secret.example/", true, null, -1);
+        assertEquals("", mTabs.createGroup("Secret", secret));
+        assertTrue(mTabs.groups().isEmpty());
+    }
+
+    @Test
+    public void undoAfterChromiumCommittedTheCloseOpensTheAddressAgain() {
+        open("https://a.example/");
+        String b = open("https://b.example/");
+        mTabs.close(b);
+        // Chromium commits pending closes when the app pauses, without telling Blanc.
+        mStore.commitClose(b);
+        assertTrue(mTabs.undoClose());
+        assertEquals(List.of("https://a.example/", "https://b.example/"), urls());
+    }
+
+    @Test
+    public void undoAfterChromiumCommittedTheLastTabNeverLeavesNoTabs() {
+        String a = open("https://a.example/");
+        mTabs.close(a);
+        mStore.commitClose(a);
+        assertTrue(mTabs.undoClose());
+        assertEquals(List.of("https://a.example/"), urls());
+    }
 }

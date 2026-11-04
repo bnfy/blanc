@@ -266,4 +266,10 @@ public class PaletteSheetTest {
         assertEquals(2, mLoaded.size());
         assertFalse(settings.isShowing());
     }
+
+    @Test
+    public void aGroupsHeaderSaysItsCountAndWhetherItIsFolded() {
+        PaletteSheet sheet = show();
+        assertEquals("Research, 2 tabs, Fold group", row(sheet, "Research").view.getContentDescription().toString());
+    }
 }

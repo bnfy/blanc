@@ -137,12 +137,12 @@ Given('a group {string} with {int} tab(s)', async function (name, count) {
 When('I open the command palette', function () { this.device.openPalette(); });
 
 When('I collapse the group {string}', function (name) {
-  this.device.tap({desc: new RegExp(`^${name}, Fold group$`)});
+  this.device.tap({desc: new RegExp(`^${name}, \\d+ tabs?, Fold group$`)});
 });
 
 Then('the panel shows a {string} row for {string}', function (row, name) {
   const xml = this.device.dump();
-  const header = xml.search(new RegExp(`content-desc="${name}, Unfold group"`));
+  const header = xml.search(new RegExp(`content-desc="${name}, \\d+ tabs?, Unfold group"`));
   const tucked = xml.indexOf(`text="${row}"`);
   assert.ok(header >= 0, `no folded ${name} in the palette`);
   assert.ok(tucked > header, `no "${row}" row after ${name}`);

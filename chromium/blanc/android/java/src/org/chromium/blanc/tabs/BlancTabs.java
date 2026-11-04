@@ -185,13 +185,19 @@ public final class BlancTabs {
             return false;
         }
         mPending = null;
-        for (String id : closed.ids) mStore.cancelClose(id);
+        // Chromium commits pending closes when the app pauses: a tab it committed opens again.
+        String first = null;
+        for (int i = 0; i < closed.ids.size(); i++) {
+            String id = closed.ids.get(i);
+            String back = mStore.cancelClose(id) ? id : mStore.create(closed.urls.get(i), false, null, -1);
+            if (first == null) first = back;
+        }
         String blank = closed.blankId;
         if (blank != null) {
             TabStore.@Nullable Entry tab = find(blank);
             if (tab != null && TabStore.START_PAGE.equals(tab.url)) mStore.close(blank, false);
         }
-        mStore.select(closed.ids.get(0));
+        if (first != null) mStore.select(first);
         return true;
     }
 
@@ -227,6 +233,8 @@ public final class BlancTabs {
     public String createGroup(String name, String tabId) {
         String normalized = GroupNames.normalize(name);
         if (normalized.isEmpty()) throw new GroupNameException(GroupNameException.Reason.BLANK);
+        // Private tabs are never grouped.
+        for (TabStore.Entry tab : mStore.tabs(true)) if (tab.id.equals(tabId)) return "";
         TabStore.@Nullable Group existing = groupNamed(normalized, null);
         if (existing != null) {
             mStore.addToGroup(tabId, existing.id);
@@ -262,7 +270,9 @@ public final class BlancTabs {
     }
 
     public void ungroup(String groupId) {
-        for (TabStore.Entry tab : members(groupId)) mStore.removeFromGroup(tab.id);
+        // From the end: each tab leaves to just after what's left of the group, so the order holds.
+        List<TabStore.Entry> tabs = members(groupId);
+        for (int i = tabs.size() - 1; i >= 0; i--) mStore.removeFromGroup(tabs.get(i).id);
     }
 
     public List<TabStore.Group> groups() {

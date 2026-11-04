@@ -103,6 +103,13 @@ public final class ChromiumTabStore implements TabStore {
         setGroupPin(tab, true);
     }
 
+    /** Before a grouped tab joins another group: merging a grouped tab would bring its whole group. */
+    private void leaveGroup(Tab tab) {
+        if (tab.getTabGroupId() == null) return;
+        mSelector.getModel(false).getTabUngrouper().ungroupTabs(
+                List.of(tab), /* trailing= */ true, /* allowDialog= */ false);
+    }
+
     private static Entry entry(Tab tab) {
         WebContents contents = tab.getWebContents();
         Token group = tab.getTabGroupId();
@@ -232,8 +239,9 @@ public final class ChromiumTabStore implements TabStore {
     @Override
     public String createGroup(String tabId, String name) {
         Tab tab = tab(tabId);
-        if (tab == null) return "";
+        if (tab == null || tab.isIncognito()) return "";
         TabModel model = mSelector.getModel(false);
+        leaveGroup(tab);
         carryPinIntoGroup(tab);
         model.createSingleTabGroup(tab);
         Token token = tab.getTabGroupId();
@@ -275,7 +283,8 @@ public final class ChromiumTabStore implements TabStore {
         if (tab == null || token == null || tab.isIncognito()) return;
         TabModel model = mSelector.getModel(false);
         List<Tab> members = model.getTabsInGroup(token);
-        if (members.isEmpty()) return;
+        if (members.isEmpty() || token.equals(tab.getTabGroupId())) return;
+        leaveGroup(tab);
         carryPinIntoGroup(tab);
         model.mergeTabsToGroup(tab.getId(), members.get(0).getId());
     }

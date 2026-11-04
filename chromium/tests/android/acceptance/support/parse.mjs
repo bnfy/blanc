@@ -9,22 +9,21 @@ const attr = (node, name) => {
 const nodes = xml => [...xml.matchAll(/<node\b[^>]*>/g)].map(m => m[0]);
 
 // The grid's tabs in display order, each with its group, and its groups. A group header reads
-// "work, 2 tabs" and is followed by its cards, or by "N tabs tucked away" when folded; private
+// "work, 2 tabs, Fold group" and is followed by its cards, or by "N tabs tucked away" when folded; private
 // tabs follow the "Private" heading.
 export function gridState(xml) {
   const tabs = [], groups = [];
   let group = null, left = 0, privateTabs = false;
   for (const node of nodes(xml)) {
     const desc = attr(node, 'content-desc'), text = attr(node, 'text');
-    const header = /^(.+), (\d+) tabs?$/.exec(desc);
+    const header = /^(.+), (\d+) tabs?, (Fold|Unfold) group$/.exec(desc);
     if (header) {
-      group = {name: header[1], count: Number(header[2]), collapsed: false};
+      group = {name: header[1], count: Number(header[2]), collapsed: header[3] === 'Unfold'};
       groups.push(group);
       left = group.count;
       continue;
     }
     if (/^\d+ tabs? tucked away$/.test(text) && group) {
-      group.collapsed = true;
       left = 0;
       continue;
     }

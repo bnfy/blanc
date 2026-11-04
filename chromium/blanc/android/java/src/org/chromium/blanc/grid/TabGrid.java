@@ -102,7 +102,8 @@ public final class TabGrid extends Dialog {
     private final TextView mBannerText;
     private final TextView mUndo;
     private final Handler mHandler = new Handler(Looper.getMainLooper());
-    private final Runnable mExpire = this::expireUndo;
+    // BlancTabs ends the Undo itself; this only takes the banner away.
+    private final Runnable mExpire = this::hideBanner;
     private final List<Card> mCards = new ArrayList<>();
     private final Map<String, View> mGroupHeaders = new HashMap<>();
     private final List<String> mGroupNames = new ArrayList<>();
@@ -354,7 +355,8 @@ public final class TabGrid extends Dialog {
         more.setOnClickListener(v -> groupMenu(more, group));
         header.addView(more, new LinearLayout.LayoutParams(dp(44), dp(44)));
         header.setContentDescription(group.name + ", "
-                + mActivity.getResources().getQuantityString(R.plurals.blanc_newtab_groups_count, count, count));
+                + mActivity.getResources().getQuantityString(R.plurals.blanc_newtab_groups_count, count, count) + ", "
+                + mActivity.getString(group.collapsed ? R.string.blanc_group_unfold : R.string.blanc_group_fold));
         header.setOnClickListener(v -> {
             mTabs.setGroupCollapsed(group.id, !group.collapsed);
             render();
@@ -641,6 +643,10 @@ public final class TabGrid extends Dialog {
         showBanner();
     }
 
+    private void hideBanner() {
+        mBanner.setVisibility(View.GONE);
+    }
+
     private void showBanner() {
         if (mTabs.undoTitle() == null) {
             mBanner.setVisibility(View.GONE);
@@ -650,11 +656,6 @@ public final class TabGrid extends Dialog {
         mBanner.setVisibility(View.VISIBLE);
         mHandler.removeCallbacks(mExpire);
         mHandler.postDelayed(mExpire, BlancTabs.UNDO_MILLIS);
-    }
-
-    private void expireUndo() {
-        mTabs.expireUndo();
-        mBanner.setVisibility(View.GONE);
     }
 
     // Helpers.

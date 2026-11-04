@@ -53,7 +53,7 @@ public class BlancTabStateTest {
         // Chromium selects the first tab and forgets mute.
         mStore.select(mA);
         mStore.setMuted(mC, false);
-        BlancTabState.restore(mStore, mPrefsApi, false);
+        BlancTabState.restore(mStore, mPrefsApi, false, false);
         assertEquals(mB, mStore.activeId(false));
         assertTrue(mStore.tabs(false).get(2).muted);
     }
@@ -61,9 +61,9 @@ public class BlancTabStateTest {
     @Test
     public void privateTabsCloseOnAColdStartOnly() {
         mStore.create("https://p.example/", true, null, -1);
-        BlancTabState.restore(mStore, mPrefsApi, false);
+        BlancTabState.restore(mStore, mPrefsApi, false, false);
         assertEquals(1, mStore.tabs(true).size());
-        BlancTabState.restore(mStore, mPrefsApi, true);
+        BlancTabState.restore(mStore, mPrefsApi, true, false);
         assertTrue(mStore.tabs(true).isEmpty());
         assertFalse(mStore.privateSelected());
     }
@@ -75,9 +75,19 @@ public class BlancTabStateTest {
         BlancTabState.save(mStore, mPrefsApi);
         mStore.close(mB, false);
         mStore.close(mC, false);
-        BlancTabState.restore(mStore, mPrefsApi, true);
+        BlancTabState.restore(mStore, mPrefsApi, true, false);
         assertEquals(mA, mStore.activeId(false));
         BlancTabState.save(mStore, mPrefsApi);
         assertNull(mPrefs.get(BlancTabState.MUTED));
+    }
+
+    @Test
+    public void aLinkFromAnotherAppStaysInFront() {
+        mStore.select(mB);
+        BlancTabState.save(mStore, mPrefsApi);
+        // Chromium selected the link's tab.
+        mStore.select(mC);
+        BlancTabState.restore(mStore, mPrefsApi, true, true);
+        assertEquals(mC, mStore.activeId(false));
     }
 }

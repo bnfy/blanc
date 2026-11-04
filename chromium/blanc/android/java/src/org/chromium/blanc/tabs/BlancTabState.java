@@ -35,7 +35,8 @@ public final class BlancTabState {
         prefs.put(MUTED, muted.isEmpty() ? null : String.join(",", muted));
     }
 
-    public static void restore(TabStore store, Prefs prefs, boolean coldStart) {
+    /** {@code opensLink}: another app opened Blanc on a link, so that tab stays in front. */
+    public static void restore(TabStore store, Prefs prefs, boolean coldStart, boolean opensLink) {
         if (coldStart) {
             for (TabStore.Entry tab : store.tabs(true)) store.close(tab.id, false);
             store.selectModel(false);
@@ -43,7 +44,7 @@ public final class BlancTabState {
         List<String> ids = new ArrayList<>();
         for (TabStore.Entry tab : store.tabs(false)) ids.add(tab.id);
         String active = prefs.get(ACTIVE);
-        if (active != null && ids.contains(active)) store.select(active);
+        if (!opensLink && active != null && ids.contains(active)) store.select(active);
         String muted = prefs.get(MUTED);
         if (muted != null) {
             for (String id : Arrays.asList(muted.split(","))) if (ids.contains(id)) store.setMuted(id, true);

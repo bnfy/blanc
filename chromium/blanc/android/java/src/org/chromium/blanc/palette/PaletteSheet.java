@@ -422,8 +422,9 @@ public final class PaletteSheet extends Dialog {
         view.addView(icon(group.collapsed ? R.drawable.blanc_palette_chevron_right : R.drawable.blanc_palette_chevron_down,
                 secondary()), new LinearLayout.LayoutParams(dp(44), dp(20)));
         String action = mActivity.getString(group.collapsed ? R.string.blanc_group_unfold : R.string.blanc_group_fold);
-        // TalkBack hears the name and what a tap does, as the iPhone's label and hint.
-        view.setContentDescription(group.name + ", " + action);
+        // TalkBack hears the name, the count and what a tap does, as the iPhone's label and hint.
+        view.setContentDescription(group.name + ", "
+                + mActivity.getResources().getQuantityString(R.plurals.blanc_newtab_groups_count, count, count) + ", " + action);
         view.setOnClickListener(v -> {
             mTabs.setGroupCollapsed(group.id, !group.collapsed);
             render();

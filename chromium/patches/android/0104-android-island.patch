@@ -72,7 +72,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          if (mVerticalTabsPreferenceListener != null) {
              ContextUtils.getAppSharedPreferences()
                      .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
-@@ -1293,9 +1309,314 @@
+@@ -1293,9 +1309,327 @@
          }
      }
  
@@ -228,13 +228,25 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                            public void stop() {
 +                                bridge.stopFinding(/* clearSelection= */ true);
 +                            }
-+                        });
++                        },
++                        tab.isIncognito());
 +        org.chromium.chrome.browser.tab.TabObserver results =
 +                new org.chromium.chrome.browser.tab.TabObserver() {
 +                    @Override
 +                    public void onFindResultAvailable(
 +                            org.chromium.components.find_in_page.FindNotificationDetails details) {
 +                        capsule.setResult(details.activeMatchOrdinal, details.numberOfMatches);
++                    }
++
++                    // The bar belongs to this page: it goes when the tab leaves the screen.
++                    @Override
++                    public void onHidden(Tab hidden, @org.chromium.chrome.browser.tab.TabHidingType int reason) {
++                        capsule.dismiss();
++                    }
++
++                    @Override
++                    public void onDestroyed(Tab destroyed) {
++                        capsule.dismiss();
 +                    }
 +                };
 +        tab.addObserver(results);
@@ -318,7 +330,8 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +        mBlancTabKeeper =
 +                new org.chromium.blanc.tabs.chromium.BlancTabKeeper(
 +                        selector, store, org.chromium.chrome.browser.tab.TabUtils::isCapturingForMedia);
-+        mBlancTabKeeper.start();
++        mBlancTabKeeper.start(
++                android.content.Intent.ACTION_VIEW.equals(mActivity.getIntent().getAction()));
 +        mActivityLifecycleDispatcher.register(
 +                new org.chromium.chrome.browser.lifecycle.PauseResumeWithNativeObserver() {
 +                    @Override
@@ -387,7 +400,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          assert mLayoutManager != null;
  
          if (mCountrySupplier != null && mCountrySupplier.get() == null) {
-@@ -2962,9 +3283,8 @@
+@@ -2962,9 +3296,8 @@
          mNotificationPermissionController =
                  new NotificationPermissionController(mWindowAndroid, rationaleUIDelegateSupplier);
          NotificationPermissionController.attach(mWindowAndroid, mNotificationPermissionController);

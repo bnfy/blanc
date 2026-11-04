@@ -43,7 +43,7 @@ public class FindCapsuleTest {
     }
 
     private FindCapsule show() {
-        FindCapsule capsule = FindCapsule.show(mActivity, mFinder);
+        FindCapsule capsule = FindCapsule.show(mActivity, mFinder, false);
         ShadowLooper.idleMainLooper();
         return capsule;
     }
@@ -94,5 +94,11 @@ public class FindCapsuleTest {
         assertEquals("Find in page", capsule.field().getHint().toString());
         assertEquals("Previous match", capsule.previousButton().getContentDescription().toString());
         assertEquals("Next match", capsule.nextButton().getContentDescription().toString());
+    }
+
+    @Test
+    public void aPrivateTabsBarIsDark() {
+        FindCapsule capsule = FindCapsule.show(mActivity, mFinder, true);
+        assertEquals(IslandStyle.forTab(true, false).text, capsule.field().getCurrentTextColor());
     }
 }

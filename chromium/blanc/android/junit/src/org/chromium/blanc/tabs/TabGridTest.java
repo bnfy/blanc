@@ -4,6 +4,7 @@ package org.chromium.blanc.tabs;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -80,7 +81,7 @@ public class TabGridTest {
         TabGrid grid = show();
         assertEquals(List.of("Research"), grid.groupNames());
         assertEquals(List.of("https://a.example/", "https://b.example/", "https://c.example/"), cards(grid));
-        assertEquals("Research, 2 tabs", grid.groupHeader("Research").getContentDescription().toString());
+        assertEquals("Research, 2 tabs, Fold group", grid.groupHeader("Research").getContentDescription().toString());
         grid.groupHeader("Research").performClick();
         ShadowLooper.idleMainLooper();
         assertEquals(List.of("https://c.example/"), cards(grid));
@@ -191,5 +192,27 @@ public class TabGridTest {
         TabGrid grid = show();
         assertEquals("https://c.example/", cards(grid).get(0));
         assertEquals(3, cards(grid).size());
+    }
+
+    @Test
+    public void aClosedGridsTimerLeavesANewerUndoAlone() {
+        TabGrid grid = show();
+        card(grid, "https://c.example/").close.performClick();
+        ShadowLooper.idleMainLooper();
+        // The activity's own dismiss listener replaces any the grid set.
+        grid.setOnDismissListener(d -> {});
+        grid.dismiss();
+        mNow += 4000;
+        ShadowLooper.idleMainLooper(4000, java.util.concurrent.TimeUnit.MILLISECONDS);
+        mTabs.close(mB);
+        mNow += 1100;
+        ShadowLooper.idleMainLooper(1100, java.util.concurrent.TimeUnit.MILLISECONDS);
+        assertNotNull(mTabs.undoTitle());
+    }
+
+    @Test
+    public void aGroupHeaderSaysItsCountAndWhetherItIsFolded() {
+        TabGrid grid = show();
+        assertEquals("Research, 2 tabs, Fold group", grid.groupHeader("Research").getContentDescription().toString());
     }
 }

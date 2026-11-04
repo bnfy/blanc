@@ -160,6 +160,9 @@ public final class FakeTabStore implements TabStore {
 
     @Override
     public String createGroup(String tabId, String name) {
+        Tab tab = find(tabId);
+        // Chromium's normal model can't hold a private tab.
+        if (tab != null && tab.privateTab) throw new IllegalStateException("private tabs are never grouped");
         String id = "g" + mNext++;
         mGroups.put(id, new String[] {name, null, "false"});
         addToGroup(tabId, id);
@@ -194,7 +197,18 @@ public final class FakeTabStore implements TabStore {
     @Override
     public void removeFromGroup(String tabId) {
         Tab t = find(tabId);
-        if (t != null) t.groupId = null;
+        if (t == null) return;
+        // Chromium moves it to just after what's left of its group (trailing).
+        int last = -1;
+        for (int i = 0; i < mNormal.size(); i++) {
+            Tab other = mNormal.get(i);
+            if (other != t && t.groupId != null && t.groupId.equals(other.groupId)) last = i;
+        }
+        t.groupId = null;
+        if (last >= 0 && mNormal.indexOf(t) < last) {
+            mNormal.remove(t);
+            mNormal.add(last, t);
+        }
         prune();
     }
 }
