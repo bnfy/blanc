@@ -6,9 +6,9 @@ import {installDriver,nativeCall} from '../lib/test-driver.mjs';
 import {waitFor} from '../lib/cdp.mjs';
 import {shippingPageUrl} from '../lib/page-shim.mjs';
 import {tabPage} from './core.mjs';
+import {inSettings} from './commands.mjs';
 import {jsLiteral} from '../lib/js-literal.mjs';
 const HOST='chrome://blanc-prototype/host.html';
-const SETTINGS='chrome://blanc-prototype/blocking-settings.html';
 // A record whose absent fields raise instead of reading undefined. Shallow:
 // nested arrays stay plain so shipping's deepEqual can compare them (a
 // recursive observedState proxy fails deepStrictEqual's .size probe).
@@ -75,17 +75,9 @@ const snap=r=>nativeCall(r.cdp,'snapshot');
 // ---- Island documents ----
 const strip=w=>w.frame('strip'),overlay=w=>w.frame('overlay');
 const overlayShown=w=>w.hostEval(`!document.getElementById('overlay').hidden`);
-// The Blanc settings document's own blocking bridge answers only its top-level
-// page; a hidden target keeps it out of every window's tab strip.
-async function blockingSettings(w){
- if(!w._settings){
-  const {targetId}=await w.fixture.browser.send('Target.createTarget',{url:SETTINGS,hidden:true,background:true});
-  const target=await waitFor(async()=>(await w.fixture.targets()).find(t=>t.id===targetId),Boolean,'Blanc blocking settings page');
-  w._settings=await w.fixture.connectTarget(target);
-  await waitFor(()=>w._settings.eval(`document.readyState==='complete'&&!!window.blancBlockingSettings`),Boolean,'blocking settings bridge');
- }
- return w._settings;
-}
+// Settings → Privacy and security's list (S1.7), through the settings sheet
+// as a person reaches it; a Settings tab would move into the sheet anyway.
+const exceptionRows=w=>inSettings(w,'privacy',(a,d)=>({value:d.all('.blanc-exception').map(r=>r.textContent.trim())}));
 async function activeTab(w){const s=await w.snapshot();return s.tabs.find(t=>String(t.id)===String(s.activeTabId))??null;}
 // The fork's Island tab menu: a real right-click on the tab's row in the
 // ⌘L panel, read back as rendered buttons.
@@ -219,14 +211,13 @@ export const tabs={
   insecure:document.getElementById('pillInsecure')?.getAttribute('aria-expanded')??null})),
  chromeFocusedId:w=>domRead(strip(w),()=>document.activeElement?.id??null),
  async pressOverlayEscape(w){if(!await overlayShown(w))throw Error('overlay is not open');await overlay(w).keyboard.press('Escape');return true;},
- // Exceptions live in the Blanc settings page's own blocking preferences.
- async exceptions(w){return (await (await blockingSettings(w)).eval('window.blancBlockingSettings.get()')).exceptions;},
- // As typed into Settings → Blocking's exception field (it normalizes).
- async addException(w,h){
-  const page=await blockingSettings(w);
-  await page.eval(`(()=>{const i=document.getElementById('exception-input');i.value=${jsLiteral(String(h))};document.getElementById('exception-form').requestSubmit();})()`);
-  await waitFor(()=>page.eval(`document.getElementById('blocking-error').hidden&&!!document.querySelector('#exception-list .site-row')`),Boolean,'exception saved');
- },
+ // Exceptions: Settings → Privacy and security's list (S1.7).
+ exceptions:w=>exceptionRows(w),
+ // As typed into that list's field (the handler normalizes it).
+ addException:(w,h)=>inSettings(w,'privacy',async(host,d)=>{const rows=()=>d.all('.blanc-exception').length;
+  const before=rows();d.find('#blancExceptionInput').value=host;d.find('#blancExceptionAdd').click();
+  for(let i=0;i<50&&rows()===before;i++)await new Promise(r=>setTimeout(r,100));
+  return {value:rows()>before};},String(h)),
  async activeHostname(w){const t=await activeTab(w);return t?blockableHostname(t.committedUrl||t.url):null;},
  allowAdsOnActive:w=>w.api('allowAdsOnActiveSite'),
  // A real mouse click on a tab's page element.

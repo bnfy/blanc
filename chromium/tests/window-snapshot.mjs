@@ -15,8 +15,8 @@ import {waitFor, pause} from './lib/cdp.mjs';
 import {installDriver, nativeCall} from './lib/test-driver.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-// The pages the settings sheet shows: Blanc's own and Chromium's.
-const SETTINGS = /^chrome:\/\/(blanc-prototype\/blocking-settings\.html|settings\/)/;
+// The settings sheet shows chrome://settings, Blanc's sections inside it.
+const SETTINGS = /^chrome:\/\/settings\//;
 
 async function capture(connection, file, {transparent = false} = {}) {
   if (transparent) await connection.send('Emulation.setDefaultBackgroundColorOverride', {color: {r: 0, g: 0, b: 0, a: 0}});

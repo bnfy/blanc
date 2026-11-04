@@ -500,6 +500,22 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   feeds GN's `TOOL_VERSION`, so the regenerated link lines relinked the Rust
   host tools and about 15,000 dependent steps (the owner approved that
   rebuild; about 50 minutes in all).
+- **S1.7 Blanc's settings page retired, candidate macos-db431e0fbc2791a9 (2026-11-04):**
+  Settings is chrome://settings alone. The sheet opens shipping's General at
+  its top and Blocking on Privacy and security; blocking-settings.html, its
+  six scripts and the two handlers that served it are gone (the checkout's
+  copies are in apply-backup-20261104-studio-s17-retire/removed). Privacy
+  and security now shows shipping's status line ("Blanc Blocker ready.",
+  refreshed while it starts and when the page is shown again). Owner
+  decisions: V12, a custom search address (and engines Chromium's Change
+  dialog lacks, such as Kagi) is added under Manage search engines; V13,
+  explanations show in full. The adapters drive chrome://settings as a
+  person does (the Change dialog, Mode, the switches, the lists, through
+  the sheet); F14-5's steps are V13 replacements. settings-and-theming
+  matches s17g with F14-5 now passing; island-and-commands matches s16c on
+  all 73 executed cases; internal-pages matches sh1, except that 66
+  (Settings' section marker following scrolling) is now undefined:
+  chrome://settings has no such marker, which awaits an owner decision.
 - **Open question, file picker hang (2026-11-04):** the owner's live
   instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
   wallpaper. The hang report shows the UI thread inside AppKit's
@@ -753,5 +769,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-1fa75f97ed921757; Windows: none; Linux: none.
+Candidate identities: macOS: macos-db431e0fbc2791a9; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

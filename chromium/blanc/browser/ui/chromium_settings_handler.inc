@@ -4,8 +4,8 @@
 // through this handler, registered on SettingsUI by the same patch:
 //   Search engine → Your bangs (shipping's normalizeCustomBangs, its
 //     duplicate check and the built-in it replaces),
-//   Privacy and security → sites that load without blocking (shipping's
-//     host normalization),
+//   Privacy and security → Blanc Blocker's status and the sites that load
+//     without blocking (shipping's host normalization),
 //   Languages → the interface language (device-wide, after a relaunch).
 // Only chrome://settings in the regular profile's main frame reaches it.
 class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler {
@@ -53,6 +53,9 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler {
     base::DictValue state;
     state.Set("customBangs", std::move(bangs));
     state.Set("exceptions", std::move(exceptions));
+    // Shipping's Blocking status line: the switch and Blanc Blocker's health.
+    state.Set("blockingEnabled", blanc::BlockingEnabled(profile_));
+    state.Set("blockingHealth", blanc::BlockerHealth());
     state.Set("uiLanguage", g_browser_process->local_state()->GetString(std::string(blanc::ui_language::kPref)));
     state.Set("uiLanguages", std::move(languages));
     // This launch's pinned language, or none when it follows the browser's.
@@ -220,7 +223,8 @@ void ChromiumSettingsHandler::RegisterMessages() {
 
 void ChromiumSettingsHandler::OnJavascriptAllowed() {
   prefs_.Init(profile_->GetPrefs());
-  for (const char* pref : {blanc::browser_api::bangs::kCustomPref, "blanc.blocking.exceptions"})
+  for (const char* pref : {blanc::browser_api::bangs::kCustomPref, "blanc.blocking.enabled",
+                           "blanc.blocking.exceptions"})
     prefs_.Add(pref, base::BindRepeating(&ChromiumSettingsHandler::Changed, base::Unretained(this)));
   local_.Init(g_browser_process->local_state());
   local_.Add(std::string(blanc::ui_language::kPref),

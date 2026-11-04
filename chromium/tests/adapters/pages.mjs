@@ -4,15 +4,13 @@
 import {UndefinedNativeAdapterError,nativeId} from '../lib/adapters.mjs';
 import {jsLiteral} from '../lib/js-literal.mjs';
 export const NEWTAB=/^chrome:\/\/(newtab\/|new-tab-page\/|blanc-prototype\/pages\/newtab\.html)/;
-// Fork utility pages shown as tabs: Chromium's managers (opened other than
-// through the Island) and the Blanc settings hub, which isn't in the sheet
-// until S1.7. Favorites, History and Downloads open in the Island's sheet.
-export const UTILITY=/^chrome:\/\/(bookmarks|history|downloads|settings)\/|^chrome:\/\/blanc-prototype\/blocking-settings\.html/;
+// Fork utility pages shown as tabs: Chromium's managers and Settings, when
+// opened other than through the Island, whose sheet shows them otherwise.
+export const UTILITY=/^chrome:\/\/(bookmarks|history|downloads|settings)\//;
 // Shipping internal URLs as page-initiated navigations would name the fork's
 // equivalents (the inverse of shippingPageUrl), so attacks reach real pages.
 export function forkInternalUrl(url){
  const m=/^blanc:\/\/([a-z]+)\/?(.*)$/.exec(String(url));if(!m)return String(url);
- if(m[1]==='settings')return 'chrome://blanc-prototype/blocking-settings.html';
  if(m[1]==='newtab')return 'chrome://newtab/';
  return `chrome://${m[1]}/${m[2]}`;
 }

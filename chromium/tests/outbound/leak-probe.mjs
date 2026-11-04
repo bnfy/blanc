@@ -40,14 +40,16 @@ try {
   await probe(normal, 'credential', 'password: hunter2', false);
   await probe(normal, 'card number', '4111 1111 1111 1111', false);
   await probe(normal, 'bang', '!yt lofi', false);
-  // Suggestions off through the Settings page's own bridge.
-  await normal.host.eval(`window.BlancPrototypeHost.api.openPage('settings')`);
-  const isSettings = t => t.url === 'chrome://blanc-prototype/blocking-settings.html';
-  const settings = (await waitFor(normal.targets, ts => ts.some(isSettings), 'Settings tab')).find(isSettings);
+  // Suggestions off through Settings → Search engine's own switch (S1.7).
+  await normal.host.eval(`window.BlancPrototypeHost.api.openPage('settings', 'search')`);
+  const isSettings = t => t.url.startsWith('chrome://settings/search');
+  const settings = (await waitFor(normal.targets, ts => ts.some(isSettings), 'Settings sheet')).find(isSettings);
   const page = await connect(settings);
   normal.connections.push(page);
-  await waitFor(() => page.eval('typeof window.blancSearchSettings?.set'), t => t === 'function', 'Settings bridge');
-  await page.eval('window.blancSearchSettings.set({searchSuggestions: false})');
+  const deep = `const find=(sel,root=document)=>{const e=root.querySelector(sel);if(e)return e;for(const el of root.querySelectorAll('*'))if(el.shadowRoot){const x=find(sel,el.shadowRoot);if(x)return x;}return null;};`;
+  await waitFor(() => page.eval(`(()=>{${deep}return find('#blancSearchSuggestions')?.checked;})()`), v => v === true, 'Search suggestions switch');
+  await page.eval(`(()=>{${deep}find('#blancSearchSuggestions').click();})()`);
+  await waitFor(() => page.eval(`(()=>{${deep}return find('#blancSearchSuggestions').checked;})()`), v => v === false, 'suggestions off');
   await probe(normal, 'suggestions off', 'opted out probe', false);
   result.normalExit = await normal.close();
   fixtures.length = 0;

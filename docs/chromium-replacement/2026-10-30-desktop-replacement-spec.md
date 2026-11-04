@@ -295,6 +295,8 @@ Each row has its own status, decided only by the owner. **Until a row is approve
 | V9 | A page-started launch of an external scheme (`mailto:`, `tel:` and similar) asks first through Chromium's prompt and remembers the answer per site; addresses the user types still hand off directly (N6) | Chromium's handler is hardened against launch spam | **Approved** (owner, October 31, 2026) |
 | V10 | A page may open an extension's web-accessible pages (`chrome-extension:`) as Chromium allows; shipping refused every page-started `chrome-extension:` navigation except the PDF viewer | Web Store extensions open their own pages this way (V5); Chromium already limits it to resources the extension declares | **Approved** (owner, November 1, 2026) |
 | V11 | Secure DNS uses Chromium's own settings and provider list (Cloudflare and Quad9 among them, no Mullvad, which remains possible as a custom address) instead of shipping's three providers; WebRTC keeps shipping's IP-handling policy through Chromium's own preference (N8) | Native model | **Approved** (owner, November 3, 2026) |
+| V12 | A custom search address (and engines Chromium's Change dialog doesn't list, such as Kagi) is added under chrome://settings → Manage search engines and made the default there, with Chromium's checks, instead of shipping's single Custom field and its validation (S1.7) | Native model | **Approved** (owner, November 4, 2026) |
+| V13 | Settings is chrome://settings, which shows every setting's explanation in full instead of folding long ones to two lines behind More (F14-5) | Native model; the restyle may revisit it | **Approved** (owner, November 4, 2026) |
 
 ## 10. Release gates for the replacement
 

@@ -1487,20 +1487,17 @@ void CloseSettingsSheet(Owner* owner) {
   if (owner && owner->view) owner->view->GetWebContents()->GetPrimaryMainFrame()->ExecuteJavaScript(
       u"window.BlancPrototypeHost?.closeSheet()", base::NullCallback());
 }
-// Blanc's own sections live on its page until they move into
-// chrome://settings (S1.7); it and Chromium's settings share the sheet.
-// #embedded drops the page's own scrim and card: the sheet draws those.
-constexpr char kBlancSettingsPage[] = "chrome://blanc-prototype/blocking-settings.html#embedded";
+// The sheet shows chrome://settings, Blanc's sections inside Chromium's
+// (S1.7, owner): shipping's General opens at the top, Blocking on Privacy
+// and security.
 bool InSettingsSheet(const GURL& url) {
-  return (url.SchemeIs(content::kChromeUIScheme) && url.host() == "settings") ||
-         (url.SchemeIs(content::kChromeUIScheme) && url.host() == "blanc-prototype" &&
-          url.path() == "/blocking-settings.html");
+  return url.SchemeIs(content::kChromeUIScheme) && url.host() == "settings";
 }
 // Sections shipping's Settings opens, and Chromium's own pages, by name.
 std::optional<GURL> SettingsSheetURL(std::string_view section) {
-  if (section.empty() || section == "general" || section == "blocking") return GURL(kBlancSettingsPage);
+  if (section.empty() || section == "general") return GURL("chrome://settings/");
   static constexpr std::pair<std::string_view, std::string_view> kSections[] = {
-      {"search", "search"},
+      {"blocking", "privacy"}, {"search", "search"},
       {"appearance", "appearance"}, {"privacy", "privacy"}, {"security", "security"},
       {"content", "content"}, {"clearBrowserData", "clearBrowserData"},
       {"downloads", "downloads"}, {"languages", "languages"},
@@ -3157,8 +3154,6 @@ const std::optional<std::string>& LaunchUiLanguage() {
   return *pin;
 }
 
-#include "blanc/browser/ui/blocking_settings_handler.inc"
-#include "blanc/browser/ui/search_settings_handler.inc"
 #include "blanc/browser/ui/chromium_settings_handler.inc"
 #include "blanc/browser/ui/utility_sheet_ops.inc"
 
@@ -5538,7 +5533,6 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (!url.SchemeIsHTTPOrHTTPS() && url != GURL("chrome://newtab/") &&
           url != GURL("chrome://extensions/") &&
           url != GURL("chrome://settings/") &&
-          url != GURL("chrome://blanc-prototype/blocking-settings.html") &&
           url != GURL("chrome://downloads/") &&
           url != GURL("chrome://bookmarks/") &&
           url != GURL("chrome://history/")) {
@@ -6731,12 +6725,10 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
               return;
             }
             // Only the exact private Start Page query, the floating pill's
-            // surface query and the settings sheet's embedded Blanc page
-            // alias their shared static assets;
+            // surface query alias their shared static assets;
             // arbitrary queries never become filesystem paths.
             const std::string asset_path = path == "pages/newtab.html?private=1" ? "pages/newtab.html"
-                : path == "index.html?surface=float" ? "index.html"
-                : path == "blocking-settings.html#embedded" ? "blocking-settings.html" : path;
+                : path == "index.html?surface=float" ? "index.html" : path;
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
             // Build outputs such as the compiled bindings exist only embedded.
             if (!root.empty() && !blanc::island_resources::IsGenerated(asset_path)) {
@@ -6752,8 +6744,6 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
           root, Profile::FromWebUI(web_ui)->GetWeakPtr()));
   web_ui->AddMessageHandler(std::make_unique<Handler>());
   web_ui->AddMessageHandler(std::make_unique<NewTabHandler>());
-  web_ui->AddMessageHandler(std::make_unique<BlockingSettingsHandler>());
-  web_ui->AddMessageHandler(std::make_unique<SearchSettingsHandler>());
 }
 
 ToolbarButtonProvider* ToolbarProvider(BrowserWindowInterface* browser,

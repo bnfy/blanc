@@ -12,10 +12,10 @@ index 480df5a..b93e4aa 100644
      "clear_browsing_data_dialog/clear_browsing_data_dialog.ts",
 diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
 new file mode 100644
-index 0000000..cf26592
+index 0000000..e482623
 --- /dev/null
 +++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
-@@ -0,0 +1,79 @@
+@@ -0,0 +1,81 @@
 +// Copyright 2026 Bananify Creative. MIT; see the Blanc repository LICENSE.
 +
 +// Blanc's lists and language in chrome://settings (S1.7), answered by
@@ -42,6 +42,8 @@ index 0000000..cf26592
 +export interface BlancSettingsState {
 +  customBangs: BlancBang[];
 +  exceptions: string[];
++  blockingEnabled: boolean;
++  blockingHealth: string;
 +  uiLanguage: string;
 +  uiLanguages: BlancLanguage[];
 +  launchUiLanguage: string|null;
@@ -237,13 +239,17 @@ index cc109f3..29bf166 100644
  
  declare global {
 diff --git a/chrome/browser/resources/settings/privacy_page/privacy_page.html b/chrome/browser/resources/settings/privacy_page/privacy_page.html
-index 507dfb1..d802de9 100644
+index 507dfb1..e11d62c 100644
 --- a/chrome/browser/resources/settings/privacy_page/privacy_page.html
 +++ b/chrome/browser/resources/settings/privacy_page/privacy_page.html
-@@ -16,6 +16,34 @@
+@@ -16,6 +16,38 @@
          label="$i18n{blancBlocking}"
          sub-label="$i18n{blancBlockingHint}">
      </settings-toggle-button>
++    ${this.blancBlockingStatus_ ? html`
++      <div id="blancBlockingStatus" class="cr-row continuation secondary"
++          role="status">${this.blancBlockingStatus_}</div>
++    ` : ''}
 +    <div id="blancExceptions" class="cr-row continuation">
 +      <div class="flex cr-padded-text secondary">$i18n{blancExceptions}</div>
 +    </div>
@@ -276,7 +282,7 @@ index 507dfb1..d802de9 100644
          start-icon="cr:delete"
          label="$i18n{clearBrowsingData}"
 diff --git a/chrome/browser/resources/settings/privacy_page/privacy_page.ts b/chrome/browser/resources/settings/privacy_page/privacy_page.ts
-index 7801ee3..fdb9368 100644
+index 7801ee3..689e0c6 100644
 --- a/chrome/browser/resources/settings/privacy_page/privacy_page.ts
 +++ b/chrome/browser/resources/settings/privacy_page/privacy_page.ts
 @@ -14,6 +14,9 @@ import '../icons.html.js';
@@ -289,45 +295,81 @@ index 7801ee3..fdb9368 100644
  import './privacy_guide/privacy_guide_dialog.js';
  
  import {PrefServiceObserverMixinLit} from '/shared/settings/prefs2/pref_service_observer_mixin_lit.js';
-@@ -38,6 +41,10 @@ import {CookieControlsMode} from '../site_settings/constants.js';
+@@ -38,6 +41,11 @@ import {CookieControlsMode} from '../site_settings/constants.js';
  
  import {HatsBrowserProxyImpl, TrustSafetyInteraction} from './hats_browser_proxy.js';
  import {PrivacyGuideAvailabilityMixinLit} from './privacy_guide/privacy_guide_availability_mixin_lit.js';
 +import type {CrInputElement} from 'chrome://resources/cr_elements/cr_input/cr_input.js';
 +import type {WebUiListener} from 'chrome://resources/js/cr.js';
 +
++import type {BlancSettingsState} from '../blanc_settings_proxy.js';
 +import {blancSettings, blancString} from '../blanc_settings_proxy.js';
  import {getHtml} from './privacy_page.html.js';
  
  export interface SettingsPrivacyPageElement {
-@@ -74,6 +81,7 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
+@@ -74,6 +82,8 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
  
    static override get properties() {
      return {
 +      blancExceptions_: {type: Array},
++      blancBlockingStatus_: {type: String},
        showClearBrowsingDataDialog_: {type: Boolean},
        showPrivacyGuideDialog_: {type: Boolean},
  
-@@ -88,6 +96,9 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
+@@ -88,6 +98,16 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
    }
  
    protected accessor showClearBrowsingDataDialog_: boolean = false;
 +  // Blanc's sites that load without blocking (S1.7).
 +  protected accessor blancExceptions_: string[] = [];
++  protected accessor blancBlockingStatus_: string = '';
 +  private blancListener_: WebUiListener|null = null;
++  private blancHealthTimer_: number|null = null;
++  private blancOnVisible_ = () => {
++    if (!document.hidden) {
++      blancSettings.get().then(state => this.blancShow_(state));
++    }
++  };
    protected accessor showPrivacyGuideDialog_: boolean = false;
    protected accessor dbdDeletionConfirmationToastLabel_: string = '';
    private accessor showUniversalOptOutSettings_: boolean =
-@@ -103,6 +114,51 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
+@@ -103,6 +123,83 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
      super.connectedCallback();
  
      this.mirrorPref('profile.cookie_controls_mode', 'cookieControlsModePref_');
-+    this.blancListener_ = blancSettings.listen(state => {
-+      this.blancExceptions_ = state.exceptions;
-+    });
++    this.blancListener_ = blancSettings.listen(state => this.blancShow_(state));
 +    blancSettings.get().then(state => {
-+      this.blancExceptions_ = state.exceptions;
++      this.blancShow_(state);
++      // Marks the list as loaded for tests reading it.
++      this.toggleAttribute('blanc-ready', true);
 +    });
++    // Blanc Blocker's health changes on its own, as shipping's page notes.
++    document.addEventListener('visibilitychange', this.blancOnVisible_);
++  }
++
++  // Shipping's Blocking status line (blocking-settings.js).
++  private blancShow_(state: BlancSettingsState) {
++    this.blancExceptions_ = state.exceptions;
++    const provider = 'Blanc Blocker';
++    this.blancBlockingStatus_ = !state.blockingEnabled ?
++        blancString('blancBlockingStatusDisabled', {provider}) :
++        state.blockingHealth === 'ready' ?
++        blancString('blancBlockingStatusReady', {provider}) :
++        state.blockingHealth === 'unavailable' ?
++        blancString(
++            'blancBlockingStatusFailed', {provider, error: 'unavailable'}) :
++        blancString('blancBlockingStatusInitializing', {provider});
++    if (this.blancHealthTimer_ !== null) {
++      clearTimeout(this.blancHealthTimer_);
++      this.blancHealthTimer_ = null;
++    }
++    if (state.blockingEnabled && state.blockingHealth !== 'ready' &&
++        state.blockingHealth !== 'unavailable') {
++      this.blancHealthTimer_ = setTimeout(() => {
++        this.blancHealthTimer_ = null;
++        blancSettings.get().then(next => this.blancShow_(next));
++      }, 1000);
++    }
 +  }
 +
 +  override disconnectedCallback() {
@@ -335,6 +377,11 @@ index 7801ee3..fdb9368 100644
 +    if (this.blancListener_) {
 +      blancSettings.stopListening(this.blancListener_);
 +      this.blancListener_ = null;
++    }
++    document.removeEventListener('visibilitychange', this.blancOnVisible_);
++    if (this.blancHealthTimer_ !== null) {
++      clearTimeout(this.blancHealthTimer_);
++      this.blancHealthTimer_ = null;
 +    }
 +  }
 +
@@ -371,10 +418,10 @@ index 7801ee3..fdb9368 100644
  
    override currentRouteChanged(newRoute: Route, oldRoute?: Route) {
 diff --git a/chrome/browser/resources/settings/search_page/search_page.html.ts b/chrome/browser/resources/settings/search_page/search_page.html.ts
-index 2810a33..02ff7ce 100644
+index 2810a33..3ee4d56 100644
 --- a/chrome/browser/resources/settings/search_page/search_page.html.ts
 +++ b/chrome/browser/resources/settings/search_page/search_page.html.ts
-@@ -73,6 +73,53 @@ export function getHtml(this: SettingsSearchPageElement) {
+@@ -73,6 +73,54 @@ export function getHtml(this: SettingsSearchPageElement) {
          label="$i18n{blancBangs}"
          sub-label="$i18n{blancBangsHint}">
      </settings-toggle-button>
@@ -420,7 +467,8 @@ index 2810a33..02ff7ce 100644
 +        </cr-button>
 +      </div>
 +      ${this.blancBangNotice_ ? html`
-+        <div class="list-item secondary" id="blancBangNotice" role="status">
++        <div class="list-item secondary" id="blancBangNotice" role="status"
++            data-kind="${this.blancBangNoticeKind_}">
 +          ${this.blancBangNotice_}
 +        </div>
 +      ` : ''}
@@ -429,7 +477,7 @@ index 2810a33..02ff7ce 100644
        ${this.searchSettingsUpdateEnabled_ ? html`
          <div class="cr-row">
 diff --git a/chrome/browser/resources/settings/search_page/search_page.ts b/chrome/browser/resources/settings/search_page/search_page.ts
-index 72435f9..96abec1 100644
+index 72435f9..7eced1d 100644
 --- a/chrome/browser/resources/settings/search_page/search_page.ts
 +++ b/chrome/browser/resources/settings/search_page/search_page.ts
 @@ -17,6 +17,9 @@ import './search_engine_list_dialog.js';
@@ -454,27 +502,29 @@ index 72435f9..96abec1 100644
  import {getHtml} from './search_page.html.js';
  
  const SettingsSearchPageElementBase = PrefServiceObserverMixinLit(
-@@ -55,6 +63,8 @@ export class SettingsSearchPageElement extends SettingsSearchPageElementBase {
+@@ -55,6 +63,9 @@ export class SettingsSearchPageElement extends SettingsSearchPageElementBase {
  
    static override get properties() {
      return {
 +      blancBangs_: {type: Array},
 +      blancBangNotice_: {type: String},
++      blancBangNoticeKind_: {type: String},
        defaultSearchProviderDataPref_: {type: Object},
  
        /**
-@@ -100,6 +110,10 @@ export class SettingsSearchPageElement extends SettingsSearchPageElementBase {
+@@ -100,6 +111,11 @@ export class SettingsSearchPageElement extends SettingsSearchPageElementBase {
    protected accessor showSearchEngineListDialog_: boolean = false;
    protected accessor showMoreEnginesDialog_: boolean = false;
    protected accessor saveGuestChoice_: boolean|null = null;
 +  // Blanc's Your bangs (S1.7).
 +  protected accessor blancBangs_: BlancBang[] = [];
 +  protected accessor blancBangNotice_: string = '';
++  protected accessor blancBangNoticeKind_: string = '';
 +  private blancListener_: WebUiListener|null = null;
    protected accessor defaultSearchEngine_: SearchEngine|null = null;
    protected accessor searchSettingsUpdateEnabled_: boolean =
        loadTimeData.getBoolean('searchSettingsUpdate');
-@@ -113,6 +127,7 @@ export class SettingsSearchPageElement extends SettingsSearchPageElementBase {
+@@ -113,6 +129,7 @@ export class SettingsSearchPageElement extends SettingsSearchPageElementBase {
  
    override connectedCallback() {
      super.connectedCallback();
@@ -482,7 +532,7 @@ index 72435f9..96abec1 100644
  
      this.mirrorPref(
          'default_search_provider_data.template_url_data',
-@@ -142,6 +157,14 @@ export class SettingsSearchPageElement extends SettingsSearchPageElementBase {
+@@ -142,6 +159,14 @@ export class SettingsSearchPageElement extends SettingsSearchPageElementBase {
      this.addWebUiListener('search-engines-changed', updateSearchEngines);
    }
  
@@ -497,7 +547,7 @@ index 72435f9..96abec1 100644
    override willUpdate(changedProperties: PropertyValues<this>) {
      super.willUpdate(changedProperties);
  
-@@ -260,6 +283,67 @@ export class SettingsSearchPageElement extends SettingsSearchPageElementBase {
+@@ -260,6 +285,73 @@ export class SettingsSearchPageElement extends SettingsSearchPageElementBase {
          `Failed to find associated control for child '${childViewId}'`);
      return control;
    }
@@ -509,6 +559,8 @@ index 72435f9..96abec1 100644
 +    });
 +    blancSettings.get().then(state => {
 +      this.blancBangs_ = state.customBangs;
++      // Marks the list as loaded for tests reading it.
++      this.toggleAttribute('blanc-ready', true);
 +    });
 +  }
 +
@@ -529,11 +581,13 @@ index 72435f9..96abec1 100644
 +    if (reply.result === 'duplicate') {
 +      this.blancBangNotice_ =
 +          blancString('blancCustomBangsDuplicate', {code: reply.code ?? ''});
++      this.blancBangNoticeKind_ = 'error';
 +      return;
 +    }
 +    if (reply.result !== 'added') {
 +      // Leaves the draft in the fields to correct.
 +      this.blancBangNotice_ = blancString('blancCustomBangsError');
++      this.blancBangNoticeKind_ = 'error';
 +      return;
 +    }
 +    this.blancBangNotice_ = reply.site ?
@@ -541,6 +595,7 @@ index 72435f9..96abec1 100644
 +            'blancCustomBangsReplaces',
 +            {code: reply.code ?? '', site: reply.site}) :
 +        '';
++    this.blancBangNoticeKind_ = reply.site ? 'replaces' : '';
 +    code.value = '';
 +    name.value = '';
 +    address.value = '';
@@ -557,6 +612,7 @@ index 72435f9..96abec1 100644
 +    const code = (event.currentTarget as HTMLElement).dataset['code'] ?? '';
 +    this.blancBangs_ = (await blancSettings.removeBang(code)).state.customBangs;
 +    this.blancBangNotice_ = '';
++    this.blancBangNoticeKind_ = '';
 +  }
 +
 +  protected blancRemoveLabel_(code: string): string {

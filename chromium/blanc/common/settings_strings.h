@@ -14,7 +14,7 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 33> kStrings_en = {{
+inline constexpr std::array<String, 37> kStrings_en = {{
     {"blancIslandHoverOpen", u"Open the Island on hover"},
     {"blancIslandHoverOpenHint", u"Rest the pointer on the Island’s address to open it without clicking."},
     {"blancIslandAutoHide", u"Auto-hide the Island"},
@@ -40,6 +40,10 @@ inline constexpr std::array<String, 33> kStrings_en = {{
     {"blancCustomBangsDuplicate", u"You already have !{code}."},
     {"blancCustomBangsError", u"That bang isn't valid — check the code and the address."},
     {"blancCustomBangsRemove", u"Remove !{code}"},
+    {"blancBlockingStatusReady", u"{provider} ready."},
+    {"blancBlockingStatusInitializing", u"{provider} initializing."},
+    {"blancBlockingStatusDisabled", u"{provider} disabled."},
+    {"blancBlockingStatusFailed", u"{provider} could not continue ({error}). Affected requests remain blocked."},
     {"blancExceptions", u"Sites listed here load with ad-blocking turned off, e.g. for sites that break under it."},
     {"blancExceptionsAdd", u"Add"},
     {"blancExceptionsEmpty", u"No exceptions added."},
@@ -49,7 +53,7 @@ inline constexpr std::array<String, 33> kStrings_en = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Relaunch to apply"},
 }};
-inline constexpr std::array<String, 33> kStrings_de = {{
+inline constexpr std::array<String, 37> kStrings_de = {{
     {"blancIslandHoverOpen", u"Island beim Darüberfahren öffnen"},
     {"blancIslandHoverOpenHint", u"Lass den Zeiger auf der Adresse in der Island ruhen, um sie ohne Klick zu öffnen."},
     {"blancIslandAutoHide", u"Island automatisch ausblenden"},
@@ -75,6 +79,10 @@ inline constexpr std::array<String, 33> kStrings_de = {{
     {"blancCustomBangsDuplicate", u"!{code} hast du schon."},
     {"blancCustomBangsError", u"Dieser Bang ist ungültig – prüfe Kürzel und Adresse."},
     {"blancCustomBangsRemove", u"!{code} entfernen"},
+    {"blancBlockingStatusReady", u"{provider} ist bereit."},
+    {"blancBlockingStatusInitializing", u"{provider} wird gestartet."},
+    {"blancBlockingStatusDisabled", u"{provider} ist deaktiviert."},
+    {"blancBlockingStatusFailed", u"{provider} konnte nicht weiterarbeiten ({error}). Betroffene Anfragen bleiben blockiert."},
     {"blancExceptions", u"Hier aufgeführte Websites laden ohne Werbeblocker, z. B. für Websites, die damit nicht funktionieren."},
     {"blancExceptionsAdd", u"Hinzufügen"},
     {"blancExceptionsEmpty", u"Keine Ausnahmen hinzugefügt."},
@@ -84,7 +92,7 @@ inline constexpr std::array<String, 33> kStrings_de = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Zum Übernehmen neu starten"},
 }};
-inline constexpr std::array<String, 33> kStrings_es = {{
+inline constexpr std::array<String, 37> kStrings_es = {{
     {"blancIslandHoverOpen", u"Abrir la Island al pasar el cursor"},
     {"blancIslandHoverOpenHint", u"Deja el puntero sobre la dirección de la Island para abrirla sin hacer clic."},
     {"blancIslandAutoHide", u"Ocultar la Island automáticamente"},
@@ -110,6 +118,10 @@ inline constexpr std::array<String, 33> kStrings_es = {{
     {"blancCustomBangsDuplicate", u"Ya tienes !{code}."},
     {"blancCustomBangsError", u"Ese bang no es válido; revisa el código y la dirección."},
     {"blancCustomBangsRemove", u"Quitar !{code}"},
+    {"blancBlockingStatusReady", u"{provider} listo."},
+    {"blancBlockingStatusInitializing", u"{provider} iniciándose."},
+    {"blancBlockingStatusDisabled", u"{provider} desactivado."},
+    {"blancBlockingStatusFailed", u"{provider} no pudo continuar ({error}). Las solicitudes afectadas siguen bloqueadas."},
     {"blancExceptions", u"Los sitios de esta lista se cargan con el bloqueo de anuncios desactivado, p. ej., los que dejan de funcionar con él."},
     {"blancExceptionsAdd", u"Añadir"},
     {"blancExceptionsEmpty", u"No se ha añadido ninguna excepción."},
@@ -119,7 +131,7 @@ inline constexpr std::array<String, 33> kStrings_es = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
 }};
-inline constexpr std::array<String, 33> kStrings_fr = {{
+inline constexpr std::array<String, 37> kStrings_fr = {{
     {"blancIslandHoverOpen", u"Ouvrir l’Island au survol"},
     {"blancIslandHoverOpenHint", u"Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer."},
     {"blancIslandAutoHide", u"Masquer automatiquement l’Island"},
@@ -145,6 +157,10 @@ inline constexpr std::array<String, 33> kStrings_fr = {{
     {"blancCustomBangsDuplicate", u"Vous avez déjà !{code}."},
     {"blancCustomBangsError", u"Ce bang n’est pas valide — vérifiez le code et l’adresse."},
     {"blancCustomBangsRemove", u"Retirer !{code}"},
+    {"blancBlockingStatusReady", u"{provider} prêt."},
+    {"blancBlockingStatusInitializing", u"{provider} en cours d’initialisation."},
+    {"blancBlockingStatusDisabled", u"{provider} désactivé."},
+    {"blancBlockingStatusFailed", u"{provider} n’a pas pu continuer ({error}). Les requêtes concernées restent bloquées."},
     {"blancExceptions", u"Les sites listés ici se chargent sans blocage des publicités, p. ex. ceux qui ne fonctionnent plus avec."},
     {"blancExceptionsAdd", u"Ajouter"},
     {"blancExceptionsEmpty", u"Aucune exception ajoutée."},
@@ -154,7 +170,7 @@ inline constexpr std::array<String, 33> kStrings_fr = {{
     {"blancLanguageSystem", u"Système ({language})"},
     {"blancLanguageRelaunch", u"Redémarrer pour appliquer"},
 }};
-inline constexpr std::array<String, 33> kStrings_it = {{
+inline constexpr std::array<String, 37> kStrings_it = {{
     {"blancIslandHoverOpen", u"Apri l’Island al passaggio del puntatore"},
     {"blancIslandHoverOpenHint", u"Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic."},
     {"blancIslandAutoHide", u"Nascondi automaticamente l’Island"},
@@ -180,6 +196,10 @@ inline constexpr std::array<String, 33> kStrings_it = {{
     {"blancCustomBangsDuplicate", u"Hai già !{code}."},
     {"blancCustomBangsError", u"Questo bang non è valido: controlla codice e indirizzo."},
     {"blancCustomBangsRemove", u"Rimuovi !{code}"},
+    {"blancBlockingStatusReady", u"{provider} pronto."},
+    {"blancBlockingStatusInitializing", u"{provider} in fase di avvio."},
+    {"blancBlockingStatusDisabled", u"{provider} disattivato."},
+    {"blancBlockingStatusFailed", u"{provider} non è riuscito a continuare ({error}). Le richieste interessate restano bloccate."},
     {"blancExceptions", u"I siti di questo elenco si caricano con il blocco degli annunci disattivato, ad esempio quelli che smettono di funzionare con il blocco."},
     {"blancExceptionsAdd", u"Aggiungi"},
     {"blancExceptionsEmpty", u"Nessuna eccezione aggiunta."},
@@ -189,7 +209,7 @@ inline constexpr std::array<String, 33> kStrings_it = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Riavvia per applicare"},
 }};
-inline constexpr std::array<String, 33> kStrings_pt_BR = {{
+inline constexpr std::array<String, 37> kStrings_pt_BR = {{
     {"blancIslandHoverOpen", u"Abrir a Island ao passar o cursor"},
     {"blancIslandHoverOpenHint", u"Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar."},
     {"blancIslandAutoHide", u"Ocultar a Island automaticamente"},
@@ -215,6 +235,10 @@ inline constexpr std::array<String, 33> kStrings_pt_BR = {{
     {"blancCustomBangsDuplicate", u"Você já tem !{code}."},
     {"blancCustomBangsError", u"Esse bang não é válido — confira o código e o endereço."},
     {"blancCustomBangsRemove", u"Remover !{code}"},
+    {"blancBlockingStatusReady", u"{provider} pronto."},
+    {"blancBlockingStatusInitializing", u"{provider} iniciando."},
+    {"blancBlockingStatusDisabled", u"{provider} desativado."},
+    {"blancBlockingStatusFailed", u"{provider} não conseguiu continuar ({error}). As solicitações afetadas continuam bloqueadas."},
     {"blancExceptions", u"Os sites listados aqui carregam com o bloqueio de anúncios desativado, por exemplo os que quebram com ele."},
     {"blancExceptionsAdd", u"Adicionar"},
     {"blancExceptionsEmpty", u"Nenhuma exceção adicionada."},
