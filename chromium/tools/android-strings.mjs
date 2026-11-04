@@ -6,6 +6,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
+// The file's text, or null if it isn't there: one read, so nothing can change between a check and it.
+function readIfPresent(file) {
+  try { return fs.readFileSync(file, 'utf8'); } catch (error) { if (error.code === 'ENOENT') return null; throw error; }
+}
+
 const chromium = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repo = path.dirname(chromium);
 const RES = path.join(chromium, 'blanc/android/island/res');
@@ -55,7 +60,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   for (const [locale, dir] of LOCALES) {
     const file = path.join(RES, dir, 'blanc_strings.xml');
     const next = render(locale);
-    const current = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
+    const current = readIfPresent(file);
     if (current === next) continue;
     if (check) { stale.push(path.relative(repo, file)); continue; }
     fs.mkdirSync(path.dirname(file), {recursive: true});
