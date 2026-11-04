@@ -69,6 +69,10 @@
     <string name="blanc_tab_menu_unpin">Soltar pestaña</string>
     <string name="blanc_tabs_closed_toast">Pestaña cerrada</string>
     <string name="blanc_ws_editor_done">Listo</string>
+    <string name="blanc_find_next">Coincidencia siguiente</string>
+    <string name="blanc_find_placeholder">Buscar en la página</string>
+    <string name="blanc_find_prev">Coincidencia anterior</string>
+    <string name="blanc_menu_find_in_page">Buscar en la página</string>
     <plurals name="blanc_newtab_groups_count">
         <item quantity="one">%d pestaña</item>
         <item quantity="many">%d pestañas</item>

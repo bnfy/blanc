@@ -69,6 +69,10 @@
     <string name="blanc_tab_menu_unpin">Unpin Tab</string>
     <string name="blanc_tabs_closed_toast">Tab closed</string>
     <string name="blanc_ws_editor_done">Done</string>
+    <string name="blanc_find_next">Next match</string>
+    <string name="blanc_find_placeholder">Find in page</string>
+    <string name="blanc_find_prev">Previous match</string>
+    <string name="blanc_menu_find_in_page">Find in Page</string>
     <plurals name="blanc_newtab_groups_count">
         <item quantity="one">%d tab</item>
         <item quantity="other">%d tabs</item>

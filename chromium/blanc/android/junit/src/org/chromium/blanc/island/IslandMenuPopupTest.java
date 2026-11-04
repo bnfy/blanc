@@ -39,6 +39,11 @@ public class IslandMenuPopupTest {
                 }
 
                 @Override
+                public void find() {
+                    mRan.add("find");
+                }
+
+                @Override
                 public void newPrivateTab() {
                     mRan.add("private");
                 }
@@ -81,7 +86,7 @@ public class IslandMenuPopupTest {
     @Test
     public void aWebPageShowsTheIphonesOrderWithA1sEntries() {
         assertEquals(
-                List.of("Save to Favorites", "Share", "New Private Tab"),
+                List.of("Save to Favorites", "Share", "Find in Page", "New Private Tab"),
                 titles(IslandMenuPopup.show(mAnchor, page(false, false), mActions)));
     }
 
@@ -93,7 +98,7 @@ public class IslandMenuPopupTest {
     @Test
     public void aPrivateTabHasNoFavorite() {
         assertEquals(
-                List.of("Share", "New Private Tab"),
+                List.of("Share", "Find in Page", "New Private Tab"),
                 titles(IslandMenuPopup.show(mAnchor, page(true, false), mActions)));
     }
 
@@ -105,6 +110,6 @@ public class IslandMenuPopupTest {
             assertNotNull(menu.getItem(i));
             menu.performIdentifierAction(menu.getItem(i).getItemId(), 0);
         }
-        assertEquals(List.of("favorite", "share", "private"), mRan);
+        assertEquals(List.of("favorite", "share", "find", "private"), mRan);
     }
 }

@@ -37,6 +37,8 @@ export const ANDROID_KEYS = [
   'spaces.color.slate', 'tabGroups.closedToast', 'tabMenu.duplicate', 'tabMenu.moveToGroup', 'tabMenu.mute',
   'tabMenu.newGroup', 'tabMenu.pin', 'tabMenu.removeFromGroup', 'tabMenu.unmute', 'tabMenu.unpin', 'tabs.closedToast',
   'ws.editor.done',
+  // Find in page (A2 Task 6).
+  'find.next', 'find.placeholder', 'find.prev', 'menu.findInPage',
 ];
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
 export const ANDROID_PLURALS = ['newtab.groups.count', 'tabGroups.tucked', 'tabsMenu.header'];

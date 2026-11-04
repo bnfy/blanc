@@ -65,6 +65,7 @@ android_resources("island_view_resources") {
     "island/res/drawable-xhdpi/blanc_island_mark.png",
     "island/res/drawable-xxhdpi/blanc_island_mark.png",
     "island/res/drawable-xxxhdpi/blanc_island_mark.png",
+    "island/res/drawable/blanc_find_chevron_up.xml",
     "island/res/drawable/blanc_grid_more.xml",
     "island/res/drawable/blanc_island_plus.xml",
     "island/res/drawable/blanc_palette_bookmark.xml",
@@ -94,6 +95,7 @@ android_library("island_view_java") {
   sources = [
     "java/src/org/chromium/blanc/island/IslandMenuPopup.java",
     "java/src/org/chromium/blanc/island/IslandView.java",
+    "java/src/org/chromium/blanc/find/FindCapsule.java",
     "java/src/org/chromium/blanc/grid/GroupNameDialog.java",
     "java/src/org/chromium/blanc/grid/TabGrid.java",
     "java/src/org/chromium/blanc/palette/PaletteSheet.java",
@@ -137,6 +139,7 @@ robolectric_binary("blanc_android_junit_tests") {
   sources = [
     "junit/src/org/chromium/blanc/address/AddressFixtures.java",
     "junit/src/org/chromium/blanc/address/AddressInputTest.java",
+    "junit/src/org/chromium/blanc/island/FindCapsuleTest.java",
     "junit/src/org/chromium/blanc/island/IslandMenuPopupTest.java",
     "junit/src/org/chromium/blanc/island/IslandMenuTest.java",
     "junit/src/org/chromium/blanc/island/IslandPositionTest.java",

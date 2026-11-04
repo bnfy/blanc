@@ -69,6 +69,10 @@
     <string name="blanc_tab_menu_unpin">Détacher l’onglet</string>
     <string name="blanc_tabs_closed_toast">Onglet fermé</string>
     <string name="blanc_ws_editor_done">Terminé</string>
+    <string name="blanc_find_next">Occurrence suivante</string>
+    <string name="blanc_find_placeholder">Rechercher dans la page</string>
+    <string name="blanc_find_prev">Occurrence précédente</string>
+    <string name="blanc_menu_find_in_page">Rechercher dans la page</string>
     <plurals name="blanc_newtab_groups_count">
         <item quantity="one">%d onglet</item>
         <item quantity="many">%d onglets</item>

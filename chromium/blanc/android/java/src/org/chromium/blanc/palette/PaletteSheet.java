@@ -68,6 +68,9 @@ public final class PaletteSheet extends Dialog {
         void setTheme(String argument);
 
         List<QuickSwitcher.Page> favorites();
+
+        /** /find: the find bar. */
+        void find();
     }
 
     public enum Mode {
@@ -343,9 +346,7 @@ public final class PaletteSheet extends Dialog {
     }
 
     private void renderCommands() {
-        List<SlashCommands.Kind> kinds = new ArrayList<>(SlashCommands.matching(mField.getText().toString()));
-        // Find in page joins with its bar (A2 Task 6).
-        kinds.remove(SlashCommands.Kind.FIND);
+        List<SlashCommands.Kind> kinds = SlashCommands.matching(mField.getText().toString());
         if (kinds.isEmpty()) {
             empty(R.string.blanc_ios_palette_no_command);
             return;
@@ -560,7 +561,7 @@ public final class PaletteSheet extends Dialog {
         if (input.isEmpty()) return;
         if (input.startsWith("/")) {
             SlashCommands.Parsed parsed = SlashCommands.parse(input);
-            if (parsed != null && parsed.kind != SlashCommands.Kind.FIND) run(parsed.kind, parsed.argument);
+            if (parsed != null) run(parsed.kind, parsed.argument);
             return;
         }
         QuickSwitcher.Result target = QuickSwitcher.goTarget(input, search(input));
@@ -638,6 +639,7 @@ public final class PaletteSheet extends Dialog {
                 if (group != null) mTabs.closeGroup(group);
             }
             case THEME -> mCallbacks.setTheme(argument.toLowerCase(Locale.ROOT));
+            case FIND -> mCallbacks.find();
             default -> {
                 return;
             }

@@ -69,6 +69,10 @@
     <string name="blanc_tab_menu_unpin">Rilascia la scheda</string>
     <string name="blanc_tabs_closed_toast">Scheda chiusa</string>
     <string name="blanc_ws_editor_done">Fine</string>
+    <string name="blanc_find_next">Risultato successivo</string>
+    <string name="blanc_find_placeholder">Trova nella pagina</string>
+    <string name="blanc_find_prev">Risultato precedente</string>
+    <string name="blanc_menu_find_in_page">Trova nella pagina</string>
     <plurals name="blanc_newtab_groups_count">
         <item quantity="one">%d scheda</item>
         <item quantity="many">%d schede</item>

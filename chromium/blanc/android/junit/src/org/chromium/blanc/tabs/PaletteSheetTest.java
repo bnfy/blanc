@@ -56,6 +56,11 @@ public class PaletteSheetTest {
                 public List<QuickSwitcher.Page> favorites() {
                     return mFavorites;
                 }
+
+                @Override
+                public void find() {
+                    mThemes.add("find");
+                }
             };
 
     @Before
@@ -149,9 +154,8 @@ public class PaletteSheetTest {
         PaletteSheet sheet = show();
         type(sheet, "/");
         assertEquals(PaletteSheet.Mode.SLASH, sheet.mode());
-        // /find joins with the find bar (Task 6).
         assertEquals(List.of("/favorites", "/history", "/new", "/private", "/close", "/reopen", "/group",
-                "/ungroup", "/close-group", "/theme"), titles(sheet, PaletteSheet.RowKind.COMMAND));
+                "/ungroup", "/close-group", "/find", "/theme"), titles(sheet, PaletteSheet.RowKind.COMMAND));
         assertEquals("Close this tab", row(sheet, "/close").subtitle);
         type(sheet, "/cl");
         assertEquals(List.of("/close", "/close-group"), titles(sheet, PaletteSheet.RowKind.COMMAND));
@@ -185,6 +189,8 @@ public class PaletteSheetTest {
         go(withText("/theme dark"));
         assertEquals(List.of("chrome://blanc/bookmarks.html"), mOpened);
         assertEquals(List.of("dark"), mThemes);
+        go(withText("/find"));
+        assertEquals(List.of("dark", "find"), mThemes);
         go(withText("/private"));
         assertEquals(1, mStore.tabs(true).size());
     }
