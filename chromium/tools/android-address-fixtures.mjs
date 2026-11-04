@@ -11,6 +11,11 @@ import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import {corpus} from './address-corpus.mjs';
 
+// The file's text, or null if it isn't there: one read, so nothing can change between a check and it.
+function readIfPresent(file) {
+  try { return fs.readFileSync(file, 'utf8'); } catch (error) { if (error.code === 'ENOENT') return null; throw error; }
+}
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SHIPPING = '85883b1afa11375e1300130914d6f40c5388af21';
 export const OUT = path.join(root, 'blanc/android/junit/src/org/chromium/blanc/address/AddressFixtures.java');
@@ -64,7 +69,7 @@ ${rows.join('\n')}
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const next = render();
-  const current = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8') : null;
+  const current = readIfPresent(OUT);
   if (process.argv.includes('--check')) {
     if (current !== next) { console.error('Stale address fixtures; run node chromium/tools/android-address-fixtures.mjs'); process.exitCode = 1; }
   } else if (current !== next) {
