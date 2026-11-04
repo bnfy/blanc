@@ -1,6 +1,6 @@
 {
-  "ref": "v1.45.1",
-  "commit": "85883b1afa11375e1300130914d6f40c5388af21",
+  "ref": "v1.46.0",
+  "commit": "6479ed3a314e4fd6219b8de1598bacffa78b4d7c",
   "files": [
     "index.html",
     "overlay.html",

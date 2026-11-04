@@ -6,7 +6,7 @@ const { execFileSync } = require('node:child_process');
 const { generateMessages } = require('@cucumber/gherkin');
 const { IdGenerator, SourceMediaType } = require('@cucumber/messages');
 const root = path.resolve(__dirname, '../..');
-const shipping = '85883b1afa11375e1300130914d6f40c5388af21';
+const shipping = '6479ed3a314e4fd6219b8de1598bacffa78b4d7c';
 const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
 const spec = fs.readFileSync(path.join(root, 'docs/chromium-replacement/2026-10-30-desktop-replacement-spec.md'), 'utf8');
 const rows = [...spec.matchAll(/^\| ((?:F|R|X|N)\d+) \| (.+)$/gm)].map(m => {
@@ -15,7 +15,7 @@ const rows = [...spec.matchAll(/^\| ((?:F|R|X|N)\d+) \| (.+)$/gm)].map(m => {
     legacyMacState: columns[3] || 'not assessed', canonicalState: 'not-started',
     platformVerification: { macos: null, windows: null, linux: null } };
 });
-if (rows.length !== 79 || new Set(rows.map(r => r.id)).size !== 79) throw Error('Spec must have 79 unique rows');
+if (rows.length !== 80 || new Set(rows.map(r => r.id)).size !== 80) throw Error('Spec must have 80 unique rows');
 const ids = new Set(rows.map(r => r.id));
 // Explicit aliases: shipping's existing tags predate the expanded matrix.
 const aliases = { F55: { row: 'N9', reason: 'Shipping send-to-device.feature maps to new Send to device row' },
@@ -59,16 +59,16 @@ for (const file of files) {
         featureRows, mappingReasons: roots.filter(id => aliases[id]).map(id => aliases[id].reason),
         desktopApplicability: mobileOnly ? 'excluded' : 'applicable',
         exclusionReason: mobileOnly ? 'Shipping scenario explicitly targets mobile only' : null,
-        result: 'not-run', shippingTag: 'v1.45.1', shippingCommit: shipping,
+        result: 'not-run', shippingTag: 'v1.46.0', shippingCommit: shipping,
         forkCommit: null, candidate: null, platform: null });
     }
   }
   walk(doc.feature.children, doc.feature.tags);
 }
-if (scenarios.length !== 578) throw Error(`Unexpected declaration count ${scenarios.length}`);
+if (scenarios.length !== 591) throw Error(`Unexpected declaration count ${scenarios.length}`);
 const unmapped = scenarios.filter(s => !s.featureRows.length);
 const output = { schemaVersion: 1, qualification: 'scenario declaration inventory only; no fork baseline run or pass credit',
-  shippingTag: 'v1.45.1', shippingCommit: shipping, declarationCount: scenarios.length,
+  shippingTag: 'v1.46.0', shippingCommit: shipping, declarationCount: scenarios.length,
   unmappedCount: unmapped.length, mappingAliases: aliases, scenarios };
 const inventoryFile = path.join(root, 'chromium/scenarios/inventory.json');
 const serialized = JSON.stringify(output, null, 2) + '\n';
@@ -86,7 +86,7 @@ if (process.argv.includes('--sync-mapping')) {
 
 if (!fs.existsSync(path.join(root, 'chromium/tracker.json'))) fs.writeFileSync(path.join(root, 'chromium/tracker.json'), JSON.stringify({ schemaVersion: 1,
   qualification: 'initial requirement inventory; canonical/platform states await verification',
-  shippingTag: 'v1.45.1', shippingCommit: shipping, rows }, null, 2) + '\n');
+  shippingTag: 'v1.46.0', shippingCommit: shipping, rows }, null, 2) + '\n');
 console.log(JSON.stringify({ declarations: scenarios.length, mapped: scenarios.length - unmapped.length,
   desktopApplicable: scenarios.filter(s => s.desktopApplicability === 'applicable').length, executableCases: scenarios.reduce((n,s) => n + s.cases.length, 0),
   rows: rows.length, forkBaselineRun: false, unmapped: unmapped.map(s => s.id) }));

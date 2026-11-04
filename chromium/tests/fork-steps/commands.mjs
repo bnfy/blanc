@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import {tabPage} from '../adapters/core.mjs';
+import {inSettings} from '../adapters/commands.mjs';
 const overlay=w=>w.frame('overlay');
 const rows=w=>w.call('addressResultRows');
 // The Quick Switcher's own tag for a result kind, in the running language.
@@ -106,18 +107,19 @@ export default function register(step){
   if(value in LABELS){await storeLanguage(this,LABELS[value]);return;}
   await this.waitFor(()=>stripLang(this),l=>l===value,'interface language '+value,5000);
  });
+ // The Language row is on chrome://settings/languages in the sheet (S1.7);
+ // the sheet stays open so the next step reads the same row.
  step('the user chooses {string} in Settings',async function(label){
-  await this.api('openPage',['settings']);
-  await this.waitForState(s=>s.tabs.some(t=>t.url.includes('settings')));
-  this.settingsPage=await tabPage(this,(await this.snapshot()).activeTabId);
-  // The row fills once Settings has read the stored choice.
-  await this.waitFor(()=>this.settingsPage.evaluate(code=>[...(document.getElementById('uiLanguage')?.options??[])].some(o=>o.value===code),LABELS[label]),Boolean,'the '+label+' option',5000).catch(()=>{});
-  const chosen=await this.settingsPage.evaluate(code=>{const c=document.getElementById('uiLanguage');if(!c)return false;
-   c.value=code;c.dispatchEvent(new Event('change',{bubbles:true}));return c.value===code;},LABELS[label]);
-  assert(chosen,`Fork Settings has no #uiLanguage control offering ${label}`);
+  await this.api('openPage',['settings','languages']);
+  const chosen=await inSettings(this,'languages',async(code,d)=>{const c=d.find('#blancUiLanguage');
+   if(!c)return {missing:'#blancUiLanguage'};
+   for(let i=0;i<50&&![...c.options].some(o=>o.value===code);i++)await new Promise(r=>setTimeout(r,100));
+   c.value=code;c.dispatchEvent(new Event('change',{bubbles:true}));return {value:c.value===code};},LABELS[label]);
+  assert(chosen,`Settings has no Language row offering ${label}`);
  });
  step('Settings offers to relaunch to apply',async function(){
-  await this.waitFor(()=>this.settingsPage.evaluate(()=>{const b=document.getElementById('uiLanguageRelaunch');return !!b&&!b.hidden;}),Boolean,'relaunch offer',5000);
+  await this.waitFor(()=>inSettings(this,'languages',(a,d)=>{const b=d.find('#blancUiLanguageRelaunch');
+   return {value:!!b&&!b.hidden&&b.getBoundingClientRect().width>0};}),Boolean,'relaunch offer',5000);
  });
  step('after a relaunch the interface language is {string}',async function(code){await this.relaunch();await this.waitFor(()=>stripLang(this),l=>l===code,'interface language '+code,5000);});
  step('the stored interface language is {string}',async function(value){await storeLanguage(this,value);});

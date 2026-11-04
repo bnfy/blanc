@@ -135,7 +135,7 @@ Columns:
 | F38 | 1Password fill | S5 / D2 | D2 | Not assessed | Per D2 |
 | F40 | Bring Your Tabs (`/bring-tabs` ships though matrix says PLANNED) | S3 | Custom | Not assessed | `@F40-*` |
 | F41 | Spaces: up to 25, swap in place, autosave, mark/menu | S3 | Adapt | Drafted (placeholder list) | `@F41-*` |
-| F57 | Shared Spaces sync (v1.45.1 status rules) | S4 | Reuse JS | Drafted | `@F57-*` |
+| F57 | Shared Spaces sync (v1.46.0 status rules) | S4 | Reuse JS | Drafted | `@F57-*` |
 | F42 | Dark websites | S5 | Custom | Not assessed | Shipping suite |
 | F44 | Interface language: 6 languages, picker + relaunch | S1 | Custom | Integrated (partial; browser-language approximation) | `test:i18n` equivalent; pseudo-locale run |
 | F45 | Arc Spaces import | S3 | Custom | Not assessed | `@F45-*` |
@@ -149,8 +149,9 @@ Columns:
 | F53 | Split View (2 panes) | S3 | Adapt | Built (pin/unpin) in an isolated candidate | `@F53-*` |
 | F54 | Billboard clock Font & color | S5 | Custom | Integrated (partial) | Clock suite |
 | F58 | Reader Mode | S5 | Custom | Drafted | Reader suite |
-| F59 | Ctrl+Tab recent order (Linux/Windows; Mac off) | S3 | Custom | Drafted | Real-key browser-shortcuts suite |
+| F59 | Ctrl+Tab recent order (every desktop platform since v1.46.0) | S3 | Custom | Drafted | Real-key browser-shortcuts suite |
 | F60 | Link routing incl. background window keeps focus | S3 | Custom | Not assessed | `@F60-*` |
+| F61 | Mini Window (new in v1.46.0) | S3 | Custom | Not assessed | `@F61-*` |
 | R1 | Launch Sunrise (opt-in) | S5 | Custom | Built in an isolated candidate | Scenario |
 | R2 | Sync without a passphrase + recovery code | S4 | Reuse JS | Drafted | Shipping sync suites |
 | R3 | Pair iPhone (QR) | S4 | Reuse JS | Not started | Two-device check |

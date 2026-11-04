@@ -28,7 +28,7 @@
   let closedBefore = localStorage.getItem('blanc.prototype.closedBefore');
   async function applyRail(persist = false) {
     railWidth = await request('rail', [layout === 'vertical', Math.round(railWidth)]);
-    strip.style.height = layout === 'vertical' ? '100%' : '68px';
+    strip.style.height = layout === 'vertical' ? '100%' : 'var(--strip-h, 68px)';
     if (persist) {
       localStorage.setItem('blanc.prototype.tabLayout', layout);
       localStorage.setItem('blanc.prototype.railWidth', String(railWidth));
@@ -133,6 +133,14 @@
     (success ? entry.resolve : entry.reject)(success ? value : new Error(value));
   };
 
+  // Island size (#1292): shipping's island-size.js, the strip's height and
+  // the pill's zoom at each size; styles.css draws the same table.
+  const ISLAND_SIZES = { default: { strip: 68, zoom: 1.15 }, large: { strip: 76, zoom: 1.3 },
+    'extra-large': { strip: 84, zoom: 1.45 } };
+  const islandSize = () => ISLAND_SIZES[snapshot?.islandSize] || ISLAND_SIZES.default;
+  const stripH = () => islandSize().strip;
+  // A length drawn inside the zoomed pill, at this size (scaleForIslandSize).
+  const scaleForSize = px => Math.ceil(px * islandSize().zoom / ISLAND_SIZES.default.zoom);
   function paintHeader() {
     const active = snapshot?.tabs.find(tab => tab.id === snapshot.activeTabId);
     const theme = active?.private ? null : snapshot?.installedTheme;
@@ -142,6 +150,7 @@
       : theme?.frame ? theme.frame
       : /^#[0-9a-f]{6}$/i.test(active?.pageBg) ? active.pageBg : '';
     document.documentElement.style.setProperty('--page-bg', color);
+    document.documentElement.style.setProperty('--strip-h', `${stripH()}px`);
     // The settings sheet's card follows Surface style (S1.7).
     document.getElementById('settingsSheet')?.setAttribute('data-surface',
       snapshot?.surfaceStyle === 'neutral' ? 'neutral' : 'sunrise');
@@ -228,7 +237,7 @@
     const rect = anchor.getBoundingClientRect();
     menu.style.left = `${Math.max(0, Math.min(innerWidth - 240, rect.right - 240))}px`;
     menu.dataset.private = String(tab.private);
-    menu.style.top = `${Math.max(68, Math.min(rect.bottom, innerHeight - 220))}px`;
+    menu.style.top = `${Math.max(stripH(), Math.min(rect.bottom, innerHeight - 220))}px`;
     for (const [label, method] of [
       ['Reload', 'reload'], [tab.muted ? 'Unmute tab' : 'Mute tab', 'toggleMuted'],
       ['Pin tab', 'togglePinned'], ['Remove from Split View', 'removeFromSplit'], ['Close tab', 'closeTab'], ['Close Split View', 'closeSplit'],
@@ -526,7 +535,7 @@
     const width = Math.min(404, Math.max(0, innerWidth - 24));
     const center = rect ? stripRect.x + rect.x + rect.width / 2 : innerWidth / 2;
     const x = Math.max(12, Math.min(Math.round(center + width / 2) - width, innerWidth - width - 12));
-    const y = rect ? Math.ceil(Math.max(0, Math.min(stripRect.y + rect.bottom, 68))) : 68;
+    const y = rect ? Math.ceil(Math.max(0, Math.min(stripRect.y + rect.bottom, stripH()))) : stripH();
     Object.assign(overlay.style, {left: x + 'px', top: y + 'px', right: 'auto', bottom: 'auto',
       width: width + 'px', height: Math.min(580, Math.max(0, innerHeight - y)) + 'px'});
     emit('onShieldAnchor', {x: Math.max(32, Math.min(width - 32, center - x)), connected: !!rect});
@@ -735,7 +744,7 @@
   // The Island's resting height: the strip, or, while a prompt is pending,
   // the window, so the prompt can draw over the page.
   function restHeight() {
-    return request('height', prompts.size ? [10000, false] : [68]);
+    return request('height', prompts.size ? [10000, false] : [stripH()]);
   }
   async function syncPermission() {
     permissionFrame.hidden = !prompts.size;
@@ -787,7 +796,7 @@
     return [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)];
   };
   function placeSettingsSheet() {
-    const top = layout === 'vertical' ? 0 : 68, left = layout === 'vertical' ? railWidth : 0;
+    const top = layout === 'vertical' ? 0 : stripH(), left = layout === 'vertical' ? railWidth : 0;
     Object.assign(settingsSheet.style, { top: `${top}px`, left: `${left}px`,
       width: `calc(100% - ${left}px)`, height: `calc(100% - ${top}px)` });
   }
@@ -845,7 +854,7 @@
   }
   // The page's place: below the strip, or beside the vertical rail.
   function placeSheet() {
-    const top = layout === 'vertical' ? 0 : 68, left = layout === 'vertical' ? railWidth : 0;
+    const top = layout === 'vertical' ? 0 : stripH(), left = layout === 'vertical' ? railWidth : 0;
     Object.assign(sheet.frame.style, { top: `${top}px`, left: `${left}px`,
       width: `calc(100% - ${left}px)`, height: `calc(100% - ${top}px)` });
   }
@@ -1547,7 +1556,7 @@
     }
     const t = strip.contentWindow?.blancI18n?.t;
     if (!t || !pillRect) { introTip = false; return; }
-    request('height', [68 + 64, false]).catch(() => {});
+    request('height', [stripH() + 64, false]).catch(() => {});
     tooltip.textContent = t('island.autoHide.intro', { shortcut: /Mac/.test(navigator.platform) ? '⌘L' : 'Ctrl+L' });
     tooltip.classList.add('intro');
     tooltip.dataset.private = 'false';
@@ -1604,7 +1613,7 @@
       return;
     }
     const bounds = AutoHide.floatViewBounds(pillRect, { windowWidth: innerWidth, windowHeight: state.windowHeight || innerHeight,
-      side: AutoHide.FLOAT_SIDE_PX, bottom: AutoHide.FLOAT_BOTTOM_PX });
+      side: scaleForSize(AutoHide.FLOAT_SIDE_PX), bottom: scaleForSize(AutoHide.FLOAT_BOTTOM_PX) });
     if (bounds) {
       const frame = { role: 'pill', x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height, stageWidth: innerWidth };
       const key = JSON.stringify(frame);

@@ -1,0 +1,72 @@
+diff --git a/chrome/browser/extensions/api/settings_private/prefs_util.cc b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+index 006bf19..258435c 100644
+--- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
++++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+@@ -225,6 +225,7 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
+ 
+   // Blanc's own controls (S1.7): the Island, Bangs and Blocking switches.
+   // Their readers normalize what they read, as for Blanc's own pages.
++  (*s_allowlist)["blanc.island.size"] = settings_api::PrefType::kString;
+   (*s_allowlist)["blanc.island.hover_open"] = settings_api::PrefType::kBoolean;
+   (*s_allowlist)["blanc.island.auto_hide"] = settings_api::PrefType::kBoolean;
+   (*s_allowlist)["blanc.island.auto_hide_style"] =
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+index f0f7b0d..f0d3f29 100644
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -2081,6 +2081,8 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
+ #if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
+   // The Island's own settings (F1), with shipping's defaults: open it on
+   // hover, auto-hide it, and how a hidden Island comes back.
++  // Shipping's islandSize (#1292): default, large or extra-large.
++  registry->RegisterStringPref("blanc.island.size", "default");
+   registry->RegisterBooleanPref("blanc.island.hover_open", false);
+   registry->RegisterBooleanPref("blanc.island.auto_hide", false);
+   registry->RegisterStringPref("blanc.island.auto_hide_style", "float");
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+index b7475e4..34cbef5 100644
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+@@ -81,6 +81,17 @@ export function getHtml(this: SettingsAppearancePageElement) {
+       </select>
+     </div>
+     <!-- Blanc's Island (S1.7). -->
++    <div id="blancIslandSizeRow" class="cr-row">
++      <div class="flex cr-padded-text" aria-hidden="true">
++        <div>$i18n{blancIslandSize}</div>
++        <div class="secondary">$i18n{blancIslandSizeHint}</div>
++      </div>
++      <settings-dropdown-menu id="blancIslandSize" no-label-float
++          pref-key="blanc.island.size"
++          label="$i18n{blancIslandSize}"
++          .menuOptions="${this.blancIslandSizeOptions_}">
++      </settings-dropdown-menu>
++    </div>
+     <settings-toggle-button id="blancIslandHoverOpen" class="hr"
+         pref-key="blanc.island.hover_open"
+         label="$i18n{blancIslandHoverOpen}"
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+index 946efb9..98c4518 100644
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+@@ -149,6 +149,7 @@ export class SettingsAppearancePageElement extends
+       showHomeButtonPref_: {type: Object},
+       blancIslandAutoHidePref_: {type: Object},
+       blancIslandAutoHideStyleOptions_: {type: Array},
++      blancIslandSizeOptions_: {type: Array},
+       blancSurfaceStyleOptions_: {type: Array},
+       sidePanelAlignmentOverridesPref_: {type: Object},
+       sidePanelIsRightAlignedPref_: {type: Object},
+@@ -223,6 +224,12 @@ export class SettingsAppearancePageElement extends
+         {value: 'push',
+          name: loadTimeData.getString('blancIslandAutoHideStylePush')},
+       ];
++  protected accessor blancIslandSizeOptions_: DropdownMenuOptionList = [
++    {value: 'default', name: loadTimeData.getString('blancIslandSizeDefault')},
++    {value: 'large', name: loadTimeData.getString('blancIslandSizeLarge')},
++    {value: 'extra-large',
++     name: loadTimeData.getString('blancIslandSizeExtraLarge')},
++  ];
+   protected accessor blancSurfaceStyleOptions_: DropdownMenuOptionList = [
+     {value: 'sunrise', name: loadTimeData.getString('blancSurfaceStyleSunrise')},
+     {value: 'neutral', name: loadTimeData.getString('blancSurfaceStyleNeutral')},

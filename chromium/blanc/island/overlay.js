@@ -4033,7 +4033,17 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     if (mode === 'panel' || mode === 'palette') renderList();
   }
 
+  // Island size (#1292): the panel grows out of, and back into, the resting
+  // pill's corner (--island-resting-radius), which differs by size.
+  const applyIslandSize = (size) => {
+    const next = size || 'default';
+    if (document.documentElement.dataset.islandSize !== next) document.documentElement.dataset.islandSize = next;
+  };
+
   window.browserAPI.onTabsUpdated((payload) => {
+    applyIslandSize(payload.islandSize);
+    // Mini Window (#1138): no Spaces button in a mini window (CSS).
+    document.documentElement.toggleAttribute('data-mini-window', payload.miniWindow === true);
     const activeTabChanged = payload.activeTabId !== state.activeTabId;
     if (JSON.stringify(payload.selectedTabIds ?? []) !== JSON.stringify(state.selectedTabIds ?? [])) {
       const count = payload.selectedTabIds?.length ?? 0;
@@ -4095,6 +4105,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   });
   window.browserAPI.getAllTabs().then((payload) => {
     state = payload;
+    applyIslandSize(payload.islandSize);
+    document.documentElement.toggleAttribute('data-mini-window', payload.miniWindow === true);
     if (mode === 'glance') renderGlancePicker();
   });
 
