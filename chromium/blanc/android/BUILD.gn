@@ -8,6 +8,7 @@ import("//build/config/android/rules.gni")
 # plain Java with no views, so they test without a device.
 android_library("island_java") {
   sources = [
+    "java/src/org/chromium/blanc/address/AddressInput.java",
     "java/src/org/chromium/blanc/island/IslandMenu.java",
     "java/src/org/chromium/blanc/island/IslandPosition.java",
     "java/src/org/chromium/blanc/island/IslandStyle.java",
@@ -45,7 +46,10 @@ android_resources("island_view_resources") {
 
 android_library("island_view_java") {
   resources_package = "org.chromium.blanc.island"
-  sources = [ "java/src/org/chromium/blanc/island/IslandView.java" ]
+  sources = [
+    "java/src/org/chromium/blanc/address/AddressSheet.java",
+    "java/src/org/chromium/blanc/island/IslandView.java",
+  ]
   deps = [
     ":island_java",
     ":island_view_resources",

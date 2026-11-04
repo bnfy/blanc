@@ -6,6 +6,7 @@
     <string name="blanc_ios_island_search_or_switch">Suchen oder Tabs wechseln, %1$s</string>
     <string name="blanc_ios_island_show_all_tabs">Alle Tabs anzeigen</string>
     <string name="blanc_ios_island_stop">Laden stoppen</string>
+    <string name="blanc_ios_palette_placeholder">Suchen, Adresse oder /Befehl eingeben</string>
     <string name="blanc_ios_tabs_start_page">Startseite</string>
     <string name="blanc_pages_nav_bookmarks">Favoriten</string>
     <string name="blanc_pages_nav_history">Verlauf</string>

@@ -6,6 +6,7 @@
     <string name="blanc_ios_island_search_or_switch">Cerca o cambia scheda, %1$s</string>
     <string name="blanc_ios_island_show_all_tabs">Mostra tutte le schede</string>
     <string name="blanc_ios_island_stop">Interrompi il caricamento</string>
+    <string name="blanc_ios_palette_placeholder">Cerca, inserisci un indirizzo o un /comando</string>
     <string name="blanc_ios_tabs_start_page">Pagina iniziale</string>
     <string name="blanc_pages_nav_bookmarks">Preferiti</string>
     <string name="blanc_pages_nav_history">Cronologia</string>

@@ -6,6 +6,7 @@
     <string name="blanc_ios_island_search_or_switch">Rechercher ou changer d’onglet, %1$s</string>
     <string name="blanc_ios_island_show_all_tabs">Afficher tous les onglets</string>
     <string name="blanc_ios_island_stop">Arrêter le chargement</string>
+    <string name="blanc_ios_palette_placeholder">Rechercher, saisir une adresse ou une /commande</string>
     <string name="blanc_ios_tabs_start_page">Page d’accueil</string>
     <string name="blanc_pages_nav_bookmarks">Favoris</string>
     <string name="blanc_pages_nav_history">Historique</string>

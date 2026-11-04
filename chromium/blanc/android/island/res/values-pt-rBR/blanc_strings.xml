@@ -6,6 +6,7 @@
     <string name="blanc_ios_island_search_or_switch">Pesquisar ou trocar de aba, %1$s</string>
     <string name="blanc_ios_island_show_all_tabs">Mostrar todas as abas</string>
     <string name="blanc_ios_island_stop">Parar de carregar</string>
+    <string name="blanc_ios_palette_placeholder">Pesquise, digite um endereço ou um /comando</string>
     <string name="blanc_ios_tabs_start_page">Página inicial</string>
     <string name="blanc_pages_nav_bookmarks">Favoritos</string>
     <string name="blanc_pages_nav_history">Histórico</string>
