@@ -56,6 +56,9 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler {
     // Shipping's Blocking status line: the switch and Blanc Blocker's health.
     state.Set("blockingEnabled", blanc::BlockingEnabled(profile_));
     state.Set("blockingHealth", blanc::BlockerHealth());
+    // Shipping's sheet look follows Surface style (S1.7).
+    state.Set("surfaceStyle",
+              prefs->GetString("blanc.appearance.surface_style") == "neutral" ? "neutral" : "sunrise");
     state.Set("uiLanguage", g_browser_process->local_state()->GetString(std::string(blanc::ui_language::kPref)));
     state.Set("uiLanguages", std::move(languages));
     // This launch's pinned language, or none when it follows the browser's.
@@ -171,6 +174,13 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler {
     }
     Resolve(args, base::DictValue().Set("result", "set"));
   }
+  // Instrument Sans, shipping's UI face, for chrome://settings: its bytes
+  // come from Blanc's bundled pages, loaded with the FontFace API.
+  void HandleFont(const base::ListValue& args) {
+    if (!Begin(args, 0)) return;
+    const auto bytes = blanc::island_resources::Find("pages/instrument-sans-latin-wdth-normal.woff2");
+    ResolveJavascriptCallback(args[0], bytes ? base::Value(base::Base64Encode(*bytes)) : base::Value());
+  }
   void HandleRelaunch(const base::ListValue& args) {
     if (!Begin(args, 0)) return;
     ResolveJavascriptCallback(args[0], base::Value(true));
@@ -219,12 +229,13 @@ void ChromiumSettingsHandler::RegisterMessages() {
   bind("blancSettingsRemoveException", &ChromiumSettingsHandler::HandleRemoveException);
   bind("blancSettingsSetUiLanguage", &ChromiumSettingsHandler::HandleSetUiLanguage);
   bind("blancSettingsRelaunch", &ChromiumSettingsHandler::HandleRelaunch);
+  bind("blancSettingsFont", &ChromiumSettingsHandler::HandleFont);
 }
 
 void ChromiumSettingsHandler::OnJavascriptAllowed() {
   prefs_.Init(profile_->GetPrefs());
   for (const char* pref : {blanc::browser_api::bangs::kCustomPref, "blanc.blocking.enabled",
-                           "blanc.blocking.exceptions"})
+                           "blanc.blocking.exceptions", "blanc.appearance.surface_style"})
     prefs_.Add(pref, base::BindRepeating(&ChromiumSettingsHandler::Changed, base::Unretained(this)));
   local_.Init(g_browser_process->local_state());
   local_.Add(std::string(blanc::ui_language::kPref),

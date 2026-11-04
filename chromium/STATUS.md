@@ -550,6 +550,26 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   Settings-and-theming, island-and-commands and internal-pages match their
   runs on macos-8d8381846146471d. Every S1.7 key is now built
   (`tools/settings-keys.mjs` lists none to build).
+- **S1.7 restyle, candidate macos-5faa4ac34c4be46a (2026-11-04):** owner
+  decisions: chrome://settings wears shipping's sheet look under Surface
+  style, and Chromium rows that don't apply are hidden. Patch 0025 (five
+  newly pinned files, 115 in all) maps Sunrise or Neutral, light or dark,
+  onto Chromium's own color tokens from `blanc_settings_proxy.ts` (cream
+  canvas, white hairline cards, gold switches; ink and gray under Neutral),
+  sets Instrument Sans at width 98 and +0.01em (its bytes come from the
+  handler and load with FontFace, since chrome://settings can't fetch
+  Blanc's fonts), and insets Chromium's row lines 20px in shipping's border
+  colour (owner: inset hairlines). It hides, through Chromium's own
+  appearance visibility and flags where they exist (`showPrivacyGuide`,
+  `enableLiveTranslate`) and `hidden` elsewhere: Customize your toolbar,
+  Show home button, Bookmarks bar, the tab strip, tab search, tab group and
+  side panel rows, hover cards, split view drag-and-drop, Performance's two
+  tab-appearance rows, Related Google services, the Google Translate
+  section, Live Translate, and the Privacy Guide card and row. The sheet's
+  card follows Surface style too. A probe listed every page's rows with
+  those gone; settings-and-theming, island-and-commands and internal-pages
+  match their last runs. Chromium's own name still shows in a few strings
+  ("About Chromium", Default browser); that is branding, not this slice.
 - **Open question, file picker hang (2026-11-04):** the owner's live
   instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
   wallpaper. The hang report shows the UI thread inside AppKit's
@@ -740,11 +760,9 @@ list/run; overlay drag flag; microphone capture seed.
 1. S1.7 (F14): every S1.7 key is built and checked against v1.45.1's
    DEFAULTS (`tools/settings-keys.mjs`: none left to build), Blanc's sections
    sit inside chrome://settings and blocking-settings.html is retired.
-   Left: the restyle (Blanc's look for chrome://settings and its sheet, and
-   hiding Chromium rows that don't apply: toolbar, bookmarks bar, tab strip,
-   side panel, Google Translate, the Privacy Guide's Chromium wording), and
-   confirming Call audio in a real call on a machine whose WebRTC can
-   connect. Then merge PR #1356 into the fork branch.
+   and the restyle is in. Left: confirming Call audio in a real call on a
+   machine whose WebRTC can connect. Then merge PR #1356 into the fork
+   branch.
 2. F0.3 identity spike in `blanc-test` once signing is approved; then S1 work in slice order, moving each
    group's handlers to the typed interface as its rows are worked. Re-run
    affected cases with --only and merge-baseline.mjs.
@@ -792,5 +810,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-960785b1fcb658e4; Windows: none; Linux: none.
+Candidate identities: macOS: macos-5faa4ac34c4be46a; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

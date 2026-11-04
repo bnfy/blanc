@@ -2390,6 +2390,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       // Site icons instead of dots, and search priority results (S1.7).
       .Set("islandTabIcons", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kIslandTabIconsPref))
       .Set("searchPriorityResults", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kSearchPriorityResultsPref))
+      .Set("surfaceStyle", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetString(kSurfaceStylePref) == "neutral" ? "neutral" : "sunrise")
       .Set("windowActive", browser->GetWindow() && browser->GetWindow()->IsActive())
       // Auto-hide (F1): the strip draws its covered state and the how-to tip.
       .Set("islandAutoHide", base::DictValue()
@@ -3354,6 +3355,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     restyle(web_ui()->GetWebContents());
     auto* model = owner->browser->GetTabStripModel();
     for (int i = 0; i < model->count(); ++i) restyle(model->GetWebContentsAt(i));
+    // The settings sheet's card follows it too.
+    OnIslandSettingChanged();
   }
   void OnIslandAutoHideStyleChanged() {
     if (auto* owner = GetOwner(web_ui()->GetWebContents())) ApplyAutoHideStyle(owner);

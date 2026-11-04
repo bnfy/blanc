@@ -124,10 +124,16 @@ iframe { position: absolute; inset: 0; width: 100%; border: 0; }
 }
 #settingsSheetClose:hover { background: rgba(18, 16, 11, 0.12); color: rgba(18, 16, 11, 0.9); }
 #settingsSheetBody { flex: 1 1 auto; min-height: 0; }
+/* The card wears shipping's sheet canvas under Surface style, as the
+   restyled chrome://settings inside it does (S1.7). */
+#settingsSheet[data-surface="sunrise"] .settings-sheet-card { background: #f8f2e8; border-color: #e1d7c9; }
+#settingsSheet[data-surface="neutral"] .settings-sheet-card { background: #fbfaf6; border-color: #e5e2da; }
 @media (max-width: 700px), (max-height: 560px) { #settingsSheet { padding: 10px; } }
 @media (prefers-color-scheme: dark) {
   #settingsSheet { background: rgba(0, 0, 0, 0.35); }
   .settings-sheet-card { background: #202124; border-color: rgba(255, 255, 255, 0.1); }
   #settingsSheetClose { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.7); }
   #settingsSheetClose:hover { background: rgba(255, 255, 255, 0.16); color: #fff; }
+  #settingsSheet[data-surface="sunrise"] .settings-sheet-card { background: #17130f; border-color: #4a3e31; }
+  #settingsSheet[data-surface="neutral"] .settings-sheet-card { background: #1b1b1b; border-color: #3a3a38; }
 }

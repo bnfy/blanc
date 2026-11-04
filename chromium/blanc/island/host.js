@@ -142,6 +142,9 @@
       : theme?.frame ? theme.frame
       : /^#[0-9a-f]{6}$/i.test(active?.pageBg) ? active.pageBg : '';
     document.documentElement.style.setProperty('--page-bg', color);
+    // The settings sheet's card follows Surface style (S1.7).
+    document.getElementById('settingsSheet')?.setAttribute('data-surface',
+      snapshot?.surfaceStyle === 'neutral' ? 'neutral' : 'sunrise');
   }
 
   let splitHeaderKey = '';
