@@ -26,11 +26,16 @@ const FORMS=8,ORIGIN=4,PROPAGATES=2048;
 // Targets are built from fixed-shape parameters, never taken as a URL. The
 // target reports its origin, its storage access and whether a form posts.
 const server=http.createServer((q,r)=>{
- const url=new URL(q.url,'http://x'),v=url.searchParams.get('v')??'',tag=url.searchParams.get('tag')??'';
- const variant=VARIANTS.find(x=>x.name===v);
+ const url=new URL(q.url,'http://x');
+ // Only the fixed names are echoed into a page: a variant, and a tag of
+ // lowercase letters (anything else is refused).
+ const variant=VARIANTS.find(x=>x.name===url.searchParams.get('v'));
+ const tag=/^[a-z]{1,16}$/.test(url.searchParams.get('tag')??'')?url.searchParams.get('tag'):null;
  r.writeHead(200,{'content-type':'text/html'});
+ if(url.pathname!=='/initial'&&url.pathname!=='/sent'&&(!variant||!tag)){r.end('<title>refused</title>');return;}
+ const v=variant?.name;
  if(url.pathname==='/source'&&variant){
-  const target=`/target?v=${v}&tag=${encodeURIComponent(tag)}`;
+  const target=`/target?v=${v}&tag=${tag}`;
   const link=`<a id="l" target="_blank" href="${base}${target}" style="display:block;width:300px;height:120px">open</a>`;
   r.end(variant.sandbox
    ?`<title>source</title><iframe id="f" sandbox="${variant.sandbox}" style="position:absolute;left:0;top:0;width:320px;height:140px;border:0" srcdoc='${link}'></iframe>`

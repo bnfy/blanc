@@ -14,8 +14,8 @@ import {installDriver,nativeCall} from './lib/test-driver.mjs';
 const [configPath,outFile]=process.argv.slice(2);
 if(!configPath||!outFile)throw Error('Usage: startup-gate-smoke.mjs runtime-config.json result.json');
 const config=JSON.parse(fs.readFileSync(configPath));
-const requests=[];
-const server=http.createServer((q,r)=>{requests.push(q.url);r.writeHead(200,{'content-type':'text/html'});r.end('<title>reached</title>');});
+let requests=0;
+const server=http.createServer((q,r)=>{requests++;r.writeHead(200,{'content-type':'text/html'});r.end('<title>reached</title>');});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const base=`http://127.0.0.1:${server.address().port}`;
 // The fixture's start waits for a ready blocker; this one stops at the Island.
@@ -48,10 +48,10 @@ try{
  await installDriver(fixture.host);
  await nativeCall(fixture.host,'createTab',[base+'/later']);
  await pause(3000);
- assert.deepEqual(requests,[],'no request reached the network');
- result.checks.requestsReached=requests.length;
+ assert.equal(requests,0,'no request reached the network');
+ result.checks.requestsReached=requests;
  result.status='passed';
-}catch(e){result.status='failed';result.error=String(e.stack||e);result.requests=requests;}
+}catch(e){result.status='failed';result.error=String(e.stack||e);result.requestsReached=requests;}
 finally{
  // The recovery dialog ("Blocking is unavailable") stays up; quit regardless.
  result.browserExit=await fixture.close().catch(e=>({error:e.message}));server.close();
