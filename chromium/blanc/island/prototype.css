@@ -18,7 +18,7 @@
 
 /* Native Chromium extension views occupy this measured slot in the pill. */
 #nativeExtensions { display: inline-block; flex: 0 0 auto; width: calc(26px / var(--pill-zoom)); height: calc(26px / var(--pill-zoom)); }
-#islandPill { --pill-zoom: 1.15; gap: 6px; }
+#islandPill { gap: 6px; }
 #pillDomain { min-width: 24px; flex-shrink: 1; }
 /* Native controls cannot inherit a renderer transform. Keep their shared frame stable. */
 #islandPill.proximity-active { transform: none !important; }

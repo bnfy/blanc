@@ -567,9 +567,9 @@
    "row": "F1",
    "slice": "S1.7",
    "pref": "blanc.island.size",
-   "scope": "local",
-   "status": "to-build",
-   "note": "New in v1.46.0 (#1292): Default, Large or Extra large; device-local, as in shipping. Built with the move to the current release"
+   "scope": "profile",
+   "status": "built",
+   "note": "New in v1.46.0 (#1292): Default, Large or Extra large. Device-local as in shipping (an unsynced profile pref, like the other Island settings, so each window's Island observes it); built in S1.8 by patch 0026"
   },
   {
    "key": "miniWindowShortcut",

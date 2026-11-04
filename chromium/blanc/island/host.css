@@ -1,6 +1,6 @@
 html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
 iframe { position: absolute; inset: 0; width: 100%; border: 0; }
-#strip { height: 68px; }
+#strip { height: var(--strip-h, 68px); }
 #overlay { height: 100%; }
 /* The permission prompt: placed bottom-centre over the page by host.js. */
 #permission { inset: auto; background: transparent; }
@@ -19,11 +19,11 @@ iframe { position: absolute; inset: 0; width: 100%; border: 0; }
   font: 11px system-ui;
 }
 
-/* Only the 68px header is opaque. Expanded panels still float over the page. */
+/* Only the strip (68px at the default Island size) is opaque. Expanded panels still float over the page. */
 :root { --header-fallback: #ffffff; }
 @media (prefers-color-scheme: dark) { :root { --header-fallback: #0e0e0e; } }
 #headerBackdrop {
-  position: absolute; inset: 0 0 auto; height: 68px;
+  position: absolute; inset: 0 0 auto; height: var(--strip-h, 68px);
   background: var(--page-bg, var(--header-fallback));
   transition: background-color 80ms linear;
   pointer-events: none;
@@ -36,8 +36,8 @@ iframe { position: absolute; inset: 0; width: 100%; border: 0; }
 /* Auto-hide's how-to tip (shipping's .island-tip.intro): it wraps. */
 #prototypeTooltip.intro { max-width:300px; white-space:normal; }
 
-/* Find is a small capsule below the 68px header, not a page-covering scrim. */
-#overlay[data-mode="find"] { top: 68px; height: 160px; }
+/* Find is a small capsule below the strip, not a page-covering scrim. */
+#overlay[data-mode="find"] { top: var(--strip-h, 68px); height: 160px; }
 
 /* Shipping 1.42.1 card/corner-tab contract. One outline, no header bars. */
 @font-face { font-family:"Instrument Sans"; src:url("pages/instrument-sans-latin-wdth-normal.woff2") format("woff2"); font-weight:400 700; }

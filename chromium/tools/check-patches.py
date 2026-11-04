@@ -54,7 +54,7 @@ with tempfile.TemporaryDirectory(prefix='blanc-patch-check-') as directory:
                   root / 'patches/0022-blanc-settings-lists.patch',
                   root / 'patches/0023-blanc-settings-remaining.patch',
                   root / 'patches/0024-blanc-call-audio.patch',
-                  root / 'patches/0025-blanc-settings-look.patch']:
+                  root / 'patches/0025-blanc-settings-look.patch', root / 'patches/0026-blanc-island-size.patch']:
         subprocess.run(['git', 'apply', '--check', str(patch)], cwd=work, check=True)
         subprocess.run(['git', 'apply', str(patch)], cwd=work, check=True)
     for name, digest in source['upstreamFiles'].items():

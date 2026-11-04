@@ -590,6 +590,28 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   28 / 6 fail / 11 undefined against sh1's 27 / 7 / 11, the one change
   being *The Island can show site icons instead of dots* now passing
   (Tab icons, built in S1.7). No regressions.
+- **Island size built (S1.8, F3-35, 2026-11-04):** shipping's v1.46.0
+  Island size (#1292) is Settings → Appearance → *Island size* (Default,
+  Large, Extra large), an unsynced profile pref `blanc.island.size`
+  (patch 0026: registration, settings_private allowlist and the dropdown;
+  copy from v1.46.0 through `tools/settings-strings.mjs`). Each window's
+  Owner keeps its `strip_height` (68, 76 or 84, shipping's
+  `stripHeightFor`) and every place that assumed a 68px strip now reads
+  it: the resting height, hit testing, the caption band, the split header
+  band (strip + 30), the extension slot and auto-hide's pinned test. A
+  change moves the page at once and leaves an open surface open. The
+  snapshot carries `islandSize`, so the regenerated strip and overlay
+  scale themselves; host.js and host.css take `--strip-h` for the strip
+  frame, its backdrop, Find, the sheets and menus, and scale the floating
+  pill's shadow room like `scaleForIslandSize`. prototype.css no longer
+  pins `--pill-zoom`. F3-35 passes on macos-06320784798c07e1; the
+  settings-and-theming, island-and-commands, internal-pages,
+  tabs-and-groups and glance reruns (`evidence/foundation/s18s-*`,
+  `s18t-*`) match their earlier results apart from F3-35. The probe that
+  found the strip frame still 68px tall (the shipping step measures inside
+  the strip document, so it could not) is the `island-<size>` scene in
+  `tests/window-snapshot.mjs`. `settings-keys.json` has nothing left to
+  build.
 - **Open question, file picker hang (2026-11-04):** the owner's live
   instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
   wallpaper. The hang report shows the UI thread inside AppKit's
@@ -830,5 +852,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-e225d28ca11f8f10; Windows: none; Linux: none.
+Candidate identities: macOS: macos-06320784798c07e1; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

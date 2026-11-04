@@ -14,7 +14,7 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 52> kStrings_en = {{
+inline constexpr std::array<String, 57> kStrings_en = {{
     {"blancIslandHoverOpen", u"Open the Island on hover"},
     {"blancIslandHoverOpenHint", u"Rest the pointer on the Island’s address to open it without clicking."},
     {"blancIslandAutoHide", u"Auto-hide the Island"},
@@ -23,6 +23,11 @@ inline constexpr std::array<String, 52> kStrings_en = {{
     {"blancIslandAutoHideStyleHint", u"Float it over the page, or move the page down to make room."},
     {"blancIslandAutoHideStyleFloat", u"Float over the page"},
     {"blancIslandAutoHideStylePush", u"Push the page down"},
+    {"blancIslandSize", u"Island size"},
+    {"blancIslandSizeHint", u"Make the Island and its buttons bigger. The page moves down to make room."},
+    {"blancIslandSizeDefault", u"Default"},
+    {"blancIslandSizeLarge", u"Large"},
+    {"blancIslandSizeExtraLarge", u"Extra large"},
     {"blancIslandSiteColors", u"Match site colors"},
     {"blancIslandSiteColorsHint", u"Tint the Island bar with the color of the page you’re on. Off keeps it on your theme’s background."},
     {"blancIslandTabIcons", u"Show site icons on the Island"},
@@ -68,7 +73,7 @@ inline constexpr std::array<String, 52> kStrings_en = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Relaunch to apply"},
 }};
-inline constexpr std::array<String, 52> kStrings_de = {{
+inline constexpr std::array<String, 57> kStrings_de = {{
     {"blancIslandHoverOpen", u"Island beim Darüberfahren öffnen"},
     {"blancIslandHoverOpenHint", u"Lass den Zeiger auf der Adresse in der Island ruhen, um sie ohne Klick zu öffnen."},
     {"blancIslandAutoHide", u"Island automatisch ausblenden"},
@@ -77,6 +82,11 @@ inline constexpr std::array<String, 52> kStrings_de = {{
     {"blancIslandAutoHideStyleHint", u"Lass sie über der Seite schweben oder schiebe die Seite nach unten, um Platz zu machen."},
     {"blancIslandAutoHideStyleFloat", u"Über der Seite schweben"},
     {"blancIslandAutoHideStylePush", u"Seite nach unten schieben"},
+    {"blancIslandSize", u"Größe der Island"},
+    {"blancIslandSizeHint", u"Macht die Island und ihre Schaltflächen größer. Die Seite rückt nach unten, um Platz zu machen."},
+    {"blancIslandSizeDefault", u"Standard"},
+    {"blancIslandSizeLarge", u"Groß"},
+    {"blancIslandSizeExtraLarge", u"Sehr groß"},
     {"blancIslandSiteColors", u"Website-Farben übernehmen"},
     {"blancIslandSiteColorsHint", u"Färbt die Island-Leiste in der Farbe der aktuellen Seite. Aus behält den Hintergrund deines Designs."},
     {"blancIslandTabIcons", u"Website-Symbole in der Island zeigen"},
@@ -122,7 +132,7 @@ inline constexpr std::array<String, 52> kStrings_de = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Zum Übernehmen neu starten"},
 }};
-inline constexpr std::array<String, 52> kStrings_es = {{
+inline constexpr std::array<String, 57> kStrings_es = {{
     {"blancIslandHoverOpen", u"Abrir la Island al pasar el cursor"},
     {"blancIslandHoverOpenHint", u"Deja el puntero sobre la dirección de la Island para abrirla sin hacer clic."},
     {"blancIslandAutoHide", u"Ocultar la Island automáticamente"},
@@ -131,6 +141,11 @@ inline constexpr std::array<String, 52> kStrings_es = {{
     {"blancIslandAutoHideStyleHint", u"Haz que flote sobre la página o mueve la página hacia abajo para dejarle sitio."},
     {"blancIslandAutoHideStyleFloat", u"Flotar sobre la página"},
     {"blancIslandAutoHideStylePush", u"Bajar la página"},
+    {"blancIslandSize", u"Tamaño de la Island"},
+    {"blancIslandSizeHint", u"Agranda la Island y sus botones. La página baja para dejar sitio."},
+    {"blancIslandSizeDefault", u"Predeterminado"},
+    {"blancIslandSizeLarge", u"Grande"},
+    {"blancIslandSizeExtraLarge", u"Muy grande"},
     {"blancIslandSiteColors", u"Usar los colores del sitio"},
     {"blancIslandSiteColorsHint", u"Tiñe la barra de la Island con el color de la página en la que estás. Si está desactivado, mantiene el fondo de tu tema."},
     {"blancIslandTabIcons", u"Mostrar iconos de sitios en la Island"},
@@ -176,7 +191,7 @@ inline constexpr std::array<String, 52> kStrings_es = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
 }};
-inline constexpr std::array<String, 52> kStrings_fr = {{
+inline constexpr std::array<String, 57> kStrings_fr = {{
     {"blancIslandHoverOpen", u"Ouvrir l’Island au survol"},
     {"blancIslandHoverOpenHint", u"Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer."},
     {"blancIslandAutoHide", u"Masquer automatiquement l’Island"},
@@ -185,6 +200,11 @@ inline constexpr std::array<String, 52> kStrings_fr = {{
     {"blancIslandAutoHideStyleHint", u"Faites-la flotter au-dessus de la page, ou décalez la page vers le bas pour lui faire de la place."},
     {"blancIslandAutoHideStyleFloat", u"Flotter au-dessus de la page"},
     {"blancIslandAutoHideStylePush", u"Décaler la page vers le bas"},
+    {"blancIslandSize", u"Taille de l’Island"},
+    {"blancIslandSizeHint", u"Agrandit l’Island et ses boutons. La page descend pour lui faire de la place."},
+    {"blancIslandSizeDefault", u"Par défaut"},
+    {"blancIslandSizeLarge", u"Grande"},
+    {"blancIslandSizeExtraLarge", u"Très grande"},
     {"blancIslandSiteColors", u"Reprendre les couleurs du site"},
     {"blancIslandSiteColorsHint", u"Teinte la barre de l’Island avec la couleur de la page affichée. Désactivé, elle garde le fond de votre thème."},
     {"blancIslandTabIcons", u"Afficher les icônes des sites dans l’Island"},
@@ -230,7 +250,7 @@ inline constexpr std::array<String, 52> kStrings_fr = {{
     {"blancLanguageSystem", u"Système ({language})"},
     {"blancLanguageRelaunch", u"Redémarrer pour appliquer"},
 }};
-inline constexpr std::array<String, 52> kStrings_it = {{
+inline constexpr std::array<String, 57> kStrings_it = {{
     {"blancIslandHoverOpen", u"Apri l’Island al passaggio del puntatore"},
     {"blancIslandHoverOpenHint", u"Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic."},
     {"blancIslandAutoHide", u"Nascondi automaticamente l’Island"},
@@ -239,6 +259,11 @@ inline constexpr std::array<String, 52> kStrings_it = {{
     {"blancIslandAutoHideStyleHint", u"Falla fluttuare sopra la pagina o sposta la pagina in basso per farle spazio."},
     {"blancIslandAutoHideStyleFloat", u"Fluttua sopra la pagina"},
     {"blancIslandAutoHideStylePush", u"Sposta la pagina in basso"},
+    {"blancIslandSize", u"Dimensione dell’Island"},
+    {"blancIslandSizeHint", u"Ingrandisce l’Island e i suoi pulsanti. La pagina scende per farle spazio."},
+    {"blancIslandSizeDefault", u"Predefinita"},
+    {"blancIslandSizeLarge", u"Grande"},
+    {"blancIslandSizeExtraLarge", u"Molto grande"},
     {"blancIslandSiteColors", u"Usa i colori del sito"},
     {"blancIslandSiteColorsHint", u"Colora la barra dell’Island con il colore della pagina in cui ti trovi. Se è disattivato, mantiene lo sfondo del tuo tema."},
     {"blancIslandTabIcons", u"Mostra le icone dei siti nell’Island"},
@@ -284,7 +309,7 @@ inline constexpr std::array<String, 52> kStrings_it = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Riavvia per applicare"},
 }};
-inline constexpr std::array<String, 52> kStrings_pt_BR = {{
+inline constexpr std::array<String, 57> kStrings_pt_BR = {{
     {"blancIslandHoverOpen", u"Abrir a Island ao passar o cursor"},
     {"blancIslandHoverOpenHint", u"Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar."},
     {"blancIslandAutoHide", u"Ocultar a Island automaticamente"},
@@ -293,6 +318,11 @@ inline constexpr std::array<String, 52> kStrings_pt_BR = {{
     {"blancIslandAutoHideStyleHint", u"Faça-a flutuar sobre a página ou mova a página para baixo para abrir espaço."},
     {"blancIslandAutoHideStyleFloat", u"Flutuar sobre a página"},
     {"blancIslandAutoHideStylePush", u"Empurrar a página para baixo"},
+    {"blancIslandSize", u"Tamanho da Island"},
+    {"blancIslandSizeHint", u"Deixa a Island e os botões maiores. A página desce para abrir espaço."},
+    {"blancIslandSizeDefault", u"Padrão"},
+    {"blancIslandSizeLarge", u"Grande"},
+    {"blancIslandSizeExtraLarge", u"Muito grande"},
     {"blancIslandSiteColors", u"Usar as cores do site"},
     {"blancIslandSiteColorsHint", u"Tinge a barra da Island com a cor da página em que você está. Desativado, ela mantém o fundo do seu tema."},
     {"blancIslandTabIcons", u"Mostrar ícones dos sites na Island"},

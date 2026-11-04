@@ -78,16 +78,33 @@ const SCENES = {
   },
   settings: fixture => openSettings(fixture, ''),
 };
-// settings-<section> opens that section in the same sheet (settings-privacy).
-const scene = name => SCENES[name] ?? (name.startsWith('settings-') ? fixture => openSettings(fixture, name.slice(9)) : null);
-async function openSettings(fixture, section) {
+// settings-<section> opens that section in the same sheet (settings-privacy);
+// island-<size> picks that Island size in Settings and shows the window.
+const scene = name => SCENES[name] ?? (name.startsWith('settings-') ? fixture => openSettings(fixture, name.slice(9))
+  : /^island-(default|large|extra-large)$/.test(name) ? fixture => setIslandSize(fixture, name.slice(7)) : null);
+export async function setIslandSize(fixture, size) {
+  const settings = await openSettings(fixture, 'appearance', true);
+  const set = await settings.eval(`(() => {
+    const find = (root, sel) => { const hit = root.querySelector(sel); if (hit) return hit;
+      for (const el of root.querySelectorAll('*')) { const r = el.shadowRoot && find(el.shadowRoot, sel); if (r) return r; } return null; };
+    const select = find(document, '#blancIslandSize')?.shadowRoot?.querySelector('select');
+    if (!select) return false;
+    select.value = ${JSON.stringify(size)}; select.dispatchEvent(new Event('change', {bubbles: true})); return true;
+  })()`);
+  settings.close();
+  if (set !== true) throw Error('Settings has no Island size control');
+  await fixture.host.eval('window.BlancPrototypeHost.closeSheet()');
+  await pause(1500);
+}
+async function openSettings(fixture, section, keep = false) {
   await fixture.host.eval(`window.BlancPrototypeHost.api.openPage('settings', ${JSON.stringify(section)})`);
   await waitFor(() => nativeCall(fixture.host, 'settingsSheetState'), s => s.attached, 'settings sheet');
   const target = await waitFor(async () => (await fixture.targets()).find(t => t.type === 'page' && SETTINGS.test(t.url)), Boolean, 'settings page');
   const settings = await fixture.connectTarget(target);
   await waitFor(() => settings.eval('document.readyState'), s => s === 'complete', 'settings loaded');
-  settings.close();
   await pause(1500);
+  if (keep) return settings;
+  settings.close();
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
