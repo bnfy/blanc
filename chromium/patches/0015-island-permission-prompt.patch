@@ -1,0 +1,24 @@
+diff --git a/chrome/browser/ui/views/permissions/permission_prompt_factory.cc b/chrome/browser/ui/views/permissions/permission_prompt_factory.cc
+index 5f858c7..da57f84 100644
+--- a/chrome/browser/ui/views/permissions/permission_prompt_factory.cc
++++ b/chrome/browser/ui/views/permissions/permission_prompt_factory.cc
+@@ -38,6 +38,7 @@
+ #include "content/public/common/content_switches.h"
+ #include "third_party/blink/public/common/features_generated.h"
+ #include "url/origin.h"
++#include "blanc/browser/ui/island_permission_prompt.h"
+ 
+ namespace {
+ 
+@@ -323,6 +324,11 @@ std::unique_ptr<permissions::PermissionPrompt> CreatePermissionPrompt(
+     return nullptr;
+   }
+ 
++  // Blanc (F13): shipping's prompt, drawn by the Island.
++  if (auto prompt = blanc_prototype::CreateIslandPermissionPrompt(web_contents, delegate)) {
++    return prompt;
++  }
++
+   if (web_app::AppBrowserController::IsWebApp(GetBrowser(web_contents))) {
+     return CreatePwaPrompt(web_contents, delegate);
+   } else if (delegate->ShouldCurrentRequestUseQuietUI()) {

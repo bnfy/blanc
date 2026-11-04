@@ -70,26 +70,25 @@ test('pin, then strings.js, chooses what shipping\'s resolveLocale chooses', () 
 });
 
 test('Settings offers shipping\'s languages and resolves "system" as shipping does', async () => {
-  const {createRequire} = await import('node:module');
-  const page = createRequire(import.meta.url)(path.join(root, 'blanc/island/language-settings.js'));
-  assert.deepEqual(page.UI_LANGUAGES, selectable.map(({code, endonym}) => ({code, endonym})));
+  // chrome://settings → Languages (S1.7): the choices come from ui_language.h,
+  // checked above; "system" resolves with blanc_settings_proxy.ts's
+  // blancSystemLanguage, taken from patch 0022 and run without its types.
+  const {stripTypeScriptTypes} = await import('node:module');
+  const patch = fs.readFileSync(path.join(root, 'patches/0022-blanc-settings-lists.patch'), 'utf8');
+  const proxy = patch.slice(patch.indexOf('+++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts'));
+  const lines = proxy.split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++')).map(l => l.slice(1));
+  const start = lines.findIndex(l => l.startsWith('export function blancSystemLanguage('));
+  const end = lines.findIndex((l, i) => i > start && l === '}');
+  const source = stripTypeScriptTypes(lines.slice(start, end + 1).join('\n').replace(/^export /, ''));
+  const context = {};
+  vm.runInNewContext(`${source}; this.blancSystemLanguage = blancSystemLanguage;`, context);
   const module = {exports: {}};
   vm.runInNewContext(show('src/main/i18n.js'), {module, exports: module.exports,
     require: () => ({createTranslator: () => () => ''})});
   const codes = selectable.map(l => l.code);
   for (const preferred of [['de-DE'], ['pt-PT', 'fr'], ['ja'], [], ['zh_TW', 'it'], ['PT-br'], ['es-419'], ['en-GB']])
-    assert.equal(page.resolveSystem(preferred), module.exports.resolveLocale({setting: 'system', preferred, selectable: codes}).locale, String(preferred));
-  // Shipping's own row model gives the same rows and relaunch answers.
-  const model = {exports: {}};
-  vm.runInNewContext(show('src/renderer/pages/settings-language-model.js'), {module: model, self: undefined});
-  const t = (key, params) => `${key}:${JSON.stringify(params ?? {})}`;
-  for (const uiLanguage of ['system', 'de', 'ja', 'pt-BR']) {
-    const languages = {active: 'en', system: 'de', options: page.UI_LANGUAGES};
-    const plain = v => JSON.parse(JSON.stringify(v));
-    assert.deepEqual(plain(page.languageRow({uiLanguage, languages, t})), plain(model.exports.languageRow({uiLanguage, languages, t})));
-    for (const value of ['system', 'en', 'de']) assert.equal(page.needsRelaunch(value, languages), model.exports.needsRelaunch(value, languages));
-  }
-  const strings = fs.readFileSync(path.join(root, 'blanc/island/strings.js'), 'utf8');
-  for (const key of ['settings.language.label', 'settings.language.hint', 'settings.language.relaunch', 'settings.language.system'])
-    assert.ok(strings.includes(`"${key}":`), key);
+    assert.equal(context.blancSystemLanguage(codes, preferred), module.exports.resolveLocale({setting: 'system', preferred, selectable: codes}).locale, String(preferred));
+  const strings = fs.readFileSync(path.join(root, 'blanc/common/settings_strings.h'), 'utf8');
+  for (const name of ['blancLanguage', 'blancLanguageHint', 'blancLanguageRelaunch', 'blancLanguageSystem'])
+    assert.ok(strings.includes(`"${name}"`), name);
 });

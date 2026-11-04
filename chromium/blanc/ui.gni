@@ -13,6 +13,7 @@ source_set(target_name) {
               "//blanc/browser/ui/browser_api/search_default.cc", "//blanc/browser/ui/browser_api/search_default.h",
               "//blanc/browser/ui/browser_api/external_handoff.cc", "//blanc/browser/ui/browser_api/external_handoff.h",
               "//blanc/browser/ui/browser_api/page_handoff.cc", "//blanc/browser/ui/browser_api/page_handoff.h",
+              "//blanc/browser/ui/browser_api/http_auth.cc", "//blanc/browser/ui/browser_api/http_auth.h",
               "//blanc/browser/ui/browser_api/bangs.cc", "//blanc/browser/ui/browser_api/bangs.h",
               "//blanc/browser/ui/browser_api/bang_icons.cc", "//blanc/browser/ui/browser_api/bang_icons.h",
               "//blanc/browser/ui/browser_api/bang_icon_policy.cc", "//blanc/browser/ui/browser_api/bang_icon_policy.h",
@@ -33,6 +34,7 @@ source_set(target_name) {
     "//components/bookmarks/browser",
     "//components/bookmarks/common",
     "//components/history/core/browser",
+    "//components/download/public/common:public",
     "//components/input",
     "//components/keyed_service/core",
     "//components/tab_groups",
@@ -296,7 +298,8 @@ source_set(target_name) {
     ]
   }
   if (is_mac) {
-    sources += [ "//blanc/browser/ui/window_buttons_mac.h", "//blanc/browser/ui/window_buttons_mac.mm" ]
+    sources += [ "//blanc/browser/ui/window_buttons_mac.h", "//blanc/browser/ui/window_buttons_mac.mm",
+                 "//blanc/browser/ui/app_menus_mac.h", "//blanc/browser/ui/app_menus_mac.mm" ]
     frameworks = [ "AppKit.framework" ]
     deps += [
       "//chrome/browser/ui/views/frame:immersive_mode_overlay_views_mac",

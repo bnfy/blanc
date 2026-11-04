@@ -18,14 +18,24 @@
   <script src="island-autohide.js" defer></script>
   <script src="clean-link.js" defer></script>
   <script src="invite-friend.js" defer></script>
+  <script src="site-security.js" defer></script>
   <script src="island-hover-open.js" defer></script>
   <script src="host.js" defer></script>
 </head>
 <body>
   <div id="headerBackdrop" aria-hidden="true"></div>
   <iframe id="strip" data-src="index.html" title="Blanc Island"></iframe>
+  <!-- Settings (S1.7): the scrim, card and close button; Chromium's
+       chrome://settings is a native view over the card's body. -->
+  <section id="settingsSheet" hidden>
+    <div class="settings-sheet-card" role="dialog" aria-modal="true" aria-label="Settings">
+      <div class="settings-sheet-head"><button id="settingsSheetClose" type="button" aria-label="Close">✕</button></div>
+      <div id="settingsSheetBody"></div>
+    </div>
+  </section>
   <iframe id="floatPill" data-src="index.html?surface=float" title="Blanc Island"></iframe>
   <iframe id="overlay" data-src="overlay.html" title="Blanc address and tabs" hidden></iframe>
+  <iframe id="permission" data-src="permission.html" title="Site permission request" hidden></iframe>
   <section id="extensionsPanel" aria-label="Extensions" hidden>
     <header class="extensions-heading">
       <button id="extensionsBack" aria-label="Back to tabs"><img src="icons/chevron-left.svg" alt=""></button>

@@ -1,8 +1,9 @@
 /* The prototype exposes only controls backed by its native bridge. The pill
    and panel hearts and the Favorites/History footer buttons are backed by
    Chromium's bookmark and history services; the row pin and mute controls and
-   drag-to-reorder by TabStripModel. Glance has no native counterpart yet. */
-#pillInsecure, #pillFillHint, #pillCapture, #pillDisplayShare,
+   drag-to-reorder by TabStripModel; the warning badge by the host's siteInfo
+   (S1.6). Glance has no native counterpart yet. */
+#pillFillHint, #pillCapture, #pillDisplayShare,
 #pillSpace, #glanceHeader, #panelSiteInfo,
 #footerNewPrivate, #footerWorkspace,
 #footerSettings, .row-glance {

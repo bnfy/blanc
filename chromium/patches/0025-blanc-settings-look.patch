@@ -1,0 +1,351 @@
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+index ef91880..b7475e4 100644
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+@@ -49,7 +49,8 @@ export function getHtml(this: SettingsAppearancePageElement) {
+       </div>
+ </if>
+     </div>
+-    <div id="toolbarRow" class="settings-row">
++    <!-- Blanc (S1.7): the Island replaces Chromium's toolbar. -->
++    <div id="toolbarRow" class="settings-row" hidden>
+       <cr-link-row id="customizeToolbar" label="$i18n{customizeToolbar}"
+           @click="${this.onCustomizeToolbarClick_}" external>
+       </cr-link-row>
+@@ -190,6 +191,9 @@ export function getHtml(this: SettingsAppearancePageElement) {
+       </div>
+     ` : ''}
+ 
++    <!-- Blanc (S1.7): Chromium's tab strip, tab search and side panel rows;
++         the Island replaces them. -->
++    <div id="blancHiddenTabStripRows" hidden>
+ <if expr="is_macosx">
+     ${this.showGlassEffectEnabled_ ? html`
+       <div class="cr-row hr">
+@@ -311,6 +315,7 @@ export function getHtml(this: SettingsAppearancePageElement) {
+         </settings-dropdown-menu>
+       </div>
+     </div>
++    </div>
+     ${!this.showHoverCardImagesOption_ ? html`
+       <div class="hr" ?hidden="${!this.pageVisibility_.hoverCard}"></div>
+       <settings-toggle-button id="hoverCardMemoryUsageToggle"
+@@ -384,7 +389,7 @@ export function getHtml(this: SettingsAppearancePageElement) {
+     </settings-toggle-button>
+ </if>
+   </div>
+-  <settings-toggle-button class="hr" id="splitViewDragAndDrop"
++  <settings-toggle-button class="hr" id="splitViewDragAndDrop" hidden
+       pref-key="browser.split_view_drag_and_drop_enabled"
+       label="${this.i18n(
+           this.splitViewHorizontalEnabled_ ?
+diff --git a/chrome/browser/resources/settings/autofill_page/autofill_page.html.ts b/chrome/browser/resources/settings/autofill_page/autofill_page.html.ts
+index 2f5ab2a..016c15d 100644
+--- a/chrome/browser/resources/settings/autofill_page/autofill_page.html.ts
++++ b/chrome/browser/resources/settings/autofill_page/autofill_page.html.ts
+@@ -68,7 +68,8 @@ export function getHtml(this: SettingsAutofillPageElement) {
+   <collapsible-autofill-settings-card></collapsible-autofill-settings-card>
+ </settings-section>
+ 
+-<settings-section page-title="$i18n{yourSavedInfoRelatedServicesTitle}">
++<!-- Blanc (S1.7, owner): no Google services. -->
++<settings-section page-title="$i18n{yourSavedInfoRelatedServicesTitle}" hidden>
+   <div route-path="default">
+     <cr-link-row id="passwordManagerButton" label="$i18n{localPasswordManager}"
+         @click="${this.onPasswordManagerRelatedServiceClick_}"
+diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+index e482623..eedec79 100644
+--- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
++++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+@@ -29,6 +29,7 @@ export interface BlancSettingsState {
+   uiLanguage: string;
+   uiLanguages: BlancLanguage[];
+   launchUiLanguage: string|null;
++  surfaceStyle: string;
+ }
+ 
+ export interface BlancResult {
+@@ -51,6 +52,7 @@ export const blancSettings = {
+   setUiLanguage: (code: string) =>
+       sendWithPromise<BlancResult>('blancSettingsSetUiLanguage', code),
+   relaunch: () => sendWithPromise<boolean>('blancSettingsRelaunch'),
++  font: () => sendWithPromise<string|null>('blancSettingsFont'),
+   listen: (callback: (state: BlancSettingsState) => void): WebUiListener =>
+       addWebUiListener('blanc-settings-changed', callback),
+   stopListening: (listener: WebUiListener) => removeWebUiListener(listener),
+@@ -79,3 +81,144 @@ export function blancSystemLanguage(
+   }
+   return 'en';
+ }
++
++// Shipping's Settings sheet look (S1.7, owner): Sunrise, or Neutral when
++// Surface style says so, in light or dark, mapped onto Chromium's own color
++// and type tokens. Set on the document element, so every shadow tree
++// inherits them; Chromium's layout stays its own.
++interface BlancPalette {
++  bg: string;
++  surface: string;
++  raised: string;
++  border: string;
++  text: string;
++  dim: string;
++  accent: string;
++  accentDim: string;
++  onAccent: string;
++}
++const PALETTES: Record<string, {light: BlancPalette, dark: BlancPalette}> = {
++  sunrise: {
++    light: {
++      bg: '#f8f2e8',
++      surface: '#f2eade',
++      raised: '#ffffff',
++      border: '#e1d7c9',
++      text: '#12100b',
++      dim: '#6b6257',
++      accent: '#805d28',
++      accentDim: 'rgba(128, 93, 40, 0.16)',
++      onAccent: '#ffffff',
++    },
++    dark: {
++      bg: '#17130f',
++      surface: '#2d251d',
++      raised: '#221d17',
++      border: '#4a3e31',
++      text: '#f7f0e5',
++      dim: '#b8aa98',
++      accent: '#d4ad66',
++      accentDim: 'rgba(212, 173, 102, 0.2)',
++      onAccent: '#17130f',
++    },
++  },
++  neutral: {
++    light: {
++      bg: '#fbfaf6',
++      surface: '#f3f1eb',
++      raised: '#ffffff',
++      border: '#e5e2da',
++      text: '#14130f',
++      dim: '#6a665e',
++      accent: '#1f1e1b',
++      accentDim: 'rgba(20, 19, 15, 0.08)',
++      onAccent: '#ffffff',
++    },
++    dark: {
++      bg: '#1b1b1b',
++      surface: '#262625',
++      raised: '#202020',
++      border: '#3a3a38',
++      text: '#f3f1ec',
++      dim: '#a9a69e',
++      accent: '#f3f1ec',
++      accentDim: 'rgba(243, 241, 236, 0.14)',
++      onAccent: '#1b1b1b',
++    },
++  },
++};
++
++function blancTokens(p: BlancPalette): Record<string, string> {
++  return {
++    '--color-sys-base': p.raised,
++    '--color-sys-surface': p.raised,
++    '--color-sys-base-container': p.surface,
++    '--color-sys-base-container-elevated': p.raised,
++    '--cr-card-background-color': p.raised,
++    '--color-sys-on-surface': p.text,
++    '--cr-primary-text-color': p.text,
++    '--color-sys-on-surface-subtle': p.dim,
++    '--cr-secondary-text-color': p.dim,
++    '--color-sys-primary': p.accent,
++    '--cr-checked-color': p.accent,
++    '--cr-link-color': p.accent,
++    '--cr-focus-outline-color': p.accent,
++    '--color-toggle-button-track-on': p.accent,
++    '--cr-toggle-checked-bar-color': p.accent,
++    '--color-sys-on-primary': p.onAccent,
++    '--color-toggle-button-thumb-on': p.onAccent,
++    '--color-sys-tonal-container': p.accentDim,
++    '--color-sys-on-tonal-container': p.text,
++    '--cr-hover-background-color': p.accentDim,
++    '--color-sys-divider': p.border,
++    '--color-sys-neutral-outline': p.border,
++    '--color-sys-tonal-outline': p.border,
++    '--cr-separator-line': `1px solid ${p.border}`,
++    '--blanc-separator-color': p.border,
++    // Shipping's sheet cards: a hairline border, 14px corners, a faint lift.
++    '--cr-card-shadow': `0 0 0 1px ${p.border}, 0 1px 2px rgba(18, 16, 11, 0.04)`,
++    '--cr-card-border-radius': '14px',
++  };
++}
++
++let blancSurface = 'sunrise';
++const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
++
++function applyBlancTheme() {
++  const palettes = PALETTES[blancSurface] ?? PALETTES['sunrise'];
++  const palette = darkQuery.matches ? palettes.dark : palettes.light;
++  const root = document.documentElement;
++  for (const [name, value] of Object.entries(blancTokens(palette))) {
++    root.style.setProperty(name, value);
++  }
++  root.style.backgroundColor = palette.bg;
++  // Shipping's UI type: Instrument Sans at width 98, +0.01em.
++  root.style.fontFamily =
++      '"Instrument Sans", "Inter", -apple-system, system-ui, sans-serif';
++  root.style.setProperty('font-variation-settings', '"wdth" 98');
++  root.style.letterSpacing = '0.01em';
++}
++
++async function loadBlancFont() {
++  const base64 = await blancSettings.font();
++  if (!base64) {
++    return;
++  }
++  const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
++  const face = new FontFace('Instrument Sans', bytes.buffer, {weight: '400 700'});
++  document.fonts.add(await face.load());
++}
++
++applyBlancTheme();
++darkQuery.addEventListener('change', applyBlancTheme);
++blancSettings.get().then(state => {
++  blancSurface = state.surfaceStyle;
++  applyBlancTheme();
++});
++blancSettings.listen(state => {
++  if (state.surfaceStyle !== blancSurface) {
++    blancSurface = state.surfaceStyle;
++    applyBlancTheme();
++  }
++});
++loadBlancFont().catch(() => {});
+diff --git a/chrome/browser/resources/settings/languages_page/languages_page_index.html.ts b/chrome/browser/resources/settings/languages_page/languages_page_index.html.ts
+index d3ae95e..fd2789d 100644
+--- a/chrome/browser/resources/settings/languages_page/languages_page_index.html.ts
++++ b/chrome/browser/resources/settings/languages_page/languages_page_index.html.ts
+@@ -17,7 +17,8 @@ export function getHtml(this: SettingsLanguagesPageIndexElement) {
+   <settings-spell-check-page slot="view" id="spellCheck">
+   </settings-spell-check-page>
+ 
+-  <settings-translate-page slot="view" id="translate">
++  <!-- Blanc (S1.7, owner): no Google Translate section. -->
++  <settings-translate-page slot="view" id="translate" hidden>
+   </settings-translate-page>
+ 
+ <if expr="not is_macosx">
+diff --git a/chrome/browser/resources/settings/languages_page/languages_page_index.ts b/chrome/browser/resources/settings/languages_page/languages_page_index.ts
+index 6240ce8..06406d1 100644
+--- a/chrome/browser/resources/settings/languages_page/languages_page_index.ts
++++ b/chrome/browser/resources/settings/languages_page/languages_page_index.ts
+@@ -56,7 +56,8 @@ export class SettingsLanguagesPageIndexElement extends
+ 
+   private showDefaultViews_() {
+     this.$.viewManager.switchViews(
+-        ['languages', 'spellCheck', 'translate'], 'no-animation',
++        // Blanc (S1.7, owner): no Google Translate section.
++        ['languages', 'spellCheck'], 'no-animation',
+         'no-animation');
+   }
+ 
+diff --git a/chrome/browser/resources/settings/page_visibility.ts b/chrome/browser/resources/settings/page_visibility.ts
+index 617cf97..1b2ecab 100644
+--- a/chrome/browser/resources/settings/page_visibility.ts
++++ b/chrome/browser/resources/settings/page_visibility.ts
+@@ -46,7 +46,21 @@ function createPageVisibility(): PageVisibility|undefined {
+   if (!loadTimeData.getBoolean('isGuest')) {
+     // Blanc (S1.7, owner): no Google account, Sync, AI or Safety Check
+     // sections; their routes are left out with them.
+-    return {ai: false, people: false, safetyHub: false};
++    // Nor the home button, bookmarks bar, hover cards or side panel: the
++    // Island replaces Chromium's toolbar and tab strip (S1.7, owner).
++    return {
++      ai: false,
++      people: false,
++      safetyHub: false,
++      appearance: {
++        bookmarksBar: false,
++        homeButton: false,
++        hoverCard: false,
++        pageZoom: true,
++        setTheme: true,
++        sidePanel: false,
++      },
++    };
+   }
+ 
+   // <if expr="not is_chromeos">
+diff --git a/chrome/browser/resources/settings/performance_page/performance_page.html.ts b/chrome/browser/resources/settings/performance_page/performance_page.html.ts
+index dc4a07f..37c6c4c 100644
+--- a/chrome/browser/resources/settings/performance_page/performance_page.html.ts
++++ b/chrome/browser/resources/settings/performance_page/performance_page.html.ts
+@@ -17,7 +17,8 @@ export function getHtml(this: PerformancePageElement) {
+       sub-label-with-link="$i18n{performanceInterventionEnabledDescription}"
+       @sub-label-link-clicked="${this.onPerformanceInterventionSubLabelLinkClicked_}">
+   </settings-toggle-button>
+-  <settings-toggle-button id="discardRingTreatmentToggleButton"
++  <!-- Blanc (S1.7): tab strip appearance; the Island replaces it. -->
++  <settings-toggle-button id="discardRingTreatmentToggleButton" hidden
+       @change="${this.onDiscardRingChange_}"
+       pref-key="performance_tuning.discard_ring_treatment.enabled"
+       label="$i18n{discardRingTreatmentEnabledLabel}"
+@@ -25,7 +26,7 @@ export function getHtml(this: PerformancePageElement) {
+             $i18n{discardRingTreatmentEnabledDescriptionWithLearnLink}"
+       @sub-label-link-clicked="${this.onDiscardRingTreatmentSubLabelLinkClicked_}">
+   </settings-toggle-button>
+-  <cr-link-row
++  <cr-link-row hidden
+       label="$i18n{tabHoverPreviewCardLinkTitle}"
+       sub-label="$i18n{tabHoverPreviewCardLinkSubtitle}"
+       @click="${this.onTabHoverPreviewCardLinkClick_}" external>
+diff --git a/chrome/browser/resources/settings/settings_shared_lit.css b/chrome/browser/resources/settings/settings_shared_lit.css
+index 17212b6..9cfad28 100644
+--- a/chrome/browser/resources/settings/settings_shared_lit.css
++++ b/chrome/browser/resources/settings/settings_shared_lit.css
+@@ -404,3 +404,21 @@ iron-list,
+ .flex {
+   flex: 1;
+ }
++
++/* Blanc (S1.7, owner): shipping's inset hairlines between rows. Chromium
++ * draws each row line as a top border; the image keeps that border but
++ * insets its line by the section padding on both sides, and paints nothing
++ * where a row has no top border. */
++.hr,
++.cr-row,
++.cr-separators > *,
++.settings-box,
++.vertical-list > * {
++  border-image: linear-gradient(to right,
++      transparent var(--cr-section-padding),
++      var(--blanc-separator-color, var(--color-sys-divider))
++          var(--cr-section-padding),
++      var(--blanc-separator-color, var(--color-sys-divider))
++          calc(100% - var(--cr-section-padding)),
++      transparent calc(100% - var(--cr-section-padding))) 1 0 0 0;
++}
+diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
+index 32ac3f3..ff66857 100644
+--- a/chrome/browser/ui/webui/settings/settings_ui.cc
++++ b/chrome/browser/ui/webui/settings/settings_ui.cc
+@@ -407,10 +407,8 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+   html_source->AddBoolean("isOSSettings", false);
+ #endif  // BUILDFLAG(IS_CHROMEOS)
+ 
+-  bool show_privacy_guide =
+-      base::FeatureList::IsEnabled(features::kPrivacyGuideForceAvailable) ||
+-      (!ShouldDisplayManagedUi(profile) && !profile->IsChild());
+-  html_source->AddBoolean("showPrivacyGuide", show_privacy_guide);
++  // Blanc (S1.7, owner): no Privacy Guide; its steps include Google services.
++  html_source->AddBoolean("showPrivacyGuide", false);
+ 
+   html_source->AddBoolean("enableHandTrackingContentSetting",
+ #if BUILDFLAG(ENABLE_VR)
+@@ -518,6 +516,9 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+ #endif
+ 
+   AddLocalizedStrings(html_source, profile, web_ui->GetWebContents());
++  // Blanc (S1.7, owner): no Live Translate, a Google service; set after
++  // Chromium's own strings, which include it.
++  html_source->AddBoolean("enableLiveTranslate", false);
+   AddSecurityData(html_source);
+ 
+   ManagedUIHandler::Initialize(web_ui, html_source);

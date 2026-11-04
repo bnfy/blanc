@@ -2,6 +2,7 @@
 // Island's own documents (strip/overlay iframes of the host), CDP input and
 // window commands, the fork Settings page, and native dispatch.
 import {UndefinedNativeAdapterError,nativeId} from '../lib/adapters.mjs';
+import {inSettings} from './commands.mjs';
 import {tabPage} from './core.mjs';
 import {shippingPageUrl} from '../lib/page-shim.mjs';
 import {jsLiteral} from '../lib/js-literal.mjs';
@@ -97,23 +98,6 @@ async function islandReport(w){
 }
 // Shipping sets these through its Settings page; drive the fork's Settings
 // page the same way. A missing control is the product's own gap.
-async function settingsControl(w,id,apply){
- const before=new Set((await w.snapshot()).tabs.map(t=>String(t.id)));
- await w.api('openPage',['settings']);
- const s=await w.waitForState(st=>st.activeTabId&&!st.tabs.find(t=>t.id===st.activeTabId).loading);
- const tabId=s.activeTabId;const created=!before.has(tabId);
- try{
-  const page=await tabPage(w,tabId);
-  await page.waitForLoadState();
-  const value=await page.evaluate(([id,apply])=>{
-   const el=document.getElementById(id);if(!el)return {missing:true,url:location.href};
-   if(el.type==='checkbox'){if(el.checked!==apply)el.click();return {value:el.checked};}
-   el.value=apply;el.dispatchEvent(new Event('change',{bubbles:true}));return {value:el.value};
-  },[id,apply]);
-  if(value.missing)throw Error(`Fork Settings (${value.url}) has no #${id} control`);
-  return value.value;
- }finally{if(created)await w.native('closeTab',[nativeId(tabId)]);}
-}
 export const island={
  // ---- window ----
  async windowContentBounds(w){
@@ -207,7 +191,10 @@ export const island={
   if(await w.native('previewPageCommand',[slot])!==true)throw Error('Island slot command was refused: '+slot);
  },
  // ---- settings (fork Settings page) ----
- setIslandTabIcons:(w,on)=>settingsControl(w,'islandTabIcons',!!on),
+ // Settings → Appearance's switch (S1.7), as a person turns it.
+ setIslandTabIcons:(w,on)=>inSettings(w,'appearance',async(a,d)=>{const el=d.find('#blancIslandTabIcons');
+  if(!el)return {missing:'#blancIslandTabIcons'};if(el.checked!==a)el.click();await new Promise(r=>setTimeout(r,300));
+  return {value:el.checked};},!!on),
  // Shipping's hook writes the setting directly (settings.setSettings); going
  // through the Settings page takes longer than a dwell. The host's refresh
  // carries it, as the preference observer's settings event does.

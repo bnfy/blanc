@@ -1,0 +1,139 @@
+(async () => {
+  const { t } = blancI18n;
+  const list = document.getElementById('list');
+  const clearFinished = document.getElementById('clearFinished');
+  let refreshGeneration = 0;
+  let lastSignature = null;
+
+  // Unit symbols read the same in every language; the number follows the locale.
+  const units = ['B', 'KB', 'MB', 'GB'];
+  const numbers = [0, 1].map((digits) => new Intl.NumberFormat(blancI18n.formatLocale(),
+    { minimumFractionDigits: digits, maximumFractionDigits: digits }));
+  const fmtBytes = (n) => {
+    if (!n) return `${numbers[0].format(0)} B`;
+    const i = Math.min(units.length - 1, Math.floor(Math.log2(n) / 10));
+    return `${numbers[i === 0 ? 0 : 1].format(n / 2 ** (10 * i))} ${units[i]}`;
+  };
+
+  const STATE_LABELS = {
+    progressing: t('downloads.state.progressing'),
+    interrupted: t('downloads.state.interrupted'),
+    completed: t('downloads.state.completed'),
+    cancelled: t('downloads.state.cancelled'),
+  };
+
+  async function refresh() {
+    const generation = ++refreshGeneration;
+    const items = await window.bowserPages.downloads.list();
+    if (generation !== refreshGeneration) return;
+    const signature = JSON.stringify(items);
+    if (signature === lastSignature) return;
+    lastSignature = signature;
+    const focusedAction = list.contains(document.activeElement)
+      ? document.activeElement.dataset.actionKey : null;
+    list.replaceChildren();
+
+    if (items.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.setAttribute('role', 'status');
+      empty.textContent = t('downloads.empty');
+      list.append(empty);
+      if (focusedAction) clearFinished.focus({ preventScroll: true });
+      return;
+    }
+
+    for (const d of items) {
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.dataset.state = d.state;
+
+      const main = document.createElement('div');
+      main.className = 'main';
+      main.dataset.i18nIgnore = ''; // the file's name and source
+      const title = document.createElement('div');
+      title.className = 'title file-name';
+      title.title = d.filename;
+      const { stem, ext } = window.blancDownloadsRow.splitFileName(d.filename);
+      const stemEl = document.createElement('span');
+      stemEl.className = 'stem';
+      stemEl.textContent = stem;
+      const extEl = document.createElement('span');
+      extEl.className = 'ext';
+      extEl.textContent = ext;
+      title.append(stemEl, extEl);
+      const url = document.createElement('div');
+      url.className = 'url';
+      url.textContent = window.blancDownloadsRow.sourceLabel(d.url);
+      url.title = d.url;
+      main.append(title, url);
+
+      if (d.state === 'progressing' && d.totalBytes > 0) {
+        const progress = document.createElement('div');
+        progress.className = 'progress';
+        progress.setAttribute('role', 'progressbar');
+        progress.setAttribute('aria-label', t('downloads.progressLabel', { file: d.filename }));
+        progress.setAttribute('aria-valuemin', '0');
+        progress.setAttribute('aria-valuemax', '100');
+        progress.setAttribute('aria-valuenow', String(Math.round((d.receivedBytes / d.totalBytes) * 100)));
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.width = `${Math.round((d.receivedBytes / d.totalBytes) * 100)}%`;
+        progress.append(bar);
+        main.append(progress);
+      }
+
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.dataset.state = d.state;
+      const size = fmtBytes(d.receivedBytes);
+      if (d.state === 'progressing') {
+        meta.textContent = d.totalBytes ? `${size} / ${fmtBytes(d.totalBytes)}` : size;
+        meta.dataset.i18nIgnore = ''; // sizes only
+      } else {
+        const state = STATE_LABELS[d.state] ?? d.state;
+        meta.textContent = d.private ? t('downloads.metaPrivate', { state, size }) : t('downloads.meta', { state, size });
+      }
+
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+      const mkBtn = (label, accessibleName, fn, actionKey, cls) => {
+        const b = document.createElement('button');
+        b.textContent = label;
+        b.dataset.actionKey = `${d.id}:${actionKey}`;
+        b.setAttribute('aria-label', accessibleName);
+        if (cls) b.className = cls;
+        b.addEventListener('click', async () => { await fn(); refresh(); });
+        return b;
+      };
+      const api = window.bowserPages.downloads;
+      const file = { file: d.filename };
+      const ACTIONS = {
+        cancel: () => mkBtn(t('downloads.cancel'), t('downloads.cancelLabel', file), () => api.cancel(d.id), 'cancel', 'danger'),
+        resume: () => mkBtn(t('downloads.resume'), t('downloads.resumeLabel', file), () => api.resume(d.id), 'resume'),
+        retry: () => mkBtn(t('downloads.retry'), t('downloads.retryLabel', file), () => api.retry(d.id), 'retry'),
+        open: () => mkBtn(t('downloads.open'), t('downloads.openLabel', file), () => api.open(d.id), 'open'),
+        show: () => mkBtn(t('downloads.show'), t('downloads.showLabel', file), () => api.show(d.id), 'show'),
+      };
+      for (const action of window.blancDownloadsRow.rowActions(d)) actions.append(ACTIONS[action]());
+      row.append(main, meta, actions);
+      list.append(row);
+    }
+    if (focusedAction) {
+      const replacement = [...list.querySelectorAll('[data-action-key]')]
+        .find((button) => button.dataset.actionKey === focusedAction);
+      (replacement ?? clearFinished).focus({ preventScroll: true });
+    }
+  }
+
+  clearFinished.addEventListener('click', async () => {
+    await window.bowserPages.downloads.clearFinished();
+    refresh();
+  });
+
+  // Live progress: poll while the page is visible.
+  setInterval(() => {
+    if (!document.hidden) refresh();
+  }, 750);
+  refresh();
+})();

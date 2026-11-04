@@ -119,7 +119,7 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     request to blanc.day has not been exercised.
   - Bang scenarios: 16 of 18 pass; the two private-tab ones need D1.
     Navigation and settings features unchanged.
-  - Patch series: 0001–0010 touch all 83 pinned upstream files with 261
+  - Patch series: 0001–0016 touch all 88 pinned upstream files with 286
     hunks.
   - **Outbound isolation passes on macos-92a5c23a766fdc5e (2026-11-01).**
     Run as `blanc-test` with a pf block on that user (owner-approved anchor),
@@ -228,6 +228,362 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     floating Glance. Six F46 rename cases pass; a probe in an isolated
     profile checked /sleep, /copy, /reader and /invite, which no shipping
     case covers. Seven features show no regressions.
+  - S1.2 finished (2026-11-02, macos-d94c3474bbd96627). Zoom needs nothing of
+    its own: the page commands are Chromium's zoom (IDC_ZOOM_*), as
+    shipping's ⌘+/⌘−/⌘0 menu, and F23-1 passes. Of shipping's 127 browserAPI
+    members the host answers 85 (two more are absent by the owner's choice);
+    it now also answers beginNewGroup, openGroupMenu and duplicateTab, plus
+    the hook beginRenameGroup (four F3 cases pass), and closing or replacing
+    the rail's group menu tells the rail. The 40 it still refuses belong to
+    later slices: Glance (S3), Spaces and their
+    group menu (S3), Ctrl+Tab's switcherPick (S3), Tab Archive (S3), sync
+    and sent tabs (S4), capture and screen sharing (S5), the blocking
+    provider (D2), the permission prompt (S1.6), the certificate exception
+    (N5) and the window buttons and main menu (Windows/Linux).
+- **S1.4 in-window private tabs (D1), candidate macos-36a2a32e820bc60d
+  (2026-11-03):** a private tab is web contents in the window profile's
+  incognito profile, in an ordinary window (`blanc/private/private_tabs.h`,
+  patch 0011). Chromium's navigator keeps a private tab's links and children
+  private, creates their contents in that profile, and turns an incognito
+  disposition into a private tab here; ⌘⇧N, /private and the Island's private
+  tab open one. Private tabs are kept out of session restore
+  (`session_service_base.cc`), Recently closed, whether the tab or its window
+  closes (`content_live_tab.cc`), and tab sync (`tab_contents_synced_tab_
+  delegate.cc`); history already follows the tab's own profile. The snapshot
+  reports privacy per tab. F4-4 and F4-5 pass; F4-1, F4-2, F4-3 and F4-6 have
+  no shipping step definitions (shipping's backlog). Six more cases with a
+  private step pass. A probe in an isolated profile, each check beside a
+  regular-tab control, found no private page in Recently closed, history,
+  the relaunched session or any profile file, and a private tab's
+  `target=_blank` and ⌘-click children private in the same window. Eight
+  features show no regressions. The native privacy checks now ask the tab
+  where the action is the tab's (shipping's rule): a private tab is never a
+  Favorite or a Start Page pin, never tints the Island, has no split state
+  recorded, and is left out of a saved Space (a split holding one is not
+  saved; groups only private tabs used stay out); search matches its own
+  profile. The rest stay with the window by design (Recently closed, window
+  identity, history list, themes, Spaces recovery); the Start Page and the
+  host's recent bangs already asked the tab. A probe found Favorites and pins
+  refused for a private tab and allowed for a regular control, and no
+  private address in any profile file after a Space save and a relaunch.
+  On macos-36a2a32e820bc60d seven features (private-tabs,
+  island-and-commands, find-favorites-history, newtab-layouts,
+  tabs-and-groups, navigation-and-context-menu, F41-named-workspaces) give
+  every executed case the result it had before. Patch 0013 (2026-11-03,
+  macos-b6fd93656f8664d0) labels the File menu's ⌘⇧N item "New Private
+  Tab" and the Dock's "New Private Window", in shipping's words for
+  Chromium's application locale (`blanc/common/menu_strings.h`, generated
+  by `tools/menu-strings.mjs`), and the Dock's item, like ⌘⇧N with no
+  window open, makes a new window holding one private tab instead of an
+  incognito window. The test ops `privateMenuItems` and
+  `clickDockPrivateWindow` showed both labels and a new window whose only
+  tab is a private Start Page; private-tabs and multi-window are
+  unchanged. Not yet: the private theme's quick-exit chip is unchecked
+  (F4-2 has no steps).
+- **S1.5 utility sheet, candidate macos-deae895ed32ca1f5 (2026-11-03):**
+  Favorites, History and Downloads open in the Island's utility sheet,
+  never as tabs. The sheet is a frame of the Island host below the strip
+  (host.js `showSheet`/`hideSheet`, shipping's `showUtilityPage` rules):
+  re-invoking the shown page closes it, Escape closes it unless its page
+  armed Escape, a tab switch, a new tab, the palette, Find or Extensions
+  dismiss it, and a click in it changes the sheet (a utility page) or
+  opens one tab (a web page). Its pages are shipping's own, generated by
+  `tools/island-renderer.mjs` with one edit that loads
+  `pages/sheet-adapter.js`; the host answers their `window.bowserPages`
+  from BookmarkModel, HistoryService and DownloadManager
+  (`utility_sheet_ops.inc`: Favorites remove, folder move, rename and
+  remove, Start Page pins, every visit and removing one, downloads with
+  cancel, resume, retry, open, show and clear). Patch 0012 sends
+  Chromium's History, Downloads and Bookmark Manager commands to the sheet
+  in an Island window; the Start Page's Favorites heading opens it too.
+  Ten cases that failed now pass: F11-1, F10-3, F16-2, F16-4, F16-5,
+  F16-8, F16-10, F35-5, `/downloads` and find-favorites-history:7. A probe
+  in an isolated profile confirmed each page, the toggle, Escape, a
+  Favorite's link (one tab, sheet gone), a tab switch, recreated contents
+  after the frame was discarded, a folder move, a pin and one visit
+  removed. Five features (island-and-commands, tabs-and-groups,
+  navigation-and-context-menu, newtab-layouts, private-tabs) give every
+  other executed case the result it had before. Not yet, with reasons:
+  F9-3 fails because the fork seeds a Favorite by visiting a page with no
+  icon (shipping's hook writes a PNG); Favorites import is hidden until the
+  M.2 importer (`capabilities.import: false`); history rows show letters
+  (no favicon lookup yet); Tab Archive (F52) lists nothing; Settings is
+  still a tab (S1.7), so F16-6, F16-7 and F16-9 fail.
+- **S1.6 Shield site controls (F12), candidate macos-48ace292eba182c8
+  (2026-11-03):** all nine ad-blocking cases pass (five failed before). A
+  tab's blocked count starts at zero on each committed page, as shipping
+  resets it (`shield_count.inc`). Site actions bind to the shown document
+  and refuse only while a navigation is pending, not while the page loads
+  its own resources, and `/block-ads` toggles the global switch on any
+  page, as shipping's does. The host gives each tab shipping's `siteInfo`
+  (`site-security.js`, generated like the other main-process modules), so
+  the HTTP warning badge shows and opens site controls; `prototype.css`
+  no longer hides it. Seven features (island-and-commands, tabs-and-groups,
+  navigation-and-context-menu, private-tabs, site-certificate-safety,
+  newtab-layouts, internal-pages) are unchanged.
+- **S1.6 HTTP auth refusal (F20), candidate macos-b063a54c8516241b
+  (2026-11-03):** all four F20 cases pass (all undefined before). Patch
+  0014 has `ChromeContentBrowserClient::CreateLoginDelegate` return no
+  delegate in an Island window (`browser_api/http_auth.h`), so a
+  navigation, page-resource or proxy challenge is cancelled and its 401 or
+  407 reaches the page; nothing asks for credentials. Under --blanc-test
+  each refused challenge is recorded (`authChallenges`,
+  `resetAuthChallenges`). Shipping's steps for it evaluate in Electron's
+  main process; `tests/lib/main-ports.mjs` ports such evaluations one at a
+  time, keyed by the SHA-256 of shipping's exact function source
+  (`tests/main-ports.test.mjs` checks every key against shipping), and the
+  fixture's own proxy now demands sign-in when the proxy scenario arms it.
+  island-and-commands, tabs-and-groups, navigation-and-context-menu and
+  ad-blocking are unchanged.
+- **S1.6 Blanc permission prompt (F13), candidate macos-08744ec1266cd826
+  (2026-11-03):** F13-1 passes (it failed before). Patch 0015 (the newly
+  pinned `permission_prompt_factory.cc`) has Chromium's
+  PermissionRequestManager use Blanc's prompt in an Island window
+  (`permission_prompt.inc`): camera and microphone, location and
+  notifications are sent to the host, which shows shipping's own
+  `permission.html` (generated, in a host frame) bottom-centre over the
+  page, 560 × 84 as shipping's view, without taking focus; any other
+  request is denied without asking, as shipping's policy does. Answers go
+  through Chromium's own Accept/Deny, so they persist per origin; a request
+  that ends otherwise reloads the frame with the rest replayed. A probe
+  found the prompt hit-testing as the Island while clicks beside it and on
+  the page reach the page, the Island back to the strip after Allow, and no
+  second prompt after Allow. The page's Permissions API still reads
+  location as `prompt` after Allow because macOS has not granted the test
+  app location access; Chromium folds that in. F13-2 (microphone capture
+  chip) has no shipping step definitions. tabs-and-groups,
+  navigation-and-context-menu, internal-pages, ad-blocking,
+  find-favorites-history and island-and-commands are unchanged.
+- **S1.6 certificate safety under V8 (N5), candidate macos-2578c8367acd5017
+  (2026-11-03):** six of the seven site-certificate-safety cases pass
+  (all seven failed before). The snapshot reports each tab's certificate
+  state from its committed navigation entry (Chromium's warning page, or a
+  page continued past one), which the host gives shipping's `buildSiteInfo`,
+  so the badge and site controls report it; site controls' Stop allowing
+  revokes Chromium's decision for the host (`forgetCertificateException`,
+  RevokeUserAllowExceptionsHard). The fork's state names Chromium's warning
+  page as shipping's `blanc://error/?kind=certificate`, and three steps that
+  read shipping's own page are replaced under V8
+  (`tests/fork-steps/divergences.mjs`, checked by
+  `tests/divergences.test.mjs`): its wording, Proceed behind Advanced
+  instead of no way through for a public site, and Advanced then Proceed.
+  Patch 0016 (the newly pinned `website_settings_registry.cc`) keeps
+  private tabs' certificate decisions their own (owner, 2026-11-03).
+  F39-6 stays undefined: the fork has no parked-tab tier for Reopen Closed
+  Tab (F2). Regression on the Mac mini: ad-blocking, tabs-and-groups,
+  navigation-and-context-menu, private-tabs, permissions-and-auth and
+  internal-pages are unchanged; three hover-open cases in
+  island-and-commands (lines 61, 87, 99) failed there because the mini's
+  console had no frontmost app (a Migration Assistant setup session was
+  logged in). On the Mac Studio, against the same candidate (built there
+  from d85695e7 with the identical framework hash), all three pass, and
+  island-and-commands, tabs-and-groups, navigation-and-context-menu,
+  ad-blocking and find-favorites-history match F13. There, internal-pages'
+  F16-10 (Sunrise palette) got the dark Sunrise tokens (#17130f card,
+  #f7f0e5 text) because the Studio is in Dark mode; its expectation is the
+  light palette, so that case depends on the machine's appearance, not on
+  N5. The runner now refuses to start on a Node without a global WebSocket
+  (Node 20 had failed every case before the browser did anything).
+- **S1.6 inherited sandbox (N4), network privacy (N8), startup gate (N22)
+  and the address menu (F19), candidate macos-068f7d1291cabbbe
+  (2026-11-03):**
+  - N4 (V4), patch 0017: each tab records the sandbox flags it was born
+    with (an opener's propagating sandbox; Chromium's own inheritance keeps
+    them live) and keeps them in its session and Recently closed records
+    (`blanc.tab.inherited-sandbox.v1`). Restore creates the tab with them
+    (`starting_sandbox_flags`, which patch 0017 makes
+    `CreateWithSessionStorage` honour), and so does a discard's replacement;
+    Duplicate is refused and Quiet already refuses a sandboxed tab.
+    `tests/document-policy-smoke.mjs` passes for an opaque sandbox, a
+    same-origin sandbox and an unsandboxed control: live, reopened and
+    after a relaunch, the sandboxed children keep their flags, refuse
+    storage (opaque) and don't post forms, while the control is unmarked and
+    duplicates. Not checked: a Space switch (it rebuilds through the same
+    Recently-closed path), a discard's replacement (Quiet refuses these
+    tabs), and a malformed saved value (restores with every flag).
+  - N8 (V11), patch 0018: new profiles default to shipping's WebRTC policy
+    (`default_public_interface_only`); secure DNS stays Chromium's
+    automatic mode. `tests/network-privacy-smoke.mjs` passes.
+  - N22: verified, not built. `tests/startup-gate-smoke.mjs` passes: with the
+    blocker's bundle missing, the blocker reports unavailable and neither
+    the startup page nor a new tab reaches the server.
+  - F19: the Island address input's right-click is Blanc's native menu
+    (`IslandDelegate::HandleContextMenu`), shipping's address-menu-model
+    items in shipping's labels (generated in `menu_strings.h`); Copy Clean
+    Link cleans the field's text with shipping's clean-link.js and Paste
+    and Go goes through the host's typed navigation. Under `--blanc-test`,
+    Blanc's own clipboard actions (these, /copy and /invite) use an
+    in-memory board, never the owner's pasteboard. F19-2 and F19-3 pass
+    (both undefined before); F19-1 has no shipping step definitions. The
+    `openPanel` adapter now opens shipping's panel (the page's address in
+    the field) instead of the new-tab panel. The page link items (Open Link
+    in Glance or Space, Copy Clean Link) wait for Glance and Spaces.
+  - The patch set covers 91 files with 296 hunks. navigation-and-context-
+    menu, island-and-commands, tabs-and-groups, private-tabs, ad-blocking
+    and site-certificate-safety are otherwise unchanged.
+- **S1.7 settings sheet, candidate macos-61b9387a2d9a8841 (2026-11-04):** Settings opens
+  in a native sheet. The host draws shipping's scrim, card and close button
+  (`#settingsSheet`); a `views::WebView` sibling of the Island view, above
+  it, shows the page over the card's body, in the regular profile in either
+  window, with the autofill and password clients chrome://settings expects
+  (Chromium's SimpleWebViewDialog pattern). Escape the page doesn't use, a
+  scrim click, the ×, a tab switch and a new tab end it; anything it opens
+  outside itself becomes an ordinary tab. ⌘, and Chromium's Settings command
+  open it in an Island window (patch 0019). General and Blocking show Blanc's
+  own page there (`#embedded`, without its own scrim and card) until those
+  sections move into chrome://settings; Chromium's sections (search,
+  appearance, privacy and others) load chrome://settings itself. The host
+  measures the card only after it has grown, so a quick reopen no longer
+  gets a zero-height sheet. Verified by a probe on macos-80eb2099924c1845
+  (attached above the Island, sized to the card, focused; each way of
+  closing it; an outbound link as a tab) and by targeted runs on
+  macos-61b9387a2d9a8841: settings-and-theming matches its pre-sheet result,
+  internal-pages matches sh1, and island-and-commands matches s16c once
+  four Auto-hide pointer cases (241, 258, 276, 403), disturbed by the owner
+  using the machine during the run, passed alone, as did 573. The adapters
+  had read the page before it filled itself in: the page's address shows as
+  blanc://settings/, so the readiness wait never ran; it now asks the
+  document, in-sheet readers wait too, and a custom bang's add settles
+  before the sheet closes. `tests/window-snapshot.mjs` composites DevTools
+  captures into window screenshots without Screen Recording.
+- **S1.7 Chromium's settings sections, candidate macos-61b9387a2d9a8841 (2026-11-04):**
+  patch 0020 (`page_visibility.ts`, newly pinned: 92 upstream files) gives
+  every non-guest profile `{ai, people, safetyHub}: false`, so the Google
+  account and Sync section, AI and Safety Check are gone from the menu and
+  pages, and Chromium leaves their routes out: chrome://settings/people,
+  /syncSetup, /safetyCheck and /ai fall back to chrome://settings/. Every
+  reader treats a missing key as shown, so the other sections are
+  unchanged. A probe of the sheet confirmed the menu, the Privacy page
+  (no Safety Check, Sync or AI elements) and the four addresses;
+  settings-and-theming matches s17g. The build's dry run was 55 actions
+  (the Settings TypeScript chain plus per-language InfoPlist strings after
+  a manifest rebuild; no toolchain change), above the usual 50, so it was
+  reviewed and run once with `--max-actions=60`.
+- **S1.7 Blanc's controls in chrome://settings, candidate macos-b1e03720c5fd6337 (2026-11-04):**
+  the owner chose to put Blanc's settings into Chromium's matching
+  sections (not one Blanc section). Patch 0021 (eight newly pinned files,
+  100 in all) allowlists `blanc.island.hover_open`, `.auto_hide`,
+  `.auto_hide_style`, `blanc.bangs.enabled` and `blanc.blocking.enabled`
+  in settings_private, and adds the controls with `pref-key`: Appearance
+  gets Open the Island on hover, Auto-hide and (while Auto-hide is on) how
+  the Island comes back; Search engine gets Search suggestions (Chromium's
+  only switch for it was in the removed Sync section) and Bangs; Privacy
+  and security starts with Block ads & trackers. Their labels are
+  shipping's in each selectable language, generated into
+  `blanc/common/settings_strings.h` by `tools/settings-strings.mjs` and
+  added to the page's strings by settings_ui.cc. Their readers already
+  normalize what they read. A probe toggled each and saw Blanc's own page
+  follow; settings-and-theming matches s17g. Still to come: Your bangs,
+  the Blocking exceptions list and the interface language (validated
+  natively, so through a handler), then retiring blocking-settings.html.
+  Chromium's own Appearance rows that don't apply to the Island (toolbar,
+  bookmarks bar, tab strip, side panel) are still shown.
+- **S1.7 Blanc's lists and language in chrome://settings, candidate macos-1fa75f97ed921757 (2026-11-04):**
+  patch 0022 (three newly pinned files, 103 in all, plus a new
+  `blanc_settings_proxy.ts` in Settings' BUILD.gn) adds Your bangs under
+  Bangs, the sites that load without blocking under Block ads & trackers,
+  and the interface language (with Relaunch to apply) atop Languages.
+  They go through `ChromiumSettingsHandler`
+  (`blanc/browser/ui/chromium_settings_handler.inc`, registered on
+  SettingsUI), which applies shipping's rules natively: normalizeCustomBangs,
+  the duplicate check, the built-in a code replaces (read from the bundled
+  `pages/bangs-catalog.js`), host normalization (a host Chromium would
+  percent-escape is refused, as shipping's URL parser refuses it) and the
+  selectable languages. A probe added, refused and removed bangs ("Replaces
+  the built-in !a (Amazon.com)", "You already have !m.", the invalid-bang
+  message; the Island saw the list), added WWW.Example.com/x as example.com,
+  refused "not a host!", and switched the language with the relaunch offer
+  appearing and going; settings-and-theming matches s17g. The language menu
+  is unstyled and the Languages page still shows Google Translate; both for
+  the restyle. The BUILD.gn change needed `gn gen` (unchanged arguments,
+  same Xcode, SDK and Clang); `linker_driver.py`'s Oct 28 modification time
+  feeds GN's `TOOL_VERSION`, so the regenerated link lines relinked the Rust
+  host tools and about 15,000 dependent steps (the owner approved that
+  rebuild; about 50 minutes in all).
+- **S1.7 Blanc's settings page retired, candidate macos-db431e0fbc2791a9 (2026-11-04):**
+  Settings is chrome://settings alone. The sheet opens shipping's General at
+  its top and Blocking on Privacy and security; blocking-settings.html, its
+  six scripts and the two handlers that served it are gone (the checkout's
+  copies are in apply-backup-20261104-studio-s17-retire/removed). Privacy
+  and security now shows shipping's status line ("Blanc Blocker ready.",
+  refreshed while it starts and when the page is shown again). Owner
+  decisions: V12, a custom search address (and engines Chromium's Change
+  dialog lacks, such as Kagi) is added under Manage search engines; V13,
+  explanations show in full. The adapters drive chrome://settings as a
+  person does (the Change dialog, Mode, the switches, the lists, through
+  the sheet); F14-5's steps are V13 replacements. settings-and-theming
+  matches s17g with F14-5 now passing; island-and-commands matches s16c on
+  all 73 executed cases; internal-pages matches sh1, and 66 (Settings'
+  section marker following scrolling) now passes under V14 (owner,
+  November 4, 2026): chrome://settings's menu marks the page you are on, so
+  its replacement scrolls to the end, chooses Help in the menu (behind ☰
+  at the sheet's width) and checks that Help is marked and shown.
+- **S1.7 four remaining settings, candidate macos-8d8381846146471d (2026-11-04):**
+  patch 0023 registers `blanc.island.site_colors` (on),
+  `blanc.island.tab_icons` and `blanc.island.search_priority_results` (off)
+  and `blanc.appearance.surface_style` (sunrise), allowlists them, and adds
+  Match site colors, Show site icons on the Island and Surface style to
+  Appearance and Search priority results to Search engine. The Island reads
+  them from the snapshot (tab icons, priority results in the panel's open
+  payload); Match site colors off stops the page tint and clears it; the
+  page server appends pages-neutral.css (and a marker the Start Page's paint
+  reads) to pages.css under Neutral, and each window's Island handler
+  restyles its open Blanc pages in place, as shipping's RESTYLE_SCRIPT does.
+  A probe turned each on and saw it take effect (icons instead of dots, a
+  Neutral Start Page restyled with one stylesheet, no tint, the panel opened
+  with priority results); settings-and-theming, island-and-commands and
+  internal-pages match their last runs, and tabs-and-groups 356 (site icons)
+  passes through the new switch.
+- **S1.7 Call audio, candidate macos-960785b1fcb658e4 (2026-11-04):** V15
+  (owner): native in Blink. Patch 0024 (seven newly pinned files, 110 in
+  all) registers `blanc.webrtc.audio_buffer` (automatic; an unsynced
+  profile pref, so device-local as in shipping), carries shipping's targets
+  (automatic -1, stable 400 ms, resilient 1000 ms) in RendererPreferences,
+  refreshes open tabs through PrefWatcher, and has RTCRtpReceiver start each
+  new audio receiver with the target (a page's own jitterBufferTarget still
+  replaces it and reads as the page set it). Privacy and security shows Call
+  audio with shipping's three choices. The owner approved the rebuild it
+  needed (1,460 steps, 7 minutes). A probe moved an open tab's renderer
+  preference to 400, 1000 and back to -1 as the setting changed. Not yet
+  verified: a real call taking the target (the fixture gathers no ICE
+  candidates, even with Chromium's default policy and loopback allowed).
+  Settings-and-theming, island-and-commands and internal-pages match their
+  runs on macos-8d8381846146471d. Every S1.7 key is now built
+  (`tools/settings-keys.mjs` lists none to build).
+- **S1.7 restyle, candidate macos-5faa4ac34c4be46a (2026-11-04):** owner
+  decisions: chrome://settings wears shipping's sheet look under Surface
+  style, and Chromium rows that don't apply are hidden. Patch 0025 (five
+  newly pinned files, 115 in all) maps Sunrise or Neutral, light or dark,
+  onto Chromium's own color tokens from `blanc_settings_proxy.ts` (cream
+  canvas, white hairline cards, gold switches; ink and gray under Neutral),
+  sets Instrument Sans at width 98 and +0.01em (its bytes come from the
+  handler and load with FontFace, since chrome://settings can't fetch
+  Blanc's fonts), and insets Chromium's row lines 20px in shipping's border
+  colour (owner: inset hairlines). It hides, through Chromium's own
+  appearance visibility and flags where they exist (`showPrivacyGuide`,
+  `enableLiveTranslate`) and `hidden` elsewhere: Customize your toolbar,
+  Show home button, Bookmarks bar, the tab strip, tab search, tab group and
+  side panel rows, hover cards, split view drag-and-drop, Performance's two
+  tab-appearance rows, Related Google services, the Google Translate
+  section, Live Translate, and the Privacy Guide card and row. The sheet's
+  card follows Surface style too. A probe listed every page's rows with
+  those gone; settings-and-theming, island-and-commands and internal-pages
+  match their last runs. Chromium's own name still shows in a few strings
+  ("About Chromium", Default browser); that is branding, not this slice.
+- **Open question, file picker hang (2026-11-04):** the owner's live
+  instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
+  wallpaper. The hang report shows the UI thread inside AppKit's
+  `-[NSSavePanel _initBridgeAndStuff]`, waiting on the system open/save
+  panel service (Chromium's ordinary `SelectFileDialogBridge` path, from a
+  plain `<input type=file>`). The same click in an isolated fixture did not
+  hang, and the owner's retry in the relaunched live instance worked. Not
+  reproduced; if it recurs, compare the new hang report with this one.
+- **Live dev instance (owner, 2026-11-03):** after every native build,
+  `node chromium/tools/live-dev.mjs <runtime config>` relaunches the
+  newest candidate from a copy in `~/Projects/BlancChromium158/live/`,
+  with the persistent profile there, through `open -n`. It quits only
+  the live instance it started; the earlier `zoom-verified-158-20261030`
+  instance and its profile stay untouched.
 - **S1 baseline on macos-3f969a35b9f9f7ad (fork 82f8cd80), full run of
   2026-11-01:** 101 of the 253 S1 cases pass, 119 fail, 33 undefined. Every
   case that passed on macos-790ca4d6d538c894 (70) still passes; 31 earlier
@@ -316,15 +672,18 @@ Most failures on the previous candidate are real product gaps, clustered:
 - Private tabs refused (in-window private tabs not built yet; D1 decided): F4 and every case with a private step.
 - Facade gaps: Bangs disabled, no bangIcons, no beginRenameGroup, /allow-ads and
   /block-ads absent from the command list, search hard-coded to Google.
-- Utility pages open as Chromium manager tabs, not Blanc's sheet.
+- Settings opens as a tab, not in the utility sheet (S1.7).
 - Candidate-bound explicit failures (hooks declare the surface absent, re-check
-  when assets change): Mahjong reads (no Mahjong page), utility-sheet reads,
+  when assets change): Mahjong reads (no Mahjong page),
   Glance-card reads (Glance is a split preview).
 
 ## Native-versus-port decisions (owner, 2026-10-31)
 Recorded in the spec (§4, §9) and plan:
 - D1: port shipping's in-window private tabs (deep tab/profile patch, isolated
-  in `blanc/private/`). S1.4 unblocked.
+  in `blanc/private/`). Built in S1.4. Owner, 2026-11-02: private tabs use
+  Chromium's incognito profile (the window profile's primary off-the-record
+  profile); its session lasts until Blanc quits, as shipping's; ⌘⇧N opens a
+  private tab in the current window instead of an incognito window.
 - 2026-11-02: /reader is Chromium's Reading Mode, not shipping's reader.
 - Pinned tabs stay in their group, as shipped (custom change to Chromium's tab
   collections).
@@ -337,6 +696,33 @@ Recorded in the spec (§4, §9) and plan:
 - 2026-11-02: no built-in Dark Reader (F42 dark websites) in the Chromium
   builds. With the Chrome Web Store supported, people install Dark Reader
   themselves; F42's cases become an approved divergence, not a port.
+- 2026-11-03: Settings (S1.7) opens in a native sheet: Chromium's restyled
+  chrome://settings in its own native view, drawn as shipping's utility
+  sheet card over the page (scrim, card, Escape and ×), since it can't load
+  in an Island host frame. Not a tab, and not a port of shipping's page.
+  Blanc's own settings become sections inside chrome://settings, bound to
+  Blanc prefs, with Google, Sync, Safety Check and AI sections removed; the
+  separate Blanc page goes once they're in. S1.7 builds the S1 keys'
+  controls; its generated check accounts for every v1.45.1 key (present,
+  native, approved divergence, or a named later slice), and later slices add
+  their own controls.
+- 2026-11-03: the rest of S1.6 goes native. N4: only a tab that inherited
+  its opener's sandbox is marked (Chromium can read the flags; shipping
+  marks every page-opened tab), the mark keeps the flags in Chromium's
+  session and Recently closed records, and a marked tab that is rebuilt
+  loads its page again under them (`starting_sandbox_flags`) instead of the
+  inert page; this replaces the earlier inert-page decision (V4). N8: secure DNS follows Chromium's settings and provider
+  list (V11); WebRTC keeps shipping's policy through Chromium's preference.
+  N22: the native blocker's hold replaces shipping's cancel-and-replay, so
+  it is verified, not built. F19: Blanc's items go into Chromium's own page
+  context menu.
+- 2026-11-03: private tabs keep their own certificate decisions; Chromium's
+  inheritance of regular-tab decisions into incognito is turned off (patch
+  0016).
+- 2026-11-03: HTTP sign-in challenges (F20) are refused as shipping's are,
+  not shown in Chromium's credential dialog. Sandboxed page-opened tabs
+  (N4) keep Chromium's native sandbox inheritance (how a restored one
+  comes back: see the later N4 entry).
 - 2026-11-02: no 1Password SDK (F38 1Password fill) in the Chromium builds
   either; people install 1Password from the Chrome Web Store, so F38's
   cases become an approved divergence and /1password is not offered.
@@ -360,18 +746,23 @@ S1.1: `handoffs` (typed hand-offs recorded under --blanc-test),
 shipping's hover hooks), `setIslandAutoHide`, `autoHideState`,
 `setTestCursorPoint`, `setCursorSamplingUnavailable`, `captionAt` (the
 native window-drag answer at a point), `setIslandAutoHideStyle` and
-`holdIsland` (shipping's `holdIslandInWindow`). Identified, not
+`holdIsland` (shipping's `holdIslandInWindow`). Built for S1.4:
+`privateMenuItems` and `clickDockPrivateWindow` (macOS). Built for S1.6:
+`authChallenges`, `resetAuthChallenges`, `inheritedSandbox`,
+`networkPrivacy`, `addressMenuWired`, `addressMenu`, `runAddressMenuItem`,
+`setTestClipboard`, `testClipboard`. Identified, not
 built: sessionWindows (session.json-shaped projection); certificate decision
 list/forget/cap; history visit + site icon seed; favorite favicon seed;
 first-run/checklist/Patron/launch-Sunrise state once stored; address context menu
 list/run; overlay drag flag; microphone capture seed.
 
 ## Next
-1. S1.2 rest: zoom, and the browserAPI members the host doesn't answer
-   yet. Verify each change with targeted `--only` runs
-   merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
-   (~2 h) unless development can't continue without it; propose one with
-   the reason first.
+1. S1.7 (F14): every S1.7 key is built and checked against v1.45.1's
+   DEFAULTS (`tools/settings-keys.mjs`: none left to build), Blanc's sections
+   sit inside chrome://settings and blocking-settings.html is retired.
+   and the restyle is in. Deferred by the owner (2026-11-04): confirming
+   Call audio in a real call on a machine whose WebRTC can connect. PR
+   #1356 can merge into the fork branch without it.
 2. F0.3 identity spike in `blanc-test` once signing is approved; then S1 work in slice order, moving each
    group's handlers to the typed interface as its rows are worked. Re-run
    affected cases with --only and merge-baseline.mjs.
@@ -516,5 +907,5 @@ Android's Bar A will count the companion scenario set once Android steps are bou
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-587eefd4673fa213; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-5faa4ac34c4be46a; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

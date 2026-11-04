@@ -1,0 +1,184 @@
+diff --git a/chrome/browser/extensions/api/settings_private/prefs_util.cc b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+index 98d7b6d..396a370 100644
+--- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
++++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+@@ -223,6 +223,15 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
+   }
+   s_allowlist = new PrefsUtil::TypedPrefMap();
+ 
++  // Blanc's own controls (S1.7): the Island, Bangs and Blocking switches.
++  // Their readers normalize what they read, as for Blanc's own pages.
++  (*s_allowlist)["blanc.island.hover_open"] = settings_api::PrefType::kBoolean;
++  (*s_allowlist)["blanc.island.auto_hide"] = settings_api::PrefType::kBoolean;
++  (*s_allowlist)["blanc.island.auto_hide_style"] =
++      settings_api::PrefType::kString;
++  (*s_allowlist)["blanc.bangs.enabled"] = settings_api::PrefType::kBoolean;
++  (*s_allowlist)["blanc.blocking.enabled"] = settings_api::PrefType::kBoolean;
++
+   // Miscellaneous
+   (*s_allowlist)[::embedder_support::kAlternateErrorPagesEnabled] =
+       settings_api::PrefType::kBoolean;
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+index b2aaf8d..13a4478 100644
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+@@ -79,6 +79,30 @@ export function getHtml(this: SettingsAppearancePageElement) {
+         `)}
+       </select>
+     </div>
++    <!-- Blanc's Island (S1.7). -->
++    <settings-toggle-button id="blancIslandHoverOpen" class="hr"
++        pref-key="blanc.island.hover_open"
++        label="$i18n{blancIslandHoverOpen}"
++        sub-label="$i18n{blancIslandHoverOpenHint}">
++    </settings-toggle-button>
++    <settings-toggle-button id="blancIslandAutoHide" class="hr"
++        pref-key="blanc.island.auto_hide"
++        label="$i18n{blancIslandAutoHide}"
++        sub-label="$i18n{blancIslandAutoHideHint}">
++    </settings-toggle-button>
++    ${this.blancIslandAutoHidePref_?.value ? html`
++      <div id="blancIslandAutoHideStyleRow" class="cr-row">
++        <div class="flex cr-padded-text" aria-hidden="true">
++          <div>$i18n{blancIslandAutoHideStyle}</div>
++          <div class="secondary">$i18n{blancIslandAutoHideStyleHint}</div>
++        </div>
++        <settings-dropdown-menu id="blancIslandAutoHideStyle" no-label-float
++            pref-key="blanc.island.auto_hide_style"
++            label="$i18n{blancIslandAutoHideStyle}"
++            .menuOptions="${this.blancIslandAutoHideStyleOptions_}">
++        </settings-dropdown-menu>
++      </div>
++    ` : ''}
+     <div class="hr"
+         ?hidden="${!this.showHr_(
+             this.pageVisibility_.setTheme, this.pageVisibility_.homeButton)}">
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+index c8a9629..1e916a8 100644
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+@@ -147,6 +147,8 @@ export class SettingsAppearancePageElement extends
+       pinSplitTabButtonPref_: {type: Object},
+       showForwardButtonPref_: {type: Object},
+       showHomeButtonPref_: {type: Object},
++      blancIslandAutoHidePref_: {type: Object},
++      blancIslandAutoHideStyleOptions_: {type: Array},
+       sidePanelAlignmentOverridesPref_: {type: Object},
+       sidePanelIsRightAlignedPref_: {type: Object},
+       themeIdPref_: {type: Object},
+@@ -210,6 +212,16 @@ export class SettingsAppearancePageElement extends
+       undefined;
+   protected accessor showHomeButtonPref_: PrefObject<boolean>|undefined =
+       undefined;
++  // Blanc's Island (S1.7): how a hidden Island comes back.
++  protected accessor blancIslandAutoHidePref_: PrefObject<boolean>|undefined =
++      undefined;
++  protected accessor blancIslandAutoHideStyleOptions_: DropdownMenuOptionList =
++      [
++        {value: 'float',
++         name: loadTimeData.getString('blancIslandAutoHideStyleFloat')},
++        {value: 'push',
++         name: loadTimeData.getString('blancIslandAutoHideStylePush')},
++      ];
+   protected accessor sidePanelAlignmentOverridesPref_:
+       PrefObject<Record<string, boolean>>|undefined = undefined;
+   protected accessor sidePanelIsRightAlignedPref_: PrefObject<boolean>|
+@@ -337,6 +349,7 @@ export class SettingsAppearancePageElement extends
+       'browser.pin_split_tab_button': 'pinSplitTabButtonPref_',
+       'browser.show_forward_button': 'showForwardButtonPref_',
+       'browser.show_home_button': 'showHomeButtonPref_',
++      'blanc.island.auto_hide': 'blancIslandAutoHidePref_',
+       'extensions.theme.id': 'themeIdPref_',
+       // <if expr="is_linux">
+       'extensions.theme.system_theme': 'themeSystemThemePref_',
+diff --git a/chrome/browser/resources/settings/privacy_page/privacy_page.html b/chrome/browser/resources/settings/privacy_page/privacy_page.html
+index 71101c5..507dfb1 100644
+--- a/chrome/browser/resources/settings/privacy_page/privacy_page.html
++++ b/chrome/browser/resources/settings/privacy_page/privacy_page.html
+@@ -10,7 +10,13 @@
+           @close="${this.onPrivacyGuideDialogClose_}">
+       </settings-privacy-guide-dialog>
+     ` : ''}
+-    <cr-link-row id="clearBrowsingData"
++    <!-- Blanc's Blocking (S1.7). -->
++    <settings-toggle-button id="blancBlocking" class="first"
++        pref-key="blanc.blocking.enabled"
++        label="$i18n{blancBlocking}"
++        sub-label="$i18n{blancBlockingHint}">
++    </settings-toggle-button>
++    <cr-link-row id="clearBrowsingData" class="hr"
+         start-icon="cr:delete"
+         label="$i18n{clearBrowsingData}"
+         sub-label="$i18n{clearBrowsingDataDescription}"
+diff --git a/chrome/browser/resources/settings/privacy_page/privacy_page.ts b/chrome/browser/resources/settings/privacy_page/privacy_page.ts
+index b3ecabf..7801ee3 100644
+--- a/chrome/browser/resources/settings/privacy_page/privacy_page.ts
++++ b/chrome/browser/resources/settings/privacy_page/privacy_page.ts
+@@ -13,6 +13,7 @@ import 'chrome://resources/cr_elements/cr_toast/cr_toast.js';
+ import '../icons.html.js';
+ import '../privacy_icons.html.js';
+ import '../settings_page/settings_section.js';
++import '../controls/settings_toggle_button.js';  // Blanc (S1.7)
+ import './privacy_guide/privacy_guide_dialog.js';
+ 
+ import {PrefServiceObserverMixinLit} from '/shared/settings/prefs2/pref_service_observer_mixin_lit.js';
+diff --git a/chrome/browser/resources/settings/search_page/search_page.html.ts b/chrome/browser/resources/settings/search_page/search_page.html.ts
+index 5eadb05..2810a33 100644
+--- a/chrome/browser/resources/settings/search_page/search_page.html.ts
++++ b/chrome/browser/resources/settings/search_page/search_page.html.ts
+@@ -61,6 +61,18 @@ export function getHtml(this: SettingsSearchPageElement) {
+         <div>${this.confirmationToastLabel_}</div>
+       </cr-toast>
+     </div>
++    <!-- Blanc (S1.7): suggestions, whose only switch was in the removed
++         Sync section, and Bangs. -->
++    <settings-toggle-button id="blancSearchSuggestions" class="hr"
++        pref-key="search.suggest_enabled"
++        label="$i18n{blancSearchSuggestions}"
++        sub-label="$i18n{blancSearchSuggestionsHint}">
++    </settings-toggle-button>
++    <settings-toggle-button id="blancBangs" class="hr"
++        pref-key="blanc.bangs.enabled"
++        label="$i18n{blancBangs}"
++        sub-label="$i18n{blancBangsHint}">
++    </settings-toggle-button>
+     ${this.defaultSearchProviderDataPref_?.extensionId ? html`
+       ${this.searchSettingsUpdateEnabled_ ? html`
+         <div class="cr-row">
+diff --git a/chrome/browser/resources/settings/search_page/search_page.ts b/chrome/browser/resources/settings/search_page/search_page.ts
+index 4ff134a..72435f9 100644
+--- a/chrome/browser/resources/settings/search_page/search_page.ts
++++ b/chrome/browser/resources/settings/search_page/search_page.ts
+@@ -16,6 +16,7 @@ import './search_engine_icon.js';
+ import './search_engine_list_dialog.js';
+ import './search_engine_more_engines_dialog.js';
+ import '../settings_page/settings_section.js';
++import '../controls/settings_toggle_button.js';  // Blanc (S1.7)
+ 
+ import {PrefServiceObserverMixinLit} from '/shared/settings/prefs2/pref_service_observer_mixin_lit.js';
+ import type {CrToastElement} from 'chrome://resources/cr_elements/cr_toast/cr_toast.js';
+diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
+index 1437a64..d02cd2b 100644
+--- a/chrome/browser/ui/webui/settings/settings_ui.cc
++++ b/chrome/browser/ui/webui/settings/settings_ui.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "chrome/browser/ui/webui/settings/settings_ui.h"
+ 
++#include "blanc/common/settings_strings.h"
++
+ #include <stddef.h>
+ 
+ #include <memory>
+@@ -269,6 +271,11 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+   html_source->OverrideContentSecurityPolicy(
+       network::mojom::CSPDirectiveName::WorkerSrc,
+       "worker-src blob: chrome://resources 'self';");
++  // Blanc's own controls (S1.7), in the application locale.
++  for (const auto& string : blanc::settings::ForLocale(
++           g_browser_process->GetApplicationLocale())) {
++    html_source->AddString(string.name, std::u16string(string.value));
++  }
+ 
+   AddSettingsPageUIHandler(std::make_unique<AppearanceHandler>(web_ui));
+ 
