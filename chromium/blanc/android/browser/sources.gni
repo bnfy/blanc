@@ -1,0 +1,8 @@
+# Copyright 2026 Bananify Creative. MIT; see LICENSE.
+# chrome://blanc/ (A1 plan, Task 6). Patch 0105 compiles these inside
+# //chrome/browser/ui/webui:configs, which registers the config: a target of
+# their own would depend on //chrome/browser, which depends on configs.
+blanc_android_browser_sources = [
+  "//blanc/android/browser/blanc_pages_ui.cc",
+  "//blanc/android/browser/blanc_pages_ui.h",
+]

@@ -7,7 +7,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const sharp = require('sharp');
-const { ANDROID_RES_DIR, DENSITIES, ADAPTIVE_DP, SAFE_ZONE_DP, LEGACY_DP } = require('../../scripts/android-app-icons');
+const { ANDROID_RES_DIR, ISLAND_RES_DIR, DENSITIES, ADAPTIVE_DP, SAFE_ZONE_DP, LEGACY_DP } = require('../../scripts/android-app-icons');
 
 const ROOT = path.join(__dirname, '../..');
 const res = (...parts) => path.join(ROOT, ANDROID_RES_DIR, ...parts);
@@ -50,6 +50,14 @@ test('the monochrome layer is one ink color', async () => {
   const { data } = await sharp(res('drawable-xxxhdpi', 'themed_app_icon.png')).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   for (let i = 0; i < data.length; i += 4) {
     if (data[i + 3] > 128) assert.ok([0, 1, 2].every((c) => Math.abs(data[i + c] - 14) <= 1), `pixel ${i / 4} is ${data.slice(i, i + 3).join(',')}`);
+  }
+});
+
+test('the Island mark is the ink silhouette at 22dp, as the iPhone draws it', async () => {
+  const expected = { mdpi: 22, hdpi: 33, xhdpi: 44, xxhdpi: 66, xxxhdpi: 88 };
+  for (const [density, size] of Object.entries(expected)) {
+    const { width, height } = await sharp(path.join(ROOT, ISLAND_RES_DIR, `drawable-${density}`, 'blanc_island_mark.png')).metadata();
+    assert.deepEqual([width, height], [size, size], density);
   }
 });
 

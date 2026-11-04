@@ -29,8 +29,8 @@
           "basis": "no fork build"
         },
         "android": {
-          "stage": "not-started",
-          "basis": "no fork build"
+          "stage": "implemented",
+          "basis": "A1 Island on the emulator (tests/android/a1-gate.sh, 2026-11-04); Pixel hands-on pending"
         }
       }
     },
@@ -66,7 +66,7 @@
     },
     {
       "id": "F3",
-      "requirement": "Groups: names, case rules, optional color, group menu, ⌘1–9 clusters",
+      "requirement": "Groups: names, case rules, optional color, group menu, \u23181\u20139 clusters",
       "slice": "S1",
       "legacyMacState": "Integrated in an isolated candidate",
       "platformVerification": {
@@ -187,7 +187,7 @@
     {
       "id": "F7",
       "requirement": "34 slash commands with shipping names and hints",
-      "slice": "S1–S5",
+      "slice": "S1\u2013S5",
       "legacyMacState": "Integrated (partial: some commands)",
       "platformVerification": {
         "macos": null,
@@ -479,8 +479,8 @@
           "basis": "no fork build"
         },
         "android": {
-          "stage": "not-started",
-          "basis": "no fork build"
+          "stage": "implemented",
+          "basis": "A1 pages at chrome://blanc/ (pages-phone.mjs 37/37, 2026-11-04); Pixel hands-on pending"
         }
       }
     },

@@ -12,12 +12,17 @@
 const sharp = require('sharp');
 
 const ANDROID_RES_DIR = 'chromium/blanc/android/res';
+// The Island's own resources (chromium/blanc/android/BUILD.gn: island_view_resources).
+const ISLAND_RES_DIR = 'chromium/blanc/android/island/res';
 const DENSITIES = Object.freeze([['mdpi', 1], ['hdpi', 1.5], ['xhdpi', 2], ['xxhdpi', 3], ['xxxhdpi', 4]]);
 // Adaptive layers are 108dp; launchers mask them to any shape inside the
 // central 72dp, and only a 66dp circle is guaranteed visible.
 const ADAPTIVE_DP = 108;
 const SAFE_ZONE_DP = 66;
 const LEGACY_DP = 48;
+// The Sunrise mark on the Island, drawn at 22 as the iPhone draws it
+// (IslandMarkButton.swift); the view tints it with the Island's text color.
+const ISLAND_MARK_DP = 22;
 // The mark's trimmed box fits inside this share of the safe-zone circle's
 // diameter, measured on its corners, so no launcher shape clips a ray.
 const MARK_DIAMETER_SHARE = 0.92;
@@ -69,6 +74,12 @@ async function legacy(mark, size) {
 // The adaptive background: the field, edge to edge.
 const background = (size) => sharp({ create: { width: size, height: size, channels: 3, background: FIELD } }).png(PNG).toBuffer();
 
+// The ink silhouette fitted into a square, for tinting.
+async function islandMark(ink, size) {
+  const fitted = await sharp(ink).resize(size, size, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 }, kernel: sharp.kernel.lanczos3 }).png().toBuffer();
+  return sharp(fitted).png(PNG).toBuffer();
+}
+
 // Every generated file, by repository path. The monochrome layer uses the ink
 // silhouette, whose disc-to-horizon hairline is closed (build-brand-assets.js).
 async function androidAppIconFiles(master, inkMotif) {
@@ -81,8 +92,9 @@ async function androidAppIconFiles(master, inkMotif) {
     files[`${dir}/layered_app_icon.png`] = await foreground(mark, px(ADAPTIVE_DP, scale));
     files[`${dir}/layered_app_icon_background.png`] = await background(px(ADAPTIVE_DP, scale));
     files[`${ANDROID_RES_DIR}/drawable-${density}/themed_app_icon.png`] = await foreground(ink, px(ADAPTIVE_DP, scale), INK);
+    files[`${ISLAND_RES_DIR}/drawable-${density}/blanc_island_mark.png`] = await islandMark(ink, px(ISLAND_MARK_DP, scale));
   }
   return files;
 }
 
-module.exports = { ANDROID_RES_DIR, DENSITIES, ADAPTIVE_DP, SAFE_ZONE_DP, LEGACY_DP, androidAppIconFiles };
+module.exports = { ANDROID_RES_DIR, ISLAND_RES_DIR, DENSITIES, ADAPTIVE_DP, SAFE_ZONE_DP, LEGACY_DP, androidAppIconFiles };

@@ -2,10 +2,17 @@
   "upstream": "a21ce95c24ce3964416f09ae1862f53f319eb4d0",
   "selection": "A0: identity (0101) and Google background services off (0102)",
   "upstreamFiles": {
-    "chrome/android/BUILD.gn": "b06d7baf8d3e24a89b74c91805ec991a15547bf69a6f4627a7a56845c9e5731a",
+    "BUILD.gn": "ba3c60db8985e2f68fe3cb4852605340141e8399a0014bc64c0d801e919bd9b8",
+    "chrome/android/BUILD.gn": "36ba3d6d500e12544da337d116f1f9ae540273b8ea5f8611433dc30551999205",
     "chrome/android/java/res_base/drawable/ic_launcher.xml": "0a7b0fe2ae98d76b45db4c24397a36bf2eff0475882320a8dfd584ae2de9a495",
     "chrome/android/java/res_base/drawable/ic_launcher_round.xml": "0a7b0fe2ae98d76b45db4c24397a36bf2eff0475882320a8dfd584ae2de9a495",
     "chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java": "af19c62f69bf27963e11e3886e7cb4c4a74e9282e726b7d1d768da3039339996",
+    "chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java": "da590b8b301b14465d060a9154b1054c3530b5f4b17b6f5afaecfb2b0ad8488b",
+    "chrome/browser/flags/android/chrome_feature_list.cc": "dd83ae9e29c40fcf2e87ecf6b2c086f629be348c07fd53d65b39d24590a461a5",
+    "chrome/browser/flags/android/java/src/org/chromium/chrome/browser/flags/ChromeFeatureList.java": "d8a5eeba9a9c1d93942693ba6c735e540a86bd6d11d052447120238a3da27eba",
+    "chrome/browser/ui/webui/BUILD.gn": "b18afbde19349da54bf1c1b1a3c60395eeeaa4fd3831649ba4da183e475e0c34",
+    "chrome/browser/ui/webui/chrome_web_ui_configs.cc": "4b39a589f9b1489f02737a0575656dfa6941f029a0a7901c94aed7077b298f8d",
+    "chrome/browser/url_constants/android/java/src/org/chromium/chrome/browser/url_constants/UrlConstantResolverFactory.java": "726a662752eec8f58339d776ab9d1cb05d44fd583e5c729d70b02b0a1d778b2b",
     "components/signin/internal/identity_manager/gaia_cookie_manager_service.cc": "200c1428ec0e4616276f91d9e0221dc90deeb2c6f60ad224e03035be109d6463"
   }
 }
