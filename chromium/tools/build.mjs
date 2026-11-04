@@ -84,6 +84,32 @@ export function outputName(options) {
     throw new Error('Use one --out=BlancPrototype or --out=BlancRelease.');
   return values[0].slice('--out='.length);
 }
+// The lane decides the output, the target and the machine. Desktop keeps its
+// defaults; Android (chromium/android/) builds the APK on x86-64 Linux only.
+export const ANDROID_OUTPUTS = ['AndroidDebug', 'AndroidDebugX64'];
+export function buildLane(options) {
+  const lanes = options.filter(option => option.startsWith('--lane='));
+  if (lanes.length > 1 || (lanes.length && !['--lane=desktop', '--lane=android'].includes(lanes[0])))
+    throw new Error('Use one --lane=desktop or --lane=android.');
+  const lane = lanes.length ? lanes[0].slice('--lane='.length) : 'desktop';
+  if (lane === 'desktop') return { lane, out: outputName(options), target: 'chrome' };
+  if (options.some(option => option.startsWith('--sdk-root='))) throw new Error('--sdk-root is a macOS option; the Android lane has none.');
+  const values = options.filter(option => option.startsWith('--out='));
+  if (values.length > 1 || (values.length && !ANDROID_OUTPUTS.includes(values[0].slice('--out='.length))))
+    throw new Error(`Use one --out=${ANDROID_OUTPUTS.join(' or --out=')} with --lane=android.`);
+  return { lane, out: values.length ? values[0].slice('--out='.length) : ANDROID_OUTPUTS[0], target: 'chrome_public_apk' };
+}
+export function requireAndroidHost(platform = process.platform, arch = process.arch) {
+  if (platform !== 'linux' || arch !== 'x64') throw new Error(`The Android lane builds only on x86-64 Linux (this is ${platform} ${arch}). No build started.`);
+}
+// Also catches legacy invocations outside this wrapper. Be conservative
+// across checkouts because a second browser compile competes for the machine.
+export function competingBuild(processList) {
+  return processList.split('\n').some(line => /(?:^|\/)siso\s+ninja(?:\s|$)/.test(line));
+}
+export function processListArgs(platform = process.platform) {
+  return platform === 'darwin' ? ['-axo', 'comm=,args='] : ['-eo', 'comm=,args='];
+}
 export function localJobs(options) {
   const values = options.filter(option => option.startsWith('--local-jobs='));
   if (!values.length) return [];
@@ -120,6 +146,22 @@ export function selectedSdk(options, out) {
   }
   return root;
 }
+// The Android lane's pinned inputs: Chromium's own clang, JDK, SDK build
+// tools and NDK (the NDK's version is in its README.chromium).
+function androidEnvironment(src, out) {
+  const env = { ...process.env, DEPOT_TOOLS_UPDATE: '0' };
+  const read = file => fs.readFileSync(path.join(src, file), 'utf8').trim();
+  const inputs = {
+    host: `${process.platform} ${process.arch}`,
+    clangRevision: read('third_party/llvm-build/Release+Asserts/cr_build_revision'),
+    clangVersion: run(path.join(src, 'third_party/llvm-build/Release+Asserts/bin/clang'), ['--version']),
+    jdk: run(path.join(src, 'third_party/jdk/current/bin/java'), ['-version']),
+    sdkBuildTools: fs.readdirSync(path.join(src, 'third_party/android_sdk/public/build-tools')).sort().join(' '),
+    ndk: /^Version:\s*(\S+)/m.exec(read('third_party/android_toolchain/README.chromium'))?.[1] ?? 'unknown',
+    argsSha256: digest(fs.readFileSync(path.join(out, 'args.gn'))),
+  };
+  return { inputs, env };
+}
 function environment(src, out, sdkRoot = null) {
   const developerDir = fs.realpathSync(process.env.DEVELOPER_DIR || run('/usr/bin/xcode-select', ['-p']));
   const env = { ...process.env, DEVELOPER_DIR: developerDir, DEPOT_TOOLS_UPDATE: '0' };
@@ -146,8 +188,8 @@ function environment(src, out, sdkRoot = null) {
 function main() {
   const [source, ...options] = process.argv.slice(2);
   const allowed = new Set(['--check', '--build', '--record-environment', '--allow-large-build', '--reject-buildflags']);
-  if (!source || options.some(option => !allowed.has(option) && !option.startsWith('--local-jobs=') && !option.startsWith('--out=') && !option.startsWith('--sdk-root=') && !option.startsWith('--max-actions='))) {
-    throw new Error('Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--reject-buildflags] [--max-actions=N] [--local-jobs=N] [--out=BlancPrototype|BlancRelease] [--sdk-root=ABSOLUTE_PATH]');
+  if (!source || options.some(option => !allowed.has(option) && !option.startsWith('--local-jobs=') && !option.startsWith('--out=') && !option.startsWith('--lane=') && !option.startsWith('--sdk-root=') && !option.startsWith('--max-actions='))) {
+    throw new Error('Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--reject-buildflags] [--max-actions=N] [--local-jobs=N] [--lane=desktop|android] [--out=BlancPrototype|BlancRelease|AndroidDebug|AndroidDebugX64] [--sdk-root=ABSOLUTE_PATH]');
   }
   const workerArgs = localJobs(options);
   const maxActions = maximumActions(options);
@@ -155,25 +197,24 @@ function main() {
   if (modes.length > 1) throw new Error('Choose one mode.');
   const mode = modes[0] || '--check';
   const src = fs.realpathSync(source);
-  const outName = outputName(options);
+  const { lane, out: outName, target } = buildLane(options);
+  if (lane === 'android') requireAndroidHost();
   const out = path.join(src, 'out', outName);
   const pinFile = path.join(out, '.blanc-build-environment.json');
   const lock = path.join(out, '.blanc-build-guard.lock');
-  const { inputs, env } = environment(src, out, selectedSdk(options, out));
+  const observe = () => lane === 'android' ? androidEnvironment(src, out) : environment(src, out, selectedSdk(options, out));
+  const { inputs, env } = observe();
   if (mode === '--record-environment') {
     // A declared baseline, never a claim that the build passed. Recording is
     // separate from compilation and cannot bypass the large-plan guard.
     fs.writeFileSync(pinFile, JSON.stringify(inputs, null, 2) + '\n');
-    console.log(`Recorded build environment: ${pinFile}\n${inputs.xcode}\nNo build started.`);
+    console.log(`Recorded build environment: ${pinFile}\n${inputs.xcode ?? inputs.jdk}\nNo build started.`);
     return;
   }
   if (!fs.existsSync(pinFile)) throw new Error('No pinned environment. Review the toolchain and record it with --record-environment first.');
   const changed = changedInputs(JSON.parse(fs.readFileSync(pinFile, 'utf8')), inputs);
   if (changed.length) throw new Error(`Build inputs changed: ${changed.join(', ')}. Review the cache impact before recording a new environment. No build started.`);
-  // Also catches legacy invocations outside this wrapper. Be conservative
-  // across checkouts because a second browser compile competes for this Mac.
-  const commands = run('/bin/ps', ['-axo', 'comm=,args=']);
-  if (commands.split('\n').some(line => /(?:^|\/)siso\s+ninja(?:\s|$)/.test(line))) {
+  if (competingBuild(run('/bin/ps', processListArgs()))) {
     throw new Error('A Siso build is already running. Wait for it; no competing build or dry run started.');
   }
   fs.mkdirSync(lock);
@@ -184,7 +225,7 @@ function main() {
     const planFd = fs.openSync(planFile, 'w');
     let result;
     try {
-      result = spawnSync(siso, [...args, '-n', 'chrome'], {
+      result = spawnSync(siso, [...args, '-n', target], {
         cwd: src, env, stdio: ['ignore', planFd, planFd],
       });
     } finally {
@@ -198,16 +239,19 @@ function main() {
     if (mode !== '--build') { console.log('Check only; no compilation started.'); return; }
     // Re-resolve the selected sysroot as well as re-reading the environment:
     // the SDK link or graph may have changed during the dry run.
-    if (changedInputs(inputs, environment(src, out, selectedSdk(options, out)).inputs).length) {
+    if (changedInputs(inputs, observe().inputs).length) {
       throw new Error('Build environment changed during preflight. No build started.');
     }
     if (!actions) return;
-    const build = spawnSync('/usr/bin/caffeinate', ['-i', siso, ...args, 'chrome'], { cwd: src, env, stdio: 'inherit' });
+    const build = process.platform === 'darwin'
+      ? spawnSync('/usr/bin/caffeinate', ['-i', siso, ...args, target], { cwd: src, env, stdio: 'inherit' })
+      : spawnSync(siso, [...args, target], { cwd: src, env, stdio: 'inherit' });
     if (build.error) throw build.error;
     if (build.status !== 0) throw new Error(`Build did not complete successfully (${build.status ?? build.signal}). Cached work was preserved.`);
     fs.writeFileSync(path.join(out, '.blanc-last-successful-build.json'), JSON.stringify({ inputs, completedAt: new Date().toISOString() }, null, 2) + '\n');
-    // Only the preview build is the tracked candidate.
-    if (outName === 'BlancPrototype') run(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), 'progress.mjs'), `--candidate-from-output=${out}`]);
+    // Only the preview build is the tracked desktop candidate. The Android
+    // candidate is recorded once the tracker holds Android candidates (A0 task 7).
+    if (lane === 'desktop' && outName === 'BlancPrototype') run(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), 'progress.mjs'), `--candidate-from-output=${out}`]);
   } finally {
     fs.rmdirSync(lock);
   }

@@ -1,0 +1,223 @@
+diff -ruN a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
+--- a/chrome/android/BUILD.gn
++++ b/chrome/android/BUILD.gn
+@@ -531,6 +531,9 @@
+       "//chrome/browser/sync/android:java",
+       "//chrome/browser/sync/android:ui_java",
+       "//chrome/browser/sync/synced_set_up/android:java",
++      "//blanc/android:island_java",  # Blanc (patch 0104)
++      "//blanc/android:island_ui_java",
++      "//blanc/android:island_view_java",
+       "//chrome/browser/tab:java",
+       "//chrome/browser/tab_group_suggestion:java",
+       "//chrome/browser/tab_group_suggestion:toolbar_java",
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
+@@ -57,6 +57,7 @@
+ import org.chromium.build.BuildConfig;
+ import org.chromium.build.annotations.EnsuresNonNull;
+ import org.chromium.build.annotations.NullMarked;
++import org.chromium.blanc.island.IslandCoordinator;
+ import org.chromium.build.annotations.Nullable;
+ import org.chromium.chrome.R;
+ import org.chromium.chrome.browser.ActivityTabProvider;
+@@ -198,6 +199,7 @@
+ import org.chromium.chrome.browser.sync.synced_set_up.CrossDeviceSettingImporter;
+ import org.chromium.chrome.browser.tab.RequestDesktopUtils;
+ import org.chromium.chrome.browser.tab.Tab;
++import org.chromium.chrome.browser.tab.TabLaunchType;
+ import org.chromium.chrome.browser.tab.TabAssociatedApp;
+ import org.chromium.chrome.browser.tab.TabFavicon;
+ import org.chromium.chrome.browser.tab.TabSelectionType;
+@@ -755,6 +757,12 @@
+ 
+         getAppBrowserControlsVisibilityDelegate()
+                 .addDelegate(browserControlsManager.getBrowserVisibilityDelegate());
++        // Blanc (patch 0104): Chrome's toolbar stays hidden and the page gets the whole screen;
++        // Blanc's Island floats over it (docs/android/a1-island-spike.md).
++        getAppBrowserControlsVisibilityDelegate()
++                .addDelegate(
++                        new org.chromium.components.browser_ui.util.BrowserControlsVisibilityDelegate(
++                                org.chromium.cc.input.BrowserControlsState.HIDDEN));
+         mRootUiTabObserver = new RootUiTabObserver(tabProvider);
+         mGestureNavLayoutObserver =
+                 new LayoutStateProvider.LayoutStateObserver() {
+@@ -885,6 +893,10 @@
+     @Override
+     @SuppressWarnings({"NullAway", "UseSharedPreferencesManagerFromChromeCheck"})
+     public void onDestroy() {
++        if (mBlancIsland != null) {
++            mBlancIsland.destroy();
++            mBlancIsland = null;
++        }
+         if (mVerticalTabsPreferenceListener != null) {
+             ContextUtils.getAppSharedPreferences()
+                     .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
+@@ -1293,9 +1305,154 @@
+         }
+     }
+ 
++    // The Island's address sheet (A1 Task 5): Blanc's own pages open it empty, as the iPhone's
++    // palette does; an app link goes to Android, whose chooser asks which app.
++    private void showBlancAddressSheet() {
++        Tab tab = mActivityTabProvider.get();
++        String scheme = tab == null ? "" : tab.getUrl().getScheme();
++        String current =
++                tab == null || scheme.equals("chrome") || scheme.equals("chrome-native")
++                        ? ""
++                        : tab.getUrl().getSpec();
++        if (mBlancIsland != null) mBlancIsland.setSheetOpen(true);
++        org.chromium.blanc.address.AddressSheet sheet =
++                org.chromium.blanc.address.AddressSheet.show(
++                        mActivity,
++                        current,
++                        url -> {
++                            if (org.chromium.blanc.address.AddressInput.interpret(url).kind
++                                    == org.chromium.blanc.address.AddressInput.Kind.HANDOFF) {
++                                try {
++                                    mActivity.startActivity(
++                                            new android.content.Intent(
++                                                    android.content.Intent.ACTION_VIEW,
++                                                    android.net.Uri.parse(url)));
++                                } catch (android.content.ActivityNotFoundException e) {
++                                    // No app handles it: nothing opens, as on the iPhone.
++                                }
++                            } else if (tab != null) {
++                                tab.loadUrl(
++                                        new org.chromium.content_public.browser.LoadUrlParams(
++                                                url,
++                                                org.chromium.ui.base.PageTransition.TYPED
++                                                        | org.chromium.ui.base.PageTransition
++                                                                .FROM_ADDRESS_BAR));
++                            }
++                        });
++        sheet.setOnDismissListener(
++                d -> {
++                    if (mBlancIsland != null) mBlancIsland.setSheetOpen(false);
++                });
++    }
++
++    // The Sunrise menu (A1 Task 7): Favorites, Share and New Private Tab, as on the iPhone.
++    private void showBlancMenu(View anchor, Tab tab) {
++        GURL url = tab.getUrl();
++        BookmarkModel bookmarks = BookmarkModel.getForProfile(tab.getProfile().getOriginalProfile());
++        org.chromium.blanc.island.IslandMenu.Context context =
++                new org.chromium.blanc.island.IslandMenu.Context();
++        context.startPage = url.getSpec().startsWith("chrome://blanc/newtab.html");
++        context.blockableSite = UrlUtilities.isHttpOrHttps(url);
++        context.privateTab = tab.isIncognito();
++        context.canFavorite = bookmarks.isBookmarkModelLoaded();
++        context.favorite = context.canFavorite && bookmarks.isBookmarked(url);
++        org.chromium.blanc.island.IslandMenuPopup.show(
++                anchor,
++                context,
++                new org.chromium.blanc.island.IslandMenuPopup.Actions() {
++                    @Override
++                    public void toggleFavorite() {
++                        org.chromium.components.bookmarks.BookmarkId saved =
++                                bookmarks.getMostRecentlyAddedUserBookmarkIdForUrl(url);
++                        if (saved != null) {
++                            bookmarks.deleteBookmark(saved);
++                            return;
++                        }
++                        org.chromium.components.bookmarks.BookmarkId folder =
++                                bookmarks.getMobileFolderId();
++                        if (folder == null) return;
++                        bookmarks.addBookmark(
++                                folder, bookmarks.getChildCount(folder), tab.getTitle(), url);
++                    }
++
++                    @Override
++                    public void share() {
++                        Intent send =
++                                new Intent(Intent.ACTION_SEND)
++                                        .setType("text/plain")
++                                        .putExtra(Intent.EXTRA_TEXT, url.getSpec());
++                        mActivity.startActivity(Intent.createChooser(send, null));
++                    }
++
++                    @Override
++                    public void newPrivateTab() {
++                        mTabCreatorManagerSupplier
++                                .asNonNull()
++                                .get()
++                                .getTabCreator(true)
++                                .launchNtp(TabLaunchType.FROM_CHROME_UI);
++                    }
++                });
++    }
++
++    // Blanc's Island (patch 0104), created once native is ready.
++    private @Nullable IslandCoordinator mBlancIsland;
++
++    private void createBlancIsland() {
++        TabModelSelector selector = mTabModelSelectorSupplier.asNonNull().get();
++        mBlancIsland =
++                new IslandCoordinator(
++                        mActivity,
++                        mActivityTabProvider.asObservable(),
++                        selector,
++                        mWindowAndroid.getInsetObserver(),
++                        new IslandCoordinator.Callbacks() {
++                            @Override
++                            public void onMenu(View anchor) {
++                                Tab tab = mActivityTabProvider.get();
++                                if (tab != null) showBlancMenu(anchor, tab);
++                            }
++
++                            @Override
++                            public void onAddress() {
++                                showBlancAddressSheet();
++                            }
++
++                            @Override
++                            public void onTabs() {
++                                // The tab grid (A2).
++                            }
++
++                            @Override
++                            public void onNewTab() {
++                                mTabCreatorManagerSupplier
++                                        .asNonNull()
++                                        .get()
++                                        .getTabCreator(selector.isIncognitoSelected())
++                                        .launchNtp(TabLaunchType.FROM_CHROME_UI);
++                            }
++
++                            @Override
++                            public void onClosePrivateTab(Tab tab) {
++                                // Leaving private mode closes the private tab, as on the iPhone.
++                                selector.getModel(true)
++                                        .getTabRemover()
++                                        .closeTabs(
++                                                TabClosureParams.closeTab(tab).build(),
++                                                /* allowDialog= */ false);
++                            }
++
++                            @Override
++                            public @Nullable View pageView() {
++                                return mCompositorViewHolderSupplier.get();
++                            }
++                        });
++    }
++
+     @Override
+     public void onFinishNativeInitialization() {
+         super.onFinishNativeInitialization();
++        createBlancIsland();
+         assert mLayoutManager != null;
+ 
+         if (mCountrySupplier != null && mCountrySupplier.get() == null) {
+@@ -2962,9 +3119,8 @@
+         mNotificationPermissionController =
+                 new NotificationPermissionController(mWindowAndroid, rationaleUIDelegateSupplier);
+         NotificationPermissionController.attach(mWindowAndroid, mNotificationPermissionController);
+-        if (mNotificationPermissionController.requestPermissionIfNeeded(/* contextual= */ false)) {
+-            return true;
+-        }
++        // Blanc (patch 0104): no notification prompt at startup, as on the iPhone; Android asks
++        // in context (a download, a site's request) instead.
+ 
+         assert mAdvancedProtectionCoordinator != null;
+         if (mAdvancedProtectionCoordinator.showMessageOnStartupIfNeeded()) {

@@ -1,8 +1,9 @@
 import test from 'node:test';
+import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import { renderProgress } from './progress.mjs';
 const tracker = () => ({ shippingCommit: 'shipping', scenarioIds: ['F1-1', 'F1-2', 'F1-3'], scenarioCases: {'F1-1':['case1'],'F1-2':['case2'],'F1-3':['case3']}, currentCandidates: { macos: { id: 'new' } }, baselines: {}, rows: [
-  { id: 'F1', platformProgress: { macos: { stage: 'legacy-integrated-partial' }, windows: { stage: 'not-started' }, linux: { stage: 'not-started' } }, platformVerification: {} },
+  { id: 'F1', platformProgress: { macos: { stage: 'legacy-integrated-partial' }, windows: { stage: 'not-started' }, linux: { stage: 'not-started' }, android: { stage: 'not-started' } }, platformVerification: {} },
 ] });
 test('unrun baselines are not reported as zero passing and platforms stay separate', () => {
   const text = renderProgress(tracker());
@@ -71,4 +72,29 @@ test('S1 rows get their own line and development subsets never count', () => {
   ] };
   assert.match(renderProgress(t, () => baseline), /S1 rows: 1\/3 pass; 1 failed; 1 undefined; 0 excluded/);
   assert.throws(() => renderProgress(t, () => ({ ...baseline, developmentSubset: 'F1' })), /development subset/);
+});
+test('every tracker row carries an android platform', () => {
+  const real = JSON.parse(fs.readFileSync(new URL('../tracker.json', import.meta.url)));
+  for (const row of real.rows) {
+    assert.ok(row.platformProgress.android?.stage, `${row.id} has no android stage`);
+    assert.ok('android' in row.platformVerification, `${row.id} has no android verification slot`);
+    assert.deepEqual(Object.keys(row.platformProgress), ['macos', 'windows', 'linux', 'android']);
+  }
+});
+test('bar B gives android its own column and leaves desktop columns alone', () => {
+  const t = tracker(); t.rows[0].platformProgress.android.stage = 'implemented';
+  const text = renderProgress(t);
+  assert.match(text, /\| State \| macOS \| Windows \| Linux \| Android \|/);
+  assert.match(text, /\| Implemented \| 0 \| 0 \| 0 \| 1 \|/);
+  assert.match(text, /\| Integrated, partial \(legacy\) \| 1 \| 0 \| 0 \| 0 \|/);
+  assert.match(text, /Android: none\./);
+});
+test('bar A stays desktop-only until android has its own case set', () => {
+  const text = renderProgress(tracker());
+  assert.doesNotMatch(text, /\| Android \| Not run/);
+  assert.match(text, /Android's Bar A/);
+});
+test('a row without an android stage is refused', () => {
+  const t = tracker(); delete t.rows[0].platformProgress.android;
+  assert.throws(() => renderProgress(t), /android stage for F1/);
 });

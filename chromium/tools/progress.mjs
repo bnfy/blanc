@@ -3,7 +3,10 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const platforms = [['macos', 'macOS'], ['windows', 'Windows'], ['linux', 'Linux']];
+const desktopPlatforms = [['macos', 'macOS'], ['windows', 'Windows'], ['linux', 'Linux']];
+// Android is the companion lane: it has its own Bar B column, and Bar A counts
+// desktop's shipping cases, which Android doesn't run.
+const platforms = [...desktopPlatforms, ['android', 'Android']];
 const stages = [
   ['not-started', 'Not started / unassessed'], ['research', 'Research only'],
   ['drafted', 'Drafted'], ['implemented', 'Implemented'],
@@ -28,7 +31,7 @@ export function renderProgress(tracker, loadBaseline = () => null) {
   }
   const caseTotal = Object.values(tracker.scenarioCases || {}).reduce((n, cases) => n + cases.length, 0);
   const lines = ['### Bar A — executable shipping cases on the fork', '', '| Platform | Current-candidate baseline |', '| --- | --- |'];
-  for (const [p, name] of platforms) {
+  for (const [p, name] of desktopPlatforms) {
     const candidate = tracker.currentCandidates?.[p];
     const ref = tracker.baselines?.[p];
     const baseline = ref ? loadBaseline(ref) : null;
@@ -74,7 +77,8 @@ export function renderProgress(tracker, loadBaseline = () => null) {
     lines.push(`| ${name} | ${status} |`);
   }
   lines.push('', `${caseTotal} executable cases from ${tracker.scenarioIds?.length || 0} declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.`,
-    '', '### Bar B — requirement rows by platform', '', '| State | macOS | Windows | Linux |', '| --- | ---: | ---: | ---: |');
+    '', "Android's Bar A will count the companion scenario set once Android steps are bound (A2); desktop cases don't apply to it.",
+    '', '### Bar B — requirement rows by platform', '', `| State | ${platforms.map(([, name]) => name).join(' | ')} |`, `| --- |${platforms.map(() => ' ---: |').join('')}`);
   for (const [stage, label] of stages) lines.push(`| ${label} | ${platforms.map(([p]) => counts[p][stage]).join(' | ')} |`);
   lines.push(`| Total | ${platforms.map(() => tracker.rows.length).join(' | ')} |`, '',
     'Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.', '',
