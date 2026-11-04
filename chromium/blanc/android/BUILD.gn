@@ -10,6 +10,7 @@ android_library("island_java") {
   sources = [
     "java/src/org/chromium/blanc/island/IslandMenu.java",
     "java/src/org/chromium/blanc/island/IslandPosition.java",
+    "java/src/org/chromium/blanc/island/IslandStyle.java",
     "java/src/org/chromium/blanc/island/IslandSwipe.java",
     "java/src/org/chromium/blanc/island/IslandTitle.java",
     "java/src/org/chromium/blanc/island/IslandTuck.java",
@@ -18,21 +19,58 @@ android_library("island_java") {
   deps = [ "//build/android:build_java" ]
 }
 
+# The Island's pill: an Android view with no Chromium dependencies. Strings come
+# from copy/messages through chromium/tools/android-strings.mjs; the mark from
+# scripts/android-app-icons.js.
+android_resources("island_view_resources") {
+  sources = [
+    "res/drawable-mdpi/blanc_island_mark.png",
+    "res/drawable-hdpi/blanc_island_mark.png",
+    "res/drawable-xhdpi/blanc_island_mark.png",
+    "res/drawable-xxhdpi/blanc_island_mark.png",
+    "res/drawable-xxxhdpi/blanc_island_mark.png",
+    "res/drawable/blanc_island_plus.xml",
+    "res/drawable/blanc_island_reload.xml",
+    "res/drawable/blanc_island_stop.xml",
+    "res/layout/blanc_island.xml",
+    "res/values/blanc_island_dimens.xml",
+    "res/values/blanc_strings.xml",
+    "res/values-de/blanc_strings.xml",
+    "res/values-es/blanc_strings.xml",
+    "res/values-fr/blanc_strings.xml",
+    "res/values-it/blanc_strings.xml",
+    "res/values-pt-rBR/blanc_strings.xml",
+  ]
+}
+
+android_library("island_view_java") {
+  resources_package = "org.chromium.blanc.island"
+  sources = [ "java/src/org/chromium/blanc/island/IslandView.java" ]
+  deps = [
+    ":island_java",
+    ":island_view_resources",
+    "//build/android:build_java",
+  ]
+}
+
 # Blanc's own Robolectric binary: run with
 # out/<dir>/bin/run_blanc_android_junit_tests.
 robolectric_binary("blanc_android_junit_tests") {
-  enable_android_resources = false
+  resources_package = "org.chromium.blanc.island"
   testonly = true
   sources = [
     "junit/src/org/chromium/blanc/island/IslandMenuTest.java",
     "junit/src/org/chromium/blanc/island/IslandPositionTest.java",
+    "junit/src/org/chromium/blanc/island/IslandStyleTest.java",
     "junit/src/org/chromium/blanc/island/IslandSwipeTest.java",
     "junit/src/org/chromium/blanc/island/IslandTitleTest.java",
     "junit/src/org/chromium/blanc/island/IslandTuckTest.java",
+    "junit/src/org/chromium/blanc/island/IslandViewTest.java",
     "junit/src/org/chromium/blanc/island/IslandVisibilityTest.java",
   ]
   deps = [
     ":island_java",
+    ":island_view_java",
     "//base:base_java_test_support",
     "//base:base_junit_test_support",
     "//third_party/junit",

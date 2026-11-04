@@ -53,6 +53,14 @@ test('the monochrome layer is one ink color', async () => {
   }
 });
 
+test('the Island mark is the ink silhouette at 22dp, as the iPhone draws it', async () => {
+  const expected = { mdpi: 22, hdpi: 33, xhdpi: 44, xxhdpi: 66, xxxhdpi: 88 };
+  for (const [density, size] of Object.entries(expected)) {
+    const { width, height } = await sharp(res(`drawable-${density}`, 'blanc_island_mark.png')).metadata();
+    assert.deepEqual([width, height], [size, size], density);
+  }
+});
+
 test('the background layer is the Sunrise field, edge to edge', async () => {
   const { data, info } = await sharp(res('mipmap-mdpi', 'layered_app_icon_background.png')).raw().toBuffer({ resolveWithObject: true });
   for (let i = 0; i < data.length; i += info.channels) assert.deepEqual([data[i], data[i + 1], data[i + 2]], [0xf7, 0xf0, 0xe5]);
