@@ -15,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
+import org.robolectric.shadows.ShadowLooper;
 
 import org.chromium.base.test.BaseRobolectricTestRunner;
 import org.chromium.blanc.island.IslandSwipe.Outcome;
@@ -70,20 +71,27 @@ public class IslandSwipeGestureTest {
         mView.bind(s);
     }
 
-    /** A slow drag over the domain from (x, y) by (dx, dy) dp in `steps` moves, 40 ms apart. */
+    /** A slow drag over the domain by (dx, dy) dp in `steps` moves, 400 ms apart: no flick. */
     private void drag(float dx, float dy, int steps) {
-        float x = 200 * mDensity, y = mView.getMeasuredHeight() / 2f;
+        drag(dx, dy, steps, 400);
+    }
+
+    private void drag(float dx, float dy, int steps, long stepMs) {
+        float x = 200 * mDensity;
+        float y = mView.getMeasuredHeight() / 2f;
         long t0 = SystemClock.uptimeMillis();
         mView.dispatchTouchEvent(MotionEvent.obtain(t0, t0, MotionEvent.ACTION_DOWN, x, y, 0));
         for (int i = 1; i <= steps; i++) {
             float f = (float) i / steps;
             mView.dispatchTouchEvent(
-                    MotionEvent.obtain(t0, t0 + 400L * i, MotionEvent.ACTION_MOVE,
+                    MotionEvent.obtain(t0, t0 + stepMs * i, MotionEvent.ACTION_MOVE,
                             x + dx * mDensity * f, y + dy * mDensity * f, 0));
         }
-        long t1 = t0 + 400L * steps + 400;
+        long t1 = t0 + stepMs * (steps + 1);
         mView.dispatchTouchEvent(
                 MotionEvent.obtain(t0, t1, MotionEvent.ACTION_UP, x + dx * mDensity, y + dy * mDensity, 0));
+        // A click is posted to the main looper.
+        ShadowLooper.idleMainLooper();
     }
 
     @Test
@@ -113,7 +121,8 @@ public class IslandSwipeGestureTest {
     @Test
     public void tapStillOpensTheAddressSheet() {
         tabs(true, true);
-        drag(5, 0, 2);
+        // A quick tap that moves a little (under the long-press timeout).
+        drag(5, 0, 2, 16);
         assertEquals(1, mAddressTaps);
         assertTrue(mEnded.isEmpty());
         assertTrue(mShown.isEmpty());
