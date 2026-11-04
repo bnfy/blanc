@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "qualification": "Initial platform inventory imported from approved spec; legacy macOS stages are not canonical verification.",
-  "shippingTag": "v1.45.1",
-  "shippingCommit": "85883b1afa11375e1300130914d6f40c5388af21",
+  "shippingTag": "v1.46.0",
+  "shippingCommit": "6479ed3a314e4fd6219b8de1598bacffa78b4d7c",
   "rows": [
     {
       "id": "F1",
@@ -1086,7 +1086,7 @@
     },
     {
       "id": "F57",
-      "requirement": "Shared Spaces sync (v1.45.1 status rules)",
+      "requirement": "Shared Spaces sync (v1.46.0 status rules)",
       "slice": "S4",
       "legacyMacState": "Drafted",
       "platformVerification": {
@@ -1506,7 +1506,7 @@
     },
     {
       "id": "F59",
-      "requirement": "Ctrl+Tab recent order (Linux/Windows; Mac off)",
+      "requirement": "Ctrl+Tab recent order (every desktop platform since v1.46.0)",
       "slice": "S3",
       "legacyMacState": "Drafted",
       "platformVerification": {
@@ -1549,6 +1549,37 @@
         "macos": {
           "stage": "not-started",
           "basis": "approved spec macOS inventory; awaiting candidate verification"
+        },
+        "windows": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        }
+      }
+    },
+    {
+      "id": "F61",
+      "requirement": "Mini Window (new in v1.46.0)",
+      "slice": "S3",
+      "legacyMacState": "Not assessed",
+      "platformVerification": {
+        "macos": null,
+        "windows": null,
+        "linux": null,
+        "android": null
+      },
+      "canonicalState": "not-started",
+      "platformProgress": {
+        "macos": {
+          "stage": "not-started",
+          "basis": "new in shipping v1.46.0; not yet in the fork"
         },
         "windows": {
           "stage": "not-started",
@@ -2386,8 +2417,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-5faa4ac34c4be46a",
-      "frameworkSha256": "5faa4ac34c4be46a396d12b7e589ac4fdceb133d62851be1fc1238eca5980536",
+      "id": "macos-3b3c6840f9da0f0a",
+      "frameworkSha256": "3b3c6840f9da0f0a34b998ed69a0fa56eddfaeb51933aa494724ac18977dae2c",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"
@@ -2682,6 +2713,11 @@
     "spec/acceptance/local-profiles.feature:7",
     "spec/acceptance/local-profiles.feature:17",
     "spec/acceptance/local-profiles.feature:27",
+    "spec/acceptance/mini-window.feature:10",
+    "spec/acceptance/mini-window.feature:18",
+    "spec/acceptance/mini-window.feature:24",
+    "spec/acceptance/mini-window.feature:30",
+    "spec/acceptance/mini-window.feature:36",
     "spec/acceptance/multi-window.feature:7",
     "spec/acceptance/multi-window.feature:16",
     "spec/acceptance/navigation-and-context-menu.feature:7",
@@ -2810,6 +2846,13 @@
     "spec/acceptance/shared-spaces.feature:119",
     "spec/acceptance/shared-spaces.feature:132",
     "spec/acceptance/shared-spaces.feature:143",
+    "spec/acceptance/shared-spaces.feature:155",
+    "spec/acceptance/shared-spaces.feature:165",
+    "spec/acceptance/shared-spaces.feature:175",
+    "spec/acceptance/shared-spaces.feature:181",
+    "spec/acceptance/shared-spaces.feature:193",
+    "spec/acceptance/shared-spaces.feature:204",
+    "spec/acceptance/shared-spaces.feature:211",
     "spec/acceptance/site-certificate-safety.feature:4",
     "spec/acceptance/site-certificate-safety.feature:11",
     "spec/acceptance/site-certificate-safety.feature:19",
@@ -2961,8 +3004,9 @@
     "spec/acceptance/tabs-and-groups.feature:347",
     "spec/acceptance/tabs-and-groups.feature:356",
     "spec/acceptance/tabs-and-groups.feature:367",
-    "spec/acceptance/tabs-and-groups.feature:373",
-    "spec/acceptance/tabs-and-groups.feature:383",
+    "spec/acceptance/tabs-and-groups.feature:376",
+    "spec/acceptance/tabs-and-groups.feature:382",
+    "spec/acceptance/tabs-and-groups.feature:392",
     "spec/acceptance/vertical-tabs.feature:9",
     "spec/acceptance/vertical-tabs.feature:21",
     "spec/acceptance/vertical-tabs.feature:34",
@@ -3825,6 +3869,21 @@
     "spec/acceptance/local-profiles.feature:27": [
       "spec/acceptance/local-profiles.feature:27:plain"
     ],
+    "spec/acceptance/mini-window.feature:10": [
+      "spec/acceptance/mini-window.feature:10:plain"
+    ],
+    "spec/acceptance/mini-window.feature:18": [
+      "spec/acceptance/mini-window.feature:18:plain"
+    ],
+    "spec/acceptance/mini-window.feature:24": [
+      "spec/acceptance/mini-window.feature:24:plain"
+    ],
+    "spec/acceptance/mini-window.feature:30": [
+      "spec/acceptance/mini-window.feature:30:plain"
+    ],
+    "spec/acceptance/mini-window.feature:36": [
+      "spec/acceptance/mini-window.feature:36:plain"
+    ],
     "spec/acceptance/multi-window.feature:7": [
       "spec/acceptance/multi-window.feature:7:plain"
     ],
@@ -4234,6 +4293,27 @@
     ],
     "spec/acceptance/shared-spaces.feature:143": [
       "spec/acceptance/shared-spaces.feature:143:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:155": [
+      "spec/acceptance/shared-spaces.feature:155:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:165": [
+      "spec/acceptance/shared-spaces.feature:165:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:175": [
+      "spec/acceptance/shared-spaces.feature:175:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:181": [
+      "spec/acceptance/shared-spaces.feature:181:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:193": [
+      "spec/acceptance/shared-spaces.feature:193:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:204": [
+      "spec/acceptance/shared-spaces.feature:204:plain"
+    ],
+    "spec/acceptance/shared-spaces.feature:211": [
+      "spec/acceptance/shared-spaces.feature:211:plain"
     ],
     "spec/acceptance/site-certificate-safety.feature:4": [
       "spec/acceptance/site-certificate-safety.feature:4:plain"
@@ -4702,11 +4782,14 @@
     "spec/acceptance/tabs-and-groups.feature:367": [
       "spec/acceptance/tabs-and-groups.feature:367:plain"
     ],
-    "spec/acceptance/tabs-and-groups.feature:373": [
-      "spec/acceptance/tabs-and-groups.feature:373:plain"
+    "spec/acceptance/tabs-and-groups.feature:376": [
+      "spec/acceptance/tabs-and-groups.feature:376:plain"
     ],
-    "spec/acceptance/tabs-and-groups.feature:383": [
-      "spec/acceptance/tabs-and-groups.feature:383:plain"
+    "spec/acceptance/tabs-and-groups.feature:382": [
+      "spec/acceptance/tabs-and-groups.feature:382:plain"
+    ],
+    "spec/acceptance/tabs-and-groups.feature:392": [
+      "spec/acceptance/tabs-and-groups.feature:392:plain"
     ],
     "spec/acceptance/vertical-tabs.feature:9": [
       "spec/acceptance/vertical-tabs.feature:9:plain"

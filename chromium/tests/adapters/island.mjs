@@ -105,7 +105,7 @@ export const island={
   // The Island window has no OS frame: the host and the page split its height,
   // or (auto-hide) the page takes all of it with the Island above it.
   const [host,page]=await Promise.all([w.hostEval('({w:innerWidth,h:innerHeight})'),(await activePage(w)).evalExpression('innerHeight')]);
-  if(host.w!==bounds.width||(host.h===68&&host.h+page!==bounds.height&&page!==bounds.height))throw Error('Island window content does not fill its frame: '+JSON.stringify({bounds,host,page}));
+  if(host.w!==bounds.width||([68,76,84].includes(host.h)&&host.h+page!==bounds.height&&page!==bounds.height))throw Error('Island window content does not fill its frame: '+JSON.stringify({bounds,host,page}));
   return {x:bounds.left,y:bounds.top,width:bounds.width,height:bounds.height};
  },
  async setWindowContentSize(w,width,height){
@@ -195,6 +195,18 @@ export const island={
  setIslandTabIcons:(w,on)=>inSettings(w,'appearance',async(a,d)=>{const el=d.find('#blancIslandTabIcons');
   if(!el)return {missing:'#blancIslandTabIcons'};if(el.checked!==a)el.click();await new Promise(r=>setTimeout(r,300));
   return {value:el.checked};},!!on),
+ // Settings → Appearance's Island size dropdown (F3-35), as a person picks it.
+ setIslandSize:(w,size)=>inSettings(w,'appearance',async(a,d)=>{const menu=d.find('#blancIslandSize');
+  const select=menu?.shadowRoot?.querySelector('select');if(!select)return {missing:'#blancIslandSize'};
+  if(select.value!==a){select.value=a;select.dispatchEvent(new Event('change',{bubbles:true}));await new Promise(r=>setTimeout(r,300));}
+  return {value:select.value};},String(size)),
+ // The active page's view, in window content coordinates: what the Island
+ // and its rail leave of the window.
+ async activeGuestBounds(w){
+  const {bounds}=await windowOf(w);
+  const page=await(await activePage(w)).evalExpression('({w:innerWidth,h:innerHeight})');
+  return {x:bounds.width-page.w,y:bounds.height-page.h,width:page.w,height:page.h};
+ },
  // Shipping's hook writes the setting directly (settings.setSettings); going
  // through the Settings page takes longer than a dwell. The host's refresh
  // carries it, as the preference observer's settings event does.

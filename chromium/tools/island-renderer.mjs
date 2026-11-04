@@ -25,8 +25,9 @@ export const SHEET_FILES = ['sheet.js', 'row-icon.js', 'history-groups.js', 'dow
 export const FILES = ['index.html', 'overlay.html', 'overlay.js', 'renderer.js', 'styles.css', 'tab-drag.js',
   'tab-sections.js', 'vertical-tabs.js', 'workspace-ui.js', 'glance-card-drag.js', 'hover-panel-leave.js',
   'permission.html', 'permission.js', ...SHEET_FILES];
-// The sheet pages' bridge, the fork's own file, loads before their strings.
-const SHEET_BRIDGE = ['  <script src="strings.js"></script>\n', '  <script src="sheet-adapter.js"></script>\n  <script src="strings.js"></script>\n'];
+// The sheet pages' bridge, the fork's own file, loads before their strings,
+// and so does the launch's interface language (F44), as in index.html.
+const SHEET_BRIDGE = ['  <script src="strings.js"></script>\n', '  <script src="sheet-adapter.js"></script>\n  <script src="../ui-language.js"></script>\n  <script src="strings.js"></script>\n'];
 // Shipping's pure main-process modules the Island host runs as they are,
 // wrapped so a document can load them: the host holds the state shipping's
 // main process holds (hover-open's dwell and auto-hide's floating pill, S1.2),

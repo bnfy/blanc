@@ -178,8 +178,8 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
     as `ui-language.js`; Settings has shipping's Language row with Relaunch
     to apply. Only Blanc's text follows it; Chromium's UI and Accept-Language
     stay on the OS language. All five F44 cases pass. The Start Page still
-    uses v1.45.0's catalog, which follows the browser language until S1.8
-    replaces its assets.
+    used v1.45.0's catalog, which followed the browser language, until
+    S1.8 (below).
   - Hover-open (F1), candidate macos-be7b01cddb488a16 (2026-11-02): the host
     runs shipping's own state machine (`island-hover-open.js`, generated from
     v1.45.1's src/main and stepped against it in a unit test) over the
@@ -570,6 +570,64 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   those gone; settings-and-theming, island-and-commands and internal-pages
   match their last runs. Chromium's own name still shows in a few strings
   ("About Chromium", Default browser); that is branding, not this slice.
+- **Shipping target moved to v1.46.0, candidate macos-e225d28ca11f8f10 (2026-11-04, owner):**
+  `tools/island-renderer.mjs` regenerated the Island from v1.46.0 (every
+  fork edit still applies; index.html, overlay.js, renderer.js and
+  styles.css gained Island size and Mini Window), the new
+  `tools/interface-strings.mjs` rebuilds `blanc/island/strings.js` from a
+  tag (it reproduces the v1.45.1 file byte for byte), and the menu and
+  settings strings, the 41 shipping asset copies (none changed), the
+  parity tests, the scenario inventory (591 declarations, 640 cases) and
+  the tracker name v1.46.0. Rows verified against v1.45.1 now read as
+  needing a recheck. The key check has 83 keys: `islandSize` is to build
+  (S1.7, device-local `blanc.island.size`); `miniWindowShortcut` waits for
+  F61. The spec gains F61 Mini Window (S3); F57 and F59 name v1.46.0's
+  behaviour. The Start Page's catalogs move with S1.8. Feature reruns on this
+  candidate (`evidence/foundation/v146b-*`, compared by scenario name
+  because v1.46.0 moved line numbers): settings-and-theming 5 pass /
+  1 undefined, island-and-commands 66 / 4 fail / 3 undefined and
+  internal-pages 7 / 3 fail, each exactly as on s17x; tabs-and-groups
+  28 / 6 fail / 11 undefined against sh1's 27 / 7 / 11, the one change
+  being *The Island can show site icons instead of dots* now passing
+  (Tab icons, built in S1.7). No regressions.
+- **Island size built (S1.8, F3-35, 2026-11-04):** shipping's v1.46.0
+  Island size (#1292) is Settings → Appearance → *Island size* (Default,
+  Large, Extra large), an unsynced profile pref `blanc.island.size`
+  (patch 0026: registration, settings_private allowlist and the dropdown;
+  copy from v1.46.0 through `tools/settings-strings.mjs`). Each window's
+  Owner keeps its `strip_height` (68, 76 or 84, shipping's
+  `stripHeightFor`) and every place that assumed a 68px strip now reads
+  it: the resting height, hit testing, the caption band, the split header
+  band (strip + 30), the extension slot and auto-hide's pinned test. A
+  change moves the page at once and leaves an open surface open. The
+  snapshot carries `islandSize`, so the regenerated strip and overlay
+  scale themselves; host.js and host.css take `--strip-h` for the strip
+  frame, its backdrop, Find, the sheets and menus, and scale the floating
+  pill's shadow room like `scaleForIslandSize`. prototype.css no longer
+  pins `--pill-zoom`. F3-35 passes on macos-06320784798c07e1; the
+  settings-and-theming, island-and-commands, internal-pages,
+  tabs-and-groups and glance reruns (`evidence/foundation/s18s-*`,
+  `s18t-*`) match their earlier results apart from F3-35. The probe that
+  found the strip frame still 68px tall (the shipping step measures inside
+  the strip document, so it could not) is the `island-<size>` scene in
+  `tests/window-snapshot.mjs`. `settings-keys.json` has nothing left to
+  build.
+- **Start Page strings on v1.46.0 (S1.8, 2026-11-04):**
+  `tools/interface-strings.mjs` now also writes `blanc/island/pages/strings.js`
+  (the Start Page, Favorites, History and Downloads) from the release
+  `island-renderer.json` names: shipping's six catalogs (73 keys added, none
+  removed or changed; all 263 keys the pages use are present) with the
+  Island's language chooser and the fork's own page status messages kept
+  from the committed file. The four pages load `ui-language.js` first
+  (newtab.html directly, the sheets through `island-renderer.mjs`), so they
+  follow Settings' interface language like the Island instead of the
+  browser's. Candidate macos-3b3c6840f9da0f0a: newtab-layouts (8 pass /
+  5 fail / 12 undefined) and internal-pages (7 / 3) match their earlier
+  runs, and all five interface-language cases pass. The relaunch case had
+  been failing since S1.7 because its fork step still waited for Settings
+  as a tab; it now chooses the language in the Settings sheet's Languages
+  page. The fork's preview notice in the Start Page footer stays English.
+  `tests/window-snapshot.mjs` gains `newtab[-<language>]` scenes.
 - **Open question, file picker hang (2026-11-04):** the owner's live
   instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
   wallpaper. The hang report shows the UI thread inside AppKit's
@@ -941,10 +999,10 @@ changes feed Android's build, so its APK is unchanged. Divergences: D36, D37.
 | Platform | Current-candidate baseline |
 | --- | --- |
 | macOS | Not run for current candidate (previous baseline is stale) |
-| Windows | Not run (627 cases) |
-| Linux | Not run (627 cases) |
+| Windows | Not run (640 cases) |
+| Linux | Not run (640 cases) |
 
-627 executable cases from 578 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
+640 executable cases from 591 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
 
 Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acceptance/` (A2): 23 (F2–F5, F8, F18, and the phone-only F31-11 and F56-1–3), run on the build server's emulator by `run.sh`; desktop cases don't apply to it. F6-1, F6-2 and F7-1 join with ad blocking (A3), whose Background they share.
 
@@ -952,7 +1010,7 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 42 | 79 | 79 | 68 |
+| Not started / unassessed | 43 | 80 | 80 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 11 | 0 | 0 | 0 |
 | Implemented | 0 | 0 | 0 | 11 |
@@ -962,9 +1020,9 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |
-| Total | 79 | 79 | 79 | 79 |
+| Total | 80 | 80 | 80 | 80 |
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-5faa4ac34c4be46a; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-3b3c6840f9da0f0a; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

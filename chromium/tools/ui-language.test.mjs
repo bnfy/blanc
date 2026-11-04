@@ -13,7 +13,7 @@ import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SHIPPING = '85883b1afa11375e1300130914d6f40c5388af21';
+const SHIPPING = '6479ed3a314e4fd6219b8de1598bacffa78b4d7c';
 const show = file => execFileSync('git', ['show', `${SHIPPING}:${file}`], {cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
 const header = fs.readFileSync(path.join(root, 'blanc/browser/ui/ui_language.h'), 'utf8');
 const locales = JSON.parse(show('src/main/i18n-locales.json'));

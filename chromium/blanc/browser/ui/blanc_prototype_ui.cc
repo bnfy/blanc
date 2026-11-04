@@ -277,6 +277,14 @@ constexpr char kIslandSiteColorsPref[] = "blanc.island.site_colors";
 constexpr char kIslandTabIconsPref[] = "blanc.island.tab_icons";
 constexpr char kSearchPriorityResultsPref[] = "blanc.island.search_priority_results";
 constexpr char kSurfaceStylePref[] = "blanc.appearance.surface_style";
+// Shipping's islandSize (#1292; registered by patch 0026): the strip a window
+// draws, as island-size.js's stripHeightFor. styles.css and host.js draw the
+// same table; the split header band stays 30px below it.
+constexpr char kIslandSizePref[] = "blanc.island.size";
+int IslandStripHeight(Profile* profile) {
+  const std::string& size = profile->GetOriginalProfile()->GetPrefs()->GetString(kIslandSizePref);
+  return size == "large" ? 76 : size == "extra-large" ? 84 : 68;
+}
 
 constexpr char kOwnerKey[] = "blanc-prototype-owner";
 constexpr int kIslandViewId = 0x424c;
@@ -800,6 +808,7 @@ class Owner : public base::SupportsUserData::Data,
   std::vector<int> space_destination_ids;
   explicit Owner(BrowserWindowInterface* value) : browser(value) {
     Live().insert(this);
+    height = strip_height = IslandStripHeight(browser->GetProfile());
     browser->GetTabStripModel()->AddObserver(this);
     for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
       blanc::quiet::MediaHistory::Get(browser->GetTabStripModel()->GetWebContentsAt(i));
@@ -810,6 +819,9 @@ class Owner : public base::SupportsUserData::Data,
   raw_ptr<views::WebView> view = nullptr;
   std::unique_ptr<IslandToolbarProvider> toolbar_provider;
   int height = 68;
+  // The resting strip at this window's Island size; height above it means a
+  // surface is open.
+  int strip_height = 68;
   // Auto-hide (F1): shipping's per-window runtime fields (islandRevealed,
   // islandRevealDwell, lastPointer, its timers and islandSlide).
   bool autohide_revealed = false;
@@ -1250,11 +1262,11 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
     if (!owner) return GetLocalBounds().Intersects(rect);
     if (owner->float_bounds.Intersects(rect)) return true;
     if (!owner->split_geometry.empty()) {
-      if (gfx::Rect(0, 0, width(), 68).Intersects(rect)) return true;
+      if (gfx::Rect(0, 0, width(), owner->strip_height).Intersects(rect)) return true;
       for (const auto& region : owner->split_hit_regions)
         if (region.Intersects(rect)) return true;
-      return (owner->vertical && gfx::Rect(0, 68, owner->rail_width, height()).Intersects(rect)) ||
-          (owner->height > 68 && owner->interactive_bounds.Intersects(rect));
+      return (owner->vertical && gfx::Rect(0, owner->strip_height, owner->rail_width, height()).Intersects(rect)) ||
+          (owner->height > owner->strip_height && owner->interactive_bounds.Intersects(rect));
     }
     // Below the strip the Island owns only what it draws there (the rail and
     // the open surface's own rectangle, which the palette's scrim makes the
@@ -1264,7 +1276,7 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
     // keeps its whole column.
     return gfx::Rect(0, 0, width(), HeaderHeight(const_cast<views::View*>(parent()))).Intersects(rect) ||
         (owner->vertical && gfx::Rect(0, 0, owner->rail_width, height()).Intersects(rect)) ||
-        (owner->height > 68 && owner->interactive_bounds.Intersects(rect));
+        (owner->height > owner->strip_height && owner->interactive_bounds.Intersects(rect));
   }
 };
 
@@ -2388,6 +2400,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       // is the one in front, as shipping's islandHoverEligible does.
       .Set("islandHoverOpen", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kIslandHoverOpenPref))
       // Site icons instead of dots, and search priority results (S1.7).
+      .Set("islandSize", owner->strip_height == 84 ? "extra-large" : owner->strip_height == 76 ? "large" : "default")
       .Set("islandTabIcons", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kIslandTabIconsPref))
       .Set("searchPriorityResults", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kSearchPriorityResultsPref))
       .Set("surfaceStyle", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetString(kSurfaceStylePref) == "neutral" ? "neutral" : "sunrise")
@@ -3321,8 +3334,20 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       island_prefs_.Add(pref, base::BindRepeating(&Handler::OnIslandSettingChanged, base::Unretained(this)));
     island_prefs_.Add(kIslandSiteColorsPref,
                       base::BindRepeating(&Handler::OnSiteColorsChanged, base::Unretained(this)));
+    island_prefs_.Add(kIslandSizePref,
+                      base::BindRepeating(&Handler::OnIslandSizeChanged, base::Unretained(this)));
     island_prefs_.Add(kSurfaceStylePref,
                       base::BindRepeating(&Handler::OnSurfaceStyleChanged, base::Unretained(this)));
+  }
+  // A new size moves the page at once; an Island at rest stays at rest.
+  void OnIslandSizeChanged() {
+    if (auto* owner = GetOwner(web_ui()->GetWebContents())) {
+      const bool resting = owner->height <= owner->strip_height;
+      owner->strip_height = IslandStripHeight(Profile::FromWebUI(web_ui()));
+      if (resting || owner->height < owner->strip_height) owner->height = owner->strip_height;
+      if (owner->view && owner->view->parent()) owner->view->parent()->InvalidateLayout();
+    }
+    OnIslandSettingChanged();
   }
   void OnSiteColorsChanged() {
     if (auto* owner = GetOwner(web_ui()->GetWebContents())) owner->SiteColorsChanged();
@@ -5594,10 +5619,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       // summoned palette needs its scrim to reach below the 640px panel.
       // A surface takes focus; room for a tip under the strip (false) does not.
       const bool surface = args.size() == 1 || args[1].GetBool();
-      owner->height = std::clamp(args[0].GetInt(), 68, 10000);
+      owner->height = std::clamp(args[0].GetInt(), owner->strip_height, 10000);
       if (owner->view->parent()) owner->view->parent()->InvalidateLayout();
-      if (owner->height > 68 && surface) AutoHideSurfaceOpened(owner);
-      if (owner->height > 68 && surface) {
+      if (owner->height > owner->strip_height && surface) AutoHideSurfaceOpened(owner);
+      if (owner->height > owner->strip_height && surface) {
         owner->view->RequestFocus();
         contents->Focus();
       }
@@ -7017,9 +7042,12 @@ bool HasIsland(views::View* parent) {
 
 int BaseHeaderHeight(views::View* parent) {
   if (!HasIsland(parent)) return 68;
+  auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
+  auto* owner = GetOwner(view->GetWebContents());
+  const int strip = owner ? owner->strip_height : 68;
   auto* model = static_cast<BrowserView*>(parent)->browser()->GetTabStripModel();
   return model->active_index() >= 0 && model->GetSplitForTab(model->active_index()) &&
-      !model->GetActiveWebContents()->GetUserData(kPersistentSplitKey) ? 98 : 68;
+      !model->GetActiveWebContents()->GetUserData(kPersistentSplitKey) ? strip + 30 : strip;
 }
 
 // Where the page starts: below the Island, or (auto-hide) under it.
@@ -7046,7 +7074,7 @@ bool IsCaption(views::View* parent, int x, int y) {
   // #dragBand.
   if (owner && (StripHiddenFor(owner) || IslandFloating(owner)) && !owner->autohide_slide)
     return y >= 0 && y < 6 && x >= RailWidth(parent);
-  if (y < view->y() || y >= view->y() + 68) return false;
+  if (y < view->y() || y >= view->y() + (owner ? owner->strip_height : 68)) return false;
   return owner && !owner->interactive_bounds.Contains(x, y - view->y());
 }
 
@@ -7176,7 +7204,7 @@ void LayoutIsland(views::View* parent, int top) {
   if (resized) extensions->OnPinnedActionsChanged();
   // A hidden strip has none showing; a floating Island shows them only while
   // its pill does, where the pill copies the strip's place for them.
-  extensions->SetVisible(owner->height == 68 && !bounds.IsEmpty() && !StripHiddenFor(owner) &&
+  extensions->SetVisible(owner->height == owner->strip_height && !bounds.IsEmpty() && !StripHiddenFor(owner) &&
                          !(IslandFloating(owner) && owner->float_bounds.IsEmpty()));
 }
 std::unique_ptr<settings::SettingsPageUIHandler> CreateSettingsHandler(Profile* profile) {
