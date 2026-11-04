@@ -357,6 +357,7 @@
         const days = Array.isArray(week?.days) && week.days.length === 7 ? week.days : [0, 0, 0, 0, 0, 0, 0];
         const heights = Array.isArray(week?.barHeights) && week.barHeights.length === 7 ? week.barHeights : [0, 0, 0, 0, 0, 0, 0];
         return { ...preferences(), remoteDevices: [], blockedThisWeek: Number.isInteger(week?.blocked) ? week.blocked : 0,
+          blockerStatisticsAvailable: Number.isInteger(week?.blocked),
           blockedByDay: days, blockedBarHeights: heights,
           topSites, __topSitesAvailable: available, __topSitesEpoch: epoch, wallpaperVisible: !document.hidden };
       },

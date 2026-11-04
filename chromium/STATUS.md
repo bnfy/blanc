@@ -628,29 +628,40 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   as a tab; it now chooses the language in the Settings sheet's Languages
   page. The fork's preview notice in the Start Page footer stays English.
   `tests/window-snapshot.mjs` gains `newtab[-<language>]` scenes.
-- **S1 close-out, first pass (2026-11-04, in progress):** every S1 feature
-  file ran on the current candidate (`evidence/foundation/s18*`, `s1c-*`);
-  the S1 rows' 235 shipping cases left 58 non-passing at the start. Fixed
-  and rerun so far: utility addresses open in the sheet and toggle it
-  (F16-6, F16-7 partly), the shield popover stays open while the exceptions
-  are read (F12-6, a test op replaces reading Settings), the floating-pill
-  window step (F1-34), Recently closed under Pinned by default and kept
-  across a relaunch by index (F2-8, F3-17, F3-26), link children open
-  ungrouped at the end (F3-21) without moving New Tab Below (F2-9), and
-  Kagi reported under V12 (F5-2). Built, not yet rerun (the display
-  locked): the weekly blocked counter for Ledger, Shelf and Tally (F35-16,
-  F35-17; pref `blanc.blocking.week_stats`, shipping's adblock-stats.js
-  week), a group's first tab dragged out above its group (F3-23), hover-open
-  blocked while a permission prompt is pending (F1-13), on
-  macos-b77a9faf18abb3d9. Outside shipping's own runnable profile (shipping
-  backlog, not fork gaps): F3-3, F16-1, F18-1, F19-1, F4-1/2/3/6, F8-1.
-  Other slices: Glance's floating card, Sync, Spaces, first run, Patron,
-  launch Sunrise. Test-hook gaps: F9-3 favicon seeding, Billboard history
-  seeding, F2-11 audioMuted, F3-15, F3-16, F32 session windows. Waiting on
-  the owner: nothing. Decided (owner, 2026-11-04): V16, pinning a grouped tab takes it
-  out of its group as Chromium does (F3-5 checks that instead; F3-34 has no
-  case under V16), and V17, Close Tabs Below records each tab as Chromium
-  does, so undo reopens them one at a time (F2-10 checks that instead).
+- **S1 close-out (2026-11-04):** every S1 feature file ran on the current
+  candidates (`evidence/foundation/s18*`, `s1c-*`); of the S1 rows' 235
+  shipping cases, 58 did not pass at the start. Fixed and rerun: utility
+  addresses open in the sheet and toggle it (F16-6, F16-7); the shield
+  popover stays open while its exceptions are read (F12-6; a
+  `blockingExceptions` test op replaces reading Settings); the floating
+  pill's window step (F1-34); Recently closed under Pinned by default and
+  kept across a relaunch by index (F2-8, F3-17, F3-26); link children open
+  ungrouped at the end (F3-21) while New Tab Below stays in its group
+  (F2-9); a group's first tab dragged out lands above its group (F3-23); the
+  weekly blocked counter (pref `blanc.blocking.week_stats`, shipping's
+  adblock-stats.js week) shows on Ledger, Shelf and Tally (F35-16, F35-17);
+  Kagi under V12 (F5-2). Decided (owner): V16, a pinned tab leaves its
+  group (F3-5 checks it; F3-34 has no case), and V17, Close Tabs Below
+  reopens one tab at a time (F2-10 checks it). Final reruns: tab-drag 15/0,
+  ad-blocking 9/0, tabs-and-groups 32/1 (F3-3), internal-pages 9/1 (F16-1),
+  island-and-commands 63/3 (F1-13, F1-33, F1-39), newtab-layouts with
+  F35-16 and F35-17 passing.
+  - Left, classified: shipping's own backlog (not in its runnable profile):
+    F3-3, F16-1, F18-1, F19-1, F4-1/2/3/6, F8-1. Other slices: Glance's
+    floating card (F1-33, F1-39), Sync (F14-4, F7-3), Spaces, first run,
+    Patron and launch Sunrise (F35-7, -8, -10, -11, -18, -19). Test-hook
+    gaps: F9-3 favicon seeding, Billboard history seeding (F35-5, -6, -15),
+    F2-11 audioMuted, F3-15, F3-16, F32 session windows. Mahjong (F35-3,
+    -4, -9, F37-4) is last (owner).
+  - F1-13 is a test-transport gap: a probe on the candidate shows a move
+    over the Island with a prompt pending registers inside and does not arm
+    the dwell (hover-open is now ineligible while a prompt is pending, as
+    shipping's permissionViewAttached), but the scenario's own moves never
+    reach the host (`hoverState().moves` stays 0). Not yet explained.
+  - Rows: the 31 S1 rows other than F35 are Integrated on macOS at
+    macos-41cadf1e05df1804 (in the candidate, on by default, reachable through shipping
+    UI). Verified still needs each row's manual accessibility and visual
+    checklist. F35 stays partial until Mahjong.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
@@ -881,13 +892,13 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 | State | macOS | Windows | Linux |
 | --- | ---: | ---: | ---: |
-| Not started / unassessed | 43 | 80 | 80 |
+| Not started / unassessed | 33 | 80 | 80 |
 | Research only | 1 | 0 | 0 |
-| Drafted | 11 | 0 | 0 |
+| Drafted | 7 | 0 | 0 |
 | Implemented | 0 | 0 | 0 |
-| Built, isolated (legacy) | 9 | 0 | 0 |
-| Integrated, partial (legacy) | 16 | 0 | 0 |
-| Integrated | 0 | 0 | 0 |
+| Built, isolated (legacy) | 5 | 0 | 0 |
+| Integrated, partial (legacy) | 3 | 0 | 0 |
+| Integrated | 31 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 |
@@ -895,5 +906,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-b77a9faf18abb3d9; Windows: none; Linux: none.
+Candidate identities: macOS: macos-41cadf1e05df1804; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->

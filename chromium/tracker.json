@@ -16,8 +16,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -41,8 +42,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -56,7 +58,7 @@
     },
     {
       "id": "F3",
-      "requirement": "Groups: names, case rules, optional color, group menu, ⌘1–9 clusters",
+      "requirement": "Groups: names, case rules, optional color, group menu, \u23181\u20139 clusters",
       "slice": "S1",
       "legacyMacState": "Integrated in an isolated candidate",
       "platformVerification": {
@@ -66,8 +68,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-built-isolated",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -91,8 +94,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -116,8 +120,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "drafted",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -141,8 +146,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -157,7 +163,7 @@
     {
       "id": "F7",
       "requirement": "34 slash commands with shipping names and hints",
-      "slice": "S1–S5",
+      "slice": "S1\u2013S5",
       "legacyMacState": "Integrated (partial: some commands)",
       "platformVerification": {
         "macos": null,
@@ -166,8 +172,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -191,8 +198,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-built-isolated",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -216,8 +224,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -241,8 +250,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -266,8 +276,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "drafted",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -291,8 +302,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -316,8 +328,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -341,8 +354,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -366,8 +380,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -391,8 +406,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -441,8 +457,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -466,8 +483,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "drafted",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -491,8 +509,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -566,8 +585,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-built-isolated",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -691,8 +711,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -816,8 +837,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-built-isolated",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -966,8 +988,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1041,8 +1064,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "drafted",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1551,8 +1575,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1576,8 +1601,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1601,8 +1627,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1651,8 +1678,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1926,8 +1954,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1976,8 +2005,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -2001,8 +2031,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "candidate": "macos-41cadf1e05df1804",
+          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -2017,8 +2048,8 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-b77a9faf18abb3d9",
-      "frameworkSha256": "b77a9faf18abb3d95bd5cb7da4290951c4eda7e2ab8ccc11714495591af7cb76",
+      "id": "macos-41cadf1e05df1804",
+      "frameworkSha256": "41cadf1e05df1804c80285f9722f7363082f4ca4fe4cadd10837df8a207e34d6",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"

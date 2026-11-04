@@ -1535,6 +1535,7 @@
     if (!doc || hoverHooked.has(doc)) return;
     hoverHooked.add(doc);
     doc.addEventListener('mousemove', (event) => {
+      hover.moves = (hover.moves ?? 0) + 1;
       const from = frame?.getBoundingClientRect() ?? { x: 0, y: 0 };
       const to = strip.getBoundingClientRect();
       hover.lastPoint = { x: event.clientX + from.x - to.x, y: event.clientY + from.y - to.y };
@@ -1662,7 +1663,9 @@
   window.BlancPrototypeHost = {
     api,
     apiForDocument,
-    hoverState: () => ({ ...hover.state }),
+    hoverState: () => ({ ...hover.state, point: hover.lastPoint ?? null, rect: pillRect?.hoverRect ?? null,
+      capable: pillRect?.hoverCapable === true, prompts: prompts.size, moves: hover.moves ?? 0,
+      hooked: hoverHooked.has(strip.contentDocument) }),
     // Whether the how-to tip is on screen (shipping's introTipShown).
     autoHideIntroShown: () => introTip && !tooltip.hidden,
     // The floating pill's frame as shipping's floatViewState reports its
