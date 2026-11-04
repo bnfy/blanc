@@ -12,7 +12,17 @@
     "vertical-tabs.js",
     "workspace-ui.js",
     "glance-card-drag.js",
-    "hover-panel-leave.js"
+    "hover-panel-leave.js",
+    "pages/sheet.js",
+    "pages/row-icon.js",
+    "pages/history-groups.js",
+    "pages/downloads-row-model.js",
+    "pages/bookmarks.html",
+    "pages/bookmarks.js",
+    "pages/history.html",
+    "pages/history.js",
+    "pages/downloads.html",
+    "pages/downloads.js"
   ],
   "mainFiles": [
     "island-hover-open.js",

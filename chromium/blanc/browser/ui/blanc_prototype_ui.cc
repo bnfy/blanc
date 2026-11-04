@@ -129,6 +129,7 @@
 #include "components/bookmarks/browser/bookmark_client.h"
 #include "components/bookmarks/browser/bookmark_model.h"
 #include "components/bookmarks/browser/bookmark_node.h"
+#include "components/bookmarks/browser/bookmark_utils.h"
 #include "components/bookmarks/browser/url_and_title.h"
 #include "components/bookmarks/common/bookmark_metrics.h"
 #include "components/bookmarks/common/bookmark_pref_names.h"
@@ -137,6 +138,12 @@
 #include "components/history/core/browser/history_types.h"
 #include "components/history/core/browser/top_sites.h"
 #include "components/history/core/browser/top_sites_observer.h"
+#include "components/download/public/common/download_item.h"
+#include "components/download/public/common/download_source.h"
+#include "components/download/public/common/download_url_parameters.h"
+#include "content/public/browser/download_item_utils.h"
+#include "content/public/browser/download_manager.h"
+#include "ui/base/models/tree_node_iterator.h"
 #include "components/keyed_service/core/service_access_type.h"
 #include "components/input/native_web_keyboard_event.h"
 #include "content/public/browser/devtools_agent_host.h"
@@ -208,6 +215,7 @@
 #include "blanc/private/private_tabs.h"
 #include "build/build_config.h"
 #if BUILDFLAG(IS_MAC)
+#include "blanc/browser/ui/app_menus_mac.h"
 #include "blanc/browser/ui/window_buttons_mac.h"
 #endif
 #include "ui/base/resource/resource_bundle.h"
@@ -2257,34 +2265,8 @@ class NewTabHandler : public content::WebUIMessageHandler,
         else Reply(id, true, base::Value(false));
         return;
       }
-      base::DictValue candidate;
-      candidate.Set("url", args[0].GetString());
-      if (method == "pinsPin") candidate.Set("title", args[1].GetString());
-      auto target = SanitizeStartPin(base::Value(std::move(candidate)));
-      if (!target) {
-        if (method == "pinsPin") Reply(id, true, base::Value(base::DictValue().Set("ok", false).Set("reason", "invalid")));
-        else Reply(id, true, base::Value(false));
-        return;
-      }
-      const auto* target_url = target->FindString("url");
-      bool found = false;
-      base::ListValue remaining;
-      for (const auto& item : pins) {
-        if (*item.GetDict().FindString("url") == *target_url) found = true;
-        else remaining.Append(item.Clone());
-      }
-      if (method == "pinsPin" && !found && pins.size() >= kStartPageMaxPins) {
-        Reply(id, true, base::Value(base::DictValue().Set("ok", false).Set("reason", "full"))); return;
-      }
-      if ((method == "pinsPin" && !found) || (method == "pinsUnpin" && found)) {
-        base::ListValue next;
-        if (method == "pinsPin") next.Append(std::move(*target));
-        for (const auto& item : remaining) next.Append(item.Clone());
-        prefs->SetList(kStartPagePinsPref, std::move(next));
-        prefs->CommitPendingWrite();
-      }
-      if (method == "pinsPin") Reply(id, true, base::Value(base::DictValue().Set("ok", true)));
-      else Reply(id, true, base::Value(found));
+      Reply(id, true, ChangeStartPin(prefs, method == "pinsPin", args[0].GetString(),
+                                     method == "pinsPin" ? args[1].GetString() : std::string()));
       return;
     }
     if (profile->IsOffTheRecord()) {
@@ -2360,6 +2342,16 @@ class NewTabHandler : public content::WebUIMessageHandler,
       const bool opened = browser &&
           browser->GetTabStripModel()->GetActiveWebContents() == contents &&
           OpenIsland(browser, true, args[0].GetString());
+      Reply(id, opened, base::Value(opened ? "" : "Start page is not active"));
+      return;
+    }
+    // The Ledger's Favorites heading opens the utility sheet, as shipping's
+    // blanc://bookmarks/ link does, when this Start Page is the active tab.
+    if (method == "openSheet" && args.size() == 1 && args[0].is_string()) {
+      auto* browser = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(contents);
+      const bool opened = browser &&
+          browser->GetTabStripModel()->GetActiveWebContents() == contents &&
+          OpenUtilitySheet(browser, args[0].GetString());
       Reply(id, opened, base::Value(opened ? "" : "Start page is not active"));
       return;
     }
@@ -2785,6 +2777,7 @@ const std::optional<std::string>& LaunchUiLanguage() {
 
 #include "blanc/browser/ui/blocking_settings_handler.inc"
 #include "blanc/browser/ui/search_settings_handler.inc"
+#include "blanc/browser/ui/utility_sheet_ops.inc"
 
 // A bounded, sequence-confined navigation outcome reducer. It intentionally
 // distinguishes a committed document from every inconclusive outcome.
@@ -3147,6 +3140,20 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(std::move(list)));
       return;
     }
+#if BUILDFLAG(IS_MAC)
+    // The private-browsing menu items (patch 0013): their titles, and the
+    // Dock's item clicked as a person would.
+    if (message[1].GetString() == "privateMenuItems" && message[2].GetList().empty()) {
+      Reply(id, true, base::Value(base::DictValue()
+          .Set("file", base::UTF16ToUTF8(blanc::MainMenuItemTitle(IDC_FILE_MENU, IDC_NEW_INCOGNITO_WINDOW)))
+          .Set("dock", base::UTF16ToUTF8(blanc::DockMenuItemTitle(IDC_NEW_INCOGNITO_WINDOW)))));
+      return;
+    }
+    if (message[1].GetString() == "clickDockPrivateWindow" && message[2].GetList().empty()) {
+      Reply(id, true, base::Value(blanc::ClickDockMenuItem(IDC_NEW_INCOGNITO_WINDOW)));
+      return;
+    }
+#endif
     // Shipping's setIslandHoverOpen hook: the preference Settings writes.
     if (message[1].GetString() == "setIslandHoverOpen" && message[2].GetList().size() == 1 &&
         message[2].GetList()[0].is_bool()) {
@@ -4662,6 +4669,82 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value(ListFavorites(LoadedBookmarkModel(profile))));
       return;
     }
+    // ---- The utility sheet's pages (S1.5): host.js's sheetBridge answers
+    // shipping's window.bowserPages through these. A private window has no
+    // Favorites, history or pins of its own to show or edit.
+    if (method.starts_with("sheet")) {
+      if (profile->IsOffTheRecord()) { reply(false, base::Value("Open this page from a regular window.")); return; }
+      auto* prefs = profile->GetPrefs();
+      if (method == "sheetPins" && args.empty()) {
+        if (!prefs->FindPreference(kStartPagePinsPref)) { reply(false, base::Value("Start Page pins unavailable")); return; }
+        reply(true, base::Value(utility_sheet::Pins(prefs)));
+        return;
+      }
+      if ((method == "sheetPin" && args.size() == 2 && args[0].is_string() && args[1].is_string()) ||
+          (method == "sheetUnpin" && args.size() == 1 && args[0].is_string())) {
+        if (!prefs->FindPreference(kStartPagePinsPref)) { reply(false, base::Value("Start Page pins unavailable")); return; }
+        reply(true, ChangeStartPin(prefs, method == "sheetPin", args[0].GetString(),
+                                   method == "sheetPin" ? args[1].GetString() : std::string()));
+        return;
+      }
+      if (method == "sheetFavoriteRemove" || method == "sheetFavoriteFolder" ||
+          method == "sheetFolderRename" || method == "sheetFolderRemove") {
+        auto* favorites = LoadedBookmarkModel(profile);
+        if (!favorites || !CanEditFavorites(profile)) { reply(false, base::Value("Favorites editing is disabled.")); return; }
+        std::optional<std::string> error = "Unexpected Favorites request.";
+        const bool strings = std::all_of(args.begin(), args.end(), [](const base::Value& v) { return v.is_string(); });
+        if (strings && method == "sheetFavoriteRemove" && args.size() == 1)
+          error = utility_sheet::RemoveFavorite(favorites, args[0].GetString());
+        else if (strings && method == "sheetFavoriteFolder" && args.size() == 2)
+          error = utility_sheet::SetFolder(favorites, args[0].GetString(), args[1].GetString());
+        else if (strings && method == "sheetFolderRename" && args.size() == 2)
+          error = utility_sheet::RenameFolder(favorites, args[0].GetString(), args[1].GetString());
+        else if (strings && method == "sheetFolderRemove" && args.size() == 1)
+          error = utility_sheet::RemoveFolder(favorites, args[0].GetString());
+        if (error) reply(false, base::Value(*error));
+        else reply(true, base::Value(true));
+        return;
+      }
+      auto* history = HistoryServiceFactory::GetForProfile(profile, ServiceAccessType::EXPLICIT_ACCESS);
+      // Every visit, newest first, as shipping's history list (5,000 at most);
+      // host.js matches the search text as shipping's listHistory does.
+      if (method == "sheetHistory" && args.empty()) {
+        if (!history) { reply(true, base::Value(base::ListValue())); return; }
+        history::QueryOptions options;
+        options.max_count = utility_sheet::kHistoryVisitsLimit;
+        options.duplicate_policy = history::QueryOptions::KEEP_ALL_DUPLICATES;
+        history->QueryHistory(std::u16string(), options,
+            base::BindOnce(&Handler::HistoryReady, weak_factory_.GetWeakPtr(), id), &tracker_);
+        return;
+      }
+      // Shipping's removeVisit(url, visitedAt): that one visit.
+      if (method == "sheetHistoryRemove" && args.size() == 2 && args[0].is_string() &&
+          (args[1].is_double() || args[1].is_int())) {
+        const GURL url(args[0].GetString());
+        if (!history || !IsFavoritable(url)) { reply(false, base::Value("This visit can’t be removed here.")); return; }
+        const auto at = base::Time::FromMillisecondsSinceUnixEpoch(args[1].GetDouble());
+        history->ExpireHistoryBetween({url}, /*restrict_app_id=*/std::nullopt, at, at + base::Milliseconds(1),
+            /*user_initiated=*/true, base::BindOnce(&Handler::HistoryCleared, weak_factory_.GetWeakPtr(), id),
+            &tracker_);
+        return;
+      }
+      if (method == "sheetDownloads" && args.empty()) {
+        reply(true, base::Value(utility_sheet::Downloads(profile)));
+        return;
+      }
+      if (method == "sheetDownload" && args.size() == 2 && args[0].is_string() && args[1].is_string()) {
+        utility_sheet::DownloadAction(profile, args[0].GetString(), args[1].GetString());
+        reply(true, base::Value(true));
+        return;
+      }
+      if (method == "sheetDownloadsClear" && args.empty()) {
+        utility_sheet::ClearFinishedDownloads(profile);
+        reply(true, base::Value(true));
+        return;
+      }
+      reply(false, base::Value("Unknown utility sheet request."));
+      return;
+    }
     if (method == "listHistory" && args.size() == 1 && args[0].is_int()) {
       // Never resolve the service through an off-the-record profile: the
       // factory would hand back the regular profile's history.
@@ -6092,6 +6175,21 @@ bool OpenExtensions(BrowserWindowInterface* browser) {
   return true;
 }
 
+bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page) {
+  if (page != "history" && page != "downloads" && page != "bookmarks") return false;
+  // A private window keeps Chromium's pages; the sheet shows regular data.
+  if (!IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return false;
+  auto* parent = BrowserView::GetBrowserViewForBrowser(browser);
+  auto* view = parent ? static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId)) : nullptr;
+  if (!view) return false;
+  auto* contents = view->GetWebContents();
+  if (contents->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
+      !contents->GetPrimaryMainFrame()->IsRenderFrameLive()) return false;
+  contents->GetPrimaryMainFrame()->ExecuteJavaScript(
+      u"window.BlancPrototypeHost?.openSheet('" + base::ASCIIToUTF16(page) + u"')", base::NullCallback());
+  return true;
+}
+
 bool ToggleFavoriteFromIsland(BrowserWindowInterface* browser) {
   if (!IsIslandWindow(browser)) return false;
   // Same rules as the Island heart: committed http(s) page, loaded model,
@@ -6179,6 +6277,20 @@ content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL&
   params.tabstrip_add_types = AddTabTypes::ADD_ACTIVE;
   Navigate(&params);
   return params.navigated_or_inserted_contents;
+}
+
+bool MakePrivateWindow(BrowserWindowInterface* browser) {
+  if (!browser || !IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return false;
+  auto* model = browser->GetTabStripModel();
+  std::vector<content::WebContents*> starting;
+  for (int i = 0; i < model->count(); ++i) starting.push_back(model->GetWebContentsAt(i));
+  if (!NewPrivateTab(browser, GURL())) return false;
+  // The window's starting Start Page goes, leaving nothing in Recently closed.
+  for (auto* contents : starting) {
+    const int index = model->GetIndexOfWebContents(contents);
+    if (index != TabStripModel::kNoTab) model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_NONE);
+  }
+  return true;
 }
 
 bool HasIsland(views::View* parent) {

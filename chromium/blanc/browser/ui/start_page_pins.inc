@@ -35,3 +35,36 @@ base::ListValue SanitizeStartPins(const base::ListValue& input) {
   }
   return result;
 }
+
+// Shipping's pins.pin()/unpin(): pin answers {ok} or {ok: false, reason},
+// unpin whether the address was pinned. The Start Page and the Favorites
+// sheet both write through this.
+base::Value ChangeStartPin(PrefService* prefs, bool pin, const std::string& url,
+                      const std::string& title) {
+  base::DictValue candidate;
+  candidate.Set("url", url);
+  if (pin) candidate.Set("title", title);
+  auto target = SanitizeStartPin(base::Value(std::move(candidate)));
+  if (!target) {
+    return pin ? base::Value(base::DictValue().Set("ok", false).Set("reason", "invalid"))
+               : base::Value(false);
+  }
+  const auto* target_url = target->FindString("url");
+  auto pins = SanitizeStartPins(prefs->GetList(kStartPagePinsPref));
+  bool found = false;
+  base::ListValue remaining;
+  for (const auto& item : pins) {
+    if (*item.GetDict().FindString("url") == *target_url) found = true;
+    else remaining.Append(item.Clone());
+  }
+  if (pin && !found && pins.size() >= kStartPageMaxPins)
+    return base::Value(base::DictValue().Set("ok", false).Set("reason", "full"));
+  if ((pin && !found) || (!pin && found)) {
+    base::ListValue next;
+    if (pin) next.Append(std::move(*target));
+    for (const auto& item : remaining) next.Append(item.Clone());
+    prefs->SetList(kStartPagePinsPref, std::move(next));
+    prefs->CommitPendingWrite();
+  }
+  return pin ? base::Value(base::DictValue().Set("ok", true)) : base::Value(found);
+}

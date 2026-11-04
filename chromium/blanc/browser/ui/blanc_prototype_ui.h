@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include "content/public/browser/web_ui_controller.h"
 #include "content/public/browser/webui_config.h"
 #include "mojo/public/cpp/bindings/pending_receiver.h"
@@ -81,12 +82,20 @@ bool IsIslandWindow(const BrowserWindowInterface* browser);
 // Shipping's private tab (owner decision D1): |url| (the private Start Page
 // when empty) in a new private tab of |browser|, an ordinary window.
 content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL& url);
+// The Dock's New Private Window, and ⌘⇧N with no window open: a window
+// Chromium just opened becomes one private tab, as shipping's
+// openNewWindow({private: true}). False leaves it as Chromium made it.
+bool MakePrivateWindow(BrowserWindowInterface* browser);
 bool HasIsland(views::View* parent);
 int RailWidth(views::View* parent);
 int HeaderHeight(views::View* parent);
 bool IsCaption(views::View* parent, int x, int y);
 void RestoreExtensions(views::View* parent);
 bool OpenExtensions(BrowserWindowInterface* browser);
+// History, Downloads and the bookmark manager in an Island window open
+// Blanc's utility sheet ("history", "downloads" or "bookmarks"), as
+// shipping's menu items do. False leaves Chromium's own page.
+bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page);
 bool OpenFindIsland(BrowserWindowInterface* browser, int direction = 0);
 // ⌘D in an Island window: toggle the Favorite like the Island heart instead of
 // opening Chromium's star bubble. Returns true when the window is an Island

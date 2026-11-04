@@ -4,8 +4,9 @@
 import {UndefinedNativeAdapterError,nativeId} from '../lib/adapters.mjs';
 import {jsLiteral} from '../lib/js-literal.mjs';
 export const NEWTAB=/^chrome:\/\/(newtab\/|new-tab-page\/|blanc-prototype\/pages\/newtab\.html)/;
-// Fork utility pages: the facade opens Chromium's managers as tabs, and the
-// Blanc settings hub is a tab too. No Blanc utility sheet exists.
+// Fork utility pages shown as tabs: Chromium's managers (opened other than
+// through the Island) and the Blanc settings hub, which isn't in the sheet
+// until S1.7. Favorites, History and Downloads open in the Island's sheet.
 export const UTILITY=/^chrome:\/\/(bookmarks|history|downloads|settings)\/|^chrome:\/\/blanc-prototype\/blocking-settings\.html/;
 // Shipping internal URLs as page-initiated navigations would name the fork's
 // equivalents (the inverse of shippingPageUrl), so attacks reach real pages.
@@ -66,7 +67,11 @@ async function historyItems(w){
  if(items.length>=300)throw new UndefinedNativeAdapterError('History count beyond the facade cap of 300');
  return items;
 }
-const noSheet=hook=>()=>{throw Error(`${hook}: the fork has no Blanc utility sheet; utility pages open as Chromium manager tabs`);};
+// The utility sheet is a frame of the Island host (host.js showSheet); its
+// document answers shipping's sheet reads.
+const sheetState=w=>w.hostEval('window.BlancPrototypeHost.sheetState()');
+const onSheet=(w,expression)=>w.hostEval(`(()=>{const document=window.document.getElementById('sheet')?.contentDocument;
+ if(!document||document.location.href==='about:blank')return null;const location=document.location;return (${expression});})()`);
 const noState=(hook,what)=>()=>{throw new UndefinedNativeAdapterError(`${hook}: the fork stores no ${what}`);};
 const toggleIn=(list,cls,attr)=>key=>`(()=>{const item=[...document.querySelectorAll(${jsLiteral(list)})].find(c=>${attr}===${jsLiteral(String(key))});
  const button=item?.querySelector(${jsLiteral(cls)});if(!button)return false;button.focus();button.click();return true;})()`;
@@ -242,24 +247,38 @@ export const pages={
  openFavoritesSheet:w=>w.api('openPage',['bookmarks']),
  openHistorySheet:w=>w.api('openPage',['history']),
  openDownloads:w=>w.api('openPage',['downloads']),
- // Where a utility page shows: the fork has no sheet, so the surface is the
- // active tab when it is a utility page; `kind` says so. Shipping's URL and
- // tab-count assertions then judge the difference.
+ // Where a utility page shows: the sheet when it is open, else the active
+ // tab when it is a utility page (Settings, until S1.7); `kind` says which.
  async utilitySurface(w){
+  const sheet=await sheetState(w);
+  if(sheet.visible)return {visible:true,ready:sheet.ready,url:sheet.url,kind:'sheet'};
   const tab=await activeTab(w);const url=tab?.committedUrl||tab?.url||'';
-  if(!UTILITY.test(url))return {visible:false,ready:false,url:null,kind:'tab'};
+  if(!UTILITY.test(url))return {visible:false,ready:false,url:null,kind:null};
   const {shippingPageUrl}=await import('../lib/page-shim.mjs');
   return {visible:true,ready:!tab.isLoading,url:shippingPageUrl(url),kind:'tab'};
  },
- async closeUtilitySurface(){throw Error('closeUtilitySurface: the fork has no utility sheet to dismiss');},
- utilitySheetRowIcons:noSheet('utilitySheetRowIcons'),
- historyDayHeadings:noSheet('historyDayHeadings'),
- clickFirstSheetLink:noSheet('clickFirstSheetLink'),
- utilitySheetContentsId:noSheet('utilitySheetContentsId'),
- destroyUtilitySheetContents:noSheet('destroyUtilitySheetContents'),
- utilitySheetPalette:noSheet('utilitySheetPalette'),
- readFavoritesSheetPins:noSheet('readFavoritesSheetPins'),
- toggleFavoritesSheetPin:noSheet('toggleFavoritesSheetPin'),
+ async closeUtilitySurface(w){await w.hostEval('window.BlancPrototypeHost.closeSheet()');return true;},
+ // Shipping's test-hook reads of the sheet's document, over the same DOM.
+ utilitySheetRowIcons:w=>onSheet(w,`[...document.querySelectorAll('.row')].map(row=>{const icon=row.querySelector('.row-icon');
+  return {image:!!icon?.querySelector('img'),letter:icon?.classList.contains('fallback')?icon.textContent:''};})`),
+ historyDayHeadings:w=>onSheet(w,`[...document.querySelectorAll('.day-heading')].map(h=>h.textContent)`),
+ async clickFirstSheetLink(w){
+  const clicked=await onSheet(w,`(()=>{const a=document.querySelector('a[href^="https"], a[href^="http"]');if(a)a.click();return !!a;})()`);
+  if(clicked===null)throw Error('sheet not open');
+  if(!clicked)throw Error('no outbound link rendered in sheet');
+ },
+ utilitySheetContentsId:async w=>(await sheetState(w)).contentsId,
+ destroyUtilitySheetContents:w=>w.hostEval('window.BlancPrototypeHost.discardSheetContents()'),
+ utilitySheetPalette:w=>onSheet(w,`({text:getComputedStyle(document.body).color,
+  card:getComputedStyle(document.querySelector('.page')).backgroundColor,
+  currentNav:getComputedStyle(document.querySelector('.page-nav a.current')).color})`),
+ readFavoritesSheetPins:w=>onSheet(w,`location.pathname!=='/pages/bookmarks.html'?null:[...document.querySelectorAll('#list .row[data-url]')].map(row=>({
+  url:row.dataset.url,title:row.querySelector('.title')?.textContent??'',pinned:row.classList.contains('start-pinned'),
+  mark:row.querySelector('.row-pin-mark')?.getAttribute('aria-label')??null,button:row.querySelector('.pin-toggle')?.textContent??null,
+  buttonLabel:row.querySelector('.pin-toggle')?.getAttribute('aria-label')??null,focused:document.activeElement===row.querySelector('.pin-toggle')}))`),
+ toggleFavoritesSheetPin:async(w,title)=>(await onSheet(w,`(()=>{const row=[...document.querySelectorAll('#list .row[data-url]')]
+  .find(c=>c.querySelector('.title')?.textContent===${jsLiteral(String(title))});const button=row?.querySelector('.pin-toggle');
+  if(!button||button.disabled)return false;button.focus();button.click();return true;})()`))===true,
  // The Ledger's Favorites heading link, clicked as a person would.
  async followNewtabFavoritesLink(w){
   const page=await startPage(w);if(!page)throw Error('newtab ledger is not the active tab');
