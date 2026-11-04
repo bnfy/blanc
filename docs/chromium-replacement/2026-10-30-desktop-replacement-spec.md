@@ -287,13 +287,14 @@ Each row has its own status, decided only by the owner. **Until a row is approve
 | V1 | Settings use Chrome/Brave visual design | Owner direction | Approved (owner direction, October 2026) |
 | V2 | History retention follows Chromium (90 days) instead of shipping's 5,000-entry cap | Native model | **Proposed, product change.** Default until decided: a Blanc layer trims `HistoryService` to 5,000 entries |
 | V3 | Groups always store a color internally; "no color" maps to a neutral slot that is never shown | Native model; no visible change | Proposed |
-| V4 | Inert-tab workaround retired; native inherited sandbox used | Better security | Proposed, after the inherited-sandbox check in S1.6 passes |
+| V4 | A page-opened tab keeps Chromium's native inherited sandbox; only a tab that actually inherited one is marked, and the mark keeps its sandbox flags. A marked tab that is rebuilt (session, Space, Recently closed) loads its page again under those flags, given to the new tab at creation, instead of shipping's inert page; Duplicate and Quiet stay refused for it, as in shipping. Shipping marks every page-opened tab and restores it inert, because Electron can't read or re-apply the flags (N4) | Better security; the restored page still works, and unsandboxed children behave as ordinary tabs | **Approved** (owner, November 3, 2026) |
 | V5 | Extensions available | Fork purpose | Approved (October 15 fork authorization) |
 | V6 | Private model | — | Closed: no divergence. D1 (October 31, 2026) keeps shipping's in-window private tabs |
 | V7 | macOS minimum version and Intel support follow the fork's Chromium (the preview needs macOS 26; shipping supports older and Intel) | Upstream minimums | **Proposed, product change.** Open: decision D8 |
 | V8 | Certificate errors show Chromium's warning page and use its proceed decisions instead of `blanc://error` and shipping's session-only continue (N5) | Chromium's interstitial is better maintained and more secure | **Approved** (owner, October 31, 2026) |
 | V9 | A page-started launch of an external scheme (`mailto:`, `tel:` and similar) asks first through Chromium's prompt and remembers the answer per site; addresses the user types still hand off directly (N6) | Chromium's handler is hardened against launch spam | **Approved** (owner, October 31, 2026) |
 | V10 | A page may open an extension's web-accessible pages (`chrome-extension:`) as Chromium allows; shipping refused every page-started `chrome-extension:` navigation except the PDF viewer | Web Store extensions open their own pages this way (V5); Chromium already limits it to resources the extension declares | **Approved** (owner, November 1, 2026) |
+| V11 | Secure DNS uses Chromium's own settings and provider list (Cloudflare and Quad9 among them, no Mullvad, which remains possible as a custom address) instead of shipping's three providers; WebRTC keeps shipping's IP-handling policy through Chromium's own preference (N8) | Native model | **Approved** (owner, November 3, 2026) |
 
 ## 10. Release gates for the replacement
 

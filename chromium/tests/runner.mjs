@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {NativeFixture} from './lib/fixture.mjs';
 import {waitFor} from './lib/cdp.mjs';
 import {installDriver,nativeCall} from './lib/test-driver.mjs';
-import {assertRendering} from './lib/render-guard.mjs';
+import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
 import {matchStep} from './steps.mjs';
 import {aggregateCases} from './results.mjs';
 import {awaitMemory} from './lib/memory-guard.mjs';
@@ -18,6 +18,7 @@ const {loadShippingModule}=createRequire(import.meta.url)('./lib/shipping-core.c
 const fixturePages=loadShippingModule('test/desktop/support/fixtures-server.js');
 const [configPath,outputDirectory,...flags]=process.argv.slice(2);
 if(!configPath||!outputDirectory)throw Error('Usage: runner.mjs local-config.json durable-output-directory [--only=case-id-text]');
+assertNodeRuntime();
 // --only runs a development subset (case ids containing the text); its
 // output is never a baseline.
 const only=flags.find(f=>f.startsWith('--only='))?.slice(7);

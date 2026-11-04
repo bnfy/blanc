@@ -6,6 +6,9 @@ class ShieldTabCount final
  public:
   ~ShieldTabCount() override = default;
   void PrimaryMainFrameRenderProcessGone(base::TerminationStatus) override;
+  // Each committed page starts from zero, as shipping resets on main-frame
+  // navigation (tab-view.js); a same-document change keeps its count.
+  void PrimaryPageChanged(content::Page&) override;
   void AboutToBeDiscarded(content::WebContents*) override;
   void WasDiscarded() override;
   int value = 0;
@@ -19,6 +22,7 @@ ShieldTabCount::ShieldTabCount(content::WebContents* contents)
 void ShieldTabCount::PrimaryMainFrameRenderProcessGone(base::TerminationStatus) {
   value = 0;
 }
+void ShieldTabCount::PrimaryPageChanged(content::Page&) { value = 0; }
 void ShieldTabCount::AboutToBeDiscarded(content::WebContents*) { value = 0; }
 void ShieldTabCount::WasDiscarded() { value = 0; }
 WEB_CONTENTS_USER_DATA_KEY_IMPL(ShieldTabCount);

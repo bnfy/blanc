@@ -85,6 +85,10 @@
       const epoch = pendingFindShow.epoch;
       queueMicrotask(() => deliverFindShow(epoch));
     }
+    if (event === 'onPermissionPrompt') queueMicrotask(() => {
+      for (const payload of prompts.values())
+        if (subscribers.get(event)?.has(callback)) callback(payload);
+    });
     if (event === 'onSplitLayout') queueMicrotask(() => {
       if (subscribers.get(event)?.has(callback)) callback(currentSplitLayout());
     });
@@ -210,7 +214,7 @@
   async function dismissPaneMenu(returnFocus = false) {
     if (!paneMenu) return;
     const id = paneMenu.dataset.tabId; paneMenu.remove(); paneMenu = null;
-    await request('height', [68]); reportGeometry();
+    await restHeight(); reportGeometry();
     if (returnFocus) [...document.querySelectorAll(`[data-pane-menu="${id}"]`)].find(button => !button.hidden)?.focus();
   }
   async function openPaneMenu(tab, anchor) {
@@ -431,6 +435,16 @@
       const t = (key, values) => strip.contentWindow?.blancI18n?.t(key, values) ?? blockerStatus;
       for (const tab of snapshot.tabs) {
         tab.connection = BlancShieldModel.connectionFor({ url: tab.committedUrl, isLoading: tab.isLoading });
+        // Shipping's projection: the committed page's security state, which
+        // the strip's warning badge and site controls read. Chromium's
+        // certificate warning and continue decisions (V8) stand in for
+        // shipping's certificate page and exceptions.
+        const certificate = tab.certificate;
+        tab.siteInfo = BlancSiteSecurity.buildSiteInfo(tab.committedUrl ?? '', {
+          blockedCount: tab.blockedCount, t,
+          certificateError: certificate?.state === 'error' ? { url: tab.committedUrl, error: certificate.error } : null,
+          certificateException: certificate?.state === 'exception' ? {} : null,
+        });
         tab.shield = BlancShieldModel.shieldChipState({
           url: tab.url, blockedCount: tab.blockedCount, excepted: tab.adblockExcepted === true,
           adblockEnabled: enabled, t,
@@ -448,9 +462,12 @@
       }) : null;
       snapshot.shieldPopover = shippingShield ? {
         ...shippingShield,
-        // Keep the shipping site/global distinction; unhealthy protection has
-        // recovery semantics rather than an apparently active site switch.
-        variant: shieldTab.isLoading || (enabled && health !== 'ready') ? 'recovery' : shippingShield.variant,
+        // Keep the shipping site/global distinction; unhealthy protection, or
+        // a navigation still on its way to another page, has recovery
+        // semantics rather than an apparently active site switch. A page
+        // loading its own resources keeps its switch, as in shipping.
+        variant: (shieldTab.isLoading && shieldTab.url !== shieldTab.committedUrl) || (enabled && health !== 'ready')
+          ? 'recovery' : shippingShield.variant,
         on: shippingShield.on && health === 'ready', connection: shippingShield.connection,
         countLine: enabled && health !== 'ready' ? blockerStatus : shippingShield.countLine,
         controls: { active: 'blanc', choice: 'blanc', disabled: true, hidden: true,
@@ -518,6 +535,7 @@
     positionShield();
     const slot = strip.contentDocument?.getElementById('nativeExtensions');
     const panel = paneMenu ?? (extensionsOpened ? document.getElementById('extensionsPanel')
+      : !opened && !sheet.page && prompts.size ? permissionFrame
       : opened ? overlay.contentDocument?.getElementById(overlayMode === 'find' ? 'findBar' : overlayMode === 'shield' ? 'shieldPop'
         : overlayMode === 'group-menu' ? 'groupMenu' : 'islandPanel')
       : strip.contentDocument?.getElementById('islandPill'));
@@ -649,7 +667,7 @@
     findTabId = null;
     overlay.dataset.mode = '';
     overlay.hidden = true;
-    await request('height', [68]);
+    await restHeight();
     if (epoch !== findShowEpoch) return;
     // Escape and outside clicks return focus to the page (Electron's
     // hideOverlay does the same); extension activation passes false so the
@@ -696,6 +714,53 @@
     setTimeout(() => { if (extensionsOpened && !extensionsPanel.contextMenuOpen && !document.hasFocus()) close(); }, 0);
   });
   setInterval(() => extensionsPanel.update(), 1000);
+
+  // ---- Permission prompts (F13; shipping's permission view). Native
+  // (permission_prompt.inc) sends each request shipping would ask about;
+  // shipping's own permission.html shows them one at a time, bottom-centre
+  // over the page, and answers through respondPermission. It never takes
+  // focus: a keystroke meant for the page must not answer a prompt.
+  const permissionFrame = document.getElementById('permission');
+  const prompts = new Map();
+  function placePermission() {
+    const width = Math.min(560, Math.max(0, innerWidth - 24));
+    Object.assign(permissionFrame.style, { left: `${Math.round((innerWidth - width) / 2)}px`,
+      top: `${Math.max(0, innerHeight - 84)}px`, width: `${width}px`, height: '84px' });
+  }
+  // The Island's resting height: the strip, or, while a prompt is pending,
+  // the window, so the prompt can draw over the page.
+  function restHeight() {
+    return request('height', prompts.size ? [10000, false] : [68]);
+  }
+  async function syncPermission() {
+    permissionFrame.hidden = !prompts.size;
+    if (prompts.size) placePermission();
+    if (!opened && !extensionsOpened && !sheet.page && !paneMenu) await restHeight();
+    reportGeometry();
+  }
+  function permissionPrompt(payload) {
+    if (!Number.isInteger(payload?.id) || prompts.has(payload.id)) return;
+    prompts.set(payload.id, payload);
+    emit('onPermissionPrompt', payload);
+    syncPermission().catch(error => notice(error.message));
+  }
+  // A request ended without this frame's answer (its tab switched or closed,
+  // or it navigated): shipping's renderer has no way to drop one, so the
+  // document reloads and the rest are replayed as on its first load.
+  function permissionGone(id) {
+    if (!prompts.delete(id)) return;
+    if (prompts.size) permissionFrame.src = permissionFrame.dataset.src;
+    syncPermission().catch(error => notice(error.message));
+  }
+  async function respondPermission(id, allow) {
+    const answered = prompts.get(Number(id));
+    if (!answered) return false;
+    prompts.delete(answered.id);
+    const result = await request('respondPermission', [answered.id, allow === true]);
+    await syncPermission();
+    return result;
+  }
+  window.addEventListener('resize', () => { if (prompts.size) placePermission(); });
 
   // ---- The utility sheet (S1.5, F16; shipping's showUtilityPage and
   // hideUtilitySheet). Favorites, History and Downloads open in one frame
@@ -775,7 +840,7 @@
       sheet.frame.src = 'about:blank';
     }
     if (opened || extensionsOpened) return;
-    await request('height', [68]);
+    await restHeight();
     if (epoch !== sheet.epoch) return;
     if (focus) await request('focusPage');
     reportGeometry();
@@ -1283,6 +1348,19 @@
     setWorkspaceSwitcherOpen: () => {},
     setOverlayDragState: () => {},
     acknowledgeDownloads: () => {},
+    respondPermission,
+    // Site controls' Stop allowing on a page loaded past a certificate warning.
+    siteInfoForgetCertificateException: async () => {
+      const result = await request('forgetCertificateException', [nativeId(snapshot?.activeTabId)]);
+      await refresh();
+      return result;
+    },
+    // The same for a named tab, with or without its reload (test hooks).
+    forgetCertificateExceptionInTab: async (id, reload = true) => {
+      const result = await request('forgetCertificateException', [nativeId(id), reload !== false]);
+      await refresh();
+      return result;
+    },
   };
 
   for (const method of ['reopenClosedTab', 'reopenClosedEntry', 'forgetClosedEntry', 'clearClosedEntries']) {
@@ -1431,7 +1509,7 @@
     if (!intro) {
       tooltip.classList.remove('intro');
       tooltip.hidden = true;
-      if (!sheet.page) request('height', [68, false]).catch(() => {});
+      if (!sheet.page) restHeight().catch(() => {});
       return;
     }
     const t = strip.contentWindow?.blancI18n?.t;
@@ -1530,10 +1608,21 @@
       return show(newTab ? text : undefined, newTab ? 'panel' : 'palette');
     },
     extensions: showExtensions,
+    // The address menu's Paste and Go (F19, shipping's pasteAndGo): the active
+    // tab goes to the text as typed in the command bar, then the Island closes.
+    pasteAndGo: async (text) => {
+      const id = snapshot?.activeTabId;
+      if (id == null || typeof text !== 'string' || !text.trim()) return false;
+      await implemented.navigate(id, text.trim());
+      await close();
+      return true;
+    },
     escape: () => opened || extensionsOpened ? close() : undefined,
     // The utility sheet: its pages' bridge and links (pages/sheet-adapter.js),
     // native commands (History, Downloads, Favorites) and its state.
     sheetBridge, sheetLink, sheetEscape,
+    // Native's permission requests (permission_prompt.inc).
+    permissionPrompt, permissionGone,
     openSheet: (name) => showSheet(name),
     closeSheet: () => hideSheet(),
     sheetState: () => ({ visible: !!sheet.page && !!sheet.frame && !sheet.frame.hidden, ready: sheetReady(),
@@ -1568,6 +1657,7 @@
   strip.src = strip.dataset.src;
   floatPill.src = floatPill.dataset.src;
   overlay.src = overlay.dataset.src;
+  permissionFrame.src = permissionFrame.dataset.src;
 
   window.addEventListener('unhandledrejection', (event) => {
     notice(event.reason?.message ?? String(event.reason));

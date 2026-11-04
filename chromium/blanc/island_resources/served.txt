@@ -79,12 +79,15 @@ pages/sunrise-favicon-mark.png
 pages/sunrise-mark.png
 pages/type-to-open.js
 panel-left.svg
+permission.html
+permission.js
 prototype.css
 renderer.js
 search-settings-adapter.js
 search-settings.js
 selection-tab-sections.js
 shield-model.js
+site-security.js
 space-identity.js
 space-picker.js
 strings.js

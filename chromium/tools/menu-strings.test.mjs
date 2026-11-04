@@ -31,7 +31,12 @@ int main() { std::string v; std::wstring_convert<std::codecvt_utf8_utf16<char16_
   const asked = ['en-US', 'de', 'de-AT', 'es-419', 'fr_CA', 'it', 'pt-PT', 'pt-BR', 'ja', ''];
   const out = execFileSync(path.join(dir, 'labels'), {input: asked.join('\n') + '\n', encoding: 'utf8'}).trimEnd().split('\n');
   fs.rmSync(dir, {recursive: true, force: true});
-  const byCode = Object.fromEntries(catalogs().map(({code, values}) => [code, values.join('|')]));
+  const byCode = Object.fromEntries(catalogs().map(({code, values}) => [code, values.slice(0, 2).join('|')]));
   assert.deepEqual(out, ['en', 'de', 'de', 'es', 'fr', 'it', 'pt-BR', 'pt-BR', 'en', 'en'].map(code => byCode[code]));
   assert.equal(byCode.en, 'New Private Tab|New Private Window');
+});
+
+test('the address menu has shipping\'s English labels', () => {
+  const en = catalogs().find(({code}) => code === 'en').values.slice(2);
+  assert.deepEqual(en, ['Undo', 'Redo', 'Cut', 'Copy', 'Copy Clean Link', 'Paste', 'Paste and Go', 'Delete', 'Select All']);
 });

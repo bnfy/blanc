@@ -76,7 +76,13 @@ export const core={
  // height, and the host document learns its new size a frame or so later.
  // Opening resolves once both have happened, so a move over the panel area
  // lands in the open overlay.
- openPanel:w=>openIsland(w,true),
+ // Shipping's openPanel (showOverlay('panel')): the command bar expanded at
+ // the pill with the page's address in the field, the host's show(); not the
+ // new-tab panel, whose field starts empty.
+ openPanel:async w=>{await w.hostEval('window.BlancPrototypeHost.api.openIsland()');
+  await w.hostEval(`new Promise(r=>{const end=Date.now()+2000;(function check(){
+   if(document.getElementById('overlay').hidden||innerHeight>68||Date.now()>end)return r(true);
+   requestAnimationFrame(check);})();})`);},
  openPalette:w=>openIsland(w,false),
  // The host owns the mode (main in shipping); the overlay document's own
  // body mode is what its renderer has applied.
