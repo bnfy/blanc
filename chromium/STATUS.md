@@ -570,6 +570,20 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   those gone; settings-and-theming, island-and-commands and internal-pages
   match their last runs. Chromium's own name still shows in a few strings
   ("About Chromium", Default browser); that is branding, not this slice.
+- **Shipping target moved to v1.46.0, candidate macos-e225d28ca11f8f10 (2026-11-04, owner):**
+  `tools/island-renderer.mjs` regenerated the Island from v1.46.0 (every
+  fork edit still applies; index.html, overlay.js, renderer.js and
+  styles.css gained Island size and Mini Window), the new
+  `tools/interface-strings.mjs` rebuilds `blanc/island/strings.js` from a
+  tag (it reproduces the v1.45.1 file byte for byte), and the menu and
+  settings strings, the 41 shipping asset copies (none changed), the
+  parity tests, the scenario inventory (591 declarations, 640 cases) and
+  the tracker name v1.46.0. Rows verified against v1.45.1 now read as
+  needing a recheck. The key check has 83 keys: `islandSize` is to build
+  (S1.7, device-local `blanc.island.size`); `miniWindowShortcut` waits for
+  F61. The spec gains F61 Mini Window (S3); F57 and F59 name v1.46.0's
+  behaviour. The Start Page's catalogs move with S1.8. Not yet run: the
+  feature reruns on this candidate (the display locked).
 - **Open question, file picker hang (2026-11-04):** the owner's live
   instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
   wallpaper. The hang report shows the UI thread inside AppKit's
@@ -787,16 +801,16 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 | Platform | Current-candidate baseline |
 | --- | --- |
 | macOS | Not run for current candidate (previous baseline is stale) |
-| Windows | Not run (627 cases) |
-| Linux | Not run (627 cases) |
+| Windows | Not run (640 cases) |
+| Linux | Not run (640 cases) |
 
-627 executable cases from 578 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
+640 executable cases from 591 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
 
 ### Bar B — requirement rows by platform
 
 | State | macOS | Windows | Linux |
 | --- | ---: | ---: | ---: |
-| Not started / unassessed | 42 | 79 | 79 |
+| Not started / unassessed | 43 | 80 | 80 |
 | Research only | 1 | 0 | 0 |
 | Drafted | 11 | 0 | 0 |
 | Implemented | 0 | 0 | 0 |
@@ -806,9 +820,9 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 | Verification needs recheck | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 |
-| Total | 79 | 79 | 79 |
+| Total | 80 | 80 | 80 |
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-5faa4ac34c4be46a; Windows: none; Linux: none.
+Candidate identities: macOS: macos-e225d28ca11f8f10; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->
