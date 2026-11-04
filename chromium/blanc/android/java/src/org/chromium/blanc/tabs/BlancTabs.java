@@ -276,6 +276,19 @@ public final class BlancTabs {
         return TabSections.sections(items);
     }
 
+    /**
+     * What the grid and palette draw, as the iPhone's displaySections: the ungrouped pinned tabs
+     * first, as their own section, then every group and run.
+     */
+    public List<TabSections.Section> displaySections() {
+        List<TabSections.Section> out = new ArrayList<>();
+        TabSections.Section pins = new TabSections.Section(null);
+        for (TabStore.Entry tab : mStore.tabs(false)) if (tab.groupId == null && tab.pinned) pins.tabIds.add(tab.id);
+        if (!pins.tabIds.isEmpty()) out.add(pins);
+        out.addAll(sections());
+        return out;
+    }
+
     private List<TabStore.Entry> members(String groupId) {
         List<TabStore.Entry> out = new ArrayList<>();
         for (TabStore.Entry tab : mStore.tabs(false)) if (groupId.equals(tab.groupId)) out.add(tab);

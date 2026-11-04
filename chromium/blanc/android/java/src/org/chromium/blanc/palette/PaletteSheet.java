@@ -327,7 +327,7 @@ public final class PaletteSheet extends Dialog {
         Map<String, TabStore.Group> groups = new HashMap<>();
         for (TabStore.Group group : mTabs.groups()) groups.put(group.id, group);
         heading(mActivity.getString(R.string.blanc_ios_tabs_open_tabs), normal.size());
-        for (TabSections.Section section : mTabs.sections()) {
+        for (TabSections.Section section : mTabs.displaySections()) {
             TabStore.Group group = section.groupId == null ? null : groups.get(section.groupId);
             if (group != null) {
                 groupRow(group, section.tabIds.size());

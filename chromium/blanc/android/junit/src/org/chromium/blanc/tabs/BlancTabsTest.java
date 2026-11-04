@@ -218,4 +218,15 @@ public class BlancTabsTest {
         assertNull(tabs.undoTitle());
         assertTrue(tabs.reopenLast());
     }
+
+    @Test
+    public void ungroupedPinsComeFirstAsTheirOwnSection() {
+        String a = open("https://a.example/");
+        String b = open("https://b.example/");
+        mTabs.setPinned(b, true);
+        List<TabSections.Section> sections = mTabs.displaySections();
+        assertEquals(List.of(b), sections.get(0).tabIds);
+        assertNull(sections.get(0).groupId);
+        assertEquals(List.of(a), sections.get(1).tabIds);
+    }
 }

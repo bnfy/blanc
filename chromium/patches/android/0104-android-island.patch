@@ -13,6 +13,18 @@ diff -ruN a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
        "//chrome/browser/tab:java",
        "//chrome/browser/tab_group_suggestion:java",
        "//chrome/browser/tab_group_suggestion:toolbar_java",
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java b/chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java
+@@ -298,6 +298,8 @@
+             @OverscrollAction int type, @BackGestureEventSwipeEdge int initiatingEdge) {
+         mSwipeType = type;
+         if (type == OverscrollAction.PULL_TO_REFRESH) {
++            // Blanc (patch 0104): never on Blanc's own pages (chrome://blanc/), as on the iPhone.
++            if (mTab.getUrl().getSpec().startsWith("chrome://blanc/")) return false;
+             if (mSwipeRefreshLayout == null) initSwipeRefreshLayout(mTab.getContext());
+             assumeNonNull(mSwipeRefreshLayout);
+             attachSwipeRefreshLayoutIfNecessary();
 diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
@@ -45,7 +57,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          mRootUiTabObserver = new RootUiTabObserver(tabProvider);
          mGestureNavLayoutObserver =
                  new LayoutStateProvider.LayoutStateObserver() {
-@@ -885,6 +893,10 @@
+@@ -885,6 +893,14 @@
      @Override
      @SuppressWarnings({"NullAway", "UseSharedPreferencesManagerFromChromeCheck"})
      public void onDestroy() {
@@ -53,10 +65,14 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +            mBlancIsland.destroy();
 +            mBlancIsland = null;
 +        }
++        if (mBlancTabKeeper != null) {
++            mBlancTabKeeper.destroy();
++            mBlancTabKeeper = null;
++        }
          if (mVerticalTabsPreferenceListener != null) {
              ContextUtils.getAppSharedPreferences()
                      .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
-@@ -1293,9 +1305,295 @@
+@@ -1293,9 +1309,314 @@
          }
      }
  
@@ -284,6 +300,8 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                });
 +    }
 +
++    private org.chromium.blanc.tabs.chromium.@Nullable BlancTabKeeper mBlancTabKeeper;
++
 +    // Blanc's tab operations (A2 Task 3), created with the Island.
 +    private org.chromium.blanc.tabs.@Nullable BlancTabs mBlancTabs;
 +
@@ -293,10 +311,27 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +    private void createBlancIsland() {
 +        TabModelSelector selector = mTabModelSelectorSupplier.asNonNull().get();
 +        // Blanc's tab operations over Chromium's tab model (A2 Task 3).
++        org.chromium.blanc.tabs.chromium.ChromiumTabStore store =
++                new org.chromium.blanc.tabs.chromium.ChromiumTabStore(
++                        selector, mTabCreatorManagerSupplier.asNonNull().get());
++        // What Chromium doesn't keep across a restart, and Quiet Tabs (A2 Task 7).
++        mBlancTabKeeper =
++                new org.chromium.blanc.tabs.chromium.BlancTabKeeper(
++                        selector, store, org.chromium.chrome.browser.tab.TabUtils::isCapturingForMedia);
++        mBlancTabKeeper.start();
++        mActivityLifecycleDispatcher.register(
++                new org.chromium.chrome.browser.lifecycle.PauseResumeWithNativeObserver() {
++                    @Override
++                    public void onResumeWithNative() {}
++
++                    @Override
++                    public void onPauseWithNative() {
++                        if (mBlancTabKeeper != null) mBlancTabKeeper.save();
++                    }
++                });
 +        org.chromium.blanc.tabs.BlancTabs tabs =
 +                new org.chromium.blanc.tabs.BlancTabs(
-+                        new org.chromium.blanc.tabs.chromium.ChromiumTabStore(
-+                                selector, mTabCreatorManagerSupplier.asNonNull().get()),
++                        store,
 +                        android.os.SystemClock::uptimeMillis,
 +                        new android.os.Handler(android.os.Looper.getMainLooper())::postDelayed);
 +        mBlancTabs = tabs;
@@ -352,7 +387,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          assert mLayoutManager != null;
  
          if (mCountrySupplier != null && mCountrySupplier.get() == null) {
-@@ -2962,9 +3260,8 @@
+@@ -2962,9 +3283,8 @@
          mNotificationPermissionController =
                  new NotificationPermissionController(mWindowAndroid, rationaleUIDelegateSupplier);
          NotificationPermissionController.attach(mWindowAndroid, mNotificationPermissionController);

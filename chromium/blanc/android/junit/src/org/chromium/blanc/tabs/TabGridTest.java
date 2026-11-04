@@ -184,4 +184,12 @@ public class TabGridTest {
         assertEquals(4, mStore.tabs(false).size());
         assertFalse(grid.isShowing());
     }
+
+    @Test
+    public void aPinnedTabLeadsTheGrid() {
+        mTabs.setPinned(mC, true);
+        TabGrid grid = show();
+        assertEquals("https://c.example/", cards(grid).get(0));
+        assertEquals(3, cards(grid).size());
+    }
 }

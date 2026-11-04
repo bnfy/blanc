@@ -300,7 +300,7 @@ public final class TabGrid extends Dialog {
         for (TabStore.Entry tab : normal) byId.put(tab.id, tab);
         Map<String, TabStore.Group> groups = new HashMap<>();
         for (TabStore.Group group : mTabs.groups()) groups.put(group.id, group);
-        for (TabSections.Section section : mTabs.sections()) {
+        for (TabSections.Section section : mTabs.displaySections()) {
             List<TabStore.Entry> tabs = new ArrayList<>();
             for (String id : section.tabIds) {
                 TabStore.Entry tab = byId.get(id);

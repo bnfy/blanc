@@ -25,11 +25,13 @@ android_library("island_java") {
 # (A2 plan, Task 2): plain Java with no views.
 android_library("tabs_java") {
   sources = [
+    "java/src/org/chromium/blanc/tabs/BlancTabState.java",
     "java/src/org/chromium/blanc/tabs/BlancTabs.java",
     "java/src/org/chromium/blanc/tabs/CardSwipe.java",
     "java/src/org/chromium/blanc/tabs/GroupColors.java",
     "java/src/org/chromium/blanc/tabs/GroupNames.java",
     "java/src/org/chromium/blanc/tabs/QuickSwitcher.java",
+    "java/src/org/chromium/blanc/tabs/QuietTabs.java",
     "java/src/org/chromium/blanc/tabs/SlashCommands.java",
     "java/src/org/chromium/blanc/tabs/TabSections.java",
     "java/src/org/chromium/blanc/tabs/TabStore.java",
@@ -42,7 +44,10 @@ android_library("tabs_java") {
 
 # BlancTabs' store over Chromium's tab model.
 android_library("tabs_ui_java") {
-  sources = [ "java/src/org/chromium/blanc/tabs/chromium/ChromiumTabStore.java" ]
+  sources = [
+    "java/src/org/chromium/blanc/tabs/chromium/BlancTabKeeper.java",
+    "java/src/org/chromium/blanc/tabs/chromium/ChromiumTabStore.java",
+  ]
   deps = [
     ":tabs_java",
     "//base:base_java",
@@ -150,6 +155,7 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/island/IslandTuckTest.java",
     "junit/src/org/chromium/blanc/island/IslandViewTest.java",
     "junit/src/org/chromium/blanc/island/IslandVisibilityTest.java",
+    "junit/src/org/chromium/blanc/tabs/BlancTabStateTest.java",
     "junit/src/org/chromium/blanc/tabs/BlancTabsTest.java",
     "junit/src/org/chromium/blanc/tabs/CardSwipeTest.java",
     "junit/src/org/chromium/blanc/tabs/FakeTabStore.java",
@@ -157,6 +163,7 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/tabs/GroupNamesTest.java",
     "junit/src/org/chromium/blanc/tabs/PaletteSheetTest.java",
     "junit/src/org/chromium/blanc/tabs/QuickSwitcherTest.java",
+    "junit/src/org/chromium/blanc/tabs/QuietTabsTest.java",
     "junit/src/org/chromium/blanc/tabs/SlashCommandsTest.java",
     "junit/src/org/chromium/blanc/tabs/TabGridTest.java",
     "junit/src/org/chromium/blanc/tabs/TabSectionsFixtures.java",
