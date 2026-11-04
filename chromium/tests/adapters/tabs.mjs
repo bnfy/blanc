@@ -77,7 +77,8 @@ const strip=w=>w.frame('strip'),overlay=w=>w.frame('overlay');
 const overlayShown=w=>w.hostEval(`!document.getElementById('overlay').hidden`);
 // Settings → Privacy and security's list (S1.7), through the settings sheet
 // as a person reaches it; a Settings tab would move into the sheet anyway.
-const exceptionRows=w=>inSettings(w,'privacy',(a,d)=>({value:d.all('.blanc-exception').map(r=>r.textContent.trim())}));
+// Read through a test op: opening Settings would close an open popover.
+const exceptionRows=async w=>(await w.native('blockingExceptions',[])).map(String);
 async function activeTab(w){const s=await w.snapshot();return s.tabs.find(t=>String(t.id)===String(s.activeTabId))??null;}
 // The fork's Island tab menu: a real right-click on the tab's row in the
 // ⌘L panel, read back as rendered buttons.

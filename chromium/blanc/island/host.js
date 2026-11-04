@@ -25,7 +25,36 @@
   let blockerRecoveryShown = false;
   let layout = localStorage.getItem('blanc.prototype.tabLayout') === 'vertical' ? 'vertical' : 'island';
   let railWidth = Math.max(200, Math.min(360, Number(localStorage.getItem('blanc.prototype.railWidth')) || 248));
+  // Recently closed's place (shipping's closedSlot, closed-slot.js): directly
+  // under Pinned until it is moved; then above an item (a group or loose tab),
+  // or last (''). It keeps its place when that item goes, as
+  // reconcileClosedSlot does, and its index outlives a relaunch, whose tabs and
+  // groups get new ids (shipping saves closedIndex in session.json).
   let closedBefore = localStorage.getItem('blanc.prototype.closedBefore');
+  let closedIndex = Math.max(0, Number(localStorage.getItem('blanc.prototype.closedIndex')) || 0);
+  let closedBelow = null;
+  function closedSlotFor(ids) {
+    if (closedBefore === null) return 0;
+    if (closedBefore === '') return ids.length;
+    let slot = ids.indexOf(closedBefore);
+    if (slot < 0 && closedBelow) {
+      const next = closedBelow.find(id => ids.includes(id));
+      slot = next ? ids.indexOf(next) : ids.length;
+    }
+    if (slot < 0) {
+      // A new launch: the saved index, once that many items have come back.
+      if (ids.length <= closedIndex) return ids.length;
+      slot = closedIndex;
+    }
+    closedBefore = slot < ids.length ? ids[slot] : '';
+    closedBelow = ids.slice(slot);
+    if (slot !== closedIndex || localStorage.getItem('blanc.prototype.closedBefore') !== closedBefore) {
+      closedIndex = slot;
+      localStorage.setItem('blanc.prototype.closedBefore', closedBefore);
+      localStorage.setItem('blanc.prototype.closedIndex', String(slot));
+    }
+    return slot;
+  }
   async function applyRail(persist = false) {
     railWidth = await request('rail', [layout === 'vertical', Math.round(railWidth)]);
     strip.style.height = layout === 'vertical' ? '100%' : 'var(--strip-h, 68px)';
@@ -488,8 +517,7 @@
       tabSelection = BlancTabSelection.pruneSelection(tabSelection, selectionTabs());
       snapshot.selectedTabIds = [...tabSelection.selectedTabIds];
       const items = strip.contentWindow?.TabSections?.itemsOf(snapshot.tabs) ?? [];
-      const beforeIndex = items.findIndex(item => item.id === closedBefore);
-      snapshot.closedSlot = beforeIndex < 0 ? items.length : beforeIndex;
+      snapshot.closedSlot = closedSlotFor(items.map(item => item.id));
       strip.contentDocument?.documentElement?.toggleAttribute('data-extensions-page',
         snapshot.tabs.find(t => t.id === snapshot.activeTabId)?.url === 'chrome://extensions/');
       if (sheet.tabs && (snapshot.activeTabId !== sheet.tabs.active || snapshot.tabs.length > sheet.tabs.count))
@@ -1083,7 +1111,7 @@
     previewVerticalTabsWidth: async width => { railWidth = Number(width) || 248; return applyRail(); },
     activateTabFromRail: async id => { await request('switchTab', [nativeId(id)]); await request('focusPage'); await refresh(); },
     toggleSiteMute: async id => { const result = await request('toggleSiteMute', [nativeId(id)]); await refresh(); return result; },
-    moveClosedSection: async before => { closedBefore = before == null ? null : String(before); localStorage.setItem('blanc.prototype.closedBefore', closedBefore ?? ''); await refresh(); return true; },
+    moveClosedSection: async before => { closedBefore = before == null ? '' : String(before); closedBelow = null; localStorage.setItem('blanc.prototype.closedBefore', closedBefore); await refresh(); return true; },
     showTooltip: ({ text, anchor, privateTheme }) => {
       if (opened || extensionsOpened || !anchor || !Number.isFinite(anchor.x)) return;
       tooltip.textContent = String(text).slice(0, 180);
@@ -1465,7 +1493,9 @@
   function hoverEligible() {
     return snapshot?.islandHoverOpen === true && pillRect?.hoverCapable === true && !!pillRect?.hoverRect &&
       snapshot?.windowActive !== false && document.visibilityState === 'visible' &&
-      !opened && !extensionsOpened && !paneMenu && !snapshot?.glanceTabId;
+      !opened && !extensionsOpened && !paneMenu && !snapshot?.glanceTabId &&
+      // A pending permission prompt blocks it (shipping's permissionViewAttached).
+      !prompts.size;
   }
   function clearHoverTimer() { if (hover.timer) clearTimeout(hover.timer); hover.timer = null; }
   function hoverStepWith(event) {

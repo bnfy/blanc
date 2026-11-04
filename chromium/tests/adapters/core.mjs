@@ -33,9 +33,15 @@ async function openIsland(w,newTab){
 }
 async function groupNamed(w,name){return (await w.snapshot()).groups.find(g=>same(g.name,name))??null;}
 async function created(w,reply){
+ // A utility page opens in the sheet, as shipping's createTab does: no tab.
+ if(reply?.status==='sheet')return null;
  const id=String(reply.tabId);
  await w.waitForState(s=>s.tabs.some(t=>t.id===id&&!t.loading));return id;
 }
+// Shipping's internal addresses, as the fork serves them: the Start Page and
+// the utility pages are chrome:// pages (the sheet takes the utility ones).
+const forkUrl=url=>{const m=/^blanc:\/\/(newtab|settings|downloads|bookmarks|history)\/?(?:[?#].*)?$/i.exec(String(url));
+ return m?`chrome://${m[1].toLowerCase()}/`:String(url);};
 export const core={
  state:w=>w.state(),
  async openTab(w,url,opts){
@@ -43,8 +49,8 @@ export const core={
   // A private tab opens in this window on the private profile (D1). Its
   // shipping address is the private Start Page, blanc://newtab/?private=1:
   // a private tab's Start Page is the fork's chrome://newtab/.
-  if(opts?.private)return created(w,await w.native('createTab',[/^blanc:\/\/newtab\//.test(String(url))?'chrome://newtab/':String(url),true]));
-  return created(w,await w.native('createTab',[url]));
+  if(opts?.private)return created(w,await w.native('createTab',[forkUrl(url),true]));
+  return created(w,await w.native('createTab',[forkUrl(url)]));
  },
  newTab:async w=>created(w,await w.native('createTab',['chrome://newtab/'])),
  closeTab:(w,id)=>w.native('closeTab',[nativeId(id)]),

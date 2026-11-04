@@ -352,7 +352,12 @@
           } catch (error) { if (epoch === topSitesEpoch) suppressRankedSites(); console.warn(error.message); }
         }
         // Group reads run independently after Start Page data is ready.
-        return { ...preferences(), remoteDevices: [], blockedThisWeek: 0,
+        let week = null;
+        if (!isPrivatePage) week = await request('blockedWeek').catch(error => { console.warn(error.message); return null; });
+        const days = Array.isArray(week?.days) && week.days.length === 7 ? week.days : [0, 0, 0, 0, 0, 0, 0];
+        const heights = Array.isArray(week?.barHeights) && week.barHeights.length === 7 ? week.barHeights : [0, 0, 0, 0, 0, 0, 0];
+        return { ...preferences(), remoteDevices: [], blockedThisWeek: Number.isInteger(week?.blocked) ? week.blocked : 0,
+          blockedByDay: days, blockedBarHeights: heights,
           topSites, __topSitesAvailable: available, __topSitesEpoch: epoch, wallpaperVisible: !document.hidden };
       },
       focusGroup: async id => {

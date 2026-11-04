@@ -628,6 +628,32 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   as a tab; it now chooses the language in the Settings sheet's Languages
   page. The fork's preview notice in the Start Page footer stays English.
   `tests/window-snapshot.mjs` gains `newtab[-<language>]` scenes.
+- **S1 close-out, first pass (2026-11-04, in progress):** every S1 feature
+  file ran on the current candidate (`evidence/foundation/s18*`, `s1c-*`);
+  the S1 rows' 235 shipping cases left 58 non-passing at the start. Fixed
+  and rerun so far: utility addresses open in the sheet and toggle it
+  (F16-6, F16-7 partly), the shield popover stays open while the exceptions
+  are read (F12-6, a test op replaces reading Settings), the floating-pill
+  window step (F1-34), Recently closed under Pinned by default and kept
+  across a relaunch by index (F2-8, F3-17, F3-26), link children open
+  ungrouped at the end (F3-21) without moving New Tab Below (F2-9), and
+  Kagi reported under V12 (F5-2). Built, not yet rerun (the display
+  locked): the weekly blocked counter for Ledger, Shelf and Tally (F35-16,
+  F35-17; pref `blanc.blocking.week_stats`, shipping's adblock-stats.js
+  week), a group's first tab dragged out above its group (F3-23), hover-open
+  blocked while a permission prompt is pending (F1-13), on
+  macos-b77a9faf18abb3d9. Outside shipping's own runnable profile (shipping
+  backlog, not fork gaps): F3-3, F16-1, F18-1, F19-1, F4-1/2/3/6, F8-1.
+  Other slices: Glance's floating card, Sync, Spaces, first run, Patron,
+  launch Sunrise. Test-hook gaps: F9-3 favicon seeding, Billboard history
+  seeding, F2-11 audioMuted, F3-15, F3-16, F32 session windows. Waiting on
+  the owner (native versus port): pinned tabs inside groups (F3-5, F3-34;
+  Chromium unpins a grouped tab) and Close Tabs Below as one undo (F2-10;
+  Chromium records each tab).
+- **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
+  (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
+  Island page (shipping's files served as byte-identical copies, opened as an
+  ordinary tab), not a Chrome extension; it is the final S1 close-out item.
 - **Open question, file picker hang (2026-11-04):** the owner's live
   instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
   wallpaper. The hang report shows the UI thread inside AppKit's
@@ -868,5 +894,5 @@ checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-3b3c6840f9da0f0a; Windows: none; Linux: none.
+Candidate identities: macOS: macos-b77a9faf18abb3d9; Windows: none; Linux: none.
 <!-- END GENERATED PROGRESS -->
