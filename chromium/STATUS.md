@@ -647,9 +647,10 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   Other slices: Glance's floating card, Sync, Spaces, first run, Patron,
   launch Sunrise. Test-hook gaps: F9-3 favicon seeding, Billboard history
   seeding, F2-11 audioMuted, F3-15, F3-16, F32 session windows. Waiting on
-  the owner (native versus port): pinned tabs inside groups (F3-5, F3-34;
-  Chromium unpins a grouped tab) and Close Tabs Below as one undo (F2-10;
-  Chromium records each tab).
+  the owner: Close Tabs Below as one undo (F2-10; Chromium records each
+  tab). Decided (owner, 2026-11-04): V16, pinning a grouped tab takes it out
+  of its group as Chromium does; F3-5 checks that instead, and F3-34 has no
+  case under V16.
 - **Mahjong goes last (owner, 2026-11-04):** the fork has no Mahjong yet
   (F35-3, F35-4, F35-9 fail at the footer launch). When it is built it is an
   Island page (shipping's files served as byte-identical copies, opened as an
