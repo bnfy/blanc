@@ -3,19 +3,24 @@
 #define CHROME_BROWSER_UI_BLANC_PROTOTYPE_UI_H_
 
 #include "base/functional/callback.h"
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include "content/public/browser/web_ui_controller.h"
 #include "content/public/browser/webui_config.h"
 #include "mojo/public/cpp/bindings/pending_receiver.h"
 #include "ui/webui/mojo_web_ui_controller.h"
 
+class GURL;
 namespace content { class WebContents; }
 namespace blanc::browser_api::mojom { class BrowserApiFactory; }
 class BrowserWindowInterface;
 class MultiContentsView;
 class ToolbarButtonProvider;
+class Profile;
+namespace settings { class SettingsPageUIHandler; }
 namespace views {
 class View;
 struct ProposedLayout;
@@ -71,18 +76,42 @@ inline constexpr char kTabIdentityKey[] = "blanc.tab.identity.v1";
 std::string TabIdentity(content::WebContents* tab);
 void RestoreTabIdentity(content::WebContents* tab,
     const std::map<std::string, std::string>& extra_data);
+// N4 (V4): the sandbox flags a page-opened tab inherited from its opener,
+// kept for the life of its WebContents and saved with the tab. A tab rebuilt
+// from session, Space or Recently closed is created with them
+// (WebContents::CreateParams::starting_sandbox_flags), so its page loads
+// under the same sandbox; Duplicate and Quiet refuse it.
+inline constexpr char kInheritedSandboxKey[] = "blanc.tab.inherited-sandbox.v1";
+void NoteInheritedSandbox(content::WebContents* tab);
+uint32_t InheritedSandboxFlags(content::WebContents* tab);
+bool HasInheritedSandbox(content::WebContents* tab);
+std::string InheritedSandboxState(content::WebContents* tab);
+// None without a saved mark; every flag when the saved value is malformed.
+uint32_t RestoredSandboxFlags(const std::map<std::string, std::string>& extra_data);
+void RestoreInheritedSandbox(content::WebContents* tab, uint32_t flags);
 bool RestoreClosedSplitFromCommand(BrowserWindowInterface* browser);
 bool SelectIslandSlot(BrowserWindowInterface* browser, int slot);
 // Returns a dismissal closure; no browser/profile/session state is created.
 base::OnceClosure ShowSessionRecovery();
 bool IsEnabled();
 bool IsIslandWindow(const BrowserWindowInterface* browser);
+// Shipping's private tab (owner decision D1): |url| (the private Start Page
+// when empty) in a new private tab of |browser|, an ordinary window.
+content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL& url);
+// The Dock's New Private Window, and ⌘⇧N with no window open: a window
+// Chromium just opened becomes one private tab, as shipping's
+// openNewWindow({private: true}). False leaves it as Chromium made it.
+bool MakePrivateWindow(BrowserWindowInterface* browser);
 bool HasIsland(views::View* parent);
 int RailWidth(views::View* parent);
 int HeaderHeight(views::View* parent);
 bool IsCaption(views::View* parent, int x, int y);
 void RestoreExtensions(views::View* parent);
 bool OpenExtensions(BrowserWindowInterface* browser);
+// History, Downloads and the bookmark manager in an Island window open
+// Blanc's utility sheet ("history", "downloads" or "bookmarks"), as
+// shipping's menu items do. False leaves Chromium's own page.
+bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page);
 bool OpenFindIsland(BrowserWindowInterface* browser, int direction = 0);
 // ⌘D in an Island window: toggle the Favorite like the Island heart instead of
 // opening Chromium's star bubble. Returns true when the window is an Island
@@ -93,6 +122,8 @@ bool OpenIsland(BrowserWindowInterface* browser, bool new_tab = false,
 std::unique_ptr<views::WebView> CreateIsland(BrowserWindowInterface* browser);
 void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* layout);
 void LayoutIsland(views::View* parent, int top);
+// Blanc's lists and language in chrome://settings (S1.7), for SettingsUI.
+std::unique_ptr<settings::SettingsPageUIHandler> CreateSettingsHandler(Profile* profile);
 }  // namespace blanc_prototype
 
 #endif  // CHROME_BROWSER_UI_BLANC_PROTOTYPE_UI_H_

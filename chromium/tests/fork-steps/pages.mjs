@@ -1,7 +1,7 @@
 // Fork step definitions for pages-area S1 steps that shipping v1.45.1 never
 // defined. Each follows its Gherkin text and spec row; no shipping source.
 import assert from 'node:assert/strict';
-import {UndefinedNativeAdapterError} from '../lib/adapters.mjs';
+import http from 'node:http';
 import {jsLiteral} from '../lib/js-literal.mjs';
 // Cucumber Expressions treat `/` as alternation and `(...)` as optional text.
 const until=(world,read,ok,label,timeout=8000)=>world.waitFor(read,ok,label,timeout);
@@ -107,20 +107,42 @@ export default function register(step){
  });
  // ---- F11-1: downloads (spec row F11: the Downloads sheet) ----
  step('I start a download',async function(){
-  // Keep the file inside the isolated fixture, never the user's Downloads.
+  // A file streamed over about four seconds, so its row is seen in flight.
+  // It lands inside the isolated fixture, never the user's Downloads.
+  const chunks=8,size=32*1024;
+  this.downloadServer=http.createServer((q,r)=>{
+   r.writeHead(200,{'content-type':'application/octet-stream','content-length':String(chunks*size),
+    'content-disposition':'attachment; filename="slow-download.bin"'});
+   let sent=0;const timer=setInterval(()=>{r.write(Buffer.alloc(size,65));if(++sent===chunks){clearInterval(timer);r.end();}},500);
+   r.on('close',()=>clearInterval(timer));});
+  this.downloadServer.unref();
+  await new Promise(resolve=>this.downloadServer.listen(0,'127.0.0.1',resolve));
   const dir=this.fixture.directory+'/downloads';
   await this.fixture.browser.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:dir,eventsEnabled:true});
   this.downloadEvents=[];
   for(const m of ['Browser.downloadWillBegin','Browser.downloadProgress'])this.fixture.browser.on(m,e=>this.downloadEvents.push({m,...e}));
-  await this.call('openTab',this.fixture.base+'/workspace-download');
+  await this.call('openTab',`http://127.0.0.1:${this.downloadServer.address().port}/slow-download.bin`);
   await until(this,()=>this.downloadEvents,e=>e.some(x=>x.m==='Browser.downloadWillBegin'),'the download to begin');
  });
- const downloadsSheet=async world=>{
-  await world.call('openDownloads');
-  const surf=await until(world,()=>world.call('utilitySurface'),s=>s.visible&&s.ready,'the downloads page');
-  assert.equal(surf.url,'blanc://downloads/','downloads should show in the Blanc downloads sheet');
-  throw new UndefinedNativeAdapterError('Blanc downloads sheet rows need an adapter');
+ // The Downloads sheet's row for the download, as shipping's page draws it.
+ const downloadRow=async world=>{
+  const surf=await world.call('utilitySurface');
+  if(!surf.visible||surf.url!=='blanc://downloads/'){
+   await world.call('openDownloads');
+   const shown=await until(world,()=>world.call('utilitySurface'),s=>s.visible&&s.ready,'the downloads page');
+   assert.equal(shown.url,'blanc://downloads/','downloads should show in the Blanc downloads sheet');
+  }
+  return world.hostEval(`(()=>{const row=[...(document.getElementById('sheet')?.contentDocument?.querySelectorAll('#list .row')??[])]
+   .find(r=>r.querySelector('.file-name')?.title==='slow-download.bin');
+   return row?{state:row.dataset.state,progress:row.querySelector('[role=progressbar]')?.getAttribute('aria-valuenow')??null,
+    meta:row.querySelector('.meta')?.textContent??''}:null;})()`);
  };
- step('a downloads row shows progress',async function(){await downloadsSheet(this);});
- step('the row reaches a completed state',async function(){await downloadsSheet(this);});
+ step('a downloads row shows progress',async function(){
+  const row=await until(this,()=>downloadRow(this),r=>r?.state==='progressing'&&r.progress!==null,'a downloads row in progress');
+  assert.ok(Number(row.progress)<100,JSON.stringify(row));
+ });
+ step('the row reaches a completed state',async function(){
+  await until(this,()=>downloadRow(this),r=>r?.state==='completed','the download row to complete',15000);
+  this.downloadServer?.close();
+ });
 }

@@ -3,6 +3,8 @@
 #include "blanc/browser/ui/browser_api/navigation.h"
 #include "blanc/browser/ui/browser_api/bang_icons.h"
 #include "blanc/browser/ui/browser_api/bangs.h"
+#include "blanc/browser/ui/browser_api/http_auth.h"
+#include "blanc/browser/ui/island_permission_prompt.h"
 #include "blanc/browser/ui/browser_api/page_handoff.h"
 #include "blanc/browser/ui/browser_api/appearance.h"
 #include "blanc/browser/ui/ui_language.h"
@@ -23,6 +25,9 @@
 #include "blanc/browser/ui/blanc_quiet_media.h"
 #include "blanc/browser/ui/blanc_quiet_schedule.h"
 #include "chrome/browser/browser_process.h"
+#include "chrome/browser/net/secure_dns_config.h"
+#include "chrome/browser/net/stub_resolver_config_reader.h"
+#include "chrome/browser/net/system_network_context_manager.h"
 #include "base/timer/timer.h"
 #include "ui/base/models/simple_combobox_model.h"
 #include "ui/views/controls/combobox/combobox.h"
@@ -112,6 +117,10 @@
 #include "ui/views/view_observer.h"
 #include "base/strings/stringprintf.h"
 #include "base/values.h"
+#include "third_party/blink/public/common/renderer_preferences/renderer_preferences.h"
+#include "base/strings/string_split.h"
+#include "chrome/browser/ui/webui/settings/settings_page_ui_handler.h"
+#include "chrome/common/webui_url_constants.h"
 #include "chrome/browser/platform_util.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/shell_integration.h"
@@ -129,6 +138,7 @@
 #include "components/bookmarks/browser/bookmark_client.h"
 #include "components/bookmarks/browser/bookmark_model.h"
 #include "components/bookmarks/browser/bookmark_node.h"
+#include "components/bookmarks/browser/bookmark_utils.h"
 #include "components/bookmarks/browser/url_and_title.h"
 #include "components/bookmarks/common/bookmark_metrics.h"
 #include "components/bookmarks/common/bookmark_pref_names.h"
@@ -137,17 +147,33 @@
 #include "components/history/core/browser/history_types.h"
 #include "components/history/core/browser/top_sites.h"
 #include "components/history/core/browser/top_sites_observer.h"
+#include "components/permissions/permission_request.h"
+#include "components/permissions/request_type.h"
+#include "url/origin.h"
+#include "components/download/public/common/download_item.h"
+#include "components/download/public/common/download_source.h"
+#include "components/download/public/common/download_url_parameters.h"
+#include "content/public/browser/download_item_utils.h"
+#include "content/public/browser/download_manager.h"
+#include "ui/base/models/tree_node_iterator.h"
 #include "components/keyed_service/core/service_access_type.h"
 #include "components/input/native_web_keyboard_event.h"
 #include "content/public/browser/devtools_agent_host.h"
 #include "content/public/browser/favicon_status.h"
 #include "content/public/browser/navigation_entry.h"
+#include "content/public/browser/ssl_status.h"
+#include "chrome/browser/ssl/stateful_ssl_host_state_delegate_factory.h"
+#include "components/security_interstitials/content/stateful_ssl_host_state_delegate.h"
+#include "net/base/net_errors.h"
+#include "net/cert/cert_status_flags.h"
 #include "content/public/browser/web_contents_delegate.h"
 #include "third_party/icu/source/common/unicode/ustring.h"
 #include "third_party/blink/public/mojom/frame/find_in_page.mojom.h"
 #include "ui/views/controls/webview/unhandled_keyboard_event_handler.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/browser_commands.h"
+#include "chrome/browser/ui/navigator/browser_navigator.h"
+#include "chrome/browser/ui/navigator/browser_navigator_params.h"
 #include "chrome/app/chrome_command_ids.h"
 #include "ui/base/models/list_selection_model.h"
 #include "chrome/browser/ui/exclusive_access/exclusive_access_manager.h"
@@ -173,6 +199,7 @@
 #include "components/sessions/content/session_tab_helper.h"
 #include "components/viz/common/frame_sinks/copy_output_result.h"
 #include "content/public/browser/navigation_controller.h"
+#include "content/public/browser/navigation_handle.h"
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/render_process_host.h"
 #include "content/public/browser/child_process_security_policy.h"
@@ -199,12 +226,25 @@
 #include "extensions/browser/extension_registry.h"
 #include "ui/views/controls/menu/menu_model_adapter.h"
 #include "ui/views/controls/menu/menu_runner.h"
+#include "ui/views/view_tracker.h"
+#include "ui/gfx/geometry/rounded_corners_f.h"
+#include "chrome/browser/password_manager/chrome_password_manager_client.h"
+#include "chrome/browser/ui/autofill/chrome_autofill_client.h"
+#include "content/public/common/url_constants.h"
+#include "blanc/common/menu_strings.h"
+#include "content/public/browser/context_menu_params.h"
+#include "third_party/blink/public/common/context_menu_data/edit_flags.h"
+#include "ui/base/accelerators/accelerator.h"
+#include "ui/base/clipboard/clipboard.h"
+#include "ui/menus/simple_menu_model.h"
 #include "ui/views/controls/menu/menu_item_view.h"
 #include "ui/display/screen.h"
 #include "ui/gfx/animation/animation.h"
 #include "blanc/browser/ui/island_autohide.h"
+#include "blanc/private/private_tabs.h"
 #include "build/build_config.h"
 #if BUILDFLAG(IS_MAC)
+#include "blanc/browser/ui/app_menus_mac.h"
 #include "blanc/browser/ui/window_buttons_mac.h"
 #endif
 #include "ui/base/resource/resource_bundle.h"
@@ -220,12 +260,28 @@ namespace blanc_prototype {
 // The Island's own header height, before auto-hide moves the page over it.
 int BaseHeaderHeight(views::View* parent);
 namespace {
+// Every sandbox flag Chromium defines (bits 0-18).
+constexpr uint32_t kKnownSandboxFlags = (1u << 19) - 1;
+uint32_t ActiveSandboxFlags(content::RenderFrameHost* frame) {
+  uint32_t flags = 0;
+  for (uint32_t bit = 1; bit & kKnownSandboxFlags; bit <<= 1)
+    if (frame->IsSandboxed(static_cast<network::mojom::WebSandboxFlags>(bit))) flags |= bit;
+  return flags;
+}
 
 // Shipping's islandHoverOpen (F1): off by default.
 constexpr char kIslandHoverOpenPref[] = "blanc.island.hover_open";
+// Shipping's islandSiteColors, islandTabIcons and searchPriorityResults, and
+// its surfaceStyle for Blanc's own pages (S1.7; registered by patch 0023).
+constexpr char kIslandSiteColorsPref[] = "blanc.island.site_colors";
+constexpr char kIslandTabIconsPref[] = "blanc.island.tab_icons";
+constexpr char kSearchPriorityResultsPref[] = "blanc.island.search_priority_results";
+constexpr char kSurfaceStylePref[] = "blanc.appearance.surface_style";
 
 constexpr char kOwnerKey[] = "blanc-prototype-owner";
 constexpr int kIslandViewId = 0x424c;
+// Settings (S1.7): chrome://settings in the sheet card, over the Island.
+constexpr int kSettingsSheetViewId = 0x424d;
 // Electron's Quick Switcher asks for 300 entries; the bridge never returns more.
 constexpr int kHistoryLimit = 300;
 constexpr size_t kFavoritesLimit = 1000;
@@ -237,6 +293,13 @@ constexpr int kFaviconMaxSide = 64;
 // Favorites and history are web pages only, as in Electron.
 bool IsFavoritable(const GURL& url) {
   return url.SchemeIsHTTPOrHTTPS();
+}
+
+// The profile a tab's own actions belong to. A private tab (D1) may sit in an
+// ordinary window, so Favorites, Start Page pins and other per-tab actions ask
+// the tab, not the window.
+Profile* TabProfile(content::WebContents* tab) {
+  return Profile::FromBrowserContext(tab->GetBrowserContext());
 }
 
 // The regular profile's bookmarks, once loaded. Private windows get none:
@@ -769,6 +832,9 @@ class Owner : public base::SupportsUserData::Data,
   std::optional<AutoHideSlide> autohide_slide;
   int glance_main = -1;
   int glance_reference = -1;
+  // Settings in the sheet (S1.7): Chromium's chrome://settings, a sibling
+  // of the Island view placed over the card's body.
+  views::ViewTracker settings_sheet;
   // Session IDs never outlive their tabs; validate the native split each read.
   int MainIndex() {
     auto* model = browser->GetTabStripModel();
@@ -806,7 +872,7 @@ class Owner : public base::SupportsUserData::Data,
   // image rather than on every 300ms snapshot. Private windows report none,
   // as Electron does for private tabs.
   std::string TabFavicon(int tab_id, content::WebContents* contents) {
-    if (browser->GetProfile()->IsOffTheRecord()) return std::string();
+    if (contents->GetBrowserContext()->IsOffTheRecord()) return std::string();
     // NavigationEntry::GetFavicon() is non-const; the status is read only.
     auto* entry = contents->GetController().GetLastCommittedEntry();
     const content::FaviconStatus* status =
@@ -864,6 +930,10 @@ class Owner : public base::SupportsUserData::Data,
     ObserveInput();
     if (!timer_.IsRunning() && !in_flight_ && CanSample()) RequestSample();
   }
+  // Match site colors changed: clear or resample the tint.
+  void SiteColorsChanged() {
+    if (!closing_) ResetTint();
+  }
 
  private:
   void FindEvent(const std::u16string& script) {
@@ -894,7 +964,11 @@ class Owner : public base::SupportsUserData::Data,
   int find_ordinal_ = 0;
   std::string find_query_;
   bool CanTint() const {
-    if (closing_ || !web_contents() || browser->GetProfile()->IsOffTheRecord()) return false;
+    // A private tab's site never tints the Island (shipping samples nothing
+    // from it), in a private window or an ordinary one; Match site colors
+    // off keeps the Island on the theme's background.
+    if (closing_ || !web_contents() || web_contents()->GetBrowserContext()->IsOffTheRecord()) return false;
+    if (!browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kIslandSiteColorsPref)) return false;
     const auto& url = web_contents()->GetPrimaryMainFrame()->GetLastCommittedURL();
     return url.SchemeIsHTTPOrHTTPS() || url.SchemeIs("chrome-extension") ||
         url == GURL("chrome://blanc-prototype/pages/newtab.html");
@@ -999,9 +1073,12 @@ class Owner : public base::SupportsUserData::Data,
   }
   void OnTabStripModelChanged(TabStripModel*, const TabStripModelChange& change,
                               const TabStripSelectionChange& selection) override {
-    if (change.type() == TabStripModelChange::kInserted)
-      for (const auto& inserted : change.GetInsert()->contents)
+    if (change.type() == TabStripModelChange::kInserted) {
+      for (const auto& inserted : change.GetInsert()->contents) {
         blanc::quiet::MediaHistory::Get(inserted.contents, true);
+        NoteInheritedSandbox(inserted.contents);
+      }
+    }
     for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
       SiteMuteTab::Get(browser->GetTabStripModel()->GetWebContentsAt(i));
     if (!selection.active_tab_changed()) return;
@@ -1198,8 +1275,196 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
 // own drops them, so shortcuts died while the Island had focus. Reserved
 // commands (⌘T, ⌘W) are dispatched before the first responder and were never
 // affected. Stateless, so one process-wide instance serves every window.
+// Blanc's own clipboard actions. Under --blanc-test they use an in-memory
+// board, never the owner's pasteboard, which every app on the Mac shares.
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+std::u16string& TestClipboard() {
+  static base::NoDestructor<std::u16string> text;
+  return *text;
+}
+bool UsesTestClipboard() {
+  return base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test");
+}
+#endif
+void WriteClipboardText(const std::u16string& text) {
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+  if (UsesTestClipboard()) { TestClipboard() = text; return; }
+#endif
+  ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste);
+  writer.WriteText(text);
+}
+void ReadClipboardText(base::OnceCallback<void(std::u16string)> done) {
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+  if (UsesTestClipboard()) { std::move(done).Run(TestClipboard()); return; }
+#endif
+  ui::Clipboard::GetForCurrentThread()->ReadText(
+      ui::ClipboardBuffer::kCopyPaste, std::nullopt, std::move(done));
+}
+
+// F19: the Island address input's menu, shipping's address-menu-model.js
+// (items, order, enabled state) and address-menu.js (actions). Chromium's own
+// editable-field menu stays for every other field.
+struct AddressMenuItem {
+  std::string id;  // Empty for a separator.
+  std::u16string label;
+  bool enabled = false;
+};
+std::vector<AddressMenuItem> AddressMenuItems(int edit_flags, const std::u16string& clipboard,
+                                              bool clean_available) {
+  const auto& l = blanc::menu::ForLocale(g_browser_process->GetApplicationLocale());
+  const auto can = [&](int flag) { return (edit_flags & flag) != 0; };
+  using F = blink::ContextMenuDataEditFlags;
+  const bool paste = can(F::kCanPaste);
+  return {
+      {"undo", std::u16string(l.undo), can(F::kCanUndo)},
+      {"redo", std::u16string(l.redo), can(F::kCanRedo)},
+      {},
+      {"cut", std::u16string(l.cut), can(F::kCanCut)},
+      {"copy", std::u16string(l.copy), can(F::kCanCopy)},
+      // Cleans the field's visible text, not the tab's address, as shipping.
+      {"copy-clean-link", std::u16string(l.copy_clean_link), clean_available},
+      {"paste", std::u16string(l.paste), paste},
+      {"paste-and-go", std::u16string(l.paste_and_go),
+       paste && !base::TrimWhitespace(clipboard, base::TRIM_ALL).empty()},
+      {"delete", std::u16string(l.delete_text), can(F::kCanDelete)},
+      {},
+      {"select-all", std::u16string(l.select_all), can(F::kCanSelectAll)},
+  };
+}
+// Edits act on the Island's own document, never whatever page has focus.
+void RunAddressMenuCommand(content::WebContents* host, std::string_view id,
+                           const std::optional<std::string>& cleaned) {
+  if (!host) return;
+  if (id == "undo") host->Undo();
+  else if (id == "redo") host->Redo();
+  else if (id == "cut") host->Cut();
+  else if (id == "copy") host->Copy();
+  else if (id == "paste") host->Paste();
+  else if (id == "delete") host->Delete();
+  else if (id == "select-all") host->SelectAll();
+  else if (id == "copy-clean-link") {
+    if (cleaned) WriteClipboardText(base::UTF8ToUTF16(*cleaned));
+  } else if (id == "paste-and-go") {
+    ReadClipboardText(base::BindOnce([](base::WeakPtr<content::WebContents> host, std::u16string text) {
+      const std::u16string trimmed(base::TrimWhitespace(text, base::TRIM_ALL));
+      if (!host || trimmed.empty()) return;
+      std::string json;
+      if (!base::JSONWriter::Write(base::Value(trimmed), &json)) return;
+      // Shipping's pasteAndGo: the active tab goes to the text as typed, and
+      // the Island closes.
+      host->GetPrimaryMainFrame()->ExecuteJavaScript(
+          u"window.BlancPrototypeHost?.pasteAndGo(" + base::UTF8ToUTF16(json) + u")",
+          base::NullCallback());
+    }, host->GetWeakPtr()));
+  }
+}
+std::optional<std::string> CleanedFromRead(const base::Value& read) {
+  const auto* dict = read.GetIfDict();
+  const auto* clean = dict ? dict->FindString("clean") : nullptr;
+  if (!clean) return std::nullopt;
+  return *clean;
+}
+
+class AddressMenu : public ui::SimpleMenuModel::Delegate {
+ public:
+  AddressMenu(content::WebContents* host, std::vector<AddressMenuItem> items,
+              std::optional<std::string> cleaned)
+      : host_(host->GetWeakPtr()), items_(std::move(items)), cleaned_(std::move(cleaned)) {
+    for (size_t i = 0; i < items_.size(); ++i) {
+      if (items_[i].id.empty()) model_.AddSeparator(ui::NORMAL_SEPARATOR);
+      else model_.AddItem(static_cast<int>(i), items_[i].label);
+    }
+    adapter_ = std::make_unique<views::MenuModelAdapter>(&model_);
+    runner_ = std::make_unique<views::MenuRunner>(adapter_->CreateMenu(),
+                                                  views::MenuRunner::CONTEXT_MENU);
+  }
+  void Show(views::Widget* widget, const gfx::Point& at, ui::mojom::MenuSourceType source) {
+    runner_->RunMenuAt(widget, nullptr, gfx::Rect(at, gfx::Size()),
+                       views::MenuAnchorPosition::kTopLeft, source);
+  }
+  bool IsCommandIdEnabled(int command) const override {
+    return command >= 0 && static_cast<size_t>(command) < items_.size() && items_[command].enabled;
+  }
+  bool GetAcceleratorForCommandId(int command, ui::Accelerator* accelerator) const override {
+    if (command < 0 || static_cast<size_t>(command) >= items_.size()) return false;
+    const std::string& id = items_[command].id;
+    const ui::KeyboardCode key = id == "undo" || id == "redo" ? ui::VKEY_Z : id == "cut" ? ui::VKEY_X
+        : id == "copy" ? ui::VKEY_C : id == "paste" ? ui::VKEY_V : id == "select-all" ? ui::VKEY_A
+        : ui::VKEY_UNKNOWN;
+    if (key == ui::VKEY_UNKNOWN) return false;
+    *accelerator = ui::Accelerator(key, ui::EF_PLATFORM_ACCELERATOR |
+                                            (id == "redo" ? ui::EF_SHIFT_DOWN : ui::EF_NONE));
+    return true;
+  }
+  void ExecuteCommand(int command, int) override {
+    if (IsCommandIdEnabled(command)) RunAddressMenuCommand(host_.get(), items_[command].id, cleaned_);
+  }
+
+ private:
+  base::WeakPtr<content::WebContents> host_;
+  std::vector<AddressMenuItem> items_;
+  std::optional<std::string> cleaned_;
+  ui::SimpleMenuModel model_{this};
+  std::unique_ptr<views::MenuModelAdapter> adapter_;
+  std::unique_ptr<views::MenuRunner> runner_;
+};
+std::unique_ptr<AddressMenu>& OpenAddressMenu() {
+  static base::NoDestructor<std::unique_ptr<AddressMenu>> menu;
+  return *menu;
+}
+// The field's text and whether it cleans, read in the overlay. The same
+// round-trip checks the click landed on the address input, as shipping's
+// does; params give the point in the Island host's coordinates.
+std::u16string AddressFieldRead(int x, int y) {
+  return base::UTF8ToUTF16(base::StringPrintf(R"((() => {
+    const input = document.getElementById('addressInput');
+    if (!input) return null;
+    const box = frameElement ? frameElement.getBoundingClientRect() : {left: 0, top: 0};
+    const hit = document.elementFromPoint(%d - box.left, %d - box.top);
+    if (!hit || (hit !== input && !input.contains(hit))) return null;
+    return {value: input.value, clean: parent.BlancCleanLink?.cleanLink(input.value) ?? null};
+  })())", x, y));
+}
+void ShowAddressMenu(content::RenderFrameHost& frame, const content::ContextMenuParams& params) {
+  const auto frame_id = frame.GetGlobalId();
+  const gfx::Point at(params.x, params.y);
+  const int edit_flags = params.edit_flags;
+  const auto source = params.source_type;
+  frame.ExecuteJavaScript(AddressFieldRead(at.x(), at.y()), base::BindOnce(
+      [](content::GlobalRenderFrameHostId frame_id, gfx::Point at, int edit_flags,
+         ui::mojom::MenuSourceType source, base::Value read) {
+        if (!read.is_dict() || !read.GetDict().FindString("value")) return;
+        ReadClipboardText(base::BindOnce(
+            [](content::GlobalRenderFrameHostId frame_id, gfx::Point at, int edit_flags,
+               ui::mojom::MenuSourceType source, base::Value read, std::u16string clipboard) {
+              // The awaits left room for the Island to close; check again.
+              auto* frame = content::RenderFrameHost::FromID(frame_id);
+              auto* host = frame ? content::WebContents::FromRenderFrameHost(frame) : nullptr;
+              auto* owner = host ? GetOwner(host) : nullptr;
+              if (!owner || !owner->view || !owner->view->GetWidget() || !frame->IsActive()) return;
+              const auto cleaned = CleanedFromRead(read);
+              auto& menu = OpenAddressMenu();
+              menu = std::make_unique<AddressMenu>(
+                  host, AddressMenuItems(edit_flags, clipboard, cleaned.has_value()), cleaned);
+              gfx::Point screen = at;
+              views::View::ConvertPointToScreen(owner->view, &screen);
+              menu->Show(owner->view->GetWidget(), screen, source);
+            }, frame_id, at, edit_flags, source, std::move(read)));
+      }, frame_id, at, edit_flags, source));
+}
+
 class IslandDelegate : public content::WebContentsDelegate {
  public:
+  // The address input's right-click gets Blanc's menu (F19); any other field
+  // keeps Chromium's.
+  bool HandleContextMenu(content::RenderFrameHost& frame,
+                         const content::ContextMenuParams& params) override {
+    if (!params.is_editable ||
+        frame.GetLastCommittedURL() != GURL("chrome://blanc-prototype/overlay.html"))
+      return false;
+    ShowAddressMenu(frame, params);
+    return true;
+  }
   bool HandleKeyboardEvent(content::WebContents* source,
                            const input::NativeWebKeyboardEvent& event) override {
     auto* owner = GetOwner(source);
@@ -1216,9 +1481,156 @@ IslandDelegate* GetIslandDelegate() {
   return delegate.get();
 }
 
+// Settings in the sheet (S1.7, owner 2026-11-03). The host draws shipping's
+// scrim, card and close button; this view shows Chromium's chrome://settings
+// over the card's body, in the window profile's regular profile.
+views::WebView* SettingsSheetView(Owner* owner) {
+  return owner ? static_cast<views::WebView*>(owner->settings_sheet.view()) : nullptr;
+}
+Owner* SettingsSheetOwner(content::WebContents* contents) {
+  for (auto* owner : Owner::Live()) {
+    auto* view = SettingsSheetView(owner);
+    if (view && view->GetWebContents() == contents) return owner;
+  }
+  return nullptr;
+}
+// The host ends the sheet; it asks native to remove the view in a later
+// task, so a delegate callback never outlives its own contents.
+void CloseSettingsSheet(Owner* owner) {
+  if (owner && owner->view) owner->view->GetWebContents()->GetPrimaryMainFrame()->ExecuteJavaScript(
+      u"window.BlancPrototypeHost?.closeSheet()", base::NullCallback());
+}
+// The sheet shows chrome://settings, Blanc's sections inside Chromium's
+// (S1.7, owner): shipping's General opens at the top, Blocking on Privacy
+// and security.
+bool InSettingsSheet(const GURL& url) {
+  return url.SchemeIs(content::kChromeUIScheme) && url.host() == "settings";
+}
+// Sections shipping's Settings opens, and Chromium's own pages, by name.
+std::optional<GURL> SettingsSheetURL(std::string_view section) {
+  if (section.empty() || section == "general") return GURL("chrome://settings/");
+  static constexpr std::pair<std::string_view, std::string_view> kSections[] = {
+      {"blocking", "privacy"}, {"search", "search"},
+      {"appearance", "appearance"}, {"privacy", "privacy"}, {"security", "security"},
+      {"content", "content"}, {"clearBrowserData", "clearBrowserData"},
+      {"downloads", "downloads"}, {"languages", "languages"},
+      {"defaultBrowser", "defaultBrowser"}, {"help", "help"}};
+  for (const auto& [name, path] : kSections)
+    if (name == section) return GURL("chrome://settings/" + std::string(path));
+  return std::nullopt;
+}
+// Anything settings opens outside itself becomes an ordinary tab, and the
+// sheet ends, as shipping's sheet links open real tabs.
+void OpenFromSettingsSheet(Owner* owner, const GURL& url) {
+  if (!owner || !url.is_valid()) return;
+  NavigateParams params(owner->browser.get(), url, ui::PAGE_TRANSITION_LINK);
+  params.disposition = WindowOpenDisposition::kNewForegroundTab;
+  Navigate(&params);
+  CloseSettingsSheet(owner);
+}
+class SettingsSheetDelegate : public content::WebContentsDelegate {
+ public:
+  bool HandleKeyboardEvent(content::WebContents* source,
+                           const input::NativeWebKeyboardEvent& event) override {
+    auto* owner = SettingsSheetOwner(source);
+    if (!owner) return false;
+    // Escape the page didn't use (a settings dialog takes its own) ends the
+    // sheet, as shipping's does.
+    if (event.GetType() == blink::WebInputEvent::Type::kRawKeyDown &&
+        event.windows_key_code == ui::VKEY_ESCAPE &&
+        !(event.GetModifiers() & blink::WebInputEvent::kKeyModifiers)) {
+      CloseSettingsSheet(owner);
+      return true;
+    }
+    return owner->view && handler_.HandleKeyboardEvent(event, owner->view->GetFocusManager());
+  }
+  content::WebContents* OpenURLFromTab(
+      content::WebContents* source, const content::OpenURLParams& params,
+      base::OnceCallback<void(content::NavigationHandle&)> navigation_handle_callback) override {
+    if (params.disposition == WindowOpenDisposition::kCurrentTab && InSettingsSheet(params.url)) {
+      source->GetController().LoadURLWithParams(content::NavigationController::LoadURLParams(params));
+      return source;
+    }
+    OpenFromSettingsSheet(SettingsSheetOwner(source), params.url);
+    return nullptr;
+  }
+  content::WebContents* AddNewContents(
+      content::WebContents* source, std::unique_ptr<content::WebContents> new_contents,
+      const GURL& target_url, WindowOpenDisposition, const blink::mojom::WindowFeatures&,
+      bool, bool*) override {
+    OpenFromSettingsSheet(SettingsSheetOwner(source), target_url);
+    return nullptr;
+  }
+
+ private:
+  views::UnhandledKeyboardEventHandler handler_;
+};
+SettingsSheetDelegate* GetSettingsSheetDelegate() {
+  static base::NoDestructor<SettingsSheetDelegate> delegate;
+  return delegate.get();
+}
+void PlaceSettingsSheet(Owner* owner, const gfx::Rect& in_island) {
+  auto* view = SettingsSheetView(owner);
+  if (!view || !owner->view) return;
+  gfx::Rect bounds = in_island;
+  bounds.Offset(owner->view->bounds().OffsetFromOrigin());
+  view->SetBoundsRect(bounds);
+  // The card's bottom corners; its top band (the close button) is the host's.
+  view->holder()->SetNativeViewCornerRadii(gfx::RoundedCornersF(0, 0, 19, 19));
+}
+void ShowSettingsSheet(Owner* owner, const GURL& url, const gfx::Rect& in_island) {
+  auto* parent = owner && owner->view ? owner->view->parent() : nullptr;
+  if (!parent) return;
+  auto* view = SettingsSheetView(owner);
+  if (!view) {
+    auto created = std::make_unique<views::WebView>(owner->browser->GetProfile()->GetOriginalProfile());
+    created->SetID(kSettingsSheetViewId);
+    view = parent->AddChildView(std::move(created));
+    owner->settings_sheet.SetView(view);
+    auto* contents = view->GetWebContents();
+    contents->SetDelegate(GetSettingsSheetDelegate());
+    // chrome://settings expects a tab's autofill and password clients, as
+    // Chromium's SimpleWebViewDialog gives its own web view.
+    autofill::ChromeAutofillClient::CreateForWebContents(contents);
+    ChromePasswordManagerClient::CreateForWebContents(contents);
+    view->LoadInitialURL(url);
+  } else {
+    // Above the Island, which stays under the card.
+    parent->ReorderChildView(view, parent->children().size());
+    view->GetWebContents()->GetController().LoadURL(url, content::Referrer(),
+        ui::PAGE_TRANSITION_AUTO_TOPLEVEL, std::string());
+  }
+  view->SetVisible(true);
+  PlaceSettingsSheet(owner, in_island);
+  view->RequestFocus();
+  view->GetWebContents()->Focus();
+}
+void HideSettingsSheet(Owner* owner) {
+  auto* view = SettingsSheetView(owner);
+  if (!view) return;
+  owner->settings_sheet.SetView(nullptr);
+  view->parent()->RemoveChildViewT(view);
+}
+
 // served.txt is the single allowlist for both serving modes.
 bool IsAsset(const std::string& path) {
   return blanc::island_resources::IsServed(path);
+}
+
+// pages.css under the chosen Surface style: Neutral appends
+// pages-neutral.css, and a marker tells the Start Page which palette its
+// wallpaper paint uses.
+scoped_refptr<base::RefCountedMemory> SurfaceStylesheet(
+    scoped_refptr<base::RefCountedMemory> css,
+    scoped_refptr<base::RefCountedMemory> neutral) {
+  if (!css) return nullptr;
+  std::string text(reinterpret_cast<const char*>(css->front()), css->size());
+  if (neutral) {
+    text += "\n";
+    text.append(reinterpret_cast<const char*>(neutral->front()), neutral->size());
+    text += "\n:root{--blanc-surface-style:neutral}\n";
+  }
+  return base::MakeRefCounted<base::RefCountedString>(std::move(text));
 }
 
 #if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
@@ -1366,7 +1778,7 @@ class PersistentSplitData : public base::SupportsUserData::Data {
 void MarkPersistentSplit(BrowserWindowInterface* browser, content::WebContents* tab, bool enabled, bool focused = false) {
   if (enabled) tab->SetUserData(kPersistentSplitKey, std::make_unique<PersistentSplitData>(focused));
   else tab->RemoveUserData(kPersistentSplitKey);
-  if (!browser->GetProfile()->IsOffTheRecord())
+  if (!browser->GetProfile()->IsOffTheRecord() && !blanc::private_tabs::IsPrivateTab(tab))
     if (auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile()))
       service->AddTabExtraData(browser->GetSessionID(), sessions::SessionTabHelper::IdForTab(tab), kPersistentSplitKey, enabled ? (focused ? "2" : "1") : "0");
 }
@@ -1606,8 +2018,17 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
     groups.Append(base::DictValue().Set("name", base::UTF16ToUTF8(v->title()))
         .Set("color", static_cast<int>(v->color())).Set("collapsed", v->is_collapsed()));
   }
+  // A Space never holds a private tab (shipping), so private tabs are left
+  // out and the active index counts only the tabs the Space keeps.
+  int active = 0;
   for (int i = 0; i < model->count(); ++i) {
     auto* tab = model->GetWebContentsAt(i);
+    if (blanc::private_tabs::IsPrivateTab(tab)) {
+      // A split is saved whole or not at all.
+      if (model->GetSplitForTab(i)) return std::nullopt;
+      continue;
+    }
+    if (i == model->active_index()) active = static_cast<int>(tabs.size());
     // In-flight navigation and unload-sensitive forms remain ineligible.
     if (tab->IsLoading() ||
         tab->NeedToFireBeforeUnload()) return std::nullopt;
@@ -1646,7 +2067,18 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
     }
     tabs.Append(base::DictValue().Set("url", url.spec()).Set("pinned", model->IsTabPinned(i)).Set("group", group_index));
   }
-  auto record = base::DictValue().Set("tabs", std::move(tabs)).Set("groups", std::move(groups)).Set("active", model->active_index());
+  if (tabs.empty()) return std::nullopt;
+  // Groups only private tabs referenced stay out, as in shipping's session
+  // file, and the kept tabs' group indexes follow.
+  std::vector<int> remap(groups.size(), -1);
+  base::ListValue kept_groups;
+  for (auto& entry : tabs) {
+    const int group = entry.GetDict().FindInt("group").value_or(-1);
+    if (group < 0) continue;
+    if (remap[group] < 0) { remap[group] = static_cast<int>(kept_groups.size()); kept_groups.Append(groups[group].Clone()); }
+    entry.GetDict().Set("group", remap[group]);
+  }
+  auto record = base::DictValue().Set("tabs", std::move(tabs)).Set("groups", std::move(kept_groups)).Set("active", active);
   // Keep unsplit legacy records byte-shape compatible with existing journals.
   if (!splits.empty()) { record.Set("splits", std::move(splits)); record.Set("splitIds", std::move(split_ids)); }
   if (!ValidSpace(record)) return std::nullopt;
@@ -1809,6 +2241,21 @@ base::DictValue InstalledTheme(Profile* profile, bool images = false) {
   return result;
 }
 
+// The committed page's certificate state, which the host turns into
+// shipping's siteInfo (V8: Chromium's warning page and decisions stand in for
+// blanc://error and shipping's continue): {state: "error", error} while
+// Chromium's certificate warning shows, {state: "exception"} for a page
+// loaded past one, null otherwise. Each navigation entry keeps its own.
+base::Value CertificateState(content::WebContents* contents) {
+  auto* entry = contents->GetController().GetLastCommittedEntry();
+  if (!entry || !net::IsCertStatusError(entry->GetSSL().cert_status)) return base::Value();
+  if (entry->GetPageType() == content::PAGE_TYPE_ERROR) {
+    return base::Value(base::DictValue().Set("state", "error").Set("error",
+        net::ErrorToString(net::MapCertStatusToNetError(entry->GetSSL().cert_status))));
+  }
+  return base::Value(base::DictValue().Set("state", "exception"));
+}
+
 base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
   owner->SyncActive();
   auto* model = browser->GetTabStripModel();
@@ -1840,6 +2287,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                       return lifecycle && lifecycle->GetTabState() == ::mojom::LifecycleUnitState::DISCARDED;
                     }())
                     .Set("blockedCount", blanc::ShieldBlockedCount(contents))
+                    .Set("certificate", CertificateState(contents))
                     .Set("adblockExcepted", blanc::BlockingSiteExcepted(browser->GetProfile(), committed))
                     .Set("favicon", NullableString(owner->TabFavicon(tab_id, contents)))
                     .Set("bookmarked", favorites && IsFavoritable(committed) &&
@@ -1857,7 +2305,8 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("muted", contents->IsAudioMuted())
                     .Set("siteMuted", AudioHost(contents).empty() ? base::Value() : base::Value(audio->SiteMuted()))
                     .Set("audible", contents->IsCurrentlyAudible())
-                    .Set("private", browser->GetProfile()->IsOffTheRecord())
+                    // A private tab may sit in an ordinary window (D1).
+                    .Set("private", contents->GetBrowserContext()->IsOffTheRecord())
                     .Set("groupId", group ? base::Value(group->ToString()) : base::Value()));
   }
   owner->PruneFaviconCache(live_tab_ids);
@@ -1938,6 +2387,10 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       // Hover-open (F1) asks for both: the setting, and whether this window
       // is the one in front, as shipping's islandHoverEligible does.
       .Set("islandHoverOpen", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kIslandHoverOpenPref))
+      // Site icons instead of dots, and search priority results (S1.7).
+      .Set("islandTabIcons", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kIslandTabIconsPref))
+      .Set("searchPriorityResults", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetBoolean(kSearchPriorityResultsPref))
+      .Set("surfaceStyle", browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetString(kSurfaceStylePref) == "neutral" ? "neutral" : "sunrise")
       .Set("windowActive", browser->GetWindow() && browser->GetWindow()->IsActive())
       // Auto-hide (F1): the strip draws its covered state and the how-to tip.
       .Set("islandAutoHide", base::DictValue()
@@ -2224,34 +2677,8 @@ class NewTabHandler : public content::WebUIMessageHandler,
         else Reply(id, true, base::Value(false));
         return;
       }
-      base::DictValue candidate;
-      candidate.Set("url", args[0].GetString());
-      if (method == "pinsPin") candidate.Set("title", args[1].GetString());
-      auto target = SanitizeStartPin(base::Value(std::move(candidate)));
-      if (!target) {
-        if (method == "pinsPin") Reply(id, true, base::Value(base::DictValue().Set("ok", false).Set("reason", "invalid")));
-        else Reply(id, true, base::Value(false));
-        return;
-      }
-      const auto* target_url = target->FindString("url");
-      bool found = false;
-      base::ListValue remaining;
-      for (const auto& item : pins) {
-        if (*item.GetDict().FindString("url") == *target_url) found = true;
-        else remaining.Append(item.Clone());
-      }
-      if (method == "pinsPin" && !found && pins.size() >= kStartPageMaxPins) {
-        Reply(id, true, base::Value(base::DictValue().Set("ok", false).Set("reason", "full"))); return;
-      }
-      if ((method == "pinsPin" && !found) || (method == "pinsUnpin" && found)) {
-        base::ListValue next;
-        if (method == "pinsPin") next.Append(std::move(*target));
-        for (const auto& item : remaining) next.Append(item.Clone());
-        prefs->SetList(kStartPagePinsPref, std::move(next));
-        prefs->CommitPendingWrite();
-      }
-      if (method == "pinsPin") Reply(id, true, base::Value(base::DictValue().Set("ok", true)));
-      else Reply(id, true, base::Value(found));
+      Reply(id, true, ChangeStartPin(prefs, method == "pinsPin", args[0].GetString(),
+                                     method == "pinsPin" ? args[1].GetString() : std::string()));
       return;
     }
     if (profile->IsOffTheRecord()) {
@@ -2327,6 +2754,16 @@ class NewTabHandler : public content::WebUIMessageHandler,
       const bool opened = browser &&
           browser->GetTabStripModel()->GetActiveWebContents() == contents &&
           OpenIsland(browser, true, args[0].GetString());
+      Reply(id, opened, base::Value(opened ? "" : "Start page is not active"));
+      return;
+    }
+    // The Ledger's Favorites heading opens the utility sheet, as shipping's
+    // blanc://bookmarks/ link does, when this Start Page is the active tab.
+    if (method == "openSheet" && args.size() == 1 && args[0].is_string()) {
+      auto* browser = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(contents);
+      const bool opened = browser &&
+          browser->GetTabStripModel()->GetActiveWebContents() == contents &&
+          OpenUtilitySheet(browser, args[0].GetString());
       Reply(id, opened, base::Value(opened ? "" : "Start page is not active"));
       return;
     }
@@ -2750,8 +3187,8 @@ const std::optional<std::string>& LaunchUiLanguage() {
   return *pin;
 }
 
-#include "blanc/browser/ui/blocking_settings_handler.inc"
-#include "blanc/browser/ui/search_settings_handler.inc"
+#include "blanc/browser/ui/chromium_settings_handler.inc"
+#include "blanc/browser/ui/utility_sheet_ops.inc"
 
 // A bounded, sequence-confined navigation outcome reducer. It intentionally
 // distinguishes a committed document from every inconclusive outcome.
@@ -2880,6 +3317,46 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
                       base::BindRepeating(&Handler::OnIslandAutoHideChanged, base::Unretained(this)));
     island_prefs_.Add(std::string(blanc::island_autohide::kStylePref),
                       base::BindRepeating(&Handler::OnIslandAutoHideStyleChanged, base::Unretained(this)));
+    for (const char* pref : {kIslandTabIconsPref, kSearchPriorityResultsPref})
+      island_prefs_.Add(pref, base::BindRepeating(&Handler::OnIslandSettingChanged, base::Unretained(this)));
+    island_prefs_.Add(kIslandSiteColorsPref,
+                      base::BindRepeating(&Handler::OnSiteColorsChanged, base::Unretained(this)));
+    island_prefs_.Add(kSurfaceStylePref,
+                      base::BindRepeating(&Handler::OnSurfaceStyleChanged, base::Unretained(this)));
+  }
+  void OnSiteColorsChanged() {
+    if (auto* owner = GetOwner(web_ui()->GetWebContents())) owner->SiteColorsChanged();
+    OnIslandSettingChanged();
+  }
+  // Shipping restyles every open Blanc page in place when Surface style
+  // changes (pages.js RESTYLE_SCRIPT), so a game or a search survives; the
+  // Start Page then repaints its wallpaper for the new palette.
+  void OnSurfaceStyleChanged() {
+    // Each window's Island handler restyles its host and its tabs once;
+    // every other Blanc page's handler leaves it to them.
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    if (!owner) return;
+    auto restyle = [](content::WebContents* contents) {
+      if (!contents) return;
+      contents->GetPrimaryMainFrame()->ForEachRenderFrameHost([](content::RenderFrameHost* frame) {
+        const GURL& url = frame->GetLastCommittedURL();
+        if (!frame->IsRenderFrameLive() || !url.SchemeIs(content::kChromeUIScheme) ||
+            url.host() != "blanc-prototype" ||
+            !content::ChildProcessSecurityPolicy::GetInstance()->HasWebUIBindings(
+                frame->GetProcess()->GetID())) return;
+        frame->ExecuteJavaScript(
+            u"(()=>{const links=[...document.querySelectorAll('link[rel=\"stylesheet\"][href^=\"pages.css\"]')];"
+            u"if(!links.length)return;const next=links[0].cloneNode();next.href='pages.css?restyle='+Date.now();"
+            u"next.addEventListener('load',()=>{for(const link of links)link.remove();window.dispatchEvent(new Event('blanc-surface-changed'));},{once:true});"
+            u"links[links.length-1].after(next);})()",
+            base::NullCallback());
+      });
+    };
+    restyle(web_ui()->GetWebContents());
+    auto* model = owner->browser->GetTabStripModel();
+    for (int i = 0; i < model->count(); ++i) restyle(model->GetWebContentsAt(i));
+    // The settings sheet's card follows it too.
+    OnIslandSettingChanged();
   }
   void OnIslandAutoHideStyleChanged() {
     if (auto* owner = GetOwner(web_ui()->GetWebContents())) ApplyAutoHideStyle(owner);
@@ -3105,6 +3582,132 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(std::move(list)));
       return;
     }
+    // HTTP auth challenges Blanc refused (http_auth.h, F20), or forgets them.
+    if (message[1].GetString() == "authChallenges" && message[2].GetList().empty()) {
+      base::ListValue list;
+      for (const auto& c : blanc::browser_api::TestAuthChallenges())
+        list.Append(base::DictValue().Set("url", c.url).Set("navigation", c.navigation)
+            .Set("proxy", c.proxy).Set("scheme", c.scheme).Set("realm", c.realm));
+      Reply(id, true, base::Value(std::move(list)));
+      return;
+    }
+    if (message[1].GetString() == "resetAuthChallenges" && message[2].GetList().empty()) {
+      blanc::browser_api::TestAuthChallenges().clear();
+      Reply(id, true, base::Value(true));
+      return;
+    }
+    // Read-only: each tab's inherited sandbox (N4), its document's current
+    // sandbox, and whether Duplicate is offered.
+    if (message[1].GetString() == "inheritedSandbox" && message[2].GetList().empty()) {
+      base::ListValue list;
+      GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* browser) {
+        auto* tabs = browser->GetTabStripModel();
+        for (int i = 0; i < tabs->count(); ++i) {
+          auto* tab = tabs->GetWebContentsAt(i);
+          list.Append(base::DictValue()
+              .Set("id", sessions::SessionTabHelper::IdForTab(tab).id())
+              .Set("url", tab->GetVisibleURL().spec())
+              .Set("flags", static_cast<int>(InheritedSandboxFlags(tab)))
+              .Set("documentFlags", static_cast<int>(ActiveSandboxFlags(tab->GetPrimaryMainFrame())))
+              .Set("canDuplicate", chrome::CanDuplicateTabAt(browser, i)));
+        }
+        return true;
+      });
+      Reply(id, true, base::Value(std::move(list)));
+      return;
+    }
+    // F19: the address menu's items and actions, through the same builder
+    // and executor the native menu runs (a native menu can't be driven by
+    // CDP), with Blink's flags for a focused, filled input, as shipping's
+    // hook. The field's cleaning comes from shipping's clean-link.js.
+    if (message[1].GetString() == "addressMenuWired" && message[2].GetList().empty()) {
+      Reply(id, true, base::Value(web_ui()->GetWebContents()->GetDelegate() == GetIslandDelegate()));
+      return;
+    }
+    if ((message[1].GetString() == "addressMenu" && message[2].GetList().size() == 1 &&
+         message[2].GetList()[0].is_string()) ||
+        (message[1].GetString() == "runAddressMenuItem" && message[2].GetList().size() == 2 &&
+         message[2].GetList()[0].is_string() && message[2].GetList()[1].is_string())) {
+      const bool run = message[1].GetString() == "runAddressMenuItem";
+      const auto& list = message[2].GetList();
+      const std::string item = run ? list[0].GetString() : std::string();
+      std::string field;
+      base::JSONWriter::Write(list[run ? 1 : 0], &field);
+      auto* host = web_ui()->GetWebContents();
+      host->GetPrimaryMainFrame()->ExecuteJavaScript(
+          u"({value: " + base::UTF8ToUTF16(field) + u", clean: window.BlancCleanLink?.cleanLink(" +
+              base::UTF8ToUTF16(field) + u") ?? null})",
+          base::BindOnce([](base::WeakPtr<Handler> self, std::string id, bool run, std::string item,
+                            base::Value read) {
+            if (!self) return;
+            auto* host = self->web_ui()->GetWebContents();
+            const auto cleaned = CleanedFromRead(read);
+            if (run) {
+              RunAddressMenuCommand(host, item, cleaned);
+              self->Reply(id, true, base::Value(true));
+              return;
+            }
+            ReadClipboardText(base::BindOnce([](base::WeakPtr<Handler> self, std::string id,
+                                                bool clean, std::u16string clipboard) {
+              if (!self) return;
+              using F = blink::ContextMenuDataEditFlags;
+              const int all = F::kCanUndo | F::kCanRedo | F::kCanCut | F::kCanCopy |
+                              F::kCanPaste | F::kCanDelete | F::kCanSelectAll;
+              base::ListValue items;
+              for (const auto& entry : AddressMenuItems(all, clipboard, clean)) {
+                if (entry.id.empty()) items.Append(base::DictValue().Set("type", "separator"));
+                else items.Append(base::DictValue().Set("id", entry.id).Set("label", entry.label)
+                                      .Set("enabled", entry.enabled));
+              }
+              self->Reply(id, true, base::Value(std::move(items)));
+            }, self, std::move(id), cleaned.has_value()));
+          }, weak_factory_.GetWeakPtr(), id, run, item));
+      return;
+    }
+    // The in-memory clipboard Blanc's own actions use under --blanc-test.
+    if (message[1].GetString() == "setTestClipboard" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_string()) {
+      TestClipboard() = base::UTF8ToUTF16(message[2].GetList()[0].GetString());
+      Reply(id, true, base::Value(true));
+      return;
+    }
+    if (message[1].GetString() == "testClipboard" && message[2].GetList().empty()) {
+      Reply(id, true, base::Value(TestClipboard()));
+      return;
+    }
+    // Read-only: the settings sheet's native view (S1.7), in window coordinates.
+    if (message[1].GetString() == "settingsSheetState" && message[2].GetList().empty()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      auto* view = SettingsSheetView(owner);
+      base::DictValue state;
+      state.Set("attached", !!view);
+      if (view) {
+        const gfx::Rect b = view->bounds();
+        state.Set("visible", view->GetVisible());
+        state.Set("url", view->GetWebContents()->GetVisibleURL().spec());
+        state.Set("focused", view->HasFocus());
+        state.Set("above", view->parent()->GetIndexOf(view) > view->parent()->GetIndexOf(owner->view.get()));
+        state.Set("bounds", base::DictValue().Set("x", b.x()).Set("y", b.y()).Set("width", b.width()).Set("height", b.height()));
+      }
+      Reply(id, true, base::Value(std::move(state)));
+      return;
+    }
+    // Read-only: N8's effective settings, Chromium's own preferences.
+    if (message[1].GetString() == "networkPrivacy" && message[2].GetList().empty()) {
+      auto config = SystemNetworkContextManager::GetStubResolverConfigReader()
+          ->GetSecureDnsConfiguration(false);
+      Reply(id, true, base::Value(base::DictValue()
+          .Set("webrtcPolicy", GetOwner(web_ui()->GetWebContents())->browser->GetProfile()
+              ->GetPrefs()->GetString(prefs::kWebRTCIPHandlingPolicy))
+          // V15: the Call audio target the active tab's renderers get.
+          .Set("callAudioTargetMs", [&] {
+            auto* tab = GetOwner(web_ui()->GetWebContents())->browser->GetTabStripModel()->GetActiveWebContents();
+            return tab ? tab->GetMutableRendererPrefs()->blanc_webrtc_audio_jitter_buffer_target_ms : -2;
+          }())
+          .Set("secureDnsMode", SecureDnsConfig::ModeToString(config.mode()))
+          .Set("secureDnsServers", config.doh_servers().ToString())));
+      return;
+    }
     // Read-only: external launches Blanc's rule recorded instead of passing
     // to Chromium's handler (page_handoff.h).
     if (message[1].GetString() == "externalLaunches") {
@@ -3114,6 +3717,20 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(std::move(list)));
       return;
     }
+#if BUILDFLAG(IS_MAC)
+    // The private-browsing menu items (patch 0013): their titles, and the
+    // Dock's item clicked as a person would.
+    if (message[1].GetString() == "privateMenuItems" && message[2].GetList().empty()) {
+      Reply(id, true, base::Value(base::DictValue()
+          .Set("file", base::UTF16ToUTF8(blanc::MainMenuItemTitle(IDC_FILE_MENU, IDC_NEW_INCOGNITO_WINDOW)))
+          .Set("dock", base::UTF16ToUTF8(blanc::DockMenuItemTitle(IDC_NEW_INCOGNITO_WINDOW)))));
+      return;
+    }
+    if (message[1].GetString() == "clickDockPrivateWindow" && message[2].GetList().empty()) {
+      Reply(id, true, base::Value(blanc::ClickDockMenuItem(IDC_NEW_INCOGNITO_WINDOW)));
+      return;
+    }
+#endif
     // Shipping's setIslandHoverOpen hook: the preference Settings writes.
     if (message[1].GetString() == "setIslandHoverOpen" && message[2].GetList().size() == 1 &&
         message[2].GetList()[0].is_bool()) {
@@ -3442,6 +4059,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (split && model->active_index() >= 0 && split == model->GetSplitForTab(model->active_index())) return false;
     auto* media = blanc::quiet::MediaHistory::Get(tab);
     if (!media->known() || media->used() || !media->policy_known() || media->inherited_policy() ||
+        HasInheritedSandbox(tab) ||
         tab->GetPrimaryMainFrame()->IsSandboxed(network::mojom::WebSandboxFlags::kAll)) return false;
     auto* permissions = permissions::PermissionRequestManager::FromWebContents(tab);
     if (!permissions || permissions->IsRequestInProgress()) return false;
@@ -3502,10 +4120,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           cancelled_(std::move(cancelled)) {}
     void WebContentsDestroyed() override {
       // Match TabRestoreService's exclusion of initial tabs and an unpinned
-      // New Tab with no other navigation. Pinned/navigated New Tabs still need
-      // their historical entry flushed; the surviving session always does.
+      // New Tab with no other navigation, and of private tabs, which are never
+      // recorded (D1). Pinned/navigated New Tabs still need their historical
+      // entry flushed; the surviving session always does.
       auto& controller = web_contents()->GetController();
-      without_history_ = controller.IsInitialBlankNavigation() ||
+      without_history_ = blanc::private_tabs::IsPrivateTab(web_contents()) ||
+                         controller.IsInitialBlankNavigation() ||
                          controller.GetEntryCount() == 0 ||
           (!pinned_ && controller.GetEntryCount() == 1 &&
            controller.GetEntryAtIndex(0)->GetVirtualURL() ==
@@ -4526,10 +5146,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       const int active = owner->MainIndex();
       auto* current = active >= 0 ? model->GetWebContentsAt(active) : nullptr;
       const GURL url = current ? current->GetLastCommittedURL() : GURL();
-      // Bind the action to the document represented by the UI, and refuse
-      // pending navigation even if an earlier snapshot is still visible.
-      if (!current || current->IsLoading() || url != GURL(args[0].GetString()) ||
-          current->GetVisibleURL() != url) {
+      // A site action binds to the document the UI shows and refuses while a
+      // navigation is pending, even if an earlier snapshot is still visible;
+      // a page still loading its own resources is that document. The global
+      // switch, as shipping's /block-ads, works whatever the page.
+      const bool navigating = !current || current->GetController().GetPendingEntry() ||
+          current->GetVisibleURL() != url;
+      const bool site_action = method == "allowAdsOnActiveSite" ||
+          (url.SchemeIsHTTPOrHTTPS() && blanc::BlockingSiteExcepted(profile, url));
+      if (site_action && (navigating || url != GURL(args[0].GetString()))) {
         reply(false, base::Value("The page changed; reopen site protection.")); return;
       }
       bool changed = false;
@@ -4543,7 +5168,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
       if (!changed) { reply(false, base::Value("Blocking policy could not be changed.")); return; }
       profile->GetOriginalProfile()->GetPrefs()->CommitPendingWrite();
-      if (current) current->GetController().Reload(content::ReloadType::NORMAL, false);
+      if (!navigating && url.SchemeIsHTTPOrHTTPS())
+        current->GetController().Reload(content::ReloadType::NORMAL, false);
       reply(true, base::Value(true)); return;
     }
     if (method == "blockerRecovery" && args.empty()) {
@@ -4625,6 +5251,82 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (method == "listFavorites" && args.empty()) {
       // A private window or a model still loading lists nothing.
       reply(true, base::Value(ListFavorites(LoadedBookmarkModel(profile))));
+      return;
+    }
+    // ---- The utility sheet's pages (S1.5): host.js's sheetBridge answers
+    // shipping's window.bowserPages through these. A private window has no
+    // Favorites, history or pins of its own to show or edit.
+    if (method.starts_with("sheet")) {
+      if (profile->IsOffTheRecord()) { reply(false, base::Value("Open this page from a regular window.")); return; }
+      auto* prefs = profile->GetPrefs();
+      if (method == "sheetPins" && args.empty()) {
+        if (!prefs->FindPreference(kStartPagePinsPref)) { reply(false, base::Value("Start Page pins unavailable")); return; }
+        reply(true, base::Value(utility_sheet::Pins(prefs)));
+        return;
+      }
+      if ((method == "sheetPin" && args.size() == 2 && args[0].is_string() && args[1].is_string()) ||
+          (method == "sheetUnpin" && args.size() == 1 && args[0].is_string())) {
+        if (!prefs->FindPreference(kStartPagePinsPref)) { reply(false, base::Value("Start Page pins unavailable")); return; }
+        reply(true, ChangeStartPin(prefs, method == "sheetPin", args[0].GetString(),
+                                   method == "sheetPin" ? args[1].GetString() : std::string()));
+        return;
+      }
+      if (method == "sheetFavoriteRemove" || method == "sheetFavoriteFolder" ||
+          method == "sheetFolderRename" || method == "sheetFolderRemove") {
+        auto* favorites = LoadedBookmarkModel(profile);
+        if (!favorites || !CanEditFavorites(profile)) { reply(false, base::Value("Favorites editing is disabled.")); return; }
+        std::optional<std::string> error = "Unexpected Favorites request.";
+        const bool strings = std::all_of(args.begin(), args.end(), [](const base::Value& v) { return v.is_string(); });
+        if (strings && method == "sheetFavoriteRemove" && args.size() == 1)
+          error = utility_sheet::RemoveFavorite(favorites, args[0].GetString());
+        else if (strings && method == "sheetFavoriteFolder" && args.size() == 2)
+          error = utility_sheet::SetFolder(favorites, args[0].GetString(), args[1].GetString());
+        else if (strings && method == "sheetFolderRename" && args.size() == 2)
+          error = utility_sheet::RenameFolder(favorites, args[0].GetString(), args[1].GetString());
+        else if (strings && method == "sheetFolderRemove" && args.size() == 1)
+          error = utility_sheet::RemoveFolder(favorites, args[0].GetString());
+        if (error) reply(false, base::Value(*error));
+        else reply(true, base::Value(true));
+        return;
+      }
+      auto* history = HistoryServiceFactory::GetForProfile(profile, ServiceAccessType::EXPLICIT_ACCESS);
+      // Every visit, newest first, as shipping's history list (5,000 at most);
+      // host.js matches the search text as shipping's listHistory does.
+      if (method == "sheetHistory" && args.empty()) {
+        if (!history) { reply(true, base::Value(base::ListValue())); return; }
+        history::QueryOptions options;
+        options.max_count = utility_sheet::kHistoryVisitsLimit;
+        options.duplicate_policy = history::QueryOptions::KEEP_ALL_DUPLICATES;
+        history->QueryHistory(std::u16string(), options,
+            base::BindOnce(&Handler::HistoryReady, weak_factory_.GetWeakPtr(), id), &tracker_);
+        return;
+      }
+      // Shipping's removeVisit(url, visitedAt): that one visit.
+      if (method == "sheetHistoryRemove" && args.size() == 2 && args[0].is_string() &&
+          (args[1].is_double() || args[1].is_int())) {
+        const GURL url(args[0].GetString());
+        if (!history || !IsFavoritable(url)) { reply(false, base::Value("This visit can’t be removed here.")); return; }
+        const auto at = base::Time::FromMillisecondsSinceUnixEpoch(args[1].GetDouble());
+        history->ExpireHistoryBetween({url}, /*restrict_app_id=*/std::nullopt, at, at + base::Milliseconds(1),
+            /*user_initiated=*/true, base::BindOnce(&Handler::HistoryCleared, weak_factory_.GetWeakPtr(), id),
+            &tracker_);
+        return;
+      }
+      if (method == "sheetDownloads" && args.empty()) {
+        reply(true, base::Value(utility_sheet::Downloads(profile)));
+        return;
+      }
+      if (method == "sheetDownload" && args.size() == 2 && args[0].is_string() && args[1].is_string()) {
+        utility_sheet::DownloadAction(profile, args[0].GetString(), args[1].GetString());
+        reply(true, base::Value(true));
+        return;
+      }
+      if (method == "sheetDownloadsClear" && args.empty()) {
+        utility_sheet::ClearFinishedDownloads(profile);
+        reply(true, base::Value(true));
+        return;
+      }
+      reply(false, base::Value("Unknown utility sheet request."));
       return;
     }
     if (method == "listHistory" && args.size() == 1 && args[0].is_int()) {
@@ -4821,8 +5523,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         reply(true, base::Value("mail"));
         return;
       }
-      ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste);
-      writer.WriteText(base::UTF8ToUTF16(args[1].GetString()));
+      WriteClipboardText(base::UTF8ToUTF16(args[1].GetString()));
       reply(true, base::Value("copied"));
       return;
     }
@@ -4837,6 +5538,38 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value());
       return;
     }
+    if (method == "settingsSheet" && !args.empty() && args[0].is_string()) {
+      const std::string& op = args[0].GetString();
+      const auto rect_from = [&](size_t first) -> std::optional<gfx::Rect> {
+        if (args.size() != first + 4) return std::nullopt;
+        for (size_t i = first; i < first + 4; ++i) if (!args[i].is_int()) return std::nullopt;
+        const int width = args[first + 2].GetInt(), height = args[first + 3].GetInt();
+        if (width < 0 || height < 0 || width > 20000 || height > 20000) return std::nullopt;
+        return gfx::Rect(args[first].GetInt(), args[first + 1].GetInt(), width, height);
+      };
+      if (op == "hide" && args.size() == 1) {
+        HideSettingsSheet(owner);
+        reply(true, base::Value());
+        return;
+      }
+      if (op == "bounds") {
+        const auto rect = rect_from(1);
+        if (!rect) { reply(false, base::Value("Bad settings sheet bounds.")); return; }
+        PlaceSettingsSheet(owner, *rect);
+        reply(true, base::Value());
+        return;
+      }
+      if (op == "show" && args.size() == 6 && args[1].is_string()) {
+        const auto url = SettingsSheetURL(args[1].GetString());
+        const auto rect = rect_from(2);
+        if (!url || !rect) { reply(false, base::Value("Bad settings sheet request.")); return; }
+        ShowSettingsSheet(owner, *url, *rect);
+        reply(true, base::Value());
+        return;
+      }
+      reply(false, base::Value("Bad settings sheet request."));
+      return;
+    }
     if (method == "focusPage" && args.empty()) {
       // Escape and outside clicks hand focus back to the page, as Electron's
       // hideOverlay does, instead of parking it in the hidden overlay.
@@ -4849,6 +5582,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       owner->rail_width = std::clamp(args[1].GetInt(), 200, 360);
       if (owner->view->parent()) owner->view->parent()->InvalidateLayout();
       reply(true, base::Value(owner->rail_width)); return;
+    }
+    // The permission prompt frame's Allow or Block (host.js, F13).
+    if (method == "respondPermission" && args.size() == 2 && args[0].is_int() && args[1].is_bool()) {
+      reply(true, base::Value(AnswerPermissionPrompt(args[0].GetInt(), args[1].GetBool())));
+      return;
     }
     if (method == "height" && (args.size() == 1 || (args.size() == 2 && args[1].is_bool())) &&
         args[0].is_int()) {
@@ -4866,12 +5604,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value());
       return;
     }
-    if (method == "createTab" && args.size() == 1 && args[0].is_string()) {
+    if (method == "createTab" && (args.size() == 1 || (args.size() == 2 && args[1].is_bool())) &&
+        args[0].is_string()) {
       const GURL url(args[0].GetString());
+      const bool make_private = args.size() == 2 && args[1].GetBool();
       if (!url.SchemeIsHTTPOrHTTPS() && url != GURL("chrome://newtab/") &&
           url != GURL("chrome://extensions/") &&
           url != GURL("chrome://settings/") &&
-          url != GURL("chrome://blanc-prototype/blocking-settings.html") &&
           url != GURL("chrome://downloads/") &&
           url != GURL("chrome://bookmarks/") &&
           url != GURL("chrome://history/")) {
@@ -4883,7 +5622,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       const auto weak_self = weak_factory_.GetWeakPtr();
       const auto weak_browser = browser->GetWeakPtr();
       CreatedSearchTabCapture capture(model, model->GetActiveWebContents());
-      auto* returned = chrome::AddAndReturnTabAt(browser, url, -1, true);
+      // A private tab (D1) is born in the window profile's private profile.
+      if (make_private && browser->GetProfile()->IsOffTheRecord()) {
+        reply(false, base::Value("This window is already private.")); return;
+      }
+      auto* returned = make_private ? NewPrivateTab(browser, url) : chrome::AddAndReturnTabAt(browser, url, -1, true);
       if (!weak_self || !weak_browser || !weak_owner) return;
       auto created = capture.Match(returned);
       if (!created || weak_owner->search_selection_epoch != start_epoch + 1) {
@@ -5098,7 +5841,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       auto* media = blanc::quiet::MediaHistory::Get(tab);
       base::ListValue unmapped;
       if (!media->known()) unmapped.Append("silent-media-history");
-      const bool sandboxed = tab->GetPrimaryMainFrame()->IsSandboxed(network::mojom::WebSandboxFlags::kAll);
+      const bool sandboxed = HasInheritedSandbox(tab) ||
+          tab->GetPrimaryMainFrame()->IsSandboxed(network::mojom::WebSandboxFlags::kAll);
       const bool inherited_known = media->policy_known() || sandboxed;
       if (!inherited_known) unmapped.Append("inherited-policy");
       if (native_eligibility == "unknown") unmapped.Append("native-eligibility");
@@ -5149,8 +5893,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         reply(false, base::Value("The page changed; reopen the link menu."));
         return;
       }
-      ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste);
-      writer.WriteText(base::UTF8ToUTF16(text));
+      WriteClipboardText(base::UTF8ToUTF16(text));
       reply(true, base::Value(true));
       return;
     }
@@ -5172,10 +5915,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       return;
     }
     if (method == "startPinMenuState" && args.size() == 1) {
-      reply(true, base::Value(StartPinMenuState(profile, tab))); return;
+      reply(true, base::Value(StartPinMenuState(TabProfile(tab), tab))); return;
     }
     if (method == "toggleStartPin" && args.size() == 2 && args[1].is_string()) {
-      reply(true, base::Value(ToggleStartPinFromTab(profile, tab, args[1].GetString()))); return;
+      reply(true, base::Value(ToggleStartPinFromTab(TabProfile(tab), tab, args[1].GetString()))); return;
     }
     if (method == "find" || method == "stopFind") {
       if (index != model->active_index()) {
@@ -5211,9 +5954,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (method == "toggleBookmark" || method == "saveFavorite") {
       // The Island's heart and /save act on the tab it names; main re-reads
       // the committed page here rather than trusting a renderer-supplied URL.
-      if (!CanEditFavorites(profile)) {
-        reply(false, base::Value(profile->IsOffTheRecord()
-            ? "Favorites are unavailable in private windows."
+      // A private tab is never a Favorite, as in shipping, in any window.
+      auto* tab_profile = TabProfile(tab);
+      if (!CanEditFavorites(tab_profile)) {
+        reply(false, base::Value(tab_profile->IsOffTheRecord()
+            ? "Favorites are unavailable in private tabs."
             : "Favorites editing is disabled."));
         return;
       }
@@ -5222,11 +5967,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         reply(false, base::Value("Wait for the page to finish loading."));
         return;
       }
-      auto* favorites = LoadedBookmarkModel(profile);
+      auto* favorites = LoadedBookmarkModel(tab_profile);
       const GURL& url = tab->GetPrimaryMainFrame()->GetLastCommittedURL();
       if (!favorites || !IsFavoritable(url)) {
-        reply(false, base::Value(profile->IsOffTheRecord()
-            ? "Favorites are unavailable in private windows."
+        reply(false, base::Value(tab_profile->IsOffTheRecord()
+            ? "Favorites are unavailable in private tabs."
             : "Only web pages can be Favorites."));
         return;
       }
@@ -5271,6 +6016,19 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (!split && !model->IsTabPinned(moved_index) && !model->GetTabGroupForTab(moved_index))
         model->MoveWebContentsAt(moved_index, model->count() - 1, false);
       reply(true, base::Value(model->IsTabPinned(model->GetIndexOfWebContents(tab))));
+      return;
+    }
+    // Site controls' Stop allowing (shipping's forgetActiveCertificateException):
+    // Chromium forgets this host's continue decisions in the tab's own
+    // profile and closes its connections, so the next load checks again;
+    // the tab reloads unless the second argument is false.
+    if (method == "forgetCertificateException" && (args.size() == 1 || (args.size() == 2 && args[1].is_bool()))) {
+      const GURL url = tab->GetLastCommittedURL();
+      auto* delegate = StatefulSSLHostStateDelegateFactory::GetForProfile(TabProfile(tab));
+      if (!delegate || !url.SchemeIs(url::kHttpsScheme)) { reply(true, base::Value(false)); return; }
+      delegate->RevokeUserAllowExceptionsHard(std::string(url.host()));
+      if (args.size() == 1 || args[1].GetBool()) tab->GetController().Reload(content::ReloadType::NORMAL, true);
+      reply(true, base::Value(true));
       return;
     }
     if (method == "toggleSiteMute" && args.size() == 1) {
@@ -5513,8 +6271,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
                args[2].is_string() && args[3].is_string() && args[4].is_string()) {
       auto* frame = tab->GetPrimaryMainFrame();
       const GURL committed = frame ? frame->GetLastCommittedURL() : GURL();
+      auto* tab_profile = TabProfile(tab);
       const bool visible = BlancSearchVisibleMatches(tab->GetVisibleURL(), committed,
-          !profile->IsOffTheRecord(), profile->IsIncognitoProfile() && profile->IsPrimaryOTRProfile());
+          !tab_profile->IsOffTheRecord(), tab_profile->IsIncognitoProfile() && tab_profile->IsPrimaryOTRProfile());
       if (!frame || args[4].GetString() != base::NumberToString(owner->search_selection_epoch) || !BlancSearchIntentCurrent(index == model->active_index(),
               tab->GetController().GetPendingEntry() != nullptr, visible,
               base::NumberToString(frame->GetNavigationId()), args[2].GetString(),
@@ -5657,9 +6416,72 @@ class TabIdentityData : public base::SupportsUserData::Data {
   explicit TabIdentityData(std::string value) : id(std::move(value)) {}
   std::string id;
 };
+void SaveInheritedSandbox(content::WebContents* tab) {
+  const std::string state = InheritedSandboxState(tab);
+  if (state.empty() || tab->GetBrowserContext()->IsOffTheRecord()) return;
+  GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* browser) {
+    if (browser->GetTabStripModel()->GetIndexOfWebContents(tab) == TabStripModel::kNoTab) return true;
+    if (auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile()))
+      service->AddTabExtraData(browser->GetSessionID(),
+          sessions::SessionTabHelper::IdForTab(tab), kInheritedSandboxKey, state);
+    return false;
+  });
+}
+// Sticky: a later main-frame navigation can add flags (Chromium's inherited
+// flags for it, never a page's own CSP sandbox) but never removes one.
+class InheritedSandboxData : public base::SupportsUserData::Data,
+                             public content::WebContentsObserver {
+ public:
+  InheritedSandboxData(content::WebContents* tab, uint32_t value)
+      : content::WebContentsObserver(tab), flags(value & kKnownSandboxFlags) {}
+  void DidStartNavigation(content::NavigationHandle* navigation) override {
+    if (!navigation->IsInPrimaryMainFrame()) return;
+    const uint32_t inherited =
+        static_cast<uint32_t>(navigation->SandboxFlagsInherited()) & kKnownSandboxFlags;
+    if ((flags | inherited) == flags) return;
+    flags |= inherited;
+    SaveInheritedSandbox(web_contents());
+  }
+  uint32_t flags;
+};
+}
+void NoteInheritedSandbox(content::WebContents* tab) {
+  if (!IsEnabled() || !tab) return;
+  if (!tab->GetUserData(kInheritedSandboxKey)) {
+    // Seen before its first document commits, a tab's flags are exactly what
+    // it was born with: an opener's propagating sandbox, or restore's flags.
+    auto& controller = tab->GetController();
+    const bool unborn = controller.IsInitialNavigation() || controller.IsInitialBlankNavigation();
+    tab->SetUserData(kInheritedSandboxKey, std::make_unique<InheritedSandboxData>(
+        tab, unborn ? ActiveSandboxFlags(tab->GetPrimaryMainFrame()) : 0));
+  }
+  // Also on a move: the mark belongs to the window that now holds the tab.
+  SaveInheritedSandbox(tab);
+}
+uint32_t InheritedSandboxFlags(content::WebContents* tab) {
+  auto* data = tab ? static_cast<InheritedSandboxData*>(tab->GetUserData(kInheritedSandboxKey)) : nullptr;
+  return data ? data->flags : 0;
+}
+bool HasInheritedSandbox(content::WebContents* tab) { return InheritedSandboxFlags(tab) != 0; }
+std::string InheritedSandboxState(content::WebContents* tab) {
+  const uint32_t flags = InheritedSandboxFlags(tab);
+  return flags ? base::NumberToString(flags) : std::string();
+}
+uint32_t RestoredSandboxFlags(const std::map<std::string, std::string>& extra_data) {
+  const auto saved = extra_data.find(kInheritedSandboxKey);
+  if (saved == extra_data.end()) return 0;
+  unsigned value = 0;
+  if (!base::StringToUint(saved->second, &value) || !value || (value & ~kKnownSandboxFlags))
+    return kKnownSandboxFlags;
+  return value;
+}
+void RestoreInheritedSandbox(content::WebContents* tab, uint32_t flags) {
+  if (!tab || !flags) return;
+  tab->SetUserData(kInheritedSandboxKey, std::make_unique<InheritedSandboxData>(tab, flags));
 }
 void PreserveDiscardedTabState(content::WebContents* old_tab, content::WebContents* replacement) {
   if (!old_tab || !replacement || old_tab->GetBrowserContext() != replacement->GetBrowserContext()) return;
+  RestoreInheritedSandbox(replacement, InheritedSandboxFlags(old_tab));
   if (auto* name = static_cast<TabNameData*>(old_tab->GetUserData(kTabNameKey)))
     replacement->SetUserData(kTabNameKey, std::make_unique<TabNameData>(name->name));
   if (auto* identity = static_cast<TabIdentityData*>(old_tab->GetUserData(kTabIdentityKey)))
@@ -5980,8 +6802,29 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
               std::move(callback).Run(base::MakeRefCounted<base::RefCountedString>(script));
               return;
             }
-            // Only the exact private Start Page query and the floating
-            // pill's surface query alias their shared static assets;
+            // Shipping's Surface style (S1.7): Neutral appends its overrides
+            // to the same pages.css, so no Sunrise palette shows first; a
+            // restyle asks again with a fresh query.
+            if (path == "pages/pages.css" || path.starts_with("pages/pages.css?restyle=")) {
+              const bool neutral = profile &&
+                  profile->GetOriginalProfile()->GetPrefs()->GetString(kSurfaceStylePref) == "neutral";
+#if BUILDFLAG(ENABLE_BLANC_DISK_ASSETS)
+              if (!root.empty()) {
+                base::ThreadPool::PostTaskAndReplyWithResult(
+                    FROM_HERE, {base::MayBlock()},
+                    base::BindOnce([](base::FilePath root, bool neutral) {
+                      return SurfaceStylesheet(ReadAsset(root, "pages/pages.css"),
+                          neutral ? ReadAsset(root, "pages/pages-neutral.css") : nullptr);
+                    }, root, neutral), std::move(callback));
+                return;
+              }
+#endif
+              std::move(callback).Run(SurfaceStylesheet(blanc::island_resources::Find("pages/pages.css"),
+                  neutral ? blanc::island_resources::Find("pages/pages-neutral.css") : nullptr));
+              return;
+            }
+            // Only the exact private Start Page query, the floating pill's
+            // surface query alias their shared static assets;
             // arbitrary queries never become filesystem paths.
             const std::string asset_path = path == "pages/newtab.html?private=1" ? "pages/newtab.html"
                 : path == "index.html?surface=float" ? "index.html" : path;
@@ -6000,8 +6843,6 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
           root, Profile::FromWebUI(web_ui)->GetWeakPtr()));
   web_ui->AddMessageHandler(std::make_unique<Handler>());
   web_ui->AddMessageHandler(std::make_unique<NewTabHandler>());
-  web_ui->AddMessageHandler(std::make_unique<BlockingSettingsHandler>());
-  web_ui->AddMessageHandler(std::make_unique<SearchSettingsHandler>());
 }
 
 ToolbarButtonProvider* ToolbarProvider(BrowserWindowInterface* browser,
@@ -6045,6 +6886,24 @@ bool OpenExtensions(BrowserWindowInterface* browser) {
   contents->Focus();
   contents->GetPrimaryMainFrame()->ExecuteJavaScript(
       u"window.BlancPrototypeHost?.extensions()", base::NullCallback());
+  return true;
+}
+
+#include "blanc/browser/ui/permission_prompt.inc"
+
+bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page) {
+  if (page != "history" && page != "downloads" && page != "bookmarks" && page != "settings") return false;
+  // A private window keeps Chromium's pages; the sheet shows regular data.
+  // Settings, like Chromium's, is the regular profile's in either window.
+  if (!IsIslandWindow(browser) || (page != "settings" && browser->GetProfile()->IsOffTheRecord())) return false;
+  auto* parent = BrowserView::GetBrowserViewForBrowser(browser);
+  auto* view = parent ? static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId)) : nullptr;
+  if (!view) return false;
+  auto* contents = view->GetWebContents();
+  if (contents->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
+      !contents->GetPrimaryMainFrame()->IsRenderFrameLive()) return false;
+  contents->GetPrimaryMainFrame()->ExecuteJavaScript(
+      u"window.BlancPrototypeHost?.openSheet('" + base::ASCIIToUTF16(page) + u"')", base::NullCallback());
   return true;
 }
 
@@ -6122,6 +6981,33 @@ bool OpenIsland(BrowserWindowInterface* browser, bool new_tab,
 bool IsIslandWindow(const BrowserWindowInterface* browser) {
   return IsEnabled() && browser &&
       browser->GetType() == BrowserWindowInterface::Type::TYPE_NORMAL;
+}
+
+content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL& url) {
+  if (!IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return nullptr;
+  // Chromium's navigator makes the tab: asked for with the window profile's
+  // private profile, it creates the contents there (blanc/private).
+  NavigateParams params(browser->GetProfile()->GetPrimaryOTRProfile(/*create_if_needed=*/true),
+                        url.is_empty() ? GURL("chrome://newtab/") : url, ui::PAGE_TRANSITION_TYPED);
+  params.browser = browser;
+  params.disposition = WindowOpenDisposition::kNewForegroundTab;
+  params.tabstrip_add_types = AddTabTypes::ADD_ACTIVE;
+  Navigate(&params);
+  return params.navigated_or_inserted_contents;
+}
+
+bool MakePrivateWindow(BrowserWindowInterface* browser) {
+  if (!browser || !IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return false;
+  auto* model = browser->GetTabStripModel();
+  std::vector<content::WebContents*> starting;
+  for (int i = 0; i < model->count(); ++i) starting.push_back(model->GetWebContentsAt(i));
+  if (!NewPrivateTab(browser, GURL())) return false;
+  // The window's starting Start Page goes, leaving nothing in Recently closed.
+  for (auto* contents : starting) {
+    const int index = model->GetIndexOfWebContents(contents);
+    if (index != TabStripModel::kNoTab) model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_NONE);
+  }
+  return true;
 }
 
 bool HasIsland(views::View* parent) {
@@ -6293,4 +7179,8 @@ void LayoutIsland(views::View* parent, int top) {
   extensions->SetVisible(owner->height == 68 && !bounds.IsEmpty() && !StripHiddenFor(owner) &&
                          !(IslandFloating(owner) && owner->float_bounds.IsEmpty()));
 }
+std::unique_ptr<settings::SettingsPageUIHandler> CreateSettingsHandler(Profile* profile) {
+  return std::make_unique<ChromiumSettingsHandler>(profile);
+}
+
 }  // namespace blanc_prototype

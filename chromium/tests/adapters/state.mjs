@@ -10,13 +10,21 @@ const id=value=>value==null?null:String(value);
 export function shippingState(snapshot){
  const splitOf=new Map((snapshot.splits||[]).flatMap(s=>s.tabIds.map(t=>[String(t),String(s.id)])));
  const tabs=snapshot.tabs.map(t=>({
-  id:String(t.id),url:shippingPageUrl(t.url),loadedUrl:t.committedUrl==null?null:shippingPageUrl(t.committedUrl),
+  // Chromium gives each tab one WebContents, so its native id is the
+  // contents' id too.
+  // Chromium's certificate warning is the fork's certificate page (V8), so a
+  // tab showing it reads as shipping's blanc://error/?kind=certificate.
+  id:String(t.id),webContentsId:Number(t.id),url:shippingPageUrl(t.url),
+  loadedUrl:t.certificate?.state==='error'?`blanc://error/?kind=certificate&url=${encodeURIComponent(t.committedUrl)}`
+   :t.committedUrl==null?null:shippingPageUrl(t.committedUrl),
   // A renamed tab's snapshot title is its name and pageTitle the page's
   // own; shipping's state keeps them as title and customTitle.
   loading:!!t.isLoading,isLoading:!!t.isLoading,title:(t.pageTitle??t.title)||'',customTitle:t.pageTitle!=null?t.title:null,favicon:t.favicon||null,
   groupId:id(t.groupId),splitId:splitOf.get(String(t.id))??null,pinned:!!t.pinned,
   muted:!!(t.muted||t.siteMuted),audible:!!t.audible,canGoBack:!!t.canGoBack,canGoForward:!!t.canGoForward,
-  private:!!t.private,asleep:!!t.asleep,
+  // A private tab's contents live in the off-the-record profile (D1), the
+  // fork's private session, which never persists.
+  private:!!t.private,sessionKind:t.private?'private':'default',sessionPersistent:!t.private,asleep:!!t.asleep,
  }));
  const layout=tabs.map(t=>({id:t.id,groupId:t.groupId,pinned:t.pinned,splitId:t.splitId}));
  const groups=(snapshot.groups||[]).map(g=>({id:String(g.id),name:g.name,collapsed:!!g.collapsed,color:g.color||null}));
