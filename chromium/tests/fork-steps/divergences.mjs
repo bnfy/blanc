@@ -89,4 +89,14 @@ export const DIVERGENCES = new Map([
   ['the first tab in group {string} is pinned', {divergence: 'V16', async run() {
     throw new UndefinedNativeAdapterError('V16: Chromium takes a pinned tab out of its group, so a group holds no pinned tab');
   }}],
+  // V17 (owner, 2026-11-04): Close Tabs Below records each closed tab, as
+  // Chromium does, so undo brings them back one at a time. One reopen brings
+  // one of them back; a second brings back the other.
+  ['the tabs on {string} and {string} are open again', {divergence: 'V17', async run(a, b) {
+    const open = state => [a, b].filter(name => state.tabs.some(t => new RegExp(`/${name}\\b`).test(t.url ?? '')));
+    const first = await this.waitForState(state => open(state).length === 1);
+    assert.equal(open(first).length, 1, 'one reopen brings back one closed tab');
+    await this.call('reopenClosed');
+    await this.waitForState(state => open(state).length === 2);
+  }}],
 ]);
