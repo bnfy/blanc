@@ -543,6 +543,12 @@ Recorded in the spec (§4, §9) and plan:
   chrome://settings in its own native view, drawn as shipping's utility
   sheet card over the page (scrim, card, Escape and ×), since it can't load
   in an Island host frame. Not a tab, and not a port of shipping's page.
+  Blanc's own settings become sections inside chrome://settings, bound to
+  Blanc prefs, with Google, Sync, Safety Check and AI sections removed; the
+  separate Blanc page goes once they're in. S1.7 builds the S1 keys'
+  controls; its generated check accounts for every v1.45.1 key (present,
+  native, approved divergence, or a named later slice), and later slices add
+  their own controls.
 - 2026-11-03: the rest of S1.6 goes native. N4: only a tab that inherited
   its opener's sandbox is marked (Chromium can read the flags; shipping
   marks every page-opened tab), the mark keeps the flags in Chromium's
@@ -595,8 +601,19 @@ list/run; overlay drag flag; microphone capture seed.
 
 ## Next
 1. S1.7 (F14): chrome://settings restyled, in a native sheet (owner,
-   2026-11-03). Inventory every shipping key first, then propose where each
-   lives before building. Verify each change with targeted
+   2026-11-03). `chromium/settings-keys.json` classifies all 81 v1.45.1
+   DEFAULTS keys (`islandSize` and `miniWindowShortcut` came after the tag),
+   checked by `tools/settings-keys.mjs`: 19 are S1.7's (7 in Chromium's own
+   stores, 12 Blanc prefs, all with shipping's defaults; islandSiteColors,
+   islandTabIcons and searchPriorityResults still to build), 4 approved
+   divergences, 55 for later slices or the importer, adblockProvider waits
+   on D2, and surfaceStyle and webrtcAudioBuffer have no spec row. Then, in
+   order: the native sheet showing chrome://settings; removing its Google,
+   Sync, Safety Check and AI sections; Blanc sections inside it, bound to
+   prefs through settings_private's allowlist (Island, search suggestions
+   and Bangs, Blocking, Calls and connections, Language), including the
+   three new prefs; then retiring blocking-settings.html and moving the
+   settings scenarios' adapters onto chrome://settings. Verify each change with targeted
    `--only` runs merged by `tests/merge-baseline.mjs`. Owner, 2026-10-31: no full S1 run
    (~2 h) unless development can't continue without it; propose one with
    the reason first.
