@@ -13,4 +13,8 @@
     <string name="blanc_pill_private_chip">Private</string>
     <string name="blanc_pill_private_title">Leave private mode — closes this tab</string>
     <string name="blanc_tab_new">New tab</string>
+    <string name="blanc_menu_new_private_tab">New Private Tab</string>
+    <string name="blanc_share_picker_share">Share</string>
+    <string name="blanc_tab_menu_remove_favorite">Remove from Favorites</string>
+    <string name="blanc_tab_menu_save_favorite">Save to Favorites</string>
 </resources>

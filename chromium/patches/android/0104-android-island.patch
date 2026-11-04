@@ -54,7 +54,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          if (mVerticalTabsPreferenceListener != null) {
              ContextUtils.getAppSharedPreferences()
                      .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
-@@ -1293,9 +1305,99 @@
+@@ -1293,9 +1305,150 @@
          }
      }
  
@@ -94,6 +94,56 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                });
 +    }
 +
++    // The Sunrise menu (A1 Task 7): Favorites, Share and New Private Tab, as on the iPhone.
++    private void showBlancMenu(View anchor, Tab tab) {
++        GURL url = tab.getUrl();
++        BookmarkModel bookmarks = BookmarkModel.getForProfile(tab.getProfile().getOriginalProfile());
++        org.chromium.blanc.island.IslandMenu.Context context =
++                new org.chromium.blanc.island.IslandMenu.Context();
++        context.startPage = url.getSpec().startsWith("chrome://blanc/newtab.html");
++        context.blockableSite = UrlUtilities.isHttpOrHttps(url);
++        context.privateTab = tab.isIncognito();
++        context.canFavorite = bookmarks.isBookmarkModelLoaded();
++        context.favorite = context.canFavorite && bookmarks.isBookmarked(url);
++        org.chromium.blanc.island.IslandMenuPopup.show(
++                anchor,
++                context,
++                new org.chromium.blanc.island.IslandMenuPopup.Actions() {
++                    @Override
++                    public void toggleFavorite() {
++                        org.chromium.components.bookmarks.BookmarkId saved =
++                                bookmarks.getMostRecentlyAddedUserBookmarkIdForUrl(url);
++                        if (saved != null) {
++                            bookmarks.deleteBookmark(saved);
++                            return;
++                        }
++                        org.chromium.components.bookmarks.BookmarkId folder =
++                                bookmarks.getMobileFolderId();
++                        if (folder == null) return;
++                        bookmarks.addBookmark(
++                                folder, bookmarks.getChildCount(folder), tab.getTitle(), url);
++                    }
++
++                    @Override
++                    public void share() {
++                        Intent send =
++                                new Intent(Intent.ACTION_SEND)
++                                        .setType("text/plain")
++                                        .putExtra(Intent.EXTRA_TEXT, url.getSpec());
++                        mActivity.startActivity(Intent.createChooser(send, null));
++                    }
++
++                    @Override
++                    public void newPrivateTab() {
++                        mTabCreatorManagerSupplier
++                                .asNonNull()
++                                .get()
++                                .getTabCreator(true)
++                                .launchNtp(TabLaunchType.FROM_CHROME_UI);
++                    }
++                });
++    }
++
 +    // Blanc's Island (patch 0104), created once native is ready.
 +    private @Nullable IslandCoordinator mBlancIsland;
 +
@@ -108,7 +158,8 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                        new IslandCoordinator.Callbacks() {
 +                            @Override
 +                            public void onMenu(View anchor) {
-+                                // The Sunrise menu (A1 Task 7).
++                                Tab tab = mActivityTabProvider.get();
++                                if (tab != null) showBlancMenu(anchor, tab);
 +                            }
 +
 +                            @Override

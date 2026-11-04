@@ -13,4 +13,8 @@
     <string name="blanc_pill_private_chip">Privado</string>
     <string name="blanc_pill_private_title">Salir del modo privado: cierra esta pestaña</string>
     <string name="blanc_tab_new">Nueva pestaña</string>
+    <string name="blanc_menu_new_private_tab">Nueva pestaña privada</string>
+    <string name="blanc_share_picker_share">Compartir</string>
+    <string name="blanc_tab_menu_remove_favorite">Quitar de favoritos</string>
+    <string name="blanc_tab_menu_save_favorite">Guardar en favoritos</string>
 </resources>

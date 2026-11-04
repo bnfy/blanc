@@ -48,6 +48,7 @@ android_library("island_view_java") {
   resources_package = "org.chromium.blanc.island"
   sources = [
     "java/src/org/chromium/blanc/address/AddressSheet.java",
+    "java/src/org/chromium/blanc/island/IslandMenuPopup.java",
     "java/src/org/chromium/blanc/island/IslandView.java",
   ]
   deps = [
@@ -89,6 +90,7 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/address/AddressFixtures.java",
     "junit/src/org/chromium/blanc/address/AddressInputTest.java",
     "junit/src/org/chromium/blanc/address/AddressSheetTest.java",
+    "junit/src/org/chromium/blanc/island/IslandMenuPopupTest.java",
     "junit/src/org/chromium/blanc/island/IslandMenuTest.java",
     "junit/src/org/chromium/blanc/island/IslandPositionTest.java",
     "junit/src/org/chromium/blanc/island/IslandStyleTest.java",

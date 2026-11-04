@@ -15,6 +15,8 @@ export const ANDROID_KEYS = [
   'ios.island.pageActions', 'ios.island.reload', 'ios.island.searchOrSwitch', 'ios.island.showAllTabs',
   'ios.island.stop', 'ios.palette.placeholder', 'ios.tabs.startPage', 'pagesNav.bookmarks', 'pagesNav.history', 'pill.private.chip',
   'pill.private.title', 'tab.new',
+  // The Sunrise menu (A1 Task 7), with the iPhone's labels.
+  'menu.newPrivateTab', 'share.picker.share', 'tabMenu.removeFavorite', 'tabMenu.saveFavorite',
 ];
 export const LOCALES = [['en', 'values'], ['de', 'values-de'], ['es', 'values-es'], ['fr', 'values-fr'],
   ['it', 'values-it'], ['pt-BR', 'values-pt-rBR']];
