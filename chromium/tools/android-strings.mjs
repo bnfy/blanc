@@ -22,9 +22,26 @@ export const ANDROID_KEYS = [
   'pill.private.title', 'tab.new',
   // The Sunrise menu (A1 Task 7), with the iPhone's labels.
   'menu.newPrivateTab', 'share.picker.share', 'tabMenu.removeFavorite', 'tabMenu.saveFavorite',
+  // A2's slash commands (SlashCommands.available()), the iPhone's hints.
+  'slash.close.hint', 'slash.closeGroup.hint', 'slash.favorites.hint', 'slash.find.hint', 'slash.group.hint',
+  'slash.history.hint', 'slash.new.hint', 'slash.private.hint', 'slash.reopen.hint', 'slash.theme.hint',
+  'slash.ungroup.hint',
+  // The palette (A2 Task 4).
+  'group.fold', 'group.unfold', 'ios.island.collapse', 'ios.palette.clear', 'ios.palette.noCommand',
+  'ios.palette.noMatches', 'ios.tabs.close', 'ios.tabs.openTabs', 'tab.untitled',
+  // The tab grid (A2 Task 5).
+  'groupMenu.close', 'groupMenu.colorLabel', 'groupMenu.colorNone', 'groupMenu.duplicate', 'groupMenu.nameLabel',
+  'groupMenu.newTab', 'groupMenu.options', 'groupMenu.rename', 'groupMenu.ungroup', 'ios.tabs.switchTo', 'menu.undo',
+  'settings.gesture.action.closeTab', 'sharedSpaces.cancel', 'spaces.color.clay', 'spaces.color.graphite',
+  'spaces.color.iris', 'spaces.color.rose', 'spaces.color.sage', 'spaces.color.sand', 'spaces.color.sky',
+  'spaces.color.slate', 'tabGroups.closedToast', 'tabMenu.duplicate', 'tabMenu.moveToGroup', 'tabMenu.mute',
+  'tabMenu.newGroup', 'tabMenu.pin', 'tabMenu.removeFromGroup', 'tabMenu.unmute', 'tabMenu.unpin', 'tabs.closedToast',
+  'ws.editor.done',
+  // Find in page (A2 Task 6).
+  'find.next', 'find.placeholder', 'find.prev', 'menu.findInPage',
 ];
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
-export const ANDROID_PLURALS = ['tabsMenu.header'];
+export const ANDROID_PLURALS = ['newtab.groups.count', 'tabGroups.tucked', 'tabsMenu.header'];
 export const LOCALES = [['en', 'values'], ['de', 'values-de'], ['es', 'values-es'], ['fr', 'values-fr'],
   ['it', 'values-it'], ['pt-BR', 'values-pt-rBR']];
 

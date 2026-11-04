@@ -3,8 +3,10 @@
 package org.chromium.blanc.address;
 
 import org.chromium.build.annotations.NullMarked;
+import org.chromium.build.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -104,6 +106,29 @@ public final class AddressInput {
     }
 
     /** DuckDuckGo's address for a query, encoded as JavaScript's encodeURIComponent does. */
+    // The pages chrome://blanc/ serves (tools/android-pages.mjs PAGES), as the pages' adapter maps them.
+    private static final List<String> SERVED_PAGES =
+            List.of("newtab", "bookmarks", "history", "shortcuts", "error", "mahjong");
+    private static final Pattern BLANC_PAGE =
+            Pattern.compile("^blanc://([a-z-]+)/?([?#].*)?$", Pattern.CASE_INSENSITIVE);
+
+    /** Whether an address is one of Blanc's own (blanc://<page>/). */
+    public static boolean isBlancPage(String address) {
+        return BLANC_PAGE.matcher(address).matches();
+    }
+
+    /**
+     * Where a Blanc address opens on Android (D34): chrome://blanc/<page>.html for a page Android
+     * serves, or null for one it doesn't (Settings, Downloads, tab import), which opens nothing.
+     */
+    public static @Nullable String servedPage(String address) {
+        Matcher page = BLANC_PAGE.matcher(address);
+        if (!page.matches()) return null;
+        String name = page.group(1).toLowerCase(Locale.ROOT);
+        if (!SERVED_PAGES.contains(name)) return null;
+        return "chrome://blanc/" + name + ".html" + (page.group(2) == null ? "" : page.group(2));
+    }
+
     public static String searchUrl(String query) {
         StringBuilder out = new StringBuilder(SEARCH_PREFIX);
         for (byte b : query.getBytes(StandardCharsets.UTF_8)) {
@@ -166,7 +191,7 @@ public final class AddressInput {
     }
 
     /** JavaScript's String.prototype.trim(). */
-    static String trim(String s) {
+    public static String trim(String s) {
         int start = 0;
         int end = s.length();
         while (start < end && isJsSpace(s.charAt(start))) start++;

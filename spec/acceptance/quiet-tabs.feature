@@ -125,3 +125,12 @@ Feature: Quiet Tabs
     Then that tab is awake
     And its session storage survived the quiet reload
     And the renderer process count has returned to what it was
+
+  @F31-11 @F31 @mobile @D8
+  Scenario: A phone's background tab goes quiet and comes back with its page and history
+    Given a background tab that went from one page to another
+    When it stays in the background past the quiet delay
+    Then that tab no longer holds a renderer
+    When I switch to that tab
+    Then it shows the page it was on
+    And going back returns to the page before it

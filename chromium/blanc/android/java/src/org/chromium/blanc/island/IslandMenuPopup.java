@@ -15,7 +15,7 @@ import java.util.Set;
  * The Sunrise mark's menu, anchored to the mark, in {@link IslandMenu}'s order with the iPhone's
  * labels (ContentView.islandMenuElements). Entries whose feature Android doesn't have yet are left
  * out, as the iPhone leaves out entries that don't apply: Customize Start Page waits for Settings
- * (A5), blocking for A3, Find in Page for A2 and Send to Device for A4.
+ * (A5), blocking for A3 and Send to Device for A4.
  */
 @NullMarked
 public final class IslandMenuPopup {
@@ -25,11 +25,14 @@ public final class IslandMenuPopup {
 
         void share();
 
+        void find();
+
         void newPrivateTab();
     }
 
     static final Set<IslandMenu.Kind> BUILT =
-            EnumSet.of(IslandMenu.Kind.FAVORITE, IslandMenu.Kind.SHARE, IslandMenu.Kind.NEW_PRIVATE_TAB);
+            EnumSet.of(IslandMenu.Kind.FAVORITE, IslandMenu.Kind.SHARE, IslandMenu.Kind.FIND,
+                    IslandMenu.Kind.NEW_PRIVATE_TAB);
 
     private IslandMenuPopup() {}
 
@@ -50,6 +53,10 @@ public final class IslandMenuPopup {
                 case SHARE:
                     title = R.string.blanc_share_picker_share;
                     run = actions::share;
+                    break;
+                case FIND:
+                    title = R.string.blanc_menu_find_in_page;
+                    run = actions::find;
                     break;
                 default:
                     title = R.string.blanc_menu_new_private_tab;

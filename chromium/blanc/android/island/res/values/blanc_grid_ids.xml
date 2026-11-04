@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The tab grid's TalkBack action that closes a card. -->
+    <item name="blanc_grid_close_action" type="id" />
+</resources>
