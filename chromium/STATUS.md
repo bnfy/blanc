@@ -464,8 +464,10 @@ passes; the Pixel hands-on waits for the device.
 - **No startup prompts:** Chrome's notification prompt is gone (patch 0104);
   Android asks in context.
 - **Candidate** (x86_64, emulator): `out/AndroidDebugX64/apks/ChromePublic.apk`,
-  SHA-256 `240de78564688e0dda63abe7241ba70623601134542913d0c8ca240957946f99`.
-  The arm64 build for the Pixel follows.
+  SHA-256 `240de78564688e0dda63abe7241ba70623601134542913d0c8ca240957946f99`;
+  arm64 for the Pixel: `out/AndroidDebug/apks/ChromePublic.apk`, 635 MB,
+  SHA-256 `8feac58cfc22d82c8c43573d2b86137cbd9663cb15c390a2c5781b6fbb489165`
+  (built, not yet run on a device).
 
 | A1 gate | Result | Evidence (`~/blanc-evidence/android/a1/`) |
 | --- | --- | --- |
