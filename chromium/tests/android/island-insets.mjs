@@ -31,6 +31,12 @@ export function barsOf(dumpsys) {
   return {navigation: bar('navigationBars'), status: bar('statusBars')};
 }
 
+// A `wm size` or `wm density` value: the override when the screen was resized, else the physical one.
+export function wmValue(output, pattern) {
+  const line = /Override[^:]*:\s*(.*)/.exec(output)?.[1] ?? /Physical[^:]*:\s*(.*)/.exec(output)?.[1] ?? output;
+  return pattern.exec(line).slice(1);
+}
+
 // Problems with the pill's placement; empty when it's where the iPhone puts it.
 export function placementProblems({pill, screen, bars, density, position}) {
   const dp = v => v * density, problems = [], slack = 2;
@@ -66,7 +72,7 @@ function main(argv) {
   const sleep = s => execFileSync('sleep', [String(s)]);
   const dump = () => { adb('shell', 'uiautomator', 'dump', '/sdcard/blanc-ui.xml'); return adb('shell', 'cat', '/sdcard/blanc-ui.xml'); };
   const pill = () => boundsOf(dump(), 'blanc_island_pill');
-  const density = Number(/(\d+)/.exec(adb('shell', 'wm', 'density'))[1]) / 160;
+  const density = Number(wmValue(adb('shell', 'wm', 'density'), /(\d+)/)[0]) / 160;
   const setPosition = value => {
     adb('shell', 'am', 'force-stop', PACKAGE);
     const xml = adb('shell', 'run-as', PACKAGE, 'cat', PREFS).replace(/\s*<string name="blanc\.island_position">[^<]*<\/string>/, '');
@@ -89,7 +95,7 @@ function main(argv) {
       for (const position of ['bottom', 'top']) {
         setPosition(position);
         open();
-        const [w, h] = /(\d+)x(\d+)/.exec(adb('shell', 'wm', 'size')).slice(1).map(Number);
+        const [w, h] = wmValue(adb('shell', 'wm', 'size'), /(\d+)x(\d+)/).map(Number);
         const screen = rotation ? {width: Math.max(w, h), height: Math.min(w, h)} : {width: Math.min(w, h), height: Math.max(w, h)};
         const bars = barsOf(adb('shell', 'dumpsys', 'window'));
         const rest = pill();

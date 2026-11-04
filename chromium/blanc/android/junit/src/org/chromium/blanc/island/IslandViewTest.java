@@ -60,7 +60,7 @@ public class IslandViewTest {
         mView.bind(state("example.com", false, 12, false));
         TextView count = mView.findViewById(R.id.blanc_island_tab_count);
         assertEquals("12", count.getText().toString());
-        assertEquals("Show all tabs", mView.findViewById(R.id.blanc_island_tabs).getContentDescription().toString());
+        assertEquals("Show all tabs, 12 tabs", heard(mView.findViewById(R.id.blanc_island_tabs)));
     }
 
     @Test
@@ -98,5 +98,22 @@ public class IslandViewTest {
         mView.measure(MeasureSpec.makeMeasureSpec((int) (390 * d), MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec((int) (200 * d), MeasureSpec.AT_MOST));
         assertEquals(Math.round((390 - 32) * d), pill.getMeasuredWidth());
+    }
+
+    @Test
+    public void theTabCountIsReadAsTheIphonesValue() {
+        View tabs = mView.findViewById(R.id.blanc_island_tabs);
+        mView.bind(state("example.com", false, 1, false));
+        assertEquals("Show all tabs, 1 tab", heard(tabs));
+        mView.bind(state("example.com", false, 3, false));
+        assertEquals("Show all tabs, 3 tabs", heard(tabs));
+    }
+
+    // What TalkBack reads: the label, then the state (Android 11+), or the label alone before.
+    private static String heard(View v) {
+        String label = v.getContentDescription().toString();
+        return android.os.Build.VERSION.SDK_INT >= 30 && v.getStateDescription() != null
+                ? label + ", " + v.getStateDescription()
+                : label;
     }
 }

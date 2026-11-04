@@ -59,9 +59,8 @@ function main(argv) {
   adb('shell', 'pm', 'clear', PACKAGE);
   adb('shell', 'monkey', '-p', PACKAGE, '-c', 'android.intent.category.LAUNCHER', '1');
   sleep(7);
-  // Chrome's notification prompt covers the first screen until the A1 gate removes it (Task 8).
-  const noThanks = nodeBounds(dump(), {text: 'No thanks'});
-  if (noThanks) tap(noThanks);
+  // Blanc asks for nothing at startup (patch 0104 removes Chrome's notification prompt).
+  check('no startup prompt', nodeBounds(dump(), {text: 'No thanks'}) ? ['a startup prompt covers the Start Page'] : []);
   check('start page', same(openMenu('1-start-page'), ['New Private Tab']));
   close();
 

@@ -3,7 +3,7 @@
 // missing, and pass where the iPhone would put it.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {barsOf, boundsOf, placementProblems} from '../tests/android/island-insets.mjs';
+import {barsOf, boundsOf, placementProblems, wmValue} from '../tests/android/island-insets.mjs';
 
 const screen = {width: 1080, height: 1920}, density = 3;
 const bars = {navigation: {left: 0, top: 1848, right: 1080, bottom: 1920}, status: {left: 0, top: 0, right: 1080, bottom: 72}};
@@ -44,4 +44,10 @@ test('a navigation bar down the side (three-button, landscape) is checked from t
   assert.match(placementProblems({pill: at(906, 1050, 0, 1656), screen: wide, bars: side, density, position: 'bottom'}).join(), /16dp/,
     'flush with the left edge, as the gravity bug drew it');
   assert.match(placementProblems({pill: at(906, 1050, 48, 1800), screen: wide, bars: side, density, position: 'bottom'}).join(), /navigation bar/);
+});
+
+test('a resized screen is read from its override, not the physical size', () => {
+  assert.deepEqual(wmValue('Physical size: 1080x1920\nOverride size: 1080x2400\n', /(\d+)x(\d+)/), ['1080', '2400']);
+  assert.deepEqual(wmValue('Physical size: 1080x1920\n', /(\d+)x(\d+)/), ['1080', '1920']);
+  assert.deepEqual(wmValue('Physical density: 480\nOverride density: 320\n', /(\d+)/), ['320']);
 });

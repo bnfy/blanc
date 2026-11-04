@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {ANDROID_KEYS, LOCALES, resourceName, androidText, render} from './android-strings.mjs';
+import {ANDROID_KEYS, ANDROID_PLURALS, LOCALES, resourceName, androidText, androidPlural, render} from './android-strings.mjs';
 
 const messages = locale => JSON.parse(fs.readFileSync(new URL(`../../copy/messages/${locale}.json`, import.meta.url)));
 
@@ -35,4 +35,16 @@ test('the Android folders follow Android\'s locale names', () => {
 test('the committed files are current', () => {
   const result = spawnSync(process.execPath, [fileURLToPath(new URL('./android-strings.mjs', import.meta.url)), '--check'], {encoding: 'utf8'});
   assert.equal(result.status, 0, result.stderr);
+});
+
+test('plurals become Android <plurals>, # as the count', () => {
+  assert.equal(androidPlural('{count, plural, one {# tab} other {# tabs}}', 'blanc_tabs_menu_header'),
+    '    <plurals name="blanc_tabs_menu_header">\n        <item quantity="one">%d tab</item>\n        <item quantity="other">%d tabs</item>\n    </plurals>');
+  assert.match(androidPlural('{count, plural, one {# aba} many {# abas} other {# abas}}', 'x'), /quantity="many">%d abas</);
+  assert.throws(() => androidPlural('{count} tabs', 'x'), /plural/);
+});
+
+test('the TalkBack tab count is in every language', () => {
+  assert.ok(ANDROID_PLURALS.includes('tabsMenu.header'));
+  for (const [locale] of LOCALES) assert.match(render(locale), /<plurals name="blanc_tabs_menu_header">/, locale);
 });

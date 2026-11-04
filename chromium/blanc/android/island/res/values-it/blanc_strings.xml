@@ -17,4 +17,9 @@
     <string name="blanc_share_picker_share">Condividi</string>
     <string name="blanc_tab_menu_remove_favorite">Rimuovi dai Preferiti</string>
     <string name="blanc_tab_menu_save_favorite">Salva nei Preferiti</string>
+    <plurals name="blanc_tabs_menu_header">
+        <item quantity="one">%d scheda</item>
+        <item quantity="many">%d schede</item>
+        <item quantity="other">%d schede</item>
+    </plurals>
 </resources>

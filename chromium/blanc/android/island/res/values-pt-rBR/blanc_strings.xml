@@ -17,4 +17,9 @@
     <string name="blanc_share_picker_share">Compartilhar</string>
     <string name="blanc_tab_menu_remove_favorite">Remover dos favoritos</string>
     <string name="blanc_tab_menu_save_favorite">Salvar nos favoritos</string>
+    <plurals name="blanc_tabs_menu_header">
+        <item quantity="one">%d aba</item>
+        <item quantity="many">%d abas</item>
+        <item quantity="other">%d abas</item>
+    </plurals>
 </resources>

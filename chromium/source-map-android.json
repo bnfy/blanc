@@ -7,7 +7,7 @@
     "chrome/android/java/res_base/drawable/ic_launcher.xml": "0a7b0fe2ae98d76b45db4c24397a36bf2eff0475882320a8dfd584ae2de9a495",
     "chrome/android/java/res_base/drawable/ic_launcher_round.xml": "0a7b0fe2ae98d76b45db4c24397a36bf2eff0475882320a8dfd584ae2de9a495",
     "chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java": "af19c62f69bf27963e11e3886e7cb4c4a74e9282e726b7d1d768da3039339996",
-    "chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java": "80ff541f6efc32d45d0e738bc65d54a8f5c13f023fdeea871606b01e4ca73847",
+    "chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java": "585be5ae673f58b81cac8d308c074ca5ef3ddd61c9540d98d1b072a7bf0fa2f5",
     "chrome/browser/flags/android/chrome_feature_list.cc": "dd83ae9e29c40fcf2e87ecf6b2c086f629be348c07fd53d65b39d24590a461a5",
     "chrome/browser/flags/android/java/src/org/chromium/chrome/browser/flags/ChromeFeatureList.java": "d8a5eeba9a9c1d93942693ba6c735e540a86bd6d11d052447120238a3da27eba",
     "chrome/browser/ui/webui/BUILD.gn": "b18afbde19349da54bf1c1b1a3c60395eeeaa4fd3831649ba4da183e475e0c34",

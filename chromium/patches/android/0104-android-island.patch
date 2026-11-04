@@ -205,3 +205,15 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          assert mLayoutManager != null;
  
          if (mCountrySupplier != null && mCountrySupplier.get() == null) {
+@@ -2962,9 +3115,8 @@
+         mNotificationPermissionController =
+                 new NotificationPermissionController(mWindowAndroid, rationaleUIDelegateSupplier);
+         NotificationPermissionController.attach(mWindowAndroid, mNotificationPermissionController);
+-        if (mNotificationPermissionController.requestPermissionIfNeeded(/* contextual= */ false)) {
+-            return true;
+-        }
++        // Blanc (patch 0104): no notification prompt at startup, as on the iPhone; Android asks
++        // in context (a download, a site's request) instead.
+ 
+         assert mAdvancedProtectionCoordinator != null;
+         if (mAdvancedProtectionCoordinator.showMessageOnStartupIfNeeded()) {

@@ -7,6 +7,7 @@ import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
@@ -122,6 +123,15 @@ public class IslandView extends FrameLayout {
                                 ? R.string.blanc_ios_island_stop
                                 : R.string.blanc_ios_island_reload));
         mTabCount.setText(String.valueOf(state.tabCount));
+        // The iPhone's accessibility value: TalkBack hears "Show all tabs, 3 tabs".
+        String count =
+                res.getQuantityString(R.plurals.blanc_tabs_menu_header, state.tabCount, state.tabCount);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            mTabs.setStateDescription(count);
+        } else {
+            mTabs.setContentDescription(
+                    res.getString(R.string.blanc_ios_island_show_all_tabs) + ", " + count);
+        }
         mPrivate.setVisibility(state.privateTab ? View.VISIBLE : View.GONE);
         boolean systemDark =
                 (res.getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)

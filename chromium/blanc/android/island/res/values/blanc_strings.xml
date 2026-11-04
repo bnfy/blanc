@@ -17,4 +17,8 @@
     <string name="blanc_share_picker_share">Share</string>
     <string name="blanc_tab_menu_remove_favorite">Remove from Favorites</string>
     <string name="blanc_tab_menu_save_favorite">Save to Favorites</string>
+    <plurals name="blanc_tabs_menu_header">
+        <item quantity="one">%d tab</item>
+        <item quantity="other">%d tabs</item>
+    </plurals>
 </resources>
