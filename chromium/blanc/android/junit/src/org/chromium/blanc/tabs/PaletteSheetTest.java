@@ -123,6 +123,8 @@ public class PaletteSheetTest {
         ShadowLooper.idleMainLooper();
         assertEquals(List.of("https://example.com/"), titles(sheet, PaletteSheet.RowKind.TAB));
         assertTrue(mStore.groups().get(0).collapsed);
+        // As desktop's panel and the shared scenario (F3-3) show it.
+        assertEquals(List.of("2 tabs tucked away"), titles(sheet, PaletteSheet.RowKind.TUCKED));
     }
 
     @Test

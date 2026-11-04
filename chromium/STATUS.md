@@ -496,7 +496,7 @@ D15 (Android bullets), D34 and D35.
 
 627 executable cases from 578 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
 
-Android's Bar A will count the companion scenario set once Android steps are bound (A2); desktop cases don't apply to it.
+Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acceptance/` (A2): 23 (F2–F5, F8, F18, and the phone-only F31-11 and F56-1–3), run on the build server's emulator by `run.sh`; desktop cases don't apply to it. F6-1, F6-2 and F7-1 join with ad blocking (A3), whose Background they share.
 
 ### Bar B — requirement rows by platform
 

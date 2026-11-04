@@ -22,18 +22,23 @@ import org.chromium.content_public.browser.LoadUrlParams;
 import org.chromium.content_public.browser.WebContents;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Blanc's {@link TabStore} over Chromium's tab model (A2 spike, docs/android/a2-tabs-spike.md).
  * Chromium keeps and restores tabs, groups (name, color, folded) and pins; Blanc's eight preset
  * colors are kept beside a group in Blanc's preferences, with the nearest Chromium color set too.
- * Ids are Chromium's tab ids and group tokens, as strings.
+ * Ids are Chromium's tab ids and group tokens, as strings. Chromium keeps pinned tabs apart from
+ * groups, so a grouped tab's pin is Blanc's own (in Blanc's preferences): the tab stays in its group
+ * and leads it, as on desktop and the iPhone.
  */
 @NullMarked
 public final class ChromiumTabStore implements TabStore {
     private static final String COLOR_PREFIX = "blanc.group_color.";
+    private static final String GROUP_PINS = "blanc.group_pins";
 
     /** Blanc's presets as Chromium's nearest group colors. */
     private static final Map<String, Integer> NEAREST =
@@ -74,11 +79,35 @@ public final class ChromiumTabStore implements TabStore {
         return null;
     }
 
+    private static Set<String> groupPins() {
+        return new HashSet<>(prefs().getStringSet(GROUP_PINS, Set.of()));
+    }
+
+    private static void setGroupPin(Tab tab, boolean pinned) {
+        Set<String> pins = groupPins();
+        String id = String.valueOf(tab.getId());
+        if (pinned ? !pins.add(id) : !pins.remove(id)) return;
+        prefs().edit().putStringSet(GROUP_PINS, pins).apply();
+    }
+
+    /** Chromium's pin, or Blanc's for a tab in a group. */
+    public static boolean isPinned(Tab tab) {
+        return tab.getIsPinned()
+                || (tab.getTabGroupId() != null && groupPins().contains(String.valueOf(tab.getId())));
+    }
+
+    /** Before a pinned tab joins a group: Chromium's pin can't, so it becomes Blanc's. */
+    private void carryPinIntoGroup(Tab tab) {
+        if (!tab.getIsPinned()) return;
+        mSelector.getModel(false).unpinTab(tab.getId());
+        setGroupPin(tab, true);
+    }
+
     private static Entry entry(Tab tab) {
         WebContents contents = tab.getWebContents();
         Token group = tab.getTabGroupId();
         return new Entry(String.valueOf(tab.getId()), tab.getUrl().getSpec(), tab.getTitle(),
-                group == null ? null : group.toString(), tab.getIsPinned(),
+                group == null ? null : group.toString(), isPinned(tab),
                 contents != null && contents.isAudioMuted(), tab.isIncognito());
     }
 
@@ -167,6 +196,10 @@ public final class ChromiumTabStore implements TabStore {
     public void setPinned(String id, boolean pinned) {
         Tab tab = tab(id);
         if (tab == null) return;
+        if (tab.getTabGroupId() != null) {
+            setGroupPin(tab, pinned);
+            return;
+        }
         TabModel model = mSelector.getModel(tab.isIncognito());
         if (pinned) {
             model.pinTab(tab.getId(), /* showUngroupDialog= */ false);
@@ -201,6 +234,7 @@ public final class ChromiumTabStore implements TabStore {
         Tab tab = tab(tabId);
         if (tab == null) return "";
         TabModel model = mSelector.getModel(false);
+        carryPinIntoGroup(tab);
         model.createSingleTabGroup(tab);
         Token token = tab.getTabGroupId();
         if (token == null) return "";
@@ -241,14 +275,20 @@ public final class ChromiumTabStore implements TabStore {
         if (tab == null || token == null || tab.isIncognito()) return;
         TabModel model = mSelector.getModel(false);
         List<Tab> members = model.getTabsInGroup(token);
-        if (!members.isEmpty()) model.mergeTabsToGroup(tab.getId(), members.get(0).getId());
+        if (members.isEmpty()) return;
+        carryPinIntoGroup(tab);
+        model.mergeTabsToGroup(tab.getId(), members.get(0).getId());
     }
 
     @Override
     public void removeFromGroup(String tabId) {
         Tab tab = tab(tabId);
         if (tab == null || tab.getTabGroupId() == null) return;
-        mSelector.getModel(false).getTabUngrouper().ungroupTabs(
-                List.of(tab), /* trailing= */ true, /* allowDialog= */ false);
+        boolean pinned = isPinned(tab);
+        setGroupPin(tab, false);
+        TabModel model = mSelector.getModel(false);
+        model.getTabUngrouper().ungroupTabs(List.of(tab), /* trailing= */ true, /* allowDialog= */ false);
+        // Out of its group, its pin is Chromium's again: an ungrouped pin.
+        if (pinned) model.pinTab(tab.getId(), /* showUngroupDialog= */ false);
     }
 }

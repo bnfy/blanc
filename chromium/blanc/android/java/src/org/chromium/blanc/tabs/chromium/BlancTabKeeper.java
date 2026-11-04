@@ -107,7 +107,7 @@ public final class BlancTabKeeper {
             c.media = contents != null && MediaSession.fromWebContents(contents) != null
                     && MediaSession.fromWebContents(contents).isControllable();
             c.muted = contents != null && contents.isAudioMuted();
-            c.pinned = tab.getIsPinned();
+            c.pinned = ChromiumTabStore.isPinned(tab);
             c.capturing = mCapturing.test(tab);
             // Chromium's discard keeps the WebContents and frees its renderer, so Blanc remembers it.
             Long quietSince = mQuieted.get(tab.getId());

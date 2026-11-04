@@ -83,6 +83,7 @@ public final class PaletteSheet extends Dialog {
         HEADING,
         GROUP,
         TAB,
+        TUCKED,
         COMMAND,
         RESULT,
         EMPTY
@@ -331,7 +332,10 @@ public final class PaletteSheet extends Dialog {
             TabStore.Group group = section.groupId == null ? null : groups.get(section.groupId);
             if (group != null) {
                 groupRow(group, section.tabIds.size());
-                if (group.collapsed) continue;
+                if (group.collapsed) {
+                    tuckedRow(group, section.tabIds.size());
+                    continue;
+                }
             }
             for (String id : section.tabIds) {
                 TabStore.Entry tab = byId.get(id);
@@ -429,6 +433,19 @@ public final class PaletteSheet extends Dialog {
         lp.setMargins(dp(12), dp(4), dp(12), 0);
         mList.addView(view, lp);
         mRows.add(new Row(RowKind.GROUP, group.name, String.valueOf(count), false, view, null));
+    }
+
+    /** A folded group's one row, as desktop's panel: "N tabs tucked away"; a tap unfolds it. */
+    private void tuckedRow(TabStore.Group group, int count) {
+        String label = mActivity.getResources().getQuantityString(R.plurals.blanc_tab_groups_tucked, count, count);
+        TextView view = text(label, 13, secondary());
+        view.setPadding(dp(38), dp(8), dp(22), dp(8));
+        view.setOnClickListener(v -> {
+            mTabs.setGroupCollapsed(group.id, false);
+            render();
+        });
+        mList.addView(view);
+        mRows.add(new Row(RowKind.TUCKED, label, "", false, view, null));
     }
 
     private void tabRow(TabStore.Entry tab) {
