@@ -401,7 +401,7 @@ for the device. Owner approved the download and cold builds on 2026-11-03.
   Patches: `patches/android/0101` (identity, icon) and `0102` (Google
   background services and first run off). No shared patches at A0: they wire
   desktop Blanc into `chrome/browser`, which Android also compiles.
-- **Server:** Hetzner EX63-1 `blanc-android-build` (2.29.244.46), build user
+- **Server:** Hetzner EX63-1 `blanc-android-build` (address kept out of this public repository), build user
   `blanc`, key-only SSH. History-free checkout at `~/chromium-android/src`
   (40 GB), outputs `out/AndroidDebug` and `out/AndroidDebugX64` (20 GB each),
   evidence in `~/blanc-evidence/android/`. Layout:
