@@ -71,16 +71,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompat
 diff -ruN a/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc b/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc
 --- a/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc
 +++ b/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc
-@@ -12,6 +12,8 @@
- #include <set>
- #include <string>
- #include <utility>
-+
-+#include "build/build_config.h"
- #include <vector>
- 
- #include "base/feature_list.h"
-@@ -525,6 +527,13 @@
+@@ -525,6 +525,12 @@
  }
  
  void GaiaCookieManagerService::TriggerListAccounts() {
@@ -89,8 +80,15 @@ diff -ruN a/components/signin/internal/identity_manager/gaia_cookie_manager_serv
 +  // Google accounts in its cookie jar: sign-in metrics and Sync's session
 +  // recorder called accounts.google.com/ListAccounts at every startup. Callers
 +  // see the jar as not yet fetched.
-+  return;
-+#endif
++#else
    // Callers suspect that a check to Gaia needs to be done, don't rely on the
    // in progress request, conditions might have changed while the request is
    // in-flight.
+@@ -540,6 +546,7 @@
+         base::BindOnce(&GaiaCookieManagerService::StartFetchingListAccounts,
+                        weak_ptr_factory_.GetWeakPtr()));
+   }
++#endif  // BUILDFLAG(IS_ANDROID)
+ }
+ 
+ void GaiaCookieManagerService::TriggerListAccountsIfStale() {
