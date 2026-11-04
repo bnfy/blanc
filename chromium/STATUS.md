@@ -606,8 +606,10 @@ list/run; overlay drag flag; microphone capture seed.
    checked by `tools/settings-keys.mjs`: 19 are S1.7's (7 in Chromium's own
    stores, 12 Blanc prefs, all with shipping's defaults; islandSiteColors,
    islandTabIcons and searchPriorityResults still to build), 4 approved
-   divergences, 55 for later slices or the importer, adblockProvider waits
-   on D2, and surfaceStyle and webrtcAudioBuffer have no spec row. Then, in
+   divergences, 55 for later slices or the importer, and adblockProvider
+   waits on D2. surfaceStyle and webrtcAudioBuffer have no spec row; the
+   owner put both in S1.7 (2026-11-03), so 21 keys are S1.7's and five Blanc
+   prefs are still to build. Then, in
    order: the native sheet showing chrome://settings; removing its Google,
    Sync, Safety Check and AI sections; Blanc sections inside it, bound to
    prefs through settings_private's allowlist (Island, search suggestions

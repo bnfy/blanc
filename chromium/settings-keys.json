@@ -252,8 +252,13 @@
   },
   {
    "key": "surfaceStyle",
-   "kind": "unassigned",
-   "note": "No spec row: the utility sheets' Sunrise or neutral surface"
+   "kind": "blanc-pref",
+   "row": "F14",
+   "slice": "S1.7",
+   "pref": "blanc.appearance.surface_style",
+   "scope": "profile",
+   "status": "to-build",
+   "note": "No spec row; owner 2026-11-03: built in S1.7. The utility sheets' Sunrise or neutral surface"
   },
   {
    "key": "glanceFrame",
@@ -372,8 +377,13 @@
   },
   {
    "key": "webrtcAudioBuffer",
-   "kind": "unassigned",
-   "note": "No spec row: a page-realm receive-buffer target for calls"
+   "kind": "blanc-pref",
+   "row": "F14",
+   "slice": "S1.7",
+   "pref": "blanc.webrtc.audio_buffer",
+   "scope": "local",
+   "status": "to-build",
+   "note": "No spec row; owner 2026-11-03: built in S1.7. Device-local in shipping; a receive-buffer target for call audio"
   },
   {
    "key": "secureDns",
