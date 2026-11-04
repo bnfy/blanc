@@ -8,16 +8,19 @@ import shutil
 import subprocess
 import tempfile
 
-root = Path(__file__).resolve().parents[1]
-source = json.loads((root / 'source-map.json').read_text())
-pristine = json.loads((root / 'upstream/manifest.json').read_text())
+import lane as lanes
+
+root = lanes.root
 sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest() if p.is_file() else None
 parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lane', default='desktop')
 parser.add_argument('--src', type=Path, required=True)
 parser.add_argument('--backup', type=Path)
 parser.add_argument('--apply', action='store_true')
 parser.add_argument('--previous-map', type=Path)
 args = parser.parse_args()
+lane = lanes.load(args.lane)
+source = {'upstream': lane['upstream'], 'upstreamFiles': lane['upstreamFiles'], 'canonicalSha256': lane['canonicalSha256']}
 previous = json.loads(args.previous_map.read_text()) if args.previous_map else {}
 if previous and previous.get('upstream') != source['upstream']: raise SystemExit('Previous source map has different upstream')
 head = subprocess.check_output(['git','-C',str(args.src),'rev-parse','HEAD']).decode().strip()
@@ -25,11 +28,11 @@ if head != source['upstream']:
     raise SystemExit('Unexpected upstream; no changes made')
 with tempfile.TemporaryDirectory(prefix='blanc-source-apply-') as temp:
     work = Path(temp)
-    for name, expected in pristine['files'].items():
-        p = root / 'upstream' / name
+    for name, expected in lane['files'].items():
+        p = lane['upstreamDir'] / name
         if sha(p) != expected: raise SystemExit('Pristine input mismatch: ' + name)
         q = work / name; q.parent.mkdir(parents=True, exist_ok=True); shutil.copyfile(p,q)
-    for patch in [root/'patches/baseline/0001-foundation-baseline.patch', root/'patches/0002-canonical-layout.patch', root/'patches/0003-island-mode-predicate.patch', root/'patches/0004-typed-island-interface.patch', root/'patches/0005-channel-identity.patch', root/'patches/0006-external-scheme-deny.patch', root/'patches/0007-bangs-prefs.patch', root/'patches/0008-background-services.patch', root/'patches/0009-ui-language-pref.patch', root/'patches/0010-island-prefs.patch', root/'patches/0011-in-window-private-tabs.patch', root/'patches/0012-utility-sheet-commands.patch', root/'patches/0013-private-window-menus.patch', root/'patches/0014-http-auth-refusal.patch', root/'patches/0015-island-permission-prompt.patch', root/'patches/0016-private-certificate-decisions.patch', root/'patches/0017-inherited-sandbox.patch', root/'patches/0018-webrtc-ip-policy.patch', root/'patches/0019-settings-sheet-command.patch', root/'patches/0020-settings-sections.patch', root/'patches/0021-blanc-settings-controls.patch', root/'patches/0022-blanc-settings-lists.patch', root/'patches/0023-blanc-settings-remaining.patch', root/'patches/0024-blanc-call-audio.patch', root/'patches/0025-blanc-settings-look.patch']:
+    for patch in lane['patches']:
         subprocess.run(['git','apply',str(patch)],cwd=work,check=True)
     for name, expected in source['canonicalSha256'].items():
         p = root/name
@@ -41,7 +44,7 @@ with tempfile.TemporaryDirectory(prefix='blanc-source-apply-') as temp:
         before = sha(args.src/name)
         if sha(work/name) != expected: raise SystemExit('Reconstruction mismatch: '+name)
         if before == expected: continue
-        allowed_before = {pristine['files'].get(name), previous.get('canonicalSha256', {}).get(name), previous.get('upstreamFiles', {}).get(name)}
+        allowed_before = {lane['files'].get(name), previous.get('canonicalSha256', {}).get(name), previous.get('upstreamFiles', {}).get(name)}
         if before not in allowed_before:
             raise SystemExit('Unrecognized cached source; preserve and reconcile: '+name)
         changes.append({'path':name,'before':before,'after':expected})

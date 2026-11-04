@@ -1,0 +1,20 @@
+{
+  "comment": "Google hosts the Android app must never contact by itself (design §2). '*.' also matches the domain itself. The session's pages make no requests to these, so any hit is the browser's own.",
+  "hosts": [
+    "*.google.com",
+    "clients*.google.com",
+    "*.googleapis.com",
+    "*.gstatic.com",
+    "*.gvt1.com",
+    "*.gvt2.com",
+    "*.googleusercontent.com",
+    "*.doubleclick.net",
+    "*.google-analytics.com",
+    "*.googletagmanager.com",
+    "*.googlesyndication.com",
+    "*.googleadservices.com",
+    "*.app-measurement.com",
+    "*.crashlytics.com",
+    "*.firebaseio.com"
+  ]
+}

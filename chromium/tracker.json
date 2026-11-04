@@ -12,7 +12,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -24,6 +25,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -37,7 +42,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -49,6 +55,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -62,7 +72,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -74,6 +85,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -87,7 +102,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -99,6 +115,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -112,7 +132,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -124,6 +145,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -137,7 +162,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -149,6 +175,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -162,7 +192,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -174,6 +205,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -187,7 +222,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -199,6 +235,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -212,7 +252,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -224,6 +265,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -237,7 +282,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -249,6 +295,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -262,7 +312,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -274,6 +325,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -287,7 +342,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -299,6 +355,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -312,7 +372,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -324,6 +385,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -337,7 +402,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -349,6 +415,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -362,7 +432,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -374,6 +445,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -387,7 +462,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -399,6 +475,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -412,7 +492,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -424,6 +505,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -437,7 +522,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -449,6 +535,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -462,7 +552,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -474,6 +565,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -487,7 +582,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -499,6 +595,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -512,7 +612,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -524,6 +625,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -537,7 +642,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -549,6 +655,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -562,7 +672,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -574,6 +685,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -587,7 +702,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -599,6 +715,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -612,7 +732,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -624,6 +745,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -637,7 +762,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -649,6 +775,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -662,7 +792,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -674,6 +805,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -687,7 +822,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -699,6 +835,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -712,7 +852,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -724,6 +865,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -737,7 +882,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -749,6 +895,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -762,7 +912,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -774,6 +925,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -787,7 +942,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -799,6 +955,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -812,7 +972,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -824,6 +985,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -837,7 +1002,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -851,6 +1017,10 @@
         "linux": {
           "stage": "not-started",
           "basis": "no fork build"
+        },
+        "android": {
+          "stage": "not-started",
+          "basis": "no fork build"
         }
       }
     },
@@ -862,7 +1032,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -874,6 +1045,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -887,7 +1062,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -899,6 +1075,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -912,7 +1092,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -924,6 +1105,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -937,7 +1122,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -951,6 +1137,10 @@
         "linux": {
           "stage": "not-started",
           "basis": "no fork build"
+        },
+        "android": {
+          "stage": "not-started",
+          "basis": "no fork build"
         }
       }
     },
@@ -962,7 +1152,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -974,6 +1165,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -987,7 +1182,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -999,6 +1195,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1012,7 +1212,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1024,6 +1225,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1037,7 +1242,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1049,6 +1255,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1062,7 +1272,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1074,6 +1285,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1087,7 +1302,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1099,6 +1315,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1112,7 +1332,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1124,6 +1345,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1137,7 +1362,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1149,6 +1375,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1162,7 +1392,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1174,6 +1405,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1187,7 +1422,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1199,6 +1435,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1212,7 +1452,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1226,6 +1467,10 @@
         "linux": {
           "stage": "not-started",
           "basis": "no fork build"
+        },
+        "android": {
+          "stage": "not-started",
+          "basis": "no fork build"
         }
       }
     },
@@ -1237,7 +1482,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1249,6 +1495,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1262,7 +1512,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1274,6 +1525,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1287,7 +1542,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1299,6 +1555,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1312,7 +1572,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1326,6 +1587,10 @@
         "linux": {
           "stage": "not-started",
           "basis": "no fork build"
+        },
+        "android": {
+          "stage": "not-started",
+          "basis": "no fork build"
         }
       }
     },
@@ -1337,7 +1602,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1351,6 +1617,10 @@
         "linux": {
           "stage": "not-started",
           "basis": "no fork build"
+        },
+        "android": {
+          "stage": "not-started",
+          "basis": "no fork build"
         }
       }
     },
@@ -1362,7 +1632,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1374,6 +1645,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1387,7 +1662,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1401,6 +1677,10 @@
         "linux": {
           "stage": "not-started",
           "basis": "no fork build"
+        },
+        "android": {
+          "stage": "not-started",
+          "basis": "no fork build"
         }
       }
     },
@@ -1412,7 +1692,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1424,6 +1705,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1446,7 +1731,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1458,6 +1744,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1471,7 +1761,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1483,6 +1774,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1496,7 +1791,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1508,6 +1804,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1521,7 +1821,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1533,6 +1834,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1546,7 +1851,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1558,6 +1864,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1571,7 +1881,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1583,6 +1894,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1596,7 +1911,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1608,6 +1924,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1621,7 +1941,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1633,6 +1954,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1646,7 +1971,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1658,6 +1984,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1671,7 +2001,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1683,6 +2014,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1696,7 +2031,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1708,6 +2044,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1721,7 +2061,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1733,6 +2074,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1746,7 +2091,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1758,6 +2104,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1771,7 +2121,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1783,6 +2134,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1796,7 +2151,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1808,6 +2164,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1821,7 +2181,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1833,6 +2194,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1846,7 +2211,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1858,6 +2224,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1871,7 +2241,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1883,6 +2254,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1896,7 +2271,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1908,6 +2284,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1921,7 +2301,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1933,6 +2314,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1946,7 +2331,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1958,6 +2344,10 @@
           "basis": "no fork build"
         },
         "linux": {
+          "stage": "not-started",
+          "basis": "no fork build"
+        },
+        "android": {
           "stage": "not-started",
           "basis": "no fork build"
         }
@@ -1971,7 +2361,8 @@
       "platformVerification": {
         "macos": null,
         "windows": null,
-        "linux": null
+        "linux": null,
+        "android": null
       },
       "platformProgress": {
         "macos": {
@@ -1985,6 +2376,10 @@
         "linux": {
           "stage": "not-started",
           "basis": "no fork build"
+        },
+        "android": {
+          "stage": "not-started",
+          "basis": "no fork build"
         }
       }
     }
@@ -1996,6 +2391,14 @@
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
       "qualification": "compiled candidate; runtime acceptance pending"
+    },
+    "android": {
+      "id": "android-arm64-7bd35e94ef746069",
+      "apkSha256": "7bd35e94ef746069062a711948ec72eb2cae687d6da8c1f1dac2eb30cb85a045",
+      "x64ApkSha256": "077b76063f75e2487d9cb74c0e18f6ffa56a57086bbb174e815c9fc15a7ba1f7",
+      "version": "156.0.8078.79",
+      "treeCommit": "27355bbe75d602a24c56f84bbb10adf04497f93d",
+      "qualification": "debug build; launches and loads pages on the emulator; Pixel pending"
     }
   },
   "baselines": {
