@@ -268,6 +268,7 @@
     "chrome/browser/prefs/session_startup_pref.cc": "da151f9280c2095dea87ed68ad1196a8a9a7b907eb04f1b3a4f4407c5a533063",
     "chrome/browser/resource_coordinator/tab_lifecycle_unit.cc": "b5bdf042e29285e501b8949cfe23428bfa0a55c38ed5407aa595b38e5ffa16e4",
     "chrome/browser/resources/glic/glic_api_impl/generate_impl/BUILD.gn": "0f1cc67ae3d32fb047f96fd34aec47005b0df71ae91816e30613c48e4710b547",
+    "chrome/browser/resources/settings/page_visibility.ts": "80729c72e7f7bef49b4557e599bc630eebd76c12036e392088cfc1bc10055eab",
     "chrome/browser/search/search.cc": "e639b6143d78eea0c8266dca980d83f1c1253cc64068ad4faf4ba22a930ec832",
     "chrome/browser/sessions/session_restore.cc": "e307f3bbc5408eea54452f7b900c1a042024bc952d6017b97bb457b2d889e907",
     "chrome/browser/sessions/session_service.cc": "9f076304bc69d0bc74c1a6eb38c3e03d35b260b8d4ae90161c5db77661b65d10",

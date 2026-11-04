@@ -446,6 +446,19 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   document, in-sheet readers wait too, and a custom bang's add settles
   before the sheet closes. `tests/window-snapshot.mjs` composites DevTools
   captures into window screenshots without Screen Recording.
+- **S1.7 Chromium's settings sections, candidate macos-61b9387a2d9a8841 (2026-11-04):**
+  patch 0020 (`page_visibility.ts`, newly pinned: 92 upstream files) gives
+  every non-guest profile `{ai, people, safetyHub}: false`, so the Google
+  account and Sync section, AI and Safety Check are gone from the menu and
+  pages, and Chromium leaves their routes out: chrome://settings/people,
+  /syncSetup, /safetyCheck and /ai fall back to chrome://settings/. Every
+  reader treats a missing key as shown, so the other sections are
+  unchanged. A probe of the sheet confirmed the menu, the Privacy page
+  (no Safety Check, Sync or AI elements) and the four addresses;
+  settings-and-theming matches s17g. The build's dry run was 55 actions
+  (the Settings TypeScript chain plus per-language InfoPlist strings after
+  a manifest rebuild; no toolchain change), above the usual 50, so it was
+  reviewed and run once with `--max-actions=60`.
 - **Open question, file picker hang (2026-11-04):** the owner's live
   instance on macos-61b9387a2d9a8841 hung when choosing a custom Start Page
   wallpaper. The hang report shows the UI thread inside AppKit's

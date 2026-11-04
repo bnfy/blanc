@@ -3,7 +3,7 @@
 // captured separately over DevTools and composited at their window
 // positions (lib/compose-png.swift). Runs only in an isolated fixture.
 //   node chromium/tests/window-snapshot.mjs runtime-config.json out-dir [scene ...]
-// Scenes: page, palette, settings (default: all).
+// Scenes: page, palette, settings, settings-privacy (default: all).
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -75,16 +75,19 @@ const SCENES = {
     await fixture.host.eval('window.BlancPrototypeHost.open(false)');
     await pause(800);
   },
-  settings: async fixture => {
-    await fixture.host.eval("window.BlancPrototypeHost.api.openPage('settings')");
-    await waitFor(() => nativeCall(fixture.host, 'settingsSheetState'), s => s.attached, 'settings sheet');
-    const target = await waitFor(async () => (await fixture.targets()).find(t => t.type === 'page' && SETTINGS.test(t.url)), Boolean, 'settings page');
-    const settings = await fixture.connectTarget(target);
-    await waitFor(() => settings.eval('document.readyState'), s => s === 'complete', 'settings loaded');
-    settings.close();
-    await pause(1500);
-  },
+  settings: fixture => openSettings(fixture, ''),
+  // Chromium's own sections, in the same sheet.
+  'settings-privacy': fixture => openSettings(fixture, 'privacy'),
 };
+async function openSettings(fixture, section) {
+  await fixture.host.eval(`window.BlancPrototypeHost.api.openPage('settings', ${JSON.stringify(section)})`);
+  await waitFor(() => nativeCall(fixture.host, 'settingsSheetState'), s => s.attached, 'settings sheet');
+  const target = await waitFor(async () => (await fixture.targets()).find(t => t.type === 'page' && SETTINGS.test(t.url)), Boolean, 'settings page');
+  const settings = await fixture.connectTarget(target);
+  await waitFor(() => settings.eval('document.readyState'), s => s === 'complete', 'settings loaded');
+  settings.close();
+  await pause(1500);
+}
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const [configPath, outDir, ...asked] = process.argv.slice(2);
